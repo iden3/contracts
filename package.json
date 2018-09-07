@@ -1,0 +1,54 @@
+{
+    "name": "iden3-contracts",
+    "version": "0.1.0",
+    "description": "Iden3 smartcontracts",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/iden3/contracts-private.git"
+    },
+    "license": "GPL-3.0",
+    "bugs": {
+        "url": "https://github.com/iden3/contracts-private/issues"
+    },
+    "homepage": "https://github.com/iden3/contracts-private",
+    "devDependencies": {
+        "async": "^2.6.0",
+        "bignumber.js": "^6.0.0",
+        "eslint": "^4.17.0",
+        "eslint-config-airbnb": "^16.1.0",
+        "eslint-config-standard": "^11.0.0-beta.0",
+        "eslint-plugin-import": "^2.8.0",
+        "eslint-plugin-jsx-a11y": "^6.0.3",
+        "eslint-plugin-mocha": "^4.11.0",
+        "eslint-plugin-node": "^6.0.0",
+        "eslint-plugin-promise": "^3.6.0",
+        "eslint-plugin-react": "^7.6.1",
+        "eslint-plugin-standard": "^3.0.1",
+        "random-bytes": "^1.0.0",
+        "web3": "^1.0.0-beta.30"
+    },
+    "dependencies": {
+        "babel-eslint": "^8.2.1",
+        "codecov": "^3.0.0",
+        "eip820": "0.0.21",
+        "ethereumjs-util": "^5.2.0",
+        "jsonfile": "^4.0.0",
+        "openzeppelin-solidity": "^1.12.0",
+        "solidity-coverage": "^0.5.11",
+        "solium": "^1.1.5",
+        "truffle": "^5.0.0-beta.0"
+    },
+    "main": "truffle.js",
+    "directories": {
+        "test": "test"
+    },
+    "engines": {
+        "node": ">= 7.6"
+    },
+    "scripts": {
+        "test": "truffle test",
+        "lint": "solium --dir contracts && eslint test",
+        "coverage": "./node_modules/.bin/solidity-coverage",
+        "travis": "./node_modules/.bin/solidity-coverage"
+    }
+}
