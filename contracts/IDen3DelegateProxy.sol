@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import './lib/DelegateProxy.sol';
 
-import './Iden3SlotStorage.sol';
+import './IDen3SlotStorage.sol';
 
 contract IDen3DelegateProxy is DelegateProxy, IDen3SlotStorage {
     
