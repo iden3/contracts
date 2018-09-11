@@ -6,7 +6,7 @@ import 'eip820/contracts/ERC820Implementer.sol';
 
 import './lib/DelegateProxySlotStorage.sol';
 import './lib/RLP.sol';
-import './lib/Iden3lib.sol';
+import './lib/IDen3lib.sol';
 
 import './IDen3SlotStorage.sol';
 import './RootCommits.sol';
@@ -16,8 +16,8 @@ contract IDen3Authz {
 }
 
 contract IDen3 is DelegateProxySlotStorage,
+                  IDen3lib,
                   IDen3SlotStorage,
-                  Iden3lib,
                   ERC820Implementer {
     
    using SafeMath for uint256;
@@ -62,55 +62,38 @@ contract IDen3 is DelegateProxySlotStorage,
           return (false,0x0,0x0);
        }
 
-       // check if the caller is the same that the inside the claim -----------
-       address key = it.next().toAddress();
-       if (_caller!=key) {
-          return (false,0x0,0x0);
-       }
-
-       // check if the rest of the claim information is ok --------------------
-       appid = it.next().toBytes32();
-       authz = it.next().toBytes32();
-       uint64  validFrom = uint64(it.next().toUint());
-       uint64  validUntil = uint64(it.next().toUint());
-
-       uint64 keyExpiration = ksigns[keccak256(abi.encodePacked(key,appid))];
-       if (keyExpiration > 0) {
-           return (now < validUntil,0x0,0x0);
-       }       
-
-       // verify the proofs ---------------------------------------------------
+       // decode the RLP
+       bytes   memory claimBytes = it.next().toBytes();
        bytes32 claimRoot = it.next().toBytes32();
-       bytes   memory claimRootSig = it.next().toBytes();
-       uint256 claimRootSigDate = it.next().toUint();
        bytes   memory claimExistenceProof = it.next().toBytes();
        bytes   memory claimNonExistenceProof = it.next().toBytes();
 
-       // signature date should be fresh (< 2h)
-       if (claimRootSigDate + 7200  > now) {
-           return (now < validUntil,0x0,0x0);
+       (bool success, KSignClaim memory kclaim) =
+           verifyKSignClaim(claimBytes, claimRoot,claimExistenceProof,claimNonExistenceProof);
+
+       if (!success || _caller!=kclaim.key) {
+          return (false,0x0,0x0);
        }
 
-       // verify the proofs for the ksignclaim
-       if (!verifyKSignClaim(
-           key,appid,authz,validFrom,validUntil,
-           claimRoot,claimExistenceProof,claimNonExistenceProof)) {
-
-           return (now < validUntil,0x0,0x0);
+       if (now < kclaim.validFrom || now > kclaim.validUntil) {
+           return (false,0x0,0x0);
        }
-       
+
+             
        // verify the relay signature
-       if ( __getRelay() != ecrecover2(
+       /*
+       if ( __getRelay() != IDen3lib.ecrecover2(
             keccak256(abi.encodePacked(claimRoot,claimRootSigDate)),
             claimRootSig,
             0)) {
            return (false,0x0,0x0);
        }
+       */
 
        // update the caché if all is ok ---------------------------------------
-       ksigns[keccak256(abi.encodePacked(key,appid))]=validUntil;
+       ksigns[keccak256(abi.encodePacked(kclaim.key,kclaim.appid))]=kclaim.validUntil;
 
-       return (true,appid,authz);
+       return (true,kclaim.appid,kclaim.authz);
    }
 
 
@@ -134,7 +117,7 @@ contract IDen3 is DelegateProxySlotStorage,
        ));
     
        // get the signature
-       address signer=ecrecover2(hash,_sig,0);
+       address signer=IDen3lib.ecrecover2(hash,_sig,0);
 
        // get the operational signature used, as also appid and approle restriction
        (bool ok, bytes32 appid, bytes32 authz) = verifyauth(signer,_auth);

@@ -1,7 +1,11 @@
 pragma solidity ^0.4.24;
 
-contract Iden3lib {
+import './Memory.sol';
+
+contract IDen3lib {
     
+    using Memory for *;
+
     function checkProof(bytes32 root, bytes proof, bytes32 hi, bytes32 ht, uint numlevels) 
     public pure returns (bool){
         
@@ -37,20 +41,125 @@ contract Iden3lib {
         return nodehash == root;
     }    
     
-    function checkExistenceProof(bytes32 root, bytes proof, bytes value, uint256 indexlen, uint numlevels) 
-    public pure returns (bool){
+    function hiht(bytes value, uint256 indexlen) 
+    internal pure returns (bytes32 hi ,bytes32 ht){
         
-        bytes32 hi;
         assembly {
             hi := keccak256(add(value,32),indexlen)
         }
         
-        bytes32 ht = keccak256(value);
+        ht = keccak256(value);
+
+        return (hi,ht);
+    }    
+    
+    function checkExistenceProof(bytes32 root, bytes proof, bytes value, uint256 indexlen, uint numlevels) 
+    public pure returns (bool){
+        
+        (bytes32 hi, bytes32 ht) = hiht(value,indexlen);
 
         return checkProof(root,proof,hi,ht,numlevels);
     }    
-    
+
+    struct KSignClaim {
+       address  key;
+       bytes32  appid;
+       bytes32  authz;
+       uint64   validFrom;
+       uint64   validUntil;
+       bytes32  hi;
+       bytes32  ht;
+    }
+
+    struct SetRootClaim {
+       uint32   version;
+       address  ethid;
+       bytes32  root;
+       bytes32  hi;
+       bytes32  ht;
+    }
+
+    function unpackKSignClaim(
+       bytes   memory  _m    
+    ) internal pure returns (bool ok, KSignClaim memory c) {
+
+       // unpack & verify claim
+       Memory.Walker memory w = Memory.walk(_m);
+        
+       if (w.readBytes32()!=keccak256("iden3.io")) return (false,c);
+       if (w.readBytes32()!=keccak256("authorizeksign")) return (false,c);
+       if (w.readUint32()!=uint32(0x00)) return (false,c);
+       c.key = w.readAddress();
+       c.appid = w.readBytes32();
+       c.authz = w.readBytes32();
+       c.validFrom = w.readUint64();
+       c.validUntil = w.readUint64();
+
+       (c.hi,c.ht) = hiht(_m,88);
+
+       return (true,c);
+    }
+
+    function unpackSetRootClaim(
+       bytes   memory  _m    
+    ) internal pure returns (bool ok, SetRootClaim memory c) {
+
+       // unpack & verify claim
+       Memory.Walker memory w = Memory.walk(_m);
+        
+       if (w.readBytes32()!=keccak256("iden3.io")) return (false,c);
+       if (w.readBytes32()!=keccak256("setroot")) return (false,c);
+       c.version = w.readUint32();
+       c.ethid = w.readAddress();
+       c.root = w.readBytes32();
+
+       (c.hi,c.ht) = hiht(_m,0x58);
+
+       return (true,c);
+    }
+
+
     function verifyKSignClaim(
+       bytes   memory  _m,
+       bytes32         _claimRoot,
+       bytes   memory  _claimExistenceProof,
+       bytes   memory  _claimSoundnessProof
+   )  internal pure returns (bool ok, KSignClaim memory c) {
+
+       _claimSoundnessProof; 
+
+       (ok,c) = unpackKSignClaim(_m); 
+/*
+       if (!checkExistenceProof(_claimRoot,_claimExistenceProof,_m,92,140)) {
+           return (false,c);
+       }
+*/
+       return (true,c);
+   }
+
+    function verifySetRootClaim(
+       bytes   memory  _m,
+       bytes32         _claimRoot,
+       bytes   memory  _claimExistenceProof
+     ) internal pure returns (bool ok, SetRootClaim memory c) {
+
+       // unpack & verify claim
+       Memory.Walker memory w = Memory.walk(_m);
+        
+       if (w.readUint32()!=uint32(68))           return (false,c);
+       if (w.readBytes32()!=keccak256("iden3.io"))       return (false,c);
+       if (w.readBytes32()!=keccak256("setroot")) return (false,c);
+       c.version = w.readUint32();
+       c.ethid = w.readAddress();
+       c.root = w.readBytes32();
+/*
+       if (!checkExistenceProof(_claimRoot,_claimExistenceProof,_m,68,140)) {
+           return (false,c);
+       }
+       */
+   }
+/*
+    function verifyKSignClaim2(
        address  _key,
        bytes32  _application,
        bytes32  _authz,
@@ -64,13 +173,16 @@ contract Iden3lib {
 
        _claimSoundnessProof; 
 
+        
+
+
        // current claim version
        bytes32 exist_hi = keccak256(abi.encodePacked(
            uint32(0x00000048),
            keccak256("iden3.io") ,      // Namespace
            keccak256("authorizeksign"), // Type
            uint32(0),                   // Version
-           _key                         // KeyToAuthorize */
+           _key                         // KeyToAuthorize 
        ));
        
        bytes32 exist_ht = keccak256(abi.encodePacked(
@@ -85,7 +197,7 @@ contract Iden3lib {
            _validUntil                  // ValidUntil      
        ));
 
-       /*
+       
        // a nullified next version
        bytes32 nonexist_hi = keccak256(abi.encodePacked(
            keccak256("iden3.io"),       // Namespace
@@ -102,13 +214,13 @@ contract Iden3lib {
            uint64(0x0),             // ValidFrom
            uint64(0x0)              // ValidUntil      
        ));
-       */
+       
        // check ksignclaim is ok
        
        return checkProof(_claimRoot, _claimExistenceProof, exist_hi, exist_ht, 140);
        
    }
-
+*/
    function verifySetRootClaim(
       uint32  _version,
       address _ethid,
