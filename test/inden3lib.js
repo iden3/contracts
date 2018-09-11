@@ -134,14 +134,4 @@ contract("Iden3lib", (accounts) => {
         assert.equal("0x33692EE5CBF7EcDb8cA43eC9E815C47F3Db8Cd11",signer2)
     })
 
-    it("test" , async () => {
-        const useraddr = "0xee602447b5a75cf4f25367f5d199b860844d10c4"
-        const userpvk  = ethutil.toBuffer("0x8A85AAA2A8CE0D24F66D3EAA7F9F501F34992BACA0FF942A8EDF7ECE6B91F713")
-        const relayaddr = "0x72006777fb1a33a50c13e8822fce859898273353"
-        const relaypvk = ethutil.toBuffer("0x7FF1F2A8F170FAEA7044E8B7131AA9D116D132FFAF825FD671279F5DE953A203")
-
-        ethutil.ecsign(ethutil.toBuffer("0xb0a36e88ab150e2bd0b4cae31d32d3a54ec4e0f17ca917ad26ab67d1fb25e75e"),userpvk)
-    })
-
-
 });

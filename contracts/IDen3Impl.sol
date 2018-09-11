@@ -15,10 +15,11 @@ contract IDen3Authz {
   function authz(bytes32 _appid, bytes32 _authz) returns (bool);
 }
 
-contract IDen3 is DelegateProxySlotStorage,
-                  IDen3lib,
-                  IDen3SlotStorage,
-                  ERC820Implementer {
+contract IDen3Impl is
+   DelegateProxySlotStorage,
+   IDen3SlotStorage,
+   IDen3lib,
+   ERC820Implementer {
     
    using SafeMath for uint256;
    using RLP      for RLP.RLPItem;
@@ -28,7 +29,14 @@ contract IDen3 is DelegateProxySlotStorage,
    ERC20           public   gasToken;
 
    uint256         public   lastNonce;  // last nonce
-   mapping(bytes32=>uint64) ksigns;     // a caché for ksigns
+
+   struct KSign {
+       uint64  validUntil;
+       bytes32 appid;
+       bytes32 authz;
+   }
+
+   mapping(address=>KSign) ksigns;     // a caché for ksigns
    
    constructor(
    ) public {
@@ -43,7 +51,6 @@ contract IDen3 is DelegateProxySlotStorage,
         require (msg.sender == recovery);
         __setRelay(_relayer);
    }
-
 
    // use this function to register ksign claims
    function verifyauth(
@@ -62,40 +69,63 @@ contract IDen3 is DelegateProxySlotStorage,
           return (false,0x0,0x0);
        }
 
-       // decode the RLP
-       bytes   memory claimBytes = it.next().toBytes();
-       bytes32 claimRoot = it.next().toBytes32();
-       bytes   memory claimExistenceProof = it.next().toBytes();
-       bytes   memory claimNonExistenceProof = it.next().toBytes();
-
-       (bool success, KSignClaim memory kclaim) =
-           verifyKSignClaim(claimBytes, claimRoot,claimExistenceProof,claimNonExistenceProof);
-
-       if (!success || _caller!=kclaim.key) {
+       // verify ksignclaim  --------------------------------------------------
+       bytes   memory kclaimBytes = it.next().toBytes();
+       (bool kok, KSignClaim memory kclaim) = unpackKSignClaim(kclaimBytes);
+       if (!kok || _caller!=kclaim.key) {
           return (false,0x0,0x0);
        }
 
+       // unpack & verify data
        if (now < kclaim.validFrom || now > kclaim.validUntil) {
            return (false,0x0,0x0);
        }
 
-             
-       // verify the relay signature
-       /*
-       if ( __getRelay() != IDen3lib.ecrecover2(
-            keccak256(abi.encodePacked(claimRoot,claimRootSigDate)),
-            claimRootSig,
-            0)) {
+       // check merkle tree
+       bytes32 kclaimRoot = it.next().toBytes32();
+       bytes   memory kclaimExistenceProof = it.next().toBytes();
+       // bytes   memory kclaimNonExistenceProof = it.next().toBytes();
+
+       if (!checkProof(kclaimRoot,kclaimExistenceProof,kclaim.hi,kclaim.ht,140)) {
+           return (false,0x0,0x0);
+       }  
+
+       // verify setrootclaim  --------------------------------------------------
+       bytes   memory rclaimBytes = it.next().toBytes();
+       bytes32 rclaimRoot = it.next().toBytes32();
+       bytes   memory rclaimExistenceProof = it.next().toBytes();
+       uint64  rclaimSigDate = uint64(it.next().toUint());
+       bytes   memory rclaimSig = it.next().toBytes();
+
+       // unpack & verify data
+       (bool rok, SetRootClaim memory rclaim) = unpackSetRootClaim(rclaimBytes);
+       if (!rok || rclaim.root != kclaimRoot || rclaim.ethid != address(this)) {
+          return (false,0x0,0x0);
+       }
+
+       // check the signature is fresh and done by the relayer
+       address signer = ecrecover2(
+           keccak256(abi.encodePacked(rclaimRoot,rclaimSigDate)),
+           rclaimSig,
+           0
+       );
+       if (now > rclaimSigDate + 3600 || signer != __getRelay()) {
            return (false,0x0,0x0);
        }
-       */
+
+       // check merkle tree
+       if (!checkProof(rclaimRoot,rclaimExistenceProof,rclaim.hi,rclaim.ht,140)) {
+           return (false,0x0,0x0);
+       }  
 
        // update the caché if all is ok ---------------------------------------
-       ksigns[keccak256(abi.encodePacked(kclaim.key,kclaim.appid))]=kclaim.validUntil;
-
+       ksigns[_caller]=KSign({
+           validUntil : kclaim.validUntil,
+           appid      : kclaim.appid,
+           authz      : kclaim.authz
+       });
        return (true,kclaim.appid,kclaim.authz);
    }
-
 
    function forward(
        address _to,    // destination
@@ -113,7 +143,9 @@ contract IDen3 is DelegateProxySlotStorage,
        // EIP191 compliant 0x19 0x00
        bytes32 hash=keccak256(abi.encodePacked(
           byte(0x19),byte(0),
-          this,lastNonce,_to,_data
+          this,lastNonce,
+          _to,_data, _value, _gas,
+          _auth
        ));
     
        // get the signature
@@ -132,7 +164,7 @@ contract IDen3 is DelegateProxySlotStorage,
           }
        }
 
-       // all ok? thel call
+       // all ok? thne call
        if (ok) {
           _to.call.gas(_gas).value(_value)(_data);
        }
