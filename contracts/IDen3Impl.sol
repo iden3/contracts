@@ -12,16 +12,8 @@ contract IDen3Impl is
    IDen3SlotStorage,
    IDen3lib {
 
-   uint256         public   lastNonce;  // last nonce
+   uint256 public   lastNonce;  // last nonce
 
-   struct KSign {
-       uint64  validUntil;
-       bytes32 appid;
-       bytes32 authz;
-   }
-
-   mapping(address=>KSign) ksigns;     // a caché for ksigns
-   
    constructor()
    IDen3SlotStorage(0x0)
    public {
@@ -36,7 +28,6 @@ contract IDen3Impl is
         __setRelay(_relayer);
    }
 
-   // use this function to register ksign claims
    function mustVerifyAuth(
        address _to,
        address _caller,

@@ -6,6 +6,24 @@ contract IDen3lib {
     
     using Memory for *;
 
+    struct KSignClaim {
+       address  key;
+       bytes32  appid;
+       bytes32  authz;
+       uint64   validFrom;
+       uint64   validUntil;
+       bytes32  hi;
+       bytes32  ht;
+    }
+
+    struct SetRootClaim {
+       uint32   version;
+       address  ethid;
+       bytes32  root;
+       bytes32  hi;
+       bytes32  ht;
+    }
+
     function checkProof(bytes32 root, bytes proof, bytes32 hi, bytes32 ht, uint numlevels) 
     public pure returns (bool){
         
@@ -61,23 +79,6 @@ contract IDen3lib {
         return checkProof(root,proof,hi,ht,numlevels);
     }    
 
-    struct KSignClaim {
-       address  key;
-       bytes32  appid;
-       bytes32  authz;
-       uint64   validFrom;
-       uint64   validUntil;
-       bytes32  hi;
-       bytes32  ht;
-    }
-
-    struct SetRootClaim {
-       uint32   version;
-       address  ethid;
-       bytes32  root;
-       bytes32  hi;
-       bytes32  ht;
-    }
 
     function unpackKSignClaim(
        bytes   memory  _m    
@@ -117,48 +118,6 @@ contract IDen3lib {
 
        return (true,c);
     }
-
-/*
-    function verifyKSignClaim(
-       bytes   memory  _m,
-       bytes32         _claimRoot,
-       bytes   memory  _claimExistenceProof,
-       bytes   memory  _claimSoundnessProof
-   )  internal pure returns (bool ok, KSignClaim memory c) {
-
-       _claimSoundnessProof; 
-
-       (ok,c) = unpackKSignClaim(_m); 
-       _claimExistenceProof;
-
-       if (!checkExistenceProof(_claimRoot,_claimExistenceProof,_m,92,140)) {
-           return (false,c);
-       }
-
-       return (true,c);
-   }
-    function verifySetRootClaim(
-       bytes   memory  _m,
-       bytes32         _claimRoot,
-       bytes   memory  _claimExistenceProof
-     ) internal pure returns (bool ok, SetRootClaim memory c) {
-
-       // unpack & verify claim
-       Memory.Walker memory w = Memory.walk(_m);
-        
-       if (w.readUint32()!=uint32(68))           return (false,c);
-       if (w.readBytes32()!=keccak256("iden3.io"))       return (false,c);
-       if (w.readBytes32()!=keccak256("setroot")) return (false,c);
-       c.version = w.readUint32();
-       c.ethid = w.readAddress();
-       c.root = w.readBytes32();
-
-       if (!checkExistenceProof(_claimRoot,_claimExistenceProof,_m,68,140)) {
-           return (false,c);
-       }
-       
-   }
-*/
 
    function ecrecover2(bytes32 hash, bytes rsv, uint16 offset) pure public returns (address) {
        bytes32 r;
