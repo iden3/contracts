@@ -7,12 +7,19 @@ const IDen3Impl = artifacts.require("../contracts/IDen3Impl.sol");
 const IDen3DelegateProxy = artifacts.require("../contracts/IDen3DelegateProxy.sol");
 const TargetHelper = artifacts.require("../contracts/test/TargetHelper.sol");
 const ethutil = require("ethereumjs-util")
-const rlp = require("rlp")
 
 const buf = b => ethutil.toBuffer(b)
 const sha3 = b => web3.utils.soliditySha3(b)
+const uint16 = n => "0x"+n.toString(16).padStart(4,'0')
+const uint64 = n => "0x"+n.toString(16).padStart(16,'0')
 const uint256 = n => "0x"+n.toString(16).padStart(64,'0')
 const uint8 = n => "0x"+n.toString(16)
+
+const muint16 = n => buf(uint16(n))
+const muint64 = n => buf(uint64(n))
+const mbytes32 = h => buf(h)
+const mbufhex = b => Buffer.concat([muint16(buf(b).length),buf(b)])
+const mbuf = b => Buffer.concat([muint16(b.length),b])
 
 contract("Iden3", (accounts) => {
 
@@ -51,45 +58,52 @@ contract("Iden3", (accounts) => {
     it("should execute a with a ksignclaim" , async() => {
         // claims
 
-        const version = 0
+        const version = 1
         const kclaimBytes = "0x3cfc3a1edbf691316fec9b75970fbfb2b0e8d8edfc6ec7628db77c4969403074353f867ef725411de05e3d4b0a01c37cf7ad24bcc213141a05ed7726d7932a1f00000000ee602447b5a75cf4f25367f5d199b860844d10c4d6f028ca0e8edb4a8c9757ca4fdccab25fa1e0317da1188108f7d2dee14902fbdad9966a2e7371f0a24b1929ed765c0e7a3f2b4665a76a19d58173308bb3406200000000259e9d8000000000967a7600"
         const kclaimRoot = "0x562c7589149679a8dce7c53c16475eb572ea4b75d23539132d3093b483b8f1a3"
         const kclaimExistenceProof = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
         const rclaimBytes = "0x3cfc3a1edbf691316fec9b75970fbfb2b0e8d8edfc6ec7628db77c49694030749b9a76a0132a0814192c05c9321efc30c7286f6187f18fc6b6858214fe963e0e00000000d79ae0a65e7dd29db1eac700368e693de09610b8562c7589149679a8dce7c53c16475eb572ea4b75d23539132d3093b483b8f1a3"
-        const rclaimRoot = "0x562c7589149679a8dce7c53c16475eb572ea4b75d23539132d3093b483b8f1a3"
+        const rclaimRoot = "0x1dce20a20a0f93a139de6069dcfb16b91f0a7d3a540eee0a57d1fa78c2f401c3"
         const rclaimExistenceProof = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
         const rclaimSigDate = Math.floor(Date.now() / 1000)
 
-        const rclaimSig = ethutil.ecsign(buf(sha3(Buffer.concat([
+        const rclaimSigPre = "0x"+Buffer.concat([
             buf(rclaimRoot),
-            buf(uint256(rclaimSigDate)),
-        ]))),relaypvk)
+            buf(uint64(rclaimSigDate)),
+        ]).toString('hex')
+        const rclaimSig = ethutil.ecsign(buf(sha3(rclaimSigPre)),relaypvk)
 
-        const fwdauth = "0x"+rlp.encode([
-            buf(uint8(version)),
-            buf(kclaimBytes), buf(kclaimRoot), buf(kclaimExistenceProof),
-            buf(rclaimBytes), buf(rclaimRoot), buf(rclaimExistenceProof),
-            buf(uint256(rclaimSigDate)),
-            Buffer.concat([rclaimSig.r,rclaimSig.s,buf(rclaimSig.v)])
+        const fwdauth = "0x"+Buffer.concat([
+            muint16(version),
+            
+            mbufhex(kclaimBytes),
+            mbytes32(kclaimRoot),
+            mbufhex(kclaimExistenceProof),
+            
+            mbufhex(rclaimBytes),
+            mbytes32(rclaimRoot),
+            mbufhex(rclaimExistenceProof),
+
+            muint64(rclaimSigDate),
+            mbuf(Buffer.concat([rclaimSig.r,rclaimSig.s,buf(rclaimSig.v)]))
         ]).toString('hex')
 
         const fwdto    = target.address
-        const fwddata  = target.contract.methods.callme(1).encodeABI()
+        const fwddata  = target.contract.methods.inc(5).encodeABI()
         const fwdvalue = 0
         const fwdgas   = 200000
 
         const fwdnonce = (await iden3.lastNonce()).toNumber()+1
 
-        const preimage = "0x"+Buffer.concat([
+        const fwdsigpre = "0x"+Buffer.concat([
             buf(uint8(0x19)),buf(uint8(0)),
             buf(iden3.address),buf(uint256(fwdnonce)),
             buf(fwdto),buf(fwddata),buf(uint256(fwdvalue)),buf(uint256(fwdgas)),
             buf(fwdauth)
         ]).toString('hex')
-
-        let fwdsig = ethutil.ecsign(buf(sha3(preimage)),ksignpvk)
+        let fwdsig = ethutil.ecsign(buf(sha3(fwdsigpre)),ksignpvk)
 
         fwdsig = "0x"+Buffer.concat([
             fwdsig.r,
@@ -97,23 +111,14 @@ contract("Iden3", (accounts) => {
             buf(fwdsig.v)
         ]).toString('hex')
 
-        console.log("fwdto ",fwdto)
-        console.log("fwddata ", fwddata)
-        console.log("fwdvalue ", fwdvalue)
-        console.log("fwdgas ",fwdgas)
-        console.log("fwdsig ",fwdsig)
-        console.log("fwdauth ",fwdauth)
+        assert.equal(0,await target.value())
 
         let res  = await iden3.forward(
             fwdto, fwddata, fwdvalue,fwdgas,fwdsig,
-            fwdauth,
-            { from: owner, gas : 3000000 }
+            fwdauth
         )
-        console.log(res)
-        assert.equal(false,true)
-        for(l=0;l<res.receipt.logs.length;l++) {
-            console.log("LOG",l,"=>",res.receipt.logs[l])
-        }
+
+        assert.equal(5,await target.value())
 
     })
 });

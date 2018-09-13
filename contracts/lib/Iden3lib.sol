@@ -118,7 +118,7 @@ contract IDen3lib {
        return (true,c);
     }
 
-
+/*
     function verifyKSignClaim(
        bytes   memory  _m,
        bytes32         _claimRoot,
@@ -129,14 +129,14 @@ contract IDen3lib {
        _claimSoundnessProof; 
 
        (ok,c) = unpackKSignClaim(_m); 
-/*
+       _claimExistenceProof;
+
        if (!checkExistenceProof(_claimRoot,_claimExistenceProof,_m,92,140)) {
            return (false,c);
        }
-*/
+
        return (true,c);
    }
-
     function verifySetRootClaim(
        bytes   memory  _m,
        bytes32         _claimRoot,
@@ -152,12 +152,13 @@ contract IDen3lib {
        c.version = w.readUint32();
        c.ethid = w.readAddress();
        c.root = w.readBytes32();
-/*
+
        if (!checkExistenceProof(_claimRoot,_claimExistenceProof,_m,68,140)) {
            return (false,c);
        }
-       */
+       
    }
+*/
 
    function ecrecover2(bytes32 hash, bytes rsv, uint16 offset) pure public returns (address) {
        bytes32 r;

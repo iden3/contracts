@@ -30,11 +30,8 @@
     "dependencies": {
         "babel-eslint": "^8.2.1",
         "codecov": "^3.0.0",
-        "eip820": "0.0.21",
         "ethereumjs-util": "^5.2.0",
         "jsonfile": "^4.0.0",
-        "openzeppelin-solidity": "^1.12.0",
-        "rlp": "^2.1.0",
         "solidity-coverage": "^0.5.11",
         "solium": "^1.1.5",
         "truffle": "^5.0.0-beta.0"

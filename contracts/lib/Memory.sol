@@ -25,6 +25,15 @@ library Memory {
         w.offset+=32;
         return b;
     }
+    function readUint16(Walker memory w) pure internal returns (uint16) {
+        uint ptr = w.ptr+w.offset;
+        uint256 b;
+        assembly {
+          b := mload(ptr)
+        }
+        w.offset+=2;
+        return uint16(b>>(256-16));
+    }
     function readUint32(Walker memory w) pure internal returns (uint32) {
         uint ptr = w.ptr+w.offset;
         uint256 b;
@@ -40,7 +49,7 @@ library Memory {
         assembly {
           b := mload(ptr)
         }
-        w.ptr+=8;
+        w.offset+=8;
         return uint64(b>>(256-64));
     }
     function readAddress(Walker memory w) pure internal returns (address) {
@@ -49,10 +58,42 @@ library Memory {
         assembly {
           b := mload(ptr)
         }
-        w.ptr+=20;
+        w.offset+=20;
         return address(b>>(256-160));
     }
+    
+    function readBytes(Walker memory w) pure internal returns (bytes memory bts) {
+        uint16 len = readUint16(w);
+        bts = new bytes(len);
+        uint256 btsmem;
+        assembly {
+            btsmem := add(bts,0x20)
+        }
+        memcpy(btsmem,w.ptr+w.offset,len);
+        w.offset+=len;
+    }
+
     function success(Walker memory w) pure internal returns (bool) {
         return w.offset==w.length; 
     }
+    
+    function memcpy(uint _dest, uint _src, uint _len) pure internal {
+        // Copy word-length chunks while possible
+        for ( ;_len >= 32; _len -= 32) {
+            assembly {
+                mstore(_dest, mload(_src))
+            }
+            _dest += 32;
+            _src += 32;
+        }
+
+        // Copy remaining bytes
+        uint mask = 256 ** (32 - _len) - 1;
+        assembly {
+            let srcpart := and(mload(_src), not(mask))
+            let destpart := and(mload(_dest), mask)
+            mstore(_dest, or(destpart, srcpart))
+        }
+    }
+
 }

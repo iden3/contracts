@@ -1,10 +1,6 @@
 pragma solidity ^0.4.24;
 
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
-import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
-
 import './lib/DelegateProxySlotStorage.sol';
-import './lib/RLP.sol';
 import './lib/IDen3lib.sol';
 
 import './IDen3SlotStorage.sol';
@@ -15,11 +11,6 @@ contract IDen3Impl is
    DelegateProxySlotStorage,
    IDen3SlotStorage,
    IDen3lib {
-
-   using SafeMath for uint256;
-   using RLP      for RLP.RLPItem;
-   using RLP      for RLP.Iterator;
-   using RLP      for bytes;
 
    uint256         public   lastNonce;  // last nonce
 
@@ -46,56 +37,36 @@ contract IDen3Impl is
    }
 
    // use this function to register ksign claims
-   function verifyauth(
+   function mustVerifyAuth(
        address _to,
        address _caller,
        bytes   _auth
-  ) internal returns (bool ok) {
+  ) view internal {
        
-       RLP.RLPItem memory root = _auth.toRLPItem(true);
-       require(root.isList());
+       Memory.Walker memory w = Memory.walk(_auth);       
 
-       RLP.Iterator memory it = root.iterator();
-
-       // check the type of authorizationm, only type 0 for now ---------------
-       uint256 objtype = it.next().toUint();
-       if (objtype!=0) {
-          return false;
-       }
+       // check version
+       require(w.readUint16()==1);
 
        // verify ksignclaim  --------------------------------------------------
-       bytes   memory kclaimBytes = it.next().toBytes();
-       (bool kok, KSignClaim memory kclaim) = unpackKSignClaim(kclaimBytes);
-       if (!kok || _caller!=kclaim.key) {
-          return false;
-       }
+       (bool kok, KSignClaim memory kclaim) = unpackKSignClaim(w.readBytes());
+       require(kok && _caller==kclaim.key);
+       require(now >= kclaim.validFrom && now <= kclaim.validUntil); 
 
-       // unpack & verify data
-       if (now < kclaim.validFrom || now > kclaim.validUntil) {
-           return false;
-       }
-
-       // check merkle tree
-       bytes32 kclaimRoot = it.next().toBytes32();
-       bytes   memory kclaimExistenceProof = it.next().toBytes();
-       // bytes   memory kclaimNonExistenceProof = it.next().toBytes();
-
-       if (!checkProof(kclaimRoot,kclaimExistenceProof,kclaim.hi,kclaim.ht,140)) {
-           return false;
-       }  
+       bytes32 kclaimRoot = w.readBytes32();
+       require(checkProof(kclaimRoot,w.readBytes(),kclaim.hi,kclaim.ht,140));
 
        // verify setrootclaim  --------------------------------------------------
-       bytes   memory rclaimBytes = it.next().toBytes();
-       bytes32 rclaimRoot = it.next().toBytes32();
-       bytes   memory rclaimExistenceProof = it.next().toBytes();
-       uint64  rclaimSigDate = uint64(it.next().toUint());
-       bytes   memory rclaimSig = it.next().toBytes();
-
-       // unpack & verify data
-       (bool rok, SetRootClaim memory rclaim) = unpackSetRootClaim(rclaimBytes);
-       if (!rok || rclaim.root != kclaimRoot || rclaim.ethid != address(this)) {
-          return false;
-       }
+       (bool rok, SetRootClaim memory rclaim) = unpackSetRootClaim(w.readBytes());
+       require(rok,"ok");
+       require(rclaim.root == kclaimRoot,"rclaim.root == kclaimRoot");
+       // TODO: require(rclaim.ethid == address(this),"rclaim.ethid == address(this)");
+ 
+       bytes32 rclaimRoot = w.readBytes32();
+       require(checkProof(rclaimRoot,w.readBytes(),rclaim.hi,rclaim.ht,140));
+       
+       uint64  rclaimSigDate = w.readUint64();
+       bytes   memory rclaimSig = w.readBytes();
 
        // check the signature is fresh and done by the relayer
        address signer = ecrecover2(
@@ -103,33 +74,12 @@ contract IDen3Impl is
            rclaimSig,
            0
        );
-       if (now > rclaimSigDate + 3600 || signer != __getRelay()) {
-           return false;
-       }
-
-       // check merkle tree
-       if (!checkProof(rclaimRoot,rclaimExistenceProof,rclaim.hi,rclaim.ht,140)) {
-           return false;
-       }  
-
-       // update the caché if all is ok ---------------------------------------
-       ksigns[_caller]=KSign({
-           validUntil : kclaim.validUntil,
-           appid      : kclaim.appid,
-           authz      : kclaim.authz
-       });
+       require(now < rclaimSigDate + 3600 && signer == __getRelay());
 
        if (kclaim.appid == keccak256("address")) {
-            ok = (address(kclaim.authz) == _to);
+            require(address(kclaim.authz) == _to);
        }
-
-       return true;
    }
-
-   event logb(string what, bytes v);
-   event logb32(string what, bytes32 v);
-   event logaddr(string what, address v);
-   event logs(string what);
 
    function forward(
        address _to,    // destination
@@ -153,9 +103,9 @@ contract IDen3Impl is
        // get the signature
        address signer=IDen3lib.ecrecover2(hash,_sig,0);
 
-       //require(verifyauth(_to, signer,_auth));
+       mustVerifyAuth(_to, signer,_auth);
 
-       _to.call.gas(_gas).value(_value)(_data);
+       require(_to.call.gas(_gas).value(_value)(_data));
    }
    
 }
