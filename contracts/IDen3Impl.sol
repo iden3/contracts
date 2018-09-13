@@ -2,7 +2,6 @@ pragma solidity ^0.4.24;
 
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
-import 'eip820/contracts/ERC820Implementer.sol';
 
 import './lib/DelegateProxySlotStorage.sol';
 import './lib/RLP.sol';
@@ -11,22 +10,16 @@ import './lib/IDen3lib.sol';
 import './IDen3SlotStorage.sol';
 import './RootCommits.sol';
 
-contract IDen3Authz {
-  function authz(bytes32 _appid, bytes32 _authz) returns (bool);
-}
 
 contract IDen3Impl is
    DelegateProxySlotStorage,
    IDen3SlotStorage,
-   IDen3lib,
-   ERC820Implementer {
-    
+   IDen3lib {
+
    using SafeMath for uint256;
    using RLP      for RLP.RLPItem;
    using RLP      for RLP.Iterator;
    using RLP      for bytes;
-
-   ERC20           public   gasToken;
 
    uint256         public   lastNonce;  // last nonce
 
@@ -38,9 +31,9 @@ contract IDen3Impl is
 
    mapping(address=>KSign) ksigns;     // a caché for ksigns
    
-   constructor(
-   ) public {
-       __setRelay(0x0);
+   constructor()
+   IDen3SlotStorage(0x0)
+   public {
        __setProxyImpl(0x0);
        __setProxyRecovery(0x0);
        __setProxyRecoveryProp(0x0);
@@ -54,9 +47,10 @@ contract IDen3Impl is
 
    // use this function to register ksign claims
    function verifyauth(
+       address _to,
        address _caller,
        bytes   _auth
-  ) internal returns (bool ok, bytes32 appid, bytes32 authz) {
+  ) internal returns (bool ok) {
        
        RLP.RLPItem memory root = _auth.toRLPItem(true);
        require(root.isList());
@@ -66,19 +60,19 @@ contract IDen3Impl is
        // check the type of authorizationm, only type 0 for now ---------------
        uint256 objtype = it.next().toUint();
        if (objtype!=0) {
-          return (false,0x0,0x0);
+          return false;
        }
 
        // verify ksignclaim  --------------------------------------------------
        bytes   memory kclaimBytes = it.next().toBytes();
        (bool kok, KSignClaim memory kclaim) = unpackKSignClaim(kclaimBytes);
        if (!kok || _caller!=kclaim.key) {
-          return (false,0x0,0x0);
+          return false;
        }
 
        // unpack & verify data
        if (now < kclaim.validFrom || now > kclaim.validUntil) {
-           return (false,0x0,0x0);
+           return false;
        }
 
        // check merkle tree
@@ -87,7 +81,7 @@ contract IDen3Impl is
        // bytes   memory kclaimNonExistenceProof = it.next().toBytes();
 
        if (!checkProof(kclaimRoot,kclaimExistenceProof,kclaim.hi,kclaim.ht,140)) {
-           return (false,0x0,0x0);
+           return false;
        }  
 
        // verify setrootclaim  --------------------------------------------------
@@ -100,7 +94,7 @@ contract IDen3Impl is
        // unpack & verify data
        (bool rok, SetRootClaim memory rclaim) = unpackSetRootClaim(rclaimBytes);
        if (!rok || rclaim.root != kclaimRoot || rclaim.ethid != address(this)) {
-          return (false,0x0,0x0);
+          return false;
        }
 
        // check the signature is fresh and done by the relayer
@@ -110,12 +104,12 @@ contract IDen3Impl is
            0
        );
        if (now > rclaimSigDate + 3600 || signer != __getRelay()) {
-           return (false,0x0,0x0);
+           return false;
        }
 
        // check merkle tree
        if (!checkProof(rclaimRoot,rclaimExistenceProof,rclaim.hi,rclaim.ht,140)) {
-           return (false,0x0,0x0);
+           return false;
        }  
 
        // update the caché if all is ok ---------------------------------------
@@ -124,8 +118,18 @@ contract IDen3Impl is
            appid      : kclaim.appid,
            authz      : kclaim.authz
        });
-       return (true,kclaim.appid,kclaim.authz);
+
+       if (kclaim.appid == keccak256("address")) {
+            ok = (address(kclaim.authz) == _to);
+       }
+
+       return true;
    }
+
+   event logb(string what, bytes v);
+   event logb32(string what, bytes32 v);
+   event logaddr(string what, address v);
+   event logs(string what);
 
    function forward(
        address _to,    // destination
@@ -134,10 +138,8 @@ contract IDen3Impl is
        uint256 _gas,   // maximum execution gas
        bytes   _sig,   // signature made by a KSign
        bytes   _auth   // claims + proofs
-   ) external returns (bool success){
-
-       uint256 startGas = gasleft();
-       
+   ) public {
+        
        lastNonce++;
 
        // EIP191 compliant 0x19 0x00
@@ -151,29 +153,9 @@ contract IDen3Impl is
        // get the signature
        address signer=IDen3lib.ecrecover2(hash,_sig,0);
 
-       // get the operational signature used, as also appid and approle restriction
-       (bool ok, bytes32 appid, bytes32 authz) = verifyauth(signer,_auth);
+       //require(verifyauth(_to, signer,_auth));
 
-       // check authorization, use ERC820 if available, otherwise appid should be destination
-       if (ok) {
-          address authzimpl = interfaceAddr(_to,"IDen3Authz");
-          if (authzimpl != 0x0) {
-             ok = IDen3Authz(authzimpl).authz(appid,authz);
-          } else {
-             ok = appid == bytes32(_to);
-          }
-       }
-
-       // all ok? thne call
-       if (ok) {
-          _to.call.gas(_gas).value(_value)(_data);
-       }
-
-       // if defined a gas token, send the gas token to the caller
-       if (address(gasToken) != 0x0) {
-          require(gasToken.transferFrom(this,msg.sender,tx.gasprice.mul(startGas.sub(gasleft()))));
-       }
-
+       _to.call.gas(_gas).value(_value)(_data);
    }
    
 }

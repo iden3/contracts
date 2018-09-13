@@ -7,9 +7,9 @@ contract DelegateProxySlotStorage {
 
     function __getProxyInfo() internal view returns (address impl, address recovery, address proposed) {
         
+        bytes32 implslot = IMPL_SLOT;
         bytes32 recoveryslot = RECOVERY_SLOT;
         bytes32 proposedslot = PROPOSED_SLOT;
-        bytes32 implslot = IMPL_SLOT;
 
         assembly {
             impl := sload(implslot)

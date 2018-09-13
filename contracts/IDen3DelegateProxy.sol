@@ -12,7 +12,7 @@ contract IDen3DelegateProxy is DelegateProxy, IDen3SlotStorage {
     	address   _recovery,     
     	address   _impl
     )
-    DelegateProxy   (_recovery,_impl)
+    DelegateProxy   (_impl, _recovery)
     IDen3SlotStorage(_relayer)
     public {
     	_operationals;

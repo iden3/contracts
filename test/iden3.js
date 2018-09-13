@@ -9,10 +9,12 @@ const TargetHelper = artifacts.require("../contracts/test/TargetHelper.sol");
 const ethutil = require("ethereumjs-util")
 const rlp = require("rlp")
 
-contract("Iden3", (accounts) => {
+const buf = b => ethutil.toBuffer(b)
+const sha3 = b => web3.utils.soliditySha3(b)
+const uint256 = n => "0x"+n.toString(16).padStart(64,'0')
+const uint8 = n => "0x"+n.toString(16)
 
-    const buf = b => ethutil.toBuffer(b)
-    const sha3 = b => web3.utils.soliditySha3(b)
+contract("Iden3", (accounts) => {
 
     const
        oper1addr = "0x627306090abab3a6e1400e9345bc60c78a8bef57",
@@ -32,20 +34,21 @@ contract("Iden3", (accounts) => {
 
     let impl
     let iden3;
+    let iden3proxy;
     let target;
 
     beforeEach(async () => {
         target = await TargetHelper.new()
         impl = await IDen3Impl.new()
-        iden3 = await IDen3DelegateProxy.new(
+        iden3proxy = await IDen3DelegateProxy.new(
             [oper1addr, oper2addr],
             relayaddr, recovaddr,
             impl.address
         )
+        iden3 = await IDen3Impl.at(iden3proxy.address)
     });
 
     it("should execute a with a ksignclaim" , async() => {
-
         // claims
 
         const version = 0
@@ -61,39 +64,56 @@ contract("Iden3", (accounts) => {
 
         const rclaimSig = ethutil.ecsign(buf(sha3(Buffer.concat([
             buf(rclaimRoot),
-            buf("0x"+rclaimSigDate.toString(16).padStart(64,'0')),
+            buf(uint256(rclaimSigDate)),
         ]))),relaypvk)
 
-        console.log(rclaimSig)
-
-        const fwdauth = rlp.encode([
-            version,
-//            buf(kclaimBytes), buf(kclaimRoot), buf(kclaimExistenceProof),
-//            buf(rclaimBytes), buf(rclaimRoot), buf(rclaimExistenceProof),
-//            rclaimSigDate,
+        const fwdauth = "0x"+rlp.encode([
+            buf(uint8(version)),
+            buf(kclaimBytes), buf(kclaimRoot), buf(kclaimExistenceProof),
+            buf(rclaimBytes), buf(rclaimRoot), buf(rclaimExistenceProof),
+            buf(uint256(rclaimSigDate)),
             Buffer.concat([rclaimSig.r,rclaimSig.s,buf(rclaimSig.v)])
-        ])
-
-        // function call
+        ]).toString('hex')
 
         const fwdto    = target.address
-        console.log("***",fwdto)
-        console.log("----->",await target.callme.request(1))
-        const fwddata  = target.f.request(1).params[0].data;
+        const fwddata  = target.contract.methods.callme(1).encodeABI()
         const fwdvalue = 0
         const fwdgas   = 200000
-        const fwdnonce = 1+(await iden3.lastNonce())
-        const fwdsig = ethutil.ecsign(web3.utils.soliditySha3(Buffer.concat(
-            byte(0x19),byte(0),
-            iden3.address,fwdnonce,
-            fwdto,fwddata,fwdvalue,fwdgas,
-            fwdauth
-        )),userpvk)
-        
-        await iden3.forward(
-            fwdto,fwddata, fwdvalue,fwdgas,fwdsig,
-            fwd)
+
+        const fwdnonce = (await iden3.lastNonce()).toNumber()+1
+
+        const preimage = "0x"+Buffer.concat([
+            buf(uint8(0x19)),buf(uint8(0)),
+            buf(iden3.address),buf(uint256(fwdnonce)),
+            buf(fwdto),buf(fwddata),buf(uint256(fwdvalue)),buf(uint256(fwdgas)),
+            buf(fwdauth)
+        ]).toString('hex')
+
+        let fwdsig = ethutil.ecsign(buf(sha3(preimage)),ksignpvk)
+
+        fwdsig = "0x"+Buffer.concat([
+            fwdsig.r,
+            fwdsig.s,
+            buf(fwdsig.v)
+        ]).toString('hex')
+
+        console.log("fwdto ",fwdto)
+        console.log("fwddata ", fwddata)
+        console.log("fwdvalue ", fwdvalue)
+        console.log("fwdgas ",fwdgas)
+        console.log("fwdsig ",fwdsig)
+        console.log("fwdauth ",fwdauth)
+
+        let res  = await iden3.forward(
+            fwdto, fwddata, fwdvalue,fwdgas,fwdsig,
+            fwdauth,
+            { from: owner, gas : 3000000 }
+        )
+        console.log(res)
+        assert.equal(false,true)
+        for(l=0;l<res.receipt.logs.length;l++) {
+            console.log("LOG",l,"=>",res.receipt.logs[l])
+        }
 
     })
-
 });

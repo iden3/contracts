@@ -2,31 +2,38 @@ pragma solidity ^0.4.24;
 
 import './DelegateProxySlotStorage.sol';
 
-
 contract DelegateProxy is DelegateProxySlotStorage {
     
+    uint256 constant public FWD_GAS_LIMIT = 10000;
+
     constructor(address _impl, address _recovery) public {
         __setProxyRecovery(_recovery);
         __setProxyImpl(_impl);
     }
     
     function () public {
-        (,address impl,) =  __getProxyInfo();
-        uint256 size;
-        uint256 result;
+        (address impl,,) =  __getProxyInfo();
+        delegatedFwd(impl,msg.data);
+    } 
 
+    /**
+    taken from aragonOs
+    */
+    function delegatedFwd(address _dst, bytes _calldata) internal {
+        uint256 fwdGasLimit = FWD_GAS_LIMIT;
         assembly {
-            calldatacopy(0x0, 0x0, calldatasize)
-            result := delegatecall(sub(gas, 10000), impl, 0x0, calldatasize, 0, 0)
-            size := returndatasize
+            let result := delegatecall(sub(gas, fwdGasLimit), _dst, add(_calldata, 0x20), mload(_calldata), 0, 0)
+            let size := returndatasize
             let ptr := mload(0x40)
             returndatacopy(ptr, 0, size)
+
+            // revert instead of invalid() bc if the underlying call failed with invalid() it already wasted gas.
+            // if the call returned error data, forward it
             switch result case 0 { revert(ptr, size) }
             default { return(ptr, size) }
         }
-    } 
-    
-    function _getProxyInfo() internal view returns (address impl, address recovery, address proposed) {
+    }
+    function _getProxyInfo() public view returns (address impl, address recovery, address proposed) {
         return __getProxyInfo();
     }
 
