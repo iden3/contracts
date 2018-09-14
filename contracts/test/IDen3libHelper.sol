@@ -4,6 +4,26 @@ import '../lib/IDen3lib.sol';
 
 contract IDen3libHelper is IDen3lib {
 
+   function _unpackKSignClaimTx(
+       bytes   memory  _m
+   ) public {
+        (bool ok, IDen3lib.KSignClaim memory c) =
+            IDen3lib.unpackKSignClaim(_m);
+        require(ok);
+   }
+   function _unpackSetRootClaimTx(
+       bytes   memory  _m
+   ) public {
+        (bool ok, IDen3lib.SetRootClaim memory c) =
+            IDen3lib.unpackSetRootClaim(_m);
+        require(ok);
+   }
+   function _checkProofTx(bytes32 root, bytes proof, bytes32 hi, bytes32 ht, uint numlevels
+   ) public {
+        checkProof(root,proof,hi,ht,numlevels);
+   }
+
+
    function _unpackKSignClaim(
        bytes   memory  _m    
     ) public pure returns(

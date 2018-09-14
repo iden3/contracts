@@ -111,14 +111,15 @@ contract("Iden3", (accounts) => {
             buf(fwdsig.v)
         ]).toString('hex')
 
-        assert.equal(0,await target.value())
+        const incGas = (await target.inc(1)).receipt.gasUsed
 
         let res  = await iden3.forward(
             fwdto, fwddata, fwdvalue,fwdgas,fwdsig,
             fwdauth
         )
 
-        assert.equal(5,await target.value())
+        assert.equal(7,await target.value())
 
+        console.log("    🤹 forwarding cost: ",res.receipt.gasUsed - incGas)
     })
 });
