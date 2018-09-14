@@ -48,14 +48,13 @@ contract IDen3lib {
             } else {
                 sibling = 0x0;
             }
-            
+            // abi.encodePacked takes A LOT of gas
             if (uint256(hi)&bitmask>0) {
-                nodehash=keccak256(abi.encodePacked(sibling,nodehash));
+                nodehash=keccak256(sibling,nodehash);
             } else {
-                nodehash=keccak256(abi.encodePacked(nodehash,sibling));
+                nodehash=keccak256(nodehash,sibling);
             }
         }
-
         return nodehash == root;
     }    
     

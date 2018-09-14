@@ -12,7 +12,7 @@ contract IDen3Impl is
    IDen3SlotStorage,
    IDen3lib {
 
-   uint256 public   lastNonce;  // last nonce
+   uint256 public  lastNonce;  // last nonce
 
    constructor()
    IDen3SlotStorage(0x0)
@@ -61,7 +61,7 @@ contract IDen3Impl is
 
        // check the signature is fresh and done by the relayer
        address signer = ecrecover2(
-           keccak256(abi.encodePacked(rclaimRoot,rclaimSigDate)),
+           keccak256(rclaimRoot,rclaimSigDate),
            rclaimSig,
            0
        );
@@ -84,12 +84,12 @@ contract IDen3Impl is
        lastNonce++;
 
        // EIP191 compliant 0x19 0x00
-       bytes32 hash=keccak256(abi.encodePacked(
+       bytes32 hash=keccak256(
           byte(0x19),byte(0),
           this,lastNonce,
           _to,_data, _value, _gas,
           _auth
-       ));
+       );
     
        // get the signature
        address signer=IDen3lib.ecrecover2(hash,_sig,0);
