@@ -43,13 +43,11 @@ contract IDen3Impl is
        
        Memory.Walker memory w = Memory.walk(_auth);       
 
-       // check version
-       require(w.readUint16()==1);
-
        // verify ksignclaim  --------------------------------------------------
        (bool kok, KSignClaim memory kclaim) = unpackKSignClaim(w.readBytes());
        require(kok && _caller==kclaim.key);
        require(now >= kclaim.validFrom && now <= kclaim.validUntil); 
+       require(kclaim.appid==0x0 && kclaim.authz==0x0); 
 
        bytes32 kclaimRoot = w.readBytes32();
        require(checkProof(kclaimRoot,w.readBytes(),kclaim.hi,kclaim.ht,140));
@@ -74,10 +72,6 @@ contract IDen3Impl is
            0
        );
        require(now < rclaimSigDate + 3600 && signer == __getRelay());
-
-       if (kclaim.appid == keccak256("address")) {
-            require(address(kclaim.authz) == _to);
-       }
    }
 
    function forward(
