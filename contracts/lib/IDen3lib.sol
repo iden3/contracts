@@ -4,6 +4,10 @@ import './Memory.sol';
 
 contract IDen3lib {
     
+    bytes32 constant IDEN3IO = 0x3cfc3a1edbf691316fec9b75970fbfb2b0e8d8edfc6ec7628db77c4969403074;
+    bytes28 constant KSIGN   = 0x353f867ef725411de05e3d4b0a01c37cf7ad24bcc213141a00000054;
+    bytes28 constant SETROOT = 0x9b9a76a0132a0814192c05c9321efc30c7286f6187f18fc600000054;
+
     using Memory for *;
 
     struct KSignClaim {
@@ -78,7 +82,6 @@ contract IDen3lib {
         return checkProof(root,proof,hi,ht,numlevels);
     }    
 
-
     function unpackKSignClaim(
        bytes   memory  _m    
     ) internal pure returns (bool ok, KSignClaim memory c) {
@@ -86,16 +89,17 @@ contract IDen3lib {
        // unpack & verify claim
        Memory.Walker memory w = Memory.walk(_m);
         
-       if (w.readBytes32()!=keccak256("iden3.io")) return (false,c);
-       if (w.readBytes32()!=keccak256("authorizeksign")) return (false,c);
-       if (w.readUint32()!=uint32(0x00)) return (false,c);
+       if (w.readBytes32()!=IDEN3IO) return (false,c);
+       if (w.readBytes28()!=KSIGN) return (false,c);
+       if (w.readUint32()!=0) return (false,c);
+
        c.key = w.readAddress();
        c.appid = w.readBytes32();
        c.authz = w.readBytes32();
        c.validFrom = w.readUint64();
        c.validUntil = w.readUint64();
 
-       (c.hi,c.ht) = hiht(_m,88);
+       (c.hi,c.ht) = hiht(_m,84);
 
        return (true,c);
     }
@@ -107,13 +111,13 @@ contract IDen3lib {
        // unpack & verify claim
        Memory.Walker memory w = Memory.walk(_m);
         
-       if (w.readBytes32()!=keccak256("iden3.io")) return (false,c);
-       if (w.readBytes32()!=keccak256("setroot")) return (false,c);
+       if (w.readBytes32()!=IDEN3IO) return (false,c);
+       if (w.readBytes28()!=SETROOT) return (false,c);
        c.version = w.readUint32();
        c.ethid = w.readAddress();
        c.root = w.readBytes32();
 
-       (c.hi,c.ht) = hiht(_m,0x58);
+       (c.hi,c.ht) = hiht(_m,84);
 
        return (true,c);
     }
