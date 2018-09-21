@@ -17,6 +17,7 @@ contract IDen3lib {
        uint64   validFrom;
        uint64   validUntil;
        bytes32  hi;
+       bytes32  hin;
        bytes32  ht;
     }
 
@@ -25,6 +26,7 @@ contract IDen3lib {
        address  ethid;
        bytes32  root;
        bytes32  hi;
+       bytes32  hin;
        bytes32  ht;
     }
 
@@ -52,11 +54,13 @@ contract IDen3lib {
             } else {
                 sibling = 0x0;
             }
-            // abi.encodePacked takes A LOT of gas
-            if (uint256(hi)&bitmask>0) {
-                nodehash=keccak256(sibling,nodehash);
-            } else {
-                nodehash=keccak256(nodehash,sibling);
+
+            if (nodehash !=0x0  || sibling != 0x0) {
+                if (uint256(hi)&bitmask>0) {
+                    nodehash=keccak256(sibling,nodehash);
+                } else {
+                    nodehash=keccak256(nodehash,sibling);
+                }
             }
         }
         return nodehash == root;
@@ -99,7 +103,9 @@ contract IDen3lib {
        c.validFrom = w.readUint64();
        c.validUntil = w.readUint64();
 
-       (c.hi,c.ht) = hiht(_m,84);
+       c.hi = keccak256(IDEN3IO,KSIGN,uint32(0),c.key);
+       c.hin = keccak256(IDEN3IO,KSIGN,uint32(1),c.key);
+       c.ht = keccak256(_m);
 
        return (true,c);
     }
@@ -117,7 +123,9 @@ contract IDen3lib {
        c.ethid = w.readAddress();
        c.root = w.readBytes32();
 
-       (c.hi,c.ht) = hiht(_m,84);
+       c.hi = keccak256(IDEN3IO,SETROOT,c.version,c.ethid);
+       c.hin = keccak256(IDEN3IO,SETROOT,c.version+1,c.ethid);
+       c.ht = keccak256(_m);
 
        return (true,c);
     }

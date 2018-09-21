@@ -53,15 +53,16 @@ contract IDen3Impl is
 
        bytes32 kclaimRoot = w.readBytes32();
        require(checkProof(kclaimRoot,w.readBytes(),kclaim.hi,kclaim.ht,140));
+       require(checkProof(kclaimRoot,w.readBytes(),kclaim.hin,0x0,140));
 
        // verify setrootclaim  --------------------------------------------------
        (bool rok, SetRootClaim memory rclaim) = unpackSetRootClaim(w.readBytes());
        require(rok,"ok");
        require(rclaim.root == kclaimRoot,"rclaim.root == kclaimRoot");
-       // TODO: require(rclaim.ethid == address(this),"rclaim.ethid == address(this)");
  
        bytes32 rclaimRoot = w.readBytes32();
        require(checkProof(rclaimRoot,w.readBytes(),rclaim.hi,rclaim.ht,140));
+       require(checkProof(rclaimRoot,w.readBytes(),rclaim.hin,0x0,140));
        
        uint64  rclaimSigDate = w.readUint64();
        bytes   memory rclaimSig = w.readBytes();

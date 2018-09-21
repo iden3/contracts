@@ -92,6 +92,7 @@ contract("Iden3lib", (accounts) => {
         assert.equal(values.validFrom,631152000)
         assert.equal(values.validUntil,2524608000)
         assert.equal(values.hi,"0x68be938284f64944bd8ebc172792687f680fb8db13e383227c8c668820b40078")
+        assert.equal(values.hin,"0xeab0608b8891dcca4f421c69244b17f208fbed899b540d01115ca7d907cbf6a5")
         assert.equal(values.ht,"0x63b43ece0a9f5f63a4333143563896d6d4e8b0ce8acd8dd2e6f7aaec52a007bb")
 
         const root = "0x532abdf4d17d806893915c6d04ebd669ea02f127bd0f48b897dabbac75764ed6"

@@ -62,11 +62,11 @@ contract("Iden3", (accounts) => {
         const kclaimBytes = "0x3cfc3a1edbf691316fec9b75970fbfb2b0e8d8edfc6ec7628db77c4969403074353f867ef725411de05e3d4b0a01c37cf7ad24bcc213141a0000005400000000ee602447b5a75cf4f25367f5d199b860844d10c4d6f028ca0e8edb4a8c9757ca4fdccab25fa1e0317da1188108f7d2dee14902fbdad9966a2e7371f0a24b1929ed765c0e7a3f2b4665a76a19d58173308bb3406200000000259e9d8000000000967a7600"
         const kclaimRoot = "0x532abdf4d17d806893915c6d04ebd669ea02f127bd0f48b897dabbac75764ed6"
         const kclaimExistenceProof = "0x0000000000000000000000000000000000000000000000000000000000000000"
-
+        const kclaimNonNextExistenceProof = "0x000000000000000000000000000000000000000000000000000000000000000184189a75002ec7e116ffb87a3ca2ea1b76bdf850e883d222e53e7a281d030bc7"
         const rclaimBytes = "0x3cfc3a1edbf691316fec9b75970fbfb2b0e8d8edfc6ec7628db77c49694030749b9a76a0132a0814192c05c9321efc30c7286f6187f18fc60000005400000000d79ae0a65e7dd29db1eac700368e693de09610b8532abdf4d17d806893915c6d04ebd669ea02f127bd0f48b897dabbac75764ed6"
         const rclaimRoot = "0xffeac62de27cfb7595cf106cd488e6b492c86f0cadf78166bef4327332ebde12"
         const rclaimExistenceProof = "0x0000000000000000000000000000000000000000000000000000000000000000"
-
+        const rclaimNonNextExistenceProof = "0x0000000000000000000000000000000000000000000000000000000000000001b975c2f4547e17848daab4dc819844edf18db2cdd5a8cf7f82708fbe4accd25a";
         const rclaimSigDate = Math.floor(Date.now() / 1000)
 
         const rclaimSigPre = "0x"+Buffer.concat([
@@ -81,10 +81,12 @@ contract("Iden3", (accounts) => {
             mbufhex(kclaimBytes),
             mbytes32(kclaimRoot),
             mbufhex(kclaimExistenceProof),
-            
+            mbufhex(kclaimNonNextExistenceProof),
+
             mbufhex(rclaimBytes),
             mbytes32(rclaimRoot),
             mbufhex(rclaimExistenceProof),
+            mbufhex(rclaimNonNextExistenceProof),
 
             muint64(rclaimSigDate),
             mbuf(Buffer.concat([rclaimSig.r,rclaimSig.s,buf(rclaimSig.v)]))

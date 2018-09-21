@@ -33,6 +33,7 @@ contract IDen3libHelper is IDen3lib {
        uint64   validFrom,
        uint64   validUntil,
        bytes32  hi,
+       bytes32  hin,
        bytes32  ht
     )  {
         (bool ok, IDen3lib.KSignClaim memory c) =
@@ -40,7 +41,7 @@ contract IDen3libHelper is IDen3lib {
             
         require(ok);
 
-        return (c.key, c.appid, c.authz, c.validFrom, c.validUntil, c.hi, c.ht);   
+        return (c.key, c.appid, c.authz, c.validFrom, c.validUntil, c.hi, c.hin, c.ht);   
     }
 
    function _unpackSetRootClaim(
@@ -50,6 +51,7 @@ contract IDen3libHelper is IDen3lib {
        address  ethid,
        bytes32  root,
        bytes32  hi,
+       bytes32  hin,
        bytes32  ht
     )  {
         (bool ok, IDen3lib.SetRootClaim memory c) =
@@ -57,7 +59,7 @@ contract IDen3libHelper is IDen3lib {
             
         require(ok);
 
-        return (c.version, c.ethid, c.root, c.hi, c.ht);   
+        return (c.version, c.ethid, c.root, c.hi, c.hin, c.ht);   
     }
 
 }
