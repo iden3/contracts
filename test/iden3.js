@@ -26,11 +26,11 @@ contract("Iden3", (accounts) => {
     const
        oper1addr = "0x627306090abab3a6e1400e9345bc60c78a8bef57",
        oper1pvk = ethutil.toBuffer("0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3"),
-       oper2addr = "0xf17f52151ebef6c7334fad080c5704d77216b732",
-       oper2pvk = ethutil.toBuffer("0xae6ae8e5ccbfb04590405997ee2d52d2b330726137b875053c36d94e974d162f"),
        recovaddr = "0xc5fdf4076b8f3a5357c5e395ab970b5b54098fef",
        recovpvk = ethutil.toBuffer("0x0dbbe8e4ae425a6d2687f1a7e3ba17bc98c673636790f1b8ad91193c05875ef1"),
        ksignaddr = "0xee602447b5a75cf4f25367f5d199b860844d10c4",
+       revokaddr = "0xf17f52151ebef6c7334fad080c5704d77216b732",
+       revokpvk = ethutil.toBuffer("0xae6ae8e5ccbfb04590405997ee2d52d2b330726137b875053c36d94e974d162f"),
        ksignpvk  = ethutil.toBuffer("0x8A85AAA2A8CE0D24F66D3EAA7F9F501F34992BACA0FF942A8EDF7ECE6B91F713"),
        relayaddr = "0x72006777fb1a33a50c13e8822fce859898273353",
        relaypvk = ethutil.toBuffer("0x7FF1F2A8F170FAEA7044E8B7131AA9D116D132FFAF825FD671279F5DE953A203")
@@ -48,8 +48,8 @@ contract("Iden3", (accounts) => {
         target = await TargetHelper.new()
         impl = await IDen3Impl.new()
         iden3proxy = await IDen3DelegateProxy.new(
-            [oper1addr, oper2addr],
-            relayaddr, recovaddr,
+            oper1addr, relayaddr,
+            recovaddr, revokaddr,
             impl.address
         )
         iden3 = await IDen3Impl.at(iden3proxy.address)

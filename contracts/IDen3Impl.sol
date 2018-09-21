@@ -15,11 +15,18 @@ contract IDen3Impl is
    uint256 public  lastNonce;  // last nonce
 
    constructor()
-   IDen3SlotStorage(0x0)
+   IDen3SlotStorage(0x0,0x0)
    public {
        __setProxyImpl(0x0);
-       __setProxyRecovery(0x0);
-       __setProxyRecoveryProp(0x0);
+       __setProxyRecoverer(0x0);
+       __setProxyRecovererProp(0x0);
+   }
+
+   function revoke() public {
+        (,address recovery,) = __getProxyInfo();
+        address revoker = __getRevoker();
+        require (msg.sender == recovery || msg.sender == revoker);
+        __setRelay(0x0);
    }
 
    function changeRelayer(address _relayer) public {
