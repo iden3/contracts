@@ -82,7 +82,7 @@ contract("Iden3lib", (accounts) => {
 
     it("should unpack and verify ksignclaim", async () => {
 
-        const ksignclaim = "0x3cfc3a1edbf691316fec9b75970fbfb2b0e8d8edfc6ec7628db77c4969403074353f867ef725411de05e3d4b0a01c37cf7ad24bcc213141a05ed7726d7932a1f00000000ee602447b5a75cf4f25367f5d199b860844d10c4d6f028ca0e8edb4a8c9757ca4fdccab25fa1e0317da1188108f7d2dee14902fbdad9966a2e7371f0a24b1929ed765c0e7a3f2b4665a76a19d58173308bb3406200000000259e9d8000000000967a7600";
+        const ksignclaim = "0x3cfc3a1edbf691316fec9b75970fbfb2b0e8d8edfc6ec7628db77c4969403074353f867ef725411de05e3d4b0a01c37cf7ad24bcc213141a0000005400000000ee602447b5a75cf4f25367f5d199b860844d10c4d6f028ca0e8edb4a8c9757ca4fdccab25fa1e0317da1188108f7d2dee14902fbdad9966a2e7371f0a24b1929ed765c0e7a3f2b4665a76a19d58173308bb3406200000000259e9d8000000000967a7600";
 
         const values = await iden3lib._unpackKSignClaim(ksignclaim);
         
@@ -91,10 +91,11 @@ contract("Iden3lib", (accounts) => {
         assert.equal(values.authz,web3.utils.soliditySha3("authz"))
         assert.equal(values.validFrom,631152000)
         assert.equal(values.validUntil,2524608000)
-        assert.equal(values.hi,"0xefaf444c30354019722a8da1b5a1eca8fd4ff454aff3bfd477c8eb4ce05e75f0")
-        assert.equal(values.ht,"0xc98ce0dbbf4cd1fc05f2093b2ebb8b2fc4699cb4cde2b8e4c0a37f957c72e64f")
+        assert.equal(values.hi,"0x68be938284f64944bd8ebc172792687f680fb8db13e383227c8c668820b40078")
+        assert.equal(values.hin,"0xeab0608b8891dcca4f421c69244b17f208fbed899b540d01115ca7d907cbf6a5")
+        assert.equal(values.ht,"0x63b43ece0a9f5f63a4333143563896d6d4e8b0ce8acd8dd2e6f7aaec52a007bb")
 
-        const root = "0x562c7589149679a8dce7c53c16475eb572ea4b75d23539132d3093b483b8f1a3"
+        const root = "0x532abdf4d17d806893915c6d04ebd669ea02f127bd0f48b897dabbac75764ed6"
         const proof = "0x0000000000000000000000000000000000000000000000000000000000000000"
         const levels = 140
 
@@ -103,18 +104,18 @@ contract("Iden3lib", (accounts) => {
 
     it("should unpack and verify setrootclaim", async () => {
 
-        const setrootclaim = "0x3cfc3a1edbf691316fec9b75970fbfb2b0e8d8edfc6ec7628db77c49694030749b9a76a0132a0814192c05c9321efc30c7286f6187f18fc6b6858214fe963e0e00000000d79ae0a65e7dd29db1eac700368e693de09610b8562c7589149679a8dce7c53c16475eb572ea4b75d23539132d3093b483b8f1a3";
+        const setrootclaim = "0x3cfc3a1edbf691316fec9b75970fbfb2b0e8d8edfc6ec7628db77c49694030749b9a76a0132a0814192c05c9321efc30c7286f6187f18fc60000005400000000d79ae0a65e7dd29db1eac700368e693de09610b8532abdf4d17d806893915c6d04ebd669ea02f127bd0f48b897dabbac75764ed6";
 
         const values = await iden3lib._unpackSetRootClaim(setrootclaim);
         
         assert.equal(values.version,0)
         assert.equal(values.ethid,"0xd79AE0a65e7dd29db1Eac700368e693dE09610b8")
-        assert.equal(values.root,"0x562c7589149679a8dce7c53c16475eb572ea4b75d23539132d3093b483b8f1a3")
+        assert.equal(values.root,"0x532abdf4d17d806893915c6d04ebd669ea02f127bd0f48b897dabbac75764ed6")
 
-        assert.equal(values.hi,"0xaaad7b30f89608e270551f207688ea8f112bb3416e4ca07018d9e80bb05f26a8")
-        assert.equal(values.ht,"0xfa9cd70ad96d731f5d24d38baeba7a6a8d89c6910bdc430793b870a39d2f81d7")
+        assert.equal(values.hi,"0x497d8626567f90e3e14de025961133ca7e4959a686c75a062d4d4db750d607b0")
+        assert.equal(values.ht,"0x40b8ce3bbd8c288ad3e8d2edf683bc7aa86fee687d862e049f303601508c9b66")
 
-        const root = "0x1dce20a20a0f93a139de6069dcfb16b91f0a7d3a540eee0a57d1fa78c2f401c3"
+        const root = "0xffeac62de27cfb7595cf106cd488e6b492c86f0cadf78166bef4327332ebde12"
         const proof = "0x0000000000000000000000000000000000000000000000000000000000000000"
         const levels = 140
 
@@ -133,7 +134,7 @@ contract("Iden3lib", (accounts) => {
 
         assert.equal("0x33692EE5CBF7EcDb8cA43eC9E815C47F3Db8Cd11",signer2)
     })
-
+/*
     it("check gas costs", async () => {
 
         const b32 = "0x0000000000000000000000000000000000000000000000000000000000000000"
@@ -146,6 +147,6 @@ contract("Iden3lib", (accounts) => {
         const checkProofGas140 = (await iden3lib._checkProofTx(b32,b32,b32,b32,140)).receipt.gasUsed
         console.log("    🤹 checkProofGas l140 cost: ",checkProofGas140-checkProofGas0)
     })
-
+*/
 
 });

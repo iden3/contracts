@@ -6,8 +6,8 @@ contract DelegateProxy is DelegateProxySlotStorage {
     
     uint256 constant public FWD_GAS_LIMIT = 10000;
 
-    constructor(address _impl, address _recovery) public {
-        __setProxyRecovery(_recovery);
+    constructor(address _impl, address _recoverer) public {
+        __setProxyRecoverer(_recoverer);
         __setProxyImpl(_impl);
     }
     
@@ -33,26 +33,26 @@ contract DelegateProxy is DelegateProxySlotStorage {
             default { return(ptr, size) }
         }
     }
-    function _getProxyInfo() public view returns (address impl, address recovery, address proposed) {
+    function _getProxyInfo() public view returns (address impl, address recoverer, address proposed) {
         return __getProxyInfo();
     }
 
-    function _proposeProxyRecovery(address _proposed) public returns (address) {
-        (,address recovery,) =  __getProxyInfo();
-        require(recovery==msg.sender);
-        __setProxyRecoveryProp(_proposed);
+    function _proposeProxyrecoverer(address _proposed) public returns (address) {
+        (,address recoverer,) =  __getProxyInfo();
+        require(recoverer==msg.sender);
+        __setProxyRecovererProp(_proposed);
     }
     
-    function _acceptProxyRecovery() public returns (address) {
+    function _acceptProxyrecoverer() public returns (address) {
         (,,address proposed) =  _getProxyInfo();
         require(proposed==msg.sender);
-        __setProxyRecovery(msg.sender);
-        __setProxyRecoveryProp(0x0);
+        __setProxyRecoverer(msg.sender);
+        __setProxyRecovererProp(0x0);
     }
 
     function _setProxyImpl(address _impl) public returns (address) {
-        (,address recovery,) =  _getProxyInfo();
-        require(recovery==msg.sender);
+        (,address recoverer,) =  _getProxyInfo();
+        require(recoverer==msg.sender);
         __setProxyImpl(_impl);
     }  
 }

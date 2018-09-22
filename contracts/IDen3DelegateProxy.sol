@@ -7,14 +7,15 @@ import './IDen3SlotStorage.sol';
 contract IDen3DelegateProxy is DelegateProxy, IDen3SlotStorage {
     
     constructor(
-    	address[] _operationals, // we need this for the conterfactual
-        address   _relayer,      
-    	address   _recovery,     
-    	address   _impl
+    	address _operational, // we need this for the conterfactual
+        address _relayer,      
+    	address _recoverer,    
+    	address _revoker,     
+    	address _impl
     )
-    DelegateProxy   (_impl, _recovery)
-    IDen3SlotStorage(_relayer)
+    DelegateProxy   (_impl, _recoverer)
+    IDen3SlotStorage(_relayer,_revoker)
     public {
-    	_operationals;
+    	_operational;
     }
 }

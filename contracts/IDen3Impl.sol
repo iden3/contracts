@@ -15,11 +15,18 @@ contract IDen3Impl is
    uint256 public  lastNonce;  // last nonce
 
    constructor()
-   IDen3SlotStorage(0x0)
+   IDen3SlotStorage(0x0,0x0)
    public {
        __setProxyImpl(0x0);
-       __setProxyRecovery(0x0);
-       __setProxyRecoveryProp(0x0);
+       __setProxyRecoverer(0x0);
+       __setProxyRecovererProp(0x0);
+   }
+
+   function revoke() public {
+        (,address recovery,) = __getProxyInfo();
+        address revoker = __getRevoker();
+        require (msg.sender == recovery || msg.sender == revoker);
+        __setRelay(0x0);
    }
 
    function changeRelayer(address _relayer) public {
@@ -36,25 +43,24 @@ contract IDen3Impl is
        
        Memory.Walker memory w = Memory.walk(_auth);       
 
-       // check version
-       require(w.readUint16()==1);
-
        // verify ksignclaim  --------------------------------------------------
        (bool kok, KSignClaim memory kclaim) = unpackKSignClaim(w.readBytes());
        require(kok && _caller==kclaim.key);
        require(now >= kclaim.validFrom && now <= kclaim.validUntil); 
+       require(kclaim.appid==0x0 && kclaim.authz==0x0); 
 
        bytes32 kclaimRoot = w.readBytes32();
        require(checkProof(kclaimRoot,w.readBytes(),kclaim.hi,kclaim.ht,140));
+       require(checkProof(kclaimRoot,w.readBytes(),kclaim.hin,0x0,140));
 
        // verify setrootclaim  --------------------------------------------------
        (bool rok, SetRootClaim memory rclaim) = unpackSetRootClaim(w.readBytes());
        require(rok,"ok");
        require(rclaim.root == kclaimRoot,"rclaim.root == kclaimRoot");
-       // TODO: require(rclaim.ethid == address(this),"rclaim.ethid == address(this)");
  
        bytes32 rclaimRoot = w.readBytes32();
        require(checkProof(rclaimRoot,w.readBytes(),rclaim.hi,rclaim.ht,140));
+       require(checkProof(rclaimRoot,w.readBytes(),rclaim.hin,0x0,140));
        
        uint64  rclaimSigDate = w.readUint64();
        bytes   memory rclaimSig = w.readBytes();
@@ -66,10 +72,6 @@ contract IDen3Impl is
            0
        );
        require(now < rclaimSigDate + 3600 && signer == __getRelay());
-
-       if (kclaim.appid == keccak256("address")) {
-            require(address(kclaim.authz) == _to);
-       }
    }
 
    function forward(

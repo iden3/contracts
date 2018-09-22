@@ -25,6 +25,15 @@ library Memory {
         w.offset+=32;
         return b;
     }
+    function readBytes28(Walker memory w) pure internal returns (bytes28) {
+        uint ptr = w.ptr+w.offset;
+        bytes32 b;
+        assembly {
+          b := mload(ptr)
+        }
+        w.offset+=28;
+        return bytes28(b);
+    }
     function readUint16(Walker memory w) pure internal returns (uint16) {
         uint ptr = w.ptr+w.offset;
         uint256 b;
