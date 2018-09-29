@@ -35,6 +35,19 @@ contract IDen3Impl is
         __setRelay(_relayer);
    }
 
+   function info() public returns (
+       address impl, 
+       address recoverer,
+       address recovererprop,
+       address revoker,
+       address relay
+   ) {
+        (impl, recoverer, recovererprop) = __getProxyInfo();
+        revoker = __getRevoker();
+        relay = __getRelay();
+        return;
+   }
+
    function mustVerifyAuth(
        address _to,
        address _caller,
