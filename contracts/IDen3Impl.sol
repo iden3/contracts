@@ -102,8 +102,7 @@ contract IDen3Impl is
        bytes32 hash=keccak256(
           byte(0x19),byte(0),
           this,lastNonce,
-          _to,_data, _value, _gas,
-          _auth
+          _to,_data, _value, _gas
        );
     
        // get the signature

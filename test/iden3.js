@@ -99,8 +99,7 @@ contract("Iden3", (accounts) => {
         const fwdsigpre = "0x"+Buffer.concat([
             buf(uint8(0x19)),buf(uint8(0)),
             buf(iden3.address),buf(uint256(fwdnonce)),
-            buf(fwdto),buf(fwddata),buf(uint256(fwdvalue)),buf(uint256(fwdgas)),
-            buf(fwdauth)
+            buf(fwdto),buf(fwddata),buf(uint256(fwdvalue)),buf(uint256(fwdgas))
         ]).toString('hex')
         let fwdsig = ethutil.ecsign(buf(sha3(fwdsigpre)),ksignpvk)
 
