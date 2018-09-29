@@ -35,6 +35,19 @@ contract IDen3Impl is
         __setRelay(_relayer);
    }
 
+   function info() public returns (
+       address impl, 
+       address recoverer,
+       address recovererprop,
+       address revoker,
+       address relay
+   ) {
+        (impl, recoverer, recovererprop) = __getProxyInfo();
+        revoker = __getRevoker();
+        relay = __getRelay();
+        return;
+   }
+
    function mustVerifyAuth(
        address _to,
        address _caller,
@@ -89,8 +102,7 @@ contract IDen3Impl is
        bytes32 hash=keccak256(
           byte(0x19),byte(0),
           this,lastNonce,
-          _to,_data, _value, _gas,
-          _auth
+          _to,_data, _value, _gas
        );
     
        // get the signature
