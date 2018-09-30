@@ -1,35 +1,30 @@
 pragma solidity ^0.4.24;
 
+import './lib/UnstructuredStorage.sol';
+
 contract IDen3SlotStorage {
-    bytes32 constant private RELAY_SLOT = keccak256("IDEN3_RELAY_SLOT");
-    bytes32 constant private REVOKER_SLOT = keccak256("IDEN3_REVOKE_SLOT");
+
+    using UnstructuredStorage for bytes32;
+
+    // RELAY_SLOT=keccak256("iden3.core.relay.slot")
+    bytes32 constant private RELAY_SLOT = 0x669b373ede2d753c867ddc72899bdfdaec8f8b75c38e74875af8e9f1574745f9;
+    // REVOKER_SLOT=keccak256("iden3.core.revoker.slot")
+    bytes32 constant private REVOKER_SLOT = 0xdea267dffcb92b0bd25897bac6eb57d8f594c51f6694fa9673b602fa6f8c3446;
 
     constructor(address _relay, address _revoker) public {
-        __setRelay(_relay);
-        __setRevoker(_revoker);
+        RELAY_SLOT.setStorageAddress(_relay);
+        REVOKER_SLOT.setStorageAddress(_revoker);
     }
-    function __getRelay() internal view returns (address relay) {        
-        bytes32 slot = RELAY_SLOT;
-        assembly {
-            relay := sload(slot)
-        }
+    function getRelay() internal view returns (address relay) {
+        return RELAY_SLOT.getStorageAddress();        
     }
-    function __setRelay(address _address) internal {
-        bytes32 slot = RELAY_SLOT;
-        assembly {
-            sstore(slot,_address)
-        }
+    function setRelay(address _address) internal {
+        RELAY_SLOT.setStorageAddress(_address);
     }
-    function __getRevoker() internal view returns (address revoke) {        
-        bytes32 slot = REVOKER_SLOT;
-        assembly {
-            revoke := sload(slot)
-        }
+    function getRevoker() internal view returns (address revoke) {        
+        return REVOKER_SLOT.getStorageAddress();        
     }
-    function __setRevoker(address _address) internal {
-        bytes32 slot = REVOKER_SLOT;
-        assembly {
-            sstore(slot,_address)
-        }
+    function setRevoker(address _address) internal {
+        return REVOKER_SLOT.setStorageAddress(_address);        
     }
 }

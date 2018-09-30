@@ -17,22 +17,22 @@ contract IDen3Impl is
    constructor()
    IDen3SlotStorage(0x0,0x0)
    public {
-       __setProxyImpl(0x0);
-       __setProxyRecoverer(0x0);
-       __setProxyRecovererProp(0x0);
+       setProxyImpl(0x0);
+       setProxyRecoverer(0x0);
+       setProxyRecovererProp(0x0);
    }
 
    function revoke() public {
-        (,address recovery,) = __getProxyInfo();
-        address revoker = __getRevoker();
+        (,address recovery,) = getProxyInfo();
+        address revoker = getRevoker();
         require (msg.sender == recovery || msg.sender == revoker);
-        __setRelay(0x0);
+        setRelay(0x0);
    }
 
    function changeRelayer(address _relayer) public {
-        (,address recovery,) = __getProxyInfo();
+        (,address recovery,) = getProxyInfo();
         require (msg.sender == recovery);
-        __setRelay(_relayer);
+        setRelay(_relayer);
    }
 
    function info() public returns (
@@ -42,9 +42,9 @@ contract IDen3Impl is
        address revoker,
        address relay
    ) {
-        (impl, recoverer, recovererprop) = __getProxyInfo();
-        revoker = __getRevoker();
-        relay = __getRelay();
+        (impl, recoverer, recovererprop) = getProxyInfo();
+        revoker = getRevoker();
+        relay = getRelay();
         return;
    }
 
@@ -84,7 +84,7 @@ contract IDen3Impl is
            rclaimSig,
            0
        );
-       require(now < rclaimSigDate + 3600 && signer == __getRelay());
+       require(now < rclaimSigDate + 3600 && signer == getRelay());
    }
 
    function forward(
