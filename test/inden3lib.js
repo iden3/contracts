@@ -134,19 +134,5 @@ contract("Iden3lib", (accounts) => {
 
         assert.equal("0x33692EE5CBF7EcDb8cA43eC9E815C47F3Db8Cd11",signer2)
     })
-/*
-    it("check gas costs", async () => {
-
-        const b32 = "0x0000000000000000000000000000000000000000000000000000000000000000"
-        
-        const ksignclaim = "0x3cfc3a1edbf691316fec9b75970fbfb2b0e8d8edfc6ec7628db77c4969403074353f867ef725411de05e3d4b0a01c37cf7ad24bcc213141a05ed7726d7932a1f00000000ee602447b5a75cf4f25367f5d199b860844d10c4d6f028ca0e8edb4a8c9757ca4fdccab25fa1e0317da1188108f7d2dee14902fbdad9966a2e7371f0a24b1929ed765c0e7a3f2b4665a76a19d58173308bb3406200000000259e9d8000000000967a7600";
-        const unpackGas = (await iden3lib._unpackKSignClaimTx(ksignclaim)).receipt.gasUsed
-        console.log("    🤹 unpackGas cost: ",unpackGas)
-
-        const checkProofGas0 = (await iden3lib._checkProofTx(b32,b32,b32,b32,0)).receipt.gasUsed
-        const checkProofGas140 = (await iden3lib._checkProofTx(b32,b32,b32,b32,140)).receipt.gasUsed
-        console.log("    🤹 checkProofGas l140 cost: ",checkProofGas140-checkProofGas0)
-    })
-*/
 
 });

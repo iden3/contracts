@@ -2,88 +2,87 @@ pragma solidity ^0.4.24;
 
 library Memory {
 
-    struct Walker {
-       uint256 ptr;
-       uint256 offset;
-       uint256 length;
+    struct Cursor {
+       uint256 begin;
+       uint256 end;
     }
     
-    function walk(bytes memory self) pure internal returns (Walker memory) {
+    function read(bytes memory self) pure internal returns (Cursor memory) {
        uint ptr;
        assembly {
          ptr := add(self, 0x20)
        }
-       return Walker(ptr,0,self.length);
+       return Cursor(ptr,ptr+self.length);
     }
     
-    function readBytes32(Walker memory w) pure internal returns (bytes32) {
-        uint ptr = w.ptr+w.offset;
+    function readBytes32(Cursor memory c) pure internal returns (bytes32) {
+        uint ptr = c.begin;
         bytes32 b;
         assembly {
           b := mload(ptr)
         }
-        w.offset+=32;
+        c.begin+=32;
         return b;
     }
-    function readBytes28(Walker memory w) pure internal returns (bytes28) {
-        uint ptr = w.ptr+w.offset;
+    function readBytes28(Cursor memory c) pure internal returns (bytes28) {
+        uint ptr = c.begin;
         bytes32 b;
         assembly {
           b := mload(ptr)
         }
-        w.offset+=28;
+        c.begin+=28;
         return bytes28(b);
     }
-    function readUint16(Walker memory w) pure internal returns (uint16) {
-        uint ptr = w.ptr+w.offset;
+    function readUint16(Cursor memory c) pure internal returns (uint16) {
+        uint ptr = c.begin;
         uint256 b;
         assembly {
           b := mload(ptr)
         }
-        w.offset+=2;
+        c.begin+=2;
         return uint16(b>>(256-16));
     }
-    function readUint32(Walker memory w) pure internal returns (uint32) {
-        uint ptr = w.ptr+w.offset;
+    function readUint32(Cursor memory c) pure internal returns (uint32) {
+        uint ptr = c.begin;
         uint256 b;
         assembly {
           b := mload(ptr)
         }
-        w.offset+=4;
+        c.begin+=4;
         return uint32(b>>(256-32));
     }
-    function readUint64(Walker memory w) pure internal returns (uint64) {
-        uint ptr = w.ptr+w.offset;
+    function readUint64(Cursor memory c) pure internal returns (uint64) {
+        uint ptr = c.begin;
         uint256 b;
         assembly {
           b := mload(ptr)
         }
-        w.offset+=8;
+        c.begin+=8;
         return uint64(b>>(256-64));
     }
-    function readAddress(Walker memory w) pure internal returns (address) {
-        uint ptr = w.ptr+w.offset;
+    function readAddress(Cursor memory c) pure internal returns (address) {
+        uint ptr = c.begin;
         uint256 b;
         assembly {
           b := mload(ptr)
         }
-        w.offset+=20;
+        c.begin+=20;
         return address(b>>(256-160));
     }
     
-    function readBytes(Walker memory w) pure internal returns (bytes memory bts) {
-        uint16 len = readUint16(w);
+    function readBytes(Cursor memory c) pure internal returns (bytes memory bts) {
+        uint16 len = readUint16(c);
         bts = new bytes(len);
         uint256 btsmem;
         assembly {
             btsmem := add(bts,0x20)
         }
-        memcpy(btsmem,w.ptr+w.offset,len);
-        w.offset+=len;
+        memcpy(btsmem,c.begin,len);
+        c.begin+=len;
     }
 
-    function success(Walker memory w) pure internal returns (bool) {
-        return w.offset==w.length; 
+    function eof(Cursor memory c) pure internal returns (bool) {
+        return c.begin==c.end; 
     }
     
     function memcpy(uint _dest, uint _src, uint _len) pure internal {
