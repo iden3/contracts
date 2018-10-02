@@ -7,6 +7,7 @@ const IDen3Impl = artifacts.require("../contracts/IDen3Impl.sol");
 const IDen3DelegateProxy = artifacts.require("../contracts/IDen3DelegateProxy.sol");
 const TargetHelper = artifacts.require("../contracts/test/TargetHelper.sol");
 const ethutil = require("ethereumjs-util")
+const assertFail = require("./helpers/assertFail.js")
 
 const buf = b => ethutil.toBuffer(b)
 const sha3 = b => web3.utils.soliditySha3(b)
@@ -35,6 +36,17 @@ contract("Iden3", (accounts) => {
        relayaddr = "0x72006777fb1a33a50c13e8822fce859898273353",
        relaypvk = ethutil.toBuffer("0x7FF1F2A8F170FAEA7044E8B7131AA9D116D132FFAF825FD671279F5DE953A203")
 
+    const claimok = {   
+       kb : "0x3cfc3a1edbf691316fec9b75970fbfb2b0e8d8edfc6ec7628db77c4969403074353f867ef725411de05e3d4b0a01c37cf7ad24bcc213141a0000005400000000ee602447b5a75cf4f25367f5d199b860844d10c40000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000259e9d8000000000967a7600",
+       kr : "0x0c7fbb73b49a62b75c44cc0b8559a67af866bcd942fa3bc1e7888d43e2f186f2",
+       kep : "0x0000000000000000000000000000000000000000000000000000000000000000",
+       knep : "0x00000000000000000000000000000000000000000000000000000000000000017a0ec823c79c6d1756a29edbf52eb228a69c5435ead519eb96cdb2412927b865",
+       rb : "0x3cfc3a1edbf691316fec9b75970fbfb2b0e8d8edfc6ec7628db77c49694030749b9a76a0132a0814192c05c9321efc30c7286f6187f18fc60000005400000000d79ae0a65e7dd29db1eac700368e693de09610b80c7fbb73b49a62b75c44cc0b8559a67af866bcd942fa3bc1e7888d43e2f186f2",
+       rr : "0xa392bc7458973721c1266b2ac65db038a87bb6ad2e822c2509298803e9941119",
+       rep : "0x0000000000000000000000000000000000000000000000000000000000000000",
+       rnep : "0x00000000000000000000000000000000000000000000000000000000000000016602097464f2c4a8f7854f1c29a7671a85d5aa670dbbe04a65f9d9c50a70626d"
+    }
+
     const {
         0: owner,
     } = accounts;
@@ -55,69 +67,108 @@ contract("Iden3", (accounts) => {
         iden3 = await IDen3Impl.at(iden3proxy.address)
     });
 
-    it("should execute a with a ksignclaim" , async() => {
-        // claims
-        const kclaimBytes = "0x3cfc3a1edbf691316fec9b75970fbfb2b0e8d8edfc6ec7628db77c4969403074353f867ef725411de05e3d4b0a01c37cf7ad24bcc213141a0000005400000000ee602447b5a75cf4f25367f5d199b860844d10c40000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000259e9d8000000000967a7600"
-        const kclaimRoot = "0x0c7fbb73b49a62b75c44cc0b8559a67af866bcd942fa3bc1e7888d43e2f186f2"
-        const kclaimExistenceProof = "0x0000000000000000000000000000000000000000000000000000000000000000"
-        const kclaimNonNextExistenceProof = "0x00000000000000000000000000000000000000000000000000000000000000017a0ec823c79c6d1756a29edbf52eb228a69c5435ead519eb96cdb2412927b865"
-        
-        const rclaimBytes = "0x3cfc3a1edbf691316fec9b75970fbfb2b0e8d8edfc6ec7628db77c49694030749b9a76a0132a0814192c05c9321efc30c7286f6187f18fc60000005400000000d79ae0a65e7dd29db1eac700368e693de09610b80c7fbb73b49a62b75c44cc0b8559a67af866bcd942fa3bc1e7888d43e2f186f2"
-        const rclaimRoot = "0xa392bc7458973721c1266b2ac65db038a87bb6ad2e822c2509298803e9941119"
-        const rclaimExistenceProof = "0x0000000000000000000000000000000000000000000000000000000000000000"
-        const rclaimNonNextExistenceProof = "0x00000000000000000000000000000000000000000000000000000000000000016602097464f2c4a8f7854f1c29a7671a85d5aa670dbbe04a65f9d9c50a70626d";
-        const rclaimSigDate = Math.floor(Date.now() / 1000)
-
-        const rclaimSigPre = "0x"+Buffer.concat([
-            buf(rclaimRoot),
+    const forward = async (
+        kb,kr,kep,knep,rb,rr,rep,rnep,alter 
+    ) => {
+        let rclaimSigDate = Math.floor(Date.now() / 1000)
+        if (alter.k=='rclaimSigDate') {
+            rclaimSigDate = alter.f(rclaimSigDate)
+        }
+        let rclaimSigPre = "0x"+Buffer.concat([
+            buf(rr),
             buf(uint64(rclaimSigDate)),
         ]).toString('hex')
-        const rclaimSig = ethutil.ecsign(buf(sha3(rclaimSigPre)),relaypvk)
+        if (alter.k=='rclaimSigPre') {
+            rclaimSigPre = alter.f(rclaimSigPre)
+        }
+        let rclaimSig = ethutil.ecsign(buf(sha3(rclaimSigPre)),relaypvk)
+        if (alter.k=='rclaimSig') {
+            rclaimSig = alter.f(rclaimSig)
+        }
 
-        const fwdauth = "0x"+Buffer.concat([
-            mbufhex(kclaimBytes),
-            mbytes32(kclaimRoot),
-            mbufhex(kclaimExistenceProof),
-            mbufhex(kclaimNonNextExistenceProof),
+        let fwdauth = "0x"+Buffer.concat([
+            mbufhex(kb),
+            mbytes32(kr),
+            mbufhex(kep),
+            mbufhex(knep),
 
-            mbufhex(rclaimBytes),
-            mbytes32(rclaimRoot),
-            mbufhex(rclaimExistenceProof),
-            mbufhex(rclaimNonNextExistenceProof),
+            mbufhex(rb),
+            mbytes32(rr),
+            mbufhex(rep),
+            mbufhex(rnep),
 
             muint64(rclaimSigDate),
             mbuf(Buffer.concat([rclaimSig.r,rclaimSig.s,buf(rclaimSig.v)]))
         ]).toString('hex')
 
-        const fwdto    = target.address
-        const fwddata  = target.contract.methods.inc(5).encodeABI()
-        const fwdvalue = 0
-        const fwdgas   = 200000
+        let fwdto    = target.address
+        let fwddata  = target.contract.methods.inc(5).encodeABI()
+        let fwdvalue = 0
+        let fwdgas   = 200000
 
-        const fwdnonce = (await iden3.lastNonce()).toNumber()+1
+        let fwdnonce = (await iden3.lastNonce()).toNumber()+1
+        if (alter.k=='fwdnonce') {
+            fwdnonce = alter.f(fwdnonce)
+        }
 
-        const fwdsigpre = "0x"+Buffer.concat([
+        let fwdsigpre = "0x"+Buffer.concat([
             buf(uint8(0x19)),buf(uint8(0)),
             buf(iden3.address),buf(uint256(fwdnonce)),
             buf(fwdto),buf(fwddata),buf(uint256(fwdvalue)),buf(uint256(fwdgas))
         ]).toString('hex')
-        let fwdsig = ethutil.ecsign(buf(sha3(fwdsigpre)),ksignpvk)
 
+        let fwdsig = ethutil.ecsign(buf(sha3(fwdsigpre)),ksignpvk)
         fwdsig = "0x"+Buffer.concat([
             fwdsig.r,
             fwdsig.s,
             buf(fwdsig.v)
         ]).toString('hex')
+        if (alter.k=='fwdsig') {
+            fwdsig = alter.f(fwdsig)
+        }
 
-        const incGas = (await target.inc(1)).receipt.gasUsed
+        let incGas = (await target.inc(1)).receipt.gasUsed
 
         let res  = await iden3.forward(
             fwdto, fwddata, fwdvalue,fwdgas,fwdsig,
             fwdauth
         )
 
-        assert.equal(7,await target.value())
-
         console.log("    🤹 forwarding cost: ",res.receipt.gasUsed - incGas)
+        return target.value()
+
+    } 
+
+    it("should execute a with a ksignclaim" , async() => {
+        // claims
+        let value = await forward(
+            claimok.kb,claimok.kr,claimok.kep,claimok.knep,
+            claimok.rb,claimok.rr,claimok.rep,claimok.rnep,
+            { k :'' }
+        )
+        assert.equal(7,value.toNumber())
     })
+    it("should execute twice" , async() => {
+        // claims
+        await forward(
+            claimok.kb,claimok.kr,claimok.kep,claimok.knep,
+            claimok.rb,claimok.rr,claimok.rep,claimok.rnep,
+            { k :'' }
+        )
+        let value = await forward(
+            claimok.kb,claimok.kr,claimok.kep,claimok.knep,
+            claimok.rb,claimok.rr,claimok.rep,claimok.rnep,
+            { k :'' }
+        )
+        assert.equal(13,value.toNumber())
+    })
+
+    it("cannot use relay signatures older than 1 hour" , async() => {
+        await assertFail(forward(claimok.kb,claimok.kr,claimok.kep,claimok.knep,
+            claimok.rb,claimok.rr,claimok.rep,claimok.rnep,
+            { k :'rclaimSigDate', f: v => v-3601 }),
+            "errNotFreshSig"
+        )
+    })
+
 });

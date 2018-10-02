@@ -2,13 +2,16 @@ pragma solidity ^0.4.24;
 
 import './Memory.sol';
 
+/**
+* @title helper functions used by IDen3impl
+*/
 contract IDen3lib {
     
+    using Memory for *;
+
     bytes32 constant IDEN3IO = 0x3cfc3a1edbf691316fec9b75970fbfb2b0e8d8edfc6ec7628db77c4969403074;
     bytes28 constant KSIGN   = 0x353f867ef725411de05e3d4b0a01c37cf7ad24bcc213141a00000054;
     bytes28 constant SETROOT = 0x9b9a76a0132a0814192c05c9321efc30c7286f6187f18fc600000054;
-
-    using Memory for *;
 
     struct KSignClaim {
        address  key;
@@ -30,25 +33,33 @@ contract IDen3lib {
        bytes32  ht;
     }
 
-    function checkProof(bytes32 root, bytes proof, bytes32 hi, bytes32 ht, uint numlevels) 
+    /**
+    * @dev checks a merkle proof 
+    * @param _root of the merkle tree
+    * @param _proof the path (left or right) of the witness path + values
+    * @param _hi hash of the index part of the value
+    * @param _ht hash of the full value
+    * @param _numlevels height of the tree
+    */
+    function checkProof(bytes32 _root, bytes _proof, bytes32 _hi, bytes32 _ht, uint _numlevels) 
     public pure returns (bool){
         
         uint256 emptiesmap;
         assembly {
-            emptiesmap := mload(add(proof, 32))
+            emptiesmap := mload(add(_proof, 32))
         }
         
         uint256 nextSibling = 64;
-        bytes32 nodehash = ht;
+        bytes32 nodehash = _ht;
         
-        for (uint256 level =  numlevels - 2 ; int256(level) >= 0; level--) {
+        for (uint256 level = _numlevels - 2 ; int256(level) >= 0; level--) {
             
             uint256 bitmask= 1 << level;
             bytes32 sibling; 
             
             if (emptiesmap&bitmask>0) {
                 assembly {
-                    sibling := mload(add(proof, nextSibling))
+                    sibling := mload(add(_proof, nextSibling))
                 }
                 nextSibling+=32;
             } else {
@@ -56,91 +67,109 @@ contract IDen3lib {
             }
 
             if (nodehash !=0x0  || sibling != 0x0) {
-                if (uint256(hi)&bitmask>0) {
+                if (uint256(_hi)&bitmask>0) {
                     nodehash=keccak256(sibling,nodehash);
                 } else {
                     nodehash=keccak256(nodehash,sibling);
                 }
             }
         }
-        return nodehash == root;
+        return nodehash == _root;
     }    
     
-    function hiht(bytes value, uint256 indexlen) 
-    internal pure returns (bytes32 hi ,bytes32 ht){
-        
-        assembly {
-            hi := keccak256(add(value,32),indexlen)
-        }
-        
-        ht = keccak256(value);
-
-        return (hi,ht);
-    }    
-    
-    function checkExistenceProof(bytes32 root, bytes proof, bytes value, uint256 indexlen, uint numlevels) 
+    /**
+    * @dev checks a merkle proof 
+    * @param _root of the merkle tree
+    * @param _proof the path (left or right) of the witness path + values
+    * @param _value value to prove
+    * @param _indexlen how much bytes of the value are unique
+    * @param _numlevels height of the tree
+    */
+    function checkExistenceProof(bytes32 _root, bytes _proof, bytes _value, uint256 _indexlen, uint _numlevels) 
     public pure returns (bool){
-        
-        (bytes32 hi, bytes32 ht) = hiht(value,indexlen);
+        bytes32 hi;
+        bytes32 ht;
 
-        return checkProof(root,proof,hi,ht,numlevels);
+        assembly {
+            hi := keccak256(add(_value,32),_indexlen)
+        }
+        ht = keccak256(_value);
+
+        return checkProof(_root,_proof,hi,ht,_numlevels);
     }    
 
+    /**
+    * @dev unpacks and verifies a KSignClaim
+    * @param _m the encoded claim
+    * @return ok if success
+    * @return claim is the decoded claim
+    */
     function unpackKSignClaim(
        bytes   memory  _m    
-    ) internal pure returns (bool ok, KSignClaim memory c) {
+    ) internal pure returns (bool ok, KSignClaim memory claim) {
 
        // unpack & verify claim
-       Memory.Walker memory w = Memory.walk(_m);
+       Memory.Cursor memory c = Memory.read(_m);
         
-       if (w.readBytes32()!=IDEN3IO) return (false,c);
-       if (w.readBytes28()!=KSIGN) return (false,c);
-       if (w.readUint32()!=0) return (false,c);
+       if (c.readBytes32()!=IDEN3IO) return (false,claim);
+       if (c.readBytes28()!=KSIGN) return (false,claim);
+       if (c.readUint32()!=0) return (false,claim);
 
-       c.key = w.readAddress();
-       c.appid = w.readBytes32();
-       c.authz = w.readBytes32();
-       c.validFrom = w.readUint64();
-       c.validUntil = w.readUint64();
+       claim.key = c.readAddress();
+       claim.appid = c.readBytes32();
+       claim.authz = c.readBytes32();
+       claim.validFrom = c.readUint64();
+       claim.validUntil = c.readUint64();
 
-       c.hi = keccak256(IDEN3IO,KSIGN,uint32(0),c.key);
-       c.hin = keccak256(IDEN3IO,KSIGN,uint32(1),c.key);
-       c.ht = keccak256(_m);
+       claim.hi = keccak256(IDEN3IO,KSIGN,uint32(0),claim.key);
+       claim.hin = keccak256(IDEN3IO,KSIGN,uint32(1),claim.key);
+       claim.ht = keccak256(_m);
 
-       return (true,c);
+       return (c.eof(),claim);
     }
 
+    /**
+    * @dev unpacks and verifies a SetRootClaim
+    * @param _m the encoded claim
+    * @return ok if success
+    * @return claim is the decoded claim
+    */
     function unpackSetRootClaim(
        bytes   memory  _m    
-    ) internal pure returns (bool ok, SetRootClaim memory c) {
+    ) internal pure returns (bool ok, SetRootClaim memory claim) {
 
        // unpack & verify claim
-       Memory.Walker memory w = Memory.walk(_m);
+       Memory.Cursor memory c = Memory.read(_m);
         
-       if (w.readBytes32()!=IDEN3IO) return (false,c);
-       if (w.readBytes28()!=SETROOT) return (false,c);
-       c.version = w.readUint32();
-       c.ethid = w.readAddress();
-       c.root = w.readBytes32();
+       if (c.readBytes32()!=IDEN3IO) return (false,claim);
+       if (c.readBytes28()!=SETROOT) return (false,claim);
+       claim.version = c.readUint32();
+       claim.ethid = c.readAddress();
+       claim.root = c.readBytes32();
 
-       c.hi = keccak256(IDEN3IO,SETROOT,c.version,c.ethid);
-       c.hin = keccak256(IDEN3IO,SETROOT,c.version+1,c.ethid);
-       c.ht = keccak256(_m);
+       claim.hi = keccak256(IDEN3IO,SETROOT,claim.version,claim.ethid);
+       claim.hin = keccak256(IDEN3IO,SETROOT,claim.version+1,claim.ethid);
+       claim.ht = keccak256(_m);
 
-       return (true,c);
+       return (c.eof(),claim);
     }
 
-   function ecrecover2(bytes32 hash, bytes rsv, uint16 offset) pure public returns (address) {
+    /**
+    * @dev recovers the address of a packed signature
+    * @param _hash of the signature
+    * @param _rsv is the signature
+    * @return the address of the signer
+    */
+   function ecrecover2(bytes32 _hash, bytes _rsv) pure public returns (address) {
        bytes32 r;
        bytes32 s;
        uint8   v;
        
        assembly {
-            r := mload(add(add(rsv,offset), 32))
-            s := mload(add(add(rsv,offset), 64))
-            v := byte(0, mload(add(add(rsv,offset), 96)))
+            r := mload(add(_rsv, 32))
+            s := mload(add(_rsv, 64))
+            v := byte(0, mload(add(_rsv, 96)))
        }
-       return ecrecover(hash, v, r,s);
+       return ecrecover(_hash, v, r,s);
    }
-
 }

@@ -2,6 +2,9 @@ pragma solidity ^0.4.24;
 
 import './lib/UnstructuredStorage.sol';
 
+/**
+* @title Manages the state variables of an IDen3Impl
+*/
 contract IDen3SlotStorage {
 
     using UnstructuredStorage for bytes32;
@@ -15,15 +18,35 @@ contract IDen3SlotStorage {
         RELAY_SLOT.setStorageAddress(_relay);
         REVOKER_SLOT.setStorageAddress(_revoker);
     }
+
+    /**
+    * @dev returns the relay
+    * @return the address
+    */
     function getRelay() internal view returns (address relay) {
         return RELAY_SLOT.getStorageAddress();        
     }
+
+    /**
+    * @dev sets the relay to be used
+    * @return _address of the relay
+    */
     function setRelay(address _address) internal {
         RELAY_SLOT.setStorageAddress(_address);
     }
+
+    /**
+    * @dev returns the revoker
+    * @return the address
+    */
     function getRevoker() internal view returns (address revoke) {        
         return REVOKER_SLOT.getStorageAddress();        
     }
+
+    /**
+    * @dev sets the revoker to be used
+    * @return _address of the revoker
+    */
     function setRevoker(address _address) internal {
         return REVOKER_SLOT.setStorageAddress(_address);        
     }
