@@ -125,14 +125,9 @@ contract("Iden3lib", (accounts) => {
 
     it("ecrecover2" , async() => {
         const rsv1 = "0x9242685bf161793cc25603c231bc2f568eb630ea16aa137d2664ac80388256084f8ae3bd7535248d0bd448298cc2e2071e56992d0774dc340c368ae950852ada1c"
-        const signer1 = await iden3lib.ecrecover2("0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8",rsv1,0)
+        const signer1 = await iden3lib.ecrecover2("0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8",rsv1)
 
         assert.equal("0x33692EE5CBF7EcDb8cA43eC9E815C47F3Db8Cd11",signer1)
-
-        const rsv2 = "0x009242685bf161793cc25603c231bc2f568eb630ea16aa137d2664ac80388256084f8ae3bd7535248d0bd448298cc2e2071e56992d0774dc340c368ae950852ada1c"
-        const signer2 = await iden3lib.ecrecover2("0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8",rsv2,1)
-
-        assert.equal("0x33692EE5CBF7EcDb8cA43eC9E815C47F3Db8Cd11",signer2)
     })
 
 });

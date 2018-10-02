@@ -2,21 +2,25 @@ pragma solidity ^0.4.24;
 
 import './lib/DelegateProxySlotStorage.sol';
 import './lib/IDen3lib.sol';
-
 import './IDen3SlotStorage.sol';
 import './RootCommits.sol';
 
+/**
+* @title the implementation of an INDEN3 identity
+*/
 contract IDen3Impl is
    DelegateProxySlotStorage,
    IDen3SlotStorage,
    IDen3lib {
 
-   // last nonce used
+   /// last nonce used
    uint256 public lastNonce;  
 
-   // IDen3Impl instance is used only as base code for IDen3DelegateProxy calls,
-   //    so, disable its usage by setting all storage to zero ; this is some
-   //    boilerplate at this moment but it is only done one time
+   /** 
+   * @dev IDen3Impl instance is used only as base code for IDen3DelegateProxy calls,
+   *      so, disable its usage by setting all storage to zero ; this is some
+   *      boilerplate at this moment but it is only done one time
+   */
    constructor()
    IDen3SlotStorage(0x0,0x0)
    public {
@@ -25,12 +29,17 @@ contract IDen3Impl is
        setProxyRecovererProp(0x0);
    }
 
-   // returns if the identity has been revokated
+   /** 
+   * @dev returns if the identity has been revokated
+   * @return true if revocated
+   */
    function revokated() public view returns(bool) {
        return getRelay()==0x0;
    }
 
-   // revoke (disable) the identity by setting the relayer to zero
+   /** 
+   * @dev revoke (disable) the identity by setting the relayer to zero
+   */
    function revoke() public {
         (,address recovery,) = getProxyInfo();
         address revoker = getRevoker();
@@ -38,14 +47,19 @@ contract IDen3Impl is
         setRelay(0x0);
    }
 
-   // change the relayer, this can only be done by recoverer
+   /** 
+   * @dev change the relayer, this can only be done by recoverer
+   * @param _relayer to be used
+   */
    function changeRelayer(address _relayer) public {
         (,address recovery,) = getProxyInfo();
         require (msg.sender == recovery);
         setRelay(_relayer);
    }
 
-   // returns information about this identity
+   /** 
+   * @dev returns information about this identity
+   */
    function info() public view returns (
        address impl, 
        address recoverer,
@@ -59,7 +73,9 @@ contract IDen3Impl is
         return;
    }
 
-   // checks if the authorization claims are correct
+   /** 
+   * @dev checks if the authorization claims are correct
+   */
    function mustVerifyAuth(
        address _caller,
        bytes   _auth
@@ -106,8 +122,7 @@ contract IDen3Impl is
        // check the signature is done by the relayer
        address signer = ecrecover2(
            keccak256(rclaimRoot,rclaimSigDate),
-           rclaimSig,
-           0
+           rclaimSig
        );
 
        require(signer == getRelay(),"errInvalidRelay");
@@ -116,13 +131,22 @@ contract IDen3Impl is
        require(now < rclaimSigDate + 3600,"errNotFreshSig");
    }
 
+   /** 
+   * @dev call to another contract using this contract identity
+   * @param _to  is the destination
+   * @param _data to send (msg.data)
+   * @param _value to send (msg.value)
+   * @param _gas to be used as maximum
+   * @param _sig signature made by a KSign
+   * @param _auth are the claims + proofs of the KSign
+   */
    function forward(
-       address _to,    // destination
-       bytes   _data,  // data to recieve
-       uint256 _value, // value to send 
-       uint256 _gas,   // maximum execution gas
-       bytes   _sig,   // signature made by a KSign
-       bytes   _auth   // claims + proofs
+       address _to,    
+       bytes   _data, 
+       uint256 _value, 
+       uint256 _gas, 
+       bytes   _sig,
+       bytes   _auth
    ) public {
 
        // check the relayer has not been revokated
@@ -139,7 +163,7 @@ contract IDen3Impl is
        );
     
        // get the signature
-       address signer=IDen3lib.ecrecover2(hash,_sig,0);
+       address signer=IDen3lib.ecrecover2(hash,_sig);
 
        // and verify if the signer has valid claims 
        mustVerifyAuth(signer,_auth);

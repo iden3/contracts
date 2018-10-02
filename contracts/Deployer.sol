@@ -1,7 +1,15 @@
 pragma solidity ^0.4.24;
 
+/**
+* @title Helps to deploy identities using CREATE2
+*/
 contract Deployer {
     event Created(address addr);
+
+    /**
+    * @dev creates a new contract 
+    * @param _code of the contract
+    */
     function create(bytes memory _code) public {
         address addr;
         assembly {

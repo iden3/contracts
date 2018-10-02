@@ -2,6 +2,9 @@ pragma solidity ^0.4.24;
 
 import './Memory.sol';
 
+/**
+* @title helper functions used by IDen3impl
+*/
 contract IDen3lib {
     
     using Memory for *;
@@ -30,25 +33,33 @@ contract IDen3lib {
        bytes32  ht;
     }
 
-    function checkProof(bytes32 root, bytes proof, bytes32 hi, bytes32 ht, uint numlevels) 
+    /**
+    * @dev checks a merkle proof 
+    * @param _root of the merkle tree
+    * @param _proof the path (left or right) of the witness path + values
+    * @param _hi hash of the index part of the value
+    * @param _ht hash of the full value
+    * @param _numlevels height of the tree
+    */
+    function checkProof(bytes32 _root, bytes _proof, bytes32 _hi, bytes32 _ht, uint _numlevels) 
     public pure returns (bool){
         
         uint256 emptiesmap;
         assembly {
-            emptiesmap := mload(add(proof, 32))
+            emptiesmap := mload(add(_proof, 32))
         }
         
         uint256 nextSibling = 64;
-        bytes32 nodehash = ht;
+        bytes32 nodehash = _ht;
         
-        for (uint256 level =  numlevels - 2 ; int256(level) >= 0; level--) {
+        for (uint256 level = _numlevels - 2 ; int256(level) >= 0; level--) {
             
             uint256 bitmask= 1 << level;
             bytes32 sibling; 
             
             if (emptiesmap&bitmask>0) {
                 assembly {
-                    sibling := mload(add(proof, nextSibling))
+                    sibling := mload(add(_proof, nextSibling))
                 }
                 nextSibling+=32;
             } else {
@@ -56,29 +67,43 @@ contract IDen3lib {
             }
 
             if (nodehash !=0x0  || sibling != 0x0) {
-                if (uint256(hi)&bitmask>0) {
+                if (uint256(_hi)&bitmask>0) {
                     nodehash=keccak256(sibling,nodehash);
                 } else {
                     nodehash=keccak256(nodehash,sibling);
                 }
             }
         }
-        return nodehash == root;
+        return nodehash == _root;
     }    
     
-    function checkExistenceProof(bytes32 root, bytes proof, bytes value, uint256 indexlen, uint numlevels) 
+    /**
+    * @dev checks a merkle proof 
+    * @param _root of the merkle tree
+    * @param _proof the path (left or right) of the witness path + values
+    * @param _value value to prove
+    * @param _indexlen how much bytes of the value are unique
+    * @param _numlevels height of the tree
+    */
+    function checkExistenceProof(bytes32 _root, bytes _proof, bytes _value, uint256 _indexlen, uint _numlevels) 
     public pure returns (bool){
         bytes32 hi;
         bytes32 ht;
 
         assembly {
-            hi := keccak256(add(value,32),indexlen)
+            hi := keccak256(add(_value,32),_indexlen)
         }
-        ht = keccak256(value);
+        ht = keccak256(_value);
 
-        return checkProof(root,proof,hi,ht,numlevels);
+        return checkProof(_root,_proof,hi,ht,_numlevels);
     }    
 
+    /**
+    * @dev unpacks and verifies a KSignClaim
+    * @param _m the encoded claim
+    * @return ok if success
+    * @return claim is the decoded claim
+    */
     function unpackKSignClaim(
        bytes   memory  _m    
     ) internal pure returns (bool ok, KSignClaim memory claim) {
@@ -103,6 +128,12 @@ contract IDen3lib {
        return (c.eof(),claim);
     }
 
+    /**
+    * @dev unpacks and verifies a SetRootClaim
+    * @param _m the encoded claim
+    * @return ok if success
+    * @return claim is the decoded claim
+    */
     function unpackSetRootClaim(
        bytes   memory  _m    
     ) internal pure returns (bool ok, SetRootClaim memory claim) {
@@ -123,17 +154,22 @@ contract IDen3lib {
        return (c.eof(),claim);
     }
 
-   function ecrecover2(bytes32 hash, bytes rsv, uint16 offset) pure public returns (address) {
+    /**
+    * @dev recovers the address of a packed signature
+    * @param _hash of the signature
+    * @param _rsv is the signature
+    * @return the address of the signer
+    */
+   function ecrecover2(bytes32 _hash, bytes _rsv) pure public returns (address) {
        bytes32 r;
        bytes32 s;
        uint8   v;
        
        assembly {
-            r := mload(add(add(rsv,offset), 32))
-            s := mload(add(add(rsv,offset), 64))
-            v := byte(0, mload(add(add(rsv,offset), 96)))
+            r := mload(add(_rsv, 32))
+            s := mload(add(_rsv, 64))
+            v := byte(0, mload(add(_rsv, 96)))
        }
-       return ecrecover(hash, v, r,s);
+       return ecrecover(_hash, v, r,s);
    }
-
 }

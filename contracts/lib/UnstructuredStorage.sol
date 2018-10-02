@@ -1,11 +1,8 @@
-/* 
-  taken from
-  https://github.com/aragon/aragonOS/blob/a56234e3c0265878d5f105c6be2b81f2108f57d6/contracts/common/UnstructuredStorage.sol
+/**
+* @title unstructured slot storage handling
+* @dev source https://github.com/aragon/aragonOS/blob/a56234e3c0265878d5f105c6be2b81f2108f57d6/contracts/common/UnstructuredStorage.sol
+* @dev SPDX-License-Identitifer: MIT
 */
-
-/*
- * SPDX-License-Identitifer:    MIT
- */
 
 pragma solidity ^0.4.24;
 
