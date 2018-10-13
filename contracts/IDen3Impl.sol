@@ -14,7 +14,7 @@ contract IDen3Impl is
    IDen3lib {
 
    /// last nonce used
-   uint256 public lastNonce;  
+   uint256 public lastNonce; 
 
    /** 
    * @dev IDen3Impl instance is used only as base code for IDen3DelegateProxy calls,
@@ -43,7 +43,7 @@ contract IDen3Impl is
    function revoke() public {
         (,address recovery,) = getProxyInfo();
         address revoker = getRevoker();
-        require (msg.sender == recovery || msg.sender == revoker);
+        require (msg.sender == recovery || msg.sender == revoker,"errInvalidRevoker");
         setRelay(0x0);
    }
 
@@ -53,7 +53,7 @@ contract IDen3Impl is
    */
    function changeRelayer(address _relayer) public {
         (,address recovery,) = getProxyInfo();
-        require (msg.sender == recovery);
+        require (msg.sender == recovery, "errInvalidRecover");
         setRelay(_relayer);
    }
 
@@ -81,7 +81,7 @@ contract IDen3Impl is
        bytes   _auth
   ) view internal {
        
-        Memory.Cursor memory c = Memory.read(_auth);
+       Memory.Cursor memory c = Memory.read(_auth);
       
        // 1. verify ksignclaim  --------------------------------------------------
        
@@ -150,7 +150,7 @@ contract IDen3Impl is
    ) public {
 
        // check the relayer has not been revokated
-       require(!revokated());
+       require(!revokated(),"errRevokated");
         
        // avoid reply attacks
        lastNonce++;
@@ -169,7 +169,7 @@ contract IDen3Impl is
        mustVerifyAuth(signer,_auth);
 
        // forward the call
-       require(_to.call.gas(_gas).value(_value)(_data));
+       require(_to.call.gas(_gas).value(_value)(_data),"errFailCall");
    }
    
 }
