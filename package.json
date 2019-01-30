@@ -34,7 +34,7 @@
         "jsonfile": "^4.0.0",
         "solidity-coverage": "^0.5.11",
         "solium": "^1.1.5",
-        "truffle": "^5.0.0-beta.0"
+        "truffle": "^4.1.15"
     },
     "main": "truffle.js",
     "directories": {

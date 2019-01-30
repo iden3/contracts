@@ -15,7 +15,7 @@ This smartcontratcts are designed to provide the following functionality on-chai
 
 ## Testing
 
-- Install truffle `npm i -g truffle`
-- Run the tests `truffle test` 
+- Install dependencies `npm install`
+- Run the tests `node_modules/.bin/truffle test` 
 - Run coverage tests `npm run coverage`
 
