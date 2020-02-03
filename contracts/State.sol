@@ -1,17 +1,18 @@
 pragma solidity ^0.5.0;
 
-import './lib/Iden3Helpers.sol';
+// import './lib/Iden3Helpers.sol';
 
-/**
- * @dev Set and get states for each identity
- */
-contract IDState is Iden3Helpers {
+// /**
+//  * @dev Set and get states for each identity
+//  */
+// contract State is Iden3Helpers {
+contract State {
 
-  /**
-   * @dev Load Iden3Helpers constructor
-   * @param _mimcContractAddr mimc7 contract address
-   */
-  constructor( address _mimcContractAddr) Iden3Helpers(_mimcContractAddr) public {}
+  // /**
+  //  * @dev Load Iden3Helpers constructor
+  //  * @param _mimcContractAddr mimc7 contract address
+  //  */
+  // constructor( address _mimcContractAddr) Iden3Helpers(_mimcContractAddr) public {}
 
   /**
    * @dev Correlation between identity and its state (plus block/time)
@@ -69,16 +70,24 @@ contract IDState is Iden3Helpers {
   }
   */
 
+  // TODO once defined, this function will check the transition from genesis to state (itp: Identity Transition Proof)
+  function initState(bytes32 newState, bytes31 id, bytes memory kproof, bytes memory itp) public {
+
+    require(identities[id].length==0);
+
+    identities[id].push(IDState(uint64(block.number), uint64(block.timestamp), newState));
+    emit StateUpdated(id, uint64(block.number), uint64(block.timestamp), newState);
+  }
+
   // WARNING!!! root verification is disabled in this simplified version of the
   // contract (old function in the previous comments, as example)
   // TODO next version will need to have updated the MerkleTree Proof
   // verification and migrate from Mimc7 to Poseidon hash function
-  function setState(bytes32 newState, bytes31 id) public {
-    bytes27 state = getStateFromId(id);
-    // Add newState to identity
-    if(identities[id].length > 0){
-      require(identities[id][identities[id].length - 1].BlockN != block.number, "no multiple set in the same block");
-    }
+  function setState(bytes32 newState, bytes31 id, bytes memory kproof) public {
+    require(identities[id].length>0);
+
+    require(identities[id][identities[id].length - 1].BlockN != block.number, "no multiple set in the same block");
+
     identities[id].push(IDState(uint64(block.number), uint64(block.timestamp), newState));
     emit StateUpdated(id, uint64(block.number), uint64(block.timestamp), newState);
   }
@@ -183,5 +192,14 @@ contract IDState is Iden3Helpers {
       lastIdState.BlockTimestamp,
       lastIdState.State
     );
+  }
+
+  /**
+   * @dev Get root used to form an identity
+   * @param id identity
+   * @return root
+   */
+  function getStateFromId(bytes31 id) public pure returns (bytes27) {
+    return bytes27(id<<16);
   }
 }
