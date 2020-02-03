@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 /**
 * @title a library to sequentially read memory
@@ -9,108 +9,178 @@ library Memory {
        uint256 begin;
        uint256 end;
     }
-    
+
     /**
-    * @dev returns a new cursor from a memory 
+    * @dev returns a new cursor from a memory
     * @return a cursor to read from
     */
-    function read(bytes memory self) pure internal returns (Cursor memory) {
+    function read(bytes memory self) internal pure returns (Cursor memory) {
        uint ptr;
        assembly {
          ptr := add(self, 0x20)
        }
        return Cursor(ptr,ptr+self.length);
     }
-    
+
     /**
-    * @dev reads 32 bytes from cursor, no eof checks 
+    * @dev reads 32 bytes from cursor, no eof checks
     * @return the value
     */
-    function readBytes32(Cursor memory c) pure internal returns (bytes32) {
+    function readBytes32(Cursor memory c) internal pure returns (bytes32) {
         uint ptr = c.begin;
         bytes32 b;
         assembly {
           b := mload(ptr)
         }
-        c.begin+=32;
+        c.begin += 32;
         return b;
     }
 
     /**
-    * @dev reads 28 bytes from cursor, no eof checks 
+    * @dev reads 30 bytes from cursor, no eof checks
     * @return the value
     */
-    function readBytes28(Cursor memory c) pure internal returns (bytes28) {
+    function readBytes30(Cursor memory c) internal pure returns (bytes30) {
         uint ptr = c.begin;
         bytes32 b;
         assembly {
           b := mload(ptr)
         }
-        c.begin+=28;
+        c.begin += 30;
+        return bytes30(b);
+    }
+
+    /**
+    * @dev reads 28 bytes from cursor, no eof checks
+    * @return the value
+    */
+    function readBytes28(Cursor memory c) internal pure returns (bytes28) {
+        uint ptr = c.begin;
+        bytes32 b;
+        assembly {
+          b := mload(ptr)
+        }
+        c.begin += 28;
         return bytes28(b);
     }
 
     /**
-    * @dev reads a uint16 from cursor, no eof checks 
+    * @dev reads 1 bytes from cursor, no eof checks
     * @return the value
     */
-    function readUint16(Cursor memory c) pure internal returns (uint16) {
+    function readBytes1(Cursor memory c) internal pure returns (bytes1) {
         uint ptr = c.begin;
-        uint256 b;
+        bytes32 b;
         assembly {
           b := mload(ptr)
         }
-        c.begin+=2;
-        return uint16(b>>(256-16));
+        c.begin += 1;
+        return bytes1(b);
     }
 
     /**
-    * @dev reads a uint32 from cursor, no eof checks 
+    * @dev reads a bool from cursor (8 bits), no eof checks
     * @return the value
     */
-    function readUint32(Cursor memory c) pure internal returns (uint32) {
+    function readBool(Cursor memory c) internal pure returns (bool) {
         uint ptr = c.begin;
         uint256 b;
         assembly {
           b := mload(ptr)
         }
-        c.begin+=4;
-        return uint32(b>>(256-32));
+        c.begin += 1;
+        return (b >> (256-8)) != 0;
     }
 
     /**
-    * @dev reads a uint64 from cursor, no eof checks 
+    * @dev reads a uint8 from cursor, no eof checks
     * @return the value
     */
-    function readUint64(Cursor memory c) pure internal returns (uint64) {
+    function readUint8(Cursor memory c) internal pure returns (uint8) {
         uint ptr = c.begin;
         uint256 b;
         assembly {
           b := mload(ptr)
         }
-        c.begin+=8;
+        c.begin += 1;
+        return uint8(b >> (256-8));
+    }
+
+    /**
+    * @dev reads a uint16 from cursor, no eof checks
+    * @return the value
+    */
+    function readUint16(Cursor memory c) internal pure returns (uint16) {
+        uint ptr = c.begin;
+        uint256 b;
+        assembly {
+          b := mload(ptr)
+        }
+        c.begin += 2;
+        return uint16(b >> (256-16));
+    }
+
+    /**
+    * @dev reads a uint32 from cursor, no eof checks
+    * @return the value
+    */
+    function readUint32(Cursor memory c) internal pure returns (uint32) {
+        uint ptr = c.begin;
+        uint256 b;
+        assembly {
+          b := mload(ptr)
+        }
+        c.begin += 4;
+        return uint32(b >> (256-32));
+    }
+
+    /**
+    * @dev reads a uint64 from cursor, no eof checks
+    * @return the value
+    */
+    function readUint64(Cursor memory c) internal pure returns (uint64) {
+        uint ptr = c.begin;
+        uint256 b;
+        assembly {
+          b := mload(ptr)
+        }
+        c.begin += 8;
         return uint64(b>>(256-64));
     }
 
     /**
-    * @dev reads an address from cursor, no eof checks 
+    * @dev reads a uint240 from cursor, no eof checks
     * @return the value
     */
-    function readAddress(Cursor memory c) pure internal returns (address) {
+    function readUint240(Cursor memory c) internal pure returns (uint240) {
         uint ptr = c.begin;
         uint256 b;
         assembly {
           b := mload(ptr)
         }
-        c.begin+=20;
-        return address(b>>(256-160));
+        c.begin += 30;
+        return uint240(b>>(256-240));
     }
-    
+
+    /**
+    * @dev reads an address from cursor, no eof checks
+    * @return the value
+    */
+    function readAddress(Cursor memory c) internal pure returns (address) {
+        uint ptr = c.begin;
+        uint256 b;
+        assembly {
+          b := mload(ptr)
+        }
+        c.begin += 20;
+        return address(b >> (256-160));
+    }
+
     /**
     * @dev reads a variable sized bytes, max 2^16 len, no eof check
     * @return the value
     */
-    function readBytes(Cursor memory c) pure internal returns (bytes memory bts) {
+    function readBytes(Cursor memory c) internal pure returns (bytes memory bts) {
         uint16 len = readUint16(c);
         bts = new bytes(len);
         uint256 btsmem;
@@ -118,21 +188,21 @@ library Memory {
             btsmem := add(bts,0x20)
         }
         memcpy(btsmem,c.begin,len);
-        c.begin+=len;
+        c.begin += len;
     }
 
     /**
     * @dev checks if the cursor is *exactly* at the end of the stream
     * @return true if is *exactly* at the end
     */
-    function eof(Cursor memory c) pure internal returns (bool) {
-        return c.begin==c.end; 
+    function eof(Cursor memory c) internal pure returns (bool) {
+        return c.begin == c.end;
     }
-    
+
     /**
     * @dev copies _len bytes from _src to _dest
     */
-    function memcpy(uint _dest, uint _src, uint _len) pure internal {
+    function memcpy(uint _dest, uint _src, uint _len) internal pure {
         // Copy word-length chunks while possible
         for ( ;_len >= 32; _len -= 32) {
             assembly {
