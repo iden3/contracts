@@ -42,54 +42,64 @@ contract State {
    */
   event StateUpdated(bytes31 id, uint64 blockN, uint64 timestamp, bytes32 state);
 
-  // /**
-  //  * @dev Stores state for a given identity
-  //  * @param newState State to be stored
-  //  * @param id Identity
-  //  * @param mtp Merkle proof to link msg.sender with identity
-  //  */
-  /*
-  function setState(bytes32 newState, bytes31 id, bytes memory mtp) public {
-    // Calculate claim with `msg.sender` --> build `ClaimEthKey` with type `Upgrade States`
-    ClaimAuthEthKey memory claim = buildAuthKeyUpdateState(msg.sender);
-    // Get `Entry` structure from `claim`
-    Entry memory entry = ClaimAuthEthKeyToEntry(claim);
-    // Get hi, hv from `Entry`
-    uint256 hi;
-    uint256 hv;
-    (hi, hv) = getHiHvFromEntry(entry);
-    // CheckProof with merkle-tree-proof, hi/hv from above claim and state retrieved from id
-    bytes27 state = getStateFromId(id);
-    require(checkProof(state, mtp, hi, hv, 140) == true, 'Merkle tree proof not valid');
-    // Add newState to identity
-    if(identities[id].length > 0){
-      require(identities[id][identities[id].length - 1].BlockN != block.number, "no multiple set in the same block");
-    }
-    identities[id].push(IDState(uint64(block.number), uint64(block.timestamp), newState));
-    emit StateUpdated(id, uint64(block.number), uint64(block.timestamp), newState);
-  }
-  */
 
   // TODO once defined, this function will check the transition from genesis to state (itp: Identity Transition Proof)
-  function initState(bytes32 newState, bytes31 id, bytes memory kproof, bytes memory itp) public {
-
+  function initState(bytes32 newState, bytes32 genesisState, bytes31 id, bytes memory kOpProof, bytes memory itp, bytes32 sig) public {
     require(identities[id].length==0);
+    // require(genesisIdFromState(genesisState)==id);
 
-    identities[id].push(IDState(uint64(block.number), uint64(block.timestamp), newState));
-    emit StateUpdated(id, uint64(block.number), uint64(block.timestamp), newState);
+    _setState(newState, genesisState, id, kOpProof, itp, sig);
+  }
+
+  function setState(bytes32 newState, bytes31 id, bytes memory kOpProof, bytes memory itp, bytes32 sig) public {
+    require(identities[id].length>0);
+    IDState memory oldIDState = identities[id][identities[id].length-1];
+    require(oldIDState.BlockN != block.number, "no multiple set in the same block");
+
+    _setState(newState, oldIDState.State, id, kOpProof, itp, sig);
   }
 
   // WARNING!!! root verification is disabled in this simplified version of the
   // contract (old function in the previous comments, as example)
   // TODO next version will need to have updated the MerkleTree Proof
   // verification and migrate from Mimc7 to Poseidon hash function
-  function setState(bytes32 newState, bytes31 id, bytes memory kproof) public {
-    require(identities[id].length>0);
-
-    require(identities[id][identities[id].length - 1].BlockN != block.number, "no multiple set in the same block");
+  function _setState(bytes32 newState, bytes32 oldState, bytes31 id, bytes memory kOpProof, bytes memory itp, bytes32 sig) private {
+    require(verifyProof(newState, kOpProof) == true);
+    // bytes32 kOp = KeyFromKOpProof(kOpProof);
+    // require(verifySignature("minorTransition:" + oldState + newState, kOp));
+    require(verifyTransitionProof(oldState, newState, itp)==true);
 
     identities[id].push(IDState(uint64(block.number), uint64(block.timestamp), newState));
     emit StateUpdated(id, uint64(block.number), uint64(block.timestamp), newState);
+  }
+
+  // function genesisIdFromState(bytes32 genesisState) private {
+  //   // TODO
+  //   genesisBytes = genesisState>>216; // 40
+  //   return id;
+  // }
+  function genesisToID(bytes2 typ, bytes27 genesisBytes) private {
+  
+  }
+  // function keyFromKOpProof(bytes memory kOpProof) private {
+  //   // TODO
+  //   return key;
+  // }
+  function verifyProof(bytes32 newState, bytes memory mtp) private returns (bool) {
+    // TODO
+    return true;
+  }
+  function keyFromKOpProof(bytes memory kOpProof) private {
+    // TODO
+    return;
+  }
+  function verifySignature(bytes32 msgHash, bytes32 sig, bytes32 key) private returns (bool) {
+    // TODO
+    return true;
+  }
+  function verifyTransitionProof(bytes32 oldState, bytes32 newState, bytes memory itp) private returns (bool) {
+    // TODO
+    return true;
   }
 
   /**

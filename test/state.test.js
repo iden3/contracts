@@ -6,7 +6,7 @@
 const assertFail = require("./helpers/assertFail.js");
 const timeTravel = require("./helpers/timeTravel.js");
 
-const IDState = artifacts.require("../contracts/IDState.sol");
+const IDState = artifacts.require("../contracts/State.sol");
 const TestHelper = artifacts.require("../contracts/test/IDStateHelper.sol");
 const mimcUnit = require("../node_modules/circomlib/src/mimc_gencontract.js");
 const bs58 = require('bs58');

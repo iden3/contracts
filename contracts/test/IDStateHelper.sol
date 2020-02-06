@@ -1,10 +1,10 @@
 pragma solidity ^0.5.0;
 
-import "../IDState.sol";
+import "../State.sol";
 
 contract IDStateHelper{
 
-  // TODO & WARNING see contracts/IDState.sol#72
+  // TODO & WARNING see contracts/State.sol#72
   function setDifferentStates(address id) public {
   /*
     IDState insIDState = IDState(id);
