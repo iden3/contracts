@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
 // import './lib/Iden3Helpers.sol';
 
@@ -44,26 +44,26 @@ contract State {
 
 
   // TODO once defined, this function will check the transition from genesis to state (itp: Identity Transition Proof)
-  function initState(bytes32 newState, bytes32 genesisState, bytes31 id, bytes memory kOpProof, bytes memory itp, bytes32 sig) public {
+  function initState(bytes32 newState, bytes32 genesisState, bytes31 id, bytes memory kOpProof, bytes memory itp, bytes32 sigR8, bytes32 sigS) public {
     require(identities[id].length==0);
     // require(genesisIdFromState(genesisState)==id);
 
-    _setState(newState, genesisState, id, kOpProof, itp, sig);
+    _setState(newState, genesisState, id, kOpProof, itp, sigR8, sigS);
   }
 
-  function setState(bytes32 newState, bytes31 id, bytes memory kOpProof, bytes memory itp, bytes32 sig) public {
+  function setState(bytes32 newState, bytes31 id, bytes memory kOpProof, bytes memory itp, bytes32 sigR8, bytes32 sigS) public {
     require(identities[id].length>0);
     IDState memory oldIDState = identities[id][identities[id].length-1];
     require(oldIDState.BlockN != block.number, "no multiple set in the same block");
 
-    _setState(newState, oldIDState.State, id, kOpProof, itp, sig);
+    _setState(newState, oldIDState.State, id, kOpProof, itp, sigR8, sigS);
   }
 
   // WARNING!!! root verification is disabled in this simplified version of the
   // contract (old function in the previous comments, as example)
   // TODO next version will need to have updated the MerkleTree Proof
   // verification and migrate from Mimc7 to Poseidon hash function
-  function _setState(bytes32 newState, bytes32 oldState, bytes31 id, bytes memory kOpProof, bytes memory itp, bytes32 sig) private {
+  function _setState(bytes32 newState, bytes32 oldState, bytes31 id, bytes memory kOpProof, bytes memory itp, bytes32 sigR8, bytes32 sigS) private {
     require(verifyProof(newState, kOpProof) == true);
     // bytes32 kOp = KeyFromKOpProof(kOpProof);
     // require(verifySignature("minorTransition:" + oldState + newState, kOp));
@@ -93,7 +93,7 @@ contract State {
     // TODO
     return;
   }
-  function verifySignature(bytes32 msgHash, bytes32 sig, bytes32 key) private returns (bool) {
+  function verifySignature(bytes32 msgHash, bytes32 sigR8, bytes32 sigS, bytes32 key) private returns (bool) {
     // TODO
     return true;
   }
@@ -118,19 +118,23 @@ contract State {
    * @dev binary search by block number
    * @param id identity
    * @param blockN block number
-   * @return state searched
+   * return parameters are (by order): block number, block timestamp, state
    */
-  function getStateByBlock(bytes31 id, uint64 blockN) public view returns (bytes32) {
+  function getStateDataByBlock(bytes31 id, uint64 blockN) public view returns (uint64, uint64, bytes32) {
     require(blockN < block.number, "errNoFutureAllowed");
 
     // Case that there is no state commited
     if(identities[id].length == 0) {
-      return emptyState;
+      return (0, 0, emptyState);
     }
     // Case that there block searched is beyond last block commited
     uint64 lastBlock = identities[id][identities[id].length - 1].BlockN;
     if(blockN > lastBlock) {
-      return identities[id][identities[id].length - 1].State;
+      return (
+        identities[id][identities[id].length - 1].BlockN,
+        identities[id][identities[id].length - 1].BlockTimestamp,
+        identities[id][identities[id].length - 1].State
+      );
     }
     // Binary search
     uint min = 0;
@@ -138,16 +142,24 @@ contract State {
     while(min <= max) {
       uint mid = (max + min) / 2;
       if(identities[id][mid].BlockN == blockN) {
-          return identities[id][mid].State;
+          return (
+            identities[id][mid].BlockN,
+            identities[id][mid].BlockTimestamp,
+            identities[id][mid].State
+          );
       } else if((blockN > identities[id][mid].BlockN) && (blockN < identities[id][mid + 1].BlockN)) {
-          return identities[id][mid].State;
+          return (
+            identities[id][mid].BlockN,
+            identities[id][mid].BlockTimestamp,
+            identities[id][mid].State
+          );
       } else if(blockN > identities[id][mid].BlockN) {
           min = mid + 1;
       } else {
           max = mid - 1;
       }
     }
-    return emptyState;
+    return (0, 0, emptyState);
   }
 
 
@@ -155,18 +167,22 @@ contract State {
    * @dev binary search by timestamp
    * @param id identity
    * @param timestamp timestamp
-   * @return state searched
+   * return parameters are (by order): block number, block timestamp, state
    */
-  function getStateByTime(bytes31 id, uint64 timestamp) public view returns (bytes32) {
+  function getStateDataByTime(bytes31 id, uint64 timestamp) public view returns (uint64, uint64, bytes32) {
     require(timestamp < block.timestamp, "errNoFutureAllowed");
     // Case that there is no state commited
     if(identities[id].length == 0) {
-      return emptyState;
+      return (0, 0, emptyState);
     }
     // Case that there timestamp searched is beyond last timestamp commited
     uint64 lastTimestamp = identities[id][identities[id].length - 1].BlockTimestamp;
     if(timestamp > lastTimestamp) {
-      return identities[id][identities[id].length - 1].State;
+      return (
+        identities[id][identities[id].length - 1].BlockN,
+        identities[id][identities[id].length - 1].BlockTimestamp,
+        identities[id][identities[id].length - 1].State
+      );
     }
     // Binary search
     uint min = 0;
@@ -174,16 +190,24 @@ contract State {
     while(min <= max) {
       uint mid = (max + min) / 2;
       if(identities[id][mid].BlockTimestamp == timestamp) {
-          return identities[id][mid].State;
+          return (
+            identities[id][mid].BlockN,
+            identities[id][mid].BlockTimestamp,
+            identities[id][mid].State
+          );
       } else if((timestamp > identities[id][mid].BlockTimestamp) && (timestamp < identities[id][mid + 1].BlockTimestamp)) {
-          return identities[id][mid].State;
+          return (
+            identities[id][mid].BlockN,
+            identities[id][mid].BlockTimestamp,
+            identities[id][mid].State
+          );
       } else if(timestamp > identities[id][mid].BlockTimestamp) {
           min = mid + 1;
       } else {
           max = mid - 1;
       }
     }
-    return emptyState;
+    return (0, 0, emptyState);
   }
 
   /**
@@ -192,7 +216,7 @@ contract State {
    * @return last state for a given identity
    * return parameters are (by order): block number, block timestamp, state
    */
-  function getStateDataById(bytes31 id) public view returns(uint64, uint64, bytes32){
+  function getStateDataById(bytes31 id) public view returns (uint64, uint64, bytes32) {
     if (identities[id]. length == 0) {
       return (0, 0, emptyState);
     }
@@ -209,7 +233,7 @@ contract State {
    * @param id identity
    * @return root
    */
-  function getStateFromId(bytes31 id) public pure returns (bytes27) {
-    return bytes27(id<<16);
-  }
+  // function getStateFromId(bytes31 id) public pure returns (bytes27) {
+  //   return bytes27(id<<16);
+  // }
 }
