@@ -24,7 +24,7 @@ library Memory {
 
     /**
     * @dev reads 32 bytes from cursor, no eof checks
-    * @return the value
+    * @return b the value
     */
     function readBytes32(Cursor memory c) internal pure returns (bytes32) {
         uint ptr = c.begin;
@@ -38,7 +38,7 @@ library Memory {
 
     /**
     * @dev reads 30 bytes from cursor, no eof checks
-    * @return the value
+    * @return b the value
     */
     function readBytes30(Cursor memory c) internal pure returns (bytes30) {
         uint ptr = c.begin;
@@ -52,7 +52,7 @@ library Memory {
 
     /**
     * @dev reads 28 bytes from cursor, no eof checks
-    * @return the value
+    * @return b the value
     */
     function readBytes28(Cursor memory c) internal pure returns (bytes28) {
         uint ptr = c.begin;
@@ -66,7 +66,7 @@ library Memory {
 
     /**
     * @dev reads 1 bytes from cursor, no eof checks
-    * @return the value
+    * @return b the value
     */
     function readBytes1(Cursor memory c) internal pure returns (bytes1) {
         uint ptr = c.begin;
@@ -80,7 +80,7 @@ library Memory {
 
     /**
     * @dev reads a bool from cursor (8 bits), no eof checks
-    * @return the value
+    * @return b the value
     */
     function readBool(Cursor memory c) internal pure returns (bool) {
         uint ptr = c.begin;
@@ -94,7 +94,7 @@ library Memory {
 
     /**
     * @dev reads a uint8 from cursor, no eof checks
-    * @return the value
+    * @return b the value
     */
     function readUint8(Cursor memory c) internal pure returns (uint8) {
         uint ptr = c.begin;
@@ -108,7 +108,7 @@ library Memory {
 
     /**
     * @dev reads a uint16 from cursor, no eof checks
-    * @return the value
+    * @return b the value
     */
     function readUint16(Cursor memory c) internal pure returns (uint16) {
         uint ptr = c.begin;
@@ -122,7 +122,7 @@ library Memory {
 
     /**
     * @dev reads a uint32 from cursor, no eof checks
-    * @return the value
+    * @return b the value
     */
     function readUint32(Cursor memory c) internal pure returns (uint32) {
         uint ptr = c.begin;
@@ -136,7 +136,7 @@ library Memory {
 
     /**
     * @dev reads a uint64 from cursor, no eof checks
-    * @return the value
+    * @return b the value
     */
     function readUint64(Cursor memory c) internal pure returns (uint64) {
         uint ptr = c.begin;
@@ -150,7 +150,7 @@ library Memory {
 
     /**
     * @dev reads a uint240 from cursor, no eof checks
-    * @return the value
+    * @return b the value
     */
     function readUint240(Cursor memory c) internal pure returns (uint240) {
         uint ptr = c.begin;
@@ -164,7 +164,7 @@ library Memory {
 
     /**
     * @dev reads an address from cursor, no eof checks
-    * @return the value
+    * @return b the value
     */
     function readAddress(Cursor memory c) internal pure returns (address) {
         uint ptr = c.begin;
@@ -178,7 +178,7 @@ library Memory {
 
     /**
     * @dev reads a variable sized bytes, max 2^16 len, no eof check
-    * @return the value
+    * @return bts the value
     */
     function readBytes(Cursor memory c) internal pure returns (bytes memory bts) {
         uint16 len = readUint16(c);

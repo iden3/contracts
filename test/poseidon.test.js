@@ -40,7 +40,7 @@ contract("poseidon", (accounts) => {
     // poseidon goiden3 [extracted using go-iden3-crypto/poseidon implementation]
     const goiden3 = '12242166908188651009877250812424843524687801523336557272219921456462821518061';
     // poseidon smartcontract
-    const m3 = await poseidonSC.PoseidonHash([e1.toString(), e2.toString()]);
+    const m3 = await poseidonSC.Hash([e1.toString(), e2.toString()]);
     
     expect(m1.toString()).to.be.equal(m2.toString());
     expect(m2.toString()).to.be.equal(m3.toString());
@@ -56,7 +56,7 @@ contract("poseidon", (accounts) => {
     // poseidon goiden3 [extracted using go-iden3-crypto/poseidon implementation]
     const goiden3 = '8264042390138224340139792765748100791574617638410111480112729952476854478664';
     // poseidon smartcontract
-    const m3 = await poseidonSC.PoseidonHash([e1.toString(), e2.toString()]);
+    const m3 = await poseidonSC.Hash([e1.toString(), e2.toString()]);
     
     expect(m1.toString()).to.be.equal(m2.toString());
     expect(m2.toString()).to.be.equal(m3.toString());

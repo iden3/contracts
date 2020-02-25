@@ -33,7 +33,7 @@ contract Iden3Helpers {
    * @dev hash mimc7 multi-input elements
    * @param in_x input array
    * @param in_k single input
-   * @return mimc7 hash
+   * @return r mimc7 hash
    */
   function MiMCpe7_mp( uint256[] memory in_x, uint256 in_k) internal view returns (uint256){
     uint256 r = in_k;
@@ -87,7 +87,7 @@ contract Iden3Helpers {
   /**
    * @dev Encode merkle tree proof into struct
    * @param _mtp merkle tree proof in bytes
-   * @return merkle tree proof structure
+   * @return helper merkle tree proof structure
    */
   function parseMtp(bytes memory _mtp) internal pure returns(mtpHelper memory helper) {
     Memory.Cursor memory c = Memory.read(_mtp);
@@ -266,7 +266,7 @@ contract Iden3Helpers {
   /**
    * @dev Encode claim athorize ethereum address into an entry
    * @param claim authorize ethereum key structure
-   * @return authorize ethereum key coded as an entry
+   * @return entry authorize ethereum key coded as an entry
    */
   function ClaimAuthEthKeyToEntry(ClaimAuthEthKey memory claim)
     internal pure returns (Entry memory entry) {
@@ -283,7 +283,7 @@ contract Iden3Helpers {
   /**
    * @dev Retrieve hash index and hash value from an Entry strcuture
    * @param entry Entry structure
-   * @return hash index and hash value
+   * @return hi hv hash index and hash value
    */
   function getHiHvFromEntry(Entry memory entry) internal view returns(uint256 hi, uint256 hv) {
     hi = hashNode(uint256(entry.e3), uint256(entry.e4), false);
