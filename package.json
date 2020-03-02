@@ -51,6 +51,7 @@
     "scripts": {
         "inittest": "./node_modules/ganache-cli/cli.js -d -m enjoy alter satoshi squirrel special spend crop link race rally two eye",
         "test": "truffle test",
+        "migrate": "truffle migrate",
         "lint": "solium --dir contracts && eslint test",
         "coverage": "./node_modules/.bin/solidity-coverage",
         "travis": "./node_modules/.bin/solidity-coverage"
