@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 
 
-library Ecc {
+library BabyJubJub {
 
     uint256 constant ecd = 168696;
     uint256 constant eca = 168700;
@@ -47,5 +47,24 @@ library Ecc {
       r = [x, y];
       return r;
     }
-}
 
+    function scalarmul(uint n, uint256[2] memory p) public view returns (uint256[2] memory r) {
+      r[0] = 0;
+      r[1] = 1;
+    
+      uint rem = n;
+      uint256[2] memory exp = p;
+  
+      while (rem != uint256(0)) {
+        if ((rem & 1) == 1) {
+          r = addition(r, exp);
+        }
+        exp = addition(exp, exp);
+        rem = rem >> 1;
+      }
+      r[0] = r[0] % ecq;
+      r[1] = r[1] % ecq;
+  
+      return r;
+    }
+}

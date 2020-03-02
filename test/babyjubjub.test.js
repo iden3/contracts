@@ -3,10 +3,10 @@
 /* global web3 */
 /* global assert */
 
-const Ecc = artifacts.require("../contracts/lib/Ecc");
+const BabyJubJub = artifacts.require("../contracts/lib/BabyJubJub");
 const { bigInt } = require('snarkjs');
 
-contract("Ecc", (accounts) => {
+contract("BabyJubJub", (accounts) => {
 
   const {
     0: owner,
@@ -14,24 +14,38 @@ contract("Ecc", (accounts) => {
     2: address2,
   } = accounts;
 
-  let ecc;
+  let bbjj;
 
   before(async () => {
-    ecc = await Ecc.new();
+    bbjj = await BabyJubJub.new();
   });
 
-  it("Ecc addition same point", async () => {
+  it("BabyJubJub addition same point", async () => {
     let p = ['17777552123799933955779906779655732241715742912184938656739573121738514868268', '2626589144620713026669568689430873010625803728049924121243784502389097019475'];
-    let r = await ecc.addition(p, p);
+    let r = await bbjj.addition(p, p);
     expect(r[0].toString()).to.be.equal('6890855772600357754907169075114257697580319025794532037257385534741338397365');
     expect(r[1].toString()).to.be.equal('4338620300185947561074059802482547481416142213883829469920100239455078257889');
   });
 
-  it("Ecc addition different points", async () => {
+  it("BabyJubJub addition different points", async () => {
     let p = ['17777552123799933955779906779655732241715742912184938656739573121738514868268', '2626589144620713026669568689430873010625803728049924121243784502389097019475'];
     let q = ['16540640123574156134436876038791482806971768689494387082833631921987005038935', '20819045374670962167435360035096875258406992893633759881276124905556507972311'];
-    let r = await ecc.addition(p, q);
+    let r = await bbjj.addition(p, q);
     expect(r[0].toString()).to.be.equal('7916061937171219682591368294088513039687205273691143098332585753343424131937');
     expect(r[1].toString()).to.be.equal('14035240266687799601661095864649209771790948434046947201833777492504781204499');
+  });
+
+  it("BabyJubJub mulscalar", async () => {
+    let p = ['17777552123799933955779906779655732241715742912184938656739573121738514868268', '2626589144620713026669568689430873010625803728049924121243784502389097019475'];
+
+    let res_a = await bbjj.addition(p, p);
+    res_a = await bbjj.addition(res_a, p);
+    let r = await bbjj.scalarmul('3', p);
+
+    expect(r[0].toString()).to.be.equal(res_a[0].toString());
+    expect(r[1].toString()).to.be.equal(res_a[1].toString());
+
+    expect(r[0].toString()).to.be.equal('19372461775513343691590086534037741906533799473648040012278229434133483800898');
+    expect(r[1].toString()).to.be.equal('9458658722007214007257525444427903161243386465067105737478306991484593958249');
   });
 });
