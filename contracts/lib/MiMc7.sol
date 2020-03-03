@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
 contract Mimc7Unit {
   function MiMCpe7(uint256,uint256) public pure returns(uint256) {}

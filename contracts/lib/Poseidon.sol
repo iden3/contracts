@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
 contract PoseidonUnit {
   function poseidon(uint256[] memory) public pure returns(uint256) {}

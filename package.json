@@ -1,10 +1,10 @@
 {
-    "name": "iden3-contracts",
+    "name": "contracts",
     "version": "0.1.0",
     "description": "Iden3 smartcontracts",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/iden3/contracts-private.git"
+        "url": "https://github.com/iden3/contracts.git"
     },
     "license": "GPL-3.0",
     "bugs": {
@@ -51,7 +51,7 @@
     "scripts": {
         "inittest": "./node_modules/ganache-cli/cli.js -d -m enjoy alter satoshi squirrel special spend crop link race rally two eye",
         "test": "truffle test",
-        "migrate": "truffle migrate",
+        "truffle": "truffle",
         "lint": "solium --dir contracts && eslint test",
         "coverage": "./node_modules/.bin/solidity-coverage",
         "travis": "./node_modules/.bin/solidity-coverage"

@@ -1,8 +1,6 @@
-pragma solidity ^0.5.0;
-
+pragma solidity ^0.6.0;
 
 library BabyJubJub {
-
     uint256 constant ecd = 168696;
     uint256 constant eca = 168700;
     uint256 constant ecq = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
@@ -18,16 +16,12 @@ library BabyJubJub {
     
       while (mn1 != uint256(0)) {
         (x, y) = (y, addmod(x, q-mulmod(mn0/mn1, y, q), q));
-        (mn0, mn1) = (mn1, modulus(mn0, mn1));
+        (mn0, mn1) = (mn1, mn0 % mn1);
       }
       while (x<uint256(0)) {
         x = x % ecq;
       }
       return x;
-    }
-
-    function modulus(uint256 a, uint256 q) internal view returns (uint256 r) {
-      return ((a%q) + q) %q;
     }
 
     function addition(uint256[2] memory p, uint256[2] memory q) public view returns (uint256[2] memory r) {
@@ -47,7 +41,7 @@ library BabyJubJub {
       r = [x, y];
       return r;
     }
-
+    
     function scalarmul(uint n, uint256[2] memory p) public view returns (uint256[2] memory r) {
       r[0] = 0;
       r[1] = 1;
