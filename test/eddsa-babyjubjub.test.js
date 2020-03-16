@@ -3,6 +3,7 @@
 /* global web3 */
 /* global assert */
 
+/*
 const BabyJubJub = artifacts.require("../contracts/lib/BabyJubJub");
 const EddsaBabyJubJub = artifacts.require("../contracts/lib/EddsaBabyJubJub");
 const Poseidon = artifacts.require("../contracts/lib/Poseidon");
@@ -72,3 +73,4 @@ contract("EddsaBabyJubJub", (accounts) => {
     }
   });
 });
+*/

@@ -3,7 +3,6 @@
 /* global web3 */
 /* global assert */
 
-/*
 const assertFail = require("./helpers/assertFail.js");
 const timeTravel = require("./helpers/timeTravel.js");
 
@@ -29,12 +28,12 @@ contract("IDState", (accounts) => {
     s: '0xbeff692ed303cb585580d6c1680a944a4effb353448c42aa96f704c6403f98'
   };
   const setState1 = { // TMP test fail
-    oldState: '0x4ce9a6ab6059695de729739c4648921098556e24f4c8d9b9da3e189cfc019a2e',
-newState: '0x38537ea707eb47c667cc3ddec2da1c7084f79895155d05b9277ee9754aded003',
-id: '0x00004eb2c6f7d97d6f76ee1def82ba77dfbc8393b8d259e18e3f1324210f3f',
-kOp: ['0x13951ffba6d3284a9a358f2c6b0cbcc421b04e8625cf8cf111cfb89a236bda0f', '0x1d94b56bdec6d9989e4565780fd1df9aec7c358619330e7e0491313828fda9c8'],
-r: ['0x0ec55ddfbfa0d40b5340cebf23f189ec71bcb3f3f54d4f2417b764e02be8eb16', '0x2d7979eb15e1f089538baaebae121002788ff1a440460a407b6ff8dbeba872b9'],
-s: '0x06017b9939cb459364e496eee670a55fcbc802c0f545144fce822fb24f024d47'
+    oldState: '0x0a47534f8a8450c43283c4811fbcc4183740d5ba765d771a34fb84cd4988c6ad',
+newState: '0x14cc2983b58c9f21fdaae5f96abbbb3ece94e71a522dc81d59b57dc510487f1a',
+id: '0x00007919e78d50b53137c2726536f107ebd3d5c96e827b7e70074a6b0b0cb6',
+kOp: ['0x1b21bd6aa9c751b392a8fed5aa85f41a34f946c445a235351d0220d1b3a6b16f', '0x05535c6d971260e13f4b5b7a6ec5e5cd6f76693d47efb52d93c74fcd7155b842'],
+r: ['0x05b681708f95f9763434916761cd2a2285dfd1f65938b25b81df82fa863eb52c', '0x1be413ba27e756896670da37c7b7437c5776065de5aeb1cbf4f2c8f03e2464a1'],
+s: '0x03410878a8b58f5798231a58c677a9872f15f3e8a1ca3454a379cf3b7144490f'
   };
   const setState2 = {
     oldState: '0xa6ea46c2ce27a33e17d6f089835abb00bb7dd585d43166fc3b3d7ea45827410e',
@@ -114,17 +113,18 @@ s: '0x06017b9939cb459364e496eee670a55fcbc802c0f545144fce822fb24f024d47'
     // const res0 = await insIDState.getState(setState0.id);
     // expect(res0).to.be.equal(setState0.newState);
 
+    // await insIDState.initState(setState1.newState, setState1.oldState,  setState1.id, setState1.kOp, empty, setState1.r, setState1.s, {gas: 3000000});
     await insIDState.initState(setState1.newState, setState1.oldState,  setState1.id, setState1.kOp, empty, setState1.r, setState1.s);
     const res1 = await insIDState.getState(setState1.id);
     expect(res1).to.be.equal(setState1.newState);
     
-    // await insIDState.initState(setState2.newState, setState2.oldState,  setState2.id, setState2.kOp, empty, setState2.r, setState2.s);
-    // const res2 = await insIDState.getState(setState2.id);
-    // expect(res2).to.be.equal(setState2.newState);
-    // 
-    // await insIDState.initState(setState3.newState, setState3.oldState,  setState3.id, setState3.kOp, empty, setState3.r, setState3.s);
-    // const res3 = await insIDState.getState(setState3.id);
-    // expect(res3).to.be.equal(setState3.newState);
+    await insIDState.initState(setState2.newState, setState2.oldState,  setState2.id, setState2.kOp, empty, setState2.r, setState2.s);
+    const res2 = await insIDState.getState(setState2.id);
+    expect(res2).to.be.equal(setState2.newState);
+    
+    await insIDState.initState(setState3.newState, setState3.oldState,  setState3.id, setState3.kOp, empty, setState3.r, setState3.s);
+    const res3 = await insIDState.getState(setState3.id);
+    expect(res3).to.be.equal(setState3.newState);
   });
 
   // it("getStateByTime must return the state with exact time", async () => {
@@ -259,4 +259,3 @@ s: '0x06017b9939cb459364e496eee670a55fcbc802c0f545144fce822fb24f024d47'
   //   }
   // });
 });
-*/

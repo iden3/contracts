@@ -3,6 +3,7 @@
 /* global web3 */
 /* global assert */
 
+/*
 const BabyJubJub = artifacts.require("../contracts/lib/BabyJubJub");
 const { bigInt } = require('snarkjs');
 
@@ -56,3 +57,4 @@ contract("BabyJubJub", (accounts) => {
     expect(r[1].toString()).to.be.equal('4014745322800118607127020275658861516666525056516280575712425373174125159339');
   });
 });
+*/

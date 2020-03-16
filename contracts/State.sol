@@ -1,18 +1,25 @@
 pragma solidity ^0.6.0;
 
-// import './lib/Iden3Helpers.sol';
+import './lib/Poseidon.sol';
+import './lib/EddsaBabyJubJub.sol';
 
 // /**
 //  * @dev Set and get states for each identity
 //  */
 // contract State is Iden3Helpers {
 contract State {
+  EddsaBabyJubJub eddsaBBJJ;
+  PoseidonUnit poseidon;
 
   // /**
   //  * @dev Load Iden3Helpers constructor
   //  * @param _mimcContractAddr mimc7 contract address
   //  */
   // constructor( address _mimcContractAddr) Iden3Helpers(_mimcContractAddr) public {}
+  constructor( address _poseidonContractAddr, address _eddsaBabyJubJubAddr) public {
+    poseidon = PoseidonUnit(_poseidonContractAddr);
+    eddsaBBJJ = EddsaBabyJubJub(_eddsaBabyJubJubAddr);
+  }
 
   /**
    * @dev Correlation between identity and its state (plus block/time)
@@ -44,31 +51,42 @@ contract State {
 
 
   // TODO once defined, this function will check the transition from genesis to state (itp: Identity Transition Proof)
-  function initState(bytes32 newState, bytes32 genesisState, bytes31 id, bytes memory kOpProof, bytes memory itp, bytes32 sigR8, bytes32 sigS) public {
+  function initState(bytes32 newState, bytes32 genesisState, bytes31 id, uint256[2] memory kOp, bytes memory itp, uint256[2] memory sigR8, uint256 sigS) public {
     require(identities[id].length==0);
     // require(genesisIdFromState(genesisState)==id);
 
-    _setState(newState, genesisState, id, kOpProof, itp, sigR8, sigS);
+    _setState(newState, genesisState, id, kOp, itp, sigR8, sigS);
   }
 
-  function setState(bytes32 newState, bytes31 id, bytes memory kOpProof, bytes memory itp, bytes32 sigR8, bytes32 sigS) public {
+  function setState(bytes32 newState, bytes31 id, uint256[2] memory kOp, bytes memory itp, uint256[2] memory sigR8, uint256 sigS) public {
     require(identities[id].length>0);
     IDState memory oldIDState = identities[id][identities[id].length-1];
     require(oldIDState.BlockN != block.number, "no multiple set in the same block");
 
-    _setState(newState, oldIDState.State, id, kOpProof, itp, sigR8, sigS);
+    _setState(newState, oldIDState.State, id, kOp, itp, sigR8, sigS);
   }
 
   // WARNING!!! root verification is disabled in this simplified version of the
   // contract (old function in the previous comments, as example)
   // TODO next version will need to have updated the MerkleTree Proof
   // verification and migrate from Mimc7 to Poseidon hash function
-  function _setState(bytes32 newState, bytes32 oldState, bytes31 id, bytes memory kOpProof, bytes memory itp, bytes32 sigR8, bytes32 sigS) private {
-    require(verifyProof(newState, kOpProof) == true);
+  function _setState(bytes32 newState, bytes32 oldState, bytes31 id, uint256[2] memory kOp, bytes memory itp, uint256[2] memory sigR8, uint256 sigS) private{
+    // require(verifyProof(newState, kOpProof) == true);
+
+    // WARNING: following lines disabled due https://github.com/iden3/contracts/issues/26
+    // uint256[] memory m_in = new uint256[](3);
+    // m_in[0] = uint256(0x3a6574617473746573); // prefix "setstate:"
+    // m_in[1] = uint256(oldState);
+    // m_in[2] = uint256(newState);
+    // uint256 m = poseidon.poseidon(m_in);
+    // require(eddsaBBJJ.Verify(kOp, m, sigR8, sigS), "can not verify BabyJubJub signature");
+
+
     // bytes32 kOp = KeyFromKOpProof(kOpProof);
     // require(verifySignature("minorTransition:" + oldState + newState, kOp));
-    require(verifyTransitionProof(oldState, newState, itp)==true);
 
+    require(verifyTransitionProof(oldState, newState, itp)==true);
+    
     identities[id].push(IDState(uint64(block.number), uint64(block.timestamp), newState));
     emit StateUpdated(id, uint64(block.number), uint64(block.timestamp), newState);
   }
