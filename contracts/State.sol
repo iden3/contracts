@@ -53,13 +53,13 @@ contract State {
   // TODO once defined, this function will check the transition from genesis to state (itp: Identity Transition Proof)
   function initState(bytes32 newState, bytes32 genesisState, bytes31 id, uint256[2] memory kOp, bytes memory itp, uint256[2] memory sigR8, uint256 sigS) public {
     require(identities[id].length==0);
-    // require(genesisIdFromState(genesisState)==id);
 
     _setState(newState, genesisState, id, kOp, itp, sigR8, sigS);
   }
 
   function setState(bytes32 newState, bytes31 id, uint256[2] memory kOp, bytes memory itp, uint256[2] memory sigR8, uint256 sigS) public {
     require(identities[id].length>0);
+
     IDState memory oldIDState = identities[id][identities[id].length-1];
     require(oldIDState.BlockN != block.number, "no multiple set in the same block");
 
@@ -71,7 +71,6 @@ contract State {
   // TODO next version will need to have updated the MerkleTree Proof
   // verification and migrate from Mimc7 to Poseidon hash function
   function _setState(bytes32 newState, bytes32 oldState, bytes31 id, uint256[2] memory kOp, bytes memory itp, uint256[2] memory sigR8, uint256 sigS) private{
-    // require(verifyProof(newState, kOpProof) == true);
 
     // WARNING: following lines disabled due https://github.com/iden3/contracts/issues/26
     // uint256[] memory m_in = new uint256[](3);
@@ -81,44 +80,12 @@ contract State {
     // uint256 m = poseidon.poseidon(m_in);
     // require(eddsaBBJJ.Verify(kOp, m, sigR8, sigS), "can not verify BabyJubJub signature");
 
-
-    // bytes32 kOp = KeyFromKOpProof(kOpProof);
-    // require(verifySignature("minorTransition:" + oldState + newState, kOp));
-
     require(verifyTransitionProof(oldState, newState, itp)==true);
     
     identities[id].push(IDState(uint64(block.number), uint64(block.timestamp), newState));
     emit StateUpdated(id, uint64(block.number), uint64(block.timestamp), newState);
   }
 
-  // function genesisIdFromState(bytes32 genesisState) private {
-  //   // TODO
-  //   genesisBytes = genesisState>>216; // 40
-  //   return id;
-  // }
-  function genesisToID(bytes2 typ, bytes27 genesisBytes) private {
-  
-  }
-  // function keyFromKOpProof(bytes memory kOpProof) private {
-  //   // TODO
-  //   return key;
-  // }
-  function verifyProof(bytes32 newState, bytes memory mtp) private returns (bool) {
-    // TODO
-    return true;
-  }
-  function keyFromKOpProof(bytes memory kOpProof) private {
-    // TODO
-    return;
-  }
-  function verifySignature(bytes32 msgHash, bytes32 sigR8, bytes32 sigS, bytes32 key) private returns (bool) {
-    // TODO
-    return true;
-  }
-  function verifyTransitionProof(bytes32 oldState, bytes32 newState, bytes memory itp) private returns (bool) {
-    // TODO
-    return true;
-  }
 
   /**
    * Retrieve last state for a given identity
@@ -245,13 +212,4 @@ contract State {
       lastIdState.State
     );
   }
-
-  /**
-   * @dev Get root used to form an identity
-   * @param id identity
-   * @return root
-   */
-  // function getStateFromId(bytes31 id) public pure returns (bytes27) {
-  //   return bytes27(id<<16);
-  // }
 }
