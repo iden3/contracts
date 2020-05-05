@@ -10,13 +10,13 @@ contract State {
   Verifier    verifier;
 
   constructor( address _verifierContractAddr) public {
-    verifier = ZKVerifier(_verifier);
+    verifier = Verifier(_verifierContractAddr);
   }
 
   /**
    * @dev Correlation between identity and its state (plus block/time)
    */
-  mapping(bytes31 => IDState[]) identities;
+  mapping(uint256 => IDState[]) identities;
 
   /**
    * @dev Struct saved for each identity. Stores state and block/timestamp associated.
@@ -24,13 +24,13 @@ contract State {
   struct IDState {
     uint64 BlockN;
     uint64 BlockTimestamp;
-    bytes32 State;
+    uint256 State;
   }
 
   /**
    * @dev 32 bytes initialized to 0, used as empty state if no state has been commited.
    */
-  bytes32 emptyState;
+  uint256 emptyState;
 
   /**
    * @dev event called when a state is updated
@@ -39,13 +39,13 @@ contract State {
    * @param timestamp Timestamp when the state has been commited
    * @param state IDState commited
    */
-  event StateUpdated(bytes31 id, uint64 blockN, uint64 timestamp, bytes32 state);
+  event StateUpdated(uint256 id, uint64 blockN, uint64 timestamp, uint256 state);
 
 
   function initState(
-            bytes32 newState,
-            bytes32 genesisState,
-            bytes31 id,
+            uint256 newState,
+            uint256 genesisState,
+            uint256 id,
             uint[2] memory a,
             uint[2][2] memory b,
             uint[2] memory c
@@ -56,8 +56,8 @@ contract State {
   }
 
   function setState(
-            bytes32 newState,
-            bytes31 id,
+            uint256 newState,
+            uint256 id,
             uint[2] memory a,
             uint[2][2] memory b,
             uint[2] memory c
@@ -71,9 +71,9 @@ contract State {
   }
 
   function _setState(
-            bytes32 newState,
-            bytes32 oldState,
-            bytes31 id,
+            uint256 newState,
+            uint256 oldState,
+            uint256 id,
             uint[2] memory a,
             uint[2][2] memory b,
             uint[2] memory c
@@ -95,7 +95,7 @@ contract State {
    * @param id identity
    * @return last state commited
    */
-  function getState(bytes31 id) public view returns (bytes32){
+  function getState(uint256 id) public view returns (uint256){
     if(identities[id].length == 0) {
       return emptyState;
     }
@@ -108,7 +108,7 @@ contract State {
    * @param blockN block number
    * return parameters are (by order): block number, block timestamp, state
    */
-  function getStateDataByBlock(bytes31 id, uint64 blockN) public view returns (uint64, uint64, bytes32) {
+  function getStateDataByBlock(uint256 id, uint64 blockN) public view returns (uint64, uint64, uint256) {
     require(blockN < block.number, "errNoFutureAllowed");
 
     // Case that there is no state commited
@@ -157,7 +157,7 @@ contract State {
    * @param timestamp timestamp
    * return parameters are (by order): block number, block timestamp, state
    */
-  function getStateDataByTime(bytes31 id, uint64 timestamp) public view returns (uint64, uint64, bytes32) {
+  function getStateDataByTime(uint256 id, uint64 timestamp) public view returns (uint64, uint64, uint256) {
     require(timestamp < block.timestamp, "errNoFutureAllowed");
     // Case that there is no state commited
     if(identities[id].length == 0) {
@@ -204,7 +204,7 @@ contract State {
    * @return last state for a given identity
    * return parameters are (by order): block number, block timestamp, state
    */
-  function getStateDataById(bytes31 id) public view returns (uint64, uint64, bytes32) {
+  function getStateDataById(uint256 id) public view returns (uint64, uint64, uint256) {
     if (identities[id]. length == 0) {
       return (0, 0, emptyState);
     }

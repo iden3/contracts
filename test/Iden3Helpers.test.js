@@ -7,7 +7,7 @@ const ethUtil = require('ethereumjs-util');
 const mimcUnit = require("../node_modules/circomlib/src/mimc_gencontract.js");
 const HelpersTest = artifacts.require("../contracts/test/Iden3HelpersTest");
 const bs58 = require('bs58');
-const { bigInt } = require('snarkjs');
+const bigInt = require('big-integer');
 const SEED = "mimc";
 
 contract("Iden 3 helpers functions", (accounts) => {

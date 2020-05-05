@@ -5,7 +5,7 @@
 
 /*
 const BabyJubJub = artifacts.require("../contracts/lib/BabyJubJub");
-const { bigInt } = require('snarkjs');
+const bigInt = require('big-integer');
 
 contract("BabyJubJub", (accounts) => {
 
