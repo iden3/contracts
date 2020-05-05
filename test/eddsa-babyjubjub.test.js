@@ -8,7 +8,7 @@ const BabyJubJub = artifacts.require("../contracts/lib/BabyJubJub");
 const EddsaBabyJubJub = artifacts.require("../contracts/lib/EddsaBabyJubJub");
 const Poseidon = artifacts.require("../contracts/lib/Poseidon");
 const poseidonGenContract = require("../node_modules/circomlib/src/poseidon_gencontract.js");
-const { bigInt } = require('snarkjs');
+const bigInt = require('big-integer');
 const SEED = "poseidon";
 
 contract("EddsaBabyJubJub", (accounts) => {

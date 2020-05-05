@@ -1,30 +1,22 @@
 pragma solidity ^0.6.0;
 
-import './lib/Poseidon.sol';
-import './lib/EddsaBabyJubJub.sol';
+import './lib/verifier.sol';
 
 // /**
 //  * @dev Set and get states for each identity
 //  */
 // contract State is Iden3Helpers {
 contract State {
-  EddsaBabyJubJub eddsaBBJJ;
-  PoseidonUnit poseidon;
+  Verifier    verifier;
 
-  // /**
-  //  * @dev Load Iden3Helpers constructor
-  //  * @param _mimcContractAddr mimc7 contract address
-  //  */
-  // constructor( address _mimcContractAddr) Iden3Helpers(_mimcContractAddr) public {}
-  constructor( address _poseidonContractAddr, address _eddsaBabyJubJubAddr) public {
-    poseidon = PoseidonUnit(_poseidonContractAddr);
-    eddsaBBJJ = EddsaBabyJubJub(_eddsaBabyJubJubAddr);
+  constructor( address _verifierContractAddr) public {
+    verifier = Verifier(_verifierContractAddr);
   }
 
   /**
    * @dev Correlation between identity and its state (plus block/time)
    */
-  mapping(bytes31 => IDState[]) identities;
+  mapping(uint256 => IDState[]) identities;
 
   /**
    * @dev Struct saved for each identity. Stores state and block/timestamp associated.
@@ -32,13 +24,13 @@ contract State {
   struct IDState {
     uint64 BlockN;
     uint64 BlockTimestamp;
-    bytes32 State;
+    uint256 State;
   }
 
   /**
    * @dev 32 bytes initialized to 0, used as empty state if no state has been commited.
    */
-  bytes32 emptyState;
+  uint256 emptyState;
 
   /**
    * @dev event called when a state is updated
@@ -47,77 +39,55 @@ contract State {
    * @param timestamp Timestamp when the state has been commited
    * @param state IDState commited
    */
-  event StateUpdated(bytes31 id, uint64 blockN, uint64 timestamp, bytes32 state);
+  event StateUpdated(uint256 id, uint64 blockN, uint64 timestamp, uint256 state);
 
 
-  // TODO once defined, this function will check the transition from genesis to state (itp: Identity Transition Proof)
-  function initState(bytes32 newState, bytes32 genesisState, bytes31 id, uint256[2] memory kOp, bytes memory itp, uint256[2] memory sigR8, uint256 sigS) public {
+  function initState(
+            uint256 newState,
+            uint256 genesisState,
+            uint256 id,
+            uint[2] memory a,
+            uint[2][2] memory b,
+            uint[2] memory c
+  ) public {
     require(identities[id].length==0);
-    // require(genesisIdFromState(genesisState)==id);
 
-    _setState(newState, genesisState, id, kOp, itp, sigR8, sigS);
+    _setState(newState, genesisState, id, a, b, c);
   }
 
-  function setState(bytes32 newState, bytes31 id, uint256[2] memory kOp, bytes memory itp, uint256[2] memory sigR8, uint256 sigS) public {
+  function setState(
+            uint256 newState,
+            uint256 id,
+            uint[2] memory a,
+            uint[2][2] memory b,
+            uint[2] memory c
+  ) public {
     require(identities[id].length>0);
+
     IDState memory oldIDState = identities[id][identities[id].length-1];
     require(oldIDState.BlockN != block.number, "no multiple set in the same block");
 
-    _setState(newState, oldIDState.State, id, kOp, itp, sigR8, sigS);
+    _setState(newState, oldIDState.State, id, a, b, c);
   }
 
-  // WARNING!!! root verification is disabled in this simplified version of the
-  // contract (old function in the previous comments, as example)
-  // TODO next version will need to have updated the MerkleTree Proof
-  // verification and migrate from Mimc7 to Poseidon hash function
-  function _setState(bytes32 newState, bytes32 oldState, bytes31 id, uint256[2] memory kOp, bytes memory itp, uint256[2] memory sigR8, uint256 sigS) private{
-    // require(verifyProof(newState, kOpProof) == true);
+  function _setState(
+            uint256 newState,
+            uint256 oldState,
+            uint256 id,
+            uint[2] memory a,
+            uint[2][2] memory b,
+            uint[2] memory c
+  ) public {
 
-    // WARNING: following lines disabled due https://github.com/iden3/contracts/issues/26
-    // uint256[] memory m_in = new uint256[](3);
-    // m_in[0] = uint256(0x3a6574617473746573); // prefix "setstate:"
-    // m_in[1] = uint256(oldState);
-    // m_in[2] = uint256(newState);
-    // uint256 m = poseidon.poseidon(m_in);
-    // require(eddsaBBJJ.Verify(kOp, m, sigR8, sigS), "can not verify BabyJubJub signature");
-
-
-    // bytes32 kOp = KeyFromKOpProof(kOpProof);
-    // require(verifySignature("minorTransition:" + oldState + newState, kOp));
-
-    require(verifyTransitionProof(oldState, newState, itp)==true);
+    uint256[3] memory input = [
+      id,
+      oldState,
+      newState
+    ];
+    require(verifier.verifyProof(a, b, c, input), "zkProof idState update could not be verified");
     
     identities[id].push(IDState(uint64(block.number), uint64(block.timestamp), newState));
     emit StateUpdated(id, uint64(block.number), uint64(block.timestamp), newState);
-  }
-
-  // function genesisIdFromState(bytes32 genesisState) private {
-  //   // TODO
-  //   genesisBytes = genesisState>>216; // 40
-  //   return id;
-  // }
-  function genesisToID(bytes2 typ, bytes27 genesisBytes) private {
-  
-  }
-  // function keyFromKOpProof(bytes memory kOpProof) private {
-  //   // TODO
-  //   return key;
-  // }
-  function verifyProof(bytes32 newState, bytes memory mtp) private returns (bool) {
-    // TODO
-    return true;
-  }
-  function keyFromKOpProof(bytes memory kOpProof) private {
-    // TODO
-    return;
-  }
-  function verifySignature(bytes32 msgHash, bytes32 sigR8, bytes32 sigS, bytes32 key) private returns (bool) {
-    // TODO
-    return true;
-  }
-  function verifyTransitionProof(bytes32 oldState, bytes32 newState, bytes memory itp) private returns (bool) {
-    // TODO
-    return true;
   }
 
   /**
@@ -125,7 +95,7 @@ contract State {
    * @param id identity
    * @return last state commited
    */
-  function getState(bytes31 id) public view returns (bytes32){
+  function getState(uint256 id) public view returns (uint256){
     if(identities[id].length == 0) {
       return emptyState;
     }
@@ -138,7 +108,7 @@ contract State {
    * @param blockN block number
    * return parameters are (by order): block number, block timestamp, state
    */
-  function getStateDataByBlock(bytes31 id, uint64 blockN) public view returns (uint64, uint64, bytes32) {
+  function getStateDataByBlock(uint256 id, uint64 blockN) public view returns (uint64, uint64, uint256) {
     require(blockN < block.number, "errNoFutureAllowed");
 
     // Case that there is no state commited
@@ -187,7 +157,7 @@ contract State {
    * @param timestamp timestamp
    * return parameters are (by order): block number, block timestamp, state
    */
-  function getStateDataByTime(bytes31 id, uint64 timestamp) public view returns (uint64, uint64, bytes32) {
+  function getStateDataByTime(uint256 id, uint64 timestamp) public view returns (uint64, uint64, uint256) {
     require(timestamp < block.timestamp, "errNoFutureAllowed");
     // Case that there is no state commited
     if(identities[id].length == 0) {
@@ -234,7 +204,7 @@ contract State {
    * @return last state for a given identity
    * return parameters are (by order): block number, block timestamp, state
    */
-  function getStateDataById(bytes31 id) public view returns (uint64, uint64, bytes32) {
+  function getStateDataById(uint256 id) public view returns (uint64, uint64, uint256) {
     if (identities[id]. length == 0) {
       return (0, 0, emptyState);
     }
@@ -245,13 +215,4 @@ contract State {
       lastIdState.State
     );
   }
-
-  /**
-   * @dev Get root used to form an identity
-   * @param id identity
-   * @return root
-   */
-  // function getStateFromId(bytes31 id) public pure returns (bytes27) {
-  //   return bytes27(id<<16);
-  // }
 }

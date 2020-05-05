@@ -6,7 +6,7 @@
 const Poseidon = artifacts.require("../contracts/lib/Poseidon");
 const poseidonGenContract = require("../node_modules/circomlib/src/poseidon_gencontract.js");
 const poseidonjssrc = require("../node_modules/circomlib/src/poseidon.js");
-const { bigInt } = require('snarkjs');
+const bigInt = require('big-integer');
 const SEED = "poseidon";
 
 contract("poseidon", (accounts) => {
