@@ -2,12 +2,7 @@
 
 # IDEN3 Smartcontracts
 
-This smartcontratcts are designed to provide the following functionality on-chain:
-
-- Publishing relayer roots
-- Identity proxy contract that
-  - Transaction authorizations uses  signature keys `ksignclaims` enforced by the relayer 
-  - Allows the relayer to execute the transactions (like ERC1077)
+- Identity State Update
 
 ## WARNING
 
