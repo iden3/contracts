@@ -1,0 +1,17 @@
+name: Tests
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 10.x ]
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Use Nodejs
+      uses: actions/setup-node@v1
+    - name: Install node_modules
+      run: npm install
+    - name: Test contracts
+      run: npm run test
