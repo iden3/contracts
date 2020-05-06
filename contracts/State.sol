@@ -77,7 +77,7 @@ contract State {
             uint[2] memory a,
             uint[2][2] memory b,
             uint[2] memory c
-  ) public {
+  ) private {
 
     uint256[3] memory input = [
       id,
