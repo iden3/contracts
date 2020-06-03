@@ -36,10 +36,12 @@
         "ganache-cli": "^6.4.3",
         "jsonfile": "^4.0.0",
         "snarkjs": "^0.1.31",
-        "solidity-coverage": "^0.5.11",
+        "solidity-coverage": "^0.7.5",
         "solium": "^1.1.5",
         "truffle": "^5.0.0-beta.0",
-        "truffle-cost": "^1.0.1"
+        "truffle-cost": "^1.0.1",
+        "braces": ">=2.3.1",
+        "diff": ">=3.5.0"
     },
     "main": "truffle.js",
     "directories": {
