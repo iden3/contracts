@@ -1,13 +1,6 @@
-[![Build Status](https://travis-ci.org/iden3/contracts.svg?branch=master)](https://travis-ci.org/iden3/contracts)
+# IDEN3 Smartcontracts [![Test](https://github.com/iden3/contracts/workflows/Tests/badge.svg)](https://github.com/iden3/contracts/actions?query=workflow%3ATests)
 
-# IDEN3 Smartcontracts
-
-This smartcontratcts are designed to provide the following functionality on-chain:
-
-- Publishing relayer roots
-- Identity proxy contract that
-  - Transaction authorizations uses  signature keys `ksignclaims` enforced by the relayer 
-  - Allows the relayer to execute the transactions (like ERC1077)
+- Identity State Update
 
 ## WARNING
 

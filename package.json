@@ -1,19 +1,19 @@
 {
-    "name": "iden3-contracts",
-    "version": "0.1.0",
+    "name": "contracts",
+    "version": "0.1.1",
     "description": "Iden3 smartcontracts",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/iden3/contracts-private.git"
+        "url": "https://github.com/iden3/contracts.git"
     },
     "license": "GPL-3.0",
     "bugs": {
-        "url": "https://github.com/iden3/contracts-private/issues"
+        "url": "https://github.com/iden3/contracts/issues"
     },
-    "homepage": "https://github.com/iden3/contracts-private",
+    "homepage": "https://github.com/iden3/contracts",
     "devDependencies": {
         "async": "^2.6.0",
-        "bignumber.js": "^6.0.0",
+        "big-integer": "^1.6.48",
         "eslint": "^4.17.0",
         "eslint-config-airbnb": "^16.1.0",
         "eslint-config-standard": "^11.0.0-beta.0",
@@ -29,12 +29,19 @@
     },
     "dependencies": {
         "babel-eslint": "^8.2.1",
+        "bs58": "^4.0.1",
+        "circomlib": "0.2.2",
         "codecov": "^3.0.0",
         "ethereumjs-util": "^5.2.0",
+        "ganache-cli": "^6.4.3",
         "jsonfile": "^4.0.0",
-        "solidity-coverage": "^0.5.11",
+        "snarkjs": "^0.1.31",
+        "solidity-coverage": "^0.7.5",
         "solium": "^1.1.5",
-        "truffle": "^5.0.0-beta.0"
+        "truffle": "^5.0.0-beta.0",
+        "truffle-cost": "^1.0.1",
+        "braces": ">=2.3.1",
+        "diff": ">=3.5.0"
     },
     "main": "truffle.js",
     "directories": {
@@ -44,7 +51,9 @@
         "node": ">= 7.6"
     },
     "scripts": {
+        "inittest": "./node_modules/ganache-cli/cli.js -d -m enjoy alter satoshi squirrel special spend crop link race rally two eye",
         "test": "truffle test",
+        "truffle": "truffle",
         "lint": "solium --dir contracts && eslint test",
         "coverage": "./node_modules/.bin/solidity-coverage",
         "travis": "./node_modules/.bin/solidity-coverage"
