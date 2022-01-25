@@ -26,7 +26,7 @@ contract SchemaRegistry {
      * @param schemaName - name of the schema
      * @param schemaBody - json schema representation in bytes 
      */
-    function save(string calldata schemaName, bytes calldata schemaBody) public payable {
+    function save(string calldata schemaName, bytes calldata schemaBody) public {
         require(nameHash[schemaName] == 0, "Schema already exists");
 
         bytes32 hash = getHashFromBytes(schemaBody);
