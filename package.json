@@ -31,7 +31,7 @@
         "babel-eslint": "^8.2.1",
         "bs58": "^4.0.1",
         "circomlib": "0.2.2",
-        "codecov": "^3.0.0",
+        "codecov": "^3.7.1",
         "ethereumjs-util": "^5.2.0",
         "ganache-cli": "^6.4.3",
         "jsonfile": "^4.0.0",
