@@ -13,5 +13,9 @@ jobs:
       uses: actions/setup-node@v1
     - name: Install node_modules
       run: npm install
+    - name: Install ganache-cli
+      run: npm -g install ganache-cli
+    - name: Run ganache-cli
+      run: ganache-cli -a 1 -i 5777 -m "abandon","ability","able","about","above","absent","absorb","abstract","absurd","abuse","access","accident" > /dev/null  &
     - name: Test contracts
-      run: npm run test
+      run: npm run test --network
