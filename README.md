@@ -11,4 +11,5 @@
 - Install truffle `npm i -g truffle`
 - Run the tests `truffle test` 
 - Run coverage tests `npm run coverage`
-
+- truffle migrate --network ropsten --skipDryRun
+- truffle migrate --network=development

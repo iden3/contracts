@@ -198,10 +198,11 @@ contract("Iden 3 helpers functions", (accounts) => {
   });
 
   it("ecrecover helper", async () => {
-    const privateKeyHex = '0x0102030405060708091011121314151617181920212223242526272829303132';
-    const addressKey = ethUtil.privateToAddress(privateKeyHex);
-    const addressKeyHex = `0x${addressKey.toString('hex')}`;
+    const privateKeyHex = '0xb449bf7c00b163d42978ab4feea41286d501c5addfeae10d8d687ca84460a9a0'; // ganache test key
     const privateKey = Buffer.from(privateKeyHex.substr(2), 'hex');
+
+    const addressKey = ethUtil.privateToAddress(privateKey);
+    const addressKeyHex = `0x${addressKey.toString('hex')}`;
 
     const msg = Buffer.from('This is a test message');
     const msgHash = ethUtil.hashPersonalMessage(msg);
