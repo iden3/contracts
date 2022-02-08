@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.6.0 <0.9.0;
+pragma solidity 0.6.0;
 /**
  * @title Schema
  * @dev Schema contract
@@ -7,7 +7,7 @@ pragma solidity >=0.6.0 <0.9.0;
 contract SchemaRegistry {
 
     struct Schema {
-        address issuer;
+        address creator;
         string name;
         bytes32 hash;
         bytes body;
@@ -31,7 +31,7 @@ contract SchemaRegistry {
 
         bytes32 hash = getHashFromBytes(schemaBody);
         Schema memory s = Schema({ // creating new schema
-        issuer: msg.sender,
+        creator: msg.sender,
         hash: hash,
         name: schemaName,
         timestamp: block.timestamp,
