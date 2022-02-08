@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.6.0;
+
 /**
  * @title Schema
  * @dev Schema contract
  */
 contract SchemaRegistry {
-
     struct Schema {
         address creator;
         string name;
@@ -17,7 +17,11 @@ contract SchemaRegistry {
     mapping(string => bytes32) nameHash;
     mapping(bytes32 => Schema) hashSchema;
 
-    function getHashFromBytes(bytes memory schemaBody) private pure returns (bytes32) {
+    function getHashFromBytes(bytes memory schemaBody)
+        private
+        pure
+        returns (bytes32)
+    {
         return keccak256(schemaBody);
     }
 
@@ -31,11 +35,11 @@ contract SchemaRegistry {
 
         bytes32 hash = getHashFromBytes(schemaBody);
         Schema memory s = Schema({ // creating new schema
-        creator: msg.sender,
-        hash: hash,
-        name: schemaName,
-        timestamp: block.timestamp,
-        body: schemaBody
+            creator: msg.sender,
+            hash: hash,
+            name: schemaName,
+            timestamp: block.timestamp,
+            body: schemaBody
         });
 
         nameHash[schemaName] = hash; // assign new hash
@@ -50,7 +54,11 @@ contract SchemaRegistry {
         return nameHash[name];
     }
 
-    function getBytesByName(string memory name) public view returns (bytes memory) {
+    function getBytesByName(string memory name)
+        public
+        view
+        returns (bytes memory)
+    {
         bytes32 hash = nameHash[name];
         return hashSchema[hash].body;
     }

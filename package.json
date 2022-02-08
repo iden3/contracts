@@ -14,6 +14,8 @@
     "devDependencies": {
         "async": "^3.2.3",
         "big-integer": "^1.6.51",
+        "prettier": "^2.5.1",
+        "prettier-plugin-solidity": "^1.0.0-beta.19",
         "random-bytes": "^1.0.0",
         "web3": "^1.7.0"
     },
