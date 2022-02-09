@@ -2,8 +2,8 @@
 // const EddsaBabyJubJub = artifacts.require("../contracts/lib/EddsaBabyJubJub");
 const Verifier = artifacts.require("../contracts/lib/Verifier");
 
-module.exports = function(deployer) {
-  deployer.deploy(Verifier);
-  // deployer.deploy(BabyJubJub);
-  // deployer.link(BabyJubJub, EddsaBabyJubJub);
+module.exports = async function(deployer) {
+   await deployer.deploy(Verifier);
+   const verifierInstance = await Verifier.deployed();
+   console.log("address verifier: ", verifierInstance.address);
 };
