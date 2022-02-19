@@ -19,9 +19,9 @@ contract State {
     mapping(uint256 => IDState[]) identities;
 
     /**
-     * @dev Correlation between identity and its transition timestamp
+     * @dev Correlation between identity and transitions info.
      */
-    mapping(uint256 => uint256) transitions;
+    mapping(uint256 => transitionsInfo) transitions;
 
     /**
      * @dev Struct saved for each identity. Stores state and block/timestamp associated.
@@ -38,11 +38,29 @@ contract State {
     uint256 emptyState;
 
     /**
+     * @dev Struct saved information about transition state for identifier.
+     * @param replacedAtTimestamp commit time when state was changed.
+     * @param createdAtTimestamp commit time when state was saved into blockchain.
+     * @param replacedAtBlock commit number of block when state was changed.
+     * @param createdAtBlock commit number of block when state was created.
+     * @param replacedBy commit  state with which the current state has been replaced.
+     * @param id identity.
+     */
+    struct transitionsInfo {
+        uint256 replacedAtTimestamp;
+        uint256 createdAtTimestamp;
+        uint64 replacedAtBlock;
+        uint64 createdAtBlock;
+        uint256 replacedBy;
+        uint256 id;
+    }
+
+    /**
      * @dev event called when a state is updated
      * @param id identity
-     * @param blockN Block number when the state has been commited
-     * @param timestamp Timestamp when the state has been commited
-     * @param state IDState commited
+     * @param blockN Block number when the state has been committed
+     * @param timestamp Timestamp when the state has been committed
+     * @param state IDState committed
      */
     event StateUpdated(
         uint256 id,
@@ -100,7 +118,14 @@ contract State {
             IDState(uint64(block.number), uint64(block.timestamp), newState)
         );
 
-        transitions[oldState] = now;
+        // Set create info for new state
+        transitions[newState] = transitionsInfo(0, now, 0, uint64(block.number), 0, id);
+
+        // Set replace info for old state
+        transitions[oldState].replacedAtTimestamp = now;
+        transitions[oldState].replacedAtBlock = uint64(block.number);
+        transitions[oldState].replacedBy = newState;
+
 
         emit StateUpdated(
             id,
@@ -123,16 +148,34 @@ contract State {
     }
 
     /**
-     * Retrieve transition timestamp by state
+     * Retrieve transition information by state
      * @param state is state to check when it lost actuality
-     * @return timestamp of new state published afer given one
+     * @return timestamp of new state published after given one
+     * @return timestamp of new state published
+     * @return block number of new state published after given one
+     * @return block number of new state published
+     * @return id identity
+     * @return the state that replaced the given one
      */
-    function getTransitionTimestamp(uint256 state)
-        public
-        view
-        returns (uint256)
+    function getTransitionInfo(uint256 state)
+    public
+    view
+    returns (
+        uint256,
+        uint256,
+        uint64,
+        uint64,
+        uint256,
+        uint256
+    )
     {
-        return transitions[state];
+        return (transitions[state].replacedAtTimestamp,
+        transitions[state].createdAtTimestamp,
+        transitions[state].replacedAtBlock,
+        transitions[state].createdAtBlock,
+        transitions[state].id,
+        transitions[state].replacedBy
+        );
     }
 
     /**
