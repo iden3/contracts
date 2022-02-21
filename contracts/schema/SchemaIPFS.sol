@@ -5,46 +5,46 @@ pragma solidity 0.6.0;
  * @title Schema
  * @dev Schema contract
  */
-contract SchemaIPFSRegistry {
+contract SchemaUrlRegistry {
     struct Schema {
         address creator;
-        string name;
-        bool created;
-        string ipfsUrl;
+        bytes32 id;
+        string credentialType;
+        string url;
         uint256 timestamp;
     }
 
-    mapping(string => Schema) schemaUrlMap;
+    mapping(bytes32 => Schema) schemaMap;
 
     /**
      * @dev save is function to store schema
-     * @param schemaName - name of the schema
-     * @param ipfsUrl - IPFS URL
+     * @param id - hash of the schema
+     * @param credentialType - schema credential type
+     * @param url - schema uri
      */
-    function save(string memory schemaName, string memory ipfsUrl) public {
-        require(schemaUrlMap[schemaName].created, "Schema already exists");
+    function save(bytes32 id, string memory credentialType, string memory url) public {
+        require(schemaMap[id].creator != address(0), "Schema already exists");
 
         Schema memory s = Schema({// creating new schema
-        creator : msg.sender,
-        name : schemaName,
-        created : true,
-        timestamp : block.timestamp,
-        ipfsUrl : ipfsUrl
+            creator : msg.sender,
+            id : id,
+            credentialType : credentialType,
+            timestamp : block.timestamp,
+            url : url
         });
 
-        schemaUrlMap[schemaName] = s;
-        // assign new schema
+        schemaMap[id] = s;
     }
 
     /**
-     * @dev getIPFSUrlByName is function to retrieve ipfs utl by name
-     * @param name - name of the schema
+     * @dev getSchemaById is function to retrieve ipfs utl by name
+     * @param id - hash of the schema
     */
-    function getIPFSUrlByName(string memory name)
+    function getSchemaById(bytes32 id)
     public
     view
-    returns (string memory)
+    returns (bytes32, string memory, string memory, address, uint256)
     {
-        return schemaUrlMap[name].ipfsUrl;
+        return (schemaMap[id].id, schemaMap[id].credentialType, schemaMap[id].url, schemaMap[id].creator, schemaMap[id].timestamp);
     }
 }
