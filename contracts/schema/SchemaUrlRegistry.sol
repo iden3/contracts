@@ -14,7 +14,7 @@ contract SchemaUrlRegistry {
         uint256 timestamp;
     }
 
-    mapping(bytes32 => Schema) schemaMap;
+    mapping(bytes32 => Schema) public schemaMap;
 
     /**
      * @dev save is function to store schema
