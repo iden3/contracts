@@ -7,10 +7,18 @@ import "./lib/verifier.sol";
 //  */
 // contract State is Iden3Helpers {
 contract State {
-    Verifier verifier;
+    Verifier public verifier;
+
+    address public owner;
+
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
 
     constructor(address _verifierContractAddr) public {
         verifier = Verifier(_verifierContractAddr);
+        owner = msg.sender;
     }
 
     /**
@@ -69,6 +77,10 @@ contract State {
         uint256 state
     );
 
+    function setVerifier(address newVerifier) public onlyOwner {
+        verifier = Verifier(newVerifier);
+    }
+
     function initState(
         uint256 newState,
         uint256 genesisState,
@@ -119,13 +131,19 @@ contract State {
         );
 
         // Set create info for new state
-        transitions[newState] = transitionsInfo(0, now, 0, uint64(block.number), 0, id);
+        transitions[newState] = transitionsInfo(
+            0,
+            now,
+            0,
+            uint64(block.number),
+            0,
+            id
+        );
 
         // Set replace info for old state
         transitions[oldState].replacedAtTimestamp = now;
         transitions[oldState].replacedAtBlock = uint64(block.number);
         transitions[oldState].replacedBy = newState;
-
 
         emit StateUpdated(
             id,
@@ -158,23 +176,24 @@ contract State {
      * @return the state that replaced the given one
      */
     function getTransitionInfo(uint256 state)
-    public
-    view
-    returns (
-        uint256,
-        uint256,
-        uint64,
-        uint64,
-        uint256,
-        uint256
-    )
+        public
+        view
+        returns (
+            uint256,
+            uint256,
+            uint64,
+            uint64,
+            uint256,
+            uint256
+        )
     {
-        return (transitions[state].replacedAtTimestamp,
-        transitions[state].createdAtTimestamp,
-        transitions[state].replacedAtBlock,
-        transitions[state].createdAtBlock,
-        transitions[state].id,
-        transitions[state].replacedBy
+        return (
+            transitions[state].replacedAtTimestamp,
+            transitions[state].createdAtTimestamp,
+            transitions[state].replacedAtBlock,
+            transitions[state].createdAtBlock,
+            transitions[state].id,
+            transitions[state].replacedBy
         );
     }
 
