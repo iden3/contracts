@@ -23,15 +23,21 @@ module.exports = {
       },
       network_id: 3
     },
+    mumbai: {
+      provider: function() {
+        return new HDWalletProvider(["key here"], "url here")
+      },
+      network_id: 80001
+    },
     development: {
       host: "localhost",
       port: 8545,
       network_id: "5777"
-    },
+    }
   },
   compilers: {
     solc: {
-      version: "0.6.0"
+      version: "pragma"
     }
   }
 };

@@ -1,4 +1,4 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.0;
 
 import "./lib/verifier.sol";
 
@@ -16,7 +16,7 @@ contract State {
         _;
     }
 
-    constructor(address _verifierContractAddr) public {
+    constructor(address _verifierContractAddr) {
         verifier = Verifier(_verifierContractAddr);
         owner = msg.sender;
     }
@@ -133,7 +133,7 @@ contract State {
         // Set create info for new state
         transitions[newState] = transitionsInfo(
             0,
-            now,
+            block.timestamp,
             0,
             uint64(block.number),
             0,
@@ -141,7 +141,7 @@ contract State {
         );
 
         // Set replace info for old state
-        transitions[oldState].replacedAtTimestamp = now;
+        transitions[oldState].replacedAtTimestamp = block.timestamp;
         transitions[oldState].replacedAtBlock = uint64(block.number);
         transitions[oldState].replacedBy = newState;
 
