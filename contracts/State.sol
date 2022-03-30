@@ -1,13 +1,20 @@
 pragma solidity ^0.8.0;
 
-import "./lib/verifier.sol";
+interface IVerifier {
+    function verifyProof(
+        uint[2] memory a,
+        uint[2][2] memory b,
+        uint[2] memory c,
+        uint[3] memory input
+    ) external view returns (bool r);
+}
 
 // /**
 //  * @dev Set and get states for each identity
 //  */
 // contract State is Iden3Helpers {
 contract State {
-    Verifier public verifier;
+    IVerifier public verifier;
 
     address public owner;
 
@@ -17,7 +24,7 @@ contract State {
     }
 
     constructor(address _verifierContractAddr) {
-        verifier = Verifier(_verifierContractAddr);
+        verifier = IVerifier(_verifierContractAddr);
         owner = msg.sender;
     }
 
@@ -78,7 +85,7 @@ contract State {
     );
 
     function setVerifier(address newVerifier) public onlyOwner {
-        verifier = Verifier(newVerifier);
+        verifier = IVerifier(newVerifier);
     }
 
     function initState(
