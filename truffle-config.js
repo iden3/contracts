@@ -14,8 +14,6 @@
 const HDWalletProvider = require("@truffle/hdwallet-provider");
 
 module.exports = {
-  // See <http://truffleframework.com/docs/advanced/configuration>
-  // to customize your Truffle configuration!
   networks: {
     ropsten: {
       provider: function() {
@@ -23,15 +21,24 @@ module.exports = {
       },
       network_id: 3
     },
+    mumbai: {
+      provider: function() {
+        return new HDWalletProvider(["key here"], "url here")
+      },
+      network_id: 80001
+    },
     development: {
       host: "127.0.0.1",
       port: 8545,
       network_id: "5777"
-    },
+    }
   },
+  // TODO (illia-korotia): currently, we can't use different versions of compiler for contract and lib.
+  // Please, watch this issue. Maybe in the future `truffle` will has this feature.
+  // https://github.com/trufflesuite/truffle/issues/2021#issuecomment-1079961241
   compilers: {
     solc: {
-      version: "0.6.0"
+      version: "pragma"
     }
   }
 };

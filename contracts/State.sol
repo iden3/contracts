@@ -1,13 +1,20 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.0;
 
-import "./lib/verifier.sol";
+interface IVerifier {
+    function verifyProof(
+        uint[2] memory a,
+        uint[2][2] memory b,
+        uint[2] memory c,
+        uint[3] memory input
+    ) external view returns (bool r);
+}
 
 // /**
 //  * @dev Set and get states for each identity
 //  */
 // contract State is Iden3Helpers {
 contract State {
-    Verifier public verifier;
+    IVerifier public verifier;
 
     address public owner;
 
@@ -16,8 +23,8 @@ contract State {
         _;
     }
 
-    constructor(address _verifierContractAddr) public {
-        verifier = Verifier(_verifierContractAddr);
+    constructor(address _verifierContractAddr) {
+        verifier = IVerifier(_verifierContractAddr);
         owner = msg.sender;
     }
 
@@ -78,7 +85,7 @@ contract State {
     );
 
     function setVerifier(address newVerifier) public onlyOwner {
-        verifier = Verifier(newVerifier);
+        verifier = IVerifier(newVerifier);
     }
 
     function initState(
@@ -133,7 +140,7 @@ contract State {
         // Set create info for new state
         transitions[newState] = transitionsInfo(
             0,
-            now,
+            block.timestamp,
             0,
             uint64(block.number),
             0,
@@ -141,7 +148,7 @@ contract State {
         );
 
         // Set replace info for old state
-        transitions[oldState].replacedAtTimestamp = now;
+        transitions[oldState].replacedAtTimestamp = block.timestamp;
         transitions[oldState].replacedAtBlock = uint64(block.number);
         transitions[oldState].replacedBy = newState;
 
