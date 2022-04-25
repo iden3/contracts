@@ -48,6 +48,7 @@
         "truffle": "truffle",
         "lint": "solium --dir contracts && eslint test",
         "coverage": "./node_modules/.bin/solidity-coverage",
-        "travis": "./node_modules/.bin/solidity-coverage"
+        "travis": "./node_modules/.bin/solidity-coverage",
+        "prettier": "prettier --write 'contracts/**/*.sol'"
     }
 }
