@@ -75,7 +75,7 @@ contract("State", (accounts) => {
             "c": ["5314211878165792802862306730107623216785198165596140560956558389794723804362", "12385618485204884553608332699253479172149780726556173244997298047988867728654"]
         };
 
-        const expectedErrorText = "reverted with reason string 'oldState argument should be equal to the latest identity state in smart contract when isOldStateGenesis == 0'";
+        const expectedErrorText = "oldState argument should be equal to the latest identity state in smart contract when isOldStateGenesis == 0";
         let isException = false;
         try {
             await insState.setState(params.id, params.oldState, params.newState, params.isOldStateGenesis, params.a, params.b, params.c);
@@ -103,7 +103,7 @@ contract("State", (accounts) => {
             "c": ["11352172806128366475347847596244716408776970392808736796728122812442788284707", "16017449820282738313053786035346752297990879680443765137119539571763206193837"]
         };
 
-        const expectedErrorText = "reverted with reason string 'there should be at least one state for identity in smart contract when isOldStateGenesis == 0'";
+        const expectedErrorText = "there should be at least one state for identity in smart contract when isOldStateGenesis == 0";
         let isException = false;
         try {
             await insState.setState(params.id, params.oldState, params.newState, params.isOldStateGenesis, params.a, params.b, params.c);
