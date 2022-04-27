@@ -27,16 +27,17 @@ contract("State", (accounts) => {
 
     it("Positive: initial state publishing and subsequent state update", async () => {
         const paramsPublish1 = {
-            "id": "281005282885812987322118337711907619781144987087204107432349210855274577920",
-            "oldState": "11414819058927237748274724891740868254750017678581613212565066304158605209388",
-            "newState": "3647612402262250750065671637588670446632149934388650546568786130398856059719",
+            "id": "208578539075161066941045451408520022623342707645795115074489763243991826432",
+            "oldState": "14474187484712964640066150687396643035041618032651513123201430169484329721025",
+            "newState": "11711275891690646697934795346159787577842574322370736278385559067855855270682",
             "isOldStateGenesis": "1",
-            "a": ["6189347009963165873494015924820383960431160783026981316521785493497406468509", "3695383844850933818039941726956755536009125143692260863358656540879756353543"],
-            "b": [
-                ["11782910782753785371602738975992770848225905465336045212820322110147194717858", "20163269506353171425652991866314277461174452369422611177113176574539969584123"],
-                ["1271379318396154109721545200695163653050991072309145051932808937802431923810", "2435666573946081606631352192994770984967041202577455033408086131879097738131"]
-            ],
-            "c": ["8809483627447725823430616591007308902241040051992519409038881290779142697322", "3593019507434349244770293283535070194513253178257516856848684996686374400594"]
+            "a": ["10727822760215079033439400753772346848878603610931881955624566836804248652445",
+                "2899934117553636695063093062091606030202192874576205004983752852686868595018"],
+            "b": [["7250600461944921380283029847479225025635073742905153890747899626894985259706", "1182522281352830109875111757067976974471754234198124614427382315293573923532",],
+                ["11806966936716379463384356212652489947522428783486152665307768322632115339825", "14634683213248535885434253427289075323897210720548921735749927495546064884823",
+                ]],
+            "c": ["9527903825169648498515349560170458499890188440074281559771775000480993460431",
+                "18843521982987281238718407237877874754085858267728986501038042799464940847052"]
         }
 
         await insState.setState(paramsPublish1.id, paramsPublish1.oldState, paramsPublish1.newState, paramsPublish1.isOldStateGenesis, paramsPublish1.a, paramsPublish1.b, paramsPublish1.c);
@@ -44,16 +45,28 @@ contract("State", (accounts) => {
         expect(res0.toString()).to.be.equal(bigInt(paramsPublish1.newState).toString());
 
         const paramsPublish2 = {
-            "id": "281005282885812987322118337711907619781144987087204107432349210855274577920",
-            "oldState": "3647612402262250750065671637588670446632149934388650546568786130398856059719",
-            "newState": "12490843518126510901614294315146370081063682962053897180053871838423803520444",
+            "id": "208578539075161066941045451408520022623342707645795115074489763243991826432",
+            "oldState": "11711275891690646697934795346159787577842574322370736278385559067855855270682",
+            "newState": "19094559214653237151271807295056401387313766159809380528101899451257118795537",
             "isOldStateGenesis": "0",
-            "a": ["17397688438297262962301959090065321376264659261906174879861028002130491792244", "15630818810231900994827242334404984919348830375716156818235785124322159502620"],
-            "b": [
-                ["1442137111722690549031708060092574719442284749870943098963991255723080693261", "6937983432972728838292629564476486356031084468151228032346508746093329995456"],
-                ["7339218885479337631036304816271353201831741499370452014916598100724807175693", "5243722202350752625996084736900415154108935158763884545861674571454010445829"]
+            "a": [
+                "21477293567129332906107128833847683799757293999244927609678778030395908480829",
+                "11373661794371631277125868506432624861995287096086582443746397661483186028337"
+            ], "b": [
+                [
+                    "21843376497740396969889439940862563456267154366695101618595905815055838148218",
+                    "9726534505482480214795246549565223701559958916572246309791118541022511839954"
+                ],
+                [
+                    "20967909663755934780921822976087091022406509008861524255874220094864424729495",
+                    "18856596863997366076750417262026919647853073185660260543384863500634979017678"
+                ]
             ],
-            "c": ["1350762914158158558538037650963673757364595401839568258237230991539382136743", "14305596383510607516872547117551810778177635351130714975521116295645869894462"]
+            "c":
+                [
+                    "19339538540666990370231229587142794053028488731805589222206871779103746843693",
+                    "9777325254604351396766571146098007506642783545244591325603876586010085071416",
+                ]
         };
 
         await insState.setState(paramsPublish2.id, paramsPublish2.oldState, paramsPublish2.newState, paramsPublish2.isOldStateGenesis, paramsPublish2.a, paramsPublish2.b, paramsPublish2.c);
@@ -63,16 +76,17 @@ contract("State", (accounts) => {
 
     it("Negative: state update with correct proof but oldState param is not equal the last state in the smart contract", async () => {
         const params = {
-            "id": "281005282885812987322118337711907619781144987087204107432349210855274577920",
-            "oldState": "1437544216607338750869962745917670430916451284722392351386275628086426384792",
-            "newState": "9785366294701428554153306384542406896179545744645530085341352585268642099176",
+            "id": "208578539075161066941045451408520022623342707645795115074489763243991826432",
+            "oldState": "14474187484712964640066150687396643035041618032651513123201430169484329721025",
+            "newState": "11711275891690646697934795346159787577842574322370736278385559067855855270682",
             "isOldStateGenesis": "0",
-            "a": ["15514518068461971088864073813600692876044706872744471268357958788606771772736", "9375623333219470942787164849484075698209737073968988934171347113801229558328"],
-            "b": [
-                ["21102256459155276143445956263995038597457753227734387695301067159828181917666", "17391745735107215268129021590375686701576899446688142349618888336987137491775"],
-                ["1434269045995966505547310098101350009205127098201961998736236693822111988803", "4670034177532974158382426975807179794706682057876967835645081898867488633504"]
-            ],
-            "c": ["5314211878165792802862306730107623216785198165596140560956558389794723804362", "12385618485204884553608332699253479172149780726556173244997298047988867728654"]
+            "a": ["10727822760215079033439400753772346848878603610931881955624566836804248652445",
+                "2899934117553636695063093062091606030202192874576205004983752852686868595018"],
+            "b": [["7250600461944921380283029847479225025635073742905153890747899626894985259706", "1182522281352830109875111757067976974471754234198124614427382315293573923532",],
+                ["11806966936716379463384356212652489947522428783486152665307768322632115339825", "14634683213248535885434253427289075323897210720548921735749927495546064884823",
+                ]],
+            "c": ["9527903825169648498515349560170458499890188440074281559771775000480993460431",
+                "18843521982987281238718407237877874754085858267728986501038042799464940847052"]
         };
 
         const expectedErrorText = "oldState argument should be equal to the latest identity state in smart contract when isOldStateGenesis == 0";
@@ -91,16 +105,17 @@ contract("State", (accounts) => {
 
     it("Negative: state publishing with correct proof but isOldStateGenesis = 0 for initial state publishing", async () => {
         const params = {
-            "id": "379941385574827991936716386096746100390123577200436958588415308843027005440",
-            "oldState": "8201472973512999373330940415647151041700122301670904525987880791880865950850",
-            "newState": "739486299156905651022129677385648109429972555255226156501611716961626725314",
+            "id": "14474187484712964640066150687396643035041618032651513123201430169484329721025",
+            "oldState": "14474187484712964640066150687396643035041618032651513123201430169484329721025",
+            "newState": "11711275891690646697934795346159787577842574322370736278385559067855855270682",
             "isOldStateGenesis": "0",
-            "a": ["15877815462688098749905302795157795256212576759178064263578376498063614588898", "20773998729235028479733843797053313333964056909171504923477784023605901180837"],
-            "b": [
-                ["16107131986791547291205075701801321086868870385624045488518716390761823402023", "14989812208605150728865570270310410093329276137644584032059904166732131437300"],
-                ["592442259202996952278945388680596593976491024081412218239013054272862224069", "6047776226360059303839664705714810092127291459623908499521020256849804422257"]
-            ],
-            "c": ["11352172806128366475347847596244716408776970392808736796728122812442788284707", "16017449820282738313053786035346752297990879680443765137119539571763206193837"]
+            "a": ["10727822760215079033439400753772346848878603610931881955624566836804248652445",
+                "2899934117553636695063093062091606030202192874576205004983752852686868595018"],
+            "b": [["7250600461944921380283029847479225025635073742905153890747899626894985259706", "1182522281352830109875111757067976974471754234198124614427382315293573923532",],
+                ["11806966936716379463384356212652489947522428783486152665307768322632115339825", "14634683213248535885434253427289075323897210720548921735749927495546064884823",
+                ]],
+            "c": ["9527903825169648498515349560170458499890188440074281559771775000480993460431",
+                "18843521982987281238718407237877874754085858267728986501038042799464940847052"]
         };
 
         const expectedErrorText = "there should be at least one state for identity in smart contract when isOldStateGenesis == 0";
@@ -116,141 +131,4 @@ contract("State", (accounts) => {
         const res = await insState.getState(params.id);
         expect(res.toString()).to.be.equal("0");
     });
-});
-
-
-contract("State2", (accounts) => {
-    // TODO the tests will be completed in the next phase
-
-    // it("getStateByTime must return the state with exact time", async () => {
-    //   tx1 = await insIDState.setState(newstate[4], infoId1.idBytes, infoId1.proof,{from:idEth1});
-    //   const tx1ts = (await web3.eth.getBlock(tx1.receipt.blockNumber)).timestamp;
-    //
-    //   await timeTravel(100);
-    //   const tx2 = await insIDState.setState(newstate[5], infoId1.idBytes, infoId1.proof,{from:idEth1});
-    //   const tx2ts = (await web3.eth.getBlock(tx2.receipt.blockNumber)).timestamp;
-    //
-    //   await timeTravel(100);
-    //   const tx3 = await insIDState.setState(newstate[6], infoId1.idBytes, infoId1.proof,{from:idEth1});
-    //   const tx3ts = (await web3.eth.getBlock(tx3.receipt.blockNumber)).timestamp;
-    //
-    //   await timeTravel(100);
-    //   assert.equal(await insIDState.getStateByTime(infoId1.idBytes, tx1ts), newstate[4]);
-    //   assert.equal(await insIDState.getStateByTime(infoId1.idBytes, tx2ts), newstate[5]);
-    //   assert.equal(await insIDState.getStateByTime(infoId1.idBytes, tx3ts), newstate[6]);
-    // });
-    //
-    // it("getStateByTime must return the state with closest time", async () => {
-    //   const tx1 = await insIDState.setState(newstate[7], infoId2.idBytes, infoId2.proof, {from:idEth2});
-    //   const tx1ts = (await web3.eth.getBlock(tx1.receipt.blockNumber)).timestamp;
-    //
-    //   await timeTravel(100);
-    //   const tx2 = await insIDState.setState(newstate[8],  infoId2.idBytes, infoId2.proof, {from:idEth2});
-    //   const tx2ts = (await web3.eth.getBlock(tx2.receipt.blockNumber)).timestamp;
-    //
-    //   await timeTravel(100);
-    //   const tx3 = await insIDState.setState(newstate[9],  infoId2.idBytes, infoId2.proof, {from:idEth2});
-    //   const tx3ts = (await web3.eth.getBlock(tx3.receipt.blockNumber)).timestamp;
-    //
-    //   await timeTravel(100);
-    //
-    //   assert.equal(await insIDState.getStateByTime(infoId2.idBytes, tx1ts+1), newstate[7]);
-    //   assert.equal(await insIDState.getStateByTime(infoId2.idBytes, tx2ts-1), newstate[7]);
-    //   assert.equal(await insIDState.getStateByTime(infoId2.idBytes, tx2ts+1), newstate[8]);
-    //   assert.equal(await insIDState.getStateByTime(infoId2.idBytes, tx3ts-1), newstate[8]);
-    //   assert.equal(await insIDState.getStateByTime(infoId2.idBytes, tx3ts+1), newstate[9]);
-    // });
-    //
-    // it("getStateByBlock must return the state with exact block", async () => {
-    //   tx1 = await insIDState.setState(newstate[10], infoId3.idBytes, infoId3.proof,{from:idEth3});
-    //   const tx1Block = tx1.receipt.blockNumber;
-    //
-    //   await timeTravel(100);
-    //   tx2 = await insIDState.setState(newstate[11], infoId3.idBytes, infoId3.proof,{from:idEth3});;
-    //   const tx2Block = tx2.receipt.blockNumber;
-    //
-    //   await timeTravel(100);
-    //   tx3 = await insIDState.setState(newstate[12], infoId3.idBytes, infoId3.proof,{from:idEth3});;
-    //   const tx3Block = tx3.receipt.blockNumber;
-    //
-    //   await timeTravel(100);
-    //   assert.equal(await insIDState.getStateByBlock(infoId3.idBytes, tx1Block), newstate[10]);
-    //   assert.equal(await insIDState.getStateByBlock(infoId3.idBytes, tx2Block), newstate[11]);
-    //   assert.equal(await insIDState.getStateByBlock(infoId3.idBytes, tx3Block), newstate[12]);
-    // });
-    //
-    // it("getStateByBlock must return the state with closest block", async () => {
-    //   tx1 = await insIDState.setState(newstate[13], infoId3.idBytes, infoId3.proof,{from:idEth3});
-    //   const tx1Block = tx1.receipt.blockNumber;
-    //
-    //   await timeTravel(100);
-    //   tx2 = await insIDState.setState(newstate[14], infoId3.idBytes, infoId3.proof,{from:idEth3});
-    //   const tx2Block = tx2.receipt.blockNumber;
-    //
-    //   await timeTravel(100);
-    //   tx3 = await insIDState.setState(newstate[15], infoId3.idBytes, infoId3.proof,{from:idEth3});
-    //   const tx3Block = tx3.receipt.blockNumber;
-    //
-    //   await timeTravel(100);
-    //
-    //   assert.equal(await insIDState.getStateByBlock(infoId3.idBytes, tx1Block+1), newstate[13]);
-    //   assert.equal(await insIDState.getStateByBlock(infoId3.idBytes, tx2Block-1), newstate[13]);
-    //   assert.equal(await insIDState.getStateByBlock(infoId3.idBytes, tx2Block+1), newstate[14]);
-    //   assert.equal(await insIDState.getStateByBlock(infoId3.idBytes, tx3Block-1), newstate[14]);
-    //   assert.equal(await insIDState.getStateByBlock(infoId3.idBytes, tx3Block+1), newstate[15]);
-    // });
-    //
-    // it("must fail when setting two states in the same block", async () => {
-    //   await assertFail(testHelper.setDifferentStates(insIDState.address, {from:idEth1}))
-    // });
-    //
-    // it("getStateByTime/Block on unexistent identity returns emptyState", async () => {
-    //   const id = '0x0000004b178b6f233b008da541dc88455977a38783b9f16dfa29154cb8d58e'
-    //   assert.equal(await insIDState.getStateByTime(id,0), newstate[0]);
-    //   assert.equal(await insIDState.getStateByBlock(id,0), newstate[0]);
-    // });
-    //
-    // it("getStateByTime/Block on future block/timestamp", async () => {
-    //   tx1 = await insIDState.setState(newstate[16], infoId1.idBytes, infoId1.proof,{from:idEth1});
-    //   const tx1Block = tx1.receipt.blockNumber;
-    //   try {
-    //     await insIDState.getStateByBlock(infoId1.idBytes, tx1Block+100000);
-    //   }
-    //   catch (error) {
-    //     expect((error.message).includes('errNoFutureAllowed')).to.be.equal(true);
-    //   }
-    //
-    //   const tx2 = await insIDState.setState(newstate[17], infoId1.idBytes, infoId1.proof, {from:idEth1});
-    //   const tx2ts = (await web3.eth.getBlock(tx2.receipt.blockNumber)).timestamp;
-    //   try {
-    //     await insIDState.getStateByBlock(infoId1.idBytes, tx2ts+100000000);
-    //   }
-    //   catch (error) {
-    //     expect((error.message).includes('errNoFutureAllowed')).to.be.equal(true);
-    //   }
-    // });
-    //
-    // it("Trick new states insertions", async () => {
-    //   // Add new state form different message.sender
-    //   try {
-    //     await insIDState.setState(newstate[1], infoId1.idBytes, infoId1.proof,{from:idEth2});
-    //   }
-    //   catch (error) {
-    //     expect((error.message).includes('Merkle tree proof not valid')).to.be.equal(true);
-    //   }
-    //   // Add new state with different id
-    //   try {
-    //     await insIDState.setState(newstate[1], infoId2.idBytes, infoId1.proof,{from:idEth1});
-    //   }
-    //   catch (error) {
-    //     expect((error.message).includes('Merkle tree proof not valid')).to.be.equal(true);
-    //   }
-    //   // Add new state with different proof
-    //   try {
-    //     await insIDState.setState(newstate[1], infoId1.idBytes, infoId2.proof,{from:idEth1});
-    //   }
-    //   catch (error) {
-    //     expect((error.message).includes('Merkle tree proof not valid')).to.be.equal(true);
-    //   }
-    // });
 });
