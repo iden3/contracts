@@ -102,6 +102,7 @@ contract State {
                 identities[id].length > 0,
                 "there should be at least one state for identity in smart contract when isOldStateGenesis == 0"
             );
+
             IDState memory oldIDState = identities[id][identities[id].length - 1];
             require(
                 oldIDState.BlockN != block.number,
@@ -117,18 +118,7 @@ contract State {
                 "there should be no states for identity in smart contract when isOldStateGenesis != 0"
             );
         }
-        _setState(id, oldState, newState, isOldStateGenesis, a, b, c);
-    }
 
-    function _setState(
-        uint256 id,
-        uint256 oldState,
-        uint256 newState,
-        uint256 isOldStateGenesis,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c
-    ) private {
         uint256[4] memory input = [id, oldState, newState, isOldStateGenesis];
         require(
             verifier.verifyProof(a, b, c, input),
