@@ -74,7 +74,7 @@ contract("State", (accounts) => {
         expect(res.toString()).to.be.equal(bigInt(paramsPublish2.newState).toString());
     });
 
-    it("Negative: state update with correct proof but oldState param is not equal the last state in the smart contract", async () => {
+    it("Negative: state update with oldState param not equal the last state in the smart contract", async () => {
         const params = {
             "id": "208578539075161066941045451408520022623342707645795115074489763243991826432",
             "oldState": "14474187484712964640066150687396643035041618032651513123201430169484329721025",
@@ -103,7 +103,7 @@ contract("State", (accounts) => {
         expect(res.toString()).to.not.be.equal(bigInt(params.newState).toString());
     });
 
-    it("Negative: state publishing with correct proof but isOldStateGenesis = 0 for initial state publishing", async () => {
+    it("Negative: state publishing with isOldStateGenesis = 0 for initial state publishing", async () => {
         const params = {
             "id": "14474187484712964640066150687396643035041618032651513123201430169484329721025",
             "oldState": "14474187484712964640066150687396643035041618032651513123201430169484329721025",
