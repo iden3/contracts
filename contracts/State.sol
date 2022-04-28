@@ -88,7 +88,7 @@ contract State {
         verifier = IVerifier(newVerifier);
     }
 
-    function setState(
+    function transitState(
         uint256 id,
         uint256 oldState,
         uint256 newState,

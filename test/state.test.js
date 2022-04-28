@@ -40,7 +40,7 @@ contract("State", (accounts) => {
                 "18843521982987281238718407237877874754085858267728986501038042799464940847052"]
         }
 
-        await insState.setState(paramsPublish1.id, paramsPublish1.oldState, paramsPublish1.newState, paramsPublish1.isOldStateGenesis, paramsPublish1.a, paramsPublish1.b, paramsPublish1.c);
+        await insState.transitState(paramsPublish1.id, paramsPublish1.oldState, paramsPublish1.newState, paramsPublish1.isOldStateGenesis, paramsPublish1.a, paramsPublish1.b, paramsPublish1.c);
         const res0 = await insState.getState(paramsPublish1.id);
         expect(res0.toString()).to.be.equal(bigInt(paramsPublish1.newState).toString());
 
@@ -69,7 +69,7 @@ contract("State", (accounts) => {
                 ]
         };
 
-        await insState.setState(paramsPublish2.id, paramsPublish2.oldState, paramsPublish2.newState, paramsPublish2.isOldStateGenesis, paramsPublish2.a, paramsPublish2.b, paramsPublish2.c);
+        await insState.transitState(paramsPublish2.id, paramsPublish2.oldState, paramsPublish2.newState, paramsPublish2.isOldStateGenesis, paramsPublish2.a, paramsPublish2.b, paramsPublish2.c);
         const res = await insState.getState(paramsPublish2.id);
         expect(res.toString()).to.be.equal(bigInt(paramsPublish2.newState).toString());
     });
@@ -92,7 +92,7 @@ contract("State", (accounts) => {
         const expectedErrorText = "oldState argument should be equal to the latest identity state in smart contract when isOldStateGenesis == 0";
         let isException = false;
         try {
-            await insState.setState(params.id, params.oldState, params.newState, params.isOldStateGenesis, params.a, params.b, params.c);
+            await insState.transitState(params.id, params.oldState, params.newState, params.isOldStateGenesis, params.a, params.b, params.c);
         } catch (e) {
             isException = true;
             expect(e.message).contains(expectedErrorText);
@@ -121,7 +121,7 @@ contract("State", (accounts) => {
         const expectedErrorText = "there should be at least one state for identity in smart contract when isOldStateGenesis == 0";
         let isException = false;
         try {
-            await insState.setState(params.id, params.oldState, params.newState, params.isOldStateGenesis, params.a, params.b, params.c);
+            await insState.transitState(params.id, params.oldState, params.newState, params.isOldStateGenesis, params.a, params.b, params.c);
         } catch (e) {
             isException = true;
             expect(e.message).contains(expectedErrorText);
