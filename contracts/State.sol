@@ -5,7 +5,7 @@ interface IVerifier {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[3] memory input
+        uint[4] memory input
     ) external view returns (bool r);
 }
 
@@ -88,46 +88,38 @@ contract State {
         verifier = IVerifier(newVerifier);
     }
 
-    function initState(
-        uint256 newState,
-        uint256 genesisState,
+    function transitState(
         uint256 id,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c
-    ) public {
-        require(identities[id].length == 0);
-
-        _setState(newState, genesisState, id, a, b, c);
-    }
-
-    function setState(
-        uint256 newState,
-        uint256 id,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c
-    ) public {
-        require(identities[id].length > 0);
-
-        IDState memory oldIDState = identities[id][identities[id].length - 1];
-        require(
-            oldIDState.BlockN != block.number,
-            "no multiple set in the same block"
-        );
-
-        _setState(newState, oldIDState.State, id, a, b, c);
-    }
-
-    function _setState(
-        uint256 newState,
         uint256 oldState,
-        uint256 id,
+        uint256 newState,
+        uint256 isOldStateGenesis,
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
-    ) private {
-        uint256[3] memory input = [id, oldState, newState];
+    ) public {
+        if (isOldStateGenesis == 0) {
+            require(
+                identities[id].length > 0,
+                "there should be at least one state for identity in smart contract when isOldStateGenesis == 0"
+            );
+
+            IDState memory oldIDState = identities[id][identities[id].length - 1];
+            require(
+                oldIDState.BlockN != block.number,
+                "no multiple set in the same block"
+            );
+            require(
+                oldIDState.State == oldState,
+                "oldState argument should be equal to the latest identity state in smart contract when isOldStateGenesis == 0"
+            );
+        } else {
+            require(
+                identities[id].length == 0,
+                "there should be no states for identity in smart contract when isOldStateGenesis != 0"
+            );
+        }
+
+        uint256[4] memory input = [id, oldState, newState, isOldStateGenesis];
         require(
             verifier.verifyProof(a, b, c, input),
             "zkProof idState update could not be verified"
