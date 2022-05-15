@@ -1,32 +1,38 @@
-/* global artifacts */
-/* global contract */
-/* global web3 */
-/* global assert */
-
-const Poseidon = artifacts.require("../contracts/lib/Poseidon");
-const poseidonGenContract = require("../node_modules/circomlib/src/poseidon_gencontract.js");
-const poseidonjssrc = require("../node_modules/circomlib/src/poseidon.js");
+const { expect } = require("chai");
+const { ethers } = require("hardhat");
+const poseidonGenContract = require("circomlib/src/poseidon_gencontract.js");
+const poseidonjssrc = require("circomlib/src/poseidon.js");
 const bigInt = require('big-integer');
 const SEED = "poseidon";
 
-contract("poseidon", (accounts) => {
-
-  const {
-    0: owner,
-    1: address1,
-    2: address2,
-  } = accounts;
-
-  let poseidon;
-  let poseidonCircomlib;
-  let poseidonjs;
+describe("poseidon", () => {
+  let owner, address1, address2;
+  let poseidonCircomlib, poseidonSC, poseidonjs;
 
   before(async () => {
-    // Deploy new contract
-    const C = new web3.eth.Contract(poseidonGenContract.abi);
-    poseidonCircomlib = await C.deploy({data: poseidonGenContract.createCode(6, 8, 57, SEED)})
-      .send({gas: 3000000,from: owner});
-    poseidonSC = await Poseidon.new(poseidonCircomlib._address);
+    [
+      owner,
+      address1,
+      address2,
+    ] = await ethers.getSigners();
+
+    const PoseidonCircomlib = await ethers.getContractFactoryFromArtifact({
+      contractName: "",
+      sourceName: "",
+      abi: poseidonGenContract.abi,
+      bytecode: poseidonGenContract.createCode(6, 8, 57, SEED),
+      deployedBytecode: "",
+      linkReferences: {},
+      deployedLinkReferences: {},
+    }, owner)
+
+    poseidonCircomlib = await PoseidonCircomlib.deploy()
+    await poseidonCircomlib.deployed()
+
+    const Poseidon = await ethers.getContractFactory("Poseidon");
+    poseidonSC = await Poseidon.deploy(poseidonCircomlib.address);
+    poseidonSC.deployed()
+
     poseidonjs = poseidonjssrc.createHash(6, 8, 57);
   });
 
@@ -34,7 +40,7 @@ contract("poseidon", (accounts) => {
     const e1 = bigInt(1);
     const e2 = bigInt(2);
     // Poseidon smartcontract circomlib
-    const m1 = await poseidonCircomlib.methods.poseidon([e1.toString(), e2.toString()]).call();
+    const m1 = await poseidonCircomlib.poseidon([e1.toString(), e2.toString()]);
     // Poseidon javascript circomlib
     const m2 = await poseidonjs([e1, e2]);
     // poseidon goiden3 [extracted using go-iden3-crypto/poseidon implementation]
@@ -46,11 +52,12 @@ contract("poseidon", (accounts) => {
     expect(m2.toString()).to.be.equal(m3.toString());
     expect(m3.toString()).to.be.equal(goiden3);
   });
+
   it("check poseidon hash function with inputs [12, 45]", async () => {
     const e1 = bigInt(12);
     const e2 = bigInt(45);
     // Poseidon smartcontract circomlib
-    const m1 = await poseidonCircomlib.methods.poseidon([e1.toString(), e2.toString()]).call();
+    const m1 = await poseidonCircomlib.poseidon([e1.toString(), e2.toString()]);
     // Poseidon javascript circomlib
     const m2 = await poseidonjs([e1, e2]);
     // poseidon goiden3 [extracted using go-iden3-crypto/poseidon implementation]

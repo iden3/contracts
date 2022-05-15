@@ -1,54 +1,44 @@
 {
-    "name": "contracts",
-    "version": "0.1.1",
-    "description": "Iden3 smartcontracts",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/iden3/contracts.git"
-    },
-    "license": "GPL-3.0",
-    "bugs": {
-        "url": "https://github.com/iden3/contracts/issues"
-    },
-    "homepage": "https://github.com/iden3/contracts",
-    "devDependencies": {
-        "async": "^3.2.3",
-        "big-integer": "^1.6.51",
-        "prettier": "^2.5.1",
-        "prettier-plugin-solidity": "^1.0.0-beta.19",
-        "random-bytes": "^1.0.0",
-        "web3": "^1.7.0"
-    },
-    "dependencies": {
-        "@truffle/hdwallet-provider": "^2.0.3",
-        "braces": ">=3.0.2",
-        "bs58": "^4.0.1",
-        "circomlib": "0.2.2",
-        "codecov": "^3.8.2",
-        "diff": ">=5.0.0",
-        "ethereumjs-util": "^7.1.4",
-        "ganache": "^7.0.2",
-        "jsonfile": "^6.1.0",
-        "snarkjs": "^0.4.13",
-        "solidity-coverage": "^0.7.18",
-        "solium": "0.1.3",
-        "truffle": "5.5.6",
-        "truffle-cost": "1.0.0"
-    },
-    "main": "truffle.js",
-    "directories": {
-        "test": "test"
-    },
-    "engines": {
-        "node": ">= 7.6"
-    },
-    "scripts": {
-        "inittest": "./node_modules/ganache-cli/cli.js -d -m enjoy alter satoshi squirrel special spend crop link race rally two eye",
-        "test": "truffle test",
-        "truffle": "truffle",
-        "lint": "solium --dir contracts && eslint test",
-        "coverage": "./node_modules/.bin/solidity-coverage",
-        "travis": "./node_modules/.bin/solidity-coverage",
-        "prettier": "prettier --write 'contracts/**/*.sol'"
-    }
+  "name": "contracts",
+  "version": "0.1.1",
+  "description": "Iden3 smartcontracts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iden3/contracts.git"
+  },
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/iden3/contracts/issues"
+  },
+  "homepage": "https://github.com/iden3/contracts",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.6",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "chai": "^4.3.6",
+    "ethereum-waffle": "^3.4.4",
+    "ethers": "^5.6.6",
+    "hardhat": "^2.9.5",
+    "async": "^3.2.3",
+    "big-integer": "^1.6.51",
+    "prettier": "^2.5.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.19",
+    "random-bytes": "^1.0.0"
+  },
+  "dependencies": {
+    "braces": ">=3.0.2",
+    "bs58": "^4.0.1",
+    "circomlib": "0.2.2",
+    "codecov": "^3.8.2",
+    "diff": ">=5.0.0",
+    "ethereumjs-util": "^7.1.4",
+    "ganache": "^7.0.2",
+    "jsonfile": "^6.1.0",
+    "snarkjs": "^0.4.13",
+    "solidity-coverage": "^0.7.18",
+    "solium": "0.1.3"
+  },
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test"
+  }
 }
