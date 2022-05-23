@@ -26,5 +26,17 @@ module.exports = {
                 version: "0.6.11"
             }
         ]
-    }
+    },
+    // networks: {
+    //     ropsten: {
+    //         chainId: 3,
+    //         url: "url here",
+    //         accounts: ["private key here"],
+    //     },
+    //     mumbai: {
+    //         chainId: 80001,
+    //         url: "url here",
+    //         accounts: ["private key here"],
+    //     }
+    // }
 };
