@@ -1,15 +1,30 @@
-# IDEN3 Smartcontracts [![Test](https://github.com/iden3/contracts/workflows/Tests/badge.svg)](https://github.com/iden3/contracts/actions?query=workflow%3ATests)
+## IDEN3 Smartcontracts [![Test](https://github.com/iden3/contracts/workflows/Tests/badge.svg)](https://github.com/iden3/contracts/actions?query=workflow%3ATests)
 
-- Identity State Update
+- State
+- SchemaRegistry
+- SchemaUrlRegistry
 
-## WARNING
+## Deployment 
 
-**All code here is experimental and WIP**
+Uncomment networks object and updated blockchain provider **url** and **private key** in `hardhat.config.js` for the relevant network.
+Then run the deployment script:
 
-## Testing
+```shell
+npx hardhat run --network <your-network> scripts/deploy.js
+```
 
-- Install truffle `npm i -g truffle`
-- Run the tests `truffle test` 
-- Run coverage tests `npm run coverage`
-- truffle migrate --network ropsten --skipDryRun
-- truffle migrate --network=development
+## Run tests
+
+```shell
+npx hardhat test
+```
+
+## Other Hardhat commands
+
+```shell
+npx hardhat accounts
+npx hardhat compile
+npx hardhat clean
+npx hardhat node
+npx hardhat help
+```
