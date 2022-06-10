@@ -47,10 +47,28 @@ describe("State", () => {
         await state.transitState(params.id, params.oldState, params.newState, params.isOldStateGenesis, params.a, params.b, params.c);
         const res0 = await state.getState(params.id);
         expect(res0.toString()).to.be.equal(bigInt(params.newState).toString());
+
+        const transitionInfoNew = await state.getTransitionInfo(params.newState);
+        expect(transitionInfoNew[0].toString()).to.be.equal("0"); // replaced timestamp
+        expect(transitionInfoNew[1].toString()).not.be.empty; // creation timestamp
+        expect(transitionInfoNew[2].toString()).to.be.equal("0"); // replaced block
+        expect(transitionInfoNew[3].toString()).not.be.empty;// creation block
+        expect(transitionInfoNew[4].toString()).to.be.equal(bigInt(params.id).toString()); // id
+        expect(transitionInfoNew[5].toString()).to.be.equal("0"); // replaced by
+
+        const transitionInfoOld = await state.getTransitionInfo(params.oldState);
+        expect(transitionInfoOld[0].toString()).to.be.equal(transitionInfoNew[1].toString()); // replaced timestamp
+        expect(transitionInfoOld[1].toString()).to.be.equal(bigInt(0).toString()); // creation timestamp
+        expect(transitionInfoOld[2].toString()).to.be.equal(transitionInfoNew[3].toString()); // replaced block
+        expect(transitionInfoOld[3].toString()).to.be.equal("0"); // creation block
+        expect(transitionInfoOld[4].toString()).to.be.equal(bigInt(params.id).toString()); // id
+        expect(transitionInfoOld[5].toString()).to.be.equal(bigInt(params.newState).toString()); // replaced by
+
     });
 
-
     it("Positive: regular state update", async () => {
+
+
         const params = {
             "id": "379949150130214723420589610911161895495647789006649785264738141299135414272",
             "oldState": "8061408109549794622894897529509400209321866093562736009325703847306244896707",
@@ -75,10 +93,27 @@ describe("State", () => {
                 "2499582274802148691487974614055461818489209711650283363834328284825343196632",
             ],
         };
+        const transitionInfoStateBeforeUpdate = await state.getTransitionInfo(params.oldState);
 
         await state.transitState(params.id, params.oldState, params.newState, params.isOldStateGenesis, params.a, params.b, params.c);
         const res = await state.getState(params.id);
         expect(res.toString()).to.be.equal(bigInt(params.newState).toString());
+
+        const transitionInfoNew = await state.getTransitionInfo(params.newState);
+        expect(transitionInfoNew[0].toString()).to.be.equal("0"); // replaced timestamp
+        expect(transitionInfoNew[1].toString()).not.be.empty; // creation timestamp
+        expect(transitionInfoNew[2].toString()).to.be.equal("0"); // replaced block
+        expect(transitionInfoNew[3].toString()).not.be.empty;// creation block
+        expect(transitionInfoNew[4].toString()).to.be.equal(bigInt(params.id).toString()); // id
+        expect(transitionInfoNew[5].toString()).to.be.equal("0"); // replaced by
+
+        const transitionInfoOld = await state.getTransitionInfo(params.oldState);
+        expect(transitionInfoOld[0].toString()).to.be.equal(transitionInfoNew[1].toString()); // replaced timestamp
+        expect(transitionInfoOld[1].toString()).to.be.equal(transitionInfoStateBeforeUpdate[1]); // creation timestamp must be not changed
+        expect(transitionInfoOld[2].toString()).to.be.equal(transitionInfoNew[3].toString()); // replaced block
+        !expect(transitionInfoOld[3].toString()).to.be.equal(transitionInfoStateBeforeUpdate[3]); // creation block must be not changed
+        expect(transitionInfoOld[4].toString()).to.be.equal(bigInt(params.id).toString()); // id
+        expect(transitionInfoOld[5].toString()).to.be.equal(bigInt(params.newState).toString()); // replaced by
     });
 
     it("Negative: state update with oldState param not equal the last state in the smart contract", async () => {

@@ -117,12 +117,16 @@ contract State {
                 identities[id].length == 0,
                 "there should be no states for identity in smart contract when isOldStateGenesis != 0"
             );
+            // link genesis state to Id in the smart contract, but creation time and creation block is unknown
+            transitions[oldState].id = id;
+            // push genesis state to identities as latest state
+            identities[id].push(IDState(0, 0, oldState));
         }
 
         uint256[4] memory input = [id, oldState, newState, isOldStateGenesis];
         require(
             verifier.verifyProof(a, b, c, input),
-            "zkProof idState update could not be verified"
+            "zero-knowledge proof of state transition is not valid "
         );
 
         identities[id].push(
