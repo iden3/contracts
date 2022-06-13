@@ -1,0 +1,31 @@
+name: Publish contracts
+on:
+  workflow_dispatch:
+
+jobs:
+  build_issuer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: build and deploy to ghcr.io
+        env:
+          GITHUB_REF: ${{ github.ref}}
+        run: |
+          ref="$(echo ${GITHUB_REF} | cut -d'/' -f3)"
+          echo GITHUB_REF - $ref
+          docker buildx build --push \
+           --platform linux/amd64 \
+           -t ghcr.io/iden3/contracts:${ref} -t ghcr.io/iden3/issuer:develop .
