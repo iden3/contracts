@@ -1,5 +1,7 @@
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
+
 interface IVerifier {
     function verifyProof(
         uint[2] memory a,
@@ -13,19 +15,11 @@ interface IVerifier {
 //  * @dev Set and get states for each identity
 //  */
 // contract State is Iden3Helpers {
-contract State {
+contract State is Ownable {
     IVerifier public verifier;
-
-    address public owner;
-
-    modifier onlyOwner() {
-        require(msg.sender == owner);
-        _;
-    }
 
     constructor(address _verifierContractAddr) {
         verifier = IVerifier(_verifierContractAddr);
-        owner = msg.sender;
     }
 
     /**
