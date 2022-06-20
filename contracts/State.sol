@@ -42,7 +42,7 @@ contract State is Ownable {
     }
 
     /**
-     * @dev 32 bytes initialized to 0, used as empty state if no state has been commited.
+     * @dev 32 bytes initialized to 0, used as empty state if no state has been committed.
      */
     uint256 emptyState;
 
@@ -158,7 +158,7 @@ contract State is Ownable {
     /**
      * Retrieve last state for a given identity
      * @param id identity
-     * @return last state commited
+     * @return last state committed
      */
     function getState(uint256 id) public view returns (uint256) {
         if (identities[id].length == 0) {
@@ -216,11 +216,11 @@ contract State is Ownable {
     {
         require(blockN < block.number, "errNoFutureAllowed");
 
-        // Case that there is no state commited
+        // Case that there is no state committed
         if (identities[id].length == 0) {
             return (0, 0, emptyState);
         }
-        // Case that there block searched is beyond last block commited
+        // Case that there block searched is beyond last block committed
         uint64 lastBlock = identities[id][identities[id].length - 1].BlockN;
         if (blockN > lastBlock) {
             return (
@@ -274,11 +274,11 @@ contract State is Ownable {
         )
     {
         require(timestamp < block.timestamp, "errNoFutureAllowed");
-        // Case that there is no state commited
+        // Case that there is no state committed
         if (identities[id].length == 0) {
             return (0, 0, emptyState);
         }
-        // Case that there timestamp searched is beyond last timestamp commited
+        // Case that there timestamp searched is beyond last timestamp committed
         uint64 lastTimestamp = identities[id][identities[id].length - 1]
             .BlockTimestamp;
         if (timestamp > lastTimestamp) {
@@ -318,7 +318,7 @@ contract State is Ownable {
     }
 
     /**
-     * @dev Retrieve identity last commited information
+     * @dev Retrieve identity last committed information
      * @param id identity
      * @return last state for a given identity
      * return parameters are (by order): block number, block timestamp, state
