@@ -86,12 +86,12 @@ contract State is Ownable {
         uint256 id,
         uint256 oldState,
         uint256 newState,
-        uint256 isOldStateGenesis,
+        bool isOldStateGenesis,
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
     ) public {
-        if (isOldStateGenesis == 0) {
+        if (isOldStateGenesis == false) {
             require(
                 identities[id].length > 0,
                 "there should be at least one state for identity in smart contract when isOldStateGenesis == 0"
@@ -117,7 +117,12 @@ contract State is Ownable {
             identities[id].push(IDState(0, 0, oldState));
         }
 
-        uint256[4] memory input = [id, oldState, newState, isOldStateGenesis];
+        require(
+            transitions[newState].id == 0,
+            "newState should not exist"
+        );
+
+        uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis?1:0)];
         require(
             verifier.verifyProof(a, b, c, input),
             "zero-knowledge proof of state transition is not valid "
