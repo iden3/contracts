@@ -111,6 +111,10 @@ contract State is Ownable {
                 identities[id].length == 0,
                 "there should be no states for identity in smart contract when isOldStateGenesis != 0"
             );
+            require(
+                transitions[oldState].id == 0,
+                "oldState should not exist"
+            );
             // link genesis state to Id in the smart contract, but creation time and creation block is unknown
             transitions[oldState].id = id;
             // push genesis state to identities as latest state
