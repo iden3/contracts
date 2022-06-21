@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 const bigInt = require("big-integer");
 
 describe("State", () => {
@@ -12,7 +12,7 @@ describe("State", () => {
         await verifier.deployed();
 
         const State = await ethers.getContractFactory("State");
-        state = await State.deploy(verifier.address);
+        state = await upgrades.deployProxy(State, [verifier.address])
         await state.deployed();
     });
 

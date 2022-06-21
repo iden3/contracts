@@ -14,18 +14,21 @@
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.6",
     "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "@openzeppelin/hardhat-upgrades": "^1.18.0",
     "async": "^3.2.3",
     "big-integer": "^1.6.51",
     "chai": "^4.3.6",
     "ethereum-waffle": "^3.4.4",
     "ethers": "^5.6.6",
-    "hardhat": "^2.9.5",
+    "hardhat": "^2.9.7",
     "prettier": "^2.5.1",
     "prettier-plugin-solidity": "^1.0.0-beta.19",
     "random-bytes": "^1.0.0"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.6.0",
+    "@openzeppelin/contracts-upgradeable": "^4.6.0",
+    "@nomiclabs/hardhat-etherscan": "^3.0.3",
     "braces": ">=3.0.2",
     "bs58": "^4.0.1",
     "circomlib": "0.2.2",
@@ -39,6 +42,10 @@
   },
   "scripts": {
     "compile": "npx hardhat compile",
-    "test": "npx hardhat test"
+    "test": "npx hardhat test",
+    "deploy:localhost": "npx hardhat run scripts/deploy.js --network localhost",
+    "upgrade:localhost": "npx hardhat run scripts/upgradeContract/upgradeState.js --network localhost",
+    "deploy:ropsten": "npx hardhat run scripts/deploy.js --network ropsten",
+    "verify:robsten": "npx hardhat run scripts/verifyEtherescan.js --network ropsten"
   }
 }

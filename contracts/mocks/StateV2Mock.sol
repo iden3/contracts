@@ -15,7 +15,7 @@ interface IVerifier {
 //  * @dev Set and get states for each identity
 //  */
 // contract State is Iden3Helpers {
-contract State is OwnableUpgradeable {
+contract StateV2Mock is OwnableUpgradeable {
     /**
      * @dev Struct saved for each identity. Stores state and block/timestamp associated.
      */
@@ -58,6 +58,8 @@ contract State is OwnableUpgradeable {
      */
     mapping(uint256 => transitionsInfo) public transitions;
 
+    uint256 public version;
+    
     /**
      * @dev event called when a state is updated
      * @param id identity
@@ -71,6 +73,10 @@ contract State is OwnableUpgradeable {
         uint64 timestamp,
         uint256 state
     );
+
+    function setVersion() public onlyOwner {
+       version = 2;
+    }
 
     function initialize(
         IVerifier _verifierContractAddr
