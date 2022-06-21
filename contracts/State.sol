@@ -25,12 +25,12 @@ contract State is Ownable {
     /**
      * @dev Correlation between identity and its state (plus block/time)
      */
-    mapping(uint256 => IDState[]) identities;
+    mapping(uint256 => IDState[]) public identities;
 
     /**
      * @dev Correlation between identity and transitions info.
      */
-    mapping(uint256 => transitionsInfo) transitions;
+    mapping(uint256 => transitionsInfo) public transitions;
 
     /**
      * @dev Struct saved for each identity. Stores state and block/timestamp associated.
