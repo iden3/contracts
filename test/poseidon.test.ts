@@ -1,8 +1,9 @@
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
-const poseidonGenContract = require("circomlib/src/poseidon_gencontract.js");
-const poseidonjssrc = require("circomlib/src/poseidon.js");
-const bigInt = require('big-integer');
+import { expect } from "chai";
+import { ethers } from "hardhat";
+import poseidonGenContract from "circomlib/src/poseidon_gencontract.js";
+import poseidonjssrc from "circomlib/src/poseidon.js";
+import bigInt from 'big-integer';
+import { Artifact } from "hardhat/types";
 const SEED = "poseidon";
 
 describe("poseidon", () => {
@@ -24,7 +25,7 @@ describe("poseidon", () => {
       deployedBytecode: "",
       linkReferences: {},
       deployedLinkReferences: {},
-    }, owner)
+    } as Artifact, owner)
 
     poseidonCircomlib = await PoseidonCircomlib.deploy()
     await poseidonCircomlib.deployed()

@@ -1,7 +1,7 @@
 
-const { ethers, upgrades } = require("hardhat");
-const fs = require("fs");
-const path = require("path");
+import { ethers, upgrades } from "hardhat";
+import fs from "fs";
+import path from "path";
 const pathOutputJson = path.join(__dirname, "./deploy_output.json");
 
 async function main() {
