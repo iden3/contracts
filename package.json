@@ -21,6 +21,7 @@
     "ethereum-waffle": "^3.4.4",
     "ethers": "^5.6.6",
     "hardhat": "^2.9.7",
+    "hardhat-gas-reporter": "^1.0.8",
     "prettier": "^2.5.1",
     "prettier-plugin-solidity": "^1.0.0-beta.19",
     "random-bytes": "^1.0.0"
@@ -43,6 +44,7 @@
   "scripts": {
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
+    "test:gas:report": "REPORT_GAS=true npx hardhat test",
     "deploy:localhost": "npx hardhat run scripts/deploy.js --network localhost",
     "upgrade:localhost": "npx hardhat run scripts/upgradeContract/upgradeState.js --network localhost",
     "deploy:ropsten": "npx hardhat run scripts/deploy.js --network ropsten",

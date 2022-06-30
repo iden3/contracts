@@ -1,6 +1,7 @@
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
 require("@openzeppelin/hardhat-upgrades");
+require("hardhat-gas-reporter");
 
 DEFAULT_MNEMONIC = "test test test test test test test test test test test junk";
 
@@ -58,4 +59,10 @@ module.exports = {
     // etherscan: {
     //     apiKey: "etherscan API key"
     // }
+    gasReporter: {
+        currency: "USD",
+        coinmarketcap: process.env.COINMARKETCAP_KEY,
+        enabled: !!process.env.REPORT_GAS,
+        token: "MATIC",
+    },
 };

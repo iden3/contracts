@@ -17,6 +17,7 @@ npx hardhat run --network <your-network> scripts/deploy.js
 
 ```shell
 npx hardhat test
+COINMARKETCAP_KEY=<<your coinmarketcap key>> REPORT_GAS=true npx hardhat test 
 ```
 
 ## Other Hardhat commands
