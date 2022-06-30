@@ -17,6 +17,15 @@ npx hardhat run --network <your-network> scripts/deploy.js
 
 ```shell
 npx hardhat test
+```
+
+Run tests with gas statistics report:
+```shell
+REPORT_GAS=true npx hardhat test 
+```
+
+Run tests with gas statistics and costs report:
+```shell
 COINMARKETCAP_KEY=<<your coinmarketcap key>> REPORT_GAS=true npx hardhat test 
 ```
 
