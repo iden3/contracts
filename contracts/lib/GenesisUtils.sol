@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
+
 import "solidity-bytes-utils/contracts/BytesLib.sol";
 
 library GenesisUtils {
     /**
      * @dev int256ToBytes
      */
-    function int256ToBytes(uint256 x) public pure returns (bytes memory b) {
+    function int256ToBytes(uint256 x) internal pure returns (bytes memory b) {
         b = new bytes(32);
         assembly {
             mstore(add(b, 32), x)
@@ -62,7 +63,7 @@ library GenesisUtils {
     /**
      *   @dev sum
      */
-    function sum(bytes memory array) public pure returns (uint16 s) {
+    function sum(bytes memory array) internal pure returns (uint16 s) {
         require(array.length == 29, "Checksum requires 29 length array");
 
         for (uint256 i = 0; i < array.length; ++i) {
@@ -74,7 +75,7 @@ library GenesisUtils {
      * @dev bytesToHexString
      */
     function bytesToHexString(bytes memory buffer)
-        public
+        internal
         pure
         returns (string memory)
     {
@@ -95,7 +96,7 @@ library GenesisUtils {
      * @dev compareStrings
      */
     function compareStrings(string memory a, string memory b)
-        public
+        internal
         pure
         returns (bool)
     {
@@ -107,7 +108,7 @@ library GenesisUtils {
      * @dev isGenesisState
      */
     function isGenesisState(uint256 id, uint256 idState)
-        public
+        internal
         pure
         returns (bool)
     {

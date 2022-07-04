@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-import {GenesisUtils} from "./lib/GenesisUtils.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "./lib/GenesisUtils.sol";
 
 interface IVerifier {
     function verifyProof(
@@ -28,22 +29,20 @@ interface IState {
         );
 }
 
-contract CredentialAtomicQueryMTP {
+contract CredentialAtomicQueryMTP is OwnableUpgradeable {
     IVerifier public verifier;
     IState public state;
 
-    address public owner;
-    uint256 public revocationStateExpirationTime = 1 hours;
+    uint256 public revocationStateExpirationTime;
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner can call function");
-        _;
-    }
-
-    constructor(address _verifierContractAddr, address _stateContractAddr) {
+    function initialize(
+        address _verifierContractAddr,
+        address _stateContractAddr
+    ) public initializer {
+        revocationStateExpirationTime = 1 hours;
         verifier = IVerifier(_verifierContractAddr);
         state = IState(_stateContractAddr);
-        owner = msg.sender;
+        __Ownable_init();
     }
 
     function setRevocationStateExpirationTime(uint256 expirationTime)

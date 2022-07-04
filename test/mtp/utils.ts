@@ -55,23 +55,13 @@ export async function deployContracts(): Promise<{
 
   console.log("State deployed to:", state.address);
 
-  const GenesisUtils = await ethers.getContractFactory("GenesisUtils");
-  const genesisUtils = await GenesisUtils.deploy();
-
-  await genesisUtils.deployed();
-  console.log("GenesisUtils deployed to:", genesisUtils.address);
-
   const CredentialAtomicQueryMTP = await ethers.getContractFactory(
-    "CredentialAtomicQueryMTP",
-    {
-      libraries: {
-        GenesisUtils: genesisUtils.address,
-      },
-    }
+    "CredentialAtomicQueryMTP"
   );
-  const credentialAtomicQueryMTP = await CredentialAtomicQueryMTP.deploy(
-    verifierMTP.address,
-    state.address
+
+  const credentialAtomicQueryMTP = await upgrades.deployProxy(
+    CredentialAtomicQueryMTP,
+    [verifierMTP.address, state.address]
   );
 
   await credentialAtomicQueryMTP.deployed();
@@ -108,5 +98,4 @@ export async function publishState(
   );
 
   await transitStateTx.wait();
-
 }
