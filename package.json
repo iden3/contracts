@@ -38,7 +38,7 @@
     "eslint-plugin-promise": "^5.2.0",
     "hardhat": "^2.9.7",
     "hardhat-gas-reporter": "^1.0.8",
-    "prettier": "^2.5.1",
+    "prettier": "^2.6.2",
     "prettier-plugin-solidity": "^1.0.0-beta.19",
     "random-bytes": "^1.0.0",
     "solhint": "^3.3.7",
