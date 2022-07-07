@@ -1,6 +1,6 @@
 import { ethers, upgrades } from "hardhat";
 
-export async function deployContracts(deployToken = false): Promise<{
+export async function deployContracts(): Promise<{
   state: any;
   mtp: any;
   exampleToken?: any;

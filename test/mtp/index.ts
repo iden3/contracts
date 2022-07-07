@@ -1,5 +1,7 @@
 import { deploy } from "@openzeppelin/hardhat-upgrades/dist/utils";
 import { expect } from "chai";
+import { ethers } from "hardhat";
+
 import { deployToken, deployContracts } from "./deploy";
 import { prepareInputs, publishState } from "./utils";
 
@@ -94,12 +96,20 @@ describe("Atomic MTP Verifier", function () {
     const account = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
     const verified = await mtp.verify(inputs, pi_a, pi_b, pi_c);
     expect(verified).to.be.true;
-    await token.mint(account, inputs, pi_a, pi_b, pi_c);
+    await token.mintWithProof(inputs, pi_a, pi_b, pi_c);
     expect(await token.balanceOf(account)).to.equal(5);
 
     await expect(
-      token.mint(account, inputs, pi_a, pi_b, pi_c)
+      token.mintWithProof(inputs, pi_a, pi_b, pi_c)
     ).to.be.revertedWith("identity can't mint token more than once");
     expect(await token.balanceOf(account)).to.equal(5);
+
+    expect(token.mint).to.be.undefined;
+    expect(token.transfer).not.to.be.undefined;
+
+    const [, addr1] = await ethers.getSigners();
+    await token.transfer(addr1.address, 2);
+
+    expect(await token.balanceOf(account)).to.equal(3);
   });
 });

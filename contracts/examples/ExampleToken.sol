@@ -16,8 +16,8 @@ interface AtomicMTPValidator {
 
 contract ExampleToken is ERC20 {
     AtomicMTPValidator public mtpValidator;
-    mapping(uint256 => address) public idAddress;
-    mapping(address => uint256) public addressId;
+    mapping(uint256 => address) public IDToAddress;
+    mapping(address => uint256) public AddressToID;
 
     uint256 private schema = 210459579859058135404770043788028292398;
     uint256 private slotIndex = 2;
@@ -28,8 +28,7 @@ contract ExampleToken is ERC20 {
         mtpValidator = AtomicMTPValidator(mtpValidatorAddr);
     }
 
-    function mint(
-        address account,
+    function mintWithProof(
         uint256[74] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
@@ -40,11 +39,11 @@ contract ExampleToken is ERC20 {
 
         require(msg.sender == addr, "msg.sender != address in proof");
         require(
-            idAddress[userId] == address(0),
+            IDToAddress[userId] == address(0),
             "identity can't mint token more than once"
         );
         require(
-            addressId[addr] == 0,
+            AddressToID[addr] == 0,
             "address can't mint token more than once"
         );
 
@@ -52,10 +51,10 @@ contract ExampleToken is ERC20 {
         require(inputs[8] == slotIndex, "inputs[8] = slotIndex");
         require(inputs[9] == operator, "inputs[9] = operator");
         require(inputs[10] == value, "inputs[10] = value");
-        require(mtpValidator.verify(inputs, a, b, c), "mtp is not valid");
-        super._mint(account, 5);
-        idAddress[userId] = addr;
-        addressId[addr] = userId;
+        require(mtpValidator.verify(inputs, a, b, c), "ZK proof is not valid");
+        super._mint(msg.sender, 5);
+        IDToAddress[userId] = addr;
+        AddressToID[addr] = userId;
         return (true);
     }
 }
