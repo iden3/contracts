@@ -152,4 +152,24 @@ library GenesisUtils {
             value := mload(add(_bytes, 0x20))
         }
     }
+
+    /**
+     * @dev bytesToAddress
+     */
+    function bytesToAddress(bytes memory bys)
+        public
+        pure
+        returns (address addr)
+    {
+        assembly {
+            addr := mload(add(bys, 20))
+        }
+    }
+
+    /**
+     * @dev int256ToAddress
+     */
+    function int256ToAddress(uint256 input) public pure returns (address) {
+        return bytesToAddress(int256ToBytes(reverse(input)));
+    }
 }

@@ -1,4 +1,4 @@
-import { ethers, upgrades } from "hardhat";
+import { ethers } from "hardhat";
 
 export interface VerificationInfo {
   inputs: Array<string>;
@@ -29,50 +29,6 @@ export function toBigNumber({ inputs, pi_a, pi_b, pi_c }: VerificationInfo) {
     pi_a: pi_a.map((input) => ethers.BigNumber.from(input)),
     pi_b: pi_b.map((arr) => arr.map((input) => ethers.BigNumber.from(input))),
     pi_c: pi_c.map((input) => ethers.BigNumber.from(input)),
-  };
-}
-
-export async function deployContracts(): Promise<{
-  state: any;
-  mtp: any;
-}> {
-  const Verifier = await ethers.getContractFactory("Verifier");
-  const verifier = await Verifier.deploy();
-
-  await verifier.deployed();
-  console.log("Verifier deployed to:", verifier.address);
-
-  const VerifierMTP = await ethers.getContractFactory("VerifierMTP");
-  const verifierMTP = await VerifierMTP.deploy();
-
-  await verifierMTP.deployed();
-  console.log("VerifierMTP deployed to:", verifierMTP.address);
-
-  const State = await ethers.getContractFactory("State");
-  const state = await upgrades.deployProxy(State, [verifier.address]);
-
-  await state.deployed();
-
-  console.log("State deployed to:", state.address);
-
-  const CredentialAtomicQueryMTP = await ethers.getContractFactory(
-    "CredentialAtomicQueryMTP"
-  );
-
-  const credentialAtomicQueryMTP = await upgrades.deployProxy(
-    CredentialAtomicQueryMTP,
-    [verifierMTP.address, state.address]
-  );
-
-  await credentialAtomicQueryMTP.deployed();
-  console.log(
-    "CredentialAtomicQueryMTP deployed to:",
-    credentialAtomicQueryMTP.address
-  );
-
-  return {
-    mtp: credentialAtomicQueryMTP,
-    state: state,
   };
 }
 
