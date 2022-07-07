@@ -1,5 +1,5 @@
-const bre = require("hardhat");
-const { ethers, upgrades } = require("hardhat");
+import bre from "hardhat";
+import { ethers, upgrades } from "hardhat";
 
 async function main() {
   // compìle contracts

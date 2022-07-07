@@ -1,6 +1,6 @@
-const { expect } = require("chai");
-const { ethers, upgrades } = require("hardhat");
-const bigInt = require("big-integer");
+import { expect } from "chai";
+import { ethers, upgrades } from "hardhat";
+import bigInt from "big-integer";
 
 describe("State", () => {
     let verifier;
@@ -147,7 +147,7 @@ describe("State", () => {
         let isException = false;
         try {
             await state.transitState(params.id, params.oldState, params.newState, params.isOldStateGenesis, params.a, params.b, params.c);
-        } catch (e) {
+        } catch (e: any) {
             isException = true;
             expect(e.message).contains(expectedErrorText);
         }
@@ -188,7 +188,7 @@ describe("State", () => {
         let isException = false;
         try {
             await state.transitState(params.id, params.oldState, params.newState, params.isOldStateGenesis, params.a, params.b, params.c);
-        } catch (e) {
+        } catch (e: any) {
             isException = true;
             expect(e.message).contains(expectedErrorText);
         }

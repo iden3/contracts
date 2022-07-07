@@ -4,7 +4,7 @@
 - SchemaRegistry
 - SchemaUrlRegistry
 
-## Deployment 
+## Deployment
 
 Uncomment networks object and updated blockchain provider **url** and **private key** in `hardhat.config.js` for the relevant network.
 Then run the deployment script:
