@@ -16,8 +16,8 @@ interface AtomicMTPValidator {
 
 contract ExampleToken is ERC20 {
     AtomicMTPValidator public mtpValidator;
-    mapping(uint256 => address) public IDToAddress;
-    mapping(address => uint256) public AddressToID;
+    mapping(uint256 => address) public idToAddress;
+    mapping(address => uint256) public addressToId;
 
     uint256 private schema = 210459579859058135404770043788028292398;
     uint256 private slotIndex = 2;
@@ -39,11 +39,11 @@ contract ExampleToken is ERC20 {
 
         require(msg.sender == addr, "msg.sender != address in proof");
         require(
-            IDToAddress[userId] == address(0),
+            idToAddress[userId] == address(0),
             "identity can't mint token more than once"
         );
         require(
-            AddressToID[addr] == 0,
+            addressToId[addr] == 0,
             "address can't mint token more than once"
         );
 
@@ -53,8 +53,8 @@ contract ExampleToken is ERC20 {
         require(inputs[10] == value, "inputs[10] = value");
         require(mtpValidator.verify(inputs, a, b, c), "ZK proof is not valid");
         super._mint(msg.sender, 5);
-        IDToAddress[userId] = addr;
-        AddressToID[addr] = userId;
+        idToAddress[userId] = addr;
+        addressToId[addr] = userId;
         return (true);
     }
 }
