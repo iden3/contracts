@@ -52,7 +52,7 @@
     "@nomiclabs/hardhat-etherscan": "^3.0.3",
     "braces": ">=3.0.2",
     "bs58": "^4.0.1",
-    "circomlib": "0.2.2",
+    "circomlibjs": "^0.1.6",
     "codecov": "^3.8.2",
     "diff": ">=5.0.0",
     "ethereumjs-util": "^7.1.4",
