@@ -157,7 +157,7 @@ library GenesisUtils {
      * @dev bytesToAddress
      */
     function bytesToAddress(bytes memory bys)
-        public
+        internal
         pure
         returns (address addr)
     {
@@ -169,7 +169,7 @@ library GenesisUtils {
     /**
      * @dev int256ToAddress
      */
-    function int256ToAddress(uint256 input) public pure returns (address) {
+    function int256ToAddress(uint256 input) internal pure returns (address) {
         return bytesToAddress(int256ToBytes(reverse(input)));
     }
 }
