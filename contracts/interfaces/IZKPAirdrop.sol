@@ -5,6 +5,6 @@ interface IZKPAirdrop {
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
-        uint256[2] memory c)
-    external returns (bool);
+        uint256[2] memory c
+    ) external returns (bool);
 }

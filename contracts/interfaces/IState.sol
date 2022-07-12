@@ -4,14 +4,14 @@ interface IState {
     function getState(uint256 id) external view returns (uint256);
 
     function getTransitionInfo(uint256 state)
-    external
-    view
-    returns (
-        uint256,
-        uint256,
-        uint64,
-        uint64,
-        uint256,
-        uint256
-    );
+        external
+        view
+        returns (
+            uint256,
+            uint256,
+            uint64,
+            uint64,
+            uint256,
+            uint256
+        );
 }

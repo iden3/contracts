@@ -7,12 +7,10 @@ import "../interfaces/ICircuitValidator.sol";
 import "../interfaces/IVerifier.sol";
 import "../interfaces/IState.sol";
 
-
-
-
-
-contract CredentialAtomicQueryMTPValidator is OwnableUpgradeable , ICircuitValidator{
-
+contract CredentialAtomicQueryMTPValidator is
+    OwnableUpgradeable,
+    ICircuitValidator
+{
     string constant CIRCUIT_ID = "credentialAtomicQueryMTP";
     IVerifier public verifier;
     IState public state;
@@ -35,6 +33,7 @@ contract CredentialAtomicQueryMTPValidator is OwnableUpgradeable , ICircuitValid
     {
         revocationStateExpirationTime = expirationTime;
     }
+
     function getCircuitId() external pure returns (string memory id) {
         return CIRCUIT_ID;
     }
@@ -45,12 +44,8 @@ contract CredentialAtomicQueryMTPValidator is OwnableUpgradeable , ICircuitValid
         uint256[2][2] memory b,
         uint256[2] memory c
     ) public view returns (bool r) {
-
         // verify that zkp is valid
-        require(
-            verifier.verifyProof(a, b, c, inputs),
-            "MTP is not valid"
-        );
+        require(verifier.verifyProof(a, b, c, inputs), "MTP is not valid");
 
         uint256 userId = inputs[0];
         uint256 userState = inputs[1];

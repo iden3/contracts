@@ -15,9 +15,7 @@ pragma solidity ^0.8.0;
 
 import "./verifierMTP.sol";
 
-
 contract VerifierMTPWrapper is VerifierMTP {
-
     /// @return r  bool true if proof is valid
     function verifyProof(
         uint256[2] memory a,

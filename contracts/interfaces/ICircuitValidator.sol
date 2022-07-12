@@ -7,6 +7,6 @@ interface ICircuitValidator {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) external view returns (bool r);
+
     function getCircuitId() external pure returns (string memory r);
 }
-
