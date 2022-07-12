@@ -11,11 +11,11 @@ export async function deployContracts(): Promise<{
   await verifier.deployed();
   console.log("Verifier deployed to:", verifier.address);
 
-  const VerifierMTP = await ethers.getContractFactory("VerifierMTP");
-  const verifierMTP = await VerifierMTP.deploy();
+  const VerifierMTPWrapper = await ethers.getContractFactory("VerifierMTPWrapper");
+  const verifierMTP = await VerifierMTPWrapper.deploy();
 
   await verifierMTP.deployed();
-  console.log("VerifierMTP deployed to:", verifierMTP.address);
+  console.log("VerifierMTPWrapper deployed to:", verifierMTP.address);
 
   const State = await ethers.getContractFactory("State");
   const state = await upgrades.deployProxy(State, [verifier.address]);
@@ -24,23 +24,23 @@ export async function deployContracts(): Promise<{
 
   console.log("State deployed to:", state.address);
 
-  const CredentialAtomicQueryMTP = await ethers.getContractFactory(
-    "CredentialAtomicQueryMTP"
+  const CredentialAtomicQueryMTPValidator = await ethers.getContractFactory(
+    "CredentialAtomicQueryMTPValidator"
   );
 
-  const credentialAtomicQueryMTP = await upgrades.deployProxy(
-    CredentialAtomicQueryMTP,
+  const CredentialAtomicQueryMTPValidatorProxy = await upgrades.deployProxy(
+      CredentialAtomicQueryMTPValidator,
     [verifierMTP.address, state.address]
   );
 
-  await credentialAtomicQueryMTP.deployed();
+  await CredentialAtomicQueryMTPValidatorProxy.deployed();
   console.log(
-    "CredentialAtomicQueryMTP deployed to:",
-    credentialAtomicQueryMTP.address
+    "CredentialAtomicQueryMTPValidator deployed to:",
+      CredentialAtomicQueryMTPValidatorProxy.address
   );
 
   return {
-    mtp: credentialAtomicQueryMTP,
+    mtp: CredentialAtomicQueryMTPValidatorProxy,
     state: state,
   };
 }
@@ -48,21 +48,23 @@ export async function deployContracts(): Promise<{
 export async function deployToken(mtpValidatorAddress: string): Promise<{
   address: string;
 }> {
-  const GenesisUtils = await ethers.getContractFactory("GenesisUtils");
-  const genesisUtils = await GenesisUtils.deploy();
 
-  await genesisUtils.deployed();
-  console.log("GenesisUtils deployed to:", genesisUtils.address);
-
-  const ExampleToken = await ethers.getContractFactory("ExampleToken", {
-    libraries: {
-      GenesisUtils: genesisUtils.address,
-    },
-  });
+  const ExampleToken = await ethers.getContractFactory("ExampleToken");
   const exampleToken = await ExampleToken.deploy(mtpValidatorAddress);
 
   await exampleToken.deployed();
   console.log("ExampleToken deployed to:", exampleToken.address);
 
   return exampleToken;
+}
+export async function deployERC20ZKPToken(mtpValidatorAddress: string): Promise<{
+  address: string;
+}> {
+  const ExampleZKPToken = await ethers.getContractFactory("ExampleZKPToken");
+  const erc20zkpToken = await ExampleZKPToken.deploy(mtpValidatorAddress);
+
+  await erc20zkpToken.deployed();
+  console.log("ERC20ZKPToken deployed to:", erc20zkpToken.address);
+
+  return erc20zkpToken;
 }
