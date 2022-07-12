@@ -2,7 +2,7 @@ import { deploy } from "@openzeppelin/hardhat-upgrades/dist/utils";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
-import { deployToken, deployContracts } from "./deploy";
+import {deployToken, deployContracts, deployERC20ZKPToken} from "./deploy";
 import { prepareInputs, publishState } from "./utils";
 
 const testCases = [
@@ -112,4 +112,63 @@ describe("Atomic MTP Verifier", function () {
 
     expect(await token.balanceOf(account)).to.equal(3);
   });
+
+  it("Example ZKP token", async () => {
+    const token: any = await deployERC20ZKPToken(mtp.address);
+    await publishState(state, require("./data/user_state_transition.json"));
+
+    await publishState(state, require("./data/stateTransitionAgeClaim.json"));
+
+    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(
+        require("./data/mpt_token_example.json")
+    );
+
+    const account = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+    const verified = await mtp.verify(inputs, pi_a, pi_b, pi_c);
+    expect(verified).to.be.true;
+
+    expect(token.transferWithProof).not.to.be.undefined;
+    expect(token.mintWithProof).not.to.be.undefined;
+
+    await token.mintWithProof(inputs, pi_a, pi_b, pi_c);
+    expect(await token.balanceOf(account)).to.equal(5);
+
+
+    await expect(
+        token.mintWithProof(inputs, pi_a, pi_b, pi_c)
+    ).to.be.revertedWith("identity can't mint token more than once");
+    expect(await token.balanceOf(account)).to.equal(5);
+
+    expect(token.mint).to.be.undefined;
+    expect(token.transfer).not.to.be.undefined;
+
+
+    const [, addr1] = await ethers.getSigners();
+    await expect(
+         token.transfer(addr1.address, 2)
+    ).to.be.revertedWith("ERC20ZKP: only transfers with zkp are allowed.");
+
+
+
+    // let's change input, so we try to send token to another address, (that we didn't prove)
+    let newInputs =  [...inputs]
+    newInputs[2] = "0" // it corresponds to 0x0000000000000000000000000000000000000000
+    await expect(
+        token.transferWithProof(newInputs, pi_a, pi_b, pi_c,2)
+    ).to.be.revertedWith("'MTP is not valid");
+
+    // but we can transfer token to ourselves, with current proof.
+
+    await token.transferWithProof(inputs, pi_a, pi_b, pi_c,2)
+
+    // balance of course, is not changed
+    expect(await token.balanceOf(account)).to.equal(5);
+
+
+
+    // TODO: add test to transfer token to another address with another mtp proof
+
+
+  });
+
 });
