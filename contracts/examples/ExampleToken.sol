@@ -7,7 +7,7 @@ import "../lib/GenesisUtils.sol";
 
 interface AtomicMTPValidator {
     function verify(
-        uint256[74] memory inputs,
+        uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
@@ -29,7 +29,7 @@ contract ExampleToken is ERC20 {
     }
 
     function mintWithProof(
-        uint256[74] memory inputs,
+        uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
