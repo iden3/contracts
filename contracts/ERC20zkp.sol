@@ -57,15 +57,15 @@ contract ERC20ZKP is ERC20, IERC20ZKP {
         );
         require(
             inputs[8] == query.slotIndex,
-            "wrong claim data slot has been for proof generation"
+            "wrong claim data slot has been used for proof generation"
         );
         require(
             inputs[9] == query.operator,
-            "wrong query operator has been for proof generation"
+            "wrong query operator has been used for proof generation"
         );
         require(
             inputs[10] == query.value[0],
-            "wrong comparison value has been for proof generation"
+            "wrong comparison value has been used for proof generation"
         );
 
         require(
@@ -93,17 +93,17 @@ contract ERC20ZKP is ERC20, IERC20ZKP {
         );
         require(
             inputs[8] == query.slotIndex,
-            "wrong claim data slot has been for proof generation"
+            "wrong claim data slot has been used for proof generation"
         );
         require(
             inputs[9] == query.operator,
-            "wrong query operator has been for proof generation"
+            "wrong query operator has been used for proof generation"
         );
 
         // equal / less than / greater than for 1 field
         require(
             inputs[10] == query.value[0],
-            "wrong comparison value has been for proof generation"
+            "wrong comparison value has been used for proof generation"
         );
 
         require(
