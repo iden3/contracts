@@ -48,7 +48,7 @@ const testCases = [
   },
 ];
 
-describe("Atomic MTP Verifier", function () {
+describe("Atomic MTP Validator", function () {
   let state: any, mtp: any;
 
   beforeEach(async () => {
@@ -67,6 +67,8 @@ describe("Atomic MTP Verifier", function () {
         await publishState(state, test.userStateTransition);
       }
 
+      const query = {schema:ethers.BigNumber.from("106590880073303418818490710639556704462"), slotIndex: 2, operator: 5, value: [840], circuitId : "credentialAmoticQueryMTP"};
+
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.mtfProofJson);
       if (test.errorMessage) {
         if (test.setExpiration) {
@@ -74,10 +76,10 @@ describe("Atomic MTP Verifier", function () {
         }
 
         (
-          expect(mtp.verify(inputs, pi_a, pi_b, pi_c)).to.be as any
+          expect(mtp.verify(inputs, pi_a, pi_b, pi_c, query)).to.be as any
         ).revertedWith(test.errorMessage);
       } else {
-        const verified = await mtp.verify(inputs, pi_a, pi_b, pi_c);
+        const verified = await mtp.verify(inputs, pi_a, pi_b, pi_c,query);
         expect(verified).to.be.true;
       }
     });
@@ -94,8 +96,6 @@ describe("Atomic MTP Verifier", function () {
     );
 
     const account = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-    const verified = await mtp.verify(inputs, pi_a, pi_b, pi_c);
-    expect(verified).to.be.true;
     await token.mintWithProof(inputs, pi_a, pi_b, pi_c);
     expect(await token.balanceOf(account)).to.equal(5);
 
@@ -124,9 +124,6 @@ describe("Atomic MTP Verifier", function () {
     );
 
     const account = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-    const verified = await mtp.verify(inputs, pi_a, pi_b, pi_c);
-    expect(verified).to.be.true;
-
     expect(token.transferWithProof).not.to.be.undefined;
     expect(token.mintWithProof).not.to.be.undefined;
 
