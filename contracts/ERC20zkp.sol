@@ -8,7 +8,8 @@ import "./interfaces/ICircuitValidator.sol";
 
 contract ERC20ZKP is ERC20, IERC20ZKP {
     ICircuitValidator public circuitValidator;
-    CircuitQuery internal query;
+
+    ICircuitValidator.CircuitQuery internal query;
 
     mapping(uint256 => address) public idToAddress;
     mapping(address => uint256) public addressToId;
@@ -38,8 +39,8 @@ contract ERC20ZKP is ERC20, IERC20ZKP {
         uint256[2] memory c,
         uint256 amount
     ) internal returns (bool) {
-        address addr = GenesisUtils.int256ToAddress(inputs[2]);
-        uint256 userId = inputs[0];
+        address addr = GenesisUtils.int256ToAddress(inputs[circuitValidator.getChallengeInputIndex()]);
+        uint256 userId = inputs[circuitValidator.getUserIdInputIndex()];
 
         require(msg.sender == addr, "msg.sender != address in proof");
         require(
@@ -52,24 +53,7 @@ contract ERC20ZKP is ERC20, IERC20ZKP {
         );
 
         require(
-            inputs[7] == query.schema,
-            "wrong claim schema has been used for proof generation"
-        );
-        require(
-            inputs[8] == query.slotIndex,
-            "wrong claim data slot has been used for proof generation"
-        );
-        require(
-            inputs[9] == query.operator,
-            "wrong query operator has been used for proof generation"
-        );
-        require(
-            inputs[10] == query.value[0],
-            "wrong comparison value has been used for proof generation"
-        );
-
-        require(
-            circuitValidator.verify(inputs, a, b, c),
+            circuitValidator.verify(inputs, a, b, c, query),
             "zero-knowledge proof is not valid"
         );
         super._mint(msg.sender, amount);
@@ -88,26 +72,7 @@ contract ERC20ZKP is ERC20, IERC20ZKP {
         address addr = GenesisUtils.int256ToAddress(inputs[2]);
 
         require(
-            inputs[7] == query.schema,
-            "wrong claim schema has been used for proof generation"
-        );
-        require(
-            inputs[8] == query.slotIndex,
-            "wrong claim data slot has been used for proof generation"
-        );
-        require(
-            inputs[9] == query.operator,
-            "wrong query operator has been used for proof generation"
-        );
-
-        // equal / less than / greater than for 1 field
-        require(
-            inputs[10] == query.value[0],
-            "wrong comparison value has been used for proof generation"
-        );
-
-        require(
-            circuitValidator.verify(inputs, a, b, c),
+            circuitValidator.verify(inputs, a, b, c, query),
             "zero-knowledge proof is not valid"
         );
         super.transfer(addr, amount);
@@ -129,7 +94,7 @@ contract ERC20ZKP is ERC20, IERC20ZKP {
         revert("ERC20ZKP: only transfers with zkp are allowed.");
     }
 
-    function getCircuitQuery() external view returns (CircuitQuery memory) {
+    function getCircuitQuery() external view returns (ICircuitValidator.CircuitQuery memory) {
         return query;
     }
 }
