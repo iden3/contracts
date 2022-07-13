@@ -9,5 +9,5 @@
     "noImplicitAny": false
   },
   "include": ["./scripts", "./test", "./typechain"],
-  "files": ["hardhat.config.js"]
+  "files": ["hardhat.config.ts"]
 }
