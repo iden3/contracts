@@ -1,7 +1,6 @@
 pragma solidity ^0.8.0;
 
 interface IERC20ZKP {
-
     function transferWithProof(
         uint256[] memory inputs,
         uint256[2] memory a,
@@ -9,5 +8,4 @@ interface IERC20ZKP {
         uint256[2] memory c,
         uint256 amount
     ) external returns (bool);
-
 }

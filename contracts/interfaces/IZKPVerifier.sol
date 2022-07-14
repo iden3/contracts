@@ -11,7 +11,14 @@ interface IZKP {
         uint256[2] memory c
     ) external returns (bool);
 
-    function setZKPRequest(bytes4 fnSelector,address validator, ICircuitValidator.CircuitQuery memory query) external returns (bool);
+    function setZKPRequest(
+        bytes4 fnSelector,
+        address validator,
+        ICircuitValidator.CircuitQuery memory query
+    ) external returns (bool);
 
-    function getZKPRequest(bytes4 fnSelector) external view returns (ICircuitValidator.CircuitQuery memory);
+    function getZKPRequest(bytes4 fnSelector)
+        external
+        view
+        returns (ICircuitValidator.CircuitQuery memory);
 }

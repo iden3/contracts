@@ -8,10 +8,7 @@ import "./interfaces/ICircuitValidator.sol";
 import "./interfaces/IZKPVerifier.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
-
-
-contract ZKPVerifier is  IZKP, Ownable {
-
+contract ZKPVerifier is IZKP, Ownable {
     // one time zkp allowances
     mapping(address => bytes4) public zkpAllowances;
     mapping(bytes4 => ICircuitValidator.CircuitQuery) public functionQueries;
@@ -23,23 +20,39 @@ contract ZKPVerifier is  IZKP, Ownable {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
-    ) override external returns (bool){
-        require(functionValidators[fnSelector] != ICircuitValidator(address(0))); // validator exists
+    ) external override returns (bool) {
+        require(
+            functionValidators[fnSelector] != ICircuitValidator(address(0))
+        ); // validator exists
         require(functionQueries[fnSelector].schema != 0); // query exists
         require(
-                functionValidators[fnSelector].verify(inputs, a, b, c, functionQueries[fnSelector]),
-                "zero-knowledge proof is not valid"
-            );
+            functionValidators[fnSelector].verify(
+                inputs,
+                a,
+                b,
+                c,
+                functionQueries[fnSelector]
+            ),
+            "zero-knowledge proof is not valid"
+        );
         zkpAllowances[msg.sender] = fnSelector;
         return true;
     }
 
-    function getZKPRequest(bytes4 fnSelector) override external view returns (ICircuitValidator.CircuitQuery memory) {
+    function getZKPRequest(bytes4 fnSelector)
+        external
+        view
+        override
+        returns (ICircuitValidator.CircuitQuery memory)
+    {
         return functionQueries[fnSelector];
     }
 
-    function setZKPRequest(bytes4 fnSelector,address validator, ICircuitValidator.CircuitQuery memory query) onlyOwner() override external returns (bool){
-
+    function setZKPRequest(
+        bytes4 fnSelector,
+        address validator,
+        ICircuitValidator.CircuitQuery memory query
+    ) external override onlyOwner returns (bool) {
         functionQueries[fnSelector].value = query.value;
         functionQueries[fnSelector].operator = query.operator;
         functionQueries[fnSelector].circuitId = query.circuitId;
@@ -49,5 +62,4 @@ contract ZKPVerifier is  IZKP, Ownable {
         functionValidators[fnSelector] = ICircuitValidator(validator);
         return true;
     }
-
 }

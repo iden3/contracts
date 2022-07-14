@@ -7,15 +7,13 @@ import "../interfaces/ICircuitValidator.sol";
 import "../interfaces/IVerifier.sol";
 import "../interfaces/IState.sol";
 
-
 contract CredentialAtomicQueryMTPValidator is
     OwnableUpgradeable,
     ICircuitValidator
 {
     string constant CIRCUIT_ID = "credentialAtomicQueryMTP";
-    uint   constant CHALLENGE_INDEX = 2;
-    uint   constant USER_ID_INDEX = 1;
-
+    uint256 constant CHALLENGE_INDEX = 2;
+    uint256 constant USER_ID_INDEX = 1;
 
     IVerifier public verifier;
     IState public state;
@@ -42,12 +40,15 @@ contract CredentialAtomicQueryMTPValidator is
     function getCircuitId() external pure returns (string memory id) {
         return CIRCUIT_ID;
     }
-    function getChallengeInputIndex() external pure returns (uint index){
+
+    function getChallengeInputIndex() external pure returns (uint256 index) {
         return CHALLENGE_INDEX;
     }
-    function getUserIdInputIndex() external pure returns (uint index) {
+
+    function getUserIdInputIndex() external pure returns (uint256 index) {
         return USER_ID_INDEX;
     }
+
     function verify(
         uint256[] memory inputs,
         uint256[2] memory a,
@@ -55,7 +56,6 @@ contract CredentialAtomicQueryMTPValidator is
         uint256[2] memory c,
         CircuitQuery memory query
     ) external view returns (bool r) {
-
         // verify that zkp is valid
         require(verifier.verifyProof(a, b, c, inputs), "MTP is not valid");
 

@@ -39,7 +39,9 @@ contract ERC20ZKP is ERC20, IERC20ZKP {
         uint256[2] memory c,
         uint256 amount
     ) internal returns (bool) {
-        address addr = GenesisUtils.int256ToAddress(inputs[circuitValidator.getChallengeInputIndex()]);
+        address addr = GenesisUtils.int256ToAddress(
+            inputs[circuitValidator.getChallengeInputIndex()]
+        );
         uint256 userId = inputs[circuitValidator.getUserIdInputIndex()];
 
         require(msg.sender == addr, "msg.sender != address in proof");
@@ -94,7 +96,11 @@ contract ERC20ZKP is ERC20, IERC20ZKP {
         revert("ERC20ZKP: only transfers with zkp are allowed.");
     }
 
-    function getCircuitQuery() external view returns (ICircuitValidator.CircuitQuery memory) {
+    function getCircuitQuery()
+        external
+        view
+        returns (ICircuitValidator.CircuitQuery memory)
+    {
         return query;
     }
 }

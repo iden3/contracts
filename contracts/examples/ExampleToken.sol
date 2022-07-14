@@ -7,9 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../lib/GenesisUtils.sol";
 import "../interfaces/ICircuitValidator.sol";
 
-
 contract ExampleToken is ERC20 {
-
     ICircuitValidator public mtpValidator;
     mapping(uint256 => address) public idToAddress;
     mapping(address => uint256) public addressToId;
@@ -47,15 +45,17 @@ contract ExampleToken is ERC20 {
         require(inputs[9] == operator, "inputs[9] = operator");
         require(inputs[10] == value, "inputs[10] = value");
 
-
         ICircuitValidator.CircuitQuery memory query;
         query.schema = schema;
         query.slotIndex = slotIndex;
         query.operator = operator;
-        query.value = new uint[](1);
+        query.value = new uint256[](1);
         query.value[0] = value;
 
-        require(mtpValidator.verify(inputs, a, b, c,query), "ZK proof is not valid");
+        require(
+            mtpValidator.verify(inputs, a, b, c, query),
+            "ZK proof is not valid"
+        );
         super._mint(msg.sender, 5);
         idToAddress[userId] = addr;
         addressToId[addr] = userId;
