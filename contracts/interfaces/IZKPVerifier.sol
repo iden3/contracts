@@ -2,9 +2,9 @@ pragma solidity ^0.8.0;
 
 import "./ICircuitValidator.sol";
 
-interface IZKP {
+interface IZKPVerifier {
     function submitZKPResponse(
-        bytes4 fnSelector,
+        uint64 requestId,
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
@@ -12,13 +12,13 @@ interface IZKP {
     ) external returns (bool);
 
     function setZKPRequest(
-        bytes4 fnSelector,
-        address validator,
+        uint64 requestId,
+        ICircuitValidator validator,
         ICircuitValidator.CircuitQuery memory query
     ) external returns (bool);
 
-    function getZKPRequest(bytes4 fnSelector)
+    function getZKPRequest(uint64 requestId)
         external
-        view
         returns (ICircuitValidator.CircuitQuery memory);
+
 }
