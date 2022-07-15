@@ -172,18 +172,18 @@ contract SMT {
         else if (_node.nodeType == NodeType.MIDDLE) {
             nodeHash = _poseidonUnit2.poseidon([_node.childLeft, _node.childRight]);
         }
-        return nodeHash;
+        return nodeHash; // Note: expected to return 0 if NodeType.EMPTY, which is the only option left
     }
 
     function getNode(uint256 _nodeHash) public view returns (Node memory) {
         return tree[_nodeHash];
     }
 
-    function get(uint256 _index) public view returns (uint256, uint256, uint256[MAX_DEPTH] memory) {
-        return getHistorical(_index, root);
+    function getLeaf(uint256 _index) public view returns (uint256, uint256, uint256[MAX_DEPTH] memory) {
+        return getLeafHistorical(_index, root);
     }
 
-    function getHistorical(uint256 _index, uint256 _root) public view returns (uint256, uint256, uint256[MAX_DEPTH] memory) {
+    function getLeafHistorical(uint256 _index, uint256 _root) public view returns (uint256, uint256, uint256[MAX_DEPTH] memory) {
         uint256 nextNodeHash = _root;
         Node memory node;
 
@@ -192,9 +192,12 @@ contract SMT {
         uint256 value = 0;
         uint256[MAX_DEPTH] memory siblings;
 
+        // todo get rid of DRY violation of this part for getHistoricalProof() and getHistorical() if possible
         for (uint256 i = 0; i < MAX_DEPTH; i++) {
             node = getNode(nextNodeHash);
-            if (node.nodeType == NodeType.LEAF) {
+            if (node.nodeType == NodeType.EMPTY) {
+                revert("Index not found");
+            } else if (node.nodeType == NodeType.LEAF) {
                 if (node.index == index) {
                     value = node.value;
                 } else {

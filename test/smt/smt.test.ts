@@ -4,10 +4,8 @@ const {poseidonContract} = require("circomlibjs");
 
 import {FixedArray, genMaxBinaryNumber, MtpProof} from "./utils";
 
-// todo why index 2**31-1 is maximum?
-// todo why circom verifier has 33 siblings instead of 32?
-// todo cover get
-// todo get rid of DRY for getProof() and get() if possible
+// todo [RESEARCH] why index 2**31-1 but not 2**32-1 is maximum? Recearch smtverifier in circomlib
+// todo [RESEARCH] why circom verifier has 33 siblings instead of 32?
 
 type TestCase = {
   expectedProof: MtpProof,
@@ -23,20 +21,31 @@ describe("SMT", () => {
     for (const param of testCase.params) {
       await smt.add(param.i, param.v);
     }
-    let proof;
-    if (typeof testCase.getProofParams == "number") {
-      proof = await smt.getProof(testCase.getProofParams);
-    } else {
-      proof = await smt.getProofHistorical(testCase.getProofParams.index, testCase.getProofParams.historicalRoot);
-    }
+
+    const proof = typeof testCase.getProofParams == "number"
+      ? await smt.getProof(testCase.getProofParams)
+      : await smt.getProofHistorical(testCase.getProofParams.index, testCase.getProofParams.historicalRoot)
+
     checkMtpProof(proof, testCase.expectedProof);
+
+    if (testCase.expectedProof.fnc == 0) {
+      const leaf = typeof testCase.getProofParams == "number"
+        ? await smt.getLeaf(testCase.getProofParams)
+        : await smt.getLeafHistorical(testCase.getProofParams.index, testCase.getProofParams.historicalRoot);
+
+      // todo is it correct to combine getLeaf() and getProof() in the same test case? Fragile tests?
+      checkGetLeaf(leaf, testCase.expectedProof);
+    } else {
+      typeof testCase.getProofParams == "number"
+        ? await expect(smt.getLeaf(testCase.getProofParams)).to.be.revertedWith("Index not found")
+        : await expect(smt.getLeafHistorical(testCase.getProofParams.index, testCase.getProofParams.historicalRoot))
+          .to.be.revertedWith("Index not found")
+    }
   }
 
   beforeEach(async () => {
     const [
-      owner,
-      address1,
-      address2,
+      owner
     ] = await ethers.getSigners();
 
     const abi = poseidonContract.generateABI(2);
@@ -62,7 +71,6 @@ describe("SMT", () => {
     const Smt = await ethers.getContractFactory("SMT");
     smt = await Smt.deploy(poseidon2Elements.address, poseidon3Elements.address);
     await smt.deployed();
-
   });
 
   describe("SMT existence proof", () => {
@@ -338,6 +346,12 @@ describe("SMT", () => {
     });
   });
 });
+
+function checkGetLeaf(node, proof: MtpProof) {
+  expect(node[0]).to.equal(proof.key);
+  expect(node[1]).to.equal(proof.value);
+  checkSiblings(node[2], proof.siblings);
+}
 
 function checkMtpProof(proof, expectedProof: MtpProof) {
   expect(proof[0]).to.equal(expectedProof.root);
