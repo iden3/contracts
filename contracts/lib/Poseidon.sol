@@ -14,7 +14,7 @@ contract Poseidon {
   PoseidonUnit2 _poseidonUnit2;
     PoseidonUnit3 _poseidonUnit3;
 
-  constructor( address _poseidon2ContractAddr, address _poseidon3ContractAddr ) public {
+  constructor( address _poseidon2ContractAddr, address _poseidon3ContractAddr ) {
     _poseidonUnit2 = PoseidonUnit2(_poseidon2ContractAddr);
     _poseidonUnit3 = PoseidonUnit3(_poseidon3ContractAddr);
   }
