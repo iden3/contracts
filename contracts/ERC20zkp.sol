@@ -71,7 +71,6 @@ contract ERC20ZKP is ERC20, IERC20ZKP {
         uint256[2] memory c,
         uint256 amount
     ) public returns (bool) {
-
         address addr = GenesisUtils.int256ToAddress(
             inputs[circuitValidator.getChallengeInputIndex()]
         );

@@ -8,27 +8,22 @@ import "../interfaces/ICircuitValidator.sol";
 import "../ZKPVerifier.sol";
 
 contract ERC20Verifier is ERC20, ZKPVerifier {
-
-    uint64 constant public TRANSFER_REQUEST_ID = 1;
+    uint64 public constant TRANSFER_REQUEST_ID = 1;
 
     mapping(uint256 => address) public idToAddress;
     mapping(address => uint256) public addressToId;
 
-    uint256 constant public TOKEN_AMOUNT_FOR_AIRDROP_PER_ID = 5;
+    uint256 public constant TOKEN_AMOUNT_FOR_AIRDROP_PER_ID = 5;
 
-
-    constructor(
-        string memory name_,
-        string memory symbol_
-    ) ERC20(name_, symbol_) {
-    }
+    constructor(string memory name_, string memory symbol_)
+        ERC20(name_, symbol_)
+    {}
 
     function _beforeProofSubmit(
-        uint64 /* requestId */,
+        uint64, /* requestId */
         uint256[] memory inputs,
         ICircuitValidator validator
     ) internal view override {
-
         // check that  challenge input is address of sender
         address addr = GenesisUtils.int256ToAddress(
             inputs[validator.getChallengeInputIndex()]
@@ -36,29 +31,35 @@ contract ERC20Verifier is ERC20, ZKPVerifier {
         // this is linking between msg.sender and
         require(_msgSender() == addr, "address in proof is not in the proof");
     }
+
     function _afterProofSubmit(
         uint64 requestId,
         uint256[] memory inputs,
         ICircuitValidator validator
     ) internal override {
+        require(
+            requestId == TRANSFER_REQUEST_ID && addressToId[_msgSender()] == 0,
+            "proof can not be submitted more than once"
+        );
 
-        require(requestId == TRANSFER_REQUEST_ID && addressToId[_msgSender()] == 0 ,"proof can not be submitted more than once" );
-
-
-              // address didn't get airdrop tokens
-              uint256  id =  inputs[validator.getChallengeInputIndex()];
-              // additional check didn't get airdrop tokens before
-              if (idToAddress[id] == address(0)) {
-                  super._mint(_msgSender(), TOKEN_AMOUNT_FOR_AIRDROP_PER_ID);
-                  addressToId[_msgSender()] = id;
-                  idToAddress[id] = _msgSender();
-              }
+        // address didn't get airdrop tokens
+        uint256 id = inputs[validator.getChallengeInputIndex()];
+        // additional check didn't get airdrop tokens before
+        if (idToAddress[id] == address(0)) {
+            super._mint(_msgSender(), TOKEN_AMOUNT_FOR_AIRDROP_PER_ID);
+            addressToId[_msgSender()] = id;
+            idToAddress[id] = _msgSender();
+        }
     }
+
     function _beforeTokenTransfer(
-        address /* from */,
-        address  to ,
+        address, /* from */
+        address to,
         uint256 /* amount */
     ) internal view override {
-        require(proofs[to][TRANSFER_REQUEST_ID] == true, "only identities who provided proof are allowed to receive tokens");
+        require(
+            proofs[to][TRANSFER_REQUEST_ID] == true,
+            "only identities who provided proof are allowed to receive tokens"
+        );
     }
 }

@@ -20,5 +20,4 @@ interface IZKPVerifier {
     function getZKPRequest(uint64 requestId)
         external
         returns (ICircuitValidator.CircuitQuery memory);
-
 }
