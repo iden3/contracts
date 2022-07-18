@@ -16,6 +16,8 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
     mapping(uint64 => ICircuitValidator.CircuitQuery) public requestQueries;
     mapping(uint64 => ICircuitValidator) public requestValidators;
 
+    uint64[] public supportedRequests;
+
 
     function submitZKPResponse(
         uint64 requestId,
@@ -25,21 +27,22 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256[2] memory c
     ) external override returns (bool) {
 
+        require(
+            requestValidators[requestId] != ICircuitValidator(address(0)), "validator is not set for this request id"
+        ); // validator exists
+        require(requestQueries[requestId].schema != 0,  "query is not set for this request id"); // query exists
+
         _beforeProofSubmit(requestId,inputs,requestValidators[requestId]);
 
-         require(
-           requestValidators[requestId] != ICircuitValidator(address(0))
-        ); // validator exists
-        require(requestQueries[requestId].schema != 0); // query exists
         require(
-            requestValidators[requestId].verify(
-                inputs,
-                a,
-                b,
-                c, requestQueries[requestId]
-            ),
-            "proof response is not valid"
-        );
+                requestValidators[requestId].verify(
+                    inputs,
+                    a,
+                    b,
+                    c, requestQueries[requestId]
+                ),
+                "proof response is not valid"
+            );
 
          proofs[msg.sender][requestId] = true; // user provided a valid proof for request
 
@@ -61,14 +64,25 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         ICircuitValidator validator,
         ICircuitValidator.CircuitQuery memory query
     ) external override onlyOwner returns (bool) {
+
+        if (requestValidators[requestId] == ICircuitValidator(address(0x00))){
+            supportedRequests.push(requestId);
+        }
         requestQueries[requestId].value = query.value;
         requestQueries[requestId].operator = query.operator;
         requestQueries[requestId].circuitId = query.circuitId;
         requestQueries[requestId].slotIndex = query.slotIndex;
+        requestQueries[requestId].schema = query.schema;
+
         requestQueries[requestId].circuitId = query.circuitId;
 
         requestValidators[requestId] = validator;
         return true;
+    }
+
+    function getSupportedRequests(
+    ) external view returns (uint64[] memory arr){
+        return supportedRequests;
     }
 
     /**

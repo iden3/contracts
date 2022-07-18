@@ -9,40 +9,18 @@ import "../ZKPVerifier.sol";
 
 contract ERC20Verifier is ERC20, ZKPVerifier {
 
-    uint64 constant AGE_REQUEST_ID = 1;
-
-    ICircuitValidator public mtpCircuitValidator = ICircuitValidator(address(0x6522C1d0d9b522b797dDA1E4C849B12f08e9c15d));
-    ICircuitValidator.CircuitQuery internal ageProofQuery;
+    uint64 constant public TRANSFER_REQUEST_ID = 1;
 
     mapping(uint256 => address) public idToAddress;
     mapping(address => uint256) public addressToId;
 
-    uint256 constant TOKEN_AMOUNT_FOR_AIRDROP_PER_ID = 5;
+    uint256 constant public TOKEN_AMOUNT_FOR_AIRDROP_PER_ID = 5;
 
 
     constructor(
         string memory name_,
         string memory symbol_
     ) ERC20(name_, symbol_) {
-
-        ageProofQuery.schema = 210459579859058135404770043788028292398; // age schema
-        ageProofQuery.operator = 2;
-        ageProofQuery.slotIndex = 2;
-        ageProofQuery.value = [20020101];
-        ageProofQuery.circuitId = mtpCircuitValidator.getCircuitId();
-
-        _setDefaultRequest(AGE_REQUEST_ID,mtpCircuitValidator, ageProofQuery);
-
-    }
-
-    function _setDefaultRequest(uint64 requestId,ICircuitValidator validator, ICircuitValidator.CircuitQuery memory  query ) internal {
-        requestQueries[AGE_REQUEST_ID].value = query.value;
-        requestQueries[requestId].operator = query.operator;
-        requestQueries[requestId].circuitId = query.circuitId;
-        requestQueries[requestId].slotIndex = query.slotIndex;
-        requestQueries[requestId].circuitId = query.circuitId;
-
-        requestValidators[requestId] = validator;
     }
 
     function _beforeProofSubmit(
@@ -64,8 +42,9 @@ contract ERC20Verifier is ERC20, ZKPVerifier {
         ICircuitValidator validator
     ) internal override {
 
-        // check airdrop condition
-        if (requestId == AGE_REQUEST_ID && addressToId[_msgSender()] == 0) {
+        require(requestId == TRANSFER_REQUEST_ID && addressToId[_msgSender()] == 0 ,"proof can not be submitted more than once" );
+
+
               // address didn't get airdrop tokens
               uint256  id =  inputs[validator.getChallengeInputIndex()];
               // additional check didn't get airdrop tokens before
@@ -74,13 +53,12 @@ contract ERC20Verifier is ERC20, ZKPVerifier {
                   addressToId[_msgSender()] = id;
                   idToAddress[id] = _msgSender();
               }
-        }
     }
     function _beforeTokenTransfer(
-        address from,
-        address /* to */,
+        address /* from */,
+        address  to ,
         uint256 /* amount */
     ) internal view override {
-        require(proofs[from][AGE_REQUEST_ID] == true, "only identities who proved their age are allowed to transfer");
+        require(proofs[to][TRANSFER_REQUEST_ID] == true, "only identities who provided proof are allowed to receive tokens");
     }
 }
