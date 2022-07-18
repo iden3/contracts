@@ -2,34 +2,19 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "./lib/GenesisUtils.sol";
+import "../lib/GenesisUtils.sol";
+import "../interfaces/ICircuitValidator.sol";
+import "../interfaces/IVerifier.sol";
+import "../interfaces/IState.sol";
 
-interface IVerifier {
-    function verifyProof(
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        uint256[74] memory input
-    ) external view returns (bool r);
-}
+contract CredentialAtomicQueryMTPValidator is
+    OwnableUpgradeable,
+    ICircuitValidator
+{
+    string constant CIRCUIT_ID = "credentialAtomicQueryMTP";
+    uint256 constant CHALLENGE_INDEX = 2;
+    uint256 constant USER_ID_INDEX = 1;
 
-interface IState {
-    function getState(uint256 id) external view returns (uint256);
-
-    function getTransitionInfo(uint256 state)
-        external
-        view
-        returns (
-            uint256,
-            uint256,
-            uint64,
-            uint64,
-            uint256,
-            uint256
-        );
-}
-
-contract CredentialAtomicQueryMTP is OwnableUpgradeable {
     IVerifier public verifier;
     IState public state;
 
@@ -52,22 +37,55 @@ contract CredentialAtomicQueryMTP is OwnableUpgradeable {
         revocationStateExpirationTime = expirationTime;
     }
 
+    function getCircuitId() external pure returns (string memory id) {
+        return CIRCUIT_ID;
+    }
+
+    function getChallengeInputIndex() external pure returns (uint256 index) {
+        return CHALLENGE_INDEX;
+    }
+
+    function getUserIdInputIndex() external pure returns (uint256 index) {
+        return USER_ID_INDEX;
+    }
+
     function verify(
-        uint256[74] memory inputs,
+        uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
-        uint256[2] memory c
-    ) public view returns (bool r) {
+        uint256[2] memory c,
+        CircuitQuery memory query
+    ) external view returns (bool r) {
+        // verify that zkp is valid
+        require(verifier.verifyProof(a, b, c, inputs), "MTP is not valid");
+
+        // verify query
+        require(
+            inputs[7] == query.schema,
+            "wrong claim schema has been used for proof generation"
+        );
+        require(
+            inputs[8] == query.slotIndex,
+            "wrong claim data slot has been used for proof generation"
+        );
+        require(
+            inputs[9] == query.operator,
+            "wrong query operator has been used for proof generation"
+        );
+
+        // equal / less than / greater than for 1 field
+        require(
+            inputs[10] == query.value[0],
+            "wrong comparison value has been used for proof generation"
+        );
+
+        // verify user states
+
         uint256 userId = inputs[0];
         uint256 userState = inputs[1];
         uint256 issuerClaimIdenState = inputs[3];
         uint256 issuerId = inputs[4];
         uint256 issuerClaimNonRevState = inputs[5];
-
-        require(
-            verifier.verifyProof(a, b, c, inputs),
-            "MTP Proof could not be verified"
-        );
 
         // 1. User state must be latest or genesis
 
