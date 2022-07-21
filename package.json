@@ -66,9 +66,9 @@
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "test:gas": "REPORT_GAS=true npx hardhat test",
-    "deploy:localhost": "npx hardhat run scripts/deploy.js --network localhost",
-    "upgrade:localhost": "npx hardhat run scripts/upgradeContract/upgradeState.js --network localhost",
-    "deploy:ropsten": "npx hardhat run scripts/deploy.js --network ropsten",
+    "deploy:localhost": "npx hardhat run scripts/deploy.ts --network localhost",
+    "upgrade:localhost": "npx hardhat run scripts/upgradeContract/upgradeState.ts --network localhost",
+    "deploy:ropsten": "npx hardhat run scripts/deploy.ts --network ropsten",
     "verify:ropsten": "npx hardhat run scripts/verifyEtherescan.js --network ropsten"
   }
 }
