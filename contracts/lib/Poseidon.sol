@@ -1,7 +1,5 @@
 pragma solidity ^0.8.0;
 
-import "hardhat/console.sol";
-
 contract PoseidonUnit2 {
   function poseidon(uint256[2] memory) public view returns (uint256) {}
 }
@@ -20,16 +18,10 @@ contract Poseidon {
   }
 
   function hash2( uint256[2] memory inp ) public view returns (uint256) {
-    uint256 gasFirst = gasleft();
-    uint256 h = _poseidonUnit2.poseidon(inp);
-    console.log("Gas spent of poseidon hash 2 elements: %s", gasFirst - gasleft());
-    return h;
+    return _poseidonUnit2.poseidon(inp);
   }
 
   function hash3( uint256[3] memory inp ) public view returns (uint256) {
-    uint256 gasFirst = gasleft();
-    uint256 h = _poseidonUnit3.poseidon(inp);
-    console.log("Gas spent of poseidon hash 3 elements: %s", gasFirst - gasleft());
-    return h;
+    return _poseidonUnit3.poseidon(inp);
   }
 }
