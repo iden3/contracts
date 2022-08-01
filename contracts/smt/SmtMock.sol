@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../lib/Poseidon.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract SMT is OwnableUpgradeable {
+contract SMTMock is OwnableUpgradeable {
     PoseidonUnit2 _poseidonUnit2;
     PoseidonUnit3 _poseidonUnit3;
 
@@ -42,7 +42,9 @@ contract SMT is OwnableUpgradeable {
      */
     RootHistoryInfo[] public rootHistory;
 
-    uint256 internal constant MAX_DEPTH = 32;
+    uint256 internal constant MAX_DEPTH = 64;
+
+    mapping(uint256 => uint256) public testMap;
 
     struct Proof {
         uint256 root;
@@ -68,8 +70,12 @@ contract SMT is OwnableUpgradeable {
         return MAX_DEPTH;
     }
 
-    function getRootHistory() public view returns (RootHistoryInfo[] memory) {
-        return rootHistory;
+    function getTestMapValueById(uint256 id) public view returns (uint256) {
+        return testMap[id];
+    }
+
+    function setTestMapValue(uint256 id, uint256 value) public {
+        testMap[id] = value;
     }
 
     function add(uint256 _i, uint256 _v) public {

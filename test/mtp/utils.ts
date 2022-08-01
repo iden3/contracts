@@ -1,4 +1,5 @@
 import { ethers, upgrades } from "hardhat";
+import { poseidonContract } from "circomlibjs";
 
 export interface VerificationInfo {
   inputs: Array<string>;
@@ -35,6 +36,7 @@ export function toBigNumber({ inputs, pi_a, pi_b, pi_c }: VerificationInfo) {
 export async function deployContracts(): Promise<{
   state: any;
   mtp: any;
+  smt?: any;
 }> {
   const Verifier = await ethers.getContractFactory("Verifier");
   const verifier = await Verifier.deploy();
@@ -48,8 +50,35 @@ export async function deployContracts(): Promise<{
   await verifierMTP.deployed();
   console.log("VerifierMTP deployed to:", verifierMTP.address);
 
+  const [owner] = await ethers.getSigners();
+
+  const abi = poseidonContract.generateABI(2);
+  const code = poseidonContract.createCode(2);
+  const Poseidon2Elements = new ethers.ContractFactory(abi, code, owner);
+  const poseidon2Elements = await Poseidon2Elements.deploy();
+  await poseidon2Elements.deployed();
+  console.log("Poseidon3Elements deployed to:", poseidon2Elements.address);
+
+  const abi3 = poseidonContract.generateABI(3);
+  const code3 = poseidonContract.createCode(3);
+  const Poseidon3Elements = new ethers.ContractFactory(abi3, code3, owner);
+  const poseidon3Elements = await Poseidon3Elements.deploy();
+  await poseidon3Elements.deployed();
+  console.log("Poseidon3Elements deployed to:", poseidon3Elements.address);
+
+  const Smt = await ethers.getContractFactory("SMT");
+  const smt = await upgrades.deployProxy(Smt, [
+    poseidon2Elements.address,
+    poseidon3Elements.address,
+  ]);
+  await smt.deployed();
+  console.log("SMT deployed to:", smt.address);
+
   const State = await ethers.getContractFactory("State");
-  const state = await upgrades.deployProxy(State, [verifier.address]);
+  const state = await upgrades.deployProxy(State, [
+    verifier.address,
+    smt.address,
+  ]);
 
   await state.deployed();
 
@@ -72,14 +101,15 @@ export async function deployContracts(): Promise<{
 
   return {
     mtp: credentialAtomicQueryMTP,
-    state: state,
+    state,
+    smt,
   };
 }
 
 export async function publishState(
   state: any,
   json: { [key: string]: string }
-): Promise<void> {
+): Promise<{ oldState: string; newState: string; id: string }> {
   const {
     inputs: [id, oldState, newState, isOldStateGenesis],
     pi_a,
@@ -98,4 +128,10 @@ export async function publishState(
   );
 
   await transitStateTx.wait();
+
+  return {
+    oldState,
+    newState,
+    id,
+  };
 }

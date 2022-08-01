@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.15;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -9,6 +10,10 @@ interface IVerifier {
         uint[2] memory c,
         uint[4] memory input
     ) external view returns (bool r);
+}
+
+interface ISMT {
+    function add(uint256 index, uint256 value) external;
 }
 
 // /**
@@ -72,10 +77,17 @@ contract State is OwnableUpgradeable {
         uint256 state
     );
 
+     /**
+     * @dev SMT address
+     */
+    ISMT public smt;
+
     function initialize(
-        IVerifier _verifierContractAddr
+        IVerifier _verifierContractAddr,
+        ISMT _smtContractAddr
     ) public initializer {
        verifier = _verifierContractAddr;
+       smt = _smtContractAddr;
        __Ownable_init();
     }
 
@@ -152,6 +164,7 @@ contract State is OwnableUpgradeable {
         transitions[oldState].replacedAtTimestamp = block.timestamp;
         transitions[oldState].replacedAtBlock = uint64(block.number);
         transitions[oldState].replacedBy = newState;
+        smt.add(id, newState);
 
         emit StateUpdated(
             id,
