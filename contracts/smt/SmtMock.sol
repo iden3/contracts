@@ -70,6 +70,10 @@ contract SMTMock is OwnableUpgradeable {
         return MAX_DEPTH;
     }
 
+    function getRootHistory() public view returns (RootHistoryInfo[] memory) {
+        return rootHistory;
+    }
+
     function getTestMapValueById(uint256 id) public view returns (uint256) {
         return testMap[id];
     }

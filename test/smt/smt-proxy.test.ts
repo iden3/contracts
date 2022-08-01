@@ -50,6 +50,11 @@ describe("State SMT proxy test", function () {
 
       const value = await smtV2Contract.getTestMapValueById(1);
       expect(value).to.equal(2022);
+
+      const rootHistoryV2 = await smtV2Contract.getRootHistory();
+      expect(rootHistoryV2.length).to.equal(2);
+
+      expect(rootHistory).deep.equal(rootHistoryV2);
     });
   }
 });
