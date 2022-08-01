@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../lib/Poseidon.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract SMT is OwnableUpgradeable {
+contract Smt is OwnableUpgradeable {
     PoseidonUnit2 _poseidonUnit2;
     PoseidonUnit3 _poseidonUnit3;
 
@@ -73,11 +73,11 @@ contract SMT is OwnableUpgradeable {
     }
 
     function add(uint256 _i, uint256 _v) public {
+        Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
+        root = addLeaf(node, root, 0);
         rootHistory.push(
             RootHistoryInfo(root, uint64(block.timestamp), uint64(block.number))
         );
-        Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
-        root = addLeaf(node, root, 0);
     }
 
     function addLeaf(

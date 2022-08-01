@@ -34,7 +34,7 @@ describe("State SMT proxy test", function () {
       console.log(maxDepth);
       expect(maxDepth).to.equal(32);
       // upgrade smt by proxy
-      const smtV2Factory = await ethers.getContractFactory("SMTMock");
+      const smtV2Factory = await ethers.getContractFactory("SmtMock");
       console.log(`smt address :  ${smt.address}`);
 
       const tx = await upgrades.upgradeProxy(smt.address, smtV2Factory);

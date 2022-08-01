@@ -12,7 +12,7 @@ interface IVerifier {
     ) external view returns (bool r);
 }
 
-interface ISMT {
+interface ISmt {
     function add(uint256 index, uint256 value) external;
 }
 
@@ -80,11 +80,11 @@ contract State is OwnableUpgradeable {
      /**
      * @dev SMT address
      */
-    ISMT public smt;
+    ISmt public smt;
 
     function initialize(
         IVerifier _verifierContractAddr,
-        ISMT _smtContractAddr
+        ISmt _smtContractAddr
     ) public initializer {
        verifier = _verifierContractAddr;
        smt = _smtContractAddr;

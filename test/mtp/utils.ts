@@ -66,7 +66,7 @@ export async function deployContracts(): Promise<{
   await poseidon3Elements.deployed();
   console.log("Poseidon3Elements deployed to:", poseidon3Elements.address);
 
-  const Smt = await ethers.getContractFactory("SMT");
+  const Smt = await ethers.getContractFactory("Smt");
   const smt = await upgrades.deployProxy(Smt, [
     poseidon2Elements.address,
     poseidon3Elements.address,

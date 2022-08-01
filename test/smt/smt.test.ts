@@ -72,7 +72,7 @@ describe("SMT", () => {
     poseidon3Elements = await Poseidon3Elements.deploy();
     await poseidon3Elements.deployed();
 
-    const Smt = await ethers.getContractFactory("SMT");
+    const Smt = await ethers.getContractFactory("Smt");
     smt = await upgrades.deployProxy(Smt, [
       poseidon2Elements.address,
       poseidon3Elements.address,

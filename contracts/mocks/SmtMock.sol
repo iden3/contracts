@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../lib/Poseidon.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract SMTMock is OwnableUpgradeable {
+contract SmtMock is OwnableUpgradeable {
     PoseidonUnit2 _poseidonUnit2;
     PoseidonUnit3 _poseidonUnit3;
 
