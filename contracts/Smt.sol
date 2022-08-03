@@ -1,12 +1,22 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-import "../lib/Poseidon.sol";
+import "./lib/Poseidon.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract Smt is OwnableUpgradeable {
     PoseidonUnit2 _poseidonUnit2;
     PoseidonUnit3 _poseidonUnit3;
+
+    address internal _writer;
+
+    /**
+     * @dev Throws if called by any account other than the state contract.
+     */
+    modifier onlyWriter() {
+        require(_writer == _msgSender(), "Ownable: caller is not the owner");
+        _;
+    }
 
     enum NodeType {
         EMPTY,
@@ -57,13 +67,13 @@ contract Smt is OwnableUpgradeable {
 
     function initialize(
         address _poseidonUnit2ContractAddr,
-        address _poseidonUnit3ContractAddr
+        address _poseidonUnit3ContractAddr,
+        address _stateAddress
     ) public initializer {
         _poseidonUnit2 = PoseidonUnit2(_poseidonUnit2ContractAddr);
         _poseidonUnit3 = PoseidonUnit3(_poseidonUnit3ContractAddr);
+        _writer = _stateAddress;
         __Ownable_init();
-        // address stateAddress
-        // transferOwnership(stateAddress);
     }
 
     function getMaxDepth() public pure returns (uint256) {
@@ -74,7 +84,7 @@ contract Smt is OwnableUpgradeable {
         return rootHistory;
     }
 
-    function add(uint256 _i, uint256 _v) public {
+    function add(uint256 _i, uint256 _v) public onlyWriter {
         Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
         root = addLeaf(node, root, 0);
         rootHistory.push(

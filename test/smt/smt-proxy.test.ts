@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ethers, upgrades } from "hardhat";
-import { deployContracts, publishState } from "../mtp/utils";
+import { deployContracts, publishState } from "../deploy-utils";
 
 const issuerStateTransitions = [
   require("../mtp/data/issuer_state_transition.json"),
@@ -11,7 +11,7 @@ describe("State SMT integration tests", function () {
   let state: any, smt: any;
 
   beforeEach(async () => {
-    const contracts = await deployContracts();
+    const contracts = await deployContracts(false);
     state = contracts.state;
     smt = contracts.smt;
   });

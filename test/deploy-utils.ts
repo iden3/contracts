@@ -33,23 +33,23 @@ export function toBigNumber({ inputs, pi_a, pi_b, pi_c }: VerificationInfo) {
   };
 }
 
-export async function deployContracts(): Promise<{
+export async function deployContracts(deployMtp = false): Promise<{
   state: any;
   mtp: any;
-  smt?: any;
+  smt: any;
+  verifier: any;
 }> {
   const Verifier = await ethers.getContractFactory("Verifier");
   const verifier = await Verifier.deploy();
-
   await verifier.deployed();
   console.log("Verifier deployed to:", verifier.address);
-
-  const VerifierMTP = await ethers.getContractFactory("VerifierMTP");
-  const verifierMTP = await VerifierMTP.deploy();
-
-  await verifierMTP.deployed();
-  console.log("VerifierMTP deployed to:", verifierMTP.address);
-
+  let verifierMTP;
+  if (deployMtp) {
+    const VerifierMTP = await ethers.getContractFactory("VerifierMTP");
+    verifierMTP = await VerifierMTP.deploy();
+    await verifierMTP.deployed();
+    console.log("VerifierMTP deployed to:", verifierMTP.address);
+  }
   const [owner] = await ethers.getSigners();
 
   const abi = poseidonContract.generateABI(2);
@@ -66,43 +66,43 @@ export async function deployContracts(): Promise<{
   await poseidon3Elements.deployed();
   console.log("Poseidon3Elements deployed to:", poseidon3Elements.address);
 
+  const State = await ethers.getContractFactory("State");
+  const state = await upgrades.deployProxy(State, [verifier.address]);
+  await state.deployed();
+  console.log("State deployed to:", state.address);
+
   const Smt = await ethers.getContractFactory("Smt");
   const smt = await upgrades.deployProxy(Smt, [
     poseidon2Elements.address,
     poseidon3Elements.address,
+    state.address,
   ]);
   await smt.deployed();
   console.log("SMT deployed to:", smt.address);
 
-  const State = await ethers.getContractFactory("State");
-  const state = await upgrades.deployProxy(State, [
-    verifier.address,
-    smt.address,
-  ]);
+  await state.setSmt(smt.address);
 
-  await state.deployed();
-
-  console.log("State deployed to:", state.address);
-
-  const CredentialAtomicQueryMTP = await ethers.getContractFactory(
-    "CredentialAtomicQueryMTP"
-  );
-
-  const credentialAtomicQueryMTP = await upgrades.deployProxy(
-    CredentialAtomicQueryMTP,
-    [verifierMTP.address, state.address]
-  );
-
-  await credentialAtomicQueryMTP.deployed();
-  console.log(
-    "CredentialAtomicQueryMTP deployed to:",
-    credentialAtomicQueryMTP.address
-  );
+  let credentialAtomicQueryMTP;
+  if (deployMtp) {
+    const CredentialAtomicQueryMTP = await ethers.getContractFactory(
+      "CredentialAtomicQueryMTP"
+    );
+    credentialAtomicQueryMTP = await upgrades.deployProxy(
+      CredentialAtomicQueryMTP,
+      [verifierMTP.address, state.address]
+    );
+    await credentialAtomicQueryMTP.deployed();
+    console.log(
+      "CredentialAtomicQueryMTP deployed to:",
+      credentialAtomicQueryMTP.address
+    );
+  }
 
   return {
     mtp: credentialAtomicQueryMTP,
     state,
     smt,
+    verifier,
   };
 }
 

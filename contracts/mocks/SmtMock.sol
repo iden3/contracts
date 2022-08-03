@@ -14,6 +14,16 @@ contract SmtMock is OwnableUpgradeable {
         MIDDLE
     }
 
+    address internal _writer;
+
+    /**
+     * @dev Throws if called by any account other than the state contract.
+     */
+    modifier onlyWriter() {
+        require(_writer == _msgSender(), "Ownable: caller is not the owner");
+        _;
+    }
+
     /**
      * @dev Struct saved information about SMT root change.
      * @param RootHistory historical tree root.
@@ -82,7 +92,7 @@ contract SmtMock is OwnableUpgradeable {
         testMap[id] = value;
     }
 
-    function add(uint256 _i, uint256 _v) public {
+    function add(uint256 _i, uint256 _v) public onlyWriter {
         rootHistory.push(
             RootHistoryInfo(root, uint64(block.timestamp), uint64(block.number))
         );
