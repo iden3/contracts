@@ -33,7 +33,10 @@ export function toBigNumber({ inputs, pi_a, pi_b, pi_c }: VerificationInfo) {
   };
 }
 
-export async function deployContracts(deployMtp = false): Promise<{
+export async function deployContracts(
+  deployMtp = false,
+  enableLogging = false
+): Promise<{
   state: any;
   mtp: any;
   smt: any;
@@ -42,13 +45,14 @@ export async function deployContracts(deployMtp = false): Promise<{
   const Verifier = await ethers.getContractFactory("Verifier");
   const verifier = await Verifier.deploy();
   await verifier.deployed();
-  console.log("Verifier deployed to:", verifier.address);
+  enableLogging && console.log("Verifier deployed to:", verifier.address);
   let verifierMTP;
   if (deployMtp) {
     const VerifierMTP = await ethers.getContractFactory("VerifierMTP");
     verifierMTP = await VerifierMTP.deploy();
     await verifierMTP.deployed();
-    console.log("VerifierMTP deployed to:", verifierMTP.address);
+    enableLogging &&
+      console.log("VerifierMTP deployed to:", verifierMTP.address);
   }
   const [owner] = await ethers.getSigners();
 
@@ -57,19 +61,21 @@ export async function deployContracts(deployMtp = false): Promise<{
   const Poseidon2Elements = new ethers.ContractFactory(abi, code, owner);
   const poseidon2Elements = await Poseidon2Elements.deploy();
   await poseidon2Elements.deployed();
-  console.log("Poseidon3Elements deployed to:", poseidon2Elements.address);
+  enableLogging &&
+    console.log("Poseidon3Elements deployed to:", poseidon2Elements.address);
 
   const abi3 = poseidonContract.generateABI(3);
   const code3 = poseidonContract.createCode(3);
   const Poseidon3Elements = new ethers.ContractFactory(abi3, code3, owner);
   const poseidon3Elements = await Poseidon3Elements.deploy();
   await poseidon3Elements.deployed();
-  console.log("Poseidon3Elements deployed to:", poseidon3Elements.address);
+  enableLogging &&
+    console.log("Poseidon3Elements deployed to:", poseidon3Elements.address);
 
   const State = await ethers.getContractFactory("State");
   const state = await upgrades.deployProxy(State, [verifier.address]);
   await state.deployed();
-  console.log("State deployed to:", state.address);
+  enableLogging && console.log("State deployed to:", state.address);
 
   const Smt = await ethers.getContractFactory("Smt");
   const smt = await upgrades.deployProxy(Smt, [
@@ -78,7 +84,7 @@ export async function deployContracts(deployMtp = false): Promise<{
     state.address,
   ]);
   await smt.deployed();
-  console.log("SMT deployed to:", smt.address);
+  enableLogging && console.log("SMT deployed to:", smt.address);
 
   await state.setSmt(smt.address);
 
@@ -92,10 +98,11 @@ export async function deployContracts(deployMtp = false): Promise<{
       [verifierMTP.address, state.address]
     );
     await credentialAtomicQueryMTP.deployed();
-    console.log(
-      "CredentialAtomicQueryMTP deployed to:",
-      credentialAtomicQueryMTP.address
-    );
+    enableLogging &&
+      console.log(
+        "CredentialAtomicQueryMTP deployed to:",
+        credentialAtomicQueryMTP.address
+      );
   }
 
   return {

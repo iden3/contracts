@@ -76,7 +76,7 @@ describe("SMT", () => {
     smt = await upgrades.deployProxy(Smt, [
       poseidon2Elements.address,
       poseidon3Elements.address,
-      owner.address
+      owner.address,
     ]);
     await smt.deployed();
   });

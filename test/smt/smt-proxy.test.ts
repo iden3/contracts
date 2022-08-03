@@ -1,3 +1,4 @@
+import { poseidonContract } from "circomlibjs";
 import { expect } from "chai";
 import { ethers, upgrades } from "hardhat";
 import { deployContracts, publishState } from "../deploy-utils";
@@ -25,19 +26,13 @@ describe("State SMT integration tests", function () {
     }
 
     const rootHistory = await smt.getRootHistory();
-    console.log(rootHistory);
     expect(rootHistory.length).to.equal(2);
     const maxDepth = await smt.getMaxDepth();
-    console.log(maxDepth);
     expect(maxDepth).to.equal(32);
     // upgrade smt by proxy
     const smtV2Factory = await ethers.getContractFactory("SmtMock");
-    console.log(`smt address :  ${smt.address}`);
 
-    const tx = await upgrades.upgradeProxy(smt.address, smtV2Factory);
-
-    console.log("upgrade successfully");
-    console.log(tx.deployTransaction);
+    await upgrades.upgradeProxy(smt.address, smtV2Factory);
 
     const smtV2Contract = smtV2Factory.attach(smt.address);
     const maxDepthV2 = await smtV2Contract.getMaxDepth();
@@ -97,5 +92,35 @@ describe("State SMT integration tests", function () {
     const [rootT] = await state.getHistoricalProofByTime(id, t1);
     expect(r1).to.equal(rootT);
     expect(rootB).to.equal(rootT);
+  });
+
+  it("should only writer to be able call add to smt tree", async () => {
+    const [owner, addr1, addr2] = await ethers.getSigners();
+
+    const abi = poseidonContract.generateABI(2);
+    const code = poseidonContract.createCode(2);
+    const Poseidon2Elements = new ethers.ContractFactory(abi, code, owner);
+    const poseidon2Elements = await Poseidon2Elements.deploy();
+    await poseidon2Elements.deployed();
+
+    const abi3 = poseidonContract.generateABI(3);
+    const code3 = poseidonContract.createCode(3);
+    const Poseidon3Elements = new ethers.ContractFactory(abi3, code3, owner);
+    const poseidon3Elements = await Poseidon3Elements.deploy();
+    await poseidon3Elements.deployed();
+
+    const Smt = await ethers.getContractFactory("Smt");
+    smt = await upgrades.deployProxy(Smt, [
+      poseidon2Elements.address,
+      poseidon3Elements.address,
+      addr1.address,
+    ]);
+    await smt.deployed();
+
+    await expect(smt.connect(addr1).add(1, 2)).not.to.be.reverted;
+    await expect(smt.connect(addr2).add(1, 2)).to.be.revertedWith(
+      "caller has no permissions"
+    );
+    await expect(smt.add(1, 2)).to.be.revertedWith("caller has no permissions");
   });
 });

@@ -14,7 +14,7 @@ contract Smt is OwnableUpgradeable {
      * @dev Throws if called by any account other than the state contract.
      */
     modifier onlyWriter() {
-        require(_writer == _msgSender(), "Ownable: caller is not the owner");
+        require(_writer == _msgSender(), "caller has no permissions");
         _;
     }
 
