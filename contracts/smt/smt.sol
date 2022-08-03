@@ -62,6 +62,8 @@ contract Smt is OwnableUpgradeable {
         _poseidonUnit2 = PoseidonUnit2(_poseidonUnit2ContractAddr);
         _poseidonUnit3 = PoseidonUnit3(_poseidonUnit3ContractAddr);
         __Ownable_init();
+        // address stateAddress
+        // transferOwnership(stateAddress);
     }
 
     function getMaxDepth() public pure returns (uint256) {
@@ -344,12 +346,62 @@ contract Smt is OwnableUpgradeable {
     }
 
     /**
+     * @dev Get historical proof by time
+     * @param index, timestamp
+     */
+    function getHistoricalProofByTime(uint256 index, uint64 timestamp)
+        public
+        view
+        returns (
+            uint256, // Root
+            uint256[MAX_DEPTH] memory, // Siblings
+            uint256, // OldKey
+            uint256, // OldValue
+            bool, // IsOld0
+            uint256, // Key
+            uint256, // Value
+            uint256 // Fnc
+        )
+    {
+        (uint256 historyRoot, , ) = getProofHistoricalRootDataByTime(timestamp);
+
+        require(historyRoot != 0, "historical root not found");
+
+        return getProofHistorical(index, historyRoot);
+    }
+
+    /**
+     * @dev Get historical proof by block
+     * @param index, _block
+     */
+    function getHistoricalProofByBlock(uint256 index, uint64 _block)
+        public
+        view
+        returns (
+            uint256, // Root
+            uint256[MAX_DEPTH] memory, // Siblings
+            uint256, // OldKey
+            uint256, // OldValue
+            bool, // IsOld0
+            uint256, // Key
+            uint256, // Value
+            uint256 // Fnc
+        )
+    {
+        (uint256 historyRoot, , ) = getHistoricalRootDataByBlock(_block);
+
+        require(historyRoot != 0, "historical root not found");
+
+        return getProofHistorical(index, historyRoot);
+    }
+
+    /**
      * @dev binary search by timestamp
      * @param timestamp timestamp
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getHistoricalRootDataByTime(uint64 timestamp)
-        public
+    function getProofHistoricalRootDataByTime(uint64 timestamp)
+        internal
         view
         returns (
             uint256,
@@ -357,7 +409,7 @@ contract Smt is OwnableUpgradeable {
             uint64
         )
     {
-        // require(timestamp < block.timestamp, "errNoFutureAllowed");
+        require(timestamp <= block.timestamp, "errNoFutureAllowed");
         // Case that there is no state committed
         if (rootHistory.length == 0) {
             return (0, 0, 0);
@@ -407,7 +459,7 @@ contract Smt is OwnableUpgradeable {
      * return parameters are (by order): block number, block timestamp, state
      */
     function getHistoricalRootDataByBlock(uint64 blockN)
-        public
+        internal
         view
         returns (
             uint256,
@@ -415,7 +467,7 @@ contract Smt is OwnableUpgradeable {
             uint64
         )
     {
-        require(blockN < block.number, "errNoFutureAllowed");
+        require(blockN <= block.number, "errNoFutureAllowed");
 
         // Case that there is no state committed
         if (rootHistory.length == 0) {
