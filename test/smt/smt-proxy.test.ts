@@ -1,18 +1,19 @@
 import { poseidonContract } from "circomlibjs";
 import { expect } from "chai";
 import { ethers, upgrades } from "hardhat";
-import { deployContracts, publishState } from "../deploy-utils";
+import { deployContracts, deploySmt, publishState } from "../deploy-utils";
+import { SmtStateMigration } from "../../scripts/smt-state-migration";
 
 const issuerStateTransitions = [
   require("../mtp/data/issuer_state_transition.json"),
   require("../mtp/data/issuer_next_state_transition.json"),
 ];
 
-describe("State SMT integration tests", function () {
+describe("State Migration to SMT test", function () {
   let state: any, smt: any;
 
   beforeEach(async () => {
-    const contracts = await deployContracts(false);
+    const contracts = await deployContracts();
     state = contracts.state;
     smt = contracts.smt;
   });
@@ -25,12 +26,15 @@ describe("State SMT integration tests", function () {
       await publishState(state, issuerStateJson);
     }
 
-    const rootHistory = await smt.getRootHistory();
+    const rootHistoryLength = await smt.getRootHistoryLength();
+
+    const rootHistory = await smt.getRootHistory(0, rootHistoryLength - 1);
+
     expect(rootHistory.length).to.equal(2);
     const maxDepth = await smt.getMaxDepth();
     expect(maxDepth).to.equal(32);
     // upgrade smt by proxy
-    const smtV2Factory = await ethers.getContractFactory("SmtMock");
+    const smtV2Factory = await ethers.getContractFactory("SmtV2Mock");
 
     await upgrades.upgradeProxy(smt.address, smtV2Factory);
 
@@ -43,7 +47,9 @@ describe("State SMT integration tests", function () {
     const value = await smtV2Contract.getTestMapValueById(1);
     expect(value).to.equal(2022);
 
-    const rootHistoryV2 = await smtV2Contract.getRootHistory();
+    const rootHistoryLengthV2 = await smt.getRootHistoryLength();
+
+    const rootHistoryV2 = await smt.getRootHistory(0, rootHistoryLengthV2 - 1);
     expect(rootHistoryV2.length).to.equal(2);
 
     expect(rootHistory).deep.equal(rootHistoryV2);
@@ -55,7 +61,12 @@ describe("State SMT integration tests", function () {
     }
     const id = ethers.BigNumber.from(issuerStateTransitions[0].pub_signals[0]);
 
-    const [[r1, t1], [r2, t2]] = await smt.getRootHistory();
+    const rootHistoryLength = await smt.getRootHistoryLength();
+
+    const [[r1, t1], [r2, t2]] = await smt.getRootHistory(
+      0,
+      rootHistoryLength - 1
+    );
 
     const [root] = await state.getHistoricalProofByTime(id, t1);
 
@@ -71,7 +82,12 @@ describe("State SMT integration tests", function () {
     }
     const id = ethers.BigNumber.from(issuerStateTransitions[0].pub_signals[0]);
 
-    const [[r1, , b1], [r2, , b2]] = await smt.getRootHistory();
+    const rootHistoryLength = await smt.getRootHistoryLength();
+
+    const [[r1, , b1], [r2, , b2]] = await smt.getRootHistory(
+      0,
+      rootHistoryLength - 1
+    );
 
     const [root] = await state.getHistoricalProofByBlock(id, b1);
     expect(r1).to.equal(root);
@@ -84,14 +100,13 @@ describe("State SMT integration tests", function () {
       await publishState(state, issuerStateJson);
     }
     const id = ethers.BigNumber.from(issuerStateTransitions[0].pub_signals[0]);
-
-    const [[r1, t1, b1]] = await smt.getRootHistory();
+    const rootHistoryLength = await smt.getRootHistoryLength();
+    const [[r1, t1, b1]] = await smt.getRootHistory(0, rootHistoryLength - 1);
 
     const [rootB] = await state.getHistoricalProofByBlock(id, b1);
     expect(r1).to.equal(rootB);
     const [rootT] = await state.getHistoricalProofByTime(id, t1);
-    expect(r1).to.equal(rootT);
-    expect(rootB).to.equal(rootT);
+    expect(r1).to.equal(rootT).to.equal(rootB);
   });
 
   it("should only writer to be able call add to smt tree", async () => {
@@ -122,5 +137,53 @@ describe("State SMT integration tests", function () {
       "caller has no permissions"
     );
     await expect(smt.add(1, 2)).to.be.revertedWith("caller has no permissions");
+  });
+});
+
+describe("State SMT integration tests", function () {
+  it("should upgrade to new state and migrate existing states to smt", async () => {
+    // 1. deploy verifier
+    const Verifier = await ethers.getContractFactory("Verifier");
+    const verifier = await Verifier.deploy();
+    await verifier.deployed();
+
+    // 2. deploy state mock
+    const StateMock = await ethers.getContractFactory("StateV2Mock");
+    const stateMock = await upgrades.deployProxy(StateMock, [verifier.address]);
+    await stateMock.deployed();
+
+    // 2. publish state to mock
+    const statesToPublish = [
+      require("../mtp/data/issuer_state_transition.json"),
+      require("../mtp/data/issuer_next_state_transition.json"),
+    ];
+    for (const issuerStateJson of statesToPublish) {
+      await publishState(stateMock, issuerStateJson);
+    }
+
+    // 3. upgrade state from mock to state
+    const stateFactory = await ethers.getContractFactory("State");
+    await upgrades.upgradeProxy(stateMock.address, stateFactory);
+    const stateContract = stateFactory.attach(stateMock.address);
+
+    // 4. deploy smt and set smt address to state
+    const [owner] = await ethers.getSigners();
+
+    const smt = await deploySmt(owner.address);
+    await stateContract.setSmt(smt.address);
+
+    // 5. fetch all stateTransition from event
+    const filter = stateContract.filters.StateUpdated(null, null, null, null);
+    const stateHistory = await stateContract.queryFilter(filter);
+
+    // 6. migrate state
+    await SmtStateMigration.migrate(smt, stateHistory);
+
+    // 7. check if state is migrated
+    const rootHistoryLength = await smt.getRootHistoryLength();
+
+    const rootHistory = await smt.getRootHistory(0, rootHistoryLength - 1);
+
+    expect(rootHistory.length).to.equal(stateHistory.length);
   });
 });

@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../lib/Poseidon.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract SmtMock is OwnableUpgradeable {
+contract SmtV2Mock is OwnableUpgradeable {
     PoseidonUnit2 _poseidonUnit2;
     PoseidonUnit3 _poseidonUnit3;
 
@@ -78,6 +78,28 @@ contract SmtMock is OwnableUpgradeable {
 
     function getMaxDepth() public pure returns (uint256) {
         return MAX_DEPTH;
+    }
+
+    function getRootHistoryLength() public view returns (uint256) {
+        return rootHistory.length;
+    }
+
+    function getRootHistory(uint256 startIndex, uint256 endIndex)
+        public
+        view
+        returns (RootHistoryInfo[] memory)
+    {
+        require(
+            startIndex >= 0 && endIndex < rootHistory.length,
+            "index out of bounds of array"
+        );
+        RootHistoryInfo[] memory result = new RootHistoryInfo[](
+            endIndex - startIndex + 1
+        );
+        for (uint256 i = startIndex; i <= endIndex; i++) {
+            result[i] = rootHistory[i];
+        }
+        return result;
     }
 
     function getRootHistory() public view returns (RootHistoryInfo[] memory) {

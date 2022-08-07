@@ -25,7 +25,7 @@ describe("SMT", () => {
     const proof =
       typeof testCase.getProofParams == "number"
         ? await smt.getProof(testCase.getProofParams)
-        : await smt.getProofHistorical(
+        : await smt.getHistoricalProofByRoot(
             testCase.getProofParams.index,
             testCase.getProofParams.historicalRoot
           );

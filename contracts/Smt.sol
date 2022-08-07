@@ -80,8 +80,37 @@ contract Smt is OwnableUpgradeable {
         return MAX_DEPTH;
     }
 
-    function getRootHistory() public view returns (RootHistoryInfo[] memory) {
-        return rootHistory;
+    function getRootHistoryLength() public view returns (uint256) {
+        return rootHistory.length;
+    }
+
+    function getRootHistory(uint256 startIndex, uint256 endIndex)
+        public
+        view
+        returns (RootHistoryInfo[] memory)
+    {
+        require(
+            startIndex >= 0 && endIndex < rootHistory.length,
+            "index out of bounds of array"
+        );
+        RootHistoryInfo[] memory result = new RootHistoryInfo[](
+            endIndex - startIndex + 1
+        );
+        for (uint256 i = startIndex; i <= endIndex; i++) {
+            result[i] = rootHistory[i];
+        }
+        return result;
+    }
+
+    function addHistorical(
+        uint256 _i,
+        uint256 _v,
+        uint64 _timestamp,
+        uint64 _blockNumber
+    ) public onlyWriter {
+        Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
+        root = addLeaf(node, root, 0);
+        rootHistory.push(RootHistoryInfo(root, _timestamp, _blockNumber));
     }
 
     function add(uint256 _i, uint256 _v) public onlyWriter {
@@ -291,10 +320,10 @@ contract Smt is OwnableUpgradeable {
             uint256 // Fnc
         )
     {
-        return getProofHistorical(_index, root);
+        return getHistoricalProofByRoot(_index, root);
     }
 
-    function getProofHistorical(uint256 _index, uint256 _historicalRoot)
+    function getHistoricalProofByRoot(uint256 _index, uint256 _historicalRoot)
         public
         view
         returns (
@@ -373,11 +402,11 @@ contract Smt is OwnableUpgradeable {
             uint256 // Fnc
         )
     {
-        (uint256 historyRoot, , ) = getProofHistoricalRootDataByTime(timestamp);
+        (uint256 historyRoot, , ) = getHistoricalRootDataByTime(timestamp);
 
         require(historyRoot != 0, "historical root not found");
 
-        return getProofHistorical(index, historyRoot);
+        return getHistoricalProofByRoot(index, historyRoot);
     }
 
     /**
@@ -402,7 +431,7 @@ contract Smt is OwnableUpgradeable {
 
         require(historyRoot != 0, "historical root not found");
 
-        return getProofHistorical(index, historyRoot);
+        return getHistoricalProofByRoot(index, historyRoot);
     }
 
     /**
@@ -410,8 +439,8 @@ contract Smt is OwnableUpgradeable {
      * @param timestamp timestamp
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getProofHistoricalRootDataByTime(uint64 timestamp)
-        internal
+    function getHistoricalRootDataByTime(uint64 timestamp)
+        public
         view
         returns (
             uint256,
@@ -469,7 +498,7 @@ contract Smt is OwnableUpgradeable {
      * return parameters are (by order): block number, block timestamp, state
      */
     function getHistoricalRootDataByBlock(uint64 blockN)
-        internal
+        public
         view
         returns (
             uint256,

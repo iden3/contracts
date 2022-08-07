@@ -124,10 +124,8 @@ contract State is OwnableUpgradeable {
      */
     ISmt internal smt;
 
-    function initialize(
-        IVerifier _verifierContractAddr
-    ) public initializer {
-       verifier = _verifierContractAddr;
+    function initialize(IVerifier _verifierContractAddr) public initializer {
+        verifier = _verifierContractAddr;
         __Ownable_init();
     }
 
