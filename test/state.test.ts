@@ -8,7 +8,7 @@ describe("State", () => {
   let state;
 
   before(async () => {
-    const contracts = await deployContracts(false);
+    const contracts = await deployContracts();
     state = contracts.state;
   });
 
