@@ -38,7 +38,6 @@ export async function deployContracts(
   enableLogging = false
 ): Promise<{
   state: any;
-  mtp: any;
   smt: any;
   verifier: any;
 }> {
@@ -46,14 +45,6 @@ export async function deployContracts(
   const verifier = await Verifier.deploy();
   await verifier.deployed();
   enableLogging && console.log("Verifier deployed to:", verifier.address);
-  let verifierMTP;
-  if (deployMtp) {
-    const VerifierMTP = await ethers.getContractFactory("VerifierMTP");
-    verifierMTP = await VerifierMTP.deploy();
-    await verifierMTP.deployed();
-    enableLogging &&
-      console.log("VerifierMTP deployed to:", verifierMTP.address);
-  }
 
   const State = await ethers.getContractFactory("State");
   const state = await upgrades.deployProxy(State, [verifier.address]);
@@ -64,25 +55,7 @@ export async function deployContracts(
 
   await state.setSmt(smt.address);
 
-  let credentialAtomicQueryMTP;
-  if (deployMtp) {
-    const CredentialAtomicQueryMTP = await ethers.getContractFactory(
-      "CredentialAtomicQueryMTP"
-    );
-    credentialAtomicQueryMTP = await upgrades.deployProxy(
-      CredentialAtomicQueryMTP,
-      [verifierMTP.address, state.address]
-    );
-    await credentialAtomicQueryMTP.deployed();
-    enableLogging &&
-      console.log(
-        "CredentialAtomicQueryMTP deployed to:",
-        credentialAtomicQueryMTP.address
-      );
-  }
-
   return {
-    mtp: credentialAtomicQueryMTP,
     state,
     smt,
     verifier,
@@ -117,6 +90,29 @@ export async function publishState(
     newState,
     id,
   };
+}
+
+export async function deployMtp(
+  stateAddress: string,
+  enableLogging = false
+): Promise<{ mtp: any; verifierMTP: any }> {
+  const VerifierMTP = await ethers.getContractFactory("VerifierMTP");
+  const verifierMTP = await VerifierMTP.deploy();
+  await verifierMTP.deployed();
+  enableLogging && console.log("VerifierMTP deployed to:", verifierMTP.address);
+
+  const CredentialAtomicQueryMTP = await ethers.getContractFactory(
+    "CredentialAtomicQueryMTP"
+  );
+  const mtp = await upgrades.deployProxy(CredentialAtomicQueryMTP, [
+    verifierMTP.address,
+    stateAddress,
+  ]);
+  await mtp.deployed();
+  enableLogging &&
+    console.log("CredentialAtomicQueryMTP deployed to:", mtp.address);
+
+  return { mtp, verifierMTP };
 }
 
 export async function deploySmt(

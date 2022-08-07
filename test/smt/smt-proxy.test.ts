@@ -162,9 +162,9 @@ describe("State SMT integration tests", function () {
     }
 
     // 3. upgrade state from mock to state
-    const stateFactory = await ethers.getContractFactory("State");
-    await upgrades.upgradeProxy(stateMock.address, stateFactory);
-    const stateContract = stateFactory.attach(stateMock.address);
+    const stateContract = await SmtStateMigration.upgradeState(
+      stateMock.address
+    );
 
     // 4. deploy smt and set smt address to state
     const [owner] = await ethers.getSigners();
@@ -173,8 +173,9 @@ describe("State SMT integration tests", function () {
     await stateContract.setSmt(smt.address);
 
     // 5. fetch all stateTransition from event
-    const filter = stateContract.filters.StateUpdated(null, null, null, null);
-    const stateHistory = await stateContract.queryFilter(filter);
+    const stateHistory = await SmtStateMigration.getStateTransitionHistory(
+      stateContract
+    );
 
     // 6. migrate state
     await SmtStateMigration.migrate(smt, stateHistory);
