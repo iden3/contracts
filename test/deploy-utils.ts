@@ -121,9 +121,9 @@ export async function deploySmt(
 ): Promise<any> {
   const [owner] = await ethers.getSigners();
 
-  const abi = poseidonContract.generateABI(2);
-  const code = poseidonContract.createCode(2);
-  const Poseidon2Elements = new ethers.ContractFactory(abi, code, owner);
+  const abi2 = poseidonContract.generateABI(2);
+  const code2 = poseidonContract.createCode(2);
+  const Poseidon2Elements = new ethers.ContractFactory(abi2, code2, owner);
   const poseidon2Elements = await Poseidon2Elements.deploy();
   await poseidon2Elements.deployed();
   enableLogging &&

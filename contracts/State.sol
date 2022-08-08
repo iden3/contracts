@@ -173,7 +173,6 @@ contract State is OwnableUpgradeable {
             transitions[oldState].id = id;
             // push genesis state to identities as latest state
             identities[id].push(IDState(0, 0, oldState));
-            // smt.add(id, oldState);
         }
 
         require(transitions[newState].id == 0, "newState should not exist");
