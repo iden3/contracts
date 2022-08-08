@@ -26,7 +26,7 @@ describe("State Migration to SMT test", function () {
       await publishState(state, issuerStateJson);
     }
 
-    const rootHistoryLength = await smt.getRootHistoryLength();
+    const rootHistoryLength = await smt.rootHistoryLength();
 
     const rootHistory = await smt.getRootHistory(0, rootHistoryLength - 1);
 
@@ -47,7 +47,7 @@ describe("State Migration to SMT test", function () {
     const value = await smtV2Contract.getTestMapValueById(1);
     expect(value).to.equal(2022);
 
-    const rootHistoryLengthV2 = await smt.getRootHistoryLength();
+    const rootHistoryLengthV2 = await smt.rootHistoryLength();
 
     const rootHistoryV2 = await smt.getRootHistory(0, rootHistoryLengthV2 - 1);
     expect(rootHistoryV2.length).to.equal(2);
@@ -61,7 +61,7 @@ describe("State Migration to SMT test", function () {
     }
     const id = ethers.BigNumber.from(issuerStateTransitions[0].pub_signals[0]);
 
-    const rootHistoryLength = await smt.getRootHistoryLength();
+    const rootHistoryLength = await smt.rootHistoryLength();
 
     const [[r1, t1], [r2, t2]] = await smt.getRootHistory(
       0,
@@ -82,7 +82,7 @@ describe("State Migration to SMT test", function () {
     }
     const id = ethers.BigNumber.from(issuerStateTransitions[0].pub_signals[0]);
 
-    const rootHistoryLength = await smt.getRootHistoryLength();
+    const rootHistoryLength = await smt.rootHistoryLength();
 
     const [[r1, , b1], [r2, , b2]] = await smt.getRootHistory(
       0,
@@ -100,7 +100,7 @@ describe("State Migration to SMT test", function () {
       await publishState(state, issuerStateJson);
     }
     const id = ethers.BigNumber.from(issuerStateTransitions[0].pub_signals[0]);
-    const rootHistoryLength = await smt.getRootHistoryLength();
+    const rootHistoryLength = await smt.rootHistoryLength();
     const [[r1, t1, b1]] = await smt.getRootHistory(0, rootHistoryLength - 1);
 
     const [rootB] = await state.getHistoricalProofByBlock(id, b1);
@@ -181,7 +181,7 @@ describe("State SMT integration tests", function () {
     await SmtStateMigration.migrate(smt, stateHistory);
 
     // 7. check if state is migrated
-    const rootHistoryLength = await smt.getRootHistoryLength();
+    const rootHistoryLength = await smt.rootHistoryLength();
 
     const rootHistory = await smt.getRootHistory(0, rootHistoryLength - 1);
 

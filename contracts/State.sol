@@ -98,7 +98,7 @@ contract State is OwnableUpgradeable {
     /**
      * @dev Correlation between identity and its state (plus block/time)
      */
-    mapping(uint256 => IDState[]) internal identities;
+    mapping(uint256 => IDState[]) public identities;
 
     /**
      * @dev Correlation between identity and transitions info.

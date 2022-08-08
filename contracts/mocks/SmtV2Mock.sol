@@ -80,7 +80,7 @@ contract SmtV2Mock is OwnableUpgradeable {
         return MAX_DEPTH;
     }
 
-    function getRootHistoryLength() public view returns (uint256) {
+    function rootHistoryLength() public view returns (uint256) {
         return rootHistory.length;
     }
 
