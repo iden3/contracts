@@ -1,17 +1,17 @@
-const {expect} = require("chai");
-const {ethers} = require("hardhat");
-const {poseidonContract} = require("circomlibjs");
+import { expect } from "chai";
+import { ethers, upgrades } from "hardhat";
+import { poseidonContract } from "circomlibjs";
 
-import {FixedArray, genMaxBinaryNumber, MtpProof} from "./utils";
+import { FixedArray, genMaxBinaryNumber, MtpProof } from "./utils";
 
-// todo [RESEARCH] why index 2**31-1 but not 2**32-1 is maximum? Recearch smtverifier in circomlib
+// todo [RESEARCH] why index 2**31-1 but not 2**32-1 is maximum? Research smtverifier in circomlib
 // todo [RESEARCH] why circom verifier has 33 siblings instead of 32?
 
 type TestCase = {
-  expectedProof: MtpProof,
-  params: { i: number, v: number }[],
-  getProofParams: number | { index: number, historicalRoot: string }
-  [key: string]: any
+  expectedProof: MtpProof;
+  params: { i: number; v: number }[];
+  getProofParams: number | { index: number; historicalRoot: string };
+  [key: string]: any;
 };
 
 describe("SMT", () => {
@@ -22,54 +22,62 @@ describe("SMT", () => {
       await smt.add(param.i, param.v);
     }
 
-    const proof = typeof testCase.getProofParams == "number"
-      ? await smt.getProof(testCase.getProofParams)
-      : await smt.getProofHistorical(testCase.getProofParams.index, testCase.getProofParams.historicalRoot)
+    const proof =
+      typeof testCase.getProofParams == "number"
+        ? await smt.getProof(testCase.getProofParams)
+        : await smt.getHistoricalProofByRoot(
+            testCase.getProofParams.index,
+            testCase.getProofParams.historicalRoot
+          );
 
     checkMtpProof(proof, testCase.expectedProof);
 
     if (testCase.expectedProof.fnc == 0) {
-      const leaf = typeof testCase.getProofParams == "number"
-        ? await smt.getLeaf(testCase.getProofParams)
-        : await smt.getLeafHistorical(testCase.getProofParams.index, testCase.getProofParams.historicalRoot);
+      const leaf =
+        typeof testCase.getProofParams == "number"
+          ? await smt.getLeaf(testCase.getProofParams)
+          : await smt.getLeafHistorical(
+              testCase.getProofParams.index,
+              testCase.getProofParams.historicalRoot
+            );
 
       // todo is it correct to combine getLeaf() and getProof() in the same test case? Fragile tests?
       checkGetLeaf(leaf, testCase.expectedProof);
     } else {
       typeof testCase.getProofParams == "number"
-        ? await expect(smt.getLeaf(testCase.getProofParams)).to.be.revertedWith("Index not found")
-        : await expect(smt.getLeafHistorical(testCase.getProofParams.index, testCase.getProofParams.historicalRoot))
-          .to.be.revertedWith("Index not found")
+        ? await expect(smt.getLeaf(testCase.getProofParams)).to.be.revertedWith(
+            "Index not found"
+          )
+        : await expect(
+            smt.getLeafHistorical(
+              testCase.getProofParams.index,
+              testCase.getProofParams.historicalRoot
+            )
+          ).to.be.revertedWith("Index not found");
     }
   }
 
   beforeEach(async () => {
-    const [
-      owner
-    ] = await ethers.getSigners();
+    const [owner] = await ethers.getSigners();
 
     const abi = poseidonContract.generateABI(2);
     const code = poseidonContract.createCode(2);
-    const Poseidon2Elements = new ethers.ContractFactory(
-      abi,
-      code,
-      owner
-    );
+    const Poseidon2Elements = new ethers.ContractFactory(abi, code, owner);
     poseidon2Elements = await Poseidon2Elements.deploy();
     await poseidon2Elements.deployed();
 
     const abi3 = poseidonContract.generateABI(3);
     const code3 = poseidonContract.createCode(3);
-    const Poseidon3Elements = new ethers.ContractFactory(
-      abi3,
-      code3,
-      owner
-    );
+    const Poseidon3Elements = new ethers.ContractFactory(abi3, code3, owner);
     poseidon3Elements = await Poseidon3Elements.deploy();
     await poseidon3Elements.deployed();
 
-    const Smt = await ethers.getContractFactory("SMT");
-    smt = await Smt.deploy(poseidon2Elements.address, poseidon3Elements.address);
+    const Smt = await ethers.getContractFactory("Smt");
+    smt = await upgrades.deployProxy(Smt, [
+      poseidon2Elements.address,
+      poseidon3Elements.address,
+      owner.address,
+    ]);
     await smt.deployed();
   });
 
@@ -77,50 +85,44 @@ describe("SMT", () => {
     const testCasesExistence: TestCase[] = [
       {
         description: "add 1 leaf and generate the proof for it",
-        params: [
-          {i: 4, v: 444}
-        ],
+        params: [{ i: 4, v: 444 }],
         getProofParams: 4,
         expectedProof: {
           root: "17172838131998611102390183760409471205043596092117126608119446264795219840387",
-          siblings: ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
-          oldKey: 0,
-          oldValue: 0,
-          isOld0: false,
-          key: 4,
-          value: 444,
-          fnc: 0,
-        }
-      },
-      {
-        description: "add 2 leaves (depth = 2) and generate the proof of the second one",
-        params: [
-          {i: 4, v: 444},
-          {i: 2, v: 222}
-        ],
-        getProofParams: 2,
-        expectedProof: {
-          root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
-          siblings: ["0", "17172838131998611102390183760409471205043596092117126608119446264795219840387", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
-          oldKey: 0,
-          oldValue: 0,
-          isOld0: false,
-          key: 2,
-          value: 222,
-          fnc: 0,
-        }
-      },
-      {
-        description: "add 2 leaves (depth = 2) update 2nd one and generate the proof of the first one",
-        params: [
-          {i: 4, v: 444},
-          {i: 2, v: 222},
-          {i: 2, v: 223},
-        ],
-        getProofParams: 4,
-        expectedProof: {
-          root: "7518984336464932918389970949562858717786148793994477177454424989320848411811",
-          siblings: ["0", "14251506067749311748434684987325372940957929637576367655195798776182705044439", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
+          siblings: [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
           oldKey: 0,
           oldValue: 0,
           isOld0: false,
@@ -130,16 +132,155 @@ describe("SMT", () => {
         },
       },
       {
-        description: "add 2 leaves (depth = 2) update the 2nd leaf and generate the proof of the second one",
+        description:
+          "add 2 leaves (depth = 2) and generate the proof of the second one",
         params: [
-          {i: 4, v: 444},
-          {i: 2, v: 222},
-          {i: 2, v: 223},
+          { i: 4, v: 444 },
+          { i: 2, v: 222 },
+        ],
+        getProofParams: 2,
+        expectedProof: {
+          root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+          siblings: [
+            "0",
+            "17172838131998611102390183760409471205043596092117126608119446264795219840387",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
+          oldKey: 0,
+          oldValue: 0,
+          isOld0: false,
+          key: 2,
+          value: 222,
+          fnc: 0,
+        },
+      },
+      {
+        description:
+          "add 2 leaves (depth = 2) update 2nd one and generate the proof of the first one",
+        params: [
+          { i: 4, v: 444 },
+          { i: 2, v: 222 },
+          { i: 2, v: 223 },
+        ],
+        getProofParams: 4,
+        expectedProof: {
+          root: "7518984336464932918389970949562858717786148793994477177454424989320848411811",
+          siblings: [
+            "0",
+            "14251506067749311748434684987325372940957929637576367655195798776182705044439",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
+          oldKey: 0,
+          oldValue: 0,
+          isOld0: false,
+          key: 4,
+          value: 444,
+          fnc: 0,
+        },
+      },
+      {
+        description:
+          "add 2 leaves (depth = 2) update the 2nd leaf and generate the proof of the second one",
+        params: [
+          { i: 4, v: 444 },
+          { i: 2, v: 222 },
+          { i: 2, v: 223 },
         ],
         getProofParams: 2,
         expectedProof: {
           root: "7518984336464932918389970949562858717786148793994477177454424989320848411811",
-          siblings: ["0", "17172838131998611102390183760409471205043596092117126608119446264795219840387", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
+          siblings: [
+            "0",
+            "17172838131998611102390183760409471205043596092117126608119446264795219840387",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
           oldKey: 0,
           oldValue: 0,
           isOld0: false,
@@ -149,16 +290,54 @@ describe("SMT", () => {
         },
       },
       {
-        description: "add 2 leaves (depth = 2) update the 2nd leaf and generate the proof of the first one for the previous root state",
+        description:
+          "add 2 leaves (depth = 2) update the 2nd leaf and generate the proof of the first one for the previous root state",
         params: [
-          {i: 4, v: 444},
-          {i: 2, v: 222},
-          {i: 2, v: 223},
+          { i: 4, v: 444 },
+          { i: 2, v: 222 },
+          { i: 2, v: 223 },
         ],
-        getProofParams: {index: 2, historicalRoot: "1441373283294527316959936912733986290796958290497398831120725405602534136472"},
+        getProofParams: {
+          index: 2,
+          historicalRoot:
+            "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+        },
         expectedProof: {
           root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
-          siblings: ["0", "17172838131998611102390183760409471205043596092117126608119446264795219840387", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
+          siblings: [
+            "0",
+            "17172838131998611102390183760409471205043596092117126608119446264795219840387",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
           oldKey: 0,
           oldValue: 0,
           isOld0: false,
@@ -168,16 +347,54 @@ describe("SMT", () => {
         },
       },
       {
-        description: "add 2 leaves (depth = 2) update the 2nd leaf and generate the proof of the second one for the previous root state",
+        description:
+          "add 2 leaves (depth = 2) update the 2nd leaf and generate the proof of the second one for the previous root state",
         params: [
-          {i: 4, v: 444},
-          {i: 2, v: 222},
-          {i: 2, v: 223},
+          { i: 4, v: 444 },
+          { i: 2, v: 222 },
+          { i: 2, v: 223 },
         ],
-        getProofParams: {index: 4, historicalRoot: "1441373283294527316959936912733986290796958290497398831120725405602534136472"},
+        getProofParams: {
+          index: 4,
+          historicalRoot:
+            "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+        },
         expectedProof: {
           root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
-          siblings: ["0", "7886566820534140840061358290700879102455368051640197098120169021365756575690", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
+          siblings: [
+            "0",
+            "7886566820534140840061358290700879102455368051640197098120169021365756575690",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
           oldKey: 0,
           oldValue: 0,
           isOld0: false,
@@ -186,7 +403,7 @@ describe("SMT", () => {
           fnc: 0,
         },
       },
-    ]
+    ];
 
     for (const testCase of testCasesExistence) {
       it(`${testCase.description}`, async () => {
@@ -199,115 +416,328 @@ describe("SMT", () => {
     const testCasesNonExistence: TestCase[] = [
       {
         description: "add 1 leaf and generate a proof on non-existing leaf",
-        params: [
-          {i: 4, v: 444}
-        ],
+        params: [{ i: 4, v: 444 }],
         getProofParams: 2,
         expectedProof: {
           root: "17172838131998611102390183760409471205043596092117126608119446264795219840387",
-          siblings: ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
+          siblings: [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
           oldKey: 4,
           oldValue: 444,
           isOld0: false,
           key: 2,
           value: 444,
           fnc: 1,
-        }
+        },
       },
       {
-        description: "add 2 leaves (depth = 2) and generate proof on non-existing leaf WITH aux node",
+        description:
+          "add 2 leaves (depth = 2) and generate proof on non-existing leaf WITH aux node",
         params: [
-          {i: 4, v: 444},
-          {i: 2, v: 222},
+          { i: 4, v: 444 },
+          { i: 2, v: 222 },
         ],
         getProofParams: 6,
         expectedProof: {
           root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
-          siblings: ["0", "17172838131998611102390183760409471205043596092117126608119446264795219840387", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
+          siblings: [
+            "0",
+            "17172838131998611102390183760409471205043596092117126608119446264795219840387",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
           oldKey: 2,
           oldValue: 222,
           isOld0: false,
           key: 6,
           value: 222,
           fnc: 1,
-        }
+        },
       },
       {
-        description: "add 2 leaves (depth = 2) and generate proof on non-existing leaf WITHOUT aux node",
+        description:
+          "add 2 leaves (depth = 2) and generate proof on non-existing leaf WITHOUT aux node",
         params: [
-          {i: 4, v: 444},
-          {i: 2, v: 222},
+          { i: 4, v: 444 },
+          { i: 2, v: 222 },
         ],
         getProofParams: 1,
         expectedProof: {
           root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
-          siblings: ["6675047397658061825643898157145998146182607268727302490292227324666463200032", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
+          siblings: [
+            "6675047397658061825643898157145998146182607268727302490292227324666463200032",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
           oldKey: 0,
           oldValue: 0,
           isOld0: false,
           key: 1,
           value: 0,
           fnc: 1,
-        }
+        },
       },
       {
-        description: "add 2 leaves (depth = 2), update the 2nd leaf and generate proof of non-existing leaf WITH aux node (which existed before update)",
+        description:
+          "add 2 leaves (depth = 2), update the 2nd leaf and generate proof of non-existing leaf WITH aux node (which existed before update)",
         params: [
-          {i: 4, v: 444},
-          {i: 2, v: 222},
-          {i: 2, v: 223},
+          { i: 4, v: 444 },
+          { i: 2, v: 222 },
+          { i: 2, v: 223 },
         ],
-        getProofParams: {index: 6, historicalRoot: "1441373283294527316959936912733986290796958290497398831120725405602534136472"},
+        getProofParams: {
+          index: 6,
+          historicalRoot:
+            "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+        },
         expectedProof: {
           root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
-          siblings: ["0", "17172838131998611102390183760409471205043596092117126608119446264795219840387", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
+          siblings: [
+            "0",
+            "17172838131998611102390183760409471205043596092117126608119446264795219840387",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
           oldKey: 2,
           oldValue: 222,
           isOld0: false,
           key: 6,
           value: 222,
           fnc: 1,
-        }
+        },
       },
       {
-        description: "add 2 leaves (depth = 2), update the 2nd leaf and generate proof of non-existing leaf WITHOUT aux node",
+        description:
+          "add 2 leaves (depth = 2), update the 2nd leaf and generate proof of non-existing leaf WITHOUT aux node",
         params: [
-          {i: 4, v: 444},
-          {i: 2, v: 222},
-          {i: 2, v: 223},
+          { i: 4, v: 444 },
+          { i: 2, v: 222 },
+          { i: 2, v: 223 },
         ],
-        getProofParams: {index: 1, historicalRoot: "1441373283294527316959936912733986290796958290497398831120725405602534136472"},
+        getProofParams: {
+          index: 1,
+          historicalRoot:
+            "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+        },
         expectedProof: {
           root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
-          siblings: ["6675047397658061825643898157145998146182607268727302490292227324666463200032", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
+          siblings: [
+            "6675047397658061825643898157145998146182607268727302490292227324666463200032",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
           oldKey: 0,
           oldValue: 0,
           isOld0: false,
           key: 1,
           value: 0,
           fnc: 1,
-        }
+        },
       },
       {
-        description: "add 2 leaves (depth = 2), add 3rd leaf and generate proof of non-existance for the 3rd leaf in the previous root state",
+        description:
+          "add 2 leaves (depth = 2), add 3rd leaf and generate proof of non-existance for the 3rd leaf in the previous root state",
         params: [
-          {i: 4, v: 444},
-          {i: 2, v: 222},
-          {i: 1, v: 111},
+          { i: 4, v: 444 },
+          { i: 2, v: 222 },
+          { i: 1, v: 111 },
         ],
-        getProofParams: {index: 1, historicalRoot: "1441373283294527316959936912733986290796958290497398831120725405602534136472"},
+        getProofParams: {
+          index: 1,
+          historicalRoot:
+            "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+        },
         expectedProof: {
           root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
-          siblings: ["6675047397658061825643898157145998146182607268727302490292227324666463200032", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
+          siblings: [
+            "6675047397658061825643898157145998146182607268727302490292227324666463200032",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
           oldKey: 0,
           oldValue: 0,
           isOld0: false,
           key: 1,
           value: 0,
           fnc: 1,
-        }
+        },
       },
-    ]
+    ];
 
     for (const testCase of testCasesNonExistence) {
       it(`${testCase.description}`, async () => {
@@ -321,28 +751,63 @@ describe("SMT", () => {
       const testCaseEdge: TestCase = {
         description: "Positive: add two leaves with maximum depth",
         params: [
-          {i: genMaxBinaryNumber(30), v: 100},
-          {i: genMaxBinaryNumber(31), v: 100}
+          { i: genMaxBinaryNumber(30), v: 100 },
+          { i: genMaxBinaryNumber(31), v: 100 },
         ],
         getProofParams: genMaxBinaryNumber(30),
         expectedProof: {
           root: "6449232753855221707194667931706346705297555021165401674032084876583756436933",
-          siblings: ["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","381734955794712863726334416780425272712032446533219069541873199912632687686","0"],
+          siblings: [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "381734955794712863726334416780425272712032446533219069541873199912632687686",
+            "0",
+          ],
           oldKey: 0,
           oldValue: 0,
           isOld0: false,
           key: 1073741823,
           value: 100,
           fnc: 0,
-        }
-      }
+        },
+      };
 
       await checkTestCase(testCaseEdge);
     });
 
     it("Negative: add two leaves with maximum depth + 1", async () => {
       await expect(smt.add(genMaxBinaryNumber(31), 100)).not.to.be.reverted;
-      await expect(smt.add(genMaxBinaryNumber(32), 100)).to.be.revertedWith("Max depth reached");
+      await expect(smt.add(genMaxBinaryNumber(32), 100)).to.be.revertedWith(
+        "Max depth reached"
+      );
     });
   });
 });

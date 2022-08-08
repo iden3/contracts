@@ -1,5 +1,10 @@
 import { expect } from "chai";
-import { deployContracts, prepareInputs, publishState } from "./utils";
+import {
+  deployContracts,
+  deployMtp,
+  prepareInputs,
+  publishState,
+} from "../deploy-utils";
 
 const testCases = [
   {
@@ -48,9 +53,10 @@ describe("Atomic MTP Verifier", function () {
   let state: any, mtp: any;
 
   beforeEach(async () => {
-    const contracts = await deployContracts();
+    const contracts = await deployContracts(true);
     state = contracts.state;
-    mtp = contracts.mtp;
+    const contractsMtp = await deployMtp(state.address);
+    mtp = contractsMtp.mtp;
   });
 
   for (const test of testCases) {

@@ -8,7 +8,7 @@ async function main() {
   const stateV2Facotry = await ethers.getContractFactory("StateV2Mock");
   const StateAddress = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
 
-  // Upgrade 
+  // Upgrade
   const tx = await upgrades.upgradeProxy(StateAddress, stateV2Facotry);
 
   console.log(tx.deployTransaction);
@@ -19,8 +19,7 @@ async function main() {
   await stateV2Contract.setVersion();
   const version2 = await stateV2Contract.version();
 
-  console.log(version, version2)
-
+  console.log(version, version2);
 }
 main()
   .then(() => process.exit(0))

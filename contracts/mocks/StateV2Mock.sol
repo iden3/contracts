@@ -58,8 +58,6 @@ contract StateV2Mock is OwnableUpgradeable {
      */
     mapping(uint256 => transitionsInfo) public transitions;
 
-    uint256 public version;
-    
     /**
      * @dev event called when a state is updated
      * @param id identity
@@ -73,10 +71,6 @@ contract StateV2Mock is OwnableUpgradeable {
         uint64 timestamp,
         uint256 state
     );
-
-    function setVersion() public onlyOwner {
-       version = 2;
-    }
 
     function initialize(
         IVerifier _verifierContractAddr
