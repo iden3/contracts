@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.15;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -11,11 +12,57 @@ interface IVerifier {
     ) external view returns (bool r);
 }
 
+interface ISmt {
+    function add(uint256 index, uint256 value) external;
+
+    function getProof(uint256 _index)
+        external
+        view
+        returns (
+            uint256, // Root
+            uint256[] memory, // Siblings
+            uint256, // OldKey
+            uint256, // OldValue
+            bool, // IsOld0
+            uint256, // Key
+            uint256, // Value
+            uint256 // Fnc
+        );
+
+    function getHistoricalProofByBlock(uint256 index, uint64 _block)
+        external
+        view
+        returns (
+            uint256, // Root
+            uint256[32] memory, // Siblings
+            uint256, // OldKey
+            uint256, // OldValue
+            bool, // IsOld0
+            uint256, // Key
+            uint256, // Value
+            uint256 // Fnc
+        );
+
+    function getHistoricalProofByTime(uint256 index, uint64 timestamp)
+        external
+        view
+        returns (
+            uint256, // Root
+            uint256[32] memory, // Siblings
+            uint256, // OldKey
+            uint256, // OldValue
+            bool, // IsOld0
+            uint256, // Key
+            uint256, // Value
+            uint256 // Fnc
+        );
+}
+
 // /**
 //  * @dev Set and get states for each identity
 //  */
 // contract State is Iden3Helpers {
-contract StateV2Mock is OwnableUpgradeable {
+contract StateV2 is OwnableUpgradeable {
     /**
      * @dev Struct saved for each identity. Stores state and block/timestamp associated.
      */
@@ -58,8 +105,6 @@ contract StateV2Mock is OwnableUpgradeable {
      */
     mapping(uint256 => transitionsInfo) public transitions;
 
-    uint256 public version;
-
     /**
      * @dev event called when a state is updated
      * @param id identity
@@ -74,9 +119,15 @@ contract StateV2Mock is OwnableUpgradeable {
         uint256 state
     );
 
-    function setVersion() public onlyOwner {
-        version = 2;
-    }
+    /**
+     * @dev SMT address
+     */
+    ISmt internal smt;
+
+    /**
+     * @dev SMT address
+     */
+    bool private _stateTransitionEnabled;
 
     function initialize(IVerifier _verifierContractAddr) public initializer {
         verifier = _verifierContractAddr;
@@ -85,6 +136,26 @@ contract StateV2Mock is OwnableUpgradeable {
 
     function setVerifier(address newVerifier) public onlyOwner {
         verifier = IVerifier(newVerifier);
+    }
+
+    function getTrasitionStateEnabled() public view onlyOwner returns (bool) {
+        return _stateTransitionEnabled;
+    }
+
+    function setTransitionStateEnabled(bool transitStateEnabled)
+        public
+        onlyOwner
+    {
+        _stateTransitionEnabled = transitStateEnabled;
+    }
+
+    function getVerifier(address newVerifier) public onlyOwner {
+        verifier = IVerifier(newVerifier);
+    }
+
+    function setSmt(address smtAddress) public onlyOwner {
+        smt = ISmt(smtAddress);
+        _stateTransitionEnabled = false;
     }
 
     function transitState(
@@ -96,6 +167,8 @@ contract StateV2Mock is OwnableUpgradeable {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) public {
+        require(_stateTransitionEnabled, "state transition is Enabled");
+
         if (isOldStateGenesis == false) {
             require(
                 identities[id].length > 0,
@@ -156,6 +229,7 @@ contract StateV2Mock is OwnableUpgradeable {
         transitions[oldState].replacedAtTimestamp = block.timestamp;
         transitions[oldState].replacedAtBlock = uint64(block.number);
         transitions[oldState].replacedBy = newState;
+        smt.add(id, newState);
 
         emit StateUpdated(
             id,
@@ -351,5 +425,56 @@ contract StateV2Mock is OwnableUpgradeable {
             lastIdState.BlockTimestamp,
             lastIdState.State
         );
+    }
+
+    function getProof(uint256 _index)
+        public
+        view
+        returns (
+            uint256, // Root
+            uint256[] memory, // Siblings
+            uint256, // OldKey
+            uint256, // OldValue
+            bool, // IsOld0
+            uint256, // Key
+            uint256, // Value
+            uint256 // Fnc
+        )
+    {
+        return smt.getProof(_index);
+    }
+
+    function getHistoricalProofByBlock(uint256 index, uint64 _block)
+        public
+        view
+        returns (
+            uint256, // Root
+            uint256[32] memory, // Siblings
+            uint256, // OldKey
+            uint256, // OldValue
+            bool, // IsOld0
+            uint256, // Key
+            uint256, // Value
+            uint256 // Fnc
+        )
+    {
+        return smt.getHistoricalProofByBlock(index, _block);
+    }
+
+    function getHistoricalProofByTime(uint256 index, uint64 timestamp)
+        public
+        view
+        returns (
+            uint256, // Root
+            uint256[32] memory, // Siblings
+            uint256, // OldKey
+            uint256, // OldValue
+            bool, // IsOld0
+            uint256, // Key
+            uint256, // Value
+            uint256 // Fnc
+        )
+    {
+        return smt.getHistoricalProofByTime(index, timestamp);
     }
 }

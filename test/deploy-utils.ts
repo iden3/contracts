@@ -33,10 +33,7 @@ export function toBigNumber({ inputs, pi_a, pi_b, pi_c }: VerificationInfo) {
   };
 }
 
-export async function deployContracts(
-  deployMtp = false,
-  enableLogging = false
-): Promise<{
+export async function deployContracts(enableLogging = false): Promise<{
   state: any;
   smt: any;
   verifier: any;
@@ -46,14 +43,31 @@ export async function deployContracts(
   await verifier.deployed();
   enableLogging && console.log("Verifier deployed to:", verifier.address);
 
-  const State = await ethers.getContractFactory("State");
+  const State = await ethers.getContractFactory("StateV2");
   const state = await upgrades.deployProxy(State, [verifier.address]);
   await state.deployed();
   enableLogging && console.log("State deployed to:", state.address);
 
-  const smt = await deploySmt(state.address, enableLogging);
+  const [owner] = await ethers.getSigners();
+
+  const { poseidon2Elements, poseidon3Elements } = await deployPoseidons(
+    owner,
+    enableLogging
+  );
+
+  console.log(owner.address, "ownr.address");
+  console.log(state.address, "state.address");
+
+  const smt = await deploySmt(
+    state.address,
+    poseidon2Elements.address,
+    poseidon3Elements.address,
+    enableLogging
+  );
 
   await state.setSmt(smt.address);
+  // Enable state transition
+  await state.setTransitionStateEnabled(true);
 
   return {
     state,
@@ -116,14 +130,36 @@ export async function deployMtp(
 }
 
 export async function deploySmt(
-  contractAddress: string,
+  writerAddress: string,
+  poseidon2Address: string,
+  poseidon3Address: string,
   enableLogging = false
 ): Promise<any> {
-  const [owner] = await ethers.getSigners();
+  const Smt = await ethers.getContractFactory("Smt");
+  const smt = await upgrades.deployProxy(Smt, [
+    poseidon2Address,
+    poseidon3Address,
+    writerAddress,
+  ]);
+  await smt.deployed();
+  enableLogging &&
+    console.log(
+      `SMT deployed to:  ${smt.address} with writer address ${writerAddress}`
+    );
 
+  return smt;
+}
+
+export async function deployPoseidons(
+  deployer: any,
+  enableLogging = false
+): Promise<{
+  poseidon2Elements: any;
+  poseidon3Elements: any;
+}> {
   const abi2 = poseidonContract.generateABI(2);
   const code2 = poseidonContract.createCode(2);
-  const Poseidon2Elements = new ethers.ContractFactory(abi2, code2, owner);
+  const Poseidon2Elements = new ethers.ContractFactory(abi2, code2, deployer);
   const poseidon2Elements = await Poseidon2Elements.deploy();
   await poseidon2Elements.deployed();
   enableLogging &&
@@ -131,21 +167,14 @@ export async function deploySmt(
 
   const abi3 = poseidonContract.generateABI(3);
   const code3 = poseidonContract.createCode(3);
-  const Poseidon3Elements = new ethers.ContractFactory(abi3, code3, owner);
+  const Poseidon3Elements = new ethers.ContractFactory(abi3, code3, deployer);
   const poseidon3Elements = await Poseidon3Elements.deploy();
   await poseidon3Elements.deployed();
   enableLogging &&
     console.log("Poseidon3Elements deployed to:", poseidon3Elements.address);
-  const Smt = await ethers.getContractFactory("Smt");
-  const smt = await upgrades.deployProxy(Smt, [
-    poseidon2Elements.address,
-    poseidon3Elements.address,
-    contractAddress,
-  ]);
-  await smt.deployed();
-  enableLogging &&
-    console.log(
-      `SMT deployed to:  ${smt.address} with writer address ${contractAddress}`
-    );
-  return smt;
+
+  return {
+    poseidon2Elements,
+    poseidon3Elements,
+  };
 }

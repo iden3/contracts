@@ -1,61 +1,14 @@
-// SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.15;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 interface IVerifier {
     function verifyProof(
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        uint256[4] memory input
+        uint[2] memory a,
+        uint[2][2] memory b,
+        uint[2] memory c,
+        uint[4] memory input
     ) external view returns (bool r);
-}
-
-interface ISmt {
-    function add(uint256 index, uint256 value) external;
-
-    function getProof(uint256 _index)
-        external
-        view
-        returns (
-            uint256, // Root
-            uint256[] memory, // Siblings
-            uint256, // OldKey
-            uint256, // OldValue
-            bool, // IsOld0
-            uint256, // Key
-            uint256, // Value
-            uint256 // Fnc
-        );
-
-    function getHistoricalProofByBlock(uint256 index, uint64 _block)
-        external
-        view
-        returns (
-            uint256, // Root
-            uint256[32] memory, // Siblings
-            uint256, // OldKey
-            uint256, // OldValue
-            bool, // IsOld0
-            uint256, // Key
-            uint256, // Value
-            uint256 // Fnc
-        );
-
-    function getHistoricalProofByTime(uint256 index, uint64 timestamp)
-        external
-        view
-        returns (
-            uint256, // Root
-            uint256[32] memory, // Siblings
-            uint256, // OldKey
-            uint256, // OldValue
-            bool, // IsOld0
-            uint256, // Key
-            uint256, // Value
-            uint256 // Fnc
-        );
 }
 
 // /**
@@ -95,7 +48,7 @@ contract State is OwnableUpgradeable {
      */
     IVerifier public verifier;
 
-    /**
+   /**
      * @dev Correlation between identity and its state (plus block/time)
      */
     mapping(uint256 => IDState[]) public identities;
@@ -119,22 +72,16 @@ contract State is OwnableUpgradeable {
         uint256 state
     );
 
-    /**
-     * @dev SMT address
-     */
-    ISmt internal smt;
-
-    function initialize(IVerifier _verifierContractAddr) public initializer {
-        verifier = _verifierContractAddr;
-        __Ownable_init();
+    function initialize(
+        IVerifier _verifierContractAddr
+    ) public initializer {
+       verifier = _verifierContractAddr;
+       __Ownable_init();
     }
+
 
     function setVerifier(address newVerifier) public onlyOwner {
         verifier = IVerifier(newVerifier);
-    }
-
-    function setSmt(address smtAddress) public onlyOwner {
-        smt = ISmt(smtAddress);
     }
 
     function transitState(
@@ -152,9 +99,7 @@ contract State is OwnableUpgradeable {
                 "there should be at least one state for identity in smart contract when isOldStateGenesis == 0"
             );
 
-            IDState memory oldIDState = identities[id][
-                identities[id].length - 1
-            ];
+            IDState memory oldIDState = identities[id][identities[id].length - 1];
             require(
                 oldIDState.BlockN != block.number,
                 "no multiple set in the same block"
@@ -168,21 +113,22 @@ contract State is OwnableUpgradeable {
                 identities[id].length == 0,
                 "there should be no states for identity in smart contract when isOldStateGenesis != 0"
             );
-            require(transitions[oldState].id == 0, "oldState should not exist");
+            require(
+                transitions[oldState].id == 0,
+                "oldState should not exist"
+            );
             // link genesis state to Id in the smart contract, but creation time and creation block is unknown
             transitions[oldState].id = id;
             // push genesis state to identities as latest state
             identities[id].push(IDState(0, 0, oldState));
         }
 
-        require(transitions[newState].id == 0, "newState should not exist");
+        require(
+            transitions[newState].id == 0,
+            "newState should not exist"
+        );
 
-        uint256[4] memory input = [
-            id,
-            oldState,
-            newState,
-            uint256(isOldStateGenesis ? 1 : 0)
-        ];
+        uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis?1:0)];
         require(
             verifier.verifyProof(a, b, c, input),
             "zero-knowledge proof of state transition is not valid "
@@ -206,7 +152,6 @@ contract State is OwnableUpgradeable {
         transitions[oldState].replacedAtTimestamp = block.timestamp;
         transitions[oldState].replacedAtBlock = uint64(block.number);
         transitions[oldState].replacedBy = newState;
-        smt.add(id, newState);
 
         emit StateUpdated(
             id,
@@ -402,56 +347,5 @@ contract State is OwnableUpgradeable {
             lastIdState.BlockTimestamp,
             lastIdState.State
         );
-    }
-
-    function getProof(uint256 _index)
-        public
-        view
-        returns (
-            uint256, // Root
-            uint256[] memory, // Siblings
-            uint256, // OldKey
-            uint256, // OldValue
-            bool, // IsOld0
-            uint256, // Key
-            uint256, // Value
-            uint256 // Fnc
-        )
-    {
-        return smt.getProof(_index);
-    }
-
-    function getHistoricalProofByBlock(uint256 index, uint64 _block)
-        public
-        view
-        returns (
-            uint256, // Root
-            uint256[32] memory, // Siblings
-            uint256, // OldKey
-            uint256, // OldValue
-            bool, // IsOld0
-            uint256, // Key
-            uint256, // Value
-            uint256 // Fnc
-        )
-    {
-        return smt.getHistoricalProofByBlock(index, _block);
-    }
-
-    function getHistoricalProofByTime(uint256 index, uint64 timestamp)
-        public
-        view
-        returns (
-            uint256, // Root
-            uint256[32] memory, // Siblings
-            uint256, // OldKey
-            uint256, // OldValue
-            bool, // IsOld0
-            uint256, // Key
-            uint256, // Value
-            uint256 // Fnc
-        )
-    {
-        return smt.getHistoricalProofByTime(index, timestamp);
     }
 }

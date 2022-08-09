@@ -53,7 +53,7 @@ describe("Atomic MTP Verifier", function () {
   let state: any, mtp: any;
 
   beforeEach(async () => {
-    const contracts = await deployContracts(true);
+    const contracts = await deployContracts();
     state = contracts.state;
     const contractsMtp = await deployMtp(state.address);
     mtp = contractsMtp.mtp;

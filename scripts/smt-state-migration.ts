@@ -1,23 +1,142 @@
 import { ethers, upgrades } from "hardhat";
+import hre from "hardhat";
+import { deploySmt } from "../test/deploy-utils";
+import fs from "fs";
 
 export class SmtStateMigration {
-  static async getStateTransitionHistory(stateContract: any): Promise<any[]> {
+  static async getStateTransitionHistory(
+    stateContract: any,
+    startBlockNumber = 0, //29831814
+    blockChunkSize = 3500,
+    enableLogging = false
+  ): Promise<any[]> {
     const filter = stateContract.filters.StateUpdated(null, null, null, null);
-    const stateHistory = await stateContract.queryFilter(filter);
-    return stateHistory;
-  }
+    const latestBlock = await ethers.provider.getBlock("latest");
+    enableLogging && console.log("latestBlock Number", latestBlock.number);
 
-  static async migrate(smt: any, stateHistory: any[]): Promise<void> {
-    for (let index = 0; index < stateHistory.length; index++) {
-      const [id, block, timestamp, state] = stateHistory[index].args;
-      await smt.addHistorical(id, state, timestamp, block);
+    let stateTransitionHistory: unknown[] = [];
+
+    for (
+      let index = startBlockNumber;
+      index <= latestBlock.number;
+      index += blockChunkSize
+    ) {
+      let pagedHistory;
+      try {
+        pagedHistory = await stateContract.queryFilter(
+          filter,
+          index,
+          index + blockChunkSize - 1
+        );
+      } catch (error) {
+        console.error(error);
+      }
+      enableLogging &&
+        console.log(
+          `state transition history length: ${pagedHistory.length}, current block number: ${index}, latest block number: ${latestBlock.number}`
+        );
+      stateTransitionHistory = [...stateTransitionHistory, ...pagedHistory];
     }
+    enableLogging &&
+      console.log(`Total events count: ${stateTransitionHistory.length}`);
+
+    // save data to file
+    SmtStateMigration.writeFile("events-data.json", stateTransitionHistory);
+
+    return stateTransitionHistory;
   }
 
-  static async upgradeState(existingStateAddress: any) {
-    const stateFactory = await ethers.getContractFactory("State");
-    await upgrades.upgradeProxy(existingStateAddress, stateFactory);
-    const stateContract = stateFactory.attach(existingStateAddress);
+  static async migrate(
+    smtContract: any,
+    stateTransitionHistory: any[],
+    enableLogging = false
+  ): Promise<void> {
+    const result: { migratedData: any[]; error: unknown; index: number } = {
+      migratedData: [],
+      error: null,
+      index: 0,
+    };
+    for (let index = 0; index < stateTransitionHistory.length; index++) {
+      const [id, block, timestamp, state] = stateTransitionHistory[index].args;
+      result.index = index;
+      try {
+        await smtContract.addHistorical(id, state, timestamp, block);
+
+        result.migratedData.push({ id, state, timestamp, block });
+      } catch (error) {
+        result.error = error;
+        break;
+      }
+    }
+    if (!result.error) {
+      enableLogging && console.log("migration completed successfully", result);
+    } else {
+      enableLogging && console.log("migration error", result.error);
+    }
+    SmtStateMigration.writeFile("migration-result.json", result);
+  }
+
+  static async upgradeState(
+    existingStateAddress: string,
+    enableLogging = false
+  ): Promise<any> {
+    await hre.run("compile");
+
+    const StateV2Factory = await ethers.getContractFactory("StateV2");
+    // Upgrade
+    const tx = await upgrades.upgradeProxy(
+      existingStateAddress,
+      StateV2Factory
+    );
+
+    enableLogging &&
+      console.log(`upgrade successful: ${tx.deployTransaction.hash}`);
+
+    const stateContract = StateV2Factory.attach(existingStateAddress);
     return stateContract;
+  }
+
+  private static writeFile(fileName: string, data: any): void {
+    fs.writeFile(fileName, JSON.stringify(data), (err) => {
+      if (err) {
+        console.log(err);
+        process.exit(1);
+      }
+    });
+  }
+
+  static async run(enableLogging = true): Promise<void> {
+    const existingStateAddress = "";
+    const poseidon2Address = "";
+    const poseidon3Address = "";
+
+    // 1. upgrade state from mock to state
+    const stateContract = await SmtStateMigration.upgradeState(
+      existingStateAddress,
+      enableLogging
+    );
+
+    // 2. deploy smt and set smt address to state
+    const smt = await deploySmt(
+      stateContract.address,
+      poseidon2Address,
+      poseidon3Address,
+      enableLogging
+    );
+    await stateContract.setSmt(smt.address);
+
+    // 3. fetch all stateTransition from event
+    const stateHistory = await SmtStateMigration.getStateTransitionHistory(
+      stateContract,
+      29831814,
+      3500,
+      enableLogging
+    );
+
+    // 4. migrate state
+    await SmtStateMigration.migrate(smt, stateHistory, enableLogging);
+
+    // 5. enable state transition
+    await stateContract.setTransitionStateEnabled(true);
   }
 }
