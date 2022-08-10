@@ -138,7 +138,7 @@ contract StateV2 is OwnableUpgradeable {
         verifier = IVerifier(newVerifier);
     }
 
-    function getTrasitionStateEnabled() public view onlyOwner returns (bool) {
+    function getTrasitionStateEnabled() public view returns (bool) {
         return _stateTransitionEnabled;
     }
 

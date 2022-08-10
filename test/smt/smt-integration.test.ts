@@ -89,7 +89,7 @@ describe("State Migration to SMT test", () => {
       poseidon3Elements.address
     );
 
-    await expect(smt.add(1, 2)).not.to.be.reverted;
+    await expect(smt.connect(addr1).add(1, 2)).not.to.be.reverted;
     await expect(smt.connect(addr2).add(1, 2)).to.be.revertedWith(
       "caller has no permissions"
     );
@@ -97,14 +97,14 @@ describe("State Migration to SMT test", () => {
       "caller has no permissions"
     );
 
-    await expect(smt.connect(owner).add(1, 4)).not.to.be.revertedWith(
+    await expect(smt.connect(owner).add(1, 4)).to.be.revertedWith(
       "caller has no permissions"
     );
   });
 });
 
 describe("State SMT integration tests", () => {
-  it("should upgrade to new state and migrate existing states to smt", async () => {
+  it.only("should upgrade to new state and migrate existing states to smt", async () => {
     // 1. deploy verifier
     const Verifier = await ethers.getContractFactory("Verifier");
     const verifier = await Verifier.deploy();
@@ -136,43 +136,32 @@ describe("State SMT integration tests", () => {
     const { poseidon2Elements, poseidon3Elements } = await deployPoseidons(
       owner
     );
-
-    // 4. deploy smt and set smt address to state
-
-    const smt = await deploySmt(
+    // 4. run migration
+    const { smt } = await SmtStateMigration.run(
       stateContract.address,
       poseidon2Elements.address,
       poseidon3Elements.address
     );
 
-    await stateContract.setSmt(smt.address);
+    // 5. verify smt tree has history
+    let rootHistoryLength = await smt.rootHistoryLength();
 
-    // 5. fetch all stateTransition from event
+    let rootHistory = await smt.getRootHistory(0, rootHistoryLength - 1);
+
     let stateHistory = await SmtStateMigration.getStateTransitionHistory(
       stateContract,
       0,
       1
     );
 
-    // 6. migrate state
-    await SmtStateMigration.migrate(smt, stateHistory);
-
-    // 7. enable state transition
-    await stateContract.setTransitionStateEnabled(true);
-
-    // 8. verify smt tree has history
-    let rootHistoryLength = await smt.rootHistoryLength();
-
-    let rootHistory = await smt.getRootHistory(0, rootHistoryLength - 1);
-
     expect(rootHistory.length).to.equal(stateHistory.length);
 
-    // 9. add state transition to migrated state contract
+    // 6. add state transition to migrated state contract
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const stateTransition = require("../mtp/data/user_state_transition.json");
     await publishState(stateContract, stateTransition);
 
-    // 10. verify transit state has changed  tree  history
+    // 7 verify transit state has changed  tree  history
     rootHistoryLength = await smt.rootHistoryLength();
 
     expect(rootHistoryLength).to.equal(3);
@@ -184,5 +173,41 @@ describe("State SMT integration tests", () => {
     rootHistory = await smt.getRootHistory(0, rootHistoryLength - 1);
 
     expect(rootHistory.length).to.equal(stateHistory.length);
+  });
+
+  it.skip("estimate tree migration gas", async () => {
+    const count = 3;
+    const [owner] = await ethers.getSigners();
+    const { poseidon2Elements, poseidon3Elements } = await deployPoseidons(
+      owner
+    );
+    const smt = await deploySmt(
+      owner.address,
+      poseidon2Elements.address,
+      poseidon3Elements.address
+    );
+    const id = BigInt(
+      "279949150130214723420589610911161895495647789006649785264738141299135414272"
+    );
+    const state = BigInt(
+      "179949150130214723420589610911161895495647789006649785264738141299135414272"
+    );
+
+    const stateTransitionHistory = new Array(count).fill(0).map((_, index) => {
+      return {
+        args: [
+          id + BigInt(index),
+          29831814 + index,
+          Math.floor(Date.now() / 1000),
+          state + BigInt(index),
+        ],
+      };
+    });
+
+    await SmtStateMigration.migrate(smt, stateTransitionHistory);
+
+    const rootHistoryLength = await smt.rootHistoryLength();
+
+    expect(rootHistoryLength).to.equal(count);
   });
 });

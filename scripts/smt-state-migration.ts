@@ -1,6 +1,6 @@
 import { ethers, upgrades } from "hardhat";
 import hre from "hardhat";
-import { deploySmt } from "../test/deploy-utils";
+import { deploySmt, toJson } from "../test/deploy-utils";
 import fs from "fs";
 
 export class SmtStateMigration {
@@ -51,8 +51,14 @@ export class SmtStateMigration {
     stateTransitionHistory: any[],
     enableLogging = false
   ): Promise<void> {
-    const result: { migratedData: any[]; error: unknown; index: number } = {
+    const result: {
+      migratedData: any[];
+      error: unknown;
+      index: number;
+      receipt: unknown;
+    } = {
       migratedData: [],
+      receipt: null,
       error: null,
       index: 0,
     };
@@ -60,10 +66,16 @@ export class SmtStateMigration {
       const [id, block, timestamp, state] = stateTransitionHistory[index].args;
       result.index = index;
       try {
-        await smtContract.addHistorical(id, state, timestamp, block);
-
+        const tx = await smtContract.addHistorical(id, state, timestamp, block);
+        const receipt = await tx.wait();
         result.migratedData.push({ id, state, timestamp, block });
+        if (receipt.status !== 1) {
+          result.receipt = receipt;
+          break;
+        }
       } catch (error) {
+        console.log(error);
+
         result.error = error;
         break;
       }
@@ -77,27 +89,24 @@ export class SmtStateMigration {
   }
 
   static async upgradeState(
-    existingStateAddress: string,
+    stateProxyAddress: string,
     enableLogging = false
   ): Promise<any> {
     await hre.run("compile");
 
     const StateV2Factory = await ethers.getContractFactory("StateV2");
     // Upgrade
-    const tx = await upgrades.upgradeProxy(
-      existingStateAddress,
-      StateV2Factory
-    );
+    const tx = await upgrades.upgradeProxy(stateProxyAddress, StateV2Factory);
 
     enableLogging &&
       console.log(`upgrade successful: ${tx.deployTransaction.hash}`);
 
-    const stateContract = StateV2Factory.attach(existingStateAddress);
+    const stateContract = StateV2Factory.attach(stateProxyAddress);
     return stateContract;
   }
 
   private static writeFile(fileName: string, data: any): void {
-    fs.writeFile(fileName, JSON.stringify(data), (err) => {
+    fs.writeFile(fileName, toJson(data), (err) => {
       if (err) {
         console.log(err);
         process.exit(1);
@@ -105,14 +114,19 @@ export class SmtStateMigration {
     });
   }
 
-  static async run(enableLogging = true): Promise<void> {
-    const existingStateAddress = "";
-    const poseidon2Address = "";
-    const poseidon3Address = "";
+  static async run(
+    stateProxyAddress: string,
+    poseidon2Address: string,
+    poseidon3Address: string,
+    enableLogging = true
+  ): Promise<{ smt: any; stateContract: any }> {
+    // const existingStateAddress = "";
+    // const poseidon2Address = "";
+    // const poseidon3Address = "";
 
     // 1. upgrade state from mock to state
     const stateContract = await SmtStateMigration.upgradeState(
-      existingStateAddress,
+      stateProxyAddress,
       enableLogging
     );
 
@@ -128,8 +142,8 @@ export class SmtStateMigration {
     // 3. fetch all stateTransition from event
     const stateHistory = await SmtStateMigration.getStateTransitionHistory(
       stateContract,
-      29831814,
-      3500,
+      0, //29831814,
+      1, //3500,
       enableLogging
     );
 
@@ -138,5 +152,10 @@ export class SmtStateMigration {
 
     // 5. enable state transition
     await stateContract.setTransitionStateEnabled(true);
+
+    return {
+      stateContract,
+      smt,
+    };
   }
 }
