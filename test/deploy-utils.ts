@@ -55,9 +55,6 @@ export async function deployContracts(enableLogging = false): Promise<{
     enableLogging
   );
 
-  console.log(owner.address, "ownr.address");
-  console.log(state.address, "state.address");
-
   const smt = await deploySmt(
     state.address,
     poseidon2Elements.address,
