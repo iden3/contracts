@@ -15,6 +15,13 @@ interface IVerifier {
 interface ISmt {
     function add(uint256 index, uint256 value) external;
 
+    function addHistorical(
+        uint256 _i,
+        uint256 _v,
+        uint64 _timestamp,
+        uint64 _blockNumber
+    ) external;
+
     function getProof(uint256 _index)
         external
         view
@@ -476,5 +483,15 @@ contract StateV2 is OwnableUpgradeable {
         )
     {
         return smt.getHistoricalProofByTime(index, timestamp);
+    }
+
+    function migrateStateToSmt(
+        uint256 id,
+        uint256 state,
+        uint64 timestamp,
+        uint64 blockNumber
+    ) public onlyOwner {
+        require(!_stateTransitionEnabled, "smt migration is not allowed");
+        smt.addHistorical(id, state, timestamp, blockNumber);
     }
 }

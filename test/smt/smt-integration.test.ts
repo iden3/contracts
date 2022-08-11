@@ -104,7 +104,7 @@ describe("State Migration to SMT test", () => {
 });
 
 describe("State SMT integration tests", () => {
-  it.only("should upgrade to new state and migrate existing states to smt", async () => {
+  it("should upgrade to new state and migrate existing states to smt", async () => {
     // 1. deploy verifier
     const Verifier = await ethers.getContractFactory("Verifier");
     const verifier = await Verifier.deploy();
@@ -125,25 +125,19 @@ describe("State SMT integration tests", () => {
     for (const issuerStateJson of statesToPublish) {
       await publishState(existingState, issuerStateJson);
     }
-
-    // 3. upgrade state from mock to state
-    const stateContract = await SmtStateMigration.upgradeState(
-      existingState.address
-    );
-
     const [owner] = await ethers.getSigners();
 
     const { poseidon2Elements, poseidon3Elements } = await deployPoseidons(
       owner
     );
-    // 4. run migration
-    const { smt } = await SmtStateMigration.run(
-      stateContract.address,
+    // 3. run migration
+    const { smt, stateContract } = await SmtStateMigration.run(
+      existingState.address,
       poseidon2Elements.address,
       poseidon3Elements.address
     );
 
-    // 5. verify smt tree has history
+    // 4. verify smt tree has history
     let rootHistoryLength = await smt.rootHistoryLength();
 
     let rootHistory = await smt.getRootHistory(0, rootHistoryLength - 1);
@@ -156,12 +150,12 @@ describe("State SMT integration tests", () => {
 
     expect(rootHistory.length).to.equal(stateHistory.length);
 
-    // 6. add state transition to migrated state contract
+    // 5. add state transition to migrated state contract
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const stateTransition = require("../mtp/data/user_state_transition.json");
     await publishState(stateContract, stateTransition);
 
-    // 7 verify transit state has changed  tree  history
+    // 6. verify transit state has changed  tree  history
     rootHistoryLength = await smt.rootHistoryLength();
 
     expect(rootHistoryLength).to.equal(3);
@@ -176,16 +170,36 @@ describe("State SMT integration tests", () => {
   });
 
   it.skip("estimate tree migration gas", async () => {
-    const count = 3;
+    const count = 350;
     const [owner] = await ethers.getSigners();
+    // 1. deploy verifier
+    const Verifier = await ethers.getContractFactory("Verifier");
+    const verifier = await Verifier.deploy();
+    await verifier.deployed();
+
+    // 2. deploy existing state
+    const ExistingState = await ethers.getContractFactory("State");
+    const existingState = await upgrades.deployProxy(ExistingState, [
+      verifier.address,
+    ]);
+    await existingState.deployed();
+
+    const stateContract = await SmtStateMigration.upgradeState(
+      existingState.address
+    );
+
     const { poseidon2Elements, poseidon3Elements } = await deployPoseidons(
       owner
     );
+
     const smt = await deploySmt(
-      owner.address,
+      stateContract.address,
       poseidon2Elements.address,
       poseidon3Elements.address
     );
+
+    await stateContract.setSmt(smt.address);
+
     const id = BigInt(
       "279949150130214723420589610911161895495647789006649785264738141299135414272"
     );
@@ -204,7 +218,7 @@ describe("State SMT integration tests", () => {
       };
     });
 
-    await SmtStateMigration.migrate(smt, stateTransitionHistory);
+    await SmtStateMigration.migrate(stateContract, stateTransitionHistory);
 
     const rootHistoryLength = await smt.rootHistoryLength();
 

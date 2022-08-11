@@ -47,7 +47,7 @@ export class SmtStateMigration {
   }
 
   static async migrate(
-    smtContract: any,
+    stateContract: any,
     stateTransitionHistory: any[],
     enableLogging = false
   ): Promise<void> {
@@ -66,7 +66,12 @@ export class SmtStateMigration {
       const [id, block, timestamp, state] = stateTransitionHistory[index].args;
       result.index = index;
       try {
-        const tx = await smtContract.addHistorical(id, state, timestamp, block);
+        const tx = await stateContract.migrateStateToSmt(
+          id,
+          state,
+          timestamp,
+          block
+        );
         const receipt = await tx.wait();
         result.migratedData.push({ id, state, timestamp, block });
         if (receipt.status !== 1) {
@@ -148,7 +153,7 @@ export class SmtStateMigration {
     );
 
     // 4. migrate state
-    await SmtStateMigration.migrate(smt, stateHistory, enableLogging);
+    await SmtStateMigration.migrate(stateContract, stateHistory, enableLogging);
 
     // 5. enable state transition
     await stateContract.setTransitionStateEnabled(true);
