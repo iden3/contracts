@@ -131,10 +131,13 @@ describe("State SMT integration tests", () => {
       owner
     );
     // 3. run migration
-    const { smt, stateContract } = await SmtStateMigration.run(
+    const smtMigration = new SmtStateMigration();
+    const { smt, stateContract } = await smtMigration.run(
       existingState.address,
       poseidon2Elements.address,
-      poseidon3Elements.address
+      poseidon3Elements.address,
+      0,
+      1
     );
 
     // 4. verify smt tree has history
@@ -142,7 +145,7 @@ describe("State SMT integration tests", () => {
 
     let rootHistory = await smt.getRootHistory(0, rootHistoryLength - 1);
 
-    let stateHistory = await SmtStateMigration.getStateTransitionHistory(
+    let stateHistory = await smtMigration.getStateTransitionHistory(
       stateContract,
       0,
       1
@@ -160,9 +163,7 @@ describe("State SMT integration tests", () => {
 
     expect(rootHistoryLength).to.equal(3);
 
-    stateHistory = await SmtStateMigration.getStateTransitionHistory(
-      stateContract
-    );
+    stateHistory = await smtMigration.getStateTransitionHistory(stateContract);
 
     rootHistory = await smt.getRootHistory(0, rootHistoryLength - 1);
 
@@ -183,8 +184,9 @@ describe("State SMT integration tests", () => {
       verifier.address,
     ]);
     await existingState.deployed();
+    const smtMigration = new SmtStateMigration();
 
-    const stateContract = await SmtStateMigration.upgradeState(
+    const stateContract = await smtMigration.upgradeState(
       existingState.address
     );
 
@@ -218,7 +220,7 @@ describe("State SMT integration tests", () => {
       };
     });
 
-    await SmtStateMigration.migrate(stateContract, stateTransitionHistory);
+    await smtMigration.migrate(stateContract, stateTransitionHistory);
 
     const rootHistoryLength = await smt.rootHistoryLength();
 
