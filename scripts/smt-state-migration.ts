@@ -58,7 +58,7 @@ export class SmtStateMigration {
       migratedData: any[];
       error: unknown;
       index: number;
-      receipt: unknown;
+      receipt: { status: number } | null;
     } = {
       migratedData: [],
       receipt: null,
@@ -85,19 +85,24 @@ export class SmtStateMigration {
         });
         if (receipt.status !== 1) {
           result.receipt = receipt;
+          result.error = "receipt status failed";
           break;
         }
       } catch (error) {
         console.error(error);
 
-        result.error = error;
+        result.error =
+          typeof error === "string"
+            ? error
+            : JSON.stringify(error, Object.getOwnPropertyNames(error));
+
         break;
       }
     }
     if (!result.error) {
       this.log("migration completed successfully");
     } else {
-      this.log("migration error", result.error);
+      this.log("migration error", result.error, result.receipt);
     }
     this.writeFile("migration-result.json", result);
   }
