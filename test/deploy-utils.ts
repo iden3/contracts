@@ -1,5 +1,7 @@
 import { ethers, upgrades } from "hardhat";
 import { poseidonContract } from "circomlibjs";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { Contract } from "ethers";
 
 export interface VerificationInfo {
   inputs: Array<string>;
@@ -88,7 +90,7 @@ export async function publishState(
     id,
     oldState,
     newState,
-    isOldStateGenesis === "1" ? true : false,
+    isOldStateGenesis === "1",
     pi_a,
     pi_b,
     pi_c
@@ -148,11 +150,11 @@ export async function deploySmt(
 }
 
 export async function deployPoseidons(
-  deployer: any,
+  deployer: SignerWithAddress,
   enableLogging = false
 ): Promise<{
-  poseidon2Elements: any;
-  poseidon3Elements: any;
+  poseidon2Elements: Contract;
+  poseidon3Elements: Contract;
 }> {
   const abi2 = poseidonContract.generateABI(2);
   const code2 = poseidonContract.createCode(2);
