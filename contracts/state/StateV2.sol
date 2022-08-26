@@ -15,6 +15,13 @@ interface IVerifier {
 interface ISmt {
     function add(uint256 index, uint256 value) external;
 
+    function addHistorical(
+        uint256 _i,
+        uint256 _v,
+        uint64 _timestamp,
+        uint64 _blockNumber
+    ) external;
+
     function getProof(uint256 _index)
         external
         view
@@ -62,7 +69,7 @@ interface ISmt {
 //  * @dev Set and get states for each identity
 //  */
 // contract State is Iden3Helpers {
-contract State is OwnableUpgradeable {
+contract StateV2 is OwnableUpgradeable {
     /**
      * @dev Struct saved for each identity. Stores state and block/timestamp associated.
      */
@@ -124,6 +131,11 @@ contract State is OwnableUpgradeable {
      */
     ISmt internal smt;
 
+    /**
+     * @dev SMT address
+     */
+    bool private _stateTransitionEnabled;
+
     function initialize(IVerifier _verifierContractAddr) public initializer {
         verifier = _verifierContractAddr;
         __Ownable_init();
@@ -133,8 +145,24 @@ contract State is OwnableUpgradeable {
         verifier = IVerifier(newVerifier);
     }
 
+    function getTrasitionStateEnabled() public view returns (bool) {
+        return _stateTransitionEnabled;
+    }
+
+    function setTransitionStateEnabled(bool transitStateEnabled)
+        public
+        onlyOwner
+    {
+        _stateTransitionEnabled = transitStateEnabled;
+    }
+
+    function getVerifier(address newVerifier) public onlyOwner {
+        verifier = IVerifier(newVerifier);
+    }
+
     function setSmt(address smtAddress) public onlyOwner {
         smt = ISmt(smtAddress);
+        _stateTransitionEnabled = false;
     }
 
     function transitState(
@@ -146,6 +174,8 @@ contract State is OwnableUpgradeable {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) public {
+        require(_stateTransitionEnabled, "state transition is Enabled");
+
         if (isOldStateGenesis == false) {
             require(
                 identities[id].length > 0,
@@ -453,5 +483,15 @@ contract State is OwnableUpgradeable {
         )
     {
         return smt.getHistoricalProofByTime(index, timestamp);
+    }
+
+    function migrateStateToSmt(
+        uint256 id,
+        uint256 state,
+        uint64 timestamp,
+        uint64 blockNumber
+    ) public onlyOwner {
+        require(!_stateTransitionEnabled, "smt migration is not allowed");
+        smt.addHistorical(id, state, timestamp, blockNumber);
     }
 }
