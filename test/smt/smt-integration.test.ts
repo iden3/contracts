@@ -29,7 +29,7 @@ describe("State Migration to SMT test", () => {
     for (const issuerStateJson of issuerStateTransitions) {
       await publishState(state, issuerStateJson);
       const currentRoot = await state.getSmtCurrentRoot();
-      const [lastProofRoot] = await state.getProof(id);
+      const [lastProofRoot] = await state.getSmtProof(id);
       expect(lastProofRoot).to.equal(currentRoot);
       currentRoots.push(currentRoot);
     }
@@ -38,11 +38,11 @@ describe("State Migration to SMT test", () => {
 
     const [[r1], [r2]] = await smt.getRootHistory(0, rootHistoryLength - 1);
 
-    const [root] = await state.getHistoricalProofByRoot(id, r1);
+    const [root] = await state.getSmtHistoricalProofByRoot(id, r1);
     expect(r1).to.equal(root);
     expect(r1).to.equal(currentRoots[0]);
 
-    const [root2] = await state.getHistoricalProofByRoot(id, r2);
+    const [root2] = await state.getSmtHistoricalProofByRoot(id, r2);
     expect(r2).to.equal(root2);
     expect(r2).to.equal(currentRoots[1]);
   });
@@ -60,11 +60,11 @@ describe("State Migration to SMT test", () => {
       rootHistoryLength - 1
     );
 
-    const [root] = await state.getHistoricalProofByTime(id, t1);
+    const [root] = await state.getSmtHistoricalProofByTime(id, t1);
 
     expect(r1).to.equal(root);
 
-    const [root2] = await state.getHistoricalProofByTime(id, t2);
+    const [root2] = await state.getSmtHistoricalProofByTime(id, t2);
     expect(r2).to.equal(root2);
   });
 
@@ -81,9 +81,9 @@ describe("State Migration to SMT test", () => {
       rootHistoryLength - 1
     );
 
-    const [root] = await state.getHistoricalProofByBlock(id, b1);
+    const [root] = await state.getSmtHistoricalProofByBlock(id, b1);
     expect(r1).to.equal(root);
-    const [root2] = await state.getHistoricalProofByBlock(id, b2);
+    const [root2] = await state.getSmtHistoricalProofByBlock(id, b2);
     expect(r2).to.equal(root2);
   });
 
@@ -95,9 +95,9 @@ describe("State Migration to SMT test", () => {
     const rootHistoryLength = await smt.rootHistoryLength();
     const [[r1, t1, b1]] = await smt.getRootHistory(0, rootHistoryLength - 1);
 
-    const [rootB] = await state.getHistoricalProofByBlock(id, b1);
+    const [rootB] = await state.getSmtHistoricalProofByBlock(id, b1);
     expect(r1).to.equal(rootB);
-    const [rootT] = await state.getHistoricalProofByTime(id, t1);
+    const [rootT] = await state.getSmtHistoricalProofByTime(id, t1);
     expect(r1).to.equal(rootT).to.equal(rootB);
   });
 

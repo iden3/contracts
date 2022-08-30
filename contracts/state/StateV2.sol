@@ -456,7 +456,7 @@ contract StateV2 is OwnableUpgradeable {
         return smt.root();
     }
 
-    function getProof(uint256 _index)
+    function getSmtProof(uint256 _index)
         public
         view
         returns (
@@ -473,7 +473,7 @@ contract StateV2 is OwnableUpgradeable {
         return smt.getProof(_index);
     }
 
-    function getHistoricalProofByRoot(uint256 index, uint256 _root)
+    function getSmtHistoricalProofByRoot(uint256 index, uint256 _root)
     public
     view
     returns (
@@ -490,7 +490,7 @@ contract StateV2 is OwnableUpgradeable {
         return smt.getHistoricalProofByRoot(index, _root);
     }
 
-    function getHistoricalProofByBlock(uint256 index, uint64 _block)
+    function getSmtHistoricalProofByBlock(uint256 index, uint64 _block)
         public
         view
         returns (
@@ -507,7 +507,7 @@ contract StateV2 is OwnableUpgradeable {
         return smt.getHistoricalProofByBlock(index, _block);
     }
 
-    function getHistoricalProofByTime(uint256 index, uint64 timestamp)
+    function getSmtHistoricalProofByTime(uint256 index, uint64 timestamp)
         public
         view
         returns (
