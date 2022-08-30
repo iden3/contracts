@@ -3,6 +3,8 @@ pragma solidity 0.8.15;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
+uint256 constant MAX_SMT_DEPTH = 32;
+
 interface IVerifier {
     function verifyProof(
         uint256[2] memory a,
@@ -29,7 +31,7 @@ interface ISmt {
         view
         returns (
             uint256, // Root
-            uint256[32] memory, // Siblings
+            uint256[MAX_SMT_DEPTH] memory, // Siblings
             uint256, // OldKey
             uint256, // OldValue
             bool, // IsOld0
@@ -43,7 +45,7 @@ interface ISmt {
     view
     returns (
         uint256, // Root
-        uint256[32] memory, // Siblings
+        uint256[MAX_SMT_DEPTH] memory, // Siblings
         uint256, // OldKey
         uint256, // OldValue
         bool, // IsOld0
@@ -57,7 +59,7 @@ interface ISmt {
         view
         returns (
             uint256, // Root
-            uint256[32] memory, // Siblings
+            uint256[MAX_SMT_DEPTH] memory, // Siblings
             uint256, // OldKey
             uint256, // OldValue
             bool, // IsOld0
@@ -71,7 +73,7 @@ interface ISmt {
         view
         returns (
             uint256, // Root
-            uint256[32] memory, // Siblings
+            uint256[MAX_SMT_DEPTH] memory, // Siblings
             uint256, // OldKey
             uint256, // OldValue
             bool, // IsOld0
@@ -459,7 +461,7 @@ contract StateV2 is OwnableUpgradeable {
         view
         returns (
             uint256, // Root
-            uint256[32] memory, // Siblings
+            uint256[MAX_SMT_DEPTH] memory, // Siblings
             uint256, // OldKey
             uint256, // OldValue
             bool, // IsOld0
@@ -476,7 +478,7 @@ contract StateV2 is OwnableUpgradeable {
     view
     returns (
         uint256, // Root
-        uint256[32] memory, // Siblings
+        uint256[MAX_SMT_DEPTH] memory, // Siblings
         uint256, // OldKey
         uint256, // OldValue
         bool, // IsOld0
@@ -493,7 +495,7 @@ contract StateV2 is OwnableUpgradeable {
         view
         returns (
             uint256, // Root
-            uint256[32] memory, // Siblings
+            uint256[MAX_SMT_DEPTH] memory, // Siblings
             uint256, // OldKey
             uint256, // OldValue
             bool, // IsOld0
@@ -510,7 +512,7 @@ contract StateV2 is OwnableUpgradeable {
         view
         returns (
             uint256, // Root
-            uint256[32] memory, // Siblings
+            uint256[MAX_SMT_DEPTH] memory, // Siblings
             uint256, // OldKey
             uint256, // OldValue
             bool, // IsOld0
