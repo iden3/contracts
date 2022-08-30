@@ -22,12 +22,14 @@ interface ISmt {
         uint64 _blockNumber
     ) external;
 
+    function root() external view returns (uint256);
+
     function getProof(uint256 _index)
         external
         view
         returns (
             uint256, // Root
-            uint256[] memory, // Siblings
+            uint256[32] memory, // Siblings
             uint256, // OldKey
             uint256, // OldValue
             bool, // IsOld0
@@ -35,6 +37,20 @@ interface ISmt {
             uint256, // Value
             uint256 // Fnc
         );
+
+    function getHistoricalProofByRoot(uint256 _index, uint256 _root)
+    external
+    view
+    returns (
+        uint256, // Root
+        uint256[32] memory, // Siblings
+        uint256, // OldKey
+        uint256, // OldValue
+        bool, // IsOld0
+        uint256, // Key
+        uint256, // Value
+        uint256 // Fnc
+    );
 
     function getHistoricalProofByBlock(uint256 index, uint64 _block)
         external
@@ -434,12 +450,16 @@ contract StateV2 is OwnableUpgradeable {
         );
     }
 
+    function getSmtCurrentRoot() public view returns (uint256) {
+        return smt.root();
+    }
+
     function getProof(uint256 _index)
         public
         view
         returns (
             uint256, // Root
-            uint256[] memory, // Siblings
+            uint256[32] memory, // Siblings
             uint256, // OldKey
             uint256, // OldValue
             bool, // IsOld0
@@ -449,6 +469,23 @@ contract StateV2 is OwnableUpgradeable {
         )
     {
         return smt.getProof(_index);
+    }
+
+    function getHistoricalProofByRoot(uint256 index, uint256 _root)
+    public
+    view
+    returns (
+        uint256, // Root
+        uint256[32] memory, // Siblings
+        uint256, // OldKey
+        uint256, // OldValue
+        bool, // IsOld0
+        uint256, // Key
+        uint256, // Value
+        uint256 // Fnc
+    )
+    {
+        return smt.getHistoricalProofByRoot(index, _root);
     }
 
     function getHistoricalProofByBlock(uint256 index, uint64 _block)

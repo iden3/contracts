@@ -22,7 +22,32 @@ describe("State Migration to SMT test", () => {
     smt = contracts.smt;
   });
 
-  it("should history search by time", async () => {
+  it("should be correct historical proof by root and the latest root", async () => {
+    const currentRoots: any[] = [];
+    const id = ethers.BigNumber.from(issuerStateTransitions[0].pub_signals[0]);
+
+    for (const issuerStateJson of issuerStateTransitions) {
+      await publishState(state, issuerStateJson);
+      const currentRoot = await state.getSmtCurrentRoot();
+      const [lastProofRoot] = await state.getProof(id);
+      expect(lastProofRoot).to.equal(currentRoot);
+      currentRoots.push(currentRoot);
+    }
+
+    const rootHistoryLength = await smt.rootHistoryLength();
+
+    const [[r1], [r2]] = await smt.getRootHistory(0, rootHistoryLength - 1);
+
+    const [root] = await state.getHistoricalProofByRoot(id, r1);
+    expect(r1).to.equal(root);
+    expect(r1).to.equal(currentRoots[0]);
+
+    const [root2] = await state.getHistoricalProofByRoot(id, r2);
+    expect(r2).to.equal(root2);
+    expect(r2).to.equal(currentRoots[1]);
+  });
+
+  it("should be correct historical proof by time", async () => {
     for (const issuerStateJson of issuerStateTransitions) {
       await publishState(state, issuerStateJson);
     }
@@ -43,7 +68,7 @@ describe("State Migration to SMT test", () => {
     expect(r2).to.equal(root2);
   });
 
-  it("should history search by block", async () => {
+  it("should be correct historical proof by block", async () => {
     for (const issuerStateJson of issuerStateTransitions) {
       await publishState(state, issuerStateJson);
     }
@@ -62,7 +87,7 @@ describe("State Migration to SMT test", () => {
     expect(r2).to.equal(root2);
   });
 
-  it("should search by block and bu time return same root", async () => {
+  it("should search by block and by time return same root", async () => {
     for (const issuerStateJson of issuerStateTransitions) {
       await publishState(state, issuerStateJson);
     }
@@ -76,7 +101,7 @@ describe("State Migration to SMT test", () => {
     expect(r1).to.equal(rootT).to.equal(rootB);
   });
 
-  it("should only writer or owner to be able call add to smt tree", async () => {
+  it("should only writer to be able to call add to smt tree", async () => {
     const [owner, addr1, addr2] = await ethers.getSigners();
 
     const { poseidon2Elements, poseidon3Elements } = await deployPoseidons(
