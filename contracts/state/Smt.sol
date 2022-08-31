@@ -1,8 +1,22 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.0;
+pragma solidity 0.8.15;
+pragma abicoder v2;
 
-import "./lib/Poseidon.sol";
+import "../lib/Poseidon.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+
+uint256 constant MAX_SMT_DEPTH = 32;
+
+struct Proof {
+    uint256 root;
+    uint256[MAX_SMT_DEPTH] siblings;
+    uint256 oldKey;
+    uint256 oldValue;
+    bool isOld0;
+    uint256 key;
+    uint256 value;
+    uint256 fnc;
+}
 
 contract Smt is OwnableUpgradeable {
     PoseidonUnit2 _poseidonUnit2;
@@ -52,19 +66,6 @@ contract Smt is OwnableUpgradeable {
      */
     RootHistoryInfo[] public rootHistory;
 
-    uint256 internal constant MAX_DEPTH = 32;
-
-    struct Proof {
-        uint256 root;
-        uint256[MAX_DEPTH] siblings;
-        uint256 oldKey;
-        uint256 oldValue;
-        bool isOld0;
-        uint256 key;
-        uint256 value;
-        uint256 fnc;
-    }
-
     function initialize(
         address _poseidonUnit2ContractAddr,
         address _poseidonUnit3ContractAddr,
@@ -77,7 +78,7 @@ contract Smt is OwnableUpgradeable {
     }
 
     function getMaxDepth() public pure returns (uint256) {
-        return MAX_DEPTH;
+        return MAX_SMT_DEPTH;
     }
 
     function rootHistoryLength() public view returns (uint256) {
@@ -126,7 +127,7 @@ contract Smt is OwnableUpgradeable {
         uint256 nodeHash,
         uint256 _depth
     ) internal returns (uint256) {
-        if (_depth > MAX_DEPTH) {
+        if (_depth > MAX_SMT_DEPTH) {
             revert("Max depth reached");
         }
 
@@ -176,7 +177,7 @@ contract Smt is OwnableUpgradeable {
         uint256 _pathNewLeaf,
         uint256 _pathOldLeaf
     ) internal returns (uint256) {
-        if (_depth > MAX_DEPTH - 2) {
+        if (_depth > MAX_SMT_DEPTH - 2) {
             revert("Max depth reached");
         }
 
@@ -255,16 +256,7 @@ contract Smt is OwnableUpgradeable {
     function getProof(uint256 _index)
         public
         view
-        returns (
-            uint256, // Root
-            uint256[MAX_DEPTH] memory, // Siblings
-            uint256, // OldKey
-            uint256, // OldValue
-            bool, // IsOld0
-            uint256, // Key
-            uint256, // Value
-            uint256 // Fnc
-        )
+        returns (Proof memory)
     {
         return getHistoricalProofByRoot(_index, root);
     }
@@ -272,16 +264,7 @@ contract Smt is OwnableUpgradeable {
     function getHistoricalProofByRoot(uint256 _index, uint256 _historicalRoot)
         public
         view
-        returns (
-            uint256, // Root
-            uint256[MAX_DEPTH] memory, // Siblings
-            uint256, // OldKey
-            uint256, // OldValue
-            bool, // IsOld0
-            uint256, // Key
-            uint256, // Value
-            uint256 // Fnc
-        )
+        returns (Proof memory)
     {
         Proof memory proof;
         proof.root = _historicalRoot;
@@ -290,7 +273,7 @@ contract Smt is OwnableUpgradeable {
         uint256 nextNodeHash = _historicalRoot;
         Node memory node;
 
-        for (uint256 i = 0; i < MAX_DEPTH; i++) {
+        for (uint256 i = 0; i < MAX_SMT_DEPTH; i++) {
             node = getNode(nextNodeHash);
             if (node.nodeType == NodeType.EMPTY) {
                 proof.fnc = 1;
@@ -318,16 +301,7 @@ contract Smt is OwnableUpgradeable {
                 revert("Invalid node type");
             }
         }
-        return (
-            proof.root,
-            proof.siblings,
-            proof.oldKey,
-            proof.oldValue,
-            proof.isOld0,
-            proof.key,
-            proof.value,
-            proof.fnc
-        );
+        return proof;
     }
 
     /**
@@ -337,16 +311,7 @@ contract Smt is OwnableUpgradeable {
     function getHistoricalProofByTime(uint256 index, uint64 timestamp)
         public
         view
-        returns (
-            uint256, // Root
-            uint256[MAX_DEPTH] memory, // Siblings
-            uint256, // OldKey
-            uint256, // OldValue
-            bool, // IsOld0
-            uint256, // Key
-            uint256, // Value
-            uint256 // Fnc
-        )
+        returns (Proof memory)
     {
         (uint256 historyRoot, , ) = getHistoricalRootDataByTime(timestamp);
 
@@ -362,16 +327,7 @@ contract Smt is OwnableUpgradeable {
     function getHistoricalProofByBlock(uint256 index, uint64 _block)
         public
         view
-        returns (
-            uint256, // Root
-            uint256[MAX_DEPTH] memory, // Siblings
-            uint256, // OldKey
-            uint256, // OldValue
-            bool, // IsOld0
-            uint256, // Key
-            uint256, // Value
-            uint256 // Fnc
-        )
+        returns (Proof memory)
     {
         (uint256 historyRoot, , ) = getHistoricalRootDataByBlock(_block);
 

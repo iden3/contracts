@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.15;
+pragma abicoder v2;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-
-uint256 constant MAX_SMT_DEPTH = 32;
+import "./Smt.sol";
 
 interface IVerifier {
     function verifyProof(
@@ -29,58 +29,22 @@ interface ISmt {
     function getProof(uint256 _index)
         external
         view
-        returns (
-            uint256, // Root
-            uint256[MAX_SMT_DEPTH] memory, // Siblings
-            uint256, // OldKey
-            uint256, // OldValue
-            bool, // IsOld0
-            uint256, // Key
-            uint256, // Value
-            uint256 // Fnc
-        );
+        returns (Proof memory);
 
     function getHistoricalProofByRoot(uint256 _index, uint256 _root)
     external
     view
-    returns (
-        uint256, // Root
-        uint256[MAX_SMT_DEPTH] memory, // Siblings
-        uint256, // OldKey
-        uint256, // OldValue
-        bool, // IsOld0
-        uint256, // Key
-        uint256, // Value
-        uint256 // Fnc
-    );
+    returns (Proof memory);
 
     function getHistoricalProofByBlock(uint256 index, uint64 _block)
         external
         view
-        returns (
-            uint256, // Root
-            uint256[MAX_SMT_DEPTH] memory, // Siblings
-            uint256, // OldKey
-            uint256, // OldValue
-            bool, // IsOld0
-            uint256, // Key
-            uint256, // Value
-            uint256 // Fnc
-        );
+        returns (Proof memory);
 
     function getHistoricalProofByTime(uint256 index, uint64 timestamp)
         external
         view
-        returns (
-            uint256, // Root
-            uint256[MAX_SMT_DEPTH] memory, // Siblings
-            uint256, // OldKey
-            uint256, // OldValue
-            bool, // IsOld0
-            uint256, // Key
-            uint256, // Value
-            uint256 // Fnc
-        );
+        returns (Proof memory);
 }
 
 // /**
@@ -459,16 +423,7 @@ contract StateV2 is OwnableUpgradeable {
     function getSmtProof(uint256 _index)
         public
         view
-        returns (
-            uint256, // Root
-            uint256[MAX_SMT_DEPTH] memory, // Siblings
-            uint256, // OldKey
-            uint256, // OldValue
-            bool, // IsOld0
-            uint256, // Key
-            uint256, // Value
-            uint256 // Fnc
-        )
+        returns (Proof memory)
     {
         return smt.getProof(_index);
     }
@@ -476,16 +431,7 @@ contract StateV2 is OwnableUpgradeable {
     function getSmtHistoricalProofByRoot(uint256 index, uint256 _root)
     public
     view
-    returns (
-        uint256, // Root
-        uint256[MAX_SMT_DEPTH] memory, // Siblings
-        uint256, // OldKey
-        uint256, // OldValue
-        bool, // IsOld0
-        uint256, // Key
-        uint256, // Value
-        uint256 // Fnc
-    )
+    returns (Proof memory)
     {
         return smt.getHistoricalProofByRoot(index, _root);
     }
@@ -493,16 +439,7 @@ contract StateV2 is OwnableUpgradeable {
     function getSmtHistoricalProofByBlock(uint256 index, uint64 _block)
         public
         view
-        returns (
-            uint256, // Root
-            uint256[MAX_SMT_DEPTH] memory, // Siblings
-            uint256, // OldKey
-            uint256, // OldValue
-            bool, // IsOld0
-            uint256, // Key
-            uint256, // Value
-            uint256 // Fnc
-        )
+        returns (Proof memory)
     {
         return smt.getHistoricalProofByBlock(index, _block);
     }
@@ -510,16 +447,7 @@ contract StateV2 is OwnableUpgradeable {
     function getSmtHistoricalProofByTime(uint256 index, uint64 timestamp)
         public
         view
-        returns (
-            uint256, // Root
-            uint256[MAX_SMT_DEPTH] memory, // Siblings
-            uint256, // OldKey
-            uint256, // OldValue
-            bool, // IsOld0
-            uint256, // Key
-            uint256, // Value
-            uint256 // Fnc
-        )
+        returns (Proof memory)
     {
         return smt.getHistoricalProofByTime(index, timestamp);
     }
