@@ -252,60 +252,6 @@ contract Smt is OwnableUpgradeable {
         return tree[_nodeHash];
     }
 
-    function getLeaf(uint256 _index)
-        public
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256[MAX_DEPTH] memory
-        )
-    {
-        return getLeafHistorical(_index, root);
-    }
-
-    function getLeafHistorical(uint256 _index, uint256 _root)
-        public
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256[MAX_DEPTH] memory
-        )
-    {
-        uint256 nextNodeHash = _root;
-        Node memory node;
-
-        // return vars
-        uint256 index = _index;
-        uint256 value = 0;
-        uint256[MAX_DEPTH] memory siblings;
-
-        // todo get rid of DRY violation of this part for getHistoricalProof() and getHistorical() if possible
-        for (uint256 i = 0; i < MAX_DEPTH; i++) {
-            node = getNode(nextNodeHash);
-            if (node.nodeType == NodeType.EMPTY) {
-                revert("Index not found");
-            } else if (node.nodeType == NodeType.LEAF) {
-                if (node.index == index) {
-                    value = node.value;
-                } else {
-                    revert("Index not found");
-                }
-            } else if (node.nodeType == NodeType.MIDDLE) {
-                if ((index >> i) & 1 == 1) {
-                    nextNodeHash = node.childRight;
-                    siblings[i] = node.childLeft;
-                } else {
-                    nextNodeHash = node.childLeft;
-                    siblings[i] = node.childRight;
-                }
-            }
-        }
-
-        return (index, value, siblings);
-    }
-
     function getProof(uint256 _index)
         public
         view
