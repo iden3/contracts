@@ -16,7 +16,7 @@ export type MtpProof = {
   siblings: FixedArray<string, 32>;
   oldKey: number;
   oldValue: number;
-  isOld0: false; // todo research why this is always false in go-merkle-sql
+  isOld0: false; // for mtp proofs verification in circom isOld0 is always false
   key: number;
   value: number;
   fnc: 0 | 1;
