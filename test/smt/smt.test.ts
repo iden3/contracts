@@ -4,7 +4,7 @@ import { poseidonContract } from "circomlibjs";
 
 import { FixedArray, genMaxBinaryNumber, MtpProof } from "./utils";
 
-// todo [RESEARCH] why index 2**31-1 but not 2**32-1 is maximum? Research smtverifier in circomlib
+// todo [RESEARCH] why the index 2**31-1 but not 2**32-1 is maximum? Research smtverifier in circomlib
 // todo [RESEARCH] why circom verifier has 33 siblings instead of 32?
 
 type TestCase = {
@@ -31,30 +31,6 @@ describe("SMT", () => {
           );
 
     checkMtpProof(proof, testCase.expectedProof);
-
-    if (testCase.expectedProof.fnc == 0) {
-      const leaf =
-        typeof testCase.getProofParams == "number"
-          ? await smt.getLeaf(testCase.getProofParams)
-          : await smt.getLeafHistorical(
-              testCase.getProofParams.index,
-              testCase.getProofParams.historicalRoot
-            );
-
-      // todo is it correct to combine getLeaf() and getProof() in the same test case? Fragile tests?
-      checkGetLeaf(leaf, testCase.expectedProof);
-    } else {
-      typeof testCase.getProofParams == "number"
-        ? await expect(smt.getLeaf(testCase.getProofParams)).to.be.revertedWith(
-            "Index not found"
-          )
-        : await expect(
-            smt.getLeafHistorical(
-              testCase.getProofParams.index,
-              testCase.getProofParams.historicalRoot
-            )
-          ).to.be.revertedWith("Index not found");
-    }
   }
 
   beforeEach(async () => {
@@ -811,12 +787,6 @@ describe("SMT", () => {
     });
   });
 });
-
-function checkGetLeaf(node, proof: MtpProof) {
-  expect(node[0]).to.equal(proof.key);
-  expect(node[1]).to.equal(proof.value);
-  checkSiblings(node[2], proof.siblings);
-}
 
 function checkMtpProof(proof, expectedProof: MtpProof) {
   expect(proof[0]).to.equal(expectedProof.root);
