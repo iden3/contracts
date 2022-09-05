@@ -138,7 +138,8 @@ export class SmtStateMigration {
     const smt = await deploySmt(
       stateContract.address,
       poseidon2Address,
-      poseidon3Address
+      poseidon3Address,
+      true
     );
     const tx = await stateContract.setSmt(smt.address);
 
