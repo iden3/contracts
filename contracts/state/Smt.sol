@@ -7,6 +7,9 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 uint256 constant MAX_SMT_DEPTH = 32;
 
+/**
+ * @dev Struct of the node proof in the SMT
+ */
 struct Proof {
     uint256 root;
     uint256[MAX_SMT_DEPTH] siblings;
@@ -18,6 +21,7 @@ struct Proof {
     uint256 fnc;
 }
 
+/// @title A sparse merkle tree implementation, which keeps tree history.
 contract Smt is OwnableUpgradeable {
     PoseidonUnit2 _poseidonUnit2;
     PoseidonUnit3 _poseidonUnit3;
@@ -32,6 +36,9 @@ contract Smt is OwnableUpgradeable {
         _;
     }
 
+    /**
+     * @dev Enum of SMT node types
+     */
     enum NodeType {
         EMPTY,
         LEAF,
@@ -50,15 +57,27 @@ contract Smt is OwnableUpgradeable {
         uint64 BlockN;
     }
 
+    /**
+     * @dev Struct SMT node.
+     * @param NodeType type of node.
+     * @param ChildLeft left child of node.
+     * @param ChildRight right child of node.
+     * @param Index index of node.
+     * @param Value value of node.
+     */
     struct Node {
-        NodeType nodeType;
-        uint256 childLeft;
-        uint256 childRight;
-        uint256 index;
-        uint256 value;
+        NodeType NodeType;
+        uint256 ChildLeft;
+        uint256 ChildRight;
+        uint256 Index;
+        uint256 Value;
     }
 
     mapping(uint256 => Node) public tree;
+
+    /**
+     * @dev Current SMT tree root.
+     */
     uint256 public root;
 
     /**
@@ -66,6 +85,12 @@ contract Smt is OwnableUpgradeable {
      */
     RootHistoryInfo[] public rootHistory;
 
+    /**
+     * @dev Initialize the contract.
+     * @param _poseidonUnit2ContractAddr Poseidon hash function for 2 inputs.
+     * @param _poseidonUnit3ContractAddr Poseidon hash function for 3 inputs.
+     * @param _stateAddress Address of state contract, which is the only to update SMT.
+     */
     function initialize(
         address _poseidonUnit2ContractAddr,
         address _poseidonUnit3ContractAddr,
@@ -77,14 +102,28 @@ contract Smt is OwnableUpgradeable {
         __Ownable_init();
     }
 
+    /**
+     * @dev Get max depth of SMT.
+     * @return max depth of SMT.
+     */
     function getMaxDepth() public pure returns (uint256) {
         return MAX_SMT_DEPTH;
     }
 
+    /**
+     * @dev Get SMT root history length
+     * @return SMT history length
+     */
     function rootHistoryLength() public view returns (uint256) {
         return rootHistory.length;
     }
 
+    /**
+     * @dev Get SMT root history
+     * @param startIndex start index of history
+     * @param endIndex end index of history
+     * @return array of SMT historical roots with timestamp and block number info
+     */
     function getRootHistory(uint256 startIndex, uint256 endIndex)
         public
         view
@@ -103,6 +142,13 @@ contract Smt is OwnableUpgradeable {
         return result;
     }
 
+    /**
+     * @dev Add a node to the SMT but timestamping the root with arbitrary info
+     * @param _i index of node
+     * @param _v value of node
+     * @param _timestamp timestamp of root
+     * @param _blockNumber block number of root
+     */
     function addHistorical(
         uint256 _i,
         uint256 _v,
@@ -114,6 +160,11 @@ contract Smt is OwnableUpgradeable {
         rootHistory.push(RootHistoryInfo(root, _timestamp, _blockNumber));
     }
 
+    /**
+    * @dev Add anode to the SMT
+    * @param _i Index of node
+    * @param _v Value of node
+    */
     function add(uint256 _i, uint256 _v) public onlyWriter {
         Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
         root = addLeaf(node, root, 0);
@@ -135,30 +186,30 @@ contract Smt is OwnableUpgradeable {
         uint256 nextNodeHash;
         uint256 leafHash;
 
-        if (node.nodeType == NodeType.EMPTY) {
+        if (node.NodeType == NodeType.EMPTY) {
             leafHash = addNode(_newLeaf);
-        } else if (node.nodeType == NodeType.LEAF) {
-            leafHash = node.index == _newLeaf.index
+        } else if (node.NodeType == NodeType.LEAF) {
+            leafHash = node.Index == _newLeaf.Index
                 ? addNode(_newLeaf)
-                : pushLeaf(_newLeaf, node, _depth, _newLeaf.index, node.index);
-        } else if (node.nodeType == NodeType.MIDDLE) {
+                : pushLeaf(_newLeaf, node, _depth, _newLeaf.Index, node.Index);
+        } else if (node.NodeType == NodeType.MIDDLE) {
             Node memory newNodeMiddle;
 
-            if ((_newLeaf.index >> _depth) & 1 == 1) {
-                nextNodeHash = addLeaf(_newLeaf, node.childRight, _depth + 1);
+            if ((_newLeaf.Index >> _depth) & 1 == 1) {
+                nextNodeHash = addLeaf(_newLeaf, node.ChildRight, _depth + 1);
                 newNodeMiddle = Node(
                     NodeType.MIDDLE,
-                    node.childLeft,
+                    node.ChildLeft,
                     nextNodeHash,
                     0,
                     0
                 );
             } else {
-                nextNodeHash = addLeaf(_newLeaf, node.childLeft, _depth + 1);
+                nextNodeHash = addLeaf(_newLeaf, node.ChildLeft, _depth + 1);
                 newNodeMiddle = Node(
                     NodeType.MIDDLE,
                     nextNodeHash,
-                    node.childRight,
+                    node.ChildRight,
                     0,
                     0
                 );
@@ -228,7 +279,7 @@ contract Smt is OwnableUpgradeable {
     function addNode(Node memory _node) internal returns (uint256) {
         uint256 nodeHash = getNodeHash(_node);
         require(
-            tree[nodeHash].nodeType == NodeType.EMPTY,
+            tree[nodeHash].NodeType == NodeType.EMPTY,
             "Node already exists with the same index and value"
         );
         // We do not store empty nodes so can check if an entry exists
@@ -238,21 +289,31 @@ contract Smt is OwnableUpgradeable {
 
     function getNodeHash(Node memory _node) internal view returns (uint256) {
         uint256 nodeHash;
-        if (_node.nodeType == NodeType.LEAF) {
-            uint256[3] memory params = [_node.index, _node.value, uint256(1)];
+        if (_node.NodeType == NodeType.LEAF) {
+            uint256[3] memory params = [_node.Index, _node.Value, uint256(1)];
             nodeHash = _poseidonUnit3.poseidon(params);
-        } else if (_node.nodeType == NodeType.MIDDLE) {
+        } else if (_node.NodeType == NodeType.MIDDLE) {
             nodeHash = _poseidonUnit2.poseidon(
-                [_node.childLeft, _node.childRight]
+                [_node.ChildLeft, _node.ChildRight]
             );
         }
         return nodeHash; // Note: expected to return 0 if NodeType.EMPTY, which is the only option left
     }
 
+    /**
+     * @dev Get the SMT node by hash
+     * @param _nodeHash Hash of a node
+     * @return A node
+     */
     function getNode(uint256 _nodeHash) public view returns (Node memory) {
         return tree[_nodeHash];
     }
 
+    /**
+     * @dev Get the proof if a node with specific index exists or not exists in the SMT
+     * @param _index Node index
+     * @return The node proof
+     */
     function getProof(uint256 _index)
         public
         view
@@ -261,6 +322,12 @@ contract Smt is OwnableUpgradeable {
         return getHistoricalProofByRoot(_index, root);
     }
 
+    /**
+     * @dev Get the proof if a node with specific index exists or not exists in the SMT for some historical tree state
+     * @param _index Node index
+     * @param _historicalRoot Historical SMT roof to get proof for
+     * @return The node proof
+     */
     function getHistoricalProofByRoot(uint256 _index, uint256 _historicalRoot)
         public
         view
@@ -275,27 +342,27 @@ contract Smt is OwnableUpgradeable {
 
         for (uint256 i = 0; i < MAX_SMT_DEPTH; i++) {
             node = getNode(nextNodeHash);
-            if (node.nodeType == NodeType.EMPTY) {
+            if (node.NodeType == NodeType.EMPTY) {
                 proof.fnc = 1;
                 break;
-            } else if (node.nodeType == NodeType.LEAF) {
-                if (node.index == proof.key) {
-                    proof.value = node.value;
+            } else if (node.NodeType == NodeType.LEAF) {
+                if (node.Index == proof.key) {
+                    proof.value = node.Value;
                     break;
                 } else {
-                    proof.oldKey = node.index;
-                    proof.oldValue = node.value;
-                    proof.value = node.value;
+                    proof.oldKey = node.Index;
+                    proof.oldValue = node.Value;
+                    proof.value = node.Value;
                     proof.fnc = 1;
                     break;
                 }
-            } else if (node.nodeType == NodeType.MIDDLE) {
+            } else if (node.NodeType == NodeType.MIDDLE) {
                 if ((proof.key >> i) & 1 == 1) {
-                    nextNodeHash = node.childRight;
-                    proof.siblings[i] = node.childLeft;
+                    nextNodeHash = node.ChildRight;
+                    proof.siblings[i] = node.ChildLeft;
                 } else {
-                    nextNodeHash = node.childLeft;
-                    proof.siblings[i] = node.childRight;
+                    nextNodeHash = node.ChildLeft;
+                    proof.siblings[i] = node.ChildRight;
                 }
             } else {
                 revert("Invalid node type");
@@ -305,8 +372,10 @@ contract Smt is OwnableUpgradeable {
     }
 
     /**
-     * @dev Get historical proof by time
-     * @param index, timestamp
+     * @dev Get the proof if a node with specific index exists or not exists in the SMT for some historical timestamp
+     * @param index Node index
+     * @param timestamp The nearest timestamp to get proof for
+     * @return The node proof
      */
     function getHistoricalProofByTime(uint256 index, uint64 timestamp)
         public
@@ -321,8 +390,10 @@ contract Smt is OwnableUpgradeable {
     }
 
     /**
-     * @dev Get historical proof by block
-     * @param index, _block
+     * @dev Get the proof if a node with specific index exists or not exists in the SMT for some historical block number
+     * @param index Node index
+     * @param _block The nearest block number to get proof for
+     * @return The node proof
      */
     function getHistoricalProofByBlock(uint256 index, uint64 _block)
         public
