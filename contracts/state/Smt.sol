@@ -6,6 +6,7 @@ import "../lib/Poseidon.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 uint256 constant MAX_SMT_DEPTH = 32;
+uint256 constant SMT_ROOT_HISTORY_RETURN_LIMIT = 1000;
 
 /**
  * @dev Struct of the node proof in the SMT
@@ -132,6 +133,10 @@ contract Smt is OwnableUpgradeable {
         require(
             startIndex >= 0 && endIndex < rootHistory.length,
             "index out of bounds of array"
+        );
+        require(
+            endIndex - startIndex + 1 <= SMT_ROOT_HISTORY_RETURN_LIMIT,
+            "return limit exceeded"
         );
         RootHistoryInfo[] memory result = new RootHistoryInfo[](
             endIndex - startIndex + 1
