@@ -1,8 +1,8 @@
-import { deploy } from "@openzeppelin/hardhat-upgrades/dist/utils";
 import { expect } from "chai";
 import { ethers } from "hardhat";
+import { deployERC20ZKPToken, deployERC20ZKPVerifierToken, deployTokenWithValidator, deployValidatorContracts } from "../validator-utils";
 
-import {deployToken, deployContracts, deployERC20ZKPToken, deployERC20ZKPVerifierToken} from "./deploy";
+// import {deployToken, deployContracts, deployERC20ZKPToken, deployERC20ZKPVerifierToken} from "./deploy";
 import { prepareInputs, publishState } from "./utils";
 
 const testCases = [
@@ -48,13 +48,13 @@ const testCases = [
   },
 ];
 
-describe("Atomic MTP Validator", function () {
+describe.only("Atomic MTP Validator", function () {
   let state: any, mtp: any;
 
   beforeEach(async () => {
-    const contracts = await deployContracts();
+    const contracts = await deployValidatorContracts('VerifierMTPWrapper', 'CredentialAtomicQueryMTPValidator');
     state = contracts.state;
-    mtp = contracts.mtp;
+    mtp = contracts.validator;
   });
 
   for (const test of testCases) {
@@ -86,7 +86,7 @@ describe("Atomic MTP Validator", function () {
   }
 
   it("Example token test", async () => {
-    const token: any = await deployToken(mtp.address);
+    const token: any = await deployTokenWithValidator(mtp.address);
     await publishState(state, require("./data/user_state_transition.json"));
 
     await publishState(state, require("./data/stateTransitionAgeClaim.json"));
