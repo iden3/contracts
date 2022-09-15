@@ -83,7 +83,6 @@ contract CredentialAtomicQuerySigValidator is
 
         uint256 userId = inputs[USER_ID_INDEX];
         uint256 userState = inputs[2];
-        // uint256 issuerClaimIdenState = inputs[3];
         uint256 IssuerAuthState = inputs[0];
         uint256 issuerId = inputs[4];
         uint256 issuerClaimNonRevState = inputs[5];
