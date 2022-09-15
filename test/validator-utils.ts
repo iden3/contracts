@@ -52,31 +52,6 @@ export async function deployValidatorContracts(
   };
 }
 
-export async function deployTokenWithValidator(validatorAddress: string): Promise<{
-  address: string;
-}> {
-  const ExampleToken = await ethers.getContractFactory("ExampleToken");
-  const exampleToken = await ExampleToken.deploy(validatorAddress);
-
-  await exampleToken.deployed();
-  console.log("ExampleToken deployed to:", exampleToken.address);
-
-  return exampleToken;
-}
-export async function deployERC20ZKPToken(
-  validatorAddress: string
-): Promise<{
-  address: string;
-}> {
-  const ExampleZKPToken = await ethers.getContractFactory("ExampleZKPToken");
-  const erc20zkpToken = await ExampleZKPToken.deploy(validatorAddress);
-
-  await erc20zkpToken.deployed();
-  console.log("ERC20ZKPToken deployed to:", erc20zkpToken.address);
-
-  return erc20zkpToken;
-}
-
 export async function deployERC20ZKPVerifierToken(
   name: string,
   symbol: string
