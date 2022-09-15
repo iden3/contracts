@@ -349,6 +349,7 @@ contract Smt is OwnableUpgradeable {
             node = getNode(nextNodeHash);
             if (node.NodeType == NodeType.EMPTY) {
                 proof.fnc = 1;
+                proof.isOld0 = true;
                 break;
             } else if (node.NodeType == NodeType.LEAF) {
                 if (node.Index == proof.key) {
