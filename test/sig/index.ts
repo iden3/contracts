@@ -45,7 +45,7 @@ const testCases : any[]= [
   },
 ];
 
-describe.only("Atomic Sig Validator", function () {
+describe("Atomic Sig Validator", function () {
   let state: any, sig: any;
 
   beforeEach(async () => {
