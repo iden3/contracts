@@ -29,7 +29,7 @@ contract ERC20Verifier is ERC20, ZKPVerifier {
             inputs[validator.getChallengeInputIndex()]
         );
         // this is linking between msg.sender and
-        require(_msgSender() == addr, "address in proof is not in the proof");
+        require(_msgSender() == addr, "address in proof is not a sender address");
     }
 
     function _afterProofSubmit(
