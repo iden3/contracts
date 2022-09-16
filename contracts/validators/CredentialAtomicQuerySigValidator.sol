@@ -76,7 +76,6 @@ contract CredentialAtomicQuerySigValidator is
             "wrong query operator has been used for proof generation"
         );
 
-        // equal / less than / greater than for 1 field
         for (uint i = 0; i < query.value.length; i++) {
             require(
                 inputs[i + 10] == query.value[i],

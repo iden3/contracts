@@ -8,12 +8,13 @@ const pathOutputJson = path.join(
 
 async function main() {
   // VerifierSigWrapper  deployed to: 0x3bB61B03752872B15f55F45f7a447cf1180c3564
-  // CredentialAtomicQuerySigValidator  deployed to: 0x34c6a2EEF4831436140A32149944D7E492B61E3D
-  const verifierContract = "ERC20Verifier";
+  // CredentialAtomicQuerySigValidator  deployed to: 0xF66Bf7c7EAe2279385671261CAbCcf4d1D736405
+  const verifierContract ="ERC20VerifierSig" //"ERC20Verifier";
   const verifierName = "ERC20ZKPVerifierSig"; //"ERC20ZKPVerifier";
   const verifierSymbol = "ERCZKPSig"; //ERCZKP
   const circuitId = "credentialAtomicQuerySig"; //"credentialAtomicQueryMTP";
-  const validatorAddress = "0x34c6a2EEF4831436140A32149944D7E492B61E3D"; //"0x6522C1d0d9b522b797dDA1E4C849B12f08e9c15d";
+  const validatorAddress = "0x98ff8015A7E0f9646fBF9fF6225489c34c8E4F83";
+  //"0x6522C1d0d9b522b797dDA1E4C849B12f08e9c15d";
   const ERC20Verifier = await ethers.getContractFactory(verifierContract);
   const erc20Verifier = await ERC20Verifier.deploy(
     verifierName,
@@ -29,7 +30,7 @@ async function main() {
     schema: ethers.BigNumber.from("210459579859058135404770043788028292398"),
     slotIndex: 2,
     operator: 2,
-    value: [20020101],
+    value: [20020101, ...new Array(63).fill(0).map(i => 0)],
     circuitId,
   };
 
