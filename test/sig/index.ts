@@ -78,7 +78,7 @@ describe("Atomic Sig Validator", function () {
         slotIndex: 2,
         operator: 2,
         value: [20020101],
-        circuitId: "credentialAmoticQuerySig",
+        circuitId: "credentialAtomicQuerySig",
       };
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.mtfProofJson);
@@ -133,7 +133,7 @@ describe("Atomic Sig Validator", function () {
       slotIndex: 2,
       operator: 2,
       value: [20020101],
-      circuitId: "credentialAmoticQueryMTP",
+      circuitId: "credentialAtomicQueryMTP",
     };
 
     const requestId = await token.TRANSFER_REQUEST_ID();
@@ -156,7 +156,7 @@ describe("Atomic Sig Validator", function () {
 
     expect(await token.proofs(account, requestId)).to.be.true; // check proof is assigned
 
-    // сheck that tokens were minted
+    // check that tokens were minted
 
     expect(await token.balanceOf(account)).to.equal(5);
 

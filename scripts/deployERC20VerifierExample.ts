@@ -7,13 +7,13 @@ const pathOutputJson = path.join(
 );
 
 async function main() {
-// VerifierSigWrapper  deployed to: 0x3bB61B03752872B15f55F45f7a447cf1180c3564
-// CredentialAtomicQuerySigValidator  deployed to: 0x34c6a2EEF4831436140A32149944D7E492B61E3D
+  // VerifierSigWrapper  deployed to: 0x3bB61B03752872B15f55F45f7a447cf1180c3564
+  // CredentialAtomicQuerySigValidator  deployed to: 0x34c6a2EEF4831436140A32149944D7E492B61E3D
   const verifierContract = "ERC20Verifier";
-  const verifierName = "ERC20ZKPVeriferSig" //"ERC20ZKPVerifer";
+  const verifierName = "ERC20ZKPVerifierSig"; //"ERC20ZKPVerifier";
   const verifierSymbol = "ERCZKPSig"; //ERCZKP
-  const circuitId = "credentialAmoticQuerySig"; //"credentialAmoticQueryMTP";
-  const validatorAddress = "0x34c6a2EEF4831436140A32149944D7E492B61E3D"//"0x6522C1d0d9b522b797dDA1E4C849B12f08e9c15d";
+  const circuitId = "credentialAtomicQuerySig"; //"credentialAtomicQueryMTP";
+  const validatorAddress = "0x34c6a2EEF4831436140A32149944D7E492B61E3D"; //"0x6522C1d0d9b522b797dDA1E4C849B12f08e9c15d";
   const ERC20Verifier = await ethers.getContractFactory(verifierContract);
   const erc20Verifier = await ERC20Verifier.deploy(
     verifierName,

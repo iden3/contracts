@@ -79,7 +79,7 @@ describe("Atomic MTP Validator", function () {
         slotIndex: 2,
         operator: 2,
         value: [20020101],
-        circuitId: "credentialAmoticQueryMTP",
+        circuitId: "credentialAtomicQueryMTP",
       };
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.mtfProofJson);
@@ -131,7 +131,7 @@ describe("Atomic MTP Validator", function () {
       slotIndex: 2,
       operator: 2,
       value: [20020101],
-      circuitId: "credentialAmoticQueryMTP",
+      circuitId: "credentialAtomicQueryMTP",
     };
 
     const requestId = await token.TRANSFER_REQUEST_ID();
