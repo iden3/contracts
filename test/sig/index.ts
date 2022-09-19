@@ -158,7 +158,9 @@ describe("Atomic Sig Validator", function () {
 
     // check that tokens were minted
 
-    expect(await token.balanceOf(account)).to.equal(5);
+    expect(await token.balanceOf(account)).to.equal(
+      ethers.BigNumber.from("5000000000000000000")
+    );
 
     // if proof is provided second time, address is not receiving airdrop tokens
     await expect(
@@ -166,6 +168,8 @@ describe("Atomic Sig Validator", function () {
     ).to.be.revertedWith("proof can not be submitted more than once'");
 
     await token.transfer(account, 1); // we send tokens to ourselves, but no error.
-    expect(await token.balanceOf(account)).to.equal(5);
+    expect(await token.balanceOf(account)).to.equal(
+      ethers.BigNumber.from("5000000000000000000")
+    );
   });
 });

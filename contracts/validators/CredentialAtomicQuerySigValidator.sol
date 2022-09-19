@@ -87,7 +87,7 @@ contract CredentialAtomicQuerySigValidator is
 
         uint256 userId = inputs[USER_ID_INDEX];
         uint256 userState = inputs[2];
-        uint256 IssuerAuthState = inputs[0];
+        uint256 issuerAuthState = inputs[0];
         uint256 issuerId = inputs[4];
         uint256 issuerClaimNonRevState = inputs[5];
 
@@ -111,12 +111,12 @@ contract CredentialAtomicQuerySigValidator is
         // 2. Issuer state must be registered in state contracts or be genesis
         bool isIssuerStateGenesis = GenesisUtils.isGenesisState(
             issuerId,
-            IssuerAuthState
+            issuerAuthState
         );
 
         if (!isIssuerStateGenesis) {
             (, , , , uint256 issuerIdFromState, ) = state.getTransitionInfo(
-                IssuerAuthState
+                issuerAuthState
             );
             require(
                 issuerId == issuerIdFromState,

@@ -73,11 +73,12 @@ contract CredentialAtomicQueryMTPValidator is
             "wrong query operator has been used for proof generation"
         );
 
-        // equal / less than / greater than for 1 field
-        require(
-            inputs[10] == query.value[0],
-            "wrong comparison value has been used for proof generation"
-        );
+         for (uint i = 0; i < query.value.length; i++) {
+            require(
+                inputs[i + 10] == query.value[i],
+                "wrong comparison value has been used for proof generation"
+            );
+        }
 
         // verify user states
 
