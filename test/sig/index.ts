@@ -11,19 +11,19 @@ const testCases: any[] = [
   {
     name: "Validate Genesis User State/Issuer Claim IdenState is in Chain/Revocation State is in Chain",
     issuerStateTransitions: [require("./data/issuer_state_transition.json")],
-    mtfProofJson: require("./data/valid_sig_user_genesis.json"),
+    proofJson: require("./data/valid_sig_user_genesis.json"),
   },
   {
     name: "Validation of proof failed",
     issuerStateTransitions: [require("./data/issuer_state_transition.json")],
-    mtfProofJson: require("./data/invalid_sig_user_genesis.json"),
+    proofJson: require("./data/invalid_sig_user_genesis.json"),
     errorMessage: "sig could not be verified",
   },
   {
     name: "User state is not genesis but latest",
     issuerStateTransitions: [require("./data/issuer_state_transition.json")],
     userStateTransition: require("./data/user_state_transition.json"),
-    mtfProofJson: require("./data/valid_sig_user_non_genesis.json"),
+    proofJson: require("./data/valid_sig_user_non_genesis.json"),
     errorMessage: "",
   },
   {
@@ -33,7 +33,7 @@ const testCases: any[] = [
       require("./data/issuer_next_state_transition.json"),
     ],
     userStateTransition: require("./data/user_state_transition.json"),
-    mtfProofJson: require("./data/valid_sig_user_non_genesis.json"),
+    proofJson: require("./data/valid_sig_user_non_genesis.json"),
     errorMessage: "",
   },
   {
@@ -43,7 +43,7 @@ const testCases: any[] = [
       require("./data/issuer_next_state_transition.json"),
     ],
     userStateTransition: require("./data/user_state_transition.json"),
-    mtfProofJson: require("./data/valid_sig_user_non_genesis.json"),
+    proofJson: require("./data/valid_sig_user_non_genesis.json"),
     setExpiration: 1,
     errorMessage: "Non-Revocation state of Issuer expired",
   },
@@ -81,7 +81,7 @@ describe("Atomic Sig Validator", function () {
         circuitId: "credentialAtomicQuerySig",
       };
 
-      const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.mtfProofJson);
+      const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
       if (test.errorMessage) {
         if (test.setExpiration) {
           await sig.setRevocationStateExpirationTime(test.setExpiration);
@@ -133,7 +133,7 @@ describe("Atomic Sig Validator", function () {
       slotIndex: 2,
       operator: 2,
       value: [20020101],
-      circuitId: "credentialAtomicQueryMTP",
+      circuitId: "credentialAtomicQuerySig",
     };
 
     const requestId = await token.TRANSFER_REQUEST_ID();
