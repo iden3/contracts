@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./lib/GenesisUtils.sol";
 import "./interfaces/ICircuitValidator.sol";
 import "./interfaces/IZKPVerifier.sol";
-import "hardhat/console.sol";
 
 
 interface IPoseidonExtended {
@@ -82,7 +81,6 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         }
         requestQueries[requestId].value = query.value;
         requestQueries[requestId].valueHash =  poseidonEx.poseidonFold(query.value);
-        console.log("value hash" , requestQueries[requestId].valueHash );
         requestQueries[requestId].operator = query.operator;
         requestQueries[requestId].circuitId = query.circuitId;
         requestQueries[requestId].slotIndex = query.slotIndex;

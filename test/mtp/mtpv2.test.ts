@@ -51,7 +51,7 @@ const testCases: any[] = [
   },
 ];
 
-describe.only("Atomic MTP Validator V2", function () {
+describe("Atomic MTP Validator V2", function () {
   let state: any, mtp: any;
 
   beforeEach(async () => {
@@ -138,7 +138,7 @@ describe.only("Atomic MTP Validator V2", function () {
       schema: ethers.BigNumber.from("210459579859058135404770043788028292398"),
       slotIndex: 2,
       operator: 2,
-      value: [20020101, ...new Array(63).fill(0)],
+      value: [20020101],
       valueHash: ethers.BigNumber.from(
         "4044782888831183712183347620047737367287592968870057422868359686203789801751"
       ),

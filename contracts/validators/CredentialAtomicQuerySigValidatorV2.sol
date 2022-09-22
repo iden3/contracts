@@ -75,7 +75,6 @@ contract CredentialAtomicQuerySigValidatorV2 is
             inputs[10] == query.operator,
             "wrong query operator has been used for proof generation"
         );
-
         require(
             inputs[1] == query.valueHash,
             "wrong comparison value has been used for proof generation"

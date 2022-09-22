@@ -14,43 +14,43 @@ const testCases: any[] = [
     issuerStateTransitions: [require("./datav2/issuer_state_transition.json")],
     proofJson: require("./datav2/valid_sig_user_genesis.json"),
   },
-  // {
-  //   name: "Validation of proof failed",
-  //   issuerStateTransitions: [require("./datav2/issuer_state_transition.json")],
-  //   proofJson: require("./datav2/invalid_sig_user_genesis.json"),
-  //   errorMessage: "sig could not be verified",
-  // },
-  // {
-  //   name: "User state is not genesis but latest",
-  //   issuerStateTransitions: [require("./datav2/issuer_state_transition.json")],
-  //   userStateTransition: require("./datav2/user_state_transition.json"),
-  //   proofJson: require("./datav2/valid_sig_user_non_genesis.json"),
-  //   errorMessage: "",
-  // },
-  // {
-  //   name: "The non-revocation issuer state is not expired (is not too old)",
-  //   issuerStateTransitions: [
-  //     require("./datav2/issuer_state_transition.json"),
-  //     require("./datav2/issuer_next_state_transition.json"),
-  //   ],
-  //   userStateTransition: require("./datav2/user_state_transition.json"),
-  //   proofJson: require("./datav2/valid_sig_user_non_genesis.json"),
-  //   errorMessage: "",
-  // },
-  // {
-  //   name: "The non-revocation issuer state is expired (old enough)",
-  //   issuerStateTransitions: [
-  //     require("./datav2/issuer_state_transition.json"),
-  //     require("./datav2/issuer_next_state_transition.json"),
-  //   ],
-  //   userStateTransition: require("./datav2/user_state_transition.json"),
-  //   proofJson: require("./datav2/valid_sig_user_non_genesis.json"),
-  //   setExpiration: 1,
-  //   errorMessage: "Non-Revocation state of Issuer expired",
-  // },
+  {
+    name: "Validation of proof failed",
+    issuerStateTransitions: [require("./datav2/issuer_state_transition.json")],
+    proofJson: require("./datav2/invalid_sig_user_genesis.json"),
+    errorMessage: "sig could not be verified",
+  },
+  {
+    name: "User state is not genesis but latest",
+    issuerStateTransitions: [require("./datav2/issuer_state_transition.json")],
+    userStateTransition: require("./datav2/user_state_transition.json"),
+    proofJson: require("./datav2/valid_sig_user_non_genesis.json"),
+    errorMessage: "",
+  },
+  {
+    name: "The non-revocation issuer state is not expired (is not too old)",
+    issuerStateTransitions: [
+      require("./datav2/issuer_state_transition.json"),
+      require("./datav2/issuer_next_state_transition.json"),
+    ],
+    userStateTransition: require("./datav2/user_state_transition.json"),
+    proofJson: require("./datav2/valid_sig_user_non_genesis.json"),
+    errorMessage: "",
+  },
+  {
+    name: "The non-revocation issuer state is expired (old enough)",
+    issuerStateTransitions: [
+      require("./datav2/issuer_state_transition.json"),
+      require("./datav2/issuer_next_state_transition.json"),
+    ],
+    userStateTransition: require("./datav2/user_state_transition.json"),
+    proofJson: require("./datav2/valid_sig_user_non_genesis.json"),
+    setExpiration: 1,
+    errorMessage: "Non-Revocation state of Issuer expired",
+  },
 ];
 
-describe.only("Atomic Sig Validator V2", function () {
+describe("Atomic Sig Validator V2", function () {
   let state: any, sig: any;
 
   beforeEach(async () => {
@@ -135,9 +135,9 @@ describe.only("Atomic Sig Validator V2", function () {
       schema: ethers.BigNumber.from("210459579859058135404770043788028292398"),
       slotIndex: 2,
       operator: 2,
-      value: [20020101, new Array(63).fill(0)],
+      value: [20020101, ...new Array(63).fill(0)],
       circuitId: "credentialAtomicQuerySig",
-      valueHash: 0
+      valueHash: "4044782888831183712183347620047737367287592968870057422868359686203789801751"
     };
 
     const requestId = await token.TRANSFER_REQUEST_ID();
