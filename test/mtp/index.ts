@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import {
   deployERC20ZKPVerifierToken,
+  deployPoseidonExt,
   deployValidatorContracts,
   prepareInputs,
   publishState,
@@ -79,6 +80,7 @@ describe("Atomic MTP Validator", function () {
         slotIndex: 2,
         operator: 2,
         value: [20020101],
+        valueHash: 0,
         circuitId: "credentialAtomicQueryMTP",
       };
 
@@ -106,7 +108,9 @@ describe("Atomic MTP Validator", function () {
       require("./data/valid_mtp_user_non_genesis_challenge_address.json")
     );
 
-    const account = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+    const [owner] = await ethers.getSigners();
+    const poseidon = await deployPoseidonExt(owner);
+    await token.setPoseidonEx(poseidon.address);
     expect(token.transfer).not.to.be.undefined;
     expect(token.submitZKPResponse).not.to.be.undefined;
 
@@ -117,7 +121,7 @@ describe("Atomic MTP Validator", function () {
     ).to.be.revertedWith(
       "only identities who provided proof are allowed to receive tokens"
     );
-    expect(await token.balanceOf(account)).to.equal(0);
+    expect(await token.balanceOf(owner.address)).to.equal(0);
 
     // must be no queries
     console.log("supported requests - zero");
@@ -130,7 +134,8 @@ describe("Atomic MTP Validator", function () {
       schema: ethers.BigNumber.from("210459579859058135404770043788028292398"),
       slotIndex: 2,
       operator: 2,
-      value: [20020101],
+      value: [20020101, ...new Array(63).fill(0)],
+      valueHash: 0,
       circuitId: "credentialAtomicQueryMTP",
     };
 
@@ -152,11 +157,11 @@ describe("Atomic MTP Validator", function () {
 
     await token.submitZKPResponse(requestId, inputs, pi_a, pi_b, pi_c);
 
-    expect(await token.proofs(account, requestId)).to.be.true; // check proof is assigned
+    expect(await token.proofs(owner.address, requestId)).to.be.true; // check proof is assigned
 
     // сheck that tokens were minted
 
-    expect(await token.balanceOf(account)).to.equal(
+    expect(await token.balanceOf(owner.address)).to.equal(
       ethers.BigNumber.from("5000000000000000000")
     );
 
@@ -165,8 +170,8 @@ describe("Atomic MTP Validator", function () {
       token.submitZKPResponse(requestId, inputs, pi_a, pi_b, pi_c)
     ).to.be.revertedWith("proof can not be submitted more than once'");
 
-    await token.transfer(account, 1); // we send tokens to ourselves, but no error.
-    expect(await token.balanceOf(account)).to.equal(
+    await token.transfer(owner.address, 1); // we send tokens to ourselves, but no error.
+    expect(await token.balanceOf(owner.address)).to.equal(
       ethers.BigNumber.from("5000000000000000000")
     );
   });
