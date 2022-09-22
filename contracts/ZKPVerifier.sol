@@ -6,6 +6,12 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./lib/GenesisUtils.sol";
 import "./interfaces/ICircuitValidator.sol";
 import "./interfaces/IZKPVerifier.sol";
+import "hardhat/console.sol";
+
+
+interface IPoseidonExtended {
+    function poseidonFold(uint256[] memory) external view returns (uint256);
+}
 
 contract ZKPVerifier is IZKPVerifier, Ownable {
     // msg.sender-> ( requestID -> is proof given )
@@ -15,6 +21,12 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
     mapping(uint64 => ICircuitValidator) public requestValidators;
 
     uint64[] public supportedRequests;
+
+    IPoseidonExtended public poseidonEx;
+
+    function setPoseidonEx(address _poseidonEx) external onlyOwner {
+        poseidonEx = IPoseidonExtended(_poseidonEx);
+    }
 
     function submitZKPResponse(
         uint64 requestId,
@@ -69,6 +81,8 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
             supportedRequests.push(requestId);
         }
         requestQueries[requestId].value = query.value;
+        requestQueries[requestId].valueHash =  poseidonEx.poseidonFold(query.value);
+        console.log("value hash" , requestQueries[requestId].valueHash );
         requestQueries[requestId].operator = query.operator;
         requestQueries[requestId].circuitId = query.circuitId;
         requestQueries[requestId].slotIndex = query.slotIndex;

@@ -1,4 +1,5 @@
 import { ethers, upgrades } from "hardhat";
+import { poseidonContract as poseidonGenContract } from "circomlibjs";
 
 export async function deployValidatorContracts(
   verifierContractWrapperName: string,
@@ -121,4 +122,31 @@ export async function publishState(
   );
 
   await transitStateTx.wait();
+}
+
+export async function deployPoseidonExt(
+  owner: any,
+): Promise<any> {
+  const addresses: string[] = [];
+  for (let n of [2,6]) {
+    const adr = await deployPoseidonUnit(n, owner);
+    addresses.push(adr);
+  }
+
+  const PoseidonExtended = await ethers.getContractFactory("PoseidonExtended");
+
+  const poseidonExtended = await PoseidonExtended.deploy(...addresses);
+  await poseidonExtended.deployed();
+
+  console.log("PoseidonExtended deployed to", poseidonExtended.address);
+  return poseidonExtended;
+}
+
+async function deployPoseidonUnit(n: number, owner: any): Promise<string> {
+  const abi = poseidonGenContract.generateABI(n);
+  const code = poseidonGenContract.createCode(n);
+  const Poseidon2Elements = new ethers.ContractFactory(abi, code, owner);
+  const poseidonFnContract = await Poseidon2Elements.deploy();
+  await poseidonFnContract.deployed();
+  return poseidonFnContract.address;
 }
