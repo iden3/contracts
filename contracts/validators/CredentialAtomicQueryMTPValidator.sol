@@ -13,7 +13,7 @@ contract CredentialAtomicQueryMTPValidator is
 {
     string constant CIRCUIT_ID = "credentialAtomicQueryMTP";
     uint256 constant CHALLENGE_INDEX = 2;
-    uint256 constant USER_ID_INDEX = 1;
+    uint256 constant USER_ID_INDEX = 0;
 
     IVerifier public verifier;
     IState public state;
@@ -82,7 +82,7 @@ contract CredentialAtomicQueryMTPValidator is
 
         // verify user states
 
-        uint256 userId = inputs[0];
+        uint256 userId = inputs[USER_ID_INDEX];
         uint256 userState = inputs[1];
         uint256 issuerClaimIdenState = inputs[3];
         uint256 issuerId = inputs[4];
