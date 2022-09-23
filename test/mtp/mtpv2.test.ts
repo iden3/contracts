@@ -79,7 +79,6 @@ describe("Atomic MTP Validator V2", function () {
         ),
         slotIndex: 2,
         operator: 2,
-        value: [20020101, new Array(63).fill(0)],
         valueHash: ethers.BigNumber.from(
           "4044782888831183712183347620047737367287592968870057422868359686203789801751"
         ),
@@ -102,8 +101,8 @@ describe("Atomic MTP Validator V2", function () {
     });
   }
 
-  it("Example ERC20 Verifier", async () => {
-    const token: any = await deployERC20ZKPVerifierToken("zkpVerifer", "ZKPVR");
+  it.only("Example ERC20 Verifier", async () => {
+    const token: any = await deployERC20ZKPVerifierToken("zkpVerifer", "ZKPVR", "ERC20VerifierV2");
     await publishState(state, require("./datav2/user_state_transition.json"));
     await publishState(state, require("./datav2/issuer_state_transition.json"));
 
@@ -139,16 +138,20 @@ describe("Atomic MTP Validator V2", function () {
       slotIndex: 2,
       operator: 2,
       value: [20020101, ...new Array(63).fill(0)],
-      valueHash: ethers.BigNumber.from(
-        "4044782888831183712183347620047737367287592968870057422868359686203789801751"
-      ),
       circuitId: "credentialAtomicQueryMTP",
     };
 
     const requestId = await token.TRANSFER_REQUEST_ID();
     expect(requestId).to.be.equal(1);
 
-    await token.setZKPRequest(requestId, mtp.address, ageQuery);
+    await token.setZKPRequest(
+      requestId,
+      mtp.address,
+      ageQuery.schema,
+      ageQuery.slotIndex,
+      ageQuery.operator,
+      ageQuery.value
+    );
 
     expect((await token.requestQueries(requestId)).schema).to.be.equal(
       ageQuery.schema

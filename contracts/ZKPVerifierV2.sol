@@ -4,17 +4,28 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./lib/GenesisUtils.sol";
-import "./interfaces/ICircuitValidator.sol";
-import "./interfaces/IZKPVerifier.sol";
+import "./interfaces/ICircuitValidatorV2.sol";
+import "./interfaces/IZKPVerifierV2.sol";
 
-contract ZKPVerifier is IZKPVerifier, Ownable {
+
+interface IPoseidonExtended {
+    function poseidonFold(uint256[] memory) external view returns (uint256);
+}
+
+contract ZKPVerifierV2 is IZKPVerifierV2, Ownable {
     // msg.sender-> ( requestID -> is proof given )
     mapping(address => mapping(uint64 => bool)) public proofs;
 
-    mapping(uint64 => ICircuitValidator.CircuitQuery) public requestQueries;
-    mapping(uint64 => ICircuitValidator) public requestValidators;
+    mapping(uint64 => ICircuitValidatorV2.CircuitQuery) public requestQueries;
+    mapping(uint64 => ICircuitValidatorV2) public requestValidators;
 
     uint64[] public supportedRequests;
+
+    IPoseidonExtended public poseidonEx;
+
+    function setPoseidonEx(address _poseidonEx) external onlyOwner {
+        poseidonEx = IPoseidonExtended(_poseidonEx);
+    }
 
     function submitZKPResponse(
         uint64 requestId,
@@ -24,7 +35,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256[2] memory c
     ) external override returns (bool) {
         require(
-            requestValidators[requestId] != ICircuitValidator(address(0)),
+            requestValidators[requestId] != ICircuitValidatorV2(address(0)),
             "validator is not set for this request id"
         ); // validator exists
         require(
@@ -55,26 +66,28 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         external
         view
         override
-        returns (ICircuitValidator.CircuitQuery memory)
+        returns (ICircuitValidatorV2.CircuitQuery memory)
     {
         return requestQueries[requestId];
     }
 
     function setZKPRequest(
         uint64 requestId,
-        ICircuitValidator validator,
-        ICircuitValidator.CircuitQuery memory query
+        ICircuitValidatorV2 validator,
+         uint256 schema,
+        uint256 slotIndex,
+        uint256 operator,
+        uint256[] memory value
     ) external override onlyOwner returns (bool) {
-        if (requestValidators[requestId] == ICircuitValidator(address(0x00))) {
+        if (requestValidators[requestId] == ICircuitValidatorV2(address(0x00))) {
             supportedRequests.push(requestId);
         }
-        requestQueries[requestId].value = query.value;
-        requestQueries[requestId].operator = query.operator;
-        requestQueries[requestId].circuitId = query.circuitId;
-        requestQueries[requestId].slotIndex = query.slotIndex;
-        requestQueries[requestId].schema = query.schema;
+        requestQueries[requestId].valueHash =  poseidonEx.poseidonFold(value);
+        requestQueries[requestId].operator = operator;
+        requestQueries[requestId].slotIndex = slotIndex;
+        requestQueries[requestId].schema = schema;
 
-        requestQueries[requestId].circuitId = query.circuitId;
+        requestQueries[requestId].circuitId = validator.getCircuitId();
 
         requestValidators[requestId] = validator;
         return true;
@@ -94,7 +107,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
     function _beforeProofSubmit(
         uint64 requestId,
         uint256[] memory inputs,
-        ICircuitValidator validator
+        ICircuitValidatorV2 validator
     ) internal virtual {}
 
     /**
@@ -103,6 +116,6 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
     function _afterProofSubmit(
         uint64 requestId,
         uint256[] memory inputs,
-        ICircuitValidator validator
+        ICircuitValidatorV2 validator
     ) internal virtual {}
 }

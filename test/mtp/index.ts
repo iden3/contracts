@@ -109,8 +109,6 @@ describe("Atomic MTP Validator", function () {
     );
 
     const [owner] = await ethers.getSigners();
-    const poseidon = await deployPoseidonExt(owner);
-    await token.setPoseidonEx(poseidon.address);
     expect(token.transfer).not.to.be.undefined;
     expect(token.submitZKPResponse).not.to.be.undefined;
 

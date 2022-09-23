@@ -55,15 +55,16 @@ export async function deployValidatorContracts(
 
 export async function deployERC20ZKPVerifierToken(
   name: string,
-  symbol: string
+  symbol: string,
+  contractName = "ERC20Verifier"
 ): Promise<{
   address: string;
 }> {
-  const ERC20Verifier = await ethers.getContractFactory("ERC20Verifier");
+  const ERC20Verifier = await ethers.getContractFactory(contractName);
   const erc20Verifier = await ERC20Verifier.deploy(name, symbol);
 
   await erc20Verifier.deployed();
-  console.log("ERC20Verifier deployed to:", erc20Verifier.address);
+  console.log(contractName, " deployed to:", erc20Verifier.address);
 
   return erc20Verifier;
 }

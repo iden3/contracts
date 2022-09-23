@@ -3,13 +3,13 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "../lib/GenesisUtils.sol";
-import "../interfaces/ICircuitValidator.sol";
+import "../interfaces/ICircuitValidatorV2.sol";
 import "../interfaces/IVerifier.sol";
 import "../interfaces/IState.sol";
 
 contract CredentialAtomicQueryMTPValidatorV2 is
     OwnableUpgradeable,
-    ICircuitValidator
+    ICircuitValidatorV2
 {
     string constant CIRCUIT_ID = "credentialAtomicQueryMTP";
     uint256 constant CHALLENGE_INDEX = 3;
