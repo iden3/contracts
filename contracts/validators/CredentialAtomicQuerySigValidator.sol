@@ -7,12 +7,12 @@ import "../interfaces/ICircuitValidator.sol";
 import "../interfaces/IVerifier.sol";
 import "../interfaces/IState.sol";
 
-contract CredentialAtomicQueryMTPValidator is
+contract CredentialAtomicQuerySigValidator is
     OwnableUpgradeable,
     ICircuitValidator
 {
-    string constant CIRCUIT_ID = "credentialAtomicQueryMTP";
-    uint256 constant CHALLENGE_INDEX = 2;
+    string constant CIRCUIT_ID = "credentialAtomicQuerySig";
+    uint256 constant CHALLENGE_INDEX = 3;
     uint256 constant USER_ID_INDEX = 1;
 
     IVerifier public verifier;
@@ -57,7 +57,10 @@ contract CredentialAtomicQueryMTPValidator is
         CircuitQuery memory query
     ) external view returns (bool r) {
         // verify that zkp is valid
-        require(verifier.verifyProof(a, b, c, inputs), "MTP is not valid");
+        require(
+            verifier.verifyProof(a, b, c, inputs),
+            "atomic query signature proof is not valid"
+        );
 
         // verify query
         require(
@@ -73,7 +76,7 @@ contract CredentialAtomicQueryMTPValidator is
             "wrong query operator has been used for proof generation"
         );
 
-         for (uint i = 0; i < query.value.length; i++) {
+        for (uint i = 0; i < query.value.length; i++) {
             require(
                 inputs[i + 10] == query.value[i],
                 "wrong comparison value has been used for proof generation"
@@ -82,9 +85,9 @@ contract CredentialAtomicQueryMTPValidator is
 
         // verify user states
 
-        uint256 userId = inputs[0];
-        uint256 userState = inputs[1];
-        uint256 issuerClaimIdenState = inputs[3];
+        uint256 userId = inputs[USER_ID_INDEX];
+        uint256 userState = inputs[2];
+        uint256 issuerAuthState = inputs[0];
         uint256 issuerId = inputs[4];
         uint256 issuerClaimNonRevState = inputs[5];
 
@@ -108,12 +111,12 @@ contract CredentialAtomicQueryMTPValidator is
         // 2. Issuer state must be registered in state contracts or be genesis
         bool isIssuerStateGenesis = GenesisUtils.isGenesisState(
             issuerId,
-            issuerClaimIdenState
+            issuerAuthState
         );
 
         if (!isIssuerStateGenesis) {
             (, , , , uint256 issuerIdFromState, ) = state.getTransitionInfo(
-                issuerClaimIdenState
+                issuerAuthState
             );
             require(
                 issuerId == issuerIdFromState,
