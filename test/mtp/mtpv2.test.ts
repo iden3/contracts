@@ -80,7 +80,7 @@ describe("Atomic MTP Validator V2", function () {
         slotIndex: 2,
         operator: 2,
         valueHash: ethers.BigNumber.from(
-          "4044782888831183712183347620047737367287592968870057422868359686203789801751"
+          "17614135090035519137778424604458860432455192195724904809712098442213690177861"
         ),
         circuitId: "credentialAtomicQueryMTP",
       };
@@ -101,7 +101,7 @@ describe("Atomic MTP Validator V2", function () {
     });
   }
 
-  it.only("Example ERC20 Verifier", async () => {
+  it("Example ERC20 Verifier", async () => {
     const token: any = await deployERC20ZKPVerifierToken("zkpVerifer", "ZKPVR", "ERC20VerifierV2");
     await publishState(state, require("./datav2/user_state_transition.json"));
     await publishState(state, require("./datav2/issuer_state_transition.json"));

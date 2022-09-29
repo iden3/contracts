@@ -126,25 +126,21 @@ export async function publishState(
 }
 
 export async function deployPoseidonExt(owner: any): Promise<any> {
-  const unitsContract: any[] = [];
-  for (let n of [2, 6]) {
-    const contract = await deployPoseidonUnit(n, owner);
-    unitsContract.push(contract);
-  }
+  const contract = await deployPoseidonUnit(6, owner);
 
   const PoseidonExtended = await ethers.getContractFactory("PoseidonExtended");
 
   const poseidonExtended = await PoseidonExtended.deploy(
-    unitsContract[0].address,
-    unitsContract[1].address
+    contract.address
   );
+  
   await poseidonExtended.deployed();
 
   console.log("PoseidonExtended deployed to", poseidonExtended.address);
   return poseidonExtended;
 }
 
-async function deployPoseidonUnit(n: number, owner: any): Promise<any> {
+export async function deployPoseidonUnit(n: number, owner: any): Promise<any> {
   const abi = poseidonGenContract.generateABI(n);
   const code = poseidonGenContract.createCode(n);
   const Poseidon2Elements = new ethers.ContractFactory(abi, code, owner);
