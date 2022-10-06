@@ -51,7 +51,7 @@ const testCases: any[] = [
   },
 ];
 
-describe.only("Atomic MTP Validator V2", function () {
+describe("Atomic MTP Validator V2", function () {
   let state: any, mtp: any;
 
   beforeEach(async () => {

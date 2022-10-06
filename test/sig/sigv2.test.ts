@@ -79,7 +79,7 @@ describe("Atomic Sig Validator V2", function () {
         slotIndex: 2,
         operator: 2,
         valueHash: ethers.BigNumber.from(
-          "17614135090035519137778424604458860432455192195724904809712098442213690177861"
+          "21053701227844818549205539195592062661578588212348105652426613187023390275259"
         ),
         circuitId: "credentialAtomicQuerySig",
       };
