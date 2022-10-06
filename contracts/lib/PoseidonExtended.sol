@@ -7,7 +7,7 @@ interface PoseidonUnit6 {
 
 contract PoseidonExtended {
     PoseidonUnit6 poseidon6;
-    uint64 constant BATCH_SIZE = 6;
+    uint64 constant BATCH_SIZE = 5;
 
     constructor(address _poseidonContractAddr6) {
         poseidon6 = PoseidonUnit6(_poseidonContractAddr6);
@@ -19,14 +19,11 @@ contract PoseidonExtended {
         returns (uint256)
     {
         uint256 fullHash = 0;
-        for (
-            uint256 i = 0;
-            i <
-            ((values.length + (BATCH_SIZE - (values.length % BATCH_SIZE))) /
-                BATCH_SIZE) +
-                1;
-            i++
-        ) {
+        uint256 iterationsCount = values.length > BATCH_SIZE
+            ? ((values.length + (BATCH_SIZE - (values.length % BATCH_SIZE))) /
+                BATCH_SIZE)
+            : 1;
+        for (uint256 i = 0; i < iterationsCount; i++) {
             fullHash = poseidon6.poseidon(
                 [
                     fullHash,
