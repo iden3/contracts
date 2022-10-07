@@ -6,7 +6,6 @@ import {
   publishState,
 } from "../deploy-utils";
 import { SmtStateMigration } from "../../scripts/smt-state-migration";
-import { describe } from "mocha";
 
 const issuerStateTransitions = [
   require("../mtp/data/issuer_state_transition.json"),
