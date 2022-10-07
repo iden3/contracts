@@ -48,12 +48,19 @@ describe("SMT", () => {
     poseidon3Elements = await Poseidon3Elements.deploy();
     await poseidon3Elements.deployed();
 
-    const Smt = await ethers.getContractFactory("Smt");
-    smt = await upgrades.deployProxy(Smt, [
-      poseidon2Elements.address,
-      poseidon3Elements.address,
-      owner.address,
-    ]);
+    const Smt = await ethers.getContractFactory("Smt", {
+      libraries: {
+        PoseidonUnit2L: poseidon2Elements.address,
+        PoseidonUnit3L: poseidon3Elements.address,
+      },
+    });
+    // todo As far as SMT is a library now, need to implement a wrapper
+    // class to test the smt or switch this tests to state
+    smt = await upgrades.deployProxy(
+      Smt,
+      [poseidon2Elements.address, poseidon3Elements.address, owner.address],
+      { unsafeAllow: ["external-library-linking"] }
+    );
     await smt.deployed();
   });
 

@@ -26,3 +26,11 @@ contract Poseidon {
     return _poseidonUnit3.poseidon(inp);
   }
 }
+
+library PoseidonUnit2L {
+  function poseidon(uint256[2] memory) public view returns (uint256) {}
+}
+
+library PoseidonUnit3L {
+  function poseidon(uint256[3] memory) public view returns (uint256) {}
+}

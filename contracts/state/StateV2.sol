@@ -14,39 +14,6 @@ interface IVerifier {
     ) external view returns (bool r);
 }
 
-interface ISmt {
-    function add(uint256 index, uint256 value) external;
-
-    function addHistorical(
-        uint256 _i,
-        uint256 _v,
-        uint64 _timestamp,
-        uint64 _blockNumber
-    ) external;
-
-    function root() external view returns (uint256);
-
-    function getProof(uint256 _index)
-        external
-        view
-        returns (Proof memory);
-
-    function getHistoricalProofByRoot(uint256 _index, uint256 _root)
-    external
-    view
-    returns (Proof memory);
-
-    function getHistoricalProofByBlock(uint256 index, uint64 _block)
-        external
-        view
-        returns (Proof memory);
-
-    function getHistoricalProofByTime(uint256 index, uint64 timestamp)
-        external
-        view
-        returns (Proof memory);
-}
-
 // /**
 //  * @dev Set and get states for each identity
 //  */
@@ -108,10 +75,12 @@ contract StateV2 is OwnableUpgradeable {
         uint256 state
     );
 
+    using Smt for SmtData;
+
     /**
      * @dev SMT address
      */
-    ISmt internal smt;
+    SmtData internal smtData;
 
     /**
      * @dev SMT address
@@ -140,11 +109,6 @@ contract StateV2 is OwnableUpgradeable {
 
     function getVerifier(address newVerifier) public onlyOwner {
         verifier = IVerifier(newVerifier);
-    }
-
-    function setSmt(address smtAddress) public onlyOwner {
-        smt = ISmt(smtAddress);
-        _stateTransitionEnabled = false;
     }
 
     function transitState(
@@ -218,7 +182,7 @@ contract StateV2 is OwnableUpgradeable {
         transitions[oldState].replacedAtTimestamp = block.timestamp;
         transitions[oldState].replacedAtBlock = uint64(block.number);
         transitions[oldState].replacedBy = newState;
-        smt.add(id, newState);
+        smtData.add(id, newState);
 
         emit StateUpdated(
             id,
@@ -417,7 +381,7 @@ contract StateV2 is OwnableUpgradeable {
     }
 
     function getSmtCurrentRoot() public view returns (uint256) {
-        return smt.root();
+        return smtData.root;
     }
 
     function getSmtProof(uint256 _index)
@@ -425,7 +389,7 @@ contract StateV2 is OwnableUpgradeable {
         view
         returns (Proof memory)
     {
-        return smt.getProof(_index);
+        return smtData.getProof(_index);
     }
 
     function getSmtHistoricalProofByRoot(uint256 index, uint256 _root)
@@ -433,7 +397,7 @@ contract StateV2 is OwnableUpgradeable {
     view
     returns (Proof memory)
     {
-        return smt.getHistoricalProofByRoot(index, _root);
+        return smtData.getHistoricalProofByRoot(index, _root);
     }
 
     function getSmtHistoricalProofByBlock(uint256 index, uint64 _block)
@@ -441,7 +405,7 @@ contract StateV2 is OwnableUpgradeable {
         view
         returns (Proof memory)
     {
-        return smt.getHistoricalProofByBlock(index, _block);
+        return smtData.getHistoricalProofByBlock(index, _block);
     }
 
     function getSmtHistoricalProofByTime(uint256 index, uint64 timestamp)
@@ -449,7 +413,7 @@ contract StateV2 is OwnableUpgradeable {
         view
         returns (Proof memory)
     {
-        return smt.getHistoricalProofByTime(index, timestamp);
+        return smtData.getHistoricalProofByTime(index, timestamp);
     }
 
     function migrateStateToSmt(
@@ -459,6 +423,14 @@ contract StateV2 is OwnableUpgradeable {
         uint64 blockNumber
     ) public onlyOwner {
         require(!_stateTransitionEnabled, "smt migration is not allowed");
-        smt.addHistorical(id, state, timestamp, blockNumber);
+        smtData.addHistorical(id, state, timestamp, blockNumber);
+    }
+
+    function getSmtRootHistoryLength() public view returns (uint256) {
+        return smtData.rootHistory.length;
+    }
+
+    function getSmtRootHistory(uint256 _start, uint256 _end) public view returns (RootHistoryInfo[] memory) {
+        return smtData.getRootHistory(_start, _end);
     }
 }

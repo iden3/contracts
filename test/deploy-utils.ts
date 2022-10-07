@@ -112,11 +112,6 @@ export async function deployContracts(enableLogging = false): Promise<{
   await verifier.deployed();
   enableLogging && console.log("Verifier deployed to:", verifier.address);
 
-  const State = await ethers.getContractFactory("StateV2");
-  const state = await upgrades.deployProxy(State, [verifier.address]);
-  await state.deployed();
-  enableLogging && console.log("State deployed to:", state.address);
-
   const [owner] = await ethers.getSigners();
 
   const { poseidon2Elements, poseidon3Elements } = await deployPoseidons(
@@ -125,13 +120,26 @@ export async function deployContracts(enableLogging = false): Promise<{
   );
 
   const smt = await deploySmt(
-    state.address,
     poseidon2Elements.address,
     poseidon3Elements.address,
     enableLogging
   );
 
-  await state.setSmt(smt.address);
+  await smt.deployed();
+
+  const State = await ethers.getContractFactory("StateV2", {
+    libraries: {
+      Smt: smt.address,
+    },
+  });
+  const state = await upgrades.deployProxy(
+    State,
+    [verifier.address],
+    { unsafeAllow: ["external-library-linking"] }
+  );
+  await state.deployed();
+  enableLogging && console.log("State deployed to:", state.address);
+
   // Enable state transition
   await state.setTransitionStateEnabled(true);
 
@@ -196,22 +204,19 @@ export async function deployMtp(
 }
 
 export async function deploySmt(
-  writerAddress: string,
   poseidon2Address: string,
   poseidon3Address: string,
   enableLogging = false
 ): Promise<any> {
-  const Smt = await ethers.getContractFactory("Smt");
-  const smt = await upgrades.deployProxy(Smt, [
-    poseidon2Address,
-    poseidon3Address,
-    writerAddress,
-  ]);
+  const Smt = await ethers.getContractFactory("Smt", {
+    libraries: {
+      PoseidonUnit2L: poseidon2Address,
+      PoseidonUnit3L: poseidon3Address,
+    },
+  });
+  const smt = await Smt.deploy();
   await smt.deployed();
-  enableLogging &&
-    console.log(
-      `SMT deployed to:  ${smt.address} with writer address ${writerAddress}`
-    );
+  enableLogging && console.log(`SMT deployed to:  ${smt.address}`);
 
   return smt;
 }

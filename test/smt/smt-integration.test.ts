@@ -34,9 +34,9 @@ describe("State Migration to SMT test", () => {
       currentRoots.push(currentRoot);
     }
 
-    const rootHistoryLength = await smt.rootHistoryLength();
+    const rootHistoryLength = await state.getSmtRootHistoryLength();
 
-    const [[r1], [r2]] = await smt.getRootHistory(0, rootHistoryLength - 1);
+    const [[r1], [r2]] = await state.getSmtRootHistory(0, rootHistoryLength - 1);
 
     const [root] = await state.getSmtHistoricalProofByRoot(id, r1);
     expect(r1).to.equal(root);
@@ -53,9 +53,9 @@ describe("State Migration to SMT test", () => {
     }
     const id = ethers.BigNumber.from(issuerStateTransitions[0].pub_signals[0]);
 
-    const rootHistoryLength = await smt.rootHistoryLength();
+    const rootHistoryLength = await state.getSmtRootHistoryLength();
 
-    const [[r1, t1], [r2, t2]] = await smt.getRootHistory(
+    const [[r1, t1], [r2, t2]] = await state.getSmtRootHistory(
       0,
       rootHistoryLength - 1
     );
@@ -74,9 +74,9 @@ describe("State Migration to SMT test", () => {
     }
     const id = ethers.BigNumber.from(issuerStateTransitions[0].pub_signals[0]);
 
-    const rootHistoryLength = await smt.rootHistoryLength();
+    const rootHistoryLength = await state.getSmtRootHistoryLength();
 
-    const [[r1, , b1], [r2, , b2]] = await smt.getRootHistory(
+    const [[r1, , b1], [r2, , b2]] = await state.getSmtRootHistory(
       0,
       rootHistoryLength - 1
     );
@@ -92,39 +92,13 @@ describe("State Migration to SMT test", () => {
       await publishState(state, issuerStateJson);
     }
     const id = ethers.BigNumber.from(issuerStateTransitions[0].pub_signals[0]);
-    const rootHistoryLength = await smt.rootHistoryLength();
-    const [[r1, t1, b1]] = await smt.getRootHistory(0, rootHistoryLength - 1);
+    const rootHistoryLength = await state.getSmtRootHistoryLength();
+    const [[r1, t1, b1]] = await state.getSmtRootHistory(0, rootHistoryLength - 1);
 
     const [rootB] = await state.getSmtHistoricalProofByBlock(id, b1);
     expect(r1).to.equal(rootB);
     const [rootT] = await state.getSmtHistoricalProofByTime(id, t1);
     expect(r1).to.equal(rootT).to.equal(rootB);
-  });
-
-  it("should only writer to be able to call add to smt tree", async () => {
-    const [owner, addr1, addr2] = await ethers.getSigners();
-
-    const { poseidon2Elements, poseidon3Elements } = await deployPoseidons(
-      addr1,
-      false
-    );
-    const smt = await deploySmt(
-      addr1.address,
-      poseidon2Elements.address,
-      poseidon3Elements.address
-    );
-
-    await expect(smt.connect(addr1).add(1, 2)).not.to.be.reverted;
-    await expect(smt.connect(addr2).add(1, 2)).to.be.revertedWith(
-      "caller has no permissions"
-    );
-    await expect(smt.connect(addr2).add(1, 3)).to.be.revertedWith(
-      "caller has no permissions"
-    );
-
-    await expect(smt.connect(owner).add(1, 4)).to.be.revertedWith(
-      "caller has no permissions"
-    );
   });
 });
 
@@ -157,7 +131,7 @@ describe("State SMT integration tests", () => {
     );
     // 3. run migration
     const smtMigration = new SmtStateMigration();
-    const { smt, stateContract } = await smtMigration.run(
+    const { smt, state } = await smtMigration.run(
       existingState.address,
       poseidon2Elements.address,
       poseidon3Elements.address,
@@ -166,12 +140,12 @@ describe("State SMT integration tests", () => {
     );
 
     // 4. verify smt tree has history
-    let rootHistoryLength = await smt.rootHistoryLength();
+    let rootHistoryLength = await state.getSmtRootHistoryLength();
 
-    let rootHistory = await smt.getRootHistory(0, rootHistoryLength - 1);
+    let rootHistory = await state.getSmtRootHistory(0, rootHistoryLength - 1);
 
     let stateHistory = await smtMigration.getStateTransitionHistory(
-      stateContract,
+      state,
       0,
       1
     );
@@ -181,16 +155,16 @@ describe("State SMT integration tests", () => {
     // 5. add state transition to migrated state contract
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const stateTransition = require("../mtp/data/user_state_transition.json");
-    await publishState(stateContract, stateTransition);
+    await publishState(state, stateTransition);
 
     // 6. verify transit state has changed  tree  history
-    rootHistoryLength = await smt.rootHistoryLength();
+    rootHistoryLength = await state.getSmtRootHistoryLength();
 
     expect(rootHistoryLength).to.equal(3);
 
-    stateHistory = await smtMigration.getStateTransitionHistory(stateContract);
+    stateHistory = await smtMigration.getStateTransitionHistory(state);
 
-    rootHistory = await smt.getRootHistory(0, rootHistoryLength - 1);
+    rootHistory = await state.getSmtRootHistory(0, rootHistoryLength - 1);
 
     expect(rootHistory.length).to.equal(stateHistory.length);
   });
@@ -220,12 +194,9 @@ describe("State SMT integration tests", () => {
     );
 
     const smt = await deploySmt(
-      stateContract.address,
       poseidon2Elements.address,
       poseidon3Elements.address
     );
-
-    await stateContract.setSmt(smt.address);
 
     const id = BigInt(
       "279949150130214723420589610911161895495647789006649785264738141299135414272"
@@ -247,7 +218,7 @@ describe("State SMT integration tests", () => {
 
     await smtMigration.migrate(stateContract, stateTransitionHistory);
 
-    const rootHistoryLength = await smt.rootHistoryLength();
+    const rootHistoryLength = await stateContract.getSmtRootHistoryLength();
 
     expect(rootHistoryLength).to.equal(count);
   });

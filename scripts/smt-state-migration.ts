@@ -130,17 +130,12 @@ export class SmtStateMigration {
     poseidon3Address: string,
     startBlockNumber: number, //29831814
     blockChunkSize: number
-  ): Promise<{ smt: any; stateContract: any }> {
+  ): Promise<{ smt: any; state: any }> {
     // 1. upgrade state from mock to state
     const stateContract = await this.upgradeState(stateProxyAddress);
 
     // 2. deploy smt and set smt address to state
-    const smt = await deploySmt(
-      stateContract.address,
-      poseidon2Address,
-      poseidon3Address,
-      true
-    );
+    const smt = await deploySmt(poseidon2Address, poseidon3Address, true);
     const tx = await stateContract.setSmt(smt.address);
 
     const receipt = await tx.wait();
@@ -163,7 +158,7 @@ export class SmtStateMigration {
     await stateContract.setTransitionStateEnabled(true);
 
     return {
-      stateContract,
+      state: stateContract,
       smt,
     };
   }

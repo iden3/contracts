@@ -8,6 +8,16 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 uint256 constant MAX_SMT_DEPTH = 32;
 uint256 constant SMT_ROOT_HISTORY_RETURN_LIMIT = 1000;
 
+
+/**
+ * @dev Sparse Merkle Tree data
+ */
+struct SmtData {
+    mapping(uint256 => Node) tree;
+    uint256 root;
+    RootHistoryInfo[] rootHistory;
+}
+
 /**
  * @dev Struct of the node proof in the SMT
  */
@@ -22,23 +32,8 @@ struct Proof {
     uint256 fnc;
 }
 
-/// @title A sparse merkle tree implementation, which keeps tree history.
-contract Smt is OwnableUpgradeable {
-    PoseidonUnit2 _poseidonUnit2;
-    PoseidonUnit3 _poseidonUnit3;
-
-    address internal _writer;
-
-    /**
-     * @dev Throws if called by any account other than the state contract.
-     */
-    modifier onlyWriter() {
-        require(_writer == _msgSender(), "caller has no permissions");
-        _;
-    }
-
-    /**
-     * @dev Enum of SMT node types
+/**
+ * @dev Enum of SMT node types
      */
     enum NodeType {
         EMPTY,
@@ -46,8 +41,8 @@ contract Smt is OwnableUpgradeable {
         MIDDLE
     }
 
-    /**
-     * @dev Struct saved information about SMT root change.
+/**
+ * @dev Struct saved information about SMT root change.
      * @param RootHistory historical tree root.
      * @param BlockTimestamp commit time when state was saved into blockchain.
      * @param BlockN commit number of block when state was created.
@@ -58,8 +53,8 @@ contract Smt is OwnableUpgradeable {
         uint64 BlockN;
     }
 
-    /**
-     * @dev Struct SMT node.
+/**
+ * @dev Struct SMT node.
      * @param NodeType type of node.
      * @param ChildLeft left child of node.
      * @param ChildRight right child of node.
@@ -74,49 +69,23 @@ contract Smt is OwnableUpgradeable {
         uint256 Value;
     }
 
-    mapping(uint256 => Node) public tree;
-
-    /**
-     * @dev Current SMT tree root.
-     */
-    uint256 public root;
-
-    /**
-     * @dev Root history information.
-     */
-    RootHistoryInfo[] public rootHistory;
-
-    /**
-     * @dev Initialize the contract.
-     * @param _poseidonUnit2ContractAddr Poseidon hash function for 2 inputs.
-     * @param _poseidonUnit3ContractAddr Poseidon hash function for 3 inputs.
-     * @param _stateAddress Address of state contract, which is the only to update SMT.
-     */
-    function initialize(
-        address _poseidonUnit2ContractAddr,
-        address _poseidonUnit3ContractAddr,
-        address _stateAddress
-    ) public initializer {
-        _poseidonUnit2 = PoseidonUnit2(_poseidonUnit2ContractAddr);
-        _poseidonUnit3 = PoseidonUnit3(_poseidonUnit3ContractAddr);
-        _writer = _stateAddress;
-        __Ownable_init();
-    }
+/// @title A sparse merkle tree implementation, which keeps tree history.
+library Smt {
 
     /**
      * @dev Get max depth of SMT.
      * @return max depth of SMT.
      */
     function getMaxDepth() public pure returns (uint256) {
-        return MAX_SMT_DEPTH;
+        return MAX_SMT_DEPTH; // todo put to SmtData struct
     }
 
     /**
      * @dev Get SMT root history length
      * @return SMT history length
      */
-    function rootHistoryLength() public view returns (uint256) {
-        return rootHistory.length;
+    function rootHistoryLength(SmtData storage self) public view returns (uint256) {
+        return self.rootHistory.length;
     }
 
     /**
@@ -125,13 +94,13 @@ contract Smt is OwnableUpgradeable {
      * @param endIndex end index of history
      * @return array of SMT historical roots with timestamp and block number info
      */
-    function getRootHistory(uint256 startIndex, uint256 endIndex)
+    function getRootHistory(SmtData storage self, uint256 startIndex, uint256 endIndex)
         public
         view
         returns (RootHistoryInfo[] memory)
     {
         require(
-            startIndex >= 0 && endIndex < rootHistory.length,
+            startIndex >= 0 && endIndex < self.rootHistory.length,
             "index out of bounds of array"
         );
         require(
@@ -142,7 +111,7 @@ contract Smt is OwnableUpgradeable {
             endIndex - startIndex + 1
         );
         for (uint256 i = startIndex; i <= endIndex; i++) {
-            result[i] = rootHistory[i];
+            result[i] = self.rootHistory[i];
         }
         return result;
     }
@@ -155,14 +124,15 @@ contract Smt is OwnableUpgradeable {
      * @param _blockNumber block number of root
      */
     function addHistorical(
+        SmtData storage self,
         uint256 _i,
         uint256 _v,
         uint64 _timestamp,
         uint64 _blockNumber
-    ) public onlyWriter {
+    ) public {
         Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
-        root = addLeaf(node, root, 0);
-        rootHistory.push(RootHistoryInfo(root, _timestamp, _blockNumber));
+        self.root = addLeaf(self, node, self.root, 0);
+        self.rootHistory.push(RootHistoryInfo(self.root, _timestamp, _blockNumber));
     }
 
     /**
@@ -170,15 +140,16 @@ contract Smt is OwnableUpgradeable {
     * @param _i Index of node
     * @param _v Value of node
     */
-    function add(uint256 _i, uint256 _v) public onlyWriter {
+    function add(SmtData storage self, uint256 _i, uint256 _v) public {
         Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
-        root = addLeaf(node, root, 0);
-        rootHistory.push(
-            RootHistoryInfo(root, uint64(block.timestamp), uint64(block.number))
+        self.root = addLeaf(self, node, self.root, 0);
+        self.rootHistory.push(
+            RootHistoryInfo(self.root, uint64(block.timestamp), uint64(block.number))
         );
     }
 
     function addLeaf(
+        SmtData storage self,
         Node memory _newLeaf,
         uint256 nodeHash,
         uint256 _depth
@@ -187,21 +158,21 @@ contract Smt is OwnableUpgradeable {
             revert("Max depth reached");
         }
 
-        Node memory node = tree[nodeHash];
+        Node memory node = self.tree[nodeHash];
         uint256 nextNodeHash;
         uint256 leafHash;
 
         if (node.NodeType == NodeType.EMPTY) {
-            leafHash = addNode(_newLeaf);
+            leafHash = addNode(self, _newLeaf);
         } else if (node.NodeType == NodeType.LEAF) {
             leafHash = node.Index == _newLeaf.Index
-                ? addNode(_newLeaf)
-                : pushLeaf(_newLeaf, node, _depth, _newLeaf.Index, node.Index);
+                ? addNode(self, _newLeaf)
+                : pushLeaf(self, _newLeaf, node, _depth, _newLeaf.Index, node.Index);
         } else if (node.NodeType == NodeType.MIDDLE) {
             Node memory newNodeMiddle;
 
             if ((_newLeaf.Index >> _depth) & 1 == 1) {
-                nextNodeHash = addLeaf(_newLeaf, node.ChildRight, _depth + 1);
+                nextNodeHash = addLeaf(self, _newLeaf, node.ChildRight, _depth + 1);
                 newNodeMiddle = Node(
                     NodeType.MIDDLE,
                     node.ChildLeft,
@@ -210,7 +181,7 @@ contract Smt is OwnableUpgradeable {
                     0
                 );
             } else {
-                nextNodeHash = addLeaf(_newLeaf, node.ChildLeft, _depth + 1);
+                nextNodeHash = addLeaf(self, _newLeaf, node.ChildLeft, _depth + 1);
                 newNodeMiddle = Node(
                     NodeType.MIDDLE,
                     nextNodeHash,
@@ -220,13 +191,14 @@ contract Smt is OwnableUpgradeable {
                 );
             }
 
-            leafHash = addNode(newNodeMiddle);
+            leafHash = addNode(self, newNodeMiddle);
         }
 
         return leafHash;
     }
 
     function pushLeaf(
+        SmtData storage self,
         Node memory _newLeaf,
         Node memory _oldLeaf,
         uint256 _depth,
@@ -242,6 +214,7 @@ contract Smt is OwnableUpgradeable {
         // Check if we need to go deeper!
         if ((_pathNewLeaf >> _depth) & 1 == (_pathOldLeaf >> _depth) & 1) {
             uint256 nextNodeHash = pushLeaf(
+                self,
                 _newLeaf,
                 _oldLeaf,
                 _depth + 1,
@@ -256,7 +229,7 @@ contract Smt is OwnableUpgradeable {
                 // go left
                 newNodeMiddle = Node(NodeType.MIDDLE, nextNodeHash, 0, 0, 0);
             }
-            return addNode(newNodeMiddle);
+            return addNode(self, newNodeMiddle);
         }
 
         if ((_pathNewLeaf >> _depth) & 1 == 1) {
@@ -277,18 +250,18 @@ contract Smt is OwnableUpgradeable {
             );
         }
 
-        addNode(_newLeaf);
-        return addNode(newNodeMiddle);
+        addNode(self, _newLeaf);
+        return addNode(self, newNodeMiddle);
     }
 
-    function addNode(Node memory _node) internal returns (uint256) {
+    function addNode(SmtData storage self, Node memory _node) internal returns (uint256) {
         uint256 nodeHash = getNodeHash(_node);
         require(
-            tree[nodeHash].NodeType == NodeType.EMPTY,
+            self.tree[nodeHash].NodeType == NodeType.EMPTY,
             "Node already exists with the same index and value"
         );
         // We do not store empty nodes so can check if an entry exists
-        tree[nodeHash] = _node;
+        self.tree[nodeHash] = _node;
         return nodeHash;
     }
 
@@ -296,9 +269,9 @@ contract Smt is OwnableUpgradeable {
         uint256 nodeHash;
         if (_node.NodeType == NodeType.LEAF) {
             uint256[3] memory params = [_node.Index, _node.Value, uint256(1)];
-            nodeHash = _poseidonUnit3.poseidon(params);
+            nodeHash = PoseidonUnit3L.poseidon(params);
         } else if (_node.NodeType == NodeType.MIDDLE) {
-            nodeHash = _poseidonUnit2.poseidon(
+            nodeHash = PoseidonUnit2L.poseidon(
                 [_node.ChildLeft, _node.ChildRight]
             );
         }
@@ -310,8 +283,8 @@ contract Smt is OwnableUpgradeable {
      * @param _nodeHash Hash of a node
      * @return A node
      */
-    function getNode(uint256 _nodeHash) public view returns (Node memory) {
-        return tree[_nodeHash];
+    function getNode(SmtData storage self, uint256 _nodeHash) public view returns (Node memory) {
+        return self.tree[_nodeHash];
     }
 
     /**
@@ -319,12 +292,12 @@ contract Smt is OwnableUpgradeable {
      * @param _index Node index
      * @return The node proof
      */
-    function getProof(uint256 _index)
+    function getProof(SmtData storage self, uint256 _index)
         public
         view
         returns (Proof memory)
     {
-        return getHistoricalProofByRoot(_index, root);
+        return getHistoricalProofByRoot(self, _index, self.root);
     }
 
     /**
@@ -333,7 +306,7 @@ contract Smt is OwnableUpgradeable {
      * @param _historicalRoot Historical SMT roof to get proof for
      * @return The node proof
      */
-    function getHistoricalProofByRoot(uint256 _index, uint256 _historicalRoot)
+    function getHistoricalProofByRoot(SmtData storage self, uint256 _index, uint256 _historicalRoot)
         public
         view
         returns (Proof memory)
@@ -346,7 +319,7 @@ contract Smt is OwnableUpgradeable {
         Node memory node;
 
         for (uint256 i = 0; i < MAX_SMT_DEPTH; i++) {
-            node = getNode(nextNodeHash);
+            node = getNode(self, nextNodeHash);
             if (node.NodeType == NodeType.EMPTY) {
                 proof.fnc = 1;
                 proof.isOld0 = true;
@@ -383,16 +356,16 @@ contract Smt is OwnableUpgradeable {
      * @param timestamp The nearest timestamp to get proof for
      * @return The node proof
      */
-    function getHistoricalProofByTime(uint256 index, uint64 timestamp)
+    function getHistoricalProofByTime(SmtData storage self, uint256 index, uint64 timestamp)
         public
         view
         returns (Proof memory)
     {
-        (uint256 historyRoot, , ) = getHistoricalRootDataByTime(timestamp);
+        (uint256 historyRoot, , ) = getHistoricalRootDataByTime(self, timestamp);
 
         require(historyRoot != 0, "historical root not found");
 
-        return getHistoricalProofByRoot(index, historyRoot);
+        return getHistoricalProofByRoot(self, index, historyRoot);
     }
 
     /**
@@ -401,16 +374,16 @@ contract Smt is OwnableUpgradeable {
      * @param _block The nearest block number to get proof for
      * @return The node proof
      */
-    function getHistoricalProofByBlock(uint256 index, uint64 _block)
+    function getHistoricalProofByBlock(SmtData storage self, uint256 index, uint64 _block)
         public
         view
         returns (Proof memory)
     {
-        (uint256 historyRoot, , ) = getHistoricalRootDataByBlock(_block);
+        (uint256 historyRoot, , ) = getHistoricalRootDataByBlock(self, _block);
 
         require(historyRoot != 0, "historical root not found");
 
-        return getHistoricalProofByRoot(index, historyRoot);
+        return getHistoricalProofByRoot(self, index, historyRoot);
     }
 
     /**
@@ -418,7 +391,7 @@ contract Smt is OwnableUpgradeable {
      * @param timestamp timestamp
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getHistoricalRootDataByTime(uint64 timestamp)
+    function getHistoricalRootDataByTime(SmtData storage self, uint64 timestamp)
         public
         view
         returns (
@@ -429,40 +402,40 @@ contract Smt is OwnableUpgradeable {
     {
         require(timestamp <= block.timestamp, "errNoFutureAllowed");
         // Case that there is no state committed
-        if (rootHistory.length == 0) {
+        if (self.rootHistory.length == 0) {
             return (0, 0, 0);
         }
         // Case that there timestamp searched is beyond last timestamp committed
-        uint64 lastTimestamp = rootHistory[rootHistory.length - 1]
+        uint64 lastTimestamp = self.rootHistory[self.rootHistory.length - 1]
             .BlockTimestamp;
         if (timestamp > lastTimestamp) {
             return (
-                rootHistory[rootHistory.length - 1].RootHistory,
-                rootHistory[rootHistory.length - 1].BlockTimestamp,
-                rootHistory[rootHistory.length - 1].BlockN
+                self.rootHistory[self.rootHistory.length - 1].RootHistory,
+                self.rootHistory[self.rootHistory.length - 1].BlockTimestamp,
+                self.rootHistory[self.rootHistory.length - 1].BlockN
             );
         }
         // Binary search
         uint256 min = 0;
-        uint256 max = rootHistory.length - 1;
+        uint256 max = self.rootHistory.length - 1;
         while (min <= max) {
             uint256 mid = (max + min) / 2;
-            if (rootHistory[mid].BlockTimestamp == timestamp) {
+            if (self.rootHistory[mid].BlockTimestamp == timestamp) {
                 return (
-                    rootHistory[mid].RootHistory,
-                    rootHistory[mid].BlockTimestamp,
-                    rootHistory[mid].BlockN
+                    self.rootHistory[mid].RootHistory,
+                    self.rootHistory[mid].BlockTimestamp,
+                    self.rootHistory[mid].BlockN
                 );
             } else if (
-                (timestamp > rootHistory[mid].BlockTimestamp) &&
-                (timestamp < rootHistory[mid + 1].BlockTimestamp)
+                (timestamp > self.rootHistory[mid].BlockTimestamp) &&
+                (timestamp < self.rootHistory[mid + 1].BlockTimestamp)
             ) {
                 return (
-                    rootHistory[mid].RootHistory,
-                    rootHistory[mid].BlockTimestamp,
-                    rootHistory[mid].BlockN
+                    self.rootHistory[mid].RootHistory,
+                    self.rootHistory[mid].BlockTimestamp,
+                    self.rootHistory[mid].BlockN
                 );
-            } else if (timestamp > rootHistory[mid].BlockTimestamp) {
+            } else if (timestamp > self.rootHistory[mid].BlockTimestamp) {
                 min = mid + 1;
             } else {
                 max = mid - 1;
@@ -476,7 +449,7 @@ contract Smt is OwnableUpgradeable {
      * @param blockN block number
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getHistoricalRootDataByBlock(uint64 blockN)
+    function getHistoricalRootDataByBlock(SmtData storage self, uint64 blockN)
         public
         view
         returns (
@@ -488,39 +461,39 @@ contract Smt is OwnableUpgradeable {
         require(blockN <= block.number, "errNoFutureAllowed");
 
         // Case that there is no state committed
-        if (rootHistory.length == 0) {
+        if (self.rootHistory.length == 0) {
             return (0, 0, 0);
         }
         // Case that there block searched is beyond last block committed
-        uint64 lastBlock = rootHistory[rootHistory.length - 1].BlockN;
+        uint64 lastBlock = self.rootHistory[self.rootHistory.length - 1].BlockN;
         if (blockN > lastBlock) {
             return (
-                rootHistory[rootHistory.length - 1].RootHistory,
-                rootHistory[rootHistory.length - 1].BlockTimestamp,
-                rootHistory[rootHistory.length - 1].BlockN
+                self.rootHistory[self.rootHistory.length - 1].RootHistory,
+                self.rootHistory[self.rootHistory.length - 1].BlockTimestamp,
+                self.rootHistory[self.rootHistory.length - 1].BlockN
             );
         }
         // Binary search
         uint256 min = 0;
-        uint256 max = rootHistory.length - 1;
+        uint256 max = self.rootHistory.length - 1;
         while (min <= max) {
             uint256 mid = (max + min) / 2;
-            if (rootHistory[mid].BlockN == blockN) {
+            if (self.rootHistory[mid].BlockN == blockN) {
                 return (
-                    rootHistory[mid].RootHistory,
-                    rootHistory[mid].BlockTimestamp,
-                    rootHistory[mid].BlockN
+                    self.rootHistory[mid].RootHistory,
+                    self.rootHistory[mid].BlockTimestamp,
+                    self.rootHistory[mid].BlockN
                 );
             } else if (
-                (blockN > rootHistory[mid].BlockN) &&
-                (blockN < rootHistory[mid + 1].BlockN)
+                (blockN > self.rootHistory[mid].BlockN) &&
+                (blockN < self.rootHistory[mid + 1].BlockN)
             ) {
                 return (
-                    rootHistory[mid].RootHistory,
-                    rootHistory[mid].BlockTimestamp,
-                    rootHistory[mid].BlockN
+                    self.rootHistory[mid].RootHistory,
+                    self.rootHistory[mid].BlockTimestamp,
+                    self.rootHistory[mid].BlockN
                 );
-            } else if (blockN > rootHistory[mid].BlockN) {
+            } else if (blockN > self.rootHistory[mid].BlockN) {
                 min = mid + 1;
             } else {
                 max = mid - 1;
