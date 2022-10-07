@@ -7,6 +7,11 @@ import "./lib/GenesisUtils.sol";
 import "./interfaces/ICircuitValidator.sol";
 import "./interfaces/IZKPVerifier.sol";
 
+
+interface IPoseidonExtended {
+    function poseidonFold(uint256[] memory) external view returns (uint256);
+}
+
 contract ZKPVerifier is IZKPVerifier, Ownable {
     // msg.sender-> ( requestID -> is proof given )
     mapping(address => mapping(uint64 => bool)) public proofs;
@@ -15,6 +20,12 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
     mapping(uint64 => ICircuitValidator) public requestValidators;
 
     uint64[] public supportedRequests;
+
+    IPoseidonExtended public poseidonEx;
+
+    function setPoseidonEx(address _poseidonEx) external onlyOwner {
+        poseidonEx = IPoseidonExtended(_poseidonEx);
+    }
 
     function submitZKPResponse(
         uint64 requestId,
@@ -63,18 +74,20 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
     function setZKPRequest(
         uint64 requestId,
         ICircuitValidator validator,
-        ICircuitValidator.CircuitQuery memory query
+         uint256 schema,
+        uint256 slotIndex,
+        uint256 operator,
+        uint256[] memory value
     ) external override onlyOwner returns (bool) {
         if (requestValidators[requestId] == ICircuitValidator(address(0x00))) {
             supportedRequests.push(requestId);
         }
-        requestQueries[requestId].value = query.value;
-        requestQueries[requestId].operator = query.operator;
-        requestQueries[requestId].circuitId = query.circuitId;
-        requestQueries[requestId].slotIndex = query.slotIndex;
-        requestQueries[requestId].schema = query.schema;
+        requestQueries[requestId].valueHash =  poseidonEx.poseidonFold(value);
+        requestQueries[requestId].operator = operator;
+        requestQueries[requestId].slotIndex = slotIndex;
+        requestQueries[requestId].schema = schema;
 
-        requestQueries[requestId].circuitId = query.circuitId;
+        requestQueries[requestId].circuitId = validator.getCircuitId();
 
         requestValidators[requestId] = validator;
         return true;

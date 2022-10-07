@@ -7,7 +7,7 @@ import "../interfaces/IERC20zkp.sol";
 import "../interfaces/ICircuitValidator.sol";
 import "../ZKPVerifier.sol";
 
-contract ERC20Verifier is ERC20, ZKPVerifier {
+contract ERC20VerifierV2 is ERC20, ZKPVerifier {
     uint64 public constant TRANSFER_REQUEST_ID = 1;
 
     mapping(uint256 => address) public idToAddress;

@@ -12,7 +12,7 @@ contract CredentialAtomicQueryMTPValidator is
     ICircuitValidator
 {
     string constant CIRCUIT_ID = "credentialAtomicQueryMTP";
-    uint256 constant CHALLENGE_INDEX = 2;
+    uint256 constant CHALLENGE_INDEX = 3;
     uint256 constant USER_ID_INDEX = 1;
 
     IVerifier public verifier;
@@ -61,32 +61,31 @@ contract CredentialAtomicQueryMTPValidator is
 
         // verify query
         require(
-            inputs[7] == query.schema,
+            inputs[8] == query.schema,
             "wrong claim schema has been used for proof generation"
         );
         require(
-            inputs[8] == query.slotIndex,
+            inputs[9] == query.slotIndex,
             "wrong claim data slot has been used for proof generation"
         );
         require(
-            inputs[9] == query.operator,
+            inputs[10] == query.operator,
             "wrong query operator has been used for proof generation"
         );
 
-         for (uint i = 0; i < query.value.length; i++) {
-            require(
-                inputs[i + 10] == query.value[i],
-                "wrong comparison value has been used for proof generation"
-            );
-        }
+         
+        require(
+            inputs[0] == query.valueHash,
+            "wrong comparison value has been used for proof generation"
+        );
+        
 
         // verify user states
-
-        uint256 userId = inputs[0];
-        uint256 userState = inputs[1];
-        uint256 issuerClaimIdenState = inputs[3];
-        uint256 issuerId = inputs[4];
-        uint256 issuerClaimNonRevState = inputs[5];
+        uint256 userId = inputs[USER_ID_INDEX];
+        uint256 userState = inputs[2];
+        uint256 issuerClaimIdenState = inputs[4];
+        uint256 issuerId = inputs[5];
+        uint256 issuerClaimNonRevState = inputs[6];
 
         // 1. User state must be latest or genesis
 

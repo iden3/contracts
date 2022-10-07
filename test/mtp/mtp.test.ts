@@ -12,19 +12,20 @@ const testCases: any[] = [
   {
     name: "Validate Genesis User State/Issuer Claim IdenState is in Chain/Revocation State is in Chain",
     issuerStateTransitions: [require("./data/issuer_state_transition.json")],
-    proofJson: require("./data/valid_sig_user_genesis.json"),
+    mtfProofJson: require("./data/valid_mtp_user_genesis.json"),
   },
   {
     name: "Validation of proof failed",
     issuerStateTransitions: [require("./data/issuer_state_transition.json")],
-    proofJson: require("./data/invalid_sig_user_genesis.json"),
-    errorMessage: "sig could not be verified",
+    mtfProofJson: require("./data/invalid_mtp_user_genesis.json"),
+    errorMessage: "MTP Proof could not be verified",
   },
+
   {
     name: "User state is not genesis but latest",
     issuerStateTransitions: [require("./data/issuer_state_transition.json")],
     userStateTransition: require("./data/user_state_transition.json"),
-    proofJson: require("./data/valid_sig_user_non_genesis.json"),
+    mtfProofJson: require("./data/valid_mtp_user_non_genesis.json"),
     errorMessage: "",
   },
   {
@@ -34,7 +35,7 @@ const testCases: any[] = [
       require("./data/issuer_next_state_transition.json"),
     ],
     userStateTransition: require("./data/user_state_transition.json"),
-    proofJson: require("./data/valid_sig_user_non_genesis.json"),
+    mtfProofJson: require("./data/valid_mtp_user_non_genesis.json"),
     errorMessage: "",
   },
   {
@@ -44,22 +45,22 @@ const testCases: any[] = [
       require("./data/issuer_next_state_transition.json"),
     ],
     userStateTransition: require("./data/user_state_transition.json"),
-    proofJson: require("./data/valid_sig_user_non_genesis.json"),
+    mtfProofJson: require("./data/valid_mtp_user_non_genesis.json"),
     setExpiration: 1,
     errorMessage: "Non-Revocation state of Issuer expired",
   },
 ];
 
-describe("Atomic Sig Validator", function () {
-  let state: any, sig: any;
+describe("Atomic MTP Validator V2", function () {
+  let state: any, mtp: any;
 
   beforeEach(async () => {
     const contracts = await deployValidatorContracts(
-      "VerifierSigWrapper",
-      "CredentialAtomicQuerySigValidator"
+      "VerifierMTPWrapper",
+      "CredentialAtomicQueryMTPValidator"
     );
     state = contracts.state;
-    sig = contracts.validator;
+    mtp = contracts.validator;
   });
 
   for (const test of testCases) {
@@ -78,39 +79,45 @@ describe("Atomic Sig Validator", function () {
         ),
         slotIndex: 2,
         operator: 2,
-        valueHash: 0,
-        value: [20020101, ...new Array(63).fill(0)],
-        circuitId: "credentialAtomicQuerySig",
+        valueHash: ethers.BigNumber.from(
+          "21053701227844818549205539195592062661578588212348105652426613187023390275259"
+        ),
+        circuitId: "credentialAtomicQueryMTP",
       };
 
-      const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
+      const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.mtfProofJson);
       if (test.errorMessage) {
         if (test.setExpiration) {
-          await sig.setRevocationStateExpirationTime(test.setExpiration);
+          await mtp.setRevocationStateExpirationTime(test.setExpiration);
         }
 
         (
-          expect(sig.verify(inputs, pi_a, pi_b, pi_c, query)).to.be as any
+          expect(mtp.verify(inputs, pi_a, pi_b, pi_c, query)).to.be as any
         ).revertedWith(test.errorMessage);
       } else {
-        const verified = await sig.verify(inputs, pi_a, pi_b, pi_c, query);
+        const verified = await mtp.verify(inputs, pi_a, pi_b, pi_c, query);
         expect(verified).to.be.true;
       }
     });
   }
+
   it("Example ERC20 Verifier", async () => {
     const token: any = await deployERC20ZKPVerifierToken(
-      "zkpVerifierSig",
-      "ZKPVRSIG"
+      "zkpVerifer",
+      "ZKPVR",
+      "ERC20VerifierV2"
     );
     await publishState(state, require("./data/user_state_transition.json"));
     await publishState(state, require("./data/issuer_state_transition.json"));
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(
-      require("./data/valid_sig_user_non_genesis_challenge_address.json")
+      require("./data/valid_mtp_user_non_genesis_challenge_address.json")
     );
 
     const [owner] = await ethers.getSigners();
+    const poseidon = await deployPoseidonExt(owner);
+    await token.setPoseidonEx(poseidon.address);
+
     expect(token.transfer).not.to.be.undefined;
     expect(token.submitZKPResponse).not.to.be.undefined;
 
@@ -134,15 +141,21 @@ describe("Atomic Sig Validator", function () {
       schema: ethers.BigNumber.from("210459579859058135404770043788028292398"),
       slotIndex: 2,
       operator: 2,
-      valueHash: 0,
-      value: [20020101],
-      circuitId: "credentialAtomicQuerySig",
+      value: [20020101, ...new Array(63).fill(0)],
+      circuitId: "credentialAtomicQueryMTP",
     };
 
     const requestId = await token.TRANSFER_REQUEST_ID();
     expect(requestId).to.be.equal(1);
 
-    await token.setZKPRequest(requestId, sig.address, ageQuery);
+    await token.setZKPRequest(
+      requestId,
+      mtp.address,
+      ageQuery.schema,
+      ageQuery.slotIndex,
+      ageQuery.operator,
+      ageQuery.value
+    );
 
     expect((await token.requestQueries(requestId)).schema).to.be.equal(
       ageQuery.schema
@@ -159,7 +172,7 @@ describe("Atomic Sig Validator", function () {
 
     expect(await token.proofs(owner.address, requestId)).to.be.true; // check proof is assigned
 
-    // check that tokens were minted
+    // сheck that tokens were minted
 
     expect(await token.balanceOf(owner.address)).to.equal(
       ethers.BigNumber.from("5000000000000000000")
