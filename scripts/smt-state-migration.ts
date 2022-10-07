@@ -1,6 +1,6 @@
 import { ethers, upgrades } from "hardhat";
 import hre from "hardhat";
-import { deploySmt, toJson } from "../test/deploy-utils";
+import { deployPoseidons, deploySmt, toJson } from "../test/deploy-utils";
 import fs from "fs";
 
 export class SmtStateMigration {
@@ -107,16 +107,36 @@ export class SmtStateMigration {
     this.writeFile("migration-result.json", result);
   }
 
-  async upgradeState(stateProxyAddress: string): Promise<any> {
+  async upgradeState(
+    stateProxyAddress: string,
+    enableLogging = false
+  ): Promise<any> {
     await hre.run("compile");
 
-    const StateV2Factory = await ethers.getContractFactory("StateV2");
-    // Upgrade
-    const tx = await upgrades.upgradeProxy(stateProxyAddress, StateV2Factory);
+    const [owner] = await ethers.getSigners();
 
-    this.log(`upgrade successful: ${tx.deployTransaction.hash}`);
+    const { poseidon2Elements, poseidon3Elements } = await deployPoseidons(owner, enableLogging);
+
+    const smt = await deploySmt(
+      poseidon2Elements.address,
+      poseidon3Elements.address,
+      enableLogging
+    );
+
+    const StateV2Factory = await ethers.getContractFactory(
+      "StateV2",
+      { libraries: { Smt: smt.address } }
+    );
+
+    // Upgrade
+    const tx = await upgrades.upgradeProxy(stateProxyAddress, StateV2Factory, {
+      unsafeAllowLinkedLibraries: true,
+    });
 
     const stateContract = StateV2Factory.attach(stateProxyAddress);
+    await stateContract.setTransitionStateEnabled(false);
+    this.log(`upgrade successful: ${tx.deployTransaction.hash}`);
+
     return stateContract;
   }
 
@@ -130,36 +150,25 @@ export class SmtStateMigration {
     poseidon3Address: string,
     startBlockNumber: number, //29831814
     blockChunkSize: number
-  ): Promise<{ smt: any; state: any }> {
+  ): Promise<{ state: any }> {
     // 1. upgrade state from mock to state
     const stateContract = await this.upgradeState(stateProxyAddress);
 
-    // 2. deploy smt and set smt address to state
-    const smt = await deploySmt(poseidon2Address, poseidon3Address, true);
-    const tx = await stateContract.setSmt(smt.address);
-
-    const receipt = await tx.wait();
-    if (receipt.status !== 1) {
-      this.log(receipt);
-      throw new Error("setSmt failed");
-    }
-
-    // 3. fetch all stateTransition from event
+    // 2. fetch all stateTransition from event
     const stateHistory = await this.getStateTransitionHistory(
       stateContract,
       startBlockNumber, //29831814,
       blockChunkSize //3500,
     );
 
-    // 4. migrate state
+    // 3. migrate state
     await this.migrate(stateContract, stateHistory);
 
-    // 5. enable state transition
+    // 4. enable state transition
     await stateContract.setTransitionStateEnabled(true);
 
     return {
       state: stateContract,
-      smt,
     };
   }
 
