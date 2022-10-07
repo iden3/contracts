@@ -105,7 +105,7 @@ describe("Atomic MTP Validator V2", function () {
     const token: any = await deployERC20ZKPVerifierToken(
       "zkpVerifer",
       "ZKPVR",
-      "ERC20VerifierV2"
+      "ERC20Verifier"
     );
     await publishState(state, require("./data/user_state_transition.json"));
     await publishState(state, require("./data/issuer_state_transition.json"));
