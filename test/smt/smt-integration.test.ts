@@ -3,10 +3,10 @@ import { ethers, upgrades } from "hardhat";
 import {
   deployContracts,
   deployPoseidons,
-  deploySmt,
   publishState,
 } from "../deploy-utils";
 import { SmtStateMigration } from "../../scripts/smt-state-migration";
+import { describe } from "mocha";
 
 const issuerStateTransitions = [
   require("../mtp/data/issuer_state_transition.json"),
@@ -14,12 +14,11 @@ const issuerStateTransitions = [
 ];
 
 describe("State Migration to SMT test", () => {
-  let state: any, smt: any;
+  let state: any;
 
   beforeEach(async () => {
     const contracts = await deployContracts();
     state = contracts.state;
-    smt = contracts.smt;
   });
 
   it("should be correct historical proof by root and the latest root", async () => {
@@ -102,7 +101,9 @@ describe("State Migration to SMT test", () => {
   });
 });
 
-describe("State SMT integration tests", () => {
+describe("State SMT integration tests", function () {
+  this.timeout(10000);
+
   it("should upgrade to new state and migrate existing states to smt", async () => {
     // 1. deploy verifier
     const Verifier = await ethers.getContractFactory("Verifier");
@@ -131,7 +132,7 @@ describe("State SMT integration tests", () => {
     );
     // 3. run migration
     const smtMigration = new SmtStateMigration();
-    const { smt, state } = await smtMigration.run(
+    const { state } = await smtMigration.run(
       existingState.address,
       poseidon2Elements.address,
       poseidon3Elements.address,
@@ -171,7 +172,6 @@ describe("State SMT integration tests", () => {
 
   it.skip("estimate tree migration gas", async () => {
     const count = 350;
-    const [owner] = await ethers.getSigners();
     // 1. deploy verifier
     const Verifier = await ethers.getContractFactory("Verifier");
     const verifier = await Verifier.deploy();
@@ -187,15 +187,6 @@ describe("State SMT integration tests", () => {
 
     const stateContract = await smtMigration.upgradeState(
       existingState.address
-    );
-
-    const { poseidon2Elements, poseidon3Elements } = await deployPoseidons(
-      owner
-    );
-
-    const smt = await deploySmt(
-      poseidon2Elements.address,
-      poseidon3Elements.address
     );
 
     const id = BigInt(

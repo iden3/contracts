@@ -103,9 +103,10 @@ export function toBigNumber({ inputs, pi_a, pi_b, pi_c }: VerificationInfo) {
 }
 
 export async function deployContracts(enableLogging = false): Promise<{
-  state: any;
-  smt: any;
-  verifier: any;
+  owner: SignerWithAddress;
+  state: Contract;
+  smt: Contract;
+  verifier: Contract;
 }> {
   const Verifier = await ethers.getContractFactory("Verifier");
   const verifier = await Verifier.deploy();
@@ -144,6 +145,7 @@ export async function deployContracts(enableLogging = false): Promise<{
   await state.setTransitionStateEnabled(true);
 
   return {
+    owner,
     state,
     smt,
     verifier,

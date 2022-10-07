@@ -1,8 +1,7 @@
 import { expect } from "chai";
-import { ethers, upgrades } from "hardhat";
-import { poseidonContract } from "circomlibjs";
 
 import { FixedArray, genMaxBinaryNumber, MtpProof } from "./utils";
+import { deployContracts } from "../deploy-utils";
 
 // todo [RESEARCH] why the index 2**31-1 but not 2**32-1 is maximum? Research smtverifier in circomlib
 // todo [RESEARCH] why circom verifier has 33 siblings instead of 32?
@@ -14,18 +13,18 @@ type TestCase = {
   [key: string]: any;
 };
 
-describe("SMT", () => {
-  let smt, poseidon2Elements, poseidon3Elements;
+describe("Check SMT functionality via State", () => {
+  let owner, state;
 
   async function checkTestCase(testCase: TestCase) {
     for (const param of testCase.params) {
-      await smt.add(param.i, param.v);
+      await state.migrateStateToSmt(param.i, param.v, 0, 0);
     }
 
     const proof =
       typeof testCase.getProofParams == "number"
-        ? await smt.getProof(testCase.getProofParams)
-        : await smt.getHistoricalProofByRoot(
+        ? await state.getSmtProof(testCase.getProofParams)
+        : await state.getSmtHistoricalProofByRoot(
             testCase.getProofParams.index,
             testCase.getProofParams.historicalRoot
           );
@@ -34,34 +33,8 @@ describe("SMT", () => {
   }
 
   beforeEach(async () => {
-    const [owner] = await ethers.getSigners();
-
-    const abi = poseidonContract.generateABI(2);
-    const code = poseidonContract.createCode(2);
-    const Poseidon2Elements = new ethers.ContractFactory(abi, code, owner);
-    poseidon2Elements = await Poseidon2Elements.deploy();
-    await poseidon2Elements.deployed();
-
-    const abi3 = poseidonContract.generateABI(3);
-    const code3 = poseidonContract.createCode(3);
-    const Poseidon3Elements = new ethers.ContractFactory(abi3, code3, owner);
-    poseidon3Elements = await Poseidon3Elements.deploy();
-    await poseidon3Elements.deployed();
-
-    const Smt = await ethers.getContractFactory("Smt", {
-      libraries: {
-        PoseidonUnit2L: poseidon2Elements.address,
-        PoseidonUnit3L: poseidon3Elements.address,
-      },
-    });
-    // todo As far as SMT is a library now, need to implement a wrapper
-    // class to test the smt or switch this tests to state
-    smt = await upgrades.deployProxy(
-      Smt,
-      [poseidon2Elements.address, poseidon3Elements.address, owner.address],
-      { unsafeAllow: ["external-library-linking"] }
-    );
-    await smt.deployed();
+    ({ owner, state } = await deployContracts());
+    await state.connect(owner).setTransitionStateEnabled(false);
   });
 
   describe("SMT existence proof", () => {
@@ -787,8 +760,8 @@ describe("SMT", () => {
     });
 
     it("Negative: add two leaves with maximum depth + 1", async () => {
-      await expect(smt.add(genMaxBinaryNumber(31), 100)).not.to.be.reverted;
-      await expect(smt.add(genMaxBinaryNumber(32), 100)).to.be.revertedWith(
+      await expect(state.migrateStateToSmt(genMaxBinaryNumber(31), 100, 0, 0)).not.to.be.reverted;
+      await expect(state.migrateStateToSmt(genMaxBinaryNumber(32), 100, 0, 0)).to.be.revertedWith(
         "Max depth reached"
       );
     });
