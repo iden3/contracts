@@ -433,4 +433,8 @@ contract StateV2 is OwnableUpgradeable {
     function getSmtRootHistory(uint256 _start, uint256 _end) public view returns (RootHistoryInfo[] memory) {
         return smtData.getRootHistory(_start, _end);
     }
+
+    function getSmtRootTransitionsInfo(uint256 _root) public view returns (RootTransitionsInfo memory) {
+        return smtData.rootTransitions[_root];
+    }
 }

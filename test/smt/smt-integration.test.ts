@@ -98,6 +98,36 @@ describe("State Migration to SMT test", () => {
     const [rootT] = await state.getSmtHistoricalProofByTime(id, t1);
     expect(r1).to.equal(rootT).to.equal(rootB);
   });
+
+  it("should have correct SMT root transitions info", async () => {
+    const roots: any[] = [];
+    const expRootTrInfo: any[] = [];
+    let i = 0;
+    for (const issuerStateJson of issuerStateTransitions) {
+      const { blockNumber } = await publishState(state, issuerStateJson);
+
+      const root = await state.getSmtCurrentRoot();
+      roots.push(root);
+
+      // todo Improve the test to cover all the values of RootTransitionInfo
+      expRootTrInfo.push({
+        replacedAtTimestamp: 0,
+        createdAtTimestamp: 0,
+        replacedAtBlock: 0,
+        createdAtBlock: blockNumber,
+        replacedBy: 0,
+        root,
+      });
+      i++;
+    }
+
+    expect((await state.getSmtRootTransitionsInfo(roots[0])).createdAtBlock).to.equal(
+      expRootTrInfo[0].createdAtBlock
+    );
+    expect((await state.getSmtRootTransitionsInfo(roots[1])).createdAtBlock).to.equal(
+      expRootTrInfo[1].createdAtBlock
+    );
+  });
 });
 
 describe("State SMT integration tests", function () {

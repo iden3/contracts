@@ -16,6 +16,7 @@ struct SmtData {
     mapping(uint256 => Node) tree;
     uint256 root;
     RootHistoryInfo[] rootHistory;
+    mapping(uint256 => RootTransitionsInfo) rootTransitions;
 }
 
 /**
@@ -35,11 +36,11 @@ struct Proof {
 /**
  * @dev Enum of SMT node types
      */
-    enum NodeType {
-        EMPTY,
-        LEAF,
-        MIDDLE
-    }
+enum NodeType {
+    EMPTY,
+    LEAF,
+    MIDDLE
+}
 
 /**
  * @dev Struct saved information about SMT root change.
@@ -47,11 +48,26 @@ struct Proof {
      * @param BlockTimestamp commit time when state was saved into blockchain.
      * @param BlockN commit number of block when state was created.
      */
-    struct RootHistoryInfo {
-        uint256 RootHistory;
-        uint64 BlockTimestamp;
-        uint64 BlockN;
-    }
+struct RootHistoryInfo {
+    uint256 RootHistory;
+    uint64 BlockTimestamp;
+    uint64 BlockN;
+}
+
+/**
+ * @dev Struct saved information about SMT root change.
+     * @param RootHistory historical tree root.
+     * @param BlockTimestamp commit time when state was saved into blockchain.
+     * @param BlockN commit number of block when state was created.
+     */
+struct RootTransitionsInfo {
+    uint256 replacedAtTimestamp;
+    uint256 createdAtTimestamp;
+    uint64 replacedAtBlock;
+    uint64 createdAtBlock;
+    uint256 replacedBy;
+    uint256 root; //todo may not need to save the root in the struct. Dublication of data and gas cost.
+}
 
 /**
  * @dev Struct SMT node.
@@ -61,13 +77,13 @@ struct Proof {
      * @param Index index of node.
      * @param Value value of node.
      */
-    struct Node {
-        NodeType NodeType;
-        uint256 ChildLeft;
-        uint256 ChildRight;
-        uint256 Index;
-        uint256 Value;
-    }
+struct Node {
+    NodeType NodeType;
+    uint256 ChildLeft;
+    uint256 ChildRight;
+    uint256 Index;
+    uint256 Value;
+}
 
 /// @title A sparse merkle tree implementation, which keeps tree history.
 library Smt {
@@ -134,7 +150,11 @@ library Smt {
     ) public {
         Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
         self.root = addLeaf(self, node, self.root, 0);
+
+        // todo block timestamp and number are excessive in RootHistoryInfo
         self.rootHistory.push(RootHistoryInfo(self.root, _timestamp, _blockNumber));
+
+        addRootTransition(self, _timestamp, _blockNumber);
     }
 
     /**
@@ -145,9 +165,24 @@ library Smt {
     function add(SmtData storage self, uint256 _i, uint256 _v) public {
         Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
         self.root = addLeaf(self, node, self.root, 0);
+
+        // todo block timestamp and number are excessive in RootHistoryInfo
         self.rootHistory.push(
             RootHistoryInfo(self.root, uint64(block.timestamp), uint64(block.number))
         );
+
+        addRootTransition(self, uint64(block.timestamp), uint64(block.number));
+    }
+
+    function addRootTransition(SmtData storage self, uint64 _timestamp, uint64 _blockNumber) internal {
+        self.rootTransitions[self.root].createdAtTimestamp = _timestamp;
+        self.rootTransitions[self.root].createdAtBlock = _blockNumber;
+        self.rootTransitions[self.root].root = self.root;
+        if (self.rootHistory.length > 1) {
+            self.rootTransitions[self.rootHistory.length - 2].replacedAtTimestamp = _timestamp;
+            self.rootTransitions[self.rootHistory.length - 2].replacedAtBlock = _blockNumber;
+            self.rootTransitions[self.rootHistory.length - 2].replacedBy = self.root;
+        }
     }
 
     function addLeaf(

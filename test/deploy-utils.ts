@@ -155,7 +155,7 @@ export async function deployContracts(enableLogging = false): Promise<{
 export async function publishState(
   state: any,
   json: { [key: string]: string }
-): Promise<{ oldState: string; newState: string; id: string }> {
+): Promise<{ oldState: string; newState: string; id: string, blockNumber: number }> {
   const {
     inputs: [id, oldState, newState, isOldStateGenesis],
     pi_a,
@@ -173,12 +173,13 @@ export async function publishState(
     pi_c
   );
 
-  await transitStateTx.wait();
+  const { blockNumber } = await transitStateTx.wait();
 
   return {
     oldState,
     newState,
     id,
+    blockNumber,
   };
 }
 
