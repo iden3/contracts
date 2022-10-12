@@ -126,8 +126,10 @@ library Smt {
         RootHistoryInfo[] memory result = new RootHistoryInfo[](
             endIndex - startIndex + 1
         );
+        uint64 j = 0;
         for (uint256 i = startIndex; i <= endIndex; i++) {
-            result[i] = self.rootHistory[i];
+            result[j] = self.rootHistory[i];
+            j++;
         }
         return result;
     }
