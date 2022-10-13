@@ -1,14 +1,13 @@
 import { expect } from "chai";
-import { ethers, upgrades } from "hardhat";
-import { poseidonContract } from "circomlibjs";
 import bigInt from "big-integer";
-import { deployContracts } from "./deploy-utils";
+import { StateDeployHelper } from "../helpers/StateDeployHelper";
 
 describe("State", () => {
   let state;
 
   before(async () => {
-    const contracts = await deployContracts();
+    const deployHelper = await StateDeployHelper.initialize();
+    const contracts = await deployHelper.deployStateV2();
     state = contracts.state;
   });
 

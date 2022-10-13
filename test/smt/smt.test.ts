@@ -1,7 +1,8 @@
 import { expect } from "chai";
 
-import { FixedArray, genMaxBinaryNumber, MtpProof } from "./utils";
-import { deployContracts } from "../deploy-utils";
+import { FixedArray, genMaxBinaryNumber, MtpProof } from "../utils/utils";
+import { StateDeployHelper } from "../../helpers/StateDeployHelper";
+import { ethers } from "hardhat";
 
 // todo [RESEARCH] why the index 2**31-1 but not 2**32-1 is maximum? Research smtverifier in circomlib
 // todo [RESEARCH] why circom verifier has 33 siblings instead of 32?
@@ -33,7 +34,9 @@ describe("Check SMT functionality via State", () => {
   }
 
   beforeEach(async () => {
-    ({ owner, state } = await deployContracts());
+    owner = (await ethers.getSigners())[0];
+    const deployHelper = await StateDeployHelper.initialize();
+    ({ state } = await deployHelper.deployStateV2());
     await state.connect(owner).setTransitionStateEnabled(false);
   });
 

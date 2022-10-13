@@ -1,22 +1,19 @@
 import { expect } from "chai";
-import { ethers, upgrades } from "hardhat";
-import {
-  deployContracts,
-  deployPoseidons,
-  publishState,
-} from "../deploy-utils";
-import { SmtStateMigration } from "../../scripts/smt-state-migration";
+import { ethers } from "hardhat";
+import { publishState } from "./utils/deploy-utils";
+import { StateDeployHelper } from "../helpers/StateDeployHelper";
 
 const issuerStateTransitions = [
-  require("../mtp/data/issuer_state_transition.json"),
-  require("../mtp/data/issuer_next_state_transition.json"),
+  require("./mtp/data/issuer_state_transition.json"),
+  require("./mtp/data/issuer_next_state_transition.json"),
 ];
 
 describe("State Migration to SMT test", () => {
   let state: any;
 
   beforeEach(async () => {
-    const contracts = await deployContracts();
+    const deployHelper = await StateDeployHelper.initialize();
+    const contracts = await deployHelper.deployStateV2();
     state = contracts.state;
   });
 
@@ -134,47 +131,31 @@ describe("State SMT integration tests", function () {
   this.timeout(10000);
 
   it("should upgrade to new state and migrate existing states to smt", async () => {
-    // 1. deploy verifier
-    const Verifier = await ethers.getContractFactory("Verifier");
-    const verifier = await Verifier.deploy();
-    await verifier.deployed();
+    const stateDeployHelper = await StateDeployHelper.initialize();
 
-    // 2. deploy existing state
-    const ExistingState = await ethers.getContractFactory("State");
-    const existingState = await upgrades.deployProxy(ExistingState, [
-      verifier.address,
-    ]);
-    await existingState.deployed();
+    // 1. deploy StateV1
+    const { state: existingState } = await stateDeployHelper.deployStateV1();
 
     // 2. publish state
     const statesToPublish = [
-      require("../mtp/data/issuer_state_transition.json"),
-      require("../mtp/data/issuer_next_state_transition.json"),
+      require("./mtp/data/issuer_state_transition.json"),
+      require("./mtp/data/issuer_next_state_transition.json"),
     ];
     for (const issuerStateJson of statesToPublish) {
       await publishState(existingState, issuerStateJson);
     }
-    const [owner] = await ethers.getSigners();
 
-    const { poseidon2Elements, poseidon3Elements } = await deployPoseidons(
-      owner
-    );
-    // 3. run migration
-    const smtMigration = new SmtStateMigration();
-    const { state } = await smtMigration.run(
+    // 3. run migration from stateV1 to stateV2
+    const { state } = await stateDeployHelper.migrateFromStateV1toV2(
       existingState.address,
-      poseidon2Elements.address,
-      poseidon3Elements.address,
       0,
       1
     );
 
     // 4. verify smt tree has history
     let rootHistoryLength = await state.getSmtRootHistoryLength();
-
     let rootHistory = await state.getSmtRootHistory(0, rootHistoryLength - 1);
-
-    let stateHistory = await smtMigration.getStateTransitionHistory(
+    let stateHistory = await stateDeployHelper.getStateTransitionHistory(
       state,
       0,
       1
@@ -184,7 +165,7 @@ describe("State SMT integration tests", function () {
 
     // 5. add state transition to migrated state contract
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const stateTransition = require("../mtp/data/user_state_transition.json");
+    const stateTransition = require("./mtp/data/user_state_transition.json");
     await publishState(state, stateTransition);
 
     // 6. verify transit state has changed  tree  history
@@ -192,7 +173,7 @@ describe("State SMT integration tests", function () {
 
     expect(rootHistoryLength).to.equal(3);
 
-    stateHistory = await smtMigration.getStateTransitionHistory(state);
+    stateHistory = await stateDeployHelper.getStateTransitionHistory(state);
 
     rootHistory = await state.getSmtRootHistory(0, rootHistoryLength - 1);
 
@@ -201,20 +182,12 @@ describe("State SMT integration tests", function () {
 
   it.skip("estimate tree migration gas", async () => {
     const count = 350;
-    // 1. deploy verifier
-    const Verifier = await ethers.getContractFactory("Verifier");
-    const verifier = await Verifier.deploy();
-    await verifier.deployed();
+    const stateDeployHelper = await StateDeployHelper.initialize();
 
-    // 2. deploy existing state
-    const ExistingState = await ethers.getContractFactory("State");
-    const existingState = await upgrades.deployProxy(ExistingState, [
-      verifier.address,
-    ]);
-    await existingState.deployed();
-    const smtMigration = new SmtStateMigration();
+    // 1. deploy existing state
+    const { state: existingState } = await stateDeployHelper.deployStateV1();
 
-    const stateContract = await smtMigration.upgradeState(
+    const stateContract = await stateDeployHelper.upgradeState(
       existingState.address
     );
 
@@ -236,7 +209,7 @@ describe("State SMT integration tests", function () {
       };
     });
 
-    await smtMigration.migrate(stateContract, stateTransitionHistory);
+    await stateDeployHelper.migrate(stateContract, stateTransitionHistory);
 
     const rootHistoryLength = await stateContract.getSmtRootHistoryLength();
 

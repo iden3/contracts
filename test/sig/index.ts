@@ -5,7 +5,7 @@ import {
   deployValidatorContracts,
   prepareInputs,
   publishState,
-} from "../deploy-utils";
+} from "../utils/deploy-utils";
 
 const testCases: any[] = [
   {
