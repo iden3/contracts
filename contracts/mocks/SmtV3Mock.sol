@@ -4,10 +4,7 @@ pragma abicoder v2;
 
 import "../lib/Poseidon.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-
-
-// update existing 
-// create separate struct
+import "hardhat/console.sol";
 
 uint256 constant MAX_SMT_DEPTH = 64;
 uint256 constant SMT_ROOT_HISTORY_RETURN_LIMIT = 1000;
@@ -22,6 +19,14 @@ struct SmtData {
     mapping(uint256 => RootTransitionsInfo) rootTransitions;
 }
 
+struct SmtDataV2 {
+    mapping(uint256 => Node) tree;
+    uint256 root;
+    RootHistoryInfo[] rootHistory;
+    mapping(uint256 => RootTransitionsInfo) rootTransitions;
+    uint256 test;
+}
+
 /**
  * @dev Struct of the node proof in the SMT
  */
@@ -34,7 +39,6 @@ struct Proof {
     uint256 key;
     uint256 value;
     uint256 fnc;
-    uint256 test;
 }
 
 /**
@@ -90,7 +94,7 @@ struct Node {
 }
 
 /// @title A sparse merkle tree implementation, which keeps tree history.
-library SmtV2Mock {
+library SmtV3Mock {
     /**
      * @dev Get max depth of SMT.
      * @return max depth of SMT.
@@ -103,7 +107,7 @@ library SmtV2Mock {
      * @dev Get SMT root history length
      * @return SMT history length
      */
-    function rootHistoryLength(SmtData storage self)
+    function rootHistoryLength(SmtDataV2 storage self)
         public
         view
         returns (uint256)
@@ -112,8 +116,16 @@ library SmtV2Mock {
     }
 
     /**
-     * =============== ADEED FUNCTION ===============
+     * =============== ADEED FUNCTIONs ===============
      */
+    function assignHistoryDataToV2(
+        SmtDataV2 storage self,
+        RootHistoryInfo[] memory rootHistory
+    ) public {
+        for (uint256 i = 0; i < rootHistory.length; i++) {
+            self.rootHistory.push(rootHistory[i]);
+        }
+    }
 
     function rootHistoryLast(SmtData storage self)
         public
@@ -458,7 +470,6 @@ library SmtV2Mock {
                 revert("Invalid node type");
             }
         }
-        proof.test = 123;
         return proof;
     }
 

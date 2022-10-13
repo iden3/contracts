@@ -107,6 +107,8 @@ export async function deployContracts(enableLogging = false): Promise<{
   state: Contract;
   smt: Contract;
   verifier: Contract;
+  poseidon2Elements: Contract;
+  poseidon3Elements: Contract;
 }> {
   const Verifier = await ethers.getContractFactory("Verifier");
   const verifier = await Verifier.deploy();
@@ -149,6 +151,8 @@ export async function deployContracts(enableLogging = false): Promise<{
     state,
     smt,
     verifier,
+    poseidon2Elements,
+    poseidon3Elements,
   };
 }
 
@@ -209,9 +213,10 @@ export async function deployMtp(
 export async function deploySmt(
   poseidon2Address: string,
   poseidon3Address: string,
-  enableLogging = false
+  enableLogging = false,
+  contractName = "Smt"
 ): Promise<any> {
-  const Smt = await ethers.getContractFactory("Smt", {
+  const Smt = await ethers.getContractFactory(contractName, {
     libraries: {
       PoseidonUnit2L: poseidon2Address,
       PoseidonUnit3L: poseidon3Address,
@@ -219,7 +224,7 @@ export async function deploySmt(
   });
   const smt = await Smt.deploy();
   await smt.deployed();
-  enableLogging && console.log(`SMT deployed to:  ${smt.address}`);
+  enableLogging && console.log(`${contractName} deployed to:  ${smt.address}`);
 
   return smt;
 }

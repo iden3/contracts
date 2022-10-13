@@ -3,7 +3,7 @@ pragma solidity 0.8.15;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "./SmtV2Mock.sol";
+import "./SmtV3Mock.sol";
 
 interface IVerifier {
     function verifyProof(
@@ -18,7 +18,7 @@ interface IVerifier {
 //  * @dev Set and get states for each identity
 //  */
 // contract State is Iden3Helpers {
-contract StateV2Mock is OwnableUpgradeable {
+contract StateV3Mock is OwnableUpgradeable {
     /**
      * @dev Struct saved for each identity. Stores state and block/timestamp associated.
      */
@@ -75,7 +75,8 @@ contract StateV2Mock is OwnableUpgradeable {
         uint256 state
     );
 
-    using SmtV2Mock for SmtData;
+    using SmtV3Mock for SmtData;
+    using SmtV3Mock for SmtDataV2;
 
     /**
      * @dev SMT address
@@ -86,6 +87,8 @@ contract StateV2Mock is OwnableUpgradeable {
      * @dev SMT address
      */
     bool private _stateTransitionEnabled;
+
+    SmtDataV2 internal smtDataV2;
 
     function initialize(IVerifier _verifierContractAddr) public initializer {
         verifier = _verifierContractAddr;
@@ -444,5 +447,25 @@ contract StateV2Mock is OwnableUpgradeable {
 
     function rootHistoryLast() public view returns (RootHistoryInfo memory) {
         return smtData.rootHistoryLast();
+    }
+
+    function getSmtRootHistoryLengthV2() public view returns (uint256) {
+        return smtDataV2.rootHistory.length;
+    }
+
+    function assignHistoryDataToV2() public {
+        smtDataV2.assignHistoryDataToV2(smtData.rootHistory);
+    }
+
+    function assignTestField( uint256 num) public {
+        smtDataV2.test = num;
+    }
+
+    function getTestField()
+        public
+        view
+        returns (uint256)
+    {
+        return smtDataV2.test;
     }
 }
