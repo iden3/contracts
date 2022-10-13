@@ -1,7 +1,8 @@
 import { Contract } from "ethers";
 import { expect } from "chai";
 import { ethers, upgrades } from "hardhat";
-import { deployContracts, publishState, deploySmt } from "../deploy-utils";
+import { publishState } from "../utils/deploy-utils";
+import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 
 const issuerStateTransitions = [
   require("../mtp/data/issuer_state_transition.json"),
@@ -21,22 +22,23 @@ describe("Smt Library Upgrade", () => {
   let state: Contract;
   let poseidon2Elements: Contract;
   let poseidon3Elements: Contract;
+  let stateDeployHelper: StateDeployHelper;
+
   beforeEach(async () => {
-    const result = await deployContracts(true);
+    stateDeployHelper = await StateDeployHelper.initialize(null, true);
+    const result = await stateDeployHelper.deployStateV2();
     state = result.state;
-    await state.setTransitionStateEnabled(true);
-    poseidon2Elements = result.poseidon2Elements;
-    poseidon3Elements = result.poseidon3Elements;
+    poseidon2Elements = result.poseidon2;
+    poseidon3Elements = result.poseidon3;
   });
 
   it("library upgrade to new version with extending functionality", async () => {
     await publishInitialState(state, issuerStateTransitions[0]);
 
     //deploy new smt library version
-    const smtV2Lib = await deploySmt(
+    const smtV2Lib = await stateDeployHelper.deploySmt(
       poseidon2Elements.address,
       poseidon3Elements.address,
-      true,
       "SmtV2Mock"
     );
 
@@ -72,10 +74,9 @@ describe("Smt Library Upgrade", () => {
     await publishInitialState(state, issuerStateTransitions[0]);
 
     //deploy new smt library version
-    const smtV2Lib = await deploySmt(
+    const smtV2Lib = await stateDeployHelper.deploySmt(
       poseidon2Elements.address,
       poseidon3Elements.address,
-      true,
       "SmtV2Mock"
     );
 
@@ -115,10 +116,9 @@ describe("Smt Library Upgrade", () => {
     await publishInitialState(state, issuerStateTransitions[0]);
 
     //deploy new smt library version
-    const smtV2Lib = await deploySmt(
+    const smtV2Lib = await stateDeployHelper.deploySmt(
       poseidon2Elements.address,
       poseidon3Elements.address,
-      true,
       "SmtV3Mock"
     );
 

@@ -74,8 +74,7 @@ export class StateDeployHelper {
     this.log("deploying SMT...");
     const smt = await this.deploySmt(
       poseidon2Elements.address,
-      poseidon3Elements.address,
-      this.enableLogging
+      poseidon3Elements.address
     );
 
     this.log("deploying stateV2...");
@@ -249,8 +248,7 @@ export class StateDeployHelper {
 
     const smt = await this.deploySmt(
       poseidon2Elements.address,
-      poseidon3Elements.address,
-      enableLogging
+      poseidon3Elements.address
     );
 
     const StateV2Factory = await ethers.getContractFactory("StateV2", {
@@ -272,9 +270,9 @@ export class StateDeployHelper {
   async deploySmt(
     poseidon2Address: string,
     poseidon3Address: string,
-    enableLogging = false
+    contractName = "Smt"
   ): Promise<any> {
-    const Smt = await ethers.getContractFactory("Smt", {
+    const Smt = await ethers.getContractFactory(contractName, {
       libraries: {
         PoseidonUnit2L: poseidon2Address,
         PoseidonUnit3L: poseidon3Address,
@@ -282,7 +280,8 @@ export class StateDeployHelper {
     });
     const smt = await Smt.deploy();
     await smt.deployed();
-    enableLogging && this.log(`SMT deployed to:  ${smt.address}`);
+    this.enableLogging &&
+      this.log(`${contractName} deployed to:  ${smt.address}`);
 
     return smt;
   }
