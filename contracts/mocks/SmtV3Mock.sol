@@ -116,7 +116,7 @@ library SmtV3Mock {
     }
 
     /**
-     * =============== ADEED FUNCTIONs ===============
+     * =============== ADDED FUNCTIONs ===============
      */
     function assignHistoryDataToV2(
         SmtDataV2 storage self,

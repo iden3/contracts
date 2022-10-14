@@ -112,7 +112,7 @@ library SmtV2Mock {
     }
 
     /**
-     * =============== ADEED FUNCTION ===============
+     * =============== ADDED FUNCTION ===============
      */
 
     function rootHistoryLast(SmtData storage self)

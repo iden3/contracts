@@ -116,7 +116,7 @@ describe("Smt Library Upgrade", () => {
     await publishInitialState(state, issuerStateTransitions[0]);
 
     //deploy new smt library version
-    const smtV2Lib = await stateDeployHelper.deploySmt(
+    const smtV3Lib = await stateDeployHelper.deploySmt(
       poseidon2Elements.address,
       poseidon3Elements.address,
       "SmtV3Mock"
@@ -124,7 +124,7 @@ describe("Smt Library Upgrade", () => {
 
     // upgrade smt library version
     const StateV3MockFactory = await ethers.getContractFactory("StateV3Mock", {
-      libraries: { SmtV3Mock: smtV2Lib.address },
+      libraries: { SmtV3Mock: smtV3Lib.address },
     });
 
     // upgrade state to new version
