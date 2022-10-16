@@ -71,8 +71,8 @@ struct RootTransitionsInfo {
 /**
  * @dev Struct SMT node.
      * @param NodeType type of node.
-     * @param ChildLeft left child of node.
-     * @param ChildRight right child of node.
+     * @param childLeft left child of node.
+     * @param childRight right child of node.
      * @param Index index of node.
      * @param Value value of node.
      */

@@ -15,7 +15,7 @@ async function publishInitialState(state: Contract, json) {
   const rootHistory = await state.getSmtRootHistory(0, 0);
   expect(rootHistory[0][0]).to.not.be.null;
   const proof = await state.getSmtProof(id);
-  expect(proof.root).to.equal(rootHistory[0].RootHistory);
+  expect(proof.root).to.equal(rootHistory[0].root);
 }
 
 describe("Smt Library Upgrade", () => {
@@ -65,7 +65,7 @@ describe("Smt Library Upgrade", () => {
     const history2 = await newState.getSmtRootHistory(1, 1);
     const proof2 = await state.getSmtProof(id2);
 
-    expect(proof2.root).to.equal(history2[0].RootHistory);
+    expect(proof2.root).to.equal(history2[0].root);
     expect(await newState.getSmtRootHistoryLength()).to.equal(2);
   });
 
@@ -103,7 +103,7 @@ describe("Smt Library Upgrade", () => {
     const history2 = await newState.getSmtRootHistory(0, 1);
     const proof2 = await newState.getSmtProof(id2);
 
-    expect(proof2.root).to.equal(history2[1].RootHistory);
+    expect(proof2.root).to.equal(history2[1].root);
     expect(proof2.test).to.equal(123);
     expect(await newState.getSmtRootHistoryLength()).to.equal(2);
     expect((await newState.rootHistoryLast()).RootHistory).to.equal(

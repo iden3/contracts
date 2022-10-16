@@ -57,9 +57,9 @@ enum NodeType {
  * @param BlockN commit number of block when state was created.
  */
 struct RootHistoryInfo {
-    uint256 RootHistory;
-    uint64 BlockTimestamp;
-    uint64 BlockN;
+    uint256 root;
+    uint64 blockTimestamp;
+    uint64 blockN;
 }
 
 /**
@@ -80,17 +80,17 @@ struct RootTransitionsInfo {
 /**
  * @dev Struct SMT node.
  * @param NodeType type of node.
- * @param ChildLeft left child of node.
- * @param ChildRight right child of node.
+ * @param childLeft left child of node.
+ * @param childRight right child of node.
  * @param Index index of node.
  * @param Value value of node.
  */
 struct Node {
-    NodeType NodeType;
-    uint256 ChildLeft;
-    uint256 ChildRight;
-    uint256 Index;
-    uint256 Value;
+    NodeType nodeType;
+    uint256 childLeft;
+    uint256 childRight;
+    uint256 index;
+    uint256 value;
 }
 
 /// @title A sparse merkle tree implementation, which keeps tree history.
@@ -261,32 +261,32 @@ library SmtV3Mock {
         uint256 nextNodeHash;
         uint256 leafHash;
 
-        if (node.NodeType == NodeType.EMPTY) {
+        if (node.nodeType == NodeType.EMPTY) {
             leafHash = addNode(self, _newLeaf);
-        } else if (node.NodeType == NodeType.LEAF) {
-            leafHash = node.Index == _newLeaf.Index
+        } else if (node.nodeType == NodeType.LEAF) {
+            leafHash = node.index == _newLeaf.index
                 ? addNode(self, _newLeaf)
                 : pushLeaf(
                     self,
                     _newLeaf,
                     node,
                     _depth,
-                    _newLeaf.Index,
-                    node.Index
+                    _newLeaf.index,
+                    node.index
                 );
-        } else if (node.NodeType == NodeType.MIDDLE) {
+        } else if (node.nodeType == NodeType.MIDDLE) {
             Node memory newNodeMiddle;
 
-            if ((_newLeaf.Index >> _depth) & 1 == 1) {
+            if ((_newLeaf.index >> _depth) & 1 == 1) {
                 nextNodeHash = addLeaf(
                     self,
                     _newLeaf,
-                    node.ChildRight,
+                    node.childRight,
                     _depth + 1
                 );
                 newNodeMiddle = Node(
                     NodeType.MIDDLE,
-                    node.ChildLeft,
+                    node.childLeft,
                     nextNodeHash,
                     0,
                     0
@@ -295,13 +295,13 @@ library SmtV3Mock {
                 nextNodeHash = addLeaf(
                     self,
                     _newLeaf,
-                    node.ChildLeft,
+                    node.childLeft,
                     _depth + 1
                 );
                 newNodeMiddle = Node(
                     NodeType.MIDDLE,
                     nextNodeHash,
-                    node.ChildRight,
+                    node.childRight,
                     0,
                     0
                 );
@@ -376,7 +376,7 @@ library SmtV3Mock {
     {
         uint256 nodeHash = getNodeHash(_node);
         require(
-            self.tree[nodeHash].NodeType == NodeType.EMPTY,
+            self.tree[nodeHash].nodeType == NodeType.EMPTY,
             "Node already exists with the same index and value"
         );
         // We do not store empty nodes so can check if an entry exists
@@ -386,12 +386,12 @@ library SmtV3Mock {
 
     function getNodeHash(Node memory _node) internal view returns (uint256) {
         uint256 nodeHash;
-        if (_node.NodeType == NodeType.LEAF) {
-            uint256[3] memory params = [_node.Index, _node.Value, uint256(1)];
+        if (_node.nodeType == NodeType.LEAF) {
+            uint256[3] memory params = [_node.index, _node.value, uint256(1)];
             nodeHash = PoseidonUnit3L.poseidon(params);
-        } else if (_node.NodeType == NodeType.MIDDLE) {
+        } else if (_node.nodeType == NodeType.MIDDLE) {
             nodeHash = PoseidonUnit2L.poseidon(
-                [_node.ChildLeft, _node.ChildRight]
+                [_node.childLeft, _node.childRight]
             );
         }
         return nodeHash; // Note: expected to return 0 if NodeType.EMPTY, which is the only option left
@@ -443,28 +443,28 @@ library SmtV3Mock {
 
         for (uint256 i = 0; i < MAX_SMT_DEPTH; i++) {
             node = getNode(self, nextNodeHash);
-            if (node.NodeType == NodeType.EMPTY) {
+            if (node.nodeType == NodeType.EMPTY) {
                 proof.fnc = 1;
                 proof.isOld0 = true;
                 break;
-            } else if (node.NodeType == NodeType.LEAF) {
-                if (node.Index == proof.key) {
-                    proof.value = node.Value;
+            } else if (node.nodeType == NodeType.LEAF) {
+                if (node.index == proof.key) {
+                    proof.value = node.value;
                     break;
                 } else {
-                    proof.oldKey = node.Index;
-                    proof.oldValue = node.Value;
-                    proof.value = node.Value;
+                    proof.oldKey = node.index;
+                    proof.oldValue = node.value;
+                    proof.value = node.value;
                     proof.fnc = 1;
                     break;
                 }
-            } else if (node.NodeType == NodeType.MIDDLE) {
+            } else if (node.nodeType == NodeType.MIDDLE) {
                 if ((proof.key >> i) & 1 == 1) {
-                    nextNodeHash = node.ChildRight;
-                    proof.siblings[i] = node.ChildLeft;
+                    nextNodeHash = node.childRight;
+                    proof.siblings[i] = node.childLeft;
                 } else {
-                    nextNodeHash = node.ChildLeft;
-                    proof.siblings[i] = node.ChildRight;
+                    nextNodeHash = node.childLeft;
+                    proof.siblings[i] = node.childRight;
                 }
             } else {
                 revert("Invalid node type");
@@ -534,12 +534,12 @@ library SmtV3Mock {
         // Case that there timestamp searched is beyond last timestamp committed
         uint64 lastTimestamp = self
             .rootHistory[self.rootHistory.length - 1]
-            .BlockTimestamp;
+            .blockTimestamp;
         if (timestamp > lastTimestamp) {
             return (
-                self.rootHistory[self.rootHistory.length - 1].RootHistory,
-                self.rootHistory[self.rootHistory.length - 1].BlockTimestamp,
-                self.rootHistory[self.rootHistory.length - 1].BlockN
+                self.rootHistory[self.rootHistory.length - 1].root,
+                self.rootHistory[self.rootHistory.length - 1].blockTimestamp,
+                self.rootHistory[self.rootHistory.length - 1].blockN
             );
         }
         // Binary search
@@ -547,22 +547,22 @@ library SmtV3Mock {
         uint256 max = self.rootHistory.length - 1;
         while (min <= max) {
             uint256 mid = (max + min) / 2;
-            if (self.rootHistory[mid].BlockTimestamp == timestamp) {
+            if (self.rootHistory[mid].blockTimestamp == timestamp) {
                 return (
-                    self.rootHistory[mid].RootHistory,
-                    self.rootHistory[mid].BlockTimestamp,
-                    self.rootHistory[mid].BlockN
+                    self.rootHistory[mid].root,
+                    self.rootHistory[mid].blockTimestamp,
+                    self.rootHistory[mid].blockN
                 );
             } else if (
-                (timestamp > self.rootHistory[mid].BlockTimestamp) &&
-                (timestamp < self.rootHistory[mid + 1].BlockTimestamp)
+                (timestamp > self.rootHistory[mid].blockTimestamp) &&
+                (timestamp < self.rootHistory[mid + 1].blockTimestamp)
             ) {
                 return (
-                    self.rootHistory[mid].RootHistory,
-                    self.rootHistory[mid].BlockTimestamp,
-                    self.rootHistory[mid].BlockN
+                    self.rootHistory[mid].root,
+                    self.rootHistory[mid].blockTimestamp,
+                    self.rootHistory[mid].blockN
                 );
-            } else if (timestamp > self.rootHistory[mid].BlockTimestamp) {
+            } else if (timestamp > self.rootHistory[mid].blockTimestamp) {
                 min = mid + 1;
             } else {
                 max = mid - 1;
@@ -592,12 +592,12 @@ library SmtV3Mock {
             return (0, 0, 0);
         }
         // Case that there block searched is beyond last block committed
-        uint64 lastBlock = self.rootHistory[self.rootHistory.length - 1].BlockN;
+        uint64 lastBlock = self.rootHistory[self.rootHistory.length - 1].blockN;
         if (blockN > lastBlock) {
             return (
-                self.rootHistory[self.rootHistory.length - 1].RootHistory,
-                self.rootHistory[self.rootHistory.length - 1].BlockTimestamp,
-                self.rootHistory[self.rootHistory.length - 1].BlockN
+                self.rootHistory[self.rootHistory.length - 1].root,
+                self.rootHistory[self.rootHistory.length - 1].blockTimestamp,
+                self.rootHistory[self.rootHistory.length - 1].blockN
             );
         }
         // Binary search
@@ -605,22 +605,22 @@ library SmtV3Mock {
         uint256 max = self.rootHistory.length - 1;
         while (min <= max) {
             uint256 mid = (max + min) / 2;
-            if (self.rootHistory[mid].BlockN == blockN) {
+            if (self.rootHistory[mid].blockN == blockN) {
                 return (
-                    self.rootHistory[mid].RootHistory,
-                    self.rootHistory[mid].BlockTimestamp,
-                    self.rootHistory[mid].BlockN
+                    self.rootHistory[mid].root,
+                    self.rootHistory[mid].blockTimestamp,
+                    self.rootHistory[mid].blockN
                 );
             } else if (
-                (blockN > self.rootHistory[mid].BlockN) &&
-                (blockN < self.rootHistory[mid + 1].BlockN)
+                (blockN > self.rootHistory[mid].blockN) &&
+                (blockN < self.rootHistory[mid + 1].blockN)
             ) {
                 return (
-                    self.rootHistory[mid].RootHistory,
-                    self.rootHistory[mid].BlockTimestamp,
-                    self.rootHistory[mid].BlockN
+                    self.rootHistory[mid].root,
+                    self.rootHistory[mid].blockTimestamp,
+                    self.rootHistory[mid].blockN
                 );
-            } else if (blockN > self.rootHistory[mid].BlockN) {
+            } else if (blockN > self.rootHistory[mid].blockN) {
                 min = mid + 1;
             } else {
                 max = mid - 1;
