@@ -183,7 +183,6 @@ library SmtV3Mock {
         Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
         self.root = addLeaf(self, node, self.root, 0);
 
-        // todo block timestamp and number are excessive in RootHistoryInfo
         self.rootHistory.push(
             RootHistoryInfo(self.root, _timestamp, _blockNumber)
         );
@@ -204,7 +203,6 @@ library SmtV3Mock {
         Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
         self.root = addLeaf(self, node, self.root, 0);
 
-        // todo block timestamp and number are excessive in RootHistoryInfo
         self.rootHistory.push(
             RootHistoryInfo(
                 self.root,

@@ -149,12 +149,7 @@ library Smt {
         uint64 _timestamp,
         uint64 _blockNumber
     ) public {
-        Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
-        self.root = addLeaf(self, node, self.root, 0);
-
-        self.rootHistory.push(RootHistoryInfo(self.root, _timestamp, _blockNumber));
-
-        addRootTransition(self, _timestamp, _blockNumber);
+        processLeaf(self, _i, _v, _timestamp, _blockNumber);
     }
 
     /**
@@ -163,23 +158,28 @@ library Smt {
     * @param _v Value of node
     */
     function add(SmtData storage self, uint256 _i, uint256 _v) public {
+        processLeaf(self, _i, _v, uint64(block.timestamp), uint64(block.number));
+    }
+
+    function processLeaf(
+        SmtData storage self,
+        uint256 _i,
+        uint256 _v,
+        uint64 _timestamp,
+        uint64 _blockNumber
+    ) internal {
         Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
         self.root = addLeaf(self, node, self.root, 0);
 
-        self.rootHistory.push(
-            RootHistoryInfo(self.root, uint64(block.timestamp), uint64(block.number))
-        );
+        self.rootHistory.push(RootHistoryInfo(self.root, _timestamp, _blockNumber));
 
-        addRootTransition(self, uint64(block.timestamp), uint64(block.number));
-    }
-
-    function addRootTransition(SmtData storage self, uint64 _timestamp, uint64 _blockNumber) internal {
         self.rootTransitions[self.root].createdAtTimestamp = _timestamp;
         self.rootTransitions[self.root].createdAtBlock = _blockNumber;
-        if (self.rootHistory.length > 1) {
-            self.rootTransitions[self.rootHistory.length - 2].replacedAtTimestamp = _timestamp;
-            self.rootTransitions[self.rootHistory.length - 2].replacedAtBlock = _blockNumber;
-            self.rootTransitions[self.rootHistory.length - 2].replacedBy = self.root;
+        if (self.rootHistory.length >= 2) {
+            uint256 prevRoot = self.rootHistory[self.rootHistory.length - 2].root;
+            self.rootTransitions[prevRoot].replacedAtTimestamp = _timestamp;
+            self.rootTransitions[prevRoot].replacedAtBlock = _blockNumber;
+            self.rootTransitions[prevRoot].replacedBy = self.root;
         }
     }
 

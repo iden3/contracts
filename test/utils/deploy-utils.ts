@@ -1,5 +1,6 @@
 import { ethers, upgrades } from "hardhat";
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
+import { Contract } from "ethers";
 
 export async function deployValidatorContracts(
   verifierContractWrapperName: string,
@@ -91,13 +92,14 @@ export function toBigNumber({ inputs, pi_a, pi_b, pi_c }: VerificationInfo) {
 }
 
 export async function publishState(
-  state: any,
+  state: Contract,
   json: { [key: string]: string }
 ): Promise<{
   oldState: string;
   newState: string;
   id: string;
   blockNumber: number;
+  timestamp: number;
 }> {
   const {
     inputs: [id, oldState, newState, isOldStateGenesis],
@@ -117,12 +119,16 @@ export async function publishState(
   );
 
   const { blockNumber } = await transitStateTx.wait();
+  const { timestamp } = await ethers.provider.getBlock(
+    transitStateTx.blockNumber
+  );
 
   return {
     oldState,
     newState,
     id,
     blockNumber,
+    timestamp,
   };
 }
 

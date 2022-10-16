@@ -31,7 +31,10 @@ describe("State Migration to SMT test", () => {
 
     const rootHistoryLength = await state.getSmtRootHistoryLength();
 
-    const [[r1], [r2]] = await state.getSmtRootHistory(0, rootHistoryLength - 1);
+    const [[r1], [r2]] = await state.getSmtRootHistory(
+      0,
+      rootHistoryLength - 1
+    );
 
     const [root] = await state.getSmtHistoricalProofByRoot(id, r1);
     expect(r1).to.equal(root);
@@ -88,7 +91,10 @@ describe("State Migration to SMT test", () => {
     }
     const id = ethers.BigNumber.from(issuerStateTransitions[0].pub_signals[0]);
     const rootHistoryLength = await state.getSmtRootHistoryLength();
-    const [[r1, t1, b1]] = await state.getSmtRootHistory(0, rootHistoryLength - 1);
+    const [[r1, t1, b1]] = await state.getSmtRootHistory(
+      0,
+      rootHistoryLength - 1
+    );
 
     const [rootB] = await state.getSmtHistoricalProofByBlock(id, b1);
     expect(r1).to.equal(rootB);
@@ -99,31 +105,52 @@ describe("State Migration to SMT test", () => {
   it("should have correct SMT root transitions info", async () => {
     const roots: any[] = [];
     const expRootTrInfo: any[] = [];
-    let i = 0;
     for (const issuerStateJson of issuerStateTransitions) {
-      const { blockNumber } = await publishState(state, issuerStateJson);
+      const { blockNumber, timestamp } = await publishState(
+        state,
+        issuerStateJson
+      );
 
       const root = await state.getSmtCurrentRoot();
       roots.push(root);
 
-      // todo Improve the test to cover all the values of RootTransitionInfo
+      if (expRootTrInfo.length >= 1) {
+        expRootTrInfo[expRootTrInfo.length - 1].replacedAtTimestamp = timestamp;
+        expRootTrInfo[expRootTrInfo.length - 1].replacedAtBlock = blockNumber;
+        expRootTrInfo[expRootTrInfo.length - 1].replacedBy = root;
+      }
+
       expRootTrInfo.push({
         replacedAtTimestamp: 0,
-        createdAtTimestamp: 0,
+        createdAtTimestamp: timestamp,
         replacedAtBlock: 0,
         createdAtBlock: blockNumber,
         replacedBy: 0,
-        root,
       });
-      i++;
     }
 
-    expect((await state.getSmtRootTransitionsInfo(roots[0])).createdAtBlock).to.equal(
-      expRootTrInfo[0].createdAtBlock
+    const trInfo0 = await state.getSmtRootTransitionsInfo(roots[0]);
+    const trInfo1 = await state.getSmtRootTransitionsInfo(roots[1]);
+
+    expect(trInfo0.replacedAtTimestamp).to.equal(
+      expRootTrInfo[0].replacedAtTimestamp
     );
-    expect((await state.getSmtRootTransitionsInfo(roots[1])).createdAtBlock).to.equal(
-      expRootTrInfo[1].createdAtBlock
+    expect(trInfo0.createdAtTimestamp).to.equal(
+      expRootTrInfo[0].createdAtTimestamp
     );
+    expect(trInfo0.replacedAtBlock).to.equal(expRootTrInfo[0].replacedAtBlock);
+    expect(trInfo0.createdAtBlock).to.equal(expRootTrInfo[0].createdAtBlock);
+    expect(trInfo0.replacedBy).to.equal(expRootTrInfo[0].replacedBy);
+
+    expect(trInfo1.replacedAtTimestamp).to.equal(
+      expRootTrInfo[1].replacedAtTimestamp
+    );
+    expect(trInfo1.createdAtTimestamp).to.equal(
+      expRootTrInfo[1].createdAtTimestamp
+    );
+    expect(trInfo1.replacedAtBlock).to.equal(expRootTrInfo[1].replacedAtBlock);
+    expect(trInfo1.createdAtBlock).to.equal(expRootTrInfo[1].createdAtBlock);
+    expect(trInfo1.replacedBy).to.equal(expRootTrInfo[1].replacedBy);
   });
 });
 
