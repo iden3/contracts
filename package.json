@@ -47,8 +47,8 @@
     "typescript": "^4.6.4"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.6.0",
-    "@openzeppelin/contracts-upgradeable": "^4.6.0",
+    "@openzeppelin/contracts": "^4.7.3",
+    "@openzeppelin/contracts-upgradeable": "^4.7.3",
     "@nomiclabs/hardhat-etherscan": "^3.0.3",
     "braces": ">=3.0.2",
     "bs58": "^4.0.1",
