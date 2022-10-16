@@ -70,7 +70,6 @@ struct RootTransitionsInfo {
     uint64 replacedAtBlock;
     uint64 createdAtBlock;
     uint256 replacedBy;
-    uint256 root; //todo may not need to save the root in the struct. Dublication of data and gas cost.
 }
 
 /**
@@ -172,7 +171,6 @@ library SmtV2Mock {
         Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
         self.root = addLeaf(self, node, self.root, 0);
 
-        // todo block timestamp and number are excessive in RootHistoryInfo
         self.rootHistory.push(
             RootHistoryInfo(self.root, _timestamp, _blockNumber)
         );
@@ -193,7 +191,6 @@ library SmtV2Mock {
         Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
         self.root = addLeaf(self, node, self.root, 0);
 
-        // todo block timestamp and number are excessive in RootHistoryInfo
         self.rootHistory.push(
             RootHistoryInfo(
                 self.root,
@@ -221,7 +218,6 @@ library SmtV2Mock {
     ) internal {
         self.rootTransitions[self.root].createdAtTimestamp = _timestamp;
         self.rootTransitions[self.root].createdAtBlock = _blockNumber;
-        self.rootTransitions[self.root].root = self.root;
         if (self.rootHistory.length > 1) {
             self
                 .rootTransitions[self.rootHistory.length - 2]

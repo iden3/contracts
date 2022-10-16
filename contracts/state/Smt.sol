@@ -92,7 +92,7 @@ library Smt {
      * @return max depth of SMT.
      */
     function getMaxDepth() public pure returns (uint256) {
-        return MAX_SMT_DEPTH; // todo put to SmtData struct
+        return MAX_SMT_DEPTH; // todo put to SmtData struct ???
     }
 
     /**
@@ -152,7 +152,6 @@ library Smt {
         Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
         self.root = addLeaf(self, node, self.root, 0);
 
-        // todo block timestamp and number are excessive in RootHistoryInfo
         self.rootHistory.push(RootHistoryInfo(self.root, _timestamp, _blockNumber));
 
         addRootTransition(self, _timestamp, _blockNumber);
@@ -167,7 +166,6 @@ library Smt {
         Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
         self.root = addLeaf(self, node, self.root, 0);
 
-        // todo block timestamp and number are excessive in RootHistoryInfo
         self.rootHistory.push(
             RootHistoryInfo(self.root, uint64(block.timestamp), uint64(block.number))
         );
