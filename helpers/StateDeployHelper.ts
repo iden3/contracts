@@ -107,8 +107,8 @@ export class StateDeployHelper {
 
   async migrateFromStateV1toV2(
     stateProxyAddress: string,
-    startBlockNumber: number,
-    blockChunkSize: number
+    firstEventBlock = 0,
+    eventsChunkSize = 3500
   ): Promise<{ state: any }> {
     this.log("======== StateV2: migrate from StateV1 started ========");
     // 1. upgrade state from mock to state
@@ -117,11 +117,11 @@ export class StateDeployHelper {
     // 2. fetch all stateTransition from event
     const stateHistory = await this.getStateTransitionHistory(
       stateContract,
-      startBlockNumber, //29831814,
-      blockChunkSize //3500,
+      firstEventBlock, //29831814,
+      eventsChunkSize //3500,
     );
 
-    // 3. migrate state
+    // 3. migrate state. State transition will be disabled automatically
     await this.migrate(stateContract, stateHistory);
 
     // 4. enable state transition
@@ -135,14 +135,14 @@ export class StateDeployHelper {
 
   async getStateTransitionHistory(
     stateContract: any,
-    startBlockNumber = 0, //29831814
-    blockChunkSize = 3500
+    firstEventBlock: number, //29831814
+    eventsChunkSize: number
   ): Promise<any[]> {
     const filter = stateContract.filters.StateUpdated(null, null, null, null);
     const latestBlock = await ethers.provider.getBlock("latest");
     this.log(
       "startBlock",
-      startBlockNumber,
+      firstEventBlock,
       "latestBlock Number",
       latestBlock.number
     );
@@ -150,16 +150,16 @@ export class StateDeployHelper {
     let stateTransitionHistory: unknown[] = [];
 
     for (
-      let index = startBlockNumber;
+      let index = firstEventBlock;
       index <= latestBlock.number;
-      index += blockChunkSize
+      index += eventsChunkSize
     ) {
       let pagedHistory;
       try {
         pagedHistory = await stateContract.queryFilter(
           filter,
           index,
-          index + blockChunkSize - 1
+          index + eventsChunkSize - 1
         );
       } catch (error) {
         console.error(error);

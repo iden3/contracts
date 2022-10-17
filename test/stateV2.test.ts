@@ -200,7 +200,11 @@ describe("State SMT integration tests", function () {
 
     expect(rootHistoryLength).to.equal(3);
 
-    stateHistory = await stateDeployHelper.getStateTransitionHistory(state);
+    stateHistory = await stateDeployHelper.getStateTransitionHistory(
+      state,
+      0,
+      100
+    );
 
     rootHistory = await state.getSmtRootHistory(0, rootHistoryLength - 1);
 
