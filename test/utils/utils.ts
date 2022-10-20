@@ -14,10 +14,10 @@ export type FixedArray<T, N extends number> = GrowToSize<T, [], N>;
 export type MtpProof = {
   root: string;
   siblings: FixedArray<string, 32>;
-  oldKey: number;
+  oldKey: number | string;
   oldValue: number;
   isOld0: boolean;
-  key: number;
+  key: number | string;
   value: number;
   fnc: 0 | 1;
 };
