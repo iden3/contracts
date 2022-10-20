@@ -4,6 +4,7 @@ pragma abicoder v2;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "./Smt.sol";
+import "../lib/Poseidon.sol";
 
 interface IVerifier {
     function verifyProof(
@@ -182,7 +183,7 @@ contract StateV2 is OwnableUpgradeable {
         transitions[oldState].replacedAtTimestamp = block.timestamp;
         transitions[oldState].replacedAtBlock = uint64(block.number);
         transitions[oldState].replacedBy = newState;
-        smtData.add(id, newState);
+        smtData.add(PoseidonUnit1L.poseidon([id]), newState);
 
         emit StateUpdated(
             id,
@@ -384,36 +385,36 @@ contract StateV2 is OwnableUpgradeable {
         return smtData.root;
     }
 
-    function getSmtProof(uint256 _index)
+    function getSmtProof(uint256 _id)
         public
         view
         returns (Proof memory)
     {
-        return smtData.getProof(_index);
+        return smtData.getProof(PoseidonUnit1L.poseidon([_id]));
     }
 
-    function getSmtHistoricalProofByRoot(uint256 index, uint256 _root)
+    function getSmtHistoricalProofByRoot(uint256 _id, uint256 _root)
     public
     view
     returns (Proof memory)
     {
-        return smtData.getHistoricalProofByRoot(index, _root);
+        return smtData.getHistoricalProofByRoot(PoseidonUnit1L.poseidon([_id]), _root);
     }
 
-    function getSmtHistoricalProofByBlock(uint256 index, uint64 _block)
+    function getSmtHistoricalProofByBlock(uint256 _id, uint64 _block)
         public
         view
         returns (Proof memory)
     {
-        return smtData.getHistoricalProofByBlock(index, _block);
+        return smtData.getHistoricalProofByBlock(PoseidonUnit1L.poseidon([_id]), _block);
     }
 
-    function getSmtHistoricalProofByTime(uint256 index, uint64 timestamp)
+    function getSmtHistoricalProofByTime(uint256 _id, uint64 timestamp)
         public
         view
         returns (Proof memory)
     {
-        return smtData.getHistoricalProofByTime(index, timestamp);
+        return smtData.getHistoricalProofByTime(PoseidonUnit1L.poseidon([_id]), timestamp);
     }
 
     function migrateStateToSmt(
@@ -423,7 +424,7 @@ contract StateV2 is OwnableUpgradeable {
         uint64 blockNumber
     ) public onlyOwner {
         require(!_stateTransitionEnabled, "smt migration is not allowed");
-        smtData.addHistorical(id, state, timestamp, blockNumber);
+        smtData.addHistorical(PoseidonUnit1L.poseidon([id]), state, timestamp, blockNumber);
     }
 
     function getSmtRootHistoryLength() public view returns (uint256) {

@@ -27,6 +27,10 @@ contract Poseidon {
   }
 }
 
+library PoseidonUnit1L {
+  function poseidon(uint256[1] memory) public view returns (uint256) {}
+}
+
 library PoseidonUnit2L {
   function poseidon(uint256[2] memory) public view returns (uint256) {}
 }

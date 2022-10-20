@@ -20,6 +20,7 @@ async function publishInitialState(state: Contract, json) {
 
 describe("Smt Library Upgrade", () => {
   let state: Contract;
+  let poseidon1Elements: Contract;
   let poseidon2Elements: Contract;
   let poseidon3Elements: Contract;
   let stateDeployHelper: StateDeployHelper;
@@ -28,6 +29,7 @@ describe("Smt Library Upgrade", () => {
     stateDeployHelper = await StateDeployHelper.initialize(null, true);
     const result = await stateDeployHelper.deployStateV2();
     state = result.state;
+    poseidon1Elements = result.poseidon1;
     poseidon2Elements = result.poseidon2;
     poseidon3Elements = result.poseidon3;
   });
@@ -44,7 +46,10 @@ describe("Smt Library Upgrade", () => {
 
     // upgrade smt library version
     const StateV2Factory = await ethers.getContractFactory("StateV2", {
-      libraries: { Smt: smtV2Lib.address },
+      libraries: {
+        Smt: smtV2Lib.address,
+        PoseidonUnit1L: poseidon1Elements.address,
+      },
     });
 
     // upgrade state to new version

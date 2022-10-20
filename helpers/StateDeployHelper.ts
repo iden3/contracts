@@ -1,3 +1,4 @@
+import { Poseidon } from "./../typechain/Poseidon.d";
 import hre, { ethers, upgrades } from "hardhat";
 import { toJson } from "../test/utils/deploy-utils";
 import fs from "fs";
@@ -51,6 +52,7 @@ export class StateDeployHelper {
     state: Contract;
     verifier: Contract;
     smt: Contract;
+    poseidon1: Contract;
     poseidon2: Contract;
     poseidon3: Contract;
   }> {
@@ -67,9 +69,8 @@ export class StateDeployHelper {
     );
 
     this.log("deploying poseidons...");
-    const { poseidon2Elements, poseidon3Elements } = await this.deployPoseidons(
-      owner
-    );
+    const { poseidon1Elements, poseidon2Elements, poseidon3Elements } =
+      await this.deployPoseidons(owner);
 
     this.log("deploying SMT...");
     const smt = await this.deploySmt(
@@ -79,7 +80,10 @@ export class StateDeployHelper {
 
     this.log("deploying stateV2...");
     const StateV2Factory = await ethers.getContractFactory("StateV2", {
-      libraries: { Smt: smt.address },
+      libraries: {
+        Smt: smt.address,
+        PoseidonUnit1L: poseidon1Elements.address,
+      },
     });
     const stateV2 = await upgrades.deployProxy(
       StateV2Factory,
@@ -100,6 +104,7 @@ export class StateDeployHelper {
       state: stateV2,
       verifier,
       smt,
+      poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
     };
@@ -242,9 +247,8 @@ export class StateDeployHelper {
 
     const [owner] = await ethers.getSigners();
 
-    const { poseidon2Elements, poseidon3Elements } = await this.deployPoseidons(
-      owner
-    );
+    const { poseidon1Elements, poseidon2Elements, poseidon3Elements } =
+      await this.deployPoseidons(owner);
 
     const smt = await this.deploySmt(
       poseidon2Elements.address,
@@ -252,7 +256,10 @@ export class StateDeployHelper {
     );
 
     const StateV2Factory = await ethers.getContractFactory("StateV2", {
-      libraries: { Smt: smt.address },
+      libraries: {
+        Smt: smt.address,
+        PoseidonUnit1L: poseidon1Elements.address,
+      },
     });
 
     // Upgrade
@@ -286,29 +293,30 @@ export class StateDeployHelper {
     return smt;
   }
 
-  async deployPoseidons(
-    deployer: SignerWithAddress,
-  ): Promise<{
+  async deployPoseidons(deployer: SignerWithAddress): Promise<{
+    poseidon1Elements: Contract;
     poseidon2Elements: Contract;
     poseidon3Elements: Contract;
   }> {
-    const abi2 = poseidonContract.generateABI(2);
-    const code2 = poseidonContract.createCode(2);
-    const Poseidon2Elements = new ethers.ContractFactory(abi2, code2, deployer);
-    const poseidon2Elements = await Poseidon2Elements.deploy();
-    await poseidon2Elements.deployed();
-    this.enableLogging &&
-      this.log("Poseidon3Elements deployed to:", poseidon2Elements.address);
-
-    const abi3 = poseidonContract.generateABI(3);
-    const code3 = poseidonContract.createCode(3);
-    const Poseidon3Elements = new ethers.ContractFactory(abi3, code3, deployer);
-    const poseidon3Elements = await Poseidon3Elements.deploy();
-    await poseidon3Elements.deployed();
-    this.enableLogging &&
-      this.log("Poseidon3Elements deployed to:", poseidon3Elements.address);
+    const deployPoseidon = async (params: number) => {
+      const abi = poseidonContract.generateABI(params);
+      const code = poseidonContract.createCode(params);
+      const PoseidonElements = new ethers.ContractFactory(abi, code, deployer);
+      const poseidonElements = await PoseidonElements.deploy();
+      await poseidonElements.deployed();
+      this.enableLogging &&
+        this.log(
+          `Poseidon${params}Elements deployed to:`,
+          poseidonElements.address
+        );
+      return poseidonElements;
+    };
+    const poseidon1Elements = await deployPoseidon(1);
+    const poseidon2Elements = await deployPoseidon(2);
+    const poseidon3Elements = await deployPoseidon(3);
 
     return {
+      poseidon1Elements,
       poseidon2Elements,
       poseidon3Elements,
     };
