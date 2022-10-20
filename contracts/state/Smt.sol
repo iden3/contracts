@@ -168,7 +168,7 @@ library Smt {
         uint64 _timestamp,
         uint64 _blockNumber
     ) internal {
-        Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
+        Node memory node = Node(NodeType.LEAF, 0, 0, PoseidonUnit1L.poseidon([_i]), _v);
         self.root = addLeaf(self, node, self.root, 0);
 
         self.rootHistory.push(RootHistoryInfo(self.root, _timestamp, _blockNumber));
@@ -348,7 +348,7 @@ library Smt {
     {
         Proof memory proof;
         proof.root = _historicalRoot;
-        proof.key = _index;
+        proof.key = PoseidonUnit1L.poseidon([_index]);
 
         uint256 nextNodeHash = _historicalRoot;
         Node memory node;

@@ -51,6 +51,7 @@ export class StateDeployHelper {
     state: Contract;
     verifier: Contract;
     smt: Contract;
+    poseidon1: Contract;
     poseidon2: Contract;
     poseidon3: Contract;
   }> {
@@ -67,12 +68,12 @@ export class StateDeployHelper {
     );
 
     this.log("deploying poseidons...");
-    const { poseidon2Elements, poseidon3Elements } = await this.deployPoseidons(
-      owner
-    );
+    const { poseidon1Elements, poseidon2Elements, poseidon3Elements } =
+      await this.deployPoseidons(owner);
 
     this.log("deploying SMT...");
     const smt = await this.deploySmt(
+      poseidon1Elements.address,
       poseidon2Elements.address,
       poseidon3Elements.address
     );
@@ -100,6 +101,7 @@ export class StateDeployHelper {
       state: stateV2,
       verifier,
       smt,
+      poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
     };
@@ -242,11 +244,11 @@ export class StateDeployHelper {
 
     const [owner] = await ethers.getSigners();
 
-    const { poseidon2Elements, poseidon3Elements } = await this.deployPoseidons(
-      owner
-    );
+    const { poseidon1Elements, poseidon2Elements, poseidon3Elements } =
+      await this.deployPoseidons(owner);
 
     const smt = await this.deploySmt(
+      poseidon1Elements.address,
       poseidon2Elements.address,
       poseidon3Elements.address
     );
@@ -268,12 +270,14 @@ export class StateDeployHelper {
   }
 
   async deploySmt(
+    poseidon1Address: string,
     poseidon2Address: string,
     poseidon3Address: string,
     contractName = "Smt"
   ): Promise<any> {
     const Smt = await ethers.getContractFactory(contractName, {
       libraries: {
+        PoseidonUnit1L: poseidon1Address,
         PoseidonUnit2L: poseidon2Address,
         PoseidonUnit3L: poseidon3Address,
       },
@@ -286,19 +290,26 @@ export class StateDeployHelper {
     return smt;
   }
 
-  async deployPoseidons(
-    deployer: SignerWithAddress,
-  ): Promise<{
+  async deployPoseidons(deployer: SignerWithAddress): Promise<{
+    poseidon1Elements: Contract;
     poseidon2Elements: Contract;
     poseidon3Elements: Contract;
   }> {
+    const abi1 = poseidonContract.generateABI(1);
+    const code1 = poseidonContract.createCode(1);
+    const Poseidon1Elements = new ethers.ContractFactory(abi1, code1, deployer);
+    const poseidon1Elements = await Poseidon1Elements.deploy();
+    await poseidon1Elements.deployed();
+    this.enableLogging &&
+      this.log("Poseidon1Elements deployed to:", poseidon1Elements.address);
+
     const abi2 = poseidonContract.generateABI(2);
     const code2 = poseidonContract.createCode(2);
     const Poseidon2Elements = new ethers.ContractFactory(abi2, code2, deployer);
     const poseidon2Elements = await Poseidon2Elements.deploy();
     await poseidon2Elements.deployed();
     this.enableLogging &&
-      this.log("Poseidon3Elements deployed to:", poseidon2Elements.address);
+      this.log("Poseidon2Elements deployed to:", poseidon2Elements.address);
 
     const abi3 = poseidonContract.generateABI(3);
     const code3 = poseidonContract.createCode(3);
@@ -309,6 +320,7 @@ export class StateDeployHelper {
       this.log("Poseidon3Elements deployed to:", poseidon3Elements.address);
 
     return {
+      poseidon1Elements,
       poseidon2Elements,
       poseidon3Elements,
     };

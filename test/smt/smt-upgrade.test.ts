@@ -20,6 +20,7 @@ async function publishInitialState(state: Contract, json) {
 
 describe("Smt Library Upgrade", () => {
   let state: Contract;
+  let poseidon1Elements: Contract;
   let poseidon2Elements: Contract;
   let poseidon3Elements: Contract;
   let stateDeployHelper: StateDeployHelper;
@@ -28,6 +29,7 @@ describe("Smt Library Upgrade", () => {
     stateDeployHelper = await StateDeployHelper.initialize(null, true);
     const result = await stateDeployHelper.deployStateV2();
     state = result.state;
+    poseidon1Elements = result.poseidon1;
     poseidon2Elements = result.poseidon2;
     poseidon3Elements = result.poseidon3;
   });
@@ -37,6 +39,7 @@ describe("Smt Library Upgrade", () => {
 
     //deploy new smt library version
     const smtV2Lib = await stateDeployHelper.deploySmt(
+      poseidon1Elements.address,
       poseidon2Elements.address,
       poseidon3Elements.address,
       "SmtV2Mock"
@@ -75,6 +78,7 @@ describe("Smt Library Upgrade", () => {
 
     //deploy new smt library version
     const smtV2Lib = await stateDeployHelper.deploySmt(
+      poseidon1Elements.address,
       poseidon2Elements.address,
       poseidon3Elements.address,
       "SmtV2Mock"
@@ -117,6 +121,7 @@ describe("Smt Library Upgrade", () => {
 
     //deploy new smt library version
     const smtV3Lib = await stateDeployHelper.deploySmt(
+      poseidon1Elements.address,
       poseidon2Elements.address,
       poseidon3Elements.address,
       "SmtV3Mock"

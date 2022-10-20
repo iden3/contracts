@@ -168,7 +168,7 @@ library SmtV2Mock {
         uint64 _timestamp,
         uint64 _blockNumber
     ) public {
-        Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
+        Node memory node = Node(NodeType.LEAF, 0, 0, PoseidonUnit1L.poseidon([_i]), _v);
         self.root = addLeaf(self, node, self.root, 0);
 
         self.rootHistory.push(
@@ -188,7 +188,7 @@ library SmtV2Mock {
         uint256 _i,
         uint256 _v
     ) public {
-        Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
+        Node memory node = Node(NodeType.LEAF, 0, 0, PoseidonUnit1L.poseidon([_i]), _v);
         self.root = addLeaf(self, node, self.root, 0);
 
         self.rootHistory.push(
