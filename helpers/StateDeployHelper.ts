@@ -1,4 +1,3 @@
-import { Poseidon } from "./../typechain/Poseidon.d";
 import hre, { ethers, upgrades } from "hardhat";
 import { toJson } from "../test/utils/deploy-utils";
 import fs from "fs";
