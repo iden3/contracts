@@ -3,7 +3,6 @@ pragma solidity 0.8.15;
 pragma abicoder v2;
 
 import "../lib/Poseidon.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 uint256 constant MAX_SMT_DEPTH = 32;
 uint256 constant SMT_ROOT_HISTORY_RETURN_LIMIT = 1000;

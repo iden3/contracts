@@ -292,6 +292,33 @@ export class StateDeployHelper {
     return smt;
   }
 
+  async deploySmtTestWrapper(): Promise<Contract> {
+    const contractName = "SmtTestWrapper";
+    const owner = this.signers[0];
+
+    this.log("deploying poseidons...");
+    const { poseidon2Elements, poseidon3Elements } = await this.deployPoseidons(
+      owner
+    );
+
+    const smt = await this.deploySmt(
+      poseidon2Elements.address,
+      poseidon3Elements.address
+    );
+
+    const SmtWrapper = await ethers.getContractFactory(contractName, {
+      libraries: {
+        Smt: smt.address,
+      },
+    });
+    const smtWrapper = await SmtWrapper.deploy();
+    await smtWrapper.deployed();
+    this.enableLogging &&
+      this.log(`${contractName} deployed to:  ${smtWrapper.address}`);
+
+    return smtWrapper;
+  }
+
   async deployPoseidons(deployer: SignerWithAddress): Promise<{
     poseidon1Elements: Contract;
     poseidon2Elements: Contract;
