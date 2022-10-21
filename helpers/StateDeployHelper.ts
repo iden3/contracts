@@ -68,8 +68,8 @@ export class StateDeployHelper {
     );
 
     this.log("deploying poseidons...");
-    const { poseidon1Elements, poseidon2Elements, poseidon3Elements } =
-      await this.deployPoseidons(owner);
+    const [poseidon1Elements, poseidon2Elements, poseidon3Elements] =
+      await this.deployPoseidons(owner, [1, 2, 3]);
 
     this.log("deploying SMT...");
     const smt = await this.deploySmt(
@@ -263,8 +263,9 @@ export class StateDeployHelper {
     const owner = this.signers[0];
 
     this.log("deploying poseidons...");
-    const { poseidon2Elements, poseidon3Elements } = await this.deployPoseidons(
-      owner
+    const [poseidon2Elements, poseidon3Elements] = await this.deployPoseidons(
+      owner,
+      [2, 3]
     );
 
     const smt = await this.deploySmt(
@@ -285,11 +286,18 @@ export class StateDeployHelper {
     return smtWrapper;
   }
 
-  async deployPoseidons(deployer: SignerWithAddress): Promise<{
-    poseidon1Elements: Contract;
-    poseidon2Elements: Contract;
-    poseidon3Elements: Contract;
-  }> {
+  async deployPoseidons(
+    deployer: SignerWithAddress,
+    poseidonSizeParams: number[]
+  ): Promise<Contract[]> {
+    poseidonSizeParams.forEach((size) => {
+      if (![1, 2, 3, 4, 5, 6].includes(size)) {
+        throw new Error(
+          `Poseidon should be integer in a range 1..6. Poseidon size provided: ${size}`
+        );
+      }
+    });
+
     const deployPoseidon = async (params: number) => {
       const abi = poseidonContract.generateABI(params);
       const code = poseidonContract.createCode(params);
@@ -303,15 +311,13 @@ export class StateDeployHelper {
         );
       return poseidonElements;
     };
-    const poseidon1Elements = await deployPoseidon(1);
-    const poseidon2Elements = await deployPoseidon(2);
-    const poseidon3Elements = await deployPoseidon(3);
 
-    return {
-      poseidon1Elements,
-      poseidon2Elements,
-      poseidon3Elements,
-    };
+    const result: Contract[] = [];
+    for (const size of poseidonSizeParams) {
+      result.push(await deployPoseidon(size));
+    }
+
+    return result;
   }
 
   private async upgradeFromStateV1toV2(
@@ -319,8 +325,8 @@ export class StateDeployHelper {
   ): Promise<any> {
     const owner = this.signers[0];
 
-    const { poseidon1Elements, poseidon2Elements, poseidon3Elements } =
-      await this.deployPoseidons(owner);
+    const [poseidon1Elements, poseidon2Elements, poseidon3Elements] =
+      await this.deployPoseidons(owner, [1, 2, 3]);
 
     const smt = await this.deploySmt(
       poseidon2Elements.address,
