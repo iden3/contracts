@@ -343,6 +343,7 @@ export class StateDeployHelper {
     // Upgrade
     const tx = await upgrades.upgradeProxy(stateProxyAddress, StateV2Factory, {
       unsafeAllowLinkedLibraries: true,
+      unsafeAllowRenames: true,
     });
 
     const stateContract = StateV2Factory.attach(stateProxyAddress);

@@ -99,6 +99,7 @@ describe("Smt Library Upgrade", () => {
       StateV2_UpgradeTest,
       {
         unsafeAllowLinkedLibraries: true,
+        unsafeAllowRenames: true,
       }
     );
     console.log("upgradeProxy tx", newState.address);
@@ -144,6 +145,7 @@ describe("Smt Library Upgrade", () => {
       StateV3_UpgradeTest,
       {
         unsafeAllowLinkedLibraries: true,
+        unsafeAllowRenames: true,
       }
     );
     console.log("upgradeProxy tx", newState.address);

@@ -24,9 +24,9 @@ contract StateV2 is OwnableUpgradeable {
      * @dev Struct saved for each identity. Stores state and block/timestamp associated.
      */
     struct IDState {
-        uint64 BlockN;
-        uint64 BlockTimestamp;
-        uint256 State;
+        uint64 blockN;
+        uint64 blockTimestamp;
+        uint256 state;
     }
 
     /**
@@ -133,11 +133,11 @@ contract StateV2 is OwnableUpgradeable {
                 identities[id].length - 1
             ];
             require(
-                oldIDState.BlockN != block.number,
+                oldIDState.blockN != block.number,
                 "no multiple set in the same block"
             );
             require(
-                oldIDState.State == oldState,
+                oldIDState.state == oldState,
                 "oldState argument should be equal to the latest identity state in smart contract when isOldStateGenesis == 0"
             );
         } else {
@@ -202,7 +202,7 @@ contract StateV2 is OwnableUpgradeable {
         if (identities[id].length == 0) {
             return 0;
         }
-        return identities[id][identities[id].length - 1].State;
+        return identities[id][identities[id].length - 1].state;
     }
 
     /**
@@ -259,12 +259,12 @@ contract StateV2 is OwnableUpgradeable {
             return (0, 0, 0);
         }
         // Case that there block searched is beyond last block committed
-        uint64 lastBlock = identities[id][identities[id].length - 1].BlockN;
+        uint64 lastBlock = identities[id][identities[id].length - 1].blockN;
         if (blockN > lastBlock) {
             return (
-                identities[id][identities[id].length - 1].BlockN,
-                identities[id][identities[id].length - 1].BlockTimestamp,
-                identities[id][identities[id].length - 1].State
+                identities[id][identities[id].length - 1].blockN,
+                identities[id][identities[id].length - 1].blockTimestamp,
+                identities[id][identities[id].length - 1].state
             );
         }
         // Binary search
@@ -272,22 +272,22 @@ contract StateV2 is OwnableUpgradeable {
         uint256 max = identities[id].length - 1;
         while (min <= max) {
             uint256 mid = (max + min) / 2;
-            if (identities[id][mid].BlockN == blockN) {
+            if (identities[id][mid].blockN == blockN) {
                 return (
-                    identities[id][mid].BlockN,
-                    identities[id][mid].BlockTimestamp,
-                    identities[id][mid].State
+                    identities[id][mid].blockN,
+                    identities[id][mid].blockTimestamp,
+                    identities[id][mid].state
                 );
             } else if (
-                (blockN > identities[id][mid].BlockN) &&
-                (blockN < identities[id][mid + 1].BlockN)
+                (blockN > identities[id][mid].blockN) &&
+                (blockN < identities[id][mid + 1].blockN)
             ) {
                 return (
-                    identities[id][mid].BlockN,
-                    identities[id][mid].BlockTimestamp,
-                    identities[id][mid].State
+                    identities[id][mid].blockN,
+                    identities[id][mid].blockTimestamp,
+                    identities[id][mid].state
                 );
-            } else if (blockN > identities[id][mid].BlockN) {
+            } else if (blockN > identities[id][mid].blockN) {
                 min = mid + 1;
             } else {
                 max = mid - 1;
@@ -318,12 +318,12 @@ contract StateV2 is OwnableUpgradeable {
         }
         // Case that there timestamp searched is beyond last timestamp committed
         uint64 lastTimestamp = identities[id][identities[id].length - 1]
-            .BlockTimestamp;
+            .blockTimestamp;
         if (timestamp > lastTimestamp) {
             return (
-                identities[id][identities[id].length - 1].BlockN,
-                identities[id][identities[id].length - 1].BlockTimestamp,
-                identities[id][identities[id].length - 1].State
+                identities[id][identities[id].length - 1].blockN,
+                identities[id][identities[id].length - 1].blockTimestamp,
+                identities[id][identities[id].length - 1].state
             );
         }
         // Binary search
@@ -331,22 +331,22 @@ contract StateV2 is OwnableUpgradeable {
         uint256 max = identities[id].length - 1;
         while (min <= max) {
             uint256 mid = (max + min) / 2;
-            if (identities[id][mid].BlockTimestamp == timestamp) {
+            if (identities[id][mid].blockTimestamp == timestamp) {
                 return (
-                    identities[id][mid].BlockN,
-                    identities[id][mid].BlockTimestamp,
-                    identities[id][mid].State
+                    identities[id][mid].blockN,
+                    identities[id][mid].blockTimestamp,
+                    identities[id][mid].state
                 );
             } else if (
-                (timestamp > identities[id][mid].BlockTimestamp) &&
-                (timestamp < identities[id][mid + 1].BlockTimestamp)
+                (timestamp > identities[id][mid].blockTimestamp) &&
+                (timestamp < identities[id][mid + 1].blockTimestamp)
             ) {
                 return (
-                    identities[id][mid].BlockN,
-                    identities[id][mid].BlockTimestamp,
-                    identities[id][mid].State
+                    identities[id][mid].blockN,
+                    identities[id][mid].blockTimestamp,
+                    identities[id][mid].state
                 );
-            } else if (timestamp > identities[id][mid].BlockTimestamp) {
+            } else if (timestamp > identities[id][mid].blockTimestamp) {
                 min = mid + 1;
             } else {
                 max = mid - 1;
@@ -375,9 +375,9 @@ contract StateV2 is OwnableUpgradeable {
         }
         IDState memory lastIdState = identities[id][identities[id].length - 1];
         return (
-            lastIdState.BlockN,
-            lastIdState.BlockTimestamp,
-            lastIdState.State
+            lastIdState.blockN,
+            lastIdState.blockTimestamp,
+            lastIdState.state
         );
     }
 
