@@ -1,4 +1,4 @@
-import hre, { ethers, upgrades } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { toJson } from "../test/utils/deploy-utils";
 import fs from "fs";
 import { Contract } from "ethers";
@@ -115,8 +115,8 @@ export class StateDeployHelper {
     eventsChunkSize = 3500
   ): Promise<{ state: any }> {
     this.log("======== StateV2: migrate from StateV1 started ========");
-    // 1. upgrade state from mock to state
-    const stateContract = await this.upgradeState(stateProxyAddress);
+    // 1. upgrade state to the next version
+    const stateContract = await this.upgradeFromStateV1toV2(stateProxyAddress);
 
     // 2. fetch all stateTransition from event
     const stateHistory = await this.getStateTransitionHistory(
@@ -125,8 +125,9 @@ export class StateDeployHelper {
       eventsChunkSize //3500,
     );
 
-    // 3. migrate state. State transition will be disabled automatically
-    await this.migrate(stateContract, stateHistory);
+    // 3. populate the SMT by the history of state transition events
+    // Note: state transition is auto-disabled after upgrade, so can populate the SMT
+    await this.populateSmtByStateEvents(stateContract, stateHistory);
 
     // 4. enable state transition
     await stateContract.setTransitionStateEnabled(true);
@@ -181,7 +182,7 @@ export class StateDeployHelper {
     return stateTransitionHistory;
   }
 
-  async migrate(
+  async populateSmtByStateEvents(
     stateContract: any,
     stateTransitionHistory: any[]
   ): Promise<void> {
@@ -200,7 +201,7 @@ export class StateDeployHelper {
       const [id, block, timestamp, state] = stateTransitionHistory[index].args;
       result.index = index;
       try {
-        const tx = await stateContract.migrateStateToSmt(
+        const tx = await stateContract.addToSmtDirectly(
           id,
           state,
           timestamp,
@@ -236,41 +237,6 @@ export class StateDeployHelper {
       this.log("migration error", result.error, result.receipt);
     }
     this.writeFile("migration-result.json", result);
-  }
-
-  async upgradeState(
-    stateProxyAddress: string,
-    enableLogging = false
-  ): Promise<any> {
-    await hre.run("compile");
-
-    const [owner] = await ethers.getSigners();
-
-    const { poseidon1Elements, poseidon2Elements, poseidon3Elements } =
-      await this.deployPoseidons(owner);
-
-    const smt = await this.deploySmt(
-      poseidon2Elements.address,
-      poseidon3Elements.address
-    );
-
-    const StateV2Factory = await ethers.getContractFactory("StateV2", {
-      libraries: {
-        Smt: smt.address,
-        PoseidonUnit1L: poseidon1Elements.address,
-      },
-    });
-
-    // Upgrade
-    const tx = await upgrades.upgradeProxy(stateProxyAddress, StateV2Factory, {
-      unsafeAllowLinkedLibraries: true,
-    });
-
-    const stateContract = StateV2Factory.attach(stateProxyAddress);
-    await stateContract.setTransitionStateEnabled(false);
-    this.log(`upgrade successful in tx: ${tx.deployTransaction.hash}`);
-
-    return stateContract;
   }
 
   async deploySmt(
@@ -346,6 +312,39 @@ export class StateDeployHelper {
       poseidon2Elements,
       poseidon3Elements,
     };
+  }
+
+  private async upgradeFromStateV1toV2(
+    stateProxyAddress: string
+  ): Promise<any> {
+    const owner = this.signers[0];
+
+    const { poseidon1Elements, poseidon2Elements, poseidon3Elements } =
+      await this.deployPoseidons(owner);
+
+    const smt = await this.deploySmt(
+      poseidon2Elements.address,
+      poseidon3Elements.address
+    );
+
+    const StateV2Factory = await ethers.getContractFactory("StateV2", {
+      libraries: {
+        Smt: smt.address,
+        PoseidonUnit1L: poseidon1Elements.address,
+      },
+    });
+
+    // Upgrade
+    const tx = await upgrades.upgradeProxy(stateProxyAddress, StateV2Factory, {
+      unsafeAllowLinkedLibraries: true,
+    });
+
+    const stateContract = StateV2Factory.attach(stateProxyAddress);
+    await stateContract.setTransitionStateEnabled(false);
+    this.enableLogging &&
+      this.log(`upgrade successful in tx: ${tx.deployTransaction.hash}`);
+
+    return stateContract;
   }
 
   private writeFile(fileName: string, data: any): void {

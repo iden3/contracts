@@ -210,40 +210,4 @@ describe("State SMT integration tests", function () {
 
     expect(rootHistory.length).to.equal(stateHistory.length);
   });
-
-  it.skip("estimate tree migration gas", async () => {
-    const count = 350;
-    const stateDeployHelper = await StateDeployHelper.initialize();
-
-    // 1. deploy existing state
-    const { state: existingState } = await stateDeployHelper.deployStateV1();
-
-    const stateContract = await stateDeployHelper.upgradeState(
-      existingState.address
-    );
-
-    const id = BigInt(
-      "279949150130214723420589610911161895495647789006649785264738141299135414272"
-    );
-    const state = BigInt(
-      "179949150130214723420589610911161895495647789006649785264738141299135414272"
-    );
-
-    const stateTransitionHistory = new Array(count).fill(0).map((_, index) => {
-      return {
-        args: [
-          id + BigInt(index),
-          29831814 + index,
-          Math.floor(Date.now() / 1000),
-          state + BigInt(index),
-        ],
-      };
-    });
-
-    await stateDeployHelper.migrate(stateContract, stateTransitionHistory);
-
-    const rootHistoryLength = await stateContract.getSmtRootHistoryLength();
-
-    expect(rootHistoryLength).to.equal(count);
-  });
 });

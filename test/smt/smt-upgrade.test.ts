@@ -41,7 +41,7 @@ describe("Smt Library Upgrade", () => {
     const smtV2Lib = await stateDeployHelper.deploySmt(
       poseidon2Elements.address,
       poseidon3Elements.address,
-      "SmtV2Mock"
+      "SmtV2_UpgradeTest"
     );
 
     // upgrade smt library version
@@ -82,18 +82,21 @@ describe("Smt Library Upgrade", () => {
     const smtV2Lib = await stateDeployHelper.deploySmt(
       poseidon2Elements.address,
       poseidon3Elements.address,
-      "SmtV2Mock"
+      "SmtV2_UpgradeTest"
     );
 
     // upgrade smt library version
-    const StateV2MockFactory = await ethers.getContractFactory("StateV2Mock", {
-      libraries: { SmtV2Mock: smtV2Lib.address },
-    });
+    const StateV2_UpgradeTest = await ethers.getContractFactory(
+      "StateV2_UpgradeTest",
+      {
+        libraries: { SmtV2_UpgradeTest: smtV2Lib.address },
+      }
+    );
 
     // upgrade state to new version
     const newState = await upgrades.upgradeProxy(
       state.address,
-      StateV2MockFactory,
+      StateV2_UpgradeTest,
       {
         unsafeAllowLinkedLibraries: true,
       }
@@ -124,18 +127,21 @@ describe("Smt Library Upgrade", () => {
     const smtV3Lib = await stateDeployHelper.deploySmt(
       poseidon2Elements.address,
       poseidon3Elements.address,
-      "SmtV3Mock"
+      "SmtV3_UpgradeTest"
     );
 
     // upgrade smt library version
-    const StateV3MockFactory = await ethers.getContractFactory("StateV3Mock", {
-      libraries: { SmtV3Mock: smtV3Lib.address },
-    });
+    const StateV3_UpgradeTest = await ethers.getContractFactory(
+      "StateV3_UpgradeTest",
+      {
+        libraries: { SmtV3_UpgradeTest: smtV3Lib.address },
+      }
+    );
 
     // upgrade state to new version
     const newState = await upgrades.upgradeProxy(
       state.address,
-      StateV3MockFactory,
+      StateV3_UpgradeTest,
       {
         unsafeAllowLinkedLibraries: true,
       }

@@ -3,7 +3,7 @@ pragma solidity 0.8.15;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "./SmtV3Mock.sol";
+import "./SmtV3_UpgradeTest.sol";
 
 interface IVerifier {
     function verifyProof(
@@ -18,7 +18,7 @@ interface IVerifier {
 //  * @dev Set and get states for each identity
 //  */
 // contract State is Iden3Helpers {
-contract StateV3Mock is OwnableUpgradeable {
+contract StateV3_UpgradeTest is OwnableUpgradeable {
     /**
      * @dev Struct saved for each identity. Stores state and block/timestamp associated.
      */
@@ -75,8 +75,8 @@ contract StateV3Mock is OwnableUpgradeable {
         uint256 state
     );
 
-    using SmtV3Mock for SmtData;
-    using SmtV3Mock for SmtDataV2;
+    using SmtV3_UpgradeTest for SmtData;
+    using SmtV3_UpgradeTest for SmtDataV2;
 
     /**
      * @dev SMT address

@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 pragma abicoder v2;
 
-import "../state/Smt.sol";
+import "../lib/Smt.sol";
 
 contract SmtTestWrapper {
     SmtData internal smtData;

@@ -3,7 +3,7 @@ pragma solidity 0.8.15;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "./Smt.sol";
+import "../lib/Smt.sol";
 import "../lib/Poseidon.sol";
 
 interface IVerifier {
@@ -417,13 +417,13 @@ contract StateV2 is OwnableUpgradeable {
         return smtData.getHistoricalProofByTime(PoseidonUnit1L.poseidon([_id]), timestamp);
     }
 
-    function migrateStateToSmt(
+    function addToSmtDirectly(
         uint256 id,
         uint256 state,
         uint64 timestamp,
         uint64 blockNumber
     ) public onlyOwner {
-        require(!_stateTransitionEnabled, "smt migration is not allowed");
+        require(!_stateTransitionEnabled, "Direct add to SMT is not allowed if state transition is enabled");
         smtData.addHistorical(PoseidonUnit1L.poseidon([id]), state, timestamp, blockNumber);
     }
 

@@ -89,7 +89,7 @@ struct Node {
 }
 
 /// @title A sparse merkle tree implementation, which keeps tree history.
-library SmtV2Mock {
+library SmtV2_UpgradeTest {
     /**
      * @dev Get max depth of SMT.
      * @return max depth of SMT.

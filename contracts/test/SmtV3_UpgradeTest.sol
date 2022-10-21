@@ -4,7 +4,6 @@ pragma abicoder v2;
 
 import "../lib/Poseidon.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "hardhat/console.sol";
 
 uint256 constant MAX_SMT_DEPTH = 64;
 uint256 constant SMT_ROOT_HISTORY_RETURN_LIMIT = 1000;
@@ -93,7 +92,7 @@ struct Node {
 }
 
 /// @title A sparse merkle tree implementation, which keeps tree history.
-library SmtV3Mock {
+library SmtV3_UpgradeTest {
     /**
      * @dev Get max depth of SMT.
      * @return max depth of SMT.
