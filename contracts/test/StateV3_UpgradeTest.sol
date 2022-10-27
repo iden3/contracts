@@ -99,7 +99,7 @@ contract StateV3_UpgradeTest is OwnableUpgradeable {
         verifier = IVerifier(newVerifier);
     }
 
-    function getTrasitionStateEnabled() public view returns (bool) {
+    function getTransitionStateEnabled() public view returns (bool) {
         return _stateTransitionEnabled;
     }
 

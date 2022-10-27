@@ -21,15 +21,6 @@ interface IVerifier {
 // contract State is Iden3Helpers {
 contract StateV2 is OwnableUpgradeable {
     /**
-     * @dev Struct saved for each identity. Stores state and block/timestamp associated.
-     */
-    struct IDState {
-        uint64 blockN;
-        uint64 blockTimestamp;
-        uint256 state;
-    }
-
-    /**
      * @dev Struct saved information about transition state for identifier.
      * @param replacedAtTimestamp commit time when state was changed.
      * @param createdAtTimestamp commit time when state was saved into blockchain.
@@ -41,8 +32,8 @@ contract StateV2 is OwnableUpgradeable {
     struct transitionsInfo {
         uint256 replacedAtTimestamp;
         uint256 createdAtTimestamp;
-        uint64 replacedAtBlock;
-        uint64 createdAtBlock;
+        uint256 replacedAtBlock;
+        uint256 createdAtBlock;
         uint256 replacedBy;
         uint256 id;
     }
@@ -55,7 +46,7 @@ contract StateV2 is OwnableUpgradeable {
     /**
      * @dev Correlation between identity and its state (plus block/time)
      */
-    mapping(uint256 => IDState[]) public identities;
+    mapping(uint256 => uint256[]) public identities;
 
     /**
      * @dev Correlation between identity and transitions info.
@@ -71,8 +62,8 @@ contract StateV2 is OwnableUpgradeable {
      */
     event StateUpdated(
         uint256 id,
-        uint64 blockN,
-        uint64 timestamp,
+        uint256 blockN,
+        uint256 timestamp,
         uint256 state
     );
 
@@ -97,7 +88,7 @@ contract StateV2 is OwnableUpgradeable {
         verifier = IVerifier(newVerifier);
     }
 
-    function getTrasitionStateEnabled() public view returns (bool) {
+    function getTransitionStateEnabled() public view returns (bool) {
         return _stateTransitionEnabled;
     }
 
@@ -129,15 +120,14 @@ contract StateV2 is OwnableUpgradeable {
                 "there should be at least one state for identity in smart contract when isOldStateGenesis == 0"
             );
 
-            IDState memory oldIDState = identities[id][
-                identities[id].length - 1
-            ];
+            uint256 previousIDState = identities[id][identities[id].length - 1];
+
             require(
-                oldIDState.blockN != block.number,
+                transitions[previousIDState].createdAtBlock != block.number,
                 "no multiple set in the same block"
             );
             require(
-                oldIDState.state == oldState,
+                previousIDState == oldState,
                 "oldState argument should be equal to the latest identity state in smart contract when isOldStateGenesis == 0"
             );
         } else {
@@ -149,7 +139,7 @@ contract StateV2 is OwnableUpgradeable {
             // link genesis state to Id in the smart contract, but creation time and creation block is unknown
             transitions[oldState].id = id;
             // push genesis state to identities as latest state
-            identities[id].push(IDState(0, 0, oldState));
+            identities[id].push(oldState);
         }
 
         require(transitions[newState].id == 0, "newState should not exist");
@@ -165,24 +155,24 @@ contract StateV2 is OwnableUpgradeable {
             "zero-knowledge proof of state transition is not valid "
         );
 
-        identities[id].push(
-            IDState(uint64(block.number), uint64(block.timestamp), newState)
-        );
+        identities[id].push(newState);
 
         // Set create info for new state
         transitions[newState] = transitionsInfo(
             0,
             block.timestamp,
             0,
-            uint64(block.number),
+            block.number,
             0,
             id
         );
 
         // Set replace info for old state
         transitions[oldState].replacedAtTimestamp = block.timestamp;
-        transitions[oldState].replacedAtBlock = uint64(block.number);
+        transitions[oldState].replacedAtBlock = block.number;
         transitions[oldState].replacedBy = newState;
+
+        // put state in smt to recalculate global state
         smtData.add(PoseidonUnit1L.poseidon([id]), newState);
 
         emit StateUpdated(
@@ -202,157 +192,20 @@ contract StateV2 is OwnableUpgradeable {
         if (identities[id].length == 0) {
             return 0;
         }
-        return identities[id][identities[id].length - 1].state;
+        return identities[id][identities[id].length - 1];
     }
 
     /**
      * Retrieve transition information by state
      * @param state is state to check when it lost actuality
-     * @return timestamp of new state published after given one
-     * @return timestamp of new state published
-     * @return block number of new state published after given one
-     * @return block number of new state published
-     * @return id identity
-     * @return the state that replaced the given one
+     * @return transitionsInfo of state
      */
     function getTransitionInfo(uint256 state)
         public
         view
-        returns (
-            uint256,
-            uint256,
-            uint64,
-            uint64,
-            uint256,
-            uint256
-        )
+        returns (transitionsInfo memory)
     {
-        return (
-            transitions[state].replacedAtTimestamp,
-            transitions[state].createdAtTimestamp,
-            transitions[state].replacedAtBlock,
-            transitions[state].createdAtBlock,
-            transitions[state].id,
-            transitions[state].replacedBy
-        );
-    }
-
-    /**
-     * @dev binary search by block number
-     * @param id identity
-     * @param blockN block number
-     * return parameters are (by order): block number, block timestamp, state
-     */
-    function getStateDataByBlock(uint256 id, uint64 blockN)
-        public
-        view
-        returns (
-            uint64,
-            uint64,
-            uint256
-        )
-    {
-        require(blockN < block.number, "errNoFutureAllowed");
-
-        // Case that there is no state committed
-        if (identities[id].length == 0) {
-            return (0, 0, 0);
-        }
-        // Case that there block searched is beyond last block committed
-        uint64 lastBlock = identities[id][identities[id].length - 1].blockN;
-        if (blockN > lastBlock) {
-            return (
-                identities[id][identities[id].length - 1].blockN,
-                identities[id][identities[id].length - 1].blockTimestamp,
-                identities[id][identities[id].length - 1].state
-            );
-        }
-        // Binary search
-        uint256 min = 0;
-        uint256 max = identities[id].length - 1;
-        while (min <= max) {
-            uint256 mid = (max + min) / 2;
-            if (identities[id][mid].blockN == blockN) {
-                return (
-                    identities[id][mid].blockN,
-                    identities[id][mid].blockTimestamp,
-                    identities[id][mid].state
-                );
-            } else if (
-                (blockN > identities[id][mid].blockN) &&
-                (blockN < identities[id][mid + 1].blockN)
-            ) {
-                return (
-                    identities[id][mid].blockN,
-                    identities[id][mid].blockTimestamp,
-                    identities[id][mid].state
-                );
-            } else if (blockN > identities[id][mid].blockN) {
-                min = mid + 1;
-            } else {
-                max = mid - 1;
-            }
-        }
-        return (0, 0, 0);
-    }
-
-    /**
-     * @dev binary search by timestamp
-     * @param id identity
-     * @param timestamp timestamp
-     * return parameters are (by order): block number, block timestamp, state
-     */
-    function getStateDataByTime(uint256 id, uint64 timestamp)
-        public
-        view
-        returns (
-            uint64,
-            uint64,
-            uint256
-        )
-    {
-        require(timestamp < block.timestamp, "errNoFutureAllowed");
-        // Case that there is no state committed
-        if (identities[id].length == 0) {
-            return (0, 0, 0);
-        }
-        // Case that there timestamp searched is beyond last timestamp committed
-        uint64 lastTimestamp = identities[id][identities[id].length - 1]
-            .blockTimestamp;
-        if (timestamp > lastTimestamp) {
-            return (
-                identities[id][identities[id].length - 1].blockN,
-                identities[id][identities[id].length - 1].blockTimestamp,
-                identities[id][identities[id].length - 1].state
-            );
-        }
-        // Binary search
-        uint256 min = 0;
-        uint256 max = identities[id].length - 1;
-        while (min <= max) {
-            uint256 mid = (max + min) / 2;
-            if (identities[id][mid].blockTimestamp == timestamp) {
-                return (
-                    identities[id][mid].blockN,
-                    identities[id][mid].blockTimestamp,
-                    identities[id][mid].state
-                );
-            } else if (
-                (timestamp > identities[id][mid].blockTimestamp) &&
-                (timestamp < identities[id][mid + 1].blockTimestamp)
-            ) {
-                return (
-                    identities[id][mid].blockN,
-                    identities[id][mid].blockTimestamp,
-                    identities[id][mid].state
-                );
-            } else if (timestamp > identities[id][mid].blockTimestamp) {
-                min = mid + 1;
-            } else {
-                max = mid - 1;
-            }
-        }
-        return (0, 0, 0);
+        return transitions[state];
     }
 
     /**
@@ -364,78 +217,125 @@ contract StateV2 is OwnableUpgradeable {
     function getStateDataById(uint256 id)
         public
         view
-        returns (
-            uint64,
-            uint64,
-            uint256
-        )
+        returns (transitionsInfo memory)
     {
+        transitionsInfo memory info;
         if (identities[id].length == 0) {
-            return (0, 0, 0);
+            return info;
         }
-        IDState memory lastIdState = identities[id][identities[id].length - 1];
-        return (
-            lastIdState.blockN,
-            lastIdState.blockTimestamp,
-            lastIdState.state
-        );
+        uint256 lastIdState = identities[id][identities[id].length - 1];
+
+        return transitions[lastIdState];
     }
 
     function getSmtCurrentRoot() public view returns (uint256) {
         return smtData.root;
     }
 
-    function getSmtProof(uint256 _id)
-        public
-        view
-        returns (Proof memory)
-    {
+    function getSmtProof(uint256 _id) public view returns (Proof memory) {
         return smtData.getProof(PoseidonUnit1L.poseidon([_id]));
     }
 
     function getSmtHistoricalProofByRoot(uint256 _id, uint256 _root)
-    public
-    view
-    returns (Proof memory)
-    {
-        return smtData.getHistoricalProofByRoot(PoseidonUnit1L.poseidon([_id]), _root);
-    }
-
-    function getSmtHistoricalProofByBlock(uint256 _id, uint64 _block)
         public
         view
         returns (Proof memory)
     {
-        return smtData.getHistoricalProofByBlock(PoseidonUnit1L.poseidon([_id]), _block);
+        return
+            smtData.getHistoricalProofByRoot(
+                PoseidonUnit1L.poseidon([_id]),
+                _root
+            );
     }
 
-    function getSmtHistoricalProofByTime(uint256 _id, uint64 timestamp)
+    function getSmtHistoricalProofByBlock(uint256 _id, uint256 _block)
         public
         view
         returns (Proof memory)
     {
-        return smtData.getHistoricalProofByTime(PoseidonUnit1L.poseidon([_id]), timestamp);
+        return
+            smtData.getHistoricalProofByBlock(
+                PoseidonUnit1L.poseidon([_id]),
+                _block
+            );
+    }
+
+    function getSmtHistoricalProofByTime(uint256 _id, uint256 timestamp)
+        public
+        view
+        returns (Proof memory)
+    {
+        return
+            smtData.getHistoricalProofByTime(
+                PoseidonUnit1L.poseidon([_id]),
+                timestamp
+            );
     }
 
     function addToSmtDirectly(
         uint256 id,
         uint256 state,
-        uint64 timestamp,
-        uint64 blockNumber
+        uint256 timestamp,
+        uint256 blockNumber
     ) public onlyOwner {
-        require(!_stateTransitionEnabled, "Direct add to SMT is not allowed if state transition is enabled");
-        smtData.addHistorical(PoseidonUnit1L.poseidon([id]), state, timestamp, blockNumber);
+        require(
+            !_stateTransitionEnabled,
+            "Direct add to SMT is not allowed if state transition is enabled"
+        );
+        smtData.addHistorical(
+            PoseidonUnit1L.poseidon([id]),
+            state,
+            timestamp,
+            blockNumber
+        );
     }
 
     function getSmtRootHistoryLength() public view returns (uint256) {
         return smtData.rootHistory.length;
     }
 
-    function getSmtRootHistory(uint256 _start, uint256 _end) public view returns (RootHistoryInfo[] memory) {
+    function getSmtRootHistory(uint256 _start, uint256 _end)
+        public
+        view
+        returns (RootTransitionsInfo[] memory)
+    {
         return smtData.getRootHistory(_start, _end);
     }
 
-    function getSmtRootTransitionsInfo(uint256 _root) public view returns (RootTransitionsInfo memory) {
+    function getSmtRootTransitionsInfo(uint256 _root)
+        public
+        view
+        returns (RootTransitionsInfo memory)
+    {
         return smtData.rootTransitions[_root];
+    }
+
+    function getHistoricalRootDataByBlock(uint256 _block)
+        public
+        view
+        returns (RootTransitionsInfo memory)
+    {
+        return smtData.getHistoricalRootDataByBlock(_block);
+    }
+
+    function getHistoricalRootDataByTime(uint256 timestamp)
+        public
+        view
+        returns (RootTransitionsInfo memory)
+    {
+        return smtData.getHistoricalRootDataByTime(timestamp);
+    }
+
+    /**
+     * Retrieve all states as list for a given identity
+     * @param id identity
+     * @return list of states committed
+     */
+    function getAllStatesById(uint256 id)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        return identities[id];
     }
 }

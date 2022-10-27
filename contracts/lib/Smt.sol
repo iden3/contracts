@@ -7,14 +7,13 @@ import "../lib/Poseidon.sol";
 uint256 constant MAX_SMT_DEPTH = 32;
 uint256 constant SMT_ROOT_HISTORY_RETURN_LIMIT = 1000;
 
-
 /**
  * @dev Sparse Merkle Tree data
  */
 struct SmtData {
     mapping(uint256 => Node) tree;
     uint256 root;
-    RootHistoryInfo[] rootHistory;
+    uint256[] rootHistory;
     mapping(uint256 => RootTransitionsInfo) rootTransitions;
 }
 
@@ -34,7 +33,7 @@ struct Proof {
 
 /**
  * @dev Enum of SMT node types
-     */
+ */
 enum NodeType {
     EMPTY,
     LEAF,
@@ -43,38 +42,27 @@ enum NodeType {
 
 /**
  * @dev Struct saved information about SMT root change.
-     * @param RootHistory historical tree root.
-     * @param BlockTimestamp commit time when state was saved into blockchain.
-     * @param BlockN commit number of block when state was created.
-     */
-struct RootHistoryInfo {
-    uint256 root;
-    uint64 blockTimestamp;
-    uint64 blockN;
-}
-
-/**
- * @dev Struct saved information about SMT root change.
-     * @param RootHistory historical tree root.
-     * @param BlockTimestamp commit time when state was saved into blockchain.
-     * @param BlockN commit number of block when state was created.
-     */
+ * @param RootHistory historical tree root.
+ * @param BlockTimestamp commit time when state was saved into blockchain.
+ * @param BlockN commit number of block when state was created.
+ */
 struct RootTransitionsInfo {
     uint256 replacedAtTimestamp;
     uint256 createdAtTimestamp;
-    uint64 replacedAtBlock;
-    uint64 createdAtBlock;
+    uint256 replacedAtBlock;
+    uint256 createdAtBlock;
     uint256 replacedBy;
+    uint256 root;
 }
 
 /**
  * @dev Struct SMT node.
-     * @param NodeType type of node.
-     * @param childLeft left child of node.
-     * @param childRight right child of node.
-     * @param Index index of node.
-     * @param Value value of node.
-     */
+ * @param NodeType type of node.
+ * @param childLeft left child of node.
+ * @param childRight right child of node.
+ * @param Index index of node.
+ * @param Value value of node.
+ */
 struct Node {
     NodeType nodeType;
     uint256 childLeft;
@@ -85,7 +73,6 @@ struct Node {
 
 /// @title A sparse merkle tree implementation, which keeps tree history.
 library Smt {
-
     /**
      * @dev Get max depth of SMT.
      * @return max depth of SMT.
@@ -98,7 +85,11 @@ library Smt {
      * @dev Get SMT root history length
      * @return SMT history length
      */
-    function rootHistoryLength(SmtData storage self) public view returns (uint256) {
+    function rootHistoryLength(SmtData storage self)
+        public
+        view
+        returns (uint256)
+    {
         return self.rootHistory.length;
     }
 
@@ -108,11 +99,11 @@ library Smt {
      * @param endIndex end index of history
      * @return array of SMT historical roots with timestamp and block number info
      */
-    function getRootHistory(SmtData storage self, uint256 startIndex, uint256 endIndex)
-        public
-        view
-        returns (RootHistoryInfo[] memory)
-    {
+    function getRootHistory(
+        SmtData storage self,
+        uint256 startIndex,
+        uint256 endIndex
+    ) public view returns (RootTransitionsInfo[] memory) {
         require(
             startIndex >= 0 && endIndex < self.rootHistory.length,
             "index out of bounds of array"
@@ -121,12 +112,13 @@ library Smt {
             endIndex - startIndex + 1 <= SMT_ROOT_HISTORY_RETURN_LIMIT,
             "return limit exceeded"
         );
-        RootHistoryInfo[] memory result = new RootHistoryInfo[](
+        RootTransitionsInfo[] memory result = new RootTransitionsInfo[](
             endIndex - startIndex + 1
         );
         uint64 j = 0;
         for (uint256 i = startIndex; i <= endIndex; i++) {
-            result[j] = self.rootHistory[i];
+            uint256 root = self.rootHistory[i];
+            result[j] = self.rootTransitions[root];
             j++;
         }
         return result;
@@ -145,37 +137,42 @@ library Smt {
         SmtData storage self,
         uint256 _i,
         uint256 _v,
-        uint64 _timestamp,
-        uint64 _blockNumber
+        uint256 _timestamp,
+        uint256 _blockNumber
     ) public {
         processLeaf(self, _i, _v, _timestamp, _blockNumber);
     }
 
     /**
-    * @dev Add anode to the SMT
-    * @param _i Index of node
-    * @param _v Value of node
-    */
-    function add(SmtData storage self, uint256 _i, uint256 _v) public {
-        processLeaf(self, _i, _v, uint64(block.timestamp), uint64(block.number));
+     * @dev Add anode to the SMT
+     * @param _i Index of node
+     * @param _v Value of node
+     */
+    function add(
+        SmtData storage self,
+        uint256 _i,
+        uint256 _v
+    ) public {
+        processLeaf(self, _i, _v, block.timestamp, block.number);
     }
 
     function processLeaf(
         SmtData storage self,
         uint256 _i,
         uint256 _v,
-        uint64 _timestamp,
-        uint64 _blockNumber
+        uint256 _timestamp,
+        uint256 _blockNumber
     ) internal {
         Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
         self.root = addLeaf(self, node, self.root, 0);
 
-        self.rootHistory.push(RootHistoryInfo(self.root, _timestamp, _blockNumber));
+        self.rootHistory.push(self.root);
 
         self.rootTransitions[self.root].createdAtTimestamp = _timestamp;
         self.rootTransitions[self.root].createdAtBlock = _blockNumber;
+        self.rootTransitions[self.root].createdAtBlock = self.root;
         if (self.rootHistory.length >= 2) {
-            uint256 prevRoot = self.rootHistory[self.rootHistory.length - 2].root;
+            uint256 prevRoot = self.rootHistory[self.rootHistory.length - 2];
             self.rootTransitions[prevRoot].replacedAtTimestamp = _timestamp;
             self.rootTransitions[prevRoot].replacedAtBlock = _blockNumber;
             self.rootTransitions[prevRoot].replacedBy = self.root;
@@ -201,12 +198,24 @@ library Smt {
         } else if (node.nodeType == NodeType.LEAF) {
             leafHash = node.index == _newLeaf.index
                 ? addNode(self, _newLeaf)
-                : pushLeaf(self, _newLeaf, node, _depth, _newLeaf.index, node.index);
+                : pushLeaf(
+                    self,
+                    _newLeaf,
+                    node,
+                    _depth,
+                    _newLeaf.index,
+                    node.index
+                );
         } else if (node.nodeType == NodeType.MIDDLE) {
             Node memory newNodeMiddle;
 
             if ((_newLeaf.index >> _depth) & 1 == 1) {
-                nextNodeHash = addLeaf(self, _newLeaf, node.childRight, _depth + 1);
+                nextNodeHash = addLeaf(
+                    self,
+                    _newLeaf,
+                    node.childRight,
+                    _depth + 1
+                );
                 newNodeMiddle = Node(
                     NodeType.MIDDLE,
                     node.childLeft,
@@ -215,7 +224,12 @@ library Smt {
                     0
                 );
             } else {
-                nextNodeHash = addLeaf(self, _newLeaf, node.childLeft, _depth + 1);
+                nextNodeHash = addLeaf(
+                    self,
+                    _newLeaf,
+                    node.childLeft,
+                    _depth + 1
+                );
                 newNodeMiddle = Node(
                     NodeType.MIDDLE,
                     nextNodeHash,
@@ -288,7 +302,10 @@ library Smt {
         return addNode(self, newNodeMiddle);
     }
 
-    function addNode(SmtData storage self, Node memory _node) internal returns (uint256) {
+    function addNode(SmtData storage self, Node memory _node)
+        internal
+        returns (uint256)
+    {
         uint256 nodeHash = getNodeHash(_node);
         require(
             self.tree[nodeHash].nodeType == NodeType.EMPTY,
@@ -317,7 +334,11 @@ library Smt {
      * @param _nodeHash Hash of a node
      * @return A node
      */
-    function getNode(SmtData storage self, uint256 _nodeHash) public view returns (Node memory) {
+    function getNode(SmtData storage self, uint256 _nodeHash)
+        public
+        view
+        returns (Node memory)
+    {
         return self.tree[_nodeHash];
     }
 
@@ -340,11 +361,11 @@ library Smt {
      * @param _historicalRoot Historical SMT roof to get proof for
      * @return The node proof
      */
-    function getHistoricalProofByRoot(SmtData storage self, uint256 _index, uint256 _historicalRoot)
-        public
-        view
-        returns (Proof memory)
-    {
+    function getHistoricalProofByRoot(
+        SmtData storage self,
+        uint256 _index,
+        uint256 _historicalRoot
+    ) public view returns (Proof memory) {
         Proof memory proof;
         proof.root = _historicalRoot;
         proof.key = _index;
@@ -390,16 +411,19 @@ library Smt {
      * @param timestamp The nearest timestamp to get proof for
      * @return The node proof
      */
-    function getHistoricalProofByTime(SmtData storage self, uint256 index, uint64 timestamp)
-        public
-        view
-        returns (Proof memory)
-    {
-        (uint256 historyRoot, , ) = getHistoricalRootDataByTime(self, timestamp);
+    function getHistoricalProofByTime(
+        SmtData storage self,
+        uint256 index,
+        uint256 timestamp
+    ) public view returns (Proof memory) {
+        RootTransitionsInfo memory rootInfo = getHistoricalRootDataByTime(
+            self,
+            timestamp
+        );
 
-        require(historyRoot != 0, "historical root not found");
+        require(rootInfo.root != 0, "historical root not found");
 
-        return getHistoricalProofByRoot(self, index, historyRoot);
+        return getHistoricalProofByRoot(self, index, rootInfo.root);
     }
 
     /**
@@ -408,16 +432,19 @@ library Smt {
      * @param _block The nearest block number to get proof for
      * @return The node proof
      */
-    function getHistoricalProofByBlock(SmtData storage self, uint256 index, uint64 _block)
-        public
-        view
-        returns (Proof memory)
-    {
-        (uint256 historyRoot, , ) = getHistoricalRootDataByBlock(self, _block);
+    function getHistoricalProofByBlock(
+        SmtData storage self,
+        uint256 index,
+        uint256 _block
+    ) public view returns (Proof memory) {
+        RootTransitionsInfo memory rootInfo = getHistoricalRootDataByBlock(
+            self,
+            _block
+        );
 
-        require(historyRoot != 0, "historical root not found");
+        require(rootInfo.root != 0, "historical root not found");
 
-        return getHistoricalProofByRoot(self, index, historyRoot);
+        return getHistoricalProofByRoot(self, index, rootInfo.root);
     }
 
     /**
@@ -425,57 +452,63 @@ library Smt {
      * @param timestamp timestamp
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getHistoricalRootDataByTime(SmtData storage self, uint64 timestamp)
-        public
-        view
-        returns (
-            uint256,
-            uint256,
-            uint64
-        )
-    {
+    function getHistoricalRootDataByTime(
+        SmtData storage self,
+        uint256 timestamp
+    ) public view returns (RootTransitionsInfo memory) {
+        RootTransitionsInfo memory rootInfo;
         require(timestamp <= block.timestamp, "errNoFutureAllowed");
         // Case that there is no state committed
         if (self.rootHistory.length == 0) {
-            return (0, 0, 0);
+            return rootInfo;
         }
         // Case that there timestamp searched is beyond last timestamp committed
-        uint64 lastTimestamp = self.rootHistory[self.rootHistory.length - 1]
-            .blockTimestamp;
+        uint256 lastRoot = self.rootHistory[self.rootHistory.length - 1];
+
+        uint256 lastTimestamp = self
+            .rootTransitions[lastRoot]
+            .createdAtTimestamp;
+
         if (timestamp > lastTimestamp) {
-            return (
-                self.rootHistory[self.rootHistory.length - 1].root,
-                self.rootHistory[self.rootHistory.length - 1].blockTimestamp,
-                self.rootHistory[self.rootHistory.length - 1].blockN
-            );
+            return self.rootTransitions[lastRoot];
         }
+
         // Binary search
         uint256 min = 0;
         uint256 max = self.rootHistory.length - 1;
+
+        // 2 -1 = 1
+
+        // 0 < 1
+
+        // 0 + 1 / 2 = 0
+
+        // 0 + 1 = 1 ok
+
+        // 1 - 1 = 0
         while (min <= max) {
             uint256 mid = (max + min) / 2;
-            if (self.rootHistory[mid].blockTimestamp == timestamp) {
-                return (
-                    self.rootHistory[mid].root,
-                    self.rootHistory[mid].blockTimestamp,
-                    self.rootHistory[mid].blockN
-                );
+            uint256 midRoot = self.rootHistory[mid];
+            // todo : check if mid + 1 is not out of range. clear bag if only one elem in root history
+            uint256 midNextRoot = self.rootHistory[mid + 1];
+            uint256 midRootCreatedAtTimestamp = self
+                .rootTransitions[midRoot]
+                .createdAtTimestamp;
+            if (midRootCreatedAtTimestamp == timestamp) {
+                return self.rootTransitions[midRoot];
             } else if (
-                (timestamp > self.rootHistory[mid].blockTimestamp) &&
-                (timestamp < self.rootHistory[mid + 1].blockTimestamp)
+                (timestamp > midRootCreatedAtTimestamp) &&
+                (timestamp <
+                    self.rootTransitions[midNextRoot].createdAtTimestamp)
             ) {
-                return (
-                    self.rootHistory[mid].root,
-                    self.rootHistory[mid].blockTimestamp,
-                    self.rootHistory[mid].blockN
-                );
-            } else if (timestamp > self.rootHistory[mid].blockTimestamp) {
+                return self.rootTransitions[midRoot];
+            } else if (timestamp > midRootCreatedAtTimestamp) {
                 min = mid + 1;
             } else {
                 max = mid - 1;
             }
         }
-        return (0, 0, 0);
+        return rootInfo;
     }
 
     /**
@@ -483,56 +516,51 @@ library Smt {
      * @param blockN block number
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getHistoricalRootDataByBlock(SmtData storage self, uint64 blockN)
+    function getHistoricalRootDataByBlock(SmtData storage self, uint256 blockN)
         public
         view
-        returns (
-            uint256,
-            uint64,
-            uint64
-        )
+        returns (RootTransitionsInfo memory)
     {
+        RootTransitionsInfo memory rootInfo;
         require(blockN <= block.number, "errNoFutureAllowed");
 
         // Case that there is no state committed
         if (self.rootHistory.length == 0) {
-            return (0, 0, 0);
+            return rootInfo;
         }
-        // Case that there block searched is beyond last block committed
-        uint64 lastBlock = self.rootHistory[self.rootHistory.length - 1].blockN;
-        if (blockN > lastBlock) {
-            return (
-                self.rootHistory[self.rootHistory.length - 1].root,
-                self.rootHistory[self.rootHistory.length - 1].blockTimestamp,
-                self.rootHistory[self.rootHistory.length - 1].blockN
-            );
+
+        // Case that there timestamp searched is beyond last timestamp committed
+        uint256 lastRoot = self.rootHistory[self.rootHistory.length - 1];
+
+        RootTransitionsInfo memory lastRootInfo = self.rootTransitions[
+            lastRoot
+        ];
+
+        if (blockN > lastRootInfo.createdAtTimestamp) {
+            return lastRootInfo;
         }
         // Binary search
         uint256 min = 0;
         uint256 max = self.rootHistory.length - 1;
         while (min <= max) {
             uint256 mid = (max + min) / 2;
-            if (self.rootHistory[mid].blockN == blockN) {
-                return (
-                    self.rootHistory[mid].root,
-                    self.rootHistory[mid].blockTimestamp,
-                    self.rootHistory[mid].blockN
-                );
+            uint256 midRoot = self.rootHistory[mid];
+            // todo : check if mid + 1 is not out of range. clear bag if only one elem in root history
+            uint256 midNextRoot = self.rootHistory[mid + 1];
+
+            if (self.rootTransitions[midRoot].createdAtBlock == blockN) {
+                return self.rootTransitions[midRoot];
             } else if (
-                (blockN > self.rootHistory[mid].blockN) &&
-                (blockN < self.rootHistory[mid + 1].blockN)
+                (blockN > self.rootTransitions[mid].createdAtBlock) &&
+                (blockN < self.rootTransitions[midNextRoot].createdAtBlock)
             ) {
-                return (
-                    self.rootHistory[mid].root,
-                    self.rootHistory[mid].blockTimestamp,
-                    self.rootHistory[mid].blockN
-                );
-            } else if (blockN > self.rootHistory[mid].blockN) {
+                return self.rootTransitions[midRoot];
+            } else if (blockN > self.rootTransitions[midRoot].createdAtBlock) {
                 min = mid + 1;
             } else {
                 max = mid - 1;
             }
         }
-        return (0, 0, 0);
+        return rootInfo;
     }
 }
