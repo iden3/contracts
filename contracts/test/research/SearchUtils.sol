@@ -35,12 +35,12 @@ contract SearchUtils {
      * @param blockN block number
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getStateDataByBlock(uint256 id, uint64 blockN)
+    function getStateDataByBlock(uint256 id, uint256 blockN)
         public
         view
         returns (transitionsInfo memory)
     {
-        require(blockN < block.number, "errNoFutureAllowed");
+        require(blockN <= block.number, "errNoFutureAllowed");
 
         transitionsInfo memory info;
         uint256[] memory states = state.getAllStatesById(id);
@@ -61,24 +61,28 @@ contract SearchUtils {
         // Binary search
         uint256 min = 0;
         uint256 max = states.length - 1;
+
         while (min <= max) {
             uint256 mid = (max + min) / 2;
 
             uint256 midState = states[mid];
-            // todo : check if mid + 1 is not out of range. clear bag if only one elem in root history
-            uint256 midNextState = states[mid + 1];
+
             transitionsInfo memory midStateInfo = state.getTransitionInfo(
                 midState
-            );
-            transitionsInfo memory midNextStateInfo = state.getTransitionInfo(
-                midNextState
             );
 
             if (midStateInfo.createdAtBlock == blockN) {
                 return midStateInfo;
             } else if (
                 (blockN > midStateInfo.createdAtBlock) &&
-                (blockN < midNextStateInfo.createdAtBlock)
+                (mid + 1 == states.length)
+            ) {
+                return midStateInfo;
+            } else if (
+                (blockN > midStateInfo.createdAtBlock) &&
+                (mid + 1 < states.length) &&
+                (blockN <
+                    state.getTransitionInfo(states[mid + 1]).createdAtBlock)
             ) {
                 return midStateInfo;
             } else if (blockN > midStateInfo.createdAtBlock) {
@@ -96,12 +100,12 @@ contract SearchUtils {
      * @param timestamp timestamp
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getStateDataByTime(uint256 id, uint64 timestamp)
+    function getStateDataByTime(uint256 id, uint256 timestamp)
         public
         view
         returns (transitionsInfo memory)
     {
-        require(timestamp < block.timestamp, "errNoFutureAllowed");
+        require(timestamp <= block.timestamp, "errNoFutureAllowed");
 
         transitionsInfo memory info;
         uint256[] memory states = state.getAllStatesById(id);
@@ -126,20 +130,22 @@ contract SearchUtils {
             uint256 mid = (max + min) / 2;
 
             uint256 midState = states[mid];
-            // todo : check if mid + 1 is not out of range. clear bag if only one elem in root history
-            uint256 midNextState = states[mid + 1];
             transitionsInfo memory midStateInfo = state.getTransitionInfo(
                 midState
-            );
-            transitionsInfo memory midNextStateInfo = state.getTransitionInfo(
-                midNextState
             );
 
             if (midStateInfo.createdAtTimestamp == timestamp) {
                 return midStateInfo;
             } else if (
                 (timestamp > midStateInfo.createdAtTimestamp) &&
-                (timestamp < midNextStateInfo.createdAtTimestamp)
+                (mid + 1 == states.length)
+            ) {
+                return midStateInfo;
+            } else if (
+                (timestamp > midStateInfo.createdAtTimestamp) &&
+                (mid + 1 < states.length) &&
+                (timestamp <
+                    state.getTransitionInfo(states[mid + 1]).createdAtTimestamp)
             ) {
                 return midStateInfo;
             } else if (timestamp > midStateInfo.createdAtTimestamp) {

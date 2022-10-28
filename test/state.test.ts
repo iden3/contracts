@@ -54,28 +54,28 @@ describe("State", () => {
     expect(res0.toString()).to.be.equal(bigInt(params.newState).toString());
 
     const transitionInfoNew = await state.getTransitionInfo(params.newState);
-    expect(transitionInfoNew[0].toString()).to.be.equal("0"); // replaced timestamp
-    expect(transitionInfoNew[1].toString()).not.be.empty; // creation timestamp
-    expect(transitionInfoNew[2].toString()).to.be.equal("0"); // replaced block
-    expect(transitionInfoNew[3].toString()).not.be.empty; // creation block
-    expect(transitionInfoNew[4].toString()).to.be.equal(
+    expect(transitionInfoNew.replacedAtTimestamp.toString()).to.be.equal("0"); // replaced timestamp
+    expect(transitionInfoNew.createdAtTimestamp.toString()).not.be.empty; // creation timestamp
+    expect(transitionInfoNew.replacedAtBlock.toString()).to.be.equal("0"); // replaced block
+    expect(transitionInfoNew.createdAtBlock.toString()).not.be.empty; // creation block
+    expect(transitionInfoNew.id.toString()).to.be.equal(
       bigInt(params.id).toString()
     ); // id
-    expect(transitionInfoNew[5].toString()).to.be.equal("0"); // replaced by
+    expect(transitionInfoNew.replacedBy.toString()).to.be.equal("0"); // replaced by
 
     const transitionInfoOld = await state.getTransitionInfo(params.oldState);
-    expect(transitionInfoOld[0].toString()).to.be.equal(
-      transitionInfoNew[1].toString()
+    expect(transitionInfoOld.replacedAtTimestamp.toString()).to.be.equal(
+      transitionInfoNew.createdAtTimestamp.toString()
     ); // replaced timestamp
-    expect(transitionInfoOld[1].toString()).to.be.equal(bigInt(0).toString()); // creation timestamp
-    expect(transitionInfoOld[2].toString()).to.be.equal(
-      transitionInfoNew[3].toString()
+    expect(transitionInfoOld.createdAtTimestamp.toString()).to.be.equal(bigInt(0).toString()); // creation timestamp
+    expect(transitionInfoOld.replacedAtBlock.toString()).to.be.equal(
+      transitionInfoNew.createdAtBlock.toString()
     ); // replaced block
-    expect(transitionInfoOld[3].toString()).to.be.equal("0"); // creation block
-    expect(transitionInfoOld[4].toString()).to.be.equal(
+    expect(transitionInfoOld.createdAtBlock.toString()).to.be.equal("0"); // creation block
+    expect(transitionInfoOld.id.toString()).to.be.equal(
       bigInt(params.id).toString()
     ); // id
-    expect(transitionInfoOld[5].toString()).to.be.equal(
+    expect(transitionInfoOld.replacedBy.toString()).to.be.equal(
       bigInt(params.newState).toString()
     ); // replaced by
   });
@@ -124,32 +124,32 @@ describe("State", () => {
     expect(res.toString()).to.be.equal(bigInt(params.newState).toString());
 
     const transitionInfoNew = await state.getTransitionInfo(params.newState);
-    expect(transitionInfoNew[0].toString()).to.be.equal("0"); // replaced timestamp
-    expect(transitionInfoNew[1].toString()).not.be.empty; // creation timestamp
-    expect(transitionInfoNew[2].toString()).to.be.equal("0"); // replaced block
-    expect(transitionInfoNew[3].toString()).not.be.empty; // creation block
-    expect(transitionInfoNew[4].toString()).to.be.equal(
+    expect(transitionInfoNew.replacedAtTimestamp.toString()).to.be.equal("0"); // replaced timestamp
+    expect(transitionInfoNew.createdAtTimestamp.toString()).not.be.empty; // creation timestamp
+    expect(transitionInfoNew.replacedAtBlock.toString()).to.be.equal("0"); // replaced block
+    expect(transitionInfoNew.createdAtBlock.toString()).not.be.empty; // creation block
+    expect(transitionInfoNew.id.toString()).to.be.equal(
       bigInt(params.id).toString()
     ); // id
-    expect(transitionInfoNew[5].toString()).to.be.equal("0"); // replaced by
+    expect(transitionInfoNew.replacedBy.toString()).to.be.equal("0"); // replaced by
 
     const transitionInfoOld = await state.getTransitionInfo(params.oldState);
-    expect(transitionInfoOld[0].toString()).to.be.equal(
-      transitionInfoNew[1].toString()
+    expect(transitionInfoOld.replacedAtTimestamp.toString()).to.be.equal(
+      transitionInfoNew.createdAtTimestamp.toString()
     ); // replaced timestamp
-    expect(transitionInfoOld[1].toString()).to.be.equal(
-      transitionInfoStateBeforeUpdate[1]
+    expect(transitionInfoOld.createdAtTimestamp.toString()).to.be.equal(
+      transitionInfoStateBeforeUpdate.createdAtTimestamp
     ); // creation timestamp must be not changed
-    expect(transitionInfoOld[2].toString()).to.be.equal(
-      transitionInfoNew[3].toString()
+    expect(transitionInfoOld.replacedAtBlock.toString()).to.be.equal(
+      transitionInfoNew.createdAtBlock.toString()
     ); // replaced block
-    !expect(transitionInfoOld[3].toString()).to.be.equal(
-      transitionInfoStateBeforeUpdate[3]
+    !expect(transitionInfoOld.createdAtBlock.toString()).to.be.equal(
+      transitionInfoStateBeforeUpdate.createdAtBlock
     ); // creation block must be not changed
-    expect(transitionInfoOld[4].toString()).to.be.equal(
+    expect(transitionInfoOld.id.toString()).to.be.equal(
       bigInt(params.id).toString()
     ); // id
-    expect(transitionInfoOld[5].toString()).to.be.equal(
+    expect(transitionInfoOld.replacedBy.toString()).to.be.equal(
       bigInt(params.newState).toString()
     ); // replaced by
   });

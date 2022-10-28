@@ -170,7 +170,7 @@ library Smt {
 
         self.rootTransitions[self.root].createdAtTimestamp = _timestamp;
         self.rootTransitions[self.root].createdAtBlock = _blockNumber;
-        self.rootTransitions[self.root].createdAtBlock = self.root;
+        self.rootTransitions[self.root].root = self.root;
         if (self.rootHistory.length >= 2) {
             uint256 prevRoot = self.rootHistory[self.rootHistory.length - 2];
             self.rootTransitions[prevRoot].replacedAtTimestamp = _timestamp;
@@ -477,20 +477,10 @@ library Smt {
         uint256 min = 0;
         uint256 max = self.rootHistory.length - 1;
 
-        // 2 -1 = 1
-
-        // 0 < 1
-
-        // 0 + 1 / 2 = 0
-
-        // 0 + 1 = 1 ok
-
-        // 1 - 1 = 0
         while (min <= max) {
             uint256 mid = (max + min) / 2;
             uint256 midRoot = self.rootHistory[mid];
-            // todo : check if mid + 1 is not out of range. clear bag if only one elem in root history
-            uint256 midNextRoot = self.rootHistory[mid + 1];
+
             uint256 midRootCreatedAtTimestamp = self
                 .rootTransitions[midRoot]
                 .createdAtTimestamp;
@@ -498,8 +488,16 @@ library Smt {
                 return self.rootTransitions[midRoot];
             } else if (
                 (timestamp > midRootCreatedAtTimestamp) &&
+                (mid + 1 == self.rootHistory.length)
+            ) {
+                return self.rootTransitions[midRoot];
+            } else if (
+                (timestamp > midRootCreatedAtTimestamp) &&
+                (mid + 1 < self.rootHistory.length) &&
                 (timestamp <
-                    self.rootTransitions[midNextRoot].createdAtTimestamp)
+                    self
+                        .rootTransitions[self.rootHistory[mid + 1]]
+                        .createdAtTimestamp)
             ) {
                 return self.rootTransitions[midRoot];
             } else if (timestamp > midRootCreatedAtTimestamp) {
@@ -545,14 +543,21 @@ library Smt {
         while (min <= max) {
             uint256 mid = (max + min) / 2;
             uint256 midRoot = self.rootHistory[mid];
-            // todo : check if mid + 1 is not out of range. clear bag if only one elem in root history
-            uint256 midNextRoot = self.rootHistory[mid + 1];
 
             if (self.rootTransitions[midRoot].createdAtBlock == blockN) {
                 return self.rootTransitions[midRoot];
             } else if (
                 (blockN > self.rootTransitions[mid].createdAtBlock) &&
-                (blockN < self.rootTransitions[midNextRoot].createdAtBlock)
+                (mid + 1 == self.rootHistory.length)
+            ) {
+                return self.rootTransitions[midRoot];
+            } else if (
+                (blockN > self.rootTransitions[mid].createdAtBlock) &&
+                (mid + 1 < self.rootHistory.length) &&
+                (blockN <
+                    self
+                        .rootTransitions[self.rootHistory[mid + 1]]
+                        .createdAtBlock)
             ) {
                 return self.rootTransitions[midRoot];
             } else if (blockN > self.rootTransitions[midRoot].createdAtBlock) {

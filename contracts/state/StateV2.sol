@@ -175,12 +175,7 @@ contract StateV2 is OwnableUpgradeable {
         // put state in smt to recalculate global state
         smtData.add(PoseidonUnit1L.poseidon([id]), newState);
 
-        emit StateUpdated(
-            id,
-            uint64(block.number),
-            uint64(block.timestamp),
-            newState
-        );
+        emit StateUpdated(id, block.number, block.timestamp, newState);
     }
 
     /**

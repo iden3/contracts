@@ -18,7 +18,7 @@ async function publishInitialState(state: Contract, json) {
   expect(proof.root).to.equal(rootHistory[0].root);
 }
 
-describe("Smt Library Upgrade", () => {
+describe.skip("Smt Library Upgrade", () => {
   let state: Contract;
   let poseidon1Elements: Contract;
   let poseidon2Elements: Contract;

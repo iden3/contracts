@@ -320,6 +320,26 @@ export class StateDeployHelper {
     return result;
   }
 
+  async deploySearchUtils(stateContract: Contract): Promise<{
+    searchUtils: Contract;
+  }> {
+    this.log("======== SearchUtils: deploy started ========");
+
+    const owner = this.signers[0];
+
+    this.log("deploying verifier...");
+    const SearchUtilsFactory = await ethers.getContractFactory("SearchUtils");
+    const searchUtils = await SearchUtilsFactory.deploy(stateContract.address);
+    await searchUtils.deployed();
+    this.log(
+      `Search utils deployed to address ${searchUtils.address} from ${owner.address}`
+    );
+
+    return {
+      searchUtils,
+    };
+  }
+
   private async upgradeFromStateV1toV2(
     stateProxyAddress: string
   ): Promise<any> {
@@ -362,3 +382,5 @@ export class StateDeployHelper {
     this.enableLogging && console.log(args);
   }
 }
+
+
