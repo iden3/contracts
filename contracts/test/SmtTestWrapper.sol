@@ -8,6 +8,11 @@ contract SmtTestWrapper {
     SmtData internal smtData;
     using Smt for SmtData;
 
+    constructor() {
+        smtData.configOptions["SMT_ROOT_HISTORY_RETURN_LIMIT"] = 1000;
+        smtData.configOptions["MAX_SMT_DEPTH"] = 32;
+    }
+
     function add(uint256 _i, uint256 _v) public {
         smtData.add(_i, _v);
     }

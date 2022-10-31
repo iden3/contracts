@@ -210,4 +210,51 @@ describe("State SMT integration tests", function () {
 
     expect(rootHistory.length).to.equal(stateHistory.length);
   });
+
+  it("Should deploy state V2 without migration from V1", async () => {
+    const stateDeployHelper = await StateDeployHelper.initialize();
+
+    // 1. deploy StateV1
+    const { state } = await stateDeployHelper.deployStateV2();
+
+    // 2. publish state
+    const statesToPublish = [
+      require("./mtp/data/issuer_state_transition.json"),
+      require("./mtp/data/issuer_next_state_transition.json"),
+    ];
+    for (const issuerStateJson of statesToPublish) {
+      await publishState(state, issuerStateJson);
+    }
+
+    // 3. verify smt tree has history
+    let rootHistoryLength = await state.getSmtRootHistoryLength();
+    let rootHistory = await state.getSmtRootHistory(0, rootHistoryLength - 1);
+    let stateHistory = await stateDeployHelper.getStateTransitionHistory(
+      state,
+      0,
+      1
+    );
+
+    expect(rootHistory.length).to.equal(stateHistory.length);
+
+    // 4. add state transition to migrated state contract
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const stateTransition = require("./mtp/data/user_state_transition.json");
+    await publishState(state, stateTransition);
+
+    // 5. verify transit state has changed  tree  history
+    rootHistoryLength = await state.getSmtRootHistoryLength();
+
+    expect(rootHistoryLength).to.equal(3);
+
+    stateHistory = await stateDeployHelper.getStateTransitionHistory(
+      state,
+      0,
+      100
+    );
+
+    rootHistory = await state.getSmtRootHistory(0, rootHistoryLength - 1);
+
+    expect(rootHistory.length).to.equal(stateHistory.length);
+  });
 });

@@ -90,6 +90,8 @@ contract StateV2 is OwnableUpgradeable {
 
     function initialize(IVerifier _verifierContractAddr) public initializer {
         verifier = _verifierContractAddr;
+        smtData.configOptions["SMT_ROOT_HISTORY_RETURN_LIMIT"] = 1000;
+        smtData.configOptions["MAX_SMT_DEPTH"] = 32;
         __Ownable_init();
     }
 

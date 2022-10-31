@@ -4,10 +4,6 @@ pragma abicoder v2;
 
 import "../lib/Poseidon.sol";
 
-uint256 constant MAX_SMT_DEPTH = 32;
-uint256 constant SMT_ROOT_HISTORY_RETURN_LIMIT = 1000;
-
-
 /**
  * @dev Sparse Merkle Tree data
  */
@@ -16,6 +12,7 @@ struct SmtData {
     uint256 root;
     RootHistoryInfo[] rootHistory;
     mapping(uint256 => RootTransitionsInfo) rootTransitions;
+    mapping(string => uint256) configOptions;
 }
 
 /**
@@ -23,7 +20,7 @@ struct SmtData {
  */
 struct Proof {
     uint256 root;
-    uint256[MAX_SMT_DEPTH] siblings;
+    uint256[] siblings;
     uint256 oldKey;
     uint256 oldValue;
     bool isOld0;
@@ -90,8 +87,8 @@ library Smt {
      * @dev Get max depth of SMT.
      * @return max depth of SMT.
      */
-    function getMaxDepth() public pure returns (uint256) {
-        return MAX_SMT_DEPTH; // todo put to SmtData struct ???
+    function getMaxDepth(SmtData storage self) public view returns (uint256) {
+        return self.configOptions["MAX_SMT_DEPTH"];
     }
 
     /**
@@ -118,7 +115,7 @@ library Smt {
             "index out of bounds of array"
         );
         require(
-            endIndex - startIndex + 1 <= SMT_ROOT_HISTORY_RETURN_LIMIT,
+            endIndex - startIndex + 1 <= self.configOptions["SMT_ROOT_HISTORY_RETURN_LIMIT"],
             "return limit exceeded"
         );
         RootHistoryInfo[] memory result = new RootHistoryInfo[](
@@ -188,7 +185,7 @@ library Smt {
         uint256 nodeHash,
         uint256 _depth
     ) internal returns (uint256) {
-        if (_depth > MAX_SMT_DEPTH) {
+        if (_depth > self.configOptions["MAX_SMT_DEPTH"]) {
             revert("Max depth reached");
         }
 
@@ -239,7 +236,7 @@ library Smt {
         uint256 _pathNewLeaf,
         uint256 _pathOldLeaf
     ) internal returns (uint256) {
-        if (_depth > MAX_SMT_DEPTH - 2) {
+        if (_depth > self.configOptions["MAX_SMT_DEPTH"] - 2) {
             revert("Max depth reached");
         }
 
@@ -349,10 +346,13 @@ library Smt {
         proof.root = _historicalRoot;
         proof.key = _index;
 
+        uint256[] memory siblings = new uint256[](self.configOptions["MAX_SMT_DEPTH"]);
+        proof.siblings = siblings;
+
         uint256 nextNodeHash = _historicalRoot;
         Node memory node;
 
-        for (uint256 i = 0; i < MAX_SMT_DEPTH; i++) {
+        for (uint256 i = 0; i < self.configOptions["MAX_SMT_DEPTH"]; i++) {
             node = getNode(self, nextNodeHash);
             if (node.nodeType == NodeType.EMPTY) {
                 proof.fnc = 1;
