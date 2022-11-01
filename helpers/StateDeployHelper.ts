@@ -286,6 +286,18 @@ export class StateDeployHelper {
     return smtWrapper;
   }
 
+  async deployBinarySearchTestWrapper(): Promise<Contract> {
+    const contractName = "BinarySearchTestWrapper";
+
+    const BSWrapper = await ethers.getContractFactory(contractName);
+    const bsWrapper = await BSWrapper.deploy();
+    await bsWrapper.deployed();
+    this.enableLogging &&
+      this.log(`${contractName} deployed to:  ${bsWrapper.address}`);
+
+    return bsWrapper;
+  }
+
   async deployPoseidons(
     deployer: SignerWithAddress,
     poseidonSizeParams: number[]
@@ -382,5 +394,3 @@ export class StateDeployHelper {
     this.enableLogging && console.log(args);
   }
 }
-
-

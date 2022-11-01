@@ -73,6 +73,8 @@ struct Node {
 
 /// @title A sparse merkle tree implementation, which keeps tree history.
 library Smt {
+    using BinarySearchSmtRoots for SmtData;
+
     /**
      * @dev Get max depth of SMT.
      * @return max depth of SMT.
@@ -456,57 +458,12 @@ library Smt {
         SmtData storage self,
         uint256 timestamp
     ) public view returns (RootTransitionsInfo memory) {
-        RootTransitionsInfo memory rootInfo;
         require(timestamp <= block.timestamp, "errNoFutureAllowed");
-        // Case that there is no state committed
-        if (self.rootHistory.length == 0) {
-            return rootInfo;
-        }
-        // Case that there timestamp searched is beyond last timestamp committed
-        uint256 lastRoot = self.rootHistory[self.rootHistory.length - 1];
 
-        uint256 lastTimestamp = self
-            .rootTransitions[lastRoot]
-            .createdAtTimestamp;
-
-        if (timestamp > lastTimestamp) {
-            return self.rootTransitions[lastRoot];
-        }
-
-        // Binary search
-        uint256 min = 0;
-        uint256 max = self.rootHistory.length - 1;
-
-        while (min <= max) {
-            uint256 mid = (max + min) / 2;
-            uint256 midRoot = self.rootHistory[mid];
-
-            uint256 midRootCreatedAtTimestamp = self
-                .rootTransitions[midRoot]
-                .createdAtTimestamp;
-            if (midRootCreatedAtTimestamp == timestamp) {
-                return self.rootTransitions[midRoot];
-            } else if (
-                (timestamp > midRootCreatedAtTimestamp) &&
-                (mid + 1 == self.rootHistory.length)
-            ) {
-                return self.rootTransitions[midRoot];
-            } else if (
-                (timestamp > midRootCreatedAtTimestamp) &&
-                (mid + 1 < self.rootHistory.length) &&
-                (timestamp <
-                    self
-                        .rootTransitions[self.rootHistory[mid + 1]]
-                        .createdAtTimestamp)
-            ) {
-                return self.rootTransitions[midRoot];
-            } else if (timestamp > midRootCreatedAtTimestamp) {
-                min = mid + 1;
-            } else {
-                max = mid - 1;
-            }
-        }
-        return rootInfo;
+        return self.binarySearchUint256(
+            timestamp,
+            SearchType.TIMESTAMP
+        );
     }
 
     /**
@@ -519,53 +476,70 @@ library Smt {
         view
         returns (RootTransitionsInfo memory)
     {
-        RootTransitionsInfo memory rootInfo;
         require(blockN <= block.number, "errNoFutureAllowed");
 
-        // Case that there is no state committed
-        if (self.rootHistory.length == 0) {
+        return self.binarySearchUint256(
+            blockN,
+            SearchType.BLOCK
+        );
+    }
+}
+
+/**
+ * @dev Enum for the SMT history field selection
+ */
+enum SearchType {
+    TIMESTAMP,
+    BLOCK
+}
+
+/// @title A binary search for the sparse merkle tree root history
+library BinarySearchSmtRoots {
+    function binarySearchUint256 (
+        SmtData storage self,
+        uint256 value,
+        SearchType searchType
+    ) internal view returns (RootTransitionsInfo memory) {
+
+        uint256 min = 0;
+        uint256 max;
+        if (self.rootHistory.length > 0) {
+            max = self.rootHistory.length - 1;
+        } else {
+            RootTransitionsInfo memory rootInfo;
             return rootInfo;
         }
 
-        // Case that there timestamp searched is beyond last timestamp committed
-        uint256 lastRoot = self.rootHistory[self.rootHistory.length - 1];
+        uint256 mid;
+        uint256 midRoot;
 
-        RootTransitionsInfo memory lastRootInfo = self.rootTransitions[
-            lastRoot
-        ];
-
-        if (blockN > lastRootInfo.createdAtTimestamp) {
-            return lastRootInfo;
-        }
-        // Binary search
-        uint256 min = 0;
-        uint256 max = self.rootHistory.length - 1;
         while (min <= max) {
-            uint256 mid = (max + min) / 2;
-            uint256 midRoot = self.rootHistory[mid];
+            mid = (max + min) / 2;
+            midRoot = self.rootHistory[mid];
 
-            if (self.rootTransitions[midRoot].createdAtBlock == blockN) {
-                return self.rootTransitions[midRoot];
-            } else if (
-                (blockN > self.rootTransitions[mid].createdAtBlock) &&
-                (mid + 1 == self.rootHistory.length)
-            ) {
-                return self.rootTransitions[midRoot];
-            } else if (
-                (blockN > self.rootTransitions[mid].createdAtBlock) &&
-                (mid + 1 < self.rootHistory.length) &&
-                (blockN <
-                    self
-                        .rootTransitions[self.rootHistory[mid + 1]]
-                        .createdAtBlock)
-            ) {
-                return self.rootTransitions[midRoot];
-            } else if (blockN > self.rootTransitions[midRoot].createdAtBlock) {
+            uint256 midValue = fieldSelector(self.rootTransitions[midRoot], searchType);
+            if (value > midValue) {
                 min = mid + 1;
-            } else {
+            } else if (value < midValue && mid > 0) {
                 max = mid - 1;
+            } else {
+                return self.rootTransitions[midRoot];
             }
         }
-        return rootInfo;
+
+        return self.rootTransitions[midRoot];
+    }
+
+    function fieldSelector(
+        RootTransitionsInfo memory rti,
+        SearchType st
+    ) internal pure returns (uint256) {
+        if (st == SearchType.BLOCK) {
+            return rti.createdAtBlock;
+        } else if (st == SearchType.TIMESTAMP) {
+            return rti.createdAtTimestamp;
+        } else {
+            revert("Invalid search type");
+        }
     }
 }
