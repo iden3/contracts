@@ -11,7 +11,7 @@ uint256 constant SMT_ROOT_HISTORY_RETURN_LIMIT = 1000;
  * @dev Sparse Merkle Tree data
  */
 struct SmtData {
-    mapping(uint256 => Node) tree;
+    mapping(uint256 => Node) nodes;
     uint256[] rootHistory;
     mapping(uint256 => RootTransition) rootTransitions;
     // This empty reserved space is put in place to allow future versions
@@ -189,7 +189,7 @@ library Smt {
             revert("Max depth reached");
         }
 
-        Node memory node = self.tree[nodeHash];
+        Node memory node = self.nodes[nodeHash];
         uint256 nextNodeHash;
         uint256 leafHash;
 
@@ -308,11 +308,11 @@ library Smt {
     {
         uint256 nodeHash = getNodeHash(_node);
         require(
-            self.tree[nodeHash].nodeType == NodeType.EMPTY,
+            self.nodes[nodeHash].nodeType == NodeType.EMPTY,
             "Node already exists with the same index and value"
         );
         // We do not store empty nodes so can check if an entry exists
-        self.tree[nodeHash] = _node;
+        self.nodes[nodeHash] = _node;
         return nodeHash;
     }
 
@@ -339,7 +339,7 @@ library Smt {
         view
         returns (Node memory)
     {
-        return self.tree[_nodeHash];
+        return self.nodes[_nodeHash];
     }
 
     /**
