@@ -15,6 +15,11 @@ struct SmtData {
     uint256 root;
     uint256[] rootHistory;
     mapping(uint256 => RootTransitionsInfo) rootTransitions;
+    // This empty reserved space is put in place to allow future versions
+    // of the SMT library to add new SmtData struct fields without shifting down
+    // storage of upgradable contracts that use this struct as a state variable
+    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+    uint256[50] __gap;
 }
 
 /**
