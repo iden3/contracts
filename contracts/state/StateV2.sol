@@ -88,17 +88,6 @@ contract StateV2 is OwnableUpgradeable {
         verifier = IVerifier(newVerifier);
     }
 
-    function getTransitionStateEnabled() public view returns (bool) {
-        return _stateTransitionEnabled;
-    }
-
-    function setTransitionStateEnabled(bool transitStateEnabled)
-        public
-        onlyOwner
-    {
-        _stateTransitionEnabled = transitStateEnabled;
-    }
-
     function getVerifier(address newVerifier) public onlyOwner {
         verifier = IVerifier(newVerifier);
     }
@@ -112,8 +101,6 @@ contract StateV2 is OwnableUpgradeable {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) public {
-        require(_stateTransitionEnabled, "state transition is Enabled");
-
         if (isOldStateGenesis == false) {
             require(
                 identities[id].length > 0,
@@ -265,24 +252,6 @@ contract StateV2 is OwnableUpgradeable {
                 PoseidonUnit1L.poseidon([_id]),
                 timestamp
             );
-    }
-
-    function addToSmtDirectly(
-        uint256 id,
-        uint256 state,
-        uint256 timestamp,
-        uint256 blockNumber
-    ) public onlyOwner {
-        require(
-            !_stateTransitionEnabled,
-            "Direct add to SMT is not allowed if state transition is enabled"
-        );
-        smtData.addHistorical(
-            PoseidonUnit1L.poseidon([id]),
-            state,
-            timestamp,
-            blockNumber
-        );
     }
 
     function getSmtRootHistoryLength() public view returns (uint256) {

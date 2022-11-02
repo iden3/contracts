@@ -69,7 +69,6 @@
     "test:gas": "REPORT_GAS=true npx hardhat test",
     "deploy:localhost": "npx hardhat run scripts/deploy.ts --network localhost",
     "deployStateV1:localhost": "npx hardhat run ./scripts/deployStateV1.ts --network localhost",
-    "migrateFromStateV1toV2:localhost": "npx hardhat run ./scripts/migrateFromStateV1toV2.ts --network localhost",
     "upgrade:localhost": "npx hardhat run scripts/upgradeContract/upgradeState.ts --network localhost",
     "deploy:ropsten": "npx hardhat run scripts/deploy.ts --network ropsten",
     "verify:ropsten": "npx hardhat run scripts/verifyEtherescan.js --network ropsten"

@@ -127,25 +127,6 @@ library Smt {
     }
 
     /**
-     * @dev Add a node to the SMT but timestamping the root with arbitrary info
-     * It should be used cautiously as wrong chronological order of root history
-     * can lead to incorrect behaviour on the client side.
-     * @param _i index of node
-     * @param _v value of node
-     * @param _timestamp timestamp of root
-     * @param _blockNumber block number of root
-     */
-    function addHistorical(
-        SmtData storage self,
-        uint256 _i,
-        uint256 _v,
-        uint256 _timestamp,
-        uint256 _blockNumber
-    ) public {
-        processLeaf(self, _i, _v, _timestamp, _blockNumber);
-    }
-
-    /**
      * @dev Add anode to the SMT
      * @param _i Index of node
      * @param _v Value of node

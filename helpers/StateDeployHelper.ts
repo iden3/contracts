@@ -92,7 +92,6 @@ export class StateDeployHelper {
       }
     );
     await stateV2.deployed();
-    await stateV2.setTransitionStateEnabled(true);
     this.log(
       `StateV2 contract deployed to address ${stateV2.address} from ${owner.address}`
     );
@@ -106,35 +105,6 @@ export class StateDeployHelper {
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
-    };
-  }
-
-  async migrateFromStateV1toV2(
-    stateProxyAddress: string,
-    firstEventBlock = 0,
-    eventsChunkSize = 3500
-  ): Promise<{ state: any }> {
-    this.log("======== StateV2: migrate from StateV1 started ========");
-    // 1. upgrade state to the next version
-    const stateContract = await this.upgradeFromStateV1toV2(stateProxyAddress);
-
-    // 2. fetch all stateTransition from event
-    const stateHistory = await this.getStateTransitionHistory(
-      stateContract,
-      firstEventBlock, //29831814,
-      eventsChunkSize //3500,
-    );
-
-    // 3. populate the SMT by the history of state transition events
-    // Note: state transition is auto-disabled after upgrade, so can populate the SMT
-    await this.populateSmtByStateEvents(stateContract, stateHistory);
-
-    // 4. enable state transition
-    await stateContract.setTransitionStateEnabled(true);
-
-    this.log("======== StateV2: migrate from StateV1 completed ========");
-    return {
-      state: stateContract,
     };
   }
 
@@ -350,40 +320,6 @@ export class StateDeployHelper {
     return {
       searchUtils,
     };
-  }
-
-  private async upgradeFromStateV1toV2(
-    stateProxyAddress: string
-  ): Promise<any> {
-    const owner = this.signers[0];
-
-    const [poseidon1Elements, poseidon2Elements, poseidon3Elements] =
-      await this.deployPoseidons(owner, [1, 2, 3]);
-
-    const smt = await this.deploySmt(
-      poseidon2Elements.address,
-      poseidon3Elements.address
-    );
-
-    const StateV2Factory = await ethers.getContractFactory("StateV2", {
-      libraries: {
-        Smt: smt.address,
-        PoseidonUnit1L: poseidon1Elements.address,
-      },
-    });
-
-    // Upgrade
-    const tx = await upgrades.upgradeProxy(stateProxyAddress, StateV2Factory, {
-      unsafeAllowLinkedLibraries: true,
-      unsafeAllowRenames: true,
-    });
-
-    const stateContract = StateV2Factory.attach(stateProxyAddress);
-    await stateContract.setTransitionStateEnabled(false);
-    this.enableLogging &&
-      this.log(`upgrade successful in tx: ${tx.deployTransaction.hash}`);
-
-    return stateContract;
   }
 
   private writeFile(fileName: string, data: any): void {

@@ -37,7 +37,6 @@ describe("State Migration to SMT test", () => {
       rootHistoryLength - 1
     );
 
-
     const [root] = await state.getSmtHistoricalProofByRoot(id, obj1.root);
     expect(obj1.root).to.equal(root);
     expect(obj1.root).to.equal(currentRoots[0]);
@@ -45,7 +44,6 @@ describe("State Migration to SMT test", () => {
     const [root2] = await state.getSmtHistoricalProofByRoot(id, obj2.root);
     expect(obj2.root).to.equal(root2);
     expect(obj2.root).to.equal(currentRoots[1]);
-
   });
 
   it("should be correct historical proof by time", async () => {
@@ -62,13 +60,19 @@ describe("State Migration to SMT test", () => {
     );
 
     console.log(root1info);
-    const [r1] = await state.getSmtHistoricalProofByTime(id, root1info.createdAtTimestamp);
+    const [r1] = await state.getSmtHistoricalProofByTime(
+      id,
+      root1info.createdAtTimestamp
+    );
 
     expect(root1info.root).to.equal(r1);
 
     console.log(root2info);
 
-    const [r2] = await state.getSmtHistoricalProofByTime(id, root2info.createdAtTimestamp);
+    const [r2] = await state.getSmtHistoricalProofByTime(
+      id,
+      root2info.createdAtTimestamp
+    );
     expect(r2).to.equal(root2info.root);
   });
 
@@ -85,9 +89,15 @@ describe("State Migration to SMT test", () => {
       rootHistoryLength - 1
     );
 
-    const [root] = await state.getSmtHistoricalProofByBlock(id, root1info.createdAtBlock);
+    const [root] = await state.getSmtHistoricalProofByBlock(
+      id,
+      root1info.createdAtBlock
+    );
     expect(root1info.root).to.equal(root);
-    const [root2] = await state.getSmtHistoricalProofByBlock(id, root2info.createdAtBlock);
+    const [root2] = await state.getSmtHistoricalProofByBlock(
+      id,
+      root2info.createdAtBlock
+    );
     expect(root2info.root).to.equal(root2);
   });
 
@@ -97,14 +107,17 @@ describe("State Migration to SMT test", () => {
     }
     const id = ethers.BigNumber.from(issuerStateTransitions[0].pub_signals[0]);
     const rootHistoryLength = await state.getSmtRootHistoryLength();
-    const [rootInfo] = await state.getSmtRootHistory(
-      0,
-      rootHistoryLength - 1
-    );
+    const [rootInfo] = await state.getSmtRootHistory(0, rootHistoryLength - 1);
 
-    const [rootB] = await state.getSmtHistoricalProofByBlock(id, rootInfo.createdAtBlock);
+    const [rootB] = await state.getSmtHistoricalProofByBlock(
+      id,
+      rootInfo.createdAtBlock
+    );
     expect(rootInfo.root).to.equal(rootB);
-    const [rootT] = await state.getSmtHistoricalProofByTime(id, rootInfo.createdAtTimestamp);
+    const [rootT] = await state.getSmtHistoricalProofByTime(
+      id,
+      rootInfo.createdAtTimestamp
+    );
     expect(rootInfo.root).to.equal(rootT).to.equal(rootB);
   });
 
@@ -157,63 +170,5 @@ describe("State Migration to SMT test", () => {
     expect(trInfo1.replacedAtBlock).to.equal(expRootTrInfo[1].replacedAtBlock);
     expect(trInfo1.createdAtBlock).to.equal(expRootTrInfo[1].createdAtBlock);
     expect(trInfo1.replacedBy).to.equal(expRootTrInfo[1].replacedBy);
-  });
-});
-
-describe("State SMT integration tests", function () {
-  this.timeout(10000);
-
-  it.skip("should upgrade to new state and migrate existing states to smt", async () => {
-    const stateDeployHelper = await StateDeployHelper.initialize();
-
-    // 1. deploy StateV1
-    const { state: existingState } = await stateDeployHelper.deployStateV1();
-
-    // 2. publish state
-    const statesToPublish = [
-      require("./mtp/data/issuer_state_transition.json"),
-      require("./mtp/data/issuer_next_state_transition.json"),
-    ];
-    for (const issuerStateJson of statesToPublish) {
-      await publishState(existingState, issuerStateJson);
-    }
-
-    // 3. run migration from stateV1 to stateV2
-    const { state } = await stateDeployHelper.migrateFromStateV1toV2(
-      existingState.address,
-      0,
-      1
-    );
-
-    // 4. verify smt tree has history
-    let rootHistoryLength = await state.getSmtRootHistoryLength();
-    let rootHistory = await state.getSmtRootHistory(0, rootHistoryLength - 1);
-    let stateHistory = await stateDeployHelper.getStateTransitionHistory(
-      state,
-      0,
-      1
-    );
-
-    expect(rootHistory.length).to.equal(stateHistory.length);
-
-    // 5. add state transition to migrated state contract
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const stateTransition = require("./mtp/data/user_state_transition.json");
-    await publishState(state, stateTransition);
-
-    // 6. verify transit state has changed  tree  history
-    rootHistoryLength = await state.getSmtRootHistoryLength();
-
-    expect(rootHistoryLength).to.equal(3);
-
-    stateHistory = await stateDeployHelper.getStateTransitionHistory(
-      state,
-      0,
-      100
-    );
-
-    rootHistory = await state.getSmtRootHistory(0, rootHistoryLength - 1);
-
-    expect(rootHistory.length).to.equal(stateHistory.length);
   });
 });
