@@ -9,38 +9,37 @@ contract BinarySearchTestWrapper {
     using BinarySearchSmtRoots for SmtData;
 
     function addRootTransition(
-        uint256 replacedAtTimestamp,
-        uint256 createdAtTimestamp,
-        uint256 replacedAtBlock,
-        uint256 createdAtBlock,
-        uint256 replacedBy,
-        uint256 root
+        uint256 _createdAtTimestamp,
+        uint256 _createdAtBlock,
+        uint256 _root
     ) public {
-        smtData.rootHistory.push(root);
+        smtData.rootHistory.push(_root);
 
-        RootTransitionsInfo memory rti = RootTransitionsInfo({
-            replacedAtTimestamp: replacedAtTimestamp,
-            createdAtTimestamp: createdAtTimestamp,
-            replacedAtBlock: replacedAtBlock,
-            createdAtBlock: createdAtBlock,
-            replacedBy: replacedBy,
-            root: root
+        RootTransition memory rt = RootTransition({
+            createdAtTimestamp: _createdAtTimestamp,
+            createdAtBlock: _createdAtBlock,
+            replacedBy: 0
         });
-        smtData.rootTransitions[root] = rti;
+        smtData.rootTransitions[_root] = rt;
+
+        if (smtData.rootHistory.length >= 2) {
+            uint256 prevRoot = smtData.rootHistory[smtData.rootHistory.length - 2];
+            smtData.rootTransitions[prevRoot].replacedBy = _root;
+        }
     }
 
-    function getHistoricalRootDataByTime(uint256 _timestamp)
+    function getHistoricalRootByTime(uint256 _timestamp)
         public
         view
-        returns (RootTransitionsInfo memory)
+        returns (uint256)
     {
         return smtData.binarySearchUint256(_timestamp, SearchType.TIMESTAMP);
     }
 
-    function getHistoricalRootDataByBlock(uint256 _block)
+    function getHistoricalRootByBlock(uint256 _block)
         public
         view
-        returns (RootTransitionsInfo memory)
+        returns (uint256)
     {
         return smtData.binarySearchUint256(_block, SearchType.BLOCK);
     }

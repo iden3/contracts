@@ -19,7 +19,7 @@ struct SmtData {
     mapping(uint256 => Node) tree;
     uint256 root;
     RootHistoryInfo[] rootHistory;
-    mapping(uint256 => RootTransitionsInfo) rootTransitions;
+    mapping(uint256 => RootInfo) rootTransitions;
 }
 
 /**
@@ -64,7 +64,7 @@ struct RootHistoryInfo {
  * @param BlockTimestamp commit time when state was saved into blockchain.
  * @param BlockN commit number of block when state was created.
  */
-struct RootTransitionsInfo {
+struct RootInfo {
     uint256 replacedAtTimestamp;
     uint256 createdAtTimestamp;
     uint64 replacedAtBlock;
@@ -469,7 +469,7 @@ library SmtV2_UpgradeTest {
         uint256 index,
         uint64 timestamp
     ) public view returns (Proof memory) {
-        (uint256 historyRoot, , ) = getHistoricalRootDataByTime(
+        (uint256 historyRoot, , ) = getHistoricalRootInfoByTime(
             self,
             timestamp
         );
@@ -490,7 +490,7 @@ library SmtV2_UpgradeTest {
         uint256 index,
         uint64 _block
     ) public view returns (Proof memory) {
-        (uint256 historyRoot, , ) = getHistoricalRootDataByBlock(self, _block);
+        (uint256 historyRoot, , ) = getHistoricalRootInfoByBlock(self, _block);
 
         require(historyRoot != 0, "historical root not found");
 
@@ -502,7 +502,7 @@ library SmtV2_UpgradeTest {
      * @param timestamp timestamp
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getHistoricalRootDataByTime(SmtData storage self, uint64 timestamp)
+    function getHistoricalRootInfoByTime(SmtData storage self, uint64 timestamp)
         public
         view
         returns (
@@ -561,7 +561,7 @@ library SmtV2_UpgradeTest {
      * @param blockN block number
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getHistoricalRootDataByBlock(SmtData storage self, uint64 blockN)
+    function getHistoricalRootInfoByBlock(SmtData storage self, uint64 blockN)
         public
         view
         returns (

@@ -123,7 +123,7 @@ describe("State Migration to SMT test", () => {
 
   it("should have correct SMT root transitions info", async () => {
     const roots: any[] = [];
-    const expRootTrInfo: any[] = [];
+    const expRootInfos: any[] = [];
     for (const issuerStateJson of issuerStateTransitions) {
       const { blockNumber, timestamp } = await publishState(
         state,
@@ -133,13 +133,13 @@ describe("State Migration to SMT test", () => {
       const root = await state.getSmtCurrentRoot();
       roots.push(root);
 
-      if (expRootTrInfo.length >= 1) {
-        expRootTrInfo[expRootTrInfo.length - 1].replacedAtTimestamp = timestamp;
-        expRootTrInfo[expRootTrInfo.length - 1].replacedAtBlock = blockNumber;
-        expRootTrInfo[expRootTrInfo.length - 1].replacedBy = root;
+      if (expRootInfos.length >= 1) {
+        expRootInfos[expRootInfos.length - 1].replacedAtTimestamp = timestamp;
+        expRootInfos[expRootInfos.length - 1].replacedAtBlock = blockNumber;
+        expRootInfos[expRootInfos.length - 1].replacedBy = root;
       }
 
-      expRootTrInfo.push({
+      expRootInfos.push({
         replacedAtTimestamp: 0,
         createdAtTimestamp: timestamp,
         replacedAtBlock: 0,
@@ -148,27 +148,27 @@ describe("State Migration to SMT test", () => {
       });
     }
 
-    const trInfo0 = await state.getSmtRootTransitionsInfo(roots[0]);
-    const trInfo1 = await state.getSmtRootTransitionsInfo(roots[1]);
+    const rootInfo0 = await state.getSmtRootInfo(roots[0]);
+    const rootInfo1 = await state.getSmtRootInfo(roots[1]);
 
-    expect(trInfo0.replacedAtTimestamp).to.equal(
-      expRootTrInfo[0].replacedAtTimestamp
+    expect(rootInfo0.replacedAtTimestamp).to.equal(
+      expRootInfos[0].replacedAtTimestamp
     );
-    expect(trInfo0.createdAtTimestamp).to.equal(
-      expRootTrInfo[0].createdAtTimestamp
+    expect(rootInfo0.createdAtTimestamp).to.equal(
+      expRootInfos[0].createdAtTimestamp
     );
-    expect(trInfo0.replacedAtBlock).to.equal(expRootTrInfo[0].replacedAtBlock);
-    expect(trInfo0.createdAtBlock).to.equal(expRootTrInfo[0].createdAtBlock);
-    expect(trInfo0.replacedBy).to.equal(expRootTrInfo[0].replacedBy);
+    expect(rootInfo0.replacedAtBlock).to.equal(expRootInfos[0].replacedAtBlock);
+    expect(rootInfo0.createdAtBlock).to.equal(expRootInfos[0].createdAtBlock);
+    expect(rootInfo0.replacedBy).to.equal(expRootInfos[0].replacedBy);
 
-    expect(trInfo1.replacedAtTimestamp).to.equal(
-      expRootTrInfo[1].replacedAtTimestamp
+    expect(rootInfo1.replacedAtTimestamp).to.equal(
+      expRootInfos[1].replacedAtTimestamp
     );
-    expect(trInfo1.createdAtTimestamp).to.equal(
-      expRootTrInfo[1].createdAtTimestamp
+    expect(rootInfo1.createdAtTimestamp).to.equal(
+      expRootInfos[1].createdAtTimestamp
     );
-    expect(trInfo1.replacedAtBlock).to.equal(expRootTrInfo[1].replacedAtBlock);
-    expect(trInfo1.createdAtBlock).to.equal(expRootTrInfo[1].createdAtBlock);
-    expect(trInfo1.replacedBy).to.equal(expRootTrInfo[1].replacedBy);
+    expect(rootInfo1.replacedAtBlock).to.equal(expRootInfos[1].replacedAtBlock);
+    expect(rootInfo1.createdAtBlock).to.equal(expRootInfos[1].createdAtBlock);
+    expect(rootInfo1.replacedBy).to.equal(expRootInfos[1].replacedBy);
   });
 });

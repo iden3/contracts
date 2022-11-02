@@ -182,7 +182,7 @@ contract StateV2 is OwnableUpgradeable {
      * @param state is state to check when it lost actuality
      * @return transitionsInfo of state
      */
-    function getTransitionInfo(uint256 state)
+    function getgetSmtRootInfo(uint256 state)
         public
         view
         returns (transitionsInfo memory)
@@ -261,33 +261,33 @@ contract StateV2 is OwnableUpgradeable {
     function getSmtRootHistory(uint256 _start, uint256 _end)
         public
         view
-        returns (RootTransitionsInfo[] memory)
+        returns (RootInfo[] memory)
     {
         return smtData.getRootHistory(_start, _end);
     }
 
-    function getSmtRootTransitionsInfo(uint256 _root)
+    function getSmtRootInfo(uint256 _root)
         public
         view
-        returns (RootTransitionsInfo memory)
+        returns (RootInfo memory)
     {
-        return smtData.rootTransitions[_root];
+        return smtData.getRootInfo(_root);
     }
 
-    function getHistoricalRootDataByBlock(uint256 _block)
+    function getHistoricalRootInfoByBlock(uint256 _block)
         public
         view
-        returns (RootTransitionsInfo memory)
+        returns (RootInfo memory)
     {
-        return smtData.getHistoricalRootDataByBlock(_block);
+        return smtData.getHistoricalRootInfoByBlock(_block);
     }
 
-    function getHistoricalRootDataByTime(uint256 timestamp)
+    function getHistoricalRootInfoByTime(uint256 timestamp)
         public
         view
-        returns (RootTransitionsInfo memory)
+        returns (RootInfo memory)
     {
-        return smtData.getHistoricalRootDataByTime(timestamp);
+        return smtData.getHistoricalRootInfoByTime(timestamp);
     }
 
     /**

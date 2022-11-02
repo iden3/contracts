@@ -15,10 +15,7 @@ type TestCaseMTPProof = {
 
 type RootTransition = {
   createdAtTimestamp: number;
-  replacedAtTimestamp: number;
   createdAtBlock: number;
-  replacedAtBlock: number;
-  replacedBy: number;
   root: number;
 };
 
@@ -26,7 +23,7 @@ type TestCaseRootHistory = {
   description: string;
   timestamp: number;
   blockNumber: number;
-  expectedRootTransition: RootTransition;
+  expectedRoot: number;
   [key: string]: any;
 };
 
@@ -792,31 +789,28 @@ describe("SMT tests", function () {
     async function addRootTransitions(rts: RootTransition[]) {
       for (const rt of rts) {
         await binarySearch.addRootTransition(
-          rt.replacedAtTimestamp,
           rt.createdAtTimestamp,
-          rt.replacedAtBlock,
           rt.createdAtBlock,
-          rt.replacedBy,
           rt.root
         );
       }
     }
 
-    async function checkRootTransitionByTimeAndBlock(
-      rt: RootTransition[],
+    async function checkRootByTimeAndBlock(
+      rts: RootTransition[],
       tc: TestCaseRootHistory
     ) {
-      await addRootTransitions(rt);
+      await addRootTransitions(rts);
 
-      const resultTs = await binarySearch.getHistoricalRootDataByTime(
+      const rootByTimestamp = await binarySearch.getHistoricalRootByTime(
         tc.timestamp
       );
-      checkRootTransition(resultTs, tc.expectedRootTransition);
+      expect(rootByTimestamp).to.equal(tc.expectedRoot);
 
-      const resultBlock = await binarySearch.getHistoricalRootDataByBlock(
+      const rootByBlock = await binarySearch.getHistoricalRootByBlock(
         tc.blockNumber
       );
-      checkRootTransition(resultBlock, tc.expectedRootTransition);
+      expect(rootByBlock).to.equal(tc.expectedRoot);
     }
 
     beforeEach(async () => {
@@ -829,248 +823,218 @@ describe("SMT tests", function () {
 
       const testCase: TestCaseRootHistory[] = [
         {
-          description: "Should return empty transition history for some search",
+          description: "Should return zero root for some search",
           timestamp: 1,
           blockNumber: 10,
-          expectedRootTransition: rootTransitions[0],
+          expectedRoot: 0,
         },
       ];
 
       for (const tc of testCase) {
         it(`${tc.description}`, async () => {
-          await checkRootTransitionByTimeAndBlock(rootTransitions, tc);
+          await checkRootByTimeAndBlock(rootTransitions, tc);
         });
       }
     });
 
-    describe("One item in the root history: ", () => {
+    describe("One root in the root history: ", () => {
       const rootTransitions: RootTransition[] = [
         {
-          replacedAtTimestamp: 0,
           createdAtTimestamp: 1,
-          replacedAtBlock: 0,
           createdAtBlock: 10,
-          replacedBy: 100,
           root: 1000,
         },
       ];
 
       const testCase: TestCaseRootHistory[] = [
         {
-          description: "Should return the first item when equal",
+          description: "Should return the first root when equal",
           timestamp: 1,
           blockNumber: 10,
-          expectedRootTransition: rootTransitions[0],
+          expectedRoot: rootTransitions[0].root,
         },
         {
-          description: "Should return the first item when less than all",
+          description: "Should return the first root when less than all",
           timestamp: 0,
           blockNumber: 9,
-          expectedRootTransition: rootTransitions[0],
+          expectedRoot: rootTransitions[0].root,
         },
         {
-          description: "Should return the last item when more than all",
+          description: "Should return the last root when more than all",
           timestamp: 2,
           blockNumber: 11,
-          expectedRootTransition: rootTransitions[0],
+          expectedRoot: rootTransitions[0].root,
         },
       ];
 
       for (const tc of testCase) {
         it(`${tc.description}`, async () => {
-          await checkRootTransitionByTimeAndBlock(rootTransitions, tc);
+          await checkRootByTimeAndBlock(rootTransitions, tc);
         });
       }
     });
 
-    describe("Two items in the root history: ", () => {
+    describe("Two roots in the root history: ", () => {
       const rootTransitions: RootTransition[] = [
         {
-          replacedAtTimestamp: 5,
           createdAtTimestamp: 1,
-          replacedAtBlock: 11,
           createdAtBlock: 10,
-          replacedBy: 1500,
           root: 1000,
         },
         {
-          replacedAtTimestamp: 0,
           createdAtTimestamp: 5,
-          replacedAtBlock: 0,
           createdAtBlock: 15,
-          replacedBy: 0,
           root: 1500,
         },
       ];
 
       const testCase: TestCaseRootHistory[] = [
         {
-          description: "Should return the first item when equal",
+          description: "Should return the first root when equal",
           timestamp: 1,
           blockNumber: 10,
-          expectedRootTransition: rootTransitions[0],
+          expectedRoot: rootTransitions[0].root,
         },
         {
-          description: "Should return the second item when equal",
+          description: "Should return the second root when equal",
           timestamp: 5,
           blockNumber: 15,
-          expectedRootTransition: rootTransitions[1],
+          expectedRoot: rootTransitions[1].root,
         },
         {
-          description: "Should return the first item when less than all",
+          description: "Should return the first root when less than all",
           timestamp: 0,
           blockNumber: 9,
-          expectedRootTransition: rootTransitions[0],
+          expectedRoot: rootTransitions[0].root,
         },
         {
-          description: "Should return the last item when more than all",
+          description: "Should return the last root when more than all",
           timestamp: 6,
           blockNumber: 16,
-          expectedRootTransition: rootTransitions[1],
+          expectedRoot: rootTransitions[1].root,
         },
       ];
 
       for (const tc of testCase) {
         it(`${tc.description}`, async () => {
-          await checkRootTransitionByTimeAndBlock(rootTransitions, tc);
+          await checkRootByTimeAndBlock(rootTransitions, tc);
         });
       }
     });
 
-    describe("Three items in the root history: ", () => {
+    describe("Three roots in the root history: ", () => {
       const rootTransitions: RootTransition[] = [
         {
-          replacedAtTimestamp: 5,
           createdAtTimestamp: 1,
-          replacedAtBlock: 11,
           createdAtBlock: 10,
-          replacedBy: 1500,
           root: 1000,
         },
         {
-          replacedAtTimestamp: 7,
           createdAtTimestamp: 5,
-          replacedAtBlock: 17,
           createdAtBlock: 15,
-          replacedBy: 1700,
           root: 1500,
         },
         {
-          replacedAtTimestamp: 0,
           createdAtTimestamp: 7,
-          replacedAtBlock: 0,
           createdAtBlock: 17,
-          replacedBy: 0,
           root: 1700,
         },
       ];
 
       const testCase: TestCaseRootHistory[] = [
         {
-          description: "Should return the first item when equal",
+          description: "Should return the first root when equal",
           timestamp: 1,
           blockNumber: 10,
-          expectedRootTransition: rootTransitions[0],
+          expectedRoot: rootTransitions[0].root,
         },
         {
-          description: "Should return the second item when equal",
+          description: "Should return the second root when equal",
           timestamp: 5,
           blockNumber: 15,
-          expectedRootTransition: rootTransitions[1],
+          expectedRoot: rootTransitions[1].root,
         },
         {
-          description: "Should return the third item when equal",
+          description: "Should return the third root when equal",
           timestamp: 7,
           blockNumber: 17,
-          expectedRootTransition: rootTransitions[2],
+          expectedRoot: rootTransitions[2].root,
         },
         {
-          description: "Should return the first item when less than all",
+          description: "Should return the first root when less than all",
           timestamp: 0,
           blockNumber: 9,
-          expectedRootTransition: rootTransitions[0],
+          expectedRoot: rootTransitions[0].root,
         },
         {
-          description: "Should return the last item when more than all",
+          description: "Should return the last root when more than all",
           timestamp: 9,
           blockNumber: 19,
-          expectedRootTransition: rootTransitions[2],
+          expectedRoot: rootTransitions[2].root,
         },
       ];
 
       for (const tc of testCase) {
         it(`${tc.description}`, async () => {
-          await checkRootTransitionByTimeAndBlock(rootTransitions, tc);
+          await checkRootByTimeAndBlock(rootTransitions, tc);
         });
       }
     });
 
-    describe("Four items in the root history: ", () => {
+    describe("Four roots in the root history: ", () => {
       const rootTransitions: RootTransition[] = [
         {
-          replacedAtTimestamp: 5,
           createdAtTimestamp: 1,
-          replacedAtBlock: 11,
           createdAtBlock: 10,
-          replacedBy: 1500,
           root: 1000,
         },
         {
-          replacedAtTimestamp: 7,
           createdAtTimestamp: 5,
-          replacedAtBlock: 17,
           createdAtBlock: 15,
-          replacedBy: 1700,
           root: 1500,
         },
         {
-          replacedAtTimestamp: 8,
           createdAtTimestamp: 7,
-          replacedAtBlock: 18,
           createdAtBlock: 17,
-          replacedBy: 1800,
           root: 1700,
         },
         {
-          replacedAtTimestamp: 0,
           createdAtTimestamp: 8,
-          replacedAtBlock: 0,
           createdAtBlock: 18,
-          replacedBy: 0,
           root: 1800,
         },
       ];
 
       const testCase: TestCaseRootHistory[] = [
         {
-          description: "Should return the first item when equal",
+          description: "Should return the first root when equal",
           timestamp: 1,
           blockNumber: 10,
-          expectedRootTransition: rootTransitions[0],
+          expectedRoot: rootTransitions[0].root,
         },
         {
-          description: "Should return the fourth item when equal",
+          description: "Should return the fourth root when equal",
           timestamp: 8,
           blockNumber: 18,
-          expectedRootTransition: rootTransitions[3],
+          expectedRoot: rootTransitions[3].root,
         },
         {
-          description: "Should return the first item when less than all",
+          description: "Should return the first root when less than all",
           timestamp: 0,
           blockNumber: 9,
-          expectedRootTransition: rootTransitions[0],
+          expectedRoot: rootTransitions[0].root,
         },
         {
-          description: "Should return the last item when more than all",
+          description: "Should return the last root when more than all",
           timestamp: 9,
           blockNumber: 19,
-          expectedRootTransition: rootTransitions[3],
+          expectedRoot: rootTransitions[3].root,
         },
       ];
 
       for (const tc of testCase) {
         it(`${tc.description}`, async () => {
-          await checkRootTransitionByTimeAndBlock(rootTransitions, tc);
+          await checkRootByTimeAndBlock(rootTransitions, tc);
         });
       }
     });
@@ -1093,21 +1057,4 @@ function checkSiblings(siblings, expectedSiblings: FixedArray<string, 32>) {
   for (let i = 0; i < siblings.length; i++) {
     expect(siblings[i]).to.equal(expectedSiblings[i]);
   }
-}
-
-function checkRootTransition(rt, expectedRt: RootTransition) {
-  expect(rt.replacedAtTimestamp).to.equal(
-    expectedRt ? expectedRt.replacedAtTimestamp : 0
-  );
-  expect(rt.createdAtTimestamp).to.equal(
-    expectedRt ? expectedRt.createdAtTimestamp : 0
-  );
-  expect(rt.replacedAtBlock).to.equal(
-    expectedRt ? expectedRt.replacedAtBlock : 0
-  );
-  expect(rt.createdAtBlock).to.equal(
-    expectedRt ? expectedRt.createdAtBlock : 0
-  );
-  expect(rt.replacedBy).to.equal(expectedRt ? expectedRt.replacedBy : 0);
-  expect(rt.root).to.equal(expectedRt ? expectedRt.root : 0);
 }

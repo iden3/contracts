@@ -14,7 +14,7 @@ struct SmtData {
     mapping(uint256 => Node) tree;
     uint256 root;
     uint256[] rootHistory;
-    mapping(uint256 => RootTransitionsInfo) rootTransitions;
+    mapping(uint256 => RootTransition) rootTransitions;
     // This empty reserved space is put in place to allow future versions
     // of the SMT library to add new SmtData struct fields without shifting down
     // storage of upgradable contracts that use this struct as a state variable
@@ -45,13 +45,29 @@ enum NodeType {
     MIDDLE
 }
 
+
 /**
- * @dev Struct saved information about SMT root change.
- * @param RootHistory historical tree root.
- * @param BlockTimestamp commit time when state was saved into blockchain.
- * @param BlockN commit number of block when state was created.
+ * @dev Struct for SMT root internal storage representation.
+ * @param createdAtTimestamp A time, when the root was saved to blockchain.
+ * @param createdAtBlock A number of block, when the root was saved to blockchain.
+ * @param replacedBy A root, which the current root has been replaced by.
  */
-struct RootTransitionsInfo {
+struct RootTransition {
+    uint256 createdAtTimestamp;
+    uint256 createdAtBlock;
+    uint256 replacedBy;
+}
+
+/**
+ * @dev Struct for public interfaces to represent SMT root info.
+ * @param replacedAtTimestamp A time, when the root was replaced by the next root in blockchain.
+ * @param createdAtTimestamp A time, when the root was saved to blockchain.
+ * @param replacedAtBlock A number of block, when the root was replaced by the next root in blockchain.
+ * @param createdAtBlock A number of block, when the root was saved to blockchain.
+ * @param replacedBy A root, which this root has been replaced by.
+ * @param root This SMT root.
+ */
+struct RootInfo {
     uint256 replacedAtTimestamp;
     uint256 createdAtTimestamp;
     uint256 replacedAtBlock;
@@ -110,7 +126,7 @@ library Smt {
         SmtData storage self,
         uint256 startIndex,
         uint256 endIndex
-    ) public view returns (RootTransitionsInfo[] memory) {
+    ) public view returns (RootInfo[] memory) {
         require(
             startIndex >= 0 && endIndex < self.rootHistory.length,
             "index out of bounds of array"
@@ -119,13 +135,13 @@ library Smt {
             endIndex - startIndex + 1 <= SMT_ROOT_HISTORY_RETURN_LIMIT,
             "return limit exceeded"
         );
-        RootTransitionsInfo[] memory result = new RootTransitionsInfo[](
+        RootInfo[] memory result = new RootInfo[](
             endIndex - startIndex + 1
         );
         uint64 j = 0;
         for (uint256 i = startIndex; i <= endIndex; i++) {
             uint256 root = self.rootHistory[i];
-            result[j] = self.rootTransitions[root];
+            result[j] = getRootInfo(self, root);
             j++;
         }
         return result;
@@ -158,11 +174,8 @@ library Smt {
 
         self.rootTransitions[self.root].createdAtTimestamp = _timestamp;
         self.rootTransitions[self.root].createdAtBlock = _blockNumber;
-        self.rootTransitions[self.root].root = self.root;
         if (self.rootHistory.length >= 2) {
             uint256 prevRoot = self.rootHistory[self.rootHistory.length - 2];
-            self.rootTransitions[prevRoot].replacedAtTimestamp = _timestamp;
-            self.rootTransitions[prevRoot].replacedAtBlock = _blockNumber;
             self.rootTransitions[prevRoot].replacedBy = self.root;
         }
     }
@@ -404,7 +417,7 @@ library Smt {
         uint256 index,
         uint256 timestamp
     ) public view returns (Proof memory) {
-        RootTransitionsInfo memory rootInfo = getHistoricalRootDataByTime(
+        RootInfo memory rootInfo = getHistoricalRootInfoByTime(
             self,
             timestamp
         );
@@ -425,7 +438,7 @@ library Smt {
         uint256 index,
         uint256 _block
     ) public view returns (Proof memory) {
-        RootTransitionsInfo memory rootInfo = getHistoricalRootDataByBlock(
+        RootInfo memory rootInfo = getHistoricalRootInfoByBlock(
             self,
             _block
         );
@@ -440,16 +453,18 @@ library Smt {
      * @param timestamp timestamp
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getHistoricalRootDataByTime(
+    function getHistoricalRootInfoByTime(
         SmtData storage self,
         uint256 timestamp
-    ) public view returns (RootTransitionsInfo memory) {
+    ) public view returns (RootInfo memory) {
         require(timestamp <= block.timestamp, "errNoFutureAllowed");
 
-        return self.binarySearchUint256(
+        uint256 root = self.binarySearchUint256(
             timestamp,
             SearchType.TIMESTAMP
         );
+
+        return getRootInfo(self, root);
     }
 
     /**
@@ -457,17 +472,39 @@ library Smt {
      * @param blockN block number
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getHistoricalRootDataByBlock(SmtData storage self, uint256 blockN)
+    function getHistoricalRootInfoByBlock(SmtData storage self, uint256 blockN)
         public
         view
-        returns (RootTransitionsInfo memory)
+        returns (RootInfo memory)
     {
         require(blockN <= block.number, "errNoFutureAllowed");
 
-        return self.binarySearchUint256(
+        uint256 root = self.binarySearchUint256(
             blockN,
             SearchType.BLOCK
         );
+
+        return getRootInfo(self, root);
+    }
+
+    function getRootInfo(SmtData storage self, uint256 _root)
+        public
+        view
+        returns (RootInfo memory)
+    {
+        RootInfo memory rootInfo;
+        rootInfo.createdAtTimestamp = self.rootTransitions[_root].createdAtTimestamp;
+        rootInfo.createdAtBlock = self.rootTransitions[_root].createdAtBlock;
+        rootInfo.replacedBy = self.rootTransitions[_root].replacedBy;
+        rootInfo.replacedAtBlock = rootInfo.replacedBy == 0
+            ? 0
+            : self.rootTransitions[rootInfo.replacedBy].createdAtBlock;
+        rootInfo.replacedAtTimestamp = rootInfo.replacedBy == 0
+            ? 0
+            : self.rootTransitions[rootInfo.replacedBy].createdAtTimestamp;
+        rootInfo.root = _root;
+
+        return rootInfo;
     }
 }
 
@@ -485,15 +522,14 @@ library BinarySearchSmtRoots {
         SmtData storage self,
         uint256 value,
         SearchType searchType
-    ) internal view returns (RootTransitionsInfo memory) {
+    ) internal view returns (uint256) {
 
         uint256 min = 0;
         uint256 max;
         if (self.rootHistory.length > 0) {
             max = self.rootHistory.length - 1;
         } else {
-            RootTransitionsInfo memory rootInfo;
-            return rootInfo;
+            return 0;
         }
 
         uint256 mid;
@@ -509,15 +545,15 @@ library BinarySearchSmtRoots {
             } else if (value < midValue && mid > 0) {
                 max = mid - 1;
             } else {
-                return self.rootTransitions[midRoot];
+                return midRoot;
             }
         }
 
-        return self.rootTransitions[midRoot];
+        return midRoot;
     }
 
     function fieldSelector(
-        RootTransitionsInfo memory rti,
+        RootTransition memory rti,
         SearchType st
     ) internal pure returns (uint256) {
         if (st == SearchType.BLOCK) {

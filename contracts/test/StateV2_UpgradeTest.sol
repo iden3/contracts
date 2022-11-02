@@ -434,10 +434,10 @@ contract StateV2_UpgradeTest is OwnableUpgradeable {
         return smtData.getRootHistory(_start, _end);
     }
 
-    function getSmtRootTransitionsInfo(uint256 _root)
+    function getSmtRootInfo(uint256 _root)
         public
         view
-        returns (RootTransitionsInfo memory)
+        returns (RootInfo memory)
     {
         return smtData.rootTransitions[_root];
     }
