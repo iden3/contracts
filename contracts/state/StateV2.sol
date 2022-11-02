@@ -182,7 +182,7 @@ contract StateV2 is OwnableUpgradeable {
      * @param state is state to check when it lost actuality
      * @return transitionsInfo of state
      */
-    function getgetSmtRootInfo(uint256 state)
+    function getTransitionInfo(uint256 state)
         public
         view
         returns (transitionsInfo memory)
@@ -211,7 +211,7 @@ contract StateV2 is OwnableUpgradeable {
     }
 
     function getSmtCurrentRoot() public view returns (uint256) {
-        return smtData.root;
+        return smtData.getCurrentRoot();
     }
 
     function getSmtProof(uint256 _id) public view returns (Proof memory) {

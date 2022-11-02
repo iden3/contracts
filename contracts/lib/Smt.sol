@@ -12,7 +12,6 @@ uint256 constant SMT_ROOT_HISTORY_RETURN_LIMIT = 1000;
  */
 struct SmtData {
     mapping(uint256 => Node) tree;
-    uint256 root;
     uint256[] rootHistory;
     mapping(uint256 => RootTransition) rootTransitions;
     // This empty reserved space is put in place to allow future versions
@@ -168,15 +167,15 @@ library Smt {
         uint256 _blockNumber
     ) internal {
         Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
-        self.root = addLeaf(self, node, self.root, 0);
+        uint256 prevRoot = getCurrentRoot(self);
+        uint256 newRoot = addLeaf(self, node, prevRoot, 0);
 
-        self.rootHistory.push(self.root);
+        self.rootHistory.push(newRoot);
 
-        self.rootTransitions[self.root].createdAtTimestamp = _timestamp;
-        self.rootTransitions[self.root].createdAtBlock = _blockNumber;
-        if (self.rootHistory.length >= 2) {
-            uint256 prevRoot = self.rootHistory[self.rootHistory.length - 2];
-            self.rootTransitions[prevRoot].replacedBy = self.root;
+        self.rootTransitions[newRoot].createdAtTimestamp = _timestamp;
+        self.rootTransitions[newRoot].createdAtBlock = _blockNumber;
+        if (prevRoot != 0) {
+            self.rootTransitions[prevRoot].replacedBy = newRoot;
         }
     }
 
@@ -353,7 +352,7 @@ library Smt {
         view
         returns (Proof memory)
     {
-        return getHistoricalProofByRoot(self, _index, self.root);
+        return getHistoricalProofByRoot(self, _index, getCurrentRoot(self));
     }
 
     /**
@@ -505,6 +504,12 @@ library Smt {
         rootInfo.root = _root;
 
         return rootInfo;
+    }
+
+    function getCurrentRoot(SmtData storage self) public view returns (uint256) {
+        return self.rootHistory.length > 0
+            ? self.rootHistory[self.rootHistory.length - 1]
+            : 0;
     }
 }
 
