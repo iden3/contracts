@@ -67,7 +67,9 @@ describe("State", () => {
     expect(transitionInfoOld.replacedAtTimestamp.toString()).to.be.equal(
       transitionInfoNew.createdAtTimestamp.toString()
     ); // replaced timestamp
-    expect(transitionInfoOld.createdAtTimestamp.toString()).to.be.equal(bigInt(0).toString()); // creation timestamp
+    expect(transitionInfoOld.createdAtTimestamp.toString()).to.be.equal(
+      bigInt(0).toString()
+    ); // creation timestamp
     expect(transitionInfoOld.replacedAtBlock.toString()).to.be.equal(
       transitionInfoNew.createdAtBlock.toString()
     ); // replaced block
@@ -234,7 +236,7 @@ describe("State", () => {
     };
 
     const expectedErrorText =
-      "there should be at least one state for identity in smart contract when isOldStateGenesis == 0";
+      "there should be at least one state for identity in smart contract when _isOldStateGenesis == 0";
     let isException = false;
     try {
       await state.transitState(
