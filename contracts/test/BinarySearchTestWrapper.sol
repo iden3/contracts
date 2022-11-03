@@ -8,23 +8,23 @@ contract BinarySearchTestWrapper {
     SmtData internal smtData;
     using BinarySearchSmtRoots for SmtData;
 
-    function addRootTransition(
+    function addRootEntry(
         uint256 _createdAtTimestamp,
         uint256 _createdAtBlock,
         uint256 _root
     ) public {
         smtData.rootHistory.push(_root);
 
-        RootTransition memory rt = RootTransition({
+        RootEntry memory rt = RootEntry({
             createdAtTimestamp: _createdAtTimestamp,
             createdAtBlock: _createdAtBlock,
             replacedBy: 0
         });
-        smtData.rootTransitions[_root] = rt;
+        smtData.rootEntries[_root] = rt;
 
         if (smtData.rootHistory.length >= 2) {
             uint256 prevRoot = smtData.rootHistory[smtData.rootHistory.length - 2];
-            smtData.rootTransitions[prevRoot].replacedBy = _root;
+            smtData.rootEntries[prevRoot].replacedBy = _root;
         }
     }
 

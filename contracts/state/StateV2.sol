@@ -39,7 +39,7 @@ struct StateInfo {
 // contract State is Iden3Helpers {
 contract StateV2 is OwnableUpgradeable {
     /**
-     * @dev Struct saved information about state for identifier.
+     * @dev Struct for identity state internal storage representation.
      * @param id An identity identifier.
      * @param timestamp A time when the state was committed to blockchain.
      * @param block A block number when the state was committed to blockchain.
@@ -51,6 +51,8 @@ contract StateV2 is OwnableUpgradeable {
         uint256 block;
         uint256 replacedBy;
     }
+
+    using Smt for SmtData;
 
     /**
      * @dev Verifier address
@@ -67,6 +69,8 @@ contract StateV2 is OwnableUpgradeable {
      */
     mapping(uint256 => StateEntry) public stateEntries;
 
+    SmtData internal smtData;
+
     /**
      * @dev event called when a state is updated
      * @param id identity
@@ -81,8 +85,6 @@ contract StateV2 is OwnableUpgradeable {
         uint256 state
     );
 
-    SmtData internal smtData;
-    using Smt for SmtData;
 
     /**
      * @dev Initialize the contract

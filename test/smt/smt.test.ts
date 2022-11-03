@@ -786,9 +786,9 @@ describe("SMT tests", function () {
   describe("Check SMT root history", () => {
     let binarySearch;
 
-    async function addRootTransitions(rts: RootTransition[]) {
+    async function addRootEntries(rts: RootTransition[]) {
       for (const rt of rts) {
-        await binarySearch.addRootTransition(
+        await binarySearch.addRootEntry(
           rt.createdAtTimestamp,
           rt.createdAtBlock,
           rt.root
@@ -800,7 +800,7 @@ describe("SMT tests", function () {
       rts: RootTransition[],
       tc: TestCaseRootHistory
     ) {
-      await addRootTransitions(rts);
+      await addRootEntries(rts);
 
       const rootByTimestamp = await binarySearch.getHistoricalRootByTime(
         tc.timestamp

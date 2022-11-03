@@ -8,12 +8,21 @@ uint256 constant MAX_SMT_DEPTH = 32;
 uint256 constant SMT_ROOT_HISTORY_RETURN_LIMIT = 1000;
 
 /**
+ * @dev Enum of SMT node types
+ */
+enum NodeType {
+    EMPTY,
+    LEAF,
+    MIDDLE
+}
+
+/**
  * @dev Sparse Merkle Tree data
  */
 struct SmtData {
     mapping(uint256 => Node) nodes;
     uint256[] rootHistory;
-    mapping(uint256 => RootTransition) rootTransitions;
+    mapping(uint256 => RootEntry) rootEntries;
     // This empty reserved space is put in place to allow future versions
     // of the SMT library to add new SmtData struct fields without shifting down
     // storage of upgradable contracts that use this struct as a state variable
@@ -36,28 +45,6 @@ struct Proof {
 }
 
 /**
- * @dev Enum of SMT node types
- */
-enum NodeType {
-    EMPTY,
-    LEAF,
-    MIDDLE
-}
-
-
-/**
- * @dev Struct for SMT root internal storage representation.
- * @param createdAtTimestamp A time, when the root was saved to blockchain.
- * @param createdAtBlock A number of block, when the root was saved to blockchain.
- * @param replacedBy A root, which the current root has been replaced by.
- */
-struct RootTransition {
-    uint256 createdAtTimestamp;
-    uint256 createdAtBlock;
-    uint256 replacedBy;
-}
-
-/**
  * @dev Struct for public interfaces to represent SMT root info.
  * @param replacedAtTimestamp A time, when the root was replaced by the next root in blockchain.
  * @param createdAtTimestamp A time, when the root was saved to blockchain.
@@ -73,6 +60,18 @@ struct RootInfo {
     uint256 createdAtBlock;
     uint256 replacedBy;
     uint256 root;
+}
+
+/**
+ * @dev Struct for SMT root internal storage representation.
+ * @param createdAtTimestamp A time, when the root was saved to blockchain.
+ * @param createdAtBlock A number of block, when the root was saved to blockchain.
+ * @param replacedBy A root, which the current root has been replaced by.
+ */
+struct RootEntry {
+    uint256 createdAtTimestamp;
+    uint256 createdAtBlock;
+    uint256 replacedBy;
 }
 
 /**
@@ -172,10 +171,10 @@ library Smt {
 
         self.rootHistory.push(newRoot);
 
-        self.rootTransitions[newRoot].createdAtTimestamp = _timestamp;
-        self.rootTransitions[newRoot].createdAtBlock = _blockNumber;
+        self.rootEntries[newRoot].createdAtTimestamp = _timestamp;
+        self.rootEntries[newRoot].createdAtBlock = _blockNumber;
         if (prevRoot != 0) {
-            self.rootTransitions[prevRoot].replacedBy = newRoot;
+            self.rootEntries[prevRoot].replacedBy = newRoot;
         }
     }
 
@@ -492,15 +491,15 @@ library Smt {
         returns (RootInfo memory)
     {
         RootInfo memory rootInfo;
-        rootInfo.createdAtTimestamp = self.rootTransitions[_root].createdAtTimestamp;
-        rootInfo.createdAtBlock = self.rootTransitions[_root].createdAtBlock;
-        rootInfo.replacedBy = self.rootTransitions[_root].replacedBy;
+        rootInfo.createdAtTimestamp = self.rootEntries[_root].createdAtTimestamp;
+        rootInfo.createdAtBlock = self.rootEntries[_root].createdAtBlock;
+        rootInfo.replacedBy = self.rootEntries[_root].replacedBy;
         rootInfo.replacedAtBlock = rootInfo.replacedBy == 0
             ? 0
-            : self.rootTransitions[rootInfo.replacedBy].createdAtBlock;
+            : self.rootEntries[rootInfo.replacedBy].createdAtBlock;
         rootInfo.replacedAtTimestamp = rootInfo.replacedBy == 0
             ? 0
-            : self.rootTransitions[rootInfo.replacedBy].createdAtTimestamp;
+            : self.rootEntries[rootInfo.replacedBy].createdAtTimestamp;
         rootInfo.root = _root;
 
         return rootInfo;
@@ -544,7 +543,7 @@ library BinarySearchSmtRoots {
             mid = (max + min) / 2;
             midRoot = self.rootHistory[mid];
 
-            uint256 midValue = fieldSelector(self.rootTransitions[midRoot], searchType);
+            uint256 midValue = fieldSelector(self.rootEntries[midRoot], searchType);
             if (value > midValue) {
                 min = mid + 1;
             } else if (value < midValue && mid > 0) {
@@ -558,7 +557,7 @@ library BinarySearchSmtRoots {
     }
 
     function fieldSelector(
-        RootTransition memory rti,
+        RootEntry memory rti,
         SearchType st
     ) internal pure returns (uint256) {
         if (st == SearchType.BLOCK) {
