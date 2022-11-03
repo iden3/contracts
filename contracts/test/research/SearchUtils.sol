@@ -1,14 +1,7 @@
 pragma solidity 0.8.15;
 pragma abicoder v2;
 
-struct transitionsInfo {
-    uint256 replacedAtTimestamp;
-    uint256 createdAtTimestamp;
-    uint256 replacedAtBlock;
-    uint256 createdAtBlock;
-    uint256 replacedBy;
-    uint256 id;
-}
+import "../../state/StateV2.sol";
 
 interface IState {
     function getAllStatesById(uint256 id)
@@ -16,10 +9,10 @@ interface IState {
         view
         returns (uint256[] memory);
 
-    function getTransitionInfo(uint256 state)
+    function getStateInfo(uint256 state)
         external
         view
-        returns (transitionsInfo memory);
+        returns (StateInfo memory);
 }
 
 contract SearchUtils {
@@ -35,14 +28,14 @@ contract SearchUtils {
      * @param blockN block number
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getStateDataByBlock(uint256 id, uint256 blockN)
+    function getStateInfoByBlock(uint256 id, uint256 blockN)
         public
         view
-        returns (transitionsInfo memory)
+        returns (StateInfo memory)
     {
         require(blockN <= block.number, "errNoFutureAllowed");
 
-        transitionsInfo memory info;
+        StateInfo memory info;
         uint256[] memory states = state.getAllStatesById(id);
         // Case that there is no state committed
         if (states.length == 0) {
@@ -51,7 +44,7 @@ contract SearchUtils {
         // Case that there block searched is beyond last block committed
         uint256 lastState = states[states.length - 1];
 
-        transitionsInfo memory lastStateInfo = state.getTransitionInfo(
+        StateInfo memory lastStateInfo = state.getStateInfo(
             lastState
         );
 
@@ -67,7 +60,7 @@ contract SearchUtils {
 
             uint256 midState = states[mid];
 
-            transitionsInfo memory midStateInfo = state.getTransitionInfo(
+            StateInfo memory midStateInfo = state.getStateInfo(
                 midState
             );
 
@@ -82,7 +75,7 @@ contract SearchUtils {
                 (blockN > midStateInfo.createdAtBlock) &&
                 (mid + 1 < states.length) &&
                 (blockN <
-                    state.getTransitionInfo(states[mid + 1]).createdAtBlock)
+                    state.getStateInfo(states[mid + 1]).createdAtBlock)
             ) {
                 return midStateInfo;
             } else if (blockN > midStateInfo.createdAtBlock) {
@@ -100,14 +93,14 @@ contract SearchUtils {
      * @param timestamp timestamp
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getStateDataByTime(uint256 id, uint256 timestamp)
+    function getStateInfoByTime(uint256 id, uint256 timestamp)
         public
         view
-        returns (transitionsInfo memory)
+        returns (StateInfo memory)
     {
         require(timestamp <= block.timestamp, "errNoFutureAllowed");
 
-        transitionsInfo memory info;
+        StateInfo memory info;
         uint256[] memory states = state.getAllStatesById(id);
         // Case that there is no state committed
         if (states.length == 0) {
@@ -116,7 +109,7 @@ contract SearchUtils {
         // Case that there block searched is beyond last block committed
         uint256 lastState = states[states.length - 1];
 
-        transitionsInfo memory lastStateInfo = state.getTransitionInfo(
+        StateInfo memory lastStateInfo = state.getStateInfo(
             lastState
         );
 
@@ -130,7 +123,7 @@ contract SearchUtils {
             uint256 mid = (max + min) / 2;
 
             uint256 midState = states[mid];
-            transitionsInfo memory midStateInfo = state.getTransitionInfo(
+            StateInfo memory midStateInfo = state.getStateInfo(
                 midState
             );
 
@@ -145,7 +138,7 @@ contract SearchUtils {
                 (timestamp > midStateInfo.createdAtTimestamp) &&
                 (mid + 1 < states.length) &&
                 (timestamp <
-                    state.getTransitionInfo(states[mid + 1]).createdAtTimestamp)
+                    state.getStateInfo(states[mid + 1]).createdAtTimestamp)
             ) {
                 return midStateInfo;
             } else if (timestamp > midStateInfo.createdAtTimestamp) {

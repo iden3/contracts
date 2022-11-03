@@ -53,7 +53,7 @@ describe("State", () => {
     const res0 = await state.getState(params.id);
     expect(res0.toString()).to.be.equal(bigInt(params.newState).toString());
 
-    const transitionInfoNew = await state.getTransitionInfo(params.newState);
+    const transitionInfoNew = await state.getStateInfo(params.newState);
     expect(transitionInfoNew.replacedAtTimestamp.toString()).to.be.equal("0"); // replaced timestamp
     expect(transitionInfoNew.createdAtTimestamp.toString()).not.be.empty; // creation timestamp
     expect(transitionInfoNew.replacedAtBlock.toString()).to.be.equal("0"); // replaced block
@@ -63,7 +63,7 @@ describe("State", () => {
     ); // id
     expect(transitionInfoNew.replacedBy.toString()).to.be.equal("0"); // replaced by
 
-    const transitionInfoOld = await state.getTransitionInfo(params.oldState);
+    const transitionInfoOld = await state.getStateInfo(params.oldState);
     expect(transitionInfoOld.replacedAtTimestamp.toString()).to.be.equal(
       transitionInfoNew.createdAtTimestamp.toString()
     ); // replaced timestamp
@@ -109,7 +109,7 @@ describe("State", () => {
         "9010057903984009774471918936602041982618575137368917742383118185666477185109",
       ],
     };
-    const transitionInfoStateBeforeUpdate = await state.getTransitionInfo(
+    const transitionInfoStateBeforeUpdate = await state.getStateInfo(
       params.oldState
     );
 
@@ -125,7 +125,7 @@ describe("State", () => {
     const res = await state.getState(params.id);
     expect(res.toString()).to.be.equal(bigInt(params.newState).toString());
 
-    const transitionInfoNew = await state.getTransitionInfo(params.newState);
+    const transitionInfoNew = await state.getStateInfo(params.newState);
     expect(transitionInfoNew.replacedAtTimestamp.toString()).to.be.equal("0"); // replaced timestamp
     expect(transitionInfoNew.createdAtTimestamp.toString()).not.be.empty; // creation timestamp
     expect(transitionInfoNew.replacedAtBlock.toString()).to.be.equal("0"); // replaced block
@@ -135,7 +135,7 @@ describe("State", () => {
     ); // id
     expect(transitionInfoNew.replacedBy.toString()).to.be.equal("0"); // replaced by
 
-    const transitionInfoOld = await state.getTransitionInfo(params.oldState);
+    const transitionInfoOld = await state.getStateInfo(params.oldState);
     expect(transitionInfoOld.replacedAtTimestamp.toString()).to.be.equal(
       transitionInfoNew.createdAtTimestamp.toString()
     ); // replaced timestamp

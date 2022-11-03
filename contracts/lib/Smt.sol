@@ -63,7 +63,7 @@ struct RootTransition {
  * @param createdAtTimestamp A time, when the root was saved to blockchain.
  * @param replacedAtBlock A number of block, when the root was replaced by the next root in blockchain.
  * @param createdAtBlock A number of block, when the root was saved to blockchain.
- * @param replacedBy A root, which this root has been replaced by.
+ * @param replacedBy A root, which replaced this root.
  * @param root This SMT root.
  */
 struct RootInfo {

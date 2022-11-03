@@ -15,27 +15,41 @@ interface IVerifier {
     ) external view returns (bool r);
 }
 
+/**
+ * @dev Struct for public interfaces to represent a state information.
+ * @param replacedAtTimestamp A time when the state was replaced by the next identity state.
+ * @param createdAtTimestamp A time when the state was created.
+ * @param replacedAtBlock A block number when the state was replaced by the next identity state.
+ * @param createdAtBlock A block number when the state was created.
+ * @param replacedBy A state, which replaced this state for the identity.
+ * @param id identity.
+ */
+struct StateInfo {
+    uint256 replacedAtTimestamp;
+    uint256 createdAtTimestamp;
+    uint256 replacedAtBlock;
+    uint256 createdAtBlock;
+    uint256 replacedBy;
+    uint256 id;
+}
+
 // /**
 //  * @dev Set and get states for each identity
 //  */
 // contract State is Iden3Helpers {
 contract StateV2 is OwnableUpgradeable {
     /**
-     * @dev Struct saved information about transition state for identifier.
-     * @param replacedAtTimestamp commit time when state was changed.
-     * @param createdAtTimestamp commit time when state was saved into blockchain.
-     * @param replacedAtBlock commit number of block when state was changed.
-     * @param createdAtBlock commit number of block when state was created.
-     * @param replacedBy commit  state with which the current state has been replaced.
-     * @param id identity.
+     * @dev Struct saved information about state for identifier.
+     * @param id An identity identifier.
+     * @param timestamp A time when the state was committed to blockchain.
+     * @param block A block number when the state was committed to blockchain.
+     * @param replacedBy A state, which replaced this state for the identity.
      */
-    struct TransitionsInfo {
-        uint256 replacedAtTimestamp;
-        uint256 createdAtTimestamp;
-        uint256 replacedAtBlock;
-        uint256 createdAtBlock;
-        uint256 replacedBy;
+    struct StateEntry {
         uint256 id;
+        uint256 timestamp;
+        uint256 block;
+        uint256 replacedBy;
     }
 
     /**
@@ -49,9 +63,9 @@ contract StateV2 is OwnableUpgradeable {
     mapping(uint256 => uint256[]) public statesHistories;
 
     /**
-     * @dev A state transitions info of each identity.
+     * @dev A state entries of each identity.
      */
-    mapping(uint256 => TransitionsInfo) public stateTransitions;
+    mapping(uint256 => StateEntry) public stateEntries;
 
     /**
      * @dev event called when a state is updated
@@ -123,7 +137,7 @@ contract StateV2 is OwnableUpgradeable {
             uint256 previousIDState = statesHistories[_id][statesHistories[_id].length - 1];
 
             require(
-                stateTransitions[previousIDState].createdAtBlock != block.number,
+                stateEntries[previousIDState].block != block.number,
                 "no multiple set in the same block"
             );
             require(
@@ -135,14 +149,14 @@ contract StateV2 is OwnableUpgradeable {
                 statesHistories[_id].length == 0,
                 "there should be no states for identity in smart contract when _isOldStateGenesis != 0"
             );
-            require(stateTransitions[_oldState].id == 0, "oldState should not exist");
+            require(stateEntries[_oldState].id == 0, "oldState should not exist");
             // link genesis state to Id in the smart contract, but creation time and creation block is unknown
-            stateTransitions[_oldState].id = _id;
+            stateEntries[_oldState].id = _id;
             // push genesis state to identities as latest state
             statesHistories[_id].push(_oldState);
         }
 
-        require(stateTransitions[_newState].id == 0, "newState should not exist");
+        require(stateEntries[_newState].id == 0, "newState should not exist");
 
         uint256[4] memory input = [
         _id,
@@ -158,19 +172,15 @@ contract StateV2 is OwnableUpgradeable {
         statesHistories[_id].push(_newState);
 
         // Set create info for new state
-        stateTransitions[_newState] = TransitionsInfo(
-            0,
-            block.timestamp,
-            0,
-            block.number,
-            0,
-            _id
-        );
+        stateEntries[_newState] = StateEntry({
+            id: _id,
+            timestamp: block.timestamp,
+            block: block.number,
+            replacedBy: 0
+        });
 
         // Set replace info for old state
-        stateTransitions[_oldState].replacedAtTimestamp = block.timestamp;
-        stateTransitions[_oldState].replacedAtBlock = block.number;
-        stateTransitions[_oldState].replacedBy = _newState;
+        stateEntries[_oldState].replacedBy = _newState;
 
         // put state in smt to recalculate global state
         smtData.add(PoseidonUnit1L.poseidon([_id]), _newState);
@@ -195,12 +205,25 @@ contract StateV2 is OwnableUpgradeable {
      * @param _state A state
      * @return The state info
      */
-    function getTransitionInfo(uint256 _state)
+    function getStateInfo(uint256 _state)
         public
         view
-        returns (TransitionsInfo memory)
+        returns (StateInfo memory)
     {
-        return stateTransitions[_state];
+        uint256 replByState = stateEntries[_state].replacedBy;
+        return
+            StateInfo({
+                replacedAtTimestamp: replByState == 0
+                    ? 0
+                    : stateEntries[replByState].timestamp,
+                createdAtTimestamp: stateEntries[_state].timestamp,
+                replacedAtBlock: replByState == 0
+                    ? 0
+                    : stateEntries[replByState].block,
+                createdAtBlock: stateEntries[_state].block,
+                replacedBy: replByState,
+                id: stateEntries[_state].id
+            });
     }
 
     /**
@@ -211,15 +234,15 @@ contract StateV2 is OwnableUpgradeable {
     function getStateDataById(uint256 _id)
         public
         view
-        returns (TransitionsInfo memory)
+        returns (StateInfo memory)
     {
-        TransitionsInfo memory info;
+        StateInfo memory info;
         if (statesHistories[_id].length == 0) {
             return info;
         }
         uint256 lastIdState = statesHistories[_id][statesHistories[_id].length - 1];
 
-        return stateTransitions[lastIdState];
+        return getStateInfo(lastIdState);
     }
 
     /**
