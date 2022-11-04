@@ -527,15 +527,12 @@ library BinarySearchSmtRoots {
         uint256 value,
         SearchType searchType
     ) internal view returns (uint256) {
-
-        uint256 min = 0;
-        uint256 max;
-        if (self.rootHistory.length > 0) {
-            max = self.rootHistory.length - 1;
-        } else {
+        if (self.rootHistory.length == 0) {
             return 0;
         }
 
+        uint256 min = 0;
+        uint max = self.rootHistory.length - 1;
         uint256 mid;
         uint256 midRoot;
 
@@ -544,16 +541,32 @@ library BinarySearchSmtRoots {
             midRoot = self.rootHistory[mid];
 
             uint256 midValue = fieldSelector(self.rootEntries[midRoot], searchType);
-            if (value > midValue) {
+            if (midValue == value) {
+                while (mid < self.rootHistory.length - 1) {
+                    uint256 nextRoot = self.rootHistory[mid + 1];
+                    uint256 nextValue = fieldSelector(self.rootEntries[nextRoot], searchType);
+                    if (nextValue == value) {
+                        mid++;
+                        midRoot = nextRoot;
+                    } else {
+                        return midRoot;
+                    }
+                }
+                return midRoot;
+            } else if (value > midValue) {
                 min = mid + 1;
-            } else if (value < midValue && mid > 0) {
+            } else if (value < midValue && mid > 0) { // mid > 0 is to avoid underflow
                 max = mid - 1;
             } else {
-                return midRoot;
+                // This means that value < midValue && mid == 0. So we return zero,
+                // when search for a value less than the value in the first root
+                return 0;
             }
         }
 
-        return midRoot;
+        // The case when the searched value does not exist and we should take the closest smaller value
+        // Index in the "max" var points to the root with max value smaller than the searched value
+        return self.rootHistory[max];
     }
 
     function fieldSelector(

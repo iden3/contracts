@@ -13,9 +13,9 @@ type TestCaseMTPProof = {
   [key: string]: any;
 };
 
-type RootTransition = {
-  createdAtTimestamp: number;
-  createdAtBlock: number;
+type RootEntry = {
+  timestamp: number;
+  block: number;
   root: number;
 };
 
@@ -786,18 +786,14 @@ describe("SMT tests", function () {
   describe("Check SMT root history", () => {
     let binarySearch;
 
-    async function addRootEntries(rts: RootTransition[]) {
+    async function addRootEntries(rts: RootEntry[]) {
       for (const rt of rts) {
-        await binarySearch.addRootEntry(
-          rt.createdAtTimestamp,
-          rt.createdAtBlock,
-          rt.root
-        );
+        await binarySearch.addRootEntry(rt.timestamp, rt.block, rt.root);
       }
     }
 
     async function checkRootByTimeAndBlock(
-      rts: RootTransition[],
+      rts: RootEntry[],
       tc: TestCaseRootHistory
     ) {
       await addRootEntries(rts);
@@ -818,8 +814,8 @@ describe("SMT tests", function () {
       binarySearch = await deployHelper.deployBinarySearchTestWrapper();
     });
 
-    describe("Empty history: ", () => {
-      const rootTransitions: RootTransition[] = [];
+    describe("Empty history ", () => {
+      const rootEntries: RootEntry[] = [];
 
       const testCase: TestCaseRootHistory[] = [
         {
@@ -832,16 +828,16 @@ describe("SMT tests", function () {
 
       for (const tc of testCase) {
         it(`${tc.description}`, async () => {
-          await checkRootByTimeAndBlock(rootTransitions, tc);
+          await checkRootByTimeAndBlock(rootEntries, tc);
         });
       }
     });
 
-    describe("One root in the root history: ", () => {
-      const rootTransitions: RootTransition[] = [
+    describe("One root in the root history ", () => {
+      const rootEntries: RootEntry[] = [
         {
-          createdAtTimestamp: 1,
-          createdAtBlock: 10,
+          timestamp: 1,
+          block: 10,
           root: 1000,
         },
       ];
@@ -851,92 +847,94 @@ describe("SMT tests", function () {
           description: "Should return the first root when equal",
           timestamp: 1,
           blockNumber: 10,
-          expectedRoot: rootTransitions[0].root,
+          expectedRoot: 1000,
         },
         {
-          description: "Should return the first root when less than all",
+          description: "Should return zero when search for less than the first",
           timestamp: 0,
           blockNumber: 9,
-          expectedRoot: rootTransitions[0].root,
+          expectedRoot: 0,
         },
         {
-          description: "Should return the last root when more than all",
+          description:
+            "Should return the last root when search for greater than the last",
           timestamp: 2,
           blockNumber: 11,
-          expectedRoot: rootTransitions[0].root,
+          expectedRoot: 1000,
         },
       ];
 
       for (const tc of testCase) {
         it(`${tc.description}`, async () => {
-          await checkRootByTimeAndBlock(rootTransitions, tc);
+          await checkRootByTimeAndBlock(rootEntries, tc);
         });
       }
     });
 
-    describe("Two roots in the root history: ", () => {
-      const rootTransitions: RootTransition[] = [
+    describe("Two roots in the root history ", () => {
+      const rootEntries: RootEntry[] = [
         {
-          createdAtTimestamp: 1,
-          createdAtBlock: 10,
+          timestamp: 1,
+          block: 10,
           root: 1000,
         },
         {
-          createdAtTimestamp: 5,
-          createdAtBlock: 15,
+          timestamp: 5,
+          block: 15,
           root: 1500,
         },
       ];
 
       const testCase: TestCaseRootHistory[] = [
         {
-          description: "Should return the first root when equal",
-          timestamp: 1,
-          blockNumber: 10,
-          expectedRoot: rootTransitions[0].root,
+          description: "Should return the first root when search for equal",
+          timestamp: rootEntries[0].timestamp,
+          blockNumber: rootEntries[0].block,
+          expectedRoot: rootEntries[0].root,
         },
         {
-          description: "Should return the second root when equal",
-          timestamp: 5,
-          blockNumber: 15,
-          expectedRoot: rootTransitions[1].root,
+          description: "Should return the second root when search for equal",
+          timestamp: rootEntries[1].timestamp,
+          blockNumber: rootEntries[1].block,
+          expectedRoot: rootEntries[1].root,
         },
         {
-          description: "Should return the first root when less than all",
+          description: "Should return zero when search for less than the first",
           timestamp: 0,
           blockNumber: 9,
-          expectedRoot: rootTransitions[0].root,
+          expectedRoot: 0,
         },
         {
-          description: "Should return the last root when more than all",
+          description:
+            "Should return the last root when search for greater than the last",
           timestamp: 6,
           blockNumber: 16,
-          expectedRoot: rootTransitions[1].root,
+          expectedRoot: rootEntries[1].root,
         },
       ];
 
       for (const tc of testCase) {
         it(`${tc.description}`, async () => {
-          await checkRootByTimeAndBlock(rootTransitions, tc);
+          await checkRootByTimeAndBlock(rootEntries, tc);
         });
       }
     });
 
-    describe("Three roots in the root history: ", () => {
-      const rootTransitions: RootTransition[] = [
+    describe("Three roots in the root history ", () => {
+      const rootEntries: RootEntry[] = [
         {
-          createdAtTimestamp: 1,
-          createdAtBlock: 10,
+          timestamp: 1,
+          block: 10,
           root: 1000,
         },
         {
-          createdAtTimestamp: 5,
-          createdAtBlock: 15,
+          timestamp: 5,
+          block: 15,
           root: 1500,
         },
         {
-          createdAtTimestamp: 7,
-          createdAtBlock: 17,
+          timestamp: 7,
+          block: 17,
           root: 1700,
         },
       ];
@@ -944,63 +942,65 @@ describe("SMT tests", function () {
       const testCase: TestCaseRootHistory[] = [
         {
           description: "Should return the first root when equal",
-          timestamp: 1,
-          blockNumber: 10,
-          expectedRoot: rootTransitions[0].root,
+          timestamp: rootEntries[0].timestamp,
+          blockNumber: rootEntries[0].block,
+          expectedRoot: rootEntries[0].root,
         },
         {
           description: "Should return the second root when equal",
-          timestamp: 5,
-          blockNumber: 15,
-          expectedRoot: rootTransitions[1].root,
+          timestamp: rootEntries[1].timestamp,
+          blockNumber: rootEntries[1].block,
+          expectedRoot: rootEntries[1].root,
         },
         {
           description: "Should return the third root when equal",
-          timestamp: 7,
-          blockNumber: 17,
-          expectedRoot: rootTransitions[2].root,
+          timestamp: rootEntries[2].timestamp,
+          blockNumber: rootEntries[2].block,
+          expectedRoot: rootEntries[2].root,
         },
         {
-          description: "Should return the first root when less than all",
+          description:
+            "Should return zero root when search for less than the first",
           timestamp: 0,
           blockNumber: 9,
-          expectedRoot: rootTransitions[0].root,
+          expectedRoot: 0,
         },
         {
-          description: "Should return the last root when more than all",
+          description:
+            "Should return the last root when search for greater than the last",
           timestamp: 9,
           blockNumber: 19,
-          expectedRoot: rootTransitions[2].root,
+          expectedRoot: rootEntries[2].root,
         },
       ];
 
       for (const tc of testCase) {
         it(`${tc.description}`, async () => {
-          await checkRootByTimeAndBlock(rootTransitions, tc);
+          await checkRootByTimeAndBlock(rootEntries, tc);
         });
       }
     });
 
-    describe("Four roots in the root history: ", () => {
-      const rootTransitions: RootTransition[] = [
+    describe("Four roots in the root history ", () => {
+      const rootEntries: RootEntry[] = [
         {
-          createdAtTimestamp: 1,
-          createdAtBlock: 10,
+          timestamp: 1,
+          block: 10,
           root: 1000,
         },
         {
-          createdAtTimestamp: 5,
-          createdAtBlock: 15,
+          timestamp: 5,
+          block: 15,
           root: 1500,
         },
         {
-          createdAtTimestamp: 7,
-          createdAtBlock: 17,
+          timestamp: 7,
+          block: 17,
           root: 1700,
         },
         {
-          createdAtTimestamp: 8,
-          createdAtBlock: 18,
+          timestamp: 8,
+          block: 18,
           root: 1800,
         },
       ];
@@ -1008,33 +1008,208 @@ describe("SMT tests", function () {
       const testCase: TestCaseRootHistory[] = [
         {
           description: "Should return the first root when equal",
-          timestamp: 1,
-          blockNumber: 10,
-          expectedRoot: rootTransitions[0].root,
+          timestamp: rootEntries[0].timestamp,
+          blockNumber: rootEntries[0].block,
+          expectedRoot: rootEntries[0].root,
         },
         {
           description: "Should return the fourth root when equal",
-          timestamp: 8,
-          blockNumber: 18,
-          expectedRoot: rootTransitions[3].root,
+          timestamp: rootEntries[3].timestamp,
+          blockNumber: rootEntries[3].block,
+          expectedRoot: rootEntries[3].root,
         },
         {
-          description: "Should return the first root when less than all",
-          timestamp: 0,
-          blockNumber: 9,
-          expectedRoot: rootTransitions[0].root,
+          description: "Should return zero when search for less than the first",
+          timestamp: rootEntries[0].timestamp - 1,
+          blockNumber: rootEntries[0].block - 1,
+          expectedRoot: 0,
         },
         {
-          description: "Should return the last root when more than all",
-          timestamp: 9,
-          blockNumber: 19,
-          expectedRoot: rootTransitions[3].root,
+          description:
+            "Should return the last root when search for greater than the last",
+          timestamp: rootEntries[3].timestamp + 1,
+          blockNumber: rootEntries[3].block + 1,
+          expectedRoot: rootEntries[3].root,
         },
       ];
 
       for (const tc of testCase) {
         it(`${tc.description}`, async () => {
-          await checkRootByTimeAndBlock(rootTransitions, tc);
+          await checkRootByTimeAndBlock(rootEntries, tc);
+        });
+      }
+    });
+
+    describe("Search in between the values", () => {
+      const rootEntries: RootEntry[] = [
+        {
+          timestamp: 1,
+          block: 10,
+          root: 1100,
+        },
+        {
+          timestamp: 3,
+          block: 13,
+          root: 1300,
+        },
+        {
+          timestamp: 6,
+          block: 16,
+          root: 1600,
+        },
+        {
+          timestamp: 7,
+          block: 17,
+          root: 1700,
+        },
+        {
+          timestamp: 9,
+          block: 19,
+          root: 1900,
+        },
+      ];
+
+      const testCase: TestCaseRootHistory[] = [
+        {
+          description:
+            "Should return the first root when search in between the first and second",
+          timestamp: 2,
+          blockNumber: 12,
+          expectedRoot: rootEntries[0].root,
+        },
+        {
+          description:
+            "Should return the fourth root when search in between the fourth and the fifth",
+          timestamp: 8,
+          blockNumber: 18,
+          expectedRoot: rootEntries[3].root,
+        },
+      ];
+
+      for (const tc of testCase) {
+        it(`${tc.description}`, async () => {
+          await checkRootByTimeAndBlock(rootEntries, tc);
+        });
+      }
+    });
+
+    describe("Search in array with duplicated values", () => {
+      const rootEntries: RootEntry[] = [
+        {
+          timestamp: 1,
+          block: 11,
+          root: 1100,
+        },
+        {
+          timestamp: 1,
+          block: 11,
+          root: 1101,
+        },
+        {
+          timestamp: 7,
+          block: 17,
+          root: 1700,
+        },
+        {
+          timestamp: 7,
+          block: 17,
+          root: 1701,
+        },
+        {
+          timestamp: 7,
+          block: 17,
+          root: 1702,
+        },
+      ];
+
+      const testCase: TestCaseRootHistory[] = [
+        {
+          description:
+            "Should return the last root among two equal values when search for the value",
+          timestamp: 1,
+          blockNumber: 11,
+          expectedRoot: rootEntries[1].root,
+        },
+        {
+          description:
+            "Should return the last root among three equal values when search for the value",
+          timestamp: 7,
+          blockNumber: 17,
+          expectedRoot: rootEntries[4].root,
+        },
+      ];
+
+      for (const tc of testCase) {
+        it(`${tc.description}`, async () => {
+          await checkRootByTimeAndBlock(rootEntries, tc);
+        });
+      }
+    });
+
+    describe("Search in array with duplicated values and in between values", () => {
+      const rootEntries: RootEntry[] = [
+        {
+          timestamp: 1,
+          block: 11,
+          root: 1100,
+        },
+        {
+          timestamp: 1,
+          block: 11,
+          root: 1101,
+        },
+        {
+          timestamp: 1,
+          block: 11,
+          root: 1102,
+        },
+        {
+          timestamp: 3,
+          block: 13,
+          root: 1300,
+        },
+        {
+          timestamp: 3,
+          block: 13,
+          root: 1301,
+        },
+        {
+          timestamp: 5,
+          block: 15,
+          root: 1700,
+        },
+        {
+          timestamp: 5,
+          block: 15,
+          root: 1701,
+        },
+        {
+          timestamp: 5,
+          block: 15,
+          root: 1702,
+        },
+      ];
+
+      const testCase: TestCaseRootHistory[] = [
+        {
+          description:
+            "Should search in between the third (1st, 2nd, 3rd equal) and fourth values and return the third",
+          timestamp: 2,
+          blockNumber: 12,
+          expectedRoot: rootEntries[2].root,
+        },
+        {
+          description:
+            "Should search in between the fifth (4th, 5th equal) and sixth values and return the fifth",
+          timestamp: 4,
+          blockNumber: 14,
+          expectedRoot: rootEntries[4].root,
+        },
+      ];
+
+      for (const tc of testCase) {
+        it(`${tc.description}`, async () => {
+          await checkRootByTimeAndBlock(rootEntries, tc);
         });
       }
     });
