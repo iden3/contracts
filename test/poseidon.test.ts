@@ -1,73 +1,50 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
-import poseidonGenContract from "circomlib/src/poseidon_gencontract.js";
-import poseidonjssrc from "circomlib/src/poseidon.js";
-import bigInt from 'big-integer';
-import { Artifact } from "hardhat/types";
-const SEED = "poseidon";
+const { ethers } = require("hardhat");
+
+const { poseidonContract: poseidonGenContract } = require("circomlibjs");
 
 describe("poseidon", () => {
-  let owner, address1, address2;
-  let poseidonCircomlib, poseidonSC, poseidonjs;
+  let owner;
+  let poseidon2Elements, poseidon3Elements, poseidon;
 
   before(async () => {
-    [
-      owner,
-      address1,
-      address2,
-    ] = await ethers.getSigners();
+    [owner] = await ethers.getSigners();
 
-    const PoseidonCircomlib = await ethers.getContractFactoryFromArtifact({
-      contractName: "",
-      sourceName: "",
-      abi: poseidonGenContract.abi,
-      bytecode: poseidonGenContract.createCode(6, 8, 57, SEED),
-      deployedBytecode: "",
-      linkReferences: {},
-      deployedLinkReferences: {},
-    } as Artifact, owner)
+    let abi = poseidonGenContract.generateABI(2);
+    let code = poseidonGenContract.createCode(2);
+    const Poseidon2Elements = new ethers.ContractFactory(abi, code, owner);
+    poseidon2Elements = await Poseidon2Elements.deploy();
+    await poseidon2Elements.deployed();
 
-    poseidonCircomlib = await PoseidonCircomlib.deploy()
-    await poseidonCircomlib.deployed()
+    abi = poseidonGenContract.generateABI(3);
+    code = poseidonGenContract.createCode(3);
+    const Poseidon3Elements = new ethers.ContractFactory(abi, code, owner);
+    poseidon3Elements = await Poseidon3Elements.deploy();
+    await poseidon3Elements.deployed();
 
     const Poseidon = await ethers.getContractFactory("Poseidon");
-    poseidonSC = await Poseidon.deploy(poseidonCircomlib.address);
-    poseidonSC.deployed()
-
-    poseidonjs = poseidonjssrc.createHash(6, 8, 57);
+    poseidon = await Poseidon.deploy(
+      poseidon2Elements.address,
+      poseidon3Elements.address
+    );
+    poseidon.deployed();
   });
 
   it("check poseidon hash function with inputs [1, 2]", async () => {
-    const e1 = bigInt(1);
-    const e2 = bigInt(2);
-    // Poseidon smartcontract circomlib
-    const m1 = await poseidonCircomlib.poseidon([e1.toString(), e2.toString()]);
-    // Poseidon javascript circomlib
-    const m2 = await poseidonjs([e1, e2]);
     // poseidon goiden3 [extracted using go-iden3-crypto/poseidon implementation]
-    const goiden3 = '12242166908188651009877250812424843524687801523336557272219921456462821518061';
+    const resGo =
+      "7853200120776062878684798364095072458815029376092732009249414926327459813530";
     // poseidon smartcontract
-    const m3 = await poseidonSC.Hash([e1.toString(), e2.toString()]);
-    
-    expect(m1.toString()).to.be.equal(m2.toString());
-    expect(m2.toString()).to.be.equal(m3.toString());
-    expect(m3.toString()).to.be.equal(goiden3);
+    const resSC = await poseidon.hash2([1, 2]);
+    expect(resSC).to.be.equal(resGo);
   });
 
-  it("check poseidon hash function with inputs [12, 45]", async () => {
-    const e1 = bigInt(12);
-    const e2 = bigInt(45);
-    // Poseidon smartcontract circomlib
-    const m1 = await poseidonCircomlib.poseidon([e1.toString(), e2.toString()]);
-    // Poseidon javascript circomlib
-    const m2 = await poseidonjs([e1, e2]);
+  it("check poseidon hash function with inputs [1, 2, 3]", async () => {
     // poseidon goiden3 [extracted using go-iden3-crypto/poseidon implementation]
-    const goiden3 = '8264042390138224340139792765748100791574617638410111480112729952476854478664';
+    const resGo =
+      "6542985608222806190361240322586112750744169038454362455181422643027100751666";
     // poseidon smartcontract
-    const m3 = await poseidonSC.Hash([e1.toString(), e2.toString()]);
-    
-    expect(m1.toString()).to.be.equal(m2.toString());
-    expect(m2.toString()).to.be.equal(m3.toString());
-    expect(m3.toString()).to.be.equal(goiden3);
+    const resSC = await poseidon.hash3([1, 2, 3]);
+    expect(resSC).to.be.equal(resGo);
   });
 });

@@ -10,3 +10,5 @@ build
 #Hardhat files
 cache
 artifacts
+migration-result.json
+events-data.json

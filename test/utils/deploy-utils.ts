@@ -1,4 +1,6 @@
 import { ethers, upgrades } from "hardhat";
+import { StateDeployHelper } from "../../helpers/StateDeployHelper";
+import { Contract } from "ethers";
 
 export async function deployValidatorContracts(
   verifierContractWrapperName: string,
@@ -7,11 +9,8 @@ export async function deployValidatorContracts(
   state: any;
   validator: any;
 }> {
-  const StateVerifier = await ethers.getContractFactory("Verifier");
-  const stateVerifier = await StateVerifier.deploy();
-
-  await stateVerifier.deployed();
-  console.log("State Verifier deployed to:", stateVerifier.address);
+  const stateDeployHelper = await StateDeployHelper.initialize();
+  const { state } = await stateDeployHelper.deployStateV1();
 
   const ValidatorContractVerifierWrapper = await ethers.getContractFactory(
     verifierContractWrapperName
@@ -24,13 +23,6 @@ export async function deployValidatorContracts(
     "Validator Verifier Wrapper deployed to:",
     validatorContractVerifierWrapper.address
   );
-
-  const State = await ethers.getContractFactory("State");
-  const state = await upgrades.deployProxy(State, [stateVerifier.address]);
-
-  await state.deployed();
-
-  console.log("State deployed to:", state.address);
 
   const ValidatorContract = await ethers.getContractFactory(
     validatorContractName
@@ -100,9 +92,15 @@ export function toBigNumber({ inputs, pi_a, pi_b, pi_c }: VerificationInfo) {
 }
 
 export async function publishState(
-  state: any,
+  state: Contract,
   json: { [key: string]: string }
-): Promise<void> {
+): Promise<{
+  oldState: string;
+  newState: string;
+  id: string;
+  blockNumber: number;
+  timestamp: number;
+}> {
   const {
     inputs: [id, oldState, newState, isOldStateGenesis],
     pi_a,
@@ -114,11 +112,28 @@ export async function publishState(
     id,
     oldState,
     newState,
-    isOldStateGenesis === "1" ? true : false,
+    isOldStateGenesis === "1",
     pi_a,
     pi_b,
     pi_c
   );
 
-  await transitStateTx.wait();
+  const { blockNumber } = await transitStateTx.wait();
+  const { timestamp } = await ethers.provider.getBlock(
+    transitStateTx.blockNumber
+  );
+
+  return {
+    oldState,
+    newState,
+    id,
+    blockNumber,
+    timestamp,
+  };
+}
+
+export function toJson(data) {
+  return JSON.stringify(data, (_, v) =>
+    typeof v === "bigint" ? `${v}n` : v
+  ).replace(/"(-?\d+)n"/g, (_, a) => a);
 }
