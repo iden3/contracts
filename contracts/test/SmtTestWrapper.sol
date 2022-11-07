@@ -12,18 +12,14 @@ contract SmtTestWrapper {
         smtData.add(_i, _v);
     }
 
-    function getSmtProof(uint256 _id)
-    public
-    view
-    returns (Proof memory)
-    {
+    function getSmtProof(uint256 _id) public view returns (Proof memory) {
         return smtData.getProof(_id);
     }
 
     function getSmtHistoricalProofByRoot(uint256 _id, uint256 _root)
-    public
-    view
-    returns (Proof memory)
+        public
+        view
+        returns (Proof memory)
     {
         return smtData.getHistoricalProofByRoot(_id, _root);
     }

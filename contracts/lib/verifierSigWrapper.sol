@@ -18,10 +18,10 @@ import "./verifierSig.sol";
 contract VerifierSigWrapper is VerifierSig {
     /// @return r  bool true if proof is valid
     function verifyProof(
-        uint[2] memory a,
-        uint[2][2] memory b,
-        uint[2] memory c,
-        uint[] memory input
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
+        uint256[] memory input
     ) public view returns (bool r) {
         Proof memory proof;
         proof.A = Pairing.G1Point(a[0], a[1]);

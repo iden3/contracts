@@ -133,9 +133,7 @@ library Smt {
             endIndex - startIndex + 1 <= SMT_ROOT_HISTORY_RETURN_LIMIT,
             "return limit exceeded"
         );
-        RootInfo[] memory result = new RootInfo[](
-            endIndex - startIndex + 1
-        );
+        RootInfo[] memory result = new RootInfo[](endIndex - startIndex + 1);
         uint64 j = 0;
         for (uint256 i = startIndex; i <= endIndex; i++) {
             uint256 root = self.rootHistory[i];
@@ -415,10 +413,7 @@ library Smt {
         uint256 index,
         uint256 timestamp
     ) public view returns (Proof memory) {
-        RootInfo memory rootInfo = getHistoricalRootInfoByTime(
-            self,
-            timestamp
-        );
+        RootInfo memory rootInfo = getHistoricalRootInfoByTime(self, timestamp);
 
         require(rootInfo.root != 0, "historical root not found");
 
@@ -436,10 +431,7 @@ library Smt {
         uint256 index,
         uint256 _block
     ) public view returns (Proof memory) {
-        RootInfo memory rootInfo = getHistoricalRootInfoByBlock(
-            self,
-            _block
-        );
+        RootInfo memory rootInfo = getHistoricalRootInfoByBlock(self, _block);
 
         require(rootInfo.root != 0, "historical root not found");
 
@@ -477,10 +469,7 @@ library Smt {
     {
         require(blockN <= block.number, "errNoFutureAllowed");
 
-        uint256 root = self.binarySearchUint256(
-            blockN,
-            SearchType.BLOCK
-        );
+        uint256 root = self.binarySearchUint256(blockN, SearchType.BLOCK);
 
         return getRootInfo(self, root);
     }
@@ -491,7 +480,9 @@ library Smt {
         returns (RootInfo memory)
     {
         RootInfo memory rootInfo;
-        rootInfo.createdAtTimestamp = self.rootEntries[_root].createdAtTimestamp;
+        rootInfo.createdAtTimestamp = self
+            .rootEntries[_root]
+            .createdAtTimestamp;
         rootInfo.createdAtBlock = self.rootEntries[_root].createdAtBlock;
         rootInfo.replacedBy = self.rootEntries[_root].replacedBy;
         rootInfo.replacedAtBlock = rootInfo.replacedBy == 0
@@ -505,10 +496,15 @@ library Smt {
         return rootInfo;
     }
 
-    function getCurrentRoot(SmtData storage self) public view returns (uint256) {
-        return self.rootHistory.length > 0
-            ? self.rootHistory[self.rootHistory.length - 1]
-            : 0;
+    function getCurrentRoot(SmtData storage self)
+        public
+        view
+        returns (uint256)
+    {
+        return
+            self.rootHistory.length > 0
+                ? self.rootHistory[self.rootHistory.length - 1]
+                : 0;
     }
 }
 
@@ -522,7 +518,7 @@ enum SearchType {
 
 /// @title A binary search for the sparse merkle tree root history
 library BinarySearchSmtRoots {
-    function binarySearchUint256 (
+    function binarySearchUint256(
         SmtData storage self,
         uint256 value,
         SearchType searchType
@@ -532,7 +528,7 @@ library BinarySearchSmtRoots {
         }
 
         uint256 min = 0;
-        uint max = self.rootHistory.length - 1;
+        uint256 max = self.rootHistory.length - 1;
         uint256 mid;
         uint256 midRoot;
 
@@ -540,11 +536,17 @@ library BinarySearchSmtRoots {
             mid = (max + min) / 2;
             midRoot = self.rootHistory[mid];
 
-            uint256 midValue = fieldSelector(self.rootEntries[midRoot], searchType);
+            uint256 midValue = fieldSelector(
+                self.rootEntries[midRoot],
+                searchType
+            );
             if (midValue == value) {
                 while (mid < self.rootHistory.length - 1) {
                     uint256 nextRoot = self.rootHistory[mid + 1];
-                    uint256 nextValue = fieldSelector(self.rootEntries[nextRoot], searchType);
+                    uint256 nextValue = fieldSelector(
+                        self.rootEntries[nextRoot],
+                        searchType
+                    );
                     if (nextValue == value) {
                         mid++;
                         midRoot = nextRoot;
@@ -555,7 +557,8 @@ library BinarySearchSmtRoots {
                 return midRoot;
             } else if (value > midValue) {
                 min = mid + 1;
-            } else if (value < midValue && mid > 0) { // mid > 0 is to avoid underflow
+            } else if (value < midValue && mid > 0) {
+                // mid > 0 is to avoid underflow
                 max = mid - 1;
             } else {
                 // This means that value < midValue && mid == 0. So we return zero,
@@ -569,10 +572,11 @@ library BinarySearchSmtRoots {
         return self.rootHistory[max];
     }
 
-    function fieldSelector(
-        RootEntry memory rti,
-        SearchType st
-    ) internal pure returns (uint256) {
+    function fieldSelector(RootEntry memory rti, SearchType st)
+        internal
+        pure
+        returns (uint256)
+    {
         if (st == SearchType.BLOCK) {
             return rti.createdAtBlock;
         } else if (st == SearchType.TIMESTAMP) {

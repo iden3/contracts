@@ -5,10 +5,10 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 interface IVerifier {
     function verifyProof(
-        uint[2] memory a,
-        uint[2][2] memory b,
-        uint[2] memory c,
-        uint[4] memory input
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
+        uint256[4] memory input
     ) external view returns (bool r);
 }
 
@@ -49,7 +49,7 @@ contract State is OwnableUpgradeable {
      */
     IVerifier public verifier;
 
-   /**
+    /**
      * @dev Correlation between identity and its state (plus block/time)
      */
     mapping(uint256 => IDState[]) public identities;
@@ -73,13 +73,10 @@ contract State is OwnableUpgradeable {
         uint256 state
     );
 
-    function initialize(
-        IVerifier _verifierContractAddr
-    ) public initializer {
-       verifier = _verifierContractAddr;
-       __Ownable_init();
+    function initialize(IVerifier _verifierContractAddr) public initializer {
+        verifier = _verifierContractAddr;
+        __Ownable_init();
     }
-
 
     function setVerifier(address newVerifier) public onlyOwner {
         verifier = IVerifier(newVerifier);
@@ -100,7 +97,9 @@ contract State is OwnableUpgradeable {
                 "there should be at least one state for identity in smart contract when isOldStateGenesis == 0"
             );
 
-            IDState memory oldIDState = identities[id][identities[id].length - 1];
+            IDState memory oldIDState = identities[id][
+                identities[id].length - 1
+            ];
             require(
                 oldIDState.BlockN != block.number,
                 "no multiple set in the same block"
@@ -114,22 +113,21 @@ contract State is OwnableUpgradeable {
                 identities[id].length == 0,
                 "there should be no states for identity in smart contract when isOldStateGenesis != 0"
             );
-            require(
-                transitions[oldState].id == 0,
-                "oldState should not exist"
-            );
+            require(transitions[oldState].id == 0, "oldState should not exist");
             // link genesis state to Id in the smart contract, but creation time and creation block is unknown
             transitions[oldState].id = id;
             // push genesis state to identities as latest state
             identities[id].push(IDState(0, 0, oldState));
         }
 
-        require(
-            transitions[newState].id == 0,
-            "newState should not exist"
-        );
+        require(transitions[newState].id == 0, "newState should not exist");
 
-        uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis?1:0)];
+        uint256[4] memory input = [
+            id,
+            oldState,
+            newState,
+            uint256(isOldStateGenesis ? 1 : 0)
+        ];
         require(
             verifier.verifyProof(a, b, c, input),
             "zero-knowledge proof of state transition is not valid "

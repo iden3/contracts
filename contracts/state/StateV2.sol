@@ -85,7 +85,6 @@ contract StateV2 is OwnableUpgradeable {
         uint256 state
     );
 
-
     /**
      * @dev Initialize the contract
      * @param _verifierContractAddr Verifier address
@@ -136,7 +135,9 @@ contract StateV2 is OwnableUpgradeable {
                 "there should be at least one state for identity in smart contract when _isOldStateGenesis == 0"
             );
 
-            uint256 previousIDState = statesHistories[_id][statesHistories[_id].length - 1];
+            uint256 previousIDState = statesHistories[_id][
+                statesHistories[_id].length - 1
+            ];
 
             require(
                 stateEntries[previousIDState].block != block.number,
@@ -151,7 +152,10 @@ contract StateV2 is OwnableUpgradeable {
                 statesHistories[_id].length == 0,
                 "there should be no states for identity in smart contract when _isOldStateGenesis != 0"
             );
-            require(stateEntries[_oldState].id == 0, "oldState should not exist");
+            require(
+                stateEntries[_oldState].id == 0,
+                "oldState should not exist"
+            );
             // link genesis state to Id in the smart contract, but creation time and creation block is unknown
             stateEntries[_oldState].id = _id;
             // push genesis state to identities as latest state
@@ -161,9 +165,9 @@ contract StateV2 is OwnableUpgradeable {
         require(stateEntries[_newState].id == 0, "newState should not exist");
 
         uint256[4] memory input = [
-        _id,
-        _oldState,
-        _newState,
+            _id,
+            _oldState,
+            _newState,
             uint256(_isOldStateGenesis ? 1 : 0)
         ];
         require(
@@ -242,7 +246,9 @@ contract StateV2 is OwnableUpgradeable {
         if (statesHistories[_id].length == 0) {
             return info;
         }
-        uint256 lastIdState = statesHistories[_id][statesHistories[_id].length - 1];
+        uint256 lastIdState = statesHistories[_id][
+            statesHistories[_id].length - 1
+        ];
 
         return getStateInfo(lastIdState);
     }
@@ -255,7 +261,7 @@ contract StateV2 is OwnableUpgradeable {
         return smtData.getCurrentRoot();
     }
 
-/**
+    /**
      * @dev Retrieve SMT inclusion or non-inclusion proof for a given identity.
      * @param _id Identity
      * @return The SMT inclusion or non-inclusion proof for the identity
@@ -302,7 +308,7 @@ contract StateV2 is OwnableUpgradeable {
             );
     }
 
-/**
+    /**
      * @dev Retrieve SMT inclusion or non-inclusion proof for a given identity
      * for SMT root existed for some blockchain timestamp or later.
      * @param _id Identity

@@ -23,7 +23,9 @@ contract BinarySearchTestWrapper {
         smtData.rootEntries[_root] = rt;
 
         if (smtData.rootHistory.length >= 2) {
-            uint256 prevRoot = smtData.rootHistory[smtData.rootHistory.length - 2];
+            uint256 prevRoot = smtData.rootHistory[
+                smtData.rootHistory.length - 2
+            ];
             smtData.rootEntries[prevRoot].replacedBy = _root;
         }
     }
@@ -44,4 +46,3 @@ contract BinarySearchTestWrapper {
         return smtData.binarySearchUint256(_block, SearchType.BLOCK);
     }
 }
-
