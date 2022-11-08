@@ -69,6 +69,6 @@ describe.skip("Struct upgrade test", () => {
     //
     // expect(id2state21_2new.replacedAtTimestamp).to.not.equal(id2state21_2.replacedAtTimestamp);
     // expect(id2state21_2new.replacedAtBlock).to.not.equal(id2state21_2.replacedAtBlock);
-    // expect(id2state21_2new.replacedBy).to.not.equal(id2state21_2.replacedBy);
+    // expect(id2state21_2new.replacedByState).to.not.equal(id2state21_2.replacedByState);
   });
 });

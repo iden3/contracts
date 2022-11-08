@@ -17,20 +17,21 @@ interface IVerifier {
 
 /**
  * @dev Struct for public interfaces to represent a state information.
- * @param replacedAtTimestamp A time when the state was replaced by the next identity state.
- * @param createdAtTimestamp A time when the state was created.
- * @param replacedAtBlock A block number when the state was replaced by the next identity state.
- * @param createdAtBlock A block number when the state was created.
- * @param replacedBy A state, which replaced this state for the identity.
  * @param id identity.
+ * @param replacedByState A state, which replaced this state for the identity.
+ * @param createdAtTimestamp A time when the state was created.
+ * @param replacedAtTimestamp A time when the state was replaced by the next identity state.
+ * @param createdAtBlock A block number when the state was created.
+ * @param replacedAtBlock A block number when the state was replaced by the next identity state.
  */
 struct StateInfo {
-    uint256 replacedAtTimestamp;
-    uint256 createdAtTimestamp;
-    uint256 replacedAtBlock;
-    uint256 createdAtBlock;
-    uint256 replacedBy;
     uint256 id;
+    uint256 state;
+    uint256 replacedByState;
+    uint256 createdAtTimestamp;
+    uint256 replacedAtTimestamp;
+    uint256 createdAtBlock;
+    uint256 replacedAtBlock;
 }
 
 // /**
@@ -219,16 +220,17 @@ contract StateV2 is OwnableUpgradeable {
         uint256 replByState = stateEntries[_state].replacedBy;
         return
             StateInfo({
+                id: stateEntries[_state].id,
+                state: _state,
+                replacedByState: replByState,
+                createdAtTimestamp: stateEntries[_state].timestamp,
                 replacedAtTimestamp: replByState == 0
                     ? 0
                     : stateEntries[replByState].timestamp,
-                createdAtTimestamp: stateEntries[_state].timestamp,
+                createdAtBlock: stateEntries[_state].block,
                 replacedAtBlock: replByState == 0
                     ? 0
-                    : stateEntries[replByState].block,
-                createdAtBlock: stateEntries[_state].block,
-                replacedBy: replByState,
-                id: stateEntries[_state].id
+                    : stateEntries[replByState].block
             });
     }
 
@@ -237,7 +239,7 @@ contract StateV2 is OwnableUpgradeable {
      * @param _id Identity
      * @return The latest state info of the identity
      */
-    function getStateDataById(uint256 _id)
+    function getLatestStateInfoById(uint256 _id)
         public
         view
         returns (StateInfo memory)

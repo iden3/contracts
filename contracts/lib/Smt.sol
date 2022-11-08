@@ -46,32 +46,32 @@ struct Proof {
 
 /**
  * @dev Struct for public interfaces to represent SMT root info.
- * @param replacedAtTimestamp A time, when the root was replaced by the next root in blockchain.
- * @param createdAtTimestamp A time, when the root was saved to blockchain.
- * @param replacedAtBlock A number of block, when the root was replaced by the next root in blockchain.
- * @param createdAtBlock A number of block, when the root was saved to blockchain.
- * @param replacedBy A root, which replaced this root.
  * @param root This SMT root.
+ * @param replacedByRoot A root, which replaced this root.
+ * @param createdAtTimestamp A time, when the root was saved to blockchain.
+ * @param replacedAtTimestamp A time, when the root was replaced by the next root in blockchain.
+ * @param createdAtBlock A number of block, when the root was saved to blockchain.
+ * @param replacedAtBlock A number of block, when the root was replaced by the next root in blockchain.
  */
 struct RootInfo {
-    uint256 replacedAtTimestamp;
-    uint256 createdAtTimestamp;
-    uint256 replacedAtBlock;
-    uint256 createdAtBlock;
-    uint256 replacedBy;
     uint256 root;
+    uint256 replacedByRoot;
+    uint256 createdAtTimestamp;
+    uint256 replacedAtTimestamp;
+    uint256 createdAtBlock;
+    uint256 replacedAtBlock;
 }
 
 /**
  * @dev Struct for SMT root internal storage representation.
+ * @param replacedByRoot A root, which replaced this root.
  * @param createdAtTimestamp A time, when the root was saved to blockchain.
  * @param createdAtBlock A number of block, when the root was saved to blockchain.
- * @param replacedBy A root, which the current root has been replaced by.
  */
 struct RootEntry {
+    uint256 replacedByRoot;
     uint256 createdAtTimestamp;
     uint256 createdAtBlock;
-    uint256 replacedBy;
 }
 
 /**
@@ -172,7 +172,7 @@ library Smt {
         self.rootEntries[newRoot].createdAtTimestamp = _timestamp;
         self.rootEntries[newRoot].createdAtBlock = _blockNumber;
         if (prevRoot != 0) {
-            self.rootEntries[prevRoot].replacedBy = newRoot;
+            self.rootEntries[prevRoot].replacedByRoot = newRoot;
         }
     }
 
@@ -484,13 +484,13 @@ library Smt {
             .rootEntries[_root]
             .createdAtTimestamp;
         rootInfo.createdAtBlock = self.rootEntries[_root].createdAtBlock;
-        rootInfo.replacedBy = self.rootEntries[_root].replacedBy;
-        rootInfo.replacedAtBlock = rootInfo.replacedBy == 0
+        rootInfo.replacedByRoot = self.rootEntries[_root].replacedByRoot;
+        rootInfo.replacedAtBlock = rootInfo.replacedByRoot == 0
             ? 0
-            : self.rootEntries[rootInfo.replacedBy].createdAtBlock;
-        rootInfo.replacedAtTimestamp = rootInfo.replacedBy == 0
+            : self.rootEntries[rootInfo.replacedByRoot].createdAtBlock;
+        rootInfo.replacedAtTimestamp = rootInfo.replacedByRoot == 0
             ? 0
-            : self.rootEntries[rootInfo.replacedBy].createdAtTimestamp;
+            : self.rootEntries[rootInfo.replacedByRoot].createdAtTimestamp;
         rootInfo.root = _root;
 
         return rootInfo;

@@ -16,9 +16,9 @@ contract BinarySearchTestWrapper {
         smtData.rootHistory.push(_root);
 
         RootEntry memory rt = RootEntry({
+            replacedByRoot: 0,
             createdAtTimestamp: _createdAtTimestamp,
-            createdAtBlock: _createdAtBlock,
-            replacedBy: 0
+            createdAtBlock: _createdAtBlock
         });
         smtData.rootEntries[_root] = rt;
 
@@ -26,7 +26,7 @@ contract BinarySearchTestWrapper {
             uint256 prevRoot = smtData.rootHistory[
                 smtData.rootHistory.length - 2
             ];
-            smtData.rootEntries[prevRoot].replacedBy = _root;
+            smtData.rootEntries[prevRoot].replacedByRoot = _root;
         }
     }
 
