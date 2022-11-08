@@ -22,10 +22,10 @@ describe("State transitions positive cases", () => {
   it("Initial state publishing", async () => {
     const params = await publishState(state, stateTransitions[0]);
 
-    const res0 = await state.getState(params.id);
+    const res0 = await state.getStateById(params.id);
     expect(res0.toString()).to.be.equal(bigInt(params.newState).toString());
 
-    const stInfoNew = await state.getStateInfo(params.newState);
+    const stInfoNew = await state.getStateInfoByState(params.newState);
 
     expect(stInfoNew.id).to.be.equal(params.id);
     expect(stInfoNew.replacedByState).to.be.equal(0);
@@ -34,7 +34,7 @@ describe("State transitions positive cases", () => {
     expect(stInfoNew.createdAtBlock).not.be.empty;
     expect(stInfoNew.replacedAtBlock).to.be.equal(0);
 
-    const stInfoOld = await state.getStateInfo(params.oldState);
+    const stInfoOld = await state.getStateInfoByState(params.oldState);
 
     expect(stInfoOld.id).to.be.equal(params.id);
     expect(stInfoOld.replacedByState).to.be.equal(params.newState);
@@ -45,20 +45,20 @@ describe("State transitions positive cases", () => {
     expect(stInfoOld.createdAtBlock).to.be.equal(0);
     expect(stInfoOld.replacedAtBlock).to.be.equal(stInfoNew.createdAtBlock);
 
-    const latestStInfo = await state.getLatestStateInfoById(params.id);
+    const latestStInfo = await state.getStateInfoById(params.id);
     expect(latestStInfo.state).to.be.equal(params.newState);
   });
 
   it("Subsequent state update", async () => {
-    const stateInfoBeforeUpdate = await state.getStateInfo(
+    const stateInfoBeforeUpdate = await state.getStateInfoByState(
       stateTransitions[1].pub_signals[1]
     );
 
     const params = await publishState(state, stateTransitions[1]);
-    const res = await state.getState(params.id);
+    const res = await state.getStateById(params.id);
     expect(res).to.be.equal(params.newState);
 
-    const stInfoNew = await state.getStateInfo(params.newState);
+    const stInfoNew = await state.getStateInfoByState(params.newState);
 
     expect(stInfoNew.replacedAtTimestamp).to.be.equal(0);
     expect(stInfoNew.createdAtTimestamp).not.be.empty;
@@ -67,7 +67,7 @@ describe("State transitions positive cases", () => {
     expect(stInfoNew.id).to.be.equal(params.id);
     expect(stInfoNew.replacedByState).to.be.equal(0);
 
-    const stInfoOld = await state.getStateInfo(params.oldState);
+    const stInfoOld = await state.getStateInfoByState(params.oldState);
 
     expect(stInfoOld.replacedAtTimestamp).to.be.equal(
       stInfoNew.createdAtTimestamp
@@ -82,7 +82,7 @@ describe("State transitions positive cases", () => {
     expect(stInfoOld.id).to.be.equal(params.id);
     expect(stInfoOld.replacedByState).to.be.equal(params.newState);
 
-    const latestStInfo = await state.getLatestStateInfoById(params.id);
+    const latestStInfo = await state.getStateInfoById(params.id);
     expect(latestStInfo.state).to.be.equal(params.newState);
   });
 });
@@ -116,7 +116,7 @@ describe("State transition negative cases", () => {
     }
     expect(isException).to.equal(true);
 
-    const res = await state.getState(id);
+    const res = await state.getStateById(id);
     expect(res).to.not.be.equal(newState);
   });
 
@@ -140,7 +140,7 @@ describe("State transition negative cases", () => {
     }
     expect(isException).to.equal(true);
 
-    const res = await state.getState(id);
+    const res = await state.getStateById(id);
     expect(res).to.not.be.equal(newState);
   });
 
@@ -165,7 +165,7 @@ describe("State transition negative cases", () => {
     }
     expect(isException).to.equal(true);
 
-    const res = await state.getState(id);
+    const res = await state.getStateById(id);
     expect(res).to.not.be.equal(newState);
   });
 
@@ -190,7 +190,7 @@ describe("State transition negative cases", () => {
     }
     expect(isException).to.equal(true);
 
-    const res = await state.getState(id);
+    const res = await state.getStateById(id);
     expect(res).to.not.be.equal(newState);
   });
 
@@ -212,7 +212,7 @@ describe("State transition negative cases", () => {
     }
     expect(isException).to.equal(true);
 
-    const res = await state.getState(id);
+    const res = await state.getStateById(id);
     expect(res.toString()).to.be.equal("0");
   });
 
@@ -235,7 +235,7 @@ describe("State transition negative cases", () => {
   });
 });
 
-describe("SMT proofs", () => {
+describe("GIST proofs", () => {
   let state: any;
 
   beforeEach(async () => {
@@ -250,25 +250,25 @@ describe("SMT proofs", () => {
 
     for (const issuerStateJson of stateTransitions) {
       await publishState(state, issuerStateJson);
-      const currentRoot = await state.getSmtCurrentRoot();
-      const [lastProofRoot] = await state.getSmtProof(id);
+      const currentRoot = await state.getGISTRoot();
+      const [lastProofRoot] = await state.getGISTProof(id);
       expect(lastProofRoot).to.equal(currentRoot);
       currentRoots.push(currentRoot);
     }
 
-    const rootHistoryLength = await state.getSmtRootHistoryLength();
+    const rootHistoryLength = await state.getGISTRootHistoryLength();
 
     console.log("root history length: ", rootHistoryLength);
-    const [obj1, obj2] = await state.getSmtRootHistory(
+    const [obj1, obj2] = await state.getGISTRootHistory(
       0,
       rootHistoryLength - 1
     );
 
-    const [root] = await state.getSmtHistoricalProofByRoot(id, obj1.root);
+    const [root] = await state.getGISTProofByRoot(id, obj1.root);
     expect(obj1.root).to.equal(root);
     expect(obj1.root).to.equal(currentRoots[0]);
 
-    const [root2] = await state.getSmtHistoricalProofByRoot(id, obj2.root);
+    const [root2] = await state.getGISTProofByRoot(id, obj2.root);
     expect(obj2.root).to.equal(root2);
     expect(obj2.root).to.equal(currentRoots[1]);
   });
@@ -279,15 +279,15 @@ describe("SMT proofs", () => {
     }
     const id = ethers.BigNumber.from(stateTransitions[0].pub_signals[0]);
 
-    const rootHistoryLength = await state.getSmtRootHistoryLength();
+    const rootHistoryLength = await state.getGISTRootHistoryLength();
 
-    const [root1info, root2info] = await state.getSmtRootHistory(
+    const [root1info, root2info] = await state.getGISTRootHistory(
       0,
       rootHistoryLength - 1
     );
 
     console.log(root1info);
-    const [r1] = await state.getSmtHistoricalProofByTime(
+    const [r1] = await state.getGISTProofByTime(
       id,
       root1info.createdAtTimestamp
     );
@@ -296,7 +296,7 @@ describe("SMT proofs", () => {
 
     console.log(root2info);
 
-    const [r2] = await state.getSmtHistoricalProofByTime(
+    const [r2] = await state.getGISTProofByTime(
       id,
       root2info.createdAtTimestamp
     );
@@ -309,19 +309,19 @@ describe("SMT proofs", () => {
     }
     const id = ethers.BigNumber.from(stateTransitions[0].pub_signals[0]);
 
-    const rootHistoryLength = await state.getSmtRootHistoryLength();
+    const rootHistoryLength = await state.getGISTRootHistoryLength();
 
-    const [root1info, root2info] = await state.getSmtRootHistory(
+    const [root1info, root2info] = await state.getGISTRootHistory(
       0,
       rootHistoryLength - 1
     );
 
-    const [root] = await state.getSmtHistoricalProofByBlock(
+    const [root] = await state.getGISTProofByBlock(
       id,
       root1info.createdAtBlock
     );
     expect(root1info.root).to.equal(root);
-    const [root2] = await state.getSmtHistoricalProofByBlock(
+    const [root2] = await state.getGISTProofByBlock(
       id,
       root2info.createdAtBlock
     );
@@ -329,7 +329,7 @@ describe("SMT proofs", () => {
   });
 });
 
-describe("SMT root history", () => {
+describe("GIST root history", () => {
   let state: any;
 
   beforeEach(async () => {
@@ -343,22 +343,22 @@ describe("SMT root history", () => {
       await publishState(state, issuerStateJson);
     }
     const id = ethers.BigNumber.from(stateTransitions[0].pub_signals[0]);
-    const rootHistoryLength = await state.getSmtRootHistoryLength();
-    const [rootInfo] = await state.getSmtRootHistory(0, rootHistoryLength - 1);
+    const rootHistoryLength = await state.getGISTRootHistoryLength();
+    const [rootInfo] = await state.getGISTRootHistory(0, rootHistoryLength - 1);
 
-    const [rootB] = await state.getSmtHistoricalProofByBlock(
+    const [rootB] = await state.getGISTProofByBlock(
       id,
       rootInfo.createdAtBlock
     );
     expect(rootInfo.root).to.equal(rootB);
-    const [rootT] = await state.getSmtHistoricalProofByTime(
+    const [rootT] = await state.getGISTProofByTime(
       id,
       rootInfo.createdAtTimestamp
     );
     expect(rootInfo.root).to.equal(rootT).to.equal(rootB);
   });
 
-  it("Should have correct SMT root transitions info", async () => {
+  it("Should have correct GIST root transitions info", async () => {
     const roots: any[] = [];
     const expRootInfos: any[] = [];
     for (const issuerStateJson of stateTransitions) {
@@ -367,7 +367,7 @@ describe("SMT root history", () => {
         issuerStateJson
       );
 
-      const root = await state.getSmtCurrentRoot();
+      const root = await state.getGISTRoot();
       roots.push(root);
 
       if (expRootInfos.length >= 1) {
@@ -385,8 +385,8 @@ describe("SMT root history", () => {
       });
     }
 
-    const rootInfo0 = await state.getSmtRootInfo(roots[0]);
-    const rootInfo1 = await state.getSmtRootInfo(roots[1]);
+    const rootInfo0 = await state.getGISTRootInfo(roots[0]);
+    const rootInfo1 = await state.getGISTRootInfo(roots[1]);
 
     expect(rootInfo0.replacedAtTimestamp).to.equal(
       expRootInfos[0].replacedAtTimestamp

@@ -70,7 +70,10 @@ contract StateV2 is OwnableUpgradeable {
      */
     mapping(uint256 => StateEntry) public stateEntries;
 
-    SmtData internal smtData;
+    /**
+     * @dev Global Identity State Tree (GIST) data
+     */
+    SmtData internal gistData;
 
     /**
      * @dev event called when a state is updated
@@ -189,8 +192,8 @@ contract StateV2 is OwnableUpgradeable {
         // Set replace info for old state
         stateEntries[_oldState].replacedBy = _newState;
 
-        // put state in smt to recalculate global state
-        smtData.add(PoseidonUnit1L.poseidon([_id]), _newState);
+        // put state to GIST to recalculate global state
+        gistData.add(PoseidonUnit1L.poseidon([_id]), _newState);
 
         emit StateUpdated(_id, block.number, block.timestamp, _newState);
     }
@@ -200,7 +203,7 @@ contract StateV2 is OwnableUpgradeable {
      * @param _id identity
      * @return last state committed
      */
-    function getState(uint256 _id) public view returns (uint256) {
+    function getStateById(uint256 _id) public view returns (uint256) {
         if (statesHistories[_id].length == 0) {
             return 0;
         }
@@ -208,11 +211,45 @@ contract StateV2 is OwnableUpgradeable {
     }
 
     /**
-     * @dev Retrieve state information.
+     * Retrieve all states for a given identity
+     * @param _id identity
+     * @return A list of identity states
+     */
+    function getAllStatesById(uint256 _id)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        return statesHistories[_id];
+    }
+
+    /**
+     * @dev Retrieve identity latest state information.
+     * @param _id Identity
+     * @return The latest state info of the identity
+     */
+    function getStateInfoById(uint256 _id)
+        public
+        view
+        returns (StateInfo memory)
+    {
+        StateInfo memory info;
+        if (statesHistories[_id].length == 0) {
+            return info;
+        }
+        uint256 lastIdState = statesHistories[_id][
+            statesHistories[_id].length - 1
+        ];
+
+        return getStateInfoByState(lastIdState);
+    }
+
+    /**
+     * @dev Retrieve state information by state.
      * @param _state A state
      * @return The state info
      */
-    function getStateInfo(uint256 _state)
+    function getStateInfoByState(uint256 _state)
         public
         view
         returns (StateInfo memory)
@@ -235,171 +272,126 @@ contract StateV2 is OwnableUpgradeable {
     }
 
     /**
-     * @dev Retrieve identity latest state information.
+     * @dev Retrieve GIST inclusion or non-inclusion proof for a given identity.
      * @param _id Identity
-     * @return The latest state info of the identity
+     * @return The GIST inclusion or non-inclusion proof for the identity
      */
-    function getLatestStateInfoById(uint256 _id)
-        public
-        view
-        returns (StateInfo memory)
-    {
-        StateInfo memory info;
-        if (statesHistories[_id].length == 0) {
-            return info;
-        }
-        uint256 lastIdState = statesHistories[_id][
-            statesHistories[_id].length - 1
-        ];
-
-        return getStateInfo(lastIdState);
+    function getGISTProof(uint256 _id) public view returns (Proof memory) {
+        return gistData.getProof(PoseidonUnit1L.poseidon([_id]));
     }
 
     /**
-     * @dev Retrieve SMT latest root.
-     * @return The latest SMT root
-     */
-    function getSmtCurrentRoot() public view returns (uint256) {
-        return smtData.getCurrentRoot();
-    }
-
-    /**
-     * @dev Retrieve SMT inclusion or non-inclusion proof for a given identity.
+     * @dev Retrieve GIST inclusion or non-inclusion proof for a given identity for
+     * some GIST root in the past.
      * @param _id Identity
-     * @return The SMT inclusion or non-inclusion proof for the identity
+     * @param _root GIST root
+     * @return The GIST inclusion or non-inclusion proof for the identity
      */
-    function getSmtProof(uint256 _id) public view returns (Proof memory) {
-        return smtData.getProof(PoseidonUnit1L.poseidon([_id]));
-    }
-
-    /**
-     * @dev Retrieve SMT inclusion or non-inclusion proof for a given identity for
-     * some SMT root in the past.
-     * @param _id Identity
-     * @param _root SMT root
-     * @return The SMT inclusion or non-inclusion proof for the identity
-     */
-    function getSmtHistoricalProofByRoot(uint256 _id, uint256 _root)
+    function getGISTProofByRoot(uint256 _id, uint256 _root)
         public
         view
         returns (Proof memory)
     {
-        return
-            smtData.getHistoricalProofByRoot(
-                PoseidonUnit1L.poseidon([_id]),
-                _root
-            );
+        return gistData.getProofByRoot(PoseidonUnit1L.poseidon([_id]), _root);
     }
 
     /**
-     * @dev Retrieve SMT inclusion or non-inclusion proof for a given identity
-     * for SMT root existed in some block or later.
+     * @dev Retrieve GIST inclusion or non-inclusion proof for a given identity
+     * for GIST root existed in some block or later.
      * @param _id Identity
      * @param _block Blockchain block number
-     * @return The SMT inclusion or non-inclusion proof for the identity
+     * @return The GIST inclusion or non-inclusion proof for the identity
      */
-    function getSmtHistoricalProofByBlock(uint256 _id, uint256 _block)
+    function getGISTProofByBlock(uint256 _id, uint256 _block)
         public
         view
         returns (Proof memory)
     {
-        return
-            smtData.getHistoricalProofByBlock(
-                PoseidonUnit1L.poseidon([_id]),
-                _block
-            );
+        return gistData.getProofByBlock(PoseidonUnit1L.poseidon([_id]), _block);
     }
 
     /**
-     * @dev Retrieve SMT inclusion or non-inclusion proof for a given identity
-     * for SMT root existed for some blockchain timestamp or later.
+     * @dev Retrieve GIST inclusion or non-inclusion proof for a given identity
+     * for GIST root existed for some blockchain timestamp or later.
      * @param _id Identity
      * @param _timestamp Blockchain timestamp
-     * @return The SMT inclusion or non-inclusion proof for the identity
+     * @return The GIST inclusion or non-inclusion proof for the identity
      */
-    function getSmtHistoricalProofByTime(uint256 _id, uint256 _timestamp)
+    function getGISTProofByTime(uint256 _id, uint256 _timestamp)
         public
         view
         returns (Proof memory)
     {
         return
-            smtData.getHistoricalProofByTime(
-                PoseidonUnit1L.poseidon([_id]),
-                _timestamp
-            );
+            gistData.getProofByTime(PoseidonUnit1L.poseidon([_id]), _timestamp);
     }
 
     /**
-     * @dev Retrieve the length of the SMT root history.
-     * @return The SMT root history length
+     * @dev Retrieve GIST latest root.
+     * @return The latest GIST root
      */
-    function getSmtRootHistoryLength() public view returns (uint256) {
-        return smtData.rootHistory.length;
+    function getGISTRoot() public view returns (uint256) {
+        return gistData.getRoot();
     }
 
     /**
-     * @dev Retrieve the SMT root history slice.
+     * @dev Retrieve the GIST root history slice.
      * @param _start Start index in the history array
      * @param _end End index in the history array
-     * @return SMT roots list.
+     * @return GIST roots list.
      */
-    function getSmtRootHistory(uint256 _start, uint256 _end)
+    function getGISTRootHistory(uint256 _start, uint256 _end)
         public
         view
         returns (RootInfo[] memory)
     {
-        return smtData.getRootHistory(_start, _end);
+        return gistData.getRootHistory(_start, _end);
     }
 
     /**
-     * @dev Retrieve the specific SMT root information.
-     * @param _root SMT root
-     * @return The SMT root info
+     * @dev Retrieve the length of the GIST root history.
+     * @return The GIST root history length
      */
-    function getSmtRootInfo(uint256 _root)
+    function getGISTRootHistoryLength() public view returns (uint256) {
+        return gistData.rootHistory.length;
+    }
+
+    /**
+     * @dev Retrieve the specific GIST root information.
+     * @param _root GIST root
+     * @return The GIST root info
+     */
+    function getGISTRootInfo(uint256 _root)
         public
         view
         returns (RootInfo memory)
     {
-        return smtData.getRootInfo(_root);
+        return gistData.getRootInfo(_root);
     }
 
     /**
-     * @dev Retrieve the SMT root information, which existed at some block or later.
+     * @dev Retrieve the GIST root information, which existed at some block or later.
      * @param _block Blockchain block number
-     * @return The SMT root info
+     * @return The GIST root info
      */
-    function getHistoricalRootInfoByBlock(uint256 _block)
+    function getGISTRootInfoByBlock(uint256 _block)
         public
         view
         returns (RootInfo memory)
     {
-        return smtData.getHistoricalRootInfoByBlock(_block);
+        return gistData.getRootInfoByBlock(_block);
     }
 
     /**
-     * @dev Retrieve the SMT root information, which existed at some blockchain timestamp or later.
+     * @dev Retrieve the GIST root information, which existed at some blockchain timestamp or later.
      * @param _timestamp Blockchain timestamp
-     * @return The SMT root info
+     * @return The GIST root info
      */
-    function getHistoricalRootInfoByTime(uint256 _timestamp)
+    function getGISTRootInfoByTime(uint256 _timestamp)
         public
         view
         returns (RootInfo memory)
     {
-        return smtData.getHistoricalRootInfoByTime(_timestamp);
-    }
-
-    /**
-     * Retrieve all states for a given identity
-     * @param _id identity
-     * @return A list of identity states
-     */
-    function getAllStatesById(uint256 _id)
-        public
-        view
-        returns (uint256[] memory)
-    {
-        return statesHistories[_id];
+        return gistData.getRootInfoByTime(_timestamp);
     }
 }

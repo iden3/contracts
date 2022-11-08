@@ -164,7 +164,7 @@ library Smt {
         uint256 _blockNumber
     ) internal {
         Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
-        uint256 prevRoot = getCurrentRoot(self);
+        uint256 prevRoot = getRoot(self);
         uint256 newRoot = addLeaf(self, node, prevRoot, 0);
 
         self.rootHistory.push(newRoot);
@@ -349,7 +349,7 @@ library Smt {
         view
         returns (Proof memory)
     {
-        return getHistoricalProofByRoot(self, _index, getCurrentRoot(self));
+        return getProofByRoot(self, _index, getRoot(self));
     }
 
     /**
@@ -358,7 +358,7 @@ library Smt {
      * @param _historicalRoot Historical SMT roof to get proof for
      * @return The node proof
      */
-    function getHistoricalProofByRoot(
+    function getProofByRoot(
         SmtData storage self,
         uint256 _index,
         uint256 _historicalRoot
@@ -408,16 +408,16 @@ library Smt {
      * @param timestamp The nearest timestamp to get proof for
      * @return The node proof
      */
-    function getHistoricalProofByTime(
+    function getProofByTime(
         SmtData storage self,
         uint256 index,
         uint256 timestamp
     ) public view returns (Proof memory) {
-        RootInfo memory rootInfo = getHistoricalRootInfoByTime(self, timestamp);
+        RootInfo memory rootInfo = getRootInfoByTime(self, timestamp);
 
         require(rootInfo.root != 0, "historical root not found");
 
-        return getHistoricalProofByRoot(self, index, rootInfo.root);
+        return getProofByRoot(self, index, rootInfo.root);
     }
 
     /**
@@ -426,16 +426,23 @@ library Smt {
      * @param _block The nearest block number to get proof for
      * @return The node proof
      */
-    function getHistoricalProofByBlock(
+    function getProofByBlock(
         SmtData storage self,
         uint256 index,
         uint256 _block
     ) public view returns (Proof memory) {
-        RootInfo memory rootInfo = getHistoricalRootInfoByBlock(self, _block);
+        RootInfo memory rootInfo = getRootInfoByBlock(self, _block);
 
         require(rootInfo.root != 0, "historical root not found");
 
-        return getHistoricalProofByRoot(self, index, rootInfo.root);
+        return getProofByRoot(self, index, rootInfo.root);
+    }
+
+    function getRoot(SmtData storage self) public view returns (uint256) {
+        return
+            self.rootHistory.length > 0
+                ? self.rootHistory[self.rootHistory.length - 1]
+                : 0;
     }
 
     /**
@@ -443,10 +450,11 @@ library Smt {
      * @param timestamp timestamp
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getHistoricalRootInfoByTime(
-        SmtData storage self,
-        uint256 timestamp
-    ) public view returns (RootInfo memory) {
+    function getRootInfoByTime(SmtData storage self, uint256 timestamp)
+        public
+        view
+        returns (RootInfo memory)
+    {
         require(timestamp <= block.timestamp, "errNoFutureAllowed");
 
         uint256 root = self.binarySearchUint256(
@@ -462,7 +470,7 @@ library Smt {
      * @param blockN block number
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getHistoricalRootInfoByBlock(SmtData storage self, uint256 blockN)
+    function getRootInfoByBlock(SmtData storage self, uint256 blockN)
         public
         view
         returns (RootInfo memory)
@@ -494,17 +502,6 @@ library Smt {
         rootInfo.root = _root;
 
         return rootInfo;
-    }
-
-    function getCurrentRoot(SmtData storage self)
-        public
-        view
-        returns (uint256)
-    {
-        return
-            self.rootHistory.length > 0
-                ? self.rootHistory[self.rootHistory.length - 1]
-                : 0;
     }
 }
 
