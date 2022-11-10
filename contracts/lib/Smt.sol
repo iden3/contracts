@@ -46,32 +46,32 @@ struct Proof {
 
 /**
  * @dev Struct for public interfaces to represent SMT root info.
- * @param replacedAtTimestamp A time, when the root was replaced by the next root in blockchain.
- * @param createdAtTimestamp A time, when the root was saved to blockchain.
- * @param replacedAtBlock A number of block, when the root was replaced by the next root in blockchain.
- * @param createdAtBlock A number of block, when the root was saved to blockchain.
- * @param replacedBy A root, which replaced this root.
  * @param root This SMT root.
+ * @param replacedByRoot A root, which replaced this root.
+ * @param createdAtTimestamp A time, when the root was saved to blockchain.
+ * @param replacedAtTimestamp A time, when the root was replaced by the next root in blockchain.
+ * @param createdAtBlock A number of block, when the root was saved to blockchain.
+ * @param replacedAtBlock A number of block, when the root was replaced by the next root in blockchain.
  */
 struct RootInfo {
-    uint256 replacedAtTimestamp;
-    uint256 createdAtTimestamp;
-    uint256 replacedAtBlock;
-    uint256 createdAtBlock;
-    uint256 replacedBy;
     uint256 root;
+    uint256 replacedByRoot;
+    uint256 createdAtTimestamp;
+    uint256 replacedAtTimestamp;
+    uint256 createdAtBlock;
+    uint256 replacedAtBlock;
 }
 
 /**
  * @dev Struct for SMT root internal storage representation.
+ * @param replacedByRoot A root, which replaced this root.
  * @param createdAtTimestamp A time, when the root was saved to blockchain.
  * @param createdAtBlock A number of block, when the root was saved to blockchain.
- * @param replacedBy A root, which the current root has been replaced by.
  */
 struct RootEntry {
+    uint256 replacedByRoot;
     uint256 createdAtTimestamp;
     uint256 createdAtBlock;
-    uint256 replacedBy;
 }
 
 /**
@@ -95,55 +95,6 @@ library Smt {
     using BinarySearchSmtRoots for SmtData;
 
     /**
-     * @dev Get max depth of SMT.
-     * @return max depth of SMT.
-     */
-    function getMaxDepth() public pure returns (uint256) {
-        return MAX_SMT_DEPTH; // todo put to SmtData struct ???
-    }
-
-    /**
-     * @dev Get SMT root history length
-     * @return SMT history length
-     */
-    function rootHistoryLength(SmtData storage self)
-        public
-        view
-        returns (uint256)
-    {
-        return self.rootHistory.length;
-    }
-
-    /**
-     * @dev Get SMT root history
-     * @param startIndex start index of history
-     * @param endIndex end index of history
-     * @return array of SMT historical roots with timestamp and block number info
-     */
-    function getRootHistory(
-        SmtData storage self,
-        uint256 startIndex,
-        uint256 endIndex
-    ) public view returns (RootInfo[] memory) {
-        require(
-            startIndex >= 0 && endIndex < self.rootHistory.length,
-            "index out of bounds of array"
-        );
-        require(
-            endIndex - startIndex + 1 <= SMT_ROOT_HISTORY_RETURN_LIMIT,
-            "return limit exceeded"
-        );
-        RootInfo[] memory result = new RootInfo[](endIndex - startIndex + 1);
-        uint64 j = 0;
-        for (uint256 i = startIndex; i <= endIndex; i++) {
-            uint256 root = self.rootHistory[i];
-            result[j] = getRootInfo(self, root);
-            j++;
-        }
-        return result;
-    }
-
-    /**
      * @dev Add anode to the SMT
      * @param _i Index of node
      * @param _v Value of node
@@ -164,7 +115,7 @@ library Smt {
         uint256 _blockNumber
     ) internal {
         Node memory node = Node(NodeType.LEAF, 0, 0, _i, _v);
-        uint256 prevRoot = getCurrentRoot(self);
+        uint256 prevRoot = getRoot(self);
         uint256 newRoot = addLeaf(self, node, prevRoot, 0);
 
         self.rootHistory.push(newRoot);
@@ -172,7 +123,7 @@ library Smt {
         self.rootEntries[newRoot].createdAtTimestamp = _timestamp;
         self.rootEntries[newRoot].createdAtBlock = _blockNumber;
         if (prevRoot != 0) {
-            self.rootEntries[prevRoot].replacedBy = newRoot;
+            self.rootEntries[prevRoot].replacedByRoot = newRoot;
         }
     }
 
@@ -313,6 +264,55 @@ library Smt {
         return nodeHash;
     }
 
+    /**
+     * @dev Get max depth of SMT.
+     * @return max depth of SMT.
+     */
+    function getMaxDepth() public pure returns (uint256) {
+        return MAX_SMT_DEPTH; // todo put to SmtData struct ???
+    }
+
+    /**
+     * @dev Get SMT root history length
+     * @return SMT history length
+     */
+    function getRootHistoryLength(SmtData storage self)
+        public
+        view
+        returns (uint256)
+    {
+        return self.rootHistory.length;
+    }
+
+    /**
+     * @dev Get SMT root history
+     * @param startIndex start index of history
+     * @param endIndex end index of history
+     * @return array of SMT historical roots with timestamp and block number info
+     */
+    function getRootHistory(
+        SmtData storage self,
+        uint256 startIndex,
+        uint256 endIndex
+    ) public view returns (RootInfo[] memory) {
+        require(
+            startIndex >= 0 && endIndex < self.rootHistory.length,
+            "index out of bounds of array"
+        );
+        require(
+            endIndex - startIndex + 1 <= SMT_ROOT_HISTORY_RETURN_LIMIT,
+            "return limit exceeded"
+        );
+        RootInfo[] memory result = new RootInfo[](endIndex - startIndex + 1);
+        uint64 j = 0;
+        for (uint256 i = startIndex; i <= endIndex; i++) {
+            uint256 root = self.rootHistory[i];
+            result[j] = getRootInfo(self, root);
+            j++;
+        }
+        return result;
+    }
+
     function getNodeHash(Node memory _node) internal view returns (uint256) {
         uint256 nodeHash;
         if (_node.nodeType == NodeType.LEAF) {
@@ -349,7 +349,7 @@ library Smt {
         view
         returns (Proof memory)
     {
-        return getHistoricalProofByRoot(self, _index, getCurrentRoot(self));
+        return getProofByRoot(self, _index, getRoot(self));
     }
 
     /**
@@ -358,7 +358,7 @@ library Smt {
      * @param _historicalRoot Historical SMT roof to get proof for
      * @return The node proof
      */
-    function getHistoricalProofByRoot(
+    function getProofByRoot(
         SmtData storage self,
         uint256 _index,
         uint256 _historicalRoot
@@ -408,16 +408,16 @@ library Smt {
      * @param timestamp The nearest timestamp to get proof for
      * @return The node proof
      */
-    function getHistoricalProofByTime(
+    function getProofByTime(
         SmtData storage self,
         uint256 index,
         uint256 timestamp
     ) public view returns (Proof memory) {
-        RootInfo memory rootInfo = getHistoricalRootInfoByTime(self, timestamp);
+        RootInfo memory rootInfo = getRootInfoByTime(self, timestamp);
 
         require(rootInfo.root != 0, "historical root not found");
 
-        return getHistoricalProofByRoot(self, index, rootInfo.root);
+        return getProofByRoot(self, index, rootInfo.root);
     }
 
     /**
@@ -426,16 +426,23 @@ library Smt {
      * @param _block The nearest block number to get proof for
      * @return The node proof
      */
-    function getHistoricalProofByBlock(
+    function getProofByBlock(
         SmtData storage self,
         uint256 index,
         uint256 _block
     ) public view returns (Proof memory) {
-        RootInfo memory rootInfo = getHistoricalRootInfoByBlock(self, _block);
+        RootInfo memory rootInfo = getRootInfoByBlock(self, _block);
 
         require(rootInfo.root != 0, "historical root not found");
 
-        return getHistoricalProofByRoot(self, index, rootInfo.root);
+        return getProofByRoot(self, index, rootInfo.root);
+    }
+
+    function getRoot(SmtData storage self) public view returns (uint256) {
+        return
+            self.rootHistory.length > 0
+                ? self.rootHistory[self.rootHistory.length - 1]
+                : 0;
     }
 
     /**
@@ -443,10 +450,11 @@ library Smt {
      * @param timestamp timestamp
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getHistoricalRootInfoByTime(
-        SmtData storage self,
-        uint256 timestamp
-    ) public view returns (RootInfo memory) {
+    function getRootInfoByTime(SmtData storage self, uint256 timestamp)
+        public
+        view
+        returns (RootInfo memory)
+    {
         require(timestamp <= block.timestamp, "errNoFutureAllowed");
 
         uint256 root = self.binarySearchUint256(
@@ -462,7 +470,7 @@ library Smt {
      * @param blockN block number
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getHistoricalRootInfoByBlock(SmtData storage self, uint256 blockN)
+    function getRootInfoByBlock(SmtData storage self, uint256 blockN)
         public
         view
         returns (RootInfo memory)
@@ -484,27 +492,16 @@ library Smt {
             .rootEntries[_root]
             .createdAtTimestamp;
         rootInfo.createdAtBlock = self.rootEntries[_root].createdAtBlock;
-        rootInfo.replacedBy = self.rootEntries[_root].replacedBy;
-        rootInfo.replacedAtBlock = rootInfo.replacedBy == 0
+        rootInfo.replacedByRoot = self.rootEntries[_root].replacedByRoot;
+        rootInfo.replacedAtBlock = rootInfo.replacedByRoot == 0
             ? 0
-            : self.rootEntries[rootInfo.replacedBy].createdAtBlock;
-        rootInfo.replacedAtTimestamp = rootInfo.replacedBy == 0
+            : self.rootEntries[rootInfo.replacedByRoot].createdAtBlock;
+        rootInfo.replacedAtTimestamp = rootInfo.replacedByRoot == 0
             ? 0
-            : self.rootEntries[rootInfo.replacedBy].createdAtTimestamp;
+            : self.rootEntries[rootInfo.replacedByRoot].createdAtTimestamp;
         rootInfo.root = _root;
 
         return rootInfo;
-    }
-
-    function getCurrentRoot(SmtData storage self)
-        public
-        view
-        returns (uint256)
-    {
-        return
-            self.rootHistory.length > 0
-                ? self.rootHistory[self.rootHistory.length - 1]
-                : 0;
     }
 }
 

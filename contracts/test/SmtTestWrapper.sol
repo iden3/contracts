@@ -21,6 +21,6 @@ contract SmtTestWrapper {
         view
         returns (Proof memory)
     {
-        return smtData.getHistoricalProofByRoot(_id, _root);
+        return smtData.getProofByRoot(_id, _root);
     }
 }
