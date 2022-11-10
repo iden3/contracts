@@ -22,8 +22,8 @@ describe("State transitions positive cases", () => {
   it("Initial state publishing", async () => {
     const params = await publishState(state, stateTransitions[0]);
 
-    const res0 = await state.getStateById(params.id);
-    expect(res0.toString()).to.be.equal(bigInt(params.newState).toString());
+    const res0 = await state.getStateInfoById(params.id);
+    expect(res0.state).to.be.equal(bigInt(params.newState).toString());
 
     const stInfoNew = await state.getStateInfoByState(params.newState);
 
@@ -55,8 +55,8 @@ describe("State transitions positive cases", () => {
     );
 
     const params = await publishState(state, stateTransitions[1]);
-    const res = await state.getStateById(params.id);
-    expect(res).to.be.equal(params.newState);
+    const res = await state.getStateInfoById(params.id);
+    expect(res.state).to.be.equal(params.newState);
 
     const stInfoNew = await state.getStateInfoByState(params.newState);
 
@@ -116,7 +116,7 @@ describe("State transition negative cases", () => {
     }
     expect(isException).to.equal(true);
 
-    const res = await state.getStateById(id);
+    const res = await state.getStateInfoById(id);
     expect(res).to.not.be.equal(newState);
   });
 
@@ -140,7 +140,7 @@ describe("State transition negative cases", () => {
     }
     expect(isException).to.equal(true);
 
-    const res = await state.getStateById(id);
+    const res = await state.getStateInfoById(id);
     expect(res).to.not.be.equal(newState);
   });
 
@@ -165,7 +165,7 @@ describe("State transition negative cases", () => {
     }
     expect(isException).to.equal(true);
 
-    const res = await state.getStateById(id);
+    const res = await state.getStateInfoById(id);
     expect(res).to.not.be.equal(newState);
   });
 
@@ -190,7 +190,7 @@ describe("State transition negative cases", () => {
     }
     expect(isException).to.equal(true);
 
-    const res = await state.getStateById(id);
+    const res = await state.getStateInfoById(id);
     expect(res).to.not.be.equal(newState);
   });
 
@@ -212,8 +212,8 @@ describe("State transition negative cases", () => {
     }
     expect(isException).to.equal(true);
 
-    const res = await state.getStateById(id);
-    expect(res.toString()).to.be.equal("0");
+    const res = await state.getStateInfoById(id);
+    expect(res.state).to.be.equal("0");
   });
 
   it("zero-knowledge proof of state transition is not valid", async () => {

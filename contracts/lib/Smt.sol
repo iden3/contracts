@@ -95,55 +95,6 @@ library Smt {
     using BinarySearchSmtRoots for SmtData;
 
     /**
-     * @dev Get max depth of SMT.
-     * @return max depth of SMT.
-     */
-    function getMaxDepth() public pure returns (uint256) {
-        return MAX_SMT_DEPTH; // todo put to SmtData struct ???
-    }
-
-    /**
-     * @dev Get SMT root history length
-     * @return SMT history length
-     */
-    function rootHistoryLength(SmtData storage self)
-        public
-        view
-        returns (uint256)
-    {
-        return self.rootHistory.length;
-    }
-
-    /**
-     * @dev Get SMT root history
-     * @param startIndex start index of history
-     * @param endIndex end index of history
-     * @return array of SMT historical roots with timestamp and block number info
-     */
-    function getRootHistory(
-        SmtData storage self,
-        uint256 startIndex,
-        uint256 endIndex
-    ) public view returns (RootInfo[] memory) {
-        require(
-            startIndex >= 0 && endIndex < self.rootHistory.length,
-            "index out of bounds of array"
-        );
-        require(
-            endIndex - startIndex + 1 <= SMT_ROOT_HISTORY_RETURN_LIMIT,
-            "return limit exceeded"
-        );
-        RootInfo[] memory result = new RootInfo[](endIndex - startIndex + 1);
-        uint64 j = 0;
-        for (uint256 i = startIndex; i <= endIndex; i++) {
-            uint256 root = self.rootHistory[i];
-            result[j] = getRootInfo(self, root);
-            j++;
-        }
-        return result;
-    }
-
-    /**
      * @dev Add anode to the SMT
      * @param _i Index of node
      * @param _v Value of node
@@ -311,6 +262,55 @@ library Smt {
         // We do not store empty nodes so can check if an entry exists
         self.nodes[nodeHash] = _node;
         return nodeHash;
+    }
+
+    /**
+     * @dev Get max depth of SMT.
+     * @return max depth of SMT.
+     */
+    function getMaxDepth() public pure returns (uint256) {
+        return MAX_SMT_DEPTH; // todo put to SmtData struct ???
+    }
+
+    /**
+     * @dev Get SMT root history length
+     * @return SMT history length
+     */
+    function getRootHistoryLength(SmtData storage self)
+        public
+        view
+        returns (uint256)
+    {
+        return self.rootHistory.length;
+    }
+
+    /**
+     * @dev Get SMT root history
+     * @param startIndex start index of history
+     * @param endIndex end index of history
+     * @return array of SMT historical roots with timestamp and block number info
+     */
+    function getRootHistory(
+        SmtData storage self,
+        uint256 startIndex,
+        uint256 endIndex
+    ) public view returns (RootInfo[] memory) {
+        require(
+            startIndex >= 0 && endIndex < self.rootHistory.length,
+            "index out of bounds of array"
+        );
+        require(
+            endIndex - startIndex + 1 <= SMT_ROOT_HISTORY_RETURN_LIMIT,
+            "return limit exceeded"
+        );
+        RootInfo[] memory result = new RootInfo[](endIndex - startIndex + 1);
+        uint64 j = 0;
+        for (uint256 i = startIndex; i <= endIndex; i++) {
+            uint256 root = self.rootHistory[i];
+            result[j] = getRootInfo(self, root);
+            j++;
+        }
+        return result;
     }
 
     function getNodeHash(Node memory _node) internal view returns (uint256) {

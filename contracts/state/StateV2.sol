@@ -107,14 +107,6 @@ contract StateV2 is OwnableUpgradeable {
     }
 
     /**
-     * @dev Get ZKP verifier contract address
-     * @return verifier contract address
-     */
-    function getVerifier() public view returns (address) {
-        return address(verifier);
-    }
-
-    /**
      * @dev Change the state of an identity (transit to the new state) with ZKP ownership check.
      * @param _id Identity
      * @param _oldState Previous identity state
@@ -199,49 +191,49 @@ contract StateV2 is OwnableUpgradeable {
     }
 
     /**
-     * @dev Retrieve the last state for a given identity
-     * @param _id identity
-     * @return last state committed
+     * @dev Get ZKP verifier contract address
+     * @return verifier contract address
      */
-    function getStateById(uint256 _id) public view returns (uint256) {
-        if (statesHistories[_id].length == 0) {
-            return 0;
-        }
-        return statesHistories[_id][statesHistories[_id].length - 1];
+    function getVerifier() public view returns (address) {
+        return address(verifier);
     }
 
     /**
-     * Retrieve all states for a given identity
+     * @dev Retrieve the last state info for a given identity
      * @param _id identity
-     * @return A list of identity states
-     */
-    function getAllStatesById(uint256 _id)
-        public
-        view
-        returns (uint256[] memory)
-    {
-        return statesHistories[_id];
-    }
-
-    /**
-     * @dev Retrieve identity latest state information.
-     * @param _id Identity
-     * @return The latest state info of the identity
+     * @return state info of the last committed state
      */
     function getStateInfoById(uint256 _id)
         public
         view
         returns (StateInfo memory)
     {
-        StateInfo memory info;
-        if (statesHistories[_id].length == 0) {
-            return info;
+        StateInfo memory stateInfo;
+        if (statesHistories[_id].length > 0) {
+            stateInfo = getStateInfoByState(
+                statesHistories[_id][statesHistories[_id].length - 1]
+            );
         }
-        uint256 lastIdState = statesHistories[_id][
-            statesHistories[_id].length - 1
-        ];
+        return stateInfo;
+    }
 
-        return getStateInfoByState(lastIdState);
+    /**
+     * Retrieve all state infos for a given identity
+     * @param _id identity
+     * @return A list of state infos of the identity
+     */
+    function getAllStateInfosById(uint256 _id)
+        public
+        view
+        returns (StateInfo[] memory)
+    {
+        StateInfo[] memory states = new StateInfo[](
+            statesHistories[_id].length
+        );
+        for (uint256 i = 0; i < statesHistories[_id].length; i++) {
+            states[i] = getStateInfoByState(statesHistories[_id][i]);
+        }
+        return states;
     }
 
     /**
