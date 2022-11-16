@@ -15,6 +15,8 @@ interface IVerifier {
     ) external view returns (bool r);
 }
 
+uint256 constant ID_HISTORY_RETURN_LIMIT = 1000;
+
 /**
  * @dev Struct for public interfaces to represent a state information.
  * @param id identity.
@@ -218,20 +220,44 @@ contract StateV2 is OwnableUpgradeable {
     }
 
     /**
-     * Retrieve all state infos for a given identity
+     * @dev Retrieve states quantity for a given identity
      * @param _id identity
-     * @return A list of state infos of the identity
+     * @return states quantity
      */
-    function getAllStateInfosById(uint256 _id)
+    function getStateInfoHistoryLengthById(uint256 _id)
         public
         view
-        returns (StateInfo[] memory)
+        returns (uint256)
     {
-        StateInfo[] memory states = new StateInfo[](
-            statesHistories[_id].length
+        return statesHistories[_id].length;
+    }
+
+    /**
+     * Retrieve state infos for a given identity
+     * @param _id identity
+     * @param _startIndex start index of the state history
+     * @param _length length of the state history
+     * @return A list of state infos of the identity
+     */
+    function getStateInfoHistoryById(
+        uint256 _id,
+        uint256 _startIndex,
+        uint256 _length
+    ) public view returns (StateInfo[] memory) {
+        require(_length > 0, "Length should be greater than 0");
+        require(_length <= ID_HISTORY_RETURN_LIMIT, "History length limit exceeded");
+
+        uint256 endIndex = _startIndex + _length;
+        require(
+            endIndex <= statesHistories[_id].length,
+            "Out of bounds of state history"
         );
-        for (uint256 i = 0; i < statesHistories[_id].length; i++) {
-            states[i] = getStateInfoByState(statesHistories[_id][i]);
+
+        StateInfo[] memory states = new StateInfo[](_length);
+        uint256 j = 0;
+        for (uint256 i = _startIndex; i < endIndex; i++) {
+            states[j] = getStateInfoByState(statesHistories[_id][i]);
+            j++;
         }
         return states;
     }
