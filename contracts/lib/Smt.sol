@@ -130,25 +130,29 @@ library Smt {
     /**
      * @dev Get SMT root history
      * @param startIndex start index of history
-     * @param endIndex end index of history
+     * @param length history length
      * @return array of SMT historical roots with timestamp and block number info
      */
     function getRootHistory(
         SmtData storage self,
         uint256 startIndex,
-        uint256 endIndex
+        uint256 length
     ) public view returns (RootInfo[] memory) {
+        require(length > 0, "Length should be greater than 0");
         require(
-            startIndex >= 0 && endIndex < self.rootHistory.length,
-            "index out of bounds of array"
+            length <= SMT_ROOT_HISTORY_RETURN_LIMIT,
+            "History length limit exceeded"
         );
+
+        uint256 endIndex = startIndex + length;
         require(
-            endIndex - startIndex + 1 <= SMT_ROOT_HISTORY_RETURN_LIMIT,
-            "return limit exceeded"
+            endIndex <= self.rootHistory.length,
+            "Out of bounds of root history"
         );
-        RootInfo[] memory result = new RootInfo[](endIndex - startIndex + 1);
+
+        RootInfo[] memory result = new RootInfo[](length);
         uint64 j = 0;
-        for (uint256 i = startIndex; i <= endIndex; i++) {
+        for (uint256 i = startIndex; i < endIndex; i++) {
             uint256 root = self.rootHistory[i];
             result[j] = getRootInfo(self, root);
             j++;

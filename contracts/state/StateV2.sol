@@ -360,17 +360,17 @@ contract StateV2 is OwnableUpgradeable {
     }
 
     /**
-     * @dev Retrieve the GIST root history slice.
-     * @param start Start index in the history array
-     * @param end End index in the history array
-     * @return GIST roots list.
+     * @dev Retrieve the GIST root history.
+     * @param start Start index in the root history
+     * @param length Length of the root history
+     * @return GIST Array of roots infos
      */
-    function getGISTRootHistory(uint256 start, uint256 end)
+    function getGISTRootHistory(uint256 start, uint256 length)
         public
         view
         returns (RootInfo[] memory)
     {
-        return _gistData.getRootHistory(start, end);
+        return _gistData.getRootHistory(start, length);
     }
 
     /**
