@@ -235,6 +235,104 @@ describe("State transition negative cases", () => {
   });
 });
 
+describe("State history", function () {
+  this.timeout(5000);
+
+  let state;
+  let publishedStates: { [key: string]: string | number }[] = [];
+
+  before(async () => {
+    const deployHelper = await StateDeployHelper.initialize();
+    const contracts = await deployHelper.deployStateV2();
+    state = contracts.state;
+
+    publishedStates = [];
+    for (const stateTransition of stateTransitions) {
+      publishedStates.push(await publishState(state, stateTransition));
+    }
+  });
+
+  it("should return state history", async () => {
+    const user1Inputs = stateTransitions.slice(0, 2);
+    const publishedStates1 = publishedStates.slice(0, 2);
+
+    const id = user1Inputs[0].pub_signals[0];
+    const historyLength = await state.getStateInfoHistoryLengthById(id);
+    // the first state transition writes two states, so expect +1 state
+    expect(historyLength).to.be.equal(user1Inputs.length + 1);
+
+    const stateInfos = await state.getStateInfoHistoryById(
+      id,
+      0,
+      historyLength
+    );
+    expect(stateInfos.length).to.be.equal(historyLength);
+
+    const publishedState = publishedStates1[0];
+    // genesis state info of the first identity (from the contract)
+    const [stateInfo] = await state.getStateInfoHistoryById(id, 0, 1);
+    expect(stateInfo.id).to.be.equal(publishedState.id);
+    expect(stateInfo.state).to.be.equal(publishedState.oldState);
+    expect(stateInfo.replacedByState).to.be.equal(publishedState.newState);
+    expect(stateInfo.createdAtTimestamp).to.be.equal(0);
+    expect(stateInfo.replacedAtTimestamp).to.be.equal(publishedState.timestamp);
+    expect(stateInfo.createdAtBlock).to.be.equal(0);
+    expect(stateInfo.replacedAtBlock).to.be.equal(publishedState.blockNumber);
+
+    const user2Inputs = stateTransitions.slice(2, 3);
+    const publishedStates2 = publishedStates.slice(2, 3);
+
+    const id2 = user2Inputs[0].pub_signals[0];
+    const historyLength2 = await state.getStateInfoHistoryLengthById(id2);
+    // the first state transition writes two states, so expect +1 state
+    expect(historyLength2).to.be.equal(user2Inputs.length + 1);
+
+    const stateInfos2 = await state.getStateInfoHistoryById(
+      id2,
+      0,
+      historyLength2
+    );
+    expect(stateInfos2.length).to.be.equal(historyLength2);
+
+    const publishedState2 = publishedStates2[0];
+    // second state info of the second identity
+    const [stateInfo2] = await state.getStateInfoHistoryById(id2, 1, 1);
+    expect(stateInfo2.id).to.be.equal(publishedState2.id);
+    expect(stateInfo2.state).to.be.equal(publishedState2.newState);
+    expect(stateInfo2.replacedByState).to.be.equal(0);
+    expect(stateInfo2.createdAtTimestamp).to.be.equal(
+      publishedState2.timestamp
+    );
+    expect(stateInfo2.replacedAtTimestamp).to.be.equal(0);
+    expect(stateInfo2.createdAtBlock).to.be.equal(publishedState2.blockNumber);
+    expect(stateInfo2.replacedAtBlock).to.be.equal(0);
+  });
+
+  it("should be reverted if length is zero", async () => {
+    const id = stateTransitions[0].pub_signals[0];
+
+    await expect(state.getStateInfoHistoryById(id, 0, 0)).to.be.revertedWith(
+      "Length should be greater than 0"
+    );
+  });
+
+  it("should be reverted if length limit exceeded", async () => {
+    const id = stateTransitions[0].pub_signals[0];
+
+    await expect(
+      state.getStateInfoHistoryById(id, 0, 10 ** 6)
+    ).to.be.revertedWith("History length limit exceeded");
+  });
+
+  it("should be reverted if out of bounds", async () => {
+    const id = stateTransitions[0].pub_signals[0];
+
+    await expect(state.getStateInfoHistoryById(id, 0, 100)).to.be.revertedWith(
+      "Out of bounds of state history"
+    );
+  });
+});
+
 describe("GIST proofs", () => {
   let state: any;
 
@@ -257,12 +355,10 @@ describe("GIST proofs", () => {
     }
 
     const rootHistoryLength = await state.getGISTRootHistoryLength();
+    expect(rootHistoryLength).to.equal(currentRoots.length);
 
     console.log("root history length: ", rootHistoryLength);
-    const [obj1, obj2] = await state.getGISTRootHistory(
-      0,
-      rootHistoryLength - 1
-    );
+    const [obj1, obj2] = await state.getGISTRootHistory(0, 2);
 
     const [root] = await state.getGISTProofByRoot(id, obj1.root);
     expect(obj1.root).to.equal(root);
@@ -280,11 +376,9 @@ describe("GIST proofs", () => {
     const id = ethers.BigNumber.from(stateTransitions[0].pub_signals[0]);
 
     const rootHistoryLength = await state.getGISTRootHistoryLength();
+    expect(rootHistoryLength).to.equal(stateTransitions.length);
 
-    const [root1info, root2info] = await state.getGISTRootHistory(
-      0,
-      rootHistoryLength - 1
-    );
+    const [root1info, root2info] = await state.getGISTRootHistory(0, 2);
 
     console.log(root1info);
     const [r1] = await state.getGISTProofByTime(
@@ -310,11 +404,9 @@ describe("GIST proofs", () => {
     const id = ethers.BigNumber.from(stateTransitions[0].pub_signals[0]);
 
     const rootHistoryLength = await state.getGISTRootHistoryLength();
+    expect(rootHistoryLength).to.equal(stateTransitions.length);
 
-    const [root1info, root2info] = await state.getGISTRootHistory(
-      0,
-      rootHistoryLength - 1
-    );
+    const [root1info, root2info] = await state.getGISTRootHistory(0, 2);
 
     const [root] = await state.getGISTProofByBlock(
       id,
@@ -344,7 +436,9 @@ describe("GIST root history", () => {
     }
     const id = ethers.BigNumber.from(stateTransitions[0].pub_signals[0]);
     const rootHistoryLength = await state.getGISTRootHistoryLength();
-    const [rootInfo] = await state.getGISTRootHistory(0, rootHistoryLength - 1);
+    expect(rootHistoryLength).to.equal(stateTransitions.length);
+
+    const [rootInfo] = await state.getGISTRootHistory(0, 1);
 
     const [rootB] = await state.getGISTProofByBlock(
       id,
