@@ -1,13 +1,12 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { publishState } from "./utils/deploy-utils";
-import { StateDeployHelper } from "../helpers/StateDeployHelper";
+import { publishState } from "../utils/deploy-utils";
+import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 import bigInt from "big-integer";
 
 const stateTransitions = [
-  require("./mtp/data/issuer_state_transition.json"),
-  require("./mtp/data/issuer_next_state_transition.json"),
-  require("./mtp/data/user_state_transition.json"),
+  require("./data/user_state_genesis_transition.json"),
+  require("./data/user_state_next_transition.json"),
 ];
 
 describe("State transitions positive cases", () => {
@@ -148,21 +147,23 @@ describe("State transition negative cases", () => {
     await publishState(state, stateTransitions[0]);
 
     const modifiedStateTransition = JSON.parse(
-      JSON.stringify(stateTransitions[2])
+      JSON.stringify(stateTransitions[0])
     );
 
-    // set the oldState of first identity publishing the same as existing state
-    modifiedStateTransition.pub_signals[1] = stateTransitions[0].pub_signals[2];
-    const [id, _, newState] = modifiedStateTransition.pub_signals[0];
+    modifiedStateTransition.pub_signals[0] = 1;
 
+    const [id, _, newState] = modifiedStateTransition.pub_signals;
     const expectedErrorText = "oldState should not exist";
     let isException = false;
     try {
       await publishState(state, modifiedStateTransition);
     } catch (e: any) {
       isException = true;
+      console.log("+++++++++++++++++");
+      console.log(e.message);
       expect(e.message).contains(expectedErrorText);
     }
+
     expect(isException).to.equal(true);
 
     const res = await state.getStateInfoById(id);
@@ -178,7 +179,7 @@ describe("State transition negative cases", () => {
 
     // set the new state of identity publishing the same as the existing state
     modifiedStateTransition.pub_signals[2] = stateTransitions[0].pub_signals[1];
-    const [id, _, newState] = modifiedStateTransition.pub_signals[0];
+    const [id, _, newState] = modifiedStateTransition.pub_signals;
 
     const expectedErrorText = "newState should not exist";
     let isException = false;
