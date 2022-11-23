@@ -15,6 +15,8 @@ interface IVerifier {
     ) external view returns (bool r);
 }
 
+uint256 constant ID_HISTORY_RETURN_LIMIT = 1000;
+
 /**
  * @dev Struct for public interfaces to represent a state information.
  * @param id identity.
@@ -73,7 +75,7 @@ contract StateV2 is OwnableUpgradeable {
     /**
      * @dev Global Identity State Tree (GIST) data
      */
-    SmtData internal gistData;
+    SmtData internal _gistData;
 
     /**
      * @dev event called when a state is updated
@@ -91,48 +93,48 @@ contract StateV2 is OwnableUpgradeable {
 
     /**
      * @dev Initialize the contract
-     * @param _verifierContractAddr Verifier address
+     * @param verifierContractAddr Verifier address
      */
-    function initialize(IVerifier _verifierContractAddr) public initializer {
-        verifier = _verifierContractAddr;
+    function initialize(IVerifier verifierContractAddr) public initializer {
+        verifier = verifierContractAddr;
         __Ownable_init();
     }
 
     /**
      * @dev Set ZKP verifier contract address
-     * @param _newVerifierAddr Verifier contract address
+     * @param newVerifierAddr Verifier contract address
      */
-    function setVerifier(address _newVerifierAddr) public onlyOwner {
-        verifier = IVerifier(_newVerifierAddr);
+    function setVerifier(address newVerifierAddr) public onlyOwner {
+        verifier = IVerifier(newVerifierAddr);
     }
 
     /**
      * @dev Change the state of an identity (transit to the new state) with ZKP ownership check.
-     * @param _id Identity
-     * @param _oldState Previous identity state
-     * @param _newState New identity state
-     * @param _isOldStateGenesis Is the previous state genesis?
+     * @param id Identity
+     * @param oldState Previous identity state
+     * @param newState New identity state
+     * @param isOldStateGenesis Is the previous state genesis?
      * @param a ZKP proof field
      * @param b ZKP proof field
      * @param c ZKP proof field
      */
     function transitState(
-        uint256 _id,
-        uint256 _oldState,
-        uint256 _newState,
-        bool _isOldStateGenesis,
+        uint256 id,
+        uint256 oldState,
+        uint256 newState,
+        bool isOldStateGenesis,
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
     ) public {
-        if (_isOldStateGenesis == false) {
+        if (isOldStateGenesis == false) {
             require(
-                statesHistories[_id].length > 0,
+                statesHistories[id].length > 0,
                 "there should be at least one state for identity in smart contract when _isOldStateGenesis == 0"
             );
 
-            uint256 previousIDState = statesHistories[_id][
-                statesHistories[_id].length - 1
+            uint256 previousIDState = statesHistories[id][
+                statesHistories[id].length - 1
             ];
 
             require(
@@ -140,54 +142,54 @@ contract StateV2 is OwnableUpgradeable {
                 "no multiple set in the same block"
             );
             require(
-                previousIDState == _oldState,
+                previousIDState == oldState,
                 "_oldState argument should be equal to the latest identity state in smart contract when isOldStateGenesis == 0"
             );
         } else {
             require(
-                statesHistories[_id].length == 0,
+                statesHistories[id].length == 0,
                 "there should be no states for identity in smart contract when _isOldStateGenesis != 0"
             );
             require(
-                stateEntries[_oldState].id == 0,
+                stateEntries[oldState].id == 0,
                 "oldState should not exist"
             );
             // link genesis state to Id in the smart contract, but creation time and creation block is unknown
-            stateEntries[_oldState].id = _id;
+            stateEntries[oldState].id = id;
             // push genesis state to identities as latest state
-            statesHistories[_id].push(_oldState);
+            statesHistories[id].push(oldState);
         }
 
-        require(stateEntries[_newState].id == 0, "newState should not exist");
+        require(stateEntries[newState].id == 0, "newState should not exist");
 
         uint256[4] memory input = [
-            _id,
-            _oldState,
-            _newState,
-            uint256(_isOldStateGenesis ? 1 : 0)
+            id,
+            oldState,
+            newState,
+            uint256(isOldStateGenesis ? 1 : 0)
         ];
         require(
             verifier.verifyProof(a, b, c, input),
             "zero-knowledge proof of state transition is not valid "
         );
 
-        statesHistories[_id].push(_newState);
+        statesHistories[id].push(newState);
 
         // Set create info for new state
-        stateEntries[_newState] = StateEntry({
-            id: _id,
+        stateEntries[newState] = StateEntry({
+            id: id,
             timestamp: block.timestamp,
             block: block.number,
             replacedBy: 0
         });
 
         // Set replace info for old state
-        stateEntries[_oldState].replacedBy = _newState;
+        stateEntries[oldState].replacedBy = newState;
 
         // put state to GIST to recalculate global state
-        gistData.add(PoseidonUnit1L.poseidon([_id]), _newState);
+        _gistData.add(PoseidonUnit1L.poseidon([id]), newState);
 
-        emit StateUpdated(_id, block.number, block.timestamp, _newState);
+        emit StateUpdated(id, block.number, block.timestamp, newState);
     }
 
     /**
@@ -200,63 +202,90 @@ contract StateV2 is OwnableUpgradeable {
 
     /**
      * @dev Retrieve the last state info for a given identity
-     * @param _id identity
+     * @param id identity
      * @return state info of the last committed state
      */
-    function getStateInfoById(uint256 _id)
+    function getStateInfoById(uint256 id)
         public
         view
         returns (StateInfo memory)
     {
         StateInfo memory stateInfo;
-        if (statesHistories[_id].length > 0) {
+        if (statesHistories[id].length > 0) {
             stateInfo = getStateInfoByState(
-                statesHistories[_id][statesHistories[_id].length - 1]
+                statesHistories[id][statesHistories[id].length - 1]
             );
         }
         return stateInfo;
     }
 
     /**
-     * Retrieve all state infos for a given identity
-     * @param _id identity
-     * @return A list of state infos of the identity
+     * @dev Retrieve states quantity for a given identity
+     * @param id identity
+     * @return states quantity
      */
-    function getAllStateInfosById(uint256 _id)
+    function getStateInfoHistoryLengthById(uint256 id)
         public
         view
-        returns (StateInfo[] memory)
+        returns (uint256)
     {
-        StateInfo[] memory states = new StateInfo[](
-            statesHistories[_id].length
+        return statesHistories[id].length;
+    }
+
+    /**
+     * Retrieve state infos for a given identity
+     * @param id identity
+     * @param startIndex start index of the state history
+     * @param length length of the state history
+     * @return A list of state infos of the identity
+     */
+    function getStateInfoHistoryById(
+        uint256 id,
+        uint256 startIndex,
+        uint256 length
+    ) public view returns (StateInfo[] memory) {
+        require(length > 0, "Length should be greater than 0");
+        require(
+            length <= ID_HISTORY_RETURN_LIMIT,
+            "History length limit exceeded"
         );
-        for (uint256 i = 0; i < statesHistories[_id].length; i++) {
-            states[i] = getStateInfoByState(statesHistories[_id][i]);
+
+        uint256 endIndex = startIndex + length;
+        require(
+            endIndex <= statesHistories[id].length,
+            "Out of bounds of state history"
+        );
+
+        StateInfo[] memory states = new StateInfo[](length);
+        uint256 j = 0;
+        for (uint256 i = startIndex; i < endIndex; i++) {
+            states[j] = getStateInfoByState(statesHistories[id][i]);
+            j++;
         }
         return states;
     }
 
     /**
      * @dev Retrieve state information by state.
-     * @param _state A state
+     * @param state A state
      * @return The state info
      */
-    function getStateInfoByState(uint256 _state)
+    function getStateInfoByState(uint256 state)
         public
         view
         returns (StateInfo memory)
     {
-        uint256 replByState = stateEntries[_state].replacedBy;
+        uint256 replByState = stateEntries[state].replacedBy;
         return
             StateInfo({
-                id: stateEntries[_state].id,
-                state: _state,
+                id: stateEntries[state].id,
+                state: state,
                 replacedByState: replByState,
-                createdAtTimestamp: stateEntries[_state].timestamp,
+                createdAtTimestamp: stateEntries[state].timestamp,
                 replacedAtTimestamp: replByState == 0
                     ? 0
                     : stateEntries[replByState].timestamp,
-                createdAtBlock: stateEntries[_state].block,
+                createdAtBlock: stateEntries[state].block,
                 replacedAtBlock: replByState == 0
                     ? 0
                     : stateEntries[replByState].block
@@ -265,57 +294,61 @@ contract StateV2 is OwnableUpgradeable {
 
     /**
      * @dev Retrieve GIST inclusion or non-inclusion proof for a given identity.
-     * @param _id Identity
+     * @param id Identity
      * @return The GIST inclusion or non-inclusion proof for the identity
      */
-    function getGISTProof(uint256 _id) public view returns (Proof memory) {
-        return gistData.getProof(PoseidonUnit1L.poseidon([_id]));
+    function getGISTProof(uint256 id) public view returns (Proof memory) {
+        return _gistData.getProof(PoseidonUnit1L.poseidon([id]));
     }
 
     /**
      * @dev Retrieve GIST inclusion or non-inclusion proof for a given identity for
      * some GIST root in the past.
-     * @param _id Identity
-     * @param _root GIST root
+     * @param id Identity
+     * @param root GIST root
      * @return The GIST inclusion or non-inclusion proof for the identity
      */
-    function getGISTProofByRoot(uint256 _id, uint256 _root)
+    function getGISTProofByRoot(uint256 id, uint256 root)
         public
         view
         returns (Proof memory)
     {
-        return gistData.getProofByRoot(PoseidonUnit1L.poseidon([_id]), _root);
+        return _gistData.getProofByRoot(PoseidonUnit1L.poseidon([id]), root);
     }
 
     /**
      * @dev Retrieve GIST inclusion or non-inclusion proof for a given identity
      * for GIST root existed in some block or later.
-     * @param _id Identity
-     * @param _block Blockchain block number
+     * @param id Identity
+     * @param blockNumber Blockchain block number
      * @return The GIST inclusion or non-inclusion proof for the identity
      */
-    function getGISTProofByBlock(uint256 _id, uint256 _block)
-        public
-        view
-        returns (Proof memory)
-    {
-        return gistData.getProofByBlock(PoseidonUnit1L.poseidon([_id]), _block);
-    }
-
-    /**
-     * @dev Retrieve GIST inclusion or non-inclusion proof for a given identity
-     * for GIST root existed for some blockchain timestamp or later.
-     * @param _id Identity
-     * @param _timestamp Blockchain timestamp
-     * @return The GIST inclusion or non-inclusion proof for the identity
-     */
-    function getGISTProofByTime(uint256 _id, uint256 _timestamp)
+    function getGISTProofByBlock(uint256 id, uint256 blockNumber)
         public
         view
         returns (Proof memory)
     {
         return
-            gistData.getProofByTime(PoseidonUnit1L.poseidon([_id]), _timestamp);
+            _gistData.getProofByBlock(
+                PoseidonUnit1L.poseidon([id]),
+                blockNumber
+            );
+    }
+
+    /**
+     * @dev Retrieve GIST inclusion or non-inclusion proof for a given identity
+     * for GIST root existed for some blockchain timestamp or later.
+     * @param id Identity
+     * @param timestamp Blockchain timestamp
+     * @return The GIST inclusion or non-inclusion proof for the identity
+     */
+    function getGISTProofByTime(uint256 id, uint256 timestamp)
+        public
+        view
+        returns (Proof memory)
+    {
+        return
+            _gistData.getProofByTime(PoseidonUnit1L.poseidon([id]), timestamp);
     }
 
     /**
@@ -323,21 +356,21 @@ contract StateV2 is OwnableUpgradeable {
      * @return The latest GIST root
      */
     function getGISTRoot() public view returns (uint256) {
-        return gistData.getRoot();
+        return _gistData.getRoot();
     }
 
     /**
-     * @dev Retrieve the GIST root history slice.
-     * @param _start Start index in the history array
-     * @param _end End index in the history array
-     * @return GIST roots list.
+     * @dev Retrieve the GIST root history.
+     * @param start Start index in the root history
+     * @param length Length of the root history
+     * @return GIST Array of roots infos
      */
-    function getGISTRootHistory(uint256 _start, uint256 _end)
+    function getGISTRootHistory(uint256 start, uint256 length)
         public
         view
         returns (RootInfo[] memory)
     {
-        return gistData.getRootHistory(_start, _end);
+        return _gistData.getRootHistory(start, length);
     }
 
     /**
@@ -345,45 +378,45 @@ contract StateV2 is OwnableUpgradeable {
      * @return The GIST root history length
      */
     function getGISTRootHistoryLength() public view returns (uint256) {
-        return gistData.rootHistory.length;
+        return _gistData.rootHistory.length;
     }
 
     /**
      * @dev Retrieve the specific GIST root information.
-     * @param _root GIST root
+     * @param root GIST root
      * @return The GIST root info
      */
-    function getGISTRootInfo(uint256 _root)
+    function getGISTRootInfo(uint256 root)
         public
         view
         returns (RootInfo memory)
     {
-        return gistData.getRootInfo(_root);
+        return _gistData.getRootInfo(root);
     }
 
     /**
      * @dev Retrieve the GIST root information, which existed at some block or later.
-     * @param _block Blockchain block number
+     * @param blockNumber Blockchain block number
      * @return The GIST root info
      */
-    function getGISTRootInfoByBlock(uint256 _block)
+    function getGISTRootInfoByBlock(uint256 blockNumber)
         public
         view
         returns (RootInfo memory)
     {
-        return gistData.getRootInfoByBlock(_block);
+        return _gistData.getRootInfoByBlock(blockNumber);
     }
 
     /**
      * @dev Retrieve the GIST root information, which existed at some blockchain timestamp or later.
-     * @param _timestamp Blockchain timestamp
+     * @param timestamp Blockchain timestamp
      * @return The GIST root info
      */
-    function getGISTRootInfoByTime(uint256 _timestamp)
+    function getGISTRootInfoByTime(uint256 timestamp)
         public
         view
         returns (RootInfo memory)
     {
-        return gistData.getRootInfoByTime(_timestamp);
+        return _gistData.getRootInfoByTime(timestamp);
     }
 }

@@ -2,9 +2,16 @@ import { expect } from "chai";
 
 import { FixedArray, genMaxBinaryNumber, MtpProof } from "../utils/utils";
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
+import { publishState } from "../utils/deploy-utils";
 
 // todo [RESEARCH] why the index 2**31-1 but not 2**32-1 is maximum? Research smtverifier in circomlib
 // todo [RESEARCH] why circom verifier has 33 siblings instead of 32?
+
+const stateTransitions = [
+  require("../mtp/data/issuer_state_transition.json"),
+  require("../mtp/data/issuer_next_state_transition.json"),
+  require("../mtp/data/user_state_transition.json"),
+];
 
 type TestCaseMTPProof = {
   expectedProof: MtpProof;
@@ -28,7 +35,7 @@ type TestCaseRootHistory = {
 };
 
 describe("SMT tests", function () {
-  describe("Check merkle tree proofs of SMT", () => {
+  describe("Merkle tree proofs of SMT", () => {
     let smt;
 
     beforeEach(async () => {
@@ -783,7 +790,68 @@ describe("SMT tests", function () {
     });
   });
 
-  describe("Check SMT root history", () => {
+  describe("Root history requests", function () {
+    this.timeout(5000);
+
+    let state;
+    let pubStates: { [key: string]: string | number }[] = [];
+
+    before(async () => {
+      const deployHelper = await StateDeployHelper.initialize();
+      const contracts = await deployHelper.deployStateV2();
+      state = contracts.state;
+
+      pubStates = [];
+      for (const stateTransition of stateTransitions) {
+        pubStates.push(await publishState(state, stateTransition));
+      }
+    });
+
+    it("should return the root history", async () => {
+      const historyLength = await state.getGISTRootHistoryLength();
+      expect(historyLength).to.be.equal(stateTransitions.length);
+
+      const rootInfos = await state.getGISTRootHistory(0, historyLength);
+      expect(rootInfos.length).to.be.equal(historyLength);
+
+      const [rootInfo] = await state.getGISTRootHistory(0, 1);
+      expect(rootInfo.root).not.to.be.equal(0);
+      expect(rootInfo.replacedByRoot).not.to.be.equal(0);
+      expect(rootInfo.createdAtTimestamp).to.be.equal(pubStates[0].timestamp);
+      expect(rootInfo.replacedAtTimestamp).to.be.equal(pubStates[1].timestamp);
+      expect(rootInfo.createdAtBlock).to.be.equal(pubStates[0].blockNumber);
+      expect(rootInfo.replacedAtBlock).to.be.equal(pubStates[1].blockNumber);
+
+      const [rootInfo2] = await state.getGISTRootHistory(2, 1);
+      expect(rootInfo2.root).not.to.be.equal(0);
+      expect(rootInfo2.replacedByRoot).to.be.equal(0);
+      expect(rootInfo2.createdAtTimestamp).to.be.equal(pubStates[2].timestamp);
+      expect(rootInfo2.replacedAtTimestamp).to.be.equal(0);
+      expect(rootInfo2.createdAtBlock).to.be.equal(pubStates[2].blockNumber);
+      expect(rootInfo2.replacedAtBlock).to.be.equal(0);
+    });
+
+    it("should revert if length is zero", async () => {
+      await expect(state.getGISTRootHistory(0, 0)).to.be.revertedWith(
+        "Length should be greater than 0"
+      );
+    });
+
+    it("should be reverted if length limit exceeded", async () => {
+      await expect(state.getGISTRootHistory(0, 10 ** 6)).to.be.revertedWith(
+        "History length limit exceeded"
+      );
+    });
+
+    it("should be reverted if out of bounds", async () => {
+      const historyLength = await state.getGISTRootHistoryLength();
+      await expect(
+        state.getGISTRootHistory(historyLength - 1, 2)
+      ).to.be.revertedWith("Out of bounds of root history");
+    });
+  });
+
+  describe("Binary search in SMT root history", () => {
     let binarySearch;
 
     async function addRootEntries(rts: RootEntry[]) {
