@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
 interface IState {
@@ -14,4 +15,14 @@ interface IState {
             uint256,
             uint256
         );
+
+    function transitState(
+        uint256 id,
+        uint256 oldState,
+        uint256 newState,
+        bool isOldStateGenesis,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c
+    ) external;
 }
