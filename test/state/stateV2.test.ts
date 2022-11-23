@@ -259,7 +259,6 @@ describe("State history", function () {
 
     const id = user1Inputs[0].pub_signals[0];
     const historyLength = await state.getStateInfoHistoryLengthById(id);
-    // the first state transition writes two states, so expect +1 state
     expect(historyLength).to.be.equal(user1Inputs.length + 1);
 
     const stateInfos = await state.getStateInfoHistoryById(
@@ -280,33 +279,23 @@ describe("State history", function () {
     expect(stateInfo.createdAtBlock).to.be.equal(0);
     expect(stateInfo.replacedAtBlock).to.be.equal(publishedState.blockNumber);
 
-    const user2Inputs = stateTransitions.slice(2, 3);
-    const publishedStates2 = publishedStates.slice(2, 3);
 
-    const id2 = user2Inputs[0].pub_signals[0];
-    const historyLength2 = await state.getStateInfoHistoryLengthById(id2);
-    // the first state transition writes two states, so expect +1 state
-    expect(historyLength2).to.be.equal(user2Inputs.length + 1);
 
-    const stateInfos2 = await state.getStateInfoHistoryById(
-      id2,
-      0,
-      historyLength2
-    );
-    expect(stateInfos2.length).to.be.equal(historyLength2);
-
-    const publishedState2 = publishedStates2[0];
-    // second state info of the second identity
-    const [stateInfo2] = await state.getStateInfoHistoryById(id2, 1, 1);
+    const publishedState2 = publishedStates1[1];
+    // genesis state info of the first identity (from the contract)
+    const [stateInfo2] = await state.getStateInfoHistoryById(id, 2, 1);
+    console.log(stateInfo2);
+    console.log(publishedStates1);
     expect(stateInfo2.id).to.be.equal(publishedState2.id);
     expect(stateInfo2.state).to.be.equal(publishedState2.newState);
     expect(stateInfo2.replacedByState).to.be.equal(0);
-    expect(stateInfo2.createdAtTimestamp).to.be.equal(
-      publishedState2.timestamp
-    );
+    expect(stateInfo2.createdAtTimestamp).to.be.equal(publishedState2.timestamp);
     expect(stateInfo2.replacedAtTimestamp).to.be.equal(0);
     expect(stateInfo2.createdAtBlock).to.be.equal(publishedState2.blockNumber);
     expect(stateInfo2.replacedAtBlock).to.be.equal(0);
+
+
+
   });
 
   it("should be reverted if length is zero", async () => {

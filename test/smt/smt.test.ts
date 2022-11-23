@@ -8,9 +8,8 @@ import { publishState } from "../utils/deploy-utils";
 // todo [RESEARCH] why circom verifier has 33 siblings instead of 32?
 
 const stateTransitions = [
-  require("../mtp/data/issuer_state_transition.json"),
-  require("../mtp/data/issuer_next_state_transition.json"),
-  require("../mtp/data/user_state_transition.json"),
+  require("../state/data/user_state_genesis_transition.json"),
+  require("../state/data/user_state_next_transition.json"),
 ];
 
 type TestCaseMTPProof = {
@@ -822,12 +821,12 @@ describe("SMT tests", function () {
       expect(rootInfo.createdAtBlock).to.be.equal(pubStates[0].blockNumber);
       expect(rootInfo.replacedAtBlock).to.be.equal(pubStates[1].blockNumber);
 
-      const [rootInfo2] = await state.getGISTRootHistory(2, 1);
+      const [rootInfo2] = await state.getGISTRootHistory(1, 1);
       expect(rootInfo2.root).not.to.be.equal(0);
       expect(rootInfo2.replacedByRoot).to.be.equal(0);
-      expect(rootInfo2.createdAtTimestamp).to.be.equal(pubStates[2].timestamp);
+      expect(rootInfo2.createdAtTimestamp).to.be.equal(pubStates[1].timestamp);
       expect(rootInfo2.replacedAtTimestamp).to.be.equal(0);
-      expect(rootInfo2.createdAtBlock).to.be.equal(pubStates[2].blockNumber);
+      expect(rootInfo2.createdAtBlock).to.be.equal(pubStates[1].blockNumber);
       expect(rootInfo2.replacedAtBlock).to.be.equal(0);
     });
 
