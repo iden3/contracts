@@ -25,4 +25,11 @@ interface IState {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) external;
+
+    function transitStateOnchainIdentity(
+        uint256 id,
+        uint256 oldState,
+        uint256 newState,
+        bool isOldStateGenesis
+    ) external;
 }

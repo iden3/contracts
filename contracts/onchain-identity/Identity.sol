@@ -4,8 +4,9 @@ pragma abicoder v2;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "../interfaces/IState.sol";
-import "../lib/Smt.sol";
+import "../lib/GenesisUtils.sol";
 import "../lib/Poseidon.sol";
+import "../lib/Smt.sol";
 
 // /**
 //  * @dev Contract managing onchain identity
@@ -30,26 +31,37 @@ contract Identity is OwnableUpgradeable {
     /**
      * @dev SMT address
      */
-    SmtData public claimsTree;
-    SmtData public revocationsTree;
-    SmtData public rootsTree;
+    SmtData internal claimsTree;
+    SmtData internal revocationsTree;
+    SmtData internal rootsTree;
 
     uint256 public lastClaimsTreeRoot;
 
     bytes2 public constant IdentityTypeDefault = 0x0000;
+    bytes2 public constant IdentityTypeOnchain = 0x0100;
 
     function initialize(
         address _stateContractAddr
     ) public initializer {
         state = IState(_stateContractAddr);
         isOldStateGenesis = true;
-        // TODO: create claim with contract address or address of owner
-        //uint256(abi.encodePacked(address(this)));
-        claimsTree.add(0, uint160(msg.sender));
-        lastClaimsTreeRoot = claimsTree.root;
+        claimsTree.add(0, uint256(uint160(address(this))));
+        lastClaimsTreeRoot = claimsTree.getRoot();
         identityState = calcIdentityState();
-        id = calcId(IdentityTypeDefault, identityState);
+        id = GenesisUtils.calcOnchainIdFromAddress(address(this));
        __Ownable_init();
+    }
+
+    function addClaim(uint256[8] memory claim) public onlyOwner {
+        uint256[4] memory claimIndex;
+        uint256[4] memory claimValue;
+        for (uint8 i=0; i<4; i++ ) {
+            claimIndex[i] = claim[i];
+            claimValue[i] = claim[i+4];
+        }
+        uint256 hashIndex = PoseidonUnit4L.poseidon(claimIndex);
+        uint256 hashValue = PoseidonUnit4L.poseidon(claimValue);
+        claimsTree.add(hashIndex, hashValue);
     }
 
     function addClaimHash(uint256 hashIndex, uint256 hashValue) public onlyOwner {
@@ -65,80 +77,40 @@ contract Identity is OwnableUpgradeable {
         require(newIdentityState != identityState, "Identity trees haven't changed");
 
         // if claimsTreeRoot changed, then add it to rootsTree
-        if (lastClaimsTreeRoot != claimsTree.root) {
-            rootsTree.add(claimsTree.root, 0);
+        if (lastClaimsTreeRoot != claimsTree.getRoot()) {
+            rootsTree.add(claimsTree.getRoot(), 0);
         }
 
-        // empty proof
-        uint256[2] memory a;
-        uint256[2][2] memory b;
-        uint256[2] memory c;
-
         // do state transition in State Contract
-        state.transitState(id, identityState, newIdentityState, isOldStateGenesis, a, b, c);
+        state.transitStateOnchainIdentity(id, identityState, newIdentityState, isOldStateGenesis);
 
         // update internal state vars
         identityState = newIdentityState;
-        lastClaimsTreeRoot = claimsTree.root;
+        lastClaimsTreeRoot = claimsTree.getRoot();
         if (isOldStateGenesis) {
             isOldStateGenesis = false;
         }
     }
 
     function calcIdentityState() public view returns (uint256) {
-        return PoseidonUnit3L.poseidon([claimsTree.root, revocationsTree.root, rootsTree.root]);
+        return PoseidonUnit3L.poseidon([claimsTree.getRoot(), revocationsTree.getRoot(), rootsTree.getRoot()]);
     }
 
-    function calcId(bytes2 typ, uint256 genesisIdentityState) pure public returns (uint256) {
-
-        bytes32 genState = bytes32(genesisIdentityState);
-
-        bytes memory genesis = new bytes(27);
-        // copy last 27 bytes
-        for (uint8 i=0; i < 27; i++) {
-            genesis[i] = genState[i+5]; // 5 = 32-27
-        }
-
-        bytes memory checksum = calculateChecksum(typ, genesis);
-        bytes memory b = new bytes(32);
-        // we are using only 31 bytes, so append one additional empty byte
-        b[0] = 0;
-        // write type
-        b[1] = typ[0];
-        b[2] = typ[1];
-        // write genesis bytes
-        for (uint8 i=0; i < 27; i++) {
-            b[i+1] = genesis[i];
-        }
-        // write check sum
-        b[29] = checksum[0];
-        b[30] = checksum[1];
-        // convert to int and return
-        return toUint256(b, 0);
+    /**
+     * @dev Retrieve Claim inclusion or non-inclusion proof for a given claim index.
+     * @param claimIndexHash hash of Claim Index
+     * @return The ClaimsTree inclusion or non-inclusion proof for the claim
+     */
+    function getClaimProof(uint256 claimIndexHash) public view returns (Proof memory) {
+        return claimsTree.getProof(claimIndexHash);
     }
 
-    // calculateChecksum returns the checksum for a given type and genesis_root
-    function calculateChecksum(bytes2 typ, bytes memory genesis) pure public returns (bytes memory) {
-        uint16 s;
-        s += uint8(typ[0]);
-        s += uint8(typ[1]);
-        for (uint8 i=0; i < 27; i++) {
-            s += uint8(genesis[i]);
-        }
-        bytes memory checksum = new bytes(2);
-        checksum[0] = bytes1(uint8(s >> 8));
-        checksum[1] = bytes1(uint8(s & 0xff));
-        return checksum;
+    /**
+     * @dev Retrieve ClaimsTree latest root.
+     * @return The latest ClaimsTree root
+     */
+    function getClaimsTreeRoot() public view returns (uint256) {
+        return claimsTree.getRoot();
     }
 
-    function toUint256(bytes memory _bytes, uint256 _start) internal pure returns (uint256) {
-        require(_bytes.length >= _start + 32, "toUint256_outOfBounds");
-        uint256 tempUint;
-
-        assembly {
-            tempUint := mload(add(add(_bytes, 0x20), _start))
-        }
-
-        return tempUint;
-    }
 }

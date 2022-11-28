@@ -4,6 +4,9 @@ pragma solidity ^0.8.0;
 import "solidity-bytes-utils/contracts/BytesLib.sol";
 
 library GenesisUtils {
+    bytes2 public constant IdentityTypeDefault = 0x0000;
+    bytes2 public constant IdentityTypeOnchain = 0x0100;
+
     /**
      * @dev int256ToBytes
      */
@@ -105,12 +108,12 @@ library GenesisUtils {
     }
 
     /**
-     * @dev isGenesisState
+     * @dev calcIdFromGenesisState
      */
-    function isGenesisState(uint256 id, uint256 idState)
+    function calcIdFromGenesisState(bytes2 idType, uint256 idState)
         internal
         pure
-        returns (bool)
+        returns (uint256)
     {
         uint256 userSwappedState = reverse(idState);
 
@@ -122,9 +125,9 @@ library GenesisUtils {
             27
         );
 
-        bytes memory typDefault = hex"0000";
+        bytes memory _idType = abi.encodePacked(idType);
 
-        bytes memory beforeChecksum = BytesLib.concat(typDefault, cutState);
+        bytes memory beforeChecksum = BytesLib.concat(_idType, cutState);
         require(
             beforeChecksum.length == 29,
             "Checksum requires 29 length array"
@@ -137,7 +140,33 @@ library GenesisUtils {
         bytes memory idBytes = BytesLib.concat(beforeChecksum, checkSumBytes);
         require(idBytes.length == 31, "idBytes requires 31 length array");
 
-        return id == reverse(toUint256(idBytes));
+        return  reverse(toUint256(idBytes));
+    }
+
+    /**
+     * @dev calcOnchainIdFromAddress
+     */
+    function calcOnchainIdFromAddress(address caller)
+    internal
+    pure
+    returns (uint256)
+    {
+        // shift address left 5 bytes, because calcIdFromGenesisState cuts last 5 bytes
+        // TODO: do we need to reverse bytes of addrShifted???
+        uint256 addrShifted = uint256(uint160(caller)) << 40;
+        return calcIdFromGenesisState(IdentityTypeOnchain, addrShifted);
+    }
+        /**
+         * @dev isGenesisState
+     */
+    function isGenesisState(uint256 id, uint256 idState)
+        internal
+        pure
+        returns (bool)
+    {
+        uint256 computedId = calcIdFromGenesisState(IdentityTypeDefault, idState);
+
+        return id == computedId;
     }
 
     /**

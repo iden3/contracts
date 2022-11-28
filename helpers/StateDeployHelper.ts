@@ -54,6 +54,7 @@ export class StateDeployHelper {
     poseidon1: Contract;
     poseidon2: Contract;
     poseidon3: Contract;
+    poseidon4: Contract;
   }> {
     this.log("======== StateV2: deploy started ========");
 
@@ -68,8 +69,8 @@ export class StateDeployHelper {
     );
 
     this.log("deploying poseidons...");
-    const [poseidon1Elements, poseidon2Elements, poseidon3Elements] =
-      await this.deployPoseidons(owner, [1, 2, 3]);
+    const [poseidon1Elements, poseidon2Elements, poseidon3Elements, poseidon4Elements] =
+      await this.deployPoseidons(owner, [1, 2, 3, 4]);
 
     this.log("deploying SMT...");
     const smt = await this.deploySmt(
@@ -105,6 +106,7 @@ export class StateDeployHelper {
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
+      poseidon4: poseidon4Elements,
     };
   }
 

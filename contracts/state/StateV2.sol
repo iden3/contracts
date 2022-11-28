@@ -3,8 +3,9 @@ pragma solidity 0.8.15;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "../lib/Smt.sol";
+import "../lib/GenesisUtils.sol";
 import "../lib/Poseidon.sol";
+import "../lib/Smt.sol";
 
 interface IVerifier {
     function verifyProof(
@@ -127,41 +128,6 @@ contract StateV2 is OwnableUpgradeable {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) public {
-        if (isOldStateGenesis == false) {
-            require(
-                statesHistories[id].length > 0,
-                "there should be at least one state for identity in smart contract when _isOldStateGenesis == 0"
-            );
-
-            uint256 previousIDState = statesHistories[id][
-                statesHistories[id].length - 1
-            ];
-
-            require(
-                stateEntries[previousIDState].block != block.number,
-                "no multiple set in the same block"
-            );
-            require(
-                previousIDState == oldState,
-                "_oldState argument should be equal to the latest identity state in smart contract when isOldStateGenesis == 0"
-            );
-        } else {
-            require(
-                statesHistories[id].length == 0,
-                "there should be no states for identity in smart contract when _isOldStateGenesis != 0"
-            );
-            require(
-                stateEntries[oldState].id == 0,
-                "oldState should not exist"
-            );
-            // link genesis state to Id in the smart contract, but creation time and creation block is unknown
-            stateEntries[oldState].id = id;
-            // push genesis state to identities as latest state
-            statesHistories[id].push(oldState);
-        }
-
-        require(stateEntries[newState].id == 0, "newState should not exist");
-
         uint256[4] memory input = [
             id,
             oldState,
@@ -173,23 +139,7 @@ contract StateV2 is OwnableUpgradeable {
             "zero-knowledge proof of state transition is not valid "
         );
 
-        statesHistories[id].push(newState);
-
-        // Set create info for new state
-        stateEntries[newState] = StateEntry({
-            id: id,
-            timestamp: block.timestamp,
-            block: block.number,
-            replacedBy: 0
-        });
-
-        // Set replace info for old state
-        stateEntries[oldState].replacedBy = newState;
-
-        // put state to GIST to recalculate global state
-        _gistData.add(PoseidonUnit1L.poseidon([id]), newState);
-
-        emit StateUpdated(id, block.number, block.timestamp, newState);
+        _transitState(id, oldState, newState, isOldStateGenesis);
     }
 
     /**
@@ -419,4 +369,96 @@ contract StateV2 is OwnableUpgradeable {
     {
         return _gistData.getRootInfoByTime(timestamp);
     }
+
+    /**
+     * @dev Change the state of an identity (transit to the new state) with ZKP ownership check.
+     * @param id Identity
+     * @param oldState Previous identity state
+     * @param newState New identity state
+     * @param isOldStateGenesis Is the previous state genesis?
+     */
+    function transitStateOnchainIdentity(
+        uint256 id,
+        uint256 oldState,
+        uint256 newState,
+        bool isOldStateGenesis
+    ) public {
+
+        uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(msg.sender);
+        require(
+            calcId == id,
+            "msg.sender is not owner of the identity"
+        );
+
+        _transitState(id, oldState, newState, isOldStateGenesis);
+    }
+
+
+    /**
+     * @dev Change the state of an identity (transit to the new state) with ZKP ownership check.
+     * @param id Identity
+     * @param oldState Previous identity state
+     * @param newState New identity state
+     * @param isOldStateGenesis Is the previous state genesis?
+     */
+    function _transitState(
+        uint256 id,
+        uint256 oldState,
+        uint256 newState,
+        bool isOldStateGenesis
+    ) private {
+        if (isOldStateGenesis == false) {
+            require(
+                statesHistories[id].length > 0,
+                "there should be at least one state for identity in smart contract when _isOldStateGenesis == 0"
+            );
+
+            uint256 previousIDState = statesHistories[id][
+            statesHistories[id].length - 1
+            ];
+
+            require(
+                stateEntries[previousIDState].block != block.number,
+                "no multiple set in the same block"
+            );
+            require(
+                previousIDState == oldState,
+                "_oldState argument should be equal to the latest identity state in smart contract when isOldStateGenesis == 0"
+            );
+        } else {
+            require(
+                statesHistories[id].length == 0,
+                "there should be no states for identity in smart contract when _isOldStateGenesis != 0"
+            );
+            require(
+                stateEntries[oldState].id == 0,
+                "oldState should not exist"
+            );
+            // link genesis state to Id in the smart contract, but creation time and creation block is unknown
+            stateEntries[oldState].id = id;
+            // push genesis state to identities as latest state
+            statesHistories[id].push(oldState);
+        }
+
+        require(stateEntries[newState].id == 0, "newState should not exist");
+
+        statesHistories[id].push(newState);
+
+        // Set create info for new state
+        stateEntries[newState] = StateEntry({
+            id: id,
+            timestamp: block.timestamp,
+            block: block.number,
+            replacedBy: 0
+        });
+
+        // Set replace info for old state
+        stateEntries[oldState].replacedBy = newState;
+
+        // put state to GIST to recalculate global state
+        _gistData.add(PoseidonUnit1L.poseidon([id]), newState);
+
+        emit StateUpdated(id, block.number, block.timestamp, newState);
+    }
+
 }
