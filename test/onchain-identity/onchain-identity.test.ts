@@ -40,6 +40,12 @@ describe("Onchain Identity", () => {
     let lastClaimsTreeRoot = await identity.lastClaimsTreeRoot();
     expect(lastClaimsTreeRoot).to.be.equal(ctRoot);
 
+    let identityState = await identity.identityState();
+    expect(identityState).to.be.not.equal(0);
+
+    let calcIdentityState = await identity.calcIdentityState();
+    expect(calcIdentityState).to.be.equal(identityState);
+
     let addrClProof = await identity.getClaimProof(0);
     //console.log("addrClProof:", addrClProof);
     expect(addrClProof).to.be.not.equal(0);
@@ -70,6 +76,11 @@ describe("Onchain Identity", () => {
     let lastClaimsTreeRoot3 = await identity.lastClaimsTreeRoot();
     expect(lastClaimsTreeRoot3).to.be.equal(ctRoot3);
 
+    let identityState2 = await identity.identityState();
+    expect(identityState2).to.be.not.equal(identityState);
+
+    let calcIdentityState2 = await identity.calcIdentityState();
+    expect(calcIdentityState2).to.be.equal(identityState2);
 
 
   });

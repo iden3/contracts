@@ -36,6 +36,8 @@ contract Identity is OwnableUpgradeable {
     SmtData internal rootsTree;
 
     uint256 public lastClaimsTreeRoot;
+    uint256 public lastRevocationsTreeRoot;
+    uint256 public lastRootsTreeRoot;
 
     bytes2 public constant IdentityTypeDefault = 0x0000;
     bytes2 public constant IdentityTypeOnchain = 0x0100;
@@ -73,20 +75,32 @@ contract Identity is OwnableUpgradeable {
     }
 
     function transitState() public onlyOwner {
-        uint256 newIdentityState = calcIdentityState();
-        require(newIdentityState != identityState, "Identity trees haven't changed");
+        uint256 currentClaimsTreeRoot = claimsTree.getRoot();
+        uint256 currentRevocationsTreeRoot = revocationsTree.getRoot();
+        uint256 currentRootsTreeRoot = rootsTree.getRoot();
+
+        require(
+            (lastClaimsTreeRoot != currentClaimsTreeRoot) ||
+            (lastRevocationsTreeRoot != currentRevocationsTreeRoot) ||
+            (lastRootsTreeRoot != currentRootsTreeRoot),
+            "Identity trees haven't changed"
+        );
 
         // if claimsTreeRoot changed, then add it to rootsTree
-        if (lastClaimsTreeRoot != claimsTree.getRoot()) {
-            rootsTree.add(claimsTree.getRoot(), 0);
+        if (lastClaimsTreeRoot != currentClaimsTreeRoot) {
+            rootsTree.add(currentClaimsTreeRoot, 0);
         }
+
+        uint256 newIdentityState = calcIdentityState();
 
         // do state transition in State Contract
         state.transitStateOnchainIdentity(id, identityState, newIdentityState, isOldStateGenesis);
 
         // update internal state vars
         identityState = newIdentityState;
-        lastClaimsTreeRoot = claimsTree.getRoot();
+        lastClaimsTreeRoot = currentClaimsTreeRoot;
+        lastRevocationsTreeRoot = currentRevocationsTreeRoot;
+        lastRootsTreeRoot = rootsTree.getRoot(); // it may have changed since we've got currentRootsTreeRoot
         if (isOldStateGenesis) {
             isOldStateGenesis = false;
         }
