@@ -61,7 +61,8 @@ export class StateDeployHelper {
     const owner = this.signers[0];
 
     this.log("deploying verifier...");
-    const verifierFactory = await ethers.getContractFactory("Verifier");
+
+    const verifierFactory = await ethers.getContractFactory("VerifierV2");
     const verifier = await verifierFactory.deploy();
     await verifier.deployed();
     this.log(
