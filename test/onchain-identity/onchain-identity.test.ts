@@ -33,55 +33,64 @@ describe("Onchain Identity", () => {
     expect(id).to.be.not.equal(0);
     expect(id).to.be.equal(256261841856333633427488779326449133886342825893501406021588279855600369665n);
 
-    let ctRoot = await identity.getClaimsTreeRoot()
-    //console.log("ctRoot:", ctRoot);
-    expect(ctRoot).to.be.not.equal(0);
+    // STATE 1 - Initial
 
-    let lastClaimsTreeRoot = await identity.lastClaimsTreeRoot();
-    expect(lastClaimsTreeRoot).to.be.equal(ctRoot);
+    let ctRoot1 = await identity.getClaimsTreeRoot()
+    //console.log("ctRoot1:", ctRoot1);
+    expect(ctRoot1).to.be.equal(0);
 
-    let identityState = await identity.identityState();
-    expect(identityState).to.be.not.equal(0);
+    let lastClaimsTreeRoot1 = await identity.lastClaimsTreeRoot();
+    expect(lastClaimsTreeRoot1).to.be.equal(ctRoot1);
 
-    let calcIdentityState = await identity.calcIdentityState();
-    expect(calcIdentityState).to.be.equal(identityState);
+    let identityState1 = await identity.identityState();
+    expect(identityState1).to.be.not.equal(0);
 
-    let addrClProof = await identity.getClaimProof(0);
-    //console.log("addrClProof:", addrClProof);
-    expect(addrClProof).to.be.not.equal(0);
+    let calcIdentityState1 = await identity.calcIdentityState();
+    expect(calcIdentityState1).to.be.equal(identityState1);
+
+    let addrClProof1 = await identity.getClaimProof(0);
+    //console.log("addrClProof1:", addrClProof1);
+    expect(addrClProof1).to.be.not.equal(0);
+
+    // STATE 2 - Added claim
 
     await identity.addClaimHash(1,2);
 
     let ctRoot2 = await identity.getClaimsTreeRoot();
-    //console.log("ctRoot:", ctRoot2);
-    expect(ctRoot2).to.be.not.equal(ctRoot);
+    //console.log("ctRoot1:", ctRoot2);
+    expect(ctRoot2).to.be.not.equal(ctRoot1);
 
     let addrClProof2 = await identity.getClaimProof(0);
     //console.log("addrProof:", addrClProof2);
-    expect(addrClProof2).to.be.not.equal(addrClProof);
+    expect(addrClProof2).to.be.not.equal(addrClProof1);
 
-    let clProof = await identity.getClaimProof(1);
-    //console.log("clProof:", clProof);
-    expect(clProof).to.be.not.equal(addrClProof);
-    expect(clProof).to.be.not.equal(addrClProof2);
+    let clProof2 = await identity.getClaimProof(1);
+    //console.log("clProof2:", clProof2);
+    expect(clProof2).to.be.not.equal(addrClProof1);
+    expect(clProof2).to.be.not.equal(addrClProof2);
 
     let lastClaimsTreeRoot2 = await identity.lastClaimsTreeRoot();
-    expect(lastClaimsTreeRoot2).to.be.equal(lastClaimsTreeRoot);
+    expect(lastClaimsTreeRoot2).to.be.equal(lastClaimsTreeRoot1);
+    expect(lastClaimsTreeRoot2).to.be.not.equal(ctRoot2);
 
-    let ctRoot3 = await identity.getClaimsTreeRoot();
-    expect(ctRoot3).to.be.not.equal(lastClaimsTreeRoot2);
+    // STATE 3 - Executed transitState
 
     let res = await identity.transitState();
 
     let lastClaimsTreeRoot3 = await identity.lastClaimsTreeRoot();
-    expect(lastClaimsTreeRoot3).to.be.equal(ctRoot3);
+    expect(lastClaimsTreeRoot3).to.be.equal(ctRoot2);
 
-    let identityState2 = await identity.identityState();
-    expect(identityState2).to.be.not.equal(identityState);
+    let lastRevocationTreeRoot3 = await identity.lastRevocationsTreeRoot();
+    expect(lastRevocationTreeRoot3).to.be.equal(0);
 
-    let calcIdentityState2 = await identity.calcIdentityState();
-    expect(calcIdentityState2).to.be.equal(identityState2);
+    let lastRootsTreeRoot3 = await identity.getRootsTreeRoot();
+    expect(lastRootsTreeRoot3).to.be.not.equal(0);
 
+    let identityState3 = await identity.identityState();
+    expect(identityState3).to.be.not.equal(identityState1);
+
+    let calcIdentityState3 = await identity.calcIdentityState();
+    expect(calcIdentityState3).to.be.equal(identityState3);
 
   });
 
