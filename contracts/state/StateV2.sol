@@ -383,6 +383,10 @@ contract StateV2 is OwnableUpgradeable {
         uint256 newState,
         bool isOldStateGenesis
     ) public {
+        require(
+            msg.sender != tx.origin,
+            "only calls from smart contracts allowed"
+        );
 
         uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(msg.sender);
         require(
