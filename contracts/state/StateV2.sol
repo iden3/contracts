@@ -15,32 +15,32 @@ interface IVerifier {
     ) external view returns (bool r);
 }
 
-uint256 constant ID_HISTORY_RETURN_LIMIT = 1000;
-
-/**
- * @dev Struct for public interfaces to represent a state information.
- * @param id identity.
- * @param replacedByState A state, which replaced this state for the identity.
- * @param createdAtTimestamp A time when the state was created.
- * @param replacedAtTimestamp A time when the state was replaced by the next identity state.
- * @param createdAtBlock A block number when the state was created.
- * @param replacedAtBlock A block number when the state was replaced by the next identity state.
- */
-struct StateInfo {
-    uint256 id;
-    uint256 state;
-    uint256 replacedByState;
-    uint256 createdAtTimestamp;
-    uint256 replacedAtTimestamp;
-    uint256 createdAtBlock;
-    uint256 replacedAtBlock;
-}
-
-// /**
-//  * @dev Set and get states for each identity
-//  */
-// contract State is Iden3Helpers {
+/// @title Set and get states for each identity
 contract StateV2 is OwnableUpgradeable {
+    /**
+     * @dev Max return array length for id history requests
+     */
+    uint256 public constant ID_HISTORY_RETURN_LIMIT = 1000;
+
+    /**
+     * @dev Struct for public interfaces to represent a state information.
+     * @param id identity.
+     * @param replacedByState A state, which replaced this state for the identity.
+     * @param createdAtTimestamp A time when the state was created.
+     * @param replacedAtTimestamp A time when the state was replaced by the next identity state.
+     * @param createdAtBlock A block number when the state was created.
+     * @param replacedAtBlock A block number when the state was replaced by the next identity state.
+     */
+    struct StateInfo {
+        uint256 id;
+        uint256 state;
+        uint256 replacedByState;
+        uint256 createdAtTimestamp;
+        uint256 replacedAtTimestamp;
+        uint256 createdAtBlock;
+        uint256 replacedAtBlock;
+    }
+
     /**
      * @dev Struct for identity state internal storage representation.
      * @param id An identity identifier.
@@ -54,8 +54,6 @@ contract StateV2 is OwnableUpgradeable {
         uint256 block;
         uint256 replacedBy;
     }
-
-    using Smt for SmtData;
 
     /**
      * @dev Verifier address
@@ -75,7 +73,8 @@ contract StateV2 is OwnableUpgradeable {
     /**
      * @dev Global Identity State Tree (GIST) data
      */
-    SmtData internal _gistData;
+    Smt.SmtData internal _gistData;
+    using Smt for Smt.SmtData;
 
     /**
      * @dev event called when a state is updated
@@ -297,7 +296,7 @@ contract StateV2 is OwnableUpgradeable {
      * @param id Identity
      * @return The GIST inclusion or non-inclusion proof for the identity
      */
-    function getGISTProof(uint256 id) public view returns (Proof memory) {
+    function getGISTProof(uint256 id) public view returns (Smt.Proof memory) {
         return _gistData.getProof(PoseidonUnit1L.poseidon([id]));
     }
 
@@ -311,7 +310,7 @@ contract StateV2 is OwnableUpgradeable {
     function getGISTProofByRoot(uint256 id, uint256 root)
         public
         view
-        returns (Proof memory)
+        returns (Smt.Proof memory)
     {
         return _gistData.getProofByRoot(PoseidonUnit1L.poseidon([id]), root);
     }
@@ -326,7 +325,7 @@ contract StateV2 is OwnableUpgradeable {
     function getGISTProofByBlock(uint256 id, uint256 blockNumber)
         public
         view
-        returns (Proof memory)
+        returns (Smt.Proof memory)
     {
         return
             _gistData.getProofByBlock(
@@ -345,7 +344,7 @@ contract StateV2 is OwnableUpgradeable {
     function getGISTProofByTime(uint256 id, uint256 timestamp)
         public
         view
-        returns (Proof memory)
+        returns (Smt.Proof memory)
     {
         return
             _gistData.getProofByTime(PoseidonUnit1L.poseidon([id]), timestamp);
@@ -368,7 +367,7 @@ contract StateV2 is OwnableUpgradeable {
     function getGISTRootHistory(uint256 start, uint256 length)
         public
         view
-        returns (RootInfo[] memory)
+        returns (Smt.RootInfo[] memory)
     {
         return _gistData.getRootHistory(start, length);
     }
@@ -389,7 +388,7 @@ contract StateV2 is OwnableUpgradeable {
     function getGISTRootInfo(uint256 root)
         public
         view
-        returns (RootInfo memory)
+        returns (Smt.RootInfo memory)
     {
         return _gistData.getRootInfo(root);
     }
@@ -402,7 +401,7 @@ contract StateV2 is OwnableUpgradeable {
     function getGISTRootInfoByBlock(uint256 blockNumber)
         public
         view
-        returns (RootInfo memory)
+        returns (Smt.RootInfo memory)
     {
         return _gistData.getRootInfoByBlock(blockNumber);
     }
@@ -415,7 +414,7 @@ contract StateV2 is OwnableUpgradeable {
     function getGISTRootInfoByTime(uint256 timestamp)
         public
         view
-        returns (RootInfo memory)
+        returns (Smt.RootInfo memory)
     {
         return _gistData.getRootInfoByTime(timestamp);
     }

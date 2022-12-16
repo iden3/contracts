@@ -4,94 +4,101 @@ pragma abicoder v2;
 
 import "../lib/Poseidon.sol";
 
-uint256 constant MAX_SMT_DEPTH = 32;
-uint256 constant SMT_ROOT_HISTORY_RETURN_LIMIT = 1000;
-
-/**
- * @dev Enum of SMT node types
- */
-enum NodeType {
-    EMPTY,
-    LEAF,
-    MIDDLE
-}
-
-/**
- * @dev Sparse Merkle Tree data
- */
-struct SmtData {
-    mapping(uint256 => Node) nodes;
-    uint256[] rootHistory;
-    mapping(uint256 => RootEntry) rootEntries;
-    // This empty reserved space is put in place to allow future versions
-    // of the SMT library to add new SmtData struct fields without shifting down
-    // storage of upgradable contracts that use this struct as a state variable
-    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-    uint256[50] __gap;
-}
-
-/**
- * @dev Struct of the node proof in the SMT
- */
-struct Proof {
-    uint256 root;
-    uint256[MAX_SMT_DEPTH] siblings;
-    uint256 oldKey;
-    uint256 oldValue;
-    bool isOld0;
-    uint256 key;
-    uint256 value;
-    uint256 fnc;
-}
-
-/**
- * @dev Struct for public interfaces to represent SMT root info.
- * @param root This SMT root.
- * @param replacedByRoot A root, which replaced this root.
- * @param createdAtTimestamp A time, when the root was saved to blockchain.
- * @param replacedAtTimestamp A time, when the root was replaced by the next root in blockchain.
- * @param createdAtBlock A number of block, when the root was saved to blockchain.
- * @param replacedAtBlock A number of block, when the root was replaced by the next root in blockchain.
- */
-struct RootInfo {
-    uint256 root;
-    uint256 replacedByRoot;
-    uint256 createdAtTimestamp;
-    uint256 replacedAtTimestamp;
-    uint256 createdAtBlock;
-    uint256 replacedAtBlock;
-}
-
-/**
- * @dev Struct for SMT root internal storage representation.
- * @param replacedByRoot A root, which replaced this root.
- * @param createdAtTimestamp A time, when the root was saved to blockchain.
- * @param createdAtBlock A number of block, when the root was saved to blockchain.
- */
-struct RootEntry {
-    uint256 replacedByRoot;
-    uint256 createdAtTimestamp;
-    uint256 createdAtBlock;
-}
-
-/**
- * @dev Struct SMT node.
- * @param NodeType type of node.
- * @param childLeft left child of node.
- * @param childRight right child of node.
- * @param Index index of node.
- * @param Value value of node.
- */
-struct Node {
-    NodeType nodeType;
-    uint256 childLeft;
-    uint256 childRight;
-    uint256 index;
-    uint256 value;
-}
-
 /// @title A sparse merkle tree implementation, which keeps tree history.
 library Smt {
+    /**
+     * @dev Max sparse merkle tree depth.
+     */
+    uint256 public constant MAX_SMT_DEPTH = 32;
+
+    /**
+     * @dev Max return array length for SMT root history requests
+     */
+    uint256 public constant SMT_ROOT_HISTORY_RETURN_LIMIT = 1000;
+
+    /**
+     * @dev Enum of SMT node types
+     */
+    enum NodeType {
+        EMPTY,
+        LEAF,
+        MIDDLE
+    }
+
+    /**
+     * @dev Sparse Merkle Tree data
+     */
+    struct SmtData {
+        mapping(uint256 => Node) nodes;
+        uint256[] rootHistory;
+        mapping(uint256 => RootEntry) rootEntries;
+        // This empty reserved space is put in place to allow future versions
+        // of the SMT library to add new SmtData struct fields without shifting down
+        // storage of upgradable contracts that use this struct as a state variable
+        // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+        uint256[50] __gap;
+    }
+
+    /**
+     * @dev Struct of the node proof in the SMT
+     */
+    struct Proof {
+        uint256 root;
+        bool existence;
+        uint256[MAX_SMT_DEPTH] siblings;
+        uint256 index;
+        uint256 value;
+        bool auxExistence;
+        uint256 auxIndex;
+        uint256 auxValue;
+    }
+
+    /**
+     * @dev Struct for public interfaces to represent SMT root info.
+     * @param root This SMT root.
+     * @param replacedByRoot A root, which replaced this root.
+     * @param createdAtTimestamp A time, when the root was saved to blockchain.
+     * @param replacedAtTimestamp A time, when the root was replaced by the next root in blockchain.
+     * @param createdAtBlock A number of block, when the root was saved to blockchain.
+     * @param replacedAtBlock A number of block, when the root was replaced by the next root in blockchain.
+     */
+    struct RootInfo {
+        uint256 root;
+        uint256 replacedByRoot;
+        uint256 createdAtTimestamp;
+        uint256 replacedAtTimestamp;
+        uint256 createdAtBlock;
+        uint256 replacedAtBlock;
+    }
+
+    /**
+     * @dev Struct for SMT root internal storage representation.
+     * @param replacedByRoot A root, which replaced this root.
+     * @param createdAtTimestamp A time, when the root was saved to blockchain.
+     * @param createdAtBlock A number of block, when the root was saved to blockchain.
+     */
+    struct RootEntry {
+        uint256 replacedByRoot;
+        uint256 createdAtTimestamp;
+        uint256 createdAtBlock;
+    }
+
+    /**
+     * @dev Struct SMT node.
+     * @param NodeType type of node.
+     * @param childLeft left child of node.
+     * @param childRight right child of node.
+     * @param Index index of node.
+     * @param Value value of node.
+     */
+    struct Node {
+        NodeType nodeType;
+        uint256 childLeft;
+        uint256 childRight;
+        uint256 index;
+        uint256 value;
+    }
+
     using BinarySearchSmtRoots for SmtData;
 
     /**
@@ -105,14 +112,6 @@ library Smt {
         uint256 v
     ) public {
         _processLeaf(self, i, v, block.timestamp, block.number);
-    }
-
-    /**
-     * @dev Get max depth of SMT.
-     * @return max depth of SMT.
-     */
-    function getMaxDepth() public pure returns (uint256) {
-        return MAX_SMT_DEPTH; // todo put to SmtData struct ???
     }
 
     /**
@@ -212,7 +211,7 @@ library Smt {
     ) public view returns (Proof memory) {
         Proof memory proof;
         proof.root = historicalRoot;
-        proof.key = index;
+        proof.index = index;
 
         uint256 nextNodeHash = historicalRoot;
         Node memory node;
@@ -220,22 +219,21 @@ library Smt {
         for (uint256 i = 0; i < MAX_SMT_DEPTH; i++) {
             node = getNode(self, nextNodeHash);
             if (node.nodeType == NodeType.EMPTY) {
-                proof.fnc = 1;
-                proof.isOld0 = true;
                 break;
             } else if (node.nodeType == NodeType.LEAF) {
-                if (node.index == proof.key) {
+                if (node.index == proof.index) {
+                    proof.existence = true;
                     proof.value = node.value;
                     break;
                 } else {
-                    proof.oldKey = node.index;
-                    proof.oldValue = node.value;
+                    proof.auxExistence = true;
+                    proof.auxIndex = node.index;
+                    proof.auxValue = node.value;
                     proof.value = node.value;
-                    proof.fnc = 1;
                     break;
                 }
             } else if (node.nodeType == NodeType.MIDDLE) {
-                if ((proof.key >> i) & 1 == 1) {
+                if ((proof.index >> i) & 1 == 1) {
                     nextNodeHash = node.childRight;
                     proof.siblings[i] = node.childLeft;
                 } else {
@@ -306,7 +304,7 @@ library Smt {
 
         uint256 root = self.binarySearchUint256(
             timestamp,
-            SearchType.TIMESTAMP
+            BinarySearchSmtRoots.SearchType.TIMESTAMP
         );
 
         return getRootInfo(self, root);
@@ -324,7 +322,10 @@ library Smt {
     {
         require(blockN <= block.number, "errNoFutureAllowed");
 
-        uint256 root = self.binarySearchUint256(blockN, SearchType.BLOCK);
+        uint256 root = self.binarySearchUint256(
+            blockN,
+            BinarySearchSmtRoots.SearchType.BLOCK
+        );
 
         return getRootInfo(self, root);
     }
@@ -507,18 +508,18 @@ library Smt {
     }
 }
 
-/**
- * @dev Enum for the SMT history field selection
- */
-enum SearchType {
-    TIMESTAMP,
-    BLOCK
-}
-
 /// @title A binary search for the sparse merkle tree root history
 library BinarySearchSmtRoots {
+    /**
+     * @dev Enum for the SMT history field selection
+     */
+    enum SearchType {
+        TIMESTAMP,
+        BLOCK
+    }
+
     function binarySearchUint256(
-        SmtData storage self,
+        Smt.SmtData storage self,
         uint256 value,
         SearchType searchType
     ) internal view returns (uint256) {
@@ -571,7 +572,7 @@ library BinarySearchSmtRoots {
         return self.rootHistory[max];
     }
 
-    function fieldSelector(RootEntry memory rti, SearchType st)
+    function fieldSelector(Smt.RootEntry memory rti, SearchType st)
         internal
         pure
         returns (uint256)

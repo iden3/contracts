@@ -13,13 +13,13 @@ export type FixedArray<T, N extends number> = GrowToSize<T, [], N>;
 
 export type MtpProof = {
   root: string;
+  existence: boolean;
   siblings: FixedArray<string, 32>;
-  oldKey: number | string;
-  oldValue: number;
-  isOld0: boolean;
-  key: number | string;
+  index: number | string;
   value: number;
-  fnc: 0 | 1;
+  auxExistence: boolean;
+  auxIndex: number | string;
+  auxValue: number;
 };
 
 export function genMaxBinaryNumber(digits: number): number {
