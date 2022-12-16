@@ -209,6 +209,10 @@ library Smt {
         uint256 index,
         uint256 historicalRoot
     ) public view returns (Proof memory) {
+        require(
+            self.rootEntries[historicalRoot].createdAtTimestamp > 0,
+            "Root does not exist"
+        );
         Proof memory proof;
         proof.root = historicalRoot;
         proof.index = index;
@@ -335,6 +339,10 @@ library Smt {
         view
         returns (RootInfo memory)
     {
+        require(
+            self.rootEntries[root].createdAtTimestamp > 0,
+            "Root does not exist"
+        );
         RootInfo memory rootInfo;
         rootInfo.createdAtTimestamp = self.rootEntries[root].createdAtTimestamp;
         rootInfo.createdAtBlock = self.rootEntries[root].createdAtBlock;

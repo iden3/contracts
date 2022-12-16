@@ -46,8 +46,8 @@ describe("SMT tests", function () {
 
       const proof =
         typeof testCase.getProofParams == "number"
-          ? await smt.getSmtProof(testCase.getProofParams)
-          : await smt.getSmtHistoricalProofByRoot(
+          ? await smt.getProof(testCase.getProofParams)
+          : await smt.getProofByRoot(
               testCase.getProofParams.index,
               testCase.getProofParams.historicalRoot
             );
@@ -1276,6 +1276,33 @@ describe("SMT tests", function () {
           await checkRootByTimeAndBlock(rootEntries, tc);
         });
       }
+    });
+  });
+
+  describe("Edge cases with exceptions", () => {
+    let smt;
+
+    beforeEach(async () => {
+      const deployHelper = await StateDeployHelper.initialize();
+      smt = await deployHelper.deploySmtTestWrapper();
+    });
+
+    it("getRootInfo() should throw an exception when root does not exist", async () => {
+      await smt.add(1, 1);
+      const root = await smt.getRoot();
+      await expect(smt.getRootInfo(root)).not.to.be.reverted;
+      await expect(smt.getRootInfo(root + 1)).to.be.revertedWith(
+        "Root does not exist"
+      );
+    });
+
+    it("getProofByRoot() should throw an exception when root does not exist", async () => {
+      await smt.add(1, 1);
+      const root = await smt.getRoot();
+      await expect(smt.getProofByRoot(1, root)).not.to.be.reverted;
+      await expect(smt.getProofByRoot(1, root + 1)).to.be.revertedWith(
+        "Root does not exist"
+      );
     });
   });
 });
