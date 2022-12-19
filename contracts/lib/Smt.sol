@@ -102,6 +102,16 @@ library Smt {
     using BinarySearchSmtRoots for SmtData;
 
     /**
+     * @dev Reverts if root does not exist in SMT roots history.
+     * @param self SMT data.
+     * @param root SMT root.
+     */
+    modifier onlyExistingRoot(SmtData storage self, uint256 root) {
+        require(rootExists(self, root), "Root does not exist");
+        _;
+    }
+
+    /**
      * @dev Add anode to the SMT
      * @param i Index of node
      * @param v Value of node
@@ -130,7 +140,7 @@ library Smt {
      * @dev Get SMT root history
      * @param startIndex start index of history
      * @param length history length
-     * @return array of SMT historical roots with timestamp and block number info
+     * @return array of RootInfo structs
      */
     function getRootHistory(
         SmtData storage self,
@@ -175,7 +185,7 @@ library Smt {
     /**
      * @dev Get the SMT node by hash
      * @param nodeHash Hash of a node
-     * @return A node
+     * @return A node struct
      */
     function getNode(SmtData storage self, uint256 nodeHash)
         public
@@ -188,7 +198,7 @@ library Smt {
     /**
      * @dev Get the proof if a node with specific index exists or not exists in the SMT
      * @param index Node index
-     * @return The node proof
+     * @return Proof struct
      */
     function getProof(SmtData storage self, uint256 index)
         public
@@ -202,17 +212,18 @@ library Smt {
      * @dev Get the proof if a node with specific index exists or not exists in the SMT for some historical tree state
      * @param index Node index
      * @param historicalRoot Historical SMT roof to get proof for
-     * @return The node proof
+     * @return Proof struct
      */
     function getProofByRoot(
         SmtData storage self,
         uint256 index,
         uint256 historicalRoot
-    ) public view returns (Proof memory) {
-        require(
-            self.rootEntries[historicalRoot].createdAtTimestamp > 0,
-            "Root does not exist"
-        );
+    )
+        public
+        view
+        onlyExistingRoot(self, historicalRoot)
+        returns (Proof memory)
+    {
         Proof memory proof;
         proof.root = historicalRoot;
         proof.index = index;
@@ -255,7 +266,7 @@ library Smt {
      * @dev Get the proof if a node with specific index exists or not exists in the SMT for some historical timestamp
      * @param index Node index
      * @param timestamp The nearest timestamp to get proof for
-     * @return The node proof
+     * @return Proof struct
      */
     function getProofByTime(
         SmtData storage self,
@@ -273,7 +284,7 @@ library Smt {
      * @dev Get the proof if a node with specific index exists or not exists in the SMT for some historical block number
      * @param index Node index
      * @param blockNumber The nearest block number to get proof for
-     * @return The node proof
+     * @return Proof struct
      */
     function getProofByBlock(
         SmtData storage self,
@@ -295,9 +306,9 @@ library Smt {
     }
 
     /**
-     * @dev binary search by timestamp
+     * @dev Binary search by timestamp
      * @param timestamp timestamp
-     * return parameters are (by order): block number, block timestamp, state
+     * return RootInfo struct
      */
     function getRootInfoByTime(SmtData storage self, uint256 timestamp)
         public
@@ -315,9 +326,9 @@ library Smt {
     }
 
     /**
-     * @dev binary search by block number
+     * @dev Binary search by block number
      * @param blockN block number
-     * return parameters are (by order): block number, block timestamp, state
+     * return RootInfo struct
      */
     function getRootInfoByBlock(SmtData storage self, uint256 blockN)
         public
@@ -334,24 +345,43 @@ library Smt {
         return getRootInfo(self, root);
     }
 
+    /**
+     * @dev Returns root info by root
+     * @param root root
+     * return RootInfo struct
+     */
     function getRootInfo(SmtData storage self, uint256 root)
         public
         view
+        onlyExistingRoot(self, root)
         returns (RootInfo memory)
     {
-        require(
-            self.rootEntries[root].createdAtTimestamp > 0,
-            "Root does not exist"
-        );
         RootInfo memory rootInfo;
         rootInfo.createdAtTimestamp = self.rootEntries[root].createdAtTimestamp;
         rootInfo.createdAtBlock = self.rootEntries[root].createdAtBlock;
         rootInfo.replacedByRoot = self.rootEntries[root].replacedByRoot;
-        rootInfo.replacedAtBlock = self.rootEntries[rootInfo.replacedByRoot].createdAtBlock;
-        rootInfo.replacedAtTimestamp = self.rootEntries[rootInfo.replacedByRoot].createdAtTimestamp;
+        rootInfo.replacedAtBlock = self
+            .rootEntries[rootInfo.replacedByRoot]
+            .createdAtBlock;
+        rootInfo.replacedAtTimestamp = self
+            .rootEntries[rootInfo.replacedByRoot]
+            .createdAtTimestamp;
         rootInfo.root = root;
 
         return rootInfo;
+    }
+
+    /**
+     * @dev Checks if root exists
+     * @param root root
+     * return true if root exists
+     */
+    function rootExists(SmtData storage self, uint256 root)
+        public
+        view
+        returns (bool)
+    {
+        return self.rootEntries[root].createdAtTimestamp > 0;
     }
 
     function _processLeaf(

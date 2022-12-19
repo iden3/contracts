@@ -149,10 +149,7 @@ contract StateV2 is OwnableUpgradeable {
                 !idExists(id),
                 "Old state is genesis but identity already exists"
             );
-            require(
-                !stateExists(oldState),
-                "Genesis state already exists"
-            );
+            require(!stateExists(oldState), "Genesis state already exists");
             // link genesis state to Id in the smart contract, but creation time and creation block is unknown
             stateEntries[oldState].id = id;
             // push genesis state to identities as latest state
@@ -164,7 +161,7 @@ contract StateV2 is OwnableUpgradeable {
             );
 
             uint256 previousIDState = statesHistories[id][
-            statesHistories[id].length - 1
+                statesHistories[id].length - 1
             ];
 
             require(
