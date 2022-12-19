@@ -101,8 +101,8 @@ describe("State transition negative cases", () => {
     const modifiedStateTransition = JSON.parse(
       JSON.stringify(stateTransitions[1])
     );
-    modifiedStateTransition.pub_signals[1] = 1; // set oldState to 1 to trigger the error
-    const [id, _, newState] = modifiedStateTransition.pub_signals[0];
+    modifiedStateTransition.pub_signals[1] = "1"; // set oldState to 1 to trigger the error
+    const [id, _, newState] = modifiedStateTransition.pub_signals;
 
     const expectedErrorText =
       "oldState argument should be equal to the latest identity state in smart contract when isOldStateGenesis == 0";
@@ -116,7 +116,7 @@ describe("State transition negative cases", () => {
     expect(isException).to.equal(true);
 
     const res = await state.getStateInfoById(id);
-    expect(res).to.not.be.equal(newState);
+    expect(res.state).to.not.be.equal(newState);
   });
 
   it("there should be no states for identity in smart contract when _isOldStateGenesis != 0", async () => {
@@ -126,7 +126,7 @@ describe("State transition negative cases", () => {
       JSON.stringify(stateTransitions[1])
     );
     modifiedStateTransition.pub_signals[3] = "1"; // set isOldStateGenesis to 1 to trigger the error
-    const [id, _, newState] = modifiedStateTransition.pub_signals[1];
+    const [id, _, newState] = modifiedStateTransition.pub_signals;
 
     const expectedErrorText =
       "there should be no states for identity in smart contract when _isOldStateGenesis != 0";
@@ -150,9 +150,10 @@ describe("State transition negative cases", () => {
       JSON.stringify(stateTransitions[0])
     );
 
-    modifiedStateTransition.pub_signals[0] = 1;
+    // set id to some random value to trigger the error
+    modifiedStateTransition.pub_signals[0] = "1";
 
-    const [id, _, newState] = modifiedStateTransition.pub_signals;
+    const [id] = modifiedStateTransition.pub_signals;
     const expectedErrorText = "oldState should not exist";
     let isException = false;
     try {
@@ -166,8 +167,9 @@ describe("State transition negative cases", () => {
 
     expect(isException).to.equal(true);
 
-    const res = await state.getStateInfoById(id);
-    expect(res).to.not.be.equal(newState);
+    await expect(state.getStateInfoById(id)).to.be.revertedWith(
+      "Identity does not exist"
+    );
   });
 
   it("newState should not exist", async () => {
@@ -213,15 +215,16 @@ describe("State transition negative cases", () => {
     }
     expect(isException).to.equal(true);
 
-    const res = await state.getStateInfoById(id);
-    expect(res.state).to.be.equal("0");
+    await expect(state.getStateInfoById(id)).to.be.revertedWith(
+      "Identity does not exist"
+    );
   });
 
   it("zero-knowledge proof of state transition is not valid", async () => {
     const modifiedStateTransition = JSON.parse(
       JSON.stringify(stateTransitions[0])
     );
-    modifiedStateTransition.pub_signals[2] = 1; // change state to make zk proof invalid
+    modifiedStateTransition.pub_signals[2] = "1"; // change state to make zk proof invalid
 
     const expectedErrorText =
       "zero-knowledge proof of state transition is not valid";
@@ -279,8 +282,6 @@ describe("State history", function () {
     expect(stateInfo.createdAtBlock).to.be.equal(0);
     expect(stateInfo.replacedAtBlock).to.be.equal(publishedState.blockNumber);
 
-
-
     const publishedState2 = publishedStates1[1];
     // genesis state info of the first identity (from the contract)
     const [stateInfo2] = await state.getStateInfoHistoryById(id, 2, 1);
@@ -289,13 +290,12 @@ describe("State history", function () {
     expect(stateInfo2.id).to.be.equal(publishedState2.id);
     expect(stateInfo2.state).to.be.equal(publishedState2.newState);
     expect(stateInfo2.replacedByState).to.be.equal(0);
-    expect(stateInfo2.createdAtTimestamp).to.be.equal(publishedState2.timestamp);
+    expect(stateInfo2.createdAtTimestamp).to.be.equal(
+      publishedState2.timestamp
+    );
     expect(stateInfo2.replacedAtTimestamp).to.be.equal(0);
     expect(stateInfo2.createdAtBlock).to.be.equal(publishedState2.blockNumber);
     expect(stateInfo2.replacedAtBlock).to.be.equal(0);
-
-
-
   });
 
   it("should be reverted if length is zero", async () => {
@@ -319,6 +319,54 @@ describe("State history", function () {
 
     await expect(state.getStateInfoHistoryById(id, 0, 100)).to.be.revertedWith(
       "Out of bounds of state history"
+    );
+  });
+});
+
+describe("StateInfo negative cases", function () {
+  this.timeout(5000);
+
+  let state;
+
+  before(async () => {
+    const deployHelper = await StateDeployHelper.initialize();
+    const contracts = await deployHelper.deployStateV2();
+    state = contracts.state;
+
+    for (const stateTransition of stateTransitions) {
+      await publishState(state, stateTransition);
+    }
+  });
+
+  it("getStateInfoByID: should be reverted if identity does not exist", async () => {
+    const missingID = stateTransitions[0].pub_signals[0] + 1; // Modify id so it does not exist
+
+    await expect(state.getStateInfoById(missingID)).to.be.revertedWith(
+      "Identity does not exist"
+    );
+  });
+
+  it("getStateInfoHistoryById: should be reverted if identity does not exist", async () => {
+    const missingID = stateTransitions[0].pub_signals[0] + 1; // Modify id so it does not exist
+
+    await expect(
+      state.getStateInfoHistoryById(missingID, 0, 1)
+    ).to.be.revertedWith("Identity does not exist");
+  });
+
+  it("getStateInfoHistoryLengthById: should be reverted if identity does not exist", async () => {
+    const missingID = stateTransitions[0].pub_signals[0] + 1; // Modify id so it does not exist
+
+    await expect(
+      state.getStateInfoHistoryLengthById(missingID)
+    ).to.be.revertedWith("Identity does not exist");
+  });
+
+  it("getStateInfoByState: should be reverted if state does not exist", async () => {
+    const missingState = stateTransitions[0].pub_signals[2] + 1; // Modify state so it does not exist
+
+    await expect(state.getStateInfoByState(missingState)).to.be.revertedWith(
+      "State does not exist"
     );
   });
 });

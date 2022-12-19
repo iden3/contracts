@@ -91,6 +91,24 @@ contract StateV2 is OwnableUpgradeable {
     );
 
     /**
+     * @dev Revert if identity does not exist in the contract
+     * @param id Identity
+     */
+    modifier onlyExistingId(uint256 id) {
+        require(idExists(id), "Identity does not exist");
+        _;
+    }
+
+    /**
+     * @dev Revert if state does not exist in the contract
+     * @param state State
+     */
+    modifier onlyExistingState(uint256 state) {
+        require(stateExists(state), "State does not exist");
+        _;
+    }
+
+    /**
      * @dev Initialize the contract
      * @param verifierContractAddr Verifier address
      */
@@ -128,7 +146,7 @@ contract StateV2 is OwnableUpgradeable {
     ) public {
         if (isOldStateGenesis == false) {
             require(
-                statesHistories[id].length > 0,
+                idExists(id),
                 "there should be at least one state for identity in smart contract when _isOldStateGenesis == 0"
             );
 
@@ -146,11 +164,11 @@ contract StateV2 is OwnableUpgradeable {
             );
         } else {
             require(
-                statesHistories[id].length == 0,
+                !idExists(id),
                 "there should be no states for identity in smart contract when _isOldStateGenesis != 0"
             );
             require(
-                stateEntries[oldState].id == 0,
+                !stateExists(oldState),
                 "oldState should not exist"
             );
             // link genesis state to Id in the smart contract, but creation time and creation block is unknown
@@ -159,7 +177,7 @@ contract StateV2 is OwnableUpgradeable {
             statesHistories[id].push(oldState);
         }
 
-        require(stateEntries[newState].id == 0, "newState should not exist");
+        require(!stateExists(newState), "newState should not exist");
 
         uint256[4] memory input = [
             id,
@@ -207,6 +225,7 @@ contract StateV2 is OwnableUpgradeable {
     function getStateInfoById(uint256 id)
         public
         view
+        onlyExistingId(id)
         returns (StateInfo memory)
     {
         StateInfo memory stateInfo;
@@ -226,6 +245,7 @@ contract StateV2 is OwnableUpgradeable {
     function getStateInfoHistoryLengthById(uint256 id)
         public
         view
+        onlyExistingId(id)
         returns (uint256)
     {
         return statesHistories[id].length;
@@ -242,7 +262,7 @@ contract StateV2 is OwnableUpgradeable {
         uint256 id,
         uint256 startIndex,
         uint256 length
-    ) public view returns (StateInfo[] memory) {
+    ) public view onlyExistingId(id) returns (StateInfo[] memory) {
         require(length > 0, "Length should be greater than 0");
         require(
             length <= ID_HISTORY_RETURN_LIMIT,
@@ -272,6 +292,7 @@ contract StateV2 is OwnableUpgradeable {
     function getStateInfoByState(uint256 state)
         public
         view
+        onlyExistingState(state)
         returns (StateInfo memory)
     {
         uint256 replByState = stateEntries[state].replacedBy;
@@ -417,5 +438,23 @@ contract StateV2 is OwnableUpgradeable {
         returns (Smt.RootInfo memory)
     {
         return _gistData.getRootInfoByTime(timestamp);
+    }
+
+    /**
+     * @dev Check if identity exists.
+     * @param id Identity
+     * @return True if the identity exists
+     */
+    function idExists(uint256 id) public view returns (bool) {
+        return statesHistories[id].length > 0;
+    }
+
+    /**
+     * @dev Check if state exists.
+     * @param state State
+     * @return True if the state exists
+     */
+    function stateExists(uint256 state) public view returns (bool) {
+        return stateEntries[state].id != 0;
     }
 }
