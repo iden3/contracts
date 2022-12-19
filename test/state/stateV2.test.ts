@@ -95,7 +95,7 @@ describe("State transition negative cases", () => {
     state = contracts.state;
   });
 
-  it("oldState argument should be equal to the latest identity state in smart contract when isOldStateGenesis == 0", async () => {
+  it("Old state does not match the latest state", async () => {
     await publishState(state, stateTransitions[0]);
 
     const modifiedStateTransition = JSON.parse(
@@ -104,8 +104,7 @@ describe("State transition negative cases", () => {
     modifiedStateTransition.pub_signals[1] = "1"; // set oldState to 1 to trigger the error
     const [id, _, newState] = modifiedStateTransition.pub_signals;
 
-    const expectedErrorText =
-      "oldState argument should be equal to the latest identity state in smart contract when isOldStateGenesis == 0";
+    const expectedErrorText = "Old state does not match the latest state";
     let isException = false;
     try {
       await publishState(state, modifiedStateTransition);
@@ -119,7 +118,7 @@ describe("State transition negative cases", () => {
     expect(res.state).to.not.be.equal(newState);
   });
 
-  it("there should be no states for identity in smart contract when _isOldStateGenesis != 0", async () => {
+  it("Old state is genesis but identity already exists", async () => {
     await publishState(state, stateTransitions[0]);
 
     const modifiedStateTransition = JSON.parse(
@@ -129,7 +128,7 @@ describe("State transition negative cases", () => {
     const [id, _, newState] = modifiedStateTransition.pub_signals;
 
     const expectedErrorText =
-      "there should be no states for identity in smart contract when _isOldStateGenesis != 0";
+      "Old state is genesis but identity already exists";
     let isException = false;
     try {
       await publishState(state, modifiedStateTransition);
@@ -143,7 +142,7 @@ describe("State transition negative cases", () => {
     expect(res).to.not.be.equal(newState);
   });
 
-  it("oldState should not exist", async () => {
+  it("Genesis state already exists", async () => {
     await publishState(state, stateTransitions[0]);
 
     const modifiedStateTransition = JSON.parse(
@@ -154,7 +153,7 @@ describe("State transition negative cases", () => {
     modifiedStateTransition.pub_signals[0] = "1";
 
     const [id] = modifiedStateTransition.pub_signals;
-    const expectedErrorText = "oldState should not exist";
+    const expectedErrorText = "Genesis state already exists";
     let isException = false;
     try {
       await publishState(state, modifiedStateTransition);
@@ -172,7 +171,7 @@ describe("State transition negative cases", () => {
     );
   });
 
-  it("newState should not exist", async () => {
+  it("New state should not exist", async () => {
     await publishState(state, stateTransitions[0]);
 
     const modifiedStateTransition = JSON.parse(
@@ -183,7 +182,7 @@ describe("State transition negative cases", () => {
     modifiedStateTransition.pub_signals[2] = stateTransitions[0].pub_signals[1];
     const [id, _, newState] = modifiedStateTransition.pub_signals;
 
-    const expectedErrorText = "newState should not exist";
+    const expectedErrorText = "New state should not exist";
     let isException = false;
     try {
       await publishState(state, modifiedStateTransition);
@@ -197,7 +196,7 @@ describe("State transition negative cases", () => {
     expect(res).to.not.be.equal(newState);
   });
 
-  it("there should be at least one state for identity in smart contract when _isOldStateGenesis == 0", async () => {
+  it("Old state is not genesis but identity does not yet exist", async () => {
     const modifiedStateTransition = JSON.parse(
       JSON.stringify(stateTransitions[0])
     );
@@ -205,7 +204,7 @@ describe("State transition negative cases", () => {
     const id = modifiedStateTransition.pub_signals[0];
 
     const expectedErrorText =
-      "there should be at least one state for identity in smart contract when _isOldStateGenesis == 0";
+      "Old state is not genesis but identity does not yet exist";
     let isException = false;
     try {
       await publishState(state, modifiedStateTransition);
@@ -220,14 +219,14 @@ describe("State transition negative cases", () => {
     );
   });
 
-  it("zero-knowledge proof of state transition is not valid", async () => {
+  it("Zero-knowledge proof of state transition is not valid", async () => {
     const modifiedStateTransition = JSON.parse(
       JSON.stringify(stateTransitions[0])
     );
     modifiedStateTransition.pub_signals[2] = "1"; // change state to make zk proof invalid
 
     const expectedErrorText =
-      "zero-knowledge proof of state transition is not valid";
+      "Zero-knowledge proof of state transition is not valid";
     let isException = false;
     try {
       await publishState(state, modifiedStateTransition);

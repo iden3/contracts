@@ -144,40 +144,40 @@ contract StateV2 is OwnableUpgradeable {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) public {
-        if (isOldStateGenesis == false) {
-            require(
-                idExists(id),
-                "there should be at least one state for identity in smart contract when _isOldStateGenesis == 0"
-            );
-
-            uint256 previousIDState = statesHistories[id][
-                statesHistories[id].length - 1
-            ];
-
-            require(
-                stateEntries[previousIDState].block != block.number,
-                "no multiple set in the same block"
-            );
-            require(
-                previousIDState == oldState,
-                "_oldState argument should be equal to the latest identity state in smart contract when isOldStateGenesis == 0"
-            );
-        } else {
+        if (isOldStateGenesis) {
             require(
                 !idExists(id),
-                "there should be no states for identity in smart contract when _isOldStateGenesis != 0"
+                "Old state is genesis but identity already exists"
             );
             require(
                 !stateExists(oldState),
-                "oldState should not exist"
+                "Genesis state already exists"
             );
             // link genesis state to Id in the smart contract, but creation time and creation block is unknown
             stateEntries[oldState].id = id;
             // push genesis state to identities as latest state
             statesHistories[id].push(oldState);
+        } else {
+            require(
+                idExists(id),
+                "Old state is not genesis but identity does not yet exist"
+            );
+
+            uint256 previousIDState = statesHistories[id][
+            statesHistories[id].length - 1
+            ];
+
+            require(
+                stateEntries[previousIDState].block != block.number,
+                "No multiple set in the same block"
+            );
+            require(
+                previousIDState == oldState,
+                "Old state does not match the latest state"
+            );
         }
 
-        require(!stateExists(newState), "newState should not exist");
+        require(!stateExists(newState), "New state should not exist");
 
         uint256[4] memory input = [
             id,
@@ -187,7 +187,7 @@ contract StateV2 is OwnableUpgradeable {
         ];
         require(
             verifier.verifyProof(a, b, c, input),
-            "zero-knowledge proof of state transition is not valid "
+            "Zero-knowledge proof of state transition is not valid "
         );
 
         statesHistories[id].push(newState);
