@@ -347,12 +347,8 @@ library Smt {
         rootInfo.createdAtTimestamp = self.rootEntries[root].createdAtTimestamp;
         rootInfo.createdAtBlock = self.rootEntries[root].createdAtBlock;
         rootInfo.replacedByRoot = self.rootEntries[root].replacedByRoot;
-        rootInfo.replacedAtBlock = rootInfo.replacedByRoot == 0
-            ? 0
-            : self.rootEntries[rootInfo.replacedByRoot].createdAtBlock;
-        rootInfo.replacedAtTimestamp = rootInfo.replacedByRoot == 0
-            ? 0
-            : self.rootEntries[rootInfo.replacedByRoot].createdAtTimestamp;
+        rootInfo.replacedAtBlock = self.rootEntries[rootInfo.replacedByRoot].createdAtBlock;
+        rootInfo.replacedAtTimestamp = self.rootEntries[rootInfo.replacedByRoot].createdAtTimestamp;
         rootInfo.root = root;
 
         return rootInfo;

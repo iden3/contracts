@@ -302,13 +302,9 @@ contract StateV2 is OwnableUpgradeable {
                 state: state,
                 replacedByState: replByState,
                 createdAtTimestamp: stateEntries[state].timestamp,
-                replacedAtTimestamp: replByState == 0
-                    ? 0
-                    : stateEntries[replByState].timestamp,
+                replacedAtTimestamp: stateEntries[replByState].timestamp,
                 createdAtBlock: stateEntries[state].block,
-                replacedAtBlock: replByState == 0
-                    ? 0
-                    : stateEntries[replByState].block
+                replacedAtBlock: stateEntries[replByState].block
             });
     }
 
