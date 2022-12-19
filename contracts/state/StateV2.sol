@@ -225,13 +225,10 @@ contract StateV2 is OwnableUpgradeable {
         onlyExistingId(id)
         returns (StateInfo memory)
     {
-        StateInfo memory stateInfo;
-        if (statesHistories[id].length > 0) {
-            stateInfo = getStateInfoByState(
+        return
+            _getStateInfoByState(
                 statesHistories[id][statesHistories[id].length - 1]
             );
-        }
-        return stateInfo;
     }
 
     /**
@@ -275,7 +272,7 @@ contract StateV2 is OwnableUpgradeable {
         StateInfo[] memory states = new StateInfo[](length);
         uint256 j = 0;
         for (uint256 i = startIndex; i < endIndex; i++) {
-            states[j] = getStateInfoByState(statesHistories[id][i]);
+            states[j] = _getStateInfoByState(statesHistories[id][i]);
             j++;
         }
         return states;
@@ -292,17 +289,7 @@ contract StateV2 is OwnableUpgradeable {
         onlyExistingState(state)
         returns (StateInfo memory)
     {
-        uint256 replByState = stateEntries[state].replacedBy;
-        return
-            StateInfo({
-                id: stateEntries[state].id,
-                state: state,
-                replacedByState: replByState,
-                createdAtTimestamp: stateEntries[state].timestamp,
-                replacedAtTimestamp: stateEntries[replByState].timestamp,
-                createdAtBlock: stateEntries[state].block,
-                replacedAtBlock: stateEntries[replByState].block
-            });
+        return _getStateInfoByState(state);
     }
 
     /**
@@ -449,5 +436,24 @@ contract StateV2 is OwnableUpgradeable {
      */
     function stateExists(uint256 state) public view returns (bool) {
         return stateEntries[state].id != 0;
+    }
+
+    /**
+     * @dev Get state info struct by state without state existence check.
+     * @param state State
+     * @return The state info struct
+     */
+    function _getStateInfoByState (uint256 state) internal view returns (StateInfo memory) {
+        uint256 replByState = stateEntries[state].replacedBy;
+        return
+            StateInfo({
+            id: stateEntries[state].id,
+            state: state,
+            replacedByState: replByState,
+            createdAtTimestamp: stateEntries[state].timestamp,
+            replacedAtTimestamp: stateEntries[replByState].timestamp,
+            createdAtBlock: stateEntries[state].block,
+            replacedAtBlock: stateEntries[replByState].block
+            });
     }
 }

@@ -24,8 +24,8 @@ describe("State transitions positive cases", () => {
     const res0 = await state.getStateInfoById(params.id);
     expect(res0.state).to.be.equal(bigInt(params.newState).toString());
 
+    expect(await state.stateExists(params.newState)).to.be.equal(true);
     const stInfoNew = await state.getStateInfoByState(params.newState);
-
     expect(stInfoNew.id).to.be.equal(params.id);
     expect(stInfoNew.replacedByState).to.be.equal(0);
     expect(stInfoNew.createdAtTimestamp).not.be.empty;
@@ -33,8 +33,8 @@ describe("State transitions positive cases", () => {
     expect(stInfoNew.createdAtBlock).not.be.empty;
     expect(stInfoNew.replacedAtBlock).to.be.equal(0);
 
+    expect(await state.stateExists(params.oldState)).to.be.equal(true);
     const stInfoOld = await state.getStateInfoByState(params.oldState);
-
     expect(stInfoOld.id).to.be.equal(params.id);
     expect(stInfoOld.replacedByState).to.be.equal(params.newState);
     expect(stInfoOld.createdAtTimestamp).to.be.equal(0);
@@ -44,6 +44,7 @@ describe("State transitions positive cases", () => {
     expect(stInfoOld.createdAtBlock).to.be.equal(0);
     expect(stInfoOld.replacedAtBlock).to.be.equal(stInfoNew.createdAtBlock);
 
+    expect(await state.idExists(params.id)).to.be.equal(true);
     const latestStInfo = await state.getStateInfoById(params.id);
     expect(latestStInfo.state).to.be.equal(params.newState);
   });
@@ -57,8 +58,8 @@ describe("State transitions positive cases", () => {
     const res = await state.getStateInfoById(params.id);
     expect(res.state).to.be.equal(params.newState);
 
+    expect(await state.stateExists(params.newState)).to.be.equal(true);
     const stInfoNew = await state.getStateInfoByState(params.newState);
-
     expect(stInfoNew.replacedAtTimestamp).to.be.equal(0);
     expect(stInfoNew.createdAtTimestamp).not.be.empty;
     expect(stInfoNew.replacedAtBlock).to.be.equal(0);
@@ -66,8 +67,8 @@ describe("State transitions positive cases", () => {
     expect(stInfoNew.id).to.be.equal(params.id);
     expect(stInfoNew.replacedByState).to.be.equal(0);
 
+    expect(await state.stateExists(params.oldState)).to.be.equal(true);
     const stInfoOld = await state.getStateInfoByState(params.oldState);
-
     expect(stInfoOld.replacedAtTimestamp).to.be.equal(
       stInfoNew.createdAtTimestamp
     );
@@ -81,6 +82,7 @@ describe("State transitions positive cases", () => {
     expect(stInfoOld.id).to.be.equal(params.id);
     expect(stInfoOld.replacedByState).to.be.equal(params.newState);
 
+    expect(await state.idExists(params.id)).to.be.equal(true);
     const latestStInfo = await state.getStateInfoById(params.id);
     expect(latestStInfo.state).to.be.equal(params.newState);
   });
@@ -102,7 +104,6 @@ describe("State transition negative cases", () => {
       JSON.stringify(stateTransitions[1])
     );
     modifiedStateTransition.pub_signals[1] = "1"; // set oldState to 1 to trigger the error
-    const [id, _, newState] = modifiedStateTransition.pub_signals;
 
     const expectedErrorText = "Old state does not match the latest state";
     let isException = false;
@@ -113,9 +114,6 @@ describe("State transition negative cases", () => {
       expect(e.message).contains(expectedErrorText);
     }
     expect(isException).to.equal(true);
-
-    const res = await state.getStateInfoById(id);
-    expect(res.state).to.not.be.equal(newState);
   });
 
   it("Old state is genesis but identity already exists", async () => {
@@ -125,7 +123,6 @@ describe("State transition negative cases", () => {
       JSON.stringify(stateTransitions[1])
     );
     modifiedStateTransition.pub_signals[3] = "1"; // set isOldStateGenesis to 1 to trigger the error
-    const [id, _, newState] = modifiedStateTransition.pub_signals;
 
     const expectedErrorText =
       "Old state is genesis but identity already exists";
@@ -137,9 +134,6 @@ describe("State transition negative cases", () => {
       expect(e.message).contains(expectedErrorText);
     }
     expect(isException).to.equal(true);
-
-    const res = await state.getStateInfoById(id);
-    expect(res).to.not.be.equal(newState);
   });
 
   it("Genesis state already exists", async () => {
@@ -152,7 +146,6 @@ describe("State transition negative cases", () => {
     // set id to some random value to trigger the error
     modifiedStateTransition.pub_signals[0] = "1";
 
-    const [id] = modifiedStateTransition.pub_signals;
     const expectedErrorText = "Genesis state already exists";
     let isException = false;
     try {
@@ -163,12 +156,7 @@ describe("State transition negative cases", () => {
       console.log(e.message);
       expect(e.message).contains(expectedErrorText);
     }
-
     expect(isException).to.equal(true);
-
-    await expect(state.getStateInfoById(id)).to.be.revertedWith(
-      "Identity does not exist"
-    );
   });
 
   it("New state should not exist", async () => {
@@ -180,7 +168,6 @@ describe("State transition negative cases", () => {
 
     // set the new state of identity publishing the same as the existing state
     modifiedStateTransition.pub_signals[2] = stateTransitions[0].pub_signals[1];
-    const [id, _, newState] = modifiedStateTransition.pub_signals;
 
     const expectedErrorText = "New state should not exist";
     let isException = false;
@@ -191,9 +178,6 @@ describe("State transition negative cases", () => {
       expect(e.message).contains(expectedErrorText);
     }
     expect(isException).to.equal(true);
-
-    const res = await state.getStateInfoById(id);
-    expect(res).to.not.be.equal(newState);
   });
 
   it("Old state is not genesis but identity does not yet exist", async () => {
@@ -201,7 +185,6 @@ describe("State transition negative cases", () => {
       JSON.stringify(stateTransitions[0])
     );
     modifiedStateTransition.pub_signals[3] = "0"; // change isOldStateGenesis to 0 to trigger exception
-    const id = modifiedStateTransition.pub_signals[0];
 
     const expectedErrorText =
       "Old state is not genesis but identity does not yet exist";
@@ -213,10 +196,6 @@ describe("State transition negative cases", () => {
       expect(e.message).contains(expectedErrorText);
     }
     expect(isException).to.equal(true);
-
-    await expect(state.getStateInfoById(id)).to.be.revertedWith(
-      "Identity does not exist"
-    );
   });
 
   it("Zero-knowledge proof of state transition is not valid", async () => {
@@ -322,7 +301,7 @@ describe("State history", function () {
   });
 });
 
-describe("StateInfo negative cases", function () {
+describe("get StateInfo negative cases", function () {
   this.timeout(5000);
 
   let state;
