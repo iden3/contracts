@@ -443,17 +443,21 @@ contract StateV2 is OwnableUpgradeable {
      * @param state State
      * @return The state info struct
      */
-    function _getStateInfoByState (uint256 state) internal view returns (StateInfo memory) {
+    function _getStateInfoByState(uint256 state)
+        internal
+        view
+        returns (StateInfo memory)
+    {
         uint256 replByState = stateEntries[state].replacedBy;
         return
             StateInfo({
-            id: stateEntries[state].id,
-            state: state,
-            replacedByState: replByState,
-            createdAtTimestamp: stateEntries[state].timestamp,
-            replacedAtTimestamp: stateEntries[replByState].timestamp,
-            createdAtBlock: stateEntries[state].block,
-            replacedAtBlock: stateEntries[replByState].block
+                id: stateEntries[state].id,
+                state: state,
+                replacedByState: replByState,
+                createdAtTimestamp: stateEntries[state].timestamp,
+                replacedAtTimestamp: stateEntries[replByState].timestamp,
+                createdAtBlock: stateEntries[state].block,
+                replacedAtBlock: stateEntries[replByState].block
             });
     }
 }
