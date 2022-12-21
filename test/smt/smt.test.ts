@@ -1287,7 +1287,7 @@ describe("SMT tests", function () {
       smt = await deployHelper.deploySmtTestWrapper();
     });
 
-    it("getRootInfo() should throw an exception when root does not exist", async () => {
+    it("getRootInfo() should throw when root does not exist", async () => {
       await smt.add(1, 1);
       const root = await smt.getRoot();
       await expect(smt.getRootInfo(root)).not.to.be.reverted;
@@ -1296,12 +1296,20 @@ describe("SMT tests", function () {
       );
     });
 
-    it("getProofByRoot() should throw an exception when root does not exist", async () => {
+    it("getProofByRoot() should throw when root does not exist", async () => {
       await smt.add(1, 1);
       const root = await smt.getRoot();
       await expect(smt.getProofByRoot(1, root)).not.to.be.reverted;
       await expect(smt.getProofByRoot(1, root + 1)).to.be.revertedWith(
         "Root does not exist"
+      );
+    });
+
+    it("add() should throw when node already exist with the same index and value", async () => {
+      await smt.add(1, 1);
+      await smt.add(1, 2);
+      await expect(smt.add(1, 1)).to.be.revertedWith(
+        "Node already exists with the same index and value"
       );
     });
   });

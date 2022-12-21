@@ -5,6 +5,8 @@ pragma abicoder v2;
 import "../lib/Poseidon.sol";
 
 /// @title A sparse merkle tree implementation, which keeps tree history.
+// Note that this SMT implementation does not allow for duplicated roots in the history,
+// which may be a critical restriction for some projects
 library Smt {
     /**
      * @dev Max sparse merkle tree depth.
@@ -112,7 +114,7 @@ library Smt {
     }
 
     /**
-     * @dev Add anode to the SMT
+     * @dev Add a node to the SMT
      * @param i Index of node
      * @param v Value of node
      */
@@ -121,7 +123,17 @@ library Smt {
         uint256 i,
         uint256 v
     ) public {
-        _processLeaf(self, i, v, block.timestamp, block.number);
+        Node memory node = Node(NodeType.LEAF, 0, 0, i, v);
+        uint256 prevRoot = getRoot(self);
+        uint256 newRoot = _addLeaf(self, node, prevRoot, 0);
+
+        self.rootHistory.push(newRoot);
+
+        self.rootEntries[newRoot].createdAtTimestamp = block.timestamp;
+        self.rootEntries[newRoot].createdAtBlock = block.number;
+        if (prevRoot != 0) {
+            self.rootEntries[prevRoot].replacedByRoot = newRoot;
+        }
     }
 
     /**
@@ -382,26 +394,6 @@ library Smt {
         returns (bool)
     {
         return self.rootEntries[root].createdAtTimestamp > 0;
-    }
-
-    function _processLeaf(
-        SmtData storage self,
-        uint256 i,
-        uint256 v,
-        uint256 timestamp,
-        uint256 blockNumber
-    ) internal {
-        Node memory node = Node(NodeType.LEAF, 0, 0, i, v);
-        uint256 prevRoot = getRoot(self);
-        uint256 newRoot = _addLeaf(self, node, prevRoot, 0);
-
-        self.rootHistory.push(newRoot);
-
-        self.rootEntries[newRoot].createdAtTimestamp = timestamp;
-        self.rootEntries[newRoot].createdAtBlock = blockNumber;
-        if (prevRoot != 0) {
-            self.rootEntries[prevRoot].replacedByRoot = newRoot;
-        }
     }
 
     function _addLeaf(

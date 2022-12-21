@@ -73,7 +73,7 @@ contract StateV2 is OwnableUpgradeable {
     /**
      * @dev Verifier address
      */
-    IVerifier public verifier;
+    IVerifier internal verifier;
 
     /**
      * @dev State data
