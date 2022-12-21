@@ -56,19 +56,29 @@ contract StateV2 is OwnableUpgradeable {
     }
 
     /**
+     * @dev Struct for storing all the state data
+     * @param statesHistories A state history per each identity.
+     * @param stateEntries A state metadata of each state
+     */
+    struct StateData {
+        mapping(uint256 => uint256[]) statesHistories;
+        mapping(uint256 => StateEntry) stateEntries;
+        // This empty reserved space is put in place to allow future versions
+        // of the State contract to add new SmtData struct fields without shifting down
+        // storage of upgradable contracts that use this struct as a state variable
+        // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+        uint256[50] __gap;
+    }
+
+    /**
      * @dev Verifier address
      */
     IVerifier public verifier;
 
     /**
-     * @dev A state histories of each identity.
+     * @dev State data
      */
-    mapping(uint256 => uint256[]) public statesHistories;
-
-    /**
-     * @dev A state entries of each identity.
-     */
-    mapping(uint256 => StateEntry) public stateEntries;
+    StateData internal _stateData;
 
     /**
      * @dev Global Identity State Tree (GIST) data
@@ -151,21 +161,21 @@ contract StateV2 is OwnableUpgradeable {
             );
             require(!stateExists(oldState), "Genesis state already exists");
             // link genesis state to Id in the smart contract, but creation time and creation block is unknown
-            stateEntries[oldState].id = id;
+            _stateData.stateEntries[oldState].id = id;
             // push genesis state to identities as latest state
-            statesHistories[id].push(oldState);
+            _stateData.statesHistories[id].push(oldState);
         } else {
             require(
                 idExists(id),
                 "Old state is not genesis but identity does not yet exist"
             );
 
-            uint256 previousIDState = statesHistories[id][
-                statesHistories[id].length - 1
+            uint256 previousIDState = _stateData.statesHistories[id][
+                _stateData.statesHistories[id].length - 1
             ];
 
             require(
-                stateEntries[previousIDState].block != block.number,
+                _stateData.stateEntries[previousIDState].block != block.number,
                 "No multiple set in the same block"
             );
             require(
@@ -187,10 +197,10 @@ contract StateV2 is OwnableUpgradeable {
             "Zero-knowledge proof of state transition is not valid "
         );
 
-        statesHistories[id].push(newState);
+        _stateData.statesHistories[id].push(newState);
 
         // Set create info for new state
-        stateEntries[newState] = StateEntry({
+        _stateData.stateEntries[newState] = StateEntry({
             id: id,
             timestamp: block.timestamp,
             block: block.number,
@@ -198,7 +208,7 @@ contract StateV2 is OwnableUpgradeable {
         });
 
         // Set replace info for old state
-        stateEntries[oldState].replacedBy = newState;
+        _stateData.stateEntries[oldState].replacedBy = newState;
 
         // put state to GIST to recalculate global state
         _gistData.add(PoseidonUnit1L.poseidon([id]), newState);
@@ -227,7 +237,9 @@ contract StateV2 is OwnableUpgradeable {
     {
         return
             _getStateInfoByState(
-                statesHistories[id][statesHistories[id].length - 1]
+                _stateData.statesHistories[id][
+                    _stateData.statesHistories[id].length - 1
+                ]
             );
     }
 
@@ -242,7 +254,7 @@ contract StateV2 is OwnableUpgradeable {
         onlyExistingId(id)
         returns (uint256)
     {
-        return statesHistories[id].length;
+        return _stateData.statesHistories[id].length;
     }
 
     /**
@@ -265,14 +277,14 @@ contract StateV2 is OwnableUpgradeable {
 
         uint256 endIndex = startIndex + length;
         require(
-            endIndex <= statesHistories[id].length,
+            endIndex <= _stateData.statesHistories[id].length,
             "Out of bounds of state history"
         );
 
         StateInfo[] memory states = new StateInfo[](length);
         uint256 j = 0;
         for (uint256 i = startIndex; i < endIndex; i++) {
-            states[j] = _getStateInfoByState(statesHistories[id][i]);
+            states[j] = _getStateInfoByState(_stateData.statesHistories[id][i]);
             j++;
         }
         return states;
@@ -426,7 +438,7 @@ contract StateV2 is OwnableUpgradeable {
      * @return True if the identity exists
      */
     function idExists(uint256 id) public view returns (bool) {
-        return statesHistories[id].length > 0;
+        return _stateData.statesHistories[id].length > 0;
     }
 
     /**
@@ -435,7 +447,7 @@ contract StateV2 is OwnableUpgradeable {
      * @return True if the state exists
      */
     function stateExists(uint256 state) public view returns (bool) {
-        return stateEntries[state].id != 0;
+        return _stateData.stateEntries[state].id != 0;
     }
 
     /**
@@ -448,16 +460,18 @@ contract StateV2 is OwnableUpgradeable {
         view
         returns (StateInfo memory)
     {
-        uint256 replByState = stateEntries[state].replacedBy;
+        uint256 replByState = _stateData.stateEntries[state].replacedBy;
         return
             StateInfo({
-                id: stateEntries[state].id,
+                id: _stateData.stateEntries[state].id,
                 state: state,
                 replacedByState: replByState,
-                createdAtTimestamp: stateEntries[state].timestamp,
-                replacedAtTimestamp: stateEntries[replByState].timestamp,
-                createdAtBlock: stateEntries[state].block,
-                replacedAtBlock: stateEntries[replByState].block
+                createdAtTimestamp: _stateData.stateEntries[state].timestamp,
+                replacedAtTimestamp: _stateData
+                    .stateEntries[replByState]
+                    .timestamp,
+                createdAtBlock: _stateData.stateEntries[state].block,
+                replacedAtBlock: _stateData.stateEntries[replByState].block
             });
     }
 }
