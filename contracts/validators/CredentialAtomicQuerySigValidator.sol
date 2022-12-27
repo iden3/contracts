@@ -30,10 +30,9 @@ contract CredentialAtomicQuerySigValidator is
         __Ownable_init();
     }
 
-    function setRevocationStateExpirationTime(uint256 expirationTime)
-        public
-        onlyOwner
-    {
+    function setRevocationStateExpirationTime(
+        uint256 expirationTime
+    ) public onlyOwner {
         revocationStateExpirationTime = expirationTime;
     }
 
@@ -76,86 +75,90 @@ contract CredentialAtomicQuerySigValidator is
             "wrong query operator has been used for proof generation"
         );
 
-        for (uint256 i = 0; i < query.value.length; i++) {
-            require(
-                inputs[i + 10] == query.value[i],
-                "wrong comparison value has been used for proof generation"
-            );
-        }
+        require(
+            inputs[10] == query.valueHash,
+            "wrong comparison value has been used for proof generation"
+        );
 
         // verify user states
 
-        uint256 userId = inputs[USER_ID_INDEX];
-        uint256 userState = inputs[2];
-        uint256 issuerAuthState = inputs[0];
-        uint256 issuerId = inputs[4];
-        uint256 issuerClaimNonRevState = inputs[5];
+        // uint256 userId = inputs[USER_ID_INDEX];
+        // uint256 gistRoot = inputs[2];
+        // uint256 issuerAuthState = inputs[0];
+        // uint256 issuerId = inputs[4];
+        // uint256 issuerClaimNonRevState = inputs[5];
 
         // 1. User state must be latest or genesis
 
-        uint256 userStateFromContract = state.getState(userId);
+       // 1. User state must be latest or genesis
+        // // TODO: check if we need get latest gist root or get it from history
+        // IState.RootInfo memory rootInfo = state.getGISTRootInfo(userId);
 
-        if (userStateFromContract == 0) {
-            require(
-                GenesisUtils.isGenesisState(userId, userState),
-                "User state isn't in state contract and not genesis"
-            );
-        } else {
-            // The non-empty state is returned, and it’s not equal to the state that the user has provided.
-            require(
-                userStateFromContract == userState,
-                "user state is not latest"
-            );
-        }
+        // require(
+        //     rootInfo.root == gistRoot,
+        //     "Gist root state isn't in state contract"
+        // );
 
-        // 2. Issuer state must be registered in state contracts or be genesis
-        bool isIssuerStateGenesis = GenesisUtils.isGenesisState(
-            issuerId,
-            issuerAuthState
-        );
+        // // 2. Issuer state must be registered in state contracts or be genesis
+        // bool isIssuerStateGenesis = GenesisUtils.isGenesisState(
+        //     issuerId,
+        //     issuerClaimIdenState
+        // );
 
-        if (!isIssuerStateGenesis) {
-            (, , , , uint256 issuerIdFromState, ) = state.getTransitionInfo(
-                issuerAuthState
-            );
-            require(
-                issuerId == issuerIdFromState,
-                "Issuer state doesn't exist in state contract"
-            );
-        }
+        // if (!isIssuerStateGenesis) {
+        //     IState.StateInfo memory issuerStateInfo = state.getStateInfoByState(
+        //         issuerClaimIdenState
+        //     );
+        //     require(
+        //         issuerId == issuerStateInfo.state,
+        //         "Issuer state doesn't exist in state contract"
+        //     );
+        // }
 
-        uint256 issuerClaimNonRevFromContract = state.getState(issuerId);
+        // IState.StateInfo memory issuerClaimNonRevStateInfo = state
+        //     .getStateInfoById(issuerId);
+        // console.log(
+        //     "issuerClaimNonRevFromContract state.getState(issuerId) passed"
+        // );
 
-        if (issuerClaimNonRevFromContract == 0) {
-            require(
-                GenesisUtils.isGenesisState(issuerId, issuerClaimNonRevState),
-                "Non-Revocation state isn't in state contract and not genesis"
-            );
-        } else {
-            // The non-empty state is returned, and it’s not equal to the state that the user has provided.
-            if (issuerClaimNonRevFromContract != issuerClaimNonRevState) {
-                // Get the time of the latest state and compare it to the transition time of state provided by the user.
-                (uint256 replacedAtTimestamp, , , , uint256 id, ) = state
-                    .getTransitionInfo(issuerClaimNonRevState);
+        // if (issuerClaimNonRevStateInfo.state == 0) {
+        //     console.log("issuerClaimNonRevFromContract passed");
 
-                if (id == 0 || id != issuerId) {
-                    revert("state in transition info contains invalid id");
-                }
+        //     require(
+        //         GenesisUtils.isGenesisState(issuerId, issuerClaimNonRevState),
+        //         "Non-Revocation state isn't in state contract and not genesis"
+        //     );
+        // } else {
+        //     console.log("!issuerClaimNonRevFromContract passed");
 
-                if (replacedAtTimestamp == 0) {
-                    revert(
-                        "Non-Latest state doesn't contain replacement information"
-                    );
-                }
+        //     // The non-empty state is returned, and it’s not equal to the state that the user has provided.
+        //     if (issuerClaimNonRevStateInfo.state != issuerClaimNonRevState) {
+        //         // Get the time of the latest state and compare it to the transition time of state provided by the user.
+        //         IState.StateInfo memory issuerClaimNonRevLatestStateInfo = state
+        //             .getStateInfoByState(issuerClaimNonRevState);
 
-                if (
-                    block.timestamp - replacedAtTimestamp >
-                    revocationStateExpirationTime
-                ) {
-                    revert("Non-Revocation state of Issuer expired");
-                }
-            }
-        }
+        //         if (
+        //             issuerClaimNonRevLatestStateInfo.id == 0 ||
+        //             issuerClaimNonRevLatestStateInfo.id != issuerId
+        //         ) {
+        //             revert("state in transition info contains invalid id");
+        //         }
+
+        //         if (issuerClaimNonRevLatestStateInfo.replacedAtTimestamp == 0) {
+        //             revert(
+        //                 "Non-Latest state doesn't contain replacement information"
+        //             );
+        //         }
+
+        //         if (
+        //             block.timestamp -
+        //                 issuerClaimNonRevLatestStateInfo.replacedAtTimestamp >
+        //             revocationStateExpirationTime
+        //         ) {
+        //             revert("Non-Revocation state of Issuer expired");
+        //         }
+        //     }
+        // }
 
         return (true);
     }

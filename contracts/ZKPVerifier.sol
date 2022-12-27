@@ -68,7 +68,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         if (requestValidators[requestId] == ICircuitValidator(address(0x00))) {
             supportedRequests.push(requestId);
         }
-        requestQueries[requestId].value = query.value;
+        requestQueries[requestId].valueHash = query.valueHash;
         requestQueries[requestId].operator = query.operator;
         requestQueries[requestId].circuitId = query.circuitId;
         requestQueries[requestId].slotIndex = query.slotIndex;

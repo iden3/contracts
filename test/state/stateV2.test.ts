@@ -5,8 +5,8 @@ import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 import bigInt from "big-integer";
 
 const stateTransitions = [
-  require("./data/user_state_genesis_transition.json"),
-  require("./data/user_state_next_transition.json"),
+  require("./data/issuer_state_transition.json"),
+  require("./data/issuer_next_state_transition.json"),
 ];
 
 describe("State transitions positive cases", () => {

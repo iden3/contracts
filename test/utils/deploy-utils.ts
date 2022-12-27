@@ -10,7 +10,7 @@ export async function deployValidatorContracts(
   validator: any;
 }> {
   const stateDeployHelper = await StateDeployHelper.initialize();
-  const { state } = await stateDeployHelper.deployStateV1();
+  const { state } = await stateDeployHelper.deployStateV2();
 
   const ValidatorContractVerifierWrapper = await ethers.getContractFactory(
     verifierContractWrapperName
