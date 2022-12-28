@@ -6,7 +6,6 @@ import "../lib/GenesisUtils.sol";
 import "../interfaces/ICircuitValidator.sol";
 import "../interfaces/IVerifier.sol";
 import "../interfaces/IState.sol";
-import "hardhat/console.sol";
 
 contract CredentialAtomicQueryMTPValidator is
     OwnableUpgradeable,
@@ -78,14 +77,13 @@ contract CredentialAtomicQueryMTPValidator is
         );
 
         // verify user states
+        // todo: check if we need to check user id or not
         uint256 userId = inputs[USER_ID_INDEX];
         uint256 gistRoot = inputs[4];
         uint256 issuerClaimIdenState = inputs[6];
         uint256 issuerId = inputs[5];
         uint256 issuerClaimNonRevState = inputs[8];
 
-        // 1. User state must be latest or genesis
-        // TODO: check if we need get latest gist root or get it from history
         IState.RootInfo memory rootInfo = state.getGISTRootInfo(gistRoot);
 
         require(
@@ -106,9 +104,7 @@ contract CredentialAtomicQueryMTPValidator is
             issuerClaimIdenState
         );
 
-        console.log("isIssuerStateGenesis: ", isIssuerStateGenesis);
         if (!isIssuerStateGenesis) {
-            console.log(issuerClaimIdenState, "issuerClaimIdenState");
             IState.StateInfo memory issuerStateInfo = state.getStateInfoByState(
                 issuerClaimIdenState
             );
@@ -122,15 +118,11 @@ contract CredentialAtomicQueryMTPValidator is
             .getStateInfoById(issuerId);
 
         if (issuerClaimNonRevStateInfo.state == 0) {
-            console.log("issuerClaimNonRevFromContract passed");
-
             require(
                 GenesisUtils.isGenesisState(issuerId, issuerClaimNonRevState),
                 "Non-Revocation state isn't in state contract and not genesis"
             );
         } else {
-            console.log("!issuerClaimNonRevFromContract passed");
-
             // The non-empty state is returned, and it’s not equal to the state that the user has provided.
             if (issuerClaimNonRevStateInfo.state != issuerClaimNonRevState) {
                 // Get the time of the latest state and compare it to the transition time of state provided by the user.

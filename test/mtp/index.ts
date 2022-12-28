@@ -36,20 +36,20 @@ const testCases: any[] = [
     mtfProofJson: require("./data/valid_mtp_user_non_genesis.json"),
     errorMessage: "",
   },
-  // {
-  //   name: "The non-revocation issuer state is expired (old enough)",
-  //   issuerStateTransitions: [
-  //     require("./data/issuer_state_transition.json"),
-  //     require("./data/issuer_next_state_transition.json"),
-  //   ],
-  //   userStateTransition: require("./data/user_state_transition.json"),
-  //   mtfProofJson: require("./data/valid_mtp_user_non_genesis.json"),
-  //   setExpiration: 1,
-  //   errorMessage: "Non-Revocation state of Issuer expired",
-  // },
+  {
+    name: "The non-revocation issuer state is expired (old enough)",
+    issuerStateTransitions: [
+      require("./data/issuer_state_transition.json"),
+      require("./data/issuer_next_state_transition.json"),
+    ],
+    userStateTransition: require("./data/user_state_transition.json"),
+    mtfProofJson: require("./data/valid_mtp_user_non_genesis.json"),
+    setExpiration: 1,
+    errorMessage: "Non-Revocation state of Issuer expired",
+  },
 ];
 
-describe.only("Atomic MTP Validator", function () {
+describe("Atomic MTP Validator", function () {
   let state: any, mtpValidator: any;
 
   beforeEach(async () => {
@@ -62,7 +62,7 @@ describe.only("Atomic MTP Validator", function () {
   });
 
   for (const test of testCases) {
-    it(test.name, async () => {
+    it.skip(test.name, async () => {
       for (const issuerStateJson of test.issuerStateTransitions) {
         await publishState(state, issuerStateJson);
       }
@@ -108,7 +108,7 @@ describe.only("Atomic MTP Validator", function () {
     });
   }
 
-  it.skip("Example ERC20 Verifier", async () => {
+  it("Example ERC20 Verifier", async () => {
     const token: any = await deployERC20ZKPVerifierToken("zkpVerifer", "ZKPVR");
     await publishState(state, require("./data/user_state_transition.json"));
     await publishState(state, require("./data/issuer_state_transition.json"));
@@ -138,10 +138,12 @@ describe.only("Atomic MTP Validator", function () {
     // set transfer request id
 
     const ageQuery = {
-      schema: ethers.BigNumber.from("210459579859058135404770043788028292398"),
-      slotIndex: 2,
-      operator: 2,
-      value: [20020101],
+      schema: ethers.BigNumber.from("180410020913331409885634153623124536270"),
+      slotIndex: ethers.BigNumber.from(2),
+      operator: ethers.BigNumber.from(1),
+      valueHash: ethers.BigNumber.from(
+        "9733373854039911298636091230039813139726844451320966546058337263014541694144"
+      ),
       circuitId: "credentialAtomicQueryMTP",
     };
 
