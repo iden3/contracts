@@ -5,7 +5,6 @@ pragma abicoder v2;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "../lib/Smt.sol";
 import "../lib/Poseidon.sol";
-import "hardhat/console.sol";
 
 interface IVerifier {
     function verifyProof(
@@ -155,14 +154,6 @@ contract StateV2 is OwnableUpgradeable {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) public {
-        console.log("id");
-        console.log(id);
-
-        console.log("oldState");
-        console.log(oldState);
-
-        console.log("newState");
-        console.log(newState);
         if (isOldStateGenesis) {
             require(
                 !idExists(id),
@@ -221,8 +212,6 @@ contract StateV2 is OwnableUpgradeable {
 
         // put state to GIST to recalculate global state
         _gistData.add(PoseidonUnit1L.poseidon([id]), newState);
-        console.log("poseidon(id)");
-        console.log(PoseidonUnit1L.poseidon([id]));
 
         emit StateUpdated(id, block.number, block.timestamp, newState);
     }

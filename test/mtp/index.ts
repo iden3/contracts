@@ -9,24 +9,23 @@ import {
 
 const testCases: any[] = [
   {
-    name: "Validate Genesis User State/Issuer Claim IdenState is in Chain/Revocation State is in Chain",
+    name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain",
     issuerStateTransitions: [require("./data/issuer_state_transition.json")],
     mtfProofJson: require("./data/valid_mtp_user_genesis.json"),
   },
-  // {
-  //   name: "Validation of proof failed",
-  //   issuerStateTransitions: [require("./data/issuer_state_transition.json")],
-  //   mtfProofJson: require("./data/invalid_mtp_user_genesis.json"),
-  //   errorMessage: "MTP Proof could not be verified",
-  // },
-
-  // {
-  //   name: "User state is not genesis but latest",
-  //   issuerStateTransitions: [require("./data/issuer_state_transition.json")],
-  //   userStateTransition: require("./data/user_state_transition.json"),
-  //   mtfProofJson: require("./data/valid_mtp_user_non_genesis.json"),
-  //   errorMessage: "",
-  // },
+  {
+    name: "Validation of proof failed",
+    issuerStateTransitions: [require("./data/issuer_state_transition.json")],
+    mtfProofJson: require("./data/invalid_mtp_user_genesis.json"),
+    errorMessage: "MTP Proof could not be verified",
+  },
+  {
+    name: "User state is not genesis but latest",
+    issuerStateTransitions: [require("./data/issuer_state_transition.json")],
+    userStateTransition: require("./data/user_state_transition.json"),
+    mtfProofJson: require("./data/valid_mtp_user_non_genesis.json"),
+    errorMessage: "",
+  },
   // {
   //   name: "The non-revocation issuer state is not expired (is not too old)",
   //   issuerStateTransitions: [

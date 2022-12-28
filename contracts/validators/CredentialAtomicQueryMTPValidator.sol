@@ -86,11 +86,7 @@ contract CredentialAtomicQueryMTPValidator is
 
         // 1. User state must be latest or genesis
         // TODO: check if we need get latest gist root or get it from history
-        console.log("gist rootInfo.root: ");
-        console.log(gistRoot);
         IState.RootInfo memory rootInfo = state.getGISTRootInfo(gistRoot);
-        console.log("rootInfo.root2: ");
-
 
         require(
             rootInfo.root == gistRoot,
@@ -98,12 +94,11 @@ contract CredentialAtomicQueryMTPValidator is
         );
 
         // if (
-        //             block.timestamp -
-        //                 issuerClaimNonRevLatestStateInfo.replacedAtTimestamp >
-        //             revocationStateExpirationTime
-        //         ) {
-        //             revert("Non-Revocation state of Issuer expired");
-        //         }
+        //     block.timestamp - rootInfo.replacedAtTimestamp >
+        //     revocationStateExpirationTime
+        // ) {
+        //     revert("GIST state expired");
+        // }
 
         // 2. Issuer state must be registered in state contracts or be genesis
         bool isIssuerStateGenesis = GenesisUtils.isGenesisState(
@@ -111,21 +106,20 @@ contract CredentialAtomicQueryMTPValidator is
             issuerClaimIdenState
         );
 
+        console.log("isIssuerStateGenesis: ", isIssuerStateGenesis);
         if (!isIssuerStateGenesis) {
+            console.log(issuerClaimIdenState, "issuerClaimIdenState");
             IState.StateInfo memory issuerStateInfo = state.getStateInfoByState(
                 issuerClaimIdenState
             );
             require(
-                issuerId == issuerStateInfo.state,
+                issuerId == issuerStateInfo.id,
                 "Issuer state doesn't exist in state contract"
             );
         }
 
         IState.StateInfo memory issuerClaimNonRevStateInfo = state
             .getStateInfoById(issuerId);
-        console.log(
-            "issuerClaimNonRevFromContract state.getState(issuerId) passed"
-        );
 
         if (issuerClaimNonRevStateInfo.state == 0) {
             console.log("issuerClaimNonRevFromContract passed");
