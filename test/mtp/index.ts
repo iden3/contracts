@@ -26,16 +26,16 @@ const testCases: any[] = [
     mtfProofJson: require("./data/valid_mtp_user_non_genesis.json"),
     errorMessage: "",
   },
-  // {
-  //   name: "The non-revocation issuer state is not expired (is not too old)",
-  //   issuerStateTransitions: [
-  //     require("./data/issuer_state_transition.json"),
-  //     require("./data/issuer_next_state_transition.json"),
-  //   ],
-  //   userStateTransition: require("./data/user_state_transition.json"),
-  //   mtfProofJson: require("./data/valid_mtp_user_non_genesis.json"),
-  //   errorMessage: "",
-  // },
+  {
+    name: "The non-revocation issuer state is not expired (is not too old)",
+    issuerStateTransitions: [
+      require("./data/issuer_state_transition.json"),
+      require("./data/issuer_next_state_transition.json"),
+    ],
+    userStateTransition: require("./data/user_state_transition.json"),
+    mtfProofJson: require("./data/valid_mtp_user_non_genesis.json"),
+    errorMessage: "",
+  },
   // {
   //   name: "The non-revocation issuer state is expired (old enough)",
   //   issuerStateTransitions: [
