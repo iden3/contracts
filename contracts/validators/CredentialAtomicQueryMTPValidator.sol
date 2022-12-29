@@ -77,8 +77,6 @@ contract CredentialAtomicQueryMTPValidator is
         );
 
         // verify user states
-        // todo: check if we need to check user id or not
-        uint256 userId = inputs[USER_ID_INDEX];
         uint256 gistRoot = inputs[4];
         uint256 issuerClaimIdenState = inputs[6];
         uint256 issuerId = inputs[5];
@@ -90,13 +88,6 @@ contract CredentialAtomicQueryMTPValidator is
             rootInfo.root == gistRoot,
             "Gist root state isn't in state contract"
         );
-
-        // if (
-        //     block.timestamp - rootInfo.replacedAtTimestamp >
-        //     revocationStateExpirationTime
-        // ) {
-        //     revert("GIST state expired");
-        // }
 
         // 2. Issuer state must be registered in state contracts or be genesis
         bool isIssuerStateGenesis = GenesisUtils.isGenesisState(

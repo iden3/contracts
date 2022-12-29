@@ -62,7 +62,7 @@ describe("Atomic MTP Validator", function () {
   });
 
   for (const test of testCases) {
-    it.skip(test.name, async () => {
+    it(test.name, async () => {
       for (const issuerStateJson of test.issuerStateTransitions) {
         await publishState(state, issuerStateJson);
       }
