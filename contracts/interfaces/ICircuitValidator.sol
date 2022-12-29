@@ -20,6 +20,4 @@ interface ICircuitValidator {
     function getCircuitId() external pure returns (string memory id);
 
     function getChallengeInputIndex() external pure returns (uint256 index);
-
-    function getUserIdInputIndex() external pure returns (uint256 index);
 }

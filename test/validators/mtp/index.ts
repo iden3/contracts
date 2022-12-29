@@ -5,45 +5,51 @@ import {
   deployValidatorContracts,
   prepareInputs,
   publishState,
-} from "../utils/deploy-utils";
+} from "../../utils/deploy-utils";
 
 const testCases: any[] = [
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain",
-    issuerStateTransitions: [require("./data/issuer_state_transition.json")],
-    mtfProofJson: require("./data/valid_mtp_user_genesis.json"),
+    issuerStateTransitions: [
+      require("../common-data/issuer_state_transition.json"),
+    ],
+    proofJson: require("./data/valid_mtp_user_genesis.json"),
   },
   {
     name: "Validation of proof failed",
-    issuerStateTransitions: [require("./data/issuer_state_transition.json")],
-    mtfProofJson: require("./data/invalid_mtp_user_genesis.json"),
+    issuerStateTransitions: [
+      require("../common-data/issuer_state_transition.json"),
+    ],
+    proofJson: require("./data/invalid_mtp_user_genesis.json"),
     errorMessage: "MTP Proof could not be verified",
   },
   {
     name: "User state is not genesis but latest",
-    issuerStateTransitions: [require("./data/issuer_state_transition.json")],
-    userStateTransition: require("./data/user_state_transition.json"),
-    mtfProofJson: require("./data/valid_mtp_user_non_genesis.json"),
+    issuerStateTransitions: [
+      require("../common-data/issuer_state_transition.json"),
+    ],
+    userStateTransition: require("../common-data/user_state_transition.json"),
+    proofJson: require("./data/valid_mtp_user_non_genesis.json"),
     errorMessage: "",
   },
   {
     name: "The non-revocation issuer state is not expired (is not too old)",
     issuerStateTransitions: [
-      require("./data/issuer_state_transition.json"),
-      require("./data/issuer_next_state_transition.json"),
+      require("../common-data/issuer_state_transition.json"),
+      require("../common-data/issuer_next_state_transition.json"),
     ],
-    userStateTransition: require("./data/user_state_transition.json"),
-    mtfProofJson: require("./data/valid_mtp_user_non_genesis.json"),
+    userStateTransition: require("../common-data/user_state_transition.json"),
+    proofJson: require("./data/valid_mtp_user_non_genesis.json"),
     errorMessage: "",
   },
   {
     name: "The non-revocation issuer state is expired (old enough)",
     issuerStateTransitions: [
-      require("./data/issuer_state_transition.json"),
-      require("./data/issuer_next_state_transition.json"),
+      require("../common-data/issuer_state_transition.json"),
+      require("../common-data/issuer_next_state_transition.json"),
     ],
-    userStateTransition: require("./data/user_state_transition.json"),
-    mtfProofJson: require("./data/valid_mtp_user_non_genesis.json"),
+    userStateTransition: require("../common-data/user_state_transition.json"),
+    proofJson: require("./data/valid_mtp_user_non_genesis.json"),
     setExpiration: 1,
     errorMessage: "Non-Revocation state of Issuer expired",
   },
@@ -83,7 +89,7 @@ describe("Atomic MTP Validator", function () {
         circuitId: "credentialAtomicQueryMTP",
       };
 
-      const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.mtfProofJson);
+      const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
       if (test.errorMessage) {
         if (test.setExpiration) {
           await mtpValidator.setRevocationStateExpirationTime(
@@ -110,8 +116,14 @@ describe("Atomic MTP Validator", function () {
 
   it("Example ERC20 Verifier", async () => {
     const token: any = await deployERC20ZKPVerifierToken("zkpVerifer", "ZKPVR");
-    await publishState(state, require("./data/user_state_transition.json"));
-    await publishState(state, require("./data/issuer_state_transition.json"));
+    await publishState(
+      state,
+      require("../common-data/user_state_transition.json")
+    );
+    await publishState(
+      state,
+      require("../common-data/issuer_state_transition.json")
+    );
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(
       require("./data/valid_mtp_user_non_genesis_challenge_address.json")
@@ -137,7 +149,7 @@ describe("Atomic MTP Validator", function () {
 
     // set transfer request id
 
-    const ageQuery = {
+    const query = {
       schema: ethers.BigNumber.from("180410020913331409885634153623124536270"),
       slotIndex: ethers.BigNumber.from(2),
       operator: ethers.BigNumber.from(1),
@@ -150,10 +162,10 @@ describe("Atomic MTP Validator", function () {
     const requestId = await token.TRANSFER_REQUEST_ID();
     expect(requestId).to.be.equal(1);
 
-    await token.setZKPRequest(requestId, mtpValidator.address, ageQuery);
+    await token.setZKPRequest(requestId, mtpValidator.address, query);
 
     expect((await token.requestQueries(requestId)).schema).to.be.equal(
-      ageQuery.schema
+      query.schema
     ); // check that query is assigned
     expect((await token.getSupportedRequests()).length).to.be.equal(1);
 

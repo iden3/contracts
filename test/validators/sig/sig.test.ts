@@ -5,51 +5,57 @@ import {
   deployValidatorContracts,
   prepareInputs,
   publishState,
-} from "../utils/deploy-utils";
+} from "../../utils/deploy-utils";
 
 const testCases: any[] = [
   {
-    name: "Validate Genesis User State/Issuer Claim IdenState is in Chain/Revocation State is in Chain",
-    issuerStateTransitions: [require("./data/issuer_state_transition.json")],
+    name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain",
+    issuerStateTransitions: [
+      require("../common-data/issuer_state_transition.json"),
+    ],
     proofJson: require("./data/valid_sig_user_genesis.json"),
   },
-  {
-    name: "Validation of proof failed",
-    issuerStateTransitions: [require("./data/issuer_state_transition.json")],
-    proofJson: require("./data/invalid_sig_user_genesis.json"),
-    errorMessage: "sig could not be verified",
-  },
-  {
-    name: "User state is not genesis but latest",
-    issuerStateTransitions: [require("./data/issuer_state_transition.json")],
-    userStateTransition: require("./data/user_state_transition.json"),
-    proofJson: require("./data/valid_sig_user_non_genesis.json"),
-    errorMessage: "",
-  },
-  {
-    name: "The non-revocation issuer state is not expired (is not too old)",
-    issuerStateTransitions: [
-      require("./data/issuer_state_transition.json"),
-      require("./data/issuer_next_state_transition.json"),
-    ],
-    userStateTransition: require("./data/user_state_transition.json"),
-    proofJson: require("./data/valid_sig_user_non_genesis.json"),
-    errorMessage: "",
-  },
-  {
-    name: "The non-revocation issuer state is expired (old enough)",
-    issuerStateTransitions: [
-      require("./data/issuer_state_transition.json"),
-      require("./data/issuer_next_state_transition.json"),
-    ],
-    userStateTransition: require("./data/user_state_transition.json"),
-    proofJson: require("./data/valid_sig_user_non_genesis.json"),
-    setExpiration: 1,
-    errorMessage: "Non-Revocation state of Issuer expired",
-  },
+  // {
+  //   name: "Validation of proof failed",
+  //   issuerStateTransitions: [
+  //     require("../common-data/issuer_state_transition.json"),
+  //   ],
+  //   proofJson: require("./data/invalid_sig_user_genesis.json"),
+  //   errorMessage: "MTP Proof could not be verified",
+  // },
+  // {
+  //   name: "User state is not genesis but latest",
+  //   issuerStateTransitions: [
+  //     require("../common-data/issuer_state_transition.json"),
+  //   ],
+  //   userStateTransition: require("../common-data/user_state_transition.json"),
+  //   proofJson: require("./data/valid_sig_user_non_genesis.json"),
+  //   errorMessage: "",
+  // },
+  // {
+  //   name: "The non-revocation issuer state is not expired (is not too old)",
+  //   issuerStateTransitions: [
+  //     require("../common-data/issuer_state_transition.json"),
+  //     require("../common-data/issuer_next_state_transition.json"),
+  //   ],
+  //   userStateTransition: require("../common-data/user_state_transition.json"),
+  //   proofJson: require("./data/valid_sig_user_non_genesis.json"),
+  //   errorMessage: "",
+  // },
+  // {
+  //   name: "The non-revocation issuer state is expired (old enough)",
+  //   issuerStateTransitions: [
+  //     require("../common-data/issuer_state_transition.json"),
+  //     require("../common-data/issuer_next_state_transition.json"),
+  //   ],
+  //   userStateTransition: require("../common-data/user_state_transition.json"),
+  //   proofJson: require("./data/valid_sig_user_non_genesis.json"),
+  //   setExpiration: 1,
+  //   errorMessage: "Non-Revocation state of Issuer expired",
+  // },
 ];
 
-describe("Atomic Sig Validator", function () {
+describe.only("Atomic Sig Validator", function () {
   let state: any, sig: any;
 
   beforeEach(async () => {
@@ -73,12 +79,14 @@ describe("Atomic Sig Validator", function () {
 
       const query = {
         schema: ethers.BigNumber.from(
-          "210459579859058135404770043788028292398"
+          "180410020913331409885634153623124536270"
         ),
-        slotIndex: 2,
-        operator: 2,
-        value: [20020101],
-        circuitId: "credentialAtomicQuerySig",
+        slotIndex: ethers.BigNumber.from(2),
+        operator: ethers.BigNumber.from(1),
+        valueHash: ethers.BigNumber.from(
+          "9733373854039911298636091230039813139726844451320966546058337263014541694144"
+        ),
+        circuitId: "credentialAtomicQueryMTP",
       };
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
@@ -96,7 +104,7 @@ describe("Atomic Sig Validator", function () {
       }
     });
   }
-  it("Example ERC20 Verifier", async () => {
+  it.skip("Example ERC20 Verifier", async () => {
     const token: any = await deployERC20ZKPVerifierToken(
       "zkpVerifierSig",
       "ZKPVRSIG"

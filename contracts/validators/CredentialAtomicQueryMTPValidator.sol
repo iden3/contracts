@@ -13,7 +13,6 @@ contract CredentialAtomicQueryMTPValidator is
 {
     string constant CIRCUIT_ID = "credentialAtomicQueryMTP";
     uint256 constant CHALLENGE_INDEX = 3;
-    uint256 constant USER_ID_INDEX = 1;
 
     IVerifier public verifier;
     IState public state;
@@ -42,10 +41,6 @@ contract CredentialAtomicQueryMTPValidator is
 
     function getChallengeInputIndex() external pure returns (uint256 index) {
         return CHALLENGE_INDEX;
-    }
-
-    function getUserIdInputIndex() external pure returns (uint256 index) {
-        return USER_ID_INDEX;
     }
 
     function verify(
@@ -114,7 +109,7 @@ contract CredentialAtomicQueryMTPValidator is
                 "Non-Revocation state isn't in state contract and not genesis"
             );
         } else {
-            // The non-empty state is returned, and it’s not equal to the state that the user has provided.
+            // The non-empty state is returned, and it's not equal to the state that the user has provided.
             if (issuerClaimNonRevStateInfo.state != issuerClaimNonRevState) {
                 // Get the time of the latest state and compare it to the transition time of state provided by the user.
                 IState.StateInfo memory issuerClaimNonRevLatestStateInfo = state
