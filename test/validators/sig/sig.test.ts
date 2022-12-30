@@ -15,14 +15,14 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_sig_user_genesis.json"),
   },
-  // {
-  //   name: "Validation of proof failed",
-  //   issuerStateTransitions: [
-  //     require("../common-data/issuer_state_transition.json"),
-  //   ],
-  //   proofJson: require("./data/invalid_sig_user_genesis.json"),
-  //   errorMessage: "MTP Proof could not be verified",
-  // },
+  {
+    name: "Validation of proof failed",
+    issuerStateTransitions: [
+      require("../common-data/issuer_state_transition.json"),
+    ],
+    proofJson: require("./data/invalid_sig_user_genesis.json"),
+    errorMessage: "MTP Proof could not be verified",
+  },
   // {
   //   name: "User state is not genesis but latest",
   //   issuerStateTransitions: [
