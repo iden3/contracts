@@ -10,52 +10,48 @@ import {
 const testCases: any[] = [
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain",
-    issuerStateTransitions: [
-      require("../common-data/issuer_state_transition.json"),
-    ],
+    stateTransitions: [require("../common-data/issuer_state_transition.json")],
     proofJson: require("./data/valid_sig_user_genesis.json"),
   },
   {
     name: "Validation of proof failed",
-    issuerStateTransitions: [
-      require("../common-data/issuer_state_transition.json"),
-    ],
+    stateTransitions: [require("../common-data/issuer_state_transition.json")],
     proofJson: require("./data/invalid_sig_user_genesis.json"),
     errorMessage: "MTP Proof could not be verified",
   },
-  // {
-  //   name: "User state is not genesis but latest",
-  //   issuerStateTransitions: [
-  //     require("../common-data/issuer_state_transition.json"),
-  //   ],
-  //   userStateTransition: require("../common-data/user_state_transition.json"),
-  //   proofJson: require("./data/valid_sig_user_non_genesis.json"),
-  //   errorMessage: "",
-  // },
-  // {
-  //   name: "The non-revocation issuer state is not expired (is not too old)",
-  //   issuerStateTransitions: [
-  //     require("../common-data/issuer_state_transition.json"),
-  //     require("../common-data/issuer_next_state_transition.json"),
-  //   ],
-  //   userStateTransition: require("../common-data/user_state_transition.json"),
-  //   proofJson: require("./data/valid_sig_user_non_genesis.json"),
-  //   errorMessage: "",
-  // },
-  // {
-  //   name: "The non-revocation issuer state is expired (old enough)",
-  //   issuerStateTransitions: [
-  //     require("../common-data/issuer_state_transition.json"),
-  //     require("../common-data/issuer_next_state_transition.json"),
-  //   ],
-  //   userStateTransition: require("../common-data/user_state_transition.json"),
-  //   proofJson: require("./data/valid_sig_user_non_genesis.json"),
-  //   setExpiration: 1,
-  //   errorMessage: "Non-Revocation state of Issuer expired",
-  // },
+  {
+    name: "User state is not genesis but latest",
+    stateTransitions: [
+      require("../common-data/issuer_state_transition.json"),
+      require("../common-data/user_state_transition.json"),
+    ],
+    proofJson: require("./data/valid_sig_user_non_genesis.json"),
+    errorMessage: "",
+  },
+  {
+    name: "The non-revocation issuer state is not expired (is not too old)",
+    stateTransitions: [
+      require("../common-data/issuer_state_transition.json"),
+      require("../common-data/user_state_transition.json"),
+      require("../common-data/issuer_next_state_transition.json"),
+    ],
+    proofJson: require("./data/valid_sig_user_non_genesis.json"),
+    errorMessage: "",
+  },
+  {
+    name: "The non-revocation issuer state is expired (old enough)",
+    stateTransitions: [
+      require("../common-data/issuer_state_transition.json"),
+      require("../common-data/user_state_transition.json"),
+      require("../common-data/issuer_next_state_transition.json"),
+    ],
+    proofJson: require("./data/valid_sig_user_non_genesis.json"),
+    setExpiration: 1,
+    errorMessage: "Non-Revocation state of Issuer expired",
+  },
 ];
 
-describe.only("Atomic Sig Validator", function () {
+describe("Atomic Sig Validator", function () {
   let state: any, sig: any;
 
   beforeEach(async () => {
@@ -69,12 +65,8 @@ describe.only("Atomic Sig Validator", function () {
 
   for (const test of testCases) {
     it(test.name, async () => {
-      for (const issuerStateJson of test.issuerStateTransitions) {
-        await publishState(state, issuerStateJson);
-      }
-
-      if (test.userStateTransition) {
-        await publishState(state, test.userStateTransition);
+      for (const json of test.stateTransitions) {
+        await publishState(state, json);
       }
 
       const query = {
@@ -104,13 +96,13 @@ describe.only("Atomic Sig Validator", function () {
       }
     });
   }
-  it.skip("Example ERC20 Verifier", async () => {
+  it("Example ERC20 Verifier", async () => {
     const token: any = await deployERC20ZKPVerifierToken(
       "zkpVerifierSig",
       "ZKPVRSIG"
     );
-    await publishState(state, require("./data/user_state_transition.json"));
-    await publishState(state, require("./data/issuer_state_transition.json"));
+    await publishState(state, require("../common-data/user_state_transition.json"));
+    await publishState(state, require("../common-data/issuer_state_transition.json"));
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(
       require("./data/valid_sig_user_non_genesis_challenge_address.json")
@@ -136,21 +128,23 @@ describe.only("Atomic Sig Validator", function () {
 
     // set transfer request id
 
-    const ageQuery = {
-      schema: ethers.BigNumber.from("210459579859058135404770043788028292398"),
-      slotIndex: 2,
-      operator: 2,
-      value: [20020101],
-      circuitId: "credentialAtomicQuerySig",
+    const query = {
+      schema: ethers.BigNumber.from("180410020913331409885634153623124536270"),
+      slotIndex: ethers.BigNumber.from(2),
+      operator: ethers.BigNumber.from(1),
+      valueHash: ethers.BigNumber.from(
+        "9733373854039911298636091230039813139726844451320966546058337263014541694144"
+      ),
+      circuitId: "credentialAtomicQueryMTP",
     };
 
     const requestId = await token.TRANSFER_REQUEST_ID();
     expect(requestId).to.be.equal(1);
 
-    await token.setZKPRequest(requestId, sig.address, ageQuery);
+    await token.setZKPRequest(requestId, sig.address, query);
 
     expect((await token.requestQueries(requestId)).schema).to.be.equal(
-      ageQuery.schema
+      query.schema
     ); // check that query is assigned
     expect((await token.getSupportedRequests()).length).to.be.equal(1);
 
