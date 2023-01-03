@@ -12,7 +12,7 @@ contract CredentialAtomicQuerySigValidator is
     ICircuitValidator
 {
     string constant CIRCUIT_ID = "credentialAtomicQuerySig";
-    uint256 constant CHALLENGE_INDEX = 4;
+    uint256 constant CHALLENGE_INDEX = 5;
 
     IVerifier public verifier;
     IState public state;
@@ -58,15 +58,15 @@ contract CredentialAtomicQuerySigValidator is
 
         // verify query
         require(
-            inputs[10] == query.schema,
+            inputs[11] == query.schema,
             "wrong claim schema has been used for proof generation"
         );
         require(
-            inputs[13] == query.slotIndex,
+            inputs[14] == query.slotIndex,
             "wrong claim data slot has been used for proof generation"
         );
         require(
-            inputs[14] == query.operator,
+            inputs[15] == query.operator,
             "wrong query operator has been used for proof generation"
         );
 
@@ -75,10 +75,10 @@ contract CredentialAtomicQuerySigValidator is
             "wrong comparison value has been used for proof generation"
         );
 
-        uint256 gistRoot = inputs[5];
         uint256 issuerClaimAuthState = inputs[3];
-        uint256 issuerId = inputs[6];
-        uint256 issuerClaimNonRevState = inputs[8];
+        uint256 gistRoot = inputs[6];
+        uint256 issuerId = inputs[7];
+        uint256 issuerClaimNonRevState = inputs[9];
 
         IState.RootInfo memory rootInfo = state.getGISTRootInfo(gistRoot);
 

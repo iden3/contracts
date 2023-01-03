@@ -12,7 +12,7 @@ contract CredentialAtomicQueryMTPValidator is
     ICircuitValidator
 {
     string constant CIRCUIT_ID = "credentialAtomicQueryMTP";
-    uint256 constant CHALLENGE_INDEX = 3;
+    uint256 constant CHALLENGE_INDEX = 4;
 
     IVerifier public verifier;
     IState public state;
@@ -54,15 +54,15 @@ contract CredentialAtomicQueryMTPValidator is
         require(verifier.verifyProof(a, b, c, inputs), "MTP is not valid");
 
         require(
-            inputs[10] == query.schema,
+            inputs[11] == query.schema,
             "wrong claim schema has been used for proof generation"
         );
         require(
-            inputs[13] == query.slotIndex,
+            inputs[14] == query.slotIndex,
             "wrong claim data slot has been used for proof generation"
         );
         require(
-            inputs[14] == query.operator,
+            inputs[15] == query.operator,
             "wrong query operator has been used for proof generation"
         );
 
@@ -72,10 +72,10 @@ contract CredentialAtomicQueryMTPValidator is
         );
 
         // verify user states
-        uint256 gistRoot = inputs[4];
-        uint256 issuerClaimIdenState = inputs[6];
-        uint256 issuerId = inputs[5];
-        uint256 issuerClaimNonRevState = inputs[8];
+        uint256 gistRoot = inputs[5];
+        uint256 issuerId = inputs[6];
+        uint256 issuerClaimIdenState = inputs[7];
+        uint256 issuerClaimNonRevState = inputs[9];
 
         IState.RootInfo memory rootInfo = state.getGISTRootInfo(gistRoot);
 
