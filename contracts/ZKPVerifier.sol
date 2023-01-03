@@ -73,9 +73,6 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         requestQueries[requestId].circuitId = query.circuitId;
         requestQueries[requestId].slotIndex = query.slotIndex;
         requestQueries[requestId].schema = query.schema;
-
-        requestQueries[requestId].circuitId = query.circuitId;
-
         requestValidators[requestId] = validator;
         return true;
     }
