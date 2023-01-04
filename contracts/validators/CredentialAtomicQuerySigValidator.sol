@@ -7,10 +7,7 @@ import "../interfaces/ICircuitValidator.sol";
 import "../interfaces/IVerifier.sol";
 import "../interfaces/IState.sol";
 
-contract CredentialAtomicQuerySigValidator is
-    OwnableUpgradeable,
-    ICircuitValidator
-{
+contract CredentialAtomicQuerySigValidator is OwnableUpgradeable, ICircuitValidator {
     string constant CIRCUIT_ID = "credentialAtomicQuerySig";
     uint256 constant CHALLENGE_INDEX = 5;
 
@@ -29,9 +26,7 @@ contract CredentialAtomicQuerySigValidator is
         __Ownable_init();
     }
 
-    function setRevocationStateExpirationTime(
-        uint256 expirationTime
-    ) public onlyOwner {
+    function setRevocationStateExpirationTime(uint256 expirationTime) public onlyOwner {
         revocationStateExpirationTime = expirationTime;
     }
 
@@ -51,10 +46,7 @@ contract CredentialAtomicQuerySigValidator is
         CircuitQuery memory query
     ) external view returns (bool r) {
         // verify that zkp is valid
-        require(
-            verifier.verifyProof(a, b, c, inputs),
-            "atomic query signature proof is not valid"
-        );
+        require(verifier.verifyProof(a, b, c, inputs), "atomic query signature proof is not valid");
 
         // verify query
         require(
@@ -82,29 +74,19 @@ contract CredentialAtomicQuerySigValidator is
 
         IState.RootInfo memory rootInfo = state.getGISTRootInfo(gistRoot);
 
-        require(
-            rootInfo.root == gistRoot,
-            "Gist root state isn't in state contract"
-        );
+        require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
 
         // 2. Issuer state must be registered in state contracts or be genesis
-        bool isIssuerStateGenesis = GenesisUtils.isGenesisState(
-            issuerId,
-            issuerClaimAuthState
-        );
+        bool isIssuerStateGenesis = GenesisUtils.isGenesisState(issuerId, issuerClaimAuthState);
 
         if (!isIssuerStateGenesis) {
             IState.StateInfo memory issuerStateInfo = state.getStateInfoByState(
                 issuerClaimAuthState
             );
-            require(
-                issuerId == issuerStateInfo.id,
-                "Issuer state doesn't exist in state contract"
-            );
+            require(issuerId == issuerStateInfo.id, "Issuer state doesn't exist in state contract");
         }
 
-        IState.StateInfo memory issuerClaimNonRevStateInfo = state
-            .getStateInfoById(issuerId);
+        IState.StateInfo memory issuerClaimNonRevStateInfo = state.getStateInfoById(issuerId);
 
         if (issuerClaimNonRevStateInfo.state == 0) {
             require(
@@ -126,14 +108,11 @@ contract CredentialAtomicQuerySigValidator is
                 }
 
                 if (issuerClaimNonRevLatestStateInfo.replacedAtTimestamp == 0) {
-                    revert(
-                        "Non-Latest state doesn't contain replacement information"
-                    );
+                    revert("Non-Latest state doesn't contain replacement information");
                 }
 
                 if (
-                    block.timestamp -
-                        issuerClaimNonRevLatestStateInfo.replacedAtTimestamp >
+                    block.timestamp - issuerClaimNonRevLatestStateInfo.replacedAtTimestamp >
                     revocationStateExpirationTime
                 ) {
                     revert("Non-Revocation state of Issuer expired");

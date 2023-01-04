@@ -7,10 +7,7 @@ import "../interfaces/ICircuitValidator.sol";
 import "../interfaces/IVerifier.sol";
 import "../interfaces/IState.sol";
 
-contract CredentialAtomicQueryMTPValidator is
-    OwnableUpgradeable,
-    ICircuitValidator
-{
+contract CredentialAtomicQueryMTPValidator is OwnableUpgradeable, ICircuitValidator {
     string constant CIRCUIT_ID = "credentialAtomicQueryMTP";
     uint256 constant CHALLENGE_INDEX = 4;
 
@@ -29,9 +26,7 @@ contract CredentialAtomicQueryMTPValidator is
         __Ownable_init();
     }
 
-    function setRevocationStateExpirationTime(
-        uint256 expirationTime
-    ) public onlyOwner {
+    function setRevocationStateExpirationTime(uint256 expirationTime) public onlyOwner {
         revocationStateExpirationTime = expirationTime;
     }
 
@@ -79,29 +74,19 @@ contract CredentialAtomicQueryMTPValidator is
 
         IState.RootInfo memory rootInfo = state.getGISTRootInfo(gistRoot);
 
-        require(
-            rootInfo.root == gistRoot,
-            "Gist root state isn't in state contract"
-        );
+        require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
 
         // 2. Issuer state must be registered in state contracts or be genesis
-        bool isIssuerStateGenesis = GenesisUtils.isGenesisState(
-            issuerId,
-            issuerClaimIdenState
-        );
+        bool isIssuerStateGenesis = GenesisUtils.isGenesisState(issuerId, issuerClaimIdenState);
 
         if (!isIssuerStateGenesis) {
             IState.StateInfo memory issuerStateInfo = state.getStateInfoByState(
                 issuerClaimIdenState
             );
-            require(
-                issuerId == issuerStateInfo.id,
-                "Issuer state doesn't exist in state contract"
-            );
+            require(issuerId == issuerStateInfo.id, "Issuer state doesn't exist in state contract");
         }
 
-        IState.StateInfo memory issuerClaimNonRevStateInfo = state
-            .getStateInfoById(issuerId);
+        IState.StateInfo memory issuerClaimNonRevStateInfo = state.getStateInfoById(issuerId);
 
         if (issuerClaimNonRevStateInfo.state == 0) {
             require(
@@ -123,14 +108,11 @@ contract CredentialAtomicQueryMTPValidator is
                 }
 
                 if (issuerClaimNonRevLatestStateInfo.replacedAtTimestamp == 0) {
-                    revert(
-                        "Non-Latest state doesn't contain replacement information"
-                    );
+                    revert("Non-Latest state doesn't contain replacement information");
                 }
 
                 if (
-                    block.timestamp -
-                        issuerClaimNonRevLatestStateInfo.replacedAtTimestamp >
+                    block.timestamp - issuerClaimNonRevLatestStateInfo.replacedAtTimestamp >
                     revocationStateExpirationTime
                 ) {
                     revert("Non-Revocation state of Issuer expired");
