@@ -30,9 +30,12 @@ export class OnchainIdentityDeployHelper {
 
         this.log("======== Identity: deploy started ========");
 
+        let cb = await this.deployClaimBuilder();
+
         this.log("deploying Identity...");
         const IdentityFactory = await ethers.getContractFactory("Identity", {
             libraries: {
+                ClaimBuilder: cb.address,
                 Smt: smt.address,
                 PoseidonUnit3L: poseidon3.address,
                 PoseidonUnit4L: poseidon4.address,
@@ -56,6 +59,16 @@ export class OnchainIdentityDeployHelper {
         return {
             identity: Identity,
         };
+    }
+
+    async deployClaimBuilder(): Promise<Contract> {
+        const ClaimBuilder = await ethers.getContractFactory("ClaimBuilder");
+        const cb = await ClaimBuilder.deploy();
+        await cb.deployed();
+        this.enableLogging &&
+        this.log(`ClaimBuilder deployed to: ${cb.address}`);
+
+        return cb;
     }
 
     private log(...args): void {

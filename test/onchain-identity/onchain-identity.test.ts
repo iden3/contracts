@@ -3,6 +3,7 @@ import { publishState } from "../utils/deploy-utils";
 import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeployHelper";
 import bigInt from "big-integer";
 import {StateDeployHelper} from "../../helpers/StateDeployHelper";
+import {ethers} from "hardhat";
 
 describe("Onchain Identity", () => {
   let identity;
@@ -17,21 +18,20 @@ describe("Onchain Identity", () => {
   });
 
   it("add claim hash & make state transition", async function() {
-
     this.timeout(20000); // 20 second timeout for state transitions, etc
 
     const id = await identity.id();
 
     console.log("contract address:", identity.address);
     console.log("id:", id);
-    // base58: tQMMMzx2V9SpFctPk8KbTpzSvvFaus1NQ3DzHA4zt with old checksum algo
-    // hex: 0x910a00000000000000610178da211fef7d417bc0e6fed39f05609ad7880001
-    // int: 256261841856333633427488779326449133886342825893501406021588279855600369665
+    // base58: tNRNQ2NBJRYezNRP1gFg3kqKqqbMkXKU8WbmC7KZM with old checksum algo
+    // hex: fc0900000000000000b7f8bc63bbcad18155201308c8f3540b07f84f5e0001
+    // int: 445307576041273966129146714946602093123957626136629497001119894618167443457
 
-    // contract address 0x610178da211fef7d417bc0e6fed39f05609ad788
+    // contract address 0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e
 
     expect(id).to.be.not.equal(0);
-    expect(id).to.be.equal(256261841856333633427488779326449133886342825893501406021588279855600369665n);
+    expect(id).to.be.equal(445307576041273966129146714946602093123957626136629497001119894618167443457n);
 
     // STATE 1 - Initial
 
@@ -91,6 +91,37 @@ describe("Onchain Identity", () => {
 
     let calcIdentityState3 = await identity.calcIdentityState();
     expect(calcIdentityState3).to.be.equal(identityState3);
+
+  });
+
+  it("build claim", async function() {
+    this.timeout(20000); // 20 second timeout for state transitions, etc
+
+    let claimDataRO = await identity.newClaimData();
+    //console.log("ClaimData: ", claimDataRO);
+
+    // let claimData = Object.create(claimDataRO);
+    // Object.defineProperty(claimData, 'schemaHash', { value: 123, enumerable: true, configurable: true, writable: true });
+
+    //let claimData = Object.assign({}, claimDataRO);
+    // let claimData = {...claimDataRO};
+    // console.log("ClaimData: ", claimData);
+    //claimData.schemaHash = 123;
+
+    //let claimData = Object.assign(Array(), claimDataRO);
+    let claimData = {
+      schemaHash : ethers.BigNumber.from(123n),
+    };
+    // claimData.idPosition = 1;
+    // claimData.id = 123;
+    // claimData.valueDataSlotA = ethers.BigNumber.from("345");
+
+
+    console.log("ClaimData: ", claimData);
+
+    let claim = await identity.buildClaim(claimData);
+    console.log("Claim: ", claim);
+    expect(claim[0]).to.be.not.equal(0);
 
   });
 

@@ -4,6 +4,7 @@ pragma abicoder v2;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "../interfaces/IState.sol";
+import "../lib/ClaimBuilder.sol";
 import "../lib/GenesisUtils.sol";
 import "../lib/Poseidon.sol";
 import "../lib/Smt.sol";
@@ -184,6 +185,20 @@ contract Identity is OwnableUpgradeable {
      */
     function getRootsTreeRoot() public view returns (uint256) {
         return rootsTree.getRoot();
+    }
+
+    function newClaimData() public pure returns (ClaimBuilder.ClaimData memory) {
+        ClaimBuilder.ClaimData memory claimData;
+        return claimData;
+    }
+
+    /**
+     * @dev Builds claim
+     * @param claimData - claim data
+     * @return binary claim
+     */
+    function buildClaim(ClaimBuilder.ClaimData calldata claimData) public pure returns (uint256[8] memory) {
+        return ClaimBuilder.build(claimData);
     }
 
 }
