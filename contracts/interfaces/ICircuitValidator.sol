@@ -1,4 +1,4 @@
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 interface ICircuitValidator {
     struct CircuitQuery {
@@ -17,7 +17,16 @@ interface ICircuitValidator {
         CircuitQuery memory query
     ) external view returns (bool r);
 
-    function getCircuitId() external pure returns (string memory id);
-
-    function getChallengeInputIndex() external pure returns (uint256 index);
+    /**
+     * @dev Gets input index by name
+     *
+     * IMPORTANT: Note that the index is 0-based so avoid implementation mistakes for
+     * missing indexes. It should rather throw but not return 0 value then.
+     * The latter is, actually, the case, if input name -> index relation is implemented
+     * as a mapping(string => uint256) in the contract.
+     *
+     * @param name The input name
+     * @return the Input index
+     */
+    function inputIndexOf(string memory name) external view returns (uint256);
 }
