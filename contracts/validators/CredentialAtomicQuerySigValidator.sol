@@ -7,7 +7,7 @@ import "../interfaces/IVerifier.sol";
 import "../interfaces/IState.sol";
 import "./CredentialAtomicQuery.sol";
 
-contract CredentialAtomicQuerySigValidator is CredentialAtomicQuery {
+contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
     string private constant CIRCUIT_ID = "credentialAtomicQuerySig";
 
     function initialize(address _verifierContractAddr, address _stateContractAddr)
@@ -35,12 +35,12 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQuery {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c,
-        CircuitQuery memory query
-    ) external view returns (bool r) {
+        uint256[] memory params
+    ) external view {
         // verify that zkp is valid
         require(verifier.verifyProof(a, b, c, inputs), "Atomic query signature proof is not valid");
 
-        _verifyQueryInputs(inputs, query);
+        _verifyQueryInputs(inputs, params);
         _checkGistRoot(inputs);
 
         uint256 issuerId = inputs[inputIndexOf("issuerId")];
@@ -49,7 +49,5 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQuery {
 
         uint256 issuerClaimNonRevState = inputs[inputIndexOf("issuerClaimNonRevState")];
         _checkClaimNonRevState(issuerId, issuerClaimNonRevState);
-
-        return (true);
     }
 }

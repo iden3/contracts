@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -10,9 +10,7 @@ import "./interfaces/IZKPVerifier.sol";
 contract ZKPVerifier is IZKPVerifier, Ownable {
     // msg.sender-> ( requestID -> is proof given )
     mapping(address => mapping(uint64 => bool)) public proofs;
-
-    mapping(uint64 => ICircuitValidator.CircuitQuery) public requestQueries;
-    mapping(uint64 => ICircuitValidator) public requestValidators;
+    mapping(uint64 => IZKPVerifier.ZKPRequest) public requests;
 
     uint64[] public supportedRequests;
 
@@ -22,66 +20,56 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
-    ) external override returns (bool) {
+    ) external override {
         require(
-            requestValidators[requestId] != ICircuitValidator(address(0)),
-            "validator is not set for this request id"
-        ); // validator exists
-        require(
-            requestQueries[requestId].schema != 0,
-            "query is not set for this request id"
-        ); // query exists
-
-        _beforeProofSubmit(requestId, inputs, requestValidators[requestId]);
-
-        require(
-            requestValidators[requestId].verify(
-                inputs,
-                a,
-                b,
-                c,
-                requestQueries[requestId]
-            ),
-            "proof response is not valid"
+            requests[requestId].validator != ICircuitValidator(address(0)),
+            "Request does not exist"
         );
+
+        _beforeProofSubmit(requestId, inputs, requests[requestId].validator);
+
+        ICircuitValidator validator = ICircuitValidator(requests[requestId].validator);
+        validator.verify(inputs, a, b, c, requests[requestId].params);
 
         proofs[msg.sender][requestId] = true; // user provided a valid proof for request
 
-        _afterProofSubmit(requestId, inputs, requestValidators[requestId]);
-        return true;
+        _afterProofSubmit(requestId, inputs, validator);
     }
 
     function getZKPRequest(uint64 requestId)
         external
         view
         override
-        returns (ICircuitValidator.CircuitQuery memory)
+        returns (IZKPVerifier.ZKPRequest memory)
     {
-        return requestQueries[requestId];
+        require(
+            requests[requestId].validator != ICircuitValidator(address(0)),
+            "Request does not exist"
+        );
+        return requests[requestId];
     }
 
     function setZKPRequest(
         uint64 requestId,
         ICircuitValidator validator,
-        ICircuitValidator.CircuitQuery memory query
-    ) external override onlyOwner returns (bool) {
-        if (requestValidators[requestId] == ICircuitValidator(address(0x00))) {
-            supportedRequests.push(requestId);
-        }
-        requestQueries[requestId].valueHash = query.valueHash;
-        requestQueries[requestId].operator = query.operator;
-        requestQueries[requestId].circuitId = query.circuitId;
-        requestQueries[requestId].slotIndex = query.slotIndex;
-        requestQueries[requestId].schema = query.schema;
-        requestValidators[requestId] = validator;
-        return true;
+        uint256[] memory params
+    ) external override onlyOwner {
+        require(validator != ICircuitValidator(address(0)), "validator can't be zero address");
+        require(
+            requests[requestId].validator == ICircuitValidator(address(0)),
+            "request already exists"
+        );
+
+        IZKPVerifier.ZKPRequest memory request = IZKPVerifier.ZKPRequest({
+            validator: ICircuitValidator(validator),
+            params: params
+        });
+
+        requests[requestId] = request;
+        supportedRequests.push(requestId);
     }
 
-    function getSupportedRequests()
-        external
-        view
-        returns (uint64[] memory arr)
-    {
+    function getSupportedRequests() external view returns (uint64[] memory arr) {
         return supportedRequests;
     }
 

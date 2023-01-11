@@ -69,17 +69,18 @@ describe("Atomic MTP Validator", function () {
         await publishState(state, json);
       }
 
-      const query = {
-        schema: ethers.BigNumber.from(
-          "180410020913331409885634153623124536270"
-        ),
-        slotIndex: ethers.BigNumber.from(2),
-        operator: ethers.BigNumber.from(1),
-        valueHash: ethers.BigNumber.from(
+      const params = [
+        // schema
+        ethers.BigNumber.from("180410020913331409885634153623124536270"),
+        // slotIndex
+        ethers.BigNumber.from(2),
+        // operator
+        ethers.BigNumber.from(1),
+        // valueHash
+        ethers.BigNumber.from(
           "9733373854039911298636091230039813139726844451320966546058337263014541694144"
         ),
-        circuitId: "credentialAtomicQueryMTP",
-      };
+      ];
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
       if (test.errorMessage) {
@@ -90,18 +91,12 @@ describe("Atomic MTP Validator", function () {
         }
 
         (
-          expect(mtpValidator.verify(inputs, pi_a, pi_b, pi_c, query)).to
-            .be as any
+          (await expect(mtpValidator.verify(inputs, pi_a, pi_b, pi_c, params))
+            .to.be) as any
         ).revertedWith(test.errorMessage);
       } else {
-        const verified = await mtpValidator.verify(
-          inputs,
-          pi_a,
-          pi_b,
-          pi_c,
-          query
-        );
-        expect(verified).to.be.true;
+        await expect(mtpValidator.verify(inputs, pi_a, pi_b, pi_c, params)).to
+          .be.not.reverted;
       }
     });
   }
@@ -141,31 +136,33 @@ describe("Atomic MTP Validator", function () {
 
     // set transfer request id
 
-    const query = {
-      schema: ethers.BigNumber.from("180410020913331409885634153623124536270"),
-      slotIndex: ethers.BigNumber.from(2),
-      operator: ethers.BigNumber.from(1),
-      valueHash: ethers.BigNumber.from(
+    const params = [
+      // schema
+      ethers.BigNumber.from("180410020913331409885634153623124536270"),
+      // slotIndex
+      ethers.BigNumber.from(2),
+      // operator
+      ethers.BigNumber.from(1),
+      // valueHash
+      ethers.BigNumber.from(
         "9733373854039911298636091230039813139726844451320966546058337263014541694144"
       ),
-      circuitId: "credentialAtomicQueryMTP",
-    };
+    ];
 
     const requestId = await token.TRANSFER_REQUEST_ID();
     expect(requestId).to.be.equal(1);
 
-    await token.setZKPRequest(requestId, mtpValidator.address, query);
+    await token.setZKPRequest(requestId, mtpValidator.address, params);
 
-    expect((await token.requestQueries(requestId)).schema).to.be.equal(
-      query.schema
-    ); // check that query is assigned
+    // check that request is assigned
+    await expect(token.getZKPRequest(requestId)).to.be.not.reverted;
     expect((await token.getSupportedRequests()).length).to.be.equal(1);
 
     // submit response for non-existing request
 
     await expect(
       token.submitZKPResponse(2, inputs, pi_a, pi_b, pi_c)
-    ).to.be.revertedWith("validator is not set for this request id");
+    ).to.be.revertedWith("Request does not exist");
 
     await token.submitZKPResponse(requestId, inputs, pi_a, pi_b, pi_c);
 

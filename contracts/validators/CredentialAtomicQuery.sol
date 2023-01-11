@@ -7,7 +7,7 @@ import "../interfaces/IVerifier.sol";
 import "../interfaces/IState.sol";
 import "../lib/GenesisUtils.sol";
 
-abstract contract CredentialAtomicQuery is OwnableUpgradeable, ICircuitValidator {
+abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuitValidator {
     IVerifier public verifier;
     IState public state;
     uint256 public revocationStateExpirationTime;
@@ -34,21 +34,21 @@ abstract contract CredentialAtomicQuery is OwnableUpgradeable, ICircuitValidator
         __Ownable_init();
     }
 
-    function _verifyQueryInputs(uint256[] memory inputs, CircuitQuery memory query) internal view {
+    function _verifyQueryInputs(uint256[] memory inputs, uint256[] memory params) internal view {
         require(
-            inputs[inputIndexOf("schema")] == query.schema,
+            inputs[inputIndexOf("schema")] == params[0],
             "wrong claim schema for proof generation"
         );
         require(
-            inputs[inputIndexOf("slotIndex")] == query.slotIndex,
+            inputs[inputIndexOf("slotIndex")] == params[1],
             "wrong claim data slot for proof generation"
         );
         require(
-            inputs[inputIndexOf("operator")] == query.operator,
+            inputs[inputIndexOf("operator")] == params[2],
             "wrong query operator for proof generation"
         );
         require(
-            inputs[inputIndexOf("valueHash")] == query.valueHash,
+            inputs[inputIndexOf("valueHash")] == params[3],
             "wrong comparison value for proof generation"
         );
     }
