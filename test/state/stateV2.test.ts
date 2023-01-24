@@ -3,7 +3,6 @@ import { ethers } from "hardhat";
 import { publishState } from "../utils/deploy-utils";
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 import bigInt from "big-integer";
-import {delay} from "@nomiclabs/hardhat-etherscan/dist/src/etherscan/EtherscanService";
 
 const stateTransitions = [
   require("./data/user_state_genesis_transition.json"),
