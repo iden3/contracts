@@ -30,10 +30,10 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
 
     function submitZKPResponse(
         uint64 requestId,
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c
     ) external override returns (bool) {
         require(
             requestValidators[requestId] != ICircuitValidator(address(0)),
@@ -72,6 +72,26 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
             supportedRequests.push(requestId);
         }
         requestQueries[requestId].valueHash = poseidon.hash(value);
+        requestQueries[requestId].operator = operator;
+        requestQueries[requestId].circuitId = validator.getCircuitId();
+        requestQueries[requestId].slotIndex = slotIndex;
+        requestQueries[requestId].schema = schema;
+        requestValidators[requestId] = validator;
+        return true;
+    }
+
+    function setZKPRequestRaw(
+        uint64 requestId,
+        ICircuitValidator validator,
+        uint256 schema,
+        uint256 slotIndex,
+        uint256 operator,
+        uint256 valueHash
+    ) external override onlyOwner returns (bool) {
+        if (requestValidators[requestId] == ICircuitValidator(address(0x00))) {
+            supportedRequests.push(requestId);
+        }
+        requestQueries[requestId].valueHash = valueHash;
         requestQueries[requestId].operator = operator;
         requestQueries[requestId].circuitId = validator.getCircuitId();
         requestQueries[requestId].slotIndex = slotIndex;

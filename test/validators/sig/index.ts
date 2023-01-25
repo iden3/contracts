@@ -94,7 +94,8 @@ describe("Atomic Sig Validator", function () {
       }
     });
   }
-  it("Example ERC20 Verifier", async () => {
+
+  async function erc20VerifierFlow(callBack: (q, t, r) => Promise<void>): Promise<void> {
     const token: any = await deployERC20ZKPVerifierToken("zkpVerifierSig", "ZKPVRSIG");
     await publishState(state, require("../common-data/user_state_transition.json"));
     await publishState(state, require("../common-data/issuer_genesis_state.json"));
@@ -132,14 +133,7 @@ describe("Atomic Sig Validator", function () {
     const requestId = await token.TRANSFER_REQUEST_ID();
     expect(requestId).to.be.equal(1);
 
-    await token.setZKPRequest(
-      requestId,
-      sig.address,
-      query.schema,
-      query.slotIndex,
-      query.operator,
-      query.value
-    );
+    await callBack(query, token, requestId);
 
     expect((await token.requestQueries(requestId)).schema).to.be.equal(query.schema); // check that query is assigned
     expect((await token.getSupportedRequests()).length).to.be.equal(1);
@@ -165,5 +159,33 @@ describe("Atomic Sig Validator", function () {
 
     await token.transfer(account, 1); // we send tokens to ourselves, but no error.
     expect(await token.balanceOf(account)).to.equal(ethers.BigNumber.from("5000000000000000000"));
+  }
+
+  it("Example ERC20 Verifier: set zkp request", async () => {
+    await erc20VerifierFlow(async (query, token, requestId) => {
+      await token.setZKPRequest(
+        requestId,
+        sig.address,
+        query.schema,
+        query.slotIndex,
+        query.operator,
+        query.value
+      );
+    });
+  });
+
+  it("Example ERC20 Verifier: set zkp request raw", async () => {
+    await erc20VerifierFlow(async (query, token, requestId) => {
+      await token.setZKPRequestRaw(
+        requestId,
+        sig.address,
+        query.schema,
+        query.slotIndex,
+        query.operator,
+        ethers.BigNumber.from(
+          "21701357532168553861786923689186952125413047360846218786397269136818954569377"
+        )
+      );
+    });
   });
 });
