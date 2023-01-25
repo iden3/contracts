@@ -10,19 +10,19 @@ import {
 const testCases: any[] = [
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain",
-    stateTransitions: [require("../common-data/issuer_state_transition.json")],
+    stateTransitions: [require("../common-data/issuer_genesis_state.json")],
     proofJson: require("./data/valid_sig_user_genesis.json"),
   },
   {
     name: "Validation of proof failed",
-    stateTransitions: [require("../common-data/issuer_state_transition.json")],
+    stateTransitions: [require("../common-data/issuer_genesis_state.json")],
     proofJson: require("./data/invalid_sig_user_genesis.json"),
     errorMessage: "MTP Proof could not be verified",
   },
   {
     name: "User state is not genesis but latest",
     stateTransitions: [
-      require("../common-data/issuer_state_transition.json"),
+      require("../common-data/issuer_genesis_state.json"),
       require("../common-data/user_state_transition.json"),
     ],
     proofJson: require("./data/valid_sig_user_non_genesis.json"),
@@ -31,7 +31,7 @@ const testCases: any[] = [
   {
     name: "The non-revocation issuer state is not expired (is not too old)",
     stateTransitions: [
-      require("../common-data/issuer_state_transition.json"),
+      require("../common-data/issuer_genesis_state.json"),
       require("../common-data/user_state_transition.json"),
       require("../common-data/issuer_next_state_transition.json"),
     ],
@@ -41,7 +41,7 @@ const testCases: any[] = [
   {
     name: "The non-revocation issuer state is expired (old enough)",
     stateTransitions: [
-      require("../common-data/issuer_state_transition.json"),
+      require("../common-data/issuer_genesis_state.json"),
       require("../common-data/user_state_transition.json"),
       require("../common-data/issuer_next_state_transition.json"),
     ],
@@ -95,7 +95,7 @@ describe("Atomic Sig Validator", function () {
   it("Example ERC20 Verifier", async () => {
     const token: any = await deployERC20ZKPVerifierToken("zkpVerifierSig", "ZKPVRSIG");
     await publishState(state, require("../common-data/user_state_transition.json"));
-    await publishState(state, require("../common-data/issuer_state_transition.json"));
+    await publishState(state, require("../common-data/issuer_genesis_state.json"));
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(
       require("./data/valid_sig_user_non_genesis_challenge_address.json")
