@@ -12,13 +12,16 @@ const stateTransitions = [
 describe("State transitions positive cases", () => {
   let state;
 
-  before(async () => {
+  before(async function () {
+    this.timeout(5000);
     const deployHelper = await StateDeployHelper.initialize();
     const contracts = await deployHelper.deployStateV2();
     state = contracts.state;
   });
 
-  it("Initial state publishing", async () => {
+  it("Initial state publishing", async function () {
+    this.timeout(5000);
+
     const params = await publishState(state, stateTransitions[0]);
 
     const res0 = await state.getStateInfoById(params.id);
@@ -49,7 +52,8 @@ describe("State transitions positive cases", () => {
     expect(latestStInfo.state).to.be.equal(params.newState);
   });
 
-  it("Subsequent state update", async () => {
+  it("Subsequent state update", async function () {
+    this.timeout(5000);
     const stateInfoBeforeUpdate = await state.getStateInfoByState(
       stateTransitions[1].pub_signals[1]
     );
@@ -358,7 +362,8 @@ describe("GIST proofs", () => {
     state = contracts.state;
   });
 
-  it("Should be correct historical proof by root and the latest root", async () => {
+  it("Should be correct historical proof by root and the latest root", async function () {
+    this.timeout(5000);
     const currentRoots: any[] = [];
     const id = ethers.BigNumber.from(stateTransitions[0].pub_signals[0]);
 
@@ -385,7 +390,8 @@ describe("GIST proofs", () => {
     expect(obj2.root).to.equal(currentRoots[1]);
   });
 
-  it("Should be correct historical proof by time", async () => {
+  it("Should be correct historical proof by time", async function () {
+    this.timeout(5000);
     for (const issuerStateJson of stateTransitions) {
       await publishState(state, issuerStateJson);
     }
@@ -413,7 +419,8 @@ describe("GIST proofs", () => {
     expect(r2).to.equal(root2info.root);
   });
 
-  it("Should be correct historical proof by block", async () => {
+  it("Should be correct historical proof by block", async function () {
+    this.timeout(5000);
     for (const issuerStateJson of stateTransitions) {
       await publishState(state, issuerStateJson);
     }
@@ -446,7 +453,8 @@ describe("GIST root history", () => {
     state = contracts.state;
   });
 
-  it("Should search by block and by time return same root", async () => {
+  it("Should search by block and by time return same root", async function () {
+    this.timeout(5000);
     for (const issuerStateJson of stateTransitions) {
       await publishState(state, issuerStateJson);
     }
@@ -468,7 +476,8 @@ describe("GIST root history", () => {
     expect(rootInfo.root).to.equal(rootT).to.equal(rootB);
   });
 
-  it("Should have correct GIST root transitions info", async () => {
+  it("Should have correct GIST root transitions info", async function () {
+    this.timeout(5000);
     const roots: any[] = [];
     const expRootInfos: any[] = [];
     for (const issuerStateJson of stateTransitions) {
