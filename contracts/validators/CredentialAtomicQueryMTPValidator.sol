@@ -6,6 +6,7 @@ import "../lib/GenesisUtils.sol";
 import "../interfaces/ICircuitValidator.sol";
 import "../interfaces/IVerifier.sol";
 import "../interfaces/IState.sol";
+import "hardhat/console.sol";
 
 contract CredentialAtomicQueryMTPValidator is OwnableUpgradeable, ICircuitValidator {
     string constant CIRCUIT_ID = "credentialAtomicQueryMTP";
@@ -39,11 +40,11 @@ contract CredentialAtomicQueryMTPValidator is OwnableUpgradeable, ICircuitValida
     }
 
     function verify(
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        CircuitQuery memory query
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
+        CircuitQuery calldata query
     ) external view returns (bool r) {
         // verify that zkp is valid
         require(verifier.verifyProof(a, b, c, inputs), "MTP is not valid");
@@ -60,6 +61,9 @@ contract CredentialAtomicQueryMTPValidator is OwnableUpgradeable, ICircuitValida
             inputs[15] == query.operator,
             "wrong query operator has been used for proof generation"
         );
+
+        console.log("valueHash", query.valueHash);
+        console.log("valueHash", inputs[2]);
 
         require(
             inputs[2] == query.valueHash,

@@ -13,8 +13,7 @@ contract Poseidon {
     PoseidonUnit2 _poseidonUnit2;
     PoseidonUnit3 _poseidonUnit3;
 
-    constructor(address _poseidon2ContractAddr, address _poseidon3ContractAddr)
-    {
+    constructor(address _poseidon2ContractAddr, address _poseidon3ContractAddr) {
         _poseidonUnit2 = PoseidonUnit2(_poseidon2ContractAddr);
         _poseidonUnit3 = PoseidonUnit3(_poseidon3ContractAddr);
     }
@@ -38,4 +37,8 @@ library PoseidonUnit2L {
 
 library PoseidonUnit3L {
     function poseidon(uint256[3] memory) public view returns (uint256) {}
+}
+
+library PoseidonUnit6L {
+    function poseidon(uint256[6] memory) public view returns (uint256) {}
 }

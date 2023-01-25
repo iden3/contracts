@@ -7,7 +7,15 @@ import "./lib/GenesisUtils.sol";
 import "./interfaces/ICircuitValidator.sol";
 import "./interfaces/IZKPVerifier.sol";
 
+interface ISpongePoseidon {
+    function hash(uint256[] calldata values) external view returns (uint256);
+
+    function hash6(uint256[6] calldata values) external view returns (uint256);
+}
+
 contract ZKPVerifier is IZKPVerifier, Ownable {
+    ISpongePoseidon public poseidon;
+
     // msg.sender-> ( requestID -> is proof given )
     mapping(address => mapping(uint64 => bool)) public proofs;
 
@@ -15,6 +23,10 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
     mapping(uint64 => ICircuitValidator) public requestValidators;
 
     uint64[] public supportedRequests;
+
+    function setSpongePoseidon(address _poseidon) public onlyOwner {
+        poseidon = ISpongePoseidon(_poseidon);
+    }
 
     function submitZKPResponse(
         uint64 requestId,
@@ -27,21 +39,12 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
             requestValidators[requestId] != ICircuitValidator(address(0)),
             "validator is not set for this request id"
         ); // validator exists
-        require(
-            requestQueries[requestId].schema != 0,
-            "query is not set for this request id"
-        ); // query exists
+        require(requestQueries[requestId].schema != 0, "query is not set for this request id"); // query exists
 
         _beforeProofSubmit(requestId, inputs, requestValidators[requestId]);
 
         require(
-            requestValidators[requestId].verify(
-                inputs,
-                a,
-                b,
-                c,
-                requestQueries[requestId]
-            ),
+            requestValidators[requestId].verify(inputs, a, b, c, requestQueries[requestId]),
             "proof response is not valid"
         );
 
@@ -51,37 +54,33 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         return true;
     }
 
-    function getZKPRequest(uint64 requestId)
-        external
-        view
-        override
-        returns (ICircuitValidator.CircuitQuery memory)
-    {
+    function getZKPRequest(
+        uint64 requestId
+    ) external view override returns (ICircuitValidator.CircuitQuery memory) {
         return requestQueries[requestId];
     }
 
     function setZKPRequest(
         uint64 requestId,
         ICircuitValidator validator,
-        ICircuitValidator.CircuitQuery memory query
+        uint256 schema,
+        uint256 slotIndex,
+        uint256 operator,
+        uint256[] calldata value
     ) external override onlyOwner returns (bool) {
         if (requestValidators[requestId] == ICircuitValidator(address(0x00))) {
             supportedRequests.push(requestId);
         }
-        requestQueries[requestId].valueHash = query.valueHash;
-        requestQueries[requestId].operator = query.operator;
-        requestQueries[requestId].circuitId = query.circuitId;
-        requestQueries[requestId].slotIndex = query.slotIndex;
-        requestQueries[requestId].schema = query.schema;
+        requestQueries[requestId].valueHash = poseidon.hash(value);
+        requestQueries[requestId].operator = operator;
+        requestQueries[requestId].circuitId = validator.getCircuitId();
+        requestQueries[requestId].slotIndex = slotIndex;
+        requestQueries[requestId].schema = schema;
         requestValidators[requestId] = validator;
         return true;
     }
 
-    function getSupportedRequests()
-        external
-        view
-        returns (uint64[] memory arr)
-    {
+    function getSupportedRequests() external view returns (uint64[] memory arr) {
         return supportedRequests;
     }
 

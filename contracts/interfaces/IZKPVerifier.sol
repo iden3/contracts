@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0
+
 pragma solidity ^0.8.0;
 
 import "./ICircuitValidator.sol";
@@ -14,10 +16,13 @@ interface IZKPVerifier {
     function setZKPRequest(
         uint64 requestId,
         ICircuitValidator validator,
-        ICircuitValidator.CircuitQuery memory query
+        uint256 schema,
+        uint256 slotIndex,
+        uint256 operator,
+        uint256[] memory value
     ) external returns (bool);
 
-    function getZKPRequest(uint64 requestId)
-        external
-        returns (ICircuitValidator.CircuitQuery memory);
+    function getZKPRequest(
+        uint64 requestId
+    ) external returns (ICircuitValidator.CircuitQuery memory);
 }

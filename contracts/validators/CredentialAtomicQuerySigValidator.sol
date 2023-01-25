@@ -39,11 +39,11 @@ contract CredentialAtomicQuerySigValidator is OwnableUpgradeable, ICircuitValida
     }
 
     function verify(
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        CircuitQuery memory query
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
+        CircuitQuery calldata query
     ) external view returns (bool r) {
         // verify that zkp is valid
         require(verifier.verifyProof(a, b, c, inputs), "atomic query signature proof is not valid");

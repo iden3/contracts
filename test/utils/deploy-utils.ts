@@ -2,6 +2,21 @@ import { ethers, upgrades } from "hardhat";
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 import { Contract } from "ethers";
 
+export async function deploySpongePoseidon(owner, helper: StateDeployHelper): Promise<Contract> {
+  const [poseidon6Contract] = await helper.deployPoseidons(owner, [6]);
+
+  const SpongePoseidonFactory = await ethers.getContractFactory("SpongePoseidon", {
+    libraries: {
+      PoseidonUnit6L: poseidon6Contract.address,
+    },
+  });
+
+  const spongePoseidon = await SpongePoseidonFactory.deploy();
+  await spongePoseidon.deployed();
+  console.log("SpongePoseidon deployed to:", spongePoseidon.address);
+  return spongePoseidon;
+}
+
 export async function deployValidatorContracts(
   verifierContractWrapperName: string,
   validatorContractName: string
@@ -15,18 +30,12 @@ export async function deployValidatorContracts(
   const ValidatorContractVerifierWrapper = await ethers.getContractFactory(
     verifierContractWrapperName
   );
-  const validatorContractVerifierWrapper =
-    await ValidatorContractVerifierWrapper.deploy();
+  const validatorContractVerifierWrapper = await ValidatorContractVerifierWrapper.deploy();
 
   await validatorContractVerifierWrapper.deployed();
-  console.log(
-    "Validator Verifier Wrapper deployed to:",
-    validatorContractVerifierWrapper.address
-  );
+  console.log("Validator Verifier Wrapper deployed to:", validatorContractVerifierWrapper.address);
 
-  const ValidatorContract = await ethers.getContractFactory(
-    validatorContractName
-  );
+  const ValidatorContract = await ethers.getContractFactory(validatorContractName);
 
   const validatorContractProxy = await upgrades.deployProxy(ValidatorContract, [
     validatorContractVerifierWrapper.address,
@@ -34,9 +43,7 @@ export async function deployValidatorContracts(
   ]);
 
   await validatorContractProxy.deployed();
-  console.log(
-    `${validatorContractName} deployed to: ${validatorContractProxy.address}`
-  );
+  console.log(`${validatorContractName} deployed to: ${validatorContractProxy.address}`);
 
   return {
     validator: validatorContractProxy,
@@ -50,11 +57,15 @@ export async function deployERC20ZKPVerifierToken(
 ): Promise<{
   address: string;
 }> {
+  const owner = (await ethers.getSigners())[0];
+  const stateDeployHelper = await StateDeployHelper.initialize();
   const ERC20Verifier = await ethers.getContractFactory("ERC20Verifier");
   const erc20Verifier = await ERC20Verifier.deploy(name, symbol);
-
   await erc20Verifier.deployed();
   console.log("ERC20Verifier deployed to:", erc20Verifier.address);
+
+  const spongePoseidon = await deploySpongePoseidon(owner, stateDeployHelper);
+  await erc20Verifier.setSpongePoseidon(spongePoseidon.address);
 
   return erc20Verifier;
 }
@@ -119,9 +130,7 @@ export async function publishState(
   );
 
   const { blockNumber } = await transitStateTx.wait();
-  const { timestamp } = await ethers.provider.getBlock(
-    transitStateTx.blockNumber
-  );
+  const { timestamp } = await ethers.provider.getBlock(transitStateTx.blockNumber);
 
   return {
     oldState,
@@ -133,7 +142,8 @@ export async function publishState(
 }
 
 export function toJson(data) {
-  return JSON.stringify(data, (_, v) =>
-    typeof v === "bigint" ? `${v}n` : v
-  ).replace(/"(-?\d+)n"/g, (_, a) => a);
+  return JSON.stringify(data, (_, v) => (typeof v === "bigint" ? `${v}n` : v)).replace(
+    /"(-?\d+)n"/g,
+    (_, a) => a
+  );
 }
