@@ -73,7 +73,9 @@ describe("Atomic Sig Validator", function () {
         schema: ethers.BigNumber.from("180410020913331409885634153623124536270"),
         slotIndex: ethers.BigNumber.from(2),
         operator: ethers.BigNumber.from(1),
-        value: ["10", ...new Array(63).fill("0")].map((x) => ethers.BigNumber.from(x)),
+        valueHash: ethers.BigNumber.from(
+          "21701357532168553861786923689186952125413047360846218786397269136818954569377"
+        ),
         circuitId: "credentialAtomicQuerySig",
       };
 

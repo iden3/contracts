@@ -74,7 +74,7 @@ describe("Atomic MTP Validator", function () {
         slotIndex: ethers.BigNumber.from(2),
         operator: ethers.BigNumber.from(1),
         valueHash: ethers.BigNumber.from(
-          "9733373854039911298636091230039813139726844451320966546058337263014541694144"
+          "21701357532168553861786923689186952125413047360846218786397269136818954569377"
         ),
         circuitId: "credentialAtomicQueryMTP",
       };
@@ -95,7 +95,7 @@ describe("Atomic MTP Validator", function () {
     });
   }
 
-  it.only("Example ERC20 Verifier", async () => {
+  it("Example ERC20 Verifier", async () => {
     const token: any = await deployERC20ZKPVerifierToken("zkpVerifer", "ZKPVR");
     await publishState(state, require("../common-data/user_state_transition.json"));
     await publishState(state, require("../common-data/issuer_genesis_state.json"));
@@ -126,7 +126,7 @@ describe("Atomic MTP Validator", function () {
       schema: ethers.BigNumber.from("180410020913331409885634153623124536270"),
       slotIndex: ethers.BigNumber.from(2),
       operator: ethers.BigNumber.from(1),
-      value: new Array(64).fill("0").map((x) => ethers.BigNumber.from(x)),
+      value: ["10", ...new Array(63).fill("0").map((x) => ethers.BigNumber.from(x))],
       circuitId: "credentialAtomicQueryMTP",
     };
 
