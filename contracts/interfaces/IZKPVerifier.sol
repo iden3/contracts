@@ -19,12 +19,16 @@ interface IZKPVerifier {
         uint256 schema,
         uint256 slotIndex,
         uint256 operator,
-        uint256[] memory value
+        uint256[] calldata value
     ) external returns (bool);
 
     function setZKPRequestRaw(
         uint64 requestId,
         ICircuitValidator validator,
+        uint256 schema,
+        uint256 slotIndex,
+        uint256 operator,
+        uint256[] calldata value,
         uint256 queryHash
     ) external returns (bool);
 

@@ -3,6 +3,10 @@ pragma solidity ^0.8.0;
 
 interface ICircuitValidator {
     struct CircuitQuery {
+        uint256 schema;
+        uint256 slotIndex;
+        uint256 operator;
+        uint256[] value;
         uint256 queryHash;
         string circuitId;
     }

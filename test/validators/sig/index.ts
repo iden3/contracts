@@ -70,6 +70,10 @@ describe("Atomic Sig Validator", function () {
       }
 
       const query = {
+        schema: ethers.BigNumber.from("180410020913331409885634153623124536270"),
+        slotIndex: ethers.BigNumber.from(2),
+        operator: ethers.BigNumber.from(1),
+        value: ["10", ...new Array(63).fill("0").map((x) => ethers.BigNumber.from(x))],
         queryHash: ethers.BigNumber.from(
           "15713277353907071316309398958907043111052032429480116581430833823614854285212"
         ),
@@ -125,6 +129,9 @@ describe("Atomic Sig Validator", function () {
       operator: ethers.BigNumber.from(1),
       value: ["10", ...new Array(63).fill("0")].map((x) => ethers.BigNumber.from(x)),
       circuitId: "credentialAtomicQueryMTP",
+      queryHash: ethers.BigNumber.from(
+        "15713277353907071316309398958907043111052032429480116581430833823614854285212"
+      ),
     };
 
     const requestId = await token.TRANSFER_REQUEST_ID();
@@ -178,6 +185,10 @@ describe("Atomic Sig Validator", function () {
       await token.setZKPRequestRaw(
         requestId,
         sig.address,
+        query.schema,
+        query.slotIndex,
+        query.operator,
+        query.value,
         ethers.BigNumber.from(
           "15713277353907071316309398958907043111052032429480116581430833823614854285212"
         )

@@ -70,6 +70,10 @@ describe("Atomic MTP Validator", function () {
       }
 
       const query = {
+        schema: ethers.BigNumber.from("180410020913331409885634153623124536270"),
+        slotIndex: ethers.BigNumber.from(2),
+        operator: ethers.BigNumber.from(1),
+        value: ["10", ...new Array(63).fill("0").map((x) => ethers.BigNumber.from(x))],
         queryHash: ethers.BigNumber.from(
           "15713277353907071316309398958907043111052032429480116581430833823614854285212"
         ),
@@ -178,6 +182,10 @@ describe("Atomic MTP Validator", function () {
       await token.setZKPRequestRaw(
         requestId,
         mtpValidator.address,
+        query.schema,
+        query.slotIndex,
+        query.operator,
+        query.value,
         ethers.BigNumber.from(
           "15713277353907071316309398958907043111052032429480116581430833823614854285212"
         )
