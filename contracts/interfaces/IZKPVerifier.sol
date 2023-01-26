@@ -25,10 +25,7 @@ interface IZKPVerifier {
     function setZKPRequestRaw(
         uint64 requestId,
         ICircuitValidator validator,
-        uint256 schema,
-        uint256 slotIndex,
-        uint256 operator,
-        uint256 valueHash
+        uint256 queryHash
     ) external returns (bool);
 
     function getZKPRequest(

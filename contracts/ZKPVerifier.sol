@@ -39,7 +39,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
             requestValidators[requestId] != ICircuitValidator(address(0)),
             "validator is not set for this request id"
         ); // validator exists
-        require(requestQueries[requestId].schema != 0, "query is not set for this request id"); // query exists
+        require(requestQueries[requestId].queryHash != 0, "query is not set for this request id"); // query exists
 
         _beforeProofSubmit(requestId, inputs, requestValidators[requestId]);
 
@@ -71,11 +71,12 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         if (requestValidators[requestId] == ICircuitValidator(address(0x00))) {
             supportedRequests.push(requestId);
         }
-        requestQueries[requestId].valueHash = poseidon.hash(value);
-        requestQueries[requestId].operator = operator;
+        uint256 valueHash = poseidon.hash(value);
+
+        requestQueries[requestId].queryHash = poseidon.hash6(
+            [schema, slotIndex, operator, valueHash, 0, 0]
+        );
         requestQueries[requestId].circuitId = validator.getCircuitId();
-        requestQueries[requestId].slotIndex = slotIndex;
-        requestQueries[requestId].schema = schema;
         requestValidators[requestId] = validator;
         return true;
     }
@@ -83,19 +84,13 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
     function setZKPRequestRaw(
         uint64 requestId,
         ICircuitValidator validator,
-        uint256 schema,
-        uint256 slotIndex,
-        uint256 operator,
-        uint256 valueHash
+        uint256 queryHash
     ) external override onlyOwner returns (bool) {
         if (requestValidators[requestId] == ICircuitValidator(address(0x00))) {
             supportedRequests.push(requestId);
         }
-        requestQueries[requestId].valueHash = valueHash;
-        requestQueries[requestId].operator = operator;
+        requestQueries[requestId].queryHash = queryHash;
         requestQueries[requestId].circuitId = validator.getCircuitId();
-        requestQueries[requestId].slotIndex = slotIndex;
-        requestQueries[requestId].schema = schema;
         requestValidators[requestId] = validator;
         return true;
     }

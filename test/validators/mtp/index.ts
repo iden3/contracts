@@ -70,11 +70,8 @@ describe("Atomic MTP Validator", function () {
       }
 
       const query = {
-        schema: ethers.BigNumber.from("180410020913331409885634153623124536270"),
-        slotIndex: ethers.BigNumber.from(2),
-        operator: ethers.BigNumber.from(1),
-        valueHash: ethers.BigNumber.from(
-          "21701357532168553861786923689186952125413047360846218786397269136818954569377"
+        queryHash: ethers.BigNumber.from(
+          "15713277353907071316309398958907043111052032429480116581430833823614854285212"
         ),
         circuitId: "credentialAtomicQueryMTP",
       };
@@ -135,7 +132,9 @@ describe("Atomic MTP Validator", function () {
 
     await callBack(query, token, requestId);
 
-    expect((await token.requestQueries(requestId)).schema).to.be.equal(query.schema); // check that query is assigned
+    expect((await token.requestQueries(requestId)).queryHash.toString()).to.be.equal(
+      "15713277353907071316309398958907043111052032429480116581430833823614854285212"
+    ); // check that query is assigned
     expect((await token.getSupportedRequests()).length).to.be.equal(1);
 
     // submit response for non-existing request
@@ -179,11 +178,8 @@ describe("Atomic MTP Validator", function () {
       await token.setZKPRequestRaw(
         requestId,
         mtpValidator.address,
-        query.schema,
-        query.slotIndex,
-        query.operator,
         ethers.BigNumber.from(
-          "21701357532168553861786923689186952125413047360846218786397269136818954569377"
+          "15713277353907071316309398958907043111052032429480116581430833823614854285212"
         )
       );
     });

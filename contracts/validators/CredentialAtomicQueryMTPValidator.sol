@@ -6,7 +6,6 @@ import "../lib/GenesisUtils.sol";
 import "../interfaces/ICircuitValidator.sol";
 import "../interfaces/IVerifier.sol";
 import "../interfaces/IState.sol";
-import "hardhat/console.sol";
 
 contract CredentialAtomicQueryMTPValidator is OwnableUpgradeable, ICircuitValidator {
     string constant CIRCUIT_ID = "credentialAtomicQueryMTP";
@@ -50,23 +49,7 @@ contract CredentialAtomicQueryMTPValidator is OwnableUpgradeable, ICircuitValida
         require(verifier.verifyProof(a, b, c, inputs), "MTP is not valid");
 
         require(
-            inputs[11] == query.schema,
-            "wrong claim schema has been used for proof generation"
-        );
-        require(
-            inputs[14] == query.slotIndex,
-            "wrong claim data slot has been used for proof generation"
-        );
-        require(
-            inputs[15] == query.operator,
-            "wrong query operator has been used for proof generation"
-        );
-
-        console.log("valueHash", query.valueHash);
-        console.log("valueHash", inputs[2]);
-
-        require(
-            inputs[2] == query.valueHash,
+            inputs[2] == query.queryHash,
             "wrong claim data hash has been used for proof generation"
         );
 
