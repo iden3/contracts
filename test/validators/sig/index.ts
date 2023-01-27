@@ -76,6 +76,7 @@ describe("Atomic Sig Validator", function () {
         valueHash: ethers.BigNumber.from(
           "21701357532168553861786923689186952125413047360846218786397269136818954569377"
         ),
+        value: ["10", ...new Array(63).fill("0").map((x) => ethers.BigNumber.from(x))],
         circuitId: "credentialAtomicQuerySig",
       };
 
@@ -127,6 +128,9 @@ describe("Atomic Sig Validator", function () {
       slotIndex: ethers.BigNumber.from(2),
       operator: ethers.BigNumber.from(1),
       value: ["10", ...new Array(63).fill("0")].map((x) => ethers.BigNumber.from(x)),
+      valueHash: ethers.BigNumber.from(
+        "15713277353907071316309398958907043111052032429480116581430833823614854285212"
+      ),
       circuitId: "credentialAtomicQueryMTP",
     };
 
@@ -182,6 +186,7 @@ describe("Atomic Sig Validator", function () {
         query.schema,
         query.slotIndex,
         query.operator,
+        query.value,
         ethers.BigNumber.from(
           "21701357532168553861786923689186952125413047360846218786397269136818954569377"
         )

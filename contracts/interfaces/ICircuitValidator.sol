@@ -6,6 +6,7 @@ interface ICircuitValidator {
         uint256 schema;
         uint256 slotIndex;
         uint256 operator;
+        uint256[] value;
         uint256 valueHash;
         string circuitId;
     }

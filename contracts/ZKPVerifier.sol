@@ -76,6 +76,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         requestQueries[requestId].circuitId = validator.getCircuitId();
         requestQueries[requestId].slotIndex = slotIndex;
         requestQueries[requestId].schema = schema;
+        requestQueries[requestId].value = value;
         requestValidators[requestId] = validator;
         return true;
     }
@@ -86,6 +87,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256 schema,
         uint256 slotIndex,
         uint256 operator,
+        uint256[] calldata value,
         uint256 valueHash
     ) external override onlyOwner returns (bool) {
         if (requestValidators[requestId] == ICircuitValidator(address(0x00))) {
@@ -96,6 +98,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         requestQueries[requestId].circuitId = validator.getCircuitId();
         requestQueries[requestId].slotIndex = slotIndex;
         requestQueries[requestId].schema = schema;
+        requestQueries[requestId].value = value;
         requestValidators[requestId] = validator;
         return true;
     }

@@ -47,7 +47,7 @@ contract CredentialAtomicQueryMTPValidator is OwnableUpgradeable, ICircuitValida
         CircuitQuery calldata query
     ) external view returns (bool r) {
         // verify that zkp is valid
-        require(verifier.verifyProof(a, b, c, inputs), "MTP is not valid");
+        require(verifier.verifyProof(a, b, c, inputs), "MTP proof is not valid");
 
         require(
             inputs[11] == query.schema,
