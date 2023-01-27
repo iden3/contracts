@@ -3,10 +3,11 @@ import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 import { Contract } from "ethers";
 
 export async function deploySpongePoseidon(owner, helper: StateDeployHelper): Promise<Contract> {
-  const [poseidon6Contract] = await helper.deployPoseidons(owner, [6]);
+  const [poseidon4Contract, poseidon6Contract] = await helper.deployPoseidons(owner, [4, 6]);
 
   const SpongePoseidonFactory = await ethers.getContractFactory("SpongePoseidon", {
     libraries: {
+      PoseidonUnit4L: poseidon4Contract.address,
       PoseidonUnit6L: poseidon6Contract.address,
     },
   });

@@ -48,10 +48,7 @@ contract CredentialAtomicQuerySigValidator is OwnableUpgradeable, ICircuitValida
         // verify that zkp is valid
         require(verifier.verifyProof(a, b, c, inputs), "atomic query signature proof is not valid");
 
-        require(
-            inputs[2] == queryHash,
-            "wrong comparison value has been used for proof generation"
-        );
+        require(inputs[2] == queryHash, "query hash does not match the requested one");
 
         uint256 issuerClaimAuthState = inputs[3];
         uint256 gistRoot = inputs[6];

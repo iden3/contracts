@@ -55,7 +55,7 @@ contract SpongePoseidon {
         return fullHash;
     }
 
-    function hash6(uint256[6] calldata values) public view returns (uint256) {
-        return PoseidonUnit6L.poseidon(values);
+    function hash4(uint256[4] calldata values) public view returns (uint256) {
+        return PoseidonUnit4L.poseidon(values);
     }
 }

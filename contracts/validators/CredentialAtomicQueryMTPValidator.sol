@@ -48,10 +48,7 @@ contract CredentialAtomicQueryMTPValidator is OwnableUpgradeable, ICircuitValida
         // verify that zkp is valid
         require(verifier.verifyProof(a, b, c, inputs), "MTP proof is not valid");
 
-        require(
-            inputs[2] == queryHash,
-            "wrong claim data hash has been used for proof generation"
-        );
+        require(inputs[2] == queryHash, "query hash does not match the requested one");
 
         // verify user states
         uint256 gistRoot = inputs[5];

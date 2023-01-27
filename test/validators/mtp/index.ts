@@ -75,7 +75,7 @@ describe("Atomic MTP Validator", function () {
         operator: ethers.BigNumber.from(1),
         value: ["10", ...new Array(63).fill("0").map((x) => ethers.BigNumber.from(x))],
         queryHash: ethers.BigNumber.from(
-          "15713277353907071316309398958907043111052032429480116581430833823614854285212"
+          "20569118755491694835833503588348972645662557826880109345882671441370970894820"
         ),
         circuitId: "credentialAtomicQueryMTP",
       };
@@ -137,7 +137,7 @@ describe("Atomic MTP Validator", function () {
     await callBack(query, token, requestId);
 
     expect((await token.requestQueries(requestId)).queryHash.toString()).to.be.equal(
-      "15713277353907071316309398958907043111052032429480116581430833823614854285212"
+      "20569118755491694835833503588348972645662557826880109345882671441370970894820"
     ); // check that query is assigned
     expect((await token.getSupportedRequests()).length).to.be.equal(1);
 
@@ -187,7 +187,7 @@ describe("Atomic MTP Validator", function () {
         query.operator,
         query.value,
         ethers.BigNumber.from(
-          "15713277353907071316309398958907043111052032429480116581430833823614854285212"
+          "20569118755491694835833503588348972645662557826880109345882671441370970894820"
         )
       );
     });

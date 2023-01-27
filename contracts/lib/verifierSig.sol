@@ -12,6 +12,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
+
 library Pairing {
     struct G1Point {
         uint X;
@@ -22,21 +23,28 @@ library Pairing {
         uint[2] X;
         uint[2] Y;
     }
+
     /// @return the generator of G1
     function P1() internal pure returns (G1Point memory) {
         return G1Point(1, 2);
     }
+
     /// @return the generator of G2
     function P2() internal pure returns (G2Point memory) {
         // Original code point
-        return G2Point(
-            [11559732032986387107991004021392285783925812861821192530917403151452391805634,
-             10857046999023057135944570762232829481370756359578518086990519993285655852781],
-            [4082367875863433681332203403145435568316851327593401208105741076214120093531,
-             8495653923123431417604973247489272438418190587263600148770280649306958101930]
-        );
+        return
+            G2Point(
+                [
+                    11559732032986387107991004021392285783925812861821192530917403151452391805634,
+                    10857046999023057135944570762232829481370756359578518086990519993285655852781
+                ],
+                [
+                    4082367875863433681332203403145435568316851327593401208105741076214120093531,
+                    8495653923123431417604973247489272438418190587263600148770280649306958101930
+                ]
+            );
 
-/*
+        /*
         // Changed by Jordi point
         return G2Point(
             [10857046999023057135944570762232829481370756359578518086990519993285655852781,
@@ -46,16 +54,20 @@ library Pairing {
         );
 */
     }
+
     /// @return r the negation of p, i.e. p.addition(p.negate()) should be zero.
     function negate(G1Point memory p) internal pure returns (G1Point memory r) {
         // The prime q in the base field F_q for G1
         uint q = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
-        if (p.X == 0 && p.Y == 0)
-            return G1Point(0, 0);
+        if (p.X == 0 && p.Y == 0) return G1Point(0, 0);
         return G1Point(p.X, q - (p.Y % q));
     }
+
     /// @return r the sum of two points of G1
-    function addition(G1Point memory p1, G1Point memory p2) internal view returns (G1Point memory r) {
+    function addition(
+        G1Point memory p1,
+        G1Point memory p2
+    ) internal view returns (G1Point memory r) {
         uint[4] memory input;
         input[0] = p1.X;
         input[1] = p1.Y;
@@ -66,10 +78,14 @@ library Pairing {
         assembly {
             success := staticcall(sub(gas(), 2000), 6, input, 0xc0, r, 0x60)
             // Use "invalid" to make gas estimation work
-            switch success case 0 { invalid() }
+            switch success
+            case 0 {
+                invalid()
+            }
         }
-        require(success,"pairing-add-failed");
+        require(success, "pairing-add-failed");
     }
+
     /// @return r the product of a point on G1 and a scalar, i.e.
     /// p == p.scalar_mul(1) and p.addition(p) == p.scalar_mul(2) for all points p.
     function scalar_mul(G1Point memory p, uint s) internal view returns (G1Point memory r) {
@@ -82,21 +98,24 @@ library Pairing {
         assembly {
             success := staticcall(sub(gas(), 2000), 7, input, 0x80, r, 0x60)
             // Use "invalid" to make gas estimation work
-            switch success case 0 { invalid() }
+            switch success
+            case 0 {
+                invalid()
+            }
         }
-        require (success,"pairing-mul-failed");
+        require(success, "pairing-mul-failed");
     }
+
     /// @return the result of computing the pairing check
     /// e(p1[0], p2[0]) *  .... * e(p1[n], p2[n]) == 1
     /// For example pairing([P1(), P1().negate()], [P2(), P2()]) should
     /// return true.
     function pairing(G1Point[] memory p1, G2Point[] memory p2) internal view returns (bool) {
-        require(p1.length == p2.length,"pairing-lengths-failed");
+        require(p1.length == p2.length, "pairing-lengths-failed");
         uint elements = p1.length;
         uint inputSize = elements * 6;
         uint[] memory input = new uint[](inputSize);
-        for (uint i = 0; i < elements; i++)
-        {
+        for (uint i = 0; i < elements; i++) {
             input[i * 6 + 0] = p1[i].X;
             input[i * 6 + 1] = p1[i].Y;
             input[i * 6 + 2] = p2[i].X[0];
@@ -108,15 +127,31 @@ library Pairing {
         bool success;
         // solium-disable-next-line security/no-inline-assembly
         assembly {
-            success := staticcall(sub(gas(), 2000), 8, add(input, 0x20), mul(inputSize, 0x20), out, 0x20)
+            success := staticcall(
+                sub(gas(), 2000),
+                8,
+                add(input, 0x20),
+                mul(inputSize, 0x20),
+                out,
+                0x20
+            )
             // Use "invalid" to make gas estimation work
-            switch success case 0 { invalid() }
+            switch success
+            case 0 {
+                invalid()
+            }
         }
-        require(success,"pairing-opcode-failed");
+        require(success, "pairing-opcode-failed");
         return out[0] != 0;
     }
+
     /// Convenience method for a pairing check for two pairs.
-    function pairingProd2(G1Point memory a1, G2Point memory a2, G1Point memory b1, G2Point memory b2) internal view returns (bool) {
+    function pairingProd2(
+        G1Point memory a1,
+        G2Point memory a2,
+        G1Point memory b1,
+        G2Point memory b2
+    ) internal view returns (bool) {
         G1Point[] memory p1 = new G1Point[](2);
         G2Point[] memory p2 = new G2Point[](2);
         p1[0] = a1;
@@ -125,11 +160,15 @@ library Pairing {
         p2[1] = b2;
         return pairing(p1, p2);
     }
+
     /// Convenience method for a pairing check for three pairs.
     function pairingProd3(
-            G1Point memory a1, G2Point memory a2,
-            G1Point memory b1, G2Point memory b2,
-            G1Point memory c1, G2Point memory c2
+        G1Point memory a1,
+        G2Point memory a2,
+        G1Point memory b1,
+        G2Point memory b2,
+        G1Point memory c1,
+        G2Point memory c2
     ) internal view returns (bool) {
         G1Point[] memory p1 = new G1Point[](3);
         G2Point[] memory p2 = new G2Point[](3);
@@ -141,12 +180,17 @@ library Pairing {
         p2[2] = c2;
         return pairing(p1, p2);
     }
+
     /// Convenience method for a pairing check for four pairs.
     function pairingProd4(
-            G1Point memory a1, G2Point memory a2,
-            G1Point memory b1, G2Point memory b2,
-            G1Point memory c1, G2Point memory c2,
-            G1Point memory d1, G2Point memory d2
+        G1Point memory a1,
+        G2Point memory a2,
+        G1Point memory b1,
+        G2Point memory b2,
+        G1Point memory c1,
+        G2Point memory c2,
+        G1Point memory d1,
+        G2Point memory d2
     ) internal view returns (bool) {
         G1Point[] memory p1 = new G1Point[](4);
         G2Point[] memory p2 = new G2Point[](4);
@@ -161,6 +205,7 @@ library Pairing {
         return pairing(p1, p2);
     }
 }
+
 contract VerifierSig {
     using Pairing for *;
     struct VerifyingKey {
@@ -175,6 +220,7 @@ contract VerifierSig {
         Pairing.G2Point B;
         Pairing.G1Point C;
     }
+
     function verifyingKey() internal pure returns (VerifyingKey memory vk) {
         vk.alfa1 = Pairing.G1Point(
             20491192805390485299153009773594534940189261866228447918068658471970481763042,
@@ -182,128 +228,147 @@ contract VerifierSig {
         );
 
         vk.beta2 = Pairing.G2Point(
-            [4252822878758300859123897981450591353533073413197771768651442665752259397132,
-             6375614351688725206403948262868962793625744043794305715222011528459656738731],
-            [21847035105528745403288232691147584728191162732299865338377159692350059136679,
-             10505242626370262277552901082094356697409835680220590971873171140371331206856]
+            [
+                4252822878758300859123897981450591353533073413197771768651442665752259397132,
+                6375614351688725206403948262868962793625744043794305715222011528459656738731
+            ],
+            [
+                21847035105528745403288232691147584728191162732299865338377159692350059136679,
+                10505242626370262277552901082094356697409835680220590971873171140371331206856
+            ]
         );
         vk.gamma2 = Pairing.G2Point(
-            [11559732032986387107991004021392285783925812861821192530917403151452391805634,
-             10857046999023057135944570762232829481370756359578518086990519993285655852781],
-            [4082367875863433681332203403145435568316851327593401208105741076214120093531,
-             8495653923123431417604973247489272438418190587263600148770280649306958101930]
+            [
+                11559732032986387107991004021392285783925812861821192530917403151452391805634,
+                10857046999023057135944570762232829481370756359578518086990519993285655852781
+            ],
+            [
+                4082367875863433681332203403145435568316851327593401208105741076214120093531,
+                8495653923123431417604973247489272438418190587263600148770280649306958101930
+            ]
         );
         vk.delta2 = Pairing.G2Point(
-            [15873033059746246743543075567079322668015485477875009864935906459615031845764,
-             7393429687814492017579911967416050889499055721688885349055376919831114957393],
-            [11136589618351926760707209696469500898963182701315863530440939224573459272177,
-             15822427908091366700267605350431088737280070859009239736671551685372979343703]
+            [
+                18639970037732085974185957831189048150665893464279262980222248231818998507406,
+                10057791063932012905852415073890057385632496838070542253440644025266416041614
+            ],
+            [
+                7993820863629006788562034273581393591902569613680055927111549756809262605743,
+                20761647411974546154536840687300789016920955330113296501431963213456805882963
+            ]
         );
         vk.IC = new Pairing.G1Point[](14);
-        
-        vk.IC[0] = Pairing.G1Point( 
-            4399556387261141126832709030729243048690890975789770375551671593818069906622,
-            4018094977955484731324118759565286274863642688589115455703300014441001683334
-        );                                      
-        
-        vk.IC[1] = Pairing.G1Point( 
-            21817769411984754667770481204368270043116722663094206040126239591205313260286,
-            13197929729348513569993096454110760574449594934259288192243697372313895094323
-        );                                      
-        
-        vk.IC[2] = Pairing.G1Point( 
-            21596292865659531688953047472372410014116208618180348656278150180826770600593,
-            18746982071376786715254442333326589376927227675189656035944345978527474656162
-        );                                      
-        
-        vk.IC[3] = Pairing.G1Point( 
-            10574360718930602669746332696518244415777638684187977827416656932702549691127,
-            7595099474035733924600968258963706883717937593089963179346804778925265091560
-        );                                      
-        
-        vk.IC[4] = Pairing.G1Point( 
-            7653453334733435366516732505848742477475104074039999295077645086682524310205,
-            14064045054122183207692179528995444619962045710371841988021264976664468886218
-        );                                      
-        
-        vk.IC[5] = Pairing.G1Point( 
-            13038917205353671147998409991471028571447018874330494351754530897099728261016,
-            3941221274944237428756521608654584370216094465433891863850384512317198746198
-        );                                      
-        
-        vk.IC[6] = Pairing.G1Point( 
-            3971473093789498600418523891764976168980013943472366311350694300261109792697,
-            6489520064121457057714493621276605556549234785033211020906209693165491782461
-        );                                      
-        
-        vk.IC[7] = Pairing.G1Point( 
-            20186536816452573013907272018334132987057805411372359518073531119867915859308,
-            18781576298837904357728560329752203906692776523833522725308324315604529568960
-        );                                      
-        
-        vk.IC[8] = Pairing.G1Point( 
-            1280435923455008518105664007022518806632890455302322981074164123027030029522,
-            7606798408597241755445918179963997233781670465784147650047595756593735337801
-        );                                      
-        
-        vk.IC[9] = Pairing.G1Point( 
-            18872637356795461260743841746925211701850490198409686078679717564726193762037,
-            13412725050777601832117447153623598790935453387998351324821215910027735591008
-        );                                      
-        
-        vk.IC[10] = Pairing.G1Point( 
-            11863131151421162641084382917663116508183830844261577166155759590054254743422,
-            6041672609585577536459551331583634889838128301283901178007223556497632339863
-        );                                      
-        
-        vk.IC[11] = Pairing.G1Point( 
-            8903476427482734822084783207650247958891564536719356868504955757703589158688,
-            13651456420104287849842297115079378224522576693363424027135569085070215215650
-        );                                      
-        
-        vk.IC[12] = Pairing.G1Point( 
-            19093454744825318787475179074204833146197936845832520587610657576501457457148,
-            13223247849096188533065463106568390113048274265224276511425532444723639656760
-        );                                      
-        
-        vk.IC[13] = Pairing.G1Point( 
-            21777983341993664520516603589528847830125890570819913870581566183563254862115,
-            20983477870129609102982686230709799515711535034967623538612590239626105614056
-        );                                      
-        
+
+        vk.IC[0] = Pairing.G1Point(
+            20761417029836004941467224950715174275218564402908302218395190323097956084978,
+            10972887784388928961870169552778053599569686646704389451205757560106102464043
+        );
+
+        vk.IC[1] = Pairing.G1Point(
+            12295944129622922834969382854482735080589980774735845820410867606609620460726,
+            7348742784188573756137579426091332167226743782912978898613154529498105990734
+        );
+
+        vk.IC[2] = Pairing.G1Point(
+            11018848552937801204163383889898918031639226655185571797826231964731404711533,
+            3248209469755264364614168464137238634845278552266721500407002263875485146280
+        );
+
+        vk.IC[3] = Pairing.G1Point(
+            10393234434741900206530841941105957524990129602813184081581738662579314170122,
+            14242710275949975963618949315546873396865577599435600980638943486289882324217
+        );
+
+        vk.IC[4] = Pairing.G1Point(
+            14181582007157655620081566420847001511161060246506441538080660820745976240486,
+            18269209354655664950491636584160597690162010531168756664683831136476290106973
+        );
+
+        vk.IC[5] = Pairing.G1Point(
+            5304839102774672484758329189068539172419607114813045896948543563717593462871,
+            4000911362126417518037280884519273834662081713973669311805037846858053596594
+        );
+
+        vk.IC[6] = Pairing.G1Point(
+            7165679866551531176405871646038974729853254293180221618580369028370315316878,
+            15224626949681589292325685670141445186020811258621130185015267061347255585733
+        );
+
+        vk.IC[7] = Pairing.G1Point(
+            20295214526605608653413878660929713665743250154981213068480248440956082970308,
+            3618265480649287210992472991399035712792304359613209969894448652844563212884
+        );
+
+        vk.IC[8] = Pairing.G1Point(
+            17962713134023886788838786555684471982076458740935963449158820437934191861095,
+            9636132006104061572972169990804145622407845809706021871304927600323861038123
+        );
+
+        vk.IC[9] = Pairing.G1Point(
+            3529906344299823710499293532672999290136311681163965575555068894863261639905,
+            17394818135450060004710431126552759717411396079615655032789326070055710751905
+        );
+
+        vk.IC[10] = Pairing.G1Point(
+            10152937645700847770839308951951239766636319892307793332079880535854624199368,
+            16313671984591510241949465145729886150104182822545292545044846687391053820445
+        );
+
+        vk.IC[11] = Pairing.G1Point(
+            21005372234504327591698590404601233192672128033230900653755762433617501679742,
+            9891590074883278019332822466868148621471365289243740331358845642292682804413
+        );
+
+        vk.IC[12] = Pairing.G1Point(
+            9990253610572719322410967247259690877425164928901370194224781877514785342979,
+            10071841635111838630771909242973335830626026674050068594792121764021576620280
+        );
+
+        vk.IC[13] = Pairing.G1Point(
+            19202544052362710977748933865623496890792939134853057613647880601853785871654,
+            3502712389251825952453014467014781273704336818571509303232933128965491770121
+        );
     }
+
     function verify(uint[] memory input, Proof memory proof) internal view returns (uint) {
         uint256 snark_scalar_field = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
         VerifyingKey memory vk = verifyingKey();
-        require(input.length + 1 == vk.IC.length,"verifier-bad-input");
+        require(input.length + 1 == vk.IC.length, "verifier-bad-input");
         // Compute the linear combination vk_x
         Pairing.G1Point memory vk_x = Pairing.G1Point(0, 0);
         for (uint i = 0; i < input.length; i++) {
-            require(input[i] < snark_scalar_field,"verifier-gte-snark-scalar-field");
+            require(input[i] < snark_scalar_field, "verifier-gte-snark-scalar-field");
             vk_x = Pairing.addition(vk_x, Pairing.scalar_mul(vk.IC[i + 1], input[i]));
         }
         vk_x = Pairing.addition(vk_x, vk.IC[0]);
-        if (!Pairing.pairingProd4(
-            Pairing.negate(proof.A), proof.B,
-            vk.alfa1, vk.beta2,
-            vk_x, vk.gamma2,
-            proof.C, vk.delta2
-        )) return 1;
+        if (
+            !Pairing.pairingProd4(
+                Pairing.negate(proof.A),
+                proof.B,
+                vk.alfa1,
+                vk.beta2,
+                vk_x,
+                vk.gamma2,
+                proof.C,
+                vk.delta2
+            )
+        ) return 1;
         return 0;
     }
+
     /// @return r  bool true if proof is valid
     function verifyProof(
-            uint[2] memory a,
-            uint[2][2] memory b,
-            uint[2] memory c,
-            uint[13] memory input
-        ) public view returns (bool r) {
+        uint[2] memory a,
+        uint[2][2] memory b,
+        uint[2] memory c,
+        uint[13] memory input
+    ) public view returns (bool r) {
         Proof memory proof;
         proof.A = Pairing.G1Point(a[0], a[1]);
         proof.B = Pairing.G2Point([b[0][0], b[0][1]], [b[1][0], b[1][1]]);
         proof.C = Pairing.G1Point(c[0], c[1]);
         uint[] memory inputValues = new uint[](input.length);
-        for(uint i = 0; i < input.length; i++){
+        for (uint i = 0; i < input.length; i++) {
             inputValues[i] = input[i];
         }
         if (verify(inputValues, proof) == 0) {

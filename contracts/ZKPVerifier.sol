@@ -10,7 +10,7 @@ import "./interfaces/IZKPVerifier.sol";
 interface ISpongePoseidon {
     function hash(uint256[] calldata values) external view returns (uint256);
 
-    function hash6(uint256[6] calldata values) external view returns (uint256);
+    function hash4(uint256[4] calldata values) external view returns (uint256);
 }
 
 contract ZKPVerifier is IZKPVerifier, Ownable {
@@ -72,8 +72,8 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
             supportedRequests.push(requestId);
         }
         uint256 valueHash = poseidon.hash(value);
-        requestQueries[requestId].queryHash = poseidon.hash6(
-            [schema, slotIndex, operator, valueHash, 0, 0]
+        requestQueries[requestId].queryHash = poseidon.hash4(
+            [schema, slotIndex, operator, valueHash]
         );
         requestQueries[requestId].operator = operator;
         requestQueries[requestId].circuitId = validator.getCircuitId();
