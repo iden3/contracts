@@ -43,13 +43,13 @@ contract CredentialAtomicQueryMTPValidator is OwnableUpgradeable, ICircuitValida
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c,
-        CircuitQuery calldata query
+        uint256 queryHash
     ) external view returns (bool r) {
         // verify that zkp is valid
         require(verifier.verifyProof(a, b, c, inputs), "MTP proof is not valid");
 
         require(
-            inputs[2] == query.queryHash,
+            inputs[2] == queryHash,
             "wrong claim data hash has been used for proof generation"
         );
 

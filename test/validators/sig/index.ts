@@ -86,11 +86,11 @@ describe("Atomic Sig Validator", function () {
           await sig.setRevocationStateExpirationTime(test.setExpiration);
         }
 
-        (expect(sig.verify(inputs, pi_a, pi_b, pi_c, query)).to.be as any).revertedWith(
+        (expect(sig.verify(inputs, pi_a, pi_b, pi_c, query.queryHash)).to.be as any).revertedWith(
           test.errorMessage
         );
       } else {
-        const verified = await sig.verify(inputs, pi_a, pi_b, pi_c, query);
+        const verified = await sig.verify(inputs, pi_a, pi_b, pi_c, query.queryHash);
         expect(verified).to.be.true;
       }
     });

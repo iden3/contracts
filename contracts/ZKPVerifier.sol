@@ -44,7 +44,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         _beforeProofSubmit(requestId, inputs, requestValidators[requestId]);
 
         require(
-            requestValidators[requestId].verify(inputs, a, b, c, requestQueries[requestId]),
+            requestValidators[requestId].verify(inputs, a, b, c, requestQueries[requestId].queryHash),
             "proof response is not valid"
         );
 
