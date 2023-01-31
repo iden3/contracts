@@ -29,7 +29,7 @@ interface IZKPVerifier {
         uint256 slotIndex,
         uint256 operator,
         uint256[] calldata value,
-        uint256 valueHash
+        uint256 queryHash
     ) external returns (bool);
 
     function getZKPRequest(

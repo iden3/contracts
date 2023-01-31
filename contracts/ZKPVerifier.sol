@@ -10,7 +10,7 @@ import "./interfaces/IZKPVerifier.sol";
 interface ISpongePoseidon {
     function hash(uint256[] calldata values) external view returns (uint256);
 
-    function hash6(uint256[6] calldata values) external view returns (uint256);
+    function hash4(uint256[4] calldata values) external view returns (uint256);
 }
 
 contract ZKPVerifier is IZKPVerifier, Ownable {
@@ -39,12 +39,12 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
             requestValidators[requestId] != ICircuitValidator(address(0)),
             "validator is not set for this request id"
         ); // validator exists
-        require(requestQueries[requestId].schema != 0, "query is not set for this request id"); // query exists
+        require(requestQueries[requestId].queryHash != 0, "query is not set for this request id"); // query exists
 
         _beforeProofSubmit(requestId, inputs, requestValidators[requestId]);
 
         require(
-            requestValidators[requestId].verify(inputs, a, b, c, requestQueries[requestId]),
+            requestValidators[requestId].verify(inputs, a, b, c, requestQueries[requestId].queryHash),
             "proof response is not valid"
         );
 
@@ -71,13 +71,17 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         if (requestValidators[requestId] == ICircuitValidator(address(0x00))) {
             supportedRequests.push(requestId);
         }
-        requestQueries[requestId].valueHash = poseidon.hash(value);
+        uint256 valueHash = poseidon.hash(value);
+        requestQueries[requestId].queryHash = poseidon.hash4(
+            [schema, slotIndex, operator, valueHash]
+        );
         requestQueries[requestId].operator = operator;
         requestQueries[requestId].circuitId = validator.getCircuitId();
         requestQueries[requestId].slotIndex = slotIndex;
         requestQueries[requestId].schema = schema;
         requestQueries[requestId].value = value;
         requestValidators[requestId] = validator;
+
         return true;
     }
 
@@ -88,12 +92,12 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256 slotIndex,
         uint256 operator,
         uint256[] calldata value,
-        uint256 valueHash
+        uint256 queryHash
     ) external override onlyOwner returns (bool) {
         if (requestValidators[requestId] == ICircuitValidator(address(0x00))) {
             supportedRequests.push(requestId);
         }
-        requestQueries[requestId].valueHash = valueHash;
+        requestQueries[requestId].queryHash = queryHash;
         requestQueries[requestId].operator = operator;
         requestQueries[requestId].circuitId = validator.getCircuitId();
         requestQueries[requestId].slotIndex = slotIndex;

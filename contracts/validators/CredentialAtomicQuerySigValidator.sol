@@ -43,29 +43,12 @@ contract CredentialAtomicQuerySigValidator is OwnableUpgradeable, ICircuitValida
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c,
-        CircuitQuery calldata query
+        uint256 queryHash
     ) external view returns (bool r) {
         // verify that zkp is valid
         require(verifier.verifyProof(a, b, c, inputs), "atomic query signature proof is not valid");
 
-        // verify query
-        require(
-            inputs[11] == query.schema,
-            "wrong claim schema has been used for proof generation"
-        );
-        require(
-            inputs[14] == query.slotIndex,
-            "wrong claim data slot has been used for proof generation"
-        );
-        require(
-            inputs[15] == query.operator,
-            "wrong query operator has been used for proof generation"
-        );
-
-        require(
-            inputs[2] == query.valueHash,
-            "wrong comparison value has been used for proof generation"
-        );
+        require(inputs[2] == queryHash, "query hash does not match the requested one");
 
         uint256 issuerClaimAuthState = inputs[3];
         uint256 gistRoot = inputs[6];

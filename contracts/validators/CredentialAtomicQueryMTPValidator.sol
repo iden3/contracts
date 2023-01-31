@@ -6,7 +6,6 @@ import "../lib/GenesisUtils.sol";
 import "../interfaces/ICircuitValidator.sol";
 import "../interfaces/IVerifier.sol";
 import "../interfaces/IState.sol";
-import "hardhat/console.sol";
 
 contract CredentialAtomicQueryMTPValidator is OwnableUpgradeable, ICircuitValidator {
     string constant CIRCUIT_ID = "credentialAtomicQueryMTP";
@@ -44,31 +43,12 @@ contract CredentialAtomicQueryMTPValidator is OwnableUpgradeable, ICircuitValida
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c,
-        CircuitQuery calldata query
+        uint256 queryHash
     ) external view returns (bool r) {
         // verify that zkp is valid
         require(verifier.verifyProof(a, b, c, inputs), "MTP proof is not valid");
 
-        require(
-            inputs[11] == query.schema,
-            "wrong claim schema has been used for proof generation"
-        );
-        require(
-            inputs[14] == query.slotIndex,
-            "wrong claim data slot has been used for proof generation"
-        );
-        require(
-            inputs[15] == query.operator,
-            "wrong query operator has been used for proof generation"
-        );
-
-        console.log("valueHash", query.valueHash);
-        console.log("valueHash", inputs[2]);
-
-        require(
-            inputs[2] == query.valueHash,
-            "wrong claim data hash has been used for proof generation"
-        );
+        require(inputs[2] == queryHash, "query hash does not match the requested one");
 
         // verify user states
         uint256 gistRoot = inputs[5];

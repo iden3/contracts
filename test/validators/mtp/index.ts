@@ -74,8 +74,8 @@ describe("Atomic MTP Validator", function () {
         slotIndex: ethers.BigNumber.from(2),
         operator: ethers.BigNumber.from(1),
         value: ["10", ...new Array(63).fill("0").map((x) => ethers.BigNumber.from(x))],
-        valueHash: ethers.BigNumber.from(
-          "21701357532168553861786923689186952125413047360846218786397269136818954569377"
+        queryHash: ethers.BigNumber.from(
+          "20569118755491694835833503588348972645662557826880109345882671441370970894820"
         ),
         circuitId: "credentialAtomicQueryMTP",
       };
@@ -86,11 +86,11 @@ describe("Atomic MTP Validator", function () {
           await mtpValidator.setRevocationStateExpirationTime(test.setExpiration);
         }
 
-        (expect(mtpValidator.verify(inputs, pi_a, pi_b, pi_c, query)).to.be as any).revertedWith(
-          test.errorMessage
-        );
+        (
+          expect(mtpValidator.verify(inputs, pi_a, pi_b, pi_c, query.queryHash)).to.be as any
+        ).revertedWith(test.errorMessage);
       } else {
-        const verified = await mtpValidator.verify(inputs, pi_a, pi_b, pi_c, query);
+        const verified = await mtpValidator.verify(inputs, pi_a, pi_b, pi_c, query.queryHash);
         expect(verified).to.be.true;
       }
     });
@@ -128,9 +128,6 @@ describe("Atomic MTP Validator", function () {
       slotIndex: ethers.BigNumber.from(2),
       operator: ethers.BigNumber.from(1),
       value: ["10", ...new Array(63).fill("0").map((x) => ethers.BigNumber.from(x))],
-      valueHash: ethers.BigNumber.from(
-        "21701357532168553861786923689186952125413047360846218786397269136818954569377"
-      ),
       circuitId: "credentialAtomicQueryMTP",
     };
 
@@ -139,7 +136,9 @@ describe("Atomic MTP Validator", function () {
 
     await callBack(query, token, requestId);
 
-    expect((await token.requestQueries(requestId)).schema).to.be.equal(query.schema); // check that query is assigned
+    expect((await token.requestQueries(requestId)).queryHash.toString()).to.be.equal(
+      "20569118755491694835833503588348972645662557826880109345882671441370970894820"
+    ); // check that query is assigned
     expect((await token.getSupportedRequests()).length).to.be.equal(1);
 
     // submit response for non-existing request
@@ -188,7 +187,7 @@ describe("Atomic MTP Validator", function () {
         query.operator,
         query.value,
         ethers.BigNumber.from(
-          "21701357532168553861786923689186952125413047360846218786397269136818954569377"
+          "20569118755491694835833503588348972645662557826880109345882671441370970894820"
         )
       );
     });

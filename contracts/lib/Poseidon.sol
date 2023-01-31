@@ -39,6 +39,14 @@ library PoseidonUnit3L {
     function poseidon(uint256[3] memory) public view returns (uint256) {}
 }
 
+library PoseidonUnit4L {
+    function poseidon(uint256[4] memory) public view returns (uint256) {}
+}
+
+library PoseidonUnit5L {
+    function poseidon(uint256[5] memory) public view returns (uint256) {}
+}
+
 library PoseidonUnit6L {
     function poseidon(uint256[6] memory) public view returns (uint256) {}
 }

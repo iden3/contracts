@@ -7,7 +7,7 @@ interface ICircuitValidator {
         uint256 slotIndex;
         uint256 operator;
         uint256[] value;
-        uint256 valueHash;
+        uint256 queryHash;
         string circuitId;
     }
 
@@ -16,7 +16,7 @@ interface ICircuitValidator {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c,
-        CircuitQuery memory query
+        uint256 queryHash
     ) external view returns (bool r);
 
     function getCircuitId() external pure returns (string memory id);
