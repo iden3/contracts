@@ -34,7 +34,10 @@ contract SpongePoseidon {
         uint32 restLength = length - HASH_FN_BATCH_SIZE;
         if (restLength > BATCH_SIZE) {
             uint32 r = restLength % BATCH_SIZE;
-            uint32 diff = BATCH_SIZE - r;
+            uint32 diff = 0;
+            if (r != 0) {
+                diff = BATCH_SIZE - r;
+            }
             iterationCount = (restLength + diff) / BATCH_SIZE;
         }
 
