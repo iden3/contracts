@@ -16,7 +16,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
     mapping(uint64 => ICircuitValidator.CircuitQuery) public requestQueries;
     mapping(uint64 => ICircuitValidator) public requestValidators;
 
-    uint64[] public supportedRequests;
+    uint64[] internal _supportedRequests;
 
     function submitZKPResponse(
         uint64 requestId,
@@ -80,7 +80,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256 queryHash
     ) public override onlyOwner returns (bool) {
         if (requestValidators[requestId] == ICircuitValidator(address(0x00))) {
-            supportedRequests.push(requestId);
+            _supportedRequests.push(requestId);
         }
         requestQueries[requestId].queryHash = queryHash;
         requestQueries[requestId].operator = operator;
@@ -93,7 +93,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
     }
 
     function getSupportedRequests() public view returns (uint64[] memory arr) {
-        return supportedRequests;
+        return _supportedRequests;
     }
 
     /**
