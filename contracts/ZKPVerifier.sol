@@ -14,7 +14,7 @@ interface ISpongePoseidon {
 }
 
 contract ZKPVerifier is IZKPVerifier, Ownable {
-    ISpongePoseidon public poseidon;
+    ISpongePoseidon private _poseidon;
 
     // msg.sender-> ( requestID -> is proof given )
     mapping(address => mapping(uint64 => bool)) public proofs;
@@ -24,8 +24,8 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
 
     uint64[] public supportedRequests;
 
-    function setSpongePoseidon(address _poseidon) public onlyOwner {
-        poseidon = ISpongePoseidon(_poseidon);
+    function setSpongePoseidon(address poseidon) public onlyOwner {
+        _poseidon = ISpongePoseidon(poseidon);
     }
 
     function submitZKPResponse(
@@ -44,7 +44,13 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         _beforeProofSubmit(requestId, inputs, requestValidators[requestId]);
 
         require(
-            requestValidators[requestId].verify(inputs, a, b, c, requestQueries[requestId].queryHash),
+            requestValidators[requestId].verify(
+                inputs,
+                a,
+                b,
+                c,
+                requestQueries[requestId].queryHash
+            ),
             "proof response is not valid"
         );
 
@@ -71,8 +77,8 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         if (requestValidators[requestId] == ICircuitValidator(address(0x00))) {
             supportedRequests.push(requestId);
         }
-        uint256 valueHash = poseidon.hash(value);
-        requestQueries[requestId].queryHash = poseidon.hash4(
+        uint256 valueHash = _poseidon.hash(value);
+        requestQueries[requestId].queryHash = _poseidon.hash4(
             [schema, slotIndex, operator, valueHash]
         );
         requestQueries[requestId].operator = operator;
