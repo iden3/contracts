@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./lib/GenesisUtils.sol";
+import "./lib/SpongePoseidon.sol";
+import "./lib/Poseidon.sol";
 import "./interfaces/ICircuitValidator.sol";
 import "./interfaces/IZKPVerifier.sol";
 
@@ -14,23 +16,20 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
     mapping(uint64 => ICircuitValidator.CircuitQuery) public requestQueries;
     mapping(uint64 => ICircuitValidator) public requestValidators;
 
-    uint64[] public supportedRequests;
+    uint64[] internal _supportedRequests;
 
     function submitZKPResponse(
         uint64 requestId,
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c
-    ) external override returns (bool) {
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c
+    ) public override returns (bool) {
         require(
             requestValidators[requestId] != ICircuitValidator(address(0)),
             "validator is not set for this request id"
         ); // validator exists
-        require(
-            requestQueries[requestId].schema != 0,
-            "query is not set for this request id"
-        ); // query exists
+        require(requestQueries[requestId].queryHash != 0, "query is not set for this request id"); // query exists
 
         _beforeProofSubmit(requestId, inputs, requestValidators[requestId]);
 
@@ -40,7 +39,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
                 a,
                 b,
                 c,
-                requestQueries[requestId]
+                requestQueries[requestId].queryHash
             ),
             "proof response is not valid"
         );
@@ -51,41 +50,50 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         return true;
     }
 
-    function getZKPRequest(uint64 requestId)
-        external
-        view
-        override
-        returns (ICircuitValidator.CircuitQuery memory)
-    {
+    function getZKPRequest(
+        uint64 requestId
+    ) public view override returns (ICircuitValidator.CircuitQuery memory) {
         return requestQueries[requestId];
     }
 
     function setZKPRequest(
         uint64 requestId,
         ICircuitValidator validator,
-        ICircuitValidator.CircuitQuery memory query
-    ) external override onlyOwner returns (bool) {
+        uint256 schema,
+        uint256 slotIndex,
+        uint256 operator,
+        uint256[] calldata value
+    ) public override onlyOwner returns (bool) {
+        uint256 valueHash = SpongePoseidon.hash(value);
+        uint256 queryHash = PoseidonUnit4L.poseidon([schema, slotIndex, operator, valueHash]);
+        return
+            setZKPRequestRaw(requestId, validator, schema, slotIndex, operator, value, queryHash);
+    }
+
+    function setZKPRequestRaw(
+        uint64 requestId,
+        ICircuitValidator validator,
+        uint256 schema,
+        uint256 slotIndex,
+        uint256 operator,
+        uint256[] calldata value,
+        uint256 queryHash
+    ) public override onlyOwner returns (bool) {
         if (requestValidators[requestId] == ICircuitValidator(address(0x00))) {
-            supportedRequests.push(requestId);
+            _supportedRequests.push(requestId);
         }
-        requestQueries[requestId].value = query.value;
-        requestQueries[requestId].operator = query.operator;
-        requestQueries[requestId].circuitId = query.circuitId;
-        requestQueries[requestId].slotIndex = query.slotIndex;
-        requestQueries[requestId].schema = query.schema;
-
-        requestQueries[requestId].circuitId = query.circuitId;
-
+        requestQueries[requestId].queryHash = queryHash;
+        requestQueries[requestId].operator = operator;
+        requestQueries[requestId].circuitId = validator.getCircuitId();
+        requestQueries[requestId].slotIndex = slotIndex;
+        requestQueries[requestId].schema = schema;
+        requestQueries[requestId].value = value;
         requestValidators[requestId] = validator;
         return true;
     }
 
-    function getSupportedRequests()
-        external
-        view
-        returns (uint64[] memory arr)
-    {
-        return supportedRequests;
+    function getSupportedRequests() public view returns (uint64[] memory arr) {
+        return _supportedRequests;
     }
 
     /**

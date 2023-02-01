@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
 interface ICircuitValidator {
@@ -6,6 +7,7 @@ interface ICircuitValidator {
         uint256 slotIndex;
         uint256 operator;
         uint256[] value;
+        uint256 queryHash;
         string circuitId;
     }
 
@@ -14,12 +16,10 @@ interface ICircuitValidator {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c,
-        CircuitQuery memory query
+        uint256 queryHash
     ) external view returns (bool r);
 
     function getCircuitId() external pure returns (string memory id);
 
     function getChallengeInputIndex() external pure returns (uint256 index);
-
-    function getUserIdInputIndex() external pure returns (uint256 index);
 }
