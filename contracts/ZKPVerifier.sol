@@ -4,18 +4,12 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./lib/GenesisUtils.sol";
+import "./lib/SpongePoseidon.sol";
+import "./lib/Poseidon.sol";
 import "./interfaces/ICircuitValidator.sol";
 import "./interfaces/IZKPVerifier.sol";
 
-interface ISpongePoseidon {
-    function hash(uint256[] calldata values) external view returns (uint256);
-
-    function hash4(uint256[4] calldata values) external view returns (uint256);
-}
-
 contract ZKPVerifier is IZKPVerifier, Ownable {
-    ISpongePoseidon private _poseidon;
-
     // msg.sender-> ( requestID -> is proof given )
     mapping(address => mapping(uint64 => bool)) public proofs;
 
@@ -24,17 +18,13 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
 
     uint64[] public supportedRequests;
 
-    function setSpongePoseidon(address poseidon) public onlyOwner {
-        _poseidon = ISpongePoseidon(poseidon);
-    }
-
     function submitZKPResponse(
         uint64 requestId,
         uint256[] calldata inputs,
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c
-    ) external override returns (bool) {
+    ) public override returns (bool) {
         require(
             requestValidators[requestId] != ICircuitValidator(address(0)),
             "validator is not set for this request id"
@@ -62,7 +52,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
 
     function getZKPRequest(
         uint64 requestId
-    ) external view override returns (ICircuitValidator.CircuitQuery memory) {
+    ) public view override returns (ICircuitValidator.CircuitQuery memory) {
         return requestQueries[requestId];
     }
 
@@ -73,22 +63,11 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256 slotIndex,
         uint256 operator,
         uint256[] calldata value
-    ) external override onlyOwner returns (bool) {
-        if (requestValidators[requestId] == ICircuitValidator(address(0x00))) {
-            supportedRequests.push(requestId);
-        }
-        uint256 valueHash = _poseidon.hash(value);
-        requestQueries[requestId].queryHash = _poseidon.hash4(
-            [schema, slotIndex, operator, valueHash]
-        );
-        requestQueries[requestId].operator = operator;
-        requestQueries[requestId].circuitId = validator.getCircuitId();
-        requestQueries[requestId].slotIndex = slotIndex;
-        requestQueries[requestId].schema = schema;
-        requestQueries[requestId].value = value;
-        requestValidators[requestId] = validator;
-
-        return true;
+    ) public override onlyOwner returns (bool) {
+        uint256 valueHash = SpongePoseidon.hash(value);
+        uint256 queryHash = PoseidonUnit4L.poseidon([schema, slotIndex, operator, valueHash]);
+        return
+            setZKPRequestRaw(requestId, validator, schema, slotIndex, operator, value, queryHash);
     }
 
     function setZKPRequestRaw(
@@ -99,7 +78,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256 operator,
         uint256[] calldata value,
         uint256 queryHash
-    ) external override onlyOwner returns (bool) {
+    ) public override onlyOwner returns (bool) {
         if (requestValidators[requestId] == ICircuitValidator(address(0x00))) {
             supportedRequests.push(requestId);
         }
@@ -113,7 +92,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         return true;
     }
 
-    function getSupportedRequests() external view returns (uint64[] memory arr) {
+    function getSupportedRequests() public view returns (uint64[] memory arr) {
         return supportedRequests;
     }
 

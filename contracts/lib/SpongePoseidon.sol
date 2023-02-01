@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 import "../lib/Poseidon.sol";
 
-contract SpongePoseidon {
+library SpongePoseidon {
     uint32 constant BATCH_SIZE = 5;
     uint32 constant HASH_FN_BATCH_SIZE = 6;
 
@@ -56,9 +56,5 @@ contract SpongePoseidon {
         }
 
         return fullHash;
-    }
-
-    function hash4(uint256[4] calldata values) public view returns (uint256) {
-        return PoseidonUnit4L.poseidon(values);
     }
 }

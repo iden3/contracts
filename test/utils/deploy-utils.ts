@@ -2,13 +2,10 @@ import { ethers, upgrades } from "hardhat";
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 import { Contract } from "ethers";
 
-export async function deploySpongePoseidon(owner, helper: StateDeployHelper): Promise<Contract> {
-  const [poseidon4Contract, poseidon6Contract] = await helper.deployPoseidons(owner, [4, 6]);
-
+export async function deploySpongePoseidon(poseidon6ContractAddress: string): Promise<Contract> {
   const SpongePoseidonFactory = await ethers.getContractFactory("SpongePoseidon", {
     libraries: {
-      PoseidonUnit4L: poseidon4Contract.address,
-      PoseidonUnit6L: poseidon6Contract.address,
+      PoseidonUnit6L: poseidon6ContractAddress,
     },
   });
 
@@ -60,13 +57,22 @@ export async function deployERC20ZKPVerifierToken(
 }> {
   const owner = (await ethers.getSigners())[0];
   const stateDeployHelper = await StateDeployHelper.initialize();
-  const ERC20Verifier = await ethers.getContractFactory("ERC20Verifier");
+  const [poseidon4Contract, poseidon6Contract] = await stateDeployHelper.deployPoseidons(
+    owner,
+    [4, 6]
+  );
+
+  const spongePoseidon = await deploySpongePoseidon(poseidon6Contract.address);
+
+  const ERC20Verifier = await ethers.getContractFactory("ERC20Verifier", {
+    libraries: {
+      SpongePoseidon: spongePoseidon.address,
+      PoseidonUnit4L: poseidon4Contract.address,
+    },
+  });
   const erc20Verifier = await ERC20Verifier.deploy(name, symbol);
   await erc20Verifier.deployed();
   console.log("ERC20Verifier deployed to:", erc20Verifier.address);
-
-  const spongePoseidon = await deploySpongePoseidon(owner, stateDeployHelper);
-  await erc20Verifier.setSpongePoseidon(spongePoseidon.address);
 
   return erc20Verifier;
 }
