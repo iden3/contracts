@@ -17,13 +17,18 @@ export async function deploySpongePoseidon(poseidon6ContractAddress: string): Pr
 
 export async function deployValidatorContracts(
   verifierContractWrapperName: string,
-  validatorContractName: string
+  validatorContractName: string,
+  stateAddress = ""
 ): Promise<{
   state: any;
+  verifierWrapper: any;
   validator: any;
 }> {
-  const stateDeployHelper = await StateDeployHelper.initialize();
-  const { state } = await stateDeployHelper.deployStateV2();
+  if (!stateAddress) {
+    const stateDeployHelper = await StateDeployHelper.initialize();
+    const { state } = await stateDeployHelper.deployStateV2();
+    stateAddress = state.address;
+  }
 
   const ValidatorContractVerifierWrapper = await ethers.getContractFactory(
     verifierContractWrapperName
@@ -37,14 +42,17 @@ export async function deployValidatorContracts(
 
   const validatorContractProxy = await upgrades.deployProxy(ValidatorContract, [
     validatorContractVerifierWrapper.address,
-    state.address,
+    stateAddress,
   ]);
 
   await validatorContractProxy.deployed();
   console.log(`${validatorContractName} deployed to: ${validatorContractProxy.address}`);
+  const signers = await ethers.getSigners();
 
+  const state = await ethers.getContractAt("StateV2", stateAddress, signers[0]);
   return {
     validator: validatorContractProxy,
+    verifierWrapper: validatorContractVerifierWrapper,
     state,
   };
 }
@@ -57,10 +65,7 @@ export async function deployERC20ZKPVerifierToken(
 }> {
   const owner = (await ethers.getSigners())[0];
   const stateDeployHelper = await StateDeployHelper.initialize();
-  const [poseidon4Contract, poseidon6Contract] = await stateDeployHelper.deployPoseidons(
-    owner,
-    [4, 6]
-  );
+  const [poseidon6Contract] = await stateDeployHelper.deployPoseidons(owner, [6]);
 
   const spongePoseidon = await deploySpongePoseidon(poseidon6Contract.address);
 
