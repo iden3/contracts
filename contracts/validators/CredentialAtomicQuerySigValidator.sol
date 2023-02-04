@@ -8,7 +8,7 @@ import "../interfaces/IVerifier.sol";
 import "../interfaces/IState.sol";
 
 contract CredentialAtomicQuerySigValidator is OwnableUpgradeable, ICircuitValidator {
-    string constant CIRCUIT_ID = "credentialAtomicQuerySig";
+    string constant CIRCUIT_ID = "credentialAtomicQuerySigV2OnChain";
     uint256 constant CHALLENGE_INDEX = 5;
 
     IVerifier public verifier;
@@ -47,7 +47,6 @@ contract CredentialAtomicQuerySigValidator is OwnableUpgradeable, ICircuitValida
     ) external view returns (bool r) {
         // verify that zkp is valid
         require(verifier.verifyProof(a, b, c, inputs), "atomic query signature proof is not valid");
-
         require(inputs[2] == queryHash, "query hash does not match the requested one");
 
         uint256 issuerClaimAuthState = inputs[3];

@@ -71,13 +71,18 @@ describe("Atomic Sig Validator", function () {
 
       const query = {
         schema: ethers.BigNumber.from("180410020913331409885634153623124536270"),
-        slotIndex: ethers.BigNumber.from(2),
-        operator: ethers.BigNumber.from(1),
-        value: ["10", ...new Array(63).fill("0").map((x) => ethers.BigNumber.from(x))],
-        queryHash: ethers.BigNumber.from(
-          "20569118755491694835833503588348972645662557826880109345882671441370970894820"
+        claimPathKey: ethers.BigNumber.from(
+          "8566939875427719562376598811066985304309117528846759529734201066483458512800"
         ),
-        circuitId: "credentialAtomicQuerySig",
+        operator: ethers.BigNumber.from(1),
+        value: [
+          "1420070400000000000",
+          ...new Array(63).fill("0").map((x) => ethers.BigNumber.from(x)),
+        ],
+        queryHash: ethers.BigNumber.from(
+          "1496222740463292783938163206931059379817846775593932664024082849882751356658"
+        ),
+        circuitId: "credentialAtomicQuerySigV2OnChain",
       };
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
@@ -125,12 +130,16 @@ describe("Atomic Sig Validator", function () {
 
     const query = {
       schema: ethers.BigNumber.from("180410020913331409885634153623124536270"),
-      slotIndex: ethers.BigNumber.from(2),
+      claimPathKey: ethers.BigNumber.from(
+        "8566939875427719562376598811066985304309117528846759529734201066483458512800"
+      ),
       operator: ethers.BigNumber.from(1),
-      value: ["10", ...new Array(63).fill("0")].map((x) => ethers.BigNumber.from(x)),
-      circuitId: "credentialAtomicQueryMTP",
+      value: ["1420070400000000000", ...new Array(63).fill("0")].map((x) =>
+        ethers.BigNumber.from(x)
+      ),
+      circuitId: "credentialAtomicQuerySigV2OnChain",
       queryHash: ethers.BigNumber.from(
-        "20569118755491694835833503588348972645662557826880109345882671441370970894820"
+        "1496222740463292783938163206931059379817846775593932664024082849882751356658"
       ),
     };
 
@@ -140,7 +149,7 @@ describe("Atomic Sig Validator", function () {
     await callBack(query, token, requestId);
 
     expect((await token.requestQueries(requestId)).queryHash.toString()).to.be.equal(
-      "20569118755491694835833503588348972645662557826880109345882671441370970894820"
+      "1496222740463292783938163206931059379817846775593932664024082849882751356658"
     ); // check that query is assigned
     expect((await token.getSupportedRequests()).length).to.be.equal(1);
 
@@ -173,7 +182,7 @@ describe("Atomic Sig Validator", function () {
         requestId,
         sig.address,
         query.schema,
-        query.slotIndex,
+        query.claimPathKey,
         query.operator,
         query.value
       );
@@ -186,11 +195,11 @@ describe("Atomic Sig Validator", function () {
         requestId,
         sig.address,
         query.schema,
-        query.slotIndex,
+        query.claimPathKey,
         query.operator,
         query.value,
         ethers.BigNumber.from(
-          "20569118755491694835833503588348972645662557826880109345882671441370970894820"
+          "1496222740463292783938163206931059379817846775593932664024082849882751356658"
         )
       );
     });

@@ -67,7 +67,7 @@ export async function deployERC20ZKPVerifierToken(
   const ERC20Verifier = await ethers.getContractFactory("ERC20Verifier", {
     libraries: {
       SpongePoseidon: spongePoseidon.address,
-      PoseidonUnit4L: poseidon4Contract.address,
+      PoseidonUnit6L: poseidon6Contract.address,
     },
   });
   const erc20Verifier = await ERC20Verifier.deploy(name, symbol);

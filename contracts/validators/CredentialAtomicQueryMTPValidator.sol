@@ -8,7 +8,7 @@ import "../interfaces/IVerifier.sol";
 import "../interfaces/IState.sol";
 
 contract CredentialAtomicQueryMTPValidator is OwnableUpgradeable, ICircuitValidator {
-    string constant CIRCUIT_ID = "credentialAtomicQueryMTP";
+    string constant CIRCUIT_ID = "credentialAtomicQueryMTPV2OnChain";
     uint256 constant CHALLENGE_INDEX = 4;
 
     IVerifier public verifier;

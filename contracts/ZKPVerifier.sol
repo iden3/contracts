@@ -60,21 +60,33 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint64 requestId,
         ICircuitValidator validator,
         uint256 schema,
-        uint256 slotIndex,
+        uint256 claimPathKey,
         uint256 operator,
         uint256[] calldata value
     ) public override onlyOwner returns (bool) {
         uint256 valueHash = SpongePoseidon.hash(value);
-        uint256 queryHash = PoseidonUnit4L.poseidon([schema, slotIndex, operator, valueHash]);
+        // only merklized claims are supported (claimPathNotExists is false, slot index is set to 0 )
+        uint256 queryHash = PoseidonUnit6L.poseidon(
+            [schema, 0, operator, claimPathKey, 0, valueHash]
+        );
+
         return
-            setZKPRequestRaw(requestId, validator, schema, slotIndex, operator, value, queryHash);
+            setZKPRequestRaw(
+                requestId,
+                validator,
+                schema,
+                claimPathKey,
+                operator,
+                value,
+                queryHash
+            );
     }
 
     function setZKPRequestRaw(
         uint64 requestId,
         ICircuitValidator validator,
         uint256 schema,
-        uint256 slotIndex,
+        uint256 claimPathKey,
         uint256 operator,
         uint256[] calldata value,
         uint256 queryHash
@@ -85,7 +97,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         requestQueries[requestId].queryHash = queryHash;
         requestQueries[requestId].operator = operator;
         requestQueries[requestId].circuitId = validator.getCircuitId();
-        requestQueries[requestId].slotIndex = slotIndex;
+        requestQueries[requestId].claimPathKey = claimPathKey;
         requestQueries[requestId].schema = schema;
         requestQueries[requestId].value = value;
         requestValidators[requestId] = validator;
