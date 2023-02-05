@@ -26,24 +26,15 @@ library BabyJubJub {
         return x;
     }
 
-    function addition(uint256[2] memory p, uint256[2] memory q)
-        public
-        view
-        returns (uint256[2] memory r)
-    {
+    function addition(
+        uint256[2] memory p,
+        uint256[2] memory q
+    ) public view returns (uint256[2] memory r) {
         // x = (x1 * y2 + y1 * x2) / (1 + d * x1 * y1 * y2)
-        uint256 xnum = addmod(
-            mulmod(p[0], q[1], ecq),
-            mulmod(p[1], q[0], ecq),
-            ecq
-        );
+        uint256 xnum = addmod(mulmod(p[0], q[1], ecq), mulmod(p[1], q[0], ecq), ecq);
         uint256 xden = addmod(
             uint256(1),
-            mulmod(
-                mulmod(mulmod(mulmod(ecd, p[0], ecq), q[0], ecq), p[1], ecq),
-                q[1],
-                ecq
-            ),
+            mulmod(mulmod(mulmod(mulmod(ecd, p[0], ecq), q[0], ecq), p[1], ecq), q[1], ecq),
             ecq
         );
         uint256 xdeninv = modinv(xden, ecq);
@@ -53,22 +44,14 @@ library BabyJubJub {
         uint256 auxA = mulmod(mulmod(eca, p[0], ecq), q[0], ecq);
         uint256 ynum = addmod(mulmod(p[1], q[1], ecq), ecq - auxA, ecq);
         uint256 auxD = mulmod(mulmod(ecd, p[0], ecq), q[0], ecq);
-        uint256 yden = addmod(
-            1,
-            ecq - mulmod(mulmod(auxD, p[1], ecq), q[1], ecq),
-            ecq
-        );
+        uint256 yden = addmod(1, ecq - mulmod(mulmod(auxD, p[1], ecq), q[1], ecq), ecq);
         uint256 ydeninv = modinv(yden, ecq);
         uint256 y = mulmod(ynum, ydeninv, ecq);
         r = [x, y];
         return r;
     }
 
-    function scalarmul(uint256 n, uint256[2] memory p)
-        public
-        view
-        returns (uint256[2] memory r)
-    {
+    function scalarmul(uint256 n, uint256[2] memory p) public view returns (uint256[2] memory r) {
         r[0] = 0;
         r[1] = 1;
 

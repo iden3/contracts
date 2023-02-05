@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 contract PoseidonUnit2 {
     function poseidon(uint256[2] memory) public view returns (uint256) {}

@@ -93,12 +93,7 @@ contract StateV2 is OwnableUpgradeable {
      * @param timestamp Timestamp when the state has been committed
      * @param state Identity state committed
      */
-    event StateUpdated(
-        uint256 id,
-        uint256 blockN,
-        uint256 timestamp,
-        uint256 state
-    );
+    event StateUpdated(uint256 id, uint256 blockN, uint256 timestamp, uint256 state);
 
     /**
      * @dev Revert if identity does not exist in the contract
@@ -155,20 +150,14 @@ contract StateV2 is OwnableUpgradeable {
         uint256[2] memory c
     ) public {
         if (isOldStateGenesis) {
-            require(
-                !idExists(id),
-                "Old state is genesis but identity already exists"
-            );
+            require(!idExists(id), "Old state is genesis but identity already exists");
             require(!stateExists(oldState), "Genesis state already exists");
             // link genesis state to Id in the smart contract, but creation time and creation block is unknown
             _stateData.stateEntries[oldState].id = id;
             // push genesis state to identities as latest state
             _stateData.statesHistories[id].push(oldState);
         } else {
-            require(
-                idExists(id),
-                "Old state is not genesis but identity does not yet exist"
-            );
+            require(idExists(id), "Old state is not genesis but identity does not yet exist");
 
             uint256 previousIDState = _stateData.statesHistories[id][
                 _stateData.statesHistories[id].length - 1
@@ -178,20 +167,12 @@ contract StateV2 is OwnableUpgradeable {
                 _stateData.stateEntries[previousIDState].block != block.number,
                 "No multiple set in the same block"
             );
-            require(
-                previousIDState == oldState,
-                "Old state does not match the latest state"
-            );
+            require(previousIDState == oldState, "Old state does not match the latest state");
         }
 
         require(!stateExists(newState), "New state should not exist");
 
-        uint256[4] memory input = [
-            id,
-            oldState,
-            newState,
-            uint256(isOldStateGenesis ? 1 : 0)
-        ];
+        uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis ? 1 : 0)];
         require(
             verifier.verifyProof(a, b, c, input),
             "Zero-knowledge proof of state transition is not valid "
@@ -229,17 +210,12 @@ contract StateV2 is OwnableUpgradeable {
      * @param id identity
      * @return state info of the last committed state
      */
-    function getStateInfoById(uint256 id)
-        public
-        view
-        onlyExistingId(id)
-        returns (StateInfo memory)
-    {
+    function getStateInfoById(
+        uint256 id
+    ) public view onlyExistingId(id) returns (StateInfo memory) {
         return
             _getStateInfoByState(
-                _stateData.statesHistories[id][
-                    _stateData.statesHistories[id].length - 1
-                ]
+                _stateData.statesHistories[id][_stateData.statesHistories[id].length - 1]
             );
     }
 
@@ -248,12 +224,9 @@ contract StateV2 is OwnableUpgradeable {
      * @param id identity
      * @return states quantity
      */
-    function getStateInfoHistoryLengthById(uint256 id)
-        public
-        view
-        onlyExistingId(id)
-        returns (uint256)
-    {
+    function getStateInfoHistoryLengthById(
+        uint256 id
+    ) public view onlyExistingId(id) returns (uint256) {
         return _stateData.statesHistories[id].length;
     }
 
@@ -270,10 +243,7 @@ contract StateV2 is OwnableUpgradeable {
         uint256 length
     ) public view onlyExistingId(id) returns (StateInfo[] memory) {
         require(length > 0, "Length should be greater than 0");
-        require(
-            length <= ID_HISTORY_RETURN_LIMIT,
-            "History length limit exceeded"
-        );
+        require(length <= ID_HISTORY_RETURN_LIMIT, "History length limit exceeded");
 
         uint256 endIndex = startIndex + length;
         require(
@@ -295,12 +265,9 @@ contract StateV2 is OwnableUpgradeable {
      * @param state A state
      * @return The state info
      */
-    function getStateInfoByState(uint256 state)
-        public
-        view
-        onlyExistingState(state)
-        returns (StateInfo memory)
-    {
+    function getStateInfoByState(
+        uint256 state
+    ) public view onlyExistingState(state) returns (StateInfo memory) {
         return _getStateInfoByState(state);
     }
 
@@ -320,11 +287,7 @@ contract StateV2 is OwnableUpgradeable {
      * @param root GIST root
      * @return The GIST inclusion or non-inclusion proof for the identity
      */
-    function getGISTProofByRoot(uint256 id, uint256 root)
-        public
-        view
-        returns (Smt.Proof memory)
-    {
+    function getGISTProofByRoot(uint256 id, uint256 root) public view returns (Smt.Proof memory) {
         return _gistData.getProofByRoot(PoseidonUnit1L.poseidon([id]), root);
     }
 
@@ -335,16 +298,11 @@ contract StateV2 is OwnableUpgradeable {
      * @param blockNumber Blockchain block number
      * @return The GIST inclusion or non-inclusion proof for the identity
      */
-    function getGISTProofByBlock(uint256 id, uint256 blockNumber)
-        public
-        view
-        returns (Smt.Proof memory)
-    {
-        return
-            _gistData.getProofByBlock(
-                PoseidonUnit1L.poseidon([id]),
-                blockNumber
-            );
+    function getGISTProofByBlock(
+        uint256 id,
+        uint256 blockNumber
+    ) public view returns (Smt.Proof memory) {
+        return _gistData.getProofByBlock(PoseidonUnit1L.poseidon([id]), blockNumber);
     }
 
     /**
@@ -354,13 +312,11 @@ contract StateV2 is OwnableUpgradeable {
      * @param timestamp Blockchain timestamp
      * @return The GIST inclusion or non-inclusion proof for the identity
      */
-    function getGISTProofByTime(uint256 id, uint256 timestamp)
-        public
-        view
-        returns (Smt.Proof memory)
-    {
-        return
-            _gistData.getProofByTime(PoseidonUnit1L.poseidon([id]), timestamp);
+    function getGISTProofByTime(
+        uint256 id,
+        uint256 timestamp
+    ) public view returns (Smt.Proof memory) {
+        return _gistData.getProofByTime(PoseidonUnit1L.poseidon([id]), timestamp);
     }
 
     /**
@@ -377,11 +333,10 @@ contract StateV2 is OwnableUpgradeable {
      * @param length Length of the root history
      * @return GIST Array of roots infos
      */
-    function getGISTRootHistory(uint256 start, uint256 length)
-        public
-        view
-        returns (Smt.RootInfo[] memory)
-    {
+    function getGISTRootHistory(
+        uint256 start,
+        uint256 length
+    ) public view returns (Smt.RootInfo[] memory) {
         return _gistData.getRootHistory(start, length);
     }
 
@@ -398,11 +353,7 @@ contract StateV2 is OwnableUpgradeable {
      * @param root GIST root
      * @return The GIST root info
      */
-    function getGISTRootInfo(uint256 root)
-        public
-        view
-        returns (Smt.RootInfo memory)
-    {
+    function getGISTRootInfo(uint256 root) public view returns (Smt.RootInfo memory) {
         return _gistData.getRootInfo(root);
     }
 
@@ -411,11 +362,7 @@ contract StateV2 is OwnableUpgradeable {
      * @param blockNumber Blockchain block number
      * @return The GIST root info
      */
-    function getGISTRootInfoByBlock(uint256 blockNumber)
-        public
-        view
-        returns (Smt.RootInfo memory)
-    {
+    function getGISTRootInfoByBlock(uint256 blockNumber) public view returns (Smt.RootInfo memory) {
         return _gistData.getRootInfoByBlock(blockNumber);
     }
 
@@ -424,11 +371,7 @@ contract StateV2 is OwnableUpgradeable {
      * @param timestamp Blockchain timestamp
      * @return The GIST root info
      */
-    function getGISTRootInfoByTime(uint256 timestamp)
-        public
-        view
-        returns (Smt.RootInfo memory)
-    {
+    function getGISTRootInfoByTime(uint256 timestamp) public view returns (Smt.RootInfo memory) {
         return _gistData.getRootInfoByTime(timestamp);
     }
 
@@ -455,11 +398,7 @@ contract StateV2 is OwnableUpgradeable {
      * @param state State
      * @return The state info struct
      */
-    function _getStateInfoByState(uint256 state)
-        internal
-        view
-        returns (StateInfo memory)
-    {
+    function _getStateInfoByState(uint256 state) internal view returns (StateInfo memory) {
         uint256 replByState = _stateData.stateEntries[state].replacedBy;
         return
             StateInfo({
@@ -467,9 +406,7 @@ contract StateV2 is OwnableUpgradeable {
                 state: state,
                 replacedByState: replByState,
                 createdAtTimestamp: _stateData.stateEntries[state].timestamp,
-                replacedAtTimestamp: _stateData
-                    .stateEntries[replByState]
-                    .timestamp,
+                replacedAtTimestamp: _stateData.stateEntries[replByState].timestamp,
                 createdAtBlock: _stateData.stateEntries[state].block,
                 replacedAtBlock: _stateData.stateEntries[replByState].block
             });

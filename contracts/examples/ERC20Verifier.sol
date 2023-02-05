@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../lib/GenesisUtils.sol";
@@ -13,27 +13,19 @@ contract ERC20Verifier is ERC20, ZKPVerifier {
     mapping(uint256 => address) public idToAddress;
     mapping(address => uint256) public addressToId;
 
-    uint256 public TOKEN_AMOUNT_FOR_AIRDROP_PER_ID =
-        5 * 10**uint256(decimals());
+    uint256 public TOKEN_AMOUNT_FOR_AIRDROP_PER_ID = 5 * 10 ** uint256(decimals());
 
-    constructor(string memory name_, string memory symbol_)
-        ERC20(name_, symbol_)
-    {}
+    constructor(string memory name_, string memory symbol_) ERC20(name_, symbol_) {}
 
     function _beforeProofSubmit(
-        uint64, /* requestId */
+        uint64 /* requestId */,
         uint256[] memory inputs,
         ICircuitValidator validator
     ) internal view override {
         // check that  challenge input is address of sender
-        address addr = GenesisUtils.int256ToAddress(
-            inputs[validator.getChallengeInputIndex()]
-        );
+        address addr = GenesisUtils.int256ToAddress(inputs[validator.getChallengeInputIndex()]);
         // this is linking between msg.sender and
-        require(
-            _msgSender() == addr,
-            "address in proof is not a sender address"
-        );
+        require(_msgSender() == addr, "address in proof is not a sender address");
     }
 
     function _afterProofSubmit(
@@ -57,7 +49,7 @@ contract ERC20Verifier is ERC20, ZKPVerifier {
     }
 
     function _beforeTokenTransfer(
-        address, /* from */
+        address /* from */,
         address to,
         uint256 /* amount */
     ) internal view override {

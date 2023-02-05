@@ -23,34 +23,16 @@ contract BinarySearchTestWrapper {
         smtData.rootEntries[_root] = rt;
 
         if (smtData.rootHistory.length >= 2) {
-            uint256 prevRoot = smtData.rootHistory[
-                smtData.rootHistory.length - 2
-            ];
+            uint256 prevRoot = smtData.rootHistory[smtData.rootHistory.length - 2];
             smtData.rootEntries[prevRoot].replacedByRoot = _root;
         }
     }
 
-    function getHistoricalRootByTime(uint256 _timestamp)
-        public
-        view
-        returns (uint256)
-    {
-        return
-            smtData.binarySearchUint256(
-                _timestamp,
-                BinarySearchSmtRoots.SearchType.TIMESTAMP
-            );
+    function getHistoricalRootByTime(uint256 _timestamp) public view returns (uint256) {
+        return smtData.binarySearchUint256(_timestamp, BinarySearchSmtRoots.SearchType.TIMESTAMP);
     }
 
-    function getHistoricalRootByBlock(uint256 _block)
-        public
-        view
-        returns (uint256)
-    {
-        return
-            smtData.binarySearchUint256(
-                _block,
-                BinarySearchSmtRoots.SearchType.BLOCK
-            );
+    function getHistoricalRootByBlock(uint256 _block) public view returns (uint256) {
+        return smtData.binarySearchUint256(_block, BinarySearchSmtRoots.SearchType.BLOCK);
     }
 }

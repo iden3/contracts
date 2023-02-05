@@ -1,4 +1,4 @@
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 interface IState {
     /**
@@ -37,25 +37,19 @@ interface IState {
         uint256 replacedAtBlock;
     }
 
-    function getStateInfoById(
-        uint256 id
-    ) external view returns (StateInfo memory);
+    function getStateInfoById(uint256 id) external view returns (StateInfo memory);
 
     /**
      * @dev Retrieve the specific GIST root information.
      * @param root GIST root
      * @return The GIST root info
      */
-    function getGISTRootInfo(
-        uint256 root
-    ) external view returns (RootInfo memory);
+    function getGISTRootInfo(uint256 root) external view returns (RootInfo memory);
 
     /**
      * @dev Retrieve state information by state.
      * @param state A state
      * @return The state info
      */
-    function getStateInfoByState(
-        uint256 state
-    ) external view returns (StateInfo memory);
+    function getStateInfoByState(uint256 state) external view returns (StateInfo memory);
 }

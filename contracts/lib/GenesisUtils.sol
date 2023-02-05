@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 import "solidity-bytes-utils/contracts/BytesLib.sol";
 
@@ -22,39 +22,23 @@ library GenesisUtils {
 
         // swap bytes
         v =
-            ((v &
-                0xFF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00) >>
-                8) |
-            ((v &
-                0x00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF) <<
-                8);
+            ((v & 0xFF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00) >> 8) |
+            ((v & 0x00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF) << 8);
 
         // swap 2-byte long pairs
         v =
-            ((v &
-                0xFFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000) >>
-                16) |
-            ((v &
-                0x0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF) <<
-                16);
+            ((v & 0xFFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000) >> 16) |
+            ((v & 0x0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF) << 16);
 
         // swap 4-byte long pairs
         v =
-            ((v &
-                0xFFFFFFFF00000000FFFFFFFF00000000FFFFFFFF00000000FFFFFFFF00000000) >>
-                32) |
-            ((v &
-                0x00000000FFFFFFFF00000000FFFFFFFF00000000FFFFFFFF00000000FFFFFFFF) <<
-                32);
+            ((v & 0xFFFFFFFF00000000FFFFFFFF00000000FFFFFFFF00000000FFFFFFFF00000000) >> 32) |
+            ((v & 0x00000000FFFFFFFF00000000FFFFFFFF00000000FFFFFFFF00000000FFFFFFFF) << 32);
 
         // swap 8-byte long pairs
         v =
-            ((v &
-                0xFFFFFFFFFFFFFFFF0000000000000000FFFFFFFFFFFFFFFF0000000000000000) >>
-                64) |
-            ((v &
-                0x0000000000000000FFFFFFFFFFFFFFFF0000000000000000FFFFFFFFFFFFFFFF) <<
-                64);
+            ((v & 0xFFFFFFFFFFFFFFFF0000000000000000FFFFFFFFFFFFFFFF0000000000000000) >> 64) |
+            ((v & 0x0000000000000000FFFFFFFFFFFFFFFF0000000000000000FFFFFFFFFFFFFFFF) << 64);
 
         // swap 16-byte long pairs
         v = (v >> 128) | (v << 128);
@@ -74,11 +58,7 @@ library GenesisUtils {
     /**
      * @dev bytesToHexString
      */
-    function bytesToHexString(bytes memory buffer)
-        internal
-        pure
-        returns (string memory)
-    {
+    function bytesToHexString(bytes memory buffer) internal pure returns (string memory) {
         // Fixed buffer size for hexadecimal convertion
         bytes memory converted = new bytes(buffer.length * 2);
 
@@ -95,40 +75,24 @@ library GenesisUtils {
     /**
      * @dev compareStrings
      */
-    function compareStrings(string memory a, string memory b)
-        internal
-        pure
-        returns (bool)
-    {
-        return (keccak256(abi.encodePacked((a))) ==
-            keccak256(abi.encodePacked((b))));
+    function compareStrings(string memory a, string memory b) internal pure returns (bool) {
+        return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))));
     }
 
     /**
      * @dev isGenesisState
      */
-    function isGenesisState(uint256 id, uint256 idState)
-        internal
-        pure
-        returns (bool)
-    {
+    function isGenesisState(uint256 id, uint256 idState) internal pure returns (bool) {
         uint256 userSwappedState = reverse(idState);
 
         bytes memory userStateB1 = int256ToBytes(userSwappedState);
 
-        bytes memory cutState = BytesLib.slice(
-            userStateB1,
-            userStateB1.length - 27,
-            27
-        );
+        bytes memory cutState = BytesLib.slice(userStateB1, userStateB1.length - 27, 27);
 
         bytes memory typDefault = hex"0000";
 
         bytes memory beforeChecksum = BytesLib.concat(typDefault, cutState);
-        require(
-            beforeChecksum.length == 29,
-            "Checksum requires 29 length array"
-        );
+        require(beforeChecksum.length == 29, "Checksum requires 29 length array");
 
         uint16 s = sum(beforeChecksum);
 
@@ -143,11 +107,7 @@ library GenesisUtils {
     /**
      * @dev toUint256
      */
-    function toUint256(bytes memory _bytes)
-        internal
-        pure
-        returns (uint256 value)
-    {
+    function toUint256(bytes memory _bytes) internal pure returns (uint256 value) {
         assembly {
             value := mload(add(_bytes, 0x20))
         }
@@ -156,11 +116,7 @@ library GenesisUtils {
     /**
      * @dev bytesToAddress
      */
-    function bytesToAddress(bytes memory bys)
-        internal
-        pure
-        returns (address addr)
-    {
+    function bytesToAddress(bytes memory bys) internal pure returns (address addr) {
         assembly {
             addr := mload(add(bys, 20))
         }

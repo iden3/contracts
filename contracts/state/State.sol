@@ -66,12 +66,7 @@ contract State is OwnableUpgradeable {
      * @param timestamp Timestamp when the state has been committed
      * @param state IDState committed
      */
-    event StateUpdated(
-        uint256 id,
-        uint64 blockN,
-        uint64 timestamp,
-        uint256 state
-    );
+    event StateUpdated(uint256 id, uint64 blockN, uint64 timestamp, uint256 state);
 
     function initialize(IVerifier _verifierContractAddr) public initializer {
         verifier = _verifierContractAddr;
@@ -97,16 +92,12 @@ contract State is OwnableUpgradeable {
                 "there should be at least one state for identity in smart contract when isOldStateGenesis == 0"
             );
 
-            IDState memory oldIDState = identities[id][
-                identities[id].length - 1
-            ];
-            require(
-                oldIDState.BlockN != block.number,
-                "no multiple set in the same block"
-            );
+            IDState memory oldIDState = identities[id][identities[id].length - 1];
+            require(oldIDState.BlockN != block.number, "no multiple set in the same block");
             require(
                 oldIDState.State == oldState,
-                "oldState argument should be equal to the latest identity state in smart contract when isOldStateGenesis == 0"
+                "oldState argument should be equal to the latest identity state in smart contract "
+                "when isOldStateGenesis == 0"
             );
         } else {
             require(
@@ -122,42 +113,23 @@ contract State is OwnableUpgradeable {
 
         require(transitions[newState].id == 0, "newState should not exist");
 
-        uint256[4] memory input = [
-            id,
-            oldState,
-            newState,
-            uint256(isOldStateGenesis ? 1 : 0)
-        ];
+        uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis ? 1 : 0)];
         require(
             verifier.verifyProof(a, b, c, input),
             "zero-knowledge proof of state transition is not valid "
         );
 
-        identities[id].push(
-            IDState(uint64(block.number), uint64(block.timestamp), newState)
-        );
+        identities[id].push(IDState(uint64(block.number), uint64(block.timestamp), newState));
 
         // Set create info for new state
-        transitions[newState] = transitionsInfo(
-            0,
-            block.timestamp,
-            0,
-            uint64(block.number),
-            0,
-            id
-        );
+        transitions[newState] = transitionsInfo(0, block.timestamp, 0, uint64(block.number), 0, id);
 
         // Set replace info for old state
         transitions[oldState].replacedAtTimestamp = block.timestamp;
         transitions[oldState].replacedAtBlock = uint64(block.number);
         transitions[oldState].replacedBy = newState;
 
-        emit StateUpdated(
-            id,
-            uint64(block.number),
-            uint64(block.timestamp),
-            newState
-        );
+        emit StateUpdated(id, uint64(block.number), uint64(block.timestamp), newState);
     }
 
     /**
@@ -182,18 +154,9 @@ contract State is OwnableUpgradeable {
      * @return id identity
      * @return the state that replaced the given one
      */
-    function getTransitionInfo(uint256 state)
-        public
-        view
-        returns (
-            uint256,
-            uint256,
-            uint64,
-            uint64,
-            uint256,
-            uint256
-        )
-    {
+    function getTransitionInfo(
+        uint256 state
+    ) public view returns (uint256, uint256, uint64, uint64, uint256, uint256) {
         return (
             transitions[state].replacedAtTimestamp,
             transitions[state].createdAtTimestamp,
@@ -210,15 +173,10 @@ contract State is OwnableUpgradeable {
      * @param blockN block number
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getStateDataByBlock(uint256 id, uint64 blockN)
-        public
-        view
-        returns (
-            uint64,
-            uint64,
-            uint256
-        )
-    {
+    function getStateDataByBlock(
+        uint256 id,
+        uint64 blockN
+    ) public view returns (uint64, uint64, uint256) {
         require(blockN < block.number, "errNoFutureAllowed");
 
         // Case that there is no state committed
@@ -246,8 +204,7 @@ contract State is OwnableUpgradeable {
                     identities[id][mid].State
                 );
             } else if (
-                (blockN > identities[id][mid].BlockN) &&
-                (blockN < identities[id][mid + 1].BlockN)
+                (blockN > identities[id][mid].BlockN) && (blockN < identities[id][mid + 1].BlockN)
             ) {
                 return (
                     identities[id][mid].BlockN,
@@ -269,23 +226,17 @@ contract State is OwnableUpgradeable {
      * @param timestamp timestamp
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getStateDataByTime(uint256 id, uint64 timestamp)
-        public
-        view
-        returns (
-            uint64,
-            uint64,
-            uint256
-        )
-    {
+    function getStateDataByTime(
+        uint256 id,
+        uint64 timestamp
+    ) public view returns (uint64, uint64, uint256) {
         require(timestamp < block.timestamp, "errNoFutureAllowed");
         // Case that there is no state committed
         if (identities[id].length == 0) {
             return (0, 0, 0);
         }
         // Case that there timestamp searched is beyond last timestamp committed
-        uint64 lastTimestamp = identities[id][identities[id].length - 1]
-            .BlockTimestamp;
+        uint64 lastTimestamp = identities[id][identities[id].length - 1].BlockTimestamp;
         if (timestamp > lastTimestamp) {
             return (
                 identities[id][identities[id].length - 1].BlockN,
@@ -328,23 +279,11 @@ contract State is OwnableUpgradeable {
      * @return last state for a given identity
      * return parameters are (by order): block number, block timestamp, state
      */
-    function getStateDataById(uint256 id)
-        public
-        view
-        returns (
-            uint64,
-            uint64,
-            uint256
-        )
-    {
+    function getStateDataById(uint256 id) public view returns (uint64, uint64, uint256) {
         if (identities[id].length == 0) {
             return (0, 0, 0);
         }
         IDState memory lastIdState = identities[id][identities[id].length - 1];
-        return (
-            lastIdState.BlockN,
-            lastIdState.BlockTimestamp,
-            lastIdState.State
-        );
+        return (lastIdState.BlockN, lastIdState.BlockTimestamp, lastIdState.State);
     }
 }

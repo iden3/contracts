@@ -64,11 +64,10 @@ library Pairing {
     }
 
     /// @return r the sum of two points of G1
-    function addition(G1Point memory p1, G1Point memory p2)
-        internal
-        view
-        returns (G1Point memory r)
-    {
+    function addition(
+        G1Point memory p1,
+        G1Point memory p2
+    ) internal view returns (G1Point memory r) {
         uint256[4] memory input;
         input[0] = p1.X;
         input[1] = p1.Y;
@@ -89,11 +88,7 @@ library Pairing {
 
     /// @return r the product of a point on G1 and a scalar, i.e.
     /// p == p.scalar_mul(1) and p.addition(p) == p.scalar_mul(2) for all points p.
-    function scalar_mul(G1Point memory p, uint256 s)
-        internal
-        view
-        returns (G1Point memory r)
-    {
+    function scalar_mul(G1Point memory p, uint256 s) internal view returns (G1Point memory r) {
         uint256[3] memory input;
         input[0] = p.X;
         input[1] = p.Y;
@@ -115,11 +110,7 @@ library Pairing {
     /// e(p1[0], p2[0]) *  .... * e(p1[n], p2[n]) == 1
     /// For example pairing([P1(), P1().negate()], [P2(), P2()]) should
     /// return true.
-    function pairing(G1Point[] memory p1, G2Point[] memory p2)
-        internal
-        view
-        returns (bool)
-    {
+    function pairing(G1Point[] memory p1, G2Point[] memory p2) internal view returns (bool) {
         require(p1.length == p2.length, "pairing-lengths-failed");
         uint256 elements = p1.length;
         uint256 inputSize = elements * 6;
@@ -294,25 +285,15 @@ contract Verifier {
         );
     }
 
-    function verify(uint256[] memory input, Proof memory proof)
-        internal
-        view
-        returns (uint256)
-    {
+    function verify(uint256[] memory input, Proof memory proof) internal view returns (uint256) {
         uint256 snark_scalar_field = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
         VerifyingKey memory vk = verifyingKey();
         require(input.length + 1 == vk.IC.length, "verifier-bad-input");
         // Compute the linear combination vk_x
         Pairing.G1Point memory vk_x = Pairing.G1Point(0, 0);
         for (uint256 i = 0; i < input.length; i++) {
-            require(
-                input[i] < snark_scalar_field,
-                "verifier-gte-snark-scalar-field"
-            );
-            vk_x = Pairing.addition(
-                vk_x,
-                Pairing.scalar_mul(vk.IC[i + 1], input[i])
-            );
+            require(input[i] < snark_scalar_field, "verifier-gte-snark-scalar-field");
+            vk_x = Pairing.addition(vk_x, Pairing.scalar_mul(vk.IC[i + 1], input[i]));
         }
         vk_x = Pairing.addition(vk_x, vk.IC[0]);
         if (
