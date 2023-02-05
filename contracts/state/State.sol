@@ -3,7 +3,7 @@ pragma solidity 0.8.15;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-interface IVerifier {
+interface IStateTransitionVerifier {
     function verifyProof(
         uint256[2] memory a,
         uint256[2][2] memory b,
@@ -47,7 +47,7 @@ contract State is OwnableUpgradeable {
     /**
      * @dev Verifier address
      */
-    IVerifier public verifier;
+    IStateTransitionVerifier public verifier;
 
     /**
      * @dev Correlation between identity and its state (plus block/time)
@@ -68,13 +68,13 @@ contract State is OwnableUpgradeable {
      */
     event StateUpdated(uint256 id, uint64 blockN, uint64 timestamp, uint256 state);
 
-    function initialize(IVerifier _verifierContractAddr) public initializer {
+    function initialize(IStateTransitionVerifier _verifierContractAddr) public initializer {
         verifier = _verifierContractAddr;
         __Ownable_init();
     }
 
     function setVerifier(address newVerifier) public onlyOwner {
-        verifier = IVerifier(newVerifier);
+        verifier = IStateTransitionVerifier(newVerifier);
     }
 
     function transitState(

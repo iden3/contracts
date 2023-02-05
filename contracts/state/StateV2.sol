@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "../lib/Smt.sol";
 import "../lib/Poseidon.sol";
 
-interface IVerifier {
+interface IStateTransitionVerifier {
     function verifyProof(
         uint256[2] memory a,
         uint256[2][2] memory b,
@@ -73,7 +73,7 @@ contract StateV2 is OwnableUpgradeable {
     /**
      * @dev Verifier address
      */
-    IVerifier internal verifier;
+    IStateTransitionVerifier internal verifier;
 
     /**
      * @dev State data
@@ -117,7 +117,7 @@ contract StateV2 is OwnableUpgradeable {
      * @dev Initialize the contract
      * @param verifierContractAddr Verifier address
      */
-    function initialize(IVerifier verifierContractAddr) public initializer {
+    function initialize(IStateTransitionVerifier verifierContractAddr) public initializer {
         verifier = verifierContractAddr;
         __Ownable_init();
     }
@@ -127,7 +127,7 @@ contract StateV2 is OwnableUpgradeable {
      * @param newVerifierAddr Verifier contract address
      */
     function setVerifier(address newVerifierAddr) public onlyOwner {
-        verifier = IVerifier(newVerifierAddr);
+        verifier = IStateTransitionVerifier(newVerifierAddr);
     }
 
     /**
