@@ -139,8 +139,7 @@ describe("SMT tests", function () {
           },
         },
         {
-          description:
-            "add 2 leaves (depth = 2) and generate the proof of the second one",
+          description: "add 2 leaves (depth = 2) and generate the proof of the second one",
           leavesToInsert: [
             { i: 4, v: 444 },
             { i: 2, v: 222 },
@@ -300,7 +299,6 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
-
             ],
             index: 4,
             value: 444,
@@ -387,7 +385,6 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
-
             ],
             index: 2,
             value: 223,
@@ -478,7 +475,6 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
-
             ],
             index: 2,
             value: 222,
@@ -569,7 +565,6 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
-
             ],
             index: 4,
             value: 444,
@@ -662,7 +657,6 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
-
             ],
             index: 2,
             value: 444,
@@ -747,7 +741,7 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
-              "0"
+              "0",
             ],
             index: 6,
             value: 222,
@@ -832,7 +826,7 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
-              "0"
+              "0",
             ],
             index: 1,
             value: 0,
@@ -923,7 +917,6 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
-
             ],
             index: 6,
             value: 222,
@@ -1014,7 +1007,6 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
-
             ],
             index: 1,
             value: 0,
@@ -1105,7 +1097,6 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
-
             ],
             index: 1,
             value: 0,
@@ -1136,7 +1127,7 @@ describe("SMT tests", function () {
             root: "8783005241926090200626676017893989459916941266902636631115971110393814951007",
             existence: true,
             siblings: [
-
+              "0",
               "0",
               "0",
               "0",
@@ -1200,7 +1191,6 @@ describe("SMT tests", function () {
               "0",
               "9591026750539533231339051247566345761772412652827817023508643427583965100450",
               "0",
-              "0"
             ],
             index: "9223372036854775807",
             value: 100,
@@ -1210,16 +1200,12 @@ describe("SMT tests", function () {
           },
         };
 
-        // TODO :Fix me ASAP
-
         await checkTestCaseMTPProof(testCaseEdge);
       });
 
       it("Negative: add two leaves with maximum depth + 1", async () => {
         await expect(smt.add(genMaxBinaryNumber(63), 100)).not.to.be.reverted;
-        await expect(smt.add(genMaxBinaryNumber(64), 100)).to.be.revertedWith(
-          "Max depth reached"
-        );
+        await expect(smt.add(genMaxBinaryNumber(64), 100)).to.be.revertedWith("Max depth reached");
       });
     });
   });
@@ -1279,9 +1265,9 @@ describe("SMT tests", function () {
 
     it("should be reverted if out of bounds", async () => {
       const historyLength = await state.getGISTRootHistoryLength();
-      await expect(
-        state.getGISTRootHistory(historyLength - 1, 2)
-      ).to.be.revertedWith("Out of bounds of root history");
+      await expect(state.getGISTRootHistory(historyLength - 1, 2)).to.be.revertedWith(
+        "Out of bounds of root history"
+      );
     });
   });
 
@@ -1294,20 +1280,13 @@ describe("SMT tests", function () {
       }
     }
 
-    async function checkRootByTimeAndBlock(
-      rts: RootEntry[],
-      tc: TestCaseRootHistory
-    ) {
+    async function checkRootByTimeAndBlock(rts: RootEntry[], tc: TestCaseRootHistory) {
       await addRootEntries(rts);
 
-      const rootByTimestamp = await binarySearch.getHistoricalRootByTime(
-        tc.timestamp
-      );
+      const rootByTimestamp = await binarySearch.getHistoricalRootByTime(tc.timestamp);
       expect(rootByTimestamp).to.equal(tc.expectedRoot);
 
-      const rootByBlock = await binarySearch.getHistoricalRootByBlock(
-        tc.blockNumber
-      );
+      const rootByBlock = await binarySearch.getHistoricalRootByBlock(tc.blockNumber);
       expect(rootByBlock).to.equal(tc.expectedRoot);
     }
 
@@ -1358,8 +1337,7 @@ describe("SMT tests", function () {
           expectedRoot: 0,
         },
         {
-          description:
-            "Should return the last root when search for greater than the last",
+          description: "Should return the last root when search for greater than the last",
           timestamp: 2,
           blockNumber: 11,
           expectedRoot: 1000,
@@ -1407,8 +1385,7 @@ describe("SMT tests", function () {
           expectedRoot: 0,
         },
         {
-          description:
-            "Should return the last root when search for greater than the last",
+          description: "Should return the last root when search for greater than the last",
           timestamp: 6,
           blockNumber: 16,
           expectedRoot: rootEntries[1].root,
@@ -1461,15 +1438,13 @@ describe("SMT tests", function () {
           expectedRoot: rootEntries[2].root,
         },
         {
-          description:
-            "Should return zero root when search for less than the first",
+          description: "Should return zero root when search for less than the first",
           timestamp: 0,
           blockNumber: 9,
           expectedRoot: 0,
         },
         {
-          description:
-            "Should return the last root when search for greater than the last",
+          description: "Should return the last root when search for greater than the last",
           timestamp: 9,
           blockNumber: 19,
           expectedRoot: rootEntries[2].root,
@@ -1527,8 +1502,7 @@ describe("SMT tests", function () {
           expectedRoot: 0,
         },
         {
-          description:
-            "Should return the last root when search for greater than the last",
+          description: "Should return the last root when search for greater than the last",
           timestamp: rootEntries[3].timestamp + 1,
           blockNumber: rootEntries[3].block + 1,
           expectedRoot: rootEntries[3].root,
@@ -1573,8 +1547,7 @@ describe("SMT tests", function () {
 
       const testCase: TestCaseRootHistory[] = [
         {
-          description:
-            "Should return the first root when search in between the first and second",
+          description: "Should return the first root when search in between the first and second",
           timestamp: 2,
           blockNumber: 12,
           expectedRoot: rootEntries[0].root,
@@ -1729,18 +1702,14 @@ describe("SMT tests", function () {
       await smt.add(1, 1);
       const root = await smt.getRoot();
       await expect(smt.getRootInfo(root)).not.to.be.reverted;
-      await expect(smt.getRootInfo(root + 1)).to.be.revertedWith(
-        "Root does not exist"
-      );
+      await expect(smt.getRootInfo(root + 1)).to.be.revertedWith("Root does not exist");
     });
 
     it("getProofByRoot() should throw when root does not exist", async () => {
       await smt.add(1, 1);
       const root = await smt.getRoot();
       await expect(smt.getProofByRoot(1, root)).not.to.be.reverted;
-      await expect(smt.getProofByRoot(1, root + 1)).to.be.revertedWith(
-        "Root does not exist"
-      );
+      await expect(smt.getProofByRoot(1, root + 1)).to.be.revertedWith("Root does not exist");
     });
 
     it("add() should throw when node already exist with the same index and value", async () => {
@@ -1754,7 +1723,7 @@ describe("SMT tests", function () {
 });
 
 function checkMtpProof(proof, expectedProof: MtpProof) {
-  console.log((proof.siblings[62]).toString())
+  console.log(proof.siblings[62].toString());
   expect(proof.root).to.equal(expectedProof.root);
   expect(proof.existence).to.equal(expectedProof.existence);
   checkSiblings(proof.siblings, expectedProof.siblings);

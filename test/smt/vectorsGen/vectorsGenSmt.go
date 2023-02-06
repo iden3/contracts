@@ -13,7 +13,8 @@ import (
 func main() {
 	db := memory.NewMemoryStorage()
 	ctx := context.Background()
-	mt, _ := merkletree.NewMerkleTree(ctx, db, 64)
+	// We need to use 65 value for max levels to make max depth of the tree be 64 (root is 0 level)
+	mt, _ := merkletree.NewMerkleTree(ctx, db, 65)
 
 	type Leaf struct {
 		index *big.Int
@@ -21,11 +22,11 @@ func main() {
 	}
 
 	leaves := []Leaf{
-		Leaf{
+		{
 			GenMaxBinaryNumber(62),
 			big.NewInt(100),
 		},
-		Leaf{
+		{
 			GenMaxBinaryNumber(63),
 			big.NewInt(100),
 		},
@@ -69,9 +70,9 @@ func GenMaxBinaryNumber(digits int64) *big.Int {
 }
 
 func PrintSiblings(name string, siblings []*merkletree.Hash) {
-	json, err := json.Marshal(siblings)
+	j, err := json.Marshal(siblings)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(name, string(json))
+	fmt.Println(name, string(j))
 }
