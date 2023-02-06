@@ -11,7 +11,7 @@ library Smt {
     /**
      * @dev Max sparse merkle tree depth.
      */
-    uint256 public constant MAX_SMT_DEPTH = 32;
+    uint256 public constant MAX_SMT_DEPTH = 64;
 
     /**
      * @dev Max return array length for SMT root history requests

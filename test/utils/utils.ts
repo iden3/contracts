@@ -14,7 +14,7 @@ export type FixedArray<T, N extends number> = GrowToSize<T, [], N>;
 export type MtpProof = {
   root: string;
   existence: boolean;
-  siblings: FixedArray<string, 32>;
+  siblings: FixedArray<string, 64>;
   index: number | string;
   value: number;
   auxExistence: boolean;
@@ -22,6 +22,6 @@ export type MtpProof = {
   auxValue: number;
 };
 
-export function genMaxBinaryNumber(digits: number): number {
-  return 2 ** digits - 1;
+export function genMaxBinaryNumber(digits: number): bigint {
+  return BigInt(2) ** BigInt(digits) - BigInt(1);
 }

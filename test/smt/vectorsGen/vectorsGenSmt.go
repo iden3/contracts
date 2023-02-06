@@ -4,15 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/big"
+
 	"github.com/iden3/go-merkletree-sql"
 	"github.com/iden3/go-merkletree-sql/db/memory"
-	"math/big"
 )
 
 func main() {
 	db := memory.NewMemoryStorage()
 	ctx := context.Background()
-	mt, _ := merkletree.NewMerkleTree(ctx, db, 32)
+	mt, _ := merkletree.NewMerkleTree(ctx, db, 64)
 
 	type Leaf struct {
 		index *big.Int
@@ -21,11 +22,11 @@ func main() {
 
 	leaves := []Leaf{
 		Leaf{
-			GenMaxBinaryNumber(30),
+			GenMaxBinaryNumber(62),
 			big.NewInt(100),
 		},
 		Leaf{
-			GenMaxBinaryNumber(31),
+			GenMaxBinaryNumber(63),
 			big.NewInt(100),
 		},
 		//Leaf{
@@ -42,7 +43,7 @@ func main() {
 		//},
 	}
 
-	keyForProofGen := GenMaxBinaryNumber(30)
+	keyForProofGen := GenMaxBinaryNumber(63)
 	//keyForProofGen := big.NewInt(2)
 
 	for _, l := range leaves {
