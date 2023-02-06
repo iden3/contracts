@@ -252,7 +252,7 @@ library Smt {
         uint256 nextNodeHash = historicalRoot;
         Node memory node;
 
-        for (uint256 i = 0; i < MAX_SMT_DEPTH + 1; i++) {
+        for (uint256 i = 0; i <= MAX_SMT_DEPTH; i++) {
             node = getNode(self, nextNodeHash);
             if (node.nodeType == NodeType.EMPTY) {
                 break;
