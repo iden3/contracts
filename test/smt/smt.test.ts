@@ -1119,12 +1119,12 @@ describe("SMT tests", function () {
         const testCaseEdge: TestCaseMTPProof = {
           description: "Positive: add two leaves with maximum depth",
           leavesToInsert: [
-            { i: genMaxBinaryNumber(62), v: 100 },
             { i: genMaxBinaryNumber(63), v: 100 },
+            { i: genMaxBinaryNumber(64), v: 100 },
           ],
-          getProofParams: genMaxBinaryNumber(63),
+          getProofParams: genMaxBinaryNumber(64),
           expectedProof: {
-            root: "8783005241926090200626676017893989459916941266902636631115971110393814951007",
+            root: "11998361913555620744473305594791175460338619045531124782442564216176360071119",
             existence: true,
             siblings: [
               "0",
@@ -1189,14 +1189,14 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
-              "9591026750539533231339051247566345761772412652827817023508643427583965100450",
               "0",
+              "2316164946517152574748505824782744746774130618858955093234986590959173249001",
             ],
-            index: "9223372036854775807",
-            value: 100,
+            index: "18446744073709551615",
+            value: "100",
             auxExistence: false,
-            auxIndex: 0,
-            auxValue: 0,
+            auxIndex: "0",
+            auxValue: "0",
           },
         };
 
@@ -1204,8 +1204,8 @@ describe("SMT tests", function () {
       });
 
       it("Negative: add two leaves with maximum depth + 1", async () => {
-        await expect(smt.add(genMaxBinaryNumber(63), 100)).not.to.be.reverted;
-        await expect(smt.add(genMaxBinaryNumber(64), 100)).to.be.revertedWith("Max depth reached");
+        await expect(smt.add(genMaxBinaryNumber(64), 100)).not.to.be.reverted;
+        await expect(smt.add(genMaxBinaryNumber(65), 100)).to.be.revertedWith("Max depth reached");
       });
     });
   });
