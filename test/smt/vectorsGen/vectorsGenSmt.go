@@ -78,7 +78,7 @@ func main() {
 		AuxValue:     nodeAux.Value,
 	}
 
-	println(len(siblings))
+	println("Siblings length:", len(siblings))
 	proofStr, _ := json.Marshal(p)
 	println(string(proofStr))
 }

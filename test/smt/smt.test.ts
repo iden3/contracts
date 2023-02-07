@@ -3,6 +3,7 @@ import { expect } from "chai";
 import { FixedArray, genMaxBinaryNumber, MtpProof } from "../utils/utils";
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 import { publishState } from "../utils/deploy-utils";
+import { Contract } from "ethers";
 
 const stateTransitions = [
   require("../state/data/user_state_genesis_transition.json"),
@@ -10,9 +11,9 @@ const stateTransitions = [
 ];
 
 type TestCaseMTPProof = {
-  expectedProof: MtpProof;
-  leavesToInsert: { i: number | bigint; v: number }[];
-  getProofParams: number | bigint | { index: number; historicalRoot: string };
+  leavesToInsert: { i: number | bigint; v: number; error?: string }[];
+  paramsToGetProof?: number | bigint | { index: number; historicalRoot: string } | undefined;
+  expectedProof?: MtpProof;
   [key: string]: any;
 };
 
@@ -39,28 +40,12 @@ describe("SMT tests", function () {
       smt = await deployHelper.deploySmtTestWrapper();
     });
 
-    async function checkTestCaseMTPProof(testCase: TestCaseMTPProof) {
-      for (const param of testCase.leavesToInsert) {
-        await smt.add(param.i, param.v);
-      }
-
-      const proof =
-        typeof testCase.getProofParams == "number" || typeof testCase.getProofParams == "bigint"
-          ? await smt.getProof(testCase.getProofParams)
-          : await smt.getProofByRoot(
-              testCase.getProofParams.index,
-              testCase.getProofParams.historicalRoot
-            );
-
-      checkMtpProof(proof, testCase.expectedProof);
-    }
-
     describe("SMT existence proof", () => {
       const testCasesExistence: TestCaseMTPProof[] = [
         {
           description: "add 1 leaf and generate the proof for it",
           leavesToInsert: [{ i: 4, v: 444 }],
-          getProofParams: 4,
+          paramsToGetProof: 4,
           expectedProof: {
             root: "17172838131998611102390183760409471205043596092117126608119446264795219840387",
             existence: true,
@@ -144,7 +129,7 @@ describe("SMT tests", function () {
             { i: 4, v: 444 },
             { i: 2, v: 222 },
           ],
-          getProofParams: 2,
+          paramsToGetProof: 2,
           expectedProof: {
             root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
             existence: true,
@@ -229,7 +214,7 @@ describe("SMT tests", function () {
             { i: 2, v: 222 },
             { i: 2, v: 223 },
           ],
-          getProofParams: 4,
+          paramsToGetProof: 4,
           expectedProof: {
             root: "7518984336464932918389970949562858717786148793994477177454424989320848411811",
             existence: true,
@@ -315,7 +300,7 @@ describe("SMT tests", function () {
             { i: 2, v: 222 },
             { i: 2, v: 223 },
           ],
-          getProofParams: 2,
+          paramsToGetProof: 2,
           expectedProof: {
             root: "7518984336464932918389970949562858717786148793994477177454424989320848411811",
             existence: true,
@@ -401,7 +386,7 @@ describe("SMT tests", function () {
             { i: 2, v: 222 },
             { i: 2, v: 223 },
           ],
-          getProofParams: {
+          paramsToGetProof: {
             index: 2,
             historicalRoot:
               "1441373283294527316959936912733986290796958290497398831120725405602534136472",
@@ -491,7 +476,7 @@ describe("SMT tests", function () {
             { i: 2, v: 222 },
             { i: 2, v: 223 },
           ],
-          getProofParams: {
+          paramsToGetProof: {
             index: 4,
             historicalRoot:
               "1441373283294527316959936912733986290796958290497398831120725405602534136472",
@@ -577,7 +562,7 @@ describe("SMT tests", function () {
 
       for (const testCase of testCasesExistence) {
         it(`${testCase.description}`, async () => {
-          await checkTestCaseMTPProof(testCase);
+          await checkTestCaseMTPProof(smt, testCase);
         });
       }
     });
@@ -587,7 +572,7 @@ describe("SMT tests", function () {
         {
           description: "add 1 leaf and generate a proof on non-existing leaf",
           leavesToInsert: [{ i: 4, v: 444 }],
-          getProofParams: 2,
+          paramsToGetProof: 2,
           expectedProof: {
             root: "17172838131998611102390183760409471205043596092117126608119446264795219840387",
             existence: false,
@@ -672,7 +657,7 @@ describe("SMT tests", function () {
             { i: 4, v: 444 },
             { i: 2, v: 222 },
           ],
-          getProofParams: 6,
+          paramsToGetProof: 6,
           expectedProof: {
             root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
             existence: false,
@@ -757,7 +742,7 @@ describe("SMT tests", function () {
             { i: 4, v: 444 },
             { i: 2, v: 222 },
           ],
-          getProofParams: 1,
+          paramsToGetProof: 1,
           expectedProof: {
             root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
             existence: false,
@@ -843,7 +828,7 @@ describe("SMT tests", function () {
             { i: 2, v: 222 },
             { i: 2, v: 223 },
           ],
-          getProofParams: {
+          paramsToGetProof: {
             index: 6,
             historicalRoot:
               "1441373283294527316959936912733986290796958290497398831120725405602534136472",
@@ -933,7 +918,7 @@ describe("SMT tests", function () {
             { i: 2, v: 222 },
             { i: 2, v: 223 },
           ],
-          getProofParams: {
+          paramsToGetProof: {
             index: 1,
             historicalRoot:
               "1441373283294527316959936912733986290796958290497398831120725405602534136472",
@@ -1023,7 +1008,7 @@ describe("SMT tests", function () {
             { i: 2, v: 222 },
             { i: 1, v: 111 },
           ],
-          getProofParams: {
+          paramsToGetProof: {
             index: 1,
             historicalRoot:
               "1441373283294527316959936912733986290796958290497398831120725405602534136472",
@@ -1109,20 +1094,20 @@ describe("SMT tests", function () {
 
       for (const testCase of testCasesNonExistence) {
         it(`${testCase.description}`, async () => {
-          await checkTestCaseMTPProof(testCase);
+          await checkTestCaseMTPProof(smt, testCase);
         });
       }
     });
 
     describe("SMT add leaf edge cases", () => {
-      it("Positive: add two leaves with maximum depth", async () => {
-        const testCaseEdge: TestCaseMTPProof = {
+      const testCases: TestCaseMTPProof[] = [
+        {
           description: "Positive: add two leaves with maximum depth",
           leavesToInsert: [
             { i: genMaxBinaryNumber(63), v: 100 },
             { i: genMaxBinaryNumber(64), v: 100 },
           ],
-          getProofParams: genMaxBinaryNumber(64),
+          paramsToGetProof: genMaxBinaryNumber(64),
           expectedProof: {
             root: "11998361913555620744473305594791175460338619045531124782442564216176360071119",
             existence: true,
@@ -1198,15 +1183,21 @@ describe("SMT tests", function () {
             auxIndex: "0",
             auxValue: "0",
           },
-        };
+        },
+        {
+          description: "Negative: add two leaves with maximum depth + 1",
+          leavesToInsert: [
+            { i: genMaxBinaryNumber(64), v: 100 },
+            { i: genMaxBinaryNumber(65), v: 100, error: "Max depth reached" },
+          ],
+        },
+      ];
 
-        await checkTestCaseMTPProof(testCaseEdge);
-      });
-
-      it("Negative: add two leaves with maximum depth + 1", async () => {
-        await expect(smt.add(genMaxBinaryNumber(64), 100)).not.to.be.reverted;
-        await expect(smt.add(genMaxBinaryNumber(65), 100)).to.be.revertedWith("Max depth reached");
-      });
+      for (const testCase of testCases) {
+        it(`${testCase.description}`, async () => {
+          await checkTestCaseMTPProof(smt, testCase);
+        });
+      }
     });
   });
 
@@ -1721,6 +1712,34 @@ describe("SMT tests", function () {
     });
   });
 });
+
+async function checkTestCaseMTPProof(smt: Contract, testCase: TestCaseMTPProof) {
+  for (const param of testCase.leavesToInsert) {
+    if (param.error) {
+      await expect(smt.add(param.i, param.v)).to.be.revertedWith(param.error);
+      continue;
+    }
+    await smt.add(param.i, param.v);
+  }
+
+  let proof;
+  switch (typeof testCase.paramsToGetProof) {
+    case "number":
+    case "bigint":
+      proof = await smt.getProof(testCase.paramsToGetProof);
+      break;
+    case "object":
+      proof = await smt.getProofByRoot(
+        testCase.paramsToGetProof.index,
+        testCase.paramsToGetProof.historicalRoot
+      );
+      break;
+    default:
+      return;
+  }
+
+  checkMtpProof(proof, testCase.expectedProof as MtpProof);
+}
 
 function checkMtpProof(proof, expectedProof: MtpProof) {
   console.log(proof.siblings[62].toString());
