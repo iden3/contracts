@@ -189,19 +189,6 @@ library Smt {
         return result;
     }
 
-    function getNodeHash(Node memory node) internal view returns (uint256) {
-        uint256 nodeHash;
-        if (node.nodeType == NodeType.LEAF) {
-            uint256[3] memory params = [node.index, node.value, uint256(1)];
-            nodeHash = PoseidonUnit3L.poseidon(params);
-        } else if (node.nodeType == NodeType.MIDDLE) {
-            nodeHash = PoseidonUnit2L.poseidon(
-                [node.childLeft, node.childRight]
-            );
-        }
-        return nodeHash; // Note: expected to return 0 if NodeType.EMPTY, which is the only option left
-    }
-
     /**
      * @dev Get the SMT node by hash
      * @param nodeHash Hash of a node
@@ -510,16 +497,16 @@ library Smt {
         if ((pathNewLeaf >> depth) & 1 == 1) {
             newNodeMiddle = Node(
                 NodeType.MIDDLE,
-                getNodeHash(oldLeaf),
-                getNodeHash(newLeaf),
+                _getNodeHash(oldLeaf),
+                _getNodeHash(newLeaf),
                 0,
                 0
             );
         } else {
             newNodeMiddle = Node(
                 NodeType.MIDDLE,
-                getNodeHash(newLeaf),
-                getNodeHash(oldLeaf),
+                _getNodeHash(newLeaf),
+                _getNodeHash(oldLeaf),
                 0,
                 0
             );
@@ -533,7 +520,7 @@ library Smt {
         internal
         returns (uint256)
     {
-        uint256 nodeHash = getNodeHash(node);
+        uint256 nodeHash = _getNodeHash(node);
         require(
             self.nodes[nodeHash].nodeType == NodeType.EMPTY,
             "Node already exists with the same index and value"
@@ -541,6 +528,19 @@ library Smt {
         // We do not store empty nodes so can check if an entry exists
         self.nodes[nodeHash] = node;
         return nodeHash;
+    }
+
+    function _getNodeHash(Node memory node) internal view returns (uint256) {
+        uint256 nodeHash;
+        if (node.nodeType == NodeType.LEAF) {
+            uint256[3] memory params = [node.index, node.value, uint256(1)];
+            nodeHash = PoseidonUnit3L.poseidon(params);
+        } else if (node.nodeType == NodeType.MIDDLE) {
+            nodeHash = PoseidonUnit2L.poseidon(
+                [node.childLeft, node.childRight]
+            );
+        }
+        return nodeHash; // Note: expected to return 0 if NodeType.EMPTY, which is the only option left
     }
 }
 
