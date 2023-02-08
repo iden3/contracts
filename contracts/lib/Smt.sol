@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.15;
-pragma abicoder v2;
 
 import "../lib/Poseidon.sol";
 
@@ -181,7 +180,7 @@ library Smt {
         );
 
         RootInfo[] memory result = new RootInfo[](length);
-        uint64 j = 0;
+        uint256 j = 0;
         for (uint256 i = startIndex; i < endIndex; i++) {
             uint256 root = self.rootHistory[i];
             result[j] = getRootInfo(self, root);
