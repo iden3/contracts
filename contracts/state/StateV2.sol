@@ -330,7 +330,7 @@ contract StateV2 is OwnableUpgradeable {
 
     /**
      * @dev Retrieve GIST inclusion or non-inclusion proof for a given identity
-     * for GIST root existed in some block or later.
+     * for GIST latest snapshot by the block number provided.
      * @param id Identity
      * @param blockNumber Blockchain block number
      * @return The GIST inclusion or non-inclusion proof for the identity
@@ -349,7 +349,7 @@ contract StateV2 is OwnableUpgradeable {
 
     /**
      * @dev Retrieve GIST inclusion or non-inclusion proof for a given identity
-     * for GIST root existed for some blockchain timestamp or later.
+     * for GIST latest snapshot by the blockchain timestamp provided.
      * @param id Identity
      * @param timestamp Blockchain timestamp
      * @return The GIST inclusion or non-inclusion proof for the identity
@@ -407,7 +407,7 @@ contract StateV2 is OwnableUpgradeable {
     }
 
     /**
-     * @dev Retrieve the GIST root information, which existed at some block or later.
+     * @dev Retrieve the GIST root information, which is latest by the block provided.
      * @param blockNumber Blockchain block number
      * @return The GIST root info
      */
@@ -420,7 +420,7 @@ contract StateV2 is OwnableUpgradeable {
     }
 
     /**
-     * @dev Retrieve the GIST root information, which existed at some blockchain timestamp or later.
+     * @dev Retrieve the GIST root information, which is latest by the blockchain timestamp provided.
      * @param timestamp Blockchain timestamp
      * @return The GIST root info
      */
