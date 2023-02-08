@@ -10,9 +10,9 @@ import (
 )
 
 type NodeAuxValue struct {
-	Key   string
-	Value string
-	NoAux string
+	Index     string
+	Value     string
+	AuxExists bool
 }
 
 type Proof struct {
@@ -29,39 +29,71 @@ type Proof struct {
 func main() {
 	db := memory.NewMemoryStorage()
 	ctx := context.Background()
-	// We need to use 65 value for max levels to make max depth of the tree be 64 (root is 0 level)
+	//field, _ := big.NewInt(0).SetString("30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001", 16)
+
 	var maxDepth int = 64
+	// We need to use 64+1=65 for max levels to make max depth of the tree be 64 (root is 0 level)
 	mt, _ := merkletree.NewMerkleTree(ctx, db, maxDepth+1)
 
 	type Leaf struct {
-		index *big.Int
-		value *big.Int
+		I *big.Int `json:"i"`
+		V *big.Int `json:"v"`
+	}
+	type LeafStr struct {
+		I string `json:"i"`
+		V string `json:"v"`
 	}
 
-	indexForProofGen := GenMaxBinaryNumber(int64(maxDepth - 1))
-	valueForProofGen := big.NewInt(100)
+	//leavesQty := 10
+	var leaves []Leaf
+	var leavesStr []LeafStr
 
-	leaves := []Leaf{
-		{
-			GenMaxBinaryNumber(int64(maxDepth - 1)),
-			//	big.NewInt(4),
-			big.NewInt(100),
-		},
-		{
-			GenMaxBinaryNumber(int64(maxDepth)),
-			//	big.NewInt(2),
-			big.NewInt(100),
-		},
+	// Generate the leaves to insert to the tree
+
+	//for i := 0; i < leavesQty; i++ {
+	//	l := Leaf{
+	//		I: big.NewInt(0).Rand(rand.New(rand.NewSource(int64(i))), field),
+	//		V: big.NewInt(0).Rand(rand.New(rand.NewSource(int64(i))), field),
+	//	}
+	//	leaves = append(leaves, l)
+	//}
+
+	//GenMaxBinaryNumber(int64(maxDepth - 1))
+	i0, _ := big.NewInt(0).SetString("17713686966169915918", 10)
+	l := Leaf{
+		I: i0,
+		V: big.NewInt(100),
 	}
+	leaves = append(leaves, l)
+	i1, _ := big.NewInt(0).SetString("36160431039879467534", 10)
+	l = Leaf{
+		I: i1,
+		V: big.NewInt(100),
+	}
+	leaves = append(leaves, l)
 
+	//Add leaves to the tree
 	for _, l := range leaves {
-		err := mt.Add(ctx, l.index, l.value)
+		leavesStr = append(leavesStr, LeafStr{
+			I: l.I.String(),
+			V: l.V.String(),
+		})
+		err := mt.Add(ctx, l.I, l.V)
 		if err != nil {
 			panic(err)
 		}
 	}
 
-	proof, _, err := mt.GenerateProof(context.Background(), indexForProofGen, nil)
+	//b, err := json.MarshalIndent(leaves, "", "  ")
+	b, err := json.Marshal(leavesStr)
+	if err != nil {
+		panic(err)
+	}
+	println("Leaves: ", string(b))
+
+	//indexForProof := big.NewInt(0).Add(leaves[leavesQty-1].I, big.NewInt(1))
+	indexForProof := leaves[1].I
+	proof, valueInMt, err := mt.GenerateProof(context.Background(), indexForProof, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -71,14 +103,14 @@ func main() {
 		Root:         mt.Root().BigInt().String(),
 		Existence:    proof.Existence,
 		Siblings:     siblings,
-		Index:        indexForProofGen.String(),
-		Value:        valueForProofGen.String(),
-		AuxExistence: false,
-		AuxIndex:     nodeAux.Key,
+		Index:        indexForProof.String(),
+		Value:        valueInMt.String(),
+		AuxExistence: nodeAux.AuxExists,
+		AuxIndex:     nodeAux.Index,
 		AuxValue:     nodeAux.Value,
 	}
 
-	println("Siblings length:", len(siblings))
+	//println("Siblings length:", len(siblings))
 	proofStr, _ := json.Marshal(p)
 	println(string(proofStr))
 }
@@ -88,7 +120,7 @@ func GenMaxBinaryNumber(digits int64) *big.Int {
 }
 
 func PrepareProof(proof *merkletree.Proof, levels int) ([]string, NodeAuxValue) {
-	return PrepareSiblingsStr(proof.AllSiblings(), levels), getNodeAuxValue(proof)
+	return PrepareSiblingsStr(proof.AllSiblings(), levels), getNodeAux(proof)
 }
 
 func PrepareSiblingsStr(siblings []*merkletree.Hash, levels int) []string {
@@ -107,29 +139,29 @@ func HashToStr(siblings []*merkletree.Hash) []string {
 	return siblingsStr
 }
 
-func getNodeAuxValue(p *merkletree.Proof) NodeAuxValue {
+func getNodeAux(p *merkletree.Proof) NodeAuxValue {
 
 	// proof of inclusion
 	if p.Existence {
 		return NodeAuxValue{
-			Key:   merkletree.HashZero.BigInt().String(),
-			Value: merkletree.HashZero.BigInt().String(),
-			NoAux: "0",
+			Index:     merkletree.HashZero.BigInt().String(),
+			Value:     merkletree.HashZero.BigInt().String(),
+			AuxExists: false,
 		}
 	}
 
 	// proof of non-inclusion (NodeAux exists)
 	if p.NodeAux != nil && p.NodeAux.Value != nil && p.NodeAux.Key != nil {
 		return NodeAuxValue{
-			Key:   p.NodeAux.Key.BigInt().String(),
-			Value: p.NodeAux.Value.BigInt().String(),
-			NoAux: "0",
+			Index:     p.NodeAux.Key.BigInt().String(),
+			Value:     p.NodeAux.Value.BigInt().String(),
+			AuxExists: true,
 		}
 	}
 	// proof of non-inclusion (NodeAux does not exist)
 	return NodeAuxValue{
-		Key:   merkletree.HashZero.BigInt().String(),
-		Value: merkletree.HashZero.BigInt().String(),
-		NoAux: "1",
+		Index:     merkletree.HashZero.BigInt().String(),
+		Value:     merkletree.HashZero.BigInt().String(),
+		AuxExists: false,
 	}
 }
