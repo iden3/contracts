@@ -109,15 +109,9 @@ describe("State transition negative cases", () => {
     );
     modifiedStateTransition.pub_signals[1] = "1"; // set oldState to 1 to trigger the error
 
-    const expectedErrorText = "Old state does not match the latest state";
-    let isException = false;
-    try {
-      await publishState(state, modifiedStateTransition);
-    } catch (e: any) {
-      isException = true;
-      expect(e.message).contains(expectedErrorText);
-    }
-    expect(isException).to.equal(true);
+    await expect(publishState(state, modifiedStateTransition)).to.be.revertedWith(
+      "Old state does not match the latest state"
+    );
   });
 
   it("Old state is genesis but identity already exists", async () => {
@@ -128,16 +122,9 @@ describe("State transition negative cases", () => {
     );
     modifiedStateTransition.pub_signals[3] = "1"; // set isOldStateGenesis to 1 to trigger the error
 
-    const expectedErrorText =
-      "Old state is genesis but identity already exists";
-    let isException = false;
-    try {
-      await publishState(state, modifiedStateTransition);
-    } catch (e: any) {
-      isException = true;
-      expect(e.message).contains(expectedErrorText);
-    }
-    expect(isException).to.equal(true);
+    await expect(publishState(state, modifiedStateTransition)).to.be.revertedWith(
+      "Old state is genesis but identity already exists"
+    );
   });
 
   it("Genesis state already exists", async () => {
@@ -150,17 +137,9 @@ describe("State transition negative cases", () => {
     // set id to some random value to trigger the error
     modifiedStateTransition.pub_signals[0] = "1";
 
-    const expectedErrorText = "Genesis state already exists";
-    let isException = false;
-    try {
-      await publishState(state, modifiedStateTransition);
-    } catch (e: any) {
-      isException = true;
-      console.log("+++++++++++++++++");
-      console.log(e.message);
-      expect(e.message).contains(expectedErrorText);
-    }
-    expect(isException).to.equal(true);
+    await expect(publishState(state, modifiedStateTransition)).to.be.revertedWith(
+      "Genesis state already exists"
+    );
   });
 
   it("New state should not exist", async () => {
@@ -173,15 +152,9 @@ describe("State transition negative cases", () => {
     // set the new state of identity publishing the same as the existing state
     modifiedStateTransition.pub_signals[2] = stateTransitions[0].pub_signals[1];
 
-    const expectedErrorText = "New state should not exist";
-    let isException = false;
-    try {
-      await publishState(state, modifiedStateTransition);
-    } catch (e: any) {
-      isException = true;
-      expect(e.message).contains(expectedErrorText);
-    }
-    expect(isException).to.equal(true);
+    await expect(publishState(state, modifiedStateTransition)).to.be.revertedWith(
+      "New state should not exist"
+    );
   });
 
   it("Old state is not genesis but identity does not yet exist", async () => {
@@ -190,16 +163,9 @@ describe("State transition negative cases", () => {
     );
     modifiedStateTransition.pub_signals[3] = "0"; // change isOldStateGenesis to 0 to trigger exception
 
-    const expectedErrorText =
-      "Old state is not genesis but identity does not yet exist";
-    let isException = false;
-    try {
-      await publishState(state, modifiedStateTransition);
-    } catch (e: any) {
-      isException = true;
-      expect(e.message).contains(expectedErrorText);
-    }
-    expect(isException).to.equal(true);
+    await expect(publishState(state, modifiedStateTransition)).to.be.revertedWith(
+      "Old state is not genesis but identity does not yet exist"
+    );
   });
 
   it("Zero-knowledge proof of state transition is not valid", async () => {
@@ -208,16 +174,9 @@ describe("State transition negative cases", () => {
     );
     modifiedStateTransition.pub_signals[2] = "1"; // change state to make zk proof invalid
 
-    const expectedErrorText =
-      "Zero-knowledge proof of state transition is not valid";
-    let isException = false;
-    try {
-      await publishState(state, modifiedStateTransition);
-    } catch (e: any) {
-      isException = true;
-      expect(e.message).contains(expectedErrorText);
-    }
-    expect(isException).to.equal(true);
+    await expect(publishState(state, modifiedStateTransition)).to.be.revertedWith(
+      "Zero-knowledge proof of state transition is not valid"
+    );
   });
 
   it("New state should not be zero", async () => {
