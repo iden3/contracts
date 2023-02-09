@@ -414,9 +414,7 @@ library Smt {
                     self,
                     newLeaf,
                     node,
-                    depth,
-                    newLeaf.index,
-                    node.index
+                    depth
                 );
         } else if (node.nodeType == NodeType.MIDDLE) {
             Node memory newNodeMiddle;
@@ -461,9 +459,7 @@ library Smt {
         SmtData storage self,
         Node memory newLeaf,
         Node memory oldLeaf,
-        uint256 depth,
-        uint256 pathNewLeaf,
-        uint256 pathOldLeaf
+        uint256 depth
     ) internal returns (uint256) {
         // no reason to continue if we are at max possible depth
         // as, anyway, we exceed the depth going down the tree
@@ -472,19 +468,19 @@ library Smt {
         }
 
         Node memory newNodeMiddle;
+        bool newLeafBitAtDepth = (newLeaf.index >> depth) & 1 == 1;
+        bool oldLeafBitAtDepth = (oldLeaf.index >> depth) & 1 == 1;
 
         // Check if we need to go deeper if diverge at the depth's bit
-        if ((pathNewLeaf >> depth) & 1 == (pathOldLeaf >> depth) & 1) {
+        if (newLeafBitAtDepth == oldLeafBitAtDepth) {
             uint256 nextNodeHash = _pushLeaf(
                 self,
                 newLeaf,
                 oldLeaf,
-                depth + 1,
-                pathNewLeaf,
-                pathOldLeaf
+                depth + 1
             );
 
-            if ((pathNewLeaf >> depth) & 1 == 1) {
+            if (newLeafBitAtDepth) {
                 // go right
                 newNodeMiddle = Node(NodeType.MIDDLE, 0, nextNodeHash, 0, 0);
             } else {
@@ -494,7 +490,7 @@ library Smt {
             return _addNode(self, newNodeMiddle);
         }
 
-        if ((pathNewLeaf >> depth) & 1 == 1) {
+        if (newLeafBitAtDepth) {
             newNodeMiddle = Node(
                 NodeType.MIDDLE,
                 _getNodeHash(oldLeaf),
