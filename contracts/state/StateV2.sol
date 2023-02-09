@@ -462,18 +462,19 @@ contract StateV2 is OwnableUpgradeable {
         view
         returns (StateInfo memory)
     {
-        uint256 replByState = _stateData.stateEntries[state].replacedBy;
+        StateEntry storage se = _stateData.stateEntries[state];
+        uint256 nextState = _stateData.stateEntries[state].replacedBy;
+        StateEntry storage nse = _stateData.stateEntries[nextState];
+
         return
             StateInfo({
-                id: _stateData.stateEntries[state].id,
+                id: se.id,
                 state: state,
-                replacedByState: replByState,
-                createdAtTimestamp: _stateData.stateEntries[state].timestamp,
-                replacedAtTimestamp: _stateData
-                    .stateEntries[replByState]
-                    .timestamp,
-                createdAtBlock: _stateData.stateEntries[state].block,
-                replacedAtBlock: _stateData.stateEntries[replByState].block
+                replacedByState: nextState,
+                createdAtTimestamp: se.timestamp,
+                replacedAtTimestamp: nse.timestamp,
+                createdAtBlock: se.block,
+                replacedAtBlock: nse.block
             });
     }
 }

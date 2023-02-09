@@ -131,7 +131,14 @@ library Smt {
         uint256 i,
         uint256 v
     ) public {
-        Node memory node = Node(NodeType.LEAF, 0, 0, i, v);
+        Node memory node = Node({
+            nodeType: NodeType.LEAF,
+            childLeft: 0,
+            childRight: 0,
+            index: i,
+            value: v
+        });
+
         uint256 prevRoot = getRoot(self);
         uint256 newRoot = _addLeaf(self, node, prevRoot, 0);
 
@@ -231,9 +238,22 @@ library Smt {
         onlyExistingRoot(self, historicalRoot)
         returns (Proof memory)
     {
-        Proof memory proof;
-        proof.root = historicalRoot;
-        proof.index = index;
+        uint256[MAX_SMT_DEPTH] memory siblings;
+        // Solidity does not guarantee that memory vars are zeroed out
+        for (uint256 i = 0; i < MAX_SMT_DEPTH; i++) {
+            siblings[i] = 0;
+        }
+
+        Proof memory proof = Proof({
+            root: historicalRoot,
+            existence: false,
+            siblings: siblings,
+            index: index,
+            value: 0,
+            auxExistence: false,
+            auxIndex:0,
+            auxValue: 0
+        });
 
         uint256 nextNodeHash = historicalRoot;
         Node memory node;
@@ -363,19 +383,19 @@ library Smt {
         onlyExistingRoot(self, root)
         returns (RootInfo memory)
     {
-        RootInfo memory rootInfo;
-        rootInfo.createdAtTimestamp = self.rootEntries[root].createdAtTimestamp;
-        rootInfo.createdAtBlock = self.rootEntries[root].createdAtBlock;
-        rootInfo.replacedByRoot = self.rootEntries[root].replacedByRoot;
-        rootInfo.replacedAtBlock = self
-            .rootEntries[rootInfo.replacedByRoot]
-            .createdAtBlock;
-        rootInfo.replacedAtTimestamp = self
-            .rootEntries[rootInfo.replacedByRoot]
-            .createdAtTimestamp;
-        rootInfo.root = root;
+        RootEntry storage re = self.rootEntries[root];
+        uint256 nextRoot = self.rootEntries[root].replacedByRoot;
+        RootEntry storage nre = self.rootEntries[nextRoot];
 
-        return rootInfo;
+        return
+            RootInfo({
+                root: root,
+                replacedByRoot: nextRoot,
+                createdAtTimestamp: re.createdAtTimestamp,
+                replacedAtTimestamp: nre.createdAtTimestamp,
+                createdAtBlock: re.createdAtBlock,
+                replacedAtBlock: nre.createdAtBlock
+            });
     }
 
     /**
@@ -426,13 +446,14 @@ library Smt {
                     node.childRight,
                     depth + 1
                 );
-                newNodeMiddle = Node(
-                    NodeType.MIDDLE,
-                    node.childLeft,
-                    nextNodeHash,
-                    0,
-                    0
-                );
+
+                newNodeMiddle = Node({
+                    nodeType: NodeType.MIDDLE,
+                    childLeft: node.childLeft,
+                    childRight: nextNodeHash,
+                    index: 0,
+                    value: 0
+                });
             } else {
                 nextNodeHash = _addLeaf(
                     self,
@@ -440,13 +461,14 @@ library Smt {
                     node.childLeft,
                     depth + 1
                 );
-                newNodeMiddle = Node(
-                    NodeType.MIDDLE,
-                    nextNodeHash,
-                    node.childRight,
-                    0,
-                    0
-                );
+
+                newNodeMiddle = Node({
+                    nodeType: NodeType.MIDDLE,
+                    childLeft: nextNodeHash,
+                    childRight: node.childRight,
+                    index: 0,
+                    value: 0
+                });
             }
 
             leafHash = _addNode(self, newNodeMiddle);
@@ -491,21 +513,21 @@ library Smt {
         }
 
         if (newLeafBitAtDepth) {
-            newNodeMiddle = Node(
-                NodeType.MIDDLE,
-                _getNodeHash(oldLeaf),
-                _getNodeHash(newLeaf),
-                0,
-                0
-            );
+            newNodeMiddle = Node({
+                nodeType: NodeType.MIDDLE,
+                childLeft: _getNodeHash(oldLeaf),
+                childRight: _getNodeHash(newLeaf),
+                index: 0,
+                value: 0
+            });
         } else {
-            newNodeMiddle = Node(
-                NodeType.MIDDLE,
-                _getNodeHash(newLeaf),
-                _getNodeHash(oldLeaf),
-                0,
-                0
-            );
+            newNodeMiddle = Node({
+                nodeType: NodeType.MIDDLE,
+                childLeft: _getNodeHash(newLeaf),
+                childRight: _getNodeHash(oldLeaf),
+                index: 0,
+                value: 0
+            });
         }
 
         _addNode(self, newLeaf);
