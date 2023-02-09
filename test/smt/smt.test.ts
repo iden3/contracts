@@ -2836,7 +2836,7 @@ describe("SMT tests", function () {
   describe("Root history requests", function () {
     this.timeout(5000);
 
-    let state;
+    let state, historyLength;
     let pubStates: { [key: string]: string | number }[] = [];
 
     before(async () => {
@@ -2848,10 +2848,11 @@ describe("SMT tests", function () {
       for (const stateTransition of stateTransitions) {
         pubStates.push(await publishState(state, stateTransition));
       }
+
+      historyLength = await state.getGISTRootHistoryLength();
     });
 
     it("should return the root history", async () => {
-      const historyLength = await state.getGISTRootHistoryLength();
       expect(historyLength).to.be.equal(stateTransitions.length);
 
       const rootInfos = await state.getGISTRootHistory(0, historyLength);
@@ -2880,17 +2881,23 @@ describe("SMT tests", function () {
       );
     });
 
-    it("should be reverted if length limit exceeded", async () => {
+    it("should revert if length limit exceeded", async () => {
       await expect(state.getGISTRootHistory(0, 10 ** 6)).to.be.revertedWith(
         "History length limit exceeded"
       );
     });
 
-    it("should be reverted if out of bounds", async () => {
-      const historyLength = await state.getGISTRootHistoryLength();
-      await expect(state.getGISTRootHistory(historyLength - 1, 2)).to.be.revertedWith(
-        "Out of bounds of root history"
+    it("should revert if out of bounds", async () => {
+      await expect(state.getGISTRootHistory(historyLength, 100)).to.be.revertedWith(
+        "Start index out of bounds"
       );
+    });
+
+    it("should NOT revert if startIndex + length >= historyLength", async () => {
+      let history = await state.getGISTRootHistory(historyLength - 1, 100);
+      expect(history.length).to.be.equal(1);
+      history = await state.getGISTRootHistory(historyLength - 2, 100);
+      expect(history.length).to.be.equal(2);
     });
   });
 

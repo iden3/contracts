@@ -174,24 +174,23 @@ library Smt {
         uint256 startIndex,
         uint256 length
     ) public view returns (RootInfo[] memory) {
+        uint256[] storage history = self.rootHistory;
+
         require(length > 0, "Length should be greater than 0");
         require(
             length <= SMT_ROOT_HISTORY_RETURN_LIMIT,
             "History length limit exceeded"
         );
+        require(startIndex < history.length, "Start index out of bounds");
 
-        uint256 endIndex = startIndex + length;
-        require(
-            endIndex <= self.rootHistory.length,
-            "Out of bounds of root history"
-        );
+        uint256 endIndex = startIndex + length < history.length
+            ? startIndex + length
+            : history.length;
 
-        RootInfo[] memory result = new RootInfo[](length);
-        uint256 j = 0;
+        RootInfo[] memory result = new RootInfo[](endIndex - startIndex);
+
         for (uint256 i = startIndex; i < endIndex; i++) {
-            uint256 root = self.rootHistory[i];
-            result[j] = getRootInfo(self, root);
-            j++;
+            result[i - startIndex] = getRootInfo(self, history[i]);
         }
         return result;
     }

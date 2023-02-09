@@ -194,7 +194,7 @@ describe("State transition negative cases", () => {
 describe("State history", function () {
   this.timeout(5000);
 
-  let state;
+  let state, user1Inputs, publishedStates1, user1ID, user1HistoryLength;
   let publishedStates: { [key: string]: string | number }[] = [];
 
   before(async () => {
@@ -206,26 +206,25 @@ describe("State history", function () {
     for (const stateTransition of stateTransitions) {
       publishedStates.push(await publishState(state, stateTransition));
     }
+    user1Inputs = stateTransitions.slice(0, 2);
+    publishedStates1 = publishedStates.slice(0, 2);
+    user1ID = user1Inputs[0].pub_signals[0];
+    user1HistoryLength = await state.getStateInfoHistoryLengthById(user1ID);
   });
 
   it("should return state history", async () => {
-    const user1Inputs = stateTransitions.slice(0, 2);
-    const publishedStates1 = publishedStates.slice(0, 2);
-
-    const id = user1Inputs[0].pub_signals[0];
-    const historyLength = await state.getStateInfoHistoryLengthById(id);
-    expect(historyLength).to.be.equal(user1Inputs.length + 1);
+    expect(user1HistoryLength).to.be.equal(user1Inputs.length + 1);
 
     const stateInfos = await state.getStateInfoHistoryById(
-      id,
+      user1ID,
       0,
-      historyLength
+      user1HistoryLength
     );
-    expect(stateInfos.length).to.be.equal(historyLength);
+    expect(stateInfos.length).to.be.equal(user1HistoryLength);
 
     const publishedState = publishedStates1[0];
     // genesis state info of the first identity (from the contract)
-    const [stateInfo] = await state.getStateInfoHistoryById(id, 0, 1);
+    const [stateInfo] = await state.getStateInfoHistoryById(user1ID, 0, 1);
     expect(stateInfo.id).to.be.equal(publishedState.id);
     expect(stateInfo.state).to.be.equal(publishedState.oldState);
     expect(stateInfo.replacedByState).to.be.equal(publishedState.newState);
@@ -236,9 +235,7 @@ describe("State history", function () {
 
     const publishedState2 = publishedStates1[1];
     // genesis state info of the first identity (from the contract)
-    const [stateInfo2] = await state.getStateInfoHistoryById(id, 2, 1);
-    console.log(stateInfo2);
-    console.log(publishedStates1);
+    const [stateInfo2] = await state.getStateInfoHistoryById(user1ID, 2, 1);
     expect(stateInfo2.id).to.be.equal(publishedState2.id);
     expect(stateInfo2.state).to.be.equal(publishedState2.newState);
     expect(stateInfo2.replacedByState).to.be.equal(0);
@@ -251,27 +248,28 @@ describe("State history", function () {
   });
 
   it("should be reverted if length is zero", async () => {
-    const id = stateTransitions[0].pub_signals[0];
-
-    await expect(state.getStateInfoHistoryById(id, 0, 0)).to.be.revertedWith(
+    await expect(state.getStateInfoHistoryById(user1ID, 0, 0)).to.be.revertedWith(
       "Length should be greater than 0"
     );
   });
 
   it("should be reverted if length limit exceeded", async () => {
-    const id = stateTransitions[0].pub_signals[0];
-
-    await expect(
-      state.getStateInfoHistoryById(id, 0, 10 ** 6)
-    ).to.be.revertedWith("History length limit exceeded");
+    await expect(state.getStateInfoHistoryById(user1ID, 0, 10 ** 6)).to.be.revertedWith(
+      "History length limit exceeded"
+    );
   });
 
-  it("should be reverted if out of bounds", async () => {
-    const id = stateTransitions[0].pub_signals[0];
+  it("should be reverted if startIndex is out of bounds", async () => {
+    await expect(
+      state.getStateInfoHistoryById(user1ID, user1HistoryLength, 100)
+    ).to.be.revertedWith("Start index out of bounds");
+  });
 
-    await expect(state.getStateInfoHistoryById(id, 0, 100)).to.be.revertedWith(
-      "Out of bounds of state history"
-    );
+  it("should not revert if startIndex + length >= historyLength", async () => {
+    let history = await state.getStateInfoHistoryById(user1ID, user1HistoryLength - 1, 100);
+    expect(history.length).to.be.equal(1);
+    history = await state.getStateInfoHistoryById(user1ID, user1HistoryLength - 2, 100);
+    expect(history.length).to.be.equal(2);
   });
 });
 

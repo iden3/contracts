@@ -271,25 +271,24 @@ contract StateV2 is OwnableUpgradeable {
         uint256 startIndex,
         uint256 length
     ) public view onlyExistingId(id) returns (StateInfo[] memory) {
+        uint256[] storage history = _stateData.statesHistories[id];
+
         require(length > 0, "Length should be greater than 0");
         require(
             length <= ID_HISTORY_RETURN_LIMIT,
             "History length limit exceeded"
         );
+        require(startIndex < history.length, "Start index out of bounds");
 
-        uint256 endIndex = startIndex + length;
-        require(
-            endIndex <= _stateData.statesHistories[id].length,
-            "Out of bounds of state history"
-        );
+        uint256 endIndex = startIndex + length < history.length
+            ? startIndex + length
+            : history.length;
+        StateInfo[] memory result = new StateInfo[](endIndex - startIndex);
 
-        StateInfo[] memory states = new StateInfo[](length);
-        uint256 j = 0;
         for (uint256 i = startIndex; i < endIndex; i++) {
-            states[j] = _getStateInfoByState(_stateData.statesHistories[id][i]);
-            j++;
+            result[i - startIndex] = _getStateInfoByState(history[i]);
         }
-        return states;
+        return result;
     }
 
     /**
