@@ -154,6 +154,8 @@ contract StateV2 is OwnableUpgradeable {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) public {
+        require(newState != 0, "New state should not be zero");
+
         if (isOldStateGenesis) {
             require(
                 !idExists(id),

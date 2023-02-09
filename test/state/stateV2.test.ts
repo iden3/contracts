@@ -219,6 +219,17 @@ describe("State transition negative cases", () => {
     }
     expect(isException).to.equal(true);
   });
+
+  it("New state should not be zero", async () => {
+    const modifiedStateTransition = JSON.parse(
+      JSON.stringify(stateTransitions[0])
+    );
+    modifiedStateTransition.pub_signals[2] = "0"; // set new state to 0 to trigger the error
+
+    await expect(publishState(state, modifiedStateTransition)).to.be.revertedWith(
+      "New state should not be zero"
+    );
+  });
 });
 
 describe("State history", function () {
