@@ -131,6 +131,7 @@ contract StateV2 is OwnableUpgradeable {
      * @param newVerifierAddr Verifier contract address
      */
     function setVerifier(address newVerifierAddr) public onlyOwner {
+        require(newVerifierAddr != address(0), "Verifier address cannot be zero");
         verifier = IVerifier(newVerifierAddr);
     }
 

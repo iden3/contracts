@@ -528,3 +528,44 @@ describe("GIST root history", () => {
     expect(rootInfo1.replacedByRoot).to.equal(expRootInfos[1].replacedByRoot);
   });
 });
+
+describe("Set Verifier", () => {
+  it("Should set verifier", async () => {
+    const deployHelper = await StateDeployHelper.initialize();
+    const { state, verifier } = await deployHelper.deployStateV2();
+
+    const verifierAddress = await state.getVerifier();
+    expect(verifierAddress).to.equal(verifier.address);
+
+    const newVerifierAddress = ethers.utils.getAddress("0x8ba1f109551bd432803012645ac136ddd64dba72");
+    await state.setVerifier(newVerifierAddress);
+    const verifierAddress2 = await state.getVerifier();
+    expect(verifierAddress2).to.equal(newVerifierAddress);
+  });
+
+  it("Should not set verifier if not owner", async () => {
+    const deployHelper = await StateDeployHelper.initialize();
+    const { state, verifier } = await deployHelper.deployStateV2();
+
+    const verifierAddress = await state.getVerifier();
+    expect(verifierAddress).to.equal(verifier.address);
+
+    const notOwner = (await ethers.getSigners())[1];
+    const newVerifierAddress = ethers.utils.getAddress("0x8ba1f109551bd432803012645ac136ddd64dba72");
+    await expect(state.connect(notOwner).setVerifier(newVerifierAddress)).to.be.revertedWith(
+      "Ownable: caller is not the owner"
+    );
+  });
+
+  it("Should not set verifier if verifier address is zero", async () => {
+    const deployHelper = await StateDeployHelper.initialize();
+    const { state, verifier } = await deployHelper.deployStateV2();
+
+    const verifierAddress = await state.getVerifier();
+    expect(verifierAddress).to.equal(verifier.address);
+
+    await expect(state.setVerifier(ethers.constants.AddressZero)).to.be.revertedWith(
+      "Verifier address cannot be zero"
+    );
+  });
+});
