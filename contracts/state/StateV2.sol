@@ -130,7 +130,7 @@ contract StateV2 is OwnableUpgradeable {
      * @dev Set ZKP verifier contract address
      * @param newVerifierAddr Verifier contract address
      */
-    function setVerifier(address newVerifierAddr) public onlyOwner {
+    function setVerifier(address newVerifierAddr) external onlyOwner {
         require(newVerifierAddr != address(0), "Verifier address cannot be zero");
         verifier = IVerifier(newVerifierAddr);
     }
@@ -153,7 +153,7 @@ contract StateV2 is OwnableUpgradeable {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
-    ) public {
+    ) external {
         require(newState != 0, "New state should not be zero");
 
         if (isOldStateGenesis) {
@@ -222,7 +222,7 @@ contract StateV2 is OwnableUpgradeable {
      * @dev Get ZKP verifier contract address
      * @return verifier contract address
      */
-    function getVerifier() public view returns (address) {
+    function getVerifier() external view returns (address) {
         return address(verifier);
     }
 
@@ -232,7 +232,7 @@ contract StateV2 is OwnableUpgradeable {
      * @return state info of the last committed state
      */
     function getStateInfoById(uint256 id)
-        public
+        external
         view
         onlyExistingId(id)
         returns (StateInfo memory)
@@ -251,7 +251,7 @@ contract StateV2 is OwnableUpgradeable {
      * @return states quantity
      */
     function getStateInfoHistoryLengthById(uint256 id)
-        public
+        external
         view
         onlyExistingId(id)
         returns (uint256)
@@ -270,7 +270,7 @@ contract StateV2 is OwnableUpgradeable {
         uint256 id,
         uint256 startIndex,
         uint256 length
-    ) public view onlyExistingId(id) returns (StateInfo[] memory) {
+    ) external view onlyExistingId(id) returns (StateInfo[] memory) {
         uint256[] storage history = _stateData.statesHistories[id];
 
         require(length > 0, "Length should be greater than 0");
@@ -297,7 +297,7 @@ contract StateV2 is OwnableUpgradeable {
      * @return The state info
      */
     function getStateInfoByState(uint256 state)
-        public
+        external
         view
         onlyExistingState(state)
         returns (StateInfo memory)
@@ -310,7 +310,7 @@ contract StateV2 is OwnableUpgradeable {
      * @param id Identity
      * @return The GIST inclusion or non-inclusion proof for the identity
      */
-    function getGISTProof(uint256 id) public view returns (Smt.Proof memory) {
+    function getGISTProof(uint256 id) external view returns (Smt.Proof memory) {
         return _gistData.getProof(PoseidonUnit1L.poseidon([id]));
     }
 
@@ -322,7 +322,7 @@ contract StateV2 is OwnableUpgradeable {
      * @return The GIST inclusion or non-inclusion proof for the identity
      */
     function getGISTProofByRoot(uint256 id, uint256 root)
-        public
+        external
         view
         returns (Smt.Proof memory)
     {
@@ -337,7 +337,7 @@ contract StateV2 is OwnableUpgradeable {
      * @return The GIST inclusion or non-inclusion proof for the identity
      */
     function getGISTProofByBlock(uint256 id, uint256 blockNumber)
-        public
+        external
         view
         returns (Smt.Proof memory)
     {
@@ -356,7 +356,7 @@ contract StateV2 is OwnableUpgradeable {
      * @return The GIST inclusion or non-inclusion proof for the identity
      */
     function getGISTProofByTime(uint256 id, uint256 timestamp)
-        public
+        external
         view
         returns (Smt.Proof memory)
     {
@@ -368,7 +368,7 @@ contract StateV2 is OwnableUpgradeable {
      * @dev Retrieve GIST latest root.
      * @return The latest GIST root
      */
-    function getGISTRoot() public view returns (uint256) {
+    function getGISTRoot() external view returns (uint256) {
         return _gistData.getRoot();
     }
 
@@ -379,7 +379,7 @@ contract StateV2 is OwnableUpgradeable {
      * @return GIST Array of roots infos
      */
     function getGISTRootHistory(uint256 start, uint256 length)
-        public
+        external
         view
         returns (Smt.RootInfo[] memory)
     {
@@ -390,7 +390,7 @@ contract StateV2 is OwnableUpgradeable {
      * @dev Retrieve the length of the GIST root history.
      * @return The GIST root history length
      */
-    function getGISTRootHistoryLength() public view returns (uint256) {
+    function getGISTRootHistoryLength() external view returns (uint256) {
         return _gistData.rootHistory.length;
     }
 
@@ -400,7 +400,7 @@ contract StateV2 is OwnableUpgradeable {
      * @return The GIST root info
      */
     function getGISTRootInfo(uint256 root)
-        public
+        external
         view
         returns (Smt.RootInfo memory)
     {
@@ -413,7 +413,7 @@ contract StateV2 is OwnableUpgradeable {
      * @return The GIST root info
      */
     function getGISTRootInfoByBlock(uint256 blockNumber)
-        public
+        external
         view
         returns (Smt.RootInfo memory)
     {
@@ -426,7 +426,7 @@ contract StateV2 is OwnableUpgradeable {
      * @return The GIST root info
      */
     function getGISTRootInfoByTime(uint256 timestamp)
-        public
+        external
         view
         returns (Smt.RootInfo memory)
     {

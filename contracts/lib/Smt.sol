@@ -130,7 +130,7 @@ library Smt {
         SmtData storage self,
         uint256 i,
         uint256 v
-    ) public {
+    ) external {
         Node memory node = Node({
             nodeType: NodeType.LEAF,
             childLeft: 0,
@@ -156,7 +156,7 @@ library Smt {
      * @return SMT history length
      */
     function getRootHistoryLength(SmtData storage self)
-        public
+        external
         view
         returns (uint256)
     {
@@ -173,7 +173,7 @@ library Smt {
         SmtData storage self,
         uint256 startIndex,
         uint256 length
-    ) public view returns (RootInfo[] memory) {
+    ) external view returns (RootInfo[] memory) {
         uint256[] storage history = self.rootHistory;
 
         require(length > 0, "Length should be greater than 0");
@@ -214,7 +214,7 @@ library Smt {
      * @return Proof struct
      */
     function getProof(SmtData storage self, uint256 index)
-        public
+        external
         view
         returns (Proof memory)
     {
@@ -316,7 +316,7 @@ library Smt {
         SmtData storage self,
         uint256 index,
         uint256 blockNumber
-    ) public view returns (Proof memory) {
+    ) external view returns (Proof memory) {
         RootInfo memory rootInfo = getRootInfoByBlock(self, blockNumber);
 
         require(rootInfo.root != 0, "historical root not found");
