@@ -525,15 +525,11 @@ describe("Set Verifier", () => {
     );
   });
 
-  it("Should not set verifier if verifier address is zero", async () => {
+  it("Should allow verifier zero address to block any state transition", async () => {
     const deployHelper = await StateDeployHelper.initialize();
-    const { state, verifier } = await deployHelper.deployStateV2();
+    const { state } = await deployHelper.deployStateV2();
 
-    const verifierAddress = await state.getVerifier();
-    expect(verifierAddress).to.equal(verifier.address);
-
-    await expect(state.setVerifier(ethers.constants.AddressZero)).to.be.revertedWith(
-      "Verifier address cannot be zero"
-    );
+    await state.setVerifier(ethers.constants.AddressZero);
+    await expect(publishState(state, stateTransitions[0])).to.be.reverted;
   });
 });
