@@ -12,20 +12,23 @@ const stateTransitions = [
 describe("State transitions positive cases", () => {
   let state;
 
-  before(async () => {
+  before(async function () {
+    this.timeout(5000);
     const deployHelper = await StateDeployHelper.initialize();
     const contracts = await deployHelper.deployStateV2();
     state = contracts.state;
   });
 
-  it("Initial state publishing", async () => {
+  it("Initial state publishing", async function () {
+    this.timeout(5000);
+
     const params = await publishState(state, stateTransitions[0]);
 
     const res0 = await state.getStateInfoById(params.id);
     expect(res0.state).to.be.equal(bigInt(params.newState).toString());
 
+    expect(await state.stateExists(params.newState)).to.be.equal(true);
     const stInfoNew = await state.getStateInfoByState(params.newState);
-
     expect(stInfoNew.id).to.be.equal(params.id);
     expect(stInfoNew.replacedByState).to.be.equal(0);
     expect(stInfoNew.createdAtTimestamp).not.be.empty;
@@ -33,8 +36,8 @@ describe("State transitions positive cases", () => {
     expect(stInfoNew.createdAtBlock).not.be.empty;
     expect(stInfoNew.replacedAtBlock).to.be.equal(0);
 
+    expect(await state.stateExists(params.oldState)).to.be.equal(true);
     const stInfoOld = await state.getStateInfoByState(params.oldState);
-
     expect(stInfoOld.id).to.be.equal(params.id);
     expect(stInfoOld.replacedByState).to.be.equal(params.newState);
     expect(stInfoOld.createdAtTimestamp).to.be.equal(0);
@@ -44,11 +47,13 @@ describe("State transitions positive cases", () => {
     expect(stInfoOld.createdAtBlock).to.be.equal(0);
     expect(stInfoOld.replacedAtBlock).to.be.equal(stInfoNew.createdAtBlock);
 
+    expect(await state.idExists(params.id)).to.be.equal(true);
     const latestStInfo = await state.getStateInfoById(params.id);
     expect(latestStInfo.state).to.be.equal(params.newState);
   });
 
-  it("Subsequent state update", async () => {
+  it("Subsequent state update", async function () {
+    this.timeout(5000);
     const stateInfoBeforeUpdate = await state.getStateInfoByState(
       stateTransitions[1].pub_signals[1]
     );
@@ -57,8 +62,8 @@ describe("State transitions positive cases", () => {
     const res = await state.getStateInfoById(params.id);
     expect(res.state).to.be.equal(params.newState);
 
+    expect(await state.stateExists(params.newState)).to.be.equal(true);
     const stInfoNew = await state.getStateInfoByState(params.newState);
-
     expect(stInfoNew.replacedAtTimestamp).to.be.equal(0);
     expect(stInfoNew.createdAtTimestamp).not.be.empty;
     expect(stInfoNew.replacedAtBlock).to.be.equal(0);
@@ -66,8 +71,8 @@ describe("State transitions positive cases", () => {
     expect(stInfoNew.id).to.be.equal(params.id);
     expect(stInfoNew.replacedByState).to.be.equal(0);
 
+    expect(await state.stateExists(params.oldState)).to.be.equal(true);
     const stInfoOld = await state.getStateInfoByState(params.oldState);
-
     expect(stInfoOld.replacedAtTimestamp).to.be.equal(
       stInfoNew.createdAtTimestamp
     );
@@ -81,6 +86,7 @@ describe("State transitions positive cases", () => {
     expect(stInfoOld.id).to.be.equal(params.id);
     expect(stInfoOld.replacedByState).to.be.equal(params.newState);
 
+    expect(await state.idExists(params.id)).to.be.equal(true);
     const latestStInfo = await state.getStateInfoById(params.id);
     expect(latestStInfo.state).to.be.equal(params.newState);
   });
@@ -95,17 +101,15 @@ describe("State transition negative cases", () => {
     state = contracts.state;
   });
 
-  it("oldState argument should be equal to the latest identity state in smart contract when isOldStateGenesis == 0", async () => {
+  it("Old state does not match the latest state", async () => {
     await publishState(state, stateTransitions[0]);
 
     const modifiedStateTransition = JSON.parse(
       JSON.stringify(stateTransitions[1])
     );
-    modifiedStateTransition.pub_signals[1] = 1; // set oldState to 1 to trigger the error
-    const [id, _, newState] = modifiedStateTransition.pub_signals[0];
+    modifiedStateTransition.pub_signals[1] = "1"; // set oldState to 1 to trigger the error
 
-    const expectedErrorText =
-      "oldState argument should be equal to the latest identity state in smart contract when isOldStateGenesis == 0";
+    const expectedErrorText = "Old state does not match the latest state";
     let isException = false;
     try {
       await publishState(state, modifiedStateTransition);
@@ -114,22 +118,18 @@ describe("State transition negative cases", () => {
       expect(e.message).contains(expectedErrorText);
     }
     expect(isException).to.equal(true);
-
-    const res = await state.getStateInfoById(id);
-    expect(res).to.not.be.equal(newState);
   });
 
-  it("there should be no states for identity in smart contract when _isOldStateGenesis != 0", async () => {
+  it("Old state is genesis but identity already exists", async () => {
     await publishState(state, stateTransitions[0]);
 
     const modifiedStateTransition = JSON.parse(
       JSON.stringify(stateTransitions[1])
     );
     modifiedStateTransition.pub_signals[3] = "1"; // set isOldStateGenesis to 1 to trigger the error
-    const [id, _, newState] = modifiedStateTransition.pub_signals[1];
 
     const expectedErrorText =
-      "there should be no states for identity in smart contract when _isOldStateGenesis != 0";
+      "Old state is genesis but identity already exists";
     let isException = false;
     try {
       await publishState(state, modifiedStateTransition);
@@ -138,22 +138,19 @@ describe("State transition negative cases", () => {
       expect(e.message).contains(expectedErrorText);
     }
     expect(isException).to.equal(true);
-
-    const res = await state.getStateInfoById(id);
-    expect(res).to.not.be.equal(newState);
   });
 
-  it("oldState should not exist", async () => {
+  it("Genesis state already exists", async () => {
     await publishState(state, stateTransitions[0]);
 
     const modifiedStateTransition = JSON.parse(
       JSON.stringify(stateTransitions[0])
     );
 
-    modifiedStateTransition.pub_signals[0] = 1;
+    // set id to some random value to trigger the error
+    modifiedStateTransition.pub_signals[0] = "1";
 
-    const [id, _, newState] = modifiedStateTransition.pub_signals;
-    const expectedErrorText = "oldState should not exist";
+    const expectedErrorText = "Genesis state already exists";
     let isException = false;
     try {
       await publishState(state, modifiedStateTransition);
@@ -163,14 +160,10 @@ describe("State transition negative cases", () => {
       console.log(e.message);
       expect(e.message).contains(expectedErrorText);
     }
-
     expect(isException).to.equal(true);
-
-    const res = await state.getStateInfoById(id);
-    expect(res).to.not.be.equal(newState);
   });
 
-  it("newState should not exist", async () => {
+  it("New state should not exist", async () => {
     await publishState(state, stateTransitions[0]);
 
     const modifiedStateTransition = JSON.parse(
@@ -179,9 +172,8 @@ describe("State transition negative cases", () => {
 
     // set the new state of identity publishing the same as the existing state
     modifiedStateTransition.pub_signals[2] = stateTransitions[0].pub_signals[1];
-    const [id, _, newState] = modifiedStateTransition.pub_signals;
 
-    const expectedErrorText = "newState should not exist";
+    const expectedErrorText = "New state should not exist";
     let isException = false;
     try {
       await publishState(state, modifiedStateTransition);
@@ -190,20 +182,16 @@ describe("State transition negative cases", () => {
       expect(e.message).contains(expectedErrorText);
     }
     expect(isException).to.equal(true);
-
-    const res = await state.getStateInfoById(id);
-    expect(res).to.not.be.equal(newState);
   });
 
-  it("there should be at least one state for identity in smart contract when _isOldStateGenesis == 0", async () => {
+  it("Old state is not genesis but identity does not yet exist", async () => {
     const modifiedStateTransition = JSON.parse(
       JSON.stringify(stateTransitions[0])
     );
     modifiedStateTransition.pub_signals[3] = "0"; // change isOldStateGenesis to 0 to trigger exception
-    const id = modifiedStateTransition.pub_signals[0];
 
     const expectedErrorText =
-      "there should be at least one state for identity in smart contract when _isOldStateGenesis == 0";
+      "Old state is not genesis but identity does not yet exist";
     let isException = false;
     try {
       await publishState(state, modifiedStateTransition);
@@ -212,19 +200,16 @@ describe("State transition negative cases", () => {
       expect(e.message).contains(expectedErrorText);
     }
     expect(isException).to.equal(true);
-
-    const res = await state.getStateInfoById(id);
-    expect(res.state).to.be.equal("0");
   });
 
-  it("zero-knowledge proof of state transition is not valid", async () => {
+  it("Zero-knowledge proof of state transition is not valid", async () => {
     const modifiedStateTransition = JSON.parse(
       JSON.stringify(stateTransitions[0])
     );
-    modifiedStateTransition.pub_signals[2] = 1; // change state to make zk proof invalid
+    modifiedStateTransition.pub_signals[2] = "1"; // change state to make zk proof invalid
 
     const expectedErrorText =
-      "zero-knowledge proof of state transition is not valid";
+      "Zero-knowledge proof of state transition is not valid";
     let isException = false;
     try {
       await publishState(state, modifiedStateTransition);
@@ -279,8 +264,6 @@ describe("State history", function () {
     expect(stateInfo.createdAtBlock).to.be.equal(0);
     expect(stateInfo.replacedAtBlock).to.be.equal(publishedState.blockNumber);
 
-
-
     const publishedState2 = publishedStates1[1];
     // genesis state info of the first identity (from the contract)
     const [stateInfo2] = await state.getStateInfoHistoryById(id, 2, 1);
@@ -289,13 +272,12 @@ describe("State history", function () {
     expect(stateInfo2.id).to.be.equal(publishedState2.id);
     expect(stateInfo2.state).to.be.equal(publishedState2.newState);
     expect(stateInfo2.replacedByState).to.be.equal(0);
-    expect(stateInfo2.createdAtTimestamp).to.be.equal(publishedState2.timestamp);
+    expect(stateInfo2.createdAtTimestamp).to.be.equal(
+      publishedState2.timestamp
+    );
     expect(stateInfo2.replacedAtTimestamp).to.be.equal(0);
     expect(stateInfo2.createdAtBlock).to.be.equal(publishedState2.blockNumber);
     expect(stateInfo2.replacedAtBlock).to.be.equal(0);
-
-
-
   });
 
   it("should be reverted if length is zero", async () => {
@@ -323,6 +305,54 @@ describe("State history", function () {
   });
 });
 
+describe("get StateInfo negative cases", function () {
+  this.timeout(5000);
+
+  let state;
+
+  before(async () => {
+    const deployHelper = await StateDeployHelper.initialize();
+    const contracts = await deployHelper.deployStateV2();
+    state = contracts.state;
+
+    for (const stateTransition of stateTransitions) {
+      await publishState(state, stateTransition);
+    }
+  });
+
+  it("getStateInfoByID: should be reverted if identity does not exist", async () => {
+    const missingID = stateTransitions[0].pub_signals[0] + 1; // Modify id so it does not exist
+
+    await expect(state.getStateInfoById(missingID)).to.be.revertedWith(
+      "Identity does not exist"
+    );
+  });
+
+  it("getStateInfoHistoryById: should be reverted if identity does not exist", async () => {
+    const missingID = stateTransitions[0].pub_signals[0] + 1; // Modify id so it does not exist
+
+    await expect(
+      state.getStateInfoHistoryById(missingID, 0, 1)
+    ).to.be.revertedWith("Identity does not exist");
+  });
+
+  it("getStateInfoHistoryLengthById: should be reverted if identity does not exist", async () => {
+    const missingID = stateTransitions[0].pub_signals[0] + 1; // Modify id so it does not exist
+
+    await expect(
+      state.getStateInfoHistoryLengthById(missingID)
+    ).to.be.revertedWith("Identity does not exist");
+  });
+
+  it("getStateInfoByState: should be reverted if state does not exist", async () => {
+    const missingState = stateTransitions[0].pub_signals[2] + 1; // Modify state so it does not exist
+
+    await expect(state.getStateInfoByState(missingState)).to.be.revertedWith(
+      "State does not exist"
+    );
+  });
+});
+
 describe("GIST proofs", () => {
   let state: any;
 
@@ -332,7 +362,8 @@ describe("GIST proofs", () => {
     state = contracts.state;
   });
 
-  it("Should be correct historical proof by root and the latest root", async () => {
+  it("Should be correct historical proof by root and the latest root", async function () {
+    this.timeout(5000);
     const currentRoots: any[] = [];
     const id = ethers.BigNumber.from(stateTransitions[0].pub_signals[0]);
 
@@ -359,7 +390,8 @@ describe("GIST proofs", () => {
     expect(obj2.root).to.equal(currentRoots[1]);
   });
 
-  it("Should be correct historical proof by time", async () => {
+  it("Should be correct historical proof by time", async function () {
+    this.timeout(5000);
     for (const issuerStateJson of stateTransitions) {
       await publishState(state, issuerStateJson);
     }
@@ -387,7 +419,8 @@ describe("GIST proofs", () => {
     expect(r2).to.equal(root2info.root);
   });
 
-  it("Should be correct historical proof by block", async () => {
+  it("Should be correct historical proof by block", async function () {
+    this.timeout(5000);
     for (const issuerStateJson of stateTransitions) {
       await publishState(state, issuerStateJson);
     }
@@ -420,7 +453,8 @@ describe("GIST root history", () => {
     state = contracts.state;
   });
 
-  it("Should search by block and by time return same root", async () => {
+  it("Should search by block and by time return same root", async function () {
+    this.timeout(5000);
     for (const issuerStateJson of stateTransitions) {
       await publishState(state, issuerStateJson);
     }
@@ -442,7 +476,8 @@ describe("GIST root history", () => {
     expect(rootInfo.root).to.equal(rootT).to.equal(rootB);
   });
 
-  it("Should have correct GIST root transitions info", async () => {
+  it("Should have correct GIST root transitions info", async function () {
+    this.timeout(5000);
     const roots: any[] = [];
     const expRootInfos: any[] = [];
     for (const issuerStateJson of stateTransitions) {

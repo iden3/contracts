@@ -5,8 +5,8 @@ pragma abicoder v2;
 import "../lib/Smt.sol";
 
 contract BinarySearchTestWrapper {
-    SmtData internal smtData;
-    using BinarySearchSmtRoots for SmtData;
+    Smt.SmtData internal smtData;
+    using BinarySearchSmtRoots for Smt.SmtData;
 
     function addRootEntry(
         uint256 _createdAtTimestamp,
@@ -15,7 +15,7 @@ contract BinarySearchTestWrapper {
     ) public {
         smtData.rootHistory.push(_root);
 
-        RootEntry memory rt = RootEntry({
+        Smt.RootEntry memory rt = Smt.RootEntry({
             replacedByRoot: 0,
             createdAtTimestamp: _createdAtTimestamp,
             createdAtBlock: _createdAtBlock
@@ -35,7 +35,11 @@ contract BinarySearchTestWrapper {
         view
         returns (uint256)
     {
-        return smtData.binarySearchUint256(_timestamp, SearchType.TIMESTAMP);
+        return
+            smtData.binarySearchUint256(
+                _timestamp,
+                BinarySearchSmtRoots.SearchType.TIMESTAMP
+            );
     }
 
     function getHistoricalRootByBlock(uint256 _block)
@@ -43,6 +47,10 @@ contract BinarySearchTestWrapper {
         view
         returns (uint256)
     {
-        return smtData.binarySearchUint256(_block, SearchType.BLOCK);
+        return
+            smtData.binarySearchUint256(
+                _block,
+                BinarySearchSmtRoots.SearchType.BLOCK
+            );
     }
 }

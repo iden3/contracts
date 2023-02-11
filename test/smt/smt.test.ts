@@ -4,9 +4,6 @@ import { FixedArray, genMaxBinaryNumber, MtpProof } from "../utils/utils";
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 import { publishState } from "../utils/deploy-utils";
 
-// todo [RESEARCH] why the index 2**31-1 but not 2**32-1 is maximum? Research smtverifier in circomlib
-// todo [RESEARCH] why circom verifier has 33 siblings instead of 32?
-
 const stateTransitions = [
   require("../state/data/user_state_genesis_transition.json"),
   require("../state/data/user_state_next_transition.json"),
@@ -14,8 +11,8 @@ const stateTransitions = [
 
 type TestCaseMTPProof = {
   expectedProof: MtpProof;
-  leavesToInsert: { i: number; v: number }[];
-  getProofParams: number | { index: number; historicalRoot: string };
+  leavesToInsert: { i: number | bigint; v: number }[];
+  getProofParams: number | bigint | { index: number; historicalRoot: string };
   [key: string]: any;
 };
 
@@ -48,9 +45,9 @@ describe("SMT tests", function () {
       }
 
       const proof =
-        typeof testCase.getProofParams == "number"
-          ? await smt.getSmtProof(testCase.getProofParams)
-          : await smt.getSmtHistoricalProofByRoot(
+        typeof testCase.getProofParams == "number" || typeof testCase.getProofParams == "bigint"
+          ? await smt.getProof(testCase.getProofParams)
+          : await smt.getProofByRoot(
               testCase.getProofParams.index,
               testCase.getProofParams.historicalRoot
             );
@@ -66,6 +63,7 @@ describe("SMT tests", function () {
           getProofParams: 4,
           expectedProof: {
             root: "17172838131998611102390183760409471205043596092117126608119446264795219840387",
+            existence: true,
             siblings: [
               "0",
               "0",
@@ -99,18 +97,49 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
+
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
             ],
-            oldKey: 0,
-            oldValue: 0,
-            isOld0: false,
-            key: 4,
+            index: 4,
             value: 444,
-            fnc: 0,
+            auxExistence: false,
+            auxIndex: 0,
+            auxValue: 0,
           },
         },
         {
-          description:
-            "add 2 leaves (depth = 2) and generate the proof of the second one",
+          description: "add 2 leaves (depth = 2) and generate the proof of the second one",
           leavesToInsert: [
             { i: 4, v: 444 },
             { i: 2, v: 222 },
@@ -118,6 +147,7 @@ describe("SMT tests", function () {
           getProofParams: 2,
           expectedProof: {
             root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+            existence: true,
             siblings: [
               "0",
               "17172838131998611102390183760409471205043596092117126608119446264795219840387",
@@ -151,13 +181,44 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
             ],
-            oldKey: 0,
-            oldValue: 0,
-            isOld0: false,
-            key: 2,
+            index: 2,
             value: 222,
-            fnc: 0,
+            auxExistence: false,
+            auxIndex: 0,
+            auxValue: 0,
           },
         },
         {
@@ -171,6 +232,7 @@ describe("SMT tests", function () {
           getProofParams: 4,
           expectedProof: {
             root: "7518984336464932918389970949562858717786148793994477177454424989320848411811",
+            existence: true,
             siblings: [
               "0",
               "14251506067749311748434684987325372940957929637576367655195798776182705044439",
@@ -204,13 +266,45 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
+
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
             ],
-            oldKey: 0,
-            oldValue: 0,
-            isOld0: false,
-            key: 4,
+            index: 4,
             value: 444,
-            fnc: 0,
+            auxExistence: false,
+            auxIndex: 0,
+            auxValue: 0,
           },
         },
         {
@@ -224,6 +318,7 @@ describe("SMT tests", function () {
           getProofParams: 2,
           expectedProof: {
             root: "7518984336464932918389970949562858717786148793994477177454424989320848411811",
+            existence: true,
             siblings: [
               "0",
               "17172838131998611102390183760409471205043596092117126608119446264795219840387",
@@ -257,13 +352,45 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
+
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
             ],
-            oldKey: 0,
-            oldValue: 0,
-            isOld0: false,
-            key: 2,
+            index: 2,
             value: 223,
-            fnc: 0,
+            auxExistence: false,
+            auxIndex: 0,
+            auxValue: 0,
           },
         },
         {
@@ -281,6 +408,7 @@ describe("SMT tests", function () {
           },
           expectedProof: {
             root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+            existence: true,
             siblings: [
               "0",
               "17172838131998611102390183760409471205043596092117126608119446264795219840387",
@@ -314,13 +442,45 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
+
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
             ],
-            oldKey: 0,
-            oldValue: 0,
-            isOld0: false,
-            key: 2,
+            index: 2,
             value: 222,
-            fnc: 0,
+            auxExistence: false,
+            auxIndex: 0,
+            auxValue: 0,
           },
         },
         {
@@ -338,6 +498,7 @@ describe("SMT tests", function () {
           },
           expectedProof: {
             root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+            existence: true,
             siblings: [
               "0",
               "7886566820534140840061358290700879102455368051640197098120169021365756575690",
@@ -371,13 +532,45 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
+
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
             ],
-            oldKey: 0,
-            oldValue: 0,
-            isOld0: false,
-            key: 4,
+            index: 4,
             value: 444,
-            fnc: 0,
+            auxExistence: false,
+            auxIndex: 0,
+            auxValue: 0,
           },
         },
       ];
@@ -397,6 +590,7 @@ describe("SMT tests", function () {
           getProofParams: 2,
           expectedProof: {
             root: "17172838131998611102390183760409471205043596092117126608119446264795219840387",
+            existence: false,
             siblings: [
               "0",
               "0",
@@ -430,13 +624,45 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
+
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
             ],
-            oldKey: 4,
-            oldValue: 444,
-            isOld0: false,
-            key: 2,
+            index: 2,
             value: 444,
-            fnc: 1,
+            auxExistence: true,
+            auxIndex: 4,
+            auxValue: 444,
           },
         },
         {
@@ -449,6 +675,7 @@ describe("SMT tests", function () {
           getProofParams: 6,
           expectedProof: {
             root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+            existence: false,
             siblings: [
               "0",
               "17172838131998611102390183760409471205043596092117126608119446264795219840387",
@@ -482,13 +709,45 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
+
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
             ],
-            oldKey: 2,
-            oldValue: 222,
-            isOld0: false,
-            key: 6,
+            index: 6,
             value: 222,
-            fnc: 1,
+            auxExistence: true,
+            auxIndex: 2,
+            auxValue: 222,
           },
         },
         {
@@ -501,6 +760,7 @@ describe("SMT tests", function () {
           getProofParams: 1,
           expectedProof: {
             root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+            existence: false,
             siblings: [
               "6675047397658061825643898157145998146182607268727302490292227324666463200032",
               "0",
@@ -534,13 +794,45 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
+
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
             ],
-            oldKey: 0,
-            oldValue: 0,
-            isOld0: true,
-            key: 1,
+            index: 1,
             value: 0,
-            fnc: 1,
+            auxExistence: false,
+            auxIndex: 0,
+            auxValue: 0,
           },
         },
         {
@@ -558,6 +850,7 @@ describe("SMT tests", function () {
           },
           expectedProof: {
             root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+            existence: false,
             siblings: [
               "0",
               "17172838131998611102390183760409471205043596092117126608119446264795219840387",
@@ -591,13 +884,45 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
+
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
             ],
-            oldKey: 2,
-            oldValue: 222,
-            isOld0: false,
-            key: 6,
+            index: 6,
             value: 222,
-            fnc: 1,
+            auxExistence: true,
+            auxIndex: 2,
+            auxValue: 222,
           },
         },
         {
@@ -615,6 +940,7 @@ describe("SMT tests", function () {
           },
           expectedProof: {
             root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+            existence: false,
             siblings: [
               "6675047397658061825643898157145998146182607268727302490292227324666463200032",
               "0",
@@ -648,13 +974,45 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
+
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
             ],
-            oldKey: 0,
-            oldValue: 0,
-            isOld0: true,
-            key: 1,
+            index: 1,
             value: 0,
-            fnc: 1,
+            auxExistence: false,
+            auxIndex: 0,
+            auxValue: 0,
           },
         },
         {
@@ -672,6 +1030,7 @@ describe("SMT tests", function () {
           },
           expectedProof: {
             root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+            existence: false,
             siblings: [
               "6675047397658061825643898157145998146182607268727302490292227324666463200032",
               "0",
@@ -705,13 +1064,45 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
+
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
             ],
-            oldKey: 0,
-            oldValue: 0,
-            isOld0: true,
-            key: 1,
+            index: 1,
             value: 0,
-            fnc: 1,
+            auxExistence: false,
+            auxIndex: 0,
+            auxValue: 0,
           },
         },
       ];
@@ -728,12 +1119,13 @@ describe("SMT tests", function () {
         const testCaseEdge: TestCaseMTPProof = {
           description: "Positive: add two leaves with maximum depth",
           leavesToInsert: [
-            { i: genMaxBinaryNumber(30), v: 100 },
-            { i: genMaxBinaryNumber(31), v: 100 },
+            { i: genMaxBinaryNumber(63), v: 100 },
+            { i: genMaxBinaryNumber(64), v: 100 },
           ],
-          getProofParams: genMaxBinaryNumber(30),
+          getProofParams: genMaxBinaryNumber(64),
           expectedProof: {
-            root: "6449232753855221707194667931706346705297555021165401674032084876583756436933",
+            root: "11998361913555620744473305594791175460338619045531124782442564216176360071119",
+            existence: true,
             siblings: [
               "0",
               "0",
@@ -765,15 +1157,46 @@ describe("SMT tests", function () {
               "0",
               "0",
               "0",
-              "381734955794712863726334416780425272712032446533219069541873199912632687686",
               "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "2316164946517152574748505824782744746774130618858955093234986590959173249001",
             ],
-            oldKey: 0,
-            oldValue: 0,
-            isOld0: false,
-            key: 1073741823,
-            value: 100,
-            fnc: 0,
+            index: "18446744073709551615",
+            value: "100",
+            auxExistence: false,
+            auxIndex: "0",
+            auxValue: "0",
           },
         };
 
@@ -781,10 +1204,8 @@ describe("SMT tests", function () {
       });
 
       it("Negative: add two leaves with maximum depth + 1", async () => {
-        await expect(smt.add(genMaxBinaryNumber(31), 100)).not.to.be.reverted;
-        await expect(smt.add(genMaxBinaryNumber(32), 100)).to.be.revertedWith(
-          "Max depth reached"
-        );
+        await expect(smt.add(genMaxBinaryNumber(64), 100)).not.to.be.reverted;
+        await expect(smt.add(genMaxBinaryNumber(65), 100)).to.be.revertedWith("Max depth reached");
       });
     });
   });
@@ -844,9 +1265,9 @@ describe("SMT tests", function () {
 
     it("should be reverted if out of bounds", async () => {
       const historyLength = await state.getGISTRootHistoryLength();
-      await expect(
-        state.getGISTRootHistory(historyLength - 1, 2)
-      ).to.be.revertedWith("Out of bounds of root history");
+      await expect(state.getGISTRootHistory(historyLength - 1, 2)).to.be.revertedWith(
+        "Out of bounds of root history"
+      );
     });
   });
 
@@ -859,20 +1280,13 @@ describe("SMT tests", function () {
       }
     }
 
-    async function checkRootByTimeAndBlock(
-      rts: RootEntry[],
-      tc: TestCaseRootHistory
-    ) {
+    async function checkRootByTimeAndBlock(rts: RootEntry[], tc: TestCaseRootHistory) {
       await addRootEntries(rts);
 
-      const rootByTimestamp = await binarySearch.getHistoricalRootByTime(
-        tc.timestamp
-      );
+      const rootByTimestamp = await binarySearch.getHistoricalRootByTime(tc.timestamp);
       expect(rootByTimestamp).to.equal(tc.expectedRoot);
 
-      const rootByBlock = await binarySearch.getHistoricalRootByBlock(
-        tc.blockNumber
-      );
+      const rootByBlock = await binarySearch.getHistoricalRootByBlock(tc.blockNumber);
       expect(rootByBlock).to.equal(tc.expectedRoot);
     }
 
@@ -923,8 +1337,7 @@ describe("SMT tests", function () {
           expectedRoot: 0,
         },
         {
-          description:
-            "Should return the last root when search for greater than the last",
+          description: "Should return the last root when search for greater than the last",
           timestamp: 2,
           blockNumber: 11,
           expectedRoot: 1000,
@@ -972,8 +1385,7 @@ describe("SMT tests", function () {
           expectedRoot: 0,
         },
         {
-          description:
-            "Should return the last root when search for greater than the last",
+          description: "Should return the last root when search for greater than the last",
           timestamp: 6,
           blockNumber: 16,
           expectedRoot: rootEntries[1].root,
@@ -1026,15 +1438,13 @@ describe("SMT tests", function () {
           expectedRoot: rootEntries[2].root,
         },
         {
-          description:
-            "Should return zero root when search for less than the first",
+          description: "Should return zero root when search for less than the first",
           timestamp: 0,
           blockNumber: 9,
           expectedRoot: 0,
         },
         {
-          description:
-            "Should return the last root when search for greater than the last",
+          description: "Should return the last root when search for greater than the last",
           timestamp: 9,
           blockNumber: 19,
           expectedRoot: rootEntries[2].root,
@@ -1092,8 +1502,7 @@ describe("SMT tests", function () {
           expectedRoot: 0,
         },
         {
-          description:
-            "Should return the last root when search for greater than the last",
+          description: "Should return the last root when search for greater than the last",
           timestamp: rootEntries[3].timestamp + 1,
           blockNumber: rootEntries[3].block + 1,
           expectedRoot: rootEntries[3].root,
@@ -1138,8 +1547,7 @@ describe("SMT tests", function () {
 
       const testCase: TestCaseRootHistory[] = [
         {
-          description:
-            "Should return the first root when search in between the first and second",
+          description: "Should return the first root when search in between the first and second",
           timestamp: 2,
           blockNumber: 12,
           expectedRoot: rootEntries[0].root,
@@ -1281,20 +1689,52 @@ describe("SMT tests", function () {
       }
     });
   });
+
+  describe("Edge cases with exceptions", () => {
+    let smt;
+
+    beforeEach(async () => {
+      const deployHelper = await StateDeployHelper.initialize();
+      smt = await deployHelper.deploySmtTestWrapper();
+    });
+
+    it("getRootInfo() should throw when root does not exist", async () => {
+      await smt.add(1, 1);
+      const root = await smt.getRoot();
+      await expect(smt.getRootInfo(root)).not.to.be.reverted;
+      await expect(smt.getRootInfo(root + 1)).to.be.revertedWith("Root does not exist");
+    });
+
+    it("getProofByRoot() should throw when root does not exist", async () => {
+      await smt.add(1, 1);
+      const root = await smt.getRoot();
+      await expect(smt.getProofByRoot(1, root)).not.to.be.reverted;
+      await expect(smt.getProofByRoot(1, root + 1)).to.be.revertedWith("Root does not exist");
+    });
+
+    it("add() should throw when node already exist with the same index and value", async () => {
+      await smt.add(1, 1);
+      await smt.add(1, 2);
+      await expect(smt.add(1, 1)).to.be.revertedWith(
+        "Node already exists with the same index and value"
+      );
+    });
+  });
 });
 
 function checkMtpProof(proof, expectedProof: MtpProof) {
-  expect(proof[0]).to.equal(expectedProof.root);
-  checkSiblings(proof[1], expectedProof.siblings);
-  expect(proof[2]).to.equal(expectedProof.oldKey);
-  expect(proof[3]).to.equal(expectedProof.oldValue);
-  expect(proof[4]).to.equal(expectedProof.isOld0);
-  expect(proof[5]).to.equal(expectedProof.key);
-  expect(proof[6]).to.equal(expectedProof.value);
-  expect(proof[7]).to.equal(expectedProof.fnc);
+  console.log(proof.siblings[62].toString());
+  expect(proof.root).to.equal(expectedProof.root);
+  expect(proof.existence).to.equal(expectedProof.existence);
+  checkSiblings(proof.siblings, expectedProof.siblings);
+  expect(proof.index).to.equal(expectedProof.index);
+  expect(proof.value).to.equal(expectedProof.value);
+  expect(proof.auxExistence).to.equal(expectedProof.auxExistence);
+  expect(proof.auxIndex).to.equal(expectedProof.auxIndex);
+  expect(proof.auxValue).to.equal(expectedProof.auxValue);
 }
 
-function checkSiblings(siblings, expectedSiblings: FixedArray<string, 32>) {
+function checkSiblings(siblings, expectedSiblings: FixedArray<string, 64>) {
   expect(siblings.length).to.equal(expectedSiblings.length);
   for (let i = 0; i < siblings.length; i++) {
     expect(siblings[i]).to.equal(expectedSiblings[i]);

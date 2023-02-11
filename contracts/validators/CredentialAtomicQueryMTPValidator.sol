@@ -7,13 +7,9 @@ import "../interfaces/ICircuitValidator.sol";
 import "../interfaces/IVerifier.sol";
 import "../interfaces/IState.sol";
 
-contract CredentialAtomicQueryMTPValidator is
-    OwnableUpgradeable,
-    ICircuitValidator
-{
-    string constant CIRCUIT_ID = "credentialAtomicQueryMTP";
-    uint256 constant CHALLENGE_INDEX = 2;
-    uint256 constant USER_ID_INDEX = 0;
+contract CredentialAtomicQueryMTPValidator is OwnableUpgradeable, ICircuitValidator {
+    string constant CIRCUIT_ID = "credentialAtomicQueryMTPV2OnChain";
+    uint256 constant CHALLENGE_INDEX = 4;
 
     IVerifier public verifier;
     IState public state;
@@ -30,10 +26,7 @@ contract CredentialAtomicQueryMTPValidator is
         __Ownable_init();
     }
 
-    function setRevocationStateExpirationTime(uint256 expirationTime)
-        public
-        onlyOwner
-    {
+    function setRevocationStateExpirationTime(uint256 expirationTime) public onlyOwner {
         revocationStateExpirationTime = expirationTime;
     }
 
@@ -45,108 +38,65 @@ contract CredentialAtomicQueryMTPValidator is
         return CHALLENGE_INDEX;
     }
 
-    function getUserIdInputIndex() external pure returns (uint256 index) {
-        return USER_ID_INDEX;
-    }
-
     function verify(
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        CircuitQuery memory query
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
+        uint256 queryHash
     ) external view returns (bool r) {
         // verify that zkp is valid
-        require(verifier.verifyProof(a, b, c, inputs), "MTP is not valid");
+        require(verifier.verifyProof(a, b, c, inputs), "MTP proof is not valid");
 
-        // verify query
-        require(
-            inputs[7] == query.schema,
-            "wrong claim schema has been used for proof generation"
-        );
-        require(
-            inputs[8] == query.slotIndex,
-            "wrong claim data slot has been used for proof generation"
-        );
-        require(
-            inputs[9] == query.operator,
-            "wrong query operator has been used for proof generation"
-        );
-
-        for (uint256 i = 0; i < query.value.length; i++) {
-            require(
-                inputs[i + 10] == query.value[i],
-                "wrong comparison value has been used for proof generation"
-            );
-        }
+        require(inputs[2] == queryHash, "query hash does not match the requested one");
 
         // verify user states
+        uint256 gistRoot = inputs[5];
+        uint256 issuerId = inputs[6];
+        uint256 issuerClaimIdenState = inputs[7];
+        uint256 issuerClaimNonRevState = inputs[9];
 
-        uint256 userId = inputs[USER_ID_INDEX];
-        uint256 userState = inputs[1];
-        uint256 issuerClaimIdenState = inputs[3];
-        uint256 issuerId = inputs[4];
-        uint256 issuerClaimNonRevState = inputs[5];
+        IState.RootInfo memory rootInfo = state.getGISTRootInfo(gistRoot);
 
-        // 1. User state must be latest or genesis
-
-        uint256 userStateFromContract = state.getState(userId);
-
-        if (userStateFromContract == 0) {
-            require(
-                GenesisUtils.isGenesisState(userId, userState),
-                "User state isn't in state contract and not genesis"
-            );
-        } else {
-            // The non-empty state is returned, and it’s not equal to the state that the user has provided.
-            require(
-                userStateFromContract == userState,
-                "user state is not latest"
-            );
-        }
+        require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
 
         // 2. Issuer state must be registered in state contracts or be genesis
-        bool isIssuerStateGenesis = GenesisUtils.isGenesisState(
-            issuerId,
-            issuerClaimIdenState
-        );
+        bool isIssuerStateGenesis = GenesisUtils.isGenesisState(issuerId, issuerClaimIdenState);
 
         if (!isIssuerStateGenesis) {
-            (, , , , uint256 issuerIdFromState, ) = state.getTransitionInfo(
+            IState.StateInfo memory issuerStateInfo = state.getStateInfoByState(
                 issuerClaimIdenState
             );
-            require(
-                issuerId == issuerIdFromState,
-                "Issuer state doesn't exist in state contract"
-            );
+            require(issuerId == issuerStateInfo.id, "Issuer state doesn't exist in state contract");
         }
 
-        uint256 issuerClaimNonRevFromContract = state.getState(issuerId);
+        IState.StateInfo memory issuerClaimNonRevStateInfo = state.getStateInfoById(issuerId);
 
-        if (issuerClaimNonRevFromContract == 0) {
+        if (issuerClaimNonRevStateInfo.state == 0) {
             require(
                 GenesisUtils.isGenesisState(issuerId, issuerClaimNonRevState),
                 "Non-Revocation state isn't in state contract and not genesis"
             );
         } else {
-            // The non-empty state is returned, and it’s not equal to the state that the user has provided.
-            if (issuerClaimNonRevFromContract != issuerClaimNonRevState) {
+            // The non-empty state is returned, and it's not equal to the state that the user has provided.
+            if (issuerClaimNonRevStateInfo.state != issuerClaimNonRevState) {
                 // Get the time of the latest state and compare it to the transition time of state provided by the user.
-                (uint256 replacedAtTimestamp, , , , uint256 id, ) = state
-                    .getTransitionInfo(issuerClaimNonRevState);
+                IState.StateInfo memory issuerClaimNonRevLatestStateInfo = state
+                    .getStateInfoByState(issuerClaimNonRevState);
 
-                if (id == 0 || id != issuerId) {
+                if (
+                    issuerClaimNonRevLatestStateInfo.id == 0 ||
+                    issuerClaimNonRevLatestStateInfo.id != issuerId
+                ) {
                     revert("state in transition info contains invalid id");
                 }
 
-                if (replacedAtTimestamp == 0) {
-                    revert(
-                        "Non-Latest state doesn't contain replacement information"
-                    );
+                if (issuerClaimNonRevLatestStateInfo.replacedAtTimestamp == 0) {
+                    revert("Non-Latest state doesn't contain replacement information");
                 }
 
                 if (
-                    block.timestamp - replacedAtTimestamp >
+                    block.timestamp - issuerClaimNonRevLatestStateInfo.replacedAtTimestamp >
                     revocationStateExpirationTime
                 ) {
                     revert("Non-Revocation state of Issuer expired");
