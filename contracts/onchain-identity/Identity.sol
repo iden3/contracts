@@ -27,14 +27,14 @@ contract Identity is OwnableUpgradeable {
 
     IState public state;
 
-    using Smt for SmtData;
+    using Smt for Smt.SmtData;
 
     /**
      * @dev SMT addresses
      */
-    SmtData internal claimsTree;
-    SmtData internal revocationsTree;
-    SmtData internal rootsTree;
+    Smt.SmtData internal claimsTree;
+    Smt.SmtData internal revocationsTree;
+    Smt.SmtData internal rootsTree;
 
     /**
      * @dev roots used in last State Transition
@@ -52,8 +52,8 @@ contract Identity is OwnableUpgradeable {
         state = IState(_stateContractAddr);
         isOldStateGenesis = true;
         // TODO: should we add contract address claim to claimsTree?
-        // claimsTree.add(0, uint256(uint160(address(this))));
-        // lastClaimsTreeRoot = claimsTree.getRoot();
+        claimsTree.add(0, uint256(uint160(address(this))));
+        lastClaimsTreeRoot = claimsTree.getRoot();
         identityState = calcIdentityState();
         id = GenesisUtils.calcOnchainIdFromAddress(address(this));
         __Ownable_init();
@@ -141,7 +141,7 @@ contract Identity is OwnableUpgradeable {
      * @param claimIndexHash - hash of Claim Index
      * @return The ClaimsTree inclusion or non-inclusion proof for the claim
      */
-    function getClaimProof(uint256 claimIndexHash) public view returns (Proof memory) {
+    function getClaimProof(uint256 claimIndexHash) public view returns (Smt.Proof memory) {
         return claimsTree.getProof(claimIndexHash);
     }
 
@@ -158,7 +158,7 @@ contract Identity is OwnableUpgradeable {
      * @param revocationNonce - revocation nonce
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
-    function getRevocationProof(uint64 revocationNonce) public view returns (Proof memory) {
+    function getRevocationProof(uint64 revocationNonce) public view returns (Smt.Proof memory) {
         return revocationsTree.getProof(uint256(revocationNonce));
     }
 
@@ -175,7 +175,7 @@ contract Identity is OwnableUpgradeable {
      * @param claimsTreeRoot - claims tree root
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
-    function getRootProof(uint256 claimsTreeRoot) public view returns (Proof memory) {
+    function getRootProof(uint256 claimsTreeRoot) public view returns (Smt.Proof memory) {
         return rootsTree.getProof(claimsTreeRoot);
     }
 

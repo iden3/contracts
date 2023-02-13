@@ -58,4 +58,38 @@ interface IState {
     function getStateInfoByState(
         uint256 state
     ) external view returns (StateInfo memory);
+
+    /**
+     * @dev Performs state transition
+     * @param id Identifier of the identity
+     * @param oldState Previous state of the identity
+     * @param newState New state of the identity
+     * @param isOldStateGenesis Flag if previous identity state is genesis
+     * @param a Proof.A
+     * @param b Proof.B
+     * @param c Proof.C
+     */
+    function transitState(
+        uint256 id,
+        uint256 oldState,
+        uint256 newState,
+        bool isOldStateGenesis,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c
+    ) external;
+
+    /**
+     * @dev Performs state transition
+     * @param id Identifier of the identity
+     * @param oldState Previous state of the identity
+     * @param newState New state of the identity
+     * @param isOldStateGenesis Flag if previous identity state is genesis
+     */
+    function transitStateOnchainIdentity(
+        uint256 id,
+        uint256 oldState,
+        uint256 newState,
+        bool isOldStateGenesis
+    ) external;
 }
