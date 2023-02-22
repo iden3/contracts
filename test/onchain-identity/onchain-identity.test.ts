@@ -2,6 +2,7 @@ import {expect} from "chai";
 import {OnchainIdentityDeployHelper} from "../../helpers/OnchainIdentityDeployHelper";
 import {StateDeployHelper} from "../../helpers/StateDeployHelper";
 import {ethers} from "hardhat";
+import {ClaimData} from "./claim"
 
 describe("Onchain Identity", () => {
     let identity;
@@ -146,5 +147,18 @@ describe("Onchain Identity", () => {
         expect(claim[0]).to.be.not.equal(0);
 
     });
+
+    // it("build claim 2", async function () {
+    //     this.timeout(20000); // 20 second timeout for state transitions, etc
+    //
+    //     let claimData<ClaimData>;
+    //
+    //     console.log("ClaimData: ", claimData);
+    //
+    //     let claim = await identity.buildClaim(claimData);
+    //     console.log("Claim: ", claim);
+    //     expect(claim[0]).to.be.not.equal(0);
+    //
+    // });
 
 });
