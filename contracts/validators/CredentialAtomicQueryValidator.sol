@@ -31,6 +31,31 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
 
     function getChallengeInputIndex() external pure virtual returns (uint256 index);
 
+    function verify(
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
+        uint256 queryHash
+    ) external view virtual returns (bool) {
+        // verify that zkp is valid
+        require(verifier.verifyProof(a, b, c, inputs), "Proof is not valid");
+        //destrcut values from result array
+        uint256[] memory validationParams = _getInputValidationParameters(inputs);
+        uint256 inputQueryHash = validationParams[0];
+        require(inputQueryHash == queryHash, "query hash does not match the requested one");
+
+        uint256 gistRoot = validationParams[1];
+        _checkGistRoot(gistRoot);
+
+        uint256 issuerId = validationParams[2];
+        uint256 issuerClaissuerClaimState = validationParams[3];
+        _checkStateContractOrGenesis(issuerId, issuerClaissuerClaimState);
+        uint256 issuerClaimNonRevState = validationParams[4];
+        _checkClaimNonRevState(issuerId, issuerClaimNonRevState);
+        return (true);
+    }
+
     function _getInputValidationParameters(
         uint256[] calldata inputs
     ) internal pure virtual returns (uint256[] memory);
@@ -81,30 +106,5 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
                 }
             }
         }
-    }
-
-    function verify(
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
-        uint256 queryHash
-    ) external view virtual returns (bool) {
-        // verify that zkp is valid
-        require(verifier.verifyProof(a, b, c, inputs), "Proof is not valid");
-        //destrcut values from result array
-        uint256[] memory validationParams = _getInputValidationParameters(inputs);
-        uint256 inputQueryHash = validationParams[0];
-        require(inputQueryHash == queryHash, "query hash does not match the requested one");
-
-        uint256 gistRoot = validationParams[1];
-        _checkGistRoot(gistRoot);
-
-        uint256 issuerId = validationParams[2];
-        uint256 issuerClaissuerClaimState = validationParams[3];
-        _checkStateContractOrGenesis(issuerId, issuerClaissuerClaimState);
-        uint256 issuerClaimNonRevState = validationParams[4];
-        _checkClaimNonRevState(issuerId, issuerClaimNonRevState);
-        return (true);
     }
 }
