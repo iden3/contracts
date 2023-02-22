@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.15;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import "../lib/Smt.sol";
 import "../lib/Poseidon.sol";
 
@@ -15,7 +15,7 @@ interface IVerifier {
 }
 
 /// @title Set and get states for each identity
-contract StateV2 is OwnableUpgradeable {
+contract StateV2 is Ownable2StepUpgradeable {
     /**
      * @dev Max return array length for id history requests
      */
@@ -68,6 +68,14 @@ contract StateV2 is OwnableUpgradeable {
         // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
         uint256[50] __gap;
     }
+
+    // This empty reserved space is put in place to allow future versions
+    // of the State contract to inherit from other contracts without a risk of
+    // breaking the storage layout. This is necessary because the parent contracts in the
+    // future may introduce some storage variables, which are placed before the State
+    // contract's storage variables.
+    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+    uint256[500] __gap;
 
     /**
      * @dev Verifier address
