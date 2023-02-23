@@ -1,25 +1,26 @@
 import { ethers } from "hardhat";
 import fs from "fs";
 import path from "path";
-const pathOutputJson = path.join(
-  __dirname,
-  "./deploy_erc20verifier_output.json"
-);
+import { deployPoseidonFacade } from "../test/utils/deploy-poseidons.util";
+const pathOutputJson = path.join(__dirname, "./deploy_erc20verifier_output.json");
 
 async function main() {
-  // VerifierSigWrapper  deployed to: 0x3bB61B03752872B15f55F45f7a447cf1180c3564
-  // CredentialAtomicQuerySigValidator  deployed to: 0xF66Bf7c7EAe2279385671261CAbCcf4d1D736405
-  const verifierContract ="ERC20VerifierSig" //"ERC20Verifier";
-  const verifierName = "ERC20ZKPVerifierSig"; //"ERC20ZKPVerifier";
-  const verifierSymbol = "ERCZKPSig"; //ERCZKP
-  const circuitId = "credentialAtomicQuerySig"; //"credentialAtomicQueryMTP";
-  const validatorAddress = "0x98ff8015A7E0f9646fBF9fF6225489c34c8E4F83";
-  //"0x6522C1d0d9b522b797dDA1E4C849B12f08e9c15d";
-  const ERC20Verifier = await ethers.getContractFactory(verifierContract);
-  const erc20Verifier = await ERC20Verifier.deploy(
-    verifierName,
-    verifierSymbol
-  ); // current mtp validator address on mumbai
+  const verifierContract = "ERC20Verifier"; //"ERC20Verifier";
+  const verifierName = "ERC20ZKPVerifierMTP"; //"ERC20ZKPVerifier";
+  const verifierSymbol = "ERCZKPMTP"; //ERCZKP
+  const circuitId = "credentialAtomicQueryMTPV2OnChain"; //;credentialAtomicQuerySigV2OnChain
+
+  const validatorAddress = "0xB39B28F7157BC428F2A0Da375f584c3a1ede9121"; // mtp validator
+  //"0xC8334388DbCe2F73De2354e7392EA326011515b8"; // sig validator
+
+  const poseidonFacade = await deployPoseidonFacade();
+
+  const ERC20Verifier = await ethers.getContractFactory(verifierContract, {
+    libraries: {
+      PoseidonFacade: poseidonFacade.address,
+    },
+  });
+  const erc20Verifier = await ERC20Verifier.deploy(verifierName, verifierSymbol); // current mtp validator address on mumbai
 
   await erc20Verifier.deployed();
   console.log(verifierName, " deployed to:", erc20Verifier.address);
@@ -27,19 +28,24 @@ async function main() {
   // set default query
 
   const ageQuery = {
-    schema: ethers.BigNumber.from("210459579859058135404770043788028292398"),
-    slotIndex: 2,
+    schema: ethers.BigNumber.from("74977327600848231385663280181476307657"),
+    claimPathKey: ethers.BigNumber.from(
+      "20376033832371109177683048456014525905119173674985843915445634726167450989630"
+    ),
     operator: 2,
-    value: [20020101, ...new Array(63).fill(0).map(i => 0)],
+    value: [20020101, ...new Array(63).fill(0).map((i) => 0)],
     circuitId,
   };
 
   const requestId = await erc20Verifier.TRANSFER_REQUEST_ID();
   try {
-    let tx = await erc20Verifier.setZKPRequest(
+    const tx = await erc20Verifier.setZKPRequest(
       requestId,
       validatorAddress,
-      ageQuery
+      ageQuery.schema,
+      ageQuery.claimPathKey,
+      ageQuery.operator,
+      ageQuery.value
     );
     console.log(tx.hash);
   } catch (e) {

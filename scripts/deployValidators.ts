@@ -5,7 +5,7 @@ import { deployValidatorContracts } from "../test/utils/deploy-utils";
 const pathOutputJson = path.join(__dirname, "./deploy_validator_output.json");
 
 async function main() {
-  const stateAddress = "0xEA9aF2088B4a9770fC32A12fD42E61BDD317E655";
+  const stateAddress = "0x134B1BE34911E39A8397ec6289782989729807a4";
   const validators = [
     {
       verifierContractWrapperName: "VerifierMTPWrapper",
