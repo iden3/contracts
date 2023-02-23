@@ -128,9 +128,11 @@ contract StateV2 is Ownable2StepUpgradeable {
     /**
      * @dev Initialize the contract
      * @param verifierContractAddr Verifier address
+     * @param gistMaxDepth GIST max depth
      */
-    function initialize(IVerifier verifierContractAddr) public initializer {
+    function initialize(IVerifier verifierContractAddr, uint256 gistMaxDepth) public initializer {
         verifier = verifierContractAddr;
+        _gistData.setMaxDepth(gistMaxDepth);
         __Ownable_init();
     }
 

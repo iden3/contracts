@@ -5,6 +5,8 @@ import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "../test/utils/deploy-poseidons.util";
 
+const GIST_MAX_DEPTH = 64;
+
 export class StateDeployHelper {
   constructor(
     private signers: SignerWithAddress[],
@@ -87,7 +89,7 @@ export class StateDeployHelper {
     });
     const stateV2 = await upgrades.deployProxy(
       StateV2Factory,
-      [verifier.address],
+      [verifier.address, GIST_MAX_DEPTH],
       {
         unsafeAllowLinkedLibraries: true,
       }
@@ -229,7 +231,7 @@ export class StateDeployHelper {
     return smt;
   }
 
-  async deploySmtTestWrapper(): Promise<Contract> {
+  async deploySmtTestWrapper(maxDepth?: number): Promise<Contract> {
     const contractName = "SmtTestWrapper";
     const owner = this.signers[0];
 
@@ -249,7 +251,7 @@ export class StateDeployHelper {
         Smt: smt.address,
       },
     });
-    const smtWrapper = await SmtWrapper.deploy();
+    const smtWrapper = await SmtWrapper.deploy(maxDepth ?? GIST_MAX_DEPTH);
     await smtWrapper.deployed();
     this.enableLogging &&
       this.log(`${contractName} deployed to:  ${smtWrapper.address}`);

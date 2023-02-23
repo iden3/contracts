@@ -3350,6 +3350,42 @@ describe("SMT tests", function () {
       );
     });
   });
+
+  describe("Max depth tests", () => {
+    let smt;
+
+    before(async () => {
+      const deployHelper = await StateDeployHelper.initialize();
+      smt = await deployHelper.deploySmtTestWrapper();
+    });
+
+    it("Max depth should be 64", async () => {
+      const maxDepth = await smt.getMaxDepth();
+      expect(maxDepth).to.be.equal(64);
+    });
+
+    it("Should increase max depth", async () => {
+      await smt.setMaxDepth(65);
+      const maxDepth = await smt.getMaxDepth();
+      expect(maxDepth).to.be.equal(65);
+      await smt.setMaxDepth(128);
+      const maxDepth2 = await smt.getMaxDepth();
+      expect(maxDepth2).to.be.equal(128);
+    });
+
+    it("Should throw when decrease max depth", async () => {
+      await expect(smt.setMaxDepth(127)).to.be.revertedWith("Max depth can only be increased");
+    });
+
+    it("Should throw when max depth is set to 0", async () => {
+      await expect(smt.setMaxDepth(0)).to.be.revertedWith("Max depth must be greater than zero");
+    });
+
+    it("Should throw when max depth is set to greater than hard cap", async () => {
+      await expect(smt.setMaxDepth(257)).to.be.revertedWith("Max depth is too big");
+      await expect(smt.setMaxDepth(1000000000)).to.be.revertedWith("Max depth is too big");
+    });
+  });
 });
 
 async function checkTestCaseMTPProof(smt: Contract, testCase: TestCaseMTPProof) {
