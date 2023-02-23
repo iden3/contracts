@@ -25,6 +25,9 @@ contract Identity is OwnableUpgradeable {
 
     bool public isOldStateGenesis;
 
+    /**
+     * @dev State contract
+     */
     IState public state;
 
     using Smt for Smt.SmtData;
@@ -121,11 +124,11 @@ contract Identity is OwnableUpgradeable {
         identityState = newIdentityState;
         lastClaimsTreeRoot = currentClaimsTreeRoot;
         lastRevocationsTreeRoot = currentRevocationsTreeRoot;
-        lastRootsTreeRoot = rootsTree.getRoot();
+        lastRootsTreeRoot = currentRootsTreeRoot;
         // it may have changed since we've got currentRootsTreeRoot
-        if (isOldStateGenesis) {
-            isOldStateGenesis = false;
-        }
+        // related to the documentation set isOldStateGenesis to false each time is faster and cheaper
+        // https://docs.google.com/spreadsheets/d/1m89CVujrQe5LAFJ8-YAUCcNK950dUzMQPMJBxRtGCqs/edit#gid=0
+        isOldStateGenesis = false;
     }
 
     /**
@@ -146,6 +149,16 @@ contract Identity is OwnableUpgradeable {
     }
 
     /**
+     * @dev Retrieve Claim inclusion or non-inclusion proof for a given claim index by target root.
+     * @param claimIndexHash - hash of Claim Index
+     * @param root - root of the tree
+     * @return The ClaimsTree inclusion or non-inclusion proof for the claim
+     */
+    function getClaimProofByRoot(uint256 claimIndexHash, uint256 root) public view returns (Smt.Proof memory) {
+        return claimsTree.getProofByRoot(claimIndexHash, root);
+    }
+
+    /**
      * @dev Retrieve ClaimsTree latest root.
      * @return The latest ClaimsTree root
      */
@@ -163,6 +176,16 @@ contract Identity is OwnableUpgradeable {
     }
 
     /**
+     * @dev Retrieve inclusion or non-inclusion proof for a given revocation nonce by target root.
+     * @param revocationNonce - revocation nonce
+     * @param root - root of the tree
+     * @return The RevocationsTree inclusion or non-inclusion proof for the claim
+     */
+    function getRevocationProofByRoot(uint64 revocationNonce, uint256 root) public view returns (Smt.Proof memory) {
+        return revocationsTree.getProofByRoot(uint256(revocationNonce), root);
+    }
+
+    /**
      * @dev Retrieve RevocationsTree latest root.
      * @return The latest RevocationsTree root
      */
@@ -177,6 +200,16 @@ contract Identity is OwnableUpgradeable {
      */
     function getRootProof(uint256 claimsTreeRoot) public view returns (Smt.Proof memory) {
         return rootsTree.getProof(claimsTreeRoot);
+    }
+
+    /**
+     * @dev Retrieve inclusion or non-inclusion proof for a given claimsTreeRoot by target root.
+     * @param claimsTreeRoot - claims tree root
+     * @param root - root of the tree
+     * @return The RevocationsTree inclusion or non-inclusion proof for the claim
+     */
+    function getRootProofByRoot(uint256 claimsTreeRoot, uint256 root) public view returns (Smt.Proof memory) {
+        return rootsTree.getProofByRoot(claimsTreeRoot, root);
     }
 
     /**
