@@ -82,25 +82,24 @@ library SpongePoseidon {
     }
 }
 
-
 library PoseidonFacade {
     function poseidon1(uint256[1] calldata el) public pure returns (uint256) {
-       return PoseidonUnit1L.poseidon(el);
+        return PoseidonUnit1L.poseidon(el);
     }
 
     function poseidon2(uint256[2] calldata el) public pure returns (uint256) {
-         return PoseidonUnit2L.poseidon(el);
+        return PoseidonUnit2L.poseidon(el);
     }
 
     function poseidon3(uint256[3] calldata el) public pure returns (uint256) {
-            return PoseidonUnit3L.poseidon(el);
+        return PoseidonUnit3L.poseidon(el);
     }
 
-    function poseidon4(uint256[4] calldata el) public pure returns (uint256) {    
+    function poseidon4(uint256[4] calldata el) public pure returns (uint256) {
         return PoseidonUnit4L.poseidon(el);
     }
 
-    function poseidon5(uint256[5] calldata el) public pure returns (uint256) {    
+    function poseidon5(uint256[5] calldata el) public pure returns (uint256) {
         return PoseidonUnit5L.poseidon(el);
     }
 
