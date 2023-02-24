@@ -63,7 +63,6 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256 operator,
         uint256[] calldata value
     ) public override onlyOwner returns (bool) {
-
         uint256 valueHash = PoseidonFacade.poseidonSponge(value);
         // only merklized claims are supported (claimPathNotExists is false, slot index is set to 0 )
         uint256 queryHash = PoseidonFacade.poseidon6(
