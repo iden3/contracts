@@ -143,17 +143,20 @@ describe("Next tests reproduce identity life cycle", () => {
       const afterTransitionClaimTreeRoot = await identity.lastClaimsTreeRoot();
       expect(afterTransitionClaimTreeRoot).to.be.not.equal(beforeTransitionClaimTreeRoot);
     });
-    it("revication root and root for roots should be empty", async function () {
+    it("Revocation root should be empty", async function () {
       const afterTransitionRevocationTreeRoot = await identity.lastRevocationsTreeRoot();
-      const afterTransitionRootOfRootsTreeRoot = await identity.lastRootsTreeRoot();
-      expect(afterTransitionRootOfRootsTreeRoot).to.be.equal(0);
-      expect(afterTransitionRootOfRootsTreeRoot).to.be.equal(beforeTransitionRootOfRootsTreeRoot);
       expect(afterTransitionRevocationTreeRoot).to.be.equal(0);
       expect(afterTransitionRevocationTreeRoot).to.be.equal(beforeTransitionRevocationTreeRoot);
     });
 
-    it("latest saved stat should be updated", async function () {
+    it("Root of roots and claims root should be updated", async function () {
       const afterTranstionLatestSavedState = await identity.identityState();
+      const afterTransitionRootOfRootsTreeRoot = await identity.lastRootsTreeRoot();
+
+      expect(afterTransitionRootOfRootsTreeRoot).to.be.not.equal(0);
+      expect(afterTransitionRootOfRootsTreeRoot).to.be.not.equal(
+        beforeTransitionRootOfRootsTreeRoot
+      );
       expect(latestSavedState).to.be.not.equal(afterTranstionLatestSavedState);
       latestSavedState = afterTranstionLatestSavedState;
     });
@@ -362,10 +365,10 @@ describe("Root of roots tree proofs", () => {
   describe("Check historical Claim tree root in claims tree root", () => {
     let currentClaimsTreeRoot, latestRootOfRootsRoot;
     before(async function () {
-      currentClaimsTreeRoot = await identity.getClaimsTreeRoot();
       latestRootOfRootsRoot = await identity.lastRootsTreeRoot();
       await identity.addClaimHash(4, 2);
       await identity.transitState();
+      currentClaimsTreeRoot = await identity.getClaimsTreeRoot();
     });
 
     it("Check that Root of Roots tree not contains latest claims tree root", async function () {

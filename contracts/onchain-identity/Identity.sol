@@ -124,7 +124,7 @@ contract Identity is OwnableUpgradeable {
         identityState = newIdentityState;
         lastClaimsTreeRoot = currentClaimsTreeRoot;
         lastRevocationsTreeRoot = currentRevocationsTreeRoot;
-        lastRootsTreeRoot = currentRootsTreeRoot;
+        lastRootsTreeRoot = rootsTree.getRoot();
         // it may have changed since we've got currentRootsTreeRoot
         // related to the documentation set isOldStateGenesis to false each time is faster and cheaper
         // https://docs.google.com/spreadsheets/d/1m89CVujrQe5LAFJ8-YAUCcNK950dUzMQPMJBxRtGCqs/edit#gid=0
