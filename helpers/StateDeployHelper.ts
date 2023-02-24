@@ -3,7 +3,7 @@ import { toJson } from "../test/utils/deploy-utils";
 import fs from "fs";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { poseidonContract } from "circomlibjs";
+import { deployPoseidons } from "../test/utils/deploy-poseidons.util";
 
 export class StateDeployHelper {
   constructor(
@@ -70,7 +70,7 @@ export class StateDeployHelper {
 
     this.log("deploying poseidons...");
     const [poseidon1Elements, poseidon2Elements, poseidon3Elements] =
-      await this.deployPoseidons(owner, [1, 2, 3]);
+      await deployPoseidons(owner, [1, 2, 3]);
 
     this.log("deploying SMT...");
     const smt = await this.deploySmt(
@@ -234,7 +234,7 @@ export class StateDeployHelper {
     const owner = this.signers[0];
 
     this.log("deploying poseidons...");
-    const [poseidon2Elements, poseidon3Elements] = await this.deployPoseidons(
+    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons(
       owner,
       [2, 3]
     );
@@ -269,39 +269,6 @@ export class StateDeployHelper {
     return bsWrapper;
   }
 
-  async deployPoseidons(
-    deployer: SignerWithAddress,
-    poseidonSizeParams: number[]
-  ): Promise<Contract[]> {
-    poseidonSizeParams.forEach((size) => {
-      if (![1, 2, 3, 4, 5, 6].includes(size)) {
-        throw new Error(
-          `Poseidon should be integer in a range 1..6. Poseidon size provided: ${size}`
-        );
-      }
-    });
-
-    const deployPoseidon = async (params: number) => {
-      const abi = poseidonContract.generateABI(params);
-      const code = poseidonContract.createCode(params);
-      const PoseidonElements = new ethers.ContractFactory(abi, code, deployer);
-      const poseidonElements = await PoseidonElements.deploy();
-      await poseidonElements.deployed();
-      this.enableLogging &&
-        this.log(
-          `Poseidon${params}Elements deployed to:`,
-          poseidonElements.address
-        );
-      return poseidonElements;
-    };
-
-    const result: Contract[] = [];
-    for (const size of poseidonSizeParams) {
-      result.push(await deployPoseidon(size));
-    }
-
-    return result;
-  }
 
   async deploySearchUtils(stateContract: Contract): Promise<{
     searchUtils: Contract;
@@ -314,9 +281,7 @@ export class StateDeployHelper {
     const SearchUtilsFactory = await ethers.getContractFactory("SearchUtils");
     const searchUtils = await SearchUtilsFactory.deploy(stateContract.address);
     await searchUtils.deployed();
-    this.log(
-      `Search utils deployed to address ${searchUtils.address} from ${owner.address}`
-    );
+    this.log(`Search utils deployed to address ${searchUtils.address} from ${owner.address}`);
 
     return {
       searchUtils,

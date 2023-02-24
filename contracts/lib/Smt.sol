@@ -10,8 +10,17 @@ import "../lib/Poseidon.sol";
 library Smt {
     /**
      * @dev Max sparse merkle tree depth.
+     * Note that we count the depth starting from 0, which is the root level.
+     *
+     * For example, the following tree has a MAX_SMT_DEPTH = 2:
+     *
+     *     O      <- root level (depth = 0)
+     *    / \
+     *   O   O    <- depth = 1
+     *  / \ / \
+     * O  O O  O  <- depth = 2
      */
-    uint256 public constant MAX_SMT_DEPTH = 32;
+    uint256 public constant MAX_SMT_DEPTH = 64;
 
     /**
      * @dev Max return array length for SMT root history requests
@@ -214,7 +223,7 @@ library Smt {
         uint256 nextNodeHash = historicalRoot;
         Node memory node;
 
-        for (uint256 i = 0; i < MAX_SMT_DEPTH; i++) {
+        for (uint256 i = 0; i <= MAX_SMT_DEPTH; i++) {
             node = getNode(self, nextNodeHash);
             if (node.nodeType == NodeType.EMPTY) {
                 break;
@@ -394,13 +403,15 @@ library Smt {
         uint256 pathNewLeaf,
         uint256 pathOldLeaf
     ) internal returns (uint256) {
-        if (depth > MAX_SMT_DEPTH - 2) {
+        // no reason to continue if we are at max possible depth
+        // as, anyway, we exceed the depth going down the tree
+        if (depth >= MAX_SMT_DEPTH) {
             revert("Max depth reached");
         }
 
         Node memory newNodeMiddle;
 
-        // Check if we need to go deeper!
+        // Check if we need to go deeper if diverge at the depth's bit
         if ((pathNewLeaf >> depth) & 1 == (pathOldLeaf >> depth) & 1) {
             uint256 nextNodeHash = _pushLeaf(
                 self,

@@ -1,6 +1,4 @@
-type Grow<T, A extends Array<T>> = ((x: T, ...xs: A) => void) extends (
-  ...a: infer X
-) => void
+type Grow<T, A extends Array<T>> = ((x: T, ...xs: A) => void) extends (...a: infer X) => void
   ? X
   : never;
 
@@ -14,14 +12,14 @@ export type FixedArray<T, N extends number> = GrowToSize<T, [], N>;
 export type MtpProof = {
   root: string;
   existence: boolean;
-  siblings: FixedArray<string, 32>;
+  siblings: FixedArray<string, 64>;
   index: number | string;
-  value: number;
+  value: number | string;
   auxExistence: boolean;
   auxIndex: number | string;
-  auxValue: number;
+  auxValue: number | string;
 };
 
-export function genMaxBinaryNumber(digits: number): number {
-  return 2 ** digits - 1;
+export function genMaxBinaryNumber(digits: number): bigint {
+  return BigInt(2) ** BigInt(digits) - BigInt(1);
 }
