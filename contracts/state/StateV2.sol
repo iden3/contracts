@@ -75,7 +75,7 @@ contract StateV2 is Ownable2StepUpgradeable {
     // future may introduce some storage variables, which are placed before the State
     // contract's storage variables.
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-    uint256[500] __gap;
+    uint256[500] private __gap;
 
     /**
      * @dev Verifier address
