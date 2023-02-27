@@ -213,6 +213,7 @@ library Smt {
         uint256 index,
         uint256 historicalRoot
     ) public view onlyExistingRoot(self, historicalRoot) returns (Proof memory) {
+        // slither-disable-next-line uninitialized-local
         uint256[MAX_SMT_DEPTH] memory siblings;
         // Solidity does not guarantee that memory vars are zeroed out
         for (uint256 i = 0; i < MAX_SMT_DEPTH; i++) {
@@ -384,7 +385,7 @@ library Smt {
 
         Node memory node = self.nodes[nodeHash];
         uint256 nextNodeHash;
-        uint256 leafHash;
+        uint256 leafHash = 0;
 
         if (node.nodeType == NodeType.EMPTY) {
             leafHash = _addNode(self, newLeaf);
@@ -487,7 +488,7 @@ library Smt {
     }
 
     function _getNodeHash(Node memory node) internal view returns (uint256) {
-        uint256 nodeHash;
+        uint256 nodeHash = 0;
         if (node.nodeType == NodeType.LEAF) {
             uint256[3] memory params = [node.index, node.value, uint256(1)];
             nodeHash = PoseidonUnit3L.poseidon(params);

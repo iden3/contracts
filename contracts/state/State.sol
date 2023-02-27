@@ -96,6 +96,7 @@ contract State is OwnableUpgradeable {
                 identities[id].length == 0,
                 "there should be no states for identity in smart contract when isOldStateGenesis != 0"
             );
+            // slither-disable-next-line incorrect-equality
             require(transitions[oldState].id == 0, "oldState should not exist");
             // link genesis state to Id in the smart contract, but creation time and creation block is unknown
             transitions[oldState].id = id;
@@ -103,6 +104,7 @@ contract State is OwnableUpgradeable {
             identities[id].push(IDState(0, 0, oldState));
         }
 
+        // slither-disable-next-line incorrect-equality
         require(transitions[newState].id == 0, "newState should not exist");
 
         uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis ? 1 : 0)];
