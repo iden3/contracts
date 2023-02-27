@@ -2,15 +2,7 @@
 pragma solidity 0.8.15;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-
-interface IStateTransitionVerifier {
-    function verifyProof(
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        uint256[4] memory input
-    ) external view returns (bool r);
-}
+import "../interfaces/IStateTransitionVerifier.sol";
 
 // /**
 //  * @dev Set and get states for each identity

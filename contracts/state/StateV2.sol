@@ -4,15 +4,7 @@ pragma solidity 0.8.15;
 import "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import "../lib/Smt.sol";
 import "../lib/Poseidon.sol";
-
-interface IVerifier {
-    function verifyProof(
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        uint256[4] memory input
-    ) external view returns (bool r);
-}
+import "../interfaces/IStateTransitionVerifier.sol";
 
 /// @title Set and get states for each identity
 contract StateV2 is Ownable2StepUpgradeable {
@@ -75,12 +67,13 @@ contract StateV2 is Ownable2StepUpgradeable {
     // future may introduce some storage variables, which are placed before the State
     // contract's storage variables.
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+    // slither-disable-next-line shadowing-state
     uint256[500] private __gap;
 
     /**
      * @dev Verifier address
      */
-    IVerifier internal verifier;
+    IStateTransitionVerifier internal verifier;
 
     /**
      * @dev State data
@@ -124,7 +117,7 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @dev Initialize the contract
      * @param verifierContractAddr Verifier address
      */
-    function initialize(IVerifier verifierContractAddr) public initializer {
+    function initialize(IStateTransitionVerifier verifierContractAddr) public initializer {
         verifier = verifierContractAddr;
         __Ownable_init();
     }
@@ -134,7 +127,7 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @param newVerifierAddr Verifier contract address
      */
     function setVerifier(address newVerifierAddr) external onlyOwner {
-        verifier = IVerifier(newVerifierAddr);
+        verifier = IStateTransitionVerifier(newVerifierAddr);
     }
 
     /**
