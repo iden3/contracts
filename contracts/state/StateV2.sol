@@ -178,7 +178,7 @@ contract StateV2 is Ownable2StepUpgradeable {
         uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis ? 1 : 0)];
         require(
             verifier.verifyProof(a, b, c, input),
-            "Zero-knowledge proof of state transition is not valid "
+            "Zero-knowledge proof of state transition is not valid"
         );
 
         _stateData.statesHistories[id].push(newState);
