@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.15;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import "../lib/Smt.sol";
@@ -68,6 +68,7 @@ contract StateV2 is Ownable2StepUpgradeable {
     // contract's storage variables.
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
     // slither-disable-next-line shadowing-state
+    // slither-disable-next-line unused-state
     uint256[500] private __gap;
 
     /**
