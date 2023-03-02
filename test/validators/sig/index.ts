@@ -169,7 +169,7 @@ describe("Atomic Sig Validator", function () {
 
     // if proof is provided second time, address is not receiving airdrop tokens
     await expect(token.submitZKPResponse(requestId, inputs, pi_a, pi_b, pi_c)).to.be.revertedWith(
-      "proof can not be submitted more than once'"
+      "proof can not be submitted more than once"
     );
 
     await token.transfer(account, 1); // we send tokens to ourselves, but no error.

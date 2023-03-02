@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.15;
+pragma solidity 0.8.16;
 
 import "./Poseidon.sol";
 
@@ -179,10 +179,7 @@ library Smt {
         uint256[] storage history = self.rootHistory;
 
         require(length > 0, "Length should be greater than 0");
-        require(
-            length <= SMT_ROOT_HISTORY_RETURN_LIMIT,
-            "History length limit exceeded"
-        );
+        require(length <= SMT_ROOT_HISTORY_RETURN_LIMIT, "History length limit exceeded");
         require(startIndex < history.length, "Start index out of bounds");
 
         uint256 endIndex = startIndex + length < history.length
@@ -202,11 +199,7 @@ library Smt {
      * @param nodeHash Hash of a node
      * @return A node struct
      */
-    function getNode(SmtData storage self, uint256 nodeHash)
-        public
-        view
-        returns (Node memory)
-    {
+    function getNode(SmtData storage self, uint256 nodeHash) public view returns (Node memory) {
         return self.nodes[nodeHash];
     }
 
@@ -215,11 +208,7 @@ library Smt {
      * @param index Node index
      * @return Proof struct
      */
-    function getProof(SmtData storage self, uint256 index)
-        external
-        view
-        returns (Proof memory)
-    {
+    function getProof(SmtData storage self, uint256 index) external view returns (Proof memory) {
         return getProofByRoot(self, index, getRoot(self));
     }
 
@@ -327,10 +316,7 @@ library Smt {
     }
 
     function getRoot(SmtData storage self) public view returns (uint256) {
-        return
-            self.rootHistory.length > 0
-                ? self.rootHistory[self.rootHistory.length - 1]
-                : 0;
+        return self.rootHistory.length > 0 ? self.rootHistory[self.rootHistory.length - 1] : 0;
     }
 
     /**
@@ -338,11 +324,10 @@ library Smt {
      * @param timestamp timestamp
      * return RootInfo struct
      */
-    function getRootInfoByTime(SmtData storage self, uint256 timestamp)
-        public
-        view
-        returns (RootInfo memory)
-    {
+    function getRootInfoByTime(
+        SmtData storage self,
+        uint256 timestamp
+    ) public view returns (RootInfo memory) {
         require(timestamp <= block.timestamp, "errNoFutureAllowed");
 
         uint256 root = self.binarySearchUint256(
@@ -358,17 +343,13 @@ library Smt {
      * @param blockN block number
      * return RootInfo struct
      */
-    function getRootInfoByBlock(SmtData storage self, uint256 blockN)
-        public
-        view
-        returns (RootInfo memory)
-    {
+    function getRootInfoByBlock(
+        SmtData storage self,
+        uint256 blockN
+    ) public view returns (RootInfo memory) {
         require(blockN <= block.number, "errNoFutureAllowed");
 
-        uint256 root = self.binarySearchUint256(
-            blockN,
-            BinarySearchSmtRoots.SearchType.BLOCK
-        );
+        uint256 root = self.binarySearchUint256(blockN, BinarySearchSmtRoots.SearchType.BLOCK);
 
         return getRootInfo(self, root);
     }
@@ -378,12 +359,10 @@ library Smt {
      * @param root root
      * return RootInfo struct
      */
-    function getRootInfo(SmtData storage self, uint256 root)
-        public
-        view
-        onlyExistingRoot(self, root)
-        returns (RootInfo memory)
-    {
+    function getRootInfo(
+        SmtData storage self,
+        uint256 root
+    ) public view onlyExistingRoot(self, root) returns (RootInfo memory) {
         RootEntry storage re = self.rootEntries[root];
         uint256 nextRoot = self.rootEntries[root].replacedByRoot;
         RootEntry storage nre = self.rootEntries[nextRoot];
@@ -404,11 +383,7 @@ library Smt {
      * @param root root
      * return true if root exists
      */
-    function rootExists(SmtData storage self, uint256 root)
-        public
-        view
-        returns (bool)
-    {
+    function rootExists(SmtData storage self, uint256 root) public view returns (bool) {
         return self.rootEntries[root].createdAtTimestamp > 0;
     }
 
@@ -443,29 +418,19 @@ library Smt {
 
         Node memory node = self.nodes[nodeHash];
         uint256 nextNodeHash;
-        uint256 leafHash;
+        uint256 leafHash = 0;
 
         if (node.nodeType == NodeType.EMPTY) {
             leafHash = _addNode(self, newLeaf);
         } else if (node.nodeType == NodeType.LEAF) {
             leafHash = node.index == newLeaf.index
                 ? _addNode(self, newLeaf)
-                : _pushLeaf(
-                    self,
-                    newLeaf,
-                    node,
-                    depth
-                );
+                : _pushLeaf(self, newLeaf, node, depth);
         } else if (node.nodeType == NodeType.MIDDLE) {
             Node memory newNodeMiddle;
 
             if ((newLeaf.index >> depth) & 1 == 1) {
-                nextNodeHash = _addLeaf(
-                    self,
-                    newLeaf,
-                    node.childRight,
-                    depth + 1
-                );
+                nextNodeHash = _addLeaf(self, newLeaf, node.childRight, depth + 1);
 
                 newNodeMiddle = Node({
                     nodeType: NodeType.MIDDLE,
@@ -475,12 +440,7 @@ library Smt {
                     value: 0
                 });
             } else {
-                nextNodeHash = _addLeaf(
-                    self,
-                    newLeaf,
-                    node.childLeft,
-                    depth + 1
-                );
+                nextNodeHash = _addLeaf(self, newLeaf, node.childLeft, depth + 1);
 
                 newNodeMiddle = Node({
                     nodeType: NodeType.MIDDLE,
@@ -515,12 +475,7 @@ library Smt {
 
         // Check if we need to go deeper if diverge at the depth's bit
         if (newLeafBitAtDepth == oldLeafBitAtDepth) {
-            uint256 nextNodeHash = _pushLeaf(
-                self,
-                newLeaf,
-                oldLeaf,
-                depth + 1
-            );
+            uint256 nextNodeHash = _pushLeaf(self, newLeaf, oldLeaf, depth + 1);
 
             if (newLeafBitAtDepth) {
                 // go right
@@ -554,10 +509,7 @@ library Smt {
         return _addNode(self, newNodeMiddle);
     }
 
-    function _addNode(SmtData storage self, Node memory node)
-        internal
-        returns (uint256)
-    {
+    function _addNode(SmtData storage self, Node memory node) internal returns (uint256) {
         uint256 nodeHash = _getNodeHash(node);
         require(
             self.nodes[nodeHash].nodeType == NodeType.EMPTY,
@@ -569,14 +521,12 @@ library Smt {
     }
 
     function _getNodeHash(Node memory node) internal view returns (uint256) {
-        uint256 nodeHash;
+        uint256 nodeHash = 0;
         if (node.nodeType == NodeType.LEAF) {
             uint256[3] memory params = [node.index, node.value, uint256(1)];
             nodeHash = PoseidonUnit3L.poseidon(params);
         } else if (node.nodeType == NodeType.MIDDLE) {
-            nodeHash = PoseidonUnit2L.poseidon(
-                [node.childLeft, node.childRight]
-            );
+            nodeHash = PoseidonUnit2L.poseidon([node.childLeft, node.childRight]);
         }
         return nodeHash; // Note: expected to return 0 if NodeType.EMPTY, which is the only option left
     }
@@ -610,17 +560,11 @@ library BinarySearchSmtRoots {
             mid = (max + min) / 2;
             midRoot = self.rootHistory[mid];
 
-            uint256 midValue = fieldSelector(
-                self.rootEntries[midRoot],
-                searchType
-            );
+            uint256 midValue = fieldSelector(self.rootEntries[midRoot], searchType);
             if (midValue == value) {
                 while (mid < self.rootHistory.length - 1) {
                     uint256 nextRoot = self.rootHistory[mid + 1];
-                    uint256 nextValue = fieldSelector(
-                        self.rootEntries[nextRoot],
-                        searchType
-                    );
+                    uint256 nextValue = fieldSelector(self.rootEntries[nextRoot], searchType);
                     if (nextValue == value) {
                         mid++;
                         midRoot = nextRoot;
@@ -646,11 +590,10 @@ library BinarySearchSmtRoots {
         return self.rootHistory[max];
     }
 
-    function fieldSelector(Smt.RootEntry memory rti, SearchType st)
-        internal
-        pure
-        returns (uint256)
-    {
+    function fieldSelector(
+        Smt.RootEntry memory rti,
+        SearchType st
+    ) internal pure returns (uint256) {
         if (st == SearchType.BLOCK) {
             return rti.createdAtBlock;
         } else if (st == SearchType.TIMESTAMP) {
