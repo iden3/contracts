@@ -128,11 +128,7 @@ library Smt {
      * @param i Index of node
      * @param v Value of node
      */
-    function add(
-        SmtData storage self,
-        uint256 i,
-        uint256 v
-    ) external {
+    function add(SmtData storage self, uint256 i, uint256 v) external {
         Node memory node = Node({
             nodeType: NodeType.LEAF,
             childLeft: 0,
@@ -157,11 +153,7 @@ library Smt {
      * @dev Get SMT root history length
      * @return SMT history length
      */
-    function getRootHistoryLength(SmtData storage self)
-        external
-        view
-        returns (uint256)
-    {
+    function getRootHistoryLength(SmtData storage self) external view returns (uint256) {
         return self.rootHistory.length;
     }
 
@@ -222,12 +214,7 @@ library Smt {
         SmtData storage self,
         uint256 index,
         uint256 historicalRoot
-    )
-        public
-        view
-        onlyExistingRoot(self, historicalRoot)
-        returns (Proof memory)
-    {
+    ) public view onlyExistingRoot(self, historicalRoot) returns (Proof memory) {
         uint256[] memory siblings = new uint256[](self.maxDepth);
         // Solidity does not guarantee that memory vars are zeroed out
         for (uint256 i = 0; i < self.maxDepth; i++) {
@@ -241,7 +228,7 @@ library Smt {
             index: index,
             value: 0,
             auxExistence: false,
-            auxIndex:0,
+            auxIndex: 0,
             auxValue: 0
         });
 
