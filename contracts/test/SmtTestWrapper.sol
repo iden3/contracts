@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.15;
-pragma abicoder v2;
+pragma solidity 0.8.16;
 
 import "../lib/Smt.sol";
 
@@ -16,11 +15,7 @@ contract SmtTestWrapper {
         return smtData.getProof(id);
     }
 
-    function getProofByRoot(uint256 id, uint256 root)
-        public
-        view
-        returns (Smt.Proof memory)
-    {
+    function getProofByRoot(uint256 id, uint256 root) public view returns (Smt.Proof memory) {
         return smtData.getProofByRoot(id, root);
     }
 
@@ -28,11 +23,7 @@ contract SmtTestWrapper {
         return smtData.getRoot();
     }
 
-    function getRootInfo(uint256 root)
-        public
-        view
-        returns (Smt.RootInfo memory)
-    {
+    function getRootInfo(uint256 root) public view returns (Smt.RootInfo memory) {
         return smtData.getRootInfo(root);
     }
 }
