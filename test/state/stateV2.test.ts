@@ -179,6 +179,17 @@ describe("State transition negative cases", () => {
     );
   });
 
+  it("ID should not be zero", async () => {
+    const modifiedStateTransition = JSON.parse(
+      JSON.stringify(stateTransitions[0])
+    );
+    modifiedStateTransition.pub_signals[0] = "0"; // set id to 0 to trigger the error
+
+    await expect(publishState(state, modifiedStateTransition)).to.be.revertedWith(
+      "ID should not be zero"
+    );
+  });
+
   it("New state should not be zero", async () => {
     const modifiedStateTransition = JSON.parse(
       JSON.stringify(stateTransitions[0])
