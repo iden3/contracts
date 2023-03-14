@@ -64,6 +64,35 @@ export async function deployERC20ZKPVerifierToken(
   return erc20Verifier;
 }
 
+export async function deployERC721ReputationConceptVerifier(
+  name: string,
+  symbol: string
+): Promise<Contract> {
+  const poseidonFacade = await deployPoseidonFacade();
+
+  const BytesHasher = await ethers.getContractFactory("BytesHasher", {
+    libraries: {
+      PoseidonFacade: poseidonFacade.address,
+    },
+  });
+  const bytesHasher = await BytesHasher.deploy();
+  await bytesHasher.deployed();
+
+  const ERC721ReputationConcept = await ethers.getContractFactory(
+    "ERC721ReputationConceptVerifier",
+    {
+      libraries: {
+        BytesHasher: bytesHasher.address,
+      },
+    }
+  );
+  const erc721ReputationConcept = await ERC721ReputationConcept.deploy(name, symbol);
+  await erc721ReputationConcept.deployed();
+  console.log("ERC721ReputationConcept deployed to:", erc721ReputationConcept.address);
+
+  return erc721ReputationConcept;
+}
+
 export interface VerificationInfo {
   inputs: Array<string>;
   pi_a: Array<string>;

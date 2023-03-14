@@ -1,19 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.16;
 
-contract PoseidonUnit6 {
-    function poseidon(uint256[6] memory) public view returns (uint256) {}
-}
+import "./Poseidon.sol";
 
-contract BytesHasher {
+library BytesHasher {
     uint256 constant FRAME_SIZE = 6;
     uint256 constant SPONGE_CHUNK_SIZE = 31;
-
-    PoseidonUnit6 private _poseidonUnit6;
-
-    constructor(address _poseidon6ContractAddr) {
-        _poseidonUnit6 = PoseidonUnit6(_poseidon6ContractAddr);
-    }
 
     function hashDID() external view returns (uint256) {
         string memory prefix = "did:pkh:eip155:1:";
@@ -41,7 +33,7 @@ contract BytesHasher {
             needToHashInputs = true;
 
             if (k == FRAME_SIZE - 1) {
-                hash = _poseidonUnit6.poseidon(inputs);
+                hash = PoseidonFacade.poseidon6(inputs);
                 needToHashInputs = false;
 
                 inputs[0] = hash;
@@ -62,7 +54,7 @@ contract BytesHasher {
         }
 
         if (needToHashInputs) {
-            hash = _poseidonUnit6.poseidon(inputs);
+            hash = PoseidonFacade.poseidon6(inputs);
         }
 
         return hash;
