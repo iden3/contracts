@@ -378,10 +378,10 @@ library Smt {
      * @dev Sets max depth of the SMT
      * @param maxDepth max depth
      */
-    function setMaxDepth(SmtData storage self, uint256 maxDepth) public {
+    function setMaxDepth(SmtData storage self, uint256 maxDepth) external {
         require(maxDepth > 0, "Max depth must be greater than zero");
         require(maxDepth > self.maxDepth, "Max depth can only be increased");
-        require(maxDepth <= MAX_DEPTH_HARD_CAP, "Max depth is too big");
+        require(maxDepth <= MAX_DEPTH_HARD_CAP, "Max depth is greater than hard cap");
         self.maxDepth = maxDepth;
     }
 
@@ -389,7 +389,7 @@ library Smt {
      * @dev Gets max depth of the SMT
      * return max depth
      */
-    function getMaxDepth(SmtData storage self) public view returns (uint256) {
+    function getMaxDepth(SmtData storage self) external view returns (uint256) {
         return self.maxDepth;
     }
 

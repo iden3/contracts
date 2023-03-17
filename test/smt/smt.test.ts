@@ -3377,13 +3377,19 @@ describe("SMT tests", function () {
       await expect(smt.setMaxDepth(127)).to.be.revertedWith("Max depth can only be increased");
     });
 
+    it("Should throw when max depth is set to the same value", async () => {
+      await expect(smt.setMaxDepth(128)).to.be.revertedWith("Max depth can only be increased");
+    });
+
     it("Should throw when max depth is set to 0", async () => {
       await expect(smt.setMaxDepth(0)).to.be.revertedWith("Max depth must be greater than zero");
     });
 
     it("Should throw when max depth is set to greater than hard cap", async () => {
-      await expect(smt.setMaxDepth(257)).to.be.revertedWith("Max depth is too big");
-      await expect(smt.setMaxDepth(1000000000)).to.be.revertedWith("Max depth is too big");
+      await expect(smt.setMaxDepth(257)).to.be.revertedWith("Max depth is greater than hard cap");
+      await expect(smt.setMaxDepth(1000000000)).to.be.revertedWith(
+        "Max depth is greater than hard cap"
+      );
     });
   });
 });
