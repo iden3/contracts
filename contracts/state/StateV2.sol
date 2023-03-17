@@ -155,6 +155,7 @@ contract StateV2 is Ownable2StepUpgradeable {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) external {
+        require(id != 0, "ID should not be zero");
         require(newState != 0, "New state should not be zero");
 
         if (isOldStateGenesis) {
