@@ -39,11 +39,17 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @param block A block number when the state was committed to blockchain.
      * @param replacedBy A state, which replaced this state for the identity.
      */
+//    struct StateEntry {
+//        uint256 id;
+//        uint256 timestamp;
+//        uint256 block;
+//        uint256 replacedBy;
+//    }
+
     struct StateEntry {
-        uint256 id;
+        uint256 historyIndex;
         uint256 timestamp;
         uint256 block;
-        uint256 replacedBy;
     }
 
     /**
@@ -53,7 +59,8 @@ contract StateV2 is Ownable2StepUpgradeable {
      */
     struct StateData {
         mapping(uint256 => uint256[]) statesHistories;
-        mapping(uint256 => StateEntry) stateEntries;
+//        mapping(uint256 => StateEntry) stateEntries;
+        mapping(uint256 => mapping(uint256 => StateEntry[])) stateEntries; // id => state => stateEntry[]
         // This empty reserved space is put in place to allow future versions
         // of the State contract to add new SmtData struct fields without shifting down
         // storage of upgradable contracts that use this struct as a state variable
@@ -109,8 +116,8 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @dev Revert if state does not exist in the contract
      * @param state State
      */
-    modifier onlyExistingState(uint256 state) {
-        require(stateExists(state), "State does not exist");
+    modifier onlyExistingState(uint256 id, uint256 state) {
+        require(stateExists(id, state), "State does not exist");
         _;
     }
 
@@ -160,9 +167,9 @@ contract StateV2 is Ownable2StepUpgradeable {
 
         if (isOldStateGenesis) {
             require(!idExists(id), "Old state is genesis but identity already exists");
-            require(!stateExists(oldState), "Genesis state already exists");
-            // link genesis state to Id in the smart contract, but creation time and creation block is unknown
-            _stateData.stateEntries[oldState].id = id;
+
+            // Index in the statesHistories is 0, creation time and creation block is unknown
+            _stateData.stateEntries[id][oldState].push(StateEntry(0, 0, 0));
             // push genesis state to identities as latest state
             _stateData.statesHistories[id].push(oldState);
         } else {
@@ -172,14 +179,14 @@ contract StateV2 is Ownable2StepUpgradeable {
                 _stateData.statesHistories[id].length - 1
             ];
 
+            StateEntry[] storage se = _stateData.stateEntries[id][previousIDState];
+
             require(
-                _stateData.stateEntries[previousIDState].block != block.number,
+                se[se.length - 1].block != block.number,
                 "No multiple set in the same block"
             );
             require(previousIDState == oldState, "Old state does not match the latest state");
         }
-
-        require(!stateExists(newState), "New state should not exist");
 
         uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis ? 1 : 0)];
         require(
@@ -190,15 +197,11 @@ contract StateV2 is Ownable2StepUpgradeable {
         _stateData.statesHistories[id].push(newState);
 
         // Set create info for new state
-        _stateData.stateEntries[newState] = StateEntry({
-            id: id,
+        _stateData.stateEntries[id][newState].push(StateEntry({
+            historyIndex: _stateData.statesHistories[id].length - 1,
             timestamp: block.timestamp,
-            block: block.number,
-            replacedBy: 0
-        });
-
-        // Set replace info for old state
-        _stateData.stateEntries[oldState].replacedBy = newState;
+            block: block.number
+        }));
 
         // put state to GIST to recalculate global state
         _gistData.add(PoseidonUnit1L.poseidon([id]), newState);
@@ -224,6 +227,7 @@ contract StateV2 is Ownable2StepUpgradeable {
     ) external view onlyExistingId(id) returns (StateInfo memory) {
         return
             _getStateInfoByState(
+                id,
                 _stateData.statesHistories[id][_stateData.statesHistories[id].length - 1]
             );
     }
@@ -263,7 +267,7 @@ contract StateV2 is Ownable2StepUpgradeable {
         StateInfo[] memory result = new StateInfo[](endIndex - startIndex);
 
         for (uint256 i = startIndex; i < endIndex; i++) {
-            result[i - startIndex] = _getStateInfoByState(history[i]);
+            result[i - startIndex] = _getStateInfoByState(id, history[i]);
         }
         return result;
     }
@@ -274,9 +278,10 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @return The state info
      */
     function getStateInfoByState(
+        uint256 id,
         uint256 state
-    ) external view onlyExistingState(state) returns (StateInfo memory) {
-        return _getStateInfoByState(state);
+    ) external view onlyExistingState(id, state) returns (StateInfo memory) {
+        return _getStateInfoByState(id, state);
     }
 
     /**
@@ -396,26 +401,38 @@ contract StateV2 is Ownable2StepUpgradeable {
 
     /**
      * @dev Check if state exists.
+     * @param id Identity
      * @param state State
      * @return True if the state exists
      */
-    function stateExists(uint256 state) public view returns (bool) {
-        return _stateData.stateEntries[state].id != 0;
+    function stateExists(uint256 id, uint256 state) public view returns (bool) {
+        return _stateData.stateEntries[id][state].length != 0;
     }
 
     /**
      * @dev Get state info struct by state without state existence check.
+     * @param id Identity
      * @param state State
      * @return The state info struct
      */
-    function _getStateInfoByState(uint256 state) internal view returns (StateInfo memory) {
-        StateEntry storage se = _stateData.stateEntries[state];
-        uint256 nextState = _stateData.stateEntries[state].replacedBy;
-        StateEntry storage nse = _stateData.stateEntries[nextState];
+    function _getStateInfoByState(uint256 id, uint256 state) internal view returns (StateInfo memory) {
+        StateEntry storage se = _getLatestStateEntryOfSameStates(id, state);
+
+        uint256 nextHistoryIndex = se.historyIndex + 1;
+        uint256 nextState = nextHistoryIndex < _stateData.statesHistories[id].length
+            ? _stateData.statesHistories[id][nextHistoryIndex]
+            : 0;
+        StateEntry memory nse = nextState != 0
+            ? _getSpecificStateEntryOfSameStates(id, nextState, nextHistoryIndex)
+            : StateEntry({
+                timestamp: 0,
+                block: 0,
+                historyIndex: 0
+            });
 
         return
             StateInfo({
-                id: se.id,
+                id: id,
                 state: state,
                 replacedByState: nextState,
                 createdAtTimestamp: se.timestamp,
@@ -423,5 +440,29 @@ contract StateV2 is Ownable2StepUpgradeable {
                 createdAtBlock: se.block,
                 replacedAtBlock: nse.block
             });
+    }
+
+    function _getLatestStateEntryOfSameStates(uint256 id, uint256 state) internal view returns (StateEntry storage) {
+        StateEntry[] storage ses = _stateData.stateEntries[id][state];
+        return ses[ses.length - 1];
+    }
+
+    function _getSpecificStateEntryOfSameStates(uint256 id, uint256 state, uint256 historyIndex) internal view returns (StateEntry storage) {
+        StateEntry[] storage ses = _stateData.stateEntries[id][state];
+
+        // binary search in ses
+        uint256 left = 0;
+        uint256 right = ses.length - 1;
+        while (left <= right) {
+            uint256 mid = (left + right) / 2;
+            if (ses[mid].historyIndex == historyIndex) {
+                return ses[mid];
+            } else if (ses[mid].historyIndex < historyIndex) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        revert("State entry not found");
     }
 }
