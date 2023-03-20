@@ -27,7 +27,7 @@ contract SmtTestWrapper {
         return smtData.getRoot();
     }
 
-    function getRootInfo(uint256 root) public view returns (Smt.RootInfo memory) {
+    function getRootInfo(uint256 root) public view returns (IState.RootInfo memory) {
         return smtData.getRootInfo(root);
     }
 

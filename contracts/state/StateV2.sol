@@ -349,7 +349,7 @@ contract StateV2 is Ownable2StepUpgradeable {
     function getGISTRootHistory(
         uint256 start,
         uint256 length
-    ) external view returns (Smt.RootInfo[] memory) {
+    ) external view returns (IState.RootInfo[] memory) {
         return _gistData.getRootHistory(start, length);
     }
 
@@ -366,7 +366,7 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @param root GIST root
      * @return The GIST root info
      */
-    function getGISTRootInfo(uint256 root) external view returns (Smt.RootInfo memory) {
+    function getGISTRootInfo(uint256 root) external view returns (IState.RootInfo memory) {
         return _gistData.getRootInfo(root);
     }
 
@@ -377,7 +377,7 @@ contract StateV2 is Ownable2StepUpgradeable {
      */
     function getGISTRootInfoByBlock(
         uint256 blockNumber
-    ) external view returns (Smt.RootInfo memory) {
+    ) external view returns (IState.RootInfo memory) {
         return _gistData.getRootInfoByBlock(blockNumber);
     }
 
@@ -386,7 +386,7 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @param timestamp Blockchain timestamp
      * @return The GIST root info
      */
-    function getGISTRootInfoByTime(uint256 timestamp) external view returns (Smt.RootInfo memory) {
+    function getGISTRootInfoByTime(uint256 timestamp) external view returns (IState.RootInfo memory) {
         return _gistData.getRootInfoByTime(timestamp);
     }
 

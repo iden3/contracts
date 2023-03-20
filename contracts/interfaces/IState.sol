@@ -20,6 +20,7 @@ interface IState {
         uint256 createdAtBlock;
         uint256 replacedAtBlock;
     }
+
     /**
      * @dev Struct for public interfaces to represent SMT root info.
      * @param root This SMT root.
@@ -52,5 +53,5 @@ interface IState {
      * @param state A state
      * @return The state info
      */
-    function getStateInfoByState(uint256 state) external view returns (StateInfo memory);
+    function getStateInfoByState(uint256 id, uint256 state) external view returns (StateInfo memory);
 }

@@ -69,7 +69,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         bool isStateGenesis = GenesisUtils.isGenesisState(_id, _state);
 
         if (!isStateGenesis) {
-            IState.StateInfo memory stateInfo = state.getStateInfoByState(_state);
+            IState.StateInfo memory stateInfo = state.getStateInfoByState(_id, _state);
             require(_id == stateInfo.id, "state doesn't exist in state contract");
         }
     }
@@ -87,6 +87,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
             if (claimNonRevStateInfo.state != _claimNonRevState) {
                 // Get the time of the latest state and compare it to the transition time of state provided by the user.
                 IState.StateInfo memory claimNonRevLatestStateInfo = state.getStateInfoByState(
+                    _id,
                     _claimNonRevState
                 );
 

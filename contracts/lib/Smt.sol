@@ -2,6 +2,7 @@
 pragma solidity 0.8.16;
 
 import "./Poseidon.sol";
+import "../interfaces/IState.sol";
 
 /// @title A sparse merkle tree implementation, which keeps tree history.
 // Note that this SMT implementation does not allow for duplicated roots in the history,
@@ -63,24 +64,6 @@ library Smt {
         bool auxExistence;
         uint256 auxIndex;
         uint256 auxValue;
-    }
-
-    /**
-     * @dev Struct for public interfaces to represent SMT root info.
-     * @param root This SMT root.
-     * @param replacedByRoot A root, which replaced this root.
-     * @param createdAtTimestamp A time, when the root was saved to blockchain.
-     * @param replacedAtTimestamp A time, when the root was replaced by the next root in blockchain.
-     * @param createdAtBlock A number of block, when the root was saved to blockchain.
-     * @param replacedAtBlock A number of block, when the root was replaced by the next root in blockchain.
-     */
-    struct RootInfo {
-        uint256 root;
-        uint256 replacedByRoot;
-        uint256 createdAtTimestamp;
-        uint256 replacedAtTimestamp;
-        uint256 createdAtBlock;
-        uint256 replacedAtBlock;
     }
 
     /**
@@ -167,7 +150,7 @@ library Smt {
         SmtData storage self,
         uint256 startIndex,
         uint256 length
-    ) external view returns (RootInfo[] memory) {
+    ) external view returns (IState.RootInfo[] memory) {
         uint256[] storage history = self.rootHistory;
 
         require(length > 0, "Length should be greater than 0");
@@ -178,7 +161,7 @@ library Smt {
             ? startIndex + length
             : history.length;
 
-        RootInfo[] memory result = new RootInfo[](endIndex - startIndex);
+        IState.RootInfo[] memory result = new IState.RootInfo[](endIndex - startIndex);
 
         for (uint256 i = startIndex; i < endIndex; i++) {
             result[i - startIndex] = getRootInfo(self, history[i]);
@@ -277,7 +260,7 @@ library Smt {
         uint256 index,
         uint256 timestamp
     ) public view returns (Proof memory) {
-        RootInfo memory rootInfo = getRootInfoByTime(self, timestamp);
+        IState.RootInfo memory rootInfo = getRootInfoByTime(self, timestamp);
 
         require(rootInfo.root != 0, "historical root not found");
 
@@ -295,7 +278,7 @@ library Smt {
         uint256 index,
         uint256 blockNumber
     ) external view returns (Proof memory) {
-        RootInfo memory rootInfo = getRootInfoByBlock(self, blockNumber);
+        IState.RootInfo memory rootInfo = getRootInfoByBlock(self, blockNumber);
 
         require(rootInfo.root != 0, "historical root not found");
 
@@ -314,7 +297,7 @@ library Smt {
     function getRootInfoByTime(
         SmtData storage self,
         uint256 timestamp
-    ) public view returns (RootInfo memory) {
+    ) public view returns (IState.RootInfo memory) {
         require(timestamp <= block.timestamp, "errNoFutureAllowed");
 
         uint256 root = self.binarySearchUint256(
@@ -333,7 +316,7 @@ library Smt {
     function getRootInfoByBlock(
         SmtData storage self,
         uint256 blockN
-    ) public view returns (RootInfo memory) {
+    ) public view returns (IState.RootInfo memory) {
         require(blockN <= block.number, "errNoFutureAllowed");
 
         uint256 root = self.binarySearchUint256(blockN, BinarySearchSmtRoots.SearchType.BLOCK);
@@ -349,13 +332,13 @@ library Smt {
     function getRootInfo(
         SmtData storage self,
         uint256 root
-    ) public view onlyExistingRoot(self, root) returns (RootInfo memory) {
+    ) public view onlyExistingRoot(self, root) returns (IState.RootInfo memory) {
         RootEntry storage re = self.rootEntries[root];
         uint256 nextRoot = self.rootEntries[root].replacedByRoot;
         RootEntry storage nre = self.rootEntries[nextRoot];
 
         return
-            RootInfo({
+            IState.RootInfo({
                 root: root,
                 replacedByRoot: nextRoot,
                 createdAtTimestamp: re.createdAtTimestamp,
