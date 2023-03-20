@@ -8,23 +8,15 @@ import "./Poseidon.sol";
 // which may be a critical restriction for some projects
 library Smt {
     /**
-     * @dev Max sparse merkle tree depth.
-     * Note that we count the depth starting from 0, which is the root level.
-     *
-     * For example, the following tree has a MAX_SMT_DEPTH = 2:
-     *
-     *     O      <- root level (depth = 0)
-     *    / \
-     *   O   O    <- depth = 1
-     *  / \ / \
-     * O  O O  O  <- depth = 2
-     */
-    uint256 public constant MAX_SMT_DEPTH = 64;
-
-    /**
      * @dev Max return array length for SMT root history requests
      */
     uint256 public constant SMT_ROOT_HISTORY_RETURN_LIMIT = 1000;
+
+    /**
+     * @dev Max depth hard cap for SMT
+     * We can't use depth > 256 because of bits number limitation in the uint256 data type.
+     */
+    uint256 public constant MAX_DEPTH_HARD_CAP = 256;
 
     /**
      * @dev Enum of SMT node types
@@ -37,16 +29,26 @@ library Smt {
 
     /**
      * @dev Sparse Merkle Tree data
+     * Note that we count the SMT depth starting from 0, which is the root level.
+     *
+     * For example, the following tree has a maxDepth = 2:
+     *
+     *     O      <- root level (depth = 0)
+     *    / \
+     *   O   O    <- depth = 1
+     *  / \ / \
+     * O  O O  O  <- depth = 2
      */
     struct SmtData {
         mapping(uint256 => Node) nodes;
         uint256[] rootHistory;
         mapping(uint256 => RootEntry) rootEntries;
+        uint256 maxDepth;
         // This empty reserved space is put in place to allow future versions
         // of the SMT library to add new SmtData struct fields without shifting down
         // storage of upgradable contracts that use this struct as a state variable
         // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-        uint256[50] __gap;
+        uint256[49] __gap;
     }
 
     /**
@@ -55,7 +57,7 @@ library Smt {
     struct Proof {
         uint256 root;
         bool existence;
-        uint256[MAX_SMT_DEPTH] siblings;
+        uint256[] siblings;
         uint256 index;
         uint256 value;
         bool auxExistence;
@@ -213,10 +215,9 @@ library Smt {
         uint256 index,
         uint256 historicalRoot
     ) public view onlyExistingRoot(self, historicalRoot) returns (Proof memory) {
-        // slither-disable-next-line uninitialized-local
-        uint256[MAX_SMT_DEPTH] memory siblings;
+        uint256[] memory siblings = new uint256[](self.maxDepth);
         // Solidity does not guarantee that memory vars are zeroed out
-        for (uint256 i = 0; i < MAX_SMT_DEPTH; i++) {
+        for (uint256 i = 0; i < self.maxDepth; i++) {
             siblings[i] = 0;
         }
 
@@ -234,7 +235,7 @@ library Smt {
         uint256 nextNodeHash = historicalRoot;
         Node memory node;
 
-        for (uint256 i = 0; i <= MAX_SMT_DEPTH; i++) {
+        for (uint256 i = 0; i <= self.maxDepth; i++) {
             node = getNode(self, nextNodeHash);
             if (node.nodeType == NodeType.EMPTY) {
                 break;
@@ -373,13 +374,32 @@ library Smt {
         return self.rootEntries[root].createdAtTimestamp > 0;
     }
 
+    /**
+     * @dev Sets max depth of the SMT
+     * @param maxDepth max depth
+     */
+    function setMaxDepth(SmtData storage self, uint256 maxDepth) external {
+        require(maxDepth > 0, "Max depth must be greater than zero");
+        require(maxDepth > self.maxDepth, "Max depth can only be increased");
+        require(maxDepth <= MAX_DEPTH_HARD_CAP, "Max depth is greater than hard cap");
+        self.maxDepth = maxDepth;
+    }
+
+    /**
+     * @dev Gets max depth of the SMT
+     * return max depth
+     */
+    function getMaxDepth(SmtData storage self) external view returns (uint256) {
+        return self.maxDepth;
+    }
+
     function _addLeaf(
         SmtData storage self,
         Node memory newLeaf,
         uint256 nodeHash,
         uint256 depth
     ) internal returns (uint256) {
-        if (depth > MAX_SMT_DEPTH) {
+        if (depth > self.maxDepth) {
             revert("Max depth reached");
         }
 
@@ -432,7 +452,7 @@ library Smt {
     ) internal returns (uint256) {
         // no reason to continue if we are at max possible depth
         // as, anyway, we exceed the depth going down the tree
-        if (depth >= MAX_SMT_DEPTH) {
+        if (depth >= self.maxDepth) {
             revert("Max depth reached");
         }
 

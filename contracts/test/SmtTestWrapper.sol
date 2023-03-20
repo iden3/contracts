@@ -7,6 +7,10 @@ contract SmtTestWrapper {
     Smt.SmtData internal smtData;
     using Smt for Smt.SmtData;
 
+    constructor(uint256 maxDepth) {
+        smtData.setMaxDepth(maxDepth);
+    }
+
     function add(uint256 i, uint256 v) public {
         smtData.add(i, v);
     }
@@ -25,5 +29,13 @@ contract SmtTestWrapper {
 
     function getRootInfo(uint256 root) public view returns (Smt.RootInfo memory) {
         return smtData.getRootInfo(root);
+    }
+
+    function setMaxDepth(uint256 maxDepth) public {
+        smtData.setMaxDepth(maxDepth);
+    }
+
+    function getMaxDepth() public view returns (uint256) {
+        return smtData.getMaxDepth();
     }
 }
