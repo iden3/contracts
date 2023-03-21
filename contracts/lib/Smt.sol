@@ -336,22 +336,20 @@ library Smt {
         RootEntry storage re = _getLatestRootEntryOfSameRoot(self, root);
 
         uint256 nextHistoryIndex = re.historyIndex + 1;
-        uint256 nextRoot = nextHistoryIndex < self.rootHistory.length
-            ? self.rootHistory[nextHistoryIndex]
-            : 0;
+        bool isLastRoot = nextHistoryIndex == self.rootHistory.length;
 
-        RootEntry memory nre = nextRoot == 0
+        RootEntry memory nre = isLastRoot
             ? RootEntry({
                 historyIndex: 0,
                 createdAtTimestamp: 0,
                 createdAtBlock: 0
               })
-            : _getSpecificRootEntryOfSameRoot(self, nextRoot, nextHistoryIndex);
+            : _getRootEntryByIndex(self, nextHistoryIndex);
 
         return
             IState.RootInfo({
                 root: root,
-                replacedByRoot: nextRoot,
+                replacedByRoot: isLastRoot ? 0 : self.rootHistory[nextHistoryIndex],
                 createdAtTimestamp: re.createdAtTimestamp,
                 replacedAtTimestamp: nre.createdAtTimestamp,
                 createdAtBlock: re.createdAtBlock,
@@ -546,11 +544,11 @@ library BinarySearchSmtRoots {
             mid = (max + min) / 2;
             midRoot = self.rootHistory[mid];
 
-            uint256 midValue = fieldSelector(_getSpecificRootEntryOfSameRoot(self, midRoot, mid), searchType);
+            uint256 midValue = fieldSelector(_getRootEntryByIndex(self, mid), searchType);
             if (midValue == value) {
                 while (mid < self.rootHistory.length - 1) {
                     uint256 nextRoot = self.rootHistory[mid + 1];
-                    uint256 nextValue = fieldSelector(_getSpecificRootEntryOfSameRoot(self, nextRoot, mid + 1), searchType);
+                    uint256 nextValue = fieldSelector(_getRootEntryByIndex(self, mid + 1), searchType);
                     if (nextValue == value) {
                         mid++;
                         midRoot = nextRoot;
@@ -590,7 +588,8 @@ library BinarySearchSmtRoots {
     }
 }
 
-function _getSpecificRootEntryOfSameRoot(Smt.SmtData storage self, uint256 root, uint256 index) view returns (Smt.RootEntry storage) {
+function _getRootEntryByIndex(Smt.SmtData storage self, uint256 index) view returns (Smt.RootEntry storage) {
+    uint256 root = self.rootHistory[index];
     Smt.RootEntry[] storage res = self.rootEntries[root];
 
     // binary search in root entries of specific root

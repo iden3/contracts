@@ -416,25 +416,24 @@ contract StateV2 is Ownable2StepUpgradeable {
      */
     function _getStateInfoByState(uint256 id, uint256 state) internal view returns (StateInfo memory) {
         StateEntry storage se = _getLatestStateEntryOfSameStates(id, state);
+        uint256[] storage history = _stateData.statesHistories[id];
 
         uint256 nextHistoryIndex = se.historyIndex + 1;
-        uint256 nextState = nextHistoryIndex < _stateData.statesHistories[id].length
-            ? _stateData.statesHistories[id][nextHistoryIndex]
-            : 0;
+        bool isLastState = nextHistoryIndex == history.length;
 
-        StateEntry memory nse = nextState == 0
+        StateEntry memory nse = isLastState
             ? StateEntry({
                 historyIndex: 0,
                 timestamp: 0,
                 block: 0
               })
-        : _getSpecificStateEntryOfSameStates(id, nextState, nextHistoryIndex);
+            : _getStateEntryByIndex(id, nextHistoryIndex);
 
         return
             StateInfo({
                 id: id,
                 state: state,
-                replacedByState: nextState,
+                replacedByState: isLastState ? 0 : history[nextHistoryIndex],
                 createdAtTimestamp: se.timestamp,
                 replacedAtTimestamp: nse.timestamp,
                 createdAtBlock: se.block,
@@ -447,7 +446,8 @@ contract StateV2 is Ownable2StepUpgradeable {
         return ses[ses.length - 1];
     }
 
-    function _getSpecificStateEntryOfSameStates(uint256 id, uint256 state, uint256 index) internal view returns (StateEntry storage) {
+    function _getStateEntryByIndex(uint256 id, uint256 index) internal view returns (StateEntry storage) {
+        uint256 state = _stateData.statesHistories[id][index];
         StateEntry[] storage ses = _stateData.stateEntries[id][state];
 
         // binary search in all state entries of specific state
