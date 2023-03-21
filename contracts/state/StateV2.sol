@@ -59,7 +59,6 @@ contract StateV2 is Ownable2StepUpgradeable {
      */
     struct StateData {
         mapping(uint256 => uint256[]) statesHistories;
-//        mapping(uint256 => StateEntry) stateEntries;
         mapping(uint256 => mapping(uint256 => StateEntry[])) stateEntries; // id => state => stateEntry[]
         // This empty reserved space is put in place to allow future versions
         // of the State contract to add new SmtData struct fields without shifting down
@@ -422,13 +421,14 @@ contract StateV2 is Ownable2StepUpgradeable {
         uint256 nextState = nextHistoryIndex < _stateData.statesHistories[id].length
             ? _stateData.statesHistories[id][nextHistoryIndex]
             : 0;
-        StateEntry memory nse = nextState != 0
-            ? _getSpecificStateEntryOfSameStates(id, nextState, nextHistoryIndex)
-            : StateEntry({
+
+        StateEntry memory nse = nextState == 0
+            ? StateEntry({
+                historyIndex: 0,
                 timestamp: 0,
-                block: 0,
-                historyIndex: 0
-            });
+                block: 0
+              })
+        : _getSpecificStateEntryOfSameStates(id, nextState, nextHistoryIndex);
 
         return
             StateInfo({
@@ -447,20 +447,20 @@ contract StateV2 is Ownable2StepUpgradeable {
         return ses[ses.length - 1];
     }
 
-    function _getSpecificStateEntryOfSameStates(uint256 id, uint256 state, uint256 historyIndex) internal view returns (StateEntry storage) {
+    function _getSpecificStateEntryOfSameStates(uint256 id, uint256 state, uint256 index) internal view returns (StateEntry storage) {
         StateEntry[] storage ses = _stateData.stateEntries[id][state];
 
-        // binary search in ses
-        uint256 left = 0;
-        uint256 right = ses.length - 1;
-        while (left <= right) {
-            uint256 mid = (left + right) / 2;
-            if (ses[mid].historyIndex == historyIndex) {
+        // binary search in all state entries of specific state
+        uint256 min = 0;
+        uint256 max = ses.length - 1;
+        while (min <= max) {
+            uint256 mid = (min + max) / 2;
+            if (ses[mid].historyIndex == index) {
                 return ses[mid];
-            } else if (ses[mid].historyIndex < historyIndex) {
-                left = mid + 1;
+            } else if (ses[mid].historyIndex < index) {
+                min = mid + 1;
             } else {
-                right = mid - 1;
+                max = mid - 1;
             }
         }
         revert("State entry not found");

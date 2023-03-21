@@ -43,7 +43,7 @@ library Smt {
     struct SmtData {
         mapping(uint256 => Node) nodes;
         uint256[] rootHistory;
-        mapping(uint256 => RootEntry) rootEntries;
+        mapping(uint256 => RootEntry[]) rootEntries; // root => RootEntry[]
         uint256 maxDepth;
         // This empty reserved space is put in place to allow future versions
         // of the SMT library to add new SmtData struct fields without shifting down
@@ -73,7 +73,7 @@ library Smt {
      * @param createdAtBlock A number of block, when the root was saved to blockchain.
      */
     struct RootEntry {
-        uint256 replacedByRoot;
+        uint256 historyIndex;
         uint256 createdAtTimestamp;
         uint256 createdAtBlock;
     }
@@ -125,11 +125,11 @@ library Smt {
 
         self.rootHistory.push(newRoot);
 
-        self.rootEntries[newRoot].createdAtTimestamp = block.timestamp;
-        self.rootEntries[newRoot].createdAtBlock = block.number;
-        if (prevRoot != 0) {
-            self.rootEntries[prevRoot].replacedByRoot = newRoot;
-        }
+        self.rootEntries[newRoot].push(RootEntry({
+            historyIndex: self.rootHistory.length - 1,
+            createdAtTimestamp: block.timestamp,
+            createdAtBlock: block.number
+        }));
     }
 
     /**
@@ -333,9 +333,20 @@ library Smt {
         SmtData storage self,
         uint256 root
     ) public view onlyExistingRoot(self, root) returns (IState.RootInfo memory) {
-        RootEntry storage re = self.rootEntries[root];
-        uint256 nextRoot = self.rootEntries[root].replacedByRoot;
-        RootEntry storage nre = self.rootEntries[nextRoot];
+        RootEntry storage re = _getLatestRootEntryOfSameRoot(self, root);
+
+        uint256 nextHistoryIndex = re.historyIndex + 1;
+        uint256 nextRoot = nextHistoryIndex < self.rootHistory.length
+            ? self.rootHistory[nextHistoryIndex]
+            : 0;
+
+        RootEntry memory nre = nextRoot == 0
+            ? RootEntry({
+                historyIndex: 0,
+                createdAtTimestamp: 0,
+                createdAtBlock: 0
+              })
+            : _getSpecificRootEntryOfSameRoot(self, nextRoot, nextHistoryIndex);
 
         return
             IState.RootInfo({
@@ -354,7 +365,7 @@ library Smt {
      * return true if root exists
      */
     function rootExists(SmtData storage self, uint256 root) public view returns (bool) {
-        return self.rootEntries[root].createdAtTimestamp > 0;
+        return self.rootEntries[root].length > 0;
     }
 
     /**
@@ -500,6 +511,11 @@ library Smt {
         }
         return nodeHash; // Note: expected to return 0 if NodeType.EMPTY, which is the only option left
     }
+
+    function _getLatestRootEntryOfSameRoot(SmtData storage self, uint256 root) internal view returns (RootEntry storage) {
+        RootEntry[] storage res = self.rootEntries[root];
+        return res[res.length - 1];
+    }
 }
 
 /// @title A binary search for the sparse merkle tree root history
@@ -530,11 +546,11 @@ library BinarySearchSmtRoots {
             mid = (max + min) / 2;
             midRoot = self.rootHistory[mid];
 
-            uint256 midValue = fieldSelector(self.rootEntries[midRoot], searchType);
+            uint256 midValue = fieldSelector(_getSpecificRootEntryOfSameRoot(self, midRoot, mid), searchType);
             if (midValue == value) {
                 while (mid < self.rootHistory.length - 1) {
                     uint256 nextRoot = self.rootHistory[mid + 1];
-                    uint256 nextValue = fieldSelector(self.rootEntries[nextRoot], searchType);
+                    uint256 nextValue = fieldSelector(_getSpecificRootEntryOfSameRoot(self, nextRoot, mid + 1), searchType);
                     if (nextValue == value) {
                         mid++;
                         midRoot = nextRoot;
@@ -572,4 +588,23 @@ library BinarySearchSmtRoots {
             revert("Invalid search type");
         }
     }
+}
+
+function _getSpecificRootEntryOfSameRoot(Smt.SmtData storage self, uint256 root, uint256 index) view returns (Smt.RootEntry storage) {
+    Smt.RootEntry[] storage res = self.rootEntries[root];
+
+    // binary search in root entries of specific root
+    uint256 min = 0;
+    uint256 max = res.length - 1;
+    while (min <= max) {
+        uint256 mid = (max + min) / 2;
+        if (res[mid].historyIndex == index) {
+            return res[mid];
+        } else if (res[mid].historyIndex < index) {
+            min = mid + 1;
+        } else {
+            max = mid - 1;
+        }
+    }
+    revert("Root entry not found");
 }

@@ -14,17 +14,12 @@ contract BinarySearchTestWrapper {
     ) public {
         smtData.rootHistory.push(_root);
 
-        Smt.RootEntry memory rt = Smt.RootEntry({
-            replacedByRoot: 0,
+        Smt.RootEntry memory re = Smt.RootEntry({
+            historyIndex: smtData.rootHistory.length - 1,
             createdAtTimestamp: _createdAtTimestamp,
             createdAtBlock: _createdAtBlock
         });
-        smtData.rootEntries[_root] = rt;
-
-        if (smtData.rootHistory.length >= 2) {
-            uint256 prevRoot = smtData.rootHistory[smtData.rootHistory.length - 2];
-            smtData.rootEntries[prevRoot].replacedByRoot = _root;
-        }
+        smtData.rootEntries[_root].push(re);
     }
 
     function getHistoricalRootByTime(uint256 _timestamp) public view returns (uint256) {
