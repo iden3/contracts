@@ -2883,7 +2883,7 @@ describe("SMT tests", function () {
 
     it("should revert if length limit exceeded", async () => {
       await expect(state.getGISTRootHistory(0, 10 ** 6)).to.be.revertedWith(
-        "History length limit exceeded"
+        "Length limit exceeded"
       );
     });
 

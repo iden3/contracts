@@ -5,6 +5,7 @@ import "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import "../lib/Smt.sol";
 import "../lib/Poseidon.sol";
 import "../interfaces/IStateTransitionVerifier.sol";
+import "../lib/ArrayUtils.sol";
 
 /// @title Set and get states for each identity
 contract StateV2 is Ownable2StepUpgradeable {
@@ -58,7 +59,7 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @param stateEntries A state metadata of each state
      */
     struct StateData {
-        mapping(uint256 => uint256[]) statesHistories;
+        mapping(uint256 => uint256[]) statesHistories; // id => state[]
         mapping(uint256 => mapping(uint256 => StateEntry[])) stateEntries; // id => state => stateEntry[]
         // This empty reserved space is put in place to allow future versions
         // of the State contract to add new SmtData struct fields without shifting down
@@ -91,7 +92,9 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @dev Global Identity State Tree (GIST) data
      */
     Smt.SmtData internal _gistData;
+
     using Smt for Smt.SmtData;
+    using ArrayUtils for uint256[];
 
     /**
      * @dev event called when a state is updated
@@ -254,19 +257,11 @@ contract StateV2 is Ownable2StepUpgradeable {
         uint256 startIndex,
         uint256 length
     ) external view onlyExistingId(id) returns (StateInfo[] memory) {
-        uint256[] storage history = _stateData.statesHistories[id];
+        uint256[] memory history = _stateData.statesHistories[id].subArray(startIndex, length, ID_HISTORY_RETURN_LIMIT);
+        StateInfo[] memory result = new StateInfo[](history.length);
 
-        require(length > 0, "Length should be greater than 0");
-        require(length <= ID_HISTORY_RETURN_LIMIT, "History length limit exceeded");
-        require(startIndex < history.length, "Start index out of bounds");
-
-        uint256 endIndex = startIndex + length < history.length
-            ? startIndex + length
-            : history.length;
-        StateInfo[] memory result = new StateInfo[](endIndex - startIndex);
-
-        for (uint256 i = startIndex; i < endIndex; i++) {
-            result[i - startIndex] = _getStateInfoByState(id, history[i]);
+        for (uint256 i = 0; i < history.length; i++) {
+            result[i] = _getStateInfoByState(id, history[i]);
         }
         return result;
     }

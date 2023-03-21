@@ -237,7 +237,7 @@ describe("State history", function () {
 
   it("should be reverted if length limit exceeded", async () => {
     await expect(state.getStateInfoHistoryById(user1ID, 0, 10 ** 6)).to.be.revertedWith(
-      "History length limit exceeded"
+      "Length limit exceeded"
     );
   });
 

@@ -3,6 +3,7 @@ pragma solidity 0.8.16;
 
 import "./Poseidon.sol";
 import "../interfaces/IState.sol";
+import "./ArrayUtils.sol";
 
 /// @title A sparse merkle tree implementation, which keeps tree history.
 // Note that this SMT implementation does not allow for duplicated roots in the history,
@@ -42,7 +43,7 @@ library Smt {
      */
     struct SmtData {
         mapping(uint256 => Node) nodes;
-        uint256[] rootHistory;
+        uint256[] rootHistory; // root[]
         mapping(uint256 => RootEntry[]) rootEntries; // root => RootEntry[]
         uint256 maxDepth;
         // This empty reserved space is put in place to allow future versions
@@ -95,6 +96,7 @@ library Smt {
     }
 
     using BinarySearchSmtRoots for SmtData;
+    using ArrayUtils for uint256[];
 
     /**
      * @dev Reverts if root does not exist in SMT roots history.
@@ -151,20 +153,11 @@ library Smt {
         uint256 startIndex,
         uint256 length
     ) external view returns (IState.RootInfo[] memory) {
-        uint256[] storage history = self.rootHistory;
+        uint256[] memory history = self.rootHistory.subArray(startIndex, length, SMT_ROOT_HISTORY_RETURN_LIMIT);
+        IState.RootInfo[] memory result = new IState.RootInfo[](history.length);
 
-        require(length > 0, "Length should be greater than 0");
-        require(length <= SMT_ROOT_HISTORY_RETURN_LIMIT, "History length limit exceeded");
-        require(startIndex < history.length, "Start index out of bounds");
-
-        uint256 endIndex = startIndex + length < history.length
-            ? startIndex + length
-            : history.length;
-
-        IState.RootInfo[] memory result = new IState.RootInfo[](endIndex - startIndex);
-
-        for (uint256 i = startIndex; i < endIndex; i++) {
-            result[i - startIndex] = getRootInfo(self, history[i]);
+        for (uint256 i = 0; i < history.length; i++) {
+            result[i] = getRootInfo(self, history[i]);
         }
         return result;
     }
@@ -517,6 +510,7 @@ library Smt {
 }
 
 /// @title A binary search for the sparse merkle tree root history
+// Implemented as a separate library for testing purposes
 library BinarySearchSmtRoots {
     /**
      * @dev Enum for the SMT history field selection
