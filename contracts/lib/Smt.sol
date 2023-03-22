@@ -153,7 +153,7 @@ library Smt {
         uint256 startIndex,
         uint256 length
     ) external view returns (IState.RootInfo[] memory) {
-        uint256[] memory history = self.rootHistory.subArray(startIndex, length, SMT_ROOT_HISTORY_RETURN_LIMIT);
+        uint256[] memory history = self.rootHistory.sliceArrUint256(startIndex, length, SMT_ROOT_HISTORY_RETURN_LIMIT);
         IState.RootInfo[] memory result = new IState.RootInfo[](history.length);
 
         for (uint256 i = 0; i < history.length; i++) {

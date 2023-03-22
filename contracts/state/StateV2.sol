@@ -6,6 +6,7 @@ import "../lib/Smt.sol";
 import "../lib/Poseidon.sol";
 import "../interfaces/IStateTransitionVerifier.sol";
 import "../lib/ArrayUtils.sol";
+import "hardhat/console.sol";
 
 /// @title Set and get states for each identity
 contract StateV2 is Ownable2StepUpgradeable {
@@ -48,7 +49,7 @@ contract StateV2 is Ownable2StepUpgradeable {
 //    }
 
     struct StateEntry {
-        uint256 historyIndex;
+        uint256 state;
         uint256 timestamp;
         uint256 block;
     }
@@ -59,8 +60,23 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @param stateEntries A state metadata of each state
      */
     struct StateData {
-        mapping(uint256 => uint256[]) statesHistories; // id => state[]
-        mapping(uint256 => mapping(uint256 => StateEntry[])) stateEntries; // id => state => stateEntry[]
+        /*
+        id => stateEntry[]
+        --------------------------------
+        id1 => [
+            index 0: StateEntry1 {state1, timestamp2, block1},
+            index 1: StateEntry2 {state2, timestamp2, block2},
+            index 2: StateEntry3 {state1, timestamp3, block3}
+        ]
+        */
+        mapping(uint256 => StateEntry[]) stateEntries;
+        /*
+        id => state => stateEntryIndex[]
+        -------------------------------
+        id1 => state1 => [index0, index2],
+        id1 => state2 => [index1]
+         */
+        mapping(uint256 => mapping(uint256 => uint256[])) stateIndexes;
         // This empty reserved space is put in place to allow future versions
         // of the State contract to add new SmtData struct fields without shifting down
         // storage of upgradable contracts that use this struct as a state variable
@@ -94,7 +110,6 @@ contract StateV2 is Ownable2StepUpgradeable {
     Smt.SmtData internal _gistData;
 
     using Smt for Smt.SmtData;
-    using ArrayUtils for uint256[];
 
     /**
      * @dev event called when a state is updated
@@ -167,27 +182,23 @@ contract StateV2 is Ownable2StepUpgradeable {
         require(id != 0, "ID should not be zero");
         require(newState != 0, "New state should not be zero");
 
+        StateEntry[] storage stateEntries = _stateData.stateEntries[id];
+
         if (isOldStateGenesis) {
             require(!idExists(id), "Old state is genesis but identity already exists");
 
-            // Index in the statesHistories is 0, creation time and creation block is unknown
-            _stateData.stateEntries[id][oldState].push(StateEntry(0, 0, 0));
-            // push genesis state to identities as latest state
-            _stateData.statesHistories[id].push(oldState);
+            // Push old state to state entries, with unknown timestamp and block
+            _addStateEntry(id, oldState, 0, 0);
         } else {
             require(idExists(id), "Old state is not genesis but identity does not yet exist");
 
-            uint256 previousIDState = _stateData.statesHistories[id][
-                _stateData.statesHistories[id].length - 1
-            ];
-
-            StateEntry[] storage se = _stateData.stateEntries[id][previousIDState];
+            StateEntry storage prevStateEntry = stateEntries[stateEntries.length - 1];
 
             require(
-                se[se.length - 1].block != block.number,
+                prevStateEntry.block != block.number,
                 "No multiple set in the same block"
             );
-            require(previousIDState == oldState, "Old state does not match the latest state");
+            require(prevStateEntry.state == oldState, "Old state does not match the latest state");
         }
 
         uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis ? 1 : 0)];
@@ -196,19 +207,22 @@ contract StateV2 is Ownable2StepUpgradeable {
             "Zero-knowledge proof of state transition is not valid"
         );
 
-        _stateData.statesHistories[id].push(newState);
-
-        // Set create info for new state
-        _stateData.stateEntries[id][newState].push(StateEntry({
-            historyIndex: _stateData.statesHistories[id].length - 1,
-            timestamp: block.timestamp,
-            block: block.number
-        }));
+        _addStateEntry(id, newState, block.timestamp, block.number);
 
         // put state to GIST to recalculate global state
         _gistData.add(PoseidonUnit1L.poseidon([id]), newState);
 
         emit StateUpdated(id, block.number, block.timestamp, newState);
+    }
+
+    function _addStateEntry(uint256 id, uint256 state, uint256 _timestamp, uint256 _block ) internal {
+        StateEntry[] storage stateEntries = _stateData.stateEntries[id];
+        stateEntries.push(StateEntry({
+            state: state,
+            timestamp: _timestamp,
+            block: _block
+        }));
+        _stateData.stateIndexes[id][state].push(stateEntries.length - 1);
     }
 
     /**
@@ -227,10 +241,13 @@ contract StateV2 is Ownable2StepUpgradeable {
     function getStateInfoById(
         uint256 id
     ) external view onlyExistingId(id) returns (StateInfo memory) {
+        StateEntry[] storage stateEntries = _stateData.stateEntries[id];
+
         return
-            _getStateInfoByState(
+            _stateEntryToStateInfo(
                 id,
-                _stateData.statesHistories[id][_stateData.statesHistories[id].length - 1]
+                stateEntries[stateEntries.length - 1],
+                stateEntries.length - 1
             );
     }
 
@@ -242,7 +259,7 @@ contract StateV2 is Ownable2StepUpgradeable {
     function getStateInfoHistoryLengthById(
         uint256 id
     ) external view onlyExistingId(id) returns (uint256) {
-        return _stateData.statesHistories[id].length;
+        return _stateData.stateEntries[id].length;
     }
 
     /**
@@ -257,13 +274,43 @@ contract StateV2 is Ownable2StepUpgradeable {
         uint256 startIndex,
         uint256 length
     ) external view onlyExistingId(id) returns (StateInfo[] memory) {
-        uint256[] memory history = _stateData.statesHistories[id].subArray(startIndex, length, ID_HISTORY_RETURN_LIMIT);
-        StateInfo[] memory result = new StateInfo[](history.length);
+        StateEntry[] memory ses = ArrayUtils.sliceArrStateEntry(
+            _stateData.stateEntries[id],
+            startIndex,
+            length,
+            ID_HISTORY_RETURN_LIMIT
+        );
 
-        for (uint256 i = 0; i < history.length; i++) {
-            result[i] = _getStateInfoByState(id, history[i]);
+        StateInfo[] memory result = new StateInfo[](ses.length);
+
+        for (uint256 i = 0; i < ses.length; i++) {
+            result[i] = _stateEntryToStateInfo(id, ses[i], startIndex + i);
         }
+
+        console.log("result[0].id", result[0].id);
+
         return result;
+    }
+
+    function _stateEntryToStateInfo(
+        uint256 id,
+        StateEntry memory stateEntry,
+        uint256 stateEntryIndex
+    ) internal view returns (StateInfo memory) {
+        bool isLastStateEntry = stateEntryIndex == _stateData.stateEntries[id].length - 1;
+        StateEntry memory nextStateEntry = isLastStateEntry
+            ? StateEntry({state: 0, timestamp: 0, block: 0})
+            : _stateData.stateEntries[id][stateEntryIndex + 1];
+
+        return StateInfo({
+            id: id,
+            state: stateEntry.state,
+            replacedByState: nextStateEntry.state,
+            createdAtTimestamp: stateEntry.timestamp,
+            replacedAtTimestamp: nextStateEntry.timestamp,
+            createdAtBlock: stateEntry.block,
+            replacedAtBlock: nextStateEntry.block
+        });
     }
 
     /**
@@ -390,7 +437,7 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @return True if the identity exists
      */
     function idExists(uint256 id) public view returns (bool) {
-        return _stateData.statesHistories[id].length > 0;
+        return _stateData.stateEntries[id].length > 0;
     }
 
     /**
@@ -400,7 +447,7 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @return True if the state exists
      */
     function stateExists(uint256 id, uint256 state) public view returns (bool) {
-        return _stateData.stateEntries[id][state].length != 0;
+        return _stateData.stateIndexes[id][state].length > 0;
     }
 
     /**
@@ -410,54 +457,20 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @return The state info struct
      */
     function _getStateInfoByState(uint256 id, uint256 state) internal view returns (StateInfo memory) {
+
         StateEntry storage se = _getLatestStateEntryOfSameStates(id, state);
-        uint256[] storage history = _stateData.statesHistories[id];
+        StateEntry[] storage ses = _stateData.stateEntries[id];
 
-        uint256 nextHistoryIndex = se.historyIndex + 1;
-        bool isLastState = nextHistoryIndex == history.length;
+        //todo get rid of possible DRY violation
+        uint256[] storage indexes = _stateData.stateIndexes[id][state];
+        uint256 stateEntryIndex = indexes[indexes.length - 1];
 
-        StateEntry memory nse = isLastState
-            ? StateEntry({
-                historyIndex: 0,
-                timestamp: 0,
-                block: 0
-              })
-            : _getStateEntryByIndex(id, nextHistoryIndex);
-
-        return
-            StateInfo({
-                id: id,
-                state: state,
-                replacedByState: isLastState ? 0 : history[nextHistoryIndex],
-                createdAtTimestamp: se.timestamp,
-                replacedAtTimestamp: nse.timestamp,
-                createdAtBlock: se.block,
-                replacedAtBlock: nse.block
-            });
+        return _stateEntryToStateInfo(id, se, stateEntryIndex);
     }
 
     function _getLatestStateEntryOfSameStates(uint256 id, uint256 state) internal view returns (StateEntry storage) {
-        StateEntry[] storage ses = _stateData.stateEntries[id][state];
-        return ses[ses.length - 1];
-    }
-
-    function _getStateEntryByIndex(uint256 id, uint256 index) internal view returns (StateEntry storage) {
-        uint256 state = _stateData.statesHistories[id][index];
-        StateEntry[] storage ses = _stateData.stateEntries[id][state];
-
-        // binary search in all state entries of specific state
-        uint256 min = 0;
-        uint256 max = ses.length - 1;
-        while (min <= max) {
-            uint256 mid = (min + max) / 2;
-            if (ses[mid].historyIndex == index) {
-                return ses[mid];
-            } else if (ses[mid].historyIndex < index) {
-                min = mid + 1;
-            } else {
-                max = mid - 1;
-            }
-        }
-        revert("State entry not found");
+        uint256[] storage indexes = _stateData.stateIndexes[id][state];
+        uint256 lastIndex = indexes[indexes.length - 1];
+        return _stateData.stateEntries[id][lastIndex];
     }
 }
