@@ -4,6 +4,7 @@ pragma solidity 0.8.16;
 import "./Poseidon.sol";
 import "../interfaces/IState.sol";
 import "./ArrayUtils.sol";
+import "hardhat/console.sol";
 
 /// @title A sparse merkle tree implementation, which keeps tree history.
 // Note that this SMT implementation does not allow for duplicated roots in the history,
@@ -43,8 +44,8 @@ library Smt {
      */
     struct SmtData {
         mapping(uint256 => Node) nodes;
-        uint256[] rootHistory; // root[]
-        mapping(uint256 => RootEntry[]) rootEntries; // root => RootEntry[]
+        RootEntry[] rootEntries;
+        mapping(uint256 => uint256[]) rootEntryIndexes; // root => rootEntryIndex[]
         uint256 maxDepth;
         // This empty reserved space is put in place to allow future versions
         // of the SMT library to add new SmtData struct fields without shifting down
@@ -74,7 +75,7 @@ library Smt {
      * @param createdAtBlock A number of block, when the root was saved to blockchain.
      */
     struct RootEntry {
-        uint256 historyIndex;
+        uint256 root;
         uint256 createdAtTimestamp;
         uint256 createdAtBlock;
     }
@@ -125,13 +126,13 @@ library Smt {
         uint256 prevRoot = getRoot(self);
         uint256 newRoot = _addLeaf(self, node, prevRoot, 0);
 
-        self.rootHistory.push(newRoot);
-
-        self.rootEntries[newRoot].push(RootEntry({
-            historyIndex: self.rootHistory.length - 1,
+        self.rootEntries.push(RootEntry({
+            root: newRoot,
             createdAtTimestamp: block.timestamp,
             createdAtBlock: block.number
         }));
+
+        self.rootEntryIndexes[newRoot].push(self.rootEntries.length - 1);
     }
 
     /**
@@ -139,7 +140,7 @@ library Smt {
      * @return SMT history length
      */
     function getRootHistoryLength(SmtData storage self) external view returns (uint256) {
-        return self.rootHistory.length;
+        return self.rootEntries.length;
     }
 
     /**
@@ -153,11 +154,14 @@ library Smt {
         uint256 startIndex,
         uint256 length
     ) external view returns (IState.RootInfo[] memory) {
-        uint256[] memory history = self.rootHistory.sliceArrUint256(startIndex, length, SMT_ROOT_HISTORY_RETURN_LIMIT);
-        IState.RootInfo[] memory result = new IState.RootInfo[](history.length);
+        (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
+            self.rootEntries.length, startIndex, length, SMT_ROOT_HISTORY_RETURN_LIMIT
+        );
 
-        for (uint256 i = 0; i < history.length; i++) {
-            result[i] = getRootInfo(self, history[i]);
+        IState.RootInfo[] memory result = new IState.RootInfo[](end - start);
+
+        for (uint256 i = start; i < end; i++) {
+            result[i - start] = _getRootInfoByIndex(self, i);
         }
         return result;
     }
@@ -279,7 +283,8 @@ library Smt {
     }
 
     function getRoot(SmtData storage self) public view returns (uint256) {
-        return self.rootHistory.length > 0 ? self.rootHistory[self.rootHistory.length - 1] : 0;
+        RootEntry[] storage rootEntries = self.rootEntries;
+        return rootEntries.length > 0 ? rootEntries[rootEntries.length - 1].root : 0;
     }
 
     /**
@@ -291,14 +296,9 @@ library Smt {
         SmtData storage self,
         uint256 timestamp
     ) public view returns (IState.RootInfo memory) {
-        require(timestamp <= block.timestamp, "errNoFutureAllowed");
+        require(timestamp <= block.timestamp, "No future timestamps allowed");
 
-        uint256 root = self.binarySearchUint256(
-            timestamp,
-            BinarySearchSmtRoots.SearchType.TIMESTAMP
-        );
-
-        return getRootInfo(self, root);
+        return _getRootInfoByTimestampOrBlock(self, timestamp, BinarySearchSmtRoots.SearchType.TIMESTAMP);
     }
 
     /**
@@ -310,11 +310,31 @@ library Smt {
         SmtData storage self,
         uint256 blockN
     ) public view returns (IState.RootInfo memory) {
-        require(blockN <= block.number, "errNoFutureAllowed");
+        require(blockN <= block.number, "No future blocks allowed");
 
-        uint256 root = self.binarySearchUint256(blockN, BinarySearchSmtRoots.SearchType.BLOCK);
+        return _getRootInfoByTimestampOrBlock(self, blockN, BinarySearchSmtRoots.SearchType.BLOCK);
+    }
 
-        return getRootInfo(self, root);
+    function _getRootInfoByTimestampOrBlock(
+        SmtData storage self,
+        uint256 timestampOrBlock,
+        BinarySearchSmtRoots.SearchType searchType
+    ) internal view returns (IState.RootInfo memory) {
+        (uint256 index, bool found) = self.binarySearchUint256(
+            timestampOrBlock,
+            searchType
+        );
+
+        return found
+            ? _getRootInfoByIndex(self, index)
+            : IState.RootInfo({
+                root: 0,
+                replacedByRoot: 0,
+                createdAtTimestamp: 0,
+                replacedAtTimestamp: 0,
+                createdAtBlock: 0,
+                replacedAtBlock: 0
+            });
     }
 
     /**
@@ -326,28 +346,9 @@ library Smt {
         SmtData storage self,
         uint256 root
     ) public view onlyExistingRoot(self, root) returns (IState.RootInfo memory) {
-        RootEntry storage re = _getLatestRootEntryOfSameRoot(self, root);
-
-        uint256 nextHistoryIndex = re.historyIndex + 1;
-        bool isLastRoot = nextHistoryIndex == self.rootHistory.length;
-
-        RootEntry memory nre = isLastRoot
-            ? RootEntry({
-                historyIndex: 0,
-                createdAtTimestamp: 0,
-                createdAtBlock: 0
-              })
-            : _getRootEntryByIndex(self, nextHistoryIndex);
-
-        return
-            IState.RootInfo({
-                root: root,
-                replacedByRoot: isLastRoot ? 0 : self.rootHistory[nextHistoryIndex],
-                createdAtTimestamp: re.createdAtTimestamp,
-                replacedAtTimestamp: nre.createdAtTimestamp,
-                createdAtBlock: re.createdAtBlock,
-                replacedAtBlock: nre.createdAtBlock
-            });
+        uint256[] storage indexes = self.rootEntryIndexes[root];
+        uint256 index = indexes[indexes.length - 1];
+        return _getRootInfoByIndex(self, index);
     }
 
     /**
@@ -356,7 +357,7 @@ library Smt {
      * return true if root exists
      */
     function rootExists(SmtData storage self, uint256 root) public view returns (bool) {
-        return self.rootEntries[root].length > 0;
+        return self.rootEntryIndexes[root].length > 0;
     }
 
     /**
@@ -503,9 +504,18 @@ library Smt {
         return nodeHash; // Note: expected to return 0 if NodeType.EMPTY, which is the only option left
     }
 
-    function _getLatestRootEntryOfSameRoot(SmtData storage self, uint256 root) internal view returns (RootEntry storage) {
-        RootEntry[] storage res = self.rootEntries[root];
-        return res[res.length - 1];
+    function _getRootInfoByIndex(SmtData storage self, uint256 index) internal view returns (IState.RootInfo memory) {
+        bool isLastRoot = index == self.rootEntries.length - 1;
+        RootEntry storage rootEntry = self.rootEntries[index];
+
+        return IState.RootInfo({
+            root: rootEntry.root,
+            replacedByRoot: isLastRoot ? 0 : self.rootEntries[index + 1].root,
+            createdAtTimestamp: rootEntry.createdAtTimestamp,
+            replacedAtTimestamp: isLastRoot ? 0 : self.rootEntries[index + 1].createdAtTimestamp,
+            createdAtBlock: rootEntry.createdAtBlock,
+            replacedAtBlock: isLastRoot ? 0 : self.rootEntries[index + 1].createdAtBlock
+        });
     }
 }
 
@@ -524,48 +534,43 @@ library BinarySearchSmtRoots {
         Smt.SmtData storage self,
         uint256 value,
         SearchType searchType
-    ) internal view returns (uint256) {
-        if (self.rootHistory.length == 0) {
-            return 0;
+    ) internal view returns (uint256, bool) {
+        if (self.rootEntries.length == 0) {
+            return (0, false);
         }
 
         uint256 min = 0;
-        uint256 max = self.rootHistory.length - 1;
+        uint256 max = self.rootEntries.length - 1;
         uint256 mid;
-        uint256 midRoot;
 
         while (min <= max) {
             mid = (max + min) / 2;
-            midRoot = self.rootHistory[mid];
 
-            uint256 midValue = fieldSelector(_getRootEntryByIndex(self, mid), searchType);
+            uint256 midValue = fieldSelector(self.rootEntries[mid], searchType);
             if (midValue == value) {
-                while (mid < self.rootHistory.length - 1) {
-                    uint256 nextRoot = self.rootHistory[mid + 1];
-                    uint256 nextValue = fieldSelector(_getRootEntryByIndex(self, mid + 1), searchType);
+                while (mid < self.rootEntries.length - 1) {
+                    uint256 nextValue = fieldSelector(self.rootEntries[mid + 1], searchType);
                     if (nextValue == value) {
                         mid++;
-                        midRoot = nextRoot;
                     } else {
-                        return midRoot;
+                        return (mid, true);
                     }
                 }
-                return midRoot;
+                return (mid, true);
             } else if (value > midValue) {
                 min = mid + 1;
             } else if (value < midValue && mid > 0) {
                 // mid > 0 is to avoid underflow
                 max = mid - 1;
             } else {
-                // This means that value < midValue && mid == 0. So we return zero,
-                // when search for a value less than the value in the first root
-                return 0;
+                // This means that value < midValue && mid == 0. So we found nothing.
+                return (0, false);
             }
         }
 
         // The case when the searched value does not exist and we should take the closest smaller value
-        // Index in the "max" var points to the root with max value smaller than the searched value
-        return self.rootHistory[max];
+        // Index in the "max" var points to the root entry with max value smaller than the searched value
+        return (max, true);
     }
 
     function fieldSelector(
@@ -580,24 +585,4 @@ library BinarySearchSmtRoots {
             revert("Invalid search type");
         }
     }
-}
-
-function _getRootEntryByIndex(Smt.SmtData storage self, uint256 index) view returns (Smt.RootEntry storage) {
-    uint256 root = self.rootHistory[index];
-    Smt.RootEntry[] storage res = self.rootEntries[root];
-
-    // binary search in root entries of specific root
-    uint256 min = 0;
-    uint256 max = res.length - 1;
-    while (min <= max) {
-        uint256 mid = (max + min) / 2;
-        if (res[mid].historyIndex == index) {
-            return res[mid];
-        } else if (res[mid].historyIndex < index) {
-            min = mid + 1;
-        } else {
-            max = mid - 1;
-        }
-    }
-    revert("Root entry not found");
 }

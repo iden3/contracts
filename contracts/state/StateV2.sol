@@ -274,20 +274,18 @@ contract StateV2 is Ownable2StepUpgradeable {
         uint256 startIndex,
         uint256 length
     ) external view onlyExistingId(id) returns (StateInfo[] memory) {
-        StateEntry[] memory ses = ArrayUtils.sliceArrStateEntry(
-            _stateData.stateEntries[id],
+        (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
+            _stateData.stateEntries[id].length,
             startIndex,
             length,
             ID_HISTORY_RETURN_LIMIT
         );
 
-        StateInfo[] memory result = new StateInfo[](ses.length);
+        StateInfo[] memory result = new StateInfo[](end - start);
 
-        for (uint256 i = 0; i < ses.length; i++) {
-            result[i] = _stateEntryToStateInfo(id, ses[i], startIndex + i);
+        for (uint256 i = start; i < end; i++) {
+            result[i - start] = _getStateInfoByIndex(id, i);
         }
-
-        console.log("result[0].id", result[0].id);
 
         return result;
     }
@@ -399,7 +397,7 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @return The GIST root history length
      */
     function getGISTRootHistoryLength() external view returns (uint256) {
-        return _gistData.rootHistory.length;
+        return _gistData.rootEntries.length;
     }
 
     /**
@@ -472,5 +470,20 @@ contract StateV2 is Ownable2StepUpgradeable {
         uint256[] storage indexes = _stateData.stateIndexes[id][state];
         uint256 lastIndex = indexes[indexes.length - 1];
         return _stateData.stateEntries[id][lastIndex];
+    }
+
+    function _getStateInfoByIndex(uint256 id, uint256 index) internal view returns (StateInfo memory) {
+        bool isLastState = index == _stateData.stateEntries[id].length - 1;
+        StateEntry storage se = _stateData.stateEntries[id][index];
+
+        return StateInfo({
+            id: id,
+            state: se.state,
+            replacedByState: isLastState ? 0 : _stateData.stateEntries[id][index + 1].state,
+            createdAtTimestamp: se.timestamp,
+            replacedAtTimestamp: isLastState ? 0 : _stateData.stateEntries[id][index + 1].timestamp,
+            createdAtBlock: se.block,
+            replacedAtBlock: isLastState ? 0 : _stateData.stateEntries[id][index + 1].block
+        });
     }
 }

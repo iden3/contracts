@@ -260,17 +260,32 @@ export class StateDeployHelper {
   }
 
   async deployBinarySearchTestWrapper(): Promise<Contract> {
-    const contractName = "BinarySearchTestWrapper";
+    const owner = this.signers[0];
 
-    const BSWrapper = await ethers.getContractFactory(contractName);
+    this.log("deploying poseidons...");
+    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons(
+      owner,
+      [2, 3]
+    );
+
+    const smt = await this.deploySmt(
+      poseidon2Elements.address,
+      poseidon3Elements.address
+    );
+
+    const bsWrapperName = "BinarySearchTestWrapper";
+    const BSWrapper = await ethers.getContractFactory(bsWrapperName, {
+      libraries: {
+        Smt: smt.address,
+      },
+    });
     const bsWrapper = await BSWrapper.deploy();
     await bsWrapper.deployed();
     this.enableLogging &&
-      this.log(`${contractName} deployed to:  ${bsWrapper.address}`);
+      this.log(`${bsWrapperName} deployed to:  ${bsWrapper.address}`);
 
     return bsWrapper;
   }
-
 
   async deploySearchUtils(stateContract: Contract): Promise<{
     searchUtils: Contract;

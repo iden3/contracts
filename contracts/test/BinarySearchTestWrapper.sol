@@ -5,28 +5,27 @@ import "../lib/Smt.sol";
 
 contract BinarySearchTestWrapper {
     Smt.SmtData internal smtData;
-    using BinarySearchSmtRoots for Smt.SmtData;
+    using Smt for Smt.SmtData;
 
     function addRootEntry(
-        uint256 _createdAtTimestamp,
-        uint256 _createdAtBlock,
-        uint256 _root
+        uint256 root,
+        uint256 createdAtTimestamp,
+        uint256 createdAtBlock
     ) public {
-        smtData.rootHistory.push(_root);
+        smtData.rootEntries.push(Smt.RootEntry({
+            root: root,
+            createdAtTimestamp: createdAtTimestamp,
+            createdAtBlock: createdAtBlock
+        }));
 
-        Smt.RootEntry memory re = Smt.RootEntry({
-            historyIndex: smtData.rootHistory.length - 1,
-            createdAtTimestamp: _createdAtTimestamp,
-            createdAtBlock: _createdAtBlock
-        });
-        smtData.rootEntries[_root].push(re);
+        smtData.rootEntryIndexes[root].push(smtData.rootEntries.length - 1);
     }
 
-    function getHistoricalRootByTime(uint256 _timestamp) public view returns (uint256) {
-        return smtData.binarySearchUint256(_timestamp, BinarySearchSmtRoots.SearchType.TIMESTAMP);
+    function getRootInfoByTime(uint256 _timestamp) public view returns (IState.RootInfo memory) {
+        return smtData.getRootInfoByTime(_timestamp);
     }
 
-    function getHistoricalRootByBlock(uint256 _block) public view returns (uint256) {
-        return smtData.binarySearchUint256(_block, BinarySearchSmtRoots.SearchType.BLOCK);
+    function getHistoricalRootByBlock(uint256 _block) public view returns (IState.RootInfo memory) {
+        return smtData.getRootInfoByBlock(_block);
     }
 }
