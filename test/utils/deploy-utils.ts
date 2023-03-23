@@ -87,15 +87,6 @@ export function prepareInputs(json: any): VerificationInfo {
   return { inputs: pub_signals, ...preparedProof };
 }
 
-export function toBigNumber({ inputs, pi_a, pi_b, pi_c }: VerificationInfo) {
-  return {
-    inputs: inputs.map((input) => ethers.BigNumber.from(input)),
-    pi_a: pi_a.map((input) => ethers.BigNumber.from(input)),
-    pi_b: pi_b.map((arr) => arr.map((input) => ethers.BigNumber.from(input))),
-    pi_c: pi_c.map((input) => ethers.BigNumber.from(input)),
-  };
-}
-
 export async function publishState(
   state: Contract,
   json: { [key: string]: string }

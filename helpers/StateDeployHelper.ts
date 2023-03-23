@@ -80,9 +80,13 @@ export class StateDeployHelper {
       poseidon3Elements.address
     );
 
+    this.log("deploying StateLib...");
+    const stateLib = await this.deployStateLib();
+
     this.log("deploying stateV2...");
     const StateV2Factory = await ethers.getContractFactory("StateV2", {
       libraries: {
+        StateLib: stateLib.address,
         Smt: smt.address,
         PoseidonUnit1L: poseidon1Elements.address,
       },
@@ -91,9 +95,8 @@ export class StateDeployHelper {
       StateV2Factory,
       [verifier.address, GIST_MAX_DEPTH],
       {
-        unsafeAllowLinkedLibraries: true,
-      }
-    );
+      unsafeAllowLinkedLibraries: true,
+    });
     await stateV2.deployed();
     this.log(
       `StateV2 contract deployed to address ${stateV2.address} from ${owner.address}`
@@ -216,7 +219,7 @@ export class StateDeployHelper {
     poseidon2Address: string,
     poseidon3Address: string,
     contractName = "Smt"
-  ): Promise<any> {
+  ): Promise<Contract> {
     const Smt = await ethers.getContractFactory(contractName, {
       libraries: {
         PoseidonUnit2L: poseidon2Address,
@@ -229,6 +232,16 @@ export class StateDeployHelper {
       this.log(`${contractName} deployed to:  ${smt.address}`);
 
     return smt;
+  }
+
+  async deployStateLib(): Promise<Contract> {
+    const StateLib = await ethers.getContractFactory("StateLib");
+    const stateLib = await StateLib.deploy();
+    await stateLib.deployed();
+    this.enableLogging &&
+      this.log(`StateLib deployed to:  ${stateLib.address}`);
+
+    return stateLib;
   }
 
   async deploySmtTestWrapper(maxDepth?: number): Promise<Contract> {

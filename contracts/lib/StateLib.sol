@@ -1,0 +1,258 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity 0.8.16;
+
+import "../lib/ArrayUtils.sol";
+
+/// @title Library for state data management
+library StateLib {
+    /**
+     * @dev Max return array length for id history requests
+     */
+    uint256 public constant ID_HISTORY_RETURN_LIMIT = 1000;
+
+    /**
+     * @dev Struct for public interfaces to represent a state information.
+     * @param id identity.
+     * @param replacedByState A state, which replaced this state for the identity.
+     * @param createdAtTimestamp A time when the state was created.
+     * @param replacedAtTimestamp A time when the state was replaced by the next identity state.
+     * @param createdAtBlock A block number when the state was created.
+     * @param replacedAtBlock A block number when the state was replaced by the next identity state.
+     */
+    struct StateInfo {
+        uint256 id;
+        uint256 state;
+        uint256 replacedByState;
+        uint256 createdAtTimestamp;
+        uint256 replacedAtTimestamp;
+        uint256 createdAtBlock;
+        uint256 replacedAtBlock;
+    }
+
+    /**
+     * @dev Struct for identity state internal storage representation.
+     * @param state A state.
+     * @param timestamp A time when the state was committed to blockchain.
+     * @param block A block number when the state was committed to blockchain.
+     */
+    struct StateEntry {
+        uint256 state;
+        uint256 timestamp;
+        uint256 block;
+    }
+
+    /**
+     * @dev Struct for storing all the state data
+     * @param statesHistories A state history per each identity.
+     * @param stateEntries A state metadata of each state
+     */
+    struct StateData {
+        /*
+        id => stateEntry[]
+        --------------------------------
+        id1 => [
+            index 0: StateEntry1 {state1, timestamp2, block1},
+            index 1: StateEntry2 {state2, timestamp2, block2},
+            index 2: StateEntry3 {state1, timestamp3, block3}
+        ]
+        */
+        mapping(uint256 => StateEntry[]) stateEntries;
+
+        /*
+        id => state => stateEntryIndex[]
+        -------------------------------
+        id1 => state1 => [index0, index2],
+        id1 => state2 => [index1]
+         */
+        mapping(uint256 => mapping(uint256 => uint256[])) stateIndexes;
+
+        // This empty reserved space is put in place to allow future versions
+        // of the State contract to add new SmtData struct fields without shifting down
+        // storage of upgradable contracts that use this struct as a state variable
+        // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+        uint256[50] __gap;
+    }
+
+    /**
+     * @dev Revert if identity does not exist in the contract
+     * @param id Identity
+     */
+    modifier onlyExistingId(StateData storage self, uint256 id) {
+        require(idExists(self, id), "Identity does not exist");
+        _;
+    }
+
+    /**
+     * @dev Revert if state does not exist in the contract
+     * @param state State
+     */
+    modifier onlyExistingState(StateData storage self, uint256 id, uint256 state) {
+        require(stateExists(self, id, state), "State does not exist");
+        _;
+    }
+
+    /**
+     * @dev Retrieve the last state info for a given identity
+     * @param id identity
+     * @return state info of the last committed state
+     */
+    function getStateInfoById(
+        StateData storage self,
+        uint256 id
+    ) external view onlyExistingId(self, id) returns (StateInfo memory) {
+        StateEntry[] storage stateEntries = self.stateEntries[id];
+
+        return
+            _stateEntryToStateInfo(
+                self,
+                id,
+                stateEntries[stateEntries.length - 1],
+                stateEntries.length - 1
+            );
+    }
+
+    /**
+     * @dev Retrieve states quantity for a given identity
+     * @param id identity
+     * @return states quantity
+     */
+    function getStateInfoHistoryLengthById(
+        StateData storage self,
+        uint256 id
+    ) external view onlyExistingId(self, id) returns (uint256) {
+        return self.stateEntries[id].length;
+    }
+
+    /**
+     * Retrieve state infos for a given identity
+     * @param id identity
+     * @param startIndex start index of the state history
+     * @param length length of the state history
+     * @return A list of state infos of the identity
+     */
+    function getStateInfoHistoryById(
+        StateData storage self,
+        uint256 id,
+        uint256 startIndex,
+        uint256 length
+    ) external view onlyExistingId(self, id) returns (StateInfo[] memory) {
+        (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
+            self.stateEntries[id].length,
+            startIndex,
+            length,
+            ID_HISTORY_RETURN_LIMIT
+        );
+
+        StateInfo[] memory result = new StateInfo[](end - start);
+
+        for (uint256 i = start; i < end; i++) {
+            result[i - start] = _getStateInfoByIndex(self, id, i);
+        }
+
+        return result;
+    }
+
+    /**
+     * @dev Retrieve state information by state.
+     * @param state A state
+     * @return The state info
+     */
+    function getStateInfoByState(
+        StateData storage self,
+        uint256 id,
+        uint256 state
+    ) external view onlyExistingState(self, id, state) returns (StateInfo memory) {
+        return _getStateInfoByState(self, id, state);
+    }
+
+    /**
+     * @dev Check if identity exists.
+     * @param id Identity
+     * @return True if the identity exists
+     */
+    function idExists(StateData storage self, uint256 id) public view returns (bool) {
+        return self.stateEntries[id].length > 0;
+    }
+
+    /**
+     * @dev Check if state exists.
+     * @param id Identity
+     * @param state State
+     * @return True if the state exists
+     */
+    function stateExists(StateData storage self, uint256 id, uint256 state) public view returns (bool) {
+        return self.stateIndexes[id][state].length > 0;
+    }
+
+    function addStateEntry(StateData storage self, uint256 id, uint256 state, uint256 _timestamp, uint256 _block ) external {
+        StateEntry[] storage stateEntries = self.stateEntries[id];
+        stateEntries.push(StateEntry({
+            state: state,
+            timestamp: _timestamp,
+            block: _block
+        }));
+        self.stateIndexes[id][state].push(stateEntries.length - 1);
+    }
+
+    /**
+     * @dev Get state info struct by state without state existence check.
+     * @param id Identity
+     * @param state State
+     * @return The state info struct
+     */
+    function _getStateInfoByState(StateData storage self, uint256 id, uint256 state) internal view returns (StateInfo memory) {
+
+        StateEntry storage se = _getLatestStateEntryOfSameStates(self, id, state);
+        StateEntry[] storage ses = self.stateEntries[id];
+
+        //todo get rid of possible DRY violation
+        uint256[] storage indexes = self.stateIndexes[id][state];
+        uint256 stateEntryIndex = indexes[indexes.length - 1];
+
+        return _stateEntryToStateInfo(self, id, se, stateEntryIndex);
+    }
+
+    function _getLatestStateEntryOfSameStates(StateData storage self, uint256 id, uint256 state) internal view returns (StateEntry storage) {
+        uint256[] storage indexes = self.stateIndexes[id][state];
+        uint256 lastIndex = indexes[indexes.length - 1];
+        return self.stateEntries[id][lastIndex];
+    }
+
+    function _getStateInfoByIndex(StateData storage self, uint256 id, uint256 index) internal view returns (StateInfo memory) {
+        bool isLastState = index == self.stateEntries[id].length - 1;
+        StateEntry storage se = self.stateEntries[id][index];
+
+        return StateInfo({
+            id: id,
+            state: se.state,
+            replacedByState: isLastState ? 0 : self.stateEntries[id][index + 1].state,
+            createdAtTimestamp: se.timestamp,
+            replacedAtTimestamp: isLastState ? 0 : self.stateEntries[id][index + 1].timestamp,
+            createdAtBlock: se.block,
+            replacedAtBlock: isLastState ? 0 : self.stateEntries[id][index + 1].block
+        });
+    }
+
+    //todo check if it is possible to get rid of this function
+    function _stateEntryToStateInfo(
+        StateData storage self,
+        uint256 id,
+        StateEntry memory stateEntry,
+        uint256 stateEntryIndex
+    ) internal view returns (StateInfo memory) {
+        bool isLastStateEntry = stateEntryIndex == self.stateEntries[id].length - 1;
+        StateEntry memory nextStateEntry = isLastStateEntry
+        ? StateEntry({state: 0, timestamp: 0, block: 0})
+        : self.stateEntries[id][stateEntryIndex + 1];
+
+        return StateInfo({
+        id: id,
+        state: stateEntry.state,
+        replacedByState: nextStateEntry.state,
+        createdAtTimestamp: stateEntry.timestamp,
+        replacedAtTimestamp: nextStateEntry.timestamp,
+        createdAtBlock: stateEntry.block,
+        replacedAtBlock: nextStateEntry.block
+        });
+    }
+}
