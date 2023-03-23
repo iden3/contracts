@@ -4,6 +4,7 @@ import { FixedArray, genMaxBinaryNumber, MtpProof } from "../utils/utils";
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 import { publishState } from "../utils/deploy-utils";
 import { Contract } from "ethers";
+import { ethers } from "hardhat";
 
 const stateTransitions = [
   require("../state/data/user_state_genesis_transition.json"),
@@ -2901,23 +2902,141 @@ describe("SMT tests", function () {
     });
   });
 
+  describe("Root history duplication requests", function () {
+    let smt;
+
+    beforeEach(async () => {
+      const deployHelper = await StateDeployHelper.initialize();
+      smt = await deployHelper.deploySmtTestWrapper();
+    });
+
+    it("Comprehensive check", async () => {
+      const addLeaf = async (smt: Contract, i: number, v: number) => {
+        const { blockNumber } = await smt.add(i, v);
+        const root = await smt.getRoot();
+        const rootInfo = await smt.getRootInfo(root);
+        const { timestamp } = await ethers.provider.getBlock(blockNumber);
+        return { timestamp, blockNumber, root, rootInfo };
+      };
+
+      const leavesToInsert = [
+        { i: 1, v: 1 }, // doubleRoot
+        { i: 1, v: 2 }, // singleRoot
+        { i: 1, v: 1 }, // doubleRoot
+        { i: 2, v: 1 }, // tripleRoot
+        { i: 2, v: 2 },
+        { i: 2, v: 1 }, // tripleRoot
+        { i: 2, v: 2 },
+        { i: 2, v: 1 }, // tripleRoot
+      ];
+
+      const addResult: { [key: string]: any }[] = [];
+
+      for (const leaf of leavesToInsert) {
+        addResult.push(await addLeaf(smt, leaf.i, leaf.v));
+      }
+
+      expect(await smt.getRootHistoryLength()).to.be.equal(8);
+
+      const singleRoot = addResult[1].root;
+      const doubleRoot = addResult[2].root;
+      const tripleRoot = addResult[7].root;
+      const nonExistingRoot = "1";
+
+      expect(await smt.getRootInfoListLengthByRoot(singleRoot)).to.be.equal(1);
+      expect(await smt.getRootInfoListLengthByRoot(doubleRoot)).to.be.equal(2);
+      expect(await smt.getRootInfoListLengthByRoot(tripleRoot)).to.be.equal(3);
+      expect(await smt.getRootInfoListLengthByRoot(nonExistingRoot)).to.be.equal(0);
+
+      const riSingleRoot = await smt.getRootInfoListByRoot(singleRoot, 0, 100);
+      const riDoubleRoot = await smt.getRootInfoListByRoot(doubleRoot, 0, 100);
+      const riTripleRoot = await smt.getRootInfoListByRoot(tripleRoot, 0, 100);
+      await expect(smt.getRootInfoListByRoot(nonExistingRoot, 0, 100)).to.be.revertedWith(
+        "Root does not exist"
+      );
+
+      expect(riSingleRoot.length).to.be.equal(1);
+      expect(riDoubleRoot.length).to.be.equal(2);
+      expect(riTripleRoot.length).to.be.equal(3);
+
+      const checkRootInfo = (ri: any, riExp: any, riExpNext: any) => {
+        expect(ri.root).to.be.equal(riExp.rootInfo.root);
+        expect(ri.replacedByRoot).to.be.equal(riExpNext.rootInfo.root ?? 0);
+        expect(ri.createdAtBlock).to.be.equal(riExp.blockNumber);
+        expect(ri.replacedAtBlock).to.be.equal(riExpNext.rootInfo.createdAtBlock ?? 0);
+        expect(ri.createdAtTimestamp).to.be.equal(riExp.timestamp);
+        expect(ri.replacedAtTimestamp).to.be.equal(riExpNext.rootInfo.createdAtTimestamp ?? 0);
+      };
+
+      checkRootInfo(riSingleRoot[0], addResult[1], addResult[2]);
+      checkRootInfo(riDoubleRoot[0], addResult[0], addResult[1]);
+      checkRootInfo(riDoubleRoot[1], addResult[2], addResult[3]);
+      checkRootInfo(riTripleRoot[0], addResult[3], addResult[4]);
+      checkRootInfo(riTripleRoot[1], addResult[5], addResult[6]);
+      checkRootInfo(riTripleRoot[2], addResult[7], { rootInfo: {} });
+
+      checkRootInfo(await smt.getRootInfo(singleRoot), addResult[1], addResult[2]);
+      checkRootInfo(await smt.getRootInfo(doubleRoot), addResult[2], addResult[3]);
+      checkRootInfo(await smt.getRootInfo(tripleRoot), addResult[7], { rootInfo: {} });
+    });
+
+    it("should revert if length is zero", async () => {
+      await smt.add(1, 1);
+      const root = await smt.getRoot();
+      await expect(smt.getRootInfoListByRoot(root, 0, 0)).to.be.revertedWith(
+        "Length should be greater than 0"
+      );
+    });
+
+    it("should revert if length limit exceeded", async () => {
+      await smt.add(1, 1);
+      const root = await smt.getRoot();
+      await expect(smt.getRootInfoListByRoot(root, 0, 10 ** 6)).to.be.revertedWith(
+        "Length limit exceeded"
+      );
+    });
+
+    it("should revert if out of bounds", async () => {
+      await smt.add(1, 1);
+      await smt.add(1, 2);
+      await smt.add(1, 1);
+      const root = await smt.getRoot();
+      const rootInfoListLength = await smt.getRootInfoListLengthByRoot(root);
+      await expect(smt.getRootInfoListByRoot(root, rootInfoListLength, 100)).to.be.revertedWith(
+        "Start index out of bounds"
+      );
+    });
+
+    it("should NOT revert if startIndex + length >= historyLength", async () => {
+      await smt.add(1, 1);
+      await smt.add(1, 2);
+      await smt.add(1, 1);
+      const root = await smt.getRoot();
+      const rootInfoListLength = await smt.getRootInfoListLengthByRoot(root);
+      let list = await smt.getRootInfoListByRoot(root, rootInfoListLength - 1, 100);
+      expect(list.length).to.be.equal(1);
+      list = await smt.getRootInfoListByRoot(root, rootInfoListLength - 2, 100);
+      expect(list.length).to.be.equal(2);
+    });
+  });
+
   describe("Binary search in SMT root history", () => {
     let binarySearch;
 
     async function addRootEntries(rts: RootEntry[]) {
       for (const rt of rts) {
-        await binarySearch.addRootEntry(rt.timestamp, rt.block, rt.root);
+        await binarySearch.addRootEntry(rt.root, rt.timestamp, rt.block);
       }
     }
 
     async function checkRootByTimeAndBlock(rts: RootEntry[], tc: TestCaseRootHistory) {
       await addRootEntries(rts);
 
-      const rootByTimestamp = await binarySearch.getHistoricalRootByTime(tc.timestamp);
-      expect(rootByTimestamp).to.equal(tc.expectedRoot);
+      const riByTime = await binarySearch.getRootInfoByTime(tc.timestamp);
+      expect(riByTime.root).to.equal(tc.expectedRoot);
 
-      const rootByBlock = await binarySearch.getHistoricalRootByBlock(tc.blockNumber);
-      expect(rootByBlock).to.equal(tc.expectedRoot);
+      const riByBlock = await binarySearch.getHistoricalRootByBlock(tc.blockNumber);
+      expect(riByBlock.root).to.equal(tc.expectedRoot);
     }
 
     beforeEach(async () => {
@@ -3340,14 +3459,6 @@ describe("SMT tests", function () {
       const root = await smt.getRoot();
       await expect(smt.getProofByRoot(1, root)).not.to.be.reverted;
       await expect(smt.getProofByRoot(1, root + 1)).to.be.revertedWith("Root does not exist");
-    });
-
-    it("add() should throw when node already exist with the same index and value", async () => {
-      await smt.add(1, 1);
-      await smt.add(1, 2);
-      await expect(smt.add(1, 1)).to.be.revertedWith(
-        "Node already exists with the same index and value"
-      );
     });
   });
 

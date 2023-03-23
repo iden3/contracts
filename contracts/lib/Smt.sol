@@ -13,7 +13,7 @@ library Smt {
     /**
      * @dev Max return array length for SMT root history requests
      */
-    uint256 public constant SMT_ROOT_HISTORY_RETURN_LIMIT = 1000;
+    uint256 public constant ROOT_INFO_LIST_RETURN_LIMIT = 1000;
 
     /**
      * @dev Max depth hard cap for SMT
@@ -155,7 +155,7 @@ library Smt {
         uint256 length
     ) external view returns (IState.RootInfo[] memory) {
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
-            self.rootEntries.length, startIndex, length, SMT_ROOT_HISTORY_RETURN_LIMIT
+            self.rootEntries.length, startIndex, length, ROOT_INFO_LIST_RETURN_LIMIT
         );
 
         IState.RootInfo[] memory result = new IState.RootInfo[](end - start);
@@ -315,28 +315,6 @@ library Smt {
         return _getRootInfoByTimestampOrBlock(self, blockN, BinarySearchSmtRoots.SearchType.BLOCK);
     }
 
-    function _getRootInfoByTimestampOrBlock(
-        SmtData storage self,
-        uint256 timestampOrBlock,
-        BinarySearchSmtRoots.SearchType searchType
-    ) internal view returns (IState.RootInfo memory) {
-        (uint256 index, bool found) = self.binarySearchUint256(
-            timestampOrBlock,
-            searchType
-        );
-
-        return found
-            ? _getRootInfoByIndex(self, index)
-            : IState.RootInfo({
-                root: 0,
-                replacedByRoot: 0,
-                createdAtTimestamp: 0,
-                replacedAtTimestamp: 0,
-                createdAtBlock: 0,
-                replacedAtBlock: 0
-            });
-    }
-
     /**
      * @dev Returns root info by root
      * @param root root
@@ -347,8 +325,34 @@ library Smt {
         uint256 root
     ) public view onlyExistingRoot(self, root) returns (IState.RootInfo memory) {
         uint256[] storage indexes = self.rootEntryIndexes[root];
-        uint256 index = indexes[indexes.length - 1];
-        return _getRootInfoByIndex(self, index);
+        uint256 lastIndex = indexes[indexes.length - 1];
+        return _getRootInfoByIndex(self, lastIndex);
+    }
+
+    function getRootInfoListLengthByRoot(
+        SmtData storage self,
+        uint256 root
+    ) public view returns (uint256) {
+        return self.rootEntryIndexes[root].length;
+    }
+
+    function getRootInfoListByRoot(
+        SmtData storage self,
+        uint256 root,
+        uint256 start,
+        uint256 length
+    ) public view onlyExistingRoot(self, root) returns (IState.RootInfo[] memory) {
+        uint256[] storage indexes = self.rootEntryIndexes[root];
+        (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
+            indexes.length, start, length, ROOT_INFO_LIST_RETURN_LIMIT
+        );
+
+        IState.RootInfo[] memory rootInfoList = new IState.RootInfo[](end - start);
+        for (uint256 i = start; i < end; i++) {
+            rootInfoList[i - start] = _getRootInfoByIndex(self, indexes[i]);
+        }
+
+        return rootInfoList;
     }
 
     /**
@@ -484,12 +488,13 @@ library Smt {
 
     function _addNode(SmtData storage self, Node memory node) internal returns (uint256) {
         uint256 nodeHash = _getNodeHash(node);
-        require(
-            self.nodes[nodeHash].nodeType == NodeType.EMPTY,
-            "Node already exists with the same index and value"
-        );
-        // We do not store empty nodes so can check if an entry exists
-        self.nodes[nodeHash] = node;
+        // We do not store empty nodes so can check if an entry exists.
+        // Also we do not write if there is already as the content is guaranteed
+        // to be identical by the Poseidon hash function
+        if (self.nodes[nodeHash].nodeType == NodeType.EMPTY) {
+            self.nodes[nodeHash] = node;
+        }
+
         return nodeHash;
     }
 
@@ -515,6 +520,28 @@ library Smt {
             replacedAtTimestamp: isLastRoot ? 0 : self.rootEntries[index + 1].createdAtTimestamp,
             createdAtBlock: rootEntry.createdAtBlock,
             replacedAtBlock: isLastRoot ? 0 : self.rootEntries[index + 1].createdAtBlock
+        });
+    }
+
+    function _getRootInfoByTimestampOrBlock(
+        SmtData storage self,
+        uint256 timestampOrBlock,
+        BinarySearchSmtRoots.SearchType searchType
+    ) internal view returns (IState.RootInfo memory) {
+        (uint256 index, bool found) = self.binarySearchUint256(
+            timestampOrBlock,
+            searchType
+        );
+
+        return found
+        ? _getRootInfoByIndex(self, index)
+        : IState.RootInfo({
+        root: 0,
+        replacedByRoot: 0,
+        createdAtTimestamp: 0,
+        replacedAtTimestamp: 0,
+        createdAtBlock: 0,
+        replacedAtBlock: 0
         });
     }
 }
