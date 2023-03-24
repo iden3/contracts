@@ -101,14 +101,17 @@ library StateLib {
         uint256 id
     ) external view onlyExistingId(self, id) returns (StateInfo memory) {
         StateEntry[] storage stateEntries = self.stateEntries[id];
+        StateEntry memory se = stateEntries[stateEntries.length - 1];
 
-        return
-            _stateEntryToStateInfo(
-                self,
-                id,
-                stateEntries[stateEntries.length - 1],
-                stateEntries.length - 1
-            );
+        return StateInfo({
+            id: id,
+            state: se.state,
+            replacedByState: 0,
+            createdAtTimestamp: se.timestamp,
+            replacedAtTimestamp: 0,
+            createdAtBlock: se.block,
+            replacedAtBlock: 0
+        });
     }
 
     /**
@@ -184,7 +187,7 @@ library StateLib {
         return self.stateIndexes[id][state].length > 0;
     }
 
-    function addStateEntry(StateData storage self, uint256 id, uint256 state, uint256 _timestamp, uint256 _block ) external {
+    function add(StateData storage self, uint256 id, uint256 state, uint256 _timestamp, uint256 _block ) external {
         StateEntry[] storage stateEntries = self.stateEntries[id];
         stateEntries.push(StateEntry({
             state: state,
@@ -201,21 +204,9 @@ library StateLib {
      * @return The state info struct
      */
     function _getStateInfoByState(StateData storage self, uint256 id, uint256 state) internal view returns (StateInfo memory) {
-
-        StateEntry storage se = _getLatestStateEntryOfSameStates(self, id, state);
-        StateEntry[] storage ses = self.stateEntries[id];
-
-        //todo get rid of possible DRY violation
-        uint256[] storage indexes = self.stateIndexes[id][state];
-        uint256 stateEntryIndex = indexes[indexes.length - 1];
-
-        return _stateEntryToStateInfo(self, id, se, stateEntryIndex);
-    }
-
-    function _getLatestStateEntryOfSameStates(StateData storage self, uint256 id, uint256 state) internal view returns (StateEntry storage) {
         uint256[] storage indexes = self.stateIndexes[id][state];
         uint256 lastIndex = indexes[indexes.length - 1];
-        return self.stateEntries[id][lastIndex];
+        return _getStateInfoByIndex(self, id, lastIndex);
     }
 
     function _getStateInfoByIndex(StateData storage self, uint256 id, uint256 index) internal view returns (StateInfo memory) {
@@ -230,29 +221,6 @@ library StateLib {
             replacedAtTimestamp: isLastState ? 0 : self.stateEntries[id][index + 1].timestamp,
             createdAtBlock: se.block,
             replacedAtBlock: isLastState ? 0 : self.stateEntries[id][index + 1].block
-        });
-    }
-
-    //todo check if it is possible to get rid of this function
-    function _stateEntryToStateInfo(
-        StateData storage self,
-        uint256 id,
-        StateEntry memory stateEntry,
-        uint256 stateEntryIndex
-    ) internal view returns (StateInfo memory) {
-        bool isLastStateEntry = stateEntryIndex == self.stateEntries[id].length - 1;
-        StateEntry memory nextStateEntry = isLastStateEntry
-        ? StateEntry({state: 0, timestamp: 0, block: 0})
-        : self.stateEntries[id][stateEntryIndex + 1];
-
-        return StateInfo({
-        id: id,
-        state: stateEntry.state,
-        replacedByState: nextStateEntry.state,
-        createdAtTimestamp: stateEntry.timestamp,
-        replacedAtTimestamp: nextStateEntry.timestamp,
-        createdAtBlock: stateEntry.block,
-        replacedAtBlock: nextStateEntry.block
         });
     }
 }

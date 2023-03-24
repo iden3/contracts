@@ -90,24 +90,20 @@ contract StateV2 is Ownable2StepUpgradeable {
         require(id != 0, "ID should not be zero");
         require(newState != 0, "New state should not be zero");
 
-        //todo is it correct to access stateEntries directly?
-        StateLib.StateEntry[] storage stateEntries = _stateData.stateEntries[id];
-
         if (isOldStateGenesis) {
             require(!idExists(id), "Old state is genesis but identity already exists");
 
             // Push old state to state entries, with unknown timestamp and block
-            _stateData.addStateEntry(id, oldState, 0, 0);
+            _stateData.add(id, oldState, 0, 0);
         } else {
             require(idExists(id), "Old state is not genesis but identity does not yet exist");
 
-            StateLib.StateEntry storage prevStateEntry = stateEntries[stateEntries.length - 1];
-
+            StateLib.StateInfo memory prevStateInfo = _stateData.getStateInfoById(id);
             require(
-                prevStateEntry.block != block.number,
+                prevStateInfo.createdAtBlock != block.number,
                 "No multiple set in the same block"
             );
-            require(prevStateEntry.state == oldState, "Old state does not match the latest state");
+            require(prevStateInfo.state == oldState, "Old state does not match the latest state");
         }
 
         uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis ? 1 : 0)];
@@ -116,9 +112,7 @@ contract StateV2 is Ownable2StepUpgradeable {
             "Zero-knowledge proof of state transition is not valid"
         );
 
-        _stateData.addStateEntry(id, newState, block.timestamp, block.number);
-
-        // put state to GIST to recalculate global state
+        _stateData.add(id, newState, block.timestamp, block.number);
         _gistData.add(PoseidonUnit1L.poseidon([id]), newState);
 
         emit StateUpdated(id, block.number, block.timestamp, newState);
