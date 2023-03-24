@@ -93,7 +93,7 @@ export class StateDeployHelper {
     });
     const stateV2 = await upgrades.deployProxy(
       StateV2Factory,
-      [verifier.address, GIST_MAX_DEPTH],
+      [verifier.address],
       {
       unsafeAllowLinkedLibraries: true,
     });

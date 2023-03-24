@@ -9,6 +9,20 @@ import "../lib/StateLib.sol";
 
 /// @title Set and get states for each identity
 contract StateV2 is Ownable2StepUpgradeable {
+
+    uint256 public constant MAX_SMT_DEPTH = 64;
+
+    struct SmtProof {
+        uint256 root;
+        bool existence;
+        uint256[MAX_SMT_DEPTH] siblings;
+        uint256 index;
+        uint256 value;
+        bool auxExistence;
+        uint256 auxIndex;
+        uint256 auxValue;
+    }
+
     // This empty reserved space is put in place to allow future versions
     // of the State contract to inherit from other contracts without a risk of
     // breaking the storage layout. This is necessary because the parent contracts in the
@@ -49,14 +63,12 @@ contract StateV2 is Ownable2StepUpgradeable {
     /**
      * @dev Initialize the contract
      * @param verifierContractAddr Verifier address
-     * @param gistMaxDepth GIST max depth
      */
     function initialize(
-        IStateTransitionVerifier verifierContractAddr,
-        uint256 gistMaxDepth
+        IStateTransitionVerifier verifierContractAddr
     ) public initializer {
         verifier = verifierContractAddr;
-        _gistData.setMaxDepth(gistMaxDepth);
+        _gistData.setMaxDepth(MAX_SMT_DEPTH);
         __Ownable_init();
     }
 
@@ -180,8 +192,10 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @param id Identity
      * @return The GIST inclusion or non-inclusion proof for the identity
      */
-    function getGISTProof(uint256 id) external view returns (Smt.Proof memory) {
-        return _gistData.getProof(PoseidonUnit1L.poseidon([id]));
+    function getGISTProof(uint256 id) external view returns (SmtProof memory) {
+        return _smtProofAdapter(
+            _gistData.getProof(PoseidonUnit1L.poseidon([id]))
+        );
     }
 
     /**
@@ -191,8 +205,10 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @param root GIST root
      * @return The GIST inclusion or non-inclusion proof for the identity
      */
-    function getGISTProofByRoot(uint256 id, uint256 root) external view returns (Smt.Proof memory) {
-        return _gistData.getProofByRoot(PoseidonUnit1L.poseidon([id]), root);
+    function getGISTProofByRoot(uint256 id, uint256 root) external view returns (SmtProof memory) {
+        return _smtProofAdapter(
+            _gistData.getProofByRoot(PoseidonUnit1L.poseidon([id]), root)
+        );
     }
 
     /**
@@ -205,8 +221,10 @@ contract StateV2 is Ownable2StepUpgradeable {
     function getGISTProofByBlock(
         uint256 id,
         uint256 blockNumber
-    ) external view returns (Smt.Proof memory) {
-        return _gistData.getProofByBlock(PoseidonUnit1L.poseidon([id]), blockNumber);
+    ) external view returns (SmtProof memory) {
+        return _smtProofAdapter(
+            _gistData.getProofByBlock(PoseidonUnit1L.poseidon([id]), blockNumber)
+        );
     }
 
     /**
@@ -219,8 +237,10 @@ contract StateV2 is Ownable2StepUpgradeable {
     function getGISTProofByTime(
         uint256 id,
         uint256 timestamp
-    ) external view returns (Smt.Proof memory) {
-        return _gistData.getProofByTime(PoseidonUnit1L.poseidon([id]), timestamp);
+    ) external view returns (SmtProof memory) {
+        return _smtProofAdapter(
+            _gistData.getProofByTime(PoseidonUnit1L.poseidon([id]), timestamp)
+        );
     }
 
     /**
@@ -298,5 +318,24 @@ contract StateV2 is Ownable2StepUpgradeable {
      */
     function stateExists(uint256 id, uint256 state) public view returns (bool) {
         return _stateData.stateExists(id, state);
+    }
+
+    function _smtProofAdapter(Smt.Proof memory proof) internal pure returns (SmtProof memory) {
+        uint256[MAX_SMT_DEPTH] memory siblings;
+
+        SmtProof memory result = SmtProof({
+            root: proof.root,
+            existence: proof.existence,
+            siblings: siblings,
+            index: proof.index,
+            value: proof.value,
+            auxExistence: proof.auxExistence,
+            auxIndex: proof.auxIndex,
+            auxValue: proof.auxValue
+        });
+        for (uint256 i = 0; i < MAX_SMT_DEPTH; i++) {
+            result.siblings[i] = proof.siblings[i];
+        }
+        return result;
     }
 }
