@@ -105,8 +105,8 @@ contract StateV2 is Ownable2StepUpgradeable {
         if (isOldStateGenesis) {
             require(!idExists(id), "Old state is genesis but identity already exists");
 
-            // Push old state to state entries, with unknown timestamp and block
-            _stateData.add(id, oldState, 0, 0);
+            // Push old state to state entries, with zero timestamp and block
+            _stateData.addStateNoTimestampAndBlock(id, oldState);
         } else {
             require(idExists(id), "Old state is not genesis but identity does not yet exist");
 
@@ -124,7 +124,7 @@ contract StateV2 is Ownable2StepUpgradeable {
             "Zero-knowledge proof of state transition is not valid"
         );
 
-        _stateData.add(id, newState, block.timestamp, block.number);
+        _stateData.addState(id, newState);
         _gistData.add(PoseidonUnit1L.poseidon([id]), newState);
 
         emit StateUpdated(id, block.number, block.timestamp, newState);

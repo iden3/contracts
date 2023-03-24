@@ -91,6 +91,14 @@ library StateLib {
         _;
     }
 
+    function addState(StateData storage self, uint256 id, uint256 state) external {
+        _addState(self, id, state, block.timestamp, block.number);
+    }
+
+    function addStateNoTimestampAndBlock(StateData storage self, uint256 id, uint256 state) external {
+        _addState(self, id, state, 0, 0);
+    }
+
     /**
      * @dev Retrieve the last state info for a given identity
      * @param id identity
@@ -187,13 +195,15 @@ library StateLib {
         return self.stateIndexes[id][state].length > 0;
     }
 
-    function add(StateData storage self, uint256 id, uint256 state, uint256 _timestamp, uint256 _block ) external {
+    function _addState(StateData storage self, uint256 id, uint256 state, uint256 _timestamp, uint256 _block ) internal {
         StateEntry[] storage stateEntries = self.stateEntries[id];
+
         stateEntries.push(StateEntry({
-            state: state,
-            timestamp: _timestamp,
-            block: _block
+        state: state,
+        timestamp: _timestamp,
+        block: _block
         }));
+
         self.stateIndexes[id][state].push(stateEntries.length - 1);
     }
 
