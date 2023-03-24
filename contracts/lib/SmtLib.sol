@@ -9,7 +9,7 @@ import "hardhat/console.sol";
 /// @title A sparse merkle tree implementation, which keeps tree history.
 // Note that this SMT implementation does not allow for duplicated roots in the history,
 // which may be a critical restriction for some projects
-library Smt {
+library SmtLib {
     /**
      * @dev Max return array length for SMT root history requests
      */
@@ -558,7 +558,7 @@ library BinarySearchSmtRoots {
     }
 
     function binarySearchUint256(
-        Smt.SmtData storage self,
+        SmtLib.SmtData storage self,
         uint256 value,
         SearchType searchType
     ) internal view returns (uint256, bool) {
@@ -601,7 +601,7 @@ library BinarySearchSmtRoots {
     }
 
     function fieldSelector(
-        Smt.RootEntry memory rti,
+        SmtLib.RootEntry memory rti,
         SearchType st
     ) internal pure returns (uint256) {
         if (st == SearchType.BLOCK) {

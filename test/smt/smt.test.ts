@@ -43,7 +43,7 @@ describe("SMT tests", function () {
 
     beforeEach(async () => {
       const deployHelper = await StateDeployHelper.initialize();
-      smt = await deployHelper.deploySmtTestWrapper();
+      smt = await deployHelper.deploySmtLibTestWrapper();
     });
 
     describe("SMT existence proof", () => {
@@ -2907,7 +2907,7 @@ describe("SMT tests", function () {
 
     beforeEach(async () => {
       const deployHelper = await StateDeployHelper.initialize();
-      smt = await deployHelper.deploySmtTestWrapper();
+      smt = await deployHelper.deploySmtLibTestWrapper();
     });
 
     it("Comprehensive check", async () => {
@@ -3444,7 +3444,7 @@ describe("SMT tests", function () {
 
     beforeEach(async () => {
       const deployHelper = await StateDeployHelper.initialize();
-      smt = await deployHelper.deploySmtTestWrapper();
+      smt = await deployHelper.deploySmtLibTestWrapper();
     });
 
     it("getRootInfo() should throw when root does not exist", async () => {
@@ -3467,7 +3467,7 @@ describe("SMT tests", function () {
 
     before(async () => {
       const deployHelper = await StateDeployHelper.initialize();
-      smt = await deployHelper.deploySmtTestWrapper();
+      smt = await deployHelper.deploySmtLibTestWrapper();
     });
 
     it("Max depth should be 64", async () => {

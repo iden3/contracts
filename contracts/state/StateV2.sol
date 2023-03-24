@@ -2,7 +2,7 @@
 pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import "../lib/Smt.sol";
+import "../lib/SmtLib.sol";
 import "../lib/Poseidon.sol";
 import "../interfaces/IStateTransitionVerifier.sol";
 import "../lib/StateLib.sol";
@@ -46,9 +46,9 @@ contract StateV2 is Ownable2StepUpgradeable {
     /**
      * @dev Global Identity State Tree (GIST) data
      */
-    Smt.SmtData internal _gistData;
+    SmtLib.SmtData internal _gistData;
 
-    using Smt for Smt.SmtData;
+    using SmtLib for SmtLib.SmtData;
     using StateLib for StateLib.StateData;
 
     /**
@@ -320,7 +320,7 @@ contract StateV2 is Ownable2StepUpgradeable {
         return _stateData.stateExists(id, state);
     }
 
-    function _smtProofAdapter(Smt.Proof memory proof) internal pure returns (SmtProof memory) {
+    function _smtProofAdapter(SmtLib.Proof memory proof) internal pure returns (SmtProof memory) {
         uint256[MAX_SMT_DEPTH] memory siblings;
 
         SmtProof memory result = SmtProof({

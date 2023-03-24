@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import "../lib/Smt.sol";
+import "../lib/SmtLib.sol";
 
 contract BinarySearchTestWrapper {
-    Smt.SmtData internal smtData;
-    using Smt for Smt.SmtData;
+    SmtLib.SmtData internal smtData;
+    using SmtLib for SmtLib.SmtData;
 
     function addRootEntry(
         uint256 root,
         uint256 createdAtTimestamp,
         uint256 createdAtBlock
     ) public {
-        smtData.rootEntries.push(Smt.RootEntry({
+        smtData.rootEntries.push(SmtLib.RootEntry({
             root: root,
             createdAtTimestamp: createdAtTimestamp,
             createdAtBlock: createdAtBlock

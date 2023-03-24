@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import "../lib/Smt.sol";
+import "../lib/SmtLib.sol";
 
-contract SmtTestWrapper {
-    Smt.SmtData internal smtData;
-    using Smt for Smt.SmtData;
+contract SmtLibTestWrapper {
+    SmtLib.SmtData internal smtData;
+    using SmtLib for SmtLib.SmtData;
 
     constructor(uint256 maxDepth) {
         smtData.setMaxDepth(maxDepth);
@@ -15,19 +15,19 @@ contract SmtTestWrapper {
         smtData.add(i, v);
     }
 
-    function getProof(uint256 id) public view returns (Smt.Proof memory) {
+    function getProof(uint256 id) public view returns (SmtLib.Proof memory) {
         return smtData.getProof(id);
     }
 
-    function getProofByRoot(uint256 id, uint256 root) public view returns (Smt.Proof memory) {
+    function getProofByRoot(uint256 id, uint256 root) public view returns (SmtLib.Proof memory) {
         return smtData.getProofByRoot(id, root);
     }
 
-    function getProofByTime(uint256 id, uint256 timestamp) public view returns (Smt.Proof memory) {
+    function getProofByTime(uint256 id, uint256 timestamp) public view returns (SmtLib.Proof memory) {
         return smtData.getProofByTime(id, timestamp);
     }
 
-    function getProofByBlock(uint256 id, uint256 block) public view returns (Smt.Proof memory) {
+    function getProofByBlock(uint256 id, uint256 block) public view returns (SmtLib.Proof memory) {
         return smtData.getProofByBlock(id, block);
     }
 

@@ -2,7 +2,7 @@
 pragma solidity 0.8.16;
 
 import "../state/StateV2.sol";
-import "./Smt.sol";
+import "./SmtLib.sol";
 
 library ArrayUtils {
     function calculateBounds(uint256 arrLength, uint256 start, uint256 length, uint256 limit) internal pure returns (uint256, uint256) {
