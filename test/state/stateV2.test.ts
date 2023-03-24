@@ -28,7 +28,7 @@ describe("State transitions positive cases", () => {
     expect(res0.state).to.be.equal(bigInt(params.newState).toString());
 
     expect(await state.stateExists(params.id, params.newState)).to.be.equal(true);
-    const stInfoNew = await state.getStateInfoByState(params.id, params.newState);
+    const stInfoNew = await state.getStateInfoByIdAndState(params.id, params.newState);
     expect(stInfoNew.id).to.be.equal(params.id);
     expect(stInfoNew.replacedByState).to.be.equal(0);
     expect(stInfoNew.createdAtTimestamp).not.be.empty;
@@ -37,7 +37,7 @@ describe("State transitions positive cases", () => {
     expect(stInfoNew.replacedAtBlock).to.be.equal(0);
 
     expect(await state.stateExists(params.id, params.oldState)).to.be.equal(true);
-    const stInfoOld = await state.getStateInfoByState(params.id, params.oldState);
+    const stInfoOld = await state.getStateInfoByIdAndState(params.id, params.oldState);
     expect(stInfoOld.id).to.be.equal(params.id);
     expect(stInfoOld.replacedByState).to.be.equal(params.newState);
     expect(stInfoOld.createdAtTimestamp).to.be.equal(0);
@@ -54,7 +54,7 @@ describe("State transitions positive cases", () => {
 
   it("Subsequent state update", async function () {
     this.timeout(5000);
-    const stateInfoBeforeUpdate = await state.getStateInfoByState(
+    const stateInfoBeforeUpdate = await state.getStateInfoByIdAndState(
       stateTransitions[1].pub_signals[0],
       stateTransitions[1].pub_signals[1]
     );
@@ -64,7 +64,7 @@ describe("State transitions positive cases", () => {
     expect(res.state).to.be.equal(params.newState);
 
     expect(await state.stateExists(params.id, params.newState)).to.be.equal(true);
-    const stInfoNew = await state.getStateInfoByState(params.id, params.newState);
+    const stInfoNew = await state.getStateInfoByIdAndState(params.id, params.newState);
     expect(stInfoNew.replacedAtTimestamp).to.be.equal(0);
     expect(stInfoNew.createdAtTimestamp).not.be.empty;
     expect(stInfoNew.replacedAtBlock).to.be.equal(0);
@@ -73,7 +73,7 @@ describe("State transitions positive cases", () => {
     expect(stInfoNew.replacedByState).to.be.equal(0);
 
     expect(await state.stateExists(params.id, params.oldState)).to.be.equal(true);
-    const stInfoOld = await state.getStateInfoByState(params.id, params.oldState);
+    const stInfoOld = await state.getStateInfoByIdAndState(params.id, params.oldState);
     expect(stInfoOld.replacedAtTimestamp).to.be.equal(
       stInfoNew.createdAtTimestamp
     );
@@ -294,11 +294,11 @@ describe("get StateInfo negative cases", function () {
     ).to.be.revertedWith("Identity does not exist");
   });
 
-  it("getStateInfoByState: should be reverted if state does not exist", async () => {
+  it("getStateInfoByIdAndState: should be reverted if state does not exist", async () => {
     const id = stateTransitions[0].pub_signals[0];
     const missingState = stateTransitions[0].pub_signals[2] + 1; // Modify state so it does not exist
 
-    await expect(state.getStateInfoByState(id, missingState)).to.be.revertedWith(
+    await expect(state.getStateInfoByIdAndState(id, missingState)).to.be.revertedWith(
       "State does not exist"
     );
   });

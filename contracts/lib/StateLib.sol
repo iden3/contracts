@@ -160,7 +160,7 @@ library StateLib {
      * @param state A state
      * @return The state info
      */
-    function getStateInfoByState(
+    function getStateInfoByIdAndState(
         StateData storage self,
         uint256 id,
         uint256 state

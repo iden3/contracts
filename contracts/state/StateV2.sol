@@ -180,11 +180,11 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @param state A state
      * @return The state info
      */
-    function getStateInfoByState(
+    function getStateInfoByIdAndState(
         uint256 id,
         uint256 state
     ) external view returns (StateLib.StateInfo memory) {
-        return _stateData.getStateInfoByState(id, state);
+        return _stateData.getStateInfoByIdAndState(id, state);
     }
 
     /**

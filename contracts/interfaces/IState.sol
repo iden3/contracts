@@ -53,5 +53,5 @@ interface IState {
      * @param state A state
      * @return The state info
      */
-    function getStateInfoByState(uint256 id, uint256 state) external view returns (StateInfo memory);
+    function getStateInfoByIdAndState(uint256 id, uint256 state) external view returns (StateInfo memory);
 }
