@@ -4,8 +4,9 @@ pragma solidity 0.8.16;
 import "../lib/SmtLib.sol";
 
 contract SmtLibTestWrapper {
-    SmtLib.Data internal smtData;
     using SmtLib for SmtLib.Data;
+
+    SmtLib.Data internal smtData;
 
     constructor(uint256 maxDepth) {
         smtData.setMaxDepth(maxDepth);

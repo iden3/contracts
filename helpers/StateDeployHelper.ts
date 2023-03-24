@@ -272,6 +272,24 @@ export class StateDeployHelper {
     return smtWrapper;
   }
 
+  async deployStateLibTestWrapper(): Promise<Contract> {
+    const contractName = "StateLibTestWrapper";
+
+    const stateLib = await this.deployStateLib();
+
+    const StateLibWrapper = await ethers.getContractFactory(contractName, {
+      libraries: {
+        StateLib: stateLib.address,
+      },
+    });
+    const stateLibWrapper = await StateLibWrapper.deploy();
+    await stateLibWrapper.deployed();
+    this.enableLogging &&
+      this.log(`${contractName} deployed to:  ${stateLibWrapper.address}`);
+
+    return stateLibWrapper;
+  }
+
   async deployBinarySearchTestWrapper(): Promise<Contract> {
     const owner = this.signers[0];
 

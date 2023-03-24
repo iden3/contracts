@@ -126,6 +126,29 @@ export async function publishState(
   };
 }
 
+export async function addStateToStateLib(
+  stateLibWrapper: Contract,
+  id: string | number,
+  state: string | number
+): Promise<{
+  id: string | number;
+  state: string | number;
+  blockNumber: number;
+  timestamp: number;
+}> {
+  const addStateTx = await stateLibWrapper.addState(id, state);
+
+  const { blockNumber } = await addStateTx.wait();
+  const { timestamp } = await ethers.provider.getBlock(addStateTx.blockNumber);
+
+  return {
+    id,
+    state,
+    blockNumber,
+    timestamp,
+  };
+}
+
 export function toJson(data) {
   return JSON.stringify(data, (_, v) => (typeof v === "bigint" ? `${v}n` : v)).replace(
     /"(-?\d+)n"/g,

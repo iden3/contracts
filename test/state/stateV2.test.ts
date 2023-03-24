@@ -9,6 +9,7 @@ const stateTransitions = [
   require("./data/user_state_next_transition.json"),
 ];
 
+//Split to State and StateLib
 describe("State transitions positive cases", () => {
   let state;
 
@@ -93,6 +94,7 @@ describe("State transitions positive cases", () => {
   });
 });
 
+//State
 describe("State transition negative cases", () => {
   let state;
 
@@ -173,6 +175,7 @@ describe("State transition negative cases", () => {
   });
 });
 
+//StateLib
 describe("State history", function () {
   this.timeout(5000);
 
@@ -255,6 +258,7 @@ describe("State history", function () {
   });
 });
 
+//StateLib
 describe("get StateInfo negative cases", function () {
   this.timeout(5000);
 
@@ -304,6 +308,7 @@ describe("get StateInfo negative cases", function () {
   });
 });
 
+//State or remove???
 describe("GIST proofs", () => {
   let state: any;
 
@@ -395,6 +400,7 @@ describe("GIST proofs", () => {
   });
 });
 
+//State or remove???
 describe("GIST root history", () => {
   let state: any;
 
@@ -480,6 +486,7 @@ describe("GIST root history", () => {
   });
 });
 
+//State
 describe("Set Verifier", () => {
   it("Should set verifier", async () => {
     const deployHelper = await StateDeployHelper.initialize();
