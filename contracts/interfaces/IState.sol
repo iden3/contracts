@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
+uint256 constant MAX_SMT_DEPTH = 64;
+
 interface IState {
     /**
      * @dev Struct for public interfaces to represent a state information.
@@ -30,7 +32,7 @@ interface IState {
      * @param createdAtBlock A number of block, when the root was saved to blockchain.
      * @param replacedAtBlock A number of block, when the root was replaced by the next root in blockchain.
      */
-    struct RootInfo {
+    struct SmtRootInfo {
         uint256 root;
         uint256 replacedByRoot;
         uint256 createdAtTimestamp;
@@ -39,19 +41,36 @@ interface IState {
         uint256 replacedAtBlock;
     }
 
+    struct SmtProof {
+        uint256 root;
+        bool existence;
+        uint256[MAX_SMT_DEPTH] siblings;
+        uint256 index;
+        uint256 value;
+        bool auxExistence;
+        uint256 auxIndex;
+        uint256 auxValue;
+    }
+
+    /**
+     * @dev Retrieve last state information of specific id.
+     * @param id An identity
+     * @return The state info
+     */
     function getStateInfoById(uint256 id) external view returns (StateInfo memory);
+
+    /**
+     * @dev Retrieve state information by id and state.
+     * @param id An identity
+     * @param state A state
+     * @return The state info
+     */
+    function getStateInfoByIdAndState(uint256 id, uint256 state) external view returns (StateInfo memory);
 
     /**
      * @dev Retrieve the specific GIST root information.
      * @param root GIST root
      * @return The GIST root info
      */
-    function getGISTRootInfo(uint256 root) external view returns (RootInfo memory);
-
-    /**
-     * @dev Retrieve state information by state.
-     * @param state A state
-     * @return The state info
-     */
-    function getStateInfoByIdAndState(uint256 id, uint256 state) external view returns (StateInfo memory);
+    function getGISTRootInfo(uint256 root) external view returns (SmtRootInfo memory);
 }

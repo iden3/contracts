@@ -4,15 +4,15 @@ pragma solidity 0.8.16;
 import "../lib/SmtLib.sol";
 
 contract SmtLibTestWrapper {
-    SmtLib.SmtData internal smtData;
-    using SmtLib for SmtLib.SmtData;
+    SmtLib.Data internal smtData;
+    using SmtLib for SmtLib.Data;
 
     constructor(uint256 maxDepth) {
         smtData.setMaxDepth(maxDepth);
     }
 
     function add(uint256 i, uint256 v) public {
-        smtData.add(i, v);
+        smtData.addLeaf(i, v);
     }
 
     function getProof(uint256 id) public view returns (SmtLib.Proof memory) {
@@ -39,7 +39,7 @@ contract SmtLibTestWrapper {
         return smtData.getRoot();
     }
 
-    function getRootInfo(uint256 root) public view returns (IState.RootInfo memory) {
+    function getRootInfo(uint256 root) public view returns (SmtLib.RootEntryInfo memory) {
         return smtData.getRootInfo(root);
     }
 
@@ -47,7 +47,7 @@ contract SmtLibTestWrapper {
         return smtData.getRootInfoListLengthByRoot(root);
     }
 
-    function getRootInfoListByRoot(uint256 root, uint256 start, uint256 length) public view returns (IState.RootInfo[] memory) {
+    function getRootInfoListByRoot(uint256 root, uint256 start, uint256 length) public view returns (SmtLib.RootEntryInfo[] memory) {
         return smtData.getRootInfoListByRoot(root, start, length);
     }
 

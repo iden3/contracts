@@ -4,8 +4,8 @@ pragma solidity 0.8.16;
 import "../lib/SmtLib.sol";
 
 contract BinarySearchTestWrapper {
-    SmtLib.SmtData internal smtData;
-    using SmtLib for SmtLib.SmtData;
+    SmtLib.Data internal smtData;
+    using SmtLib for SmtLib.Data;
 
     function addRootEntry(
         uint256 root,
@@ -21,11 +21,11 @@ contract BinarySearchTestWrapper {
         smtData.rootEntryIndexes[root].push(smtData.rootEntries.length - 1);
     }
 
-    function getRootInfoByTime(uint256 _timestamp) public view returns (IState.RootInfo memory) {
+    function getRootInfoByTime(uint256 _timestamp) public view returns (SmtLib.RootEntryInfo memory) {
         return smtData.getRootInfoByTime(_timestamp);
     }
 
-    function getHistoricalRootByBlock(uint256 _block) public view returns (IState.RootInfo memory) {
+    function getHistoricalRootByBlock(uint256 _block) public view returns (SmtLib.RootEntryInfo memory) {
         return smtData.getRootInfoByBlock(_block);
     }
 }

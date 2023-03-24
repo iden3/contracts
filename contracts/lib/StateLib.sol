@@ -19,7 +19,7 @@ library StateLib {
      * @param createdAtBlock A block number when the state was created.
      * @param replacedAtBlock A block number when the state was replaced by the next identity state.
      */
-    struct StateInfo {
+    struct EntryInfo {
         uint256 id;
         uint256 state;
         uint256 replacedByState;
@@ -35,7 +35,7 @@ library StateLib {
      * @param timestamp A time when the state was committed to blockchain.
      * @param block A block number when the state was committed to blockchain.
      */
-    struct StateEntry {
+    struct Entry {
         uint256 state;
         uint256 timestamp;
         uint256 block;
@@ -46,7 +46,7 @@ library StateLib {
      * @param statesHistories A state history per each identity.
      * @param stateEntries A state metadata of each state
      */
-    struct StateData {
+    struct Data {
         /*
         id => stateEntry[]
         --------------------------------
@@ -56,7 +56,7 @@ library StateLib {
             index 2: StateEntry3 {state1, timestamp3, block3}
         ]
         */
-        mapping(uint256 => StateEntry[]) stateEntries;
+        mapping(uint256 => Entry[]) stateEntries;
 
         /*
         id => state => stateEntryIndex[]
@@ -77,7 +77,7 @@ library StateLib {
      * @dev Revert if identity does not exist in the contract
      * @param id Identity
      */
-    modifier onlyExistingId(StateData storage self, uint256 id) {
+    modifier onlyExistingId(Data storage self, uint256 id) {
         require(idExists(self, id), "Identity does not exist");
         _;
     }
@@ -86,16 +86,16 @@ library StateLib {
      * @dev Revert if state does not exist in the contract
      * @param state State
      */
-    modifier onlyExistingState(StateData storage self, uint256 id, uint256 state) {
+    modifier onlyExistingState(Data storage self, uint256 id, uint256 state) {
         require(stateExists(self, id, state), "State does not exist");
         _;
     }
 
-    function addState(StateData storage self, uint256 id, uint256 state) external {
+    function addState(Data storage self, uint256 id, uint256 state) external {
         _addState(self, id, state, block.timestamp, block.number);
     }
 
-    function addStateNoTimestampAndBlock(StateData storage self, uint256 id, uint256 state) external {
+    function addStateNoTimestampAndBlock(Data storage self, uint256 id, uint256 state) external {
         _addState(self, id, state, 0, 0);
     }
 
@@ -105,13 +105,13 @@ library StateLib {
      * @return state info of the last committed state
      */
     function getStateInfoById(
-        StateData storage self,
+        Data storage self,
         uint256 id
-    ) external view onlyExistingId(self, id) returns (StateInfo memory) {
-        StateEntry[] storage stateEntries = self.stateEntries[id];
-        StateEntry memory se = stateEntries[stateEntries.length - 1];
+    ) external view onlyExistingId(self, id) returns (EntryInfo memory) {
+        Entry[] storage stateEntries = self.stateEntries[id];
+        Entry memory se = stateEntries[stateEntries.length - 1];
 
-        return StateInfo({
+        return EntryInfo({
             id: id,
             state: se.state,
             replacedByState: 0,
@@ -128,7 +128,7 @@ library StateLib {
      * @return states quantity
      */
     function getStateInfoHistoryLengthById(
-        StateData storage self,
+        Data storage self,
         uint256 id
     ) external view onlyExistingId(self, id) returns (uint256) {
         return self.stateEntries[id].length;
@@ -142,11 +142,11 @@ library StateLib {
      * @return A list of state infos of the identity
      */
     function getStateInfoHistoryById(
-        StateData storage self,
+        Data storage self,
         uint256 id,
         uint256 startIndex,
         uint256 length
-    ) external view onlyExistingId(self, id) returns (StateInfo[] memory) {
+    ) external view onlyExistingId(self, id) returns (EntryInfo[] memory) {
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
             self.stateEntries[id].length,
             startIndex,
@@ -154,7 +154,7 @@ library StateLib {
             ID_HISTORY_RETURN_LIMIT
         );
 
-        StateInfo[] memory result = new StateInfo[](end - start);
+        EntryInfo[] memory result = new EntryInfo[](end - start);
 
         for (uint256 i = start; i < end; i++) {
             result[i - start] = _getStateInfoByIndex(self, id, i);
@@ -169,10 +169,10 @@ library StateLib {
      * @return The state info
      */
     function getStateInfoByIdAndState(
-        StateData storage self,
+        Data storage self,
         uint256 id,
         uint256 state
-    ) external view onlyExistingState(self, id, state) returns (StateInfo memory) {
+    ) external view onlyExistingState(self, id, state) returns (EntryInfo memory) {
         return _getStateInfoByState(self, id, state);
     }
 
@@ -181,7 +181,7 @@ library StateLib {
      * @param id Identity
      * @return True if the identity exists
      */
-    function idExists(StateData storage self, uint256 id) public view returns (bool) {
+    function idExists(Data storage self, uint256 id) public view returns (bool) {
         return self.stateEntries[id].length > 0;
     }
 
@@ -191,17 +191,17 @@ library StateLib {
      * @param state State
      * @return True if the state exists
      */
-    function stateExists(StateData storage self, uint256 id, uint256 state) public view returns (bool) {
+    function stateExists(Data storage self, uint256 id, uint256 state) public view returns (bool) {
         return self.stateIndexes[id][state].length > 0;
     }
 
-    function _addState(StateData storage self, uint256 id, uint256 state, uint256 _timestamp, uint256 _block ) internal {
-        StateEntry[] storage stateEntries = self.stateEntries[id];
+    function _addState(Data storage self, uint256 id, uint256 state, uint256 _timestamp, uint256 _block ) internal {
+        Entry[] storage stateEntries = self.stateEntries[id];
 
-        stateEntries.push(StateEntry({
-        state: state,
-        timestamp: _timestamp,
-        block: _block
+        stateEntries.push(Entry({
+            state: state,
+            timestamp: _timestamp,
+            block: _block
         }));
 
         self.stateIndexes[id][state].push(stateEntries.length - 1);
@@ -213,17 +213,17 @@ library StateLib {
      * @param state State
      * @return The state info struct
      */
-    function _getStateInfoByState(StateData storage self, uint256 id, uint256 state) internal view returns (StateInfo memory) {
+    function _getStateInfoByState(Data storage self, uint256 id, uint256 state) internal view returns (EntryInfo memory) {
         uint256[] storage indexes = self.stateIndexes[id][state];
         uint256 lastIndex = indexes[indexes.length - 1];
         return _getStateInfoByIndex(self, id, lastIndex);
     }
 
-    function _getStateInfoByIndex(StateData storage self, uint256 id, uint256 index) internal view returns (StateInfo memory) {
+    function _getStateInfoByIndex(Data storage self, uint256 id, uint256 index) internal view returns (EntryInfo memory) {
         bool isLastState = index == self.stateEntries[id].length - 1;
-        StateEntry storage se = self.stateEntries[id][index];
+        Entry storage se = self.stateEntries[id][index];
 
-        return StateInfo({
+        return EntryInfo({
             id: id,
             state: se.state,
             replacedByState: isLastState ? 0 : self.stateEntries[id][index + 1].state,

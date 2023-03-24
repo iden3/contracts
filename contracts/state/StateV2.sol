@@ -9,20 +9,6 @@ import "../lib/StateLib.sol";
 
 /// @title Set and get states for each identity
 contract StateV2 is Ownable2StepUpgradeable {
-
-    uint256 public constant MAX_SMT_DEPTH = 64;
-
-    struct SmtProof {
-        uint256 root;
-        bool existence;
-        uint256[MAX_SMT_DEPTH] siblings;
-        uint256 index;
-        uint256 value;
-        bool auxExistence;
-        uint256 auxIndex;
-        uint256 auxValue;
-    }
-
     // This empty reserved space is put in place to allow future versions
     // of the State contract to inherit from other contracts without a risk of
     // breaking the storage layout. This is necessary because the parent contracts in the
@@ -41,15 +27,15 @@ contract StateV2 is Ownable2StepUpgradeable {
     /**
      * @dev State data
      */
-    StateLib.StateData internal _stateData;
+    StateLib.Data internal _stateData;
 
     /**
      * @dev Global Identity State Tree (GIST) data
      */
-    SmtLib.SmtData internal _gistData;
+    SmtLib.Data internal _gistData;
 
-    using SmtLib for SmtLib.SmtData;
-    using StateLib for StateLib.StateData;
+    using SmtLib for SmtLib.Data;
+    using StateLib for StateLib.Data;
 
     /**
      * @dev event called when a state is updated
@@ -110,7 +96,7 @@ contract StateV2 is Ownable2StepUpgradeable {
         } else {
             require(idExists(id), "Old state is not genesis but identity does not yet exist");
 
-            StateLib.StateInfo memory prevStateInfo = _stateData.getStateInfoById(id);
+            StateLib.EntryInfo memory prevStateInfo = _stateData.getStateInfoById(id);
             require(
                 prevStateInfo.createdAtBlock != block.number,
                 "No multiple set in the same block"
@@ -125,7 +111,7 @@ contract StateV2 is Ownable2StepUpgradeable {
         );
 
         _stateData.addState(id, newState);
-        _gistData.add(PoseidonUnit1L.poseidon([id]), newState);
+        _gistData.addLeaf(PoseidonUnit1L.poseidon([id]), newState);
 
         emit StateUpdated(id, block.number, block.timestamp, newState);
     }
@@ -145,8 +131,8 @@ contract StateV2 is Ownable2StepUpgradeable {
      */
     function getStateInfoById(
         uint256 id
-    ) external view returns (StateLib.StateInfo memory) {
-        return _stateData.getStateInfoById(id);
+    ) external view returns (IState.StateInfo memory) {
+        return _stateEntryInfoAdapter(_stateData.getStateInfoById(id));
     }
 
     /**
@@ -171,8 +157,19 @@ contract StateV2 is Ownable2StepUpgradeable {
         uint256 id,
         uint256 startIndex,
         uint256 length
-    ) external view returns (StateLib.StateInfo[] memory) {
-        return _stateData.getStateInfoHistoryById(id, startIndex, length);
+    ) external view returns (IState.StateInfo[] memory) {
+        StateLib.EntryInfo[] memory stateInfos = _stateData.getStateInfoHistoryById(
+            id,
+            startIndex,
+            length
+        );
+        IState.StateInfo[] memory result = new IState.StateInfo[](
+            stateInfos.length
+        );
+        for (uint256 i = 0; i < stateInfos.length; i++) {
+            result[i] = _stateEntryInfoAdapter(stateInfos[i]);
+        }
+        return result;
     }
 
     /**
@@ -183,8 +180,8 @@ contract StateV2 is Ownable2StepUpgradeable {
     function getStateInfoByIdAndState(
         uint256 id,
         uint256 state
-    ) external view returns (StateLib.StateInfo memory) {
-        return _stateData.getStateInfoByIdAndState(id, state);
+    ) external view returns (IState.StateInfo memory) {
+        return _stateEntryInfoAdapter(_stateData.getStateInfoByIdAndState(id, state));
     }
 
     /**
@@ -192,7 +189,7 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @param id Identity
      * @return The GIST inclusion or non-inclusion proof for the identity
      */
-    function getGISTProof(uint256 id) external view returns (SmtProof memory) {
+    function getGISTProof(uint256 id) external view returns (IState.SmtProof memory) {
         return _smtProofAdapter(
             _gistData.getProof(PoseidonUnit1L.poseidon([id]))
         );
@@ -205,7 +202,7 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @param root GIST root
      * @return The GIST inclusion or non-inclusion proof for the identity
      */
-    function getGISTProofByRoot(uint256 id, uint256 root) external view returns (SmtProof memory) {
+    function getGISTProofByRoot(uint256 id, uint256 root) external view returns (IState.SmtProof memory) {
         return _smtProofAdapter(
             _gistData.getProofByRoot(PoseidonUnit1L.poseidon([id]), root)
         );
@@ -221,7 +218,7 @@ contract StateV2 is Ownable2StepUpgradeable {
     function getGISTProofByBlock(
         uint256 id,
         uint256 blockNumber
-    ) external view returns (SmtProof memory) {
+    ) external view returns (IState.SmtProof memory) {
         return _smtProofAdapter(
             _gistData.getProofByBlock(PoseidonUnit1L.poseidon([id]), blockNumber)
         );
@@ -237,7 +234,7 @@ contract StateV2 is Ownable2StepUpgradeable {
     function getGISTProofByTime(
         uint256 id,
         uint256 timestamp
-    ) external view returns (SmtProof memory) {
+    ) external view returns (IState.SmtProof memory) {
         return _smtProofAdapter(
             _gistData.getProofByTime(PoseidonUnit1L.poseidon([id]), timestamp)
         );
@@ -260,8 +257,14 @@ contract StateV2 is Ownable2StepUpgradeable {
     function getGISTRootHistory(
         uint256 start,
         uint256 length
-    ) external view returns (IState.RootInfo[] memory) {
-        return _gistData.getRootHistory(start, length);
+    ) external view returns (IState.SmtRootInfo[] memory) {
+        SmtLib.RootEntryInfo[] memory rootInfos = _gistData.getRootHistory(start, length);
+        IState.SmtRootInfo[] memory result = new IState.SmtRootInfo[](rootInfos.length);
+
+        for (uint256 i = 0; i < rootInfos.length; i++) {
+            result[i] = _smtRootInfoAdapter(rootInfos[i]);
+        }
+        return result;
     }
 
     /**
@@ -277,8 +280,8 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @param root GIST root
      * @return The GIST root info
      */
-    function getGISTRootInfo(uint256 root) external view returns (IState.RootInfo memory) {
-        return _gistData.getRootInfo(root);
+    function getGISTRootInfo(uint256 root) external view returns (IState.SmtRootInfo memory) {
+        return _smtRootInfoAdapter(_gistData.getRootInfo(root));
     }
 
     /**
@@ -288,8 +291,8 @@ contract StateV2 is Ownable2StepUpgradeable {
      */
     function getGISTRootInfoByBlock(
         uint256 blockNumber
-    ) external view returns (IState.RootInfo memory) {
-        return _gistData.getRootInfoByBlock(blockNumber);
+    ) external view returns (IState.SmtRootInfo memory) {
+        return _smtRootInfoAdapter(_gistData.getRootInfoByBlock(blockNumber));
     }
 
     /**
@@ -297,8 +300,8 @@ contract StateV2 is Ownable2StepUpgradeable {
      * @param timestamp Blockchain timestamp
      * @return The GIST root info
      */
-    function getGISTRootInfoByTime(uint256 timestamp) external view returns (IState.RootInfo memory) {
-        return _gistData.getRootInfoByTime(timestamp);
+    function getGISTRootInfoByTime(uint256 timestamp) external view returns (IState.SmtRootInfo memory) {
+        return _smtRootInfoAdapter(_gistData.getRootInfoByTime(timestamp));
     }
 
     /**
@@ -320,10 +323,10 @@ contract StateV2 is Ownable2StepUpgradeable {
         return _stateData.stateExists(id, state);
     }
 
-    function _smtProofAdapter(SmtLib.Proof memory proof) internal pure returns (SmtProof memory) {
+    function _smtProofAdapter(SmtLib.Proof memory proof) internal pure returns (IState.SmtProof memory) {
         uint256[MAX_SMT_DEPTH] memory siblings;
 
-        SmtProof memory result = SmtProof({
+        IState.SmtProof memory result = IState.SmtProof({
             root: proof.root,
             existence: proof.existence,
             siblings: siblings,
@@ -337,5 +340,32 @@ contract StateV2 is Ownable2StepUpgradeable {
             result.siblings[i] = proof.siblings[i];
         }
         return result;
+    }
+
+    function _smtRootInfoAdapter(SmtLib.RootEntryInfo memory rootInfo) internal pure returns (IState.SmtRootInfo memory) {
+        return IState.SmtRootInfo({
+            root: rootInfo.root,
+            replacedByRoot: rootInfo.replacedByRoot,
+            createdAtTimestamp: rootInfo.createdAtTimestamp,
+            replacedAtTimestamp: rootInfo.replacedAtTimestamp,
+            createdAtBlock: rootInfo.createdAtBlock,
+            replacedAtBlock: rootInfo.replacedAtBlock
+        });
+    }
+
+    function _stateEntryInfoAdapter(StateLib.EntryInfo memory sei)
+        internal
+        pure
+        returns (IState.StateInfo memory)
+    {
+        return IState.StateInfo({
+            id: sei.id,
+            state: sei.state,
+            replacedByState: sei.replacedByState,
+            createdAtTimestamp: sei.createdAtTimestamp,
+            replacedAtTimestamp: sei.replacedAtTimestamp,
+            createdAtBlock: sei.createdAtBlock,
+            replacedAtBlock: sei.replacedAtBlock
+        });
     }
 }
