@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity 0.8.16;
+
+import "../interfaces/IVerifier.sol";
+
+contract VerifierStub {
+    function verifyProof(
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
+        uint256[4] memory input
+    ) external pure returns (bool r) {
+        return true;
+    }
+}

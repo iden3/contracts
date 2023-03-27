@@ -49,7 +49,7 @@ export class StateDeployHelper {
     return { state, verifier };
   }
 
-  async deployStateV2(): Promise<{
+  async deployStateV2(verifierContractName = "VerifierV2"): Promise<{
     state: Contract;
     verifier: Contract;
     smtLib: Contract;
@@ -63,11 +63,11 @@ export class StateDeployHelper {
 
     this.log("deploying verifier...");
 
-    const verifierFactory = await ethers.getContractFactory("VerifierV2");
+    const verifierFactory = await ethers.getContractFactory(verifierContractName);
     const verifier = await verifierFactory.deploy();
     await verifier.deployed();
     this.log(
-      `Verifier contract deployed to address ${verifier.address} from ${owner.address}`
+      `${verifierContractName} contract deployed to address ${verifier.address} from ${owner.address}`
     );
 
     this.log("deploying poseidons...");
