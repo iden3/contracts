@@ -7,6 +7,52 @@ const id1Inputs = [
   { id: 1, state: 20 },
 ];
 
+describe("getStateInfo negative tests", function () {
+  let stateLibWrpr;
+
+  before(async () => {
+    const deployHelper = await StateDeployHelper.initialize();
+    stateLibWrpr = await deployHelper.deployStateLibTestWrapper();
+
+    for (const { id, state } of id1Inputs) {
+      await addStateToStateLib(stateLibWrpr, id, state);
+    }
+  });
+
+  it("getStateInfoByID: should be reverted if identity does not exist", async () => {
+    const missingID = 777;
+
+    await expect(stateLibWrpr.getStateInfoById(missingID)).to.be.revertedWith(
+      "Identity does not exist"
+    );
+  });
+
+  it("getStateInfoHistoryById: should be reverted if identity does not exist", async () => {
+    const missingID = 777;
+
+    await expect(
+      stateLibWrpr.getStateInfoHistoryById(missingID, 0, 1)
+    ).to.be.revertedWith("Identity does not exist");
+  });
+
+  it("getStateInfoHistoryLengthById: should be reverted if identity does not exist", async () => {
+    const missingID = 777;
+
+    await expect(
+      stateLibWrpr.getStateInfoHistoryLengthById(missingID)
+    ).to.be.revertedWith("Identity does not exist");
+  });
+
+  it("getStateInfoByIdAndState: should be reverted if state does not exist", async () => {
+    const id = id1Inputs[0].id;
+    const missingState = 888;
+
+    await expect(stateLibWrpr.getStateInfoByIdAndState(id, missingState)).to.be.revertedWith(
+      "State does not exist"
+    );
+  });
+});
+
 describe("StateInfo history", function () {
   let stateLibWrpr, id1, id1HistoryLength;
   let addStateResults: { [key: string]: string | number }[] = [];
