@@ -126,6 +126,46 @@ export async function publishState(
   };
 }
 
+export async function publishStateWithStubProof(
+  state: Contract,
+  params: {
+    id: string | number;
+    oldState: string | number;
+    newState: string | number;
+    isOldStateGenesis: boolean;
+  }
+): Promise<{
+  id: string | number;
+  oldState: string | number;
+  newState: string | number;
+  blockNumber: number;
+  timestamp: number;
+}> {
+  const transitStateTx = await state.transitState(
+    params.id,
+    params.oldState,
+    params.newState,
+    params.isOldStateGenesis,
+    ["0", "0"],
+    [
+      ["0", "0"],
+      ["0", "0"],
+    ],
+    ["0", "0"]
+  );
+
+  const { blockNumber } = await transitStateTx.wait();
+  const { timestamp } = await ethers.provider.getBlock(transitStateTx.blockNumber);
+
+  return {
+    id: params.id,
+    oldState: params.oldState,
+    newState: params.newState,
+    blockNumber,
+    timestamp,
+  };
+}
+
 export async function addStateToStateLib(
   stateLibWrapper: Contract,
   id: string | number,
