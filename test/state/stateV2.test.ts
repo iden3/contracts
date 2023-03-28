@@ -15,7 +15,7 @@ describe("State transitions positive cases", () => {
   before(async function () {
     this.timeout(5000);
     const deployHelper = await StateDeployHelper.initialize();
-    const contracts = await deployHelper.deployStateV2();
+    const contracts = await deployHelper.deployStateV3();
     state = contracts.state;
   });
 
@@ -97,7 +97,7 @@ describe("State transition negative cases", () => {
 
   beforeEach(async () => {
     const deployHelper = await StateDeployHelper.initialize();
-    const contracts = await deployHelper.deployStateV2();
+    const contracts = await deployHelper.deployStateV3();
     state = contracts.state;
   });
 
@@ -229,7 +229,7 @@ describe("State history", function () {
 
   before(async () => {
     const deployHelper = await StateDeployHelper.initialize();
-    const contracts = await deployHelper.deployStateV2();
+    const contracts = await deployHelper.deployStateV3();
     state = contracts.state;
 
     publishedStates = [];
@@ -312,7 +312,7 @@ describe("get StateInfo negative cases", function () {
 
   before(async () => {
     const deployHelper = await StateDeployHelper.initialize();
-    const contracts = await deployHelper.deployStateV2();
+    const contracts = await deployHelper.deployStateV3();
     state = contracts.state;
 
     for (const stateTransition of stateTransitions) {
@@ -358,7 +358,7 @@ describe("GIST proofs", () => {
 
   beforeEach(async () => {
     const deployHelper = await StateDeployHelper.initialize();
-    const contracts = await deployHelper.deployStateV2();
+    const contracts = await deployHelper.deployStateV3();
     state = contracts.state;
   });
 
@@ -449,7 +449,7 @@ describe("GIST root history", () => {
 
   beforeEach(async () => {
     const deployHelper = await StateDeployHelper.initialize();
-    const contracts = await deployHelper.deployStateV2();
+    const contracts = await deployHelper.deployStateV3();
     state = contracts.state;
   });
 

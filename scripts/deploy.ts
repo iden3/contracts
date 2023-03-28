@@ -7,7 +7,7 @@ async function main() {
   const stateDeployHelper = await StateDeployHelper.initialize(null, true);
 
   const { state, verifier, smt, poseidon2, poseidon3 } =
-    await stateDeployHelper.deployStateV2();
+    await stateDeployHelper.deployStateV3();
 
   const outputJson = {
     state: state.address,

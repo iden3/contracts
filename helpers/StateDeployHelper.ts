@@ -109,6 +109,69 @@ export class StateDeployHelper {
     };
   }
 
+
+  async deployStateV3(): Promise<{
+    state: Contract;
+    verifier: Contract;
+    smt: Contract;
+    poseidon1: Contract;
+    poseidon2: Contract;
+    poseidon3: Contract;
+  }> {
+    this.log("======== StateV3: deploy started ========");
+
+    const owner = this.signers[0];
+
+    this.log("deploying verifier...");
+
+    const verifierFactory = await ethers.getContractFactory("VerifierV2");
+    const verifier = await verifierFactory.deploy();
+    await verifier.deployed();
+    this.log(
+      `Verifier contract deployed to address ${verifier.address} from ${owner.address}`
+    );
+
+    this.log("deploying poseidons...");
+    const [poseidon1Elements, poseidon2Elements, poseidon3Elements] =
+      await this.deployPoseidons(owner, [1, 2, 3]);
+
+    this.log("deploying SMT...");
+    const smt = await this.deploySmt(
+      poseidon2Elements.address,
+      poseidon3Elements.address
+    );
+
+    this.log("deploying stateV3...");
+    const StateV3Factory = await ethers.getContractFactory("StateV3", {
+      libraries: {
+        Smt: smt.address,
+        PoseidonUnit1L: poseidon1Elements.address,
+      },
+    });
+    const stateV3 = await upgrades.deployProxy(
+      StateV3Factory,
+      [verifier.address],
+      {
+        unsafeAllowLinkedLibraries: true,
+      }
+    );
+    await stateV3.deployed();
+    this.log(
+      `StateV2 contract deployed to address ${stateV3.address} from ${owner.address}`
+    );
+
+    this.log("======== StateV3: deploy completed ========");
+
+    return {
+      state: stateV3,
+      verifier,
+      smt,
+      poseidon1: poseidon1Elements,
+      poseidon2: poseidon2Elements,
+      poseidon3: poseidon3Elements,
+    };
+  }
+
   async getStateTransitionHistory(
     stateContract: any,
     firstEventBlock: number, //29831814

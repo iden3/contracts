@@ -1218,7 +1218,7 @@ describe("SMT tests", function () {
 
     before(async () => {
       const deployHelper = await StateDeployHelper.initialize();
-      const contracts = await deployHelper.deployStateV2();
+      const contracts = await deployHelper.deployStateV3();
       state = contracts.state;
 
       pubStates = [];
