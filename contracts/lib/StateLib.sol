@@ -95,7 +95,12 @@ library StateLib {
         _addState(self, id, state, block.timestamp, block.number);
     }
 
-    function addStateNoTimestampAndBlock(Data storage self, uint256 id, uint256 state) external {
+    function addStateNoTimestampAndBlock(
+        Data storage self,
+        uint256 id,
+        uint256 state
+    ) external {
+        require(!idExists(self, id), "Zero timestamp and block should be only in the first identity state");
         _addState(self, id, state, 0, 0);
     }
 

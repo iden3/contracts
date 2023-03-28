@@ -7,7 +7,7 @@ const id1Inputs = [
   { id: 1, state: 20 },
 ];
 
-describe("getStateInfo negative tests", function () {
+describe("Negative tests", function () {
   let stateLibWrpr;
 
   before(async () => {
@@ -30,17 +30,17 @@ describe("getStateInfo negative tests", function () {
   it("getStateInfoHistoryById: should be reverted if identity does not exist", async () => {
     const missingID = 777;
 
-    await expect(
-      stateLibWrpr.getStateInfoHistoryById(missingID, 0, 1)
-    ).to.be.revertedWith("Identity does not exist");
+    await expect(stateLibWrpr.getStateInfoHistoryById(missingID, 0, 1)).to.be.revertedWith(
+      "Identity does not exist"
+    );
   });
 
   it("getStateInfoHistoryLengthById: should be reverted if identity does not exist", async () => {
     const missingID = 777;
 
-    await expect(
-      stateLibWrpr.getStateInfoHistoryLengthById(missingID)
-    ).to.be.revertedWith("Identity does not exist");
+    await expect(stateLibWrpr.getStateInfoHistoryLengthById(missingID)).to.be.revertedWith(
+      "Identity does not exist"
+    );
   });
 
   it("getStateInfoByIdAndState: should be reverted if state does not exist", async () => {
@@ -49,6 +49,18 @@ describe("getStateInfo negative tests", function () {
 
     await expect(stateLibWrpr.getStateInfoByIdAndState(id, missingState)).to.be.revertedWith(
       "State does not exist"
+    );
+  });
+
+  it("Zero timestamp and block should be only in the first identity state", async () => {
+    await expect(stateLibWrpr.addStateNoTimestampAndBlock(2, 20)).to.be.not.reverted;
+    await expect(stateLibWrpr.addStateNoTimestampAndBlock(2, 20)).to.be.revertedWith(
+      "Zero timestamp and block should be only in the first identity state"
+    );
+
+    await expect(stateLibWrpr.addState(3, 30)).to.be.not.reverted;
+    await expect(stateLibWrpr.addStateNoTimestampAndBlock(3, 30)).to.be.revertedWith(
+      "Zero timestamp and block should be only in the first identity state"
     );
   });
 });
