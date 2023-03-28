@@ -188,6 +188,22 @@ describe("State transition negative cases", () => {
       "New state should not be zero"
     );
   });
+
+  it("Should allow only one unique state per identity", async () => {
+    await publishStateWithStubProof(state, stateTransitionsWithNoProofs[0]);
+    await publishStateWithStubProof(state, stateTransitionsWithNoProofs[1]);
+
+    const stateTransition = {
+      id: 1,
+      oldState: 3,
+      newState: 2,
+      isOldStateGenesis: false,
+    };
+
+    await expect(
+      publishStateWithStubProof(state, stateTransition)
+    ).to.be.revertedWith("New state already exists");
+  });
 });
 
 describe("StateInfo history", function () {
