@@ -491,10 +491,9 @@ contract StateV3 is OwnableUpgradeable {
 
     /**
      * @dev Set version of State contract
-     * @return version
      */
-    function setVersion(uint256 _version) public onlyOwner returns (uint256) {
-        return version;
+    function setVersion(uint256 _version) public onlyOwner {
+        version = _version;
     }
 
     /**
