@@ -29,9 +29,9 @@ library SpongePoseidon {
     uint32 constant BATCH_SIZE = 6;
 
     function hash(uint256[] calldata values) public pure returns (uint256) {
-        uint256[BATCH_SIZE] memory frame;
+        uint256[BATCH_SIZE] memory frame = [uint256(0), 0, 0, 0, 0, 0];
         bool dirty = false;
-        uint256 fullHash;
+        uint256 fullHash = 0;
         uint32 k = 0;
         for (uint32 i = 0; i < values.length; i++) {
             dirty = true;
@@ -39,9 +39,7 @@ library SpongePoseidon {
             if (k == BATCH_SIZE - 1) {
                 fullHash = PoseidonUnit6L.poseidon(frame);
                 dirty = false;
-                for (uint32 j = 0; j <= k; j++) {
-                    frame[j] = 0;
-                }
+                frame = [uint256(0), 0, 0, 0, 0, 0];
                 frame[0] = fullHash;
                 k = 1;
             } else {
