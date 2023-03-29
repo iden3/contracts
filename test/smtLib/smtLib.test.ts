@@ -1,10 +1,8 @@
 import { expect } from "chai";
 
-import { FixedArray, genMaxBinaryNumber, MtpProof } from "../utils/utils";
+import { addLeaf, FixedArray, genMaxBinaryNumber, MtpProof } from "../utils/utils";
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
-import { publishState } from "../utils/deploy-utils";
 import { Contract } from "ethers";
-import { ethers } from "hardhat";
 
 const stateTransitions = [
   require("../state/data/user_state_genesis_transition.json"),
@@ -17,7 +15,7 @@ type TestCaseMTPProof = {
     | number
     | bigint
     | string
-    | { index: number | bigint | string; historicalRoot: string }
+    | { index: number | bigint | string; historicalRoot: number | string }
     | undefined;
   expectedProof?: MtpProof;
   [key: string]: any;
@@ -2544,6 +2542,177 @@ describe("Merkle tree proofs of SMT", () => {
         });
       }
     });
+
+    describe("empty tree", () => {
+      const testCases: TestCaseMTPProof[] = [
+        {
+          description: "generate proof for some key",
+          leavesToInsert: [],
+          paramsToGetProof: 1,
+          expectedProof: {
+            root: 0,
+            existence: false,
+            siblings: [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+            ],
+            index: 1,
+            value: 0,
+            auxExistence: false,
+            auxIndex: 0,
+            auxValue: 0,
+          },
+        },
+        {
+          description: "generate proof for some key and zero historical root",
+          leavesToInsert: [{ i: 1, v: 10 }],
+          paramsToGetProof: { index: 1, historicalRoot: 0 },
+          expectedProof: {
+            root: 0,
+            existence: false,
+            siblings: [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+            ],
+            index: 1,
+            value: 0,
+            auxExistence: false,
+            auxIndex: 0,
+            auxValue: 0,
+          },
+        },
+      ];
+
+      for (const testCase of testCases) {
+        it(`${testCase.description}`, async () => {
+          await checkTestCaseMTPProof(smt, testCase);
+        });
+      }
+    });
   });
 
   describe("SMT add leaf edge cases", () => {
@@ -2834,29 +3003,35 @@ describe("Merkle tree proofs of SMT", () => {
 describe("Root history requests", function () {
   this.timeout(5000);
 
-  let state, historyLength;
+  let smt, historyLength;
   let pubStates: { [key: string]: string | number }[] = [];
 
   before(async () => {
     const deployHelper = await StateDeployHelper.initialize();
-    const contracts = await deployHelper.deployStateV2();
-    state = contracts.state;
+    smt = await deployHelper.deploySmtLibTestWrapper();
 
     pubStates = [];
-    for (const stateTransition of stateTransitions) {
-      pubStates.push(await publishState(state, stateTransition));
-    }
+    pubStates.push(await addLeaf(smt, 1, 10));
+    pubStates.push(await addLeaf(smt, 2, 20));
 
-    historyLength = await state.getGISTRootHistoryLength();
+    historyLength = await smt.getRootHistoryLength();
   });
 
   it("should return the root history", async () => {
-    expect(historyLength).to.be.equal(stateTransitions.length);
+    expect(historyLength).to.be.equal(stateTransitions.length + 1);
 
-    const rootInfos = await state.getGISTRootHistory(0, historyLength);
+    const rootInfos = await smt.getRootHistory(0, historyLength);
     expect(rootInfos.length).to.be.equal(historyLength);
 
-    const [rootInfo] = await state.getGISTRootHistory(0, 1);
+    // check the first root, which was added at Smt init
+    expect(rootInfos[0].root).to.be.equal(0);
+    expect(rootInfos[0].replacedByRoot).to.be.equal(pubStates[0].root);
+    expect(rootInfos[0].createdAtTimestamp).to.be.equal(0);
+    expect(rootInfos[0].replacedAtTimestamp).to.be.equal(pubStates[0].timestamp);
+    expect(rootInfos[0].createdAtBlock).to.be.equal(0);
+    expect(rootInfos[0].replacedAtBlock).to.be.equal(pubStates[0].blockNumber);
+
+    const [rootInfo] = await smt.getRootHistory(1, 1);
     expect(rootInfo.root).not.to.be.equal(0);
     expect(rootInfo.replacedByRoot).not.to.be.equal(0);
     expect(rootInfo.createdAtTimestamp).to.be.equal(pubStates[0].timestamp);
@@ -2864,7 +3039,7 @@ describe("Root history requests", function () {
     expect(rootInfo.createdAtBlock).to.be.equal(pubStates[0].blockNumber);
     expect(rootInfo.replacedAtBlock).to.be.equal(pubStates[1].blockNumber);
 
-    const [rootInfo2] = await state.getGISTRootHistory(1, 1);
+    const [rootInfo2] = await smt.getRootHistory(2, 1);
     expect(rootInfo2.root).not.to.be.equal(0);
     expect(rootInfo2.replacedByRoot).to.be.equal(0);
     expect(rootInfo2.createdAtTimestamp).to.be.equal(pubStates[1].timestamp);
@@ -2874,25 +3049,25 @@ describe("Root history requests", function () {
   });
 
   it("should revert if length is zero", async () => {
-    await expect(state.getGISTRootHistory(0, 0)).to.be.revertedWith(
+    await expect(smt.getRootHistory(0, 0)).to.be.revertedWith(
       "Length should be greater than 0"
     );
   });
 
   it("should revert if length limit exceeded", async () => {
-    await expect(state.getGISTRootHistory(0, 10 ** 6)).to.be.revertedWith("Length limit exceeded");
+    await expect(smt.getRootHistory(0, 10 ** 6)).to.be.revertedWith("Length limit exceeded");
   });
 
   it("should revert if out of bounds", async () => {
-    await expect(state.getGISTRootHistory(historyLength, 100)).to.be.revertedWith(
+    await expect(smt.getRootHistory(historyLength, 100)).to.be.revertedWith(
       "Start index out of bounds"
     );
   });
 
   it("should NOT revert if startIndex + length >= historyLength", async () => {
-    let history = await state.getGISTRootHistory(historyLength - 1, 100);
+    let history = await smt.getRootHistory(historyLength - 1, 100);
     expect(history.length).to.be.equal(1);
-    history = await state.getGISTRootHistory(historyLength - 2, 100);
+    history = await smt.getRootHistory(historyLength - 2, 100);
     expect(history.length).to.be.equal(2);
   });
 });
@@ -2905,15 +3080,7 @@ describe("Root history duplication requests", function () {
     smt = await deployHelper.deploySmtLibTestWrapper();
   });
 
-  it("Comprehensive check", async () => {
-    const addLeaf = async (smt: Contract, i: number, v: number) => {
-      const { blockNumber } = await smt.add(i, v);
-      const root = await smt.getRoot();
-      const rootInfo = await smt.getRootInfo(root);
-      const { timestamp } = await ethers.provider.getBlock(blockNumber);
-      return { timestamp, blockNumber, root, rootInfo };
-    };
-
+  it("comprehensive check", async () => {
     const leavesToInsert = [
       { i: 1, v: 1 }, // doubleRoot
       { i: 1, v: 2 }, // singleRoot
@@ -2931,7 +3098,7 @@ describe("Root history duplication requests", function () {
       addResult.push(await addLeaf(smt, leaf.i, leaf.v));
     }
 
-    expect(await smt.getRootHistoryLength()).to.be.equal(8);
+    expect(await smt.getRootHistoryLength()).to.be.equal(leavesToInsert.length + 1);
 
     const singleRoot = addResult[1].root;
     const doubleRoot = addResult[2].root;
@@ -3012,6 +3179,19 @@ describe("Root history duplication requests", function () {
     expect(list.length).to.be.equal(1);
     list = await smt.getRootInfoListByRoot(root, rootInfoListLength - 2, 100);
     expect(list.length).to.be.equal(2);
+  });
+
+  it("should return correct list and length just after init", async () => {
+    const root = 0;
+    const [rootInfo] = await smt.getRootInfoListByRoot(root, 0, 1);
+    expect(rootInfo.root).to.be.equal(0);
+    expect(rootInfo.replacedByRoot).to.be.equal(0);
+    expect(rootInfo.createdAtTimestamp).to.be.equal(0);
+    expect(rootInfo.replacedAtTimestamp).to.be.equal(0);
+    expect(rootInfo.createdAtBlock).to.be.equal(0);
+    expect(rootInfo.replacedAtBlock).to.be.equal(0);
+
+    expect(await smt.getRootInfoListLengthByRoot(root)).to.be.equal(1);
   });
 });
 
@@ -3456,7 +3636,7 @@ describe("Edge cases with exceptions", () => {
   });
 });
 
-describe("Max depth tests", () => {
+describe("maxDepth setting tests", () => {
   let smt;
 
   before(async () => {

@@ -1,3 +1,6 @@
+import { Contract } from "ethers";
+import { ethers } from "hardhat";
+
 type Grow<T, A extends Array<T>> = ((x: T, ...xs: A) => void) extends (...a: infer X) => void
   ? X
   : never;
@@ -10,7 +13,7 @@ type GrowToSize<T, A extends Array<T>, N extends number> = {
 export type FixedArray<T, N extends number> = GrowToSize<T, [], N>;
 
 export type MtpProof = {
-  root: string;
+  root: number | string;
   existence: boolean;
   siblings: FixedArray<string, 64>;
   index: number | string;
@@ -22,4 +25,12 @@ export type MtpProof = {
 
 export function genMaxBinaryNumber(digits: number): bigint {
   return BigInt(2) ** BigInt(digits) - BigInt(1);
+}
+
+export async function addLeaf(smt: Contract, i: number, v: number) {
+  const { blockNumber } = await smt.add(i, v);
+  const root = await smt.getRoot();
+  const rootInfo = await smt.getRootInfo(root);
+  const { timestamp } = await ethers.provider.getBlock(blockNumber);
+  return { timestamp, blockNumber, root, rootInfo };
 }

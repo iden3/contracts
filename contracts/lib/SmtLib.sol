@@ -47,11 +47,12 @@ library SmtLib {
         RootEntry[] rootEntries;
         mapping(uint256 => uint256[]) rootEntryIndexes; // root => rootEntryIndex[]
         uint256 maxDepth;
+        bool initialized;
         // This empty reserved space is put in place to allow future versions
         // of the SMT library to add new Data struct fields without shifting down
         // storage of upgradable contracts that use this struct as a state variable
         // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-        uint256[49] __gap;
+        uint256[48] __gap;
     }
 
     /**
@@ -132,7 +133,7 @@ library SmtLib {
      * @param i Index of node
      * @param v Value of node
      */
-    function addLeaf(Data storage self, uint256 i, uint256 v) external {
+    function addLeaf(Data storage self, uint256 i, uint256 v) external onlyInitialized(self) {
         Node memory node = Node({
             nodeType: NodeType.LEAF,
             childLeft: 0,
@@ -144,13 +145,7 @@ library SmtLib {
         uint256 prevRoot = getRoot(self);
         uint256 newRoot = _addLeaf(self, node, prevRoot, 0);
 
-        self.rootEntries.push(RootEntry({
-            root: newRoot,
-            createdAtTimestamp: block.timestamp,
-            createdAtBlock: block.number
-        }));
-
-        self.rootEntryIndexes[newRoot].push(self.rootEntries.length - 1);
+        _addEntry(self, newRoot, block.timestamp, block.number);
     }
 
     /**
@@ -300,9 +295,8 @@ library SmtLib {
         return getProofByRoot(self, index, rootInfo.root);
     }
 
-    function getRoot(Data storage self) public view returns (uint256) {
-        RootEntry[] storage rootEntries = self.rootEntries;
-        return rootEntries.length > 0 ? rootEntries[rootEntries.length - 1].root : 0;
+    function getRoot(Data storage self) public view onlyInitialized(self) returns (uint256) {
+        return self.rootEntries[self.rootEntries.length - 1].root;
     }
 
     /**
@@ -386,7 +380,7 @@ library SmtLib {
      * @dev Sets max depth of the SMT
      * @param maxDepth max depth
      */
-    function setMaxDepth(Data storage self, uint256 maxDepth) external {
+    function setMaxDepth(Data storage self, uint256 maxDepth) public {
         require(maxDepth > 0, "Max depth must be greater than zero");
         require(maxDepth > self.maxDepth, "Max depth can only be increased");
         require(maxDepth <= MAX_DEPTH_HARD_CAP, "Max depth is greater than hard cap");
@@ -399,6 +393,22 @@ library SmtLib {
      */
     function getMaxDepth(Data storage self) external view returns (uint256) {
         return self.maxDepth;
+    }
+
+    function initialize(Data storage self, uint256 maxDepth) external {
+        require(!isInitialized(self), "Smt is already initialized");
+        setMaxDepth(self, maxDepth);
+        _addEntry(self, 0, 0, 0);
+        self.initialized = true;
+    }
+
+    modifier onlyInitialized(Data storage self) {
+        require(isInitialized(self), "Smt is not initialized");
+        _;
+    }
+
+    function isInitialized(Data storage self) public view returns (bool) {
+        return self.initialized;
     }
 
     function _addLeaf(
@@ -509,6 +519,7 @@ library SmtLib {
         // We do not store empty nodes so can check if an entry exists.
         // Also we do not write if there is already as the content is guaranteed
         // to be identical by the Poseidon hash function
+        // todo add the asserts if node exists
         if (self.nodes[nodeHash].nodeType == NodeType.EMPTY) {
             self.nodes[nodeHash] = node;
         }
@@ -561,6 +572,16 @@ library SmtLib {
             createdAtBlock: 0,
             replacedAtBlock: 0
         });
+    }
+
+    function _addEntry(Data storage self, uint256 root, uint256 _timestamp, uint256 _block) internal {
+        self.rootEntries.push(RootEntry({
+        root: root,
+        createdAtTimestamp: _timestamp,
+        createdAtBlock: _block
+        }));
+
+        self.rootEntryIndexes[root].push(self.rootEntries.length - 1);
     }
 }
 

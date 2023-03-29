@@ -9,7 +9,7 @@ contract SmtLibTestWrapper {
     SmtLib.Data internal smtData;
 
     constructor(uint256 maxDepth) {
-        smtData.setMaxDepth(maxDepth);
+        smtData.initialize(maxDepth);
     }
 
     function add(uint256 i, uint256 v) public {
@@ -30,6 +30,10 @@ contract SmtLibTestWrapper {
 
     function getProofByBlock(uint256 id, uint256 block) public view returns (SmtLib.Proof memory) {
         return smtData.getProofByBlock(id, block);
+    }
+
+    function getRootHistory(uint256 start, uint256 length) public view returns (SmtLib.RootEntryInfo[] memory) {
+        return smtData.getRootHistory(start, length);
     }
 
     function getRootHistoryLength() public view returns (uint256) {

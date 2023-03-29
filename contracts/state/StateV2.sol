@@ -54,7 +54,7 @@ contract StateV2 is Ownable2StepUpgradeable {
         IStateTransitionVerifier verifierContractAddr
     ) public initializer {
         verifier = verifierContractAddr;
-        _gistData.setMaxDepth(MAX_SMT_DEPTH);
+        _gistData.initialize(MAX_SMT_DEPTH);
         __Ownable_init();
     }
 

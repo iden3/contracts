@@ -269,10 +269,9 @@ describe("GIST proofs", () => {
     }
 
     const rootHistoryLength = await state.getGISTRootHistoryLength();
-    expect(rootHistoryLength).to.equal(currentRoots.length);
+    expect(rootHistoryLength).to.equal(currentRoots.length + 1);
 
-    console.log("root history length: ", rootHistoryLength);
-    const [obj1, obj2] = await state.getGISTRootHistory(0, 2);
+    const [obj1, obj2] = await state.getGISTRootHistory(1, 2);
 
     const [root] = await state.getGISTProofByRoot(id, obj1.root);
     expect(obj1.root).to.equal(root);
@@ -290,19 +289,16 @@ describe("GIST proofs", () => {
     const id = stateTransitionsWithNoProofs[0].id;
 
     const rootHistoryLength = await state.getGISTRootHistoryLength();
-    expect(rootHistoryLength).to.equal(stateTransitionsWithNoProofs.length);
+    expect(rootHistoryLength).to.equal(stateTransitionsWithNoProofs.length + 1);
 
-    const [root1info, root2info] = await state.getGISTRootHistory(0, 2);
+    const [root1info, root2info] = await state.getGISTRootHistory(1, 2);
 
-    console.log(root1info);
     const [r1] = await state.getGISTProofByTime(
       id,
       root1info.createdAtTimestamp
     );
 
     expect(root1info.root).to.equal(r1);
-
-    console.log(root2info);
 
     const [r2] = await state.getGISTProofByTime(
       id,
@@ -319,9 +315,9 @@ describe("GIST proofs", () => {
     const id = stateTransitionsWithNoProofs[0].id;
 
     const rootHistoryLength = await state.getGISTRootHistoryLength();
-    expect(rootHistoryLength).to.equal(stateTransitionsWithNoProofs.length);
+    expect(rootHistoryLength).to.equal(stateTransitionsWithNoProofs.length + 1);
 
-    const [root1info, root2info] = await state.getGISTRootHistory(0, 2);
+    const [root1info, root2info] = await state.getGISTRootHistory(1, 2);
 
     const [root] = await state.getGISTProofByBlock(
       id,
@@ -352,9 +348,9 @@ describe("GIST root history", () => {
     }
     const id = stateTransitionsWithNoProofs[0].id;
     const rootHistoryLength = await state.getGISTRootHistoryLength();
-    expect(rootHistoryLength).to.equal(stateTransitionsWithNoProofs.length);
+    expect(rootHistoryLength).to.equal(stateTransitionsWithNoProofs.length + 1);
 
-    const [rootInfo] = await state.getGISTRootHistory(0, 1);
+    const [rootInfo] = await state.getGISTRootHistory(1, 1);
 
     const [rootB] = await state.getGISTProofByBlock(
       id,
