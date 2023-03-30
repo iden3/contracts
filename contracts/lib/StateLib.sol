@@ -57,7 +57,6 @@ library StateLib {
         ]
         */
         mapping(uint256 => Entry[]) stateEntries;
-
         /*
         id => state => stateEntryIndex[]
         -------------------------------
@@ -65,7 +64,6 @@ library StateLib {
         id1 => state2 => [index1]
          */
         mapping(uint256 => mapping(uint256 => uint256[])) stateIndexes;
-
         // This empty reserved space is put in place to allow future versions
         // of the State contract to add new SmtData struct fields without shifting down
         // storage of upgradable contracts that use this struct as a state variable
@@ -86,7 +84,11 @@ library StateLib {
      * @dev Revert if state does not exist in the contract
      * @param state State
      */
-    modifier onlyExistingState(Data storage self, uint256 id, uint256 state) {
+    modifier onlyExistingState(
+        Data storage self,
+        uint256 id,
+        uint256 state
+    ) {
         require(stateExists(self, id, state), "State does not exist");
         _;
     }
@@ -95,12 +97,11 @@ library StateLib {
         _addState(self, id, state, block.timestamp, block.number);
     }
 
-    function addStateNoTimestampAndBlock(
-        Data storage self,
-        uint256 id,
-        uint256 state
-    ) external {
-        require(!idExists(self, id), "Zero timestamp and block should be only in the first identity state");
+    function addStateNoTimestampAndBlock(Data storage self, uint256 id, uint256 state) external {
+        require(
+            !idExists(self, id),
+            "Zero timestamp and block should be only in the first identity state"
+        );
         _addState(self, id, state, 0, 0);
     }
 
@@ -116,15 +117,16 @@ library StateLib {
         Entry[] storage stateEntries = self.stateEntries[id];
         Entry memory se = stateEntries[stateEntries.length - 1];
 
-        return EntryInfo({
-            id: id,
-            state: se.state,
-            replacedByState: 0,
-            createdAtTimestamp: se.timestamp,
-            replacedAtTimestamp: 0,
-            createdAtBlock: se.block,
-            replacedAtBlock: 0
-        });
+        return
+            EntryInfo({
+                id: id,
+                state: se.state,
+                replacedByState: 0,
+                createdAtTimestamp: se.timestamp,
+                replacedAtTimestamp: 0,
+                createdAtBlock: se.block,
+                replacedAtBlock: 0
+            });
     }
 
     /**
@@ -231,14 +233,16 @@ library StateLib {
         return self.stateIndexes[id][state].length > 0;
     }
 
-    function _addState(Data storage self, uint256 id, uint256 state, uint256 _timestamp, uint256 _block ) internal {
+    function _addState(
+        Data storage self,
+        uint256 id,
+        uint256 state,
+        uint256 _timestamp,
+        uint256 _block
+    ) internal {
         Entry[] storage stateEntries = self.stateEntries[id];
 
-        stateEntries.push(Entry({
-            state: state,
-            timestamp: _timestamp,
-            block: _block
-        }));
+        stateEntries.push(Entry({state: state, timestamp: _timestamp, block: _block}));
 
         self.stateIndexes[id][state].push(stateEntries.length - 1);
     }
@@ -249,24 +253,33 @@ library StateLib {
      * @param state State
      * @return The state info struct
      */
-    function _getStateInfoByState(Data storage self, uint256 id, uint256 state) internal view returns (EntryInfo memory) {
+    function _getStateInfoByState(
+        Data storage self,
+        uint256 id,
+        uint256 state
+    ) internal view returns (EntryInfo memory) {
         uint256[] storage indexes = self.stateIndexes[id][state];
         uint256 lastIndex = indexes[indexes.length - 1];
         return _getStateInfoByIndex(self, id, lastIndex);
     }
 
-    function _getStateInfoByIndex(Data storage self, uint256 id, uint256 index) internal view returns (EntryInfo memory) {
+    function _getStateInfoByIndex(
+        Data storage self,
+        uint256 id,
+        uint256 index
+    ) internal view returns (EntryInfo memory) {
         bool isLastState = index == self.stateEntries[id].length - 1;
         Entry storage se = self.stateEntries[id][index];
 
-        return EntryInfo({
-            id: id,
-            state: se.state,
-            replacedByState: isLastState ? 0 : self.stateEntries[id][index + 1].state,
-            createdAtTimestamp: se.timestamp,
-            replacedAtTimestamp: isLastState ? 0 : self.stateEntries[id][index + 1].timestamp,
-            createdAtBlock: se.block,
-            replacedAtBlock: isLastState ? 0 : self.stateEntries[id][index + 1].block
-        });
+        return
+            EntryInfo({
+                id: id,
+                state: se.state,
+                replacedByState: isLastState ? 0 : self.stateEntries[id][index + 1].state,
+                createdAtTimestamp: se.timestamp,
+                replacedAtTimestamp: isLastState ? 0 : self.stateEntries[id][index + 1].timestamp,
+                createdAtBlock: se.block,
+                replacedAtBlock: isLastState ? 0 : self.stateEntries[id][index + 1].block
+            });
     }
 }

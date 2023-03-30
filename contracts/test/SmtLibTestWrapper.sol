@@ -24,7 +24,10 @@ contract SmtLibTestWrapper {
         return smtData.getProofByRoot(id, root);
     }
 
-    function getProofByTime(uint256 id, uint256 timestamp) public view returns (SmtLib.Proof memory) {
+    function getProofByTime(
+        uint256 id,
+        uint256 timestamp
+    ) public view returns (SmtLib.Proof memory) {
         return smtData.getProofByTime(id, timestamp);
     }
 
@@ -32,7 +35,10 @@ contract SmtLibTestWrapper {
         return smtData.getProofByBlock(id, block);
     }
 
-    function getRootHistory(uint256 start, uint256 length) public view returns (SmtLib.RootEntryInfo[] memory) {
+    function getRootHistory(
+        uint256 start,
+        uint256 length
+    ) public view returns (SmtLib.RootEntryInfo[] memory) {
         return smtData.getRootHistory(start, length);
     }
 
@@ -52,7 +58,11 @@ contract SmtLibTestWrapper {
         return smtData.getRootInfoListLengthByRoot(root);
     }
 
-    function getRootInfoListByRoot(uint256 root, uint256 start, uint256 length) public view returns (SmtLib.RootEntryInfo[] memory) {
+    function getRootInfoListByRoot(
+        uint256 root,
+        uint256 start,
+        uint256 length
+    ) public view returns (SmtLib.RootEntryInfo[] memory) {
         return smtData.getRootInfoListByRoot(root, start, length);
     }
 

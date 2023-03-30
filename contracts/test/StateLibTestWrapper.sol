@@ -20,7 +20,10 @@ contract StateLibTestWrapper {
         return stateData.getStateInfoById(id);
     }
 
-    function getStateInfoByIdAndState(uint256 id, uint256 state) external view returns (StateLib.EntryInfo memory) {
+    function getStateInfoByIdAndState(
+        uint256 id,
+        uint256 state
+    ) external view returns (StateLib.EntryInfo memory) {
         return stateData.getStateInfoByIdAndState(id, state);
     }
 
@@ -36,7 +39,10 @@ contract StateLibTestWrapper {
         return stateData.getStateInfoHistoryById(id, startIndex, length);
     }
 
-    function getStateInfoListLengthByIdAndState(uint256 id, uint256 state) external view returns (uint256) {
+    function getStateInfoListLengthByIdAndState(
+        uint256 id,
+        uint256 state
+    ) external view returns (uint256) {
         return stateData.getStateInfoListLengthByIdAndState(id, state);
     }
 

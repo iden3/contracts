@@ -168,7 +168,10 @@ library SmtLib {
         uint256 length
     ) external view returns (RootEntryInfo[] memory) {
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
-            self.rootEntries.length, startIndex, length, ROOT_INFO_LIST_RETURN_LIMIT
+            self.rootEntries.length,
+            startIndex,
+            length,
+            ROOT_INFO_LIST_RETURN_LIMIT
         );
 
         RootEntryInfo[] memory result = new RootEntryInfo[](end - start);
@@ -310,7 +313,12 @@ library SmtLib {
     ) public view returns (RootEntryInfo memory) {
         require(timestamp <= block.timestamp, "No future timestamps allowed");
 
-        return _getRootInfoByTimestampOrBlock(self, timestamp, BinarySearchSmtRoots.SearchType.TIMESTAMP);
+        return
+            _getRootInfoByTimestampOrBlock(
+                self,
+                timestamp,
+                BinarySearchSmtRoots.SearchType.TIMESTAMP
+            );
     }
 
     /**
@@ -356,7 +364,10 @@ library SmtLib {
     ) public view onlyExistingRoot(self, root) returns (RootEntryInfo[] memory) {
         uint256[] storage indexes = self.rootEntryIndexes[root];
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
-            indexes.length, startIndex, length, ROOT_INFO_LIST_RETURN_LIMIT
+            indexes.length,
+            startIndex,
+            length,
+            ROOT_INFO_LIST_RETURN_LIMIT
         );
 
         RootEntryInfo[] memory result = new RootEntryInfo[](end - start);
@@ -543,18 +554,24 @@ library SmtLib {
         return nodeHash; // Note: expected to return 0 if NodeType.EMPTY, which is the only option left
     }
 
-    function _getRootInfoByIndex(Data storage self, uint256 index) internal view returns (RootEntryInfo memory) {
+    function _getRootInfoByIndex(
+        Data storage self,
+        uint256 index
+    ) internal view returns (RootEntryInfo memory) {
         bool isLastRoot = index == self.rootEntries.length - 1;
         RootEntry storage rootEntry = self.rootEntries[index];
 
-        return RootEntryInfo({
-            root: rootEntry.root,
-            replacedByRoot: isLastRoot ? 0 : self.rootEntries[index + 1].root,
-            createdAtTimestamp: rootEntry.createdAtTimestamp,
-            replacedAtTimestamp: isLastRoot ? 0 : self.rootEntries[index + 1].createdAtTimestamp,
-            createdAtBlock: rootEntry.createdAtBlock,
-            replacedAtBlock: isLastRoot ? 0 : self.rootEntries[index + 1].createdAtBlock
-        });
+        return
+            RootEntryInfo({
+                root: rootEntry.root,
+                replacedByRoot: isLastRoot ? 0 : self.rootEntries[index + 1].root,
+                createdAtTimestamp: rootEntry.createdAtTimestamp,
+                replacedAtTimestamp: isLastRoot
+                    ? 0
+                    : self.rootEntries[index + 1].createdAtTimestamp,
+                createdAtBlock: rootEntry.createdAtBlock,
+                replacedAtBlock: isLastRoot ? 0 : self.rootEntries[index + 1].createdAtBlock
+            });
     }
 
     function _getRootInfoByTimestampOrBlock(
@@ -562,29 +579,30 @@ library SmtLib {
         uint256 timestampOrBlock,
         BinarySearchSmtRoots.SearchType searchType
     ) internal view returns (RootEntryInfo memory) {
-        (uint256 index, bool found) = self.binarySearchUint256(
-            timestampOrBlock,
-            searchType
-        );
+        (uint256 index, bool found) = self.binarySearchUint256(timestampOrBlock, searchType);
 
-        return found
-        ? _getRootInfoByIndex(self, index)
-        : RootEntryInfo({
-            root: 0,
-            replacedByRoot: 0,
-            createdAtTimestamp: 0,
-            replacedAtTimestamp: 0,
-            createdAtBlock: 0,
-            replacedAtBlock: 0
-        });
+        return
+            found
+                ? _getRootInfoByIndex(self, index)
+                : RootEntryInfo({
+                    root: 0,
+                    replacedByRoot: 0,
+                    createdAtTimestamp: 0,
+                    replacedAtTimestamp: 0,
+                    createdAtBlock: 0,
+                    replacedAtBlock: 0
+                });
     }
 
-    function _addEntry(Data storage self, uint256 root, uint256 _timestamp, uint256 _block) internal {
-        self.rootEntries.push(RootEntry({
-        root: root,
-        createdAtTimestamp: _timestamp,
-        createdAtBlock: _block
-        }));
+    function _addEntry(
+        Data storage self,
+        uint256 root,
+        uint256 _timestamp,
+        uint256 _block
+    ) internal {
+        self.rootEntries.push(
+            RootEntry({root: root, createdAtTimestamp: _timestamp, createdAtBlock: _block})
+        );
 
         self.rootEntryIndexes[root].push(self.rootEntries.length - 1);
     }
