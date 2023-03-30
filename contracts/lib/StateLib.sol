@@ -181,6 +181,37 @@ library StateLib {
         return _getStateInfoByState(self, id, state);
     }
 
+    function getStateInfoListLengthByIdAndState(
+        Data storage self,
+        uint256 id,
+        uint256 state
+    ) external view returns (uint256) {
+        return self.stateIndexes[id][state].length;
+    }
+
+    function getStateInfoListByIdAndState(
+        Data storage self,
+        uint256 id,
+        uint256 state,
+        uint256 startIndex,
+        uint256 length
+    ) external view onlyExistingState(self, id, state) returns (EntryInfo[] memory) {
+        uint256[] storage stateIndexes = self.stateIndexes[id][state];
+        (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
+            stateIndexes.length,
+            startIndex,
+            length,
+            ID_HISTORY_RETURN_LIMIT
+        );
+
+        EntryInfo[] memory result = new EntryInfo[](end - start);
+        for (uint256 i = start; i < end; i++) {
+            result[i - start] = _getStateInfoByIndex(self, id, stateIndexes[i]);
+        }
+
+        return result;
+    }
+
     /**
      * @dev Check if identity exists.
      * @param id Identity

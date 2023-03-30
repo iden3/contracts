@@ -36,6 +36,19 @@ contract StateLibTestWrapper {
         return stateData.getStateInfoHistoryById(id, startIndex, length);
     }
 
+    function getStateInfoListLengthByIdAndState(uint256 id, uint256 state) external view returns (uint256) {
+        return stateData.getStateInfoListLengthByIdAndState(id, state);
+    }
+
+    function getStateInfoListByIdAndState(
+        uint256 id,
+        uint256 state,
+        uint256 startIndex,
+        uint256 length
+    ) external view returns (StateLib.EntryInfo[] memory) {
+        return stateData.getStateInfoListByIdAndState(id, state, startIndex, length);
+    }
+
     function idExists(uint256 id) external view returns (bool) {
         return stateData.idExists(id);
     }

@@ -34,3 +34,25 @@ export async function addLeaf(smt: Contract, i: number, v: number) {
   const { timestamp } = await ethers.provider.getBlock(blockNumber);
   return { timestamp, blockNumber, root, rootInfo };
 }
+
+export async function addStateToStateLib(
+  stateLibWrapper: Contract,
+  id: string | number,
+  state: string | number,
+  noTimeAndBlock = false
+) {
+  const { blockNumber } = noTimeAndBlock
+    ? await stateLibWrapper.addStateNoTimestampAndBlock(id, state)
+    : await stateLibWrapper.addState(id, state);
+  const { timestamp } = await ethers.provider.getBlock(blockNumber);
+
+  const stateInfoById = await stateLibWrapper.getStateInfoById(id);
+  const stateInfoByIdAndState = await stateLibWrapper.getStateInfoByIdAndState(id, state);
+
+  return {
+    timestamp,
+    blockNumber,
+    stateInfoById,
+    stateInfoByIdAndState,
+  };
+}

@@ -351,20 +351,20 @@ library SmtLib {
     function getRootInfoListByRoot(
         Data storage self,
         uint256 root,
-        uint256 start,
+        uint256 startIndex,
         uint256 length
     ) public view onlyExistingRoot(self, root) returns (RootEntryInfo[] memory) {
         uint256[] storage indexes = self.rootEntryIndexes[root];
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
-            indexes.length, start, length, ROOT_INFO_LIST_RETURN_LIMIT
+            indexes.length, startIndex, length, ROOT_INFO_LIST_RETURN_LIMIT
         );
 
-        RootEntryInfo[] memory rootInfoList = new RootEntryInfo[](end - start);
+        RootEntryInfo[] memory result = new RootEntryInfo[](end - start);
         for (uint256 i = start; i < end; i++) {
-            rootInfoList[i - start] = _getRootInfoByIndex(self, indexes[i]);
+            result[i - start] = _getRootInfoByIndex(self, indexes[i]);
         }
 
-        return rootInfoList;
+        return result;
     }
 
     /**

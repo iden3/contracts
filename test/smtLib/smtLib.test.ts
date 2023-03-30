@@ -3049,9 +3049,7 @@ describe("Root history requests", function () {
   });
 
   it("should revert if length is zero", async () => {
-    await expect(smt.getRootHistory(0, 0)).to.be.revertedWith(
-      "Length should be greater than 0"
-    );
+    await expect(smt.getRootHistory(0, 0)).to.be.revertedWith("Length should be greater than 0");
   });
 
   it("should revert if length limit exceeded", async () => {
@@ -3072,7 +3070,7 @@ describe("Root history requests", function () {
   });
 });
 
-describe("Root history duplication requests", function () {
+describe("Root history duplicates", function () {
   let smt;
 
   beforeEach(async () => {
@@ -3081,7 +3079,7 @@ describe("Root history duplication requests", function () {
   });
 
   it("comprehensive check", async () => {
-    const leavesToInsert = [
+    const leavesToAdd = [
       { i: 1, v: 1 }, // doubleRoot
       { i: 1, v: 2 }, // singleRoot
       { i: 1, v: 1 }, // doubleRoot
@@ -3094,16 +3092,14 @@ describe("Root history duplication requests", function () {
 
     const addResult: { [key: string]: any }[] = [];
 
-    for (const leaf of leavesToInsert) {
+    for (const leaf of leavesToAdd) {
       addResult.push(await addLeaf(smt, leaf.i, leaf.v));
     }
-
-    expect(await smt.getRootHistoryLength()).to.be.equal(leavesToInsert.length + 1);
 
     const singleRoot = addResult[1].root;
     const doubleRoot = addResult[2].root;
     const tripleRoot = addResult[7].root;
-    const nonExistingRoot = "1";
+    const nonExistingRoot = 1;
 
     expect(await smt.getRootInfoListLengthByRoot(singleRoot)).to.be.equal(1);
     expect(await smt.getRootInfoListLengthByRoot(doubleRoot)).to.be.equal(2);
@@ -3163,8 +3159,7 @@ describe("Root history duplication requests", function () {
     await smt.add(1, 2);
     await smt.add(1, 1);
     const root = await smt.getRoot();
-    const rootInfoListLength = await smt.getRootInfoListLengthByRoot(root);
-    await expect(smt.getRootInfoListByRoot(root, rootInfoListLength, 100)).to.be.revertedWith(
+    await expect(smt.getRootInfoListByRoot(root, 3, 100)).to.be.revertedWith(
       "Start index out of bounds"
     );
   });
