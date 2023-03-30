@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import hre from "hardhat";
 
 import { addLeaf, FixedArray, genMaxBinaryNumber, MtpProof } from "../utils/utils";
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
@@ -3212,6 +3213,17 @@ describe("Binary search in SMT root history", () => {
   beforeEach(async () => {
     const deployHelper = await StateDeployHelper.initialize();
     binarySearch = await deployHelper.deployBinarySearchTestWrapper();
+
+    const { number: latestBlockNumber } = await hre.ethers.provider.getBlock("latest");
+    let blocksToMine = 15 - latestBlockNumber;
+
+    while (blocksToMine > 0) {
+      await hre.network.provider.request({
+        method: "evm_mine",
+        params: [],
+      });
+      blocksToMine--;
+    }
   });
 
   describe("Empty history ", () => {

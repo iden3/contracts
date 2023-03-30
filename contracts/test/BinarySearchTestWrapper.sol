@@ -7,6 +7,10 @@ contract BinarySearchTestWrapper {
     SmtLib.Data internal smtData;
     using SmtLib for SmtLib.Data;
 
+    constructor() {
+        smtData.initialize(64);
+    }
+
     function addRootEntry(uint256 root, uint256 createdAtTimestamp, uint256 createdAtBlock) public {
         smtData.rootEntries.push(
             SmtLib.RootEntry({

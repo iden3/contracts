@@ -581,17 +581,10 @@ library SmtLib {
     ) internal view returns (RootEntryInfo memory) {
         (uint256 index, bool found) = self.binarySearchUint256(timestampOrBlock, searchType);
 
-        return
-            found
-                ? _getRootInfoByIndex(self, index)
-                : RootEntryInfo({
-                    root: 0,
-                    replacedByRoot: 0,
-                    createdAtTimestamp: 0,
-                    replacedAtTimestamp: 0,
-                    createdAtBlock: 0,
-                    replacedAtBlock: 0
-                });
+        // As far as we always have at least one root entry, we should always find it
+        assert(found);
+
+        return _getRootInfoByIndex(self, index);
     }
 
     function _addEntry(
