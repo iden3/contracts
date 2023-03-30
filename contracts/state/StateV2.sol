@@ -8,7 +8,7 @@ import "../interfaces/IStateTransitionVerifier.sol";
 import "../lib/StateLib.sol";
 
 /// @title Set and get states for each identity
-contract StateV2 is Ownable2StepUpgradeable {
+contract StateV2 is Ownable2StepUpgradeable, IState {
     // This empty reserved space is put in place to allow future versions
     // of the State contract to inherit from other contracts without a risk of
     // breaking the storage layout. This is necessary because the parent contracts in the
@@ -318,7 +318,11 @@ contract StateV2 is Ownable2StepUpgradeable {
     function _smtProofAdapter(
         SmtLib.Proof memory proof
     ) internal pure returns (IState.GistProof memory) {
+        // slither-disable-next-line uninitialized-local
         uint256[MAX_SMT_DEPTH] memory siblings;
+        for (uint256 i = 0; i < MAX_SMT_DEPTH; i++) {
+            siblings[i] = proof.siblings[i];
+        }
 
         IState.GistProof memory result = IState.GistProof({
             root: proof.root,
@@ -330,9 +334,7 @@ contract StateV2 is Ownable2StepUpgradeable {
             auxIndex: proof.auxIndex,
             auxValue: proof.auxValue
         });
-        for (uint256 i = 0; i < MAX_SMT_DEPTH; i++) {
-            result.siblings[i] = proof.siblings[i];
-        }
+
         return result;
     }
 

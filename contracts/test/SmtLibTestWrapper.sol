@@ -31,8 +31,8 @@ contract SmtLibTestWrapper {
         return smtData.getProofByTime(id, timestamp);
     }
 
-    function getProofByBlock(uint256 id, uint256 block) public view returns (SmtLib.Proof memory) {
-        return smtData.getProofByBlock(id, block);
+    function getProofByBlock(uint256 id, uint256 _block) public view returns (SmtLib.Proof memory) {
+        return smtData.getProofByBlock(id, _block);
     }
 
     function getRootHistory(

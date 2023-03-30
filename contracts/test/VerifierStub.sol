@@ -2,8 +2,10 @@
 pragma solidity 0.8.16;
 
 import "../interfaces/IVerifier.sol";
+import "../interfaces/IStateTransitionVerifier.sol";
 
-contract VerifierStub {
+contract VerifierStub is IStateTransitionVerifier {
+    /* solhint-disable no-unused-vars */
     function verifyProof(
         uint256[2] memory a,
         uint256[2][2] memory b,
@@ -12,4 +14,5 @@ contract VerifierStub {
     ) external pure returns (bool r) {
         return true;
     }
+    /* solhint-disable no-unused-vars */
 }

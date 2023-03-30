@@ -14,8 +14,9 @@
 pragma solidity 0.8.16;
 
 import "../lib/Pairing.sol";
+import "../interfaces/IStateTransitionVerifier.sol";
 
-contract Verifier {
+contract Verifier is IStateTransitionVerifier {
     using Pairing for *;
     struct VerifyingKey {
         Pairing.G1Point alfa1;
