@@ -20,7 +20,7 @@ contract BinarySearchTestWrapper {
             })
         );
 
-        smtData.rootEntryIndexes[root].push(smtData.rootEntries.length - 1);
+        smtData.rootIndexes[root].push(smtData.rootEntries.length - 1);
     }
 
     function getRootInfoByTime(

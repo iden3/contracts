@@ -61,7 +61,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     ) internal pure virtual returns (uint256[] memory);
 
     function _checkGistRoot(uint256 gistRoot) internal view {
-        IState.SmtRootInfo memory rootInfo = state.getGISTRootInfo(gistRoot);
+        IState.GistRootInfo memory rootInfo = state.getGISTRootInfo(gistRoot);
         require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
     }
 

@@ -6,7 +6,8 @@ uint256 constant MAX_SMT_DEPTH = 64;
 interface IState {
     /**
      * @dev Struct for public interfaces to represent a state information.
-     * @param id identity.
+     * @param id An identity.
+     * @param state A state.
      * @param replacedByState A state, which replaced this state for the identity.
      * @param createdAtTimestamp A time when the state was created.
      * @param replacedAtTimestamp A time when the state was replaced by the next identity state.
@@ -24,15 +25,15 @@ interface IState {
     }
 
     /**
-     * @dev Struct for public interfaces to represent SMT root info.
-     * @param root This SMT root.
+     * @dev Struct for public interfaces to represent GIST root information.
+     * @param root This GIST root.
      * @param replacedByRoot A root, which replaced this root.
      * @param createdAtTimestamp A time, when the root was saved to blockchain.
      * @param replacedAtTimestamp A time, when the root was replaced by the next root in blockchain.
      * @param createdAtBlock A number of block, when the root was saved to blockchain.
      * @param replacedAtBlock A number of block, when the root was replaced by the next root in blockchain.
      */
-    struct SmtRootInfo {
+    struct GistRootInfo {
         uint256 root;
         uint256 replacedByRoot;
         uint256 createdAtTimestamp;
@@ -41,7 +42,18 @@ interface IState {
         uint256 replacedAtBlock;
     }
 
-    struct SmtProof {
+    /**
+     * @dev Struct for public interfaces to represent GIST proof information.
+     * @param root This GIST root.
+     * @param existence A flag, which shows if the leaf index exists in the GIST.
+     * @param siblings An array of GIST sibling node hashes.
+     * @param index An index of the leaf in the GIST.
+     * @param value A value of the leaf in the GIST.
+     * @param auxExistence A flag, which shows if the auxiliary leaf exists in the GIST.
+     * @param auxIndex An index of the auxiliary leaf in the GIST.
+     * @param auxValue An value of the auxiliary leaf in the GIST.
+     */
+    struct GistProof {
         uint256 root;
         bool existence;
         uint256[MAX_SMT_DEPTH] siblings;
@@ -54,16 +66,16 @@ interface IState {
 
     /**
      * @dev Retrieve last state information of specific id.
-     * @param id An identity
-     * @return The state info
+     * @param id An identity.
+     * @return The state info.
      */
     function getStateInfoById(uint256 id) external view returns (StateInfo memory);
 
     /**
      * @dev Retrieve state information by id and state.
-     * @param id An identity
-     * @param state A state
-     * @return The state info
+     * @param id An identity.
+     * @param state A state.
+     * @return The state info.
      */
     function getStateInfoByIdAndState(
         uint256 id,
@@ -72,8 +84,8 @@ interface IState {
 
     /**
      * @dev Retrieve the specific GIST root information.
-     * @param root GIST root
-     * @return The GIST root info
+     * @param root GIST root.
+     * @return The GIST root info.
      */
-    function getGISTRootInfo(uint256 root) external view returns (SmtRootInfo memory);
+    function getGISTRootInfo(uint256 root) external view returns (GistRootInfo memory);
 }

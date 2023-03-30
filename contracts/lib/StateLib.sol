@@ -3,7 +3,8 @@ pragma solidity 0.8.16;
 
 import "../lib/ArrayUtils.sol";
 
-/// @title Library for state data management
+/// @title Library for state data management.
+// It's purpose is to keep records of identity states along with their metadata and history.
 library StateLib {
     /**
      * @dev Max return array length for id history requests
@@ -13,6 +14,7 @@ library StateLib {
     /**
      * @dev Struct for public interfaces to represent a state information.
      * @param id identity.
+     * @param state A state.
      * @param replacedByState A state, which replaced this state for the identity.
      * @param createdAtTimestamp A time when the state was created.
      * @param replacedAtTimestamp A time when the state was replaced by the next identity state.
@@ -42,9 +44,11 @@ library StateLib {
     }
 
     /**
-     * @dev Struct for storing all the state data
+     * @dev Struct for storing all the state data.
+     * We assume that a state can repeat more than once for the same identity,
+     * so we keep a mapping of state entries per each identity and state.
      * @param statesHistories A state history per each identity.
-     * @param stateEntries A state metadata of each state
+     * @param stateEntries A state metadata of each state.
      */
     struct Data {
         /*
@@ -82,6 +86,7 @@ library StateLib {
 
     /**
      * @dev Revert if state does not exist in the contract
+     * @param id Identity
      * @param state State
      */
     modifier onlyExistingState(
@@ -93,10 +98,20 @@ library StateLib {
         _;
     }
 
+    /**
+     * @dev Add a state to the contract with transaction timestamp and block number.
+     * @param id Identity
+     * @param state State
+     */
     function addState(Data storage self, uint256 id, uint256 state) external {
         _addState(self, id, state, block.timestamp, block.number);
     }
 
+    /**
+     * @dev Add a state to the contract with zero timestamp and block number.
+     * @param id Identity
+     * @param state State
+     */
     function addStateNoTimestampAndBlock(Data storage self, uint256 id, uint256 state) external {
         require(
             !idExists(self, id),
@@ -106,9 +121,9 @@ library StateLib {
     }
 
     /**
-     * @dev Retrieve the last state info for a given identity
-     * @param id identity
-     * @return state info of the last committed state
+     * @dev Retrieve the last state info for a given identity.
+     * @param id Identity.
+     * @return State info of the last committed state.
      */
     function getStateInfoById(
         Data storage self,
@@ -143,9 +158,9 @@ library StateLib {
 
     /**
      * Retrieve state infos for a given identity
-     * @param id identity
-     * @param startIndex start index of the state history
-     * @param length length of the state history
+     * @param id Identity
+     * @param startIndex Start index of the state history.
+     * @param length Max length of the state history retrieved.
      * @return A list of state infos of the identity
      */
     function getStateInfoHistoryById(
@@ -171,9 +186,12 @@ library StateLib {
     }
 
     /**
-     * @dev Retrieve state information by state.
-     * @param state A state
-     * @return The state info
+     * @dev Retrieve state info by id and state.
+     * Note, that the latest state info is returned,
+     * if the state repeats more that once for the same identity.
+     * @param id An identity.
+     * @param state A state.
+     * @return The state info.
      */
     function getStateInfoByIdAndState(
         Data storage self,
@@ -183,6 +201,14 @@ library StateLib {
         return _getStateInfoByState(self, id, state);
     }
 
+    /**
+     * @dev Retrieve state entries quantity by id and state.
+     * If the state repeats more that once for the same identity,
+     * the length will be greater than 1.
+     * @param id An identity.
+     * @param state A state.
+     * @return The state info list length.
+     */
     function getStateInfoListLengthByIdAndState(
         Data storage self,
         uint256 id,
@@ -191,6 +217,16 @@ library StateLib {
         return self.stateIndexes[id][state].length;
     }
 
+    /**
+     * @dev Retrieve state info list by id and state.
+     * If the state repeats more that once for the same identity,
+     * the length of the list may be greater than 1.
+     * @param id An identity.
+     * @param state A state.
+     * @param startIndex Start index in the same states list.
+     * @param length Max length of the state info list retrieved.
+     * @return The state info list.
+     */
     function getStateInfoListByIdAndState(
         Data storage self,
         uint256 id,
@@ -248,10 +284,10 @@ library StateLib {
     }
 
     /**
-     * @dev Get state info struct by state without state existence check.
+     * @dev Get state info by id and state without state existence check.
      * @param id Identity
      * @param state State
-     * @return The state info struct
+     * @return The state info
      */
     function _getStateInfoByState(
         Data storage self,

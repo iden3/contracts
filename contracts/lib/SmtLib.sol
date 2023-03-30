@@ -7,8 +7,11 @@ import "./ArrayUtils.sol";
 import "hardhat/console.sol";
 
 /// @title A sparse merkle tree implementation, which keeps tree history.
-// Note that this SMT implementation does not allow for duplicated roots in the history,
-// which may be a critical restriction for some projects
+// Note that this SMT implementation can manage duplicated roots in the history,
+// which may happen when some leaf change its value and then changes it back to the original value.
+// Leaves deletion is not supported, although it should be possible to implement it in the future
+// versions of this library, without changing the existing state variables
+// In this way all the SMT data may be preserved for the contracts already in production.
 library SmtLib {
     /**
      * @dev Max return array length for SMT root history requests
@@ -45,7 +48,7 @@ library SmtLib {
     struct Data {
         mapping(uint256 => Node) nodes;
         RootEntry[] rootEntries;
-        mapping(uint256 => uint256[]) rootEntryIndexes; // root => rootEntryIndex[]
+        mapping(uint256 => uint256[]) rootIndexes; // root => rootEntryIndex[]
         uint256 maxDepth;
         bool initialized;
         // This empty reserved space is put in place to allow future versions
@@ -56,7 +59,15 @@ library SmtLib {
     }
 
     /**
-     * @dev Struct of the node proof in the SMT
+     * @dev Struct of the node proof in the SMT.
+     * @param root This SMT root.
+     * @param existence A flag, which shows if the leaf index exists in the SMT.
+     * @param siblings An array of SMT sibling node hashes.
+     * @param index An index of the leaf in the SMT.
+     * @param value A value of the leaf in the SMT.
+     * @param auxExistence A flag, which shows if the auxiliary leaf exists in the SMT.
+     * @param auxIndex An index of the auxiliary leaf in the SMT.
+     * @param auxValue An value of the auxiliary leaf in the SMT.
      */
     struct Proof {
         uint256 root;
@@ -71,7 +82,7 @@ library SmtLib {
 
     /**
      * @dev Struct for SMT root internal storage representation.
-     * @param replacedByRoot A root, which replaced this root.
+     * @param root SMT root.
      * @param createdAtTimestamp A time, when the root was saved to blockchain.
      * @param createdAtBlock A number of block, when the root was saved to blockchain.
      */
@@ -100,7 +111,7 @@ library SmtLib {
     }
 
     /**
-     * @dev Struct SMT node.
+     * @dev Struct of SMT node.
      * @param NodeType type of node.
      * @param childLeft left child of node.
      * @param childRight right child of node.
@@ -120,7 +131,6 @@ library SmtLib {
 
     /**
      * @dev Reverts if root does not exist in SMT roots history.
-     * @param self SMT data.
      * @param root SMT root.
      */
     modifier onlyExistingRoot(Data storage self, uint256 root) {
@@ -130,8 +140,8 @@ library SmtLib {
 
     /**
      * @dev Add a leaf to the SMT
-     * @param i Index of node
-     * @param v Value of node
+     * @param i Index of a leaf
+     * @param v Value of a leaf
      */
     function addLeaf(Data storage self, uint256 i, uint256 v) external onlyInitialized(self) {
         Node memory node = Node({
@@ -192,19 +202,19 @@ library SmtLib {
     }
 
     /**
-     * @dev Get the proof if a node with specific index exists or not exists in the SMT
-     * @param index Node index
-     * @return Proof struct
+     * @dev Get the proof if a node with specific index exists or not exists in the SMT.
+     * @param index A node index.
+     * @return SMT proof struct.
      */
     function getProof(Data storage self, uint256 index) external view returns (Proof memory) {
         return getProofByRoot(self, index, getRoot(self));
     }
 
     /**
-     * @dev Get the proof if a node with specific index exists or not exists in the SMT for some historical tree state
-     * @param index Node index
-     * @param historicalRoot Historical SMT roof to get proof for
-     * @return Proof struct
+     * @dev Get the proof if a node with specific index exists or not exists in the SMT for some historical tree state.
+     * @param index A node index
+     * @param historicalRoot Historical SMT roof to get proof for.
+     * @return Proof struct.
      */
     function getProofByRoot(
         Data storage self,
@@ -263,10 +273,10 @@ library SmtLib {
     }
 
     /**
-     * @dev Get the proof if a node with specific index exists or not exists in the SMT for some historical timestamp
-     * @param index Node index
-     * @param timestamp The nearest timestamp to get proof for
-     * @return Proof struct
+     * @dev Get the proof if a node with specific index exists or not exists in the SMT by some historical timestamp.
+     * @param index Node index.
+     * @param timestamp The latest timestamp to get proof for.
+     * @return Proof struct.
      */
     function getProofByTime(
         Data storage self,
@@ -281,10 +291,10 @@ library SmtLib {
     }
 
     /**
-     * @dev Get the proof if a node with specific index exists or not exists in the SMT for some historical block number
-     * @param index Node index
-     * @param blockNumber The nearest block number to get proof for
-     * @return Proof struct
+     * @dev Get the proof if a node with specific index exists or not exists in the SMT by some historical block number.
+     * @param index Node index.
+     * @param blockNumber The latest block number to get proof for.
+     * @return Proof struct.
      */
     function getProofByBlock(
         Data storage self,
@@ -303,9 +313,9 @@ library SmtLib {
     }
 
     /**
-     * @dev Binary search by timestamp
-     * @param timestamp timestamp
-     * return RootEntryInfo struct
+     * @dev Get root info by some historical timestamp.
+     * @param timestamp The latest timestamp to get the root info for.
+     * @return Root info struct
      */
     function getRootInfoByTime(
         Data storage self,
@@ -322,9 +332,9 @@ library SmtLib {
     }
 
     /**
-     * @dev Binary search by block number
-     * @param blockN block number
-     * return RootEntryInfo struct
+     * @dev Get root info by some historical block number.
+     * @param blockN The latest block number to get the root info for.
+     * @return Root info struct
      */
     function getRootInfoByBlock(
         Data storage self,
@@ -338,31 +348,45 @@ library SmtLib {
     /**
      * @dev Returns root info by root
      * @param root root
-     * return RootEntryInfo struct
+     * @return Root info struct
      */
     function getRootInfo(
         Data storage self,
         uint256 root
     ) public view onlyExistingRoot(self, root) returns (RootEntryInfo memory) {
-        uint256[] storage indexes = self.rootEntryIndexes[root];
+        uint256[] storage indexes = self.rootIndexes[root];
         uint256 lastIndex = indexes[indexes.length - 1];
         return _getRootInfoByIndex(self, lastIndex);
     }
 
+    /**
+     * @dev Retrieve duplicate root quantity by id and state.
+     * If the root repeats more that once, the length may be greater than 1.
+     * @param root A root.
+     * @return Root root entries quantity.
+     */
     function getRootInfoListLengthByRoot(
         Data storage self,
         uint256 root
     ) public view returns (uint256) {
-        return self.rootEntryIndexes[root].length;
+        return self.rootIndexes[root].length;
     }
 
+    /**
+     * @dev Retrieve root infos list of duplicated root by id and state.
+     * If the root repeats more that once, the length list may be greater than 1.
+     * @param root A root.
+     * @param startIndex The index to start the list.
+     * @param length The length of the list.
+     * @return Root Root entries quantity.
+     */
     function getRootInfoListByRoot(
         Data storage self,
         uint256 root,
         uint256 startIndex,
         uint256 length
     ) public view onlyExistingRoot(self, root) returns (RootEntryInfo[] memory) {
-        uint256[] storage indexes = self.rootEntryIndexes[root];
+        uint256[] storage indexes = self.rootIndexes[root];
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
             indexes.length,
             startIndex,
@@ -384,7 +408,7 @@ library SmtLib {
      * return true if root exists
      */
     function rootExists(Data storage self, uint256 root) public view returns (bool) {
-        return self.rootEntryIndexes[root].length > 0;
+        return self.rootIndexes[root].length > 0;
     }
 
     /**
@@ -406,6 +430,10 @@ library SmtLib {
         return self.maxDepth;
     }
 
+    /**
+     * @dev Initialize SMT with max depth and root entry of an empty tree.
+     * @param maxDepth Max depth of the SMT.
+     */
     function initialize(Data storage self, uint256 maxDepth) external {
         require(!isInitialized(self), "Smt is already initialized");
         setMaxDepth(self, maxDepth);
@@ -597,7 +625,7 @@ library SmtLib {
             RootEntry({root: root, createdAtTimestamp: _timestamp, createdAtBlock: _block})
         );
 
-        self.rootEntryIndexes[root].push(self.rootEntries.length - 1);
+        self.rootIndexes[root].push(self.rootEntries.length - 1);
     }
 }
 
@@ -612,6 +640,12 @@ library BinarySearchSmtRoots {
         BLOCK
     }
 
+/**
+     * @dev Binary search method for the SMT history,
+     * which searches for the index of the root entry saved by the given timestamp or block
+     * @param value The timestamp or block to search for.
+     * @param searchType The type of the search (timestamp or block).
+     */
     function binarySearchUint256(
         SmtLib.Data storage self,
         uint256 value,
@@ -655,6 +689,12 @@ library BinarySearchSmtRoots {
         return (max, true);
     }
 
+    /**
+     * @dev Selects either timestamp or block field from the root entry struct
+     * depending on the search type
+     * @param rti The root entry to select the field from.
+     * @param st The search type.
+     */
     function fieldSelector(
         SmtLib.RootEntry memory rti,
         SearchType st

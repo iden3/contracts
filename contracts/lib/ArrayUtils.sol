@@ -5,6 +5,13 @@ import "../state/StateV2.sol";
 import "./SmtLib.sol";
 
 library ArrayUtils {
+    /**
+     * @dev Calculates bounds for the slice of the array.
+     * @param arrLength An array length.
+     * @param start A start index.
+     * @param length A length of the slice.
+     * @return The bounds for the slice of the array.
+     */
     function calculateBounds(
         uint256 arrLength,
         uint256 start,
