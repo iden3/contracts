@@ -516,14 +516,19 @@ library SmtLib {
 
     function _addNode(Data storage self, Node memory node) internal returns (uint256) {
         uint256 nodeHash = _getNodeHash(node);
-        // We do not store empty nodes so can check if an entry exists.
-        // Also we do not write if there is already as the content is guaranteed
-        // to be identical by the Poseidon hash function
-        // todo add the asserts if node exists
-        if (self.nodes[nodeHash].nodeType == NodeType.EMPTY) {
-            self.nodes[nodeHash] = node;
+        // We don't have any guarantees if the hash function attached is good enough.
+        // So, if the node hash already exists, we need to check
+        // if the node in the tree exactly matches the one we are trying to add.
+        if (self.nodes[nodeHash].nodeType != NodeType.EMPTY) {
+            assert(self.nodes[nodeHash].nodeType == node.nodeType);
+            assert(self.nodes[nodeHash].childLeft == node.childLeft);
+            assert(self.nodes[nodeHash].childRight == node.childRight);
+            assert(self.nodes[nodeHash].index == node.index);
+            assert(self.nodes[nodeHash].value == node.value);
+            return nodeHash;
         }
 
+        self.nodes[nodeHash] = node;
         return nodeHash;
     }
 
