@@ -16,7 +16,12 @@ interface IVerifier {
 }
 
 /// @title Set and get states for each identity
-contract StateV3 is OwnableUpgradeable {
+contract StateV2_1_abi_upgrade is OwnableUpgradeable {
+    /**
+     * @dev Version of contract
+     */
+    string public constant VERSION = "2.0.1-abi-2.1.0";
+
     /**
      * @dev Max return array length for id history requests
      */
@@ -87,11 +92,6 @@ contract StateV3 is OwnableUpgradeable {
     using Smt for Smt.SmtData;
 
     /**
-     * @dev State Contract Version
-     */
-    uint256 public version;
-
-    /**
      * @dev event called when a state is updated
      * @param id identity
      * @param blockN Block number when the state has been committed
@@ -130,7 +130,6 @@ contract StateV3 is OwnableUpgradeable {
     function initialize(IVerifier verifierContractAddr) public initializer {
         verifier = verifierContractAddr;
         __Ownable_init();
-        version = 3;
     }
 
     /**
@@ -479,21 +478,6 @@ contract StateV3 is OwnableUpgradeable {
                 createdAtBlock: _stateData.stateEntries[state].block,
                 replacedAtBlock: _stateData.stateEntries[replByState].block
             });
-    }
-
-    /**
-     * @dev Get version of State contract
-     * @return version
-     */
-    function getVersion() public view returns (uint256) {
-        return version;
-    }
-
-    /**
-     * @dev Set version of State contract
-     */
-    function setVersion(uint256 _version) public onlyOwner {
-        version = _version;
     }
 
     /**

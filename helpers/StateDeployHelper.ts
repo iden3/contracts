@@ -110,7 +110,7 @@ export class StateDeployHelper {
   }
 
 
-  async deployStateV3(): Promise<{
+  async deployStateV2_1_abi_upgrade(): Promise<{
     state: Contract;
     verifier: Contract;
     smt: Contract;
@@ -118,7 +118,7 @@ export class StateDeployHelper {
     poseidon2: Contract;
     poseidon3: Contract;
   }> {
-    this.log("======== StateV3: deploy started ========");
+    this.log("======== StateV2_1_abi_upgrade: deploy started ========");
 
     const owner = this.signers[0];
 
@@ -141,29 +141,29 @@ export class StateDeployHelper {
       poseidon3Elements.address
     );
 
-    this.log("deploying stateV3...");
-    const StateV3Factory = await ethers.getContractFactory("StateV3", {
+    this.log("deploying StateV2_1_abi_upgrade...");
+    const StateV2_1_abi_upgradeFactory = await ethers.getContractFactory("StateV2_1_abi_upgrade", {
       libraries: {
         Smt: smt.address,
         PoseidonUnit1L: poseidon1Elements.address,
       },
     });
-    const stateV3 = await upgrades.deployProxy(
-      StateV3Factory,
+    const StateV2_1_abi_upgrade = await upgrades.deployProxy(
+      StateV2_1_abi_upgradeFactory,
       [verifier.address],
       {
         unsafeAllowLinkedLibraries: true,
       }
     );
-    await stateV3.deployed();
+    await StateV2_1_abi_upgrade.deployed();
     this.log(
-      `StateV2 contract deployed to address ${stateV3.address} from ${owner.address}`
+      `StateV2 contract deployed to address ${StateV2_1_abi_upgrade.address} from ${owner.address}`
     );
 
-    this.log("======== StateV3: deploy completed ========");
+    this.log("======== StateV2_1_abi_upgrade: deploy completed ========");
 
     return {
-      state: stateV3,
+      state: StateV2_1_abi_upgrade,
       verifier,
       smt,
       poseidon1: poseidon1Elements,
