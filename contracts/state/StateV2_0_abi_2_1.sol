@@ -16,7 +16,7 @@ interface IVerifier {
 }
 
 /// @title Set and get states for each identity
-contract StateV2_1_abi_upgrade is OwnableUpgradeable {
+contract StateV2_0_abi_2_1 is OwnableUpgradeable {
     /**
      * @dev Version of contract
      */
@@ -296,6 +296,21 @@ contract StateV2_1_abi_upgrade is OwnableUpgradeable {
     }
 
     /**
+     * @dev Retrieve state information by id and state
+     * @param id Identity
+     * @param state A state
+     * @return The state info
+     */
+    function getStateInfoByIdAndState(
+        uint256 id,
+        uint256 state
+    ) external view onlyExistingState(state) returns (StateInfo memory) {
+        StateInfo memory stateInfo = _getStateInfoByState(state);
+        require(stateInfo.id == id, "State does not exist");
+        return stateInfo;
+    }
+
+    /**
      * @dev Retrieve state information by state.
      * @param state A state
      * @return The state info
@@ -478,19 +493,6 @@ contract StateV2_1_abi_upgrade is OwnableUpgradeable {
                 createdAtBlock: _stateData.stateEntries[state].block,
                 replacedAtBlock: _stateData.stateEntries[replByState].block
             });
-    }
-
-    /**
-     * @dev Retrieve state information by id and state
-     * @param id Identity
-     * @param state A state
-     * @return The state info
-     */
-    function getStateInfoByIdAndState(
-        uint256 id,
-        uint256 state
-    ) external view onlyExistingState(state) returns (StateInfo memory) {
-        return _getStateInfoByState(state);
     }
 
 }

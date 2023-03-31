@@ -9,13 +9,13 @@ const stateTransitions = [
   require("./data/user_state_next_transition.json"),
 ];
 
-describe("State transitions positive cases", () => {
+describe("State transitions positive cases (State v2.0.1_abi_2.1.0)", () => {
   let state;
 
   before(async function () {
     this.timeout(5000);
     const deployHelper = await StateDeployHelper.initialize();
-    const contracts = await deployHelper.deployStateV2();
+    const contracts = await deployHelper.deployStateV2_1_abi();
     state = contracts.state;
   });
 
@@ -50,6 +50,13 @@ describe("State transitions positive cases", () => {
     expect(await state.idExists(params.id)).to.be.equal(true);
     const latestStInfo = await state.getStateInfoById(params.id);
     expect(latestStInfo.state).to.be.equal(params.newState);
+  });
+
+  it("Check version", async function () {
+    this.timeout(15000);
+
+    expect(await state.VERSION()).to.be.equal("2.0.1-abi-2.1.0");
+
   });
 
   it("Subsequent state update", async function () {
@@ -90,14 +97,72 @@ describe("State transitions positive cases", () => {
     const latestStInfo = await state.getStateInfoById(params.id);
     expect(latestStInfo.state).to.be.equal(params.newState);
   });
+
+  it("check getStateInfoByIdAndState after stateTransition", async function () {
+    this.timeout(15000);
+
+    let id = stateTransitions[1].pub_signals[0];
+    let oldState = stateTransitions[1].pub_signals[1];
+    let newState = stateTransitions[1].pub_signals[2];
+
+    const stateInfoBeforeUpdate = await state.getStateInfoByState(
+        oldState
+    );
+
+    const stateInfoBeforeUpdate2 = await state.getStateInfoByIdAndState(
+        id, oldState
+    );
+
+    expect(stateInfoBeforeUpdate2).to.be.deep.equal(stateInfoBeforeUpdate);
+
+    await expect(state.getStateInfoByIdAndState(
+        oldState, oldState
+    )).to.be.reverted;
+
+    const res = await state.getStateInfoById(id);
+    expect(res.state).to.be.equal(newState);
+
+    expect(await state.stateExists(newState)).to.be.equal(true);
+    const stInfoNew = await state.getStateInfoByState(newState);
+    expect(stInfoNew.replacedAtTimestamp).to.be.equal(0);
+    expect(stInfoNew.createdAtTimestamp).not.be.empty;
+    expect(stInfoNew.replacedAtBlock).to.be.equal(0);
+    expect(stInfoNew.createdAtBlock).not.be.empty;
+    expect(stInfoNew.id).to.be.equal(id);
+    expect(stInfoNew.replacedByState).to.be.equal(0);
+
+    expect(await state.stateExists(oldState)).to.be.equal(true);
+
+    const stInfoOld = await state.getStateInfoByState(oldState);
+    expect(stInfoOld.replacedAtTimestamp).to.be.equal(
+        stInfoNew.createdAtTimestamp
+    );
+    expect(stInfoOld.createdAtTimestamp).to.be.equal(
+        stateInfoBeforeUpdate.createdAtTimestamp
+    );
+    expect(stInfoOld.replacedAtBlock).to.be.equal(stInfoNew.createdAtBlock);
+    !expect(stInfoOld.createdAtBlock).to.be.equal(
+        stateInfoBeforeUpdate.createdAtBlock
+    );
+    expect(stInfoOld.id).to.be.equal(id);
+    expect(stInfoOld.replacedByState).to.be.equal(newState);
+
+    const stInfoOld2 = await state.getStateInfoByIdAndState(id, oldState);
+    expect(stInfoOld2).to.be.deep.equal(stInfoOld);
+
+    expect(await state.idExists(id)).to.be.equal(true);
+    const latestStInfo = await state.getStateInfoById(id);
+    expect(latestStInfo.state).to.be.equal(newState);
+    expect(latestStInfo.state).to.be.equal(newState);
+  });
 });
 
-describe("State transition negative cases", () => {
+describe("State transition negative cases (State v2.0.1_abi_2.1.0)", () => {
   let state;
 
   beforeEach(async () => {
     const deployHelper = await StateDeployHelper.initialize();
-    const contracts = await deployHelper.deployStateV2();
+    const contracts = await deployHelper.deployStateV2_1_abi();
     state = contracts.state;
   });
 
@@ -221,7 +286,7 @@ describe("State transition negative cases", () => {
   });
 });
 
-describe("State history", function () {
+describe("State history (State v2.0.1_abi_2.1.0)", function () {
   this.timeout(5000);
 
   let state;
@@ -229,7 +294,7 @@ describe("State history", function () {
 
   before(async () => {
     const deployHelper = await StateDeployHelper.initialize();
-    const contracts = await deployHelper.deployStateV2();
+    const contracts = await deployHelper.deployStateV2_1_abi();
     state = contracts.state;
 
     publishedStates = [];
@@ -305,14 +370,14 @@ describe("State history", function () {
   });
 });
 
-describe("get StateInfo negative cases", function () {
+describe("get StateInfo negative cases (State v2.0.1_abi_2.1.0)", function () {
   this.timeout(5000);
 
   let state;
 
   before(async () => {
     const deployHelper = await StateDeployHelper.initialize();
-    const contracts = await deployHelper.deployStateV2();
+    const contracts = await deployHelper.deployStateV2_1_abi();
     state = contracts.state;
 
     for (const stateTransition of stateTransitions) {
@@ -351,14 +416,41 @@ describe("get StateInfo negative cases", function () {
       "State does not exist"
     );
   });
+
+  it("getStateInfoByIdAndState: should be reverted if state does not exist", async () => {
+    const id = stateTransitions[0].pub_signals[0];
+    const missingState = stateTransitions[0].pub_signals[2] + 1; // Modify state so it does not exist
+
+    await expect(state.getStateInfoByIdAndState(id, missingState)).to.be.revertedWith(
+        "State does not exist"
+    );
+  });
+
+  it("getStateInfoByIdAndState: should be reverted if id does not match", async () => {
+    const missingId = stateTransitions[0].pub_signals[0] + 1;  // Modify id so it does not exist
+    const newState = stateTransitions[0].pub_signals[2];
+
+    await expect(state.getStateInfoByIdAndState(missingId, newState)).to.be.revertedWith(
+        "State does not exist"
+    );
+  });
+
+  it("getStateInfoByIdAndState: should be reverted if both id and state does not match", async () => {
+    const missingId = stateTransitions[0].pub_signals[0] + 1;  // Modify id so it does not exist
+    const missingState = stateTransitions[0].pub_signals[2] + 1;
+
+    await expect(state.getStateInfoByIdAndState(missingId, missingState)).to.be.revertedWith(
+        "State does not exist"
+    );
+  });
 });
 
-describe("GIST proofs", () => {
+describe("GIST proofs (State v2.0.1_abi_2.1.0)", () => {
   let state: any;
 
   beforeEach(async () => {
     const deployHelper = await StateDeployHelper.initialize();
-    const contracts = await deployHelper.deployStateV2();
+    const contracts = await deployHelper.deployStateV2_1_abi();
     state = contracts.state;
   });
 
@@ -444,12 +536,12 @@ describe("GIST proofs", () => {
   });
 });
 
-describe("GIST root history", () => {
+describe("GIST root history (State v2.0.1_abi_2.1.0)", () => {
   let state: any;
 
   beforeEach(async () => {
     const deployHelper = await StateDeployHelper.initialize();
-    const contracts = await deployHelper.deployStateV2();
+    const contracts = await deployHelper.deployStateV2_1_abi();
     state = contracts.state;
   });
 

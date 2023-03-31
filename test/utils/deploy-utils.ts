@@ -26,7 +26,7 @@ export async function deployValidatorContracts(
 }> {
   if (!stateAddress) {
     const stateDeployHelper = await StateDeployHelper.initialize();
-    const { state } = await stateDeployHelper.deployStateV2_1_abi_upgrade();
+    const { state } = await stateDeployHelper.deployStateV2();
     stateAddress = state.address;
   }
 
