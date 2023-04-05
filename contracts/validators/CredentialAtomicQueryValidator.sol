@@ -61,7 +61,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     ) internal pure virtual returns (uint256[] memory);
 
     function _checkGistRoot(uint256 gistRoot) internal view {
-        IState.RootInfo memory rootInfo = state.getGISTRootInfo(gistRoot);
+        IState.GistRootInfo memory rootInfo = state.getGISTRootInfo(gistRoot);
         require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
     }
 
@@ -69,7 +69,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         bool isStateGenesis = GenesisUtils.isGenesisState(_id, _state);
 
         if (!isStateGenesis) {
-            IState.StateInfo memory stateInfo = state.getStateInfoByState(_state);
+            IState.StateInfo memory stateInfo = state.getStateInfoByIdAndState(_id, _state);
             require(_id == stateInfo.id, "state doesn't exist in state contract");
         }
     }
@@ -86,7 +86,8 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
             // The non-empty state is returned, and it's not equal to the state that the user has provided.
             if (claimNonRevStateInfo.state != _claimNonRevState) {
                 // Get the time of the latest state and compare it to the transition time of state provided by the user.
-                IState.StateInfo memory claimNonRevLatestStateInfo = state.getStateInfoByState(
+                IState.StateInfo memory claimNonRevLatestStateInfo = state.getStateInfoByIdAndState(
+                    _id,
                     _claimNonRevState
                 );
 

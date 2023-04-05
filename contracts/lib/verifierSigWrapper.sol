@@ -14,8 +14,9 @@
 pragma solidity 0.8.16;
 
 import "./verifierSig.sol";
+import "../interfaces/IVerifier.sol";
 
-contract VerifierSigWrapper is VerifierSig {
+contract VerifierSigWrapper is VerifierSig, IVerifier {
     /// @return r  bool true if proof is valid
     function verifyProof(
         uint256[2] memory a,

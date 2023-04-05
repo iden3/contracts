@@ -1,37 +1,37 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import "../lib/Smt.sol";
+import "../lib/SmtLib.sol";
 
 contract BinarySearchTestWrapper {
-    Smt.SmtData internal smtData;
-    using BinarySearchSmtRoots for Smt.SmtData;
+    SmtLib.Data internal smtData;
+    using SmtLib for SmtLib.Data;
 
-    function addRootEntry(
-        uint256 _createdAtTimestamp,
-        uint256 _createdAtBlock,
-        uint256 _root
-    ) public {
-        smtData.rootHistory.push(_root);
-
-        Smt.RootEntry memory rt = Smt.RootEntry({
-            replacedByRoot: 0,
-            createdAtTimestamp: _createdAtTimestamp,
-            createdAtBlock: _createdAtBlock
-        });
-        smtData.rootEntries[_root] = rt;
-
-        if (smtData.rootHistory.length >= 2) {
-            uint256 prevRoot = smtData.rootHistory[smtData.rootHistory.length - 2];
-            smtData.rootEntries[prevRoot].replacedByRoot = _root;
-        }
+    constructor() {
+        smtData.initialize(64);
     }
 
-    function getHistoricalRootByTime(uint256 _timestamp) public view returns (uint256) {
-        return smtData.binarySearchUint256(_timestamp, BinarySearchSmtRoots.SearchType.TIMESTAMP);
+    function addRootEntry(uint256 root, uint256 createdAtTimestamp, uint256 createdAtBlock) public {
+        smtData.rootEntries.push(
+            SmtLib.RootEntry({
+                root: root,
+                createdAtTimestamp: createdAtTimestamp,
+                createdAtBlock: createdAtBlock
+            })
+        );
+
+        smtData.rootIndexes[root].push(smtData.rootEntries.length - 1);
     }
 
-    function getHistoricalRootByBlock(uint256 _block) public view returns (uint256) {
-        return smtData.binarySearchUint256(_block, BinarySearchSmtRoots.SearchType.BLOCK);
+    function getRootInfoByTime(
+        uint256 _timestamp
+    ) public view returns (SmtLib.RootEntryInfo memory) {
+        return smtData.getRootInfoByTime(_timestamp);
+    }
+
+    function getHistoricalRootByBlock(
+        uint256 _block
+    ) public view returns (SmtLib.RootEntryInfo memory) {
+        return smtData.getRootInfoByBlock(_block);
     }
 }

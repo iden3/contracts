@@ -54,7 +54,7 @@ contract ERC20Verifier is ERC20, ZKPVerifier {
         uint256 /* amount */
     ) internal view override {
         require(
-            proofs[to][TRANSFER_REQUEST_ID] == true,
+            proofs[to][TRANSFER_REQUEST_ID],
             "only identities who provided proof are allowed to receive tokens"
         );
     }

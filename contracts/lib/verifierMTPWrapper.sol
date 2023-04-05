@@ -14,8 +14,9 @@
 pragma solidity 0.8.16;
 
 import "./verifierMTP.sol";
+import "../interfaces/IVerifier.sol";
 
-contract VerifierMTPWrapper is VerifierMTP {
+contract VerifierMTPWrapper is VerifierMTP, IVerifier {
     /// @return r  bool true if proof is valid
     function verifyProof(
         uint256[2] memory a,
