@@ -114,6 +114,142 @@ export class StateDeployHelper {
     };
   }
 
+  async upgradeToStateV2(
+    stateAddress: string,
+    verifierContractName = "VerifierV2"
+  ): Promise<{
+    state: Contract;
+    verifier: Contract;
+    smtLib: Contract;
+    poseidon1: Contract;
+    poseidon2: Contract;
+    poseidon3: Contract;
+  }> {
+    this.log("======== StateV2: upgrade started ========");
+
+    const owner = this.signers[0];
+
+    this.log("deploying verifier...");
+
+    const verifierFactory = await ethers.getContractFactory(verifierContractName);
+    const verifier = await verifierFactory.deploy();
+    await verifier.deployed();
+    this.log(
+      `${verifierContractName} contract deployed to address ${verifier.address} from ${owner.address}`
+    );
+
+    this.log("deploying poseidons...");
+    const [poseidon1Elements, poseidon2Elements, poseidon3Elements] =
+      await deployPoseidons(owner, [1, 2, 3]);
+
+    this.log("deploying SmtLib...");
+    const smtLib = await this.deploySmtLib(
+      poseidon2Elements.address,
+      poseidon3Elements.address
+    );
+
+    this.log("deploying StateLib...");
+    const stateLib = await this.deployStateLib();
+
+    this.log("upgrading stateV2...");
+    const StateV2Factory = await ethers.getContractFactory("StateV2", {
+      libraries: {
+        StateLib: stateLib.address,
+        SmtLib: smtLib.address,
+        PoseidonUnit1L: poseidon1Elements.address,
+      },
+    });
+    const stateV2 = await upgrades.upgradeProxy(
+      stateAddress,
+      StateV2Factory,
+      {
+        unsafeAllowLinkedLibraries: true,
+        unsafeSkipStorageCheck: true,
+      });
+    await stateV2.deployed();
+    this.log(
+      `StateV2 contract upgraded at address ${stateV2.address} from ${owner.address}`
+    );
+
+    this.log("======== StateV2: upgrade completed ========");
+
+    return {
+      state: stateV2,
+      verifier,
+      smtLib: smtLib,
+      poseidon1: poseidon1Elements,
+      poseidon2: poseidon2Elements,
+      poseidon3: poseidon3Elements,
+    };
+  }
+
+
+  async upgradeToStateV2_migration(stateAddress: string, verifierContractName = "VerifierV2"): Promise<{
+    state: Contract;
+    verifier: Contract;
+    smtLib: Contract;
+    poseidon1: Contract;
+    poseidon2: Contract;
+    poseidon3: Contract;
+  }> {
+    this.log("======== StateV2: upgrade started ========");
+
+    const owner = this.signers[0];
+
+    this.log("deploying verifier...");
+
+    const verifierFactory = await ethers.getContractFactory(verifierContractName);
+    const verifier = await verifierFactory.deploy();
+    await verifier.deployed();
+    this.log(
+      `${verifierContractName} contract deployed to address ${verifier.address} from ${owner.address}`
+    );
+
+    this.log("deploying poseidons...");
+    const [poseidon1Elements, poseidon2Elements, poseidon3Elements] =
+      await deployPoseidons(owner, [1, 2, 3]);
+
+    this.log("deploying SmtLib...");
+    const smtLib = await this.deploySmtLib(
+      poseidon2Elements.address,
+      poseidon3Elements.address,
+      "SmtLib_migration"
+    );
+
+    this.log("deploying StateLib...");
+    const stateLib = await this.deployStateLib("StateLib_migration");
+
+    this.log("upgrading stateV2...");
+    const StateV2Factory = await ethers.getContractFactory("StateV2_migration", {
+      libraries: {
+        StateLib_migration: stateLib.address,
+        SmtLib_migration: smtLib.address,
+      },
+    });
+    const stateV2 = await upgrades.upgradeProxy(
+      stateAddress,
+      StateV2Factory,
+      {
+        unsafeAllowLinkedLibraries: true,
+        unsafeSkipStorageCheck: true,
+      });
+    await stateV2.deployed();
+    this.log(
+      `StateV2 contract upgraded at address ${stateV2.address} from ${owner.address}`
+    );
+
+    this.log("======== StateV2: upgrade completed ========");
+
+    return {
+      state: stateV2,
+      verifier,
+      smtLib: smtLib,
+      poseidon1: poseidon1Elements,
+      poseidon2: poseidon2Elements,
+      poseidon3: poseidon3Elements,
+    };
+  }
+
   async getStateTransitionHistory(
     stateContract: any,
     firstEventBlock: number, //29831814
@@ -234,8 +370,8 @@ export class StateDeployHelper {
     return smtLib;
   }
 
-  async deployStateLib(): Promise<Contract> {
-    const StateLib = await ethers.getContractFactory("StateLib");
+  async deployStateLib(stateLibName = "StateLib"): Promise<Contract> {
+    const StateLib = await ethers.getContractFactory(stateLibName);
     const stateLib = await StateLib.deploy();
     await stateLib.deployed();
     this.enableLogging &&
