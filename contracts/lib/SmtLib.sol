@@ -55,7 +55,7 @@ library SmtLib {
         // of the SMT library to add new Data struct fields without shifting down
         // storage of upgradable contracts that use this struct as a state variable
         // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-        uint256[48] __gap;
+        uint256[45] __gap;
     }
 
     /**
