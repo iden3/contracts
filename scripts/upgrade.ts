@@ -1,13 +1,16 @@
 import fs from "fs";
 import path from "path";
 import { StateDeployHelper } from "../helpers/StateDeployHelper";
+import { BigNumber } from "ethers";
+
 const pathOutputJson = path.join(__dirname, "./upgrade_output.json");
 
 async function main() {
   const stateDeployHelper = await StateDeployHelper.initialize(null, true);
+  const proxyAddress = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853";
 
   const { state, verifier, smtLib, poseidon1, poseidon2, poseidon3 } =
-    await stateDeployHelper.upgradeToStateV2_migration("0xa513E6E4b8f2a923D98304ec87F64353C4D5C853");
+    await stateDeployHelper.upgradeToStateV2_migration(proxyAddress);
 
   const outputJson = {
     state: state.address,
@@ -20,22 +23,32 @@ async function main() {
   };
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 
+  const id = BigNumber.from("0x000c91060cf3aa883f1d50203499abcb06a0eedcf1971e15afc88475712b1202");
+
   await state.initForMigration(verifier.address);
-  const stateEntriesLength = await state.getStateEntriesLengthById(1);
-  const stateEntries = await state.getStateEntriesById(1);
-  console.log(stateEntriesLength, stateEntries);
+  const stateInfosLength = await state.getStateInfoHistoryLengthById(id);
+  const stateInfos = await state.getStateInfoHistoryById(id);
+  console.log("stateInfosLength: ", stateInfosLength);
+  console.log("stateInfos: ", stateInfos);
 
-  await state.addStateWithTimestampAndBlock(1, 10, 0, 0);
-  await state.addStateWithTimestampAndBlock(1, 10, 1, 1);
-  await state.addStateWithTimestampAndBlock(1, 10, 255, 511);
+  const {
+    state: stateValue,
+    createdAtTimestamp: timestamp,
+    createdAtBlock: blockNumber,
+  } = stateInfos[1];
 
-  const { state: state2 } = await stateDeployHelper.upgradeToStateV2("0xa513E6E4b8f2a923D98304ec87F64353C4D5C853");
+  await state.addStateWithTimestampAndBlock(id, stateValue, blockNumber, timestamp);
 
-  const stateInfoHistoryLengthById = await state2.getStateInfoHistoryLengthById(1);
-  const stateInfo = await state2.getStateInfoByIdAndState(1, 10);
+  const { state: state2 } = await stateDeployHelper.upgradeToStateV2(proxyAddress);
+
+  const stateInfoHistoryLengthById = await state2.getStateInfoHistoryLengthById(id);
+  console.log("stateInfoHistoryLengthById: ", stateInfoHistoryLengthById);
+  const stateInfo = await state2.getStateInfoByIdAndState(id, stateValue);
+  console.log("stateInfo: ", stateInfo);
   const root = await state2.getGISTRoot();
+  console.log("root: ", root);
   const rootInfo = await state2.getGISTRootInfo(root);
-  console.log(stateInfoHistoryLengthById, stateInfo, root, rootInfo);
+  console.log("rootInfo: ", rootInfo);
 }
 
 main()

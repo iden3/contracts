@@ -571,7 +571,7 @@ library BinarySearchSmtRoots_migration {
         BLOCK
     }
 
-/**
+    /**
      * @dev Binary search method for the SMT history,
      * which searches for the index of the root entry saved by the given timestamp or block
      * @param value The timestamp or block to search for.
