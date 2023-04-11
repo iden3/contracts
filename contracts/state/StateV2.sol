@@ -75,6 +75,45 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      * @param oldState Previous identity state
      * @param newState New identity state
      * @param isOldStateGenesis Is the previous state genesis?
+     */
+    function _transitState(
+        uint256 id,
+        uint256 oldState,
+        uint256 newState,
+        bool isOldStateGenesis
+    ) private {
+        require(id != 0, "ID should not be zero");
+        require(newState != 0, "New state should not be zero");
+        require(!stateExists(id, newState), "New state already exists");
+
+        if (isOldStateGenesis) {
+            require(!idExists(id), "Old state is genesis but identity already exists");
+
+            // Push old state to state entries, with zero timestamp and block
+            _stateData.addStateNoTimestampAndBlock(id, oldState);
+        } else {
+            require(idExists(id), "Old state is not genesis but identity does not yet exist");
+
+            StateLib.EntryInfo memory prevStateInfo = _stateData.getStateInfoById(id);
+            require(
+                prevStateInfo.createdAtBlock != block.number,
+                "No multiple set in the same block"
+            );
+            require(prevStateInfo.state == oldState, "Old state does not match the latest state");
+        }
+
+        _stateData.addState(id, newState);
+        _gistData.addLeaf(PoseidonUnit1L.poseidon([id]), newState);
+
+        emit StateUpdated(id, block.number, block.timestamp, newState);
+    }
+
+    /**
+     * @dev Change the state of an identity (transit to the new state) with ZKP ownership check.
+     * @param id Identity
+     * @param oldState Previous identity state
+     * @param newState New identity state
+     * @param isOldStateGenesis Is the previous state genesis?
      * @param a ZKP proof field
      * @param b ZKP proof field
      * @param c ZKP proof field
@@ -88,15 +127,37 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) public {
-        uint256[4] memory input = [
-            id,
-            oldState,
-            newState,
-            uint256(isOldStateGenesis ? 1 : 0)
-        ];
+        uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis ? 1 : 0)];
         require(
             verifier.verifyProof(a, b, c, input),
             "Zero-knowledge proof of state transition is not valid"
+        );
+
+        _transitState(id, oldState, newState, isOldStateGenesis);
+    }
+
+    /**
+     * @dev Change the state of an identity (transit to the new state) with ZKP ownership check.
+     * @param id Identity
+     * @param oldState Previous identity state
+     * @param newState New identity state
+     * @param isOldStateGenesis Is the previous state genesis?
+     */
+    function transitStateOnchainIdentity(
+        uint256 id,
+        uint256 oldState,
+        uint256 newState,
+        bool isOldStateGenesis
+    ) public {
+        require(
+            msg.sender != tx.origin,
+            "only calls from smart contracts allowed"
+        );
+
+        uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(msg.sender);
+        require(
+            calcId == id,
+            "msg.sender is not owner of the identity"
         );
 
         _transitState(id, oldState, newState, isOldStateGenesis);
@@ -353,73 +414,6 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         createdAtBlock,
         replacedAtBlock: sei.replacedAtBlock
         });
-    }
-
-    /**
-     * @dev Change the state of an identity (transit to the new state) with ZKP ownership check.
-     * @param id Identity
-     * @param oldState Previous identity state
-     * @param newState New identity state
-     * @param isOldStateGenesis Is the previous state genesis?
-     */
-    function transitStateOnchainIdentity(
-        uint256 id,
-        uint256 oldState,
-        uint256 newState,
-        bool isOldStateGenesis
-    ) public {
-        require(
-            msg.sender != tx.origin,
-            "only calls from smart contracts allowed"
-        );
-
-        uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(msg.sender);
-        require(
-            calcId == id,
-            "msg.sender is not owner of the identity"
-        );
-
-        _transitState(id, oldState, newState, isOldStateGenesis);
-    }
-
-
-    /**
-     * @dev Change the state of an identity (transit to the new state) with ZKP ownership check.
-     * @param id Identity
-     * @param oldState Previous identity state
-     * @param newState New identity state
-     * @param isOldStateGenesis Is the previous state genesis?
-     */
-    function _transitState(
-        uint256 id,
-        uint256 oldState,
-        uint256 newState,
-        bool isOldStateGenesis
-    ) private {
-        require(id != 0, "ID should not be zero");
-        require(newState != 0, "New state should not be zero");
-        require(!stateExists(id, newState), "New state already exists");
-
-        if (isOldStateGenesis) {
-            require(!idExists(id), "Old state is genesis but identity already exists");
-
-            // Push old state to state entries, with zero timestamp and block
-            _stateData.addStateNoTimestampAndBlock(id, oldState);
-        } else {
-            require(idExists(id), "Old state is not genesis but identity does not yet exist");
-
-            StateLib.EntryInfo memory prevStateInfo = _stateData.getStateInfoById(id);
-            require(
-                prevStateInfo.createdAtBlock != block.number,
-                "No multiple set in the same block"
-            );
-            require(prevStateInfo.state == oldState, "Old state does not match the latest state");
-        }
-
-        _stateData.addState(id, newState);
-        _gistData.addLeaf(PoseidonUnit1L.poseidon([id]), newState);
-
-        emit StateUpdated(id, block.number, block.timestamp, newState);
     }
 
 }
