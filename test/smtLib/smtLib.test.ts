@@ -10,14 +10,25 @@ const stateTransitions = [
   require("../state/data/user_state_next_transition.json"),
 ];
 
+type ParamsProofByHistoricalRoot = {
+  index: number | bigint | string;
+  historicalRoot: number | string;
+};
+type ParamsProofByBlock = { index: number | bigint | string; blockNumber: number | string };
+type ParamsProofByTime = { index: number | bigint | string; timestamp: number | string };
+
+type ParamsProof =
+  | number
+  | bigint
+  | string
+  | ParamsProofByHistoricalRoot
+  | ParamsProofByBlock
+  | ParamsProofByTime
+  | undefined;
+
 type TestCaseMTPProof = {
   leavesToInsert: { i: number | bigint | string; v: number | bigint | string; error?: string }[];
-  paramsToGetProof?:
-    | number
-    | bigint
-    | string
-    | { index: number | bigint | string; historicalRoot: number | string }
-    | undefined;
+  paramsToGetProof?: ParamsProof;
   expectedProof?: MtpProof;
   [key: string]: any;
 };
@@ -1664,7 +1675,7 @@ describe("Merkle tree proofs of SMT", () => {
         },
         {
           description:
-            "add 2 leaves (depth = 2), add 3rd leaf and generate proof of non-existance for the 3rd leaf in the previous root state",
+            "add 2 leaves (depth = 2), add 3rd leaf and generate proof of non-existence for the 3rd leaf in the previous root state",
           leavesToInsert: [
             { i: 4, v: 444 },
             { i: 2, v: 222 },
@@ -2191,7 +2202,7 @@ describe("Merkle tree proofs of SMT", () => {
         },
         {
           description:
-            "add 2 leaves (depth = 2), add 3rd leaf and generate proof of non-existance for the 3rd leaf in the previous root state",
+            "add 2 leaves (depth = 2), add 3rd leaf and generate proof of non-existence for the 3rd leaf in the previous root state",
           leavesToInsert: [
             { i: 3, v: 333 },
             { i: 7, v: 777 },
@@ -3620,6 +3631,249 @@ describe("Binary search in SMT root history", () => {
   });
 });
 
+describe("Binary search in SMT proofs", () => {
+  let smt;
+
+  beforeEach(async () => {
+    const deployHelper = await StateDeployHelper.initialize();
+    smt = await deployHelper.deploySmtLibTestWrapper();
+  });
+
+  describe("Zero root proofs", () => {
+    const testCases: TestCaseMTPProof[] = [
+      {
+        description: "Should return zero proof for some search",
+        leavesToInsert: [],
+        paramsToGetProof: {
+          index: 1,
+          blockNumber: 1,
+        },
+        expectedProof: {
+          root: 0,
+          existence: false,
+          siblings: Array(64).fill(0) as FixedArray<string, 64>,
+          index: 1,
+          value: 0,
+          auxExistence: false,
+          auxIndex: 0,
+          auxValue: 0,
+        },
+      },
+      {
+        description: "Should return zero proof for some search back in time",
+        leavesToInsert: [{ i: 4, v: 444 }],
+        paramsToGetProof: {
+          index: 1,
+          blockNumber: 1,
+        },
+        expectedProof: {
+          root: 0,
+          existence: false,
+          siblings: Array(64).fill(0) as FixedArray<string, 64>,
+          index: 1,
+          value: 0,
+          auxExistence: false,
+          auxIndex: 0,
+          auxValue: 0,
+        },
+      },
+    ];
+
+    for (const testCase of testCases) {
+      it(`${testCase.description}`, async () => {
+        await checkTestCaseMTPProof(smt, testCase);
+      });
+    }
+  });
+
+  describe("Non-zero root proofs", () => {
+    const testCases: TestCaseMTPProof[] = [
+      {
+        description: "Should return zero proof for some search current time",
+        leavesToInsert: [{ i: 4, v: 444 }],
+        paramsToGetProof: {
+          index: 4,
+          timestamp: 0,
+        },
+        expectedProof: {
+          root: "17172838131998611102390183760409471205043596092117126608119446264795219840387",
+          existence: true,
+          siblings: [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
+          index: 4,
+          value: 444,
+          auxExistence: false,
+          auxIndex: 0,
+          auxValue: 0,
+        },
+      },
+      {
+        description: "Should return zero proof for some search current block",
+        leavesToInsert: [{ i: 4, v: 444 }],
+        paramsToGetProof: {
+          index: 4,
+          blockNumber: 0,
+        },
+        expectedProof: {
+          root: "17172838131998611102390183760409471205043596092117126608119446264795219840387",
+          existence: true,
+          siblings: [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+          ],
+          index: 4,
+          value: 444,
+          auxExistence: false,
+          auxIndex: 0,
+          auxValue: 0,
+        },
+      },
+    ];
+
+    for (const testCase of testCases) {
+      it(`${testCase.description}`, async () => {
+        const latestBlockInfo = await hre.ethers.provider.getBlock("latest");
+        if (isProofByTime(testCase.paramsToGetProof)) {
+          testCase.paramsToGetProof.timestamp = latestBlockInfo.timestamp + 1;
+        }
+
+        if (isProofByBlock(testCase.paramsToGetProof)) {
+          testCase.paramsToGetProof.blockNumber = latestBlockInfo.number + 1;
+        }
+        await checkTestCaseMTPProof(smt, testCase);
+      });
+    }
+  });
+});
+
 describe("Edge cases with exceptions", () => {
   let smt;
 
@@ -3695,19 +3949,34 @@ async function checkTestCaseMTPProof(smt: Contract, testCase: TestCaseMTPProof) 
   }
 
   let proof;
-  switch (typeof testCase.paramsToGetProof) {
-    case "number":
-    case "bigint":
-      proof = await smt.getProof(testCase.paramsToGetProof);
-      break;
-    case "object":
-      proof = await smt.getProofByRoot(
-        testCase.paramsToGetProof.index,
-        testCase.paramsToGetProof.historicalRoot
-      );
-      break;
-    default:
-      return;
+
+  if (["number", "bigint", "string"].includes(typeof testCase.paramsToGetProof)) {
+    proof = await smt.getProof(testCase.paramsToGetProof);
+  }
+
+  if (isProofByHistoricalRoot(testCase.paramsToGetProof)) {
+    proof = await smt.getProofByRoot(
+      testCase.paramsToGetProof.index,
+      testCase.paramsToGetProof.historicalRoot
+    );
+  }
+
+  if (isProofByTime(testCase.paramsToGetProof)) {
+    proof = await smt.getProofByTime(
+      testCase.paramsToGetProof.index,
+      testCase.paramsToGetProof.timestamp
+    );
+  }
+
+  if (isProofByBlock(testCase.paramsToGetProof)) {
+    proof = await smt.getProofByBlock(
+      testCase.paramsToGetProof.index,
+      testCase.paramsToGetProof.blockNumber
+    );
+  }
+
+  if (testCase.expectedProof === undefined) {
+    return;
   }
 
   checkMtpProof(proof, testCase.expectedProof as MtpProof);
@@ -3729,4 +3998,23 @@ function checkSiblings(siblings, expectedSiblings: FixedArray<string, 64>) {
   for (let i = 0; i < siblings.length; i++) {
     expect(siblings[i]).to.equal(expectedSiblings[i]);
   }
+}
+
+function isProofByHistoricalRoot(proof: ParamsProof): proof is ParamsProofByHistoricalRoot {
+  if (typeof proof !== "object") {
+    return false;
+  }
+  return (proof as ParamsProofByHistoricalRoot).historicalRoot !== undefined;
+}
+function isProofByTime(proof: ParamsProof): proof is ParamsProofByTime {
+  if (typeof proof !== "object") {
+    return false;
+  }
+  return (proof as ParamsProofByTime).timestamp !== undefined;
+}
+function isProofByBlock(proof: ParamsProof): proof is ParamsProofByBlock {
+  if (typeof proof !== "object") {
+    return false;
+  }
+  return (proof as ParamsProofByBlock).blockNumber !== undefined;
 }

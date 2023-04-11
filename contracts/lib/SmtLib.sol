@@ -284,9 +284,6 @@ library SmtLib {
         uint256 timestamp
     ) public view returns (Proof memory) {
         RootEntryInfo memory rootInfo = getRootInfoByTime(self, timestamp);
-
-        require(rootInfo.root != 0, "historical root not found");
-
         return getProofByRoot(self, index, rootInfo.root);
     }
 
@@ -302,9 +299,6 @@ library SmtLib {
         uint256 blockNumber
     ) external view returns (Proof memory) {
         RootEntryInfo memory rootInfo = getRootInfoByBlock(self, blockNumber);
-
-        require(rootInfo.root != 0, "historical root not found");
-
         return getProofByRoot(self, index, rootInfo.root);
     }
 
