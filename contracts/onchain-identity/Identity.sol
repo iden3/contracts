@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.15;
+pragma solidity 0.8.16;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -7,12 +7,14 @@ import "../interfaces/IState.sol";
 import "../lib/ClaimBuilder.sol";
 import "../lib/GenesisUtils.sol";
 import "../lib/Poseidon.sol";
-import "../lib/Smt.sol";
+import "../lib/SmtLib.sol";
 
 // /**
 //  * @dev Contract managing onchain identity
 //  */
 contract Identity is OwnableUpgradeable {
+    uint256 public constant IDENTITY_MAX_SMT_DEPTH = 40;
+
     /**
      * @dev Identity identifier
      */
@@ -30,14 +32,14 @@ contract Identity is OwnableUpgradeable {
      */
     IState public state;
 
-    using Smt for Smt.SmtData;
+    using SmtLib for SmtLib.Data;
 
     /**
      * @dev SMT addresses
      */
-    Smt.SmtData internal claimsTree;
-    Smt.SmtData internal revocationsTree;
-    Smt.SmtData internal rootsTree;
+    SmtLib.Data internal claimsTree;
+    SmtLib.Data internal revocationsTree;
+    SmtLib.Data internal rootsTree;
 
     /**
      * @dev roots used in last State Transition
@@ -46,16 +48,19 @@ contract Identity is OwnableUpgradeable {
     uint256 public lastRevocationsTreeRoot;
     uint256 public lastRootsTreeRoot;
 
-    bytes2 public constant IdentityTypeDefault = 0x0000;
-    bytes2 public constant IdentityTypeOnchain = 0x0100;
+//    bytes2 public constant IdentityTypeDefault = 0x0000;
+//    bytes2 public constant IdentityTypeOnchain = 0x8000;
 
     function initialize(
         address _stateContractAddr
     ) public initializer {
         state = IState(_stateContractAddr);
         isOldStateGenesis = true;
+        claimsTree.initialize(IDENTITY_MAX_SMT_DEPTH);
+        revocationsTree.initialize(IDENTITY_MAX_SMT_DEPTH);
+        rootsTree.initialize(IDENTITY_MAX_SMT_DEPTH);
         // TODO: should we add contract address claim to claimsTree?
-        claimsTree.add(0, uint256(uint160(address(this))));
+        claimsTree.addLeaf(0, uint256(uint160(address(this))));
         lastClaimsTreeRoot = claimsTree.getRoot();
         identityState = calcIdentityState();
         id = GenesisUtils.calcOnchainIdFromAddress(address(this));
@@ -75,7 +80,7 @@ contract Identity is OwnableUpgradeable {
         }
         uint256 hashIndex = PoseidonUnit4L.poseidon(claimIndex);
         uint256 hashValue = PoseidonUnit4L.poseidon(claimValue);
-        claimsTree.add(hashIndex, hashValue);
+        claimsTree.addLeaf(hashIndex, hashValue);
     }
 
     /**
@@ -84,7 +89,7 @@ contract Identity is OwnableUpgradeable {
      * @param hashValue - hash of claim value part
      */
     function addClaimHash(uint256 hashIndex, uint256 hashValue) public onlyOwner {
-        claimsTree.add(hashIndex, hashValue);
+        claimsTree.addLeaf(hashIndex, hashValue);
     }
 
     /**
@@ -92,7 +97,7 @@ contract Identity is OwnableUpgradeable {
      * @param revocationNonce - revocation nonce
      */
     function revokeClaim(uint64 revocationNonce) public onlyOwner {
-        revocationsTree.add(uint256(revocationNonce), 0);
+        revocationsTree.addLeaf(uint256(revocationNonce), 0);
     }
 
     /**
@@ -112,7 +117,7 @@ contract Identity is OwnableUpgradeable {
 
         // if claimsTreeRoot changed, then add it to rootsTree
         if (lastClaimsTreeRoot != currentClaimsTreeRoot) {
-            rootsTree.add(currentClaimsTreeRoot, 0);
+            rootsTree.addLeaf(currentClaimsTreeRoot, 0);
         }
 
         uint256 newIdentityState = calcIdentityState();
@@ -144,7 +149,7 @@ contract Identity is OwnableUpgradeable {
      * @param claimIndexHash - hash of Claim Index
      * @return The ClaimsTree inclusion or non-inclusion proof for the claim
      */
-    function getClaimProof(uint256 claimIndexHash) public view returns (Smt.Proof memory) {
+    function getClaimProof(uint256 claimIndexHash) public view returns (SmtLib.Proof memory) {
         return claimsTree.getProof(claimIndexHash);
     }
 
@@ -154,7 +159,7 @@ contract Identity is OwnableUpgradeable {
      * @param root - root of the tree
      * @return The ClaimsTree inclusion or non-inclusion proof for the claim
      */
-    function getClaimProofByRoot(uint256 claimIndexHash, uint256 root) public view returns (Smt.Proof memory) {
+    function getClaimProofByRoot(uint256 claimIndexHash, uint256 root) public view returns (SmtLib.Proof memory) {
         return claimsTree.getProofByRoot(claimIndexHash, root);
     }
 
@@ -171,7 +176,7 @@ contract Identity is OwnableUpgradeable {
      * @param revocationNonce - revocation nonce
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
-    function getRevocationProof(uint64 revocationNonce) public view returns (Smt.Proof memory) {
+    function getRevocationProof(uint64 revocationNonce) public view returns (SmtLib.Proof memory) {
         return revocationsTree.getProof(uint256(revocationNonce));
     }
 
@@ -181,7 +186,7 @@ contract Identity is OwnableUpgradeable {
      * @param root - root of the tree
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
-    function getRevocationProofByRoot(uint64 revocationNonce, uint256 root) public view returns (Smt.Proof memory) {
+    function getRevocationProofByRoot(uint64 revocationNonce, uint256 root) public view returns (SmtLib.Proof memory) {
         return revocationsTree.getProofByRoot(uint256(revocationNonce), root);
     }
 
@@ -198,7 +203,7 @@ contract Identity is OwnableUpgradeable {
      * @param claimsTreeRoot - claims tree root
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
-    function getRootProof(uint256 claimsTreeRoot) public view returns (Smt.Proof memory) {
+    function getRootProof(uint256 claimsTreeRoot) public view returns (SmtLib.Proof memory) {
         return rootsTree.getProof(claimsTreeRoot);
     }
 
@@ -208,7 +213,7 @@ contract Identity is OwnableUpgradeable {
      * @param root - root of the tree
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
-    function getRootProofByRoot(uint256 claimsTreeRoot, uint256 root) public view returns (Smt.Proof memory) {
+    function getRootProofByRoot(uint256 claimsTreeRoot, uint256 root) public view returns (SmtLib.Proof memory) {
         return rootsTree.getProofByRoot(claimsTreeRoot, root);
     }
 

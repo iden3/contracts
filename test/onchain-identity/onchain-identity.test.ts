@@ -2,7 +2,9 @@ import { expect } from "chai";
 import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeployHelper";
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 
-describe("Next tests reproduce identity life cycle", () => {
+describe("Next tests reproduce identity life cycle", function() {
+  this.timeout(10000);
+
   let identity;
   let latestSavedState;
   let latestComputedState;
@@ -14,7 +16,7 @@ describe("Next tests reproduce identity life cycle", () => {
       const stContracts = await stDeployHelper.deployStateV2();
       const contracts = await deployHelper.deployIdentity(
         stContracts.state,
-        stContracts.smt,
+        stContracts.smtLib,
         stContracts.poseidon1,
         stContracts.poseidon2,
         stContracts.poseidon3,
@@ -221,7 +223,7 @@ describe("Claims tree proofs", () => {
     const stContracts = await stDeployHelper.deployStateV2();
     const contracts = await deployHelper.deployIdentity(
       stContracts.state,
-      stContracts.smt,
+      stContracts.smtLib,
       stContracts.poseidon1,
       stContracts.poseidon2,
       stContracts.poseidon3,
@@ -274,7 +276,7 @@ describe("Revocation tree proofs", () => {
     const stContracts = await stDeployHelper.deployStateV2();
     const contracts = await deployHelper.deployIdentity(
       stContracts.state,
-      stContracts.smt,
+      stContracts.smtLib,
       stContracts.poseidon1,
       stContracts.poseidon2,
       stContracts.poseidon3,
@@ -327,7 +329,7 @@ describe("Root of roots tree proofs", () => {
     const stContracts = await stDeployHelper.deployStateV2();
     const contracts = await deployHelper.deployIdentity(
       stContracts.state,
-      stContracts.smt,
+      stContracts.smtLib,
       stContracts.poseidon1,
       stContracts.poseidon2,
       stContracts.poseidon3,

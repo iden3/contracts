@@ -6,6 +6,7 @@ import "../lib/SmtLib.sol";
 import "../lib/Poseidon.sol";
 import "../interfaces/IStateTransitionVerifier.sol";
 import "../lib/StateLib.sol";
+import "../lib/GenesisUtils.sol";
 
 /// @title Set and get states for each identity
 contract StateV2 is Ownable2StepUpgradeable, IState {

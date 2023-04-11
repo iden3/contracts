@@ -23,7 +23,7 @@ export class OnchainIdentityDeployHelper {
 
   async deployIdentity(
     state: Contract,
-    smt: Contract,
+    smtLib: Contract,
     poseidon1: Contract,
     poseidon2: Contract,
     poseidon3: Contract,
@@ -41,7 +41,7 @@ export class OnchainIdentityDeployHelper {
     const IdentityFactory = await ethers.getContractFactory("Identity", {
       libraries: {
         ClaimBuilder: cb.address,
-        Smt: smt.address,
+        SmtLib: smtLib.address,
         PoseidonUnit3L: poseidon3.address,
         PoseidonUnit4L: poseidon4.address,
       },

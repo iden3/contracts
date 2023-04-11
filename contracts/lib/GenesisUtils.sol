@@ -108,14 +108,7 @@ library GenesisUtils {
     }
 
     /**
-     * @dev isGenesisState
-     */
-    function isGenesisState(uint256 id, uint256 idState) internal pure returns (bool) {
-        return id == calcIdFromGenesisState(idType, idState);
-    }
-
-        /**
-         * @dev calcOnchainIdFromAddress
+     * @dev calcOnchainIdFromAddress
      */
     function calcOnchainIdFromAddress(address caller)
     internal
@@ -127,8 +120,9 @@ library GenesisUtils {
         uint256 addrShifted = uint256(uint160(caller)) << 40;
         return calcIdFromGenesisState(IdentityTypeOnchain, addrShifted);
     }
-        /**
-         * @dev isGenesisState
+
+    /**
+     * @dev isGenesisState
      */
     function isGenesisState(uint256 id, uint256 idState)
         internal
