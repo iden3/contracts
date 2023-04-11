@@ -72,7 +72,7 @@ contract StateV2_migration is OwnableUpgradeable {
     ) external onlyOwner {
         _stateData_migration.addStateWithTimestampAndBlock(id, state, timestamp, blockNumber);
         if(timestamp > 0 && blockNumber > 0){
-            _gistData_migration.addLeafWithTimestampAndBlock(id, state, timestamp, blockNumber);
+            _gistData_migration.addLeafWithTimestampAndBlock(PoseidonUnit1L.poseidon([id]), state, timestamp, blockNumber);
         }
         uint256 root = _gistData_migration.getRoot();
         uint256 expectedRoot = _gistData.rootHistory[_gistData.rootHistory.length - 1];

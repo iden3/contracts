@@ -222,6 +222,7 @@ export class StateDeployHelper {
     this.log("upgrading stateV2...");
     const StateV2Factory = await ethers.getContractFactory("StateV2_migration", {
       libraries: {
+        PoseidonUnit1L: poseidon1Elements.address,
         StateLib_migration: stateLib.address,
         SmtLib_migration: smtLib.address,
       },
