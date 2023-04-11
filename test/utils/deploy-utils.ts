@@ -1,19 +1,7 @@
 import { ethers, upgrades } from "hardhat";
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 import { Contract } from "ethers";
-
-export async function deploySpongePoseidon(poseidon6ContractAddress: string): Promise<Contract> {
-  const SpongePoseidonFactory = await ethers.getContractFactory("SpongePoseidon", {
-    libraries: {
-      PoseidonUnit6L: poseidon6ContractAddress,
-    },
-  });
-
-  const spongePoseidon = await SpongePoseidonFactory.deploy();
-  await spongePoseidon.deployed();
-  console.log("SpongePoseidon deployed to:", spongePoseidon.address);
-  return spongePoseidon;
-}
+import { deployPoseidonFacade } from "./deploy-poseidons.util";
 
 export async function deployValidatorContracts(
   verifierContractWrapperName: string,
@@ -63,16 +51,10 @@ export async function deployERC20ZKPVerifierToken(
 ): Promise<{
   address: string;
 }> {
-  const owner = (await ethers.getSigners())[0];
-  const stateDeployHelper = await StateDeployHelper.initialize();
-  const [poseidon6Contract] = await stateDeployHelper.deployPoseidons(owner, [6]);
-
-  const spongePoseidon = await deploySpongePoseidon(poseidon6Contract.address);
-
+  const poseidonFacade = await deployPoseidonFacade();
   const ERC20Verifier = await ethers.getContractFactory("ERC20Verifier", {
     libraries: {
-      SpongePoseidon: spongePoseidon.address,
-      PoseidonUnit6L: poseidon6Contract.address,
+      PoseidonFacade: poseidonFacade.address,
     },
   });
   const erc20Verifier = await ERC20Verifier.deploy(name, symbol);
@@ -103,15 +85,6 @@ export function prepareInputs(json: any): VerificationInfo {
   };
 
   return { inputs: pub_signals, ...preparedProof };
-}
-
-export function toBigNumber({ inputs, pi_a, pi_b, pi_c }: VerificationInfo) {
-  return {
-    inputs: inputs.map((input) => ethers.BigNumber.from(input)),
-    pi_a: pi_a.map((input) => ethers.BigNumber.from(input)),
-    pi_b: pi_b.map((arr) => arr.map((input) => ethers.BigNumber.from(input))),
-    pi_c: pi_c.map((input) => ethers.BigNumber.from(input)),
-  };
 }
 
 export async function publishState(
@@ -148,6 +121,46 @@ export async function publishState(
     oldState,
     newState,
     id,
+    blockNumber,
+    timestamp,
+  };
+}
+
+export async function publishStateWithStubProof(
+  state: Contract,
+  params: {
+    id: string | number;
+    oldState: string | number;
+    newState: string | number;
+    isOldStateGenesis: boolean;
+  }
+): Promise<{
+  id: string | number;
+  oldState: string | number;
+  newState: string | number;
+  blockNumber: number;
+  timestamp: number;
+}> {
+  const transitStateTx = await state.transitState(
+    params.id,
+    params.oldState,
+    params.newState,
+    params.isOldStateGenesis,
+    ["0", "0"],
+    [
+      ["0", "0"],
+      ["0", "0"],
+    ],
+    ["0", "0"]
+  );
+
+  const { blockNumber } = await transitStateTx.wait();
+  const { timestamp } = await ethers.provider.getBlock(transitStateTx.blockNumber);
+
+  return {
+    id: params.id,
+    oldState: params.oldState,
+    newState: params.newState,
     blockNumber,
     timestamp,
   };

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.0;
+pragma solidity 0.8.16;
 
 /**
  * @title Schema
@@ -14,14 +14,10 @@ contract SchemaRegistry {
         uint256 timestamp;
     }
 
-    mapping(string => bytes32) nameHash;
-    mapping(bytes32 => Schema) hashSchema;
+    mapping(string => bytes32) public nameHash;
+    mapping(bytes32 => Schema) public hashSchema;
 
-    function getHashFromBytes(bytes memory schemaBody)
-        private
-        pure
-        returns (bytes32)
-    {
+    function getHashFromBytes(bytes memory schemaBody) private pure returns (bytes32) {
         return keccak256(schemaBody);
     }
 
@@ -54,11 +50,7 @@ contract SchemaRegistry {
         return nameHash[name];
     }
 
-    function getBytesByName(string memory name)
-        public
-        view
-        returns (bytes memory)
-    {
+    function getBytesByName(string memory name) public view returns (bytes memory) {
         bytes32 hash = nameHash[name];
         return hashSchema[hash].body;
     }

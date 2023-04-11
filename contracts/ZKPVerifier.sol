@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./lib/GenesisUtils.sol";
-import "./lib/SpongePoseidon.sol";
 import "./lib/Poseidon.sol";
 import "./interfaces/ICircuitValidator.sol";
 import "./interfaces/IZKPVerifier.sol";
@@ -64,9 +63,9 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256 operator,
         uint256[] calldata value
     ) public override onlyOwner returns (bool) {
-        uint256 valueHash = SpongePoseidon.hash(value);
+        uint256 valueHash = PoseidonFacade.poseidonSponge(value);
         // only merklized claims are supported (claimPathNotExists is false, slot index is set to 0 )
-        uint256 queryHash = PoseidonUnit6L.poseidon(
+        uint256 queryHash = PoseidonFacade.poseidon6(
             [schema, 0, operator, claimPathKey, 0, valueHash]
         );
 

@@ -11,11 +11,12 @@
 //
 //
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.0;
+pragma solidity 0.8.16;
 
 import "./verifierMTP.sol";
+import "../interfaces/IVerifier.sol";
 
-contract VerifierMTPWrapper is VerifierMTP {
+contract VerifierMTPWrapper is VerifierMTP, IVerifier {
     /// @return r  bool true if proof is valid
     function verifyProof(
         uint256[2] memory a,
@@ -23,6 +24,7 @@ contract VerifierMTPWrapper is VerifierMTP {
         uint256[2] memory c,
         uint256[] memory input
     ) public view returns (bool r) {
+        // slither-disable-next-line uninitialized-local
         Proof memory proof;
         proof.A = Pairing.G1Point(a[0], a[1]);
         proof.B = Pairing.G2Point([b[0][0], b[0][1]], [b[1][0], b[1][1]]);

@@ -3,7 +3,9 @@ import { toJson } from "../test/utils/deploy-utils";
 import fs from "fs";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { poseidonContract } from "circomlibjs";
+import { deployPoseidons } from "../test/utils/deploy-poseidons.util";
+
+const GIST_MAX_DEPTH = 64;
 
 export class StateDeployHelper {
   constructor(
@@ -47,10 +49,10 @@ export class StateDeployHelper {
     return { state, verifier };
   }
 
-  async deployStateV2(): Promise<{
+  async deployStateV2(verifierContractName = "VerifierV2"): Promise<{
     state: Contract;
     verifier: Contract;
-    smt: Contract;
+    smtLib: Contract;
     poseidon1: Contract;
     poseidon2: Contract;
     poseidon3: Contract;
@@ -62,27 +64,31 @@ export class StateDeployHelper {
 
     this.log("deploying verifier...");
 
-    const verifierFactory = await ethers.getContractFactory("VerifierV2");
+    const verifierFactory = await ethers.getContractFactory(verifierContractName);
     const verifier = await verifierFactory.deploy();
     await verifier.deployed();
     this.log(
-      `Verifier contract deployed to address ${verifier.address} from ${owner.address}`
+      `${verifierContractName} contract deployed to address ${verifier.address} from ${owner.address}`
     );
 
     this.log("deploying poseidons...");
     const [poseidon1Elements, poseidon2Elements, poseidon3Elements, poseidon4Elements] =
-      await this.deployPoseidons(owner, [1, 2, 3, 4]);
+      await deployPoseidons(owner, [1, 2, 3, 4]);
 
-    this.log("deploying SMT...");
-    const smt = await this.deploySmt(
+    this.log("deploying SmtLib...");
+    const smtLib = await this.deploySmtLib(
       poseidon2Elements.address,
       poseidon3Elements.address
     );
 
+    this.log("deploying StateLib...");
+    const stateLib = await this.deployStateLib();
+
     this.log("deploying stateV2...");
     const StateV2Factory = await ethers.getContractFactory("StateV2", {
       libraries: {
-        Smt: smt.address,
+        StateLib: stateLib.address,
+        SmtLib: smtLib.address,
         PoseidonUnit1L: poseidon1Elements.address,
       },
     });
@@ -90,9 +96,8 @@ export class StateDeployHelper {
       StateV2Factory,
       [verifier.address],
       {
-        unsafeAllowLinkedLibraries: true,
-      }
-    );
+      unsafeAllowLinkedLibraries: true,
+    });
     await stateV2.deployed();
     this.log(
       `StateV2 contract deployed to address ${stateV2.address} from ${owner.address}`
@@ -103,7 +108,7 @@ export class StateDeployHelper {
     return {
       state: stateV2,
       verifier,
-      smt,
+      smtLib: smtLib,
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
@@ -212,46 +217,56 @@ export class StateDeployHelper {
     this.writeFile("migration-result.json", result);
   }
 
-  async deploySmt(
+  async deploySmtLib(
     poseidon2Address: string,
     poseidon3Address: string,
-    contractName = "Smt"
-  ): Promise<any> {
-    const Smt = await ethers.getContractFactory(contractName, {
+    contractName = "SmtLib"
+  ): Promise<Contract> {
+    const SmtLib = await ethers.getContractFactory(contractName, {
       libraries: {
         PoseidonUnit2L: poseidon2Address,
         PoseidonUnit3L: poseidon3Address,
       },
     });
-    const smt = await Smt.deploy();
-    await smt.deployed();
+    const smtLib = await SmtLib.deploy();
+    await smtLib.deployed();
     this.enableLogging &&
-      this.log(`${contractName} deployed to:  ${smt.address}`);
+      this.log(`${contractName} deployed to:  ${smtLib.address}`);
 
-    return smt;
+    return smtLib;
   }
 
-  async deploySmtTestWrapper(): Promise<Contract> {
-    const contractName = "SmtTestWrapper";
+  async deployStateLib(): Promise<Contract> {
+    const StateLib = await ethers.getContractFactory("StateLib");
+    const stateLib = await StateLib.deploy();
+    await stateLib.deployed();
+    this.enableLogging &&
+      this.log(`StateLib deployed to:  ${stateLib.address}`);
+
+    return stateLib;
+  }
+
+  async deploySmtLibTestWrapper(maxDepth?: number): Promise<Contract> {
+    const contractName = "SmtLibTestWrapper";
     const owner = this.signers[0];
 
     this.log("deploying poseidons...");
-    const [poseidon2Elements, poseidon3Elements] = await this.deployPoseidons(
+    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons(
       owner,
       [2, 3]
     );
 
-    const smt = await this.deploySmt(
+    const smtLib = await this.deploySmtLib(
       poseidon2Elements.address,
       poseidon3Elements.address
     );
 
     const SmtWrapper = await ethers.getContractFactory(contractName, {
       libraries: {
-        Smt: smt.address,
+        SmtLib: smtLib.address,
       },
     });
-    const smtWrapper = await SmtWrapper.deploy();
+    const smtWrapper = await SmtWrapper.deploy(maxDepth ?? GIST_MAX_DEPTH);
     await smtWrapper.deployed();
     this.enableLogging &&
       this.log(`${contractName} deployed to:  ${smtWrapper.address}`);
@@ -259,50 +274,50 @@ export class StateDeployHelper {
     return smtWrapper;
   }
 
-  async deployBinarySearchTestWrapper(): Promise<Contract> {
-    const contractName = "BinarySearchTestWrapper";
+  async deployStateLibTestWrapper(): Promise<Contract> {
+    const contractName = "StateLibTestWrapper";
 
-    const BSWrapper = await ethers.getContractFactory(contractName);
+    const stateLib = await this.deployStateLib();
+
+    const StateLibWrapper = await ethers.getContractFactory(contractName, {
+      libraries: {
+        StateLib: stateLib.address,
+      },
+    });
+    const stateLibWrapper = await StateLibWrapper.deploy();
+    await stateLibWrapper.deployed();
+    this.enableLogging &&
+      this.log(`${contractName} deployed to:  ${stateLibWrapper.address}`);
+
+    return stateLibWrapper;
+  }
+
+  async deployBinarySearchTestWrapper(): Promise<Contract> {
+    const owner = this.signers[0];
+
+    this.log("deploying poseidons...");
+    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons(
+      owner,
+      [2, 3]
+    );
+
+    const smtLib = await this.deploySmtLib(
+      poseidon2Elements.address,
+      poseidon3Elements.address
+    );
+
+    const bsWrapperName = "BinarySearchTestWrapper";
+    const BSWrapper = await ethers.getContractFactory(bsWrapperName, {
+      libraries: {
+        SmtLib: smtLib.address,
+      },
+    });
     const bsWrapper = await BSWrapper.deploy();
     await bsWrapper.deployed();
     this.enableLogging &&
-      this.log(`${contractName} deployed to:  ${bsWrapper.address}`);
+      this.log(`${bsWrapperName} deployed to:  ${bsWrapper.address}`);
 
     return bsWrapper;
-  }
-
-  async deployPoseidons(
-    deployer: SignerWithAddress,
-    poseidonSizeParams: number[]
-  ): Promise<Contract[]> {
-    poseidonSizeParams.forEach((size) => {
-      if (![1, 2, 3, 4, 5, 6].includes(size)) {
-        throw new Error(
-          `Poseidon should be integer in a range 1..6. Poseidon size provided: ${size}`
-        );
-      }
-    });
-
-    const deployPoseidon = async (params: number) => {
-      const abi = poseidonContract.generateABI(params);
-      const code = poseidonContract.createCode(params);
-      const PoseidonElements = new ethers.ContractFactory(abi, code, deployer);
-      const poseidonElements = await PoseidonElements.deploy();
-      await poseidonElements.deployed();
-      this.enableLogging &&
-        this.log(
-          `Poseidon${params}Elements deployed to:`,
-          poseidonElements.address
-        );
-      return poseidonElements;
-    };
-
-    const result: Contract[] = [];
-    for (const size of poseidonSizeParams) {
-      result.push(await deployPoseidon(size));
-    }
-
-    return result;
   }
 
   async deploySearchUtils(stateContract: Contract): Promise<{
@@ -316,9 +331,7 @@ export class StateDeployHelper {
     const SearchUtilsFactory = await ethers.getContractFactory("SearchUtils");
     const searchUtils = await SearchUtilsFactory.deploy(stateContract.address);
     await searchUtils.deployed();
-    this.log(
-      `Search utils deployed to address ${searchUtils.address} from ${owner.address}`
-    );
+    this.log(`Search utils deployed to address ${searchUtils.address} from ${owner.address}`);
 
     return {
       searchUtils,
