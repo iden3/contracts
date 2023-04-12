@@ -2,9 +2,10 @@
 pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import "../interfaces/IState.sol";
+import "../interfaces/IStateTransitionVerifier.sol";
 import "../lib/SmtLib.sol";
 import "../lib/Poseidon.sol";
-import "../interfaces/IStateTransitionVerifier.sol";
 import "../lib/StateLib.sol";
 
 /// @title Set and get states for each identity

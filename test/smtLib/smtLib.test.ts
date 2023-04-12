@@ -1761,11 +1761,12 @@ describe("Edge cases with exceptions", () => {
 });
 
 describe("maxDepth setting tests", () => {
+  const maxDepth = 64;
   let smt;
 
   before(async () => {
     const deployHelper = await StateDeployHelper.initialize();
-    smt = await deployHelper.deploySmtLibTestWrapper();
+    smt = await deployHelper.deploySmtLibTestWrapper(maxDepth);
   });
 
   it("Max depth should be 64", async () => {
@@ -1869,12 +1870,14 @@ function isProofByHistoricalRoot(proof: ParamsProof): proof is ParamsProofByHist
   }
   return (proof as ParamsProofByHistoricalRoot).historicalRoot !== undefined;
 }
+
 function isProofByTime(proof: ParamsProof): proof is ParamsProofByTime {
   if (typeof proof !== "object") {
     return false;
   }
   return (proof as ParamsProofByTime).timestamp !== undefined;
 }
+
 function isProofByBlock(proof: ParamsProof): proof is ParamsProofByBlock {
   if (typeof proof !== "object") {
     return false;

@@ -2,9 +2,7 @@
 pragma solidity 0.8.16;
 
 import "./Poseidon.sol";
-import "../interfaces/IState.sol";
 import "./ArrayUtils.sol";
-import "hardhat/console.sol";
 
 /// @title A sparse merkle tree implementation, which keeps tree history.
 // Note that this SMT implementation can manage duplicated roots in the history,
