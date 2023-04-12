@@ -51,6 +51,11 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      */
     event StateUpdated(uint256 id, uint256 blockN, uint256 timestamp, uint256 state);
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     /**
      * @dev Initialize the contract
      * @param verifierContractAddr Verifier address
