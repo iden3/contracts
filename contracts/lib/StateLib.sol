@@ -76,6 +76,15 @@ library StateLib {
     }
 
     /**
+     * @dev event called when a state is updated
+     * @param id identity
+     * @param blockN Block number when the state has been committed
+     * @param timestamp Timestamp when the state has been committed
+     * @param state Identity state committed
+     */
+    event StateUpdated(uint256 id, uint256 blockN, uint256 timestamp, uint256 state);
+
+    /**
      * @dev Revert if identity does not exist in the contract
      * @param id Identity
      */
@@ -279,8 +288,9 @@ library StateLib {
         Entry[] storage stateEntries = self.stateEntries[id];
 
         stateEntries.push(Entry({state: state, timestamp: _timestamp, block: _block}));
-
         self.stateIndexes[id][state].push(stateEntries.length - 1);
+
+        emit StateUpdated(id, _block, _timestamp, state);
     }
 
     /**
