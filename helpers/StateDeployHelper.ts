@@ -52,6 +52,7 @@ export class StateDeployHelper {
   async deployStateV2(verifierContractName = "VerifierV2"): Promise<{
     state: Contract;
     verifier: Contract;
+    stateLib: Contract;
     smtLib: Contract;
     poseidon1: Contract;
     poseidon2: Contract;
@@ -107,7 +108,8 @@ export class StateDeployHelper {
     return {
       state: stateV2,
       verifier,
-      smtLib: smtLib,
+      stateLib,
+      smtLib,
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
