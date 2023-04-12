@@ -93,7 +93,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
             require(!idExists(id), "Old state is genesis but identity already exists");
 
             // Push old state to state entries, with zero timestamp and block
-            _stateData.addStateNoTimestampAndBlock(id, oldState);
+            _stateData.addGenesisState(id, oldState);
         } else {
             require(idExists(id), "Old state is not genesis but identity does not yet exist");
 

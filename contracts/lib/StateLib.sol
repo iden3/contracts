@@ -121,7 +121,7 @@ library StateLib {
      * @param id Identity
      * @param state State
      */
-    function addStateNoTimestampAndBlock(Data storage self, uint256 id, uint256 state) external {
+    function addGenesisState(Data storage self, uint256 id, uint256 state) external {
         require(
             !idExists(self, id),
             "Zero timestamp and block should be only in the first identity state"
