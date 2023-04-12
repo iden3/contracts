@@ -4,12 +4,14 @@ pragma solidity 0.8.16;
 import "../state/StateV2.sol";
 import "./SmtLib.sol";
 
+/// @title A common functions for arrays.
 library ArrayUtils {
     /**
      * @dev Calculates bounds for the slice of the array.
      * @param arrLength An array length.
      * @param start A start index.
      * @param length A length of the slice.
+     * @param limit A limit for the length.
      * @return The bounds for the slice of the array.
      */
     function calculateBounds(

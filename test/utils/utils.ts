@@ -42,7 +42,7 @@ export async function addStateToStateLib(
   noTimeAndBlock = false
 ) {
   const { blockNumber } = noTimeAndBlock
-    ? await stateLibWrapper.addStateNoTimestampAndBlock(id, state)
+    ? await stateLibWrapper.addGenesisState(id, state)
     : await stateLibWrapper.addState(id, state);
   const { timestamp } = await ethers.provider.getBlock(blockNumber);
 
