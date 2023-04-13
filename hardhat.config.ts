@@ -6,8 +6,7 @@ import "hardhat-gas-reporter";
 import "solidity-coverage";
 import "@openzeppelin/hardhat-upgrades";
 
-const DEFAULT_MNEMONIC =
-  "test test test test test test test test test test test junk";
+const DEFAULT_MNEMONIC = "test test test test test test test test test test test junk";
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -43,7 +42,12 @@ const config: HardhatUserConfig = {
     //     chainId: 80001,
     //     url: "url here",
     //     accounts: ["private key here"],
-    // },
+    // }
+    mumbai: {
+      chainId: 80001,
+      url: "https://polygon-mumbai.infura.io/v3/6796c7488d784b0bb3ffafd2e2696fef",
+      accounts: ["dc118b5238d3be5b562791b5adc2b148003efe0e1285073f1540fec5b14ba337"],
+    },
     localhost: {
       url: "http://127.0.0.1:8545",
       accounts: {
