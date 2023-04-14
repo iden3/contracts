@@ -12,8 +12,8 @@
   },
   "homepage": "https://github.com/iden3/contracts",
   "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.0.6",
-    "@nomiclabs/hardhat-etherscan": "^3.0.3",
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@nomiclabs/hardhat-etherscan": "^3.1.7",
     "@nomiclabs/hardhat-waffle": "^2.0.5",
     "@openzeppelin/hardhat-upgrades": "^1.19.0",
     "@openzeppelin/upgrades-core": "^1.24.1",
@@ -36,8 +36,8 @@
     "eslint-plugin-prettier": "^3.4.1",
     "eslint-plugin-promise": "^5.2.0",
     "ethereum-waffle": "^4.0.10",
-    "ethers": "^5.6.6",
-    "hardhat": "^2.9.7",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.13.1",
     "hardhat-gas-reporter": "^1.0.9",
     "prettier": "^2.8.1",
     "prettier-plugin-solidity": "^1.1.1",
@@ -49,7 +49,7 @@
     "typescript": "^4.6.4"
   },
   "dependencies": {
-    "@nomiclabs/hardhat-etherscan": "^3.0.3",
+    "@nomiclabs/hardhat-etherscan": "^3.1.7",
     "@openzeppelin/contracts": "^4.7.3",
     "@openzeppelin/contracts-upgradeable": "^4.8.2",
     "braces": ">=3.0.2",

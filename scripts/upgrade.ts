@@ -55,12 +55,12 @@ async function main() {
   // console.log("rootInfo: ", rootInfo);
 
   const migrationSteps = new StateTestContractMigrationSteps(stateDeployHelper, signers[0]);
-  // console.log(path.join(__dirname, "../helpers/StateV2_0_abi_2_1.json"));
-  const stateMeta = require("../helpers/StateV2_0_abi_2_1.json");
+  const abi = require("../helpers/StateV2_0_abi_2_1.json");
+  const bytecode = fs.readFileSync(path.join(__dirname, "../helpers/StateV2_0_abi_2_1.bytecode"));
 
   const stateContract = await migrationSteps.getInitContract({
-    abi: stateMeta.abi,
-    bytecode: stateMeta.bytecode,
+    abi,
+    bytecode,
   });
 
   console.log("stateContract: ", stateContract);

@@ -1,7 +1,7 @@
 import { StateDeployHelper } from "./StateDeployHelper";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
-import { Contract } from "ethers";
+import { BytesLike, Contract, ContractFactory, ContractInterface } from "ethers";
 
 import * as fs from "fs";
 import { publishState, toJson } from "../test/utils/deploy-utils";
@@ -41,8 +41,8 @@ export interface IContractMigrationSteps {
   getInitContract(contractMeta: {
     address?: string;
     contractName?: string;
-    abi?: string;
-    bytecode?: string;
+    abi?: ContractInterface;
+    bytecode?: string | BytesLike;
   }): Promise<Contract>;
 
   makeProvisioning(contract: Contract): Promise<void>;
@@ -71,11 +71,11 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
 
   abstract makeProvisioning(contract: Contract): Promise<void>;
 
-  getInitContract(contractMeta: {
+  async getInitContract(contractMeta: {
     address?: string;
     contractName?: string;
-    abi?: string;
-    bytecode?: string;
+    abi?: ContractInterface;
+    bytecode?: string | BytesLike;
   }): Promise<Contract> {
     if (Object.keys(contractMeta).every((key) => !contractMeta[key])) {
       throw new Error("contract meta is empty");
@@ -86,11 +86,20 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
     }
 
     if (contractMeta.abi && contractMeta.bytecode) {
-      return new ethers.ContractFactory(
-        contractMeta.abi,
-        contractMeta.bytecode,
-        this._signer
-      ).deploy();
+      let factory: ContractFactory;
+      try {
+        factory = new ethers.ContractFactory(contractMeta.abi, contractMeta.bytecode, this._signer);
+      } catch (e) {
+        console.log("factory", e);
+      }
+
+      try {
+        const contract = await factory!.deploy();
+        console.log("contract address", contract.address);
+        return contract;
+      } catch (e) {
+        console.log("error", e);
+      }
     }
 
     throw new Error("Invalid contract meta");
