@@ -54,7 +54,11 @@ async function main() {
   // const rootInfo = await state2.getGISTRootInfo(root);
   // console.log("rootInfo: ", rootInfo);
 
-  const migrationSteps = new StateTestContractMigrationSteps(stateDeployHelper, signers[0]);
+  const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545");
+  const privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+  const wallet = new ethers.Wallet(privateKey, provider);
+
+  const migrationSteps = new StateTestContractMigrationSteps(stateDeployHelper, wallet);
   const abi = require("../helpers/StateV2_0_abi_2_1.json");
   const bytecode = fs.readFileSync(path.join(__dirname, "../helpers/StateV2_0_abi_2_1.bytecode"));
 

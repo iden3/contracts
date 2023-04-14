@@ -1,7 +1,7 @@
 import { StateDeployHelper } from "./StateDeployHelper";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
-import { BytesLike, Contract, ContractFactory, ContractInterface } from "ethers";
+import { BytesLike, Contract, ContractInterface, Wallet } from "ethers";
 
 import * as fs from "fs";
 import { publishState, toJson } from "../test/utils/deploy-utils";
@@ -67,11 +67,11 @@ export interface IContractMigrationSteps {
 }
 
 export abstract class ContractMigrationSteps implements IContractMigrationSteps {
-  constructor(protected readonly _signer: SignerWithAddress) {}
+  constructor(protected readonly _signer: SignerWithAddress | Wallet) {}
 
   abstract makeProvisioning(contract: Contract): Promise<void>;
 
-  async getInitContract(contractMeta: {
+  getInitContract(contractMeta: {
     address?: string;
     contractName?: string;
     abi?: ContractInterface;
@@ -86,20 +86,15 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
     }
 
     if (contractMeta.abi && contractMeta.bytecode) {
-      let factory: ContractFactory;
-      try {
-        factory = new ethers.ContractFactory(contractMeta.abi, contractMeta.bytecode, this._signer);
-      } catch (e) {
-        console.log("factory", e);
-      }
+      const factory = new ethers.ContractFactory(
+        contractMeta.abi,
+        contractMeta.bytecode,
+        this._signer
+      );
 
-      try {
-        const contract = await factory!.deploy();
-        console.log("contract address", contract.address);
-        return contract;
-      } catch (e) {
-        console.log("error", e);
-      }
+      return factory.deploy({
+        gasLimit: 10_000_000,
+      });
     }
 
     throw new Error("Invalid contract meta");
@@ -201,7 +196,7 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
 export class StateTestContractMigrationSteps extends ContractMigrationSteps {
   constructor(
     private readonly _stateDeployHelper: StateDeployHelper,
-    protected readonly _signer: SignerWithAddress
+    protected readonly _signer: SignerWithAddress | Wallet
   ) {
     super(_signer);
   }
