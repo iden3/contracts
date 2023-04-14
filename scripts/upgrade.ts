@@ -3,36 +3,14 @@ import path from "path";
 import { StateDeployHelper } from "../helpers/StateDeployHelper";
 import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
-import { getImplementationAddress } from "@openzeppelin/upgrades-core";
+import { StateTestContractMigrationSteps } from "../helpers/MigrationHelper";
+import { log } from "console";
+
 const pathOutputJson = path.join(__dirname, "./upgrade_output.json");
 
 async function main() {
   const signers = await ethers.getSigners();
-  const stateDeployHelper = await StateDeployHelper.initialize(signers, true);
-
-  // const stateMumbaiProxy = await ethers.getContractAt(
-  //   "StateV2",
-  //   "0x134B1BE34911E39A8397ec6289782989729807a4",
-  //   signers[0]
-  // );
-
-  // const stateMumbaiAddress = await getImplementationAddress(
-  //   stateMumbaiProxy.provider,
-  //   stateMumbaiProxy.address
-  // );
-
-  // console.log(stateMumbaiAddress);
-
-  const stateMumbaiProxy = await ethers.getContractAt(
-    "State",
-    "0x134B1BE34911E39A8397ec6289782989729807a4",
-    signers[0]
-  );
-
-  console.log(stateMumbaiProxy);
-
-  await stateDeployHelper.readEventLogData(stateMumbaiProxy, 31778986, 500);
-
+  const stateDeployHelper = await StateDeployHelper.initialize(signers[0], true);
   // const proxyAddress = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853";
 
   // const { state, verifier, smtLib, poseidon1, poseidon2, poseidon3 } =
@@ -75,6 +53,17 @@ async function main() {
   // console.log("root: ", root);
   // const rootInfo = await state2.getGISTRootInfo(root);
   // console.log("rootInfo: ", rootInfo);
+
+  const migrationSteps = new StateTestContractMigrationSteps(stateDeployHelper, signers[0]);
+  // console.log(path.join(__dirname, "../helpers/StateV2_0_abi_2_1.json"));
+  const stateMeta = require("../helpers/StateV2_0_abi_2_1.json");
+
+  const stateContract = await migrationSteps.getInitContract({
+    abi: stateMeta.abi,
+    bytecode: stateMeta.bytecode,
+  });
+
+  console.log("stateContract: ", stateContract);
 }
 
 main()
