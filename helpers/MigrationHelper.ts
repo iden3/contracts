@@ -93,7 +93,7 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
       );
 
       return factory.deploy({
-        gasLimit: 10_000_000,
+        gasLimit: 30_000_000,
       });
     }
 

@@ -67,7 +67,9 @@ async function main() {
     bytecode,
   });
 
-  console.log("stateContract: ", stateContract);
+  const statev2 = await stateDeployHelper.deployStateV2();
+
+  // console.log("stateContract: ", stateContract);
 }
 
 main()
