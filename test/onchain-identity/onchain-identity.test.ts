@@ -28,7 +28,7 @@ describe("Next tests reproduce identity life cycle", function() {
     it("validate identity's id", async function () {
       const id = await identity.id();
       expect(id).to.be.equal(
-        445307576041273966129146714946602093123957626136629497001119894618167443457n
+        20318741244951419790279970260471061329920784847526059589266894371380597378n
       );
     });
   });
