@@ -155,7 +155,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
             "only calls from smart contracts allowed"
         );
 
-        uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(msg.sender);
+        uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(0x8212, msg.sender);
         require(
             calcId == id,
             "msg.sender is not owner of the identity"

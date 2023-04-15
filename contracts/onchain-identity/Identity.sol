@@ -48,22 +48,23 @@ contract Identity is OwnableUpgradeable {
     uint256 public lastRevocationsTreeRoot;
     uint256 public lastRootsTreeRoot;
 
-//    bytes2 public constant IdentityTypeDefault = 0x0000;
-//    bytes2 public constant IdentityTypeOnchain = 0x8000;
-
     function initialize(
         address _stateContractAddr
     ) public initializer {
         state = IState(_stateContractAddr);
         isOldStateGenesis = true;
+
         claimsTree.initialize(IDENTITY_MAX_SMT_DEPTH);
         revocationsTree.initialize(IDENTITY_MAX_SMT_DEPTH);
         rootsTree.initialize(IDENTITY_MAX_SMT_DEPTH);
+
         // TODO: should we add contract address claim to claimsTree?
         claimsTree.addLeaf(0, uint256(uint160(address(this))));
         lastClaimsTreeRoot = claimsTree.getRoot();
         identityState = calcIdentityState();
-        id = GenesisUtils.calcOnchainIdFromAddress(address(this));
+
+        id = GenesisUtils.calcOnchainIdFromAddress(0x8212, address(this));
+
         __Ownable_init();
     }
 

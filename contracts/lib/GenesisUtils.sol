@@ -4,9 +4,6 @@ pragma solidity 0.8.16;
 import "solidity-bytes-utils/contracts/BytesLib.sol";
 
 library GenesisUtils {
-    bytes2 public constant IdentityTypeDefault = 0x0000;
-    bytes2 public constant IdentityTypeOnchain = 0x0100;
-
     /**
      * @dev int256ToBytes
      */
@@ -79,7 +76,23 @@ library GenesisUtils {
      * @dev compareStrings
      */
     function compareStrings(string memory a, string memory b) internal pure returns (bool) {
+        if (bytes(a).length != bytes(b).length) {
+            return false;
+        }
         return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))));
+    }
+
+    /**
+     * @dev isGenesisState
+     */
+    function isGenesisState(uint256 id, uint256 idState) internal pure returns (bool)
+    {
+        // TODO: get idType from id itself
+        bytes2 idType = 0x8212;
+
+        uint256 computedId = calcIdFromGenesisState(idType, idState);
+
+        return id == computedId;
     }
 
     /**
@@ -101,6 +114,11 @@ library GenesisUtils {
 
         bytes memory checkSumBytes = abi.encodePacked(s);
 
+        bytes1 tmp;
+        tmp = checkSumBytes[0];
+        checkSumBytes[0] = checkSumBytes[1];
+        checkSumBytes[1] = tmp;
+
         bytes memory idBytes = BytesLib.concat(beforeChecksum, checkSumBytes);
         require(idBytes.length == 31, "idBytes requires 31 length array");
 
@@ -110,28 +128,12 @@ library GenesisUtils {
     /**
      * @dev calcOnchainIdFromAddress
      */
-    function calcOnchainIdFromAddress(address caller)
-    internal
-    pure
-    returns (uint256)
+    function calcOnchainIdFromAddress(bytes2 idType, address caller) internal pure returns (uint256)
     {
-        // shift address left 5 bytes, because calcIdFromGenesisState cuts last 5 bytes
-        // TODO: do we need to reverse bytes of addrShifted???
-        uint256 addrShifted = uint256(uint160(caller)) << 40;
-        return calcIdFromGenesisState(IdentityTypeOnchain, addrShifted);
-    }
-
-    /**
-     * @dev isGenesisState
-     */
-    function isGenesisState(uint256 id, uint256 idState)
-        internal
-        pure
-        returns (bool)
-    {
-        uint256 computedId = calcIdFromGenesisState(IdentityTypeDefault, idState);
-
-        return id == computedId;
+        // shift address left 7 bytes, because calcIdFromGenesisState cuts last 5 bytes after swapping endianness:
+        // 32 bytes of uint256 - 20bytes of address - 5 bytes cut by calcIdFromGenesisState == 7 bytes shift
+        uint256 addrShifted = reverse(uint256(uint160(caller))<<56);
+        return calcIdFromGenesisState(idType, addrShifted);
     }
 
     /**
