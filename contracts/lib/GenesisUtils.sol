@@ -87,10 +87,13 @@ library GenesisUtils {
      */
     function isGenesisState(uint256 id, uint256 idState) internal pure returns (bool)
     {
-        // TODO: get idType from id itself
-        bytes2 idType = 0x8212;
+        bytes memory idBytes = int256ToBytes(id);
 
-        uint256 computedId = calcIdFromGenesisState(idType, idState);
+        bytes memory idType;
+        idType[0] = idBytes[0];
+        idType[1] = idBytes[1];
+
+        uint256 computedId = calcIdFromGenesisState(bytes2(idType), idState);
 
         return id == computedId;
     }
