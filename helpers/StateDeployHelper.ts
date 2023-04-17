@@ -238,87 +238,6 @@ export class StateDeployHelper {
     };
   }
 
-  async readEventLogData(
-    contract: any,
-    firstEventBlock: number, //29831814
-    eventsChunkSize: number,
-    eventName = "StateUpdated"
-  ): Promise<any[]> {
-    const filter = contract.filters[eventName](null, null, null, null);
-    const latestBlock = await ethers.provider.getBlock("latest");
-    this.log("startBlock", firstEventBlock, "latestBlock Number", latestBlock.number);
-
-    let stateTransitionHistory: unknown[] = [];
-
-    for (let index = firstEventBlock; index <= latestBlock.number; index += eventsChunkSize) {
-      let pagedHistory;
-      try {
-        pagedHistory = await contract.queryFilter(filter, index, index + eventsChunkSize - 1);
-      } catch (error) {
-        console.error(error);
-      }
-      this.log(
-        `state transition history length: ${pagedHistory.length}, current block number: ${index}, latest block number: ${latestBlock.number}`
-      );
-      stateTransitionHistory = [...stateTransitionHistory, ...pagedHistory];
-    }
-    this.log(`Total events count: ${stateTransitionHistory.length}`);
-
-    // save data to file
-    this.writeFile("events-data.json", stateTransitionHistory);
-
-    return stateTransitionHistory;
-  }
-
-  async populateSmtByStateEvents(stateContract: any, stateTransitionHistory: any[]): Promise<void> {
-    const result: {
-      migratedData: any[];
-      error: unknown;
-      index: number;
-      receipt: { status: number } | null;
-    } = {
-      migratedData: [],
-      receipt: null,
-      error: null,
-      index: 0,
-    };
-    for (let index = 0; index < stateTransitionHistory.length; index++) {
-      const [id, block, timestamp, state] = stateTransitionHistory[index].args;
-      result.index = index;
-      try {
-        const tx = await stateContract.addToSmtDirectly(id, state, timestamp, block);
-        const receipt = await tx.wait();
-        result.migratedData.push({
-          id,
-          state,
-          timestamp,
-          block,
-          tx: tx.hash,
-        });
-        if (receipt.status !== 1) {
-          result.receipt = receipt;
-          result.error = "receipt status failed";
-          break;
-        }
-      } catch (error) {
-        console.error(error);
-
-        result.error =
-          typeof error === "string"
-            ? error
-            : JSON.stringify(error, Object.getOwnPropertyNames(error));
-
-        break;
-      }
-    }
-    if (!result.error) {
-      this.log("migration completed successfully");
-    } else {
-      this.log("migration error", result.error, result.receipt);
-    }
-    this.writeFile("migration-result.json", result);
-  }
-
   async deploySmtLib(
     poseidon2Address: string,
     poseidon3Address: string,
@@ -421,10 +340,6 @@ export class StateDeployHelper {
     return {
       searchUtils,
     };
-  }
-
-  private writeFile(fileName: string, data: any): void {
-    fs.writeFileSync(fileName, toJson(data));
   }
 
   private log(...args): void {

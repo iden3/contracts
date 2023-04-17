@@ -1,16 +1,15 @@
 import fs from "fs";
 import path from "path";
 import { StateDeployHelper } from "../helpers/StateDeployHelper";
-import { BigNumber } from "ethers";
+import { BigNumber, Signer } from "ethers";
 import { ethers } from "hardhat";
 import { StateTestContractMigrationSteps } from "../helpers/MigrationHelper";
-import { log } from "console";
 
 const pathOutputJson = path.join(__dirname, "./upgrade_output.json");
 
 async function main() {
   const signers = await ethers.getSigners();
-  const stateDeployHelper = await StateDeployHelper.initialize(signers[0], true);
+  const stateDeployHelper = await StateDeployHelper.initialize(null, true);
   // const proxyAddress = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853";
 
   // const { state, verifier, smtLib, poseidon1, poseidon2, poseidon3 } =
@@ -54,22 +53,97 @@ async function main() {
   // const rootInfo = await state2.getGISTRootInfo(root);
   // console.log("rootInfo: ", rootInfo);
 
-  const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545");
-  const privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
-  const wallet = new ethers.Wallet(privateKey, provider);
+  const migrationSteps = new StateTestContractMigrationSteps(stateDeployHelper, signers[0]);
 
-  const migrationSteps = new StateTestContractMigrationSteps(stateDeployHelper, wallet);
-  const abi = require("../helpers/StateV2_0_abi_2_1.json");
-  const bytecode = fs.readFileSync(path.join(__dirname, "../helpers/StateV2_0_abi_2_1.bytecode"));
-
-  const stateContract = await migrationSteps.getInitContract({
-    abi,
-    bytecode,
+  const initStateContract = await migrationSteps.getInitContract({
+    contractNameOrAbi: require("../helpers/StateV2_0_abi_2_1.json"),
+    address: "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
   });
 
-  const statev2 = await stateDeployHelper.deployStateV2();
+  const statesWithProofs = [
+    require("../test/state/data/user_state_genesis_transition.json"),
+    require("../test/validators/common-data/issuer_genesis_state.json"),
+    require("../test/validators/common-data/issuer_next_state_transition.json"),
+    require("../test/state/data/user_state_next_transition.json"),
+  ];
+  await migrationSteps.populateData(initStateContract, statesWithProofs);
 
-  // console.log("stateContract: ", stateContract);
+  console.log("============= Start: upgradeToStateV2_migration =============");
+  const { state: stateMigration, verifier } = await stateDeployHelper.upgradeToStateV2_migration(
+    initStateContract.address
+  );
+  console.log("============= Finish: upgradeToStateV2_migration =============");
+
+  console.log("============= Start: initForMigration =============");
+  await stateMigration.initForMigration(verifier.address);
+  console.log("============= Finish: initForMigration =============");
+
+  const logHistory = await migrationSteps.readEventLogData(initStateContract, 0, 500);
+  const genesisStatePublishLog = {};
+
+  const getGenesisState = (stateInfo) => {
+    const genesisState = stateInfo.find(
+      (info) =>
+        info.replacedAtBlock.toString() === "0" && info.replacedAtTimestamp.toString() === "0"
+    );
+
+    return genesisState;
+  };
+
+  await migrationSteps.migrateData(logHistory, async (args) => {
+    const stateInfos = await stateMigration.getStateInfoHistoryById(args.id);
+    console.log("stateInfos: ", stateInfos);
+    const txs: unknown[] = [];
+    if (!genesisStatePublishLog[args.id]) {
+      const genesisState = stateInfos.find(
+        (info) =>
+          info.replacedAtBlock.toString() === "0" && info.replacedAtTimestamp.toString() === "0"
+      );
+      if (!genesisState) {
+        throw new Error("Genesis state not found");
+      }
+      genesisStatePublishLog[genesisState.id] = true;
+      console.log("genesisState: ", genesisState);
+      const tx = await stateMigration.addStateWithTimestampAndBlock(
+        genesisState.id,
+        genesisState.state,
+        genesisState.createdAtTimestamp,
+        genesisState.createdAtBlock
+      );
+      console.log("genesisState tx: ", tx.hash);
+
+      txs.push(tx);
+    }
+    console.log(
+      "add regular state from event log",
+      args.id.toString(),
+      args.state.toString(),
+      args.timestamp.toString(),
+      args.blockN.toString()
+    );
+
+    const tx = await stateMigration.addStateWithTimestampAndBlock(
+      args.id,
+      args.state,
+      args.timestamp,
+      args.blockN
+    );
+    txs.push(tx);
+
+    console.log("stateInfos: ", stateInfos);
+
+    // for (let idx = 0; idx < stateInfos.length; idx++) {
+    //   const stateInfo = stateInfos[idx];
+    // }
+
+    // const { state, createdAtTimestamp: timestamp, createdAtBlock: blockNumber } = stateInfos[1];
+    // return await stateMigration.addStateWithTimestampAndBlock(id, state, timestamp, blockN);
+    return txs;
+  });
+
+  const { state: statev2 } = await stateDeployHelper.upgradeToStateV2(initStateContract.address);
+
+  // await migrationSteps.
 }
 
 main()

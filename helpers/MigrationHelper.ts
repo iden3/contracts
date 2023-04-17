@@ -6,6 +6,20 @@ import { BytesLike, Contract, ContractInterface, Wallet } from "ethers";
 import * as fs from "fs";
 import { publishState, toJson } from "../test/utils/deploy-utils";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function log(target: any, key: string, descriptor: PropertyDescriptor) {
+  const originalMethod = descriptor.value;
+
+  descriptor.value = async function (...args: any[]) {
+    console.log(`========= Executing function ${key}...==========`);
+    const result = await originalMethod.apply(this, args);
+    console.log(`========= Finished executing function ${key} =========`);
+    return result;
+  };
+
+  return descriptor;
+}
+
 export interface EventLogEntry {
   blockNumber: number;
   blockHash: string;
@@ -45,7 +59,7 @@ export interface IContractMigrationSteps {
     bytecode?: string | BytesLike;
   }): Promise<Contract>;
 
-  makeProvisioning(contract: Contract): Promise<void>;
+  populateData(contract: Contract, stateTransitionPayload: any[]): Promise<void>;
 
   readEventLogData(
     contract: Contract,
@@ -69,37 +83,45 @@ export interface IContractMigrationSteps {
 export abstract class ContractMigrationSteps implements IContractMigrationSteps {
   constructor(protected readonly _signer: SignerWithAddress | Wallet) {}
 
-  abstract makeProvisioning(contract: Contract): Promise<void>;
+  abstract populateData(contract: Contract, stateTransitionPayload: any[]): Promise<void>;
 
+  abstract prepareMigration(contract: Contract): Promise<EventLogEntry[]>;
+
+  abstract upgradeContract(contract: Contract, afterUpgrade?: () => Promise<void>): Promise<any>;
+
+  @log
   getInitContract(contractMeta: {
+    contractNameOrAbi?: string | any[];
     address?: string;
-    contractName?: string;
-    abi?: ContractInterface;
-    bytecode?: string | BytesLike;
   }): Promise<Contract> {
     if (Object.keys(contractMeta).every((key) => !contractMeta[key])) {
       throw new Error("contract meta is empty");
     }
 
-    if (contractMeta.address && contractMeta.contractName) {
-      return ethers.getContractAt(contractMeta.contractName, contractMeta.address, this._signer);
-    }
-
-    if (contractMeta.abi && contractMeta.bytecode) {
-      const factory = new ethers.ContractFactory(
-        contractMeta.abi,
-        contractMeta.bytecode,
+    if (contractMeta.address && contractMeta.contractNameOrAbi) {
+      return ethers.getContractAt(
+        contractMeta.contractNameOrAbi,
+        contractMeta.address,
         this._signer
       );
-
-      return factory.deploy({
-        gasLimit: 30_000_000,
-      });
     }
+
+    // if (contractMeta.abi && contractMeta.bytecode) {
+    //   const factory = new ethers.ContractFactory(
+    //     contractMeta.abi,
+    //     contractMeta.bytecode,
+    //     this._signer
+    //   );
+
+    //   return factory.deploy({
+    //     gasLimit: 30_000_000,
+    //   });
+    // }
 
     throw new Error("Invalid contract meta");
   }
 
+  @log
   async readEventLogData(
     contract: Contract,
     firstEventBlock: number, //29831814
@@ -135,10 +157,7 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
     return logHistory;
   }
 
-  abstract prepareMigration(contract: Contract): Promise<EventLogEntry[]>;
-
-  abstract upgradeContract(contract: Contract, afterUpgrade?: () => Promise<void>): Promise<any>;
-
+  @log
   async migrateData(
     data: EventLogEntry[],
     populateDataFn: (...args) => Promise<any>,
@@ -154,17 +173,18 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
       result.index = idx;
       try {
         const args = data[idx].args;
-        const tx = await populateDataFn(args);
-        const receipt = await tx.wait();
-        result.migratedData.push({
-          args,
-          tx: tx.hash,
-        });
-
-        if (receipt.status !== 1) {
-          result.receipt = receipt;
-          result.error = "receipt status failed";
-          break;
+        const txs = await populateDataFn(args);
+        for (const tx of txs) {
+          const receipt = await tx.wait();
+          result.migratedData.push({
+            args,
+            tx: tx.hash,
+          });
+          if (receipt.status !== 1) {
+            result.receipt = receipt;
+            result.error = "receipt status failed";
+            break;
+          }
         }
       } catch (error) {
         console.error(error);
@@ -173,16 +193,14 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
           typeof error === "string"
             ? error
             : JSON.stringify(error, Object.getOwnPropertyNames(error));
+        console.log("migration error", result.error, result.receipt);
 
-        break;
+        this.writeFile(fileName, result);
+        throw error;
       }
     }
 
-    if (!result.error) {
-      console.log("migration completed successfully");
-    } else {
-      console.log("migration error", result.error, result.receipt);
-    }
+    console.log("migration completed successfully");
     this.writeFile(fileName, result);
 
     return result;
@@ -201,19 +219,15 @@ export class StateTestContractMigrationSteps extends ContractMigrationSteps {
     super(_signer);
   }
 
-  async makeProvisioning(contract: Contract): Promise<void> {
-    const statesWithProofs = [
-      require("issuer_genesis_state.json"),
-      require("issuer_next_state_transition.json"),
-      require("user_state_transition.json"),
-    ];
-
-    for (let idx = 0; idx < statesWithProofs.length; idx++) {
-      const state = statesWithProofs[idx];
+  @log
+  async populateData(contract: Contract, stateTransitionPayload: any[]): Promise<void> {
+    for (let idx = 0; idx < stateTransitionPayload.length; idx++) {
+      const state = stateTransitionPayload[idx];
       await publishState(contract, state);
     }
   }
 
+  @log
   async prepareMigration(contract: Contract): Promise<EventLogEntry[]> {
     const { state, verifier, smtLib, poseidon1, poseidon2, poseidon3 } =
       await this._stateDeployHelper.upgradeToStateV2_migration(contract.address);
@@ -244,6 +258,7 @@ export class StateTestContractMigrationSteps extends ContractMigrationSteps {
     return entries;
   }
 
+  @log
   async upgradeContract(contract: Contract): Promise<void> {
     const { state } = await this._stateDeployHelper.upgradeToStateV2_migration(contract.address);
     await contract.upgradeToStateV2(state.address);
