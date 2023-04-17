@@ -5,7 +5,7 @@ import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "../test/utils/deploy-poseidons.util";
 
-const GIST_MAX_DEPTH = 64;
+const SMT_MAX_DEPTH = 64;
 
 export class StateDeployHelper {
   constructor(
@@ -52,6 +52,7 @@ export class StateDeployHelper {
   async deployStateV2(verifierContractName = "VerifierV2"): Promise<{
     state: Contract;
     verifier: Contract;
+    stateLib: Contract;
     smtLib: Contract;
     poseidon1: Contract;
     poseidon2: Contract;
@@ -107,7 +108,8 @@ export class StateDeployHelper {
     return {
       state: stateV2,
       verifier,
-      smtLib: smtLib,
+      stateLib,
+      smtLib,
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
@@ -244,7 +246,7 @@ export class StateDeployHelper {
     return stateLib;
   }
 
-  async deploySmtLibTestWrapper(maxDepth?: number): Promise<Contract> {
+  async deploySmtLibTestWrapper(maxDepth: number = SMT_MAX_DEPTH): Promise<Contract> {
     const contractName = "SmtLibTestWrapper";
     const owner = this.signers[0];
 
@@ -264,7 +266,7 @@ export class StateDeployHelper {
         SmtLib: smtLib.address,
       },
     });
-    const smtWrapper = await SmtWrapper.deploy(maxDepth ?? GIST_MAX_DEPTH);
+    const smtWrapper = await SmtWrapper.deploy(maxDepth);
     await smtWrapper.deployed();
     this.enableLogging &&
       this.log(`${contractName} deployed to:  ${smtWrapper.address}`);
