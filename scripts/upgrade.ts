@@ -81,15 +81,6 @@ async function main() {
   const logHistory = await migrationSteps.readEventLogData(initStateContract, 0, 500);
   const genesisStatePublishLog = {};
 
-  const getGenesisState = (stateInfo) => {
-    const genesisState = stateInfo.find(
-      (info) =>
-        info.replacedAtBlock.toString() === "0" && info.replacedAtTimestamp.toString() === "0"
-    );
-
-    return genesisState;
-  };
-
   await migrationSteps.migrateData(logHistory, async (args) => {
     const stateInfos = await stateMigration.getStateInfoHistoryById(args.id);
     console.log("stateInfos: ", stateInfos);
@@ -97,7 +88,7 @@ async function main() {
     if (!genesisStatePublishLog[args.id]) {
       const genesisState = stateInfos.find(
         (info) =>
-          info.replacedAtBlock.toString() === "0" && info.replacedAtTimestamp.toString() === "0"
+          info.createdAtTimestamp.toString() === "0" && info.createdAtBlock.toString() === "0"
       );
       if (!genesisState) {
         throw new Error("Genesis state not found");

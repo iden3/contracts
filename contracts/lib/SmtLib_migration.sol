@@ -3,6 +3,7 @@ pragma solidity 0.8.16;
 
 import "./Poseidon.sol";
 import "./ArrayUtils.sol";
+import "hardhat/console.sol";
 
 library SmtLib_migration {
     /**
@@ -147,6 +148,9 @@ library SmtLib_migration {
 
         uint256 prevRoot = getRoot(self);
         uint256 newRoot = _addLeaf(self, node, prevRoot, 0);
+
+        console.log("addLeafWithTimestampAndBlock: hashed id: %s, state: %s", i, v);
+        console.log("addLeafWithTimestampAndBlock: prevRoot: %s, new root: %s", prevRoot, newRoot);
 
         _addEntry(self, newRoot, timestamp, blockNumber);
     }
