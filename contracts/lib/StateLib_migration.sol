@@ -21,6 +21,9 @@ library StateLib_migration {
         uint256 timestamp,
         uint256 blockNumber
     ) external {
+        if (timestamp == 0 || blockNumber == 0) {
+            require(self.stateEntries[id].length == 0, "Genesis state must be the first state of identity");
+        }
         self.stateEntries[id].push(Entry(state, timestamp, blockNumber));
         self.stateIndexes[id][state].push(self.stateEntries[id].length - 1);
     }
