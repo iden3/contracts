@@ -85,14 +85,16 @@ contract StateV2_migration is OwnableUpgradeable {
                 timestamp,
                 blockNumber
             );
-            // uint256 root = _gistData_migration.getRoot();
-            // uint256 expectedRoot = _gistData.rootHistory[_gistData.rootHistory.length - 1];
+            uint256 rootIndex = _gistData_migration.rootEntries.length - 1;
+            uint256 root = _gistData_migration.rootEntries[rootIndex].root;
+            uint256 expectedRoot = _gistData.rootHistory[rootIndex - 1];
+            console.log("rootIdx: %s", rootIndex);
 
-            // if (root != expectedRoot) {
-            //     console.log("Root %s", root);
-            //     console.log("Expected root %s", expectedRoot);
-            //     revert("Root mismatch");
-            // }
+            if (root != expectedRoot) {
+                console.log("Root %s", root);
+                console.log("Expected root %s", expectedRoot);
+                revert("Root mismatch");
+            }
         }
     }
 

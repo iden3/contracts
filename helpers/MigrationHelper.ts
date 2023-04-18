@@ -11,9 +11,14 @@ function log(target: any, key: string, descriptor: PropertyDescriptor) {
   const originalMethod = descriptor.value;
 
   descriptor.value = async function (...args: any[]) {
+    const start = Date.now();
     console.log(`========= Executing function ${key}...==========`);
     const result = await originalMethod.apply(this, args);
-    console.log(`========= Finished executing function ${key} =========`);
+    const end = Date.now();
+    const time = (end - start) / 1000;
+    console.log(
+      `========= Finished executing function ${key}, duration: ${time} seconds =========`
+    );
     return result;
   };
 
