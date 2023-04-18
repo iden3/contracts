@@ -2,7 +2,7 @@ import { deployGenesisUtilsWrapper } from "../utils/deploy-utils";
 import { expect } from "chai";
 
 
-describe.only("genesis state tests", function () {
+describe("genesis state tests", function () {
   let guWrpr;
 
   before(async () => {
@@ -10,49 +10,38 @@ describe.only("genesis state tests", function () {
   });
 
 
-  it("Provided id (Iden3, NoChain, NoNetwork) is genesis state", async () => {
-    const id= BigInt('0x01000000000000000000000000000000000000000000000000000000131400');
-    const genIdState = BigInt('0x13');
-    const genResult = await guWrpr.isGenesisState(id, genIdState);
-    await expect(genResult).to.be.equal(true);
+  it("check provided id in the genesis state", async () => {
+    const expectedResults = [
+      { // (Iden3, NoChain, NoNetwork)
+        id: '0x01000000000000000000000000000000000000000000000000000000131400',
+        genIdState: '0x13',
+        nonGenIdState: '0x12'
+      },
+      { // (PolygonId, NoChain, NoNetwork)
+        id: '0x02000000000000000000000000000000000000000000000000000000131500',
+        genIdState: '0x13',
+        nonGenIdState: '0x14'
+      },
+      { // (PolygonId, Polygon, Main)
+        id: '0x02110000000000000000000000000000000000000000000000000000132600',
+        genIdState: '0x13',
+        nonGenIdState: '0x25'
+      },
+      { // (PolygonId, Polygon, Mumbai)
+        id: '0x02120000000000000000000000000000000000000000000000000000132700',
+        genIdState: '0x13',
+        nonGenIdState: '0x32'
+      },
+    ];
 
-    const nonGenIdState = BigInt('0x12');
-    const nonGenResult = await guWrpr.isGenesisState(id, nonGenIdState);
-    await expect(nonGenResult).to.be.equal(false);
+    for (let i = 0; i < expectedResults.length; i++) {
+      const genResult = await guWrpr.isGenesisState(expectedResults[i].id, expectedResults[i].genIdState);
+      await expect(genResult).to.be.equal(true);
+
+      const nonGenResult = await guWrpr.isGenesisState(expectedResults[i].id, expectedResults[i].nonGenIdState);
+      await expect(nonGenResult).to.be.equal(false);
+    }
+
   });
-
-  it("Provided id (PolygonId, NoChain, NoNetwork) is genesis state", async () => {
-    const id= BigInt('0x02000000000000000000000000000000000000000000000000000000131500');
-    const genIdState = BigInt('0x13');
-    const genResult = await guWrpr.isGenesisState(id, genIdState);
-    await expect(genResult).to.be.equal(true);
-
-    const nonGenIdState = BigInt('0x14');
-    const nonGenResult = await guWrpr.isGenesisState(id, nonGenIdState);
-    await expect(nonGenResult).to.be.equal(false);
-  });
-
-  it("Provided id (PolygonId, Polygon, Main) is genesis state", async () => {
-    const id= BigInt('0x02110000000000000000000000000000000000000000000000000000132600');
-    const genIdState = BigInt('0x13');
-    const genResult = await guWrpr.isGenesisState(id, genIdState);
-    await expect(genResult).to.be.equal(true);
-
-    const nonGenIdState = BigInt('0x25');
-    const nonGenResult = await guWrpr.isGenesisState(id, nonGenIdState);
-    await expect(nonGenResult).to.be.equal(false);
-  });
-
-  it("Provided id (PolygonId, Polygon, Mumbai) is genesis state", async () => {
-    const id= BigInt('0x02120000000000000000000000000000000000000000000000000000132700');
-    const genIdState = BigInt('0x13');
-    const genResult = await guWrpr.isGenesisState(id, genIdState);
-    await expect(genResult).to.be.equal(true);
-
-    const nonGenIdState = BigInt('0x32');
-    const nonGenResult = await guWrpr.isGenesisState(id, nonGenIdState);
-    await expect(nonGenResult).to.be.equal(false);
-  });
-
  
 });
