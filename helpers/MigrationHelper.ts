@@ -241,6 +241,6 @@ export class StateTestContractMigrationSteps extends ContractMigrationSteps {
 
   @log
   async upgradeContract(contract: Contract): Promise<any> {
-    return await this._stateDeployHelper.upgradeToStateV2_migration(contract.address);
+    return await this._stateDeployHelper.upgradeToStateV2(contract.address);
   }
 }
