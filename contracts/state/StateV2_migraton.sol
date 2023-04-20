@@ -71,14 +71,7 @@ contract StateV2_migration is OwnableUpgradeable {
         uint256 blockNumber
     ) external onlyOwner {
         _stateData_migration.addStateWithTimestampAndBlock(id, state, timestamp, blockNumber);
-        console.log("addStateWithTimestampAndBlock id: %s, state: %s", id, state);
-        console.log(
-            "addStateWithTimestampAndBlock timestamp: %s, blockNumber: %s",
-            timestamp,
-            blockNumber
-        );
         if (timestamp > 0 && blockNumber > 0) {
-            console.log("addStateWithTimestampAndBlock hash id: %s", PoseidonUnit1L.poseidon([id]));
             _gistData_migration.addLeafWithTimestampAndBlock(
                 PoseidonUnit1L.poseidon([id]),
                 state,
@@ -88,7 +81,6 @@ contract StateV2_migration is OwnableUpgradeable {
             uint256 rootIndex = _gistData_migration.rootEntries.length - 1;
             uint256 root = _gistData_migration.rootEntries[rootIndex].root;
             uint256 expectedRoot = _gistData.rootHistory[rootIndex - 1];
-            console.log("rootIdx: %s", rootIndex);
 
             if (root != expectedRoot) {
                 console.log("Root %s", root);
