@@ -2,7 +2,6 @@ import { StateDeployHelper } from "./StateDeployHelper";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 import { BytesLike, Contract, ContractInterface, Wallet } from "ethers";
-
 import * as fs from "fs";
 import { publishState, toJson } from "../test/utils/deploy-utils";
 
@@ -74,8 +73,6 @@ export interface IContractMigrationSteps {
     fileName?: string
   ): Promise<EventLogEntry[]>;
 
-  prepareMigration(contract: Contract): Promise<EventLogEntry[]>;
-
   migrateData(
     data: EventLogEntry[],
     populateDataFn: (...args) => Promise<any>,
@@ -89,8 +86,6 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
   constructor(protected readonly _signer: SignerWithAddress | Wallet) {}
 
   abstract populateData(contract: Contract, stateTransitionPayload: any[]): Promise<void>;
-
-  abstract prepareMigration(contract: Contract): Promise<EventLogEntry[]>;
 
   abstract upgradeContract(contract: Contract, afterUpgrade?: () => Promise<void>): Promise<any>;
 
@@ -111,25 +106,13 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
       );
     }
 
-    // if (contractMeta.abi && contractMeta.bytecode) {
-    //   const factory = new ethers.ContractFactory(
-    //     contractMeta.abi,
-    //     contractMeta.bytecode,
-    //     this._signer
-    //   );
-
-    //   return factory.deploy({
-    //     gasLimit: 30_000_000,
-    //   });
-    // }
-
     throw new Error("Invalid contract meta");
   }
 
   @log
   async readEventLogData(
     contract: Contract,
-    firstEventBlock: number, //29831814
+    firstEventBlock: number,
     eventsChunkSize: number,
     eventName = "StateUpdated",
     fileName = "events-data.json"
@@ -143,7 +126,11 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
     for (let index = firstEventBlock; index <= latestBlock.number; index += eventsChunkSize) {
       let pagedHistory;
       try {
-        pagedHistory = await contract.queryFilter(filter, index, index + eventsChunkSize - 1);
+        const toBlock =
+          index + eventsChunkSize > latestBlock.number
+            ? latestBlock.number
+            : index + eventsChunkSize - 1;
+        pagedHistory = await contract.queryFilter(filter, index, toBlock);
       } catch (error) {
         console.error(error);
       }
@@ -178,12 +165,11 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
       result.index = idx;
       try {
         const args = data[idx].args;
-        const txs = await populateDataFn(args);
-        for (const tx of txs) {
-          const receipt = await tx.wait();
+        const receipts = await populateDataFn(args);
+        for (const receipt of receipts) {
           result.migratedData.push({
             args,
-            tx: tx.hash,
+            tx: receipt.transactionHash,
           });
           if (receipt.status !== 1) {
             result.receipt = receipt;
@@ -233,39 +219,28 @@ export class StateTestContractMigrationSteps extends ContractMigrationSteps {
   }
 
   @log
-  async prepareMigration(contract: Contract): Promise<EventLogEntry[]> {
-    const { state, verifier, smtLib, poseidon1, poseidon2, poseidon3 } =
-      await this._stateDeployHelper.upgradeToStateV2_migration(contract.address);
-
-    const outputJson = {
-      state: state.address,
-      verifier: verifier.address,
-      smtLib: smtLib.address,
-      poseidon1: poseidon1.address,
-      poseidon2: poseidon2.address,
-      poseidon3: poseidon3.address,
-      network: process.env.HARDHAT_NETWORK,
-    };
-    this.writeFile("upgradeToStateV2_migration.json", outputJson);
-
-    await state.initForMigration(verifier.address);
-
-    const entries = await this.readEventLogData(contract, 0, 10000, "StateUpdated", "");
-
-    //todo: isGeenesisState??
-    // for (const entry of entries) {
-    //   const { args } = entry;
-    //   const [id] = args;
-
-    //   const stateInfos = await state.getStateInfoHistoryById(id);
-    // }
-
-    return entries;
+  async getTxsFromEventDataByHash(eventLogs: EventLogEntry[], fileName = ""): Promise<any> {
+    const txHashes: unknown[] = [];
+    try {
+      for (let idx = 0; idx < eventLogs.length; idx++) {
+        const event = eventLogs[idx];
+        console.log(`index: ${idx}, event.transactionHash: ${event.transactionHash}`);
+        const tx = await this._signer.provider?.getTransaction(event.transactionHash);
+        txHashes.push(tx);
+      }
+    } catch (error) {
+      console.error(error);
+      throw error;
+    } finally {
+      if (fileName) {
+        this.writeFile(fileName, txHashes);
+      }
+    }
+    return txHashes;
   }
 
   @log
-  async upgradeContract(contract: Contract): Promise<void> {
-    const { state } = await this._stateDeployHelper.upgradeToStateV2_migration(contract.address);
-    await contract.upgradeToStateV2(state.address);
+  async upgradeContract(contract: Contract): Promise<any> {
+    return await this._stateDeployHelper.upgradeToStateV2_migration(contract.address);
   }
 }
