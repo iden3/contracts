@@ -1,6 +1,7 @@
 import { StateDeployHelper } from "../helpers/StateDeployHelper";
 import { ethers } from "hardhat";
 import { StateTestContractMigrationSteps } from "../helpers/MigrationHelper";
+import { Contract } from "ethers";
 
 /*
 1. deploy stateV2 to mumbai from feature/state-v3 branch
@@ -10,15 +11,81 @@ import { StateTestContractMigrationSteps } from "../helpers/MigrationHelper";
 5. run this script
 */
 
+export async function getDataFromContract(
+  contract: Contract,
+  id: bigint,
+  state: bigint
+): Promise<any> {
+  const stateInfoHistoryLengthById = await contract.getStateInfoHistoryLengthById(id);
+  const latestStateInfoById = await contract.getStateInfoById(id);
+  const stateInfoByIdAndState = await contract.getStateInfoByIdAndState(id, state);
+  const stateInfoHistory = await contract.getStateInfoHistoryById(id, 0, 3);
+  return {
+    stateInfoHistoryLengthById,
+    latestStateInfoById,
+    stateInfoByIdAndState,
+    stateInfoHistory,
+  };
+}
+
+function checkData(result1, result2): void {
+  const {
+    stateInfoHistoryLengthById: stateInfoHistoryLengthByIdV1,
+    latestStateInfoById: latestStateInfoByIdV1,
+    stateInfoByIdAndState: stateInfoByIdAndStateV1,
+    stateInfoHistory: stateInfoHistoryV1,
+  } = result1;
+
+  const {
+    stateInfoHistoryLengthById: stateInfoHistoryLengthByIdV2,
+    latestStateInfoById: latestStateInfoByIdV2,
+    stateInfoByIdAndState: stateInfoByIdAndStateV2,
+    stateInfoHistory: stateInfoHistoryV2,
+  } = result2;
+
+  console.log(stateInfoHistoryLengthByIdV2.toString());
+  console.log(latestStateInfoByIdV2.id.toString());
+  console.log(latestStateInfoByIdV2.state.toString());
+
+  console.assert(
+    stateInfoHistoryLengthByIdV2.toString() === stateInfoHistoryLengthByIdV1.toString(),
+    "length not equal"
+  );
+  console.assert(
+    latestStateInfoByIdV2.id.toString() === latestStateInfoByIdV1.id.toString(),
+    "latestStateInfoById id not equal"
+  );
+  console.assert(
+    latestStateInfoByIdV2.state.toString() === latestStateInfoByIdV1.state.toString(),
+    " latestStateInfoByIdV2 state not equal"
+  );
+  console.assert(
+    stateInfoByIdAndStateV2.id.toString() === stateInfoByIdAndStateV1.id.toString(),
+    "stateInfoByIdAndStateV2 id not equal"
+  );
+  console.assert(
+    stateInfoByIdAndStateV2.state.toString() === stateInfoByIdAndStateV1.state.toString(),
+    "stateInfoByIdAndStateV2 state not equal"
+  );
+  console.assert(
+    stateInfoHistoryV2.length === stateInfoHistoryV1.length && stateInfoHistoryV2.length !== 0,
+    "stateInfoHistoryV2 length not equal"
+  );
+}
+
 async function main() {
+  const testId = BigInt("0x0e2c0b248f9d0cd5e1ea6ba551f9ba76f4aa7276d1f89c109f8923063b1202");
+  const testState = BigInt("0x304754b7b338d8cc4f2b3ddaf94ec608a1470702784c40132ec18b48a2ee37d9");
   const signers = await ethers.getSigners();
   const stateDeployHelper = await StateDeployHelper.initialize(null, true);
   const migrationSteps = new StateTestContractMigrationSteps(stateDeployHelper, signers[0]);
 
   const initStateContract = await migrationSteps.getInitContract({
     contractNameOrAbi: require("../helpers/StateV2_0_abi_2_1.json"),
-    address: "0x60FEaDDc2E5cc3B74D9B49Cc9b0347636E4b6d6E",
+    address: "0xE18974E1ee74D3D1549089b5f1DC645d2a1Ad706",
   });
+
+  const result1 = await getDataFromContract(initStateContract, testId, testState);
 
   // const statesWithProofs = [
   //   require("../test/state/data/user_state_genesis_transition.json"),
@@ -40,10 +107,10 @@ async function main() {
 
   const logHistory = await migrationSteps.readEventLogData(
     initStateContract,
-    34572927,
+    34610704,
     1000,
     "StateUpdated",
-    "test.mumbai.eventLog.json"
+    "test.mumbai_final.eventLog.json"
   );
   const genesisStatePublishLog = {};
 
@@ -89,10 +156,15 @@ async function main() {
 
       return receipts;
     },
-    "migration.mumbai.receipts.json"
+    "migration.mumbai_final.receipts.json"
   );
 
-  const { state: statev2 } = await migrationSteps.upgradeContract(initStateContract);
+  const { state: stateV2 } = await migrationSteps.upgradeContract(initStateContract);
+
+  const result2 = await getDataFromContract(stateV2, testId, testState);
+
+  checkData(result1, result2);
+
   console.log("Contract Upgrade Finished");
 }
 
