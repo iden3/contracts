@@ -1,12 +1,11 @@
-import { StateDeployHelper } from "./StateDeployHelper";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 import { BytesLike, Contract, ContractInterface, Wallet } from "ethers";
 import * as fs from "fs";
-import { publishState, toJson } from "../test/utils/deploy-utils";
+import { toJson } from "../test/utils/deploy-utils";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function log(target: any, key: string, descriptor: PropertyDescriptor) {
+export function log(target: any, key: string, descriptor: PropertyDescriptor) {
   const originalMethod = descriptor.value;
 
   descriptor.value = async function (...args: any[]) {
@@ -65,9 +64,13 @@ export interface IContractMigrationSteps {
 
   populateData(contract: Contract, stateTransitionPayload: any[]): Promise<void>;
 
+  getDataFromContract(contract: Contract, ...args: any[]): Promise<any>;
+
+  checkData(...args: any[]): Promise<any>;
+
   readEventLogData(
     contract: Contract,
-    firstEventBlock: number, //29831814
+    firstEventBlock: number,
     eventsChunkSize: number,
     eventName?: string,
     fileName?: string
@@ -85,9 +88,13 @@ export interface IContractMigrationSteps {
 export abstract class ContractMigrationSteps implements IContractMigrationSteps {
   constructor(protected readonly _signer: SignerWithAddress | Wallet) {}
 
+  abstract getDataFromContract(contract: Contract, ...args: any[]): Promise<any>;
+
   abstract populateData(contract: Contract, stateTransitionPayload: any[]): Promise<void>;
 
   abstract upgradeContract(contract: Contract, afterUpgrade?: () => Promise<void>): Promise<any>;
+
+  abstract checkData(...args: any[]): Promise<any>;
 
   @log
   getInitContract(contractMeta: {
@@ -114,7 +121,7 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
     contract: Contract,
     firstEventBlock: number,
     eventsChunkSize: number,
-    eventName = "StateUpdated",
+    eventName: string,
     fileName = "events-data.json"
   ): Promise<any[]> {
     const filter = contract.filters[eventName](null, null, null, null);
@@ -141,7 +148,6 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
     }
     console.log(`Total events count: ${logHistory.length}`);
 
-    // save data to file
     if (fileName) {
       this.writeFile(fileName, logHistory);
     }
@@ -199,48 +205,5 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
 
   protected writeFile(fileName: string, data: unknown): void {
     fs.writeFileSync(fileName, toJson(data));
-  }
-}
-
-export class StateTestContractMigrationSteps extends ContractMigrationSteps {
-  constructor(
-    private readonly _stateDeployHelper: StateDeployHelper,
-    protected readonly _signer: SignerWithAddress | Wallet
-  ) {
-    super(_signer);
-  }
-
-  @log
-  async populateData(contract: Contract, stateTransitionPayload: any[]): Promise<void> {
-    for (let idx = 0; idx < stateTransitionPayload.length; idx++) {
-      const state = stateTransitionPayload[idx];
-      await publishState(contract, state);
-    }
-  }
-
-  @log
-  async getTxsFromEventDataByHash(eventLogs: EventLogEntry[], fileName = ""): Promise<any> {
-    const txHashes: unknown[] = [];
-    try {
-      for (let idx = 0; idx < eventLogs.length; idx++) {
-        const event = eventLogs[idx];
-        console.log(`index: ${idx}, event.transactionHash: ${event.transactionHash}`);
-        const tx = await this._signer.provider?.getTransaction(event.transactionHash);
-        txHashes.push(tx);
-      }
-    } catch (error) {
-      console.error(error);
-      throw error;
-    } finally {
-      if (fileName) {
-        this.writeFile(fileName, txHashes);
-      }
-    }
-    return txHashes;
-  }
-
-  @log
-  async upgradeContract(contract: Contract): Promise<any> {
-    return await this._stateDeployHelper.upgradeToStateV2(contract.address);
   }
 }

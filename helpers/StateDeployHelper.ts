@@ -1,6 +1,4 @@
 import { ethers, upgrades } from "hardhat";
-import { toJson } from "../test/utils/deploy-utils";
-import fs from "fs";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "../test/utils/deploy-poseidons.util";
