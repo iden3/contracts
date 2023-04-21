@@ -5,7 +5,6 @@ import "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import "../interfaces/IStateTransitionVerifier.sol";
 import "../lib/StateLib_migration.sol";
 import "../lib/SmtLib_migration.sol";
-import "hardhat/console.sol";
 
 /// @title Set and get states for each identity
 contract StateV2_migration is OwnableUpgradeable {
@@ -83,8 +82,6 @@ contract StateV2_migration is OwnableUpgradeable {
             uint256 expectedRoot = _gistData.rootHistory[rootIndex - 1];
 
             if (root != expectedRoot) {
-                console.log("Root %s", root);
-                console.log("Expected root %s", expectedRoot);
                 revert("Root mismatch");
             }
         }
