@@ -152,11 +152,7 @@ async function main() {
           genesisState.createdAtBlock
         );
         const receipt = await tx.wait();
-        console.log(
-          "published genesis state tx with hash: ",
-          receipt.transactionHash,
-          receipt.transactionHash === tx.hash
-        );
+        console.log("published genesis state tx with hash: ", receipt.transactionHash);
         receipts.push(receipt);
       }
 
@@ -169,7 +165,7 @@ async function main() {
       const receipt = await tx.wait();
       receipts.push(receipt);
 
-      console.log("receipt: ", receipt.transactionHash);
+      console.log("published state tx with hash: ", receipt.transactionHash);
 
       return receipts;
     },
