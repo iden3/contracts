@@ -11,7 +11,7 @@ library StateLib_migration {
     struct Data {
         mapping(uint256 => Entry[]) stateEntries;
         mapping(uint256 => mapping(uint256 => uint256[])) stateIndexes;
-        uint256[50] __gap;
+        uint256[48] __gap;
     }
 
     function addStateWithTimestampAndBlock(
