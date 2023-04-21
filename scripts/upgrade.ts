@@ -2,6 +2,7 @@ import { StateDeployHelper } from "../helpers/StateDeployHelper";
 import { ethers } from "hardhat";
 import { StateTestContractMigrationSteps } from "../helpers/MigrationHelper";
 import { Contract } from "ethers";
+import fs from "fs";
 
 /*
 1. deploy stateV2 to mumbai from feature/state-v3 branch
@@ -14,20 +15,32 @@ import { Contract } from "ethers";
 export async function getDataFromContract(
   contract: Contract,
   id: bigint,
-  state: bigint
+  state: bigint,
+  fileName: string
 ): Promise<any> {
   const stateInfoHistoryLengthById = await contract.getStateInfoHistoryLengthById(id);
   const latestStateInfoById = await contract.getStateInfoById(id);
   const stateInfoByIdAndState = await contract.getStateInfoByIdAndState(id, state);
   const stateInfoHistory = await contract.getStateInfoHistoryById(id, 0, 3);
   const root = await contract.getGISTRoot();
-  return {
+  const rootInfo = await contract.getGISTRootInfo(root);
+  const gistProof = await contract.getGISTProof(id);
+  const gistProofByRoot = await contract.getGISTProofByRoot(id, root);
+
+  const result = {
     stateInfoHistoryLengthById,
     latestStateInfoById,
     stateInfoByIdAndState,
     stateInfoHistory,
     root,
+    gistProof,
+    rootInfo,
+    gistProofByRoot,
   };
+
+  fs.writeFileSync(fileName, JSON.stringify(result, null, 2));
+
+  return result;
 }
 
 function checkData(result1, result2): void {
@@ -37,6 +50,9 @@ function checkData(result1, result2): void {
     stateInfoByIdAndState: stateInfoByIdAndStateV1,
     stateInfoHistory: stateInfoHistoryV1,
     root: rootV1,
+    gistProof: gistProofV1,
+    rootInfo: rootInfoV1,
+    gistProofByRoot: gistProofByRootV1,
   } = result1;
 
   const {
@@ -45,6 +61,9 @@ function checkData(result1, result2): void {
     stateInfoByIdAndState: stateInfoByIdAndStateV2,
     stateInfoHistory: stateInfoHistoryV2,
     root: rootV2,
+    gistProof: gistProofV2,
+    rootInfo: rootInfoV2,
+    gistProofByRoot: gistProofByRootV2,
   } = result2;
 
   console.log(stateInfoHistoryLengthByIdV2.toString());
@@ -78,6 +97,21 @@ function checkData(result1, result2): void {
     stateInfoHistoryV2.length === stateInfoHistoryV1.length && stateInfoHistoryV2.length !== 0,
     "stateInfoHistoryV2 length not equal"
   );
+
+  console.assert(
+    rootInfoV1.root.toString() === rootInfoV2.root.toString(),
+    "rootInfo root before upgrade is  not equal to rootInfo root after upgrade"
+  );
+
+  console.assert(
+    JSON.stringify(gistProofV1) === JSON.stringify(gistProofV2),
+    "gistProof before upgrade is  not equal to gistProof after upgrade"
+  );
+
+  console.assert(
+    JSON.stringify(gistProofByRootV1) === JSON.stringify(gistProofByRootV2),
+    "gistProofByRoot before upgrade is  not equal to gistProofByRoot after upgrade"
+  );
 }
 
 async function main() {
@@ -86,9 +120,9 @@ async function main() {
   const signers = await ethers.getSigners();
   const stateDeployHelper = await StateDeployHelper.initialize(null, true);
   const migrationSteps = new StateTestContractMigrationSteps(stateDeployHelper, signers[0]);
-
+  const network = process.env.HARDHAT_NETWORK;
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const deployInfo = require(`../../test-migration/contracts/scripts/deploy_output_final.${process.env.HARDHAT_NETWORK}.json`);
+  const deployInfo = require(`../../test-migration/contracts/scripts/deploy_output_final.${network}.json`);
 
   console.log("stateAddress", deployInfo.state);
 
@@ -102,7 +136,12 @@ async function main() {
     address: deployInfo.state,
   });
 
-  const result1 = await getDataFromContract(initStateContract, testId, testState);
+  const result1 = await getDataFromContract(
+    initStateContract,
+    testId,
+    testState,
+    `data-before-upgrade.${network}.json`
+  );
 
   // const statesWithProofs = [
   //   require("../test/state/data/user_state_genesis_transition.json"),
@@ -127,7 +166,7 @@ async function main() {
     startBlock,
     1000,
     "StateUpdated",
-    "test.mumbai_final.eventLog.json"
+    `${network}.eventLog.json`
   );
   const genesisStatePublishLog = {};
 
@@ -169,12 +208,17 @@ async function main() {
 
       return receipts;
     },
-    `migration.results.${process.env.HARDHAT_NETWORK}.json`
+    `migration.results.${network}.json`
   );
 
   const { state: stateV2 } = await migrationSteps.upgradeContract(initStateContract);
 
-  const result2 = await getDataFromContract(stateV2, testId, testState);
+  const result2 = await getDataFromContract(
+    stateV2,
+    testId,
+    testState,
+    `data-after-upgrade.${network}.json`
+  );
 
   checkData(result1, result2);
 
