@@ -20,11 +20,13 @@ export async function getDataFromContract(
   const latestStateInfoById = await contract.getStateInfoById(id);
   const stateInfoByIdAndState = await contract.getStateInfoByIdAndState(id, state);
   const stateInfoHistory = await contract.getStateInfoHistoryById(id, 0, 3);
+  const root = await contract.getGISTRoot();
   return {
     stateInfoHistoryLengthById,
     latestStateInfoById,
     stateInfoByIdAndState,
     stateInfoHistory,
+    root,
   };
 }
 
@@ -34,6 +36,7 @@ function checkData(result1, result2): void {
     latestStateInfoById: latestStateInfoByIdV1,
     stateInfoByIdAndState: stateInfoByIdAndStateV1,
     stateInfoHistory: stateInfoHistoryV1,
+    root: rootV1,
   } = result1;
 
   const {
@@ -41,11 +44,15 @@ function checkData(result1, result2): void {
     latestStateInfoById: latestStateInfoByIdV2,
     stateInfoByIdAndState: stateInfoByIdAndStateV2,
     stateInfoHistory: stateInfoHistoryV2,
+    root: rootV2,
   } = result2;
 
   console.log(stateInfoHistoryLengthByIdV2.toString());
   console.log(latestStateInfoByIdV2.id.toString());
   console.log(latestStateInfoByIdV2.state.toString());
+  console.log("root", rootV2.toString());
+
+  console.assert(rootV2.toString() === rootV1.toString(), "root not equal");
 
   console.assert(
     stateInfoHistoryLengthByIdV2.toString() === stateInfoHistoryLengthByIdV1.toString(),
@@ -80,9 +87,19 @@ async function main() {
   const stateDeployHelper = await StateDeployHelper.initialize(null, true);
   const migrationSteps = new StateTestContractMigrationSteps(stateDeployHelper, signers[0]);
 
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const deployInfo = require(`../../test-migration/contracts/scripts/deploy_output_final.${process.env.HARDHAT_NETWORK}.json`);
+
+  console.log("stateAddress", deployInfo.state);
+
+  const startBlock = 0;
+  if (process.env.HARDHAT_NETWORK === "mumbai" && !startBlock) {
+    throw new Error("startBlock not set");
+  }
+
   const initStateContract = await migrationSteps.getInitContract({
     contractNameOrAbi: require("../helpers/StateV2_0_abi_2_1.json"),
-    address: "0xE18974E1ee74D3D1549089b5f1DC645d2a1Ad706",
+    address: deployInfo.state,
   });
 
   const result1 = await getDataFromContract(initStateContract, testId, testState);
@@ -107,7 +124,7 @@ async function main() {
 
   const logHistory = await migrationSteps.readEventLogData(
     initStateContract,
-    34610704,
+    startBlock,
     1000,
     "StateUpdated",
     "test.mumbai_final.eventLog.json"
@@ -156,7 +173,7 @@ async function main() {
 
       return receipts;
     },
-    "migration.mumbai_final.receipts.json"
+    `migration.results.${process.env.HARDHAT_NETWORK}.json`
   );
 
   const { state: stateV2 } = await migrationSteps.upgradeContract(initStateContract);
