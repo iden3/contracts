@@ -110,7 +110,7 @@ library GenesisUtils {
         bytes memory idBytes = BytesLib.concat(beforeChecksum, checkSumBytes);
         require(idBytes.length == 31, "idBytes requires 31 length array");
 
-        return id == uint248(bytes31(idBytes));
+        return id == uint256(uint248(bytes31(idBytes)));
     }
 
     /**
