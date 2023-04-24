@@ -3,9 +3,9 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Contract, Wallet } from "ethers";
 import { publishState } from "../test/utils/deploy-utils";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { ContractMigrationSteps, EventLogEntry, log } from "./MigrationHelper";
+import { ContractMigrationSteps, EventLogEntry, log } from "./ContractMigrationSteps";
 
-export class StateContractMigrationSteps extends ContractMigrationSteps {
+export class StateContractMigrationHelper extends ContractMigrationSteps {
   constructor(
     private readonly _stateDeployHelper: StateDeployHelper,
     protected readonly _signer: SignerWithAddress | Wallet

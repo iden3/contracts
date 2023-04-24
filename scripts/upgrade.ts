@@ -1,6 +1,6 @@
 import { StateDeployHelper } from "../helpers/StateDeployHelper";
 import { ethers } from "hardhat";
-import { StateContractMigrationSteps } from "../helpers/StateContractMigrationSteps";
+import { StateContractMigrationHelper } from "../helpers/StateContractMigrationHelper";
 import fs from "fs";
 
 /*
@@ -16,7 +16,7 @@ async function main() {
   const testState = BigInt("0x304754b7b338d8cc4f2b3ddaf94ec608a1470702784c40132ec18b48a2ee37d9");
   const signers = await ethers.getSigners();
   const stateDeployHelper = await StateDeployHelper.initialize(null, true);
-  const migrationSteps = new StateContractMigrationSteps(stateDeployHelper, signers[0]);
+  const migrationSteps = new StateContractMigrationHelper(stateDeployHelper, signers[0]);
   const network = process.env.HARDHAT_NETWORK;
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const deployInfo = require(`../../test-migration/contracts/scripts/deploy_output_final.${network}.json`);
