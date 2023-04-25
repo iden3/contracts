@@ -39,9 +39,7 @@ export class StateDeployHelper {
     const State = await ethers.getContractFactory("State");
     const state = await upgrades.deployProxy(State, [verifier.address]);
     await state.deployed();
-    this.log(
-      `State contract deployed to address ${state.address} from ${this.signers[0].address}`
-    );
+    this.log(`State contract deployed to address ${state.address} from ${this.signers[0].address}`);
 
     this.log("======== StateV1: deploy completed ========");
     return { state, verifier };
@@ -64,19 +62,16 @@ export class StateDeployHelper {
     const verifierFactory = await ethers.getContractFactory("VerifierV2");
     const verifier = await verifierFactory.deploy();
     await verifier.deployed();
-    this.log(
-      `Verifier contract deployed to address ${verifier.address} from ${owner.address}`
-    );
+    this.log(`Verifier contract deployed to address ${verifier.address} from ${owner.address}`);
 
     this.log("deploying poseidons...");
-    const [poseidon1Elements, poseidon2Elements, poseidon3Elements] =
-      await this.deployPoseidons(owner, [1, 2, 3]);
+    const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await this.deployPoseidons(
+      owner,
+      [1, 2, 3]
+    );
 
     this.log("deploying SMT...");
-    const smt = await this.deploySmt(
-      poseidon2Elements.address,
-      poseidon3Elements.address
-    );
+    const smt = await this.deploySmt(poseidon2Elements.address, poseidon3Elements.address);
 
     this.log("deploying stateV2...");
     const StateV2Factory = await ethers.getContractFactory("StateV2", {
@@ -85,17 +80,11 @@ export class StateDeployHelper {
         PoseidonUnit1L: poseidon1Elements.address,
       },
     });
-    const stateV2 = await upgrades.deployProxy(
-      StateV2Factory,
-      [verifier.address],
-      {
-        unsafeAllowLinkedLibraries: true,
-      }
-    );
+    const stateV2 = await upgrades.deployProxy(StateV2Factory, [verifier.address], {
+      unsafeAllowLinkedLibraries: true,
+    });
     await stateV2.deployed();
-    this.log(
-      `StateV2 contract deployed to address ${stateV2.address} from ${owner.address}`
-    );
+    this.log(`StateV2 contract deployed to address ${stateV2.address} from ${owner.address}`);
 
     this.log("======== StateV2: deploy completed ========");
 
@@ -109,10 +98,10 @@ export class StateDeployHelper {
     };
   }
 
-
   async deployStateV2_1_abi(): Promise<{
     state: Contract;
     verifier: Contract;
+    verifierV2: Contract;
     smt: Contract;
     poseidon1: Contract;
     poseidon2: Contract;
@@ -122,24 +111,28 @@ export class StateDeployHelper {
 
     const owner = this.signers[0];
 
-    this.log("deploying verifier...");
+    this.log("deploying verifier..");
 
-    const verifierFactory = await ethers.getContractFactory("VerifierV2");
+    const verifierFactory = await ethers.getContractFactory("Verifier");
     const verifier = await verifierFactory.deploy();
     await verifier.deployed();
-    this.log(
-      `Verifier contract deployed to address ${verifier.address} from ${owner.address}`
-    );
+    this.log(`Verifier contract deployed to address ${verifier.address} from ${owner.address}`);
+
+    this.log("deploying verifier.V2..");
+
+    const verifierFactoryV2 = await ethers.getContractFactory("VerifierV2");
+    const verifierV2 = await verifierFactoryV2.deploy();
+    await verifierV2.deployed();
+    this.log(`Verifier v2 contract deployed to address ${verifierV2.address} from ${owner.address}`);
 
     this.log("deploying poseidons...");
-    const [poseidon1Elements, poseidon2Elements, poseidon3Elements] =
-      await this.deployPoseidons(owner, [1, 2, 3]);
+    const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await this.deployPoseidons(
+      owner,
+      [1, 2, 3]
+    );
 
     this.log("deploying SMT...");
-    const smt = await this.deploySmt(
-      poseidon2Elements.address,
-      poseidon3Elements.address
-    );
+    const smt = await this.deploySmt(poseidon2Elements.address, poseidon3Elements.address);
 
     this.log("deploying StateV2_0_abi_2_1...");
     const StateV2_0_abi_2_1Factory = await ethers.getContractFactory("StateV2_0_abi_2_1", {
@@ -165,6 +158,7 @@ export class StateDeployHelper {
     return {
       state: StateV2_0_abi_2_1,
       verifier,
+      verifierV2,
       smt,
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
@@ -191,13 +185,9 @@ export class StateDeployHelper {
         PoseidonUnit1L: stateV2.poseidon1.address,
       },
     });
-    const StateV2_0_abi_2_1 = await upgrades.upgradeProxy(
-      stateV2.state,
-      StateV2_0_abi_2_1Factory,
-      {
-        unsafeAllowLinkedLibraries: true,
-      }
-    );
+    const StateV2_0_abi_2_1 = await upgrades.upgradeProxy(stateV2.state, StateV2_0_abi_2_1Factory, {
+      unsafeAllowLinkedLibraries: true,
+    });
     //await StateV2_0_abi_2_1.deployed();
     this.log(
       `StateV2 contract deployed to address ${StateV2_0_abi_2_1.address} from ${owner.address}`
@@ -222,27 +212,14 @@ export class StateDeployHelper {
   ): Promise<any[]> {
     const filter = stateContract.filters.StateUpdated(null, null, null, null);
     const latestBlock = await ethers.provider.getBlock("latest");
-    this.log(
-      "startBlock",
-      firstEventBlock,
-      "latestBlock Number",
-      latestBlock.number
-    );
+    this.log("startBlock", firstEventBlock, "latestBlock Number", latestBlock.number);
 
     let stateTransitionHistory: unknown[] = [];
 
-    for (
-      let index = firstEventBlock;
-      index <= latestBlock.number;
-      index += eventsChunkSize
-    ) {
+    for (let index = firstEventBlock; index <= latestBlock.number; index += eventsChunkSize) {
       let pagedHistory;
       try {
-        pagedHistory = await stateContract.queryFilter(
-          filter,
-          index,
-          index + eventsChunkSize - 1
-        );
+        pagedHistory = await stateContract.queryFilter(filter, index, index + eventsChunkSize - 1);
       } catch (error) {
         console.error(error);
       }
@@ -259,10 +236,7 @@ export class StateDeployHelper {
     return stateTransitionHistory;
   }
 
-  async populateSmtByStateEvents(
-    stateContract: any,
-    stateTransitionHistory: any[]
-  ): Promise<void> {
+  async populateSmtByStateEvents(stateContract: any, stateTransitionHistory: any[]): Promise<void> {
     const result: {
       migratedData: any[];
       error: unknown;
@@ -278,12 +252,7 @@ export class StateDeployHelper {
       const [id, block, timestamp, state] = stateTransitionHistory[index].args;
       result.index = index;
       try {
-        const tx = await stateContract.addToSmtDirectly(
-          id,
-          state,
-          timestamp,
-          block
-        );
+        const tx = await stateContract.addToSmtDirectly(id, state, timestamp, block);
         const receipt = await tx.wait();
         result.migratedData.push({
           id,
@@ -329,8 +298,7 @@ export class StateDeployHelper {
     });
     const smt = await Smt.deploy();
     await smt.deployed();
-    this.enableLogging &&
-      this.log(`${contractName} deployed to:  ${smt.address}`);
+    this.enableLogging && this.log(`${contractName} deployed to:  ${smt.address}`);
 
     return smt;
   }
@@ -340,15 +308,9 @@ export class StateDeployHelper {
     const owner = this.signers[0];
 
     this.log("deploying poseidons...");
-    const [poseidon2Elements, poseidon3Elements] = await this.deployPoseidons(
-      owner,
-      [2, 3]
-    );
+    const [poseidon2Elements, poseidon3Elements] = await this.deployPoseidons(owner, [2, 3]);
 
-    const smt = await this.deploySmt(
-      poseidon2Elements.address,
-      poseidon3Elements.address
-    );
+    const smt = await this.deploySmt(poseidon2Elements.address, poseidon3Elements.address);
 
     const SmtWrapper = await ethers.getContractFactory(contractName, {
       libraries: {
@@ -357,8 +319,7 @@ export class StateDeployHelper {
     });
     const smtWrapper = await SmtWrapper.deploy();
     await smtWrapper.deployed();
-    this.enableLogging &&
-      this.log(`${contractName} deployed to:  ${smtWrapper.address}`);
+    this.enableLogging && this.log(`${contractName} deployed to:  ${smtWrapper.address}`);
 
     return smtWrapper;
   }
@@ -369,8 +330,7 @@ export class StateDeployHelper {
     const BSWrapper = await ethers.getContractFactory(contractName);
     const bsWrapper = await BSWrapper.deploy();
     await bsWrapper.deployed();
-    this.enableLogging &&
-      this.log(`${contractName} deployed to:  ${bsWrapper.address}`);
+    this.enableLogging && this.log(`${contractName} deployed to:  ${bsWrapper.address}`);
 
     return bsWrapper;
   }
@@ -394,10 +354,7 @@ export class StateDeployHelper {
       const poseidonElements = await PoseidonElements.deploy();
       await poseidonElements.deployed();
       this.enableLogging &&
-        this.log(
-          `Poseidon${params}Elements deployed to:`,
-          poseidonElements.address
-        );
+        this.log(`Poseidon${params}Elements deployed to:`, poseidonElements.address);
       return poseidonElements;
     };
 
@@ -420,9 +377,7 @@ export class StateDeployHelper {
     const SearchUtilsFactory = await ethers.getContractFactory("SearchUtils");
     const searchUtils = await SearchUtilsFactory.deploy(stateContract.address);
     await searchUtils.deployed();
-    this.log(
-      `Search utils deployed to address ${searchUtils.address} from ${owner.address}`
-    );
+    this.log(`Search utils deployed to address ${searchUtils.address} from ${owner.address}`);
 
     return {
       searchUtils,
