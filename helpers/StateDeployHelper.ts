@@ -162,7 +162,8 @@ export class StateDeployHelper {
     return {
       state: stateV2,
       verifier,
-      smtLib: smtLib,
+      stateLib,
+      smtLib,
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
