@@ -5,7 +5,6 @@ import "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import "../interfaces/IStateTransitionVerifier.sol";
 import "../lib/StateLib_migration.sol";
 import "../lib/SmtLib_migration.sol";
-import "hardhat/console.sol";
 
 /// @title Set and get states for each identity
 contract StateV2_migration is OwnableUpgradeable {
@@ -71,16 +70,20 @@ contract StateV2_migration is OwnableUpgradeable {
         uint256 blockNumber
     ) external onlyOwner {
         _stateData_migration.addStateWithTimestampAndBlock(id, state, timestamp, blockNumber);
-        if(timestamp > 0 && blockNumber > 0){
-            _gistData_migration.addLeafWithTimestampAndBlock(PoseidonUnit1L.poseidon([id]), state, timestamp, blockNumber);
-        }
-        uint256 root = _gistData_migration.getRoot();
-        uint256 expectedRoot = _gistData.rootHistory[_gistData.rootHistory.length - 1];
+        if (timestamp > 0 && blockNumber > 0) {
+            _gistData_migration.addLeafWithTimestampAndBlock(
+                PoseidonUnit1L.poseidon([id]),
+                state,
+                timestamp,
+                blockNumber
+            );
+            uint256 rootIndex = _gistData_migration.rootEntries.length - 1;
+            uint256 root = _gistData_migration.rootEntries[rootIndex].root;
+            uint256 expectedRoot = _gistData.rootHistory[rootIndex - 1];
 
-        if (root != expectedRoot) {
-            console.log("Root %s", root);
-            console.log("Expected root %s", expectedRoot);
-            revert("Root mismatch");
+            if (root != expectedRoot) {
+                revert("Root mismatch");
+            }
         }
     }
 
@@ -88,9 +91,7 @@ contract StateV2_migration is OwnableUpgradeable {
         return _stateData.statesHistories[id].length;
     }
 
-    function getStateInfoHistoryById(
-        uint256 id
-    ) public view returns (StateInfo[] memory) {
+    function getStateInfoHistoryById(uint256 id) public view returns (StateInfo[] memory) {
         uint256 length = _stateData.statesHistories[id].length;
 
         StateInfo[] memory states = new StateInfo[](length);
@@ -100,9 +101,7 @@ contract StateV2_migration is OwnableUpgradeable {
         return states;
     }
 
-    function getStateInfoByState(
-        uint256 state
-    ) public view returns (StateInfo memory) {
+    function getStateInfoByState(uint256 state) public view returns (StateInfo memory) {
         return _getStateInfoByState(state);
     }
 

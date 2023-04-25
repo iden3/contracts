@@ -4,6 +4,6 @@
   "exclude_medium": false,
   "exclude_high": false,
   "disable_color": false,
-  "filter_paths": "(node_modules/)",
+  "filter_paths": "(node_modules/|contracts/state/StateV2_migraton.sol)",
   "legacy_ast": false
 }

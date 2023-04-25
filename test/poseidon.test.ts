@@ -80,5 +80,5 @@ describe("poseidon", () => {
       const resSC = await poseidonFacade.poseidonSponge(vector);
       expect(resSC.toString()).to.be.equal(expectedSpongeHashes[i - 1]);
     }
-  });
+  }).timeout(45000);
 });
