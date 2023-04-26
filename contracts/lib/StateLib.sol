@@ -72,8 +72,17 @@ library StateLib {
         // of the State contract to add new SmtData struct fields without shifting down
         // storage of upgradable contracts that use this struct as a state variable
         // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-        uint256[50] __gap;
+        uint256[48] __gap;
     }
+
+    /**
+     * @dev event called when a state is updated
+     * @param id identity
+     * @param blockN Block number when the state has been committed
+     * @param timestamp Timestamp when the state has been committed
+     * @param state Identity state committed
+     */
+    event StateUpdated(uint256 id, uint256 blockN, uint256 timestamp, uint256 state);
 
     /**
      * @dev Revert if identity does not exist in the contract
@@ -112,7 +121,7 @@ library StateLib {
      * @param id Identity
      * @param state State
      */
-    function addStateNoTimestampAndBlock(Data storage self, uint256 id, uint256 state) external {
+    function addGenesisState(Data storage self, uint256 id, uint256 state) external {
         require(
             !idExists(self, id),
             "Zero timestamp and block should be only in the first identity state"
@@ -279,8 +288,9 @@ library StateLib {
         Entry[] storage stateEntries = self.stateEntries[id];
 
         stateEntries.push(Entry({state: state, timestamp: _timestamp, block: _block}));
-
         self.stateIndexes[id][state].push(stateEntries.length - 1);
+
+        emit StateUpdated(id, _block, _timestamp, state);
     }
 
     /**

@@ -4,13 +4,7 @@ pragma solidity 0.8.16;
 import "./Poseidon.sol";
 import "./ArrayUtils.sol";
 
-/// @title A sparse merkle tree implementation, which keeps tree history.
-// Note that this SMT implementation can manage duplicated roots in the history,
-// which may happen when some leaf change its value and then changes it back to the original value.
-// Leaves deletion is not supported, although it should be possible to implement it in the future
-// versions of this library, without changing the existing state variables
-// In this way all the SMT data may be preserved for the contracts already in production.
-library SmtLib {
+library SmtLib_migration {
     /**
      * @dev Max return array length for SMT root history requests
      */
@@ -124,7 +118,7 @@ library SmtLib {
         uint256 value;
     }
 
-    using BinarySearchSmtRoots for Data;
+    using BinarySearchSmtRoots_migration for Data;
     using ArrayUtils for uint256[];
 
     /**
@@ -134,6 +128,27 @@ library SmtLib {
     modifier onlyExistingRoot(Data storage self, uint256 root) {
         require(rootExists(self, root), "Root does not exist");
         _;
+    }
+
+    function addLeafWithTimestampAndBlock(
+        Data storage self,
+        uint256 i,
+        uint256 v,
+        uint256 timestamp,
+        uint256 blockNumber
+    ) external onlyInitialized(self) {
+        Node memory node = Node({
+            nodeType: NodeType.LEAF,
+            childLeft: 0,
+            childRight: 0,
+            index: i,
+            value: v
+        });
+
+        uint256 prevRoot = getRoot(self);
+        uint256 newRoot = _addLeaf(self, node, prevRoot, 0);
+
+        _addEntry(self, newRoot, timestamp, blockNumber);
     }
 
     /**
@@ -270,71 +285,8 @@ library SmtLib {
         return proof;
     }
 
-    /**
-     * @dev Get the proof if a node with specific index exists or not exists in the SMT by some historical timestamp.
-     * @param index Node index.
-     * @param timestamp The latest timestamp to get proof for.
-     * @return Proof struct.
-     */
-    function getProofByTime(
-        Data storage self,
-        uint256 index,
-        uint256 timestamp
-    ) public view returns (Proof memory) {
-        RootEntryInfo memory rootInfo = getRootInfoByTime(self, timestamp);
-        return getProofByRoot(self, index, rootInfo.root);
-    }
-
-    /**
-     * @dev Get the proof if a node with specific index exists or not exists in the SMT by some historical block number.
-     * @param index Node index.
-     * @param blockNumber The latest block number to get proof for.
-     * @return Proof struct.
-     */
-    function getProofByBlock(
-        Data storage self,
-        uint256 index,
-        uint256 blockNumber
-    ) external view returns (Proof memory) {
-        RootEntryInfo memory rootInfo = getRootInfoByBlock(self, blockNumber);
-        return getProofByRoot(self, index, rootInfo.root);
-    }
-
     function getRoot(Data storage self) public view onlyInitialized(self) returns (uint256) {
         return self.rootEntries[self.rootEntries.length - 1].root;
-    }
-
-    /**
-     * @dev Get root info by some historical timestamp.
-     * @param timestamp The latest timestamp to get the root info for.
-     * @return Root info struct
-     */
-    function getRootInfoByTime(
-        Data storage self,
-        uint256 timestamp
-    ) public view returns (RootEntryInfo memory) {
-        require(timestamp <= block.timestamp, "No future timestamps allowed");
-
-        return
-            _getRootInfoByTimestampOrBlock(
-                self,
-                timestamp,
-                BinarySearchSmtRoots.SearchType.TIMESTAMP
-            );
-    }
-
-    /**
-     * @dev Get root info by some historical block number.
-     * @param blockN The latest block number to get the root info for.
-     * @return Root info struct
-     */
-    function getRootInfoByBlock(
-        Data storage self,
-        uint256 blockN
-    ) public view returns (RootEntryInfo memory) {
-        require(blockN <= block.number, "No future blocks allowed");
-
-        return _getRootInfoByTimestampOrBlock(self, blockN, BinarySearchSmtRoots.SearchType.BLOCK);
     }
 
     /**
@@ -594,19 +546,6 @@ library SmtLib {
             });
     }
 
-    function _getRootInfoByTimestampOrBlock(
-        Data storage self,
-        uint256 timestampOrBlock,
-        BinarySearchSmtRoots.SearchType searchType
-    ) internal view returns (RootEntryInfo memory) {
-        (uint256 index, bool found) = self.binarySearchUint256(timestampOrBlock, searchType);
-
-        // As far as we always have at least one root entry, we should always find it
-        assert(found);
-
-        return _getRootInfoByIndex(self, index);
-    }
-
     function _addEntry(
         Data storage self,
         uint256 root,
@@ -623,7 +562,7 @@ library SmtLib {
 
 /// @title A binary search for the sparse merkle tree root history
 // Implemented as a separate library for testing purposes
-library BinarySearchSmtRoots {
+library BinarySearchSmtRoots_migration {
     /**
      * @dev Enum for the SMT history field selection
      */

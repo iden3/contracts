@@ -6,12 +6,13 @@ const pathOutputJson = path.join(__dirname, "./deploy_output.json");
 async function main() {
   const stateDeployHelper = await StateDeployHelper.initialize(null, true);
 
-  const { state, verifier, smtLib, poseidon1, poseidon2, poseidon3 } =
+  const { state, verifier, stateLib, smtLib, poseidon1, poseidon2, poseidon3 } =
     await stateDeployHelper.deployStateV2();
 
   const outputJson = {
     state: state.address,
     verifier: verifier.address,
+    stateLib: stateLib.address,
     smtLib: smtLib.address,
     poseidon1: poseidon1.address,
     poseidon2: poseidon2.address,
