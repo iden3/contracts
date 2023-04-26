@@ -37,7 +37,25 @@ describe("genesis state tests", function () {
         genIdState:    '0xfe69563748453de004c140c247d5b3eed715e1640bf314b5bfa010',
         nonGenIdState: '0xfe69563748453de004c140c147d5b3eed715e1640bf314b5bfa010'
       },
-      { 
+      {
+        // generated in go-iden3-core
+        id: '0x0112fe69563748453de004c140c247d5b3eed715e1640bf314b5bfa0109c0d',
+        genIdState:    '0x1a2817575efe69563748453de004c140c247d5b3eed715e1640bf314b5bfa010',
+        nonGenIdState: '0x1a2817575efe69563748453de004c140c247d5b3eed715e1640bf314b5bfa011'
+      },
+      {
+        id: '0x0112fe69563748453de004c140c247d5b3eed715e1640bf314b5bfa0109c0d',
+        // only lower 27 bytes are used, so first 5 bytes do not influence the result
+        genIdState:    '0x0000000000fe69563748453de004c140c247d5b3eed715e1640bf314b5bfa010',
+        nonGenIdState: '0x0000000000fe69563748453de004c140c247d5b3eed715e1640bf314b5bfa011'
+      },
+      {
+        id: '0x0112fe69563748453de004c140c247d5b3eed715e1640bf314b5bfa0109c0d',
+        // only lower 27 bytes are used, so first 5 bytes do not influence the result
+        genIdState:    '0xfffffffffffe69563748453de004c140c247d5b3eed715e1640bf314b5bfa010',
+        nonGenIdState: '0xfffffffffffe69563748453de004c140c247d5b3eed715e1640bf314b5bfa011'
+      },
+      {
         id: '0x0001c3e9254b0becbf3d7b01d0f562e417adb4c13d453544485c013f29d80b',
         genIdState:    '0xc3e9254b0becbf3d7b01d0f562e417adb4c13d453544485c013f29',
         nonGenIdState: '0xc3e9254b0becbf3d7b01d1f562e517adb3c13d453544485c013f29'
