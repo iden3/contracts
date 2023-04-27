@@ -5,6 +5,7 @@ import "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import "../interfaces/IStateTransitionVerifier.sol";
 import "../lib/StateLib_migration.sol";
 import "../lib/SmtLib_migration.sol";
+import "../lib/Smt_old.sol";
 
 /// @title Set and get states for each identity
 contract StateV2_migration is OwnableUpgradeable {
@@ -31,22 +32,9 @@ contract StateV2_migration is OwnableUpgradeable {
         uint256 replacedAtBlock;
     }
 
-    struct SmtData {
-        uint256 nodes; // just to reserve 1 slot
-        uint256[] rootHistory;
-        mapping(uint256 => RootEntry) rootEntries;
-        uint256[50] __gap;
-    }
-
-    struct RootEntry {
-        uint256 replacedByRoot;
-        uint256 createdAtTimestamp;
-        uint256 createdAtBlock;
-    }
-
     IStateTransitionVerifier internal verifier; // 1 slot
     StateData internal _stateData; // 52 slots
-    SmtData internal _gistData; // 53 slots
+    Smt_old.SmtData internal _gistData; // 53 slots
 
     uint256[50 + 500 - 1 - 52 - 53] private __gap;
 
@@ -54,8 +42,20 @@ contract StateV2_migration is OwnableUpgradeable {
     StateLib_migration.Data internal _stateData_migration;
     SmtLib_migration.Data internal _gistData_migration;
 
+    using Smt_old for Smt_old.SmtData;
+
     using StateLib_migration for StateLib_migration.Data;
     using SmtLib_migration for SmtLib_migration.Data;
+
+    modifier onlyExistingId(uint256 id) {
+        require(idExists(id), "Identity does not exist");
+        _;
+    }
+
+    modifier onlyExistingState(uint256 state) {
+        require(stateExists(state), "State does not exist");
+        _;
+    }
 
     function initForMigration(IStateTransitionVerifier verifierContractAddr) public onlyOwner {
         //no verifier, to block any state transitions
@@ -103,6 +103,40 @@ contract StateV2_migration is OwnableUpgradeable {
 
     function getStateInfoByState(uint256 state) public view returns (StateInfo memory) {
         return _getStateInfoByState(state);
+    }
+
+    function getStateInfoById(
+        uint256 id
+    ) public view onlyExistingId(id) returns (StateInfo memory) {
+        return
+            _getStateInfoByState(
+                _stateData.statesHistories[id][_stateData.statesHistories[id].length - 1]
+            );
+    }
+
+    function getStateInfoByIdAndState(
+        uint256 id,
+        uint256 state
+    ) external view onlyExistingState(state) returns (StateInfo memory) {
+        StateInfo memory stateInfo = _getStateInfoByState(state);
+        require(stateInfo.id == id, "State does not exist");
+        return stateInfo;
+    }
+
+    function getGISTProof(uint256 id) public view returns (Smt_old.Proof memory) {
+        return _gistData.getProof(PoseidonUnit1L.poseidon([id]));
+    }
+
+    function getGISTRootInfo(uint256 root) public view returns (Smt_old.RootInfo memory) {
+        return _gistData.getRootInfo(root);
+    }
+
+    function idExists(uint256 id) public view returns (bool) {
+        return _stateData.statesHistories[id].length > 0;
+    }
+
+    function stateExists(uint256 state) public view returns (bool) {
+        return _stateData.stateEntries[state].id != 0;
     }
 
     function _getStateInfoByState(uint256 state) internal view returns (StateInfo memory) {
