@@ -178,7 +178,6 @@ contract StateV2_migration is OwnableUpgradeable {
         return result;
     }
 
-
     function getGISTRoot() external view returns (uint256) {
         return _gistData.getRoot();
     }
