@@ -2,6 +2,7 @@ import { StateDeployHelper } from "../helpers/StateDeployHelper";
 import { ethers } from "hardhat";
 import { StateContractMigrationHelper } from "../helpers/StateContractMigrationHelper";
 import fs from "fs";
+import { Contract } from "ethers";
 
 /*
 1. deploy stateV2 to mumbai from feature/state-v3 branch
@@ -23,7 +24,7 @@ async function main() {
 
   console.log("stateAddress", deployInfo.state);
 
-  const startBlock = 0;
+  const startBlock = 34887746;
   if (process.env.HARDHAT_NETWORK === "mumbai" && !startBlock) {
     throw new Error("startBlock not set");
   }
@@ -54,6 +55,16 @@ async function main() {
     "StateUpdated",
     `${network}.eventLog.json`
   );
+
+  console.log("intermediateContractCheck");
+
+  const intermediateContractCheck = await migrationSteps.getDataFromContract(
+    stateMigration,
+    testId,
+    testState
+  );
+  await migrationSteps.checkData(result1, intermediateContractCheck);
+
   const genesisStatePublishLog = {};
 
   await migrationSteps.migrateData(
@@ -97,6 +108,14 @@ async function main() {
     `migration.results.${network}.json`
   );
 
+  const intermediateContractCheck2 = await migrationSteps.getDataFromContract(
+    stateMigration,
+    testId,
+    testState
+  );
+
+  await migrationSteps.checkData(result1, intermediateContractCheck2);
+
   const { state: stateV2 } = await migrationSteps.upgradeContract(initStateContract);
 
   const result2 = await migrationSteps.getDataFromContract(stateV2, testId, testState);
@@ -104,6 +123,13 @@ async function main() {
   fs.writeFileSync(`data-after-upgrade.${network}.json`, JSON.stringify(result2, null, 2));
 
   await migrationSteps.checkData(result1, result2);
+
+  // const stateV2 = await ethers.getContractAt(
+  //   "StateV2",
+  //   "0xBb880E57f1f896e908eE7F32af42890C28B21620"
+  // );
+
+  // await transitState(stateV2);
 
   console.log("Contract Upgrade Finished");
 }
@@ -114,3 +140,47 @@ main()
     console.error(error);
     process.exit(1);
   });
+
+async function transitState(stateV2: Contract) {
+  console.log("============= Start: transit state =============");
+
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const txs = require(`../polygon.transactions.json`);
+  for (const tx of txs) {
+    console.log("tx", tx.hash);
+
+    const decodedData = stateV2.interface.decodeFunctionData("transitState", tx.data);
+
+    //estimate gas
+    const gasLimit = await stateV2.estimateGas.transitState(
+      decodedData.id,
+      decodedData.oldState,
+      decodedData.newState,
+      decodedData.isOldStateGenesis,
+      decodedData.a,
+      decodedData.b,
+      decodedData.c
+    );
+
+    const tx2 = await stateV2.transitState(
+      decodedData.id,
+      decodedData.oldState,
+      decodedData.newState,
+      decodedData.isOldStateGenesis,
+      decodedData.a,
+      decodedData.b,
+      decodedData.c,
+      {
+        gasLimit,
+      }
+    );
+
+    const receipt = await tx2.wait();
+
+    if (receipt.status !== 1) {
+      throw new Error("Transaction failed");
+    }
+  }
+
+  console.log("============= Finish: transit state =============");
+}

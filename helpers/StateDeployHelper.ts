@@ -157,8 +157,16 @@ export class StateDeployHelper {
     await stateV2.deployed();
     this.log(`StateV2 contract upgraded at address ${stateV2.address} from ${owner.address}`);
 
-    this.log("======== StateV2: upgrade completed ========");
+    this.log("======== StateV2: setVerifier ========");
+    const tx = await stateV2.setVerifier(verifier.address);
+    const receipt = await tx.wait();
 
+    if (receipt.status !== 1) {
+      throw new Error("Failed to set verifier");
+    }
+    this.log("======== StateV2: setVerifier completed ========");
+
+    this.log("======== StateV2: upgrade completed ========");
     return {
       state: stateV2,
       verifier,
@@ -207,6 +215,13 @@ export class StateDeployHelper {
       "SmtLib_migration"
     );
 
+    this.log("deploying Smt_old...");
+    const smtLibOld = await this.deploySmtLib(
+      poseidon2Elements.address,
+      poseidon3Elements.address,
+      "Smt_old"
+    );
+
     this.log("deploying StateLib...");
     const stateLib = await this.deployStateLib("StateLib_migration");
 
@@ -216,6 +231,7 @@ export class StateDeployHelper {
         PoseidonUnit1L: poseidon1Elements.address,
         StateLib_migration: stateLib.address,
         SmtLib_migration: smtLib.address,
+        Smt_old: smtLibOld.address,
       },
     });
     const stateV2 = await upgrades.upgradeProxy(stateAddress, StateV2Factory, {

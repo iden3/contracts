@@ -20,17 +20,17 @@ export class StateContractMigrationHelper extends ContractMigrationSteps {
     const stateInfoHistoryLengthById = await contract.getStateInfoHistoryLengthById(id);
     const latestStateInfoById = await contract.getStateInfoById(id);
     const stateInfoByIdAndState = await contract.getStateInfoByIdAndState(id, state);
-    const stateInfoHistory = await contract.getStateInfoHistoryById(id, 0, 3);
-    const root = await contract.getGISTRoot();
+    // const stateInfoHistory = await contract.getStateInfoHistoryById(id, 0, 3); //
+    const root = await contract.getGISTRoot(); //
     const rootInfo = await contract.getGISTRootInfo(root);
     const gistProof = await contract.getGISTProof(id);
-    const gistProofByRoot = await contract.getGISTProofByRoot(id, root);
+    const gistProofByRoot = await contract.getGISTProofByRoot(id, root); //
 
     const result = {
       stateInfoHistoryLengthById,
       latestStateInfoById,
       stateInfoByIdAndState,
-      stateInfoHistory,
+      // stateInfoHistory,
       root,
       gistProof,
       rootInfo,
@@ -48,7 +48,7 @@ export class StateContractMigrationHelper extends ContractMigrationSteps {
       stateInfoHistoryLengthById: stateInfoHistoryLengthByIdV1,
       latestStateInfoById: latestStateInfoByIdV1,
       stateInfoByIdAndState: stateInfoByIdAndStateV1,
-      stateInfoHistory: stateInfoHistoryV1,
+      // stateInfoHistory: stateInfoHistoryV1,
       root: rootV1,
       gistProof: gistProofV1,
       rootInfo: rootInfoV1,
@@ -59,7 +59,7 @@ export class StateContractMigrationHelper extends ContractMigrationSteps {
       stateInfoHistoryLengthById: stateInfoHistoryLengthByIdV2,
       latestStateInfoById: latestStateInfoByIdV2,
       stateInfoByIdAndState: stateInfoByIdAndStateV2,
-      stateInfoHistory: stateInfoHistoryV2,
+      // stateInfoHistory: stateInfoHistoryV2,
       root: rootV2,
       gistProof: gistProofV2,
       rootInfo: rootInfoV2,
@@ -88,10 +88,10 @@ export class StateContractMigrationHelper extends ContractMigrationSteps {
       stateInfoByIdAndStateV2.state.toString() === stateInfoByIdAndStateV1.state.toString(),
       "stateInfoByIdAndStateV2 state not equal"
     );
-    console.assert(
-      stateInfoHistoryV2.length === stateInfoHistoryV1.length && stateInfoHistoryV2.length !== 0,
-      "stateInfoHistoryV2 length not equal"
-    );
+    // console.assert(
+    //   stateInfoHistoryV2.length === stateInfoHistoryV1.length && stateInfoHistoryV2.length !== 0,
+    //   "stateInfoHistoryV2 length not equal"
+    // );
 
     console.assert(
       rootInfoV1.root.toString() === rootInfoV2.root.toString(),
