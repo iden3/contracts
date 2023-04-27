@@ -24,7 +24,7 @@ async function main() {
 
   console.log("stateAddress", deployInfo.state);
 
-  const startBlock = 34887746;
+  const startBlock = 0;
   if (process.env.HARDHAT_NETWORK === "mumbai" && !startBlock) {
     throw new Error("startBlock not set");
   }

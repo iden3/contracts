@@ -157,12 +157,7 @@ contract StateV2_migration is OwnableUpgradeable {
         uint256 id,
         uint256 root
     ) external view returns (Smt_old.Proof memory) {
-        return _smtProofAdapter(_gistData.getProofByRoot(PoseidonUnit1L.poseidon([id]), root));
-    }
-
-    function _smtProofAdapter(
-        Smt_old.Proof memory proof
-    ) internal pure returns (Smt_old.Proof memory) {
+        Smt_old.Proof memory proof = _gistData.getProofByRoot(PoseidonUnit1L.poseidon([id]), root);
         // slither-disable-next-line uninitialized-local
         uint256[MAX_SMT_DEPTH] memory siblings;
         for (uint256 i = 0; i < MAX_SMT_DEPTH; i++) {
@@ -182,6 +177,7 @@ contract StateV2_migration is OwnableUpgradeable {
 
         return result;
     }
+
 
     function getGISTRoot() external view returns (uint256) {
         return _gistData.getRoot();
