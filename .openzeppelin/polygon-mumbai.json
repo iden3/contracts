@@ -1,0 +1,4791 @@
+{
+  "manifestVersion": "3.2",
+  "admin": {
+    "address": "0x09bCEf4386D6c19BDb24a85e5C60adEc6921701a",
+    "txHash": "0xb054da66b264f2469b2966eca085a780f7e6998b0d53938a5ea137d3ecb4d7ab"
+  },
+  "proxies": [
+    {
+      "address": "0x1D9C184dDe367dccaede8A69Cf8d65b28D8c338d",
+      "txHash": "0x6241d616da798d9e6ed8a7f9f87850db5d21e004b78e88e6bdabdde74200e074",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xB6b3c1fAd07209Ec581223E4b374b45B06580ba9",
+      "txHash": "0xde5ade689c1d47262c02ac3b709e9767a9c5731feaedc21336b60ab5969e5dd3",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xb58CD075A929a7bC47fB7ff0Dc9a6860A27958B3",
+      "txHash": "0x093f9a38dcdc1ffba33670b1e7abac9934505a7924d34fd619bce8ed17912a82",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xB16f3098750Fc1baf97489fCE4E0EFC435dc2B36",
+      "txHash": "0x9763f17197dc4ffbce422fc856cb2eed70c4d3b4461598a825911875d4a7e674",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xa753e454349517b902C0A941417d34696849da9e",
+      "txHash": "0x470d2883336d3a5c8ea6b6442264d01444a30ba30ea77a02f439e2c31ac8ad5b",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xa682eB0B5dd0876a292819a617094123d9A232aa",
+      "txHash": "0xf37c8ab4c1162f766a701c5950aeda786326713956676aae4bf850d67d34e9ed",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xa6Abcd1099939FD15Aa84e23C02bd8752182539b",
+      "txHash": "0xbe977e9a66396f1a6330654a614a4b2c2a7575a6176b5549be233e7a2a4fd5ef",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x17E9fca03458FB548d640E0FD77EF72513256C22",
+      "txHash": "0x78113b666f545bcbe48324864ddea887e7de18cba80712e5c9ca56c1cd68da5d",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xEd4857Fe3D43EB27C38F9BA6BE95CDbd5dCc9c88",
+      "txHash": "0xf7874ae8d7d804244198043edf4ce524d76a4abea63e2fd70f37c46e625bf909",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xd04DEdF2439A98B76d4C6D25d79E5E2E6b328d7a",
+      "txHash": "0xf7520629410ba81fcdcead6e4a21366f2066950fe41c85e2416d17af50b0337c",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x284c92A664D37075971573aF0fc53f6d708f5807",
+      "txHash": "0x9273ebd249a6c045e102200b3a5929d61513938f04c1c2d391e404967586e32e",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xa2Ea732ef2F27eb2c406F2c01Da79723fCC6Bf3D",
+      "txHash": "0x17aa693db424d5e5912083dea38f051df652b352c12125635918b86541a90e61",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x6522C1d0d9b522b797dDA1E4C849B12f08e9c15d",
+      "txHash": "0xf7e6f3b7344e610b2e3f9ee7e8be84c280855eb297436e05b304c98248a17145",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x4cc01c2FAaf8239d8D6F50D3347A34B42b148E8A",
+      "txHash": "0x6e24c3e20f974c8c2b0b86bcc25753b5c19afa79a588217218165de541cfcea7",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x28D71C404dF2486eb9EC311E50283fAcEbe3b682",
+      "txHash": "0x44094e9bfa5961e579a4140e12c454efc143d28b9c4f0b793fb03bc629f11e6d",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x59de9D80f7b4026DBF2f9F5A8f2FEC79440d1042",
+      "txHash": "0x8c53bce1f0979d5ecd48b14c0a408a64acdc3f39d8ffe4e8b547a9ec4a342540",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x693FCA17577F6A6F0E3Ab404C371FcFf55F069b5",
+      "txHash": "0x6e20aff8cee1bbe9ea13e92412742fc5fefd83b45925161a5a840fe04185fe7f",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xA30C72D4354B8b90d042E832029799c743124C7d",
+      "txHash": "0x0d6d7b2937a8222411351f7f2aef47a202fb14625894d2a0979d67b6d4a8879c",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x3a996b6BA69c5Aa12b3E1A6670f97d93aCaEfA73",
+      "txHash": "0x4c4f7fef852db893299f2221fd7ef03064294e0d41eaf8249a72e309a9b227bc",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x9ede2dc3FF3F434f3d28e17E467385e7667d8573",
+      "txHash": "0xbe1a72a65ba8d9be2cea4e7bf579b0ce7f0bf052fff6ec343ecb29cc6f099d5b",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xbf2601e9343506065b433897e7862CD768D08AD4",
+      "txHash": "0x3b45a2321c611c0800df6e2017ccc79c765f469f04b40128dca44dacf1798685",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xE38Cde5f06d8b1CD801f780936464Bbb7FD050c1",
+      "txHash": "0x3bf335356c01cda4c6bdd17d51c4d6b4106c58fe23f8f25aa357fa7f3584f30c",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x6811f4b44354C29993f8088c4D38B61018C5338d",
+      "txHash": "0xf8c514ad3bedb5ccbe76ff2d5d0ec41041119feb6d297311fddd5695d48a0dda",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x134B1BE34911E39A8397ec6289782989729807a4",
+      "txHash": "0x30455154466aed8b13a90880af37184448d2ca514d60a42a57791a4bea02b80b",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xB39B28F7157BC428F2A0Da375f584c3a1ede9121",
+      "txHash": "0x548e6868f7ab4c577dc4c01a0319fd15613e55cde9f565fc030c0aefc9250d44",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xC8334388DbCe2F73De2354e7392EA326011515b8",
+      "txHash": "0x7614fac2a759e710e84e36611b99b584613d468c281f98ede8f75f1afd1a55fb",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x2121d2E0AB6bE6608f774ca4ec65447A70C49785",
+      "txHash": "0x39be309305c2ed29cfd7530566671fbc2d64872b5f472089463884920b477b4c",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x3DcAe4c8d94359D31e4C89D7F2b944859408C618",
+      "txHash": "0xe4d3e8bd2135b2073bdbc1e6b4b930a6120f5c1dabaf7d70dde67a289393088b",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xF2D4Eeb4d455fb673104902282Ce68B9ce4Ac450",
+      "txHash": "0x98cc718234c7bf1b18feac4357c0489dbceb76cd3e9392d9ea289ecca020b047",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x05dbD8dF9Ec31C387641D54F17C5a96f0067a566",
+      "txHash": "0x182e9473b420b70e5a02f609b9656aff948a24a0ab6bcedd435664d0b151e2d1",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xEc98cE7ffd22d4705c7402ee8C5737361CDE7601",
+      "txHash": "0x8b3b89356aabe19afecd3929d3124b4c2e57f29de55a0d5fa6fc101652c872c3",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xc52b922F8493Fc95EfA12081c7e711080471fB61",
+      "txHash": "0x2f59c43502dfd2086ad12bfff03cfe8ca204086e18d4c06881a81e7e4901ed98",
+      "kind": "transparent"
+    }
+  ],
+  "impls": {
+    "62dbda3fd13a1a0b0dc095869802bdcb4c68e58c7536518c6821248eebfe016a": {
+      "address": "0xE355d110987F7E3c83aC87E8Af2236fc78514E09",
+      "txHash": "0x53441f0744110774dbd01462a94b10f77290f38d1a4cd3c4506fd0c9f2533571",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IVerifier)1830",
+            "contract": "CredentialAtomicQueryMTPValidator",
+            "src": "contracts/validators/CredentialAtomicQueryMTPValidator.sol:17"
+          },
+          {
+            "label": "state",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_contract(IState)1805",
+            "contract": "CredentialAtomicQueryMTPValidator",
+            "src": "contracts/validators/CredentialAtomicQueryMTPValidator.sol:18"
+          },
+          {
+            "label": "revocationStateExpirationTime",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_uint256",
+            "contract": "CredentialAtomicQueryMTPValidator",
+            "src": "contracts/validators/CredentialAtomicQueryMTPValidator.sol:20"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IState)1805": {
+            "label": "contract IState",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IVerifier)1830": {
+            "label": "contract IVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "3fbb389ebc5a87d1ff5a378fed5236acacf207d7bdae5da6daa68ea7b133f139": {
+      "address": "0x20AF253D0Be7755Dc1A7244F22dCBDdC5FC08BA8",
+      "txHash": "0x104752375ce9633b2c168211ddf1e712f7525e564ed416c0e50d8a9668d218f8",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IVerifier)2223",
+            "contract": "State",
+            "src": "contracts/State.sol:49"
+          },
+          {
+            "label": "identities",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_mapping(t_uint256,t_array(t_struct(IDState)2232_storage)dyn_storage)",
+            "contract": "State",
+            "src": "contracts/State.sol:54"
+          },
+          {
+            "label": "transitions",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_mapping(t_uint256,t_struct(transitionsInfo)2245_storage)",
+            "contract": "State",
+            "src": "contracts/State.sol:59"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_struct(IDState)2232_storage)dyn_storage": {
+            "label": "struct State.IDState[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IVerifier)2223": {
+            "label": "contract IVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_uint256,t_array(t_struct(IDState)2232_storage)dyn_storage)": {
+            "label": "mapping(uint256 => struct State.IDState[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(transitionsInfo)2245_storage)": {
+            "label": "mapping(uint256 => struct State.transitionsInfo)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(IDState)2232_storage": {
+            "label": "struct State.IDState",
+            "members": [
+              {
+                "label": "BlockN",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "BlockTimestamp",
+                "type": "t_uint64",
+                "offset": 8,
+                "slot": "0"
+              },
+              {
+                "label": "State",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(transitionsInfo)2245_storage": {
+            "label": "struct State.transitionsInfo",
+            "members": [
+              {
+                "label": "replacedAtTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "createdAtTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "replacedAtBlock",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "createdAtBlock",
+                "type": "t_uint64",
+                "offset": 8,
+                "slot": "2"
+              },
+              {
+                "label": "replacedBy",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "cdd976e6e641d46e58a622b12da800a7fa607bc3d0d5fe386708942effa81046": {
+      "address": "0x549d94e920ACC36c572a1ab446F63B5B6B2A32C0",
+      "txHash": "0xe09b26d716b1dfc37040fc17af636868982b1b9f6ca2c7a96608a8271c74c3dc",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IVerifier)1759",
+            "contract": "CredentialAtomicQueryMTPValidator",
+            "src": "contracts/validators/CredentialAtomicQueryMTPValidator.sol:20"
+          },
+          {
+            "label": "state",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_contract(IState)1734",
+            "contract": "CredentialAtomicQueryMTPValidator",
+            "src": "contracts/validators/CredentialAtomicQueryMTPValidator.sol:21"
+          },
+          {
+            "label": "revocationStateExpirationTime",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_uint256",
+            "contract": "CredentialAtomicQueryMTPValidator",
+            "src": "contracts/validators/CredentialAtomicQueryMTPValidator.sol:23"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IState)1734": {
+            "label": "contract IState",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IVerifier)1759": {
+            "label": "contract IVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "d460de865e98e314f9ac0fdda67f7f7db5e196c441f3a405c030d17af1f08815": {
+      "address": "0x2000F43E8bF53D8b7d28fcc6E35923558E609e76",
+      "txHash": "0xef4ca01709840faf8bcdb161e77cc5c1c4c3fa926e7ac6d62f761f0877403a04",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IVerifier)9092",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:61"
+          },
+          {
+            "label": "statesHistories",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:66"
+          },
+          {
+            "label": "stateEntries",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_mapping(t_uint256,t_struct(StateEntry)9118_storage)",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:71"
+          },
+          {
+            "label": "gistData",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_struct(SmtData)2807_storage",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:76"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IVerifier)9092": {
+            "label": "contract IVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_enum(NodeType)2789": {
+            "label": "enum NodeType",
+            "members": [
+              "EMPTY",
+              "LEAF",
+              "MIDDLE"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)": {
+            "label": "mapping(uint256 => uint256[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Node)2858_storage)": {
+            "label": "mapping(uint256 => struct Node)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(RootEntry)2846_storage)": {
+            "label": "mapping(uint256 => struct RootEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(StateEntry)9118_storage)": {
+            "label": "mapping(uint256 => struct StateV2.StateEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Node)2858_storage": {
+            "label": "struct Node",
+            "members": [
+              {
+                "label": "nodeType",
+                "type": "t_enum(NodeType)2789",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "childLeft",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "childRight",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "index",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "value",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(RootEntry)2846_storage": {
+            "label": "struct RootEntry",
+            "members": [
+              {
+                "label": "replacedByRoot",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "createdAtTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "createdAtBlock",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(SmtData)2807_storage": {
+            "label": "struct SmtData",
+            "members": [
+              {
+                "label": "nodes",
+                "type": "t_mapping(t_uint256,t_struct(Node)2858_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "rootHistory",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "rootEntries",
+                "type": "t_mapping(t_uint256,t_struct(RootEntry)2846_storage)",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)50_storage",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "1696"
+          },
+          "t_struct(StateEntry)9118_storage": {
+            "label": "struct StateV2.StateEntry",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "block",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "replacedBy",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "f024c19c888ca81ec9703d0761ac8c9689af550b909de4f9edec6fc74c71f8e3": {
+      "address": "0xe4EF76D137501a95cBfFb873ba81cdc017aC11eb",
+      "txHash": "0x566ebb7f0714de43961fa342bfce6abc675fb1a14a9e05753dc19658d615cd44",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IVerifier)2116",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:63"
+          },
+          {
+            "label": "statesHistories",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:68"
+          },
+          {
+            "label": "stateEntries",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_mapping(t_uint256,t_struct(StateEntry)2145_storage)",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:73"
+          },
+          {
+            "label": "_gistData",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_struct(SmtData)713_storage",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:78"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IVerifier)2116": {
+            "label": "contract IVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_enum(NodeType)695": {
+            "label": "enum NodeType",
+            "members": [
+              "EMPTY",
+              "LEAF",
+              "MIDDLE"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)": {
+            "label": "mapping(uint256 => uint256[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Node)764_storage)": {
+            "label": "mapping(uint256 => struct Node)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(RootEntry)752_storage)": {
+            "label": "mapping(uint256 => struct RootEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(StateEntry)2145_storage)": {
+            "label": "mapping(uint256 => struct StateV2.StateEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Node)764_storage": {
+            "label": "struct Node",
+            "members": [
+              {
+                "label": "nodeType",
+                "type": "t_enum(NodeType)695",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "childLeft",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "childRight",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "index",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "value",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(RootEntry)752_storage": {
+            "label": "struct RootEntry",
+            "members": [
+              {
+                "label": "replacedByRoot",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "createdAtTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "createdAtBlock",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(SmtData)713_storage": {
+            "label": "struct SmtData",
+            "members": [
+              {
+                "label": "nodes",
+                "type": "t_mapping(t_uint256,t_struct(Node)764_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "rootHistory",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "rootEntries",
+                "type": "t_mapping(t_uint256,t_struct(RootEntry)752_storage)",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)50_storage",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "1696"
+          },
+          "t_struct(StateEntry)2145_storage": {
+            "label": "struct StateV2.StateEntry",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "block",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "replacedBy",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "c4025355569d853c5cffb1830ddb4c1571b86250b3ace9809d7019a0310f72b2": {
+      "address": "0xC8e22F07366dD33e9b318C1bfCc1737e750ccCf6",
+      "txHash": "0xc5e66f37c1fc21f1b679ed17c87d59aa71ea9ba2b010f2c9d1acd64397f0cfcd",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IVerifier)2115",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:61"
+          },
+          {
+            "label": "statesHistories",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:66"
+          },
+          {
+            "label": "stateEntries",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_mapping(t_uint256,t_struct(StateEntry)2141_storage)",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:71"
+          },
+          {
+            "label": "gistData",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_struct(SmtData)713_storage",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:76"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IVerifier)2115": {
+            "label": "contract IVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_enum(NodeType)695": {
+            "label": "enum NodeType",
+            "members": [
+              "EMPTY",
+              "LEAF",
+              "MIDDLE"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)": {
+            "label": "mapping(uint256 => uint256[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Node)764_storage)": {
+            "label": "mapping(uint256 => struct Node)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(RootEntry)752_storage)": {
+            "label": "mapping(uint256 => struct RootEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(StateEntry)2141_storage)": {
+            "label": "mapping(uint256 => struct StateV2.StateEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Node)764_storage": {
+            "label": "struct Node",
+            "members": [
+              {
+                "label": "nodeType",
+                "type": "t_enum(NodeType)695",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "childLeft",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "childRight",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "index",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "value",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(RootEntry)752_storage": {
+            "label": "struct RootEntry",
+            "members": [
+              {
+                "label": "replacedByRoot",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "createdAtTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "createdAtBlock",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(SmtData)713_storage": {
+            "label": "struct SmtData",
+            "members": [
+              {
+                "label": "nodes",
+                "type": "t_mapping(t_uint256,t_struct(Node)764_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "rootHistory",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "rootEntries",
+                "type": "t_mapping(t_uint256,t_struct(RootEntry)752_storage)",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)50_storage",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "1696"
+          },
+          "t_struct(StateEntry)2141_storage": {
+            "label": "struct StateV2.StateEntry",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "block",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "replacedBy",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "66b96fcfc213c1da2c41fa86850cc998b0d2e9c6fcd4fbd54546779ea91e0ba8": {
+      "address": "0x58cE1a012f51F79AFd28FE2c61d6979aF71e0603",
+      "txHash": "0xa0951396e439b462560134fc739ffd37077517cad74319b07576fe3145595d58",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IVerifier)2127",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:61"
+          },
+          {
+            "label": "statesHistories",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:66"
+          },
+          {
+            "label": "stateEntries",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_mapping(t_uint256,t_struct(StateEntry)2158_storage)",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:71"
+          },
+          {
+            "label": "_gistData",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_struct(SmtData)716_storage",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:76"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IVerifier)2127": {
+            "label": "contract IVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_enum(NodeType)698": {
+            "label": "enum Smt.NodeType",
+            "members": [
+              "EMPTY",
+              "LEAF",
+              "MIDDLE"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)": {
+            "label": "mapping(uint256 => uint256[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Node)767_storage)": {
+            "label": "mapping(uint256 => struct Smt.Node)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(RootEntry)755_storage)": {
+            "label": "mapping(uint256 => struct Smt.RootEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(StateEntry)2158_storage)": {
+            "label": "mapping(uint256 => struct StateV2.StateEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Node)767_storage": {
+            "label": "struct Smt.Node",
+            "members": [
+              {
+                "label": "nodeType",
+                "type": "t_enum(NodeType)698",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "childLeft",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "childRight",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "index",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "value",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(RootEntry)755_storage": {
+            "label": "struct Smt.RootEntry",
+            "members": [
+              {
+                "label": "replacedByRoot",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "createdAtTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "createdAtBlock",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(SmtData)716_storage": {
+            "label": "struct Smt.SmtData",
+            "members": [
+              {
+                "label": "nodes",
+                "type": "t_mapping(t_uint256,t_struct(Node)767_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "rootHistory",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "rootEntries",
+                "type": "t_mapping(t_uint256,t_struct(RootEntry)755_storage)",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)50_storage",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "1696"
+          },
+          "t_struct(StateEntry)2158_storage": {
+            "label": "struct StateV2.StateEntry",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "block",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "replacedBy",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "93e5df59778dad625f7d0e7ec84d6edf2c3728eac58d0af39fa446235ae23127": {
+      "address": "0x2212783A8be0AB1322F39a9b2d6a7d9C0aA3BFF0",
+      "txHash": "0x894392bc8eec426b347c56695b09d3344fac79d95a1d06b96b606ff39e18bffd",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IVerifier)2116",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:63"
+          },
+          {
+            "label": "statesHistories",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:68"
+          },
+          {
+            "label": "stateEntries",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_mapping(t_uint256,t_struct(StateEntry)2145_storage)",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:73"
+          },
+          {
+            "label": "_gistData",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_struct(SmtData)713_storage",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:78"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IVerifier)2116": {
+            "label": "contract IVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_enum(NodeType)695": {
+            "label": "enum NodeType",
+            "members": [
+              "EMPTY",
+              "LEAF",
+              "MIDDLE"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)": {
+            "label": "mapping(uint256 => uint256[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Node)764_storage)": {
+            "label": "mapping(uint256 => struct Node)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(RootEntry)752_storage)": {
+            "label": "mapping(uint256 => struct RootEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(StateEntry)2145_storage)": {
+            "label": "mapping(uint256 => struct StateV2.StateEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Node)764_storage": {
+            "label": "struct Node",
+            "members": [
+              {
+                "label": "nodeType",
+                "type": "t_enum(NodeType)695",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "childLeft",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "childRight",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "index",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "value",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(RootEntry)752_storage": {
+            "label": "struct RootEntry",
+            "members": [
+              {
+                "label": "replacedByRoot",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "createdAtTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "createdAtBlock",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(SmtData)713_storage": {
+            "label": "struct SmtData",
+            "members": [
+              {
+                "label": "nodes",
+                "type": "t_mapping(t_uint256,t_struct(Node)764_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "rootHistory",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "rootEntries",
+                "type": "t_mapping(t_uint256,t_struct(RootEntry)752_storage)",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)50_storage",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "1696"
+          },
+          "t_struct(StateEntry)2145_storage": {
+            "label": "struct StateV2.StateEntry",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "block",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "replacedBy",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "f93a95d7aaa8c95a8f13a28bedbaf317690c4d55efca7839a8c778d2b0dc8e7c": {
+      "address": "0xd6c95516Bb423D2286D79FB4B1C4c2093FfbB552",
+      "txHash": "0x45fc9e746e35f355e8732b81ae5678d7b3219370061ab97ca9526174b38e0bbb",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IVerifier)2150",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:76"
+          },
+          {
+            "label": "_stateData",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_struct(StateData)2196_storage",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:81"
+          },
+          {
+            "label": "_gistData",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_struct(SmtData)749_storage",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:86"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IVerifier)2150": {
+            "label": "contract IVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_enum(NodeType)731": {
+            "label": "enum Smt.NodeType",
+            "members": [
+              "EMPTY",
+              "LEAF",
+              "MIDDLE"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)": {
+            "label": "mapping(uint256 => uint256[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Node)800_storage)": {
+            "label": "mapping(uint256 => struct Smt.Node)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(RootEntry)788_storage)": {
+            "label": "mapping(uint256 => struct Smt.RootEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(StateEntry)2181_storage)": {
+            "label": "mapping(uint256 => struct StateV2.StateEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Node)800_storage": {
+            "label": "struct Smt.Node",
+            "members": [
+              {
+                "label": "nodeType",
+                "type": "t_enum(NodeType)731",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "childLeft",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "childRight",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "index",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "value",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(RootEntry)788_storage": {
+            "label": "struct Smt.RootEntry",
+            "members": [
+              {
+                "label": "replacedByRoot",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "createdAtTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "createdAtBlock",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(SmtData)749_storage": {
+            "label": "struct Smt.SmtData",
+            "members": [
+              {
+                "label": "nodes",
+                "type": "t_mapping(t_uint256,t_struct(Node)800_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "rootHistory",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "rootEntries",
+                "type": "t_mapping(t_uint256,t_struct(RootEntry)788_storage)",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)50_storage",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "1696"
+          },
+          "t_struct(StateData)2196_storage": {
+            "label": "struct StateV2.StateData",
+            "members": [
+              {
+                "label": "statesHistories",
+                "type": "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "stateEntries",
+                "type": "t_mapping(t_uint256,t_struct(StateEntry)2181_storage)",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)50_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "1664"
+          },
+          "t_struct(StateEntry)2181_storage": {
+            "label": "struct StateV2.StateEntry",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "block",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "replacedBy",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "120ca27e158cb066c538c0000f9e938141175d913196a7e225e4f7ccd0afab6c": {
+      "address": "0x426c87770d83a8Da4fB455deD9d0de3bAad39Cf1",
+      "txHash": "0x5ab5bd40b1bf7c2ea49d66d182f79795a81a6e4a3088400323582c2e95d1904a",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IVerifier)2273",
+            "contract": "CredentialAtomicQueryMTPValidator",
+            "src": "contracts/validators/CredentialAtomicQueryMTPValidator.sol:14"
+          },
+          {
+            "label": "state",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_contract(IState)2248",
+            "contract": "CredentialAtomicQueryMTPValidator",
+            "src": "contracts/validators/CredentialAtomicQueryMTPValidator.sol:15"
+          },
+          {
+            "label": "revocationStateExpirationTime",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_uint256",
+            "contract": "CredentialAtomicQueryMTPValidator",
+            "src": "contracts/validators/CredentialAtomicQueryMTPValidator.sol:17"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IState)2248": {
+            "label": "contract IState",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IVerifier)2273": {
+            "label": "contract IVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "0165292b3cf685893e31f5200cfa2b147e201f0243473201841c79a4ee20033f": {
+      "address": "0x3F4D7CAA164324530886316A9F9Cbd80B5FfafEB",
+      "txHash": "0x66779a048c63e547ab4677edcfde7501db2e3f203e1b677d1f66d24faa7aae48",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IVerifier)2273",
+            "contract": "CredentialAtomicQuerySigValidator",
+            "src": "contracts/validators/CredentialAtomicQuerySigValidator.sol:14"
+          },
+          {
+            "label": "state",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_contract(IState)2248",
+            "contract": "CredentialAtomicQuerySigValidator",
+            "src": "contracts/validators/CredentialAtomicQuerySigValidator.sol:15"
+          },
+          {
+            "label": "revocationStateExpirationTime",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_uint256",
+            "contract": "CredentialAtomicQuerySigValidator",
+            "src": "contracts/validators/CredentialAtomicQuerySigValidator.sol:17"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IState)2248": {
+            "label": "contract IState",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IVerifier)2273": {
+            "label": "contract IVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "80f3a2f7eb9b271b89fc452794f1b1a7944b95a9b8be0c0cbe76873fe9acdced": {
+      "address": "0x06fe33040C10FDB09Bd90b01dD2bff791F55575d",
+      "txHash": "0xc1452f6c0974ddeb3f322bf3e8317fd7b39446a1995b47b42b24fc6768ebe8f0",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IVerifier)2148",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:76"
+          },
+          {
+            "label": "_stateData",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_struct(StateData)2194_storage",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:81"
+          },
+          {
+            "label": "_gistData",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_struct(SmtData)749_storage",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:86"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IVerifier)2148": {
+            "label": "contract IVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_enum(NodeType)731": {
+            "label": "enum Smt.NodeType",
+            "members": [
+              "EMPTY",
+              "LEAF",
+              "MIDDLE"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)": {
+            "label": "mapping(uint256 => uint256[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Node)800_storage)": {
+            "label": "mapping(uint256 => struct Smt.Node)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(RootEntry)788_storage)": {
+            "label": "mapping(uint256 => struct Smt.RootEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(StateEntry)2179_storage)": {
+            "label": "mapping(uint256 => struct StateV2.StateEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Node)800_storage": {
+            "label": "struct Smt.Node",
+            "members": [
+              {
+                "label": "nodeType",
+                "type": "t_enum(NodeType)731",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "childLeft",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "childRight",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "index",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "value",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(RootEntry)788_storage": {
+            "label": "struct Smt.RootEntry",
+            "members": [
+              {
+                "label": "replacedByRoot",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "createdAtTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "createdAtBlock",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(SmtData)749_storage": {
+            "label": "struct Smt.SmtData",
+            "members": [
+              {
+                "label": "nodes",
+                "type": "t_mapping(t_uint256,t_struct(Node)800_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "rootHistory",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "rootEntries",
+                "type": "t_mapping(t_uint256,t_struct(RootEntry)788_storage)",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)50_storage",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "1696"
+          },
+          "t_struct(StateData)2194_storage": {
+            "label": "struct StateV2.StateData",
+            "members": [
+              {
+                "label": "statesHistories",
+                "type": "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "stateEntries",
+                "type": "t_mapping(t_uint256,t_struct(StateEntry)2179_storage)",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)50_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "1664"
+          },
+          "t_struct(StateEntry)2179_storage": {
+            "label": "struct StateV2.StateEntry",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "block",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "replacedBy",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "42c1c4388e5eae092eaf074afe02a7e7e760e283ae24ea5a01d247eb69e7962b": {
+      "address": "0xf7f65C739A179867d6a4f06DAD613D252674bb76",
+      "txHash": "0x921036e93624fa106ecda168510f86bd13f500017d2c84348dc07ee0c0824985",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IVerifier)7922",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:76"
+          },
+          {
+            "label": "_stateData",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_struct(StateData)7968_storage",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:81"
+          },
+          {
+            "label": "_gistData",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_struct(SmtData)2956_storage",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:86"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IVerifier)7922": {
+            "label": "contract IVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_enum(NodeType)2938": {
+            "label": "enum Smt.NodeType",
+            "members": [
+              "EMPTY",
+              "LEAF",
+              "MIDDLE"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)": {
+            "label": "mapping(uint256 => uint256[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Node)3007_storage)": {
+            "label": "mapping(uint256 => struct Smt.Node)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(RootEntry)2995_storage)": {
+            "label": "mapping(uint256 => struct Smt.RootEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(StateEntry)7953_storage)": {
+            "label": "mapping(uint256 => struct StateV2.StateEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Node)3007_storage": {
+            "label": "struct Smt.Node",
+            "members": [
+              {
+                "label": "nodeType",
+                "type": "t_enum(NodeType)2938",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "childLeft",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "childRight",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "index",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "value",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(RootEntry)2995_storage": {
+            "label": "struct Smt.RootEntry",
+            "members": [
+              {
+                "label": "replacedByRoot",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "createdAtTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "createdAtBlock",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(SmtData)2956_storage": {
+            "label": "struct Smt.SmtData",
+            "members": [
+              {
+                "label": "nodes",
+                "type": "t_mapping(t_uint256,t_struct(Node)3007_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "rootHistory",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "rootEntries",
+                "type": "t_mapping(t_uint256,t_struct(RootEntry)2995_storage)",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)50_storage",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "1696"
+          },
+          "t_struct(StateData)7968_storage": {
+            "label": "struct StateV2.StateData",
+            "members": [
+              {
+                "label": "statesHistories",
+                "type": "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "stateEntries",
+                "type": "t_mapping(t_uint256,t_struct(StateEntry)7953_storage)",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)50_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "1664"
+          },
+          "t_struct(StateEntry)7953_storage": {
+            "label": "struct StateV2.StateEntry",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "block",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "replacedBy",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "5080cb1b42eda6b35d649dacb012d1a4b4434fdebbc20a693fcbfa87f2723cc3": {
+      "address": "0x8fC02B040c81129EE628937D209D2021AaE16Ded",
+      "txHash": "0xb7fa1e72a1f14612973b2d59604651a78eb61bb8f7ee86b0a7df919ee1fa9210",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IVerifier)2148",
+            "contract": "StateV2_0_abi_2_1",
+            "src": "contracts/state/StateV2_0_abi_2_1.sol:81"
+          },
+          {
+            "label": "_stateData",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_struct(StateData)2198_storage",
+            "contract": "StateV2_0_abi_2_1",
+            "src": "contracts/state/StateV2_0_abi_2_1.sol:86"
+          },
+          {
+            "label": "_gistData",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_struct(SmtData)749_storage",
+            "contract": "StateV2_0_abi_2_1",
+            "src": "contracts/state/StateV2_0_abi_2_1.sol:91"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IVerifier)2148": {
+            "label": "contract IVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_enum(NodeType)731": {
+            "label": "enum Smt.NodeType",
+            "members": [
+              "EMPTY",
+              "LEAF",
+              "MIDDLE"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)": {
+            "label": "mapping(uint256 => uint256[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Node)800_storage)": {
+            "label": "mapping(uint256 => struct Smt.Node)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(RootEntry)788_storage)": {
+            "label": "mapping(uint256 => struct Smt.RootEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(StateEntry)2183_storage)": {
+            "label": "mapping(uint256 => struct StateV2_0_abi_2_1.StateEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Node)800_storage": {
+            "label": "struct Smt.Node",
+            "members": [
+              {
+                "label": "nodeType",
+                "type": "t_enum(NodeType)731",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "childLeft",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "childRight",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "index",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "value",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(RootEntry)788_storage": {
+            "label": "struct Smt.RootEntry",
+            "members": [
+              {
+                "label": "replacedByRoot",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "createdAtTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "createdAtBlock",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(SmtData)749_storage": {
+            "label": "struct Smt.SmtData",
+            "members": [
+              {
+                "label": "nodes",
+                "type": "t_mapping(t_uint256,t_struct(Node)800_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "rootHistory",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "rootEntries",
+                "type": "t_mapping(t_uint256,t_struct(RootEntry)788_storage)",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)50_storage",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "1696"
+          },
+          "t_struct(StateData)2198_storage": {
+            "label": "struct StateV2_0_abi_2_1.StateData",
+            "members": [
+              {
+                "label": "statesHistories",
+                "type": "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "stateEntries",
+                "type": "t_mapping(t_uint256,t_struct(StateEntry)2183_storage)",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)50_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "1664"
+          },
+          "t_struct(StateEntry)2183_storage": {
+            "label": "struct StateV2_0_abi_2_1.StateEntry",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "block",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "replacedBy",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "6a02f66437a8d600fe3136b24cdecdc226aa84ecb594ffb96d7dc750f5db0a86": {
+      "address": "0xC42b43DC8f9329d33722bb5237dDD0Ea4E675994",
+      "txHash": "0x88e1af6fd308ec07102704a62a87c6b2d8a0d70985bbdf7cfc1ccbad1811cffe",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IVerifier)5974",
+            "contract": "StateV2_0_abi_2_1",
+            "src": "contracts/state/StateV2_0_abi_2_1.sol:81"
+          },
+          {
+            "label": "_stateData",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_struct(StateData)6024_storage",
+            "contract": "StateV2_0_abi_2_1",
+            "src": "contracts/state/StateV2_0_abi_2_1.sol:86"
+          },
+          {
+            "label": "_gistData",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_struct(SmtData)2700_storage",
+            "contract": "StateV2_0_abi_2_1",
+            "src": "contracts/state/StateV2_0_abi_2_1.sol:91"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IVerifier)5974": {
+            "label": "contract IVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_enum(NodeType)2682": {
+            "label": "enum Smt.NodeType",
+            "members": [
+              "EMPTY",
+              "LEAF",
+              "MIDDLE"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)": {
+            "label": "mapping(uint256 => uint256[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Node)2751_storage)": {
+            "label": "mapping(uint256 => struct Smt.Node)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(RootEntry)2739_storage)": {
+            "label": "mapping(uint256 => struct Smt.RootEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(StateEntry)6009_storage)": {
+            "label": "mapping(uint256 => struct StateV2_0_abi_2_1.StateEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Node)2751_storage": {
+            "label": "struct Smt.Node",
+            "members": [
+              {
+                "label": "nodeType",
+                "type": "t_enum(NodeType)2682",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "childLeft",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "childRight",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "index",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "value",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(RootEntry)2739_storage": {
+            "label": "struct Smt.RootEntry",
+            "members": [
+              {
+                "label": "replacedByRoot",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "createdAtTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "createdAtBlock",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(SmtData)2700_storage": {
+            "label": "struct Smt.SmtData",
+            "members": [
+              {
+                "label": "nodes",
+                "type": "t_mapping(t_uint256,t_struct(Node)2751_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "rootHistory",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "rootEntries",
+                "type": "t_mapping(t_uint256,t_struct(RootEntry)2739_storage)",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)50_storage",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "1696"
+          },
+          "t_struct(StateData)6024_storage": {
+            "label": "struct StateV2_0_abi_2_1.StateData",
+            "members": [
+              {
+                "label": "statesHistories",
+                "type": "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "stateEntries",
+                "type": "t_mapping(t_uint256,t_struct(StateEntry)6009_storage)",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)50_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "1664"
+          },
+          "t_struct(StateEntry)6009_storage": {
+            "label": "struct StateV2_0_abi_2_1.StateEntry",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "block",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "replacedBy",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "6eb8f1f6a3396014d3700a28d9c7203371900267cf8796ba4c30b1b1efd2d7ab": {
+      "address": "0x0f45063184C9a9dd34A31F9584043516b70B4086",
+      "txHash": "0xa47611a1e7c6db4dc9e2953d59e6c8201f027972f28e29cd78d5991cc6262e9c",
+      "layout": {
+        "solcVersion": "0.8.16",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IStateTransitionVerifier)2462",
+            "contract": "StateV2_migration",
+            "src": "contracts/state/StateV2_migraton.sol:35"
+          },
+          {
+            "label": "_stateData",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_struct(StateData)13270_storage",
+            "contract": "StateV2_migration",
+            "src": "contracts/state/StateV2_migraton.sol:36"
+          },
+          {
+            "label": "_gistData",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_struct(SmtData)7778_storage",
+            "contract": "StateV2_migration",
+            "src": "contracts/state/StateV2_migraton.sol:37"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "207",
+            "type": "t_array(t_uint256)444_storage",
+            "contract": "StateV2_migration",
+            "src": "contracts/state/StateV2_migraton.sol:39"
+          },
+          {
+            "label": "verifier_migration",
+            "offset": 0,
+            "slot": "651",
+            "type": "t_contract(IStateTransitionVerifier)2462",
+            "contract": "StateV2_migration",
+            "src": "contracts/state/StateV2_migraton.sol:41"
+          },
+          {
+            "label": "_stateData_migration",
+            "offset": 0,
+            "slot": "652",
+            "type": "t_struct(Data)9490_storage",
+            "contract": "StateV2_migration",
+            "src": "contracts/state/StateV2_migraton.sol:42"
+          },
+          {
+            "label": "_gistData_migration",
+            "offset": 0,
+            "slot": "702",
+            "type": "t_struct(Data)6172_storage",
+            "contract": "StateV2_migration",
+            "src": "contracts/state/StateV2_migraton.sol:43"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_struct(Entry)9472_storage)dyn_storage": {
+            "label": "struct StateLib_migration.Entry[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_struct(RootEntry)6197_storage)dyn_storage": {
+            "label": "struct SmtLib_migration.RootEntry[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)444_storage": {
+            "label": "uint256[444]",
+            "numberOfBytes": "14208"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]",
+            "numberOfBytes": "1440"
+          },
+          "t_array(t_uint256)48_storage": {
+            "label": "uint256[48]",
+            "numberOfBytes": "1536"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IStateTransitionVerifier)2462": {
+            "label": "contract IStateTransitionVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_enum(NodeType)6149": {
+            "label": "enum SmtLib_migration.NodeType",
+            "members": [
+              "EMPTY",
+              "LEAF",
+              "MIDDLE"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(NodeType)7760": {
+            "label": "enum Smt_old.NodeType",
+            "members": [
+              "EMPTY",
+              "LEAF",
+              "MIDDLE"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_array(t_struct(Entry)9472_storage)dyn_storage)": {
+            "label": "mapping(uint256 => struct StateLib_migration.Entry[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)": {
+            "label": "mapping(uint256 => uint256[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_array(t_uint256)dyn_storage))": {
+            "label": "mapping(uint256 => mapping(uint256 => uint256[]))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Node)6222_storage)": {
+            "label": "mapping(uint256 => struct SmtLib_migration.Node)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Node)7829_storage)": {
+            "label": "mapping(uint256 => struct Smt_old.Node)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(RootEntry)7817_storage)": {
+            "label": "mapping(uint256 => struct Smt_old.RootEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(StateEntry)13279_storage)": {
+            "label": "mapping(uint256 => struct StateV2_migration.StateEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Data)6172_storage": {
+            "label": "struct SmtLib_migration.Data",
+            "members": [
+              {
+                "label": "nodes",
+                "type": "t_mapping(t_uint256,t_struct(Node)6222_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "rootEntries",
+                "type": "t_array(t_struct(RootEntry)6197_storage)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "rootIndexes",
+                "type": "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "maxDepth",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "initialized",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)45_storage",
+                "offset": 0,
+                "slot": "5"
+              }
+            ],
+            "numberOfBytes": "1600"
+          },
+          "t_struct(Data)9490_storage": {
+            "label": "struct StateLib_migration.Data",
+            "members": [
+              {
+                "label": "stateEntries",
+                "type": "t_mapping(t_uint256,t_array(t_struct(Entry)9472_storage)dyn_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "stateIndexes",
+                "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_array(t_uint256)dyn_storage))",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)48_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "1600"
+          },
+          "t_struct(Entry)9472_storage": {
+            "label": "struct StateLib_migration.Entry",
+            "members": [
+              {
+                "label": "state",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "block",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(Node)6222_storage": {
+            "label": "struct SmtLib_migration.Node",
+            "members": [
+              {
+                "label": "nodeType",
+                "type": "t_enum(NodeType)6149",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "childLeft",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "childRight",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "index",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "value",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(Node)7829_storage": {
+            "label": "struct Smt_old.Node",
+            "members": [
+              {
+                "label": "nodeType",
+                "type": "t_enum(NodeType)7760",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "childLeft",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "childRight",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "index",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "value",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(RootEntry)6197_storage": {
+            "label": "struct SmtLib_migration.RootEntry",
+            "members": [
+              {
+                "label": "root",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "createdAtTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "createdAtBlock",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(RootEntry)7817_storage": {
+            "label": "struct Smt_old.RootEntry",
+            "members": [
+              {
+                "label": "replacedByRoot",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "createdAtTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "createdAtBlock",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(SmtData)7778_storage": {
+            "label": "struct Smt_old.SmtData",
+            "members": [
+              {
+                "label": "nodes",
+                "type": "t_mapping(t_uint256,t_struct(Node)7829_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "rootHistory",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "rootEntries",
+                "type": "t_mapping(t_uint256,t_struct(RootEntry)7817_storage)",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)50_storage",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "1696"
+          },
+          "t_struct(StateData)13270_storage": {
+            "label": "struct StateV2_migration.StateData",
+            "members": [
+              {
+                "label": "statesHistories",
+                "type": "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "stateEntries",
+                "type": "t_mapping(t_uint256,t_struct(StateEntry)13279_storage)",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)50_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "1664"
+          },
+          "t_struct(StateEntry)13279_storage": {
+            "label": "struct StateV2_migration.StateEntry",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "block",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "replacedBy",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "e8c5d72d207f2fc464513b93b6fd7b2dc7f8c78988349d36cd9996a90394b50d": {
+      "address": "0xA3e2D4a4621b4960bA1fc03C62936A9A670842F5",
+      "txHash": "0x74a49d21af0bdd5672a1e174cad2e350ad9a0575253034c07223d8fff1c14172",
+      "layout": {
+        "solcVersion": "0.8.16",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IStateTransitionVerifier)2462",
+            "contract": "StateV2_migration",
+            "src": "contracts/state/StateV2_migraton.sol:35"
+          },
+          {
+            "label": "_stateData",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_struct(StateData)13270_storage",
+            "contract": "StateV2_migration",
+            "src": "contracts/state/StateV2_migraton.sol:36"
+          },
+          {
+            "label": "_gistData",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_struct(SmtData)7778_storage",
+            "contract": "StateV2_migration",
+            "src": "contracts/state/StateV2_migraton.sol:37"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "207",
+            "type": "t_array(t_uint256)444_storage",
+            "contract": "StateV2_migration",
+            "src": "contracts/state/StateV2_migraton.sol:39"
+          },
+          {
+            "label": "verifier_migration",
+            "offset": 0,
+            "slot": "651",
+            "type": "t_contract(IStateTransitionVerifier)2462",
+            "contract": "StateV2_migration",
+            "src": "contracts/state/StateV2_migraton.sol:41"
+          },
+          {
+            "label": "_stateData_migration",
+            "offset": 0,
+            "slot": "652",
+            "type": "t_struct(Data)9490_storage",
+            "contract": "StateV2_migration",
+            "src": "contracts/state/StateV2_migraton.sol:42"
+          },
+          {
+            "label": "_gistData_migration",
+            "offset": 0,
+            "slot": "702",
+            "type": "t_struct(Data)6172_storage",
+            "contract": "StateV2_migration",
+            "src": "contracts/state/StateV2_migraton.sol:43"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_struct(Entry)9472_storage)dyn_storage": {
+            "label": "struct StateLib_migration.Entry[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_struct(RootEntry)6197_storage)dyn_storage": {
+            "label": "struct SmtLib_migration.RootEntry[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)444_storage": {
+            "label": "uint256[444]",
+            "numberOfBytes": "14208"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]",
+            "numberOfBytes": "1440"
+          },
+          "t_array(t_uint256)48_storage": {
+            "label": "uint256[48]",
+            "numberOfBytes": "1536"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IStateTransitionVerifier)2462": {
+            "label": "contract IStateTransitionVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_enum(NodeType)6149": {
+            "label": "enum SmtLib_migration.NodeType",
+            "members": [
+              "EMPTY",
+              "LEAF",
+              "MIDDLE"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(NodeType)7760": {
+            "label": "enum Smt_old.NodeType",
+            "members": [
+              "EMPTY",
+              "LEAF",
+              "MIDDLE"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_array(t_struct(Entry)9472_storage)dyn_storage)": {
+            "label": "mapping(uint256 => struct StateLib_migration.Entry[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)": {
+            "label": "mapping(uint256 => uint256[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_array(t_uint256)dyn_storage))": {
+            "label": "mapping(uint256 => mapping(uint256 => uint256[]))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Node)6222_storage)": {
+            "label": "mapping(uint256 => struct SmtLib_migration.Node)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Node)7829_storage)": {
+            "label": "mapping(uint256 => struct Smt_old.Node)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(RootEntry)7817_storage)": {
+            "label": "mapping(uint256 => struct Smt_old.RootEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(StateEntry)13279_storage)": {
+            "label": "mapping(uint256 => struct StateV2_migration.StateEntry)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Data)6172_storage": {
+            "label": "struct SmtLib_migration.Data",
+            "members": [
+              {
+                "label": "nodes",
+                "type": "t_mapping(t_uint256,t_struct(Node)6222_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "rootEntries",
+                "type": "t_array(t_struct(RootEntry)6197_storage)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "rootIndexes",
+                "type": "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "maxDepth",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "initialized",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)45_storage",
+                "offset": 0,
+                "slot": "5"
+              }
+            ],
+            "numberOfBytes": "1600"
+          },
+          "t_struct(Data)9490_storage": {
+            "label": "struct StateLib_migration.Data",
+            "members": [
+              {
+                "label": "stateEntries",
+                "type": "t_mapping(t_uint256,t_array(t_struct(Entry)9472_storage)dyn_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "stateIndexes",
+                "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_array(t_uint256)dyn_storage))",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)48_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "1600"
+          },
+          "t_struct(Entry)9472_storage": {
+            "label": "struct StateLib_migration.Entry",
+            "members": [
+              {
+                "label": "state",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "block",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(Node)6222_storage": {
+            "label": "struct SmtLib_migration.Node",
+            "members": [
+              {
+                "label": "nodeType",
+                "type": "t_enum(NodeType)6149",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "childLeft",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "childRight",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "index",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "value",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(Node)7829_storage": {
+            "label": "struct Smt_old.Node",
+            "members": [
+              {
+                "label": "nodeType",
+                "type": "t_enum(NodeType)7760",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "childLeft",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "childRight",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "index",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "value",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(RootEntry)6197_storage": {
+            "label": "struct SmtLib_migration.RootEntry",
+            "members": [
+              {
+                "label": "root",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "createdAtTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "createdAtBlock",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(RootEntry)7817_storage": {
+            "label": "struct Smt_old.RootEntry",
+            "members": [
+              {
+                "label": "replacedByRoot",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "createdAtTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "createdAtBlock",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(SmtData)7778_storage": {
+            "label": "struct Smt_old.SmtData",
+            "members": [
+              {
+                "label": "nodes",
+                "type": "t_mapping(t_uint256,t_struct(Node)7829_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "rootHistory",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "rootEntries",
+                "type": "t_mapping(t_uint256,t_struct(RootEntry)7817_storage)",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)50_storage",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "1696"
+          },
+          "t_struct(StateData)13270_storage": {
+            "label": "struct StateV2_migration.StateData",
+            "members": [
+              {
+                "label": "statesHistories",
+                "type": "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "stateEntries",
+                "type": "t_mapping(t_uint256,t_struct(StateEntry)13279_storage)",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)50_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "1664"
+          },
+          "t_struct(StateEntry)13279_storage": {
+            "label": "struct StateV2_migration.StateEntry",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "block",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "replacedBy",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "be2f73d81e81200a3df4045ee8b8871b1e4e04ff2e471d7aa3a1906ad23e4bdf": {
+      "address": "0x95162ef944F9BF4bBc1C7625Ac325b7EBB6bEC94",
+      "txHash": "0x6622ee0dcdab64be74d1ab4914773a5bf654dbcfb4c0a58082c2c9ead04c9fb3",
+      "layout": {
+        "solcVersion": "0.8.16",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "_pendingOwner",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "Ownable2StepUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol:27"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "Ownable2StepUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol:70"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)500_storage",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:26"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "651",
+            "type": "t_contract(IStateTransitionVerifier)2462",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:31"
+          },
+          {
+            "label": "_stateData",
+            "offset": 0,
+            "slot": "652",
+            "type": "t_struct(Data)8847_storage",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:36"
+          },
+          {
+            "label": "_gistData",
+            "offset": 0,
+            "slot": "702",
+            "type": "t_struct(Data)4462_storage",
+            "contract": "StateV2",
+            "src": "contracts/state/StateV2.sol:41"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_struct(Entry)8829_storage)dyn_storage": {
+            "label": "struct StateLib.Entry[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_struct(RootEntry)4487_storage)dyn_storage": {
+            "label": "struct SmtLib.RootEntry[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]",
+            "numberOfBytes": "1440"
+          },
+          "t_array(t_uint256)48_storage": {
+            "label": "uint256[48]",
+            "numberOfBytes": "1536"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)500_storage": {
+            "label": "uint256[500]",
+            "numberOfBytes": "16000"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IStateTransitionVerifier)2462": {
+            "label": "contract IStateTransitionVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_enum(NodeType)4439": {
+            "label": "enum SmtLib.NodeType",
+            "members": [
+              "EMPTY",
+              "LEAF",
+              "MIDDLE"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_uint256,t_array(t_struct(Entry)8829_storage)dyn_storage)": {
+            "label": "mapping(uint256 => struct StateLib.Entry[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)": {
+            "label": "mapping(uint256 => uint256[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_array(t_uint256)dyn_storage))": {
+            "label": "mapping(uint256 => mapping(uint256 => uint256[]))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Node)4512_storage)": {
+            "label": "mapping(uint256 => struct SmtLib.Node)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Data)4462_storage": {
+            "label": "struct SmtLib.Data",
+            "members": [
+              {
+                "label": "nodes",
+                "type": "t_mapping(t_uint256,t_struct(Node)4512_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "rootEntries",
+                "type": "t_array(t_struct(RootEntry)4487_storage)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "rootIndexes",
+                "type": "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "maxDepth",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "initialized",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)45_storage",
+                "offset": 0,
+                "slot": "5"
+              }
+            ],
+            "numberOfBytes": "1600"
+          },
+          "t_struct(Data)8847_storage": {
+            "label": "struct StateLib.Data",
+            "members": [
+              {
+                "label": "stateEntries",
+                "type": "t_mapping(t_uint256,t_array(t_struct(Entry)8829_storage)dyn_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "stateIndexes",
+                "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_array(t_uint256)dyn_storage))",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)48_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "1600"
+          },
+          "t_struct(Entry)8829_storage": {
+            "label": "struct StateLib.Entry",
+            "members": [
+              {
+                "label": "state",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "block",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(Node)4512_storage": {
+            "label": "struct SmtLib.Node",
+            "members": [
+              {
+                "label": "nodeType",
+                "type": "t_enum(NodeType)4439",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "childLeft",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "childRight",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "index",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "value",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(RootEntry)4487_storage": {
+            "label": "struct SmtLib.RootEntry",
+            "members": [
+              {
+                "label": "root",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "createdAtTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "createdAtBlock",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    }
+  }
+}
