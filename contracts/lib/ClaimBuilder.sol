@@ -51,6 +51,9 @@ library ClaimBuilder {
         uint256 valueDataSlotB;
     }
 
+    // RULE: each uint we convert to bytes has to be reversed (in go Little ending, solidity - big ending). 
+    //
+    // Final result reverted bytes to get valid uint256
     /**
      * @dev Build claim
      * @param c - claim data
@@ -63,7 +66,7 @@ library ClaimBuilder {
 
         // Schema
         bytes memory cutSchema = BytesLib.slice(
-            GenesisUtils.int256ToBytes(c.schemaHash),
+            GenesisUtils.int256ToBytes(GenesisUtils.reverse(c.schemaHash)),
             0,
             16
         );
@@ -112,7 +115,7 @@ library ClaimBuilder {
             );
             flags |= merklizedFlagIndex;
             claim[2] = c.merklizedRoot;
-        } else if (c.merklizedRootPosition == MerklizedRootPositionIndex) {
+        } else if (c.merklizedRootPosition == MerklizedRootPositionValue) {
             require(
                 c.indexDataSlotA == 0 && c.indexDataSlotB == 0 &&
                 c.valueDataSlotA == 0 && c.indexDataSlotB == 0,
@@ -129,11 +132,11 @@ library ClaimBuilder {
 
         bytes memory claim0 = BytesLib.concat(
             cutSchema, // 128 bits
-            abi.encodePacked(flags) // 32 bits
+            abi.encodePacked(reverse(flags)) // 32 bits
         );
 
         bytes memory claim0_2 = BytesLib.concat(
-            abi.encodePacked(c.version), // 32 bits
+            abi.encodePacked(reverse(c.version)), // 32 bits
             abi.encodePacked(empty64)
         );
 
@@ -142,16 +145,9 @@ library ClaimBuilder {
             claim0_2
         );
 
-        claim[0] = GenesisUtils.toUint256(claim0);
+        claim[0] = GenesisUtils.reverse(uint256(bytes32(claim0)));
 
         // claim[1] was written before
-
-        // tmp, test bit arithmetics
-        // todo: remove it
-        claim[1] = 0;
-        claim[1] |= uint256(c.schemaHash) & (1 << 128 - 1); // lower 128 bits
-        claim[1] |= uint256(flags) << 128;
-        claim[1] |= uint256(c.version) << 160;
 
         claim[2] |= c.indexDataSlotA; // merkle root might be there
         claim[3] = c.indexDataSlotB;
@@ -164,9 +160,18 @@ library ClaimBuilder {
         claim[6] |= c.valueDataSlotA; // merkle root might be there
         claim[7] = c.valueDataSlotB;
 
-        claim[7] = 777;
-
         return claim;
+    }
+
+    function reverse(uint32 input) internal pure returns (uint32 v) {
+        v = input;
+
+        // swap bytes
+        v = ((v & 0xFF00FF00) >> 8) |
+            ((v & 0x00FF00FF) << 8);
+
+        // swap 2-byte long pairs
+        v = (v >> 16) | (v << 16);
     }
 
 }
