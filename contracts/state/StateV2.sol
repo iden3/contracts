@@ -2,9 +2,10 @@
 pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import "../interfaces/IState.sol";
+import "../interfaces/IStateTransitionVerifier.sol";
 import "../lib/SmtLib.sol";
 import "../lib/Poseidon.sol";
-import "../interfaces/IStateTransitionVerifier.sol";
 import "../lib/StateLib.sol";
 import "../lib/GenesisUtils.sol";
 
@@ -43,14 +44,10 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
     using SmtLib for SmtLib.Data;
     using StateLib for StateLib.Data;
 
-    /**
-     * @dev event called when a state is updated
-     * @param id identity
-     * @param blockN Block number when the state has been committed
-     * @param timestamp Timestamp when the state has been committed
-     * @param state Identity state committed
-     */
-    event StateUpdated(uint256 id, uint256 blockN, uint256 timestamp, uint256 state);
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
 
     /**
      * @dev Initialize the contract
@@ -91,7 +88,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
             require(!idExists(id), "Old state is genesis but identity already exists");
 
             // Push old state to state entries, with zero timestamp and block
-            _stateData.addStateNoTimestampAndBlock(id, oldState);
+            _stateData.addGenesisState(id, oldState);
         } else {
             require(idExists(id), "Old state is not genesis but identity does not yet exist");
 
@@ -105,8 +102,6 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
 
         _stateData.addState(id, newState);
         _gistData.addLeaf(PoseidonUnit1L.poseidon([id]), newState);
-
-        emit StateUpdated(id, block.number, block.timestamp, newState);
     }
 
     /**
