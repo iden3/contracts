@@ -53,13 +53,13 @@ describe("Negative tests", function () {
   });
 
   it("Zero timestamp and block should be only in the first identity state", async () => {
-    await expect(stateLibWrpr.addStateNoTimestampAndBlock(2, 20)).to.be.not.reverted;
-    await expect(stateLibWrpr.addStateNoTimestampAndBlock(2, 20)).to.be.revertedWith(
+    await expect(stateLibWrpr.addGenesisState(2, 20)).to.be.not.reverted;
+    await expect(stateLibWrpr.addGenesisState(2, 20)).to.be.revertedWith(
       "Zero timestamp and block should be only in the first identity state"
     );
 
     await expect(stateLibWrpr.addState(3, 30)).to.be.not.reverted;
-    await expect(stateLibWrpr.addStateNoTimestampAndBlock(3, 30)).to.be.revertedWith(
+    await expect(stateLibWrpr.addGenesisState(3, 30)).to.be.revertedWith(
       "Zero timestamp and block should be only in the first identity state"
     );
   });

@@ -5,7 +5,6 @@ coverage.json
 typechain
 .idea
 build
-.openzeppelin
 .vscode
 #Hardhat files
 cache

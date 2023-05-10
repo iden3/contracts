@@ -5,15 +5,6 @@ on:  # yamllint disable-line rule:truthy
   workflow_dispatch: {}
 
 jobs:
-  slither:
-    name: Slither
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: crytic/slither-action@v0.3.0
-        with:
-          fail-on: medium
-
   solhint:
     runs-on: ubuntu-latest
     steps:

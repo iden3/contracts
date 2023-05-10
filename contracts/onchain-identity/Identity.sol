@@ -58,12 +58,7 @@ contract Identity is OwnableUpgradeable {
         revocationsTree.initialize(IDENTITY_MAX_SMT_DEPTH);
         rootsTree.initialize(IDENTITY_MAX_SMT_DEPTH);
 
-        // TODO: should we add contract address claim to claimsTree?
-        claimsTree.addLeaf(0, uint256(uint160(address(this))));
-        lastClaimsTreeRoot = claimsTree.getRoot();
-        identityState = calcIdentityState();
-
-        id = GenesisUtils.calcOnchainIdFromAddress(0x8212, address(this));
+        id = GenesisUtils.calcOnchainIdFromAddress(0x0212, address(this));
 
         __Ownable_init();
     }

@@ -45,6 +45,16 @@ library GenesisUtils {
     }
 
     /**
+     * @dev reverse uint16
+     */
+    function reverse16(uint16 input) internal pure returns (uint16 v) {
+        v = input;
+
+        // swap bytes
+        v = (v >> 8) | (v << 8);
+    }
+
+    /**
      *   @dev sum
      */
     function sum(bytes memory array) internal pure returns (uint16 s) {
@@ -89,10 +99,9 @@ library GenesisUtils {
     {
         bytes memory idBytes = int256ToBytes(id);
 
-        bytes memory idType;
-        idType[0] = idBytes[0];
-        idType[1] = idBytes[1];
+        bytes memory idType = BytesLib.slice(idBytes, idBytes.length - 31, 2);
 
+        // TODO: maybe we can do just bytes2(idBytes) - should take first 2 bytes
         uint256 computedId = calcIdFromGenesisState(bytes2(idType), idState);
 
         return id == computedId;
@@ -102,30 +111,21 @@ library GenesisUtils {
      * @dev calcIdFromGenesisState
      */
     function calcIdFromGenesisState(bytes2 idType, uint256 idState) internal pure returns (uint256) {
-        uint256 userSwappedState = reverse(idState);
-
-        bytes memory userStateB1 = int256ToBytes(userSwappedState);
+        bytes memory userStateB1 = int256ToBytes(idState);
 
         bytes memory cutState = BytesLib.slice(userStateB1, userStateB1.length - 27, 27);
 
-        bytes memory _idType = abi.encodePacked(idType);
-
-        bytes memory beforeChecksum = BytesLib.concat(_idType, cutState);
+        bytes memory beforeChecksum = BytesLib.concat(abi.encodePacked(idType), cutState);
         require(beforeChecksum.length == 29, "Checksum requires 29 length array");
 
-        uint16 s = sum(beforeChecksum);
+        uint16 checksum = reverse16(sum(beforeChecksum));
 
-        bytes memory checkSumBytes = abi.encodePacked(s);
-
-        bytes1 tmp;
-        tmp = checkSumBytes[0];
-        checkSumBytes[0] = checkSumBytes[1];
-        checkSumBytes[1] = tmp;
+        bytes memory checkSumBytes = abi.encodePacked(checksum);
 
         bytes memory idBytes = BytesLib.concat(beforeChecksum, checkSumBytes);
         require(idBytes.length == 31, "idBytes requires 31 length array");
 
-        return  reverse(toUint256(idBytes));
+        return uint256(uint248(bytes31(idBytes)));
     }
 
     /**

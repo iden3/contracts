@@ -12,8 +12,8 @@ contract StateLibTestWrapper {
         stateData.addState(id, state);
     }
 
-    function addStateNoTimestampAndBlock(uint256 id, uint256 state) external {
-        stateData.addStateNoTimestampAndBlock(id, state);
+    function addGenesisState(uint256 id, uint256 state) external {
+        stateData.addGenesisState(id, state);
     }
 
     function getStateInfoById(uint256 id) external view returns (StateLib.EntryInfo memory) {

@@ -64,6 +64,18 @@ export async function deployERC20ZKPVerifierToken(
   return erc20Verifier;
 }
 
+export async function deployGenesisUtilsWrapper(): Promise<{
+  address: string;
+}> {
+
+  const GenesisUtilsWrapper = await ethers.getContractFactory(
+    "GenesisUtilsWrapper"
+  );
+  const genesisUtilsWrapper = await GenesisUtilsWrapper.deploy();
+  console.log("GenesisUtilsWrapper deployed to:", genesisUtilsWrapper.address);
+  return genesisUtilsWrapper;
+}
+
 export interface VerificationInfo {
   inputs: Array<string>;
   pi_a: Array<string>;
