@@ -99,10 +99,9 @@ library GenesisUtils {
     {
         bytes memory idBytes = int256ToBytes(id);
 
-        bytes memory idType;
-        idType[0] = idBytes[0];
-        idType[1] = idBytes[1];
+        bytes memory idType = BytesLib.slice(idBytes, idBytes.length - 31, 2);
 
+        // TODO: maybe we can do just bytes2(idBytes) - should take first 2 bytes
         uint256 computedId = calcIdFromGenesisState(bytes2(idType), idState);
 
         return id == computedId;
@@ -116,10 +115,7 @@ library GenesisUtils {
 
         bytes memory cutState = BytesLib.slice(userStateB1, userStateB1.length - 27, 27);
 
-        bytes memory userIdB = int256ToBytes(id);
-        bytes memory idType = BytesLib.slice(userIdB, userIdB.length - 31, 2);
-
-        bytes memory beforeChecksum = BytesLib.concat(idType, cutState);
+        bytes memory beforeChecksum = BytesLib.concat(abi.encodePacked(idType), cutState);
         require(beforeChecksum.length == 29, "Checksum requires 29 length array");
 
         uint16 checksum = reverse16(sum(beforeChecksum));
