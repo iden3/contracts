@@ -3,22 +3,12 @@ import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeploy
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 import fs from 'fs'
 
-describe("Claim builder tests", function() {
+describe.only("Claim builder tests", function() {
   let identity;
   
   before(async () => {
-      const stDeployHelper = await StateDeployHelper.initialize();
-      const deployHelper = await OnchainIdentityDeployHelper.initialize();
-      const stContracts = await stDeployHelper.deployStateV2();
-      const contracts = await deployHelper.deployIdentity(
-        stContracts.state,
-        stContracts.smtLib,
-        stContracts.poseidon1,
-        stContracts.poseidon2,
-        stContracts.poseidon3,
-        stContracts.poseidon4
-      );
-      identity = contracts.identity;
+    const stDeployHelper = await OnchainIdentityDeployHelper.initialize();
+    identity = await stDeployHelper.deployClaimBuilderWrapper();
   });
 
   it("validate buildClaim", async function () {
