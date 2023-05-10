@@ -41,8 +41,8 @@ describe("Next tests reproduce identity life cycle", function() {
       initialRootOfRootsTreeRoot = await identity.getRootsTreeRoot();
     });
 
-    it("since claim tree root contains 'auth' claim with contract address. should not be empty", async function () {
-      expect(initialClaimTreeRoot).not.be.equal(0);
+    it("since initially claim tree root is empty, it's root should be 0", async function () {
+      expect(initialClaimTreeRoot).be.equal(0);
     });
     it("latest claims root should be equal to claim tree root", async function () {
       const lastClaimTreeRoot = await identity.lastClaimsTreeRoot();
