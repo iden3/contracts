@@ -3,7 +3,7 @@ import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeploy
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 import fs from 'fs'
 
-describe.only("Claim builder tests", function() {
+describe("Claim builder tests", function() {
   let identity;
   
   before(async () => {
@@ -69,8 +69,6 @@ describe.only("Claim builder tests", function() {
         const claims = await identity.buildClaim(input.contractInput);
         // console.log(claims);
         claims.forEach((c, cIndex) => {
-            console.log(c.toString());
-            console.log(input.expectedClaims[cIndex]);
             expect(c.eq(input.expectedClaims[cIndex])).to.be.true;
         });
     }
@@ -133,10 +131,7 @@ describe.only("Claim builder tests", function() {
     for (let i = 0; i < inputs.length; i++) {
         const input = inputs[i];
         const claims = await identity.buildClaim(input.contractInput);
-        // console.log(claims);
         claims.forEach((c, cIndex) => {
-            // console.log(c.toString());
-            // console.log(input.expectedClaims[cIndex]);
             expect(c.eq(input.expectedClaims[cIndex])).to.be.true;
         });
     }
