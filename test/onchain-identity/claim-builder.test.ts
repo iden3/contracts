@@ -3,7 +3,7 @@ import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeploy
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 import fs from 'fs'
 
-describe.only("Claim builder tests", function() {
+describe("Claim builder tests", function() {
   let identity;
   
   before(async () => {
