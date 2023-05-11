@@ -48,6 +48,51 @@ contract Identity is OwnableUpgradeable {
     uint256 public lastRevocationsTreeRoot;
     uint256 public lastRootsTreeRoot;
 
+    /**
+     * @dev set of roots
+     */
+    struct Roots {
+        uint256 claimsTreeRoot;
+        uint256 revocationsTreeRoot;
+        uint256 rootsTreeRoot;
+    }
+    
+    /**
+     * @dev mapping of roots by state
+     */
+    mapping(uint256 => Roots) internal rootsByState;
+
+    /**
+     * @dev write roots to history by state
+     * @param historicalState identity state
+     * @param roots set of roots
+     */
+    function writeHistory(uint256 historicalState, Roots memory roots) internal {
+        require(
+            rootsByState[historicalState].claimsTreeRoot == 0 &&
+            rootsByState[historicalState].revocationsTreeRoot == 0 &&
+            rootsByState[historicalState].rootsTreeRoot == 0, 
+            "Roots for this state already exist"
+        );
+        rootsByState[historicalState] = roots;
+    }
+
+    /**
+     * @dev returns historical claimsTree roots, revocationsTree roots, rootsTree roots
+     * by state
+     * @param historicalState identity state
+     * @return set of roots
+     */
+    function getRootsByState(uint256 historicalState) public view returns (Roots memory) {
+        require(
+            rootsByState[historicalState].claimsTreeRoot != 0 ||
+            rootsByState[historicalState].revocationsTreeRoot != 0 ||
+            rootsByState[historicalState].rootsTreeRoot != 0, 
+            "Roots for this state don't exist"
+        );
+        return rootsByState[historicalState];
+    }
+
     function initialize(
         address _stateContractAddr
     ) public initializer {
@@ -130,6 +175,12 @@ contract Identity is OwnableUpgradeable {
         // related to the documentation set isOldStateGenesis to false each time is faster and cheaper
         // https://docs.google.com/spreadsheets/d/1m89CVujrQe5LAFJ8-YAUCcNK950dUzMQPMJBxRtGCqs/edit#gid=0
         isOldStateGenesis = false;
+
+        writeHistory(identityState, Roots({
+            claimsTreeRoot: lastClaimsTreeRoot,
+            revocationsTreeRoot: lastRevocationsTreeRoot,
+            rootsTreeRoot: lastRootsTreeRoot
+        }));
     }
 
     /**

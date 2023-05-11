@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeployHelper";
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 
-describe("Next tests reproduce identity life cycle", function() {
+describe("Next tests reproduce identity life cycle", function () {
   this.timeout(10000);
 
   let identity;
@@ -382,6 +382,174 @@ describe("Root of roots tree proofs", () => {
     it("Check that current Root of roots contains latest claims tree root", async function () {
       const proof = await identity.getRootProof(currentClaimsTreeRoot);
       expect(proof.existence).to.be.true;
+    });
+  });
+});
+
+describe("Compare historical roots with latest roots from tree", () => {
+  let identity;
+  let latestState;
+
+  before(async function () {
+    const stDeployHelper = await StateDeployHelper.initialize();
+    const deployHelper = await OnchainIdentityDeployHelper.initialize();
+    const stContracts = await stDeployHelper.deployStateV2();
+    const contracts = await deployHelper.deployIdentity(
+      stContracts.state,
+      stContracts.smtLib,
+      stContracts.poseidon1,
+      stContracts.poseidon2,
+      stContracts.poseidon3,
+      stContracts.poseidon4
+    );
+    identity = contracts.identity;
+  });
+
+  describe("Insert and revoke claims", () => {
+    before(async function () {
+      await identity.addClaimHash(1, 2);
+      await identity.addClaimHash(2, 2);
+      await identity.revokeClaim(1);
+      await identity.transitState();
+
+      latestState = await identity.identityState();
+    });
+    it("Compare latest claims tree root", async function () {
+      const latestClaimsTreeRoot = await identity.getClaimsTreeRoot();
+      const history = await identity.getRootsByState(latestState);
+
+      expect(latestClaimsTreeRoot).to.be.not.equal(0);
+      expect(history.claimsTreeRoot).to.be.deep.equal(latestClaimsTreeRoot);
+    });
+    it("Compare latest revocations tree root", async function () {
+      const latestReocationsTreeRoot = await identity.getRevocationsTreeRoot();
+      const history = await identity.getRootsByState(latestState);
+
+      expect(latestReocationsTreeRoot).to.be.not.equal(0);
+      expect(history.revocationsTreeRoot).to.be.deep.equal(latestReocationsTreeRoot);
+    });
+    it("Compare latest roots tree root", async function () {
+      const latestRootOfRoots = await identity.getRootsTreeRoot();
+      const history = await identity.getRootsByState(latestState);
+
+      expect(latestRootOfRoots).to.be.not.equal(0);
+      expect(history.rootsTreeRoot).to.be.deep.equal(latestRootOfRoots);
+    });
+  });
+});
+
+describe("Compare historical roots with latest roots from tree", () => {
+  let identity, prevState;
+  let historyClaimsTreeRoot, historyRevocationsTreeRoot, historyRootsTreeRoot;
+
+  before(async function () {
+    const stDeployHelper = await StateDeployHelper.initialize();
+    const deployHelper = await OnchainIdentityDeployHelper.initialize();
+    const stContracts = await stDeployHelper.deployStateV2();
+    const contracts = await deployHelper.deployIdentity(
+      stContracts.state,
+      stContracts.smtLib,
+      stContracts.poseidon1,
+      stContracts.poseidon2,
+      stContracts.poseidon3,
+      stContracts.poseidon4
+    );
+    identity = contracts.identity;
+  });
+
+  describe("Check prev states", () => {
+    before(async function () {
+      await identity.addClaimHash(1, 2);
+      await identity.revokeClaim(1);
+      await identity.transitState();
+      prevState = await identity.identityState();
+    });
+    it("Compare latest claims tree root", async function () {
+      const latestClaimsTreeRoot = await identity.getClaimsTreeRoot();
+      const history = await identity.getRootsByState(prevState);
+
+      expect(latestClaimsTreeRoot).to.be.not.equal(0);
+      expect(history.claimsTreeRoot).to.be.deep.equal(latestClaimsTreeRoot);
+      historyClaimsTreeRoot = latestClaimsTreeRoot;
+    });
+    it("Compare latest revocations tree root", async function () {
+      const latestReocationsTreeRoot = await identity.getRevocationsTreeRoot();
+      const history = await identity.getRootsByState(prevState);
+
+      expect(latestReocationsTreeRoot).to.be.not.equal(0);
+      expect(history.revocationsTreeRoot).to.be.deep.equal(latestReocationsTreeRoot);
+      historyRevocationsTreeRoot = latestReocationsTreeRoot;
+    });
+    it("Compare latest roots tree root", async function () {
+      const latestRootOfRoots = await identity.getRootsTreeRoot();
+      const history = await identity.getRootsByState(prevState);
+
+      expect(latestRootOfRoots).to.be.not.equal(0);
+      expect(history.rootsTreeRoot).to.be.deep.equal(latestRootOfRoots);
+      historyRootsTreeRoot = latestRootOfRoots;
+    });
+  });
+  describe("Check next states", () => {
+    before(async function () {
+      await identity.addClaimHash(2, 2);
+      await identity.revokeClaim(2);
+      await identity.transitState();
+    });
+    it("Check historical claims tree root", async function () {
+      const latestClaimsTreeRoot = await identity.getClaimsTreeRoot();
+      const history = await identity.getRootsByState(prevState);
+
+      expect(latestClaimsTreeRoot).to.be.not.equal(0);
+      expect(history.claimsTreeRoot).to.not.deep.equal(latestClaimsTreeRoot);
+      expect(history.claimsTreeRoot).to.be.deep.equal(historyClaimsTreeRoot);
+    });
+    it("Check historical revocations tree root", async function () {
+      const latestReocationsTreeRoot = await identity.getRevocationsTreeRoot();
+      const history = await identity.getRootsByState(prevState);
+
+      expect(latestReocationsTreeRoot).to.be.not.equal(0);
+      expect(history.revocationsTreeRoot).to.not.deep.equal(latestReocationsTreeRoot);
+      expect(history.revocationsTreeRoot).to.be.deep.equal(historyRevocationsTreeRoot);
+    });
+    it("Check historical roots tree root", async function () {
+      const latestRootOfRoots = await identity.getRootsTreeRoot();
+      const history = await identity.getRootsByState(prevState);
+
+      expect(latestRootOfRoots).to.be.not.equal(0);
+      expect(history.rootsTreeRoot).to.not.deep.equal(latestRootOfRoots);
+      expect(history.rootsTreeRoot).to.be.deep.equal(historyRootsTreeRoot);
+    });
+  });
+});
+
+describe.only("Genesis state doens't have history of states", () => {
+  let identity;
+
+  before(async function () {
+    const stDeployHelper = await StateDeployHelper.initialize();
+    const deployHelper = await OnchainIdentityDeployHelper.initialize();
+    const stContracts = await stDeployHelper.deployStateV2();
+    const contracts = await deployHelper.deployIdentity(
+      stContracts.state,
+      stContracts.smtLib,
+      stContracts.poseidon1,
+      stContracts.poseidon2,
+      stContracts.poseidon3,
+      stContracts.poseidon4
+    );
+    identity = contracts.identity;
+  });
+
+  describe("Empty history map", () => {
+    it("Got an error", async function () {
+      const latestState = await identity.calcIdentityState();
+      expect(latestState).to.not.be.equal(0);
+      try {
+        await identity.getRootsByState(latestState);
+      } catch (error) {
+        const errorMessage = (error as Error).toString();
+        expect(errorMessage).to.be.contain("Roots for this state doesn't exist");
+      }
     });
   });
 });
