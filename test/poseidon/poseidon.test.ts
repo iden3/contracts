@@ -1,6 +1,6 @@
 import { Contract } from "ethers";
 import { expect } from "chai";
-import { deployPoseidonFacade } from "./utils/deploy-poseidons.util";
+import { deployPoseidonFacade } from "../../helpers/PoseidonDeployHelper";
 
 describe("poseidon", () => {
   let poseidonFacade: Contract;

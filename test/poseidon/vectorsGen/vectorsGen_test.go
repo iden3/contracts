@@ -6,11 +6,11 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/iden3/go-iden3-core/common"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	cryptoConstants "github.com/iden3/go-iden3-crypto/constants"
 	"github.com/iden3/go-iden3-crypto/poseidon"
 	"github.com/iden3/go-iden3-crypto/utils"
+	"github.com/iden3/go-merkletree-sql"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,9 +20,9 @@ func TestPoseidonSolidity(t *testing.T) {
 	b45 := big.NewInt(int64(45))
 	b78 := big.NewInt(int64(78))
 	b41 := big.NewInt(int64(41))
-	bigArray4 := [poseidon.T]*big.Int{b12, b45, b78, b41, cryptoConstants.Zero, cryptoConstants.Zero}
+	bigArray4 := []*big.Int{b12, b45, b78, b41, cryptoConstants.Zero, cryptoConstants.Zero}
 
-	h, err := poseidon.PoseidonHash(bigArray4)
+	h, err := poseidon.Hash(bigArray4)
 	assert.Nil(t, err)
 	fmt.Println(h.String())
 }
@@ -89,7 +89,7 @@ func TestSignVerifyPoseidon(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		prefix := new(big.Int).SetBytes(common.SwapEndianness(s)).Bytes()
+		prefix := new(big.Int).SetBytes(merkletree.SwapEndianness(s)).Bytes()
 		var prefix31 [31]byte
 		copy(prefix31[:], prefix)
 		prefixBigInt := new(big.Int)
@@ -100,14 +100,14 @@ func TestSignVerifyPoseidon(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		oldState := new(big.Int).SetBytes(common.SwapEndianness(s))
+		oldState := new(big.Int).SetBytes(merkletree.SwapEndianness(s))
 
 		// newState
 		s, err = hex.DecodeString("10573b26693eb36e23e21f308df3e3087827624380b1f04c5585e03e336e6725")
 		if err != nil {
 			panic(err)
 		}
-		newState := new(big.Int).SetBytes(common.SwapEndianness(s))
+		newState := new(big.Int).SetBytes(merkletree.SwapEndianness(s))
 
 		toHash := []*big.Int{prefixBigInt, oldState, newState}
 		msg, err := poseidon.Hash(toHash)

@@ -1,13 +1,13 @@
-import { StateDeployHelper } from "./StateDeployHelper";
+import { DeployHelper } from "./DeployHelper";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Contract, Wallet } from "ethers";
-import { publishState } from "../test/utils/deploy-utils";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ContractMigrationSteps, EventLogEntry, log } from "./ContractMigrationSteps";
+import { ethers } from "hardhat";
 
 export class StateContractMigrationHelper extends ContractMigrationSteps {
   constructor(
-    private readonly _stateDeployHelper: StateDeployHelper,
+    private readonly _stateDeployHelper: DeployHelper,
     protected readonly _signer: SignerWithAddress | Wallet
   ) {
     super(_signer);
@@ -113,7 +113,7 @@ export class StateContractMigrationHelper extends ContractMigrationSteps {
   async populateData(contract: Contract, stateTransitionPayload: any[]): Promise<void> {
     for (let idx = 0; idx < stateTransitionPayload.length; idx++) {
       const state = stateTransitionPayload[idx];
-      await publishState(contract, state);
+      await this.publishState(contract, state);
     }
   }
 
@@ -140,6 +140,59 @@ export class StateContractMigrationHelper extends ContractMigrationSteps {
 
   @log
   async upgradeContract(contract: Contract): Promise<any> {
-    return await this._stateDeployHelper.upgradeToStateV2(contract.address);
+    return await this._stateDeployHelper.upgradeStateV2(contract.address);
+  }
+  private async publishState(
+    state: Contract,
+    json: { [key: string]: string }
+  ): Promise<{
+    oldState: string;
+    newState: string;
+    id: string;
+    blockNumber: number;
+    timestamp: number;
+  }> {
+    const {
+      inputs: [id, oldState, newState, isOldStateGenesis],
+      pi_a,
+      pi_b,
+      pi_c,
+    } = this.prepareInputs(json);
+
+    const transitStateTx = await state.transitState(
+      id,
+      oldState,
+      newState,
+      isOldStateGenesis === "1",
+      pi_a,
+      pi_b,
+      pi_c
+    );
+
+    const { blockNumber } = await transitStateTx.wait();
+    const { timestamp } = await ethers.provider.getBlock(transitStateTx.blockNumber);
+
+    return {
+      oldState,
+      newState,
+      id,
+      blockNumber,
+      timestamp,
+    };
+  }
+  private prepareInputs(json: any): any {
+    const { proof, pub_signals } = json;
+    const { pi_a, pi_b, pi_c } = proof;
+    const [[p1, p2], [p3, p4]] = pi_b;
+    const preparedProof = {
+      pi_a: pi_a.slice(0, 2),
+      pi_b: [
+        [p2, p1],
+        [p4, p3],
+      ],
+      pi_c: pi_c.slice(0, 2),
+    };
+
+    return { inputs: pub_signals, ...preparedProof };
   }
 }
