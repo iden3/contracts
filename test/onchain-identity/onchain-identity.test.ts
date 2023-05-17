@@ -28,7 +28,7 @@ describe("Next tests reproduce identity life cycle", function() {
     it("validate identity's id", async function () {
       const id = await identity.id();
       expect(id).to.be.equal(
-        20318741244951419790279970260471061329920784847526059589266894371380597378n
+        19435317712562231673898250973778224014638392712618728138799088409679761922n
       );
     });
   });
@@ -41,22 +41,18 @@ describe("Next tests reproduce identity life cycle", function() {
       initialRootOfRootsTreeRoot = await identity.getRootsTreeRoot();
     });
 
-    it("since initially claim tree root is empty, it's root should be 0", async function () {
+    it("trees should be empty", async function () {
       expect(initialClaimTreeRoot).be.equal(0);
-    });
-    it("latest claims root should be equal to claim tree root", async function () {
-      const lastClaimTreeRoot = await identity.lastClaimsTreeRoot();
-      expect(lastClaimTreeRoot).to.be.equal(initialClaimTreeRoot);
-    });
-    it("another trees should be empty", async function () {
       expect(initialRevocationTreeRoot).to.be.equal(0);
       expect(initialRootOfRootsTreeRoot).to.be.equal(0);
     });
 
-    it("Root of roots and Revocation root should be empty", async function () {
+    it("last roots should be empty", async function () {
+      const lastClaimTreeRoot = await identity.lastClaimsTreeRoot();
       const lastRevocationTreeRoot = await identity.lastRevocationsTreeRoot();
       const lastRootOfRootsTreeRoot = await identity.lastRootsTreeRoot();
 
+      expect(lastClaimTreeRoot).to.be.equal(initialClaimTreeRoot);
       expect(lastRevocationTreeRoot).to.be.equal(0);
       expect(lastRootOfRootsTreeRoot).to.be.equal(0);
     });
@@ -65,11 +61,10 @@ describe("Next tests reproduce identity life cycle", function() {
       expect(isOldStateGenesis).to.be.true;
     });
     it(
-      "since the constructor of identity calculates the state" +
-        "State from the field and calculate function should be the same",
+        "latest identity state should be empty",
       async function () {
-        latestComputedState = await identity.calcIdentityState();
         latestSavedState = await identity.identityState();
+        expect(latestSavedState).to.be.equal(0);
       }
     );
   });

@@ -136,7 +136,12 @@ library GenesisUtils {
         // shift address left 7 bytes, because calcIdFromGenesisState cuts last 5 bytes after swapping endianness:
         // 32 bytes of uint256 - 20bytes of address - 5 bytes cut by calcIdFromGenesisState == 7 bytes shift
         uint256 addrShifted = reverse(uint256(uint160(caller))<<56);
-        return calcIdFromGenesisState(idType, addrShifted);
+
+        // shift right 1 byte, because id is 31 byte long and reverse does it for 32bytes
+        // TODO: check that reverse is needed!!!!
+        return reverse(calcIdFromGenesisState(idType, addrShifted))>>8;
+
+        //return calcIdFromGenesisState(idType, addrShifted);
     }
 
     /**
