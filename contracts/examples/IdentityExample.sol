@@ -20,10 +20,7 @@ contract IdentityExample is OwnableUpgradeable {
     IdentityLib.Trees internal trees;
     IdentityLib.LastTrees public lastTrees;
 
-    function initialize(
-        address _stateContractAddr
-    ) public initializer {
-        
+    function initialize(address _stateContractAddr) public initializer {
         identity.initialize(_stateContractAddr, 
             IDENTITY_MAX_SMT_DEPTH,
             trees);
