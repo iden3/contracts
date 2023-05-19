@@ -20,6 +20,8 @@ contract IdentityExample is OwnableUpgradeable {
     OnChainIdentity.Trees internal treeRoots;
     OnChainIdentity.LastTreeRoots public lastTreeRoots;
 
+    mapping(uint256 => uint256) issuedClaims;
+
     function initialize(address _stateContractAddr) public initializer {
         identity.initialize(_stateContractAddr, 
             IDENTITY_MAX_SMT_DEPTH,
@@ -163,6 +165,16 @@ contract IdentityExample is OwnableUpgradeable {
      */
     function getRootsTreeRoot() public view returns (uint256) {
         return treeRoots.getRootsTreeRoot();
+    }
+
+    /**
+     * @dev returns historical claimsTree roots, revocationsTree roots, rootsTree roots
+     * by state
+     * @param historicalState identity state
+     * @return set of roots
+     */
+    function getRootsByState(uint256 historicalState) public view returns (OnChainIdentity.Roots memory) {
+        return identity.getRootsByState(historicalState);
     }
 
     function newClaimData() public pure returns (ClaimBuilder.ClaimData memory) {

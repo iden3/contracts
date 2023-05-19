@@ -19,13 +19,14 @@ library OnChainIdentity {
      * Identity identifier
      * Identity state
      * State contract
+     * Mapping of roots by state
      */
     struct IdentityData {
         uint256 identityId;
         uint256 identityLatestState;
         bool isOldStateGenesis;
         IState stateContract;
-        mapping(uint256 => uint256) issuedClaims;
+        mapping(uint256 => Roots) rootsByState;
         // This empty reserved space is put in place to allow future versions
         // of the SMT library to add new Data struct fields without shifting down
         // storage of upgradable contracts that use this struct as a state variable
@@ -51,13 +52,21 @@ library OnChainIdentity {
         uint256 rootsRoot;
     }
 
-     function initialize(
+     /**
+     * @dev set of roots
+     */
+    struct Roots {
+        uint256 claimsTreeRoot;
+        uint256 revocationsTreeRoot;
+        uint256 rootsTreeRoot;
+    }
+
+    function initialize(
         IdentityData storage self,
         address _stateContractAddr,
         uint256 maxDepth,
         Trees storage treeRoots
     ) external {
-        
         self.stateContract = IState(_stateContractAddr);
         self.isOldStateGenesis = true;
 
@@ -135,6 +144,12 @@ library OnChainIdentity {
         // related to the documentation set isOldStateGenesis to false each time is faster and cheaper
         // https://docs.google.com/spreadsheets/d/1m89CVujrQe5LAFJ8-YAUCcNK950dUzMQPMJBxRtGCqs/edit#gid=0
         identity.isOldStateGenesis = false;
+
+         writeHistory(identity.rootsByState, identity.identityLatestState, Roots({
+            claimsTreeRoot: lastTreeRoots.claimsRoot,
+            revocationsTreeRoot: lastTreeRoots.revocationsRoot,
+            rootsTreeRoot: lastTreeRoots.rootsRoot
+        }));
     }
 
      /**
@@ -225,5 +240,36 @@ library OnChainIdentity {
     function getRootsTreeRoot(Trees storage self) external view returns (uint256) {
         return self.rootsTree.getRoot();
     }
-    
+
+       /**
+     * @dev write roots to history by state
+     * @param historicalState identity state
+     * @param roots set of roots
+     */
+    function writeHistory(mapping(uint256 => Roots) storage rootsByState, uint256 historicalState, Roots memory roots) internal {
+        require(
+            rootsByState[historicalState].claimsTreeRoot == 0 &&
+            rootsByState[historicalState].revocationsTreeRoot == 0 &&
+            rootsByState[historicalState].rootsTreeRoot == 0,
+               "Roots for this state already exist"
+        );
+        rootsByState[historicalState] = roots;
+    }
+
+    /**
+     * @dev returns historical claimsTree roots, revocationsTree roots, rootsTree roots
+     * by state
+     * @param historicalState identity state
+     * @return set of roots
+     */
+    function getRootsByState(IdentityData storage self, uint256 historicalState) external view returns (Roots memory) {
+        require(
+            self.rootsByState[historicalState].claimsTreeRoot != 0 ||
+            self.rootsByState[historicalState].revocationsTreeRoot != 0 ||
+            self.rootsByState[historicalState].rootsTreeRoot != 0,
+                "Roots for this state doesn't exist"
+        );
+        return self.rootsByState[historicalState];
+    }
+
 }
