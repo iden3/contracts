@@ -39,7 +39,7 @@ export class OnchainIdentityDeployHelper {
     const il = await this.deployIdentityLib(smtLib.address, poseidon3.address, poseidon4.address);
 
     this.log("deploying Identity...");
-    const IdentityFactory = await ethers.getContractFactory("IdentityExample", {
+    const IdentityFactory = await ethers.getContractFactory("IdentityBase", {
       libraries: {
         ClaimBuilder: cb.address,
         OnChainIdentity: il.address,
