@@ -5,25 +5,25 @@ pragma abicoder v2;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "../interfaces/IState.sol";
 import "../lib/ClaimBuilder.sol";
-import "../lib/IdentityLib.sol";
+import "../lib/OnChainIdentity.sol";
 
 // /**
 //  * @dev Contract managing onchain identity
 //  */
 contract IdentityExample is OwnableUpgradeable {
-    using IdentityLib for IdentityLib.Trees;
-    using IdentityLib for IdentityLib.IdentityData;
+    using OnChainIdentity for OnChainIdentity.TreeRoots;
+    using OnChainIdentity for OnChainIdentity.IdentityData;
 
     uint256 public constant IDENTITY_MAX_SMT_DEPTH = 40;
 
-    IdentityLib.IdentityData public identity;
-    IdentityLib.Trees internal trees;
-    IdentityLib.LastTrees public lastTrees;
+    OnChainIdentity.IdentityData public identity;
+    OnChainIdentity.TreeRoots internal treeRoots;
+    OnChainIdentity.LastTreeRoots public lastTreeRoots;
 
     function initialize(address _stateContractAddr) public initializer {
         identity.initialize(_stateContractAddr, 
             IDENTITY_MAX_SMT_DEPTH,
-            trees);
+            treeRoots);
 
         __Ownable_init();
     }
@@ -33,7 +33,12 @@ contract IdentityExample is OwnableUpgradeable {
      * @param claim - claim data
      */
     function addClaim(uint256[8] memory claim) public onlyOwner {
-        trees.addClaim(claim);
+        treeRoots.addClaim(claim);
+    }
+
+    function addClaimAndTransit(uint256[8] memory claim) public onlyOwner {
+        addClaim(claim);
+        transitState();
     }
 
     /**
@@ -42,7 +47,12 @@ contract IdentityExample is OwnableUpgradeable {
      * @param hashValue - hash of claim value part
      */
     function addClaimHash(uint256 hashIndex, uint256 hashValue) public onlyOwner {
-        trees.addClaimHash(hashIndex, hashValue);
+        treeRoots.addClaimHash(hashIndex, hashValue);
+    }
+
+    function addClaimHashAndTransit(uint256 hashIndex, uint256 hashValue) public onlyOwner {
+        addClaimHash(hashIndex, hashValue);
+        transitState();
     }
 
     /**
@@ -50,14 +60,19 @@ contract IdentityExample is OwnableUpgradeable {
      * @param revocationNonce - revocation nonce
      */
     function revokeClaim(uint64 revocationNonce) public onlyOwner {
-        trees.revokeClaim(revocationNonce);
+        treeRoots.revokeClaim(revocationNonce);
+    }
+
+    function revokeClaimAndTransit(uint64 revocationNonce) public onlyOwner {
+        revokeClaim(revocationNonce);
+        transitState();
     }
 
     /**
      * @dev Make state transition
      */
     function transitState() public onlyOwner {
-      trees.transitState(lastTrees, identity);
+      treeRoots.transitState(lastTreeRoots, identity);
     }
 
 
@@ -66,7 +81,7 @@ contract IdentityExample is OwnableUpgradeable {
      * @return IdentityState
      */
     function calcIdentityState() public view returns (uint256) {
-        return trees.calcIdentityState();
+        return treeRoots.calcIdentityState();
     }
 
     /**
@@ -75,7 +90,7 @@ contract IdentityExample is OwnableUpgradeable {
      * @return The ClaimsTree inclusion or non-inclusion proof for the claim
      */
     function getClaimProof(uint256 claimIndexHash) public view returns (SmtLib.Proof memory) {
-        return trees.getClaimProof(claimIndexHash);
+        return treeRoots.getClaimProof(claimIndexHash);
     }
 
     /**
@@ -85,7 +100,7 @@ contract IdentityExample is OwnableUpgradeable {
      * @return The ClaimsTree inclusion or non-inclusion proof for the claim
      */
     function getClaimProofByRoot(uint256 claimIndexHash, uint256 root) public view returns (SmtLib.Proof memory) {
-        return trees.getClaimProofByRoot(claimIndexHash, root);
+        return treeRoots.getClaimProofByRoot(claimIndexHash, root);
     }
 
     /**
@@ -93,7 +108,7 @@ contract IdentityExample is OwnableUpgradeable {
      * @return The latest ClaimsTree root
      */
     function getClaimsTreeRoot() public view returns (uint256) {
-        return trees.getClaimsTreeRoot();
+        return treeRoots.getClaimsTreeRoot();
     }
 
     /**
@@ -102,7 +117,7 @@ contract IdentityExample is OwnableUpgradeable {
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
     function getRevocationProof(uint64 revocationNonce) public view returns (SmtLib.Proof memory) {
-        return trees.getRevocationProof(revocationNonce);
+        return treeRoots.getRevocationProof(revocationNonce);
     }
 
     /**
@@ -112,7 +127,7 @@ contract IdentityExample is OwnableUpgradeable {
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
     function getRevocationProofByRoot(uint64 revocationNonce, uint256 root) public view returns (SmtLib.Proof memory) {
-        return trees.getRevocationProofByRoot(revocationNonce, root);
+        return treeRoots.getRevocationProofByRoot(revocationNonce, root);
     }
 
     /**
@@ -120,7 +135,7 @@ contract IdentityExample is OwnableUpgradeable {
      * @return The latest RevocationsTree root
      */
     function getRevocationsTreeRoot() public view returns (uint256) {
-        return trees.getRevocationsTreeRoot();
+        return treeRoots.getRevocationsTreeRoot();
     }
 
     /**
@@ -129,7 +144,7 @@ contract IdentityExample is OwnableUpgradeable {
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
     function getRootProof(uint256 claimsTreeRoot) public view returns (SmtLib.Proof memory) {
-        return trees.getRootProof(claimsTreeRoot);
+        return treeRoots.getRootProof(claimsTreeRoot);
     }
 
     /**
@@ -139,7 +154,7 @@ contract IdentityExample is OwnableUpgradeable {
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
     function getRootProofByRoot(uint256 claimsTreeRoot, uint256 root) public view returns (SmtLib.Proof memory) {
-        return trees.getRootProofByRoot(claimsTreeRoot, root);
+        return treeRoots.getRootProofByRoot(claimsTreeRoot, root);
     }
 
     /**
@@ -147,7 +162,7 @@ contract IdentityExample is OwnableUpgradeable {
      * @return The latest RootsTree root
      */
     function getRootsTreeRoot() public view returns (uint256) {
-        return trees.getRootsTreeRoot();
+        return treeRoots.getRootsTreeRoot();
     }
 
     function newClaimData() public pure returns (ClaimBuilder.ClaimData memory) {

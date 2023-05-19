@@ -42,7 +42,7 @@ export class OnchainIdentityDeployHelper {
     const IdentityFactory = await ethers.getContractFactory("IdentityExample", {
       libraries: {
         ClaimBuilder: cb.address,
-        IdentityLib: il.address,
+        OnChainIdentity: il.address,
       },
     });
     // const IdentityFactory = await ethers.getContractFactory("Identity");
@@ -69,7 +69,7 @@ export class OnchainIdentityDeployHelper {
   }
 
   async deployIdentityLib(smtpAddress: string, poseidonUtil3lAddress: string, poseidonUtil4lAddress: string): Promise<Contract> {
-    const Identity = await ethers.getContractFactory("IdentityLib", { libraries: {
+    const Identity = await ethers.getContractFactory("OnChainIdentity", { libraries: {
       SmtLib: smtpAddress,
       PoseidonUnit3L: poseidonUtil3lAddress,
       PoseidonUnit4L: poseidonUtil4lAddress,
