@@ -11,13 +11,13 @@ import "../lib/OnChainIdentity.sol";
 //  * @dev Contract managing onchain identity
 //  */
 contract IdentityExample is OwnableUpgradeable {
-    using OnChainIdentity for OnChainIdentity.TreeRoots;
+    using OnChainIdentity for OnChainIdentity.Trees;
     using OnChainIdentity for OnChainIdentity.IdentityData;
 
     uint256 public constant IDENTITY_MAX_SMT_DEPTH = 40;
 
     OnChainIdentity.IdentityData public identity;
-    OnChainIdentity.TreeRoots internal treeRoots;
+    OnChainIdentity.Trees internal treeRoots;
     OnChainIdentity.LastTreeRoots public lastTreeRoots;
 
     function initialize(address _stateContractAddr) public initializer {
