@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeployHelper";
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 
-describe.only("Next tests reproduce identity life cycle", function() {
+describe("Next tests reproduce identity life cycle", function() {
   this.timeout(10000);
 
   let identity;
@@ -521,7 +521,7 @@ describe("Compare historical roots with latest roots from tree", () => {
   });
 });
 
-describe.only("Genesis state doens't have history of states", () => {
+describe("Genesis state doens't have history of states", () => {
   let identity;
 
   before(async function () {
