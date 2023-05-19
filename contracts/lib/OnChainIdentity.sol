@@ -46,9 +46,9 @@ library OnChainIdentity {
      * @dev roots used in last State Transition
      */
     struct LastTreeRoots {
-        uint256 lastClaimsTreeRoot;
-        uint256 lastRevocationsTreeRoot;
-        uint256 lastRootsTreeRoot;
+        uint256 claimsRoot;
+        uint256 revocationsRoot;
+        uint256 rootsRoot;
     }
 
      function initialize(
@@ -110,14 +110,14 @@ library OnChainIdentity {
         uint256 currentRootsTreeRoot = self.rootsTree.getRoot();
 
         require(
-            (lastTreeRoots.lastClaimsTreeRoot != currentClaimsTreeRoot) ||
-            (lastTreeRoots.lastRevocationsTreeRoot != currentRevocationsTreeRoot) ||
-            (lastTreeRoots.lastRootsTreeRoot != currentRootsTreeRoot),
+            (lastTreeRoots.claimsRoot != currentClaimsTreeRoot) ||
+            (lastTreeRoots.revocationsRoot != currentRevocationsTreeRoot) ||
+            (lastTreeRoots.rootsRoot != currentRootsTreeRoot),
             "Identity trees haven't changed"
         );
 
         // if claimsTreeRoot changed, then add it to rootsTree
-        if (lastTreeRoots.lastClaimsTreeRoot != currentClaimsTreeRoot) {
+        if (lastTreeRoots.claimsRoot != currentClaimsTreeRoot) {
             self.rootsTree.addLeaf(currentClaimsTreeRoot, 0);
         }
 
@@ -128,9 +128,9 @@ library OnChainIdentity {
 
         // update internal state vars
         identity.identityLatestState = newIdentityState;
-        lastTreeRoots.lastClaimsTreeRoot = currentClaimsTreeRoot;
-        lastTreeRoots.lastRevocationsTreeRoot = currentRevocationsTreeRoot;
-        lastTreeRoots.lastRootsTreeRoot = self.rootsTree.getRoot();
+        lastTreeRoots.claimsRoot = currentClaimsTreeRoot;
+        lastTreeRoots.revocationsRoot = currentRevocationsTreeRoot;
+        lastTreeRoots.rootsRoot = self.rootsTree.getRoot();
         // it may have changed since we've got currentRootsTreeRoot
         // related to the documentation set isOldStateGenesis to false each time is faster and cheaper
         // https://docs.google.com/spreadsheets/d/1m89CVujrQe5LAFJ8-YAUCcNK950dUzMQPMJBxRtGCqs/edit#gid=0
