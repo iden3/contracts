@@ -18,6 +18,12 @@ contract IdentityBase is OwnableUpgradeable {
     OnChainIdentity.Trees internal treeRoots;
     OnChainIdentity.LastTreeRoots public lastTreeRoots;
 
+    // This empty reserved space is put in place to allow future versions
+    // of the SMT library to add new Data struct fields without shifting down
+    // storage of upgradable contracts that use this struct as a state variable
+    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+    uint256[47] private __gap;
+
     function getMaxSmtDepth() public pure virtual returns (uint256) {
         return 40;
     }
@@ -34,7 +40,7 @@ contract IdentityBase is OwnableUpgradeable {
      * @dev Add claim
      * @param claim - claim data
      */
-    function addClaim(uint256[8] memory claim) public virtual onlyOwner {
+    function addClaim(uint256[8] calldata claim) public virtual onlyOwner {
         treeRoots.addClaim(claim);
     }
 

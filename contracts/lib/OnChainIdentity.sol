@@ -81,7 +81,7 @@ library OnChainIdentity {
      * @dev Add claim
      * @param claim - claim data
      */
-    function addClaim(Trees storage self, uint256[8] memory claim) external {
+    function addClaim(Trees storage self, uint256[8] calldata claim) external {
         uint256[4] memory claimIndex;
         uint256[4] memory claimValue;
         for (uint8 i = 0; i < 4; i++) {

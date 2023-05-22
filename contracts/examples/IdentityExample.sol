@@ -13,11 +13,21 @@ import "../lib/IdentityBase.sol";
 //  */
 contract IdentityExample is IdentityBase {
 
-   function getMaxSmtDepth() public pure override returns (uint256) {
+    // This empty reserved space is put in place to allow future versions
+    // of the State contract to inherit from other contracts without a risk of
+    // breaking the storage layout. This is necessary because the parent contracts in the
+    // future may introduce some storage variables, which are placed before the State
+    // contract's storage variables.
+    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+    // slither-disable-next-line shadowing-state
+    // slither-disable-next-line unused-state
+    uint256[500] private __gap;
+
+    function getMaxSmtDepth() public pure override returns (uint256) {
         return 42;
     }
 
-    function addClaim(uint256[8] memory claim) public override onlyOwner {
+    function addClaim(uint256[8] calldata claim) public override onlyOwner {
         super.addClaim(claim);
         super.transitState();
     }
