@@ -80,6 +80,22 @@ export class OnchainIdentityDeployHelper {
 
     return il;
   }
+  
+  async deployClaimBuilderWrapper(): Promise<{
+    address: string;
+  }> {
+  
+    const cb = await this.deployClaimBuilder();
+  
+    const ClaimBuilderWrapper = await ethers.getContractFactory("ClaimBuilderWrapper", {
+      libraries: {
+        ClaimBuilder: cb.address
+      }
+    });
+    const claimBuilderWrapper = await ClaimBuilderWrapper.deploy();
+    console.log("ClaimBuilderWrapper deployed to:", claimBuilderWrapper.address);
+    return claimBuilderWrapper;
+  }
 
   private log(...args): void {
     this.enableLogging && console.log(args);

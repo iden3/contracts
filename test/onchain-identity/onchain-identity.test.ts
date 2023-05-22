@@ -366,7 +366,7 @@ describe("Root of roots tree proofs", () => {
   describe("Check historical Claim tree root in claims tree root", () => {
     let currentClaimsTreeRoot, latestRootOfRootsRoot;
     before(async function () {
-      latestRootOfRootsRoot = await identity.rootsRoot();
+      latestRootOfRootsRoot = (await identity.lastTreeRoots()).rootsRoot;
       await identity.addClaimHash(4, 2);
       await identity.transitState();
       currentClaimsTreeRoot = await identity.getClaimsTreeRoot();
@@ -411,7 +411,7 @@ describe("Compare historical roots with latest roots from tree", () => {
       await identity.revokeClaim(1);
       await identity.transitState();
 
-      latestState = await identity.identityState();
+      latestState = (await identity.identity()).identityLatestState;
     });
     it("Compare latest claims tree root", async function () {
       const latestClaimsTreeRoot = await identity.getClaimsTreeRoot();
@@ -461,7 +461,7 @@ describe("Compare historical roots with latest roots from tree", () => {
       await identity.addClaimHash(1, 2);
       await identity.revokeClaim(1);
       await identity.transitState();
-      prevState = await identity.identityState();
+      prevState = (await identity.identity()).identityLatestState;
     });
     it("Compare latest claims tree root", async function () {
       const latestClaimsTreeRoot = await identity.getClaimsTreeRoot();
@@ -488,6 +488,7 @@ describe("Compare historical roots with latest roots from tree", () => {
       historyRootsTreeRoot = latestRootOfRoots;
     });
   });
+
   describe("Check next states", () => {
     before(async function () {
       await identity.addClaimHash(2, 2);
