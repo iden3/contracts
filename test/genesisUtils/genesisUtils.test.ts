@@ -1,4 +1,4 @@
-import {DeployHelper} from "../../helpers/DeployHelper";
+import { DeployHelper } from "../../helpers/DeployHelper";
 
 ;
 import { expect } from "chai";
