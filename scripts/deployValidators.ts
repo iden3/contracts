@@ -1,7 +1,8 @@
 import { ethers, upgrades } from "hardhat";
 import fs from "fs";
 import path from "path";
-import { deployValidatorContracts } from "../test/utils/deploy-utils";
+import {DeployHelper} from "../helpers/DeployHelper";
+
 const pathOutputJson = path.join(__dirname, "./deploy_validator_output.json");
 
 async function main() {
@@ -16,9 +17,11 @@ async function main() {
       validatorContractName: "CredentialAtomicQuerySigValidator",
     },
   ];
+  const deployHelper = await DeployHelper.initialize(null, true);
+
   const deployInfo: any = [];
   for (const v of validators) {
-    const { validator, verifierWrapper } = await deployValidatorContracts(
+    const { validator, verifierWrapper } = await deployHelper.deployValidatorContracts(
       v.verifierContractWrapperName,
       v.validatorContractName,
       stateAddress

@@ -1,4 +1,6 @@
-import { deployGenesisUtilsWrapper } from "../utils/deploy-utils";
+import { DeployHelper } from "../../helpers/DeployHelper";
+
+;
 import { expect } from "chai";
 
 
@@ -6,7 +8,8 @@ describe("genesis state tests", function () {
   let guWrpr;
 
   before(async () => {
-    guWrpr = await deployGenesisUtilsWrapper();
+    const deployHelper = await DeployHelper.initialize(null, true);
+    guWrpr = await deployHelper.deployGenesisUtilsWrapper();
   });
 
 
