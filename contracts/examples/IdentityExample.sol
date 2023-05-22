@@ -22,14 +22,18 @@ contract IdentityExample is IdentityBase {
         super.transitState();
     }
 
-     function addClaimHash(uint256 hashIndex, uint256 hashValue) public override onlyOwner {
+    function addClaimHash(uint256 hashIndex, uint256 hashValue) public override onlyOwner {
         super.addClaimHash(hashIndex, hashValue);
         super.transitState();
     }
 
-     function revokeClaim(uint64 revocationNonce) public override onlyOwner {
+    function revokeClaim(uint64 revocationNonce) public override onlyOwner {
         super.revokeClaim(revocationNonce);
         super.transitState();
+    }
+
+    function getIssuerId() public view returns(uint256) {
+        return identity.identityId;
     }
 
 }
