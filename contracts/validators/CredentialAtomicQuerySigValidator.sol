@@ -21,7 +21,7 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
         uint256[] memory params = new uint256[](5);
         params[0] = inputs[2]; // queryHash
         params[1] = inputs[6]; // gistRoot
-        params[2] = inputs[7]; // identityId
+        params[2] = inputs[7]; // issuerId
         params[3] = inputs[3]; // issuerClaimAuthState
         params[4] = inputs[9]; // issuerClaimNonRevState
         return params;

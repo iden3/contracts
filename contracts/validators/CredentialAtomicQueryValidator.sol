@@ -48,11 +48,11 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256 gistRoot = validationParams[1];
         _checkGistRoot(gistRoot);
 
-        uint256 identityId = validationParams[2];
+        uint256 issuerId = validationParams[2];
         uint256 issuerClaissuerClaimState = validationParams[3];
-        _checkStateContractOrGenesis(identityId, issuerClaissuerClaimState);
+        _checkStateContractOrGenesis(issuerId, issuerClaissuerClaimState);
         uint256 issuerClaimNonRevState = validationParams[4];
-        _checkClaimNonRevState(identityId, issuerClaimNonRevState);
+        _checkClaimNonRevState(issuerId, issuerClaimNonRevState);
         return (true);
     }
 
