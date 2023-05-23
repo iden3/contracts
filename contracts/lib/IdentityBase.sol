@@ -2,80 +2,31 @@
 pragma solidity 0.8.16;
 pragma abicoder v2;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "../interfaces/IState.sol";
-import "../lib/ClaimBuilder.sol";
 import "../lib/OnChainIdentity.sol";
 
 // /**
 //  * @dev Contract managing onchain identity
 //  */
-contract IdentityBase is OwnableUpgradeable {
-    using OnChainIdentity for OnChainIdentity.Trees;
-    using OnChainIdentity for OnChainIdentity.IdentityData;
+contract IdentityBase {
+    using OnChainIdentity for OnChainIdentity.Identity;
 
-    OnChainIdentity.IdentityData public identity;
-    OnChainIdentity.Trees internal treeRoots;
-    OnChainIdentity.LastTreeRoots public lastTreeRoots;
+    OnChainIdentity.Identity internal identity;
 
     // This empty reserved space is put in place to allow future versions
     // of the SMT library to add new Data struct fields without shifting down
     // storage of upgradable contracts that use this struct as a state variable
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-    uint256[47] private __gap;
+    uint256[49] private __gap;
 
-    function getMaxSmtDepth() public pure virtual returns (uint256) {
+    function getSmtDepth() public pure virtual returns (uint256) {
         return 40;
     }
 
-    function initialize(address _stateContractAddr) public virtual initializer {
+    function initialize(address _stateContractAddr) public virtual {
         identity.initialize(_stateContractAddr, 
-            getMaxSmtDepth(),
-            treeRoots);
-
-        __Ownable_init();
-    }
-
-    /**
-     * @dev Add claim
-     * @param claim - claim data
-     */
-    function addClaim(uint256[8] calldata claim) public virtual onlyOwner {
-        treeRoots.addClaim(claim);
-    }
-
-
-    /**
-     * @dev Add claim hash
-     * @param hashIndex - hash of claim index part
-     * @param hashValue - hash of claim value part
-     */
-    function addClaimHash(uint256 hashIndex, uint256 hashValue) public virtual onlyOwner {
-        treeRoots.addClaimHash(hashIndex, hashValue);
-    }
-
-    /**
-     * @dev Revoke claim using it's revocationNonce
-     * @param revocationNonce - revocation nonce
-     */
-    function revokeClaim(uint64 revocationNonce) public virtual onlyOwner {
-        treeRoots.revokeClaim(revocationNonce);
-    }
-
-    /**
-     * @dev Make state transition
-     */
-    function transitState() public virtual onlyOwner {
-      treeRoots.transitState(lastTreeRoots, identity);
-    }
-
-
-    /**
-     * @dev Calculate IdentityState
-     * @return IdentityState
-     */
-    function calcIdentityState() public view virtual returns (uint256) {
-        return treeRoots.calcIdentityState();
+            getSmtDepth(),
+            identity.trees);
     }
 
     /**
@@ -84,7 +35,7 @@ contract IdentityBase is OwnableUpgradeable {
      * @return The ClaimsTree inclusion or non-inclusion proof for the claim
      */
     function getClaimProof(uint256 claimIndexHash) public virtual view returns (SmtLib.Proof memory) {
-        return treeRoots.getClaimProof(claimIndexHash);
+        return identity.getClaimProof(claimIndexHash);
     }
 
     /**
@@ -94,7 +45,7 @@ contract IdentityBase is OwnableUpgradeable {
      * @return The ClaimsTree inclusion or non-inclusion proof for the claim
      */
     function getClaimProofByRoot(uint256 claimIndexHash, uint256 root) public virtual view returns (SmtLib.Proof memory) {
-        return treeRoots.getClaimProofByRoot(claimIndexHash, root);
+        return identity.getClaimProofByRoot(claimIndexHash, root);
     }
 
     /**
@@ -102,7 +53,7 @@ contract IdentityBase is OwnableUpgradeable {
      * @return The latest ClaimsTree root
      */
     function getClaimsTreeRoot() public virtual view returns (uint256) {
-        return treeRoots.getClaimsTreeRoot();
+        return identity.getClaimsTreeRoot();
     }
 
     /**
@@ -111,7 +62,7 @@ contract IdentityBase is OwnableUpgradeable {
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
     function getRevocationProof(uint64 revocationNonce) public virtual view returns (SmtLib.Proof memory) {
-        return treeRoots.getRevocationProof(revocationNonce);
+        return identity.getRevocationProof(revocationNonce);
     }
 
     /**
@@ -121,7 +72,7 @@ contract IdentityBase is OwnableUpgradeable {
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
     function getRevocationProofByRoot(uint64 revocationNonce, uint256 root) public virtual view returns (SmtLib.Proof memory) {
-        return treeRoots.getRevocationProofByRoot(revocationNonce, root);
+        return identity.getRevocationProofByRoot(revocationNonce, root);
     }
 
     /**
@@ -129,7 +80,7 @@ contract IdentityBase is OwnableUpgradeable {
      * @return The latest RevocationsTree root
      */
     function getRevocationsTreeRoot() public virtual view returns (uint256) {
-        return treeRoots.getRevocationsTreeRoot();
+        return identity.getRevocationsTreeRoot();
     }
 
     /**
@@ -138,7 +89,7 @@ contract IdentityBase is OwnableUpgradeable {
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
     function getRootProof(uint256 claimsTreeRoot) public virtual view returns (SmtLib.Proof memory) {
-        return treeRoots.getRootProof(claimsTreeRoot);
+        return identity.getRootProof(claimsTreeRoot);
     }
 
     /**
@@ -148,7 +99,7 @@ contract IdentityBase is OwnableUpgradeable {
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
     function getRootProofByRoot(uint256 claimsTreeRoot, uint256 root) public virtual view returns (SmtLib.Proof memory) {
-        return treeRoots.getRootProofByRoot(claimsTreeRoot, root);
+        return identity.getRootProofByRoot(claimsTreeRoot, root);
     }
 
     /**
@@ -156,7 +107,7 @@ contract IdentityBase is OwnableUpgradeable {
      * @return The latest RootsTree root
      */
     function getRootsTreeRoot() public virtual view returns (uint256) {
-        return treeRoots.getRootsTreeRoot();
+        return identity.getRootsTreeRoot();
     }
 
     /**
@@ -169,18 +120,53 @@ contract IdentityBase is OwnableUpgradeable {
         return identity.getRootsByState(historicalState);
     }
 
-    function newClaimData() public virtual pure returns (ClaimBuilder.ClaimData memory) {
-        ClaimBuilder.ClaimData memory claimData;
-        return claimData;
+    /**
+     * @dev returns identity Id
+     * @return uint256 Id
+     */
+    function getId() public view returns(uint256) {
+        return identity.id;
     }
 
     /**
-     * @dev Builds claim
-     * @param claimData - claim data
-     * @return binary claim
+     * @dev returns isOldStateGenesis flag
+     * @return bool isOldStateGenesis
      */
-    function buildClaim(ClaimBuilder.ClaimData calldata claimData) public virtual pure returns (uint256[8] memory) {
-        return ClaimBuilder.build(claimData);
+    function getIsOldStateGenesis() public view returns(bool) {
+        return identity.isOldStateGenesis;
     }
+
+    /**
+     * @dev returns last claims root
+     * @return claimsRoot
+     */
+    function getLastClaimsRoot() public view returns(uint256) {
+        return identity.lastTreeRoots.claimsRoot;
+    }
+
+    /**
+     * @dev returns last revocation root
+     * @return claimsRoot
+     */
+    function getLastRevocationsRoot() public view returns(uint256) {
+        return identity.lastTreeRoots.revocationsRoot;
+    }
+
+    /**
+     * @dev returns last roots root
+     * @return rootsRoot
+     */
+    function getLastRootsRoot() public view returns(uint256) {
+        return identity.lastTreeRoots.rootsRoot;
+    }
+
+    /**
+     * @dev returns identity latest state
+     * @return uint256 identityLatestState
+     */
+    function getIdentityLatestState() public view returns(uint256) {
+        return identity.identityLatestState;
+    }
+
 
 }
