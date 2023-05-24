@@ -26,7 +26,7 @@ library OnChainIdentity {
      */
     struct Identity {
         uint256 id;
-        uint256 identityLatestState;
+        uint256 latestState;
         bool isOldStateGenesis;
         IState stateContract;
         mapping(uint256 => Roots) rootsByState;
@@ -130,10 +130,10 @@ library OnChainIdentity {
         uint256 newIdentityState = calcIdentityState(self);
 
         // do state transition in State Contract
-        self.stateContract.transitStateOnchainIdentity(self.id, self.identityLatestState, newIdentityState, self.isOldStateGenesis);
+        self.stateContract.transitStateOnchainIdentity(self.id, self.latestState, newIdentityState, self.isOldStateGenesis);
 
         // update internal state vars
-        self.identityLatestState = newIdentityState;
+        self.latestState = newIdentityState;
         lastTreeRoots.claimsRoot = currentClaimsTreeRoot;
         lastTreeRoots.revocationsRoot = currentRevocationsTreeRoot;
         lastTreeRoots.rootsRoot = self.trees.rootsTree.getRoot();
@@ -142,7 +142,7 @@ library OnChainIdentity {
         // https://docs.google.com/spreadsheets/d/1m89CVujrQe5LAFJ8-YAUCcNK950dUzMQPMJBxRtGCqs/edit#gid=0
         self.isOldStateGenesis = false;
 
-         writeHistory(self.rootsByState, self.identityLatestState, Roots({
+         writeHistory(self.rootsByState, self.latestState, Roots({
             claimsRoot: lastTreeRoots.claimsRoot,
             revocationsRoot: lastTreeRoots.revocationsRoot,
             rootsRoot: lastTreeRoots.rootsRoot

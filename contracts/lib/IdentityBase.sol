@@ -165,7 +165,7 @@ contract IdentityBase {
      * @return uint256 identityLatestState
      */
     function getIdentityLatestState() public view returns(uint256) {
-        return identity.identityLatestState;
+        return identity.latestState;
     }
 
 
