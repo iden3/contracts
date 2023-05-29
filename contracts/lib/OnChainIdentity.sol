@@ -142,7 +142,7 @@ library OnChainIdentity {
         // https://docs.google.com/spreadsheets/d/1m89CVujrQe5LAFJ8-YAUCcNK950dUzMQPMJBxRtGCqs/edit#gid=0
         self.isOldStateGenesis = false;
 
-        writeHistory(self, Roots({
+        writeHistory(self, self.latestState, Roots({
             claimsRoot: self.lastTreeRoots.claimsRoot,
             revocationsRoot: self.lastTreeRoots.revocationsRoot,
             rootsRoot: self.lastTreeRoots.rootsRoot
@@ -243,14 +243,14 @@ library OnChainIdentity {
      * @param self identity
      * @param roots set of roots
      */
-    function writeHistory(Identity storage self, Roots memory roots) internal {
+    function writeHistory(Identity storage self, uint256 state, Roots memory roots) internal {
         require(
-            self.rootsByState[self.latestState].claimsRoot == 0 &&
-            self.rootsByState[self.latestState].revocationsRoot == 0 &&
-            self.rootsByState[self.latestState].rootsRoot == 0,
+            self.rootsByState[state].claimsRoot == 0 &&
+            self.rootsByState[state].revocationsRoot == 0 &&
+            self.rootsByState[state].rootsRoot == 0,
                "Roots for this state already exist"
         );
-        self.rootsByState[self.latestState] = roots;
+        self.rootsByState[state] = roots;
     }
 
     /**
