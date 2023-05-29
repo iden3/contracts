@@ -241,6 +241,7 @@ library OnChainIdentity {
        /**
      * @dev write roots to history by state
      * @param self identity
+     * @param state identity state
      * @param roots set of roots
      */
     function writeHistory(Identity storage self, uint256 state, Roots memory roots) internal {
@@ -256,17 +257,17 @@ library OnChainIdentity {
     /**
      * @dev returns historical claimsTree roots, revocationsTree roots, rootsTree roots
      * by state
-     * @param historicalState identity state
+     * @param state identity state
      * @return set of roots
      */
-    function getRootsByState(Identity storage self, uint256 historicalState) external view returns (Roots memory) {
+    function getRootsByState(Identity storage self, uint256 state) external view returns (Roots memory) {
         require(
-            self.rootsByState[historicalState].claimsRoot != 0 ||
-            self.rootsByState[historicalState].revocationsRoot != 0 ||
-            self.rootsByState[historicalState].rootsRoot != 0,
+            self.rootsByState[state].claimsRoot != 0 ||
+            self.rootsByState[state].revocationsRoot != 0 ||
+            self.rootsByState[state].rootsRoot != 0,
                 "Roots for this state doesn't exist"
         );
-        return self.rootsByState[historicalState];
+        return self.rootsByState[state];
     }
 
 }
