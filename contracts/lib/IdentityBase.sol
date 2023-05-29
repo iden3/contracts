@@ -24,9 +24,9 @@ contract IdentityBase {
     }
 
     function initialize(address _stateContractAddr) public virtual {
-        identity.initialize(_stateContractAddr, 
-            getSmtDepth(),
-            identity.trees);
+        identity.initialize(_stateContractAddr,
+            address(this),
+            getSmtDepth());
     }
 
     /**

@@ -73,7 +73,7 @@ contract IdentityExample is IdentityBase, OwnableUpgradeable {
      * @dev Make state transition
      */
     function transitState() public virtual onlyOwner {
-      identity.transitState(identity.lastTreeRoots);
+      identity.transitState();
     }
 
     /**

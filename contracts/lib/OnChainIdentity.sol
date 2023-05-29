@@ -60,18 +60,18 @@ library OnChainIdentity {
     function initialize(
         Identity storage self,
         address _stateContractAddr,
-        uint256 depth,
-        Trees storage treeRoots
+        address _identityAddr,
+        uint256 depth
     ) external {
         require(depth <= IDENTITY_MAX_SMT_DEPTH,  "SMT depth shouldn't be more than 40" );
         self.stateContract = IState(_stateContractAddr);
         self.isOldStateGenesis = true;
 
-        treeRoots.claimsTree.initialize(depth);
-        treeRoots.revocationsTree.initialize(depth);
-        treeRoots.rootsTree.initialize(depth);
+        self.trees.claimsTree.initialize(depth);
+        self.trees.revocationsTree.initialize(depth);
+        self.trees.rootsTree.initialize(depth);
 
-        self.id = GenesisUtils.calcOnchainIdFromAddress(0x0212, address(this));
+        self.id = GenesisUtils.calcOnchainIdFromAddress(0x0212, _identityAddr);
     }
 
     /**
@@ -110,20 +110,20 @@ library OnChainIdentity {
     /**
      * @dev Make state transition
      */
-    function transitState(Identity storage self, Roots storage lastTreeRoots) external {
+    function transitState(Identity storage self) external {
         uint256 currentClaimsTreeRoot = self.trees.claimsTree.getRoot();
         uint256 currentRevocationsTreeRoot = self.trees.revocationsTree.getRoot();
         uint256 currentRootsTreeRoot = self.trees.rootsTree.getRoot();
 
         require(
-            (lastTreeRoots.claimsRoot != currentClaimsTreeRoot) ||
-            (lastTreeRoots.revocationsRoot != currentRevocationsTreeRoot) ||
-            (lastTreeRoots.rootsRoot != currentRootsTreeRoot),
+            (self.lastTreeRoots.claimsRoot != currentClaimsTreeRoot) ||
+            (self.lastTreeRoots.revocationsRoot != currentRevocationsTreeRoot) ||
+            (self.lastTreeRoots.rootsRoot != currentRootsTreeRoot),
             "Identity trees haven't changed"
         );
 
         // if claimsTreeRoot changed, then add it to rootsTree
-        if (lastTreeRoots.claimsRoot != currentClaimsTreeRoot) {
+        if (self.lastTreeRoots.claimsRoot != currentClaimsTreeRoot) {
             self.trees.rootsTree.addLeaf(currentClaimsTreeRoot, 0);
         }
 
@@ -134,18 +134,18 @@ library OnChainIdentity {
 
         // update internal state vars
         self.latestState = newIdentityState;
-        lastTreeRoots.claimsRoot = currentClaimsTreeRoot;
-        lastTreeRoots.revocationsRoot = currentRevocationsTreeRoot;
-        lastTreeRoots.rootsRoot = self.trees.rootsTree.getRoot();
+        self.lastTreeRoots.claimsRoot = currentClaimsTreeRoot;
+        self.lastTreeRoots.revocationsRoot = currentRevocationsTreeRoot;
+        self.lastTreeRoots.rootsRoot = self.trees.rootsTree.getRoot();
         // it may have changed since we've got currentRootsTreeRoot
         // related to the documentation set isOldStateGenesis to false each time is faster and cheaper
         // https://docs.google.com/spreadsheets/d/1m89CVujrQe5LAFJ8-YAUCcNK950dUzMQPMJBxRtGCqs/edit#gid=0
         self.isOldStateGenesis = false;
 
-         writeHistory(self.rootsByState, self.latestState, Roots({
-            claimsRoot: lastTreeRoots.claimsRoot,
-            revocationsRoot: lastTreeRoots.revocationsRoot,
-            rootsRoot: lastTreeRoots.rootsRoot
+        writeHistory(self, Roots({
+            claimsRoot: self.lastTreeRoots.claimsRoot,
+            revocationsRoot: self.lastTreeRoots.revocationsRoot,
+            rootsRoot: self.lastTreeRoots.rootsRoot
         }));
     }
 
@@ -240,17 +240,17 @@ library OnChainIdentity {
 
        /**
      * @dev write roots to history by state
-     * @param historicalState identity state
+     * @param self identity
      * @param roots set of roots
      */
-    function writeHistory(mapping(uint256 => Roots) storage rootsByState, uint256 historicalState, Roots memory roots) internal {
+    function writeHistory(Identity storage self, Roots memory roots) internal {
         require(
-            rootsByState[historicalState].claimsRoot == 0 &&
-            rootsByState[historicalState].revocationsRoot == 0 &&
-            rootsByState[historicalState].rootsRoot == 0,
+            self.rootsByState[self.latestState].claimsRoot == 0 &&
+            self.rootsByState[self.latestState].revocationsRoot == 0 &&
+            self.rootsByState[self.latestState].rootsRoot == 0,
                "Roots for this state already exist"
         );
-        rootsByState[historicalState] = roots;
+        self.rootsByState[self.latestState] = roots;
     }
 
     /**
