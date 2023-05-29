@@ -1,0 +1,31 @@
+{
+    "name": "@iden3/contracts",
+    "description": "Smart Contract library for Solidity",
+    "version": "0.0.1",
+    "files": [
+        "**/*.sol",
+        "/build/contracts/*.json",
+        "!test-helpers"
+    ],
+    "scripts": {
+        "prepare": "node ../scripts/prepare-contracts-package.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/iden3/contracts.git"
+    },
+    "keywords": [
+        "solidity",
+        "smart",
+        "contracts"
+    ],
+    "author": "iden3",
+    "license": "GPL-3.0",
+    "bugs": {
+        "url": "https://github.com/iden3/contracts/issues"
+    },
+    "dependencies": {
+        "@openzeppelin/contracts": "^4.7.3",
+        "@openzeppelin/contracts-upgradeable": "^4.8.2"
+    }
+}
