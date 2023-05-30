@@ -36,14 +36,13 @@ export class OnchainIdentityDeployHelper {
     this.log("======== Identity: deploy started ========");
 
     const cb = await this.deployClaimBuilder();
+    const il = await this.deployIdentityLib(smtLib.address, poseidon3.address, poseidon4.address);
 
     this.log("deploying Identity...");
-    const IdentityFactory = await ethers.getContractFactory("Identity", {
+    const IdentityFactory = await ethers.getContractFactory("IdentityExample", {
       libraries: {
         ClaimBuilder: cb.address,
-        SmtLib: smtLib.address,
-        PoseidonUnit3L: poseidon3.address,
-        PoseidonUnit4L: poseidon4.address,
+        OnChainIdentity: il.address,
       },
     });
     // const IdentityFactory = await ethers.getContractFactory("Identity");
@@ -69,6 +68,19 @@ export class OnchainIdentityDeployHelper {
     return cb;
   }
 
+  async deployIdentityLib(smtpAddress: string, poseidonUtil3lAddress: string, poseidonUtil4lAddress: string): Promise<Contract> {
+    const Identity = await ethers.getContractFactory("OnChainIdentity", { libraries: {
+      SmtLib: smtpAddress,
+      PoseidonUnit3L: poseidonUtil3lAddress,
+      PoseidonUnit4L: poseidonUtil4lAddress,
+    }});
+    const il = await Identity.deploy();
+    await il.deployed();
+    this.enableLogging && this.log(`ClaimBuilder deployed to: ${il.address}`);
+
+    return il;
+  }
+  
   async deployClaimBuilderWrapper(): Promise<{
     address: string;
   }> {
