@@ -9,21 +9,23 @@ describe("Next tests reproduce identity life cycle", function() {
   let latestSavedState;
   let latestComputedState;
 
-  describe("create identity", function () {
-    it("deploy state and identity", async function () {
-      const stDeployHelper = await StateDeployHelper.initialize();
-      const deployHelper = await OnchainIdentityDeployHelper.initialize();
-      const stContracts = await stDeployHelper.deployStateV2();
-      const contracts = await deployHelper.deployIdentity(
+  before(async function () {
+    const stDeployHelper = await StateDeployHelper.initialize();
+    const deployHelper = await OnchainIdentityDeployHelper.initialize();
+    const stContracts = await stDeployHelper.deployStateV2();
+    const contracts = await deployHelper.deployIdentity(
         stContracts.state,
         stContracts.smtLib,
         stContracts.poseidon1,
         stContracts.poseidon2,
         stContracts.poseidon3,
         stContracts.poseidon4
-      );
-      identity = contracts.identity;
+    );
+    identity = contracts.identity;
+  });
 
+  describe("create identity", function () {
+    it("deploy state and identity", async function () {
       expect(await identity.getIsOldStateGenesis()).to.be.equal(
         true
       );
@@ -31,6 +33,9 @@ describe("Next tests reproduce identity life cycle", function() {
 
     it("validate identity's id", async function () {
       const id = await identity.getId();
+
+      console.log(identity.address);
+
       expect(id).to.be.equal(
         19435317712562231673898250973778224014638392712618728138799088409679761922n
       );
