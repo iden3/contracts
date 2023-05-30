@@ -113,11 +113,11 @@ contract IdentityBase {
     /**
      * @dev returns historical claimsTree roots, revocationsTree roots, rootsTree roots
      * by state
-     * @param historicalState identity state
+     * @param state identity state
      * @return set of roots
      */
-    function getRootsByState(uint256 historicalState) public virtual view returns (OnChainIdentity.Roots memory) {
-        return identity.getRootsByState(historicalState);
+    function getRootsByState(uint256 state) public virtual view returns (OnChainIdentity.Roots memory) {
+        return identity.getRootsByState(state);
     }
 
     /**
