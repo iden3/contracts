@@ -66,23 +66,6 @@ library GenesisUtils {
     }
 
     /**
-     * @dev bytesToHexString
-     */
-    function bytesToHexString(bytes memory buffer) internal pure returns (string memory) {
-        // Fixed buffer size for hexadecimal convertion
-        bytes memory converted = new bytes(buffer.length * 2);
-
-        bytes memory _base = "0123456789abcdef";
-
-        for (uint256 i = 0; i < buffer.length; i++) {
-            converted[i * 2] = _base[uint8(buffer[i]) / _base.length];
-            converted[i * 2 + 1] = _base[uint8(buffer[i]) % _base.length];
-        }
-
-        return string(abi.encodePacked("0x", converted));
-    }
-
-    /**
      * @dev compareStrings
      */
     function compareStrings(string memory a, string memory b) internal pure returns (bool) {
@@ -125,7 +108,10 @@ library GenesisUtils {
         bytes memory idBytes = BytesLib.concat(beforeChecksum, checkSumBytes);
         require(idBytes.length == 31, "idBytes requires 31 length array");
 
-        return uint256(uint248(bytes31(idBytes)));
+        return reverse(toUint256(idBytes));
+
+        // shift right 1 byte, because id is 31 byte long and reverse does it for 32bytes
+        //return reverse(uint256(uint248(bytes31(idBytes))))>>8;
     }
 
     /**
@@ -135,8 +121,7 @@ library GenesisUtils {
     {
         uint256 addr = uint256(uint160(caller));
 
-        // shift right 1 byte, because id is 31 byte long and reverse does it for 32bytes
-        return reverse(calcIdFromGenesisState(idType, addr))>>8;
+        return calcIdFromGenesisState(idType, addr);
     }
 
     /**

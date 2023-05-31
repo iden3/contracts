@@ -37,8 +37,11 @@ describe("Next tests reproduce identity life cycle", function() {
       console.log(identity.address);
 
       expect(id).to.be.equal(
-        19435317712562231673898250973778224014638392712618728138799088409679761922n
+        18148217572028590643859359173103611579212110941630801448409877263163593218n
       );
+
+      console.log(BigInt(id).toString(16));
+
     });
   });
 
