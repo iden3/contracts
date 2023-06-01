@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { ethers } from "hardhat";
 import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeployHelper";
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 
@@ -10,8 +11,9 @@ describe("Next tests reproduce identity life cycle", function() {
   let latestComputedState;
 
   before(async function () {
+    const signer = await ethers.getSigner("0xc02A160600ea4E2383bE36028f11C6CABf3A9C4a");
     const stDeployHelper = await StateDeployHelper.initialize();
-    const deployHelper = await OnchainIdentityDeployHelper.initialize();
+    const deployHelper = await OnchainIdentityDeployHelper.initialize([signer]);
     const stContracts = await stDeployHelper.deployStateV2();
     const contracts = await deployHelper.deployIdentity(
         stContracts.state,
