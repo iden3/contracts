@@ -51,7 +51,6 @@ export class OnchainIdentityDeployHelper {
     });
     await Identity.deployed();
     this.log(`Identity contract deployed to address ${Identity.address} from ${owner.address}`);
-    console.log(`Identity contract deployed to address ${Identity.address} from ${owner.address}`);
     this.log("======== Identity: deploy completed ========");
 
     return {
