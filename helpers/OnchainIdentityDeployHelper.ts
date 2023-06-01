@@ -32,7 +32,7 @@ export class OnchainIdentityDeployHelper {
     identity: Contract;
   }> {
     const owner = this.signers[0];
-    
+
     this.log("======== Identity: deploy started ========");
 
     const cb = await this.deployClaimBuilder();
@@ -51,6 +51,7 @@ export class OnchainIdentityDeployHelper {
     });
     await Identity.deployed();
     this.log(`Identity contract deployed to address ${Identity.address} from ${owner.address}`);
+
     this.log("======== Identity: deploy completed ========");
 
     return {
