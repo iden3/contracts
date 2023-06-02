@@ -94,7 +94,7 @@ describe("generate ID from genesis state and idType", function () {
     for (let i = 0; i < testVectors.length; i++) {
       it("testVector: " + i, async () => {
         const idResult = await guWrpr.calcIdFromGenesisState(testVectors[i].idType, testVectors[i].genIdState);
-        await expect(BigInt(idResult._hex)).to.be.equal(BigInt(testVectors[i].id));
+        expect(BigInt(idResult)).to.be.equal(BigInt(testVectors[i].id));
       });
     }
 });
@@ -103,10 +103,10 @@ describe("check provided IDs in the genesis state", function () {
   for (let i = 0; i < testVectors.length; i++) {
     it("testVector: " + i, async () => {
       const genResult = await guWrpr.isGenesisState(testVectors[i].id, testVectors[i].genIdState);
-      await expect(genResult).to.be.true;
+      expect(genResult).to.be.true;
 
       const nonGenResult = await guWrpr.isGenesisState(testVectors[i].id, testVectors[i].nonGenIdState);
-      await expect(nonGenResult).to.be.false;
+      expect(nonGenResult).to.be.false;
     });
   }
 
