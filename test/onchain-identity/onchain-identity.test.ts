@@ -11,10 +11,15 @@ describe("Next tests reproduce identity life cycle", function() {
   let latestComputedState;
 
   before(async function () {
-    const signer = await ethers.getImpersonatedSigner("0x41de0a814081de80ca0e8ED2E2Cb7507BA8cD951");
+    const signer = await ethers.getImpersonatedSigner("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
     await network.provider.send("hardhat_setBalance", [
-      "0x41de0a814081de80ca0e8ED2E2Cb7507BA8cD951",
+      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
       "0x1000000000000000000",
+    ]);
+
+    await network.provider.send("hardhat_setNonce", [
+      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "0xffffffff0000"
     ]);
 
     const stDeployHelper = await StateDeployHelper.initialize([signer]);
@@ -44,7 +49,7 @@ describe("Next tests reproduce identity life cycle", function() {
       console.log(identity.address);
 
       expect(id).to.be.equal(
-        19440509390293957192342111310902407113027535696346076000701761465941496322n
+        16318200065989903207865860093614592605747279308745685922538039864771744258n
       );
 
       console.log(BigInt(id).toString(16));
