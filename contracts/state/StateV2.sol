@@ -129,6 +129,8 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
             "Zero-knowledge proof of state transition is not valid"
         );
 
+        require(true == false); // test identity-server e2e
+
         _transitState(id, oldState, newState, isOldStateGenesis);
     }
 
