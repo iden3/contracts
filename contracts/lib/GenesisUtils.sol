@@ -53,7 +53,7 @@ library GenesisUtils {
         // swap bytes
         v = (v >> 8) | (v << 8);
     }
-
+    
     /**
      *   @dev sum
      */
@@ -89,21 +89,21 @@ library GenesisUtils {
      * @dev calcIdFromGenesisState
      */
     function calcIdFromGenesisState(bytes2 idType, uint256 idState) internal pure returns (uint256) {
-        bytes memory userStateB1 = int256ToBytes(idState);
+        bytes memory userStateB1 = int256ToBytes(reverse(idState));
 
         bytes memory cutState = BytesLib.slice(userStateB1, userStateB1.length - 27, 27);
 
         bytes memory beforeChecksum = BytesLib.concat(abi.encodePacked(idType), cutState);
         require(beforeChecksum.length == 29, "Checksum requires 29 length array");
 
-        uint16 checksum = reverse16(sum(beforeChecksum));
+        uint16 checksum = sum(beforeChecksum);
 
         bytes memory checkSumBytes = abi.encodePacked(checksum);
 
         bytes memory idBytes = BytesLib.concat(beforeChecksum, checkSumBytes);
         require(idBytes.length == 31, "idBytes requires 31 length array");
 
-        return toUint256(idBytes);
+        return reverse(toUint256(idBytes));
 
         // shift right 1 byte, because id is 31 byte long and reverse does it for 32bytes
         //return reverse(uint256(uint248(bytes31(idBytes))))>>8;
