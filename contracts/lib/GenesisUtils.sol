@@ -103,7 +103,7 @@ library GenesisUtils {
         bytes memory idBytes = BytesLib.concat(beforeChecksum, checkSumBytes);
         require(idBytes.length == 31, "idBytes requires 31 length array");
 
-        return reverse(toUint256(idBytes));
+        return toUint256(idBytes);
 
         // shift right 1 byte, because id is 31 byte long and reverse does it for 32bytes
         //return reverse(uint256(uint248(bytes31(idBytes))))>>8;
