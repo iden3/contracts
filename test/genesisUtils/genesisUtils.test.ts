@@ -100,7 +100,7 @@ before(async () => {
 describe("generate ID from genesis state and idType", function () {
     for (let i = 0; i < testVectors.length; i++) {
       it("testVector: " + i, async () => {
-        const idResult = await guWrpr.calcIdFromGenesisState(testVectors[i].idType, testVectors[i].genIdState); 
+        const idResult = await guWrpr.calcIdFromGenesisState(testVectors[i].idType, testVectors[i].genIdState);
         expect(BigInt(idResult)).to.be.equal(BigInt(testVectors[i].id));
       });
     }
@@ -118,13 +118,13 @@ describe("check provided IDs in the genesis state", function () {
   }
 });
 
-describe("tes is genesis state with base 10 bigint", function () {
+describe("test is genesis state with base 10 bigint", function () {
     const id = '24046132560195495514376446225096639477630837244209093211332602837583401473';
-    const g = '7521024223205616003431860562270429547098131848980857190502964780628723574810';
+    const genesis = '7521024223205616003431860562270429547098131848980857190502964780628723574810';
     it("base 10 bigint test", async () => {
-      const idResult = await guWrpr.calcIdFromGenesisState('0x0112', g); 
+      const idResult = await guWrpr.calcIdFromGenesisState('0x0112', genesis); 
       expect(idResult).eq(id);
-      const genResult = await guWrpr.isGenesisState(id, g);
+      const genResult = await guWrpr.isGenesisState(id, genesis);
       expect(genResult).to.be.true;
   });
 

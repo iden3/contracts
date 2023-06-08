@@ -53,7 +53,7 @@ library GenesisUtils {
         // swap bytes
         v = (v >> 8) | (v << 8);
     }
-    
+
     /**
      *   @dev sum
      */
