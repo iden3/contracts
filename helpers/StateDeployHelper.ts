@@ -12,7 +12,7 @@ export class StateDeployHelper {
   ) {}
 
   static async initialize(
-    signers: SignerWithAddress | null = null,
+    signers: SignerWithAddress[] | null = null,
     enableLogging = false
   ): Promise<StateDeployHelper> {
     let sgrs;

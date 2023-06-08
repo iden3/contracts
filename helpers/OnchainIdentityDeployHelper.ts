@@ -9,7 +9,7 @@ export class OnchainIdentityDeployHelper {
   ) {}
 
   static async initialize(
-    signers: SignerWithAddress | null = null,
+    signers: SignerWithAddress[] | null = null,
     enableLogging = false
   ): Promise<OnchainIdentityDeployHelper> {
     let sgrs;

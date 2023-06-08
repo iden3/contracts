@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { ethers, network } from "hardhat";
 import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeployHelper";
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 
@@ -9,21 +10,34 @@ describe("Next tests reproduce identity life cycle", function() {
   let latestSavedState;
   let latestComputedState;
 
-  describe("create identity", function () {
-    it("deploy state and identity", async function () {
-      const stDeployHelper = await StateDeployHelper.initialize();
-      const deployHelper = await OnchainIdentityDeployHelper.initialize();
-      const stContracts = await stDeployHelper.deployStateV2();
-      const contracts = await deployHelper.deployIdentity(
+  before(async function () {
+    const signer = await ethers.getImpersonatedSigner("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
+    await network.provider.send("hardhat_setBalance", [
+      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "0x1000000000000000000",
+    ]);
+
+    await network.provider.send("hardhat_setNonce", [
+      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "0xffffffff0000"
+    ]);
+
+    const stDeployHelper = await StateDeployHelper.initialize([signer]);
+    const deployHelper = await OnchainIdentityDeployHelper.initialize([signer]);
+    const stContracts = await stDeployHelper.deployStateV2();
+    const contracts = await deployHelper.deployIdentity(
         stContracts.state,
         stContracts.smtLib,
         stContracts.poseidon1,
         stContracts.poseidon2,
         stContracts.poseidon3,
         stContracts.poseidon4
-      );
-      identity = contracts.identity;
+    );
+    identity = contracts.identity;
+  });
 
+  describe("create identity", function () {
+    it("deploy state and identity", async function () {
       expect(await identity.getIsOldStateGenesis()).to.be.equal(
         true
       );
@@ -31,9 +45,15 @@ describe("Next tests reproduce identity life cycle", function() {
 
     it("validate identity's id", async function () {
       const id = await identity.getId();
+
+      console.log(identity.address);
+
       expect(id).to.be.equal(
-        19435317712562231673898250973778224014638392712618728138799088409679761922n
+        16318200065989903207865860093614592605747279308745685922538039864771744258n
       );
+
+      console.log(BigInt(id).toString(16));
+
     });
   });
 

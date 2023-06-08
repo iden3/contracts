@@ -66,23 +66,6 @@ library GenesisUtils {
     }
 
     /**
-     * @dev bytesToHexString
-     */
-    function bytesToHexString(bytes memory buffer) internal pure returns (string memory) {
-        // Fixed buffer size for hexadecimal convertion
-        bytes memory converted = new bytes(buffer.length * 2);
-
-        bytes memory _base = "0123456789abcdef";
-
-        for (uint256 i = 0; i < buffer.length; i++) {
-            converted[i * 2] = _base[uint8(buffer[i]) / _base.length];
-            converted[i * 2 + 1] = _base[uint8(buffer[i]) % _base.length];
-        }
-
-        return string(abi.encodePacked("0x", converted));
-    }
-
-    /**
      * @dev compareStrings
      */
     function compareStrings(string memory a, string memory b) internal pure returns (bool) {
@@ -97,13 +80,8 @@ library GenesisUtils {
      */
     function isGenesisState(uint256 id, uint256 idState) internal pure returns (bool)
     {
-        bytes memory idBytes = int256ToBytes(id);
-
-        bytes memory idType = BytesLib.slice(idBytes, idBytes.length - 31, 2);
-
-        // TODO: maybe we can do just bytes2(idBytes) - should take first 2 bytes
-        uint256 computedId = calcIdFromGenesisState(bytes2(idType), idState);
-
+        bytes2 idType = bytes2(int256ToBytes(reverse(id)));
+        uint256 computedId = calcIdFromGenesisState(idType, idState);
         return id == computedId;
     }
 
@@ -125,7 +103,10 @@ library GenesisUtils {
         bytes memory idBytes = BytesLib.concat(beforeChecksum, checkSumBytes);
         require(idBytes.length == 31, "idBytes requires 31 length array");
 
-        return uint256(uint248(bytes31(idBytes)));
+        return reverse(toUint256(idBytes));
+
+        // shift right 1 byte, because id is 31 byte long and reverse does it for 32bytes
+        //return reverse(uint256(uint248(bytes31(idBytes))))>>8;
     }
 
     /**
@@ -133,15 +114,9 @@ library GenesisUtils {
      */
     function calcOnchainIdFromAddress(bytes2 idType, address caller) internal pure returns (uint256)
     {
-        // shift address left 7 bytes, because calcIdFromGenesisState cuts last 5 bytes after swapping endianness:
-        // 32 bytes of uint256 - 20bytes of address - 5 bytes cut by calcIdFromGenesisState == 7 bytes shift
-        uint256 addrShifted = reverse(uint256(uint160(caller))<<56);
+        uint256 addr = uint256(uint160(caller));
 
-        // shift right 1 byte, because id is 31 byte long and reverse does it for 32bytes
-        // TODO: check that reverse is needed!!!!
-        return reverse(calcIdFromGenesisState(idType, addrShifted))>>8;
-
-        //return calcIdFromGenesisState(idType, addrShifted);
+        return calcIdFromGenesisState(idType, addr);
     }
 
     /**
