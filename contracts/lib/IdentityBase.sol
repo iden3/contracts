@@ -9,6 +9,18 @@ import "../lib/OnChainIdentity.sol";
 //  * @dev Contract managing onchain identity
 //  */
 contract IdentityBase {
+    struct IssuerStates {
+        uint256 state;
+        uint256 rootOfRoots;
+        uint256 claimsTreeRoot;
+        uint256 revocationTreeRoot;
+    }
+
+    struct CredentialStatus {
+        IssuerStates issuer;
+	    SmtLib.Proof mtp;
+    }
+
     using OnChainIdentity for OnChainIdentity.Identity;
 
     OnChainIdentity.Identity internal identity;
@@ -168,5 +180,20 @@ contract IdentityBase {
         return identity.latestState;
     }
 
+    function getRevocationStatus(uint64 nonce) public view returns(CredentialStatus memory) {
+        uint256 latestState = identity.latestState;
+        OnChainIdentity.Roots memory historicalStates = identity.getRootsByState(latestState);
+        SmtLib.Proof memory p = identity.getRevocationProofByRoot(nonce, historicalStates.revocationsRoot);
+        IssuerStates memory issuerStates = IssuerStates({
+            state: latestState,
+            rootOfRoots: historicalStates.rootsRoot,
+            claimsTreeRoot: historicalStates.claimsRoot,
+            revocationTreeRoot: historicalStates.revocationsRoot
+        });
 
+        return CredentialStatus({
+            issuer: issuerStates,
+            mtp: p
+        });
+    }
 }
