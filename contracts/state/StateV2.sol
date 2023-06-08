@@ -84,6 +84,8 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         require(newState != 0, "New state should not be zero");
         require(!stateExists(id, newState), "New state already exists");
 
+        require(true == false, "Test check failed"); // test identity-server e2e
+
         if (isOldStateGenesis) {
             require(!idExists(id), "Old state is genesis but identity already exists");
 
@@ -128,8 +130,6 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
             verifier.verifyProof(a, b, c, input),
             "Zero-knowledge proof of state transition is not valid"
         );
-
-        require(true == false); // test identity-server e2e
 
         _transitState(id, oldState, newState, isOldStateGenesis);
     }
