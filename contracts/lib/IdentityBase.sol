@@ -9,16 +9,16 @@ import "../lib/OnChainIdentity.sol";
 //  * @dev Contract managing onchain identity
 //  */
 contract IdentityBase {
-    struct IssuerStates {
+    struct IdentityStateRoots {
         uint256 state;
-        uint256 rootOfRoots;
         uint256 claimsTreeRoot;
         uint256 revocationTreeRoot;
+        uint256 rootOfRoots;
     }
 
     struct CredentialStatus {
-        IssuerStates issuer;
-	    SmtLib.Proof mtp;
+        IdentityStateRoots issuer;
+        SmtLib.Proof mtp;
     }
 
     using OnChainIdentity for OnChainIdentity.Identity;
@@ -184,7 +184,7 @@ contract IdentityBase {
         uint256 latestState = identity.latestState;
         OnChainIdentity.Roots memory historicalStates = identity.getRootsByState(latestState);
         SmtLib.Proof memory p = identity.getRevocationProofByRoot(nonce, historicalStates.revocationsRoot);
-        IssuerStates memory issuerStates = IssuerStates({
+        IdentityStateRoots memory issuerStates = IdentityStateRoots({
             state: latestState,
             rootOfRoots: historicalStates.rootsRoot,
             claimsTreeRoot: historicalStates.claimsRoot,
