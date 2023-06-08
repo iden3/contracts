@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { ethers, network } from "hardhat";
 import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeployHelper";
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 
@@ -10,8 +11,19 @@ describe("Next tests reproduce identity life cycle", function() {
   let latestComputedState;
 
   before(async function () {
-    const stDeployHelper = await StateDeployHelper.initialize();
-    const deployHelper = await OnchainIdentityDeployHelper.initialize();
+    const signer = await ethers.getImpersonatedSigner("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
+    await network.provider.send("hardhat_setBalance", [
+      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "0x1000000000000000000",
+    ]);
+
+    await network.provider.send("hardhat_setNonce", [
+      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "0xffffffff0000"
+    ]);
+
+    const stDeployHelper = await StateDeployHelper.initialize([signer]);
+    const deployHelper = await OnchainIdentityDeployHelper.initialize([signer]);
     const stContracts = await stDeployHelper.deployStateV2();
     const contracts = await deployHelper.deployIdentity(
         stContracts.state,
@@ -37,7 +49,7 @@ describe("Next tests reproduce identity life cycle", function() {
       console.log(identity.address);
 
       expect(id).to.be.equal(
-        18148217572028590643859359173103611579212110941630801448409877263163593218n
+        16318200065989903207865860093614592605747279308745685922538039864771744258n
       );
 
       console.log(BigInt(id).toString(16));

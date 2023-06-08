@@ -80,13 +80,8 @@ library GenesisUtils {
      */
     function isGenesisState(uint256 id, uint256 idState) internal pure returns (bool)
     {
-        bytes memory idBytes = int256ToBytes(id);
-
-        bytes memory idType = BytesLib.slice(idBytes, idBytes.length - 31, 2);
-
-        // TODO: maybe we can do just bytes2(idBytes) - should take first 2 bytes
-        uint256 computedId = calcIdFromGenesisState(bytes2(idType), idState);
-
+        bytes2 idType = bytes2(int256ToBytes(reverse(id)));
+        uint256 computedId = calcIdFromGenesisState(idType, idState);
         return id == computedId;
     }
 
