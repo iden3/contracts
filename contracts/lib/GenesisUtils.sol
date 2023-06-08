@@ -96,7 +96,7 @@ library GenesisUtils {
         bytes memory beforeChecksum = BytesLib.concat(abi.encodePacked(idType), cutState);
         require(beforeChecksum.length == 29, "Checksum requires 29 length array");
 
-        uint16 checksum = sum(beforeChecksum);
+        uint16 checksum = reverse16(sum(beforeChecksum));
 
         bytes memory checkSumBytes = abi.encodePacked(checksum);
 
