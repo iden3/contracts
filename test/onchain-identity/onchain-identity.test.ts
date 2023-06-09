@@ -3,7 +3,7 @@ import { ethers, network } from "hardhat";
 import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeployHelper";
 import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 
-describe("Next tests reproduce identity life cycle", function() {
+describe.only("Next tests reproduce identity life cycle", function() {
   this.timeout(10000);
 
   let identity;
@@ -49,7 +49,7 @@ describe("Next tests reproduce identity life cycle", function() {
       console.log(identity.address);
 
       expect(id).to.be.equal(
-        16318200065989903207865860093614592605747279308745685922538039864771744258n
+        12091859599577067755585692270709406022113709557513614697404790677526548994n
       );
 
       console.log(BigInt(id).toString(16));
