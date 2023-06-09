@@ -47,6 +47,7 @@ describe("Next tests reproduce identity life cycle", function() {
       const id = await identity.getId();
 
       console.log(identity.address);
+
       expect(id).to.be.equal(
         16318200065989903207865860093614592605747279308745685922538039864771744258n
       );
