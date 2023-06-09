@@ -113,7 +113,7 @@ library GenesisUtils {
     {
         uint256 addr = uint256(uint160(caller));
 
-        return calcIdFromGenesisState(idType, addr);
+        return calcIdFromGenesisState(idType, reverse(addr));
     }
 
     /**
