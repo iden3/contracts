@@ -129,6 +129,8 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
             "Zero-knowledge proof of state transition is not valid"
         );
 
+        require(isOldStateGenesis == GenesisUtils.isGenesisState(id, oldState));
+
         _transitState(id, oldState, newState, isOldStateGenesis);
     }
 
