@@ -84,9 +84,6 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         require(newState != 0, "New state should not be zero");
         require(!stateExists(id, newState), "New state already exists");
 
-        // todo: remove
-        require(isOldStateGenesis == GenesisUtils.isGenesisState(id, oldState)); // test identity-server e2e
-
         if (isOldStateGenesis) {
             require(!idExists(id), "Old state is genesis but identity already exists");
 
