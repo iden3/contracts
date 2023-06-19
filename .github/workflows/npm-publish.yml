@@ -36,7 +36,7 @@ jobs:
         run: mkdir build/contracts
 
       - name: "Copy artifacts"
-        run: find ./artifacts/contracts -type f -name "*.json" ! -name "*dbg.json" ! -path "./artifacts/contracts/test-helpers/*" -exec cp {} "contracts/build/contracts" \\;
+        run: find artifacts/contracts -type f -name "*.json" ! -name "*dbg.json" ! -path "artifacts/contracts/test-helpers/*" -exec cp {} "contracts/build/contracts" \;
 
       - name: publish contracts package to NPM
         working-directory: ./contracts
