@@ -40,4 +40,4 @@ jobs:
 
       - name: publish contracts package to NPM
         working-directory: ./contracts
-        run: echo ${NODE_AUTH_TOKEN} && npm publish --dry-run
+        run: echo ${NODE_AUTH_TOKEN} && npm publish
