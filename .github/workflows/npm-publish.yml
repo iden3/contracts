@@ -18,6 +18,5 @@ jobs:
         run: npm ci
 
       - name: publish contracts package to NPM
-        working-directory: ./contracts
-        run: npm publish
+        run: сd contracts && npm publish
         
