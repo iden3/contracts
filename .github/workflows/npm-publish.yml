@@ -35,6 +35,9 @@ jobs:
         working-directory: ./contracts
         run: mkdir build/contracts
 
+      - name: "debug"
+        run: pwd && ls -la
+
       - name: "Copy artifacts"
         run: find artifacts/contracts -type f -name "*.json" ! -name "*dbg.json" ! -path "artifacts/contracts/test-helpers/*" -exec cp {} "contracts/build/contracts" \;
 
