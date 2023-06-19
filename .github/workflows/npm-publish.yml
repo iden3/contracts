@@ -17,6 +17,27 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: "Clean Hardhat"
+        run: "npx hardhat clean"
+
+      - name: "Compile Hardhat"
+        run: "npx hardhat compile"
+
+      - name: Delete build folder
+        working-directory: ./contracts
+        run: rm -rf build
+
+      - name: Create build folder
+        working-directory: ./contracts
+        run: mkdir build
+
+      - name: Create build/contracts folder
+        working-directory: ./contracts
+        run: mkdir build/contracts
+
+      - name: "Copy artifacts"
+        run: find ./artifacts/contracts -type f -name "*.json" ! -name "*dbg.json" ! -path "./artifacts/contracts/test-helpers/*" -exec cp {} "contracts/build/contracts" \\;
+
       - name: publish contracts package to NPM
-        run: pwd && cd ./contracts && pwd && npm publish
-        
+        working-directory: ./contracts
+        run: npm publish

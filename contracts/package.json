@@ -1,15 +1,12 @@
 {
     "name": "@iden3/contracts",
     "description": "Smart Contract library for Solidity",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "files": [
         "**/*.sol",
         "/build/contracts/*.json",
         "!test-helpers"
     ],
-    "scripts": {
-        "prepare": "node ../scripts/prepare-contracts-package.js"
-    },
     "repository": {
         "type": "git",
         "url": "https://github.com/iden3/contracts.git"
