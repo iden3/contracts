@@ -33,6 +33,8 @@ const commands = [
 async function preparePackage() {
   for (const command of commands) {
     console.log(`Running: ${command.name}`);
+    console.log('ls');
+    await exec('ls')
     const { stdout, stderr } = await exec(command.command);
     console.log(command.command)
     stdout && console.log("stdout:", stdout);
