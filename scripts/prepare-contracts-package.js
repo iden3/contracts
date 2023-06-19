@@ -26,7 +26,7 @@ const commands = [
   },
   {
     name: "Copy artifacts",
-    command: `find ../artifacts/contracts -type f -name "*.json" ! -name "*dbg.json" ! -path "../artifacts/contracts/test-helpers/*" -exec cp {} "${buildFolder}/contracts" \\;`,
+    command: `find ./artifacts/contracts -type f -name "*.json" ! -name "*dbg.json" ! -path "./artifacts/contracts/test-helpers/*" -exec cp {} "${buildFolder}/contracts" \\;`,
   },
 ];
 
