@@ -5,6 +5,8 @@ on: workflow_dispatch
 jobs:
   publish-npm:
     runs-on: ubuntu-latest
+    env:
+      NODE_AUTH_TOKEN: ${{secrets.IDENTITY_NPM_PUBLISH_TOKEN}}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -18,5 +20,4 @@ jobs:
       - name: publish contracts package to NPM
         working-directory: ./contracts
         run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.IDENTITY_NPM_PUBLISH_TOKEN}}
+        
