@@ -151,22 +151,31 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
     }
 
     /**
-     * @dev Change the state of an identity (transit to the new state) with ZKP ownership check.
+     * @dev Change the state of an identity (transit to the new state) with method-specific id ownership check.
      * @param id Identity
      * @param oldState Previous identity state
      * @param newState New identity state
      * @param isOldStateGenesis Is the previous state genesis?
+     * @param methodId State transition method id
+     * @param methodParams State transition method-specific params
      */
-    function transitStateOnchainIdentity(
+    function transitStateGeneric(
         uint256 id,
         uint256 oldState,
         uint256 newState,
-        bool isOldStateGenesis
+        bool isOldStateGenesis,
+        uint256 methodId,
+        bytes calldata methodParams
     ) public {
-        uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(_networkPrefix, msg.sender);
-        require(calcId == id, "msg.sender is not owner of the identity");
+        if (methodId == 1) {
+            uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(_networkPrefix, msg.sender);
+            require(calcId == id, "msg.sender is not owner of the identity");
+            require(methodParams.length == 0, "methodParams should be empty");
 
-        _transitState(id, oldState, newState, isOldStateGenesis);
+            _transitState(id, oldState, newState, isOldStateGenesis);
+        } else {
+            revert("Unknown state transition method id");
+        }
     }
 
     /**
