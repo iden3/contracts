@@ -67,7 +67,7 @@ export class DeployHelper {
         PoseidonUnit1L: poseidon1Elements.address,
       },
     });
-    const stateV2 = await upgrades.deployProxy(StateV2Factory, [verifier.address], {
+    const stateV2 = await upgrades.deployProxy(StateV2Factory, [verifier.address, 0x0212], {
       unsafeAllowLinkedLibraries: true,
     });
     await stateV2.deployed();
@@ -136,6 +136,7 @@ export class DeployHelper {
     const stateV2 = await upgrades.upgradeProxy(stateAddress, StateV2Factory, {
       unsafeAllowLinkedLibraries: true,
       unsafeSkipStorageCheck: true,
+      call: { fn: 'setPrefix', args: [0x0212] }
     });
     await stateV2.deployed();
     this.log(`StateV2 contract upgraded at address ${stateV2.address} from ${owner.address}`);

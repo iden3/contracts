@@ -41,6 +41,12 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      */
     SmtLib.Data internal _gistData;
 
+
+    /**
+     * @dev Network prefix
+     */
+    bytes2 internal _networkPrefix;
+
     using SmtLib for SmtLib.Data;
     using StateLib for StateLib.Data;
 
@@ -53,8 +59,12 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      * @dev Initialize the contract
      * @param verifierContractAddr Verifier address
      */
-    function initialize(IStateTransitionVerifier verifierContractAddr) public initializer {
+    function initialize(
+        IStateTransitionVerifier verifierContractAddr,
+        bytes2 networkPrefix
+    ) public initializer {
         verifier = verifierContractAddr;
+        _networkPrefix = networkPrefix;
         _gistData.initialize(MAX_SMT_DEPTH);
         __Ownable_init();
     }
@@ -65,6 +75,14 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      */
     function setVerifier(address newVerifierAddr) external onlyOwner {
         verifier = IStateTransitionVerifier(newVerifierAddr);
+    }
+
+    /**
+     * @dev Set network prefix
+     * @param networkPrefix network prefix
+     */
+    function setPrefix(bytes2 networkPrefix) external onlyOwner {
+        _networkPrefix = networkPrefix;
     }
 
     /**
@@ -145,7 +163,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         uint256 newState,
         bool isOldStateGenesis
     ) public {
-        uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(0x0212, msg.sender);
+        uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(_networkPrefix, msg.sender);
         require(calcId == id, "msg.sender is not owner of the identity");
 
         _transitState(id, oldState, newState, isOldStateGenesis);
