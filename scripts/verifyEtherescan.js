@@ -21,21 +21,6 @@ async function main() {
     expect(error.message.toLowerCase().includes("already verified")).to.be.equal(true);
   }
 
-    // // verify state proxy
-    // try {
-    //   // verify governance
-    //   await hre.run("verify:verify",
-    //     {
-    //       address: deployOutputParameters.state,
-    //     }
-    //   );
-    // } catch (error) {
-    //   console.log(error.message)
-    //   expect(error.message.toLowerCase().includes("already verified")).to.be.equal(true);
-    // }
-
-  // verify state implementation
-
   // verify implementation
   for (const property in openzeppelinUpgrade.impls) {
     const address = openzeppelinUpgrade.impls[property].address;

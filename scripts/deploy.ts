@@ -1,13 +1,13 @@
 import fs from "fs";
 import path from "path";
-import { StateDeployHelper } from "../helpers/StateDeployHelper";
+import { DeployHelper } from "../helpers/DeployHelper";
 const pathOutputJson = path.join(__dirname, "./deploy_output.json");
 
 async function main() {
-  const stateDeployHelper = await StateDeployHelper.initialize(null, true);
+  const deployHelper = await DeployHelper.initialize(null, true);
 
   const { state, verifier, stateLib, smtLib, poseidon1, poseidon2, poseidon3 } =
-    await stateDeployHelper.deployStateV2();
+    await deployHelper.deployStateV2();
 
   const outputJson = {
     state: state.address,

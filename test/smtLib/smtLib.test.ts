@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import hre from "hardhat";
 
-import { addLeaf, FixedArray, genMaxBinaryNumber, MtpProof } from "../utils/utils";
-import { StateDeployHelper } from "../../helpers/StateDeployHelper";
+import { addLeaf, FixedArray, genMaxBinaryNumber, MtpProof } from "../utils/state-utils";
+import { DeployHelper } from "../../helpers/DeployHelper";
 import { Contract } from "ethers";
 
 type ParamsProofByHistoricalRoot = {
@@ -46,7 +46,7 @@ describe("Merkle tree proofs of SMT", () => {
   let smt;
 
   beforeEach(async () => {
-    const deployHelper = await StateDeployHelper.initialize();
+    const deployHelper = await DeployHelper.initialize();
     smt = await deployHelper.deploySmtLibTestWrapper();
   });
 
@@ -1013,7 +1013,7 @@ describe("Root history requests", function () {
   let pubStates: { [key: string]: string | number }[] = [];
 
   before(async () => {
-    const deployHelper = await StateDeployHelper.initialize();
+    const deployHelper = await DeployHelper.initialize();
     smt = await deployHelper.deploySmtLibTestWrapper();
 
     pubStates = [];
@@ -1081,7 +1081,7 @@ describe("Root history duplicates", function () {
   let smt;
 
   beforeEach(async () => {
-    const deployHelper = await StateDeployHelper.initialize();
+    const deployHelper = await DeployHelper.initialize();
     smt = await deployHelper.deploySmtLibTestWrapper();
   });
 
@@ -1217,7 +1217,7 @@ describe("Binary search in SMT root history", () => {
   }
 
   beforeEach(async () => {
-    const deployHelper = await StateDeployHelper.initialize();
+    const deployHelper = await DeployHelper.initialize();
     binarySearch = await deployHelper.deployBinarySearchTestWrapper();
 
     const { number: latestBlockNumber } = await hre.ethers.provider.getBlock("latest");
@@ -1630,7 +1630,7 @@ describe("Binary search in SMT proofs", () => {
   let smt;
 
   beforeEach(async () => {
-    const deployHelper = await StateDeployHelper.initialize();
+    const deployHelper = await DeployHelper.initialize();
     smt = await deployHelper.deploySmtLibTestWrapper();
   });
 
@@ -1741,7 +1741,7 @@ describe("Edge cases with exceptions", () => {
   let smt;
 
   beforeEach(async () => {
-    const deployHelper = await StateDeployHelper.initialize();
+    const deployHelper = await DeployHelper.initialize();
     smt = await deployHelper.deploySmtLibTestWrapper();
   });
 
@@ -1765,7 +1765,7 @@ describe("maxDepth setting tests", () => {
   let smt;
 
   before(async () => {
-    const deployHelper = await StateDeployHelper.initialize();
+    const deployHelper = await DeployHelper.initialize();
     smt = await deployHelper.deploySmtLibTestWrapper(maxDepth);
   });
 

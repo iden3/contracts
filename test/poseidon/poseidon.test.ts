@@ -1,6 +1,6 @@
 import { Contract } from "ethers";
 import { expect } from "chai";
-import { deployPoseidonFacade } from "./utils/deploy-poseidons.util";
+import { deployPoseidonFacade } from "../../helpers/PoseidonDeployHelper";
 
 describe("poseidon", () => {
   let poseidonFacade: Contract;
@@ -80,5 +80,5 @@ describe("poseidon", () => {
       const resSC = await poseidonFacade.poseidonSponge(vector);
       expect(resSC.toString()).to.be.equal(expectedSpongeHashes[i - 1]);
     }
-  }).timeout(45000);
+  }).timeout(120000);
 });

@@ -1,6 +1,5 @@
 import { expect } from "chai";
 import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeployHelper";
-import { StateDeployHelper } from "../../helpers/StateDeployHelper";
 import fs from 'fs'
 
 describe("Claim builder tests", function() {
