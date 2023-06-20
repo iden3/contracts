@@ -41,7 +41,6 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      */
     SmtLib.Data internal _gistData;
 
-
     /**
      * @dev Network prefix
      */
@@ -168,7 +167,10 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         bytes calldata methodParams
     ) public {
         if (methodId == 1) {
-            uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(this.getDefaultIdType(), msg.sender);
+            uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(
+                this.getDefaultIdType(),
+                msg.sender
+            );
             require(calcId == id, "msg.sender is not owner of the identity");
             require(methodParams.length == 0, "methodParams should be empty");
 
