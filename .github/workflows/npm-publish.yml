@@ -29,18 +29,11 @@ jobs:
 
       - name: Create build folder
         working-directory: ./contracts
-        run: mkdir build
-
-      - name: Create build/contracts folder
-        working-directory: ./contracts
-        run: mkdir build/contracts
-
-      - name: "debug"
-        run: pwd && ls -la
+        run: mkdir -p build/contracts
 
       - name: "Copy artifacts"
         run: find artifacts/contracts -type f -name "*.json" ! -name "*dbg.json" ! -path "artifacts/contracts/test-helpers/*" -exec cp {} "contracts/build/contracts" \;
 
       - name: publish contracts package to NPM
         working-directory: ./contracts
-        run: npm config get registry && echo ${NODE_AUTH_TOKEN} && npm publish
+        run: npm publish
