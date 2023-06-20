@@ -41,6 +41,11 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      */
     SmtLib.Data internal _gistData;
 
+    /**
+     * @dev Network prefix
+     */
+    bytes2 internal _defaultIdType;
+
     using SmtLib for SmtLib.Data;
     using StateLib for StateLib.Data;
 
@@ -53,8 +58,12 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      * @dev Initialize the contract
      * @param verifierContractAddr Verifier address
      */
-    function initialize(IStateTransitionVerifier verifierContractAddr) public initializer {
+    function initialize(
+        IStateTransitionVerifier verifierContractAddr,
+        bytes2 defaultIdType
+    ) public initializer {
         verifier = verifierContractAddr;
+        _defaultIdType = defaultIdType;
         _gistData.initialize(MAX_SMT_DEPTH);
         __Ownable_init();
     }
@@ -65,6 +74,14 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      */
     function setVerifier(address newVerifierAddr) external onlyOwner {
         verifier = IStateTransitionVerifier(newVerifierAddr);
+    }
+
+    /**
+     * @dev Set defaultIdType
+     * @param defaultIdType default id type
+     */
+    function setDefaultIdType(bytes2 defaultIdType) external onlyOwner {
+        _defaultIdType = defaultIdType;
     }
 
     /**
@@ -150,7 +167,10 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         bytes calldata methodParams
     ) public {
         if (methodId == 1) {
-            uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(0x0212, msg.sender);
+            uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(
+                this.getDefaultIdType(),
+                msg.sender
+            );
             require(calcId == id, "msg.sender is not owner of the identity");
             require(methodParams.length == 0, "methodParams should be empty");
 
@@ -166,6 +186,14 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      */
     function getVerifier() external view returns (address) {
         return address(verifier);
+    }
+
+    /**
+     * @dev Get defaultIdType
+     * @return defaultIdType
+     */
+    function getDefaultIdType() public view returns (bytes2) {
+        return _defaultIdType;
     }
 
     /**
