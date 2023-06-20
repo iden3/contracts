@@ -130,7 +130,11 @@ library OnChainIdentity {
         uint256 newIdentityState = calcIdentityState(self);
 
         // do state transition in State Contract
-        self.stateContract.transitStateOnchainIdentity(self.id, self.latestState, newIdentityState, self.isOldStateGenesis);
+        self.stateContract.transitStateGeneric(
+            self.id, self.latestState, newIdentityState, self.isOldStateGenesis,
+            1, // state transition method id: 1 - using ethereum auth
+            new bytes(0) // empty method params
+        );
 
         // update internal state vars
         self.latestState = newIdentityState;
