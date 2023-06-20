@@ -2,6 +2,7 @@ import { ethers, upgrades } from "hardhat";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
+import { NetworksIdType } from "./NetworksIdType";
 
 const SMT_MAX_DEPTH = 64;
 
@@ -67,7 +68,7 @@ export class DeployHelper {
         PoseidonUnit1L: poseidon1Elements.address,
       },
     });
-    const stateV2 = await upgrades.deployProxy(StateV2Factory, [verifier.address, 0x0212], {
+    const stateV2 = await upgrades.deployProxy(StateV2Factory, [verifier.address, NetworksIdType.polygonMumbai], {
       unsafeAllowLinkedLibraries: true,
     });
     await stateV2.deployed();
@@ -136,7 +137,7 @@ export class DeployHelper {
     const stateV2 = await upgrades.upgradeProxy(stateAddress, StateV2Factory, {
       unsafeAllowLinkedLibraries: true,
       unsafeSkipStorageCheck: true,
-      call: { fn: 'setDefaultIdType', args: [0x0212] }
+      call: { fn: 'setDefaultIdType', args: [NetworksIdType.polygonMumbai] },
     });
     await stateV2.deployed();
     this.log(`StateV2 contract upgraded at address ${stateV2.address} from ${owner.address}`);
