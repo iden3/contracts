@@ -146,10 +146,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         bool isOldStateGenesis
     ) public {
         uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(0x0212, msg.sender);
-        require(
-            calcId == id,
-            "msg.sender is not owner of the identity"
-        );
+        require(calcId == id, "msg.sender is not owner of the identity");
 
         _transitState(id, oldState, newState, isOldStateGenesis);
     }
@@ -381,8 +378,8 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         SmtLib.RootEntryInfo memory rootInfo
     ) internal pure returns (IState.GistRootInfo memory) {
         return
-    IState.GistRootInfo({
-    root: rootInfo.root,
+            IState.GistRootInfo({
+                root: rootInfo.root,
                 replacedByRoot: rootInfo.replacedByRoot,
                 createdAtTimestamp: rootInfo.createdAtTimestamp,
                 replacedAtTimestamp: rootInfo.replacedAtTimestamp,
@@ -395,16 +392,14 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         StateLib.EntryInfo memory sei
     ) internal pure returns (IState.StateInfo memory) {
         return
-        IState.StateInfo({
-        id: sei.id,
-        state: sei.state,
-        replacedByState: sei.replacedByState,
-        createdAtTimestamp: sei.createdAtTimestamp,
-        replacedAtTimestamp: sei.replacedAtTimestamp,
-            createdAtBlock: sei.
-        createdAtBlock,
-        replacedAtBlock: sei.replacedAtBlock
-        });
+            IState.StateInfo({
+                id: sei.id,
+                state: sei.state,
+                replacedByState: sei.replacedByState,
+                createdAtTimestamp: sei.createdAtTimestamp,
+                replacedAtTimestamp: sei.replacedAtTimestamp,
+                createdAtBlock: sei.createdAtBlock,
+                replacedAtBlock: sei.replacedAtBlock
+            });
     }
-
 }

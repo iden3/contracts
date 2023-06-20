@@ -44,7 +44,7 @@ contract IdentityExample is IdentityBase, OwnableUpgradeable {
         transitState();
     }
 
-     /**
+    /**
      * @dev Add claim
      * @param claim - claim data
      */
@@ -73,7 +73,7 @@ contract IdentityExample is IdentityBase, OwnableUpgradeable {
      * @dev Make state transition
      */
     function transitState() public virtual onlyOwner {
-      identity.transitState();
+        identity.transitState();
     }
 
     /**
@@ -84,7 +84,7 @@ contract IdentityExample is IdentityBase, OwnableUpgradeable {
         return identity.calcIdentityState();
     }
 
-    function newClaimData() public virtual pure returns (ClaimBuilder.ClaimData memory) {
+    function newClaimData() public pure virtual returns (ClaimBuilder.ClaimData memory) {
         ClaimBuilder.ClaimData memory claimData;
         return claimData;
     }
@@ -94,8 +94,9 @@ contract IdentityExample is IdentityBase, OwnableUpgradeable {
      * @param claimData - claim data
      * @return binary claim
      */
-    function buildClaim(ClaimBuilder.ClaimData calldata claimData) public virtual pure returns (uint256[8] memory) {
+    function buildClaim(
+        ClaimBuilder.ClaimData calldata claimData
+    ) public pure virtual returns (uint256[8] memory) {
         return ClaimBuilder.build(claimData);
     }
-
 }

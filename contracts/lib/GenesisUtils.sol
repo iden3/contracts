@@ -89,7 +89,7 @@ library GenesisUtils {
      * @dev calcIdFromGenesisState
      */
     function calcIdFromGenesisState(bytes2 idType, uint256 idState) internal pure returns (uint256) {
-        bytes memory userStateB1 = int256ToBytes(idState);
+        bytes memory userStateB1 = int256ToBytes(reverse(idState));
 
         bytes memory cutState = BytesLib.slice(userStateB1, userStateB1.length - 27, 27);
 
@@ -104,9 +104,6 @@ library GenesisUtils {
         require(idBytes.length == 31, "idBytes requires 31 length array");
 
         return reverse(toUint256(idBytes));
-
-        // shift right 1 byte, because id is 31 byte long and reverse does it for 32bytes
-        //return reverse(uint256(uint248(bytes31(idBytes))))>>8;
     }
 
     /**
@@ -116,7 +113,7 @@ library GenesisUtils {
     {
         uint256 addr = uint256(uint160(caller));
 
-        return calcIdFromGenesisState(idType, addr);
+        return calcIdFromGenesisState(idType, reverse(addr));
     }
 
     /**

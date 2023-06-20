@@ -13,15 +13,15 @@ const stateTransitionsWithProofs = [
 
 const stateTransitionsWithNoProofs = [
   {
-    id: 1,
-    oldState: 1,
-    newState: 2,
+    id: '6901746346790563787434755862277025452451108972170386555162524223864832',
+    oldState: '1099511627776',
+    newState: '2199023255552',
     isOldStateGenesis: true,
   },
   {
-    id: 1,
-    oldState: 2,
-    newState: 3,
+    id: '6901746346790563787434755862277025452451108972170386555162524223864832',
+    oldState: '2199023255552',
+    newState: '3298534883328',
     isOldStateGenesis: false,
   },
 ];
@@ -194,9 +194,9 @@ describe("State transition negative cases", () => {
     await publishStateWithStubProof(state, stateTransitionsWithNoProofs[1]);
 
     const stateTransition = {
-      id: 1,
-      oldState: 3,
-      newState: 2,
+      id: '6901746346790563787434755862277025452451108972170386555162524223864832',
+      oldState: '3298534883328',
+      newState: '2199023255552',
       isOldStateGenesis: false,
     };
 
