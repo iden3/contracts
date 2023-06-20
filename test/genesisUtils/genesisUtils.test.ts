@@ -1,4 +1,4 @@
-import { deployGenesisUtilsWrapper } from "../utils/deploy-utils";
+import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
 
 let guWrpr;
@@ -101,7 +101,8 @@ const testVectors = [
 ];
 
 before(async () => {
-  guWrpr = await deployGenesisUtilsWrapper();
+  const deployHelper = await DeployHelper.initialize();
+  guWrpr = await deployHelper.deployGenesisUtilsWrapper();
 });
 
 describe("generate ID from genesis state and idType", function () {

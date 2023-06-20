@@ -3,10 +3,10 @@ pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./lib/GenesisUtils.sol";
-import "./lib/Poseidon.sol";
-import "./interfaces/ICircuitValidator.sol";
-import "./interfaces/IZKPVerifier.sol";
+import "../lib/GenesisUtils.sol";
+import "../lib/Poseidon.sol";
+import "../interfaces/ICircuitValidator.sol";
+import "../interfaces/IZKPVerifier.sol";
 
 contract ZKPVerifier is IZKPVerifier, Ownable {
     // msg.sender-> ( requestID -> is proof given )

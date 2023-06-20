@@ -1,11 +1,11 @@
 import fs from "fs";
 import path from "path";
 import { OnchainIdentityDeployHelper } from "../helpers/OnchainIdentityDeployHelper";
-import { StateDeployHelper } from "../helpers/StateDeployHelper";
+import { DeployHelper } from "../helpers/DeployHelper";
 const pathOutputJson = path.join(__dirname, "./deploy_output.json");
 
 async function main() {
-    const stDeployHelper = await StateDeployHelper.initialize();
+    const stDeployHelper = await DeployHelper.initialize();
     const deployHelper = await OnchainIdentityDeployHelper.initialize();
     const stContracts = await stDeployHelper.deployStateV2();
     const contracts = await deployHelper.deployIdentity(

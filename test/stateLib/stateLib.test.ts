@@ -1,6 +1,6 @@
-import { StateDeployHelper } from "../../helpers/StateDeployHelper";
+import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
-import { addStateToStateLib } from "../utils/utils";
+import { addStateToStateLib } from "../utils/state-utils";
 
 const id1Inputs = [
   { id: 1, state: 10 },
@@ -11,7 +11,7 @@ describe("Negative tests", function () {
   let stateLibWrpr;
 
   before(async () => {
-    const deployHelper = await StateDeployHelper.initialize();
+    const deployHelper = await DeployHelper.initialize();
     stateLibWrpr = await deployHelper.deployStateLibTestWrapper();
 
     for (const { id, state } of id1Inputs) {
@@ -70,7 +70,7 @@ describe("StateInfo history", function () {
   let addStateResults: { [key: string]: any }[] = [];
 
   before(async () => {
-    const deployHelper = await StateDeployHelper.initialize();
+    const deployHelper = await DeployHelper.initialize();
     stateLibWrpr = await deployHelper.deployStateLibTestWrapper();
 
     addStateResults = [];
@@ -137,7 +137,7 @@ describe("State history duplicates", function () {
   let stateLibWrpr;
 
   beforeEach(async () => {
-    const deployHelper = await StateDeployHelper.initialize();
+    const deployHelper = await DeployHelper.initialize();
     stateLibWrpr = await deployHelper.deployStateLibTestWrapper();
   });
 

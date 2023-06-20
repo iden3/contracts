@@ -1,11 +1,11 @@
 import { ethers, upgrades } from "hardhat";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { deployPoseidons } from "../test/utils/deploy-poseidons.util";
+import { deployPoseidons } from "./PoseidonDeployHelper";
 
 const SMT_MAX_DEPTH = 64;
 
-export class StateDeployHelper {
+export class DeployHelper {
   constructor(
     private signers: SignerWithAddress[],
     private readonly enableLogging: boolean = false
@@ -14,35 +14,14 @@ export class StateDeployHelper {
   static async initialize(
     signers: SignerWithAddress[] | null = null,
     enableLogging = false
-  ): Promise<StateDeployHelper> {
+  ): Promise<DeployHelper> {
     let sgrs;
     if (signers === null) {
       sgrs = await ethers.getSigners();
     } else {
       sgrs = signers;
     }
-    return new StateDeployHelper(sgrs, enableLogging);
-  }
-
-  async deployStateV1(): Promise<{ state: Contract; verifier: Contract }> {
-    this.log("======== StateV1: deploy started ========");
-
-    this.log("deploying verifier...");
-    const Verifier = await ethers.getContractFactory("Verifier");
-    const verifier = await Verifier.deploy();
-    await verifier.deployed();
-    this.log(
-      `Verifier contract deployed to address ${verifier.address} from ${this.signers[0].address}`
-    );
-
-    this.log("deploying state...");
-    const State = await ethers.getContractFactory("State");
-    const state = await upgrades.deployProxy(State, [verifier.address]);
-    await state.deployed();
-    this.log(`State contract deployed to address ${state.address} from ${this.signers[0].address}`);
-
-    this.log("======== StateV1: deploy completed ========");
-    return { state, verifier };
+    return new DeployHelper(sgrs, enableLogging);
   }
 
   async deployStateV2(verifierContractName = "VerifierV2"): Promise<{
@@ -108,13 +87,15 @@ export class StateDeployHelper {
     };
   }
 
-  async upgradeToStateV2(
+  async upgradeStateV2(
     stateAddress: string,
-    verifierContractName = "VerifierV2"
+    verifierContractName = "VerifierV2",
+    stateContractName = "StateV2"
   ): Promise<{
     state: Contract;
     verifier: Contract;
     smtLib: Contract;
+    stateLib: Contract;
     poseidon1: Contract;
     poseidon2: Contract;
     poseidon3: Contract;
@@ -145,7 +126,7 @@ export class StateDeployHelper {
     const stateLib = await this.deployStateLib();
 
     this.log("upgrading stateV2...");
-    const StateV2Factory = await ethers.getContractFactory("StateV2", {
+    const StateV2Factory = await ethers.getContractFactory(stateContractName, {
       libraries: {
         StateLib: stateLib.address,
         SmtLib: smtLib.address,
@@ -172,83 +153,8 @@ export class StateDeployHelper {
     return {
       state: stateV2,
       verifier,
-      //stateLib,
       smtLib,
-      poseidon1: poseidon1Elements,
-      poseidon2: poseidon2Elements,
-      poseidon3: poseidon3Elements,
-    };
-  }
-
-  async upgradeToStateV2_migration(
-    stateAddress: string,
-    verifierContractName = "VerifierV2"
-  ): Promise<{
-    state: Contract;
-    verifier: Contract;
-    smtLib: Contract;
-    poseidon1: Contract;
-    poseidon2: Contract;
-    poseidon3: Contract;
-  }> {
-    this.log("======== StateV2: upgrade started ========");
-
-    const owner = this.signers[0];
-
-    this.log("deploying verifier...");
-
-    const verifierFactory = await ethers.getContractFactory(verifierContractName);
-    const verifier = await verifierFactory.deploy();
-    await verifier.deployed();
-    this.log(
-      `${verifierContractName} contract deployed to address ${verifier.address} from ${owner.address}`
-    );
-
-    this.log("deploying poseidons...");
-    const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons(
-      owner,
-      [1, 2, 3]
-    );
-
-    this.log("deploying SmtLib...");
-    const smtLib = await this.deploySmtLib(
-      poseidon2Elements.address,
-      poseidon3Elements.address,
-      "SmtLib_migration"
-    );
-
-    this.log("deploying Smt_old...");
-    const smtLibOld = await this.deploySmtLib(
-      poseidon2Elements.address,
-      poseidon3Elements.address,
-      "Smt_old"
-    );
-
-    this.log("deploying StateLib...");
-    const stateLib = await this.deployStateLib("StateLib_migration");
-
-    this.log("upgrading stateV2...");
-    const StateV2Factory = await ethers.getContractFactory("StateV2_migration", {
-      libraries: {
-        PoseidonUnit1L: poseidon1Elements.address,
-        StateLib_migration: stateLib.address,
-        SmtLib_migration: smtLib.address,
-        Smt_old: smtLibOld.address,
-      },
-    });
-    const stateV2 = await upgrades.upgradeProxy(stateAddress, StateV2Factory, {
-      unsafeAllowLinkedLibraries: true,
-      unsafeSkipStorageCheck: true,
-    });
-    await stateV2.deployed();
-    this.log(`StateV2 contract upgraded at address ${stateV2.address} from ${owner.address}`);
-
-    this.log("======== StateV2: upgrade completed ========");
-
-    return {
-      state: stateV2,
-      verifier,
-      smtLib: smtLib,
+      stateLib,
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
@@ -341,24 +247,61 @@ export class StateDeployHelper {
     return bsWrapper;
   }
 
-  async deploySearchUtils(stateContract: Contract): Promise<{
-    searchUtils: Contract;
+  async deployValidatorContracts(
+    verifierContractWrapperName: string,
+    validatorContractName: string,
+    stateAddress = ""
+  ): Promise<{
+    state: any;
+    verifierWrapper: any;
+    validator: any;
   }> {
-    this.log("======== SearchUtils: deploy started ========");
+    if (!stateAddress) {
+      const stateDeployHelper = await DeployHelper.initialize();
+      const { state } = await stateDeployHelper.deployStateV2();
+      stateAddress = state.address;
+    }
 
-    const owner = this.signers[0];
+    const ValidatorContractVerifierWrapper = await ethers.getContractFactory(
+      verifierContractWrapperName
+    );
+    const validatorContractVerifierWrapper = await ValidatorContractVerifierWrapper.deploy();
 
-    this.log("deploying verifier...");
-    const SearchUtilsFactory = await ethers.getContractFactory("SearchUtils");
-    const searchUtils = await SearchUtilsFactory.deploy(stateContract.address);
-    await searchUtils.deployed();
-    this.log(`Search utils deployed to address ${searchUtils.address} from ${owner.address}`);
+    await validatorContractVerifierWrapper.deployed();
+    console.log(
+      "Validator Verifier Wrapper deployed to:",
+      validatorContractVerifierWrapper.address
+    );
 
+    const ValidatorContract = await ethers.getContractFactory(validatorContractName);
+
+    const validatorContractProxy = await upgrades.deployProxy(ValidatorContract, [
+      validatorContractVerifierWrapper.address,
+      stateAddress,
+    ]);
+
+    await validatorContractProxy.deployed();
+    console.log(`${validatorContractName} deployed to: ${validatorContractProxy.address}`);
+    const signers = await ethers.getSigners();
+
+    const state = await ethers.getContractAt("StateV2", stateAddress, signers[0]);
     return {
-      searchUtils,
+      validator: validatorContractProxy,
+      verifierWrapper: validatorContractVerifierWrapper,
+      state,
     };
   }
+  async deployGenesisUtilsWrapper(): Promise<{
+    address: string;
+  }> {
 
+    const GenesisUtilsWrapper = await ethers.getContractFactory(
+        "GenesisUtilsWrapper"
+    );
+    const genesisUtilsWrapper = await GenesisUtilsWrapper.deploy();
+    console.log("GenesisUtilsWrapper deployed to:", genesisUtilsWrapper.address);
+    return genesisUtilsWrapper;
+  }
   private log(...args): void {
     this.enableLogging && console.log(args);
   }
