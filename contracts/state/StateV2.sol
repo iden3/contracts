@@ -65,9 +65,9 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         verifier = verifierContractAddr;
         _defaultIdType = defaultIdType;
         _gistData.initialize(MAX_SMT_DEPTH);
-         __Ownable_init();
+        __Ownable_init();
     }
-    
+
     /**
      * @dev Set ZKP verifier contract address
      * @param newVerifierAddr Verifier contract address
@@ -76,7 +76,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         verifier = IStateTransitionVerifier(newVerifierAddr);
     }
 
-     /**
+    /**
      * @dev Set defaultIdType
      * @param defaultIdType default id type
      */
