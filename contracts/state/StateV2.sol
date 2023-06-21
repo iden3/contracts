@@ -68,7 +68,8 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         bytes2 defaultIdType
     ) public initializer {
         verifier = verifierContractAddr;
-        setDefaultIdType(defaultIdType);
+        _defaultIdType = defaultIdType;
+        _transitionEnabledForOnchainIdentity = true;
         _gistData.initialize(MAX_SMT_DEPTH);
         __Ownable_init();
     }
@@ -85,7 +86,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      * @dev Set defaultIdType
      * @param defaultIdType default id type
      */
-    function setDefaultIdType(bytes2 defaultIdType) internal onlyOwner {
+    function setDefaultIdType(bytes2 defaultIdType) external onlyOwner {
         _defaultIdType = defaultIdType;
         _transitionEnabledForOnchainIdentity = true;
     }
@@ -172,7 +173,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         uint256 methodId,
         bytes calldata methodParams
     ) public {
-        require(_transitionEnabledForOnchainIdentity, "Transition disabled for onchain identity");
+        // require(_transitionEnabledForOnchainIdentity == true, "Transition disabled for onchain identity");
         if (methodId == 1) {
             uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(
                 this.getDefaultIdType(),
