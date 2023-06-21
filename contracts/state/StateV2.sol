@@ -42,9 +42,14 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
     SmtLib.Data internal _gistData;
 
     /**
-     * @dev Network prefix
+     * @dev Default id type
      */
     bytes2 internal _defaultIdType;
+
+    /**
+     * @dev Transition Enabled For Onchain Identity
+     */
+    bool internal _transitionEnabledForOnchainIdentity;
 
     using SmtLib for SmtLib.Data;
     using StateLib for StateLib.Data;
@@ -63,7 +68,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         bytes2 defaultIdType
     ) public initializer {
         verifier = verifierContractAddr;
-        _defaultIdType = defaultIdType;
+        setDefaultIdType(defaultIdType);
         _gistData.initialize(MAX_SMT_DEPTH);
         __Ownable_init();
     }
@@ -80,16 +85,9 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      * @dev Set defaultIdType
      * @param defaultIdType default id type
      */
-    function setDefaultIdType(bytes2 defaultIdType) external onlyOwner {
+    function setDefaultIdType(bytes2 defaultIdType) internal onlyOwner {
         _defaultIdType = defaultIdType;
-    }
-
-    /**
-     * @dev Set defaultIdType
-     * @param defaultIdType default id type
-     */
-    function reinitialize(bytes2 defaultIdType) external reinitializer(2) {
-        _defaultIdType = defaultIdType;
+        _transitionEnabledForOnchainIdentity = true;
     }
 
     /**
@@ -174,10 +172,11 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         uint256 methodId,
         bytes calldata methodParams
     ) public {
-        if (methodId == 1) {
-            uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(
-                this.getDefaultIdType(),
-                msg.sender
+            require(_transitionEnabledForOnchainIdentity, "Transition disabled for onchain identity");
+            if (methodId == 1) {
+                uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(
+                    this.getDefaultIdType(),
+                    msg.sender
             );
             require(calcId == id, "msg.sender is not owner of the identity");
             require(methodParams.length == 0, "methodParams should be empty");
