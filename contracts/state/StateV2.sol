@@ -174,7 +174,10 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         bytes calldata methodParams
     ) public {
         if (methodId == 1) {
-            require(_transitionEnabledForOnchainIdentity, "Transition disabled for onchain identity");
+            require(
+                _transitionEnabledForOnchainIdentity,
+                "Transition disabled for onchain identity"
+            );
             uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(
                 this.getDefaultIdType(),
                 msg.sender
