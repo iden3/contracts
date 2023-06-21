@@ -172,11 +172,11 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         uint256 methodId,
         bytes calldata methodParams
     ) public {
-            require(_transitionEnabledForOnchainIdentity, "Transition disabled for onchain identity");
-            if (methodId == 1) {
-                uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(
-                    this.getDefaultIdType(),
-                    msg.sender
+        require(_transitionEnabledForOnchainIdentity, "Transition disabled for onchain identity");
+        if (methodId == 1) {
+            uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(
+                this.getDefaultIdType(),
+                msg.sender
             );
             require(calcId == id, "msg.sender is not owner of the identity");
             require(methodParams.length == 0, "methodParams should be empty");
