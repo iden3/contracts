@@ -2,34 +2,30 @@
 pragma solidity 0.8.16;
 pragma abicoder v2;
 
+import "../interfaces/IOnchainCredentialStatusResolver.sol";
 import "../interfaces/IState.sol";
 import "../lib/OnChainIdentity.sol";
 
 // /**
 //  * @dev Contract managing onchain identity
 //  */
-contract IdentityBase {
-    struct IdentityStateRoots {
-        uint256 state;
-        uint256 claimsTreeRoot;
-        uint256 revocationTreeRoot;
-        uint256 rootOfRoots;
-    }
+contract IdentityBase is IOnchainCredentialStatusResolver {
 
-    struct CredentialStatus {
-        IdentityStateRoots issuer;
-        SmtLib.Proof mtp;
-    }
+    // This empty reserved space is put in place to allow future versions
+    // of this contract to add new parent contracts without shifting down
+    // storage of child contracts that use this contract as a base
+    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+    uint256[500] private __gapBefore;
 
     using OnChainIdentity for OnChainIdentity.Identity;
 
     OnChainIdentity.Identity internal identity;
 
     // This empty reserved space is put in place to allow future versions
-    // of the SMT library to add new Data struct fields without shifting down
-    // storage of upgradable contracts that use this struct as a state variable
+    // of this contract to add new variables without shifting down
+    // storage of child contracts that use this contract as a base
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-    uint256[49] private __gap;
+    uint256[49] private __gapAfter;
 
     function getSmtDepth() public pure virtual returns (uint256) {
         return 40;
@@ -136,7 +132,7 @@ contract IdentityBase {
      * @dev returns identity Id
      * @return uint256 Id
      */
-    function getId() public view returns(uint256) {
+    function getId() public view returns (uint256) {
         return identity.id;
     }
 
@@ -144,7 +140,7 @@ contract IdentityBase {
      * @dev returns isOldStateGenesis flag
      * @return bool isOldStateGenesis
      */
-    function getIsOldStateGenesis() public view returns(bool) {
+    function getIsOldStateGenesis() public view returns (bool) {
         return identity.isOldStateGenesis;
     }
 
@@ -152,7 +148,7 @@ contract IdentityBase {
      * @dev returns last claims root
      * @return claimsRoot
      */
-    function getLastClaimsRoot() public view returns(uint256) {
+    function getLastClaimsRoot() public view returns (uint256) {
         return identity.lastTreeRoots.claimsRoot;
     }
 
@@ -160,7 +156,7 @@ contract IdentityBase {
      * @dev returns last revocation root
      * @return claimsRoot
      */
-    function getLastRevocationsRoot() public view returns(uint256) {
+    function getLastRevocationsRoot() public view returns (uint256) {
         return identity.lastTreeRoots.revocationsRoot;
     }
 
@@ -168,7 +164,7 @@ contract IdentityBase {
      * @dev returns last roots root
      * @return rootsRoot
      */
-    function getLastRootsRoot() public view returns(uint256) {
+    function getLastRootsRoot() public view returns (uint256) {
         return identity.lastTreeRoots.rootsRoot;
     }
 
@@ -176,14 +172,20 @@ contract IdentityBase {
      * @dev returns identity latest state
      * @return uint256 identityLatestState
      */
-    function getIdentityLatestState() public view returns(uint256) {
+    function getIdentityLatestState() public view returns (uint256) {
         return identity.latestState;
     }
 
-    function getRevocationStatus(uint64 nonce) public view returns(CredentialStatus memory) {
+    /**
+     * @dev returns revocation status of a claim using given revocation nonce
+     * @param id Issuer's identifier
+     * @param nonce Revocation nonce
+     * @return CredentialStatus
+     */
+    function getRevocationStatus(uint256 id, uint64 nonce) public view returns (CredentialStatus memory) {
+        require(id == identity.id, "Identity id mismatch");
         uint256 latestState = identity.latestState;
         OnChainIdentity.Roots memory historicalStates = identity.getRootsByState(latestState);
-        SmtLib.Proof memory p = identity.getRevocationProofByRoot(nonce, historicalStates.revocationsRoot);
         IdentityStateRoots memory issuerStates = IdentityStateRoots({
             state: latestState,
             rootOfRoots: historicalStates.rootsRoot,
@@ -191,9 +193,21 @@ contract IdentityBase {
             revocationTreeRoot: historicalStates.revocationsRoot
         });
 
+        SmtLib.Proof memory p = identity.getRevocationProofByRoot(nonce, historicalStates.revocationsRoot);
+        Proof memory mtp = Proof({
+            root: p.root,
+            existence: p.existence,
+            siblings: p.siblings,
+            index: p.index,
+            value: p.value,
+            auxExistence: p.auxExistence,
+            auxIndex: p.auxIndex,
+            auxValue: p.auxValue
+        });
+
         return CredentialStatus({
             issuer: issuerStates,
-            mtp: p
+            mtp: mtp
         });
     }
 }
