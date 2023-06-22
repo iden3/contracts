@@ -103,7 +103,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         uint256 oldState,
         uint256 newState,
         bool isOldStateGenesis
-    ) private {
+    ) internal {
         require(id != 0, "ID should not be zero");
         require(newState != 0, "New state should not be zero");
         require(!stateExists(id, newState), "New state already exists");
