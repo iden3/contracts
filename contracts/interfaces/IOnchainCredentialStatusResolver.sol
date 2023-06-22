@@ -58,5 +58,4 @@ interface IOnchainCredentialStatusResolver {
         uint256 id,
         uint64 nonce
     ) external view returns (CredentialStatus memory);
-
 }
