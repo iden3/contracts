@@ -42,14 +42,14 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
     SmtLib.Data internal _gistData;
 
     /**
-     * @dev Default id type
+     * @dev Default Id Type
      */
     bytes2 internal _defaultIdType;
 
     /**
-     * @dev Transition Enabled For Onchain Identity
+     * @dev Default Id Type initialized flag
      */
-    bool internal _transitionEnabledForOnchainIdentity;
+    bool internal _defaultIdTypeInitialized;
 
     using SmtLib for SmtLib.Data;
     using StateLib for StateLib.Data;
@@ -69,7 +69,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
     ) public initializer {
         verifier = verifierContractAddr;
         _defaultIdType = defaultIdType;
-        _transitionEnabledForOnchainIdentity = true;
+        _defaultIdTypeInitialized = true;
         _gistData.initialize(MAX_SMT_DEPTH);
         __Ownable_init();
     }
@@ -88,7 +88,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      */
     function setDefaultIdType(bytes2 defaultIdType) external onlyOwner {
         _defaultIdType = defaultIdType;
-        _transitionEnabledForOnchainIdentity = true;
+        _defaultIdTypeInitialized = true;
     }
 
     /**
@@ -174,10 +174,6 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         bytes calldata methodParams
     ) public {
         if (methodId == 1) {
-            require(
-                _transitionEnabledForOnchainIdentity,
-                "Transition disabled for onchain identity"
-            );
             uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(
                 this.getDefaultIdType(),
                 msg.sender
@@ -204,6 +200,10 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      * @return defaultIdType
      */
     function getDefaultIdType() public view returns (bytes2) {
+        require(
+            _defaultIdTypeInitialized,
+            "Default Id Type is not initialized"
+        );
         return _defaultIdType;
     }
 
