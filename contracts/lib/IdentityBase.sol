@@ -11,15 +11,21 @@ import "../lib/OnChainIdentity.sol";
 //  */
 contract IdentityBase is IOnchainCredentialStatusResolver {
 
+    // This empty reserved space is put in place to allow future versions
+    // of this contract to add new parent contracts without shifting down
+    // storage of child contracts that use this contract as a base
+    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+    uint256[500] private __gapBefore;
+
     using OnChainIdentity for OnChainIdentity.Identity;
 
     OnChainIdentity.Identity internal identity;
 
     // This empty reserved space is put in place to allow future versions
-    // of the SMT library to add new Data struct fields without shifting down
-    // storage of upgradable contracts that use this struct as a state variable
+    // of this contract to add new variables without shifting down
+    // storage of child contracts that use this contract as a base
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-    uint256[49] private __gap;
+    uint256[49] private __gapAfter;
 
     function getSmtDepth() public pure virtual returns (uint256) {
         return 40;
