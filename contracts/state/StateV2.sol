@@ -200,10 +200,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      * @return defaultIdType
      */
     function getDefaultIdType() public view returns (bytes2) {
-        require(
-            _defaultIdTypeInitialized,
-            "Default Id Type is not initialized"
-        );
+        require(_defaultIdTypeInitialized, "Default Id Type is not initialized");
         return _defaultIdType;
     }
 
