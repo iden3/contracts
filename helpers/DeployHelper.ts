@@ -137,7 +137,6 @@ export class DeployHelper {
     const stateV2 = await upgrades.upgradeProxy(stateAddress, StateV2Factory, {
       unsafeAllowLinkedLibraries: true,
       unsafeSkipStorageCheck: true,
-      call: { fn: 'setDefaultIdType', args: [NetworkIdTypes.polygonMumbai] },
     });
     await stateV2.deployed();
     this.log(`StateV2 contract upgraded at address ${stateV2.address} from ${owner.address}`);
