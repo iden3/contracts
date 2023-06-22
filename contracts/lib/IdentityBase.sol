@@ -2,24 +2,14 @@
 pragma solidity 0.8.16;
 pragma abicoder v2;
 
+import "../interfaces/IOnchainCredentialStatusResolver.sol";
 import "../interfaces/IState.sol";
 import "../lib/OnChainIdentity.sol";
 
 // /**
 //  * @dev Contract managing onchain identity
 //  */
-contract IdentityBase {
-    struct IdentityStateRoots {
-        uint256 state;
-        uint256 claimsTreeRoot;
-        uint256 revocationTreeRoot;
-        uint256 rootOfRoots;
-    }
-
-    struct CredentialStatus {
-        IdentityStateRoots issuer;
-        SmtLib.Proof mtp;
-    }
+contract IdentityBase is IOnchainCredentialStatusResolver {
 
     using OnChainIdentity for OnChainIdentity.Identity;
 
@@ -136,7 +126,7 @@ contract IdentityBase {
      * @dev returns identity Id
      * @return uint256 Id
      */
-    function getId() public view returns(uint256) {
+    function getId() public view returns (uint256) {
         return identity.id;
     }
 
@@ -144,7 +134,7 @@ contract IdentityBase {
      * @dev returns isOldStateGenesis flag
      * @return bool isOldStateGenesis
      */
-    function getIsOldStateGenesis() public view returns(bool) {
+    function getIsOldStateGenesis() public view returns (bool) {
         return identity.isOldStateGenesis;
     }
 
@@ -152,7 +142,7 @@ contract IdentityBase {
      * @dev returns last claims root
      * @return claimsRoot
      */
-    function getLastClaimsRoot() public view returns(uint256) {
+    function getLastClaimsRoot() public view returns (uint256) {
         return identity.lastTreeRoots.claimsRoot;
     }
 
@@ -160,7 +150,7 @@ contract IdentityBase {
      * @dev returns last revocation root
      * @return claimsRoot
      */
-    function getLastRevocationsRoot() public view returns(uint256) {
+    function getLastRevocationsRoot() public view returns (uint256) {
         return identity.lastTreeRoots.revocationsRoot;
     }
 
@@ -168,7 +158,7 @@ contract IdentityBase {
      * @dev returns last roots root
      * @return rootsRoot
      */
-    function getLastRootsRoot() public view returns(uint256) {
+    function getLastRootsRoot() public view returns (uint256) {
         return identity.lastTreeRoots.rootsRoot;
     }
 
@@ -176,14 +166,20 @@ contract IdentityBase {
      * @dev returns identity latest state
      * @return uint256 identityLatestState
      */
-    function getIdentityLatestState() public view returns(uint256) {
+    function getIdentityLatestState() public view returns (uint256) {
         return identity.latestState;
     }
 
-    function getRevocationStatus(uint64 nonce) public view returns(CredentialStatus memory) {
+    /**
+     * @dev returns revocation status of a claim using given revocation nonce
+     * @param id Issuer's identifier
+     * @param nonce Revocation nonce
+     * @return CredentialStatus
+     */
+    function getRevocationStatus(uint256 id, uint64 nonce) public view returns (CredentialStatus memory) {
+        require(id == identity.id, "Identity id mismatch");
         uint256 latestState = identity.latestState;
         OnChainIdentity.Roots memory historicalStates = identity.getRootsByState(latestState);
-        SmtLib.Proof memory p = identity.getRevocationProofByRoot(nonce, historicalStates.revocationsRoot);
         IdentityStateRoots memory issuerStates = IdentityStateRoots({
             state: latestState,
             rootOfRoots: historicalStates.rootsRoot,
@@ -191,9 +187,21 @@ contract IdentityBase {
             revocationTreeRoot: historicalStates.revocationsRoot
         });
 
+        SmtLib.Proof memory p = identity.getRevocationProofByRoot(nonce, historicalStates.revocationsRoot);
+        Proof memory mtp = Proof({
+            root: p.root,
+            existence: p.existence,
+            siblings: p.siblings,
+            index: p.index,
+            value: p.value,
+            auxExistence: p.auxExistence,
+            auxIndex: p.auxIndex,
+            auxValue: p.auxValue
+        });
+
         return CredentialStatus({
             issuer: issuerStates,
-            mtp: p
+            mtp: mtp
         });
     }
 }
