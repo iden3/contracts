@@ -4,8 +4,8 @@ pragma solidity 0.8.16;
 import "./CredentialAtomicQueryValidator.sol";
 
 contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
-    string constant CIRCUIT_ID = "credentialAtomicQueryMTPV2OnChain";
-    uint256 constant CHALLENGE_INDEX = 4;
+    string internal constant CIRCUIT_ID = "credentialAtomicQueryMTPV2OnChain";
+    uint256 internal constant CHALLENGE_INDEX = 4;
 
     function getCircuitId() external pure override returns (string memory id) {
         return CIRCUIT_ID;
