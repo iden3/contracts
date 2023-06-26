@@ -68,7 +68,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         bytes2 defaultIdType
     ) public initializer {
         verifier = verifierContractAddr;
-        setDefaultIdType(defaultIdType);
+        _setDefaultIdType(defaultIdType);
         _gistData.initialize(MAX_SMT_DEPTH);
         __Ownable_init();
     }
@@ -85,15 +85,15 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      * @dev Set defaultIdType external wrapper (only owner can call)
      * @param defaultIdType default id type
      */
-    function setDefaultIdTypeExternal(bytes2 defaultIdType) external onlyOwner {
-        setDefaultIdType(defaultIdType);
+    function setDefaultIdType(bytes2 defaultIdType) external onlyOwner {
+        _setDefaultIdType(defaultIdType);
     }
 
     /**
      * @dev Set defaultIdType internal setter
      * @param defaultIdType default id type
      */
-    function setDefaultIdType(bytes2 defaultIdType) internal {
+    function _setDefaultIdType(bytes2 defaultIdType) internal {
         _defaultIdType = defaultIdType;
         _defaultIdTypeInitialized = true;
     }
