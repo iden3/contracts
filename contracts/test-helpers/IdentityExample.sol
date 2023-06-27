@@ -2,11 +2,11 @@
 pragma solidity 0.8.16;
 pragma abicoder v2;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "../interfaces/IState.sol";
-import "../lib/ClaimBuilder.sol";
-import "../lib/OnChainIdentity.sol";
-import "../lib/IdentityBase.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {IState} from "../interfaces/IState.sol";
+import {ClaimBuilder} from "../lib/ClaimBuilder.sol";
+import {OnChainIdentity} from "../lib/OnChainIdentity.sol";
+import {IdentityBase} from "../lib/IdentityBase.sol";
 
 // /**
 //  * @dev Contract managing onchain identity

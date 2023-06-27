@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import "./CredentialAtomicQueryValidator.sol";
+import {CredentialAtomicQueryValidator} from "./CredentialAtomicQueryValidator.sol";
 
 contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
     string internal constant CIRCUIT_ID = "credentialAtomicQueryMTPV2OnChain";
