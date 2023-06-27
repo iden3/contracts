@@ -26,7 +26,7 @@ const stateTransitionsWithProofs = [
     },
   ];
 
-describe.only("Deploy StateV2 v2 and migrate", () => {
+describe("Deploy StateV2 v2 and migrate", () => {
     let state;
     let guWrpr;
     let deployHelper;
