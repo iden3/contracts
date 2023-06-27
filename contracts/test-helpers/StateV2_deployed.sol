@@ -158,7 +158,9 @@ contract StateV2_deployed is Ownable2StepUpgradeable, IState_deployed {
             startIndex,
             length
         );
-        IState_deployed.StateInfo[] memory result = new IState_deployed.StateInfo[](stateInfos.length);
+        IState_deployed.StateInfo[] memory result = new IState_deployed.StateInfo[](
+            stateInfos.length
+        );
         for (uint256 i = 0; i < stateInfos.length; i++) {
             result[i] = _stateEntryInfoAdapter(stateInfos[i]);
         }
@@ -249,7 +251,9 @@ contract StateV2_deployed is Ownable2StepUpgradeable, IState_deployed {
         uint256 length
     ) external view returns (IState_deployed.GistRootInfo[] memory) {
         SmtLib.RootEntryInfo[] memory rootInfos = _gistData.getRootHistory(start, length);
-        IState_deployed.GistRootInfo[] memory result = new IState_deployed.GistRootInfo[](rootInfos.length);
+        IState_deployed.GistRootInfo[] memory result = new IState_deployed.GistRootInfo[](
+            rootInfos.length
+        );
 
         for (uint256 i = 0; i < rootInfos.length; i++) {
             result[i] = _smtRootInfoAdapter(rootInfos[i]);
@@ -270,7 +274,9 @@ contract StateV2_deployed is Ownable2StepUpgradeable, IState_deployed {
      * @param root GIST root.
      * @return The GIST root information.
      */
-    function getGISTRootInfo(uint256 root) external view returns (IState_deployed.GistRootInfo memory) {
+    function getGISTRootInfo(
+        uint256 root
+    ) external view returns (IState_deployed.GistRootInfo memory) {
         return _smtRootInfoAdapter(_gistData.getRootInfo(root));
     }
 
