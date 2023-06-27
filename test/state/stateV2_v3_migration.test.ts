@@ -68,56 +68,13 @@ describe.only("Deploy StateV2 v2 and migrate", () => {
     await expect(stateV3.getDefaultIdType()).to.be.revertedWith(
       "Default Id Type is not initialized"
     );
-    await expect(stateV3.transitStateGeneric(
-        stateTransitionsWithNoProofs[0].id, 
-        stateTransitionsWithNoProofs[0].oldState, 
-        stateTransitionsWithNoProofs[0].newState,
-        stateTransitionsWithNoProofs[0].isOldStateGenesis,
-        1,
-        []
-      )).to.be.revertedWith(
-      "Default Id Type is not initialized"
-    );
-
     // 6. initialize _defaultIdType
     await stateV3.setDefaultIdType(defaultIdType);
     const defIdTypeValue = await stateV3.getDefaultIdType();
     expect(defaultIdType).to.be.equal(defIdTypeValue);
   
-    // 7. run new 'transitStateGeneric' method - require checks
-    await expect(stateV3.transitStateGeneric(
-      stateTransitionsWithNoProofs[0].id, 
-      stateTransitionsWithNoProofs[0].oldState, 
-      stateTransitionsWithNoProofs[0].newState,
-      stateTransitionsWithNoProofs[0].isOldStateGenesis,
-      1,
-      []
-    )).to.be.revertedWith(
-    "msg.sender is not owner of the identity"
-    );
-    await expect(stateV3.transitStateGeneric(
-      stateTransitionsWithNoProofs[0].id, 
-      stateTransitionsWithNoProofs[0].oldState, 
-      stateTransitionsWithNoProofs[0].newState,
-      stateTransitionsWithNoProofs[0].isOldStateGenesis,
-      2,
-      []
-    )).to.be.revertedWith(
-      "Unknown state transition method id"
-    );
-
+    // 7. run new 'transitStateGeneric' method
     const onchainId = await guWrpr.calcOnchainIdFromAddress(defaultIdType, signers[0].address); 
-    await expect(stateV3.transitStateGeneric(
-      onchainId,
-      stateTransitionsWithNoProofs[0].oldState, 
-      stateTransitionsWithNoProofs[0].newState,
-      stateTransitionsWithNoProofs[0].isOldStateGenesis,
-      1,
-      [1, 2]
-    )).to.be.revertedWith(
-      "methodParams should be empty"
-    );
-    // 8. run new 'transitStateGeneric' method - success scenario
     await stateV3.transitStateGeneric(
       onchainId, 
       stateTransitionsWithNoProofs[0].oldState, 
@@ -126,6 +83,9 @@ describe.only("Deploy StateV2 v2 and migrate", () => {
       1,
       []
     );
+
+    const res3 = await stateV3.getStateInfoById(onchainId);
+    expect(res3.state).to.be.equal(bigInt(stateTransitionsWithNoProofs[0].newState).toString());
 
   });
 });

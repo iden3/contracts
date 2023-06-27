@@ -16,15 +16,15 @@ async function main() {
     const stateDeployHelper = await DeployHelper.initialize(null, true);
     const stateContractMigrationHelper = new StateContractMigrationHelper(stateDeployHelper, signers[0]);
 
-    const oldContractABI = require("./StateV2_deployed_abi.json");  // abi of contract that will be upgraded
-    const stateContractAddress = "0x316345cC62A81bfD5dAe4f37FFBD07FD95b4f51c";  // address of contract that will be upgraded
+    const oldContractABI = [];  // abi of contract that will be upgraded : require("./StateV2_deployed_abi.json")
+    const stateContractAddress = "";  // address of contract that will be upgraded
     const stateContractInstance = await stateContractMigrationHelper.getInitContract({
         contractNameOrAbi: oldContractABI,
         address: stateContractAddress,
     });
 
     const { state: stateV2 } = await stateContractMigrationHelper.upgradeContract(stateContractInstance);
-    const defaultIdType = NetworkIdTypes.polygonMumbai; // choose network id type
+    const defaultIdType = ''; // default network id type, ex - NetworkIdTypes.polygonMumbai;
     console.log(`Setting value for _defaultIdType = ${defaultIdType}`);
     const tx = await stateV2.setDefaultIdType(defaultIdType);
     const receipt = await tx.wait()
