@@ -1,3 +1,3 @@
 export const NetworkIdTypes = {
-    polygonMumbai: 0x0212
+    polygonMumbai: '0x0212'
 };

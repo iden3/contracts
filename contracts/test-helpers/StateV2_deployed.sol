@@ -2,15 +2,14 @@
 pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import "../interfaces/IState.sol";
+import "./IState_deployed.sol";
 import "../interfaces/IStateTransitionVerifier.sol";
 import "../lib/SmtLib.sol";
 import "../lib/Poseidon.sol";
 import "../lib/StateLib.sol";
-import "../lib/GenesisUtils.sol";
 
 /// @title Set and get states for each identity
-contract StateV2 is Ownable2StepUpgradeable, IState {
+contract StateV2_deployed is Ownable2StepUpgradeable, IState_deployed {
     /**
      * @dev Version of contract
      */
@@ -41,16 +40,6 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      */
     SmtLib.Data internal _gistData;
 
-    /**
-     * @dev Default Id Type
-     */
-    bytes2 internal _defaultIdType;
-
-    /**
-     * @dev Default Id Type initialized flag
-     */
-    bool internal _defaultIdTypeInitialized;
-
     using SmtLib for SmtLib.Data;
     using StateLib for StateLib.Data;
 
@@ -63,12 +52,8 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      * @dev Initialize the contract
      * @param verifierContractAddr Verifier address
      */
-    function initialize(
-        IStateTransitionVerifier verifierContractAddr,
-        bytes2 defaultIdType
-    ) public initializer {
+    function initialize(IStateTransitionVerifier verifierContractAddr) public initializer {
         verifier = verifierContractAddr;
-        _setDefaultIdType(defaultIdType);
         _gistData.initialize(MAX_SMT_DEPTH);
         __Ownable_init();
     }
@@ -79,60 +64,6 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      */
     function setVerifier(address newVerifierAddr) external onlyOwner {
         verifier = IStateTransitionVerifier(newVerifierAddr);
-    }
-
-    /**
-     * @dev Set defaultIdType external wrapper (only owner can call)
-     * @param defaultIdType default id type
-     */
-    function setDefaultIdType(bytes2 defaultIdType) external onlyOwner {
-        _setDefaultIdType(defaultIdType);
-    }
-
-    /**
-     * @dev Set defaultIdType internal setter
-     * @param defaultIdType default id type
-     */
-    function _setDefaultIdType(bytes2 defaultIdType) internal {
-        _defaultIdType = defaultIdType;
-        _defaultIdTypeInitialized = true;
-    }
-
-    /**
-     * @dev Change the state of an identity (transit to the new state) with ZKP ownership check.
-     * @param id Identity
-     * @param oldState Previous identity state
-     * @param newState New identity state
-     * @param isOldStateGenesis Is the previous state genesis?
-     */
-    function _transitState(
-        uint256 id,
-        uint256 oldState,
-        uint256 newState,
-        bool isOldStateGenesis
-    ) internal {
-        require(id != 0, "ID should not be zero");
-        require(newState != 0, "New state should not be zero");
-        require(!stateExists(id, newState), "New state already exists");
-
-        if (isOldStateGenesis) {
-            require(!idExists(id), "Old state is genesis but identity already exists");
-
-            // Push old state to state entries, with zero timestamp and block
-            _stateData.addGenesisState(id, oldState);
-        } else {
-            require(idExists(id), "Old state is not genesis but identity does not yet exist");
-
-            StateLib.EntryInfo memory prevStateInfo = _stateData.getStateInfoById(id);
-            require(
-                prevStateInfo.createdAtBlock != block.number,
-                "No multiple set in the same block"
-            );
-            require(prevStateInfo.state == oldState, "Old state does not match the latest state");
-        }
-
-        _stateData.addState(id, newState);
-        _gistData.addLeaf(PoseidonUnit1L.poseidon([id]), newState);
     }
 
     /**
@@ -153,45 +84,35 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
-    ) public {
+    ) external {
+        require(id != 0, "ID should not be zero");
+        require(newState != 0, "New state should not be zero");
+        require(!stateExists(id, newState), "New state already exists");
+
+        if (isOldStateGenesis) {
+            require(!idExists(id), "Old state is genesis but identity already exists");
+
+            // Push old state to state entries, with zero timestamp and block
+            _stateData.addGenesisState(id, oldState);
+        } else {
+            require(idExists(id), "Old state is not genesis but identity does not yet exist");
+
+            StateLib.EntryInfo memory prevStateInfo = _stateData.getStateInfoById(id);
+            require(
+                prevStateInfo.createdAtBlock != block.number,
+                "No multiple set in the same block"
+            );
+            require(prevStateInfo.state == oldState, "Old state does not match the latest state");
+        }
+
         uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis ? 1 : 0)];
         require(
             verifier.verifyProof(a, b, c, input),
             "Zero-knowledge proof of state transition is not valid"
         );
 
-        _transitState(id, oldState, newState, isOldStateGenesis);
-    }
-
-    /**
-     * @dev Change the state of an identity (transit to the new state) with method-specific id ownership check.
-     * @param id Identity
-     * @param oldState Previous identity state
-     * @param newState New identity state
-     * @param isOldStateGenesis Is the previous state genesis?
-     * @param methodId State transition method id
-     * @param methodParams State transition method-specific params
-     */
-    function transitStateGeneric(
-        uint256 id,
-        uint256 oldState,
-        uint256 newState,
-        bool isOldStateGenesis,
-        uint256 methodId,
-        bytes calldata methodParams
-    ) public {
-        if (methodId == 1) {
-            uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(
-                this.getDefaultIdType(),
-                msg.sender
-            );
-            require(calcId == id, "msg.sender is not owner of the identity");
-            require(methodParams.length == 0, "methodParams should be empty");
-
-            _transitState(id, oldState, newState, isOldStateGenesis);
-        } else {
-            revert("Unknown state transition method id");
-        }
+        _stateData.addState(id, newState);
+        _gistData.addLeaf(PoseidonUnit1L.poseidon([id]), newState);
     }
 
     /**
@@ -203,20 +124,11 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
     }
 
     /**
-     * @dev Get defaultIdType
-     * @return defaultIdType
-     */
-    function getDefaultIdType() public view returns (bytes2) {
-        require(_defaultIdTypeInitialized, "Default Id Type is not initialized");
-        return _defaultIdType;
-    }
-
-    /**
      * @dev Retrieve the last state info for a given identity
      * @param id identity
      * @return state info of the last committed state
      */
-    function getStateInfoById(uint256 id) external view returns (IState.StateInfo memory) {
+    function getStateInfoById(uint256 id) external view returns (IState_deployed.StateInfo memory) {
         return _stateEntryInfoAdapter(_stateData.getStateInfoById(id));
     }
 
@@ -240,13 +152,13 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         uint256 id,
         uint256 startIndex,
         uint256 length
-    ) external view returns (IState.StateInfo[] memory) {
+    ) external view returns (IState_deployed.StateInfo[] memory) {
         StateLib.EntryInfo[] memory stateInfos = _stateData.getStateInfoHistoryById(
             id,
             startIndex,
             length
         );
-        IState.StateInfo[] memory result = new IState.StateInfo[](stateInfos.length);
+        IState_deployed.StateInfo[] memory result = new IState_deployed.StateInfo[](stateInfos.length);
         for (uint256 i = 0; i < stateInfos.length; i++) {
             result[i] = _stateEntryInfoAdapter(stateInfos[i]);
         }
@@ -262,7 +174,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
     function getStateInfoByIdAndState(
         uint256 id,
         uint256 state
-    ) external view returns (IState.StateInfo memory) {
+    ) external view returns (IState_deployed.StateInfo memory) {
         return _stateEntryInfoAdapter(_stateData.getStateInfoByIdAndState(id, state));
     }
 
@@ -271,7 +183,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      * @param id Identity
      * @return The GIST inclusion or non-inclusion proof for the identity
      */
-    function getGISTProof(uint256 id) external view returns (IState.GistProof memory) {
+    function getGISTProof(uint256 id) external view returns (IState_deployed.GistProof memory) {
         return _smtProofAdapter(_gistData.getProof(PoseidonUnit1L.poseidon([id])));
     }
 
@@ -285,7 +197,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
     function getGISTProofByRoot(
         uint256 id,
         uint256 root
-    ) external view returns (IState.GistProof memory) {
+    ) external view returns (IState_deployed.GistProof memory) {
         return _smtProofAdapter(_gistData.getProofByRoot(PoseidonUnit1L.poseidon([id]), root));
     }
 
@@ -299,7 +211,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
     function getGISTProofByBlock(
         uint256 id,
         uint256 blockNumber
-    ) external view returns (IState.GistProof memory) {
+    ) external view returns (IState_deployed.GistProof memory) {
         return
             _smtProofAdapter(_gistData.getProofByBlock(PoseidonUnit1L.poseidon([id]), blockNumber));
     }
@@ -314,7 +226,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
     function getGISTProofByTime(
         uint256 id,
         uint256 timestamp
-    ) external view returns (IState.GistProof memory) {
+    ) external view returns (IState_deployed.GistProof memory) {
         return _smtProofAdapter(_gistData.getProofByTime(PoseidonUnit1L.poseidon([id]), timestamp));
     }
 
@@ -335,9 +247,9 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
     function getGISTRootHistory(
         uint256 start,
         uint256 length
-    ) external view returns (IState.GistRootInfo[] memory) {
+    ) external view returns (IState_deployed.GistRootInfo[] memory) {
         SmtLib.RootEntryInfo[] memory rootInfos = _gistData.getRootHistory(start, length);
-        IState.GistRootInfo[] memory result = new IState.GistRootInfo[](rootInfos.length);
+        IState_deployed.GistRootInfo[] memory result = new IState_deployed.GistRootInfo[](rootInfos.length);
 
         for (uint256 i = 0; i < rootInfos.length; i++) {
             result[i] = _smtRootInfoAdapter(rootInfos[i]);
@@ -358,7 +270,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      * @param root GIST root.
      * @return The GIST root information.
      */
-    function getGISTRootInfo(uint256 root) external view returns (IState.GistRootInfo memory) {
+    function getGISTRootInfo(uint256 root) external view returns (IState_deployed.GistRootInfo memory) {
         return _smtRootInfoAdapter(_gistData.getRootInfo(root));
     }
 
@@ -369,7 +281,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      */
     function getGISTRootInfoByBlock(
         uint256 blockNumber
-    ) external view returns (IState.GistRootInfo memory) {
+    ) external view returns (IState_deployed.GistRootInfo memory) {
         return _smtRootInfoAdapter(_gistData.getRootInfoByBlock(blockNumber));
     }
 
@@ -380,7 +292,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      */
     function getGISTRootInfoByTime(
         uint256 timestamp
-    ) external view returns (IState.GistRootInfo memory) {
+    ) external view returns (IState_deployed.GistRootInfo memory) {
         return _smtRootInfoAdapter(_gistData.getRootInfoByTime(timestamp));
     }
 
@@ -405,14 +317,14 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
 
     function _smtProofAdapter(
         SmtLib.Proof memory proof
-    ) internal pure returns (IState.GistProof memory) {
+    ) internal pure returns (IState_deployed.GistProof memory) {
         // slither-disable-next-line uninitialized-local
         uint256[MAX_SMT_DEPTH] memory siblings;
         for (uint256 i = 0; i < MAX_SMT_DEPTH; i++) {
             siblings[i] = proof.siblings[i];
         }
 
-        IState.GistProof memory result = IState.GistProof({
+        IState_deployed.GistProof memory result = IState_deployed.GistProof({
             root: proof.root,
             existence: proof.existence,
             siblings: siblings,
@@ -428,9 +340,9 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
 
     function _smtRootInfoAdapter(
         SmtLib.RootEntryInfo memory rootInfo
-    ) internal pure returns (IState.GistRootInfo memory) {
+    ) internal pure returns (IState_deployed.GistRootInfo memory) {
         return
-            IState.GistRootInfo({
+            IState_deployed.GistRootInfo({
                 root: rootInfo.root,
                 replacedByRoot: rootInfo.replacedByRoot,
                 createdAtTimestamp: rootInfo.createdAtTimestamp,
@@ -442,9 +354,9 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
 
     function _stateEntryInfoAdapter(
         StateLib.EntryInfo memory sei
-    ) internal pure returns (IState.StateInfo memory) {
+    ) internal pure returns (IState_deployed.StateInfo memory) {
         return
-            IState.StateInfo({
+            IState_deployed.StateInfo({
                 id: sei.id,
                 state: sei.state,
                 replacedByState: sei.replacedByState,

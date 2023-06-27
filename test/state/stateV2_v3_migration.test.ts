@@ -1,0 +1,131 @@
+import { expect } from "chai";
+import { ethers } from "hardhat";
+import { publishState } from "../utils/state-utils";
+import { DeployHelper } from "../../helpers/DeployHelper";
+import bigInt from "big-integer";
+import { StateContractMigrationHelper } from "../../helpers/StateContractMigrationHelper";
+import { NetworkIdTypes } from "../../helpers/NetworkIdTypes";
+
+const stateTransitionsWithProofs = [
+    require("./data/user_state_genesis_transition.json"),
+    require("./data/user_state_next_transition.json"),
+  ];
+
+  const stateTransitionsWithNoProofs = [
+    {
+      id: '6901746346790563787434755862277025452451108972170386555162524223864832',
+      oldState: '1099511627776',
+      newState: '2199023255552',
+      isOldStateGenesis: true,
+    },
+    {
+      id: '6901746346790563787434755862277025452451108972170386555162524223864832',
+      oldState: '2199023255552',
+      newState: '3298534883328',
+      isOldStateGenesis: false,
+    },
+  ];
+
+describe.only("Deploy StateV2 v2 and migrate", () => {
+    let state;
+    let guWrpr;
+    let deployHelper;
+    let signers;
+    const defaultIdType = NetworkIdTypes.polygonMumbai;
+
+    before(async function () {
+        signers = await ethers.getSigners();
+        deployHelper = await DeployHelper.initialize();
+        const contracts = await deployHelper.deployStateV2('VerifierV2', 'StateV2_deployed', true);
+        state = contracts.state;
+        guWrpr = await deployHelper.deployGenesisUtilsWrapper();
+  });
+
+  it("Check migration", async () => {
+    // 1. init old contract by abi & address
+    const stateContractMigrationHelper = new StateContractMigrationHelper(deployHelper, signers[0]);
+    const oldContractABI = require("../../scripts/StateV2_deployed_abi.json");  // abi of contract that will be upgraded
+    const stateContractAddress = state.address;  // address of contract that will be upgraded
+    const stateContractInstance = await stateContractMigrationHelper.getInitContract({
+        contractNameOrAbi: oldContractABI,
+        address: stateContractAddress,
+    });
+
+    // 2. publish first state
+    const params1 = await publishState(stateContractInstance, stateTransitionsWithProofs[0]);
+    const res1 = await stateContractInstance.getStateInfoById(params1.id);
+    expect(res1.state).to.be.equal(bigInt(params1.newState).toString());
+
+    // 3. migrate 
+    const { state: stateV3 } = await stateContractMigrationHelper.upgradeContract(stateContractInstance);
+  
+    // 4. publish second state
+    const params2 = await publishState(stateV3, stateTransitionsWithProofs[1]);
+    const res2 = await stateV3.getStateInfoById(params2.id);
+    expect(res2.state).to.be.equal(bigInt(params2.newState).toString());
+  
+    // 5. check _defaultIdType is not initialized
+    await expect(stateV3.getDefaultIdType()).to.be.revertedWith(
+      "Default Id Type is not initialized"
+    );
+    await expect(stateV3.transitStateGeneric(
+        stateTransitionsWithNoProofs[0].id, 
+        stateTransitionsWithNoProofs[0].oldState, 
+        stateTransitionsWithNoProofs[0].newState,
+        stateTransitionsWithNoProofs[0].isOldStateGenesis,
+        1,
+        []
+      )).to.be.revertedWith(
+      "Default Id Type is not initialized"
+    );
+
+    // 6. initialize _defaultIdType
+    await stateV3.setDefaultIdType(defaultIdType);
+    const defIdTypeValue = await stateV3.getDefaultIdType();
+    expect(defaultIdType).to.be.equal(defIdTypeValue);
+  
+    // 7. run new 'transitStateGeneric' method - require checks
+    await expect(stateV3.transitStateGeneric(
+      stateTransitionsWithNoProofs[0].id, 
+      stateTransitionsWithNoProofs[0].oldState, 
+      stateTransitionsWithNoProofs[0].newState,
+      stateTransitionsWithNoProofs[0].isOldStateGenesis,
+      1,
+      []
+    )).to.be.revertedWith(
+    "msg.sender is not owner of the identity"
+    );
+    await expect(stateV3.transitStateGeneric(
+      stateTransitionsWithNoProofs[0].id, 
+      stateTransitionsWithNoProofs[0].oldState, 
+      stateTransitionsWithNoProofs[0].newState,
+      stateTransitionsWithNoProofs[0].isOldStateGenesis,
+      2,
+      []
+    )).to.be.revertedWith(
+      "Unknown state transition method id"
+    );
+
+    const onchainId = await guWrpr.calcOnchainIdFromAddress(defaultIdType, signers[0].address); 
+    await expect(stateV3.transitStateGeneric(
+      onchainId,
+      stateTransitionsWithNoProofs[0].oldState, 
+      stateTransitionsWithNoProofs[0].newState,
+      stateTransitionsWithNoProofs[0].isOldStateGenesis,
+      1,
+      [1, 2]
+    )).to.be.revertedWith(
+      "methodParams should be empty"
+    );
+    // 8. run new 'transitStateGeneric' method - success scenario
+    await stateV3.transitStateGeneric(
+      onchainId, 
+      stateTransitionsWithNoProofs[0].oldState, 
+      stateTransitionsWithNoProofs[0].newState,
+      stateTransitionsWithNoProofs[0].isOldStateGenesis,
+      1,
+      []
+    );
+
+  });
+});
