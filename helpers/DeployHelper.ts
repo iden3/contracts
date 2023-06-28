@@ -74,7 +74,6 @@ export class DeployHelper {
     const stateV2 = await upgrades.deployProxy(StateV2Factory, [verifier.address, defaultIdType], {
       unsafeAllowLinkedLibraries: true,
     });
-    
     await stateV2.deployed();
     this.log(`StateV2 contract deployed to address ${stateV2.address} from ${owner.address}`);
 
