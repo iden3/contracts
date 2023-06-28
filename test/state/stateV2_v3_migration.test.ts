@@ -65,12 +65,7 @@ describe.skip("Get StateV2 old Contract and migrate to latest version", () => {
       "Default Id Type is not initialized"
     );
     // 6. initialize _defaultIdType
-
-    const chainId = parseInt(await network.provider.send('eth_chainId'), 16);
-    const defaultIdType = chainIdDefaultIdTypeMap.get(chainId);
-    if (!defaultIdType) {
-      throw new Error(`Failed to find defaultIdType in Map for chainId ${chainId}`);
-    }
+    const { defaultIdType } = await deployHelper.getDefaultIdType();
     await stateV3.setDefaultIdType(defaultIdType);
     const defIdTypeValue = await stateV3.getDefaultIdType();
     expect(defaultIdType).to.be.equal(defIdTypeValue);

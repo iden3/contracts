@@ -24,12 +24,7 @@ async function main() {
     });
 
     const { state: stateV2 } = await stateContractMigrationHelper.upgradeContract(stateContractInstance);
-    
-    const chainId = parseInt(await network.provider.send('eth_chainId'), 16);
-    const defaultIdType = chainIdDefaultIdTypeMap.get(chainId);
-    if (!defaultIdType) {
-      throw new Error(`Failed to find defaultIdType in Map for chainId ${chainId}`);
-    }
+    const { defaultIdType } = await stateDeployHelper.getDefaultIdType();
     console.log(`Setting value for _defaultIdType = ${defaultIdType}`);
     const tx = await stateV2.setDefaultIdType(defaultIdType);
     const receipt = await tx.wait();
