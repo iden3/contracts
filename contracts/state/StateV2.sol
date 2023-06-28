@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import "../interfaces/IState.sol";
-import "../interfaces/IStateTransitionVerifier.sol";
-import "../lib/SmtLib.sol";
-import "../lib/Poseidon.sol";
-import "../lib/StateLib.sol";
-import "../lib/GenesisUtils.sol";
+import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import {IState, MAX_SMT_DEPTH} from "../interfaces/IState.sol";
+import {IStateTransitionVerifier} from "../interfaces/IStateTransitionVerifier.sol";
+import {SmtLib} from "../lib/SmtLib.sol";
+import {PoseidonUnit1L} from "../lib/Poseidon.sol";
+import {StateLib} from "../lib/StateLib.sol";
+import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
 /// @title Set and get states for each identity
 contract StateV2 is Ownable2StepUpgradeable, IState {
