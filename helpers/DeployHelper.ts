@@ -25,8 +25,10 @@ export class DeployHelper {
     return new DeployHelper(sgrs, enableLogging);
   }
 
-  async deployStateV2(verifierContractName = "VerifierV2",
-    defaultIdType = NetworkIdTypes.polygonMumbai): Promise<{
+  async deployStateV2(
+    verifierContractName = "VerifierV2",
+    defaultIdType = NetworkIdTypes.polygonMumbai
+  ): Promise<{
     state: Contract;
     verifier: Contract;
     stateLib: Contract;
