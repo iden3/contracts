@@ -1,10 +1,10 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, network} from "hardhat";
 import { publishState } from "../utils/state-utils";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import bigInt from "big-integer";
 import { StateContractMigrationHelper } from "../../helpers/StateContractMigrationHelper";
-import { NetworkIdTypes } from "../../helpers/NetworkIdTypes";
+import { chainIdDefaultIdTypeMap } from "../../helpers/ChainIdDefTypeMap";
 
 const stateTransitionsWithProofs = [
     require("./data/user_state_genesis_transition.json"),
@@ -30,7 +30,6 @@ describe.skip("Get StateV2 old Contract and migrate to latest version", () => {
     let guWrpr;
     let deployHelper;
     let signers;
-    const defaultIdType = NetworkIdTypes.polygonMumbai;
 
     before(async function () {
         signers = await ethers.getSigners();
@@ -66,6 +65,12 @@ describe.skip("Get StateV2 old Contract and migrate to latest version", () => {
       "Default Id Type is not initialized"
     );
     // 6. initialize _defaultIdType
+
+    const chainId = parseInt(await network.provider.send('eth_chainId'), 16);
+    const defaultIdType = chainIdDefaultIdTypeMap.get(chainId);
+    if (!defaultIdType) {
+      throw new Error(`Failed to find defaultIdType in Map for chainId ${chainId}`);
+    }
     await stateV3.setDefaultIdType(defaultIdType);
     const defIdTypeValue = await stateV3.getDefaultIdType();
     expect(defaultIdType).to.be.equal(defIdTypeValue);

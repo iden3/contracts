@@ -1,8 +1,8 @@
-import { ethers, upgrades } from "hardhat";
+import { ethers, upgrades, network } from "hardhat";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
-import { NetworkIdTypes } from "./NetworkIdTypes";
+import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
 
 const SMT_MAX_DEPTH = 64;
 
@@ -26,8 +26,7 @@ export class DeployHelper {
   }
 
   async deployStateV2(
-    verifierContractName = "VerifierV2",
-    defaultIdType = NetworkIdTypes.polygonMumbai
+    verifierContractName = "VerifierV2"
   ): Promise<{
     state: Contract;
     verifier: Contract;
@@ -39,6 +38,13 @@ export class DeployHelper {
     poseidon4: Contract;
   }> {
     this.log("======== StateV2: deploy started ========");
+
+    const chainId = parseInt(await network.provider.send('eth_chainId'), 16);
+    const defaultIdType = chainIdDefaultIdTypeMap.get(chainId);
+    if (!defaultIdType) {
+      throw new Error(`Failed to find defaultIdType in Map for chainId ${chainId}`);
+    }
+    this.log(`found defaultIdType ${defaultIdType} for chainId ${chainId}`);
 
     const owner = this.signers[0];
 
