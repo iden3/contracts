@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import "../lib/ClaimBuilder.sol";
+import {ClaimBuilder} from "../lib/ClaimBuilder.sol";
 
 contract ClaimBuilderWrapper {
     using ClaimBuilder for ClaimBuilder.ClaimData;

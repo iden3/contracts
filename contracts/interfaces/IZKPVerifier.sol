@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.16;
 
-import "./ICircuitValidator.sol";
+import {ICircuitValidator} from "./ICircuitValidator.sol";
 
 interface IZKPVerifier {
     function submitZKPResponse(
