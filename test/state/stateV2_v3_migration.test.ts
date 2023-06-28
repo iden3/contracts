@@ -26,8 +26,7 @@ const stateTransitionsWithProofs = [
     },
   ];
 
-describe("Deploy StateV2 v2 and migrate", () => {
-    let state;
+describe.skip("Get StateV2 old Contract and migrate to latest version", () => {
     let guWrpr;
     let deployHelper;
     let signers;
@@ -36,8 +35,6 @@ describe("Deploy StateV2 v2 and migrate", () => {
     before(async function () {
         signers = await ethers.getSigners();
         deployHelper = await DeployHelper.initialize();
-        const contracts = await deployHelper.deployStateV2('VerifierV2', 'StateV2_deployed', true);
-        state = contracts.state;
         guWrpr = await deployHelper.deployGenesisUtilsWrapper();
   });
 
@@ -45,7 +42,7 @@ describe("Deploy StateV2 v2 and migrate", () => {
     // 1. init old contract by abi & address
     const stateContractMigrationHelper = new StateContractMigrationHelper(deployHelper, signers[0]);
     const oldContractABI = require("../../scripts/StateV2_deployed_abi.json");  // abi of contract that will be upgraded
-    const stateContractAddress = state.address;  // address of contract that will be upgraded
+    const stateContractAddress = '';  // address of contract that will be upgraded
     const stateContractInstance = await stateContractMigrationHelper.getInitContract({
         contractNameOrAbi: oldContractABI,
         address: stateContractAddress,
