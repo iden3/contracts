@@ -25,7 +25,8 @@ export class DeployHelper {
     return new DeployHelper(sgrs, enableLogging);
   }
 
-  async deployStateV2(verifierContractName = "VerifierV2", stateContractName = "StateV2", isDeployedStateContract = false): Promise<{
+  async deployStateV2(verifierContractName = "VerifierV2",
+    defaultIdType = NetworkIdTypes.polygonMumbai): Promise<{
     state: Contract;
     verifier: Contract;
     stateLib: Contract;
@@ -61,23 +62,16 @@ export class DeployHelper {
     const stateLib = await this.deployStateLib();
 
     this.log("deploying stateV2...");
-    const StateV2Factory = await ethers.getContractFactory(stateContractName, {
+    const StateV2Factory = await ethers.getContractFactory("StateV2", {
       libraries: {
         StateLib: stateLib.address,
         SmtLib: smtLib.address,
         PoseidonUnit1L: poseidon1Elements.address,
       },
     });
-    let stateV2;
-    if (isDeployedStateContract) {
-      stateV2 = await upgrades.deployProxy(StateV2Factory, [verifier.address], {
-        unsafeAllowLinkedLibraries: true,
-      });
-    } else {
-      stateV2 = await upgrades.deployProxy(StateV2Factory, [verifier.address, NetworkIdTypes.polygonMumbai], {
-        unsafeAllowLinkedLibraries: true,
-      });
-    }
+    const stateV2 = await upgrades.deployProxy(StateV2Factory, [verifier.address, defaultIdType], {
+      unsafeAllowLinkedLibraries: true,
+    });
     
     await stateV2.deployed();
     this.log(`StateV2 contract deployed to address ${stateV2.address} from ${owner.address}`);
