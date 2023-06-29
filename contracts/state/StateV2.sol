@@ -14,7 +14,7 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.1.0";
+    string public constant VERSION = "2.2.0";
 
     // This empty reserved space is put in place to allow future versions
     // of the State contract to inherit from other contracts without a risk of
