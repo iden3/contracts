@@ -63,7 +63,7 @@ library OnChainIdentity {
         address _identityAddr,
         uint256 depth
     ) external {
-        require(depth <= IDENTITY_MAX_SMT_DEPTH,  "SMT depth shouldn't be more than 40" );
+        require(depth <= IDENTITY_MAX_SMT_DEPTH,  "SMT depth is greater than max allowed depth" );
         self.stateContract = IState(_stateContractAddr);
         self.isOldStateGenesis = true;
 
@@ -71,7 +71,7 @@ library OnChainIdentity {
         self.trees.revocationsTree.initialize(depth);
         self.trees.rootsTree.initialize(depth);
 
-        self.id = GenesisUtils.calcOnchainIdFromAddress(0x0212, _identityAddr);
+        self.id = GenesisUtils.calcOnchainIdFromAddress(self.stateContract.getDefaultIdType() , _identityAddr);
     }
 
     /**

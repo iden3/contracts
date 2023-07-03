@@ -90,52 +90,6 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
     }
 
     /**
-     * @dev Set defaultIdType internal setter
-     * @param defaultIdType default id type
-     */
-    function _setDefaultIdType(bytes2 defaultIdType) internal {
-        _defaultIdType = defaultIdType;
-        _defaultIdTypeInitialized = true;
-    }
-
-    /**
-     * @dev Change the state of an identity (transit to the new state) with ZKP ownership check.
-     * @param id Identity
-     * @param oldState Previous identity state
-     * @param newState New identity state
-     * @param isOldStateGenesis Is the previous state genesis?
-     */
-    function _transitState(
-        uint256 id,
-        uint256 oldState,
-        uint256 newState,
-        bool isOldStateGenesis
-    ) internal {
-        require(id != 0, "ID should not be zero");
-        require(newState != 0, "New state should not be zero");
-        require(!stateExists(id, newState), "New state already exists");
-
-        if (isOldStateGenesis) {
-            require(!idExists(id), "Old state is genesis but identity already exists");
-
-            // Push old state to state entries, with zero timestamp and block
-            _stateData.addGenesisState(id, oldState);
-        } else {
-            require(idExists(id), "Old state is not genesis but identity does not yet exist");
-
-            StateLib.EntryInfo memory prevStateInfo = _stateData.getStateInfoById(id);
-            require(
-                prevStateInfo.createdAtBlock != block.number,
-                "No multiple set in the same block"
-            );
-            require(prevStateInfo.state == oldState, "Old state does not match the latest state");
-        }
-
-        _stateData.addState(id, newState);
-        _gistData.addLeaf(PoseidonUnit1L.poseidon([id]), newState);
-    }
-
-    /**
      * @dev Change the state of an identity (transit to the new state) with ZKP ownership check.
      * @param id Identity
      * @param oldState Previous identity state
@@ -403,6 +357,43 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         return _stateData.stateExists(id, state);
     }
 
+    /**
+     * @dev Change the state of an identity (transit to the new state) with ZKP ownership check.
+     * @param id Identity
+     * @param oldState Previous identity state
+     * @param newState New identity state
+     * @param isOldStateGenesis Is the previous state genesis?
+     */
+    function _transitState(
+        uint256 id,
+        uint256 oldState,
+        uint256 newState,
+        bool isOldStateGenesis
+    ) internal {
+        require(id != 0, "ID should not be zero");
+        require(newState != 0, "New state should not be zero");
+        require(!stateExists(id, newState), "New state already exists");
+
+        if (isOldStateGenesis) {
+            require(!idExists(id), "Old state is genesis but identity already exists");
+
+            // Push old state to state entries, with zero timestamp and block
+            _stateData.addGenesisState(id, oldState);
+        } else {
+            require(idExists(id), "Old state is not genesis but identity does not yet exist");
+
+            StateLib.EntryInfo memory prevStateInfo = _stateData.getStateInfoById(id);
+            require(
+                prevStateInfo.createdAtBlock != block.number,
+                "No multiple set in the same block"
+            );
+            require(prevStateInfo.state == oldState, "Old state does not match the latest state");
+        }
+
+        _stateData.addState(id, newState);
+        _gistData.addLeaf(PoseidonUnit1L.poseidon([id]), newState);
+    }
+
     function _smtProofAdapter(
         SmtLib.Proof memory proof
     ) internal pure returns (IState.GistProof memory) {
@@ -453,5 +444,14 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
                 createdAtBlock: sei.createdAtBlock,
                 replacedAtBlock: sei.replacedAtBlock
             });
+    }
+
+    /**
+     * @dev Set defaultIdType internal setter
+     * @param defaultIdType default id type
+     */
+    function _setDefaultIdType(bytes2 defaultIdType) internal {
+        _defaultIdType = defaultIdType;
+        _defaultIdTypeInitialized = true;
     }
 }
