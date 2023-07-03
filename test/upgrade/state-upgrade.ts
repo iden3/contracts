@@ -16,8 +16,7 @@ describe("migration test automated", () => {
           return;
         }
         oldContractAddress = output.oldContractAddress;
-        const commitHash = output.commit;
-        oldContractAbi = require(`../../scripts/upgrade/state/abi-${commitHash}.json`);
+        oldContractAbi = require(`../../scripts/upgrade/state/abi-${output.commit}.json`);
   });
 
   it("test state contract migration", async () => {
