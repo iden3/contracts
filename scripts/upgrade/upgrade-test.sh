@@ -32,9 +32,5 @@ output=$(jq --null-input \
   '{"oldContractAddress": $oldContractAddress, "commit": $commit}')
 echo $output > scripts/upgrade/$1/output.json
 
-#cp test/upgrade/state-upgrade-template.ts test/upgrade/state-upgrade-$commit.ts
-#sed -i '' "s/.skip//gi" test/upgrade/state-upgrade-$commit.ts  
-#sed -i '' "s/{commit_hash}/$commit/gi" test/upgrade/state-upgrade-$commit.ts
-#sed -i '' "s/'contract_address_placeholder'/$contract_addr/gi" test/upgrade/state-upgrade-$commit.ts
+#run unit test upgrade 
 npx hardhat test $unitTestFile --network localhost
-#sed -i '' "s/{commit_hash}/$commit/gi" scripts/upgrade/state/state-upgrade.ts 
