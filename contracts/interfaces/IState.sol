@@ -93,7 +93,7 @@ interface IState {
      * @dev Get defaultIdType
      * @return defaultIdType
      */
-    function getDefaultIdType() external returns (bytes2);
+    function getDefaultIdType() external view returns (bytes2);
 
     /**
      * @dev Performs state transition
