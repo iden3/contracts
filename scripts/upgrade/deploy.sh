@@ -17,12 +17,15 @@ npx hardhat run --network localhost $deployScript
 
 #store abi to file & deployed contract address
 abi=$(jq .abi artifacts/contracts/$abiPath)
-echo $abi > scripts/upgrade/state/abi-$commit.json
 contract_addr=$(jq .$outputContractName scripts/deploy_output.json)
 
 #move back to branch & prepare and run upgrade unit test
 git checkout $currBranch
 npx hardhat compile
+
+echo $abi
+echo $abi > scripts/upgrade/state/abi-$commit.json
+
 cp test/upgrade/state-upgrade-template.ts test/upgrade/state-upgrade-$commit.ts
 sed -i '' "s/.skip//gi" test/upgrade/state-upgrade-$commit.ts  
 sed -i '' "s/{commit_hash}/$commit/gi" test/upgrade/state-upgrade-$commit.ts
