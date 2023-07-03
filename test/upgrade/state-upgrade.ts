@@ -2,24 +2,34 @@ import { ethers} from "hardhat";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { StateContractMigrationHelper } from "../../helpers/StateContractMigrationHelper";
 
-describe.skip("migration test automated", () => {
+describe("migration test automated", () => {
     let deployHelper;
     let signers;
+    let oldContractAddress;
+    let oldContractAbi;
 
     before(async function () {
         signers = await ethers.getSigners();
         deployHelper = await DeployHelper.initialize();
+        const output = require('../../scripts/upgrade/state/output.json');
+        if (!output) {
+          return;
+        }
+        oldContractAddress = output.oldContractAddress;
+        const commitHash = output.commit;
+        oldContractAbi = require(`../../scripts/upgrade/state/abi-${commitHash}.json`);
   });
 
   it("test state contract migration", async () => {
+    if (!oldContractAddress) {
+      console.log('upgrade test skipped (no old contract address found)')
+      return;
+    }
     // 1. init old contract by abi & address
     const stateContractMigrationHelper = new StateContractMigrationHelper(deployHelper, signers[0]);
-    const oldContractABI = 
-      require('../../scripts/upgrade/state/abi-{commit_hash}.json'); // abi of contract that will be upgraded
-    const stateContractAddress = 'contract_address_placeholder'  // address of contract that will be upgraded
     const stateContractInstance = await stateContractMigrationHelper.getInitContract({
-        contractNameOrAbi: oldContractABI,
-        address: stateContractAddress,
+        contractNameOrAbi: oldContractAbi,
+        address: oldContractAddress, // address of contract that will be upgraded
     });
     // 2. pre-upgrade transactions
 

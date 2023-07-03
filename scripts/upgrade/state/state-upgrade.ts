@@ -17,7 +17,7 @@ async function main() {
     const stateContractMigrationHelper = new StateContractMigrationHelper(stateDeployHelper, signers[0]);
     const network = process.env.HARDHAT_NETWORK;
 
-    const oldContractABI = require('./abi-{commit_hash}.json');  // abi of contract that will be upgraded
+    const oldContractABI = [];  // abi of contract that will be upgraded
     const stateContractAddress = "";  // address of contract that will be upgraded
     const stateContractInstance = await stateContractMigrationHelper.getInitContract({
         contractNameOrAbi: oldContractABI,
