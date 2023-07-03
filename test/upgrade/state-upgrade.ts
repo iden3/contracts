@@ -1,6 +1,7 @@
 import { ethers} from "hardhat";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { StateContractMigrationHelper } from "../../helpers/StateContractMigrationHelper";
+import fs from 'fs';
 
 describe("migration test automated", () => {
     let deployHelper;
@@ -9,12 +10,13 @@ describe("migration test automated", () => {
     let oldContractAbi;
 
     before(async function () {
-        signers = await ethers.getSigners();
-        deployHelper = await DeployHelper.initialize();
-        const output = require('../../scripts/upgrade/state/output.json');
-        if (!output) {
+        const outputPath = '../../scripts/upgrade/state/output.json';
+        if (!fs.existsSync(outputPath)) {
           return;
         }
+        const output = require(outputPath);
+        signers = await ethers.getSigners();
+        deployHelper = await DeployHelper.initialize();
         oldContractAddress = output.oldContractAddress;
         oldContractAbi = require(`../../scripts/upgrade/state/abi-${output.commit}.json`);
   });
