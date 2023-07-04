@@ -90,6 +90,12 @@ interface IState {
     function getGISTRootInfo(uint256 root) external view returns (GistRootInfo memory);
 
     /**
+     * @dev Get defaultIdType
+     * @return defaultIdType
+     */
+    function getDefaultIdType() external view returns (bytes2);
+
+    /**
      * @dev Performs state transition
      * @param id Identifier of the identity
      * @param oldState Previous state of the identity
