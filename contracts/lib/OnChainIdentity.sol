@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
-pragma abicoder v2;
 
-import "../interfaces/IState.sol";
-import "../lib/SmtLib.sol";
-import "../lib/Poseidon.sol";
-import "../lib/GenesisUtils.sol";
+import {IState} from "../interfaces/IState.sol";
+import {SmtLib} from "../lib/SmtLib.sol";
+import {PoseidonUnit3L,PoseidonUnit4L} from "../lib/Poseidon.sol";
+import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
 // /**
 //  * @dev Contract managing onchain identity
@@ -14,6 +13,7 @@ library OnChainIdentity {
     using SmtLib for SmtLib.Data;
 
     uint256 public constant IDENTITY_MAX_SMT_DEPTH = 40;
+
     /**
      * @dev Identity
      * Id
@@ -57,6 +57,12 @@ library OnChainIdentity {
         uint256 rootsRoot;
     }
 
+    /**
+     * @dev Initialization of the library state variables
+     * @param _stateContractAddr - address of the State contract
+     * @param _identityAddr - address of the Identity contract, which calls this function
+     * @param depth - depth of identity SMTs
+     */
     function initialize(
         Identity storage self,
         address _stateContractAddr,

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
-pragma abicoder v2;
 
-import "../interfaces/IOnchainCredentialStatusResolver.sol";
-import "../interfaces/IState.sol";
-import "../lib/OnChainIdentity.sol";
+import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredentialStatusResolver.sol";
+import {IState} from "../interfaces/IState.sol";
+import {OnChainIdentity} from "../lib/OnChainIdentity.sol";
+import {SmtLib} from "../lib/SmtLib.sol";
 
 // /**
 //  * @dev Contract managing onchain identity
@@ -27,10 +27,18 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
     uint256[49] private __gapAfter;
 
+    /**
+     * @dev Get configured Identity SMT depth.
+     * @return depth of the SMT
+     */
     function getSmtDepth() public pure virtual returns (uint256) {
         return 40;
     }
 
+    /**
+     * @dev Initialization of OnChainIdentity library
+     * @param _stateContractAddr - address of the State contract
+     */
     function initialize(address _stateContractAddr) public virtual {
         identity.initialize(_stateContractAddr,
             address(this),
