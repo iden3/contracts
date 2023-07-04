@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import "../state/StateV2.sol";
-import "./SmtLib.sol";
+import {StateV2} from "../state/StateV2.sol";
+import {SmtLib} from "./SmtLib.sol";
 
 /// @title A common functions for arrays.
 library ArrayUtils {

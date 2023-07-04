@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import "../lib/ArrayUtils.sol";
+import {ArrayUtils} from "../lib/ArrayUtils.sol";
 
 /// @title Library for state data management.
 // It's purpose is to keep records of identity states along with their metadata and history.

@@ -13,8 +13,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import "./verifierSig.sol";
-import "../interfaces/IVerifier.sol";
+import {VerifierSig, Pairing} from "./verifierSig.sol";
+import {IVerifier} from "../interfaces/IVerifier.sol";
 
 contract VerifierSigWrapper is VerifierSig, IVerifier {
     /// @return r  bool true if proof is valid

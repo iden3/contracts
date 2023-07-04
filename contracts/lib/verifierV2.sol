@@ -13,8 +13,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import "../lib/Pairing.sol";
-import "../interfaces/IStateTransitionVerifier.sol";
+import {Pairing} from "../lib/Pairing.sol";
+import {IStateTransitionVerifier} from "../interfaces/IStateTransitionVerifier.sol";
 
 contract VerifierV2 is IStateTransitionVerifier {
     using Pairing for *;

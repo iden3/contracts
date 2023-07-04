@@ -2,10 +2,10 @@
 pragma solidity 0.8.16;
 pragma abicoder v2;
 
-import "../interfaces/IState.sol";
-import "../lib/SmtLib.sol";
-import "../lib/Poseidon.sol";
-import "../lib/GenesisUtils.sol";
+import {IState} from "../interfaces/IState.sol";
+import {SmtLib} from "../lib/SmtLib.sol";
+import {PoseidonUnit3L, PoseidonUnit4L} from "../lib/Poseidon.sol";
+import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
 // /**
 //  * @dev Contract managing onchain identity

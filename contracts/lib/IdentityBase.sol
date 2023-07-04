@@ -2,9 +2,9 @@
 pragma solidity 0.8.16;
 pragma abicoder v2;
 
-import "../interfaces/IOnchainCredentialStatusResolver.sol";
-import "../interfaces/IState.sol";
-import "../lib/OnChainIdentity.sol";
+import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredentialStatusResolver.sol";
+import {IState} from "../interfaces/IState.sol";
+import {OnChainIdentity, SmtLib} from "../lib/OnChainIdentity.sol";
 
 // /**
 //  * @dev Contract managing onchain identity
@@ -27,6 +27,10 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
     uint256[49] private __gapAfter;
 
+    /**
+     * @dev Retrieve SMT Depth.
+     * @return SMT Depth
+     */
     function getSmtDepth() public pure virtual returns (uint256) {
         return 40;
     }
