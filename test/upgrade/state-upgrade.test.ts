@@ -2,6 +2,14 @@ import { ethers} from "hardhat";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { StateContractMigrationHelper } from "../../helpers/StateContractMigrationHelper";
 import fs from 'fs';
+import { publishState } from "../utils/state-utils";
+
+const stateTransitionsWithProofs = [
+  require("../state/data/user_state_genesis_transition.json"),
+  require("../state/data/user_state_next_transition.json"),
+];
+
+const migrationOutput = require('../../scripts/upgrade/state/output.json');
 
 describe("migration test automated", () => {
     let deployHelper;
@@ -10,15 +18,14 @@ describe("migration test automated", () => {
     let oldContractAbi;
 
     before(async function () {
-        const outputPath = '../../scripts/upgrade/state/output.json';
-        if (!fs.existsSync(outputPath)) {
+        if (!migrationOutput) {
+          console.log('no output.json file found for migration test');
           return;
         }
-        const output = require(outputPath);
         signers = await ethers.getSigners();
         deployHelper = await DeployHelper.initialize();
-        oldContractAddress = output.oldContractAddress;
-        oldContractAbi = require(`../../scripts/upgrade/state/abi-${output.commit}.json`);
+        oldContractAddress = migrationOutput.oldContractAddress;
+        oldContractAbi = require(`../../scripts/upgrade/state/abi-${migrationOutput.commit}.json`);
   });
 
   it("test state contract migration", async () => {
@@ -33,11 +40,24 @@ describe("migration test automated", () => {
         address: oldContractAddress, // address of contract that will be upgraded
     });
     // 2. pre-upgrade transactions
+    const params1 = await publishState(stateContractInstance, stateTransitionsWithProofs[0]);
+    const result1 = await stateContractMigrationHelper.getDataFromContract(
+      stateContractInstance,
+      stateTransitionsWithProofs[0].id,
+      stateTransitionsWithProofs[0].newState
+    );
 
     // 3. migrate 
     const { state: stateV3 } = await stateContractMigrationHelper.upgradeContract(stateContractInstance);
   
     // 4. post upgrade checks
+    const intermediateContractCheck = await stateContractMigrationHelper.getDataFromContract(
+      stateContractInstance,
+      stateTransitionsWithProofs[0].id,
+      stateTransitionsWithProofs[0].newState
+    );
+    console.log(intermediateContractCheck);
+    await stateContractMigrationHelper.checkData(result1, intermediateContractCheck);
 
   });
 

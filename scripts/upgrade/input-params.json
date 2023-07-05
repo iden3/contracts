@@ -4,6 +4,6 @@
         "abiPath": "state/StateV2.sol/StateV2.json",
         "deployScript": "scripts/deploy.ts",
         "outputContractName": "state",
-        "unitTestFile": "test/upgrade/state-upgrade.ts"
+        "unitTestFile": "test/upgrade/state-upgrade.test.ts"
     }
 }
