@@ -53,13 +53,13 @@ describe("migration test automated", () => {
     const { state: stateV3 } = await stateContractMigrationHelper.upgradeContract(stateContractInstance);
   
     // 4. post upgrade checks
-    const intermediateContractCheck = await stateContractMigrationHelper.getDataFromContract(
+    const сontractCheck = await stateContractMigrationHelper.getDataFromContract(
       stateContractInstance,
       stateInfo.id,
       stateInfo.newState
     );
-    console.log(intermediateContractCheck);
-    await stateContractMigrationHelper.checkData(result1, intermediateContractCheck);
+
+    await stateContractMigrationHelper.checkData(result1, сontractCheck);
 
   });
 
