@@ -40,11 +40,11 @@ describe("migration test automated", () => {
         address: oldContractAddress, // address of contract that will be upgraded
     });
     // 2. pre-upgrade transactions
-    const params1 = await publishState(stateContractInstance, stateTransitionsWithProofs[0]);
+    const stateInfo = await publishState(stateContractInstance, stateTransitionsWithProofs[0]);
     const result1 = await stateContractMigrationHelper.getDataFromContract(
       stateContractInstance,
-      stateTransitionsWithProofs[0].id,
-      stateTransitionsWithProofs[0].newState
+      stateInfo.id,
+      stateInfo.newState
     );
 
     // 3. migrate 
@@ -53,8 +53,8 @@ describe("migration test automated", () => {
     // 4. post upgrade checks
     const intermediateContractCheck = await stateContractMigrationHelper.getDataFromContract(
       stateContractInstance,
-      stateTransitionsWithProofs[0].id,
-      stateTransitionsWithProofs[0].newState
+      stateInfo.id,
+      stateInfo.newState
     );
     console.log(intermediateContractCheck);
     await stateContractMigrationHelper.checkData(result1, intermediateContractCheck);
