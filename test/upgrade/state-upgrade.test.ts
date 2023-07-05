@@ -2,6 +2,7 @@ import { ethers} from "hardhat";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { StateContractMigrationHelper } from "../../helpers/StateContractMigrationHelper";
 import fs from 'fs';
+import path from 'path';
 import { publishState } from "../utils/state-utils";
 
 const stateTransitionsWithProofs = [
@@ -9,7 +10,7 @@ const stateTransitionsWithProofs = [
   require("../state/data/user_state_next_transition.json"),
 ];
 
-const migrationOutput = require('../../scripts/upgrade/state/output.json');
+const outputPath = '../../scripts/upgrade/state/output.json';
 
 describe("migration test automated", () => {
     let deployHelper;
@@ -18,10 +19,11 @@ describe("migration test automated", () => {
     let oldContractAbi;
 
     before(async function () {
-        if (!migrationOutput) {
+        if (!fs.existsSync(path.join(__dirname, outputPath))) {
           console.log('no output.json file found for migration test');
           return;
         }
+        const migrationOutput = require(outputPath);
         signers = await ethers.getSigners();
         deployHelper = await DeployHelper.initialize();
         oldContractAddress = migrationOutput.oldContractAddress;
