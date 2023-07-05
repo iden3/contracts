@@ -53,6 +53,7 @@
     "@openzeppelin/contracts-upgradeable": "^4.8.2",
     "circomlibjs": "^0.1.6",
     "codecov": "^3.8.2",
+    "node-jq": "^2.3.5",
     "solidity-bytes-utils": "^0.8.0",
     "solidity-coverage": "^0.8.2",
     "solium": "0.1.3"
