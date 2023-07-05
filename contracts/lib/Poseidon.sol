@@ -26,7 +26,7 @@ library PoseidonUnit6L {
 }
 
 library SpongePoseidon {
-    uint32 constant BATCH_SIZE = 6;
+    uint32 internal constant BATCH_SIZE = 6;
 
     function hash(uint256[] calldata values) public pure returns (uint256) {
         uint256[BATCH_SIZE] memory frame = [uint256(0), 0, 0, 0, 0, 0];

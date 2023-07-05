@@ -1,36 +1,36 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.0;
+pragma solidity 0.8.16;
 
 import {BytesLib} from "solidity-bytes-utils/contracts/BytesLib.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
 library ClaimBuilder {
-    // IDPositionNone means ID value not located in claim.
-    uint8 public constant IDPositionNone = 0;
-    // IDPositionIndex means ID value is in index slots.
-    uint8 public constant IDPositionIndex = 1;
-    // IDPositionValue means ID value is in value slots.
-    uint8 public constant IDPositionValue = 2;
+    // ID_POSITION_NONE means ID value not located in claim.
+    uint8 public constant ID_POSITION_NONE = 0;
+    // ID_POSITION_INDEX means ID value is in index slots.
+    uint8 public constant ID_POSITION_INDEX = 1;
+    // ID_POSITION_VALUE means ID value is in value slots.
+    uint8 public constant ID_POSITION_VALUE = 2;
 
-    uint8 public constant subjectFlagSelf = 0;           // 000
-    uint8 public constant subjectFlagOtherIdenIndex = 2; // 010
-    uint8 public constant subjectFlagOtherIdenValue = 3; // 011
+    uint8 public constant SUBJECT_FLAG_SELF = 0; // 000
+    uint8 public constant SUBJECT_FLAG_OTHER_IDEN_INDEX = 2; // 010
+    uint8 public constant SUBJECT_FLAG_OTHER_IDEN_VALUE = 3; // 011
 
-    uint8 public constant flagsByteIdx = 16;
-    uint8 public constant flagExpirationBitIdx = 3;
-    uint8 public constant flagUpdatableBitIdx = 4;
+    uint8 public constant FLAGS_BYTE_IDX = 16;
+    uint8 public constant FLAG_EXPIRATION_BIT_IDX = 3;
+    uint8 public constant FLAG_UPDATABLE_BIT_IDX = 4;
 
-    uint8 public constant MerklizedRootPositionNone = 0;
-    uint8 public constant MerklizedRootPositionIndex = 1;
-    uint8 public constant MerklizedRootPositionValue = 2;
+    uint8 public constant MERKLIZED_ROOT_POSITION_NONE = 0;
+    uint8 public constant MERKLIZED_ROOT_POSITION_INDEX = 1;
+    uint8 public constant MERKLIZED_ROOT_POSITION_VALUE = 2;
 
-    uint8 public constant merklizedFlagNone = 0;
-    uint8 public constant merklizedFlagIndex = 32; // 001 00000
-    uint8 public constant merklizedFlagValue = 64; // 010 00000
+    uint8 public constant MERKLIZED_FLAG_NONE = 0;
+    uint8 public constant MERKLIZED_FLAG_INDEX = 32; // 001 00000
+    uint8 public constant MERKLIZED_FLAG_VALUE = 64; // 010 00000
 
-    uint32 public constant updatableFlagYes = uint32(1 << flagUpdatableBitIdx);
+    uint32 public constant UPDATABLE_FLAG_YES = uint32(1 << FLAG_UPDATABLE_BIT_IDX);
 
-    uint32 public constant expirableFlagYes = uint32(1 << flagExpirationBitIdx);
+    uint32 public constant EXPIRABLE_FLAG_YES = uint32(1 << FLAG_EXPIRATION_BIT_IDX);
 
     struct ClaimData {
         // metadata
@@ -51,7 +51,7 @@ library ClaimBuilder {
         uint256 valueDataSlotB;
     }
 
-    // RULE: each uint we convert to bytes has to be reversed (in go Little ending, solidity - big ending). 
+    // RULE: each uint we convert to bytes has to be reversed (in go Little ending, solidity - big ending).
     //
     // Final result reverted bytes to get valid uint256
     /**
@@ -72,15 +72,15 @@ library ClaimBuilder {
         );
 
         // ID
-        if (c.idPosition == IDPositionNone) {
+        if (c.idPosition == ID_POSITION_NONE) {
             require(c.id == 0, "id should be empty");
-        } else if (c.idPosition == IDPositionIndex) {
+        } else if (c.idPosition == ID_POSITION_INDEX) {
             require(c.id != 0, "id should be not empty");
-            flags |= subjectFlagOtherIdenIndex;
+            flags |= SUBJECT_FLAG_OTHER_IDEN_INDEX;
             claim[1] = c.id;
-        } else if (c.idPosition == IDPositionValue) {
+        } else if (c.idPosition == ID_POSITION_VALUE) {
             require(c.id != 0, "id should be not empty");
-            flags |= subjectFlagOtherIdenValue;
+            flags |= SUBJECT_FLAG_OTHER_IDEN_VALUE;
             claim[5] = c.id;
         } else {
             require(false, "invalid id position");
@@ -88,46 +88,41 @@ library ClaimBuilder {
 
         // Expirable
         if (c.expirable) {
-            flags |= expirableFlagYes;
+            flags |= EXPIRABLE_FLAG_YES;
         } else {
-            require(
-                c.expirationDate == 0,
-                "expirationDate should be 0 for non expirable claim"
-            );
+            require(c.expirationDate == 0, "expirationDate should be 0 for non expirable claim");
         }
 
         // Updatable
         if (c.updatable) {
-            flags |= updatableFlagYes;
+            flags |= UPDATABLE_FLAG_YES;
         } else {
-            require(
-                c.version == 0,
-                "version should be 0 for non updatable claim"
-            );
+            require(c.version == 0, "version should be 0 for non updatable claim");
         }
 
         // Merklized Root
-        if (c.merklizedRootPosition == MerklizedRootPositionIndex) {
+        if (c.merklizedRootPosition == MERKLIZED_ROOT_POSITION_INDEX) {
             require(
-                c.indexDataSlotA == 0 && c.indexDataSlotB == 0 &&
-                c.valueDataSlotA == 0 && c.indexDataSlotB == 0,
+                c.indexDataSlotA == 0 &&
+                    c.indexDataSlotB == 0 &&
+                    c.valueDataSlotA == 0 &&
+                    c.indexDataSlotB == 0,
                 "data slots should be empty"
             );
-            flags |= merklizedFlagIndex;
+            flags |= MERKLIZED_FLAG_INDEX;
             claim[2] = c.merklizedRoot;
-        } else if (c.merklizedRootPosition == MerklizedRootPositionValue) {
+        } else if (c.merklizedRootPosition == MERKLIZED_ROOT_POSITION_VALUE) {
             require(
-                c.indexDataSlotA == 0 && c.indexDataSlotB == 0 &&
-                c.valueDataSlotA == 0 && c.indexDataSlotB == 0,
+                c.indexDataSlotA == 0 &&
+                    c.indexDataSlotB == 0 &&
+                    c.valueDataSlotA == 0 &&
+                    c.indexDataSlotB == 0,
                 "data slots should be empty"
             );
-            flags |= merklizedFlagValue;
+            flags |= MERKLIZED_FLAG_VALUE;
             claim[6] = c.merklizedRoot;
         } else {
-            require(
-                c.merklizedRoot == 0,
-                "merklizedRoot should be 0 for non merklized claim"
-            );
+            require(c.merklizedRoot == 0, "merklizedRoot should be 0 for non merklized claim");
         }
 
         bytes memory claim0 = BytesLib.concat(
@@ -135,15 +130,12 @@ library ClaimBuilder {
             abi.encodePacked(reverse(flags)) // 32 bits
         );
 
-        bytes memory claim0_2 = BytesLib.concat(
+        bytes memory claim02 = BytesLib.concat(
             abi.encodePacked(reverse(c.version)), // 32 bits
             abi.encodePacked(empty64)
         );
 
-        claim0 = BytesLib.concat(
-            claim0,
-            claim0_2
-        );
+        claim0 = BytesLib.concat(claim0, claim02);
 
         claim[0] = GenesisUtils.reverse(uint256(bytes32(claim0)));
 
@@ -167,11 +159,9 @@ library ClaimBuilder {
         v = input;
 
         // swap bytes
-        v = ((v & 0xFF00FF00) >> 8) |
-            ((v & 0x00FF00FF) << 8);
+        v = ((v & 0xFF00FF00) >> 8) | ((v & 0x00FF00FF) << 8);
 
         // swap 2-byte long pairs
         v = (v >> 16) | (v << 16);
     }
-
 }

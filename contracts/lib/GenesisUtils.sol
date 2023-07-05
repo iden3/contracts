@@ -78,8 +78,7 @@ library GenesisUtils {
     /**
      * @dev isGenesisState
      */
-    function isGenesisState(uint256 id, uint256 idState) internal pure returns (bool)
-    {
+    function isGenesisState(uint256 id, uint256 idState) internal pure returns (bool) {
         bytes2 idType = bytes2(int256ToBytes(reverse(id)));
         uint256 computedId = calcIdFromGenesisState(idType, idState);
         return id == computedId;
@@ -88,7 +87,10 @@ library GenesisUtils {
     /**
      * @dev calcIdFromGenesisState
      */
-    function calcIdFromGenesisState(bytes2 idType, uint256 idState) internal pure returns (uint256) {
+    function calcIdFromGenesisState(
+        bytes2 idType,
+        uint256 idState
+    ) internal pure returns (uint256) {
         bytes memory userStateB1 = int256ToBytes(reverse(idState));
 
         bytes memory cutState = BytesLib.slice(userStateB1, userStateB1.length - 27, 27);
@@ -109,8 +111,10 @@ library GenesisUtils {
     /**
      * @dev calcOnchainIdFromAddress
      */
-    function calcOnchainIdFromAddress(bytes2 idType, address caller) internal pure returns (uint256)
-    {
+    function calcOnchainIdFromAddress(
+        bytes2 idType,
+        address caller
+    ) internal pure returns (uint256) {
         uint256 addr = uint256(uint160(caller));
 
         return calcIdFromGenesisState(idType, reverse(addr));
