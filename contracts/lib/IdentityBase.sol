@@ -10,7 +10,6 @@ import {SmtLib} from "../lib/SmtLib.sol";
 //  * @dev Contract managing onchain identity
 //  */
 contract IdentityBase is IOnchainCredentialStatusResolver {
-
     // This empty reserved space is put in place to allow future versions
     // of this contract to add new parent contracts without shifting down
     // storage of child contracts that use this contract as a base
@@ -40,9 +39,7 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
      * @param _stateContractAddr - address of the State contract
      */
     function initialize(address _stateContractAddr) public virtual {
-        identity.initialize(_stateContractAddr,
-            address(this),
-            getSmtDepth());
+        identity.initialize(_stateContractAddr, address(this), getSmtDepth());
     }
 
     /**
@@ -50,7 +47,9 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
      * @param claimIndexHash - hash of Claim Index
      * @return The ClaimsTree inclusion or non-inclusion proof for the claim
      */
-    function getClaimProof(uint256 claimIndexHash) public virtual view returns (SmtLib.Proof memory) {
+    function getClaimProof(
+        uint256 claimIndexHash
+    ) public view virtual returns (SmtLib.Proof memory) {
         return identity.getClaimProof(claimIndexHash);
     }
 
@@ -60,7 +59,10 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
      * @param root - root of the tree
      * @return The ClaimsTree inclusion or non-inclusion proof for the claim
      */
-    function getClaimProofByRoot(uint256 claimIndexHash, uint256 root) public virtual view returns (SmtLib.Proof memory) {
+    function getClaimProofByRoot(
+        uint256 claimIndexHash,
+        uint256 root
+    ) public view virtual returns (SmtLib.Proof memory) {
         return identity.getClaimProofByRoot(claimIndexHash, root);
     }
 
@@ -68,7 +70,7 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
      * @dev Retrieve ClaimsTree latest root.
      * @return The latest ClaimsTree root
      */
-    function getClaimsTreeRoot() public virtual view returns (uint256) {
+    function getClaimsTreeRoot() public view virtual returns (uint256) {
         return identity.getClaimsTreeRoot();
     }
 
@@ -77,7 +79,9 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
      * @param revocationNonce - revocation nonce
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
-    function getRevocationProof(uint64 revocationNonce) public virtual view returns (SmtLib.Proof memory) {
+    function getRevocationProof(
+        uint64 revocationNonce
+    ) public view virtual returns (SmtLib.Proof memory) {
         return identity.getRevocationProof(revocationNonce);
     }
 
@@ -87,7 +91,10 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
      * @param root - root of the tree
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
-    function getRevocationProofByRoot(uint64 revocationNonce, uint256 root) public virtual view returns (SmtLib.Proof memory) {
+    function getRevocationProofByRoot(
+        uint64 revocationNonce,
+        uint256 root
+    ) public view virtual returns (SmtLib.Proof memory) {
         return identity.getRevocationProofByRoot(revocationNonce, root);
     }
 
@@ -95,7 +102,7 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
      * @dev Retrieve RevocationsTree latest root.
      * @return The latest RevocationsTree root
      */
-    function getRevocationsTreeRoot() public virtual view returns (uint256) {
+    function getRevocationsTreeRoot() public view virtual returns (uint256) {
         return identity.getRevocationsTreeRoot();
     }
 
@@ -104,7 +111,9 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
      * @param claimsTreeRoot - claims tree root
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
-    function getRootProof(uint256 claimsTreeRoot) public virtual view returns (SmtLib.Proof memory) {
+    function getRootProof(
+        uint256 claimsTreeRoot
+    ) public view virtual returns (SmtLib.Proof memory) {
         return identity.getRootProof(claimsTreeRoot);
     }
 
@@ -114,7 +123,10 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
      * @param root - root of the tree
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
-    function getRootProofByRoot(uint256 claimsTreeRoot, uint256 root) public virtual view returns (SmtLib.Proof memory) {
+    function getRootProofByRoot(
+        uint256 claimsTreeRoot,
+        uint256 root
+    ) public view virtual returns (SmtLib.Proof memory) {
         return identity.getRootProofByRoot(claimsTreeRoot, root);
     }
 
@@ -122,7 +134,7 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
      * @dev Retrieve RootsTree latest root.
      * @return The latest RootsTree root
      */
-    function getRootsTreeRoot() public virtual view returns (uint256) {
+    function getRootsTreeRoot() public view virtual returns (uint256) {
         return identity.getRootsTreeRoot();
     }
 
@@ -132,7 +144,9 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
      * @param state identity state
      * @return set of roots
      */
-    function getRootsByState(uint256 state) public virtual view returns (OnChainIdentity.Roots memory) {
+    function getRootsByState(
+        uint256 state
+    ) public view virtual returns (OnChainIdentity.Roots memory) {
         return identity.getRootsByState(state);
     }
 
@@ -190,7 +204,10 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
      * @param nonce Revocation nonce
      * @return CredentialStatus
      */
-    function getRevocationStatus(uint256 id, uint64 nonce) public view returns (CredentialStatus memory) {
+    function getRevocationStatus(
+        uint256 id,
+        uint64 nonce
+    ) public view returns (CredentialStatus memory) {
         require(id == identity.id, "Identity id mismatch");
         uint256 latestState = identity.latestState;
         OnChainIdentity.Roots memory historicalStates = identity.getRootsByState(latestState);
@@ -201,7 +218,10 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
             revocationTreeRoot: historicalStates.revocationsRoot
         });
 
-        SmtLib.Proof memory p = identity.getRevocationProofByRoot(nonce, historicalStates.revocationsRoot);
+        SmtLib.Proof memory p = identity.getRevocationProofByRoot(
+            nonce,
+            historicalStates.revocationsRoot
+        );
         Proof memory mtp = Proof({
             root: p.root,
             existence: p.existence,
@@ -213,9 +233,6 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
             auxValue: p.auxValue
         });
 
-        return CredentialStatus({
-            issuer: issuerStates,
-            mtp: mtp
-        });
+        return CredentialStatus({issuer: issuerStates, mtp: mtp});
     }
 }
