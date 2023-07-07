@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import "./CredentialAtomicQueryValidator.sol";
+import {CredentialAtomicQueryValidator} from "./CredentialAtomicQueryValidator.sol";
 
 contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
-    string constant CIRCUIT_ID = "credentialAtomicQuerySigV2OnChain";
-    uint256 constant CHALLENGE_INDEX = 5;
+    string internal constant CIRCUIT_ID = "credentialAtomicQuerySigV2OnChain";
+    uint256 internal constant CHALLENGE_INDEX = 5;
 
     function getCircuitId() external pure override returns (string memory id) {
         return CIRCUIT_ID;

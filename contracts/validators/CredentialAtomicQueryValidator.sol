@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "../lib/GenesisUtils.sol";
-import "../interfaces/ICircuitValidator.sol";
-import "../interfaces/IVerifier.sol";
-import "../interfaces/IState.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {GenesisUtils} from "../lib/GenesisUtils.sol";
+import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {IVerifier} from "../interfaces/IVerifier.sol";
+import {IState} from "../interfaces/IState.sol";
 
 abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuitValidator {
     IVerifier public verifier;

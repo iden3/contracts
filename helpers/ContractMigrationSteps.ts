@@ -2,7 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 import { BytesLike, Contract, ContractInterface, Wallet } from "ethers";
 import * as fs from "fs";
-import { toJson } from "../test/utils/deploy-utils";
+import { toJson } from "../test/utils/state-utils";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function log(target: any, key: string, descriptor: PropertyDescriptor) {

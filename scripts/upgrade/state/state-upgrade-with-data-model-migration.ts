@@ -1,6 +1,6 @@
-import { DeployHelper } from "../helpers/DeployHelper";
+import { DeployHelper } from "../../../helpers/DeployHelper";
 import { ethers } from "hardhat";
-import { StateContractMigrationHelper } from "../helpers/StateContractMigrationHelper";
+import { StateContractMigrationHelper } from "../../../helpers/StateContractMigrationHelper";
 import fs from "fs";
 import { Contract } from "ethers";
 

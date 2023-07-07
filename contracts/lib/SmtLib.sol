@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import "./Poseidon.sol";
-import "./ArrayUtils.sol";
+import {PoseidonUnit2L, PoseidonUnit3L} from "./Poseidon.sol";
+import {ArrayUtils} from "./ArrayUtils.sol";
 
 /// @title A sparse merkle tree implementation, which keeps tree history.
 // Note that this SMT implementation can manage duplicated roots in the history,

@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import "../interfaces/IState.sol";
-import "../interfaces/IStateTransitionVerifier.sol";
-import "../lib/SmtLib.sol";
-import "../lib/Poseidon.sol";
-import "../lib/StateLib.sol";
+import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import {IState, MAX_SMT_DEPTH} from "../interfaces/IState.sol";
+import {IStateTransitionVerifier} from "../interfaces/IStateTransitionVerifier.sol";
+import {SmtLib} from "../lib/SmtLib.sol";
+import {PoseidonUnit1L} from "../lib/Poseidon.sol";
+import {StateLib} from "../lib/StateLib.sol";
+import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
 /// @title Set and get states for each identity
 contract StateV2 is Ownable2StepUpgradeable, IState {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.1.0";
+    string public constant VERSION = "2.2.0";
 
     // This empty reserved space is put in place to allow future versions
     // of the State contract to inherit from other contracts without a risk of
@@ -40,6 +41,16 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      */
     SmtLib.Data internal _gistData;
 
+    /**
+     * @dev Default Id Type
+     */
+    bytes2 internal _defaultIdType;
+
+    /**
+     * @dev Default Id Type initialized flag
+     */
+    bool internal _defaultIdTypeInitialized;
+
     using SmtLib for SmtLib.Data;
     using StateLib for StateLib.Data;
 
@@ -52,8 +63,12 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      * @dev Initialize the contract
      * @param verifierContractAddr Verifier address
      */
-    function initialize(IStateTransitionVerifier verifierContractAddr) public initializer {
+    function initialize(
+        IStateTransitionVerifier verifierContractAddr,
+        bytes2 defaultIdType
+    ) public initializer {
         verifier = verifierContractAddr;
+        _setDefaultIdType(defaultIdType);
         _gistData.initialize(MAX_SMT_DEPTH);
         __Ownable_init();
     }
@@ -64,6 +79,14 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      */
     function setVerifier(address newVerifierAddr) external onlyOwner {
         verifier = IStateTransitionVerifier(newVerifierAddr);
+    }
+
+    /**
+     * @dev Set defaultIdType external wrapper (only owner can call)
+     * @param defaultIdType default id type
+     */
+    function setDefaultIdType(bytes2 defaultIdType) external onlyOwner {
+        _setDefaultIdType(defaultIdType);
     }
 
     /**
@@ -84,35 +107,45 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
-    ) external {
-        require(id != 0, "ID should not be zero");
-        require(newState != 0, "New state should not be zero");
-        require(!stateExists(id, newState), "New state already exists");
-
-        if (isOldStateGenesis) {
-            require(!idExists(id), "Old state is genesis but identity already exists");
-
-            // Push old state to state entries, with zero timestamp and block
-            _stateData.addGenesisState(id, oldState);
-        } else {
-            require(idExists(id), "Old state is not genesis but identity does not yet exist");
-
-            StateLib.EntryInfo memory prevStateInfo = _stateData.getStateInfoById(id);
-            require(
-                prevStateInfo.createdAtBlock != block.number,
-                "No multiple set in the same block"
-            );
-            require(prevStateInfo.state == oldState, "Old state does not match the latest state");
-        }
-
+    ) public {
         uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis ? 1 : 0)];
         require(
             verifier.verifyProof(a, b, c, input),
             "Zero-knowledge proof of state transition is not valid"
         );
 
-        _stateData.addState(id, newState);
-        _gistData.addLeaf(PoseidonUnit1L.poseidon([id]), newState);
+        _transitState(id, oldState, newState, isOldStateGenesis);
+    }
+
+    /**
+     * @dev Change the state of an identity (transit to the new state) with method-specific id ownership check.
+     * @param id Identity
+     * @param oldState Previous identity state
+     * @param newState New identity state
+     * @param isOldStateGenesis Is the previous state genesis?
+     * @param methodId State transition method id
+     * @param methodParams State transition method-specific params
+     */
+    function transitStateGeneric(
+        uint256 id,
+        uint256 oldState,
+        uint256 newState,
+        bool isOldStateGenesis,
+        uint256 methodId,
+        bytes calldata methodParams
+    ) public {
+        if (methodId == 1) {
+            uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(
+                this.getDefaultIdType(),
+                msg.sender
+            );
+            require(calcId == id, "msg.sender is not owner of the identity");
+            require(methodParams.length == 0, "methodParams should be empty");
+
+            _transitState(id, oldState, newState, isOldStateGenesis);
+        } else {
+            revert("Unknown state transition method id");
+        }
     }
 
     /**
@@ -121,6 +154,15 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
      */
     function getVerifier() external view returns (address) {
         return address(verifier);
+    }
+
+    /**
+     * @dev Get defaultIdType
+     * @return defaultIdType
+     */
+    function getDefaultIdType() public view returns (bytes2) {
+        require(_defaultIdTypeInitialized, "Default Id Type is not initialized");
+        return _defaultIdType;
     }
 
     /**
@@ -315,6 +357,43 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
         return _stateData.stateExists(id, state);
     }
 
+    /**
+     * @dev Change the state of an identity (transit to the new state) with ZKP ownership check.
+     * @param id Identity
+     * @param oldState Previous identity state
+     * @param newState New identity state
+     * @param isOldStateGenesis Is the previous state genesis?
+     */
+    function _transitState(
+        uint256 id,
+        uint256 oldState,
+        uint256 newState,
+        bool isOldStateGenesis
+    ) internal {
+        require(id != 0, "ID should not be zero");
+        require(newState != 0, "New state should not be zero");
+        require(!stateExists(id, newState), "New state already exists");
+
+        if (isOldStateGenesis) {
+            require(!idExists(id), "Old state is genesis but identity already exists");
+
+            // Push old state to state entries, with zero timestamp and block
+            _stateData.addGenesisState(id, oldState);
+        } else {
+            require(idExists(id), "Old state is not genesis but identity does not yet exist");
+
+            StateLib.EntryInfo memory prevStateInfo = _stateData.getStateInfoById(id);
+            require(
+                prevStateInfo.createdAtBlock != block.number,
+                "No multiple set in the same block"
+            );
+            require(prevStateInfo.state == oldState, "Old state does not match the latest state");
+        }
+
+        _stateData.addState(id, newState);
+        _gistData.addLeaf(PoseidonUnit1L.poseidon([id]), newState);
+    }
+
     function _smtProofAdapter(
         SmtLib.Proof memory proof
     ) internal pure returns (IState.GistProof memory) {
@@ -365,5 +444,14 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
                 createdAtBlock: sei.createdAtBlock,
                 replacedAtBlock: sei.replacedAtBlock
             });
+    }
+
+    /**
+     * @dev Set defaultIdType internal setter
+     * @param defaultIdType default id type
+     */
+    function _setDefaultIdType(bytes2 defaultIdType) internal {
+        _defaultIdType = defaultIdType;
+        _defaultIdTypeInitialized = true;
     }
 }

@@ -88,4 +88,48 @@ interface IState {
      * @return The GIST root info.
      */
     function getGISTRootInfo(uint256 root) external view returns (GistRootInfo memory);
+
+    /**
+     * @dev Get defaultIdType
+     * @return defaultIdType
+     */
+    function getDefaultIdType() external view returns (bytes2);
+
+    /**
+     * @dev Performs state transition
+     * @param id Identifier of the identity
+     * @param oldState Previous state of the identity
+     * @param newState New state of the identity
+     * @param isOldStateGenesis Flag if previous identity state is genesis
+     * @param a Proof.A
+     * @param b Proof.B
+     * @param c Proof.C
+     */
+    function transitState(
+        uint256 id,
+        uint256 oldState,
+        uint256 newState,
+        bool isOldStateGenesis,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c
+    ) external;
+
+    /**
+     * @dev Performs state transition
+     * @param id Identity
+     * @param oldState Previous identity state
+     * @param newState New identity state
+     * @param isOldStateGenesis Is the previous state genesis?
+     * @param methodId State transition method id
+     * @param methodParams State transition method-specific params
+     */
+    function transitStateGeneric(
+        uint256 id,
+        uint256 oldState,
+        uint256 newState,
+        bool isOldStateGenesis,
+        uint256 methodId,
+        bytes calldata methodParams
+    ) external;
 }

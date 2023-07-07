@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.16;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "../lib/GenesisUtils.sol";
-import "../lib/Poseidon.sol";
-import "../interfaces/ICircuitValidator.sol";
-import "../interfaces/IZKPVerifier.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {GenesisUtils} from "../lib/GenesisUtils.sol";
+import {PoseidonFacade} from "../lib/Poseidon.sol";
+import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 
 contract ZKPVerifier is IZKPVerifier, Ownable {
     // msg.sender-> ( requestID -> is proof given )

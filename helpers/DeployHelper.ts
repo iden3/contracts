@@ -1,7 +1,8 @@
-import { ethers, upgrades } from "hardhat";
+import { ethers, upgrades, network } from "hardhat";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
+import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
 
 const SMT_MAX_DEPTH = 64;
 
@@ -12,7 +13,7 @@ export class DeployHelper {
   ) {}
 
   static async initialize(
-    signers: SignerWithAddress | null = null,
+    signers: SignerWithAddress[] | null = null,
     enableLogging = false
   ): Promise<DeployHelper> {
     let sgrs;
@@ -24,7 +25,9 @@ export class DeployHelper {
     return new DeployHelper(sgrs, enableLogging);
   }
 
-  async deployStateV2(verifierContractName = "VerifierV2"): Promise<{
+  async deployStateV2(
+    verifierContractName = "VerifierV2"
+  ): Promise<{
     state: Contract;
     verifier: Contract;
     stateLib: Contract;
@@ -32,8 +35,12 @@ export class DeployHelper {
     poseidon1: Contract;
     poseidon2: Contract;
     poseidon3: Contract;
+    poseidon4: Contract;
   }> {
     this.log("======== StateV2: deploy started ========");
+
+    const { defaultIdType, chainId } = await this.getDefaultIdType();
+    this.log(`found defaultIdType ${defaultIdType} for chainId ${chainId}`);
 
     const owner = this.signers[0];
 
@@ -47,9 +54,9 @@ export class DeployHelper {
     );
 
     this.log("deploying poseidons...");
-    const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons(
+    const [poseidon1Elements, poseidon2Elements, poseidon3Elements, poseidon4Elements] = await deployPoseidons(
       owner,
-      [1, 2, 3]
+      [1, 2, 3, 4]
     );
 
     this.log("deploying SmtLib...");
@@ -66,7 +73,7 @@ export class DeployHelper {
         PoseidonUnit1L: poseidon1Elements.address,
       },
     });
-    const stateV2 = await upgrades.deployProxy(StateV2Factory, [verifier.address], {
+    const stateV2 = await upgrades.deployProxy(StateV2Factory, [verifier.address, defaultIdType], {
       unsafeAllowLinkedLibraries: true,
     });
     await stateV2.deployed();
@@ -82,6 +89,7 @@ export class DeployHelper {
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
+      poseidon4: poseidon4Elements,
     };
   }
 
@@ -300,6 +308,16 @@ export class DeployHelper {
     console.log("GenesisUtilsWrapper deployed to:", genesisUtilsWrapper.address);
     return genesisUtilsWrapper;
   }
+
+  async getDefaultIdType(): Promise<{defaultIdType: number, chainId: number}> {
+    const chainId = parseInt(await network.provider.send('eth_chainId'), 16);
+    const defaultIdType = chainIdDefaultIdTypeMap.get(chainId);
+    if (!defaultIdType) {
+      throw new Error(`Failed to find defaultIdType in Map for chainId ${chainId}`);
+    }
+    return { defaultIdType, chainId };
+  }
+
   private log(...args): void {
     this.enableLogging && console.log(args);
   }

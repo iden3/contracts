@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import "solidity-bytes-utils/contracts/BytesLib.sol";
+import {BytesLib} from "solidity-bytes-utils/contracts/BytesLib.sol";
 
 library GenesisUtils {
     /**
@@ -66,26 +66,12 @@ library GenesisUtils {
     }
 
     /**
-     * @dev bytesToHexString
-     */
-    function bytesToHexString(bytes memory buffer) internal pure returns (string memory) {
-        // Fixed buffer size for hexadecimal convertion
-        bytes memory converted = new bytes(buffer.length * 2);
-
-        bytes memory _base = "0123456789abcdef";
-
-        for (uint256 i = 0; i < buffer.length; i++) {
-            converted[i * 2] = _base[uint8(buffer[i]) / _base.length];
-            converted[i * 2 + 1] = _base[uint8(buffer[i]) % _base.length];
-        }
-
-        return string(abi.encodePacked("0x", converted));
-    }
-
-    /**
      * @dev compareStrings
      */
     function compareStrings(string memory a, string memory b) internal pure returns (bool) {
+        if (bytes(a).length != bytes(b).length) {
+            return false;
+        }
         return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))));
     }
 
@@ -93,14 +79,23 @@ library GenesisUtils {
      * @dev isGenesisState
      */
     function isGenesisState(uint256 id, uint256 idState) internal pure returns (bool) {
-        bytes memory userStateB1 = int256ToBytes(idState);
+        bytes2 idType = bytes2(int256ToBytes(reverse(id)));
+        uint256 computedId = calcIdFromGenesisState(idType, idState);
+        return id == computedId;
+    }
+
+    /**
+     * @dev calcIdFromGenesisState
+     */
+    function calcIdFromGenesisState(
+        bytes2 idType,
+        uint256 idState
+    ) internal pure returns (uint256) {
+        bytes memory userStateB1 = int256ToBytes(reverse(idState));
 
         bytes memory cutState = BytesLib.slice(userStateB1, userStateB1.length - 27, 27);
 
-        bytes memory userIdB = int256ToBytes(id);
-        bytes memory idType = BytesLib.slice(userIdB, userIdB.length - 31, 2);
-
-        bytes memory beforeChecksum = BytesLib.concat(idType, cutState);
+        bytes memory beforeChecksum = BytesLib.concat(abi.encodePacked(idType), cutState);
         require(beforeChecksum.length == 29, "Checksum requires 29 length array");
 
         uint16 checksum = reverse16(sum(beforeChecksum));
@@ -110,7 +105,19 @@ library GenesisUtils {
         bytes memory idBytes = BytesLib.concat(beforeChecksum, checkSumBytes);
         require(idBytes.length == 31, "idBytes requires 31 length array");
 
-        return id == uint256(uint248(bytes31(idBytes)));
+        return reverse(toUint256(idBytes));
+    }
+
+    /**
+     * @dev calcOnchainIdFromAddress
+     */
+    function calcOnchainIdFromAddress(
+        bytes2 idType,
+        address caller
+    ) internal pure returns (uint256) {
+        uint256 addr = uint256(uint160(caller));
+
+        return calcIdFromGenesisState(idType, reverse(addr));
     }
 
     /**

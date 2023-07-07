@@ -1,0 +1,9 @@
+{
+    "state": {
+        "commit": "2b45246c7a674c1a824ddd599b0be7e154fa66fb",
+        "abiPath": "state/StateV2.sol/StateV2.json",
+        "deployScript": "scripts/deploy.ts",
+        "outputContractName": "state",
+        "unitTestFile": "test/upgrade/state-upgrade.test.ts"
+    }
+}
