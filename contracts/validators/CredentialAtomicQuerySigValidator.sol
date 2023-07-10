@@ -18,12 +18,13 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
     function _getInputValidationParameters(
         uint256[] calldata inputs
     ) internal pure override returns (uint256[] memory) {
-        uint256[] memory params = new uint256[](5);
+        uint256[] memory params = new uint256[](6);
         params[0] = inputs[2]; // queryHash
         params[1] = inputs[6]; // gistRoot
         params[2] = inputs[7]; // issuerId
         params[3] = inputs[3]; // issuerClaimAuthState
         params[4] = inputs[9]; // issuerClaimNonRevState
+        params[5] = inputs[10]; // timestamp
         return params;
     }
 }
