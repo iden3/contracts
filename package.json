@@ -50,7 +50,7 @@
   "dependencies": {
     "@nomiclabs/hardhat-etherscan": "^3.0.3",
     "@openzeppelin/contracts": "^4.7.3",
-    "@openzeppelin/contracts-upgradeable": "^4.8.2",
+    "@openzeppelin/contracts-upgradeable": "^4.9.2",
     "circomlibjs": "^0.1.6",
     "codecov": "^3.8.2",
     "node-jq": "^2.3.5",
