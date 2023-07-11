@@ -118,11 +118,8 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     }
 
     function _checkProofGeneratedExpiration(uint256 _proofGenerationTimestamp) internal view {
-        if (
-            block.timestamp - _proofGenerationTimestamp >
-            proofGenerationExpirationTime
-            ) {
-                revert("Generated proof is outdated");
-            }
+        if (block.timestamp - _proofGenerationTimestamp > proofGenerationExpirationTime) {
+            revert("Generated proof is outdated");
+        }
     }
 }

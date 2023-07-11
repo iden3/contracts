@@ -50,7 +50,7 @@ const testCases: any[] = [
     setProofExpiration: tenYears,
   },
   {
-    name: "he generated proof is expired (old enough)",
+    name: "The generated proof is expired (old enough)",
     stateTransitions: [
       require("../common-data/issuer_genesis_state.json"),
       require("../common-data/user_state_transition.json"),
