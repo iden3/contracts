@@ -10,7 +10,7 @@ import {StateLib} from "../lib/StateLib.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
 /// @title Set and get states for each identity
-contract StateV2 is Ownable2StepUpgradeable, IState {
+contract State is Ownable2StepUpgradeable, IState {
     /**
      * @dev Version of contract
      */

@@ -10,7 +10,7 @@ unitTestFile=$(jq .$1.unitTestFile scripts/upgrade/input-params.json | sed 's/"/
 #store current branch
 currBranch=$(git rev-parse --abbrev-ref HEAD)
 
-#checkout to prev commit & compile and deploy StateV2 contract
+#checkout to prev commit & compile and deploy State contract
 git checkout $commit
 npx hardhat compile
 npx hardhat run --network localhost $deployScript

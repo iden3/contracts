@@ -32,7 +32,7 @@ describe("State transition with real verifier", () => {
   before(async function () {
     this.timeout(5000);
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployStateV2();
+    const contracts = await deployHelper.deployState();
     state = contracts.state;
   });
 
@@ -116,7 +116,7 @@ describe("State transition negative cases", () => {
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployStateV2(verifierStubName);
+    const contracts = await deployHelper.deployState(verifierStubName);
     state = contracts.state;
   });
 
@@ -192,7 +192,7 @@ describe("StateInfo history", function () {
 
   before(async () => {
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployStateV2(verifierStubName);
+    const contracts = await deployHelper.deployState(verifierStubName);
     state = contracts.state;
 
     publishedStates = [];
@@ -228,7 +228,7 @@ describe("GIST proofs", () => {
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployStateV2(verifierStubName);
+    const contracts = await deployHelper.deployState(verifierStubName);
     state = contracts.state;
   });
 
@@ -301,7 +301,7 @@ describe("GIST root history", () => {
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployStateV2(verifierStubName);
+    const contracts = await deployHelper.deployState(verifierStubName);
     state = contracts.state;
   });
 
@@ -367,7 +367,7 @@ describe("GIST root history", () => {
 describe("Set Verifier", () => {
   it("Should set verifier", async () => {
     const deployHelper = await DeployHelper.initialize();
-    const { state, verifier } = await deployHelper.deployStateV2();
+    const { state, verifier } = await deployHelper.deployState();
 
     const verifierAddress = await state.getVerifier();
     expect(verifierAddress).to.equal(verifier.address);
@@ -382,7 +382,7 @@ describe("Set Verifier", () => {
 
   it("Should not set verifier if not owner", async () => {
     const deployHelper = await DeployHelper.initialize();
-    const { state, verifier } = await deployHelper.deployStateV2();
+    const { state, verifier } = await deployHelper.deployState();
 
     const verifierAddress = await state.getVerifier();
     expect(verifierAddress).to.equal(verifier.address);
@@ -398,7 +398,7 @@ describe("Set Verifier", () => {
 
   it("Should allow verifier zero address to block any state transition", async () => {
     const deployHelper = await DeployHelper.initialize();
-    const { state } = await deployHelper.deployStateV2();
+    const { state } = await deployHelper.deployState();
 
     await state.setVerifier(ethers.constants.AddressZero);
     await expect(publishState(state, stateTransitionsWithProofs[0])).to.be.reverted;

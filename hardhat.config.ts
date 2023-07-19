@@ -39,11 +39,11 @@ const config: HardhatUserConfig = {
     //     url: "https://ropsten.infura.io/v3/{infuraID}",
     //     accounts: [<private key here>],
     // },
-    // mumbai: {
-    //     chainId: 80001,
-    //     url: "url here",
-    //     accounts: ["private key here"],
-    // },
+    mumbai: {
+        chainId: 80001,
+        url: "https://polygon-mumbai.g.alchemy.com/v2/NylY7Qhw31V8fPfstqzasLEFKcjmDJYs",
+        accounts: ["794b190c537189d5b74440122ea1a91546164fc887673f8155665c334d88912d"],
+    },
     localhost: {
       url: "http://127.0.0.1:8545",
       accounts: {
@@ -60,9 +60,9 @@ const config: HardhatUserConfig = {
     enabled: !!process.env.REPORT_GAS,
     token: "MATIC",
   },
-  // etherscan: {
-  //     apiKey: "etherscan API key"
-  // }
+  etherscan: {
+      apiKey: "PNIT54N1A79N6KUXZSPU2SR6K4H8TCDRTD"
+  }
 };
 
 export default config;
