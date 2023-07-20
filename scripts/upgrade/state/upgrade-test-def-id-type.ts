@@ -16,7 +16,7 @@ async function main() {
     const stateDeployHelper = await DeployHelper.initialize(null, true);
     const stateContractMigrationHelper = new StateContractMigrationHelper(stateDeployHelper, signers[0]);
 
-    const oldContractABI = require("./State_deployed_abi.json"); // abi of contract that will be upgraded
+    const oldContractABI = []; // abi of contract that will be upgraded
     const stateContractAddress = "";  // address of contract that will be upgraded
     const stateContractInstance = await stateContractMigrationHelper.getInitContract({
         contractNameOrAbi: oldContractABI,

@@ -40,7 +40,7 @@ describe.skip("Get State old Contract and migrate to latest version", () => {
   it("Check migration", async () => {
     // 1. init old contract by abi & address
     const stateContractMigrationHelper = new StateContractMigrationHelper(deployHelper, signers[0]);
-    const oldContractABI = require("../../scripts/State_deployed_abi.json");  // abi of contract that will be upgraded
+    const oldContractABI = [];  // abi of contract that will be upgraded
     const stateContractAddress = '';  // address of contract that will be upgraded
     const stateContractInstance = await stateContractMigrationHelper.getInitContract({
         contractNameOrAbi: oldContractABI,
