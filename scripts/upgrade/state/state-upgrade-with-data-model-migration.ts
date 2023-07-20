@@ -1,8 +1,7 @@
 import { DeployHelper } from "../../../helpers/DeployHelper";
 import { ethers } from "hardhat";
 import { StateContractMigrationHelper } from "../../../helpers/StateContractMigrationHelper";
-import fs, { stat } from "fs";
-import { Contract } from "ethers";
+import fs from "fs";
 
 /*
 1. deploy state to mumbai from feature/state-v3 branch
