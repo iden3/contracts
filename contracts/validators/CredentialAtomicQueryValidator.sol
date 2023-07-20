@@ -19,7 +19,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         address _stateContractAddr
     ) public initializer {
         revocationStateExpirationTime = 1 hours;
-        proofGenerationExpirationTime = 24 hours;
+        proofGenerationExpirationTime = 1 hours;
         verifier = IVerifier(_verifierContractAddr);
         state = IState(_stateContractAddr);
         __Ownable_init();
