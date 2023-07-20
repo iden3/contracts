@@ -24,7 +24,7 @@ describe("Next tests reproduce identity life cycle", function() {
 
     const stDeployHelper = await DeployHelper.initialize([signer]);
     const deployHelper = await OnchainIdentityDeployHelper.initialize([signer]);
-    const stContracts = await stDeployHelper.deployStateV2();
+    const stContracts = await stDeployHelper.deployState();
     const contracts = await deployHelper.deployIdentity(
         stContracts.state,
         stContracts.smtLib,
@@ -238,7 +238,7 @@ describe("Claims tree proofs", () => {
   before(async function () {
     const stDeployHelper = await DeployHelper.initialize();
     const deployHelper = await OnchainIdentityDeployHelper.initialize();
-    const stContracts = await stDeployHelper.deployStateV2();
+    const stContracts = await stDeployHelper.deployState();
     const contracts = await deployHelper.deployIdentity(
       stContracts.state,
       stContracts.smtLib,
@@ -291,7 +291,7 @@ describe("Revocation tree proofs", () => {
   before(async function () {
     const stDeployHelper = await DeployHelper.initialize();
     const deployHelper = await OnchainIdentityDeployHelper.initialize();
-    const stContracts = await stDeployHelper.deployStateV2();
+    const stContracts = await stDeployHelper.deployState();
     const contracts = await deployHelper.deployIdentity(
       stContracts.state,
       stContracts.smtLib,
@@ -344,7 +344,7 @@ describe("Root of roots tree proofs", () => {
   before(async function () {
     const stDeployHelper = await DeployHelper.initialize();
     const deployHelper = await OnchainIdentityDeployHelper.initialize();
-    const stContracts = await stDeployHelper.deployStateV2();
+    const stContracts = await stDeployHelper.deployState();
     const contracts = await deployHelper.deployIdentity(
       stContracts.state,
       stContracts.smtLib,
@@ -411,7 +411,7 @@ describe("Compare historical roots with latest roots from tree", () => {
   before(async function () {
     const stDeployHelper = await DeployHelper.initialize();
     const deployHelper = await OnchainIdentityDeployHelper.initialize();
-    const stContracts = await stDeployHelper.deployStateV2();
+    const stContracts = await stDeployHelper.deployState();
     const contracts = await deployHelper.deployIdentity(
       stContracts.state,
       stContracts.smtLib,
@@ -463,7 +463,7 @@ describe("Compare historical roots with latest roots from tree", () => {
   before(async function () {
     const stDeployHelper = await DeployHelper.initialize();
     const deployHelper = await OnchainIdentityDeployHelper.initialize();
-    const stContracts = await stDeployHelper.deployStateV2();
+    const stContracts = await stDeployHelper.deployState();
     const contracts = await deployHelper.deployIdentity(
       stContracts.state,
       stContracts.smtLib,
@@ -546,7 +546,7 @@ describe("Genesis state doens't have history of states", () => {
   before(async function () {
     const stDeployHelper = await DeployHelper.initialize();
     const deployHelper = await OnchainIdentityDeployHelper.initialize();
-    const stContracts = await stDeployHelper.deployStateV2();
+    const stContracts = await stDeployHelper.deployState();
     const contracts = await deployHelper.deployIdentity(
       stContracts.state,
       stContracts.smtLib,

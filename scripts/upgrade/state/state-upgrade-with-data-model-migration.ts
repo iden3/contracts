@@ -2,10 +2,9 @@ import { DeployHelper } from "../../../helpers/DeployHelper";
 import { ethers } from "hardhat";
 import { StateContractMigrationHelper } from "../../../helpers/StateContractMigrationHelper";
 import fs from "fs";
-import { Contract } from "ethers";
 
 /*
-1. deploy stateV2 to mumbai from feature/state-v3 branch
+1. deploy state to mumbai from feature/state-v3 branch
 2. run transit-state script
 3. cp .openzeppelin/* ../../contracts/.openzeppelin/
 4. update addreess and block number in data
@@ -49,7 +48,7 @@ async function main() {
   const verifierName = "VerifierV2";
   const stateContractMigrationName = "StateV2-intermediate-migration";
 
-  const { state: stateMigration, verifier } = await stateDeployHelper.upgradeStateV2(
+  const { state: stateMigration, verifier } = await stateDeployHelper.upgradeState(
     stateContractInstance.address,
     verifierName,
       stateContractMigrationName
@@ -90,9 +89,9 @@ async function main() {
 
   await migrationSteps.checkData(result1, intermediateContractCheck2);
 
-  const { state: stateV2 } = await migrationSteps.upgradeContract(stateContractInstance);
+  const { state } = await migrationSteps.upgradeContract(stateContractInstance);
 
-  const result2 = await migrationSteps.getDataFromContract(stateV2, testId, testState);
+  const result2 = await migrationSteps.getDataFromContract(state, testId, testState);
 
   fs.writeFileSync(`data-after-upgrade.${network}.json`, JSON.stringify(result2, null, 2));
 
