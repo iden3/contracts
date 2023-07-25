@@ -45,7 +45,7 @@ async function main() {
   fs.writeFileSync(`data-before-upgrade.${network}.json`, JSON.stringify(result1, null, 2));
 
   console.log("============= Start: upgradeToStateV2_migration =============");
-  const verifierName = "VerifierV2";
+  const verifierName = "Verifier";
   const stateContractMigrationName = "StateV2-intermediate-migration";
 
   const { state: stateMigration, verifier } = await stateDeployHelper.upgradeState(
