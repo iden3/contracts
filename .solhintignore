@@ -4,5 +4,5 @@
 **/lib/verifierMTPWrapper.sol
 **/lib/verifierSig.sol
 **/lib/verifierSigWrapper.sol
-**/lib/verifier.sol
+**/lib/Verifier.sol
 **/node_modules
