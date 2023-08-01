@@ -24,7 +24,7 @@ async function main() {
         address: stateContractAddress,
     });
 
-    const { state: stateV2 } = await stateContractMigrationHelper.upgradeContract(stateContractInstance);
+    const { state } = await stateContractMigrationHelper.upgradeContract(stateContractInstance);
 
     console.log("Contract Upgrade Finished");
 }

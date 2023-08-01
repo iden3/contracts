@@ -7,7 +7,7 @@ const pathOutputJson = path.join(__dirname, "./deploy_output.json");
 async function main() {
     const stDeployHelper = await DeployHelper.initialize();
     const deployHelper = await OnchainIdentityDeployHelper.initialize();
-    const stContracts = await stDeployHelper.deployStateV2();
+    const stContracts = await stDeployHelper.deployState();
     const contracts = await deployHelper.deployIdentity(
       stContracts.state,
       stContracts.smtLib,

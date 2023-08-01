@@ -25,8 +25,8 @@ export class DeployHelper {
     return new DeployHelper(sgrs, enableLogging);
   }
 
-  async deployStateV2(
-    verifierContractName = "VerifierV2"
+  async deployState(
+    verifierContractName = "Verifier"
   ): Promise<{
     state: Contract;
     verifier: Contract;
@@ -37,7 +37,7 @@ export class DeployHelper {
     poseidon3: Contract;
     poseidon4: Contract;
   }> {
-    this.log("======== StateV2: deploy started ========");
+    this.log("======== State: deploy started ========");
 
     const { defaultIdType, chainId } = await this.getDefaultIdType();
     this.log(`found defaultIdType ${defaultIdType} for chainId ${chainId}`);
@@ -65,24 +65,24 @@ export class DeployHelper {
     this.log("deploying StateLib...");
     const stateLib = await this.deployStateLib();
 
-    this.log("deploying stateV2...");
-    const StateV2Factory = await ethers.getContractFactory("StateV2", {
+    this.log("deploying state...");
+    const StateFactory = await ethers.getContractFactory("State", {
       libraries: {
         StateLib: stateLib.address,
         SmtLib: smtLib.address,
         PoseidonUnit1L: poseidon1Elements.address,
       },
     });
-    const stateV2 = await upgrades.deployProxy(StateV2Factory, [verifier.address, defaultIdType], {
+    const state = await upgrades.deployProxy(StateFactory, [verifier.address, defaultIdType], {
       unsafeAllowLinkedLibraries: true,
     });
-    await stateV2.deployed();
-    this.log(`StateV2 contract deployed to address ${stateV2.address} from ${owner.address}`);
+    await state.deployed();
+    this.log(`State contract deployed to address ${state.address} from ${owner.address}`);
 
-    this.log("======== StateV2: deploy completed ========");
+    this.log("======== State: deploy completed ========");
 
     return {
-      state: stateV2,
+      state: state,
       verifier,
       stateLib,
       smtLib,
@@ -93,10 +93,10 @@ export class DeployHelper {
     };
   }
 
-  async upgradeStateV2(
+  async upgradeState(
     stateAddress: string,
-    verifierContractName = "VerifierV2",
-    stateContractName = "StateV2"
+    verifierContractName = "Verifier",
+    stateContractName = "State"
   ): Promise<{
     state: Contract;
     verifier: Contract;
@@ -106,7 +106,7 @@ export class DeployHelper {
     poseidon2: Contract;
     poseidon3: Contract;
   }> {
-    this.log("======== StateV2: upgrade started ========");
+    this.log("======== State: upgrade started ========");
 
     const owner = this.signers[0];
 
@@ -131,33 +131,33 @@ export class DeployHelper {
     this.log("deploying StateLib...");
     const stateLib = await this.deployStateLib();
 
-    this.log("upgrading stateV2...");
-    const StateV2Factory = await ethers.getContractFactory(stateContractName, {
+    this.log("upgrading state...");
+    const StateFactory = await ethers.getContractFactory(stateContractName, {
       libraries: {
         StateLib: stateLib.address,
         SmtLib: smtLib.address,
         PoseidonUnit1L: poseidon1Elements.address,
       },
     });
-    const stateV2 = await upgrades.upgradeProxy(stateAddress, StateV2Factory, {
+    const state = await upgrades.upgradeProxy(stateAddress, StateFactory, {
       unsafeAllowLinkedLibraries: true,
       unsafeSkipStorageCheck: true,
     });
-    await stateV2.deployed();
-    this.log(`StateV2 contract upgraded at address ${stateV2.address} from ${owner.address}`);
+    await state.deployed();
+    this.log(`State contract upgraded at address ${state.address} from ${owner.address}`);
 
-    this.log("======== StateV2: setVerifier ========");
-    const tx = await stateV2.setVerifier(verifier.address);
+    this.log("======== State: setVerifier ========");
+    const tx = await state.setVerifier(verifier.address);
     const receipt = await tx.wait();
 
     if (receipt.status !== 1) {
       throw new Error("Failed to set verifier");
     }
-    this.log("======== StateV2: setVerifier completed ========");
+    this.log("======== State: setVerifier completed ========");
 
-    this.log("======== StateV2: upgrade completed ========");
+    this.log("======== State: upgrade completed ========");
     return {
-      state: stateV2,
+      state: state,
       verifier,
       smtLib,
       stateLib,
@@ -264,7 +264,7 @@ export class DeployHelper {
   }> {
     if (!stateAddress) {
       const stateDeployHelper = await DeployHelper.initialize();
-      const { state } = await stateDeployHelper.deployStateV2();
+      const { state } = await stateDeployHelper.deployState();
       stateAddress = state.address;
     }
 
@@ -290,7 +290,7 @@ export class DeployHelper {
     console.log(`${validatorContractName} deployed to: ${validatorContractProxy.address}`);
     const signers = await ethers.getSigners();
 
-    const state = await ethers.getContractAt("StateV2", stateAddress, signers[0]);
+    const state = await ethers.getContractAt("State", stateAddress, signers[0]);
     return {
       validator: validatorContractProxy,
       verifierWrapper: validatorContractVerifierWrapper,

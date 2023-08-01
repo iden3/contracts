@@ -1,11 +1,11 @@
 # IDEN3 Smart Contracts [![Test](https://github.com/iden3/contracts/workflows/Tests/badge.svg)](https://github.com/iden3/contracts/actions?query=workflow%3ATests)
 
-- StateV2 - State contract, where identity states are published
+- State - State contract, where identity states are published
 - Smt - library to manage Sparse Merkle Trees onchain
 
 ## Security Audits
 
-[Nethermind](https://nethermind.io/smart-contracts-audits/) has performed a security audit of our core smart contracts (StateV2 & Smt) and compiled a report on Apr 18, 2023.
+[Nethermind](https://nethermind.io/smart-contracts-audits/) has performed a security audit of our core smart contracts (State & Smt) and compiled a report on Apr 18, 2023.
 
 Here it is: [NM_0069_POLYGON_FINAL.pdf](https://iden3-circuits-bucket.s3.eu-west-1.amazonaws.com/audit_reports/NM_0069_POLYGON_FINAL.pdf)
 
