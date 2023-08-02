@@ -12,12 +12,14 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     IState public state;
 
     uint256 public revocationStateExpirationTime;
+    uint256 public proofGenerationExpirationTime;
 
     function initialize(
         address _verifierContractAddr,
         address _stateContractAddr
     ) public initializer {
         revocationStateExpirationTime = 1 hours;
+        proofGenerationExpirationTime = 1 hours;
         verifier = IVerifier(_verifierContractAddr);
         state = IState(_stateContractAddr);
         __Ownable_init();
@@ -25,6 +27,10 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
 
     function setRevocationStateExpirationTime(uint256 expirationTime) public virtual onlyOwner {
         revocationStateExpirationTime = expirationTime;
+    }
+
+    function setProofGenerationExpirationTime(uint256 expirationTime) public virtual onlyOwner {
+        proofGenerationExpirationTime = expirationTime;
     }
 
     function getCircuitId() external pure virtual returns (string memory id);
@@ -53,6 +59,8 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         _checkStateContractOrGenesis(issuerId, issuerClaissuerClaimState);
         uint256 issuerClaimNonRevState = validationParams[4];
         _checkClaimNonRevState(issuerId, issuerClaimNonRevState);
+        uint256 proofGenerationTimestamp = validationParams[5];
+        _checkProofGeneratedExpiration(proofGenerationTimestamp);
         return (true);
     }
 
@@ -106,6 +114,12 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
                     revert("Non-Revocation state of Issuer expired");
                 }
             }
+        }
+    }
+
+    function _checkProofGeneratedExpiration(uint256 _proofGenerationTimestamp) internal view {
+        if (block.timestamp - _proofGenerationTimestamp > proofGenerationExpirationTime) {
+            revert("Generated proof is outdated");
         }
     }
 }
