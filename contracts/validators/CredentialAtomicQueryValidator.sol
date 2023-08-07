@@ -38,16 +38,14 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     function getChallengeInputIndex() external pure virtual returns (uint256 index);
 
     function verify(
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
-        uint256 queryHash
+        ZKPResponse calldata zkpResponse,
+        uint256 queryHash,
+        uint256[] calldata allowedIssuers
     ) external view virtual returns (bool) {
         // verify that zkp is valid
-        require(verifier.verifyProof(a, b, c, inputs), "Proof is not valid");
+        require(verifier.verifyProof(zkpResponse.a, zkpResponse.b, zkpResponse.c, zkpResponse.inputs), "Proof is not valid");
         //destrcut values from result array
-        uint256[] memory validationParams = _getInputValidationParameters(inputs);
+        uint256[] memory validationParams = _getInputValidationParameters(zkpResponse.inputs);
         uint256 inputQueryHash = validationParams[0];
         require(inputQueryHash == queryHash, "query hash does not match the requested one");
 
@@ -55,6 +53,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         _checkGistRoot(gistRoot);
 
         uint256 issuerId = validationParams[2];
+        _checkAllowedIssuers(issuerId, allowedIssuers);
         uint256 issuerClaissuerClaimState = validationParams[3];
         _checkStateContractOrGenesis(issuerId, issuerClaissuerClaimState);
         uint256 issuerClaimNonRevState = validationParams[4];
@@ -121,5 +120,23 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         if (block.timestamp - _proofGenerationTimestamp > proofGenerationExpirationTime) {
             revert("Generated proof is outdated");
         }
+    }
+
+    function _checkAllowedIssuers(
+        uint256 issuerId,
+        uint256[] memory allowedIssuers
+    ) internal pure {
+        // empty array is 'allow all' equivalent - ['*']
+        if (allowedIssuers.length == 0) {
+            return;
+        }
+
+        for (uint i = 0; i < allowedIssuers.length; i++) {
+            if (issuerId == allowedIssuers[i]) {
+                return;
+            }
+        }
+
+        revert("Issuer is not on the Allowed Issuers list");
     }
 }

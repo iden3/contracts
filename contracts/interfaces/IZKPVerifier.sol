@@ -7,10 +7,7 @@ import {ICircuitValidator} from "./ICircuitValidator.sol";
 interface IZKPVerifier {
     function submitZKPResponse(
         uint64 requestId,
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c
+        ICircuitValidator.ZKPResponse calldata zkpResponse
     ) external returns (bool);
 
     function setZKPRequest(
@@ -19,7 +16,8 @@ interface IZKPVerifier {
         uint256 schema,
         uint256 slotIndex,
         uint256 operator,
-        uint256[] calldata value
+        uint256[] calldata value,
+        string calldata metadata
     ) external returns (bool);
 
     function setZKPRequestRaw(
@@ -29,7 +27,8 @@ interface IZKPVerifier {
         uint256 slotIndex,
         uint256 operator,
         uint256[] calldata value,
-        uint256 queryHash
+        uint256 queryHash,
+        string calldata metadata
     ) external returns (bool);
 
     function getZKPRequest(

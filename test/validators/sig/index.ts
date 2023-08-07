@@ -59,6 +59,14 @@ const testCases: any[] = [
     proofJson: require("./data/valid_sig_user_non_genesis.json"),
     errorMessage: "Generated proof is outdated",
   },
+  {
+    name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain",
+    stateTransitions: [require("../common-data/issuer_genesis_state.json")],
+    proofJson: require("./data/valid_sig_user_genesis.json"),
+    setProofExpiration: tenYears,
+    allowedIssuers: [123, 456],
+    errorMessage: 'Issuer is not on the Allowed Issuers list'
+  },
 ];
 
 describe("Atomic Sig Validator", function () {
@@ -95,6 +103,7 @@ describe("Atomic Sig Validator", function () {
           "1496222740463292783938163206931059379817846775593932664024082849882751356658"
         ),
         circuitId: "credentialAtomicQuerySigV2OnChain",
+        metadata: "test medatada"
       };
       if (test.setProofExpiration) {
         await sig.setProofGenerationExpirationTime(test.setProofExpiration);
@@ -104,13 +113,13 @@ describe("Atomic Sig Validator", function () {
       }
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
       if (test.errorMessage) {
-        await expect(sig.verify(inputs, pi_a, pi_b, pi_c, query.queryHash)).to.be.revertedWith(
+        await expect(sig.verify([inputs, pi_a, pi_b, pi_c], query.queryHash, test.allowedIssuers || [])).to.be.revertedWith(
           test.errorMessage
         );
       } else if (test.errorMessage === "") {
-        await expect(sig.verify(inputs, pi_a, pi_b, pi_c, query.queryHash)).to.be.reverted;
+        await expect(sig.verify([inputs, pi_a, pi_b, pi_c], query.queryHash, test.allowedIssuers || [])).to.be.reverted;
       } else {
-        const verified = await sig.verify(inputs, pi_a, pi_b, pi_c, query.queryHash);
+        const verified = await sig.verify([inputs, pi_a, pi_b, pi_c], query.queryHash, test.allowedIssuers || []);
         expect(verified).to.be.true;
       }
     });
