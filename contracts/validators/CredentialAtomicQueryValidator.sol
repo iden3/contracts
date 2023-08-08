@@ -45,7 +45,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256 queryHash
     ) external view virtual returns (bool) {
         // verify that zkp is valid
-        require(verifier.verifyProof(a, b, c, inputs), "Proof is not valid");
+        require(verifier.verify(a, b, c, inputs), "Proof is not valid");
         //destrcut values from result array
         uint256[] memory validationParams = _getInputValidationParameters(inputs);
         uint256 inputQueryHash = validationParams[0];
