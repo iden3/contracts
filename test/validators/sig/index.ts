@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import {prepareInputs, publishState} from "../../utils/state-utils";
+import { prepareInputs, publishState } from "../../utils/state-utils";
 import { DeployHelper } from "../../../helpers/DeployHelper";
-import { prepareQuery } from "../../utils/validator-pack-utils";
+import { packValidatorParams } from "../../utils/validator-pack-utils";
 
 const tenYears = 315360000;
 const testCases: any[] = [
@@ -114,18 +114,13 @@ describe("Atomic Sig Validator", function () {
       }
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
       if (test.errorMessage) {
-        await expect(sig.verify([inputs, pi_a, pi_b, pi_c], 
-          [query.circuitId, query.metadata || '', prepareQuery(query, test.allowedIssuers)])).to.be.revertedWith(
+        await expect(sig.verify([inputs, pi_a, pi_b, pi_c], packValidatorParams(query, test.allowedIssuers))).to.be.revertedWith(
           test.errorMessage
         );
       } else if (test.errorMessage === "") {
-        await expect(sig.verify([inputs, pi_a, pi_b, pi_c], 
-          [query.circuitId, query.metadata || '', prepareQuery(query, test.allowedIssuers)])).to.be.reverted;
+        await expect(sig.verify([inputs, pi_a, pi_b, pi_c], packValidatorParams(query, test.allowedIssuers))).to.be.reverted;
       } else {
-        console.log('pre');
-        const verified = await sig.verify([inputs, pi_a, pi_b, pi_c], 
-          [query.circuitId, query.metadata || '', prepareQuery(query, test.allowedIssuers)]);
-        console.log('dpne');
+        const verified = await sig.verify([inputs, pi_a, pi_b, pi_c], packValidatorParams(query, test.allowedIssuers));
         expect(verified).to.be.true;
       }
     });

@@ -6,12 +6,9 @@ import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
-import {PackUtils} from "../lib/PackUtils.sol";
 
 abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuitValidator {
     struct CredentialAtomicQuery {
-        string circuitId;
-        string metadata;
         uint256 schema;
         uint256 claimPathKey;
         uint256 operator;
@@ -51,16 +48,14 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
 
     function verify(
         ZKPResponse calldata zkpResponse,
-        ICircuitValidator.CircuitQuery calldata cirquitQuery
+        bytes calldata cirquitQueryData
     ) external view virtual returns (bool) {
         // verify that zkp is valid
         require(
             verifier.verifyProof(zkpResponse.a, zkpResponse.b, zkpResponse.c, zkpResponse.inputs),
             "Proof is not valid"
         );
-        CredentialAtomicQuery memory credAtomicQuery = PackUtils.credentialAtomicQueryUnpack(
-            cirquitQuery
-        );
+        CredentialAtomicQuery memory credAtomicQuery = abi.decode(cirquitQueryData, (CredentialAtomicQuery));
         //destrcut values from result array
         uint256[] memory validationParams = _getInputValidationParameters(zkpResponse.inputs);
         uint256 inputQueryHash = validationParams[0];
@@ -143,8 +138,8 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     }
 
     function _checkAllowedIssuers(uint256 issuerId, uint256[] memory allowedIssuers) internal pure {
-        // empty array or 0 is 'allow all' equivalent - ['*']
-        if (allowedIssuers.length == 0 || allowedIssuers[0] == 0) {
+        // empty array is 'allow all' equivalent - ['*']
+        if (allowedIssuers.length == 0) {
             return;
         }
 

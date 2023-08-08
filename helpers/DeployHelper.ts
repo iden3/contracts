@@ -309,18 +309,6 @@ export class DeployHelper {
     return genesisUtilsWrapper;
   }
 
-  async deployPackUtilsWrapper(): Promise<{
-    address: string;
-    }> {
-
-    const PackUtilsWrapper = await ethers.getContractFactory(
-        "PackUtilsWrapper"
-    );
-    const packUtilsWrapper = await PackUtilsWrapper.deploy();
-    console.log("PackUtilsWrapper deployed to:", packUtilsWrapper.address);
-    return packUtilsWrapper;
-  }
-
   async getDefaultIdType(): Promise<{defaultIdType: number, chainId: number}> {
     const chainId = parseInt(await network.provider.send('eth_chainId'), 16);
     const defaultIdType = chainIdDefaultIdTypeMap.get(chainId);

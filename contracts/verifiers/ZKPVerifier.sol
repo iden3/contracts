@@ -33,12 +33,11 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
             requestValidators[requestId] != ICircuitValidator(address(0)),
             "validator is not set for this request id"
         ); // validator exists
-        // require(requestQueries[requestId].queryHash != 0, "query is not set for this request id"); // query exists
 
         _beforeProofSubmit(requestId, zkpResponse.inputs, requestValidators[requestId]);
 
         require(
-            requestValidators[requestId].verify(zkpResponse, requestQueries[requestId]),
+            requestValidators[requestId].verify(zkpResponse, requestQueries[requestId].queryData),
             "proof response is not valid"
         );
 

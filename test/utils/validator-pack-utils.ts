@@ -1,32 +1,26 @@
  import { ethers } from "hardhat";
+ import Web3 from 'web3';
  
- function calcBytesFromBigNumber(num: any) {
-      let schemaHex = num.toHexString().substring(2);
-      schemaHex = '0'.repeat(64 - schemaHex.length) + schemaHex;
-      return schemaHex;
-  }
-
-  export function prepareQuery(query: any, queryAllowedIssuers: any[]) {
-     const schema = query.schema;
-      const schemaHex = calcBytesFromBigNumber(schema);
-        const claimPathKey = query.claimPathKey;
-        const claimPathKeyHex = calcBytesFromBigNumber(claimPathKey);
-        const operator = query.operator;
-        const operatorHex = calcBytesFromBigNumber(operator);
-        let valueHex = '';
-        for (let i = 0; i < query.value.length; i++) {
-            let value = calcBytesFromBigNumber(query.value[i]);
-            valueHex += value;
+ export function packValidatorParams(query: any, allowedIssuers: any[] = []) {
+    let web3 = new Web3(Web3.givenProvider || "ws://localhost:8545");
+    return web3.eth.abi.encodeParameter(
+        {
+            "CredentialAtomicQuery": {
+                "schema": 'uint256',
+                "claimPathKey": 'uint256',
+                "operator": 'uint256',
+                "value": 'uint256[]',
+                "queryHash": 'uint256',
+                "allowedIssuers": 'uint256[]'
+            }
+        },
+        {
+            "schema": query.schema,
+            "claimPathKey": query.claimPathKey,
+            "operator": query.operator,
+            "value": query.value,
+            "queryHash": query.queryHash,
+            "allowedIssuers": allowedIssuers
         }
-       
-        const queryHash = query.queryHash;
-        const queryHashHex = calcBytesFromBigNumber(queryHash);
-
-        let allowedIssuers = '';
-        for (let i = 0; i < 20; i++) {
-            let issuer = calcBytesFromBigNumber(queryAllowedIssuers && queryAllowedIssuers[i] || ethers.BigNumber.from(0));
-            allowedIssuers += issuer;
-        }
-        const bytes = `0x` + schemaHex + claimPathKeyHex + operatorHex + valueHex + queryHashHex + allowedIssuers;
-        return bytes;
-  }
+    );
+ }

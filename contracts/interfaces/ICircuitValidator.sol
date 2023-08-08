@@ -6,7 +6,6 @@ interface ICircuitValidator {
         string circuitId;
         string metadata;
         bytes queryData;
-
     }
 
     struct ZKPResponse {
@@ -18,7 +17,7 @@ interface ICircuitValidator {
 
     function verify(
         ZKPResponse calldata zkpResponse,
-        ICircuitValidator.CircuitQuery calldata circuitQuery
+        bytes calldata circuitQueryData
     ) external view returns (bool r);
 
     function getCircuitId() external pure returns (string memory id);
