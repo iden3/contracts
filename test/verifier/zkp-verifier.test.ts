@@ -27,6 +27,7 @@ describe("ZKP Verifier", function () {
     queries = await verifier.getRequestQueries(15, 3);
     expect(queries.length).to.be.equal(3);
     expect(queries[0].metadata).to.be.equal('metadataN15');
+    expect(queries[1].metadata).to.be.equal('metadataN16');
     expect(queries[2].metadata).to.be.equal('metadataN17');
   });
 });
