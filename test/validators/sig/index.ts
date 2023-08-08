@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import {prepareInputs, publishState} from "../../utils/state-utils";
 import { DeployHelper } from "../../../helpers/DeployHelper";
+import { prepareQuery } from "../../utils/validator-pack-utils";
 
 const tenYears = 315360000;
 const testCases: any[] = [
@@ -64,7 +65,7 @@ const testCases: any[] = [
     stateTransitions: [require("../common-data/issuer_genesis_state.json")],
     proofJson: require("./data/valid_sig_user_genesis.json"),
     setProofExpiration: tenYears,
-    allowedIssuers: [123, 456],
+    allowedIssuers: [ethers.BigNumber.from(123)],
     errorMessage: 'Issuer is not on the Allowed Issuers list'
   },
 ];
@@ -96,7 +97,7 @@ describe("Atomic Sig Validator", function () {
         ),
         operator: ethers.BigNumber.from(1),
         value: [
-          "1420070400000000000",
+          ethers.BigNumber.from("1420070400000000000"),
           ...new Array(63).fill("0").map((x) => ethers.BigNumber.from(x)),
         ],
         queryHash: ethers.BigNumber.from(
@@ -113,13 +114,18 @@ describe("Atomic Sig Validator", function () {
       }
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
       if (test.errorMessage) {
-        await expect(sig.verify([inputs, pi_a, pi_b, pi_c], query.queryHash, test.allowedIssuers || [])).to.be.revertedWith(
+        await expect(sig.verify([inputs, pi_a, pi_b, pi_c], 
+          [query.circuitId, query.metadata || '', prepareQuery(query, test.allowedIssuers)])).to.be.revertedWith(
           test.errorMessage
         );
       } else if (test.errorMessage === "") {
-        await expect(sig.verify([inputs, pi_a, pi_b, pi_c], query.queryHash, test.allowedIssuers || [])).to.be.reverted;
+        await expect(sig.verify([inputs, pi_a, pi_b, pi_c], 
+          [query.circuitId, query.metadata || '', prepareQuery(query, test.allowedIssuers)])).to.be.reverted;
       } else {
-        const verified = await sig.verify([inputs, pi_a, pi_b, pi_c], query.queryHash, test.allowedIssuers || []);
+        console.log('pre');
+        const verified = await sig.verify([inputs, pi_a, pi_b, pi_c], 
+          [query.circuitId, query.metadata || '', prepareQuery(query, test.allowedIssuers)]);
+        console.log('dpne');
         expect(verified).to.be.true;
       }
     });

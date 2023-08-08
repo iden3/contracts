@@ -5,13 +5,8 @@ interface ICircuitValidator {
     struct CircuitQuery {
         string circuitId;
         string metadata;
+        bytes queryData;
 
-        uint256 schema;
-        uint256 claimPathKey;
-        uint256 operator;
-        uint256[] value;
-        uint256 queryHash;
-        uint256[] allowedIssuers;
     }
 
     struct ZKPResponse {
@@ -23,8 +18,7 @@ interface ICircuitValidator {
 
     function verify(
         ZKPResponse calldata zkpResponse,
-        uint256 queryHash,
-        uint256[] calldata allowedIssuers
+        ICircuitValidator.CircuitQuery calldata circuitQuery
     ) external view returns (bool r);
 
     function getCircuitId() external pure returns (string memory id);

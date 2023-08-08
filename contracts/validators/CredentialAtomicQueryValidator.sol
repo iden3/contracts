@@ -6,8 +6,20 @@ import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
+import {PackUtils} from "../lib/PackUtils.sol";
 
 abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuitValidator {
+    struct CredentialAtomicQuery {
+        string circuitId;
+        string metadata;
+        uint256 schema;
+        uint256 claimPathKey;
+        uint256 operator;
+        uint256[] value;
+        uint256 queryHash;
+        uint256[] allowedIssuers;
+    }
+
     IVerifier public verifier;
     IState public state;
 
@@ -39,21 +51,29 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
 
     function verify(
         ZKPResponse calldata zkpResponse,
-        uint256 queryHash,
-        uint256[] calldata allowedIssuers
+        ICircuitValidator.CircuitQuery calldata cirquitQuery
     ) external view virtual returns (bool) {
         // verify that zkp is valid
-        require(verifier.verifyProof(zkpResponse.a, zkpResponse.b, zkpResponse.c, zkpResponse.inputs), "Proof is not valid");
+        require(
+            verifier.verifyProof(zkpResponse.a, zkpResponse.b, zkpResponse.c, zkpResponse.inputs),
+            "Proof is not valid"
+        );
+        CredentialAtomicQuery memory credAtomicQuery = PackUtils.credentialAtomicQueryUnpack(
+            cirquitQuery
+        );
         //destrcut values from result array
         uint256[] memory validationParams = _getInputValidationParameters(zkpResponse.inputs);
         uint256 inputQueryHash = validationParams[0];
-        require(inputQueryHash == queryHash, "query hash does not match the requested one");
+        require(
+            inputQueryHash == credAtomicQuery.queryHash,
+            "query hash does not match the requested one"
+        );
 
         uint256 gistRoot = validationParams[1];
         _checkGistRoot(gistRoot);
 
         uint256 issuerId = validationParams[2];
-        _checkAllowedIssuers(issuerId, allowedIssuers);
+        _checkAllowedIssuers(issuerId, credAtomicQuery.allowedIssuers);
         uint256 issuerClaissuerClaimState = validationParams[3];
         _checkStateContractOrGenesis(issuerId, issuerClaissuerClaimState);
         uint256 issuerClaimNonRevState = validationParams[4];
@@ -122,12 +142,9 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         }
     }
 
-    function _checkAllowedIssuers(
-        uint256 issuerId,
-        uint256[] memory allowedIssuers
-    ) internal pure {
-        // empty array is 'allow all' equivalent - ['*']
-        if (allowedIssuers.length == 0) {
+    function _checkAllowedIssuers(uint256 issuerId, uint256[] memory allowedIssuers) internal pure {
+        // empty array or 0 is 'allow all' equivalent - ['*']
+        if (allowedIssuers.length == 0 || allowedIssuers[0] == 0) {
             return;
         }
 

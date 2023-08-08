@@ -33,16 +33,12 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
             requestValidators[requestId] != ICircuitValidator(address(0)),
             "validator is not set for this request id"
         ); // validator exists
-        require(requestQueries[requestId].queryHash != 0, "query is not set for this request id"); // query exists
+        // require(requestQueries[requestId].queryHash != 0, "query is not set for this request id"); // query exists
 
         _beforeProofSubmit(requestId, zkpResponse.inputs, requestValidators[requestId]);
 
         require(
-            requestValidators[requestId].verify(
-                zkpResponse,
-                requestQueries[requestId].queryHash,
-                requestQueries[requestId].allowedIssuers
-            ),
+            requestValidators[requestId].verify(zkpResponse, requestQueries[requestId]),
             "proof response is not valid"
         );
 
@@ -58,56 +54,47 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         return requestQueries[requestId];
     }
 
-    function setZKPRequest(
-        uint64 requestId,
-        ICircuitValidator validator,
-        uint256 schema,
-        uint256 claimPathKey,
-        uint256 operator,
-        uint256[] calldata value,
-        string calldata metadata
-    ) public override onlyOwner returns (bool) {
-        uint256 valueHash = PoseidonFacade.poseidonSponge(value);
-        // only merklized claims are supported (claimPathNotExists is false, slot index is set to 0 )
-        uint256 queryHash = PoseidonFacade.poseidon6(
-            [schema, 0, operator, claimPathKey, 0, valueHash]
-        );
+    // function setZKPRequest(
+    //     uint64 requestId,
+    //     ICircuitValidator validator,
+    //     uint256 schema,
+    //     uint256 claimPathKey,
+    //     uint256 operator,
+    //     uint256[] calldata value,
+    //     string calldata metadata
+    // ) public override onlyOwner returns (bool) {
+    //     uint256 valueHash = PoseidonFacade.poseidonSponge(value);
+    //     // only merklized claims are supported (claimPathNotExists is false, slot index is set to 0 )
+    //     uint256 queryHash = PoseidonFacade.poseidon6(
+    //         [schema, 0, operator, claimPathKey, 0, valueHash]
+    //     );
 
-        return
-            setZKPRequestRaw(
-                requestId,
-                validator,
-                schema,
-                claimPathKey,
-                operator,
-                value,
-                queryHash,
-                metadata
-            );
-    }
+    //     return
+    //         setZKPRequestRaw(
+    //             requestId,
+    //             validator,
+    //             schema,
+    //             claimPathKey,
+    //             operator,
+    //             value,
+    //             queryHash,
+    //             metadata
+    //         );
+    // }
 
     function setZKPRequestRaw(
         uint64 requestId,
+        string calldata metadata,
         ICircuitValidator validator,
-        uint256 schema,
-        uint256 claimPathKey,
-        uint256 operator,
-        uint256[] calldata value,
-        uint256 queryHash,
-        string calldata metadata
+        bytes calldata queryData
     ) public override onlyOwner returns (bool) {
         if (requestValidators[requestId] == ICircuitValidator(address(0x00))) {
             _supportedRequests.push(requestId);
         }
         ICircuitValidator.CircuitQuery memory circuitQuery = ICircuitValidator.CircuitQuery({
-            queryHash: queryHash,
-            operator: operator,
             circuitId: validator.getCircuitId(),
-            claimPathKey: claimPathKey,
-            schema: schema,
-            value: value,
-            allowedIssuers: new uint256[](0),
-            metadata: metadata
+            metadata: metadata,
+            queryData: queryData
         });
 
         requestQueries[requestId] = circuitQuery;

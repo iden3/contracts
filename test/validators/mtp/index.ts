@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { prepareInputs, publishState } from "../../utils/state-utils";
 import { DeployHelper } from "../../../helpers/DeployHelper";
+import { prepareQuery } from "../../utils/validator-pack-utils";
 
 const tenYears = 315360000;
 const testCases: any[] = [
@@ -64,7 +65,7 @@ const testCases: any[] = [
     stateTransitions: [require("../common-data/issuer_genesis_state.json")],
     proofJson: require("./data/valid_mtp_user_genesis.json"),
     setProofExpiration: tenYears,
-    allowedIssuers: [123, 456],
+    allowedIssuers: [ethers.BigNumber.from(123)],
     errorMessage: 'Issuer is not on the Allowed Issuers list'
   },
 ];
@@ -96,13 +97,14 @@ describe("Atomic MTP Validator", function () {
         ),
         operator: ethers.BigNumber.from(1),
         value: [
-          "1420070400000000000",
+          ethers.BigNumber.from("1420070400000000000"),
           ...new Array(63).fill("0").map((x) => ethers.BigNumber.from(x)),
         ],
         queryHash: ethers.BigNumber.from(
           "1496222740463292783938163206931059379817846775593932664024082849882751356658"
         ),
         circuitId: "credentialAtomicQueryMTPV2OnChain",
+        metadata: "test medatada"
       };
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
@@ -113,13 +115,16 @@ describe("Atomic MTP Validator", function () {
         await mtpValidator.setRevocationStateExpirationTime(test.setExpiration);
       }
       if (test.errorMessage) {
-        await expect(mtpValidator.verify([inputs, pi_a, pi_b, pi_c], query.queryHash, test.allowedIssuers || [])).to.be.revertedWith(
+        await expect(mtpValidator.verify([inputs, pi_a, pi_b, pi_c], 
+          [query.circuitId, query.metadata || '', prepareQuery(query, test.allowedIssuers)])).to.be.revertedWith(
           test.errorMessage
         );
       } else if (test.errorMessage === "") {
-        await expect(mtpValidator.verify([inputs, pi_a, pi_b, pi_c], query.queryHash, test.allowedIssuers || [])).to.be.reverted;
+        await expect(mtpValidator.verify([inputs, pi_a, pi_b, pi_c], 
+          [query.circuitId, query.metadata || '', prepareQuery(query, test.allowedIssuers)])).to.be.reverted;
       } else {
-        const verified = await mtpValidator.verify([inputs, pi_a, pi_b, pi_c], query.queryHash, test.allowedIssuers || []);
+        const verified = await mtpValidator.verify([inputs, pi_a, pi_b, pi_c], 
+          [query.circuitId, query.metadata || '', prepareQuery(query, test.allowedIssuers)]);
         expect(verified).to.be.true;
       }
     });
