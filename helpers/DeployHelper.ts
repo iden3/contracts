@@ -314,6 +314,18 @@ export class DeployHelper {
     return genesisUtilsWrapper;
   }
 
+  async deployZKPVerifier(): Promise<{
+    address: string;
+    }> {
+
+    const ZKPVerifier = await ethers.getContractFactory(
+        "ZKPVerifier"
+    );
+    const zkpVerifier = await ZKPVerifier.deploy();
+    console.log("ZKPVerifier deployed to:", zkpVerifier.address);
+    return zkpVerifier;
+  }
+
   async getDefaultIdType(): Promise<{defaultIdType: number, chainId: number}> {
     const chainId = parseInt(await network.provider.send('eth_chainId'), 16);
     const defaultIdType = chainIdDefaultIdTypeMap.get(chainId);
