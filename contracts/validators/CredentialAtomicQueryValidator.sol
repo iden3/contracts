@@ -55,7 +55,10 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
             verifier.verifyProof(zkpResponse.a, zkpResponse.b, zkpResponse.c, zkpResponse.inputs),
             "Proof is not valid"
         );
-        CredentialAtomicQuery memory credAtomicQuery = abi.decode(cirquitQueryData, (CredentialAtomicQuery));
+        CredentialAtomicQuery memory credAtomicQuery = abi.decode(
+            cirquitQueryData,
+            (CredentialAtomicQuery)
+        );
         //destrcut values from result array
         uint256[] memory validationParams = _getInputValidationParameters(zkpResponse.inputs);
         uint256 inputQueryHash = validationParams[0];
