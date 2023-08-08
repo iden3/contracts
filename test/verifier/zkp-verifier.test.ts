@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { DeployHelper } from "../../helpers/DeployHelper";
 
-describe("Atomic Sig Validator", function () {
+describe("ZKP Verifier", function () {
   let verifier: any, sig: any;
 
   beforeEach(async () => {
