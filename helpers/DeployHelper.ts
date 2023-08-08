@@ -1,7 +1,7 @@
 import { ethers, upgrades, network } from "hardhat";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { deployPoseidons } from "./PoseidonDeployHelper";
+import { deployPoseidonFacade, deployPoseidons } from "./PoseidonDeployHelper";
 import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
 
 const SMT_MAX_DEPTH = 64;
@@ -267,7 +267,7 @@ export class DeployHelper {
       const { state } = await stateDeployHelper.deployState();
       stateAddress = state.address;
     }
-
+    
     const ValidatorContractVerifierWrapper = await ethers.getContractFactory(
       verifierContractWrapperName
     );
@@ -279,12 +279,17 @@ export class DeployHelper {
       validatorContractVerifierWrapper.address
     );
 
-    const ValidatorContract = await ethers.getContractFactory(validatorContractName);
+    const poseidonFacade = await deployPoseidonFacade();
+    const ValidatorContract = await ethers.getContractFactory(validatorContractName, {
+        libraries: {
+          PoseidonFacade: poseidonFacade.address
+        }
+      });
 
     const validatorContractProxy = await upgrades.deployProxy(ValidatorContract, [
-      validatorContractVerifierWrapper.address,
-      stateAddress,
-    ]);
+      validatorContractVerifierWrapper.address, stateAddress,], {
+        unsafeAllowLinkedLibraries: true,
+      });
 
     await validatorContractProxy.deployed();
     console.log(`${validatorContractName} deployed to: ${validatorContractProxy.address}`);

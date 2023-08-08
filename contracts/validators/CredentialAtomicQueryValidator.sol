@@ -6,6 +6,7 @@ import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
+import {PoseidonFacade} from "../lib/Poseidon.sol";
 
 abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuitValidator {
     struct CredentialAtomicQuery {
@@ -59,6 +60,23 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
             cirquitQueryData,
             (CredentialAtomicQuery)
         );
+
+        if (credAtomicQuery.queryHash == 0) {
+            // only merklized claims are supported (claimPathNotExists is false, slot index is set to 0 )
+            uint256 valueHash = PoseidonFacade.poseidonSponge(credAtomicQuery.value);
+            uint256 queryHash = PoseidonFacade.poseidon6(
+                [
+                    credAtomicQuery.schema,
+                    0,
+                    credAtomicQuery.operator,
+                    credAtomicQuery.claimPathKey,
+                    0,
+                    valueHash
+                ]
+            );
+            credAtomicQuery.queryHash = queryHash;
+        }
+
         //destrcut values from result array
         uint256[] memory validationParams = _getInputValidationParameters(zkpResponse.inputs);
         uint256 inputQueryHash = validationParams[0];

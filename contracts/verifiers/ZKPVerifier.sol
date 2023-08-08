@@ -4,7 +4,6 @@ pragma solidity 0.8.16;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
-import {PoseidonFacade} from "../lib/Poseidon.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
@@ -53,35 +52,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         return requestQueries[requestId];
     }
 
-    // function setZKPRequest(
-    //     uint64 requestId,
-    //     ICircuitValidator validator,
-    //     uint256 schema,
-    //     uint256 claimPathKey,
-    //     uint256 operator,
-    //     uint256[] calldata value,
-    //     string calldata metadata
-    // ) public override onlyOwner returns (bool) {
-    //     uint256 valueHash = PoseidonFacade.poseidonSponge(value);
-    //     // only merklized claims are supported (claimPathNotExists is false, slot index is set to 0 )
-    //     uint256 queryHash = PoseidonFacade.poseidon6(
-    //         [schema, 0, operator, claimPathKey, 0, valueHash]
-    //     );
-
-    //     return
-    //         setZKPRequestRaw(
-    //             requestId,
-    //             validator,
-    //             schema,
-    //             claimPathKey,
-    //             operator,
-    //             value,
-    //             queryHash,
-    //             metadata
-    //         );
-    // }
-
-    function setZKPRequestRaw(
+    function setZKPReques(
         uint64 requestId,
         string calldata metadata,
         ICircuitValidator validator,

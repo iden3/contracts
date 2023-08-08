@@ -10,17 +10,7 @@ interface IZKPVerifier {
         ICircuitValidator.ZKPResponse calldata zkpResponse
     ) external returns (bool);
 
-    // function setZKPRequest(
-    //     uint64 requestId,
-    //     ICircuitValidator validator,
-    //     uint256 schema,
-    //     uint256 slotIndex,
-    //     uint256 operator,
-    //     uint256[] calldata value,
-    //     string calldata metadata
-    // ) external returns (bool);
-
-    function setZKPRequestRaw(
+    function setZKPReques(
         uint64 requestId,
         string calldata metadata,
         ICircuitValidator validator,
