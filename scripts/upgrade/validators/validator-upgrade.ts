@@ -15,7 +15,7 @@ async function main() {
     const network = process.env.HARDHAT_NETWORK;
 
     const oldContractABI = [];  // abi of contract that will be upgraded
-    const contractAddress = "0xaC9fCBA56E42d5960f813B9D0387F3D3bC003338";  // address of contract that will be upgraded
+    const contractAddress = "";  // address of contract that will be upgraded
     const mtpValidator = await ethers.getContractAt(
       oldContractABI,
       contractAddress,
