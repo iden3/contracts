@@ -19,9 +19,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
 
     mapping(uint64 => IZKPVerifier.ZKPRequest) public requestQueries;
 
-    IZKPVerifier.ZKPRequest[] public requestQueriesArr;
-
-    uint64[] internal _supportedRequests;
+    IZKPVerifier.ZKPRequest[] internal _supportedRequests;
 
     function submitZKPResponse(
         uint64 requestId,
@@ -43,7 +41,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
                 a,
                 b,
                 c,
-                requestQueries[requestId].queryData
+                requestQueries[requestId].data
             ),
             "proof response is not valid"
         );
@@ -64,26 +62,22 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint64 requestId,
         string calldata metadata,
         ICircuitValidator validator,
-        bytes calldata queryData
+        bytes calldata data
     ) public override onlyOwner returns (bool) {
-        if (requestQueries[requestId].validator == ICircuitValidator(address(0x00))) {
-            _supportedRequests.push(requestId);
-        }
-        IZKPVerifier.ZKPRequest memory circuitQuery = IZKPVerifier.ZKPRequest({
-            circuitId: validator.getCircuitId(),
+        IZKPVerifier.ZKPRequest memory request = IZKPVerifier.ZKPRequest({
             metadata: metadata,
             validator: validator,
-            queryData: queryData
+            data: data
         });
 
-        requestQueries[requestId] = circuitQuery;
-        requestQueriesArr.push(circuitQuery);
+        requestQueries[requestId] = request;
+        _supportedRequests.push(request);
 
         return true;
     }
 
-    function getSupportedRequests() public view returns (uint64[] memory arr) {
-        return _supportedRequests;
+    function getZKPRequestsCount() public view returns (uint256) {
+        return _supportedRequests.length;
     }
 
     function getZKPRequests(
@@ -91,7 +85,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256 length
     ) public view returns (IZKPVerifier.ZKPRequest[] memory) {
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
-            requestQueriesArr.length,
+            _supportedRequests.length,
             startIndex,
             length,
             REQUEST_QUERIES_RETURN_LIMIT
@@ -100,7 +94,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         IZKPVerifier.ZKPRequest[] memory result = new IZKPVerifier.ZKPRequest[](end - start);
 
         for (uint256 i = start; i < end; i++) {
-            result[i - start] = requestQueriesArr[i];
+            result[i - start] = _supportedRequests[i];
         }
 
         return result;

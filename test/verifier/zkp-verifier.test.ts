@@ -13,12 +13,16 @@ describe("ZKP Verifier", function () {
           "8566939875427719562376598811066985304309117528846759529734201066483458512800"
         ),
         operator: ethers.BigNumber.from(1),
+        slotIndex: ethers.BigNumber.from(0),
         value: [
           ethers.BigNumber.from("1420070400000000000"),
           ...new Array(63).fill("0").map((x) => ethers.BigNumber.from(x)),
         ],
-        queryHash: ethers.BigNumber.from(
+        queryHashMerklized: ethers.BigNumber.from(
           "1496222740463292783938163206931059379817846775593932664024082849882751356658"
+        ),
+         queryHashNonMerklized: ethers.BigNumber.from(
+          "0"
         ),
         circuitId: "credentialAtomicQueryMTPV2OnChain",
         metadata: "test medatada"
@@ -56,6 +60,9 @@ describe("ZKP Verifier", function () {
     expect(queries.length).to.be.equal(10);
     expect(queries[0].metadata).to.be.equal('metadataN5');
     expect(queries[9].metadata).to.be.equal('metadataN14');
+
+    let count = await verifier.getZKPRequestsCount();
+    expect(count).to.be.equal(30);
 
     queries = await verifier.getZKPRequests(15, 3);
     expect(queries.length).to.be.equal(3);

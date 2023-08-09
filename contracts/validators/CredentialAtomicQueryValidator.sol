@@ -13,8 +13,10 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256 schema;
         uint256 claimPathKey;
         uint256 operator;
+        uint256 slotIndex;
         uint256[] value;
-        uint256 queryHash;
+        uint256 queryHashMerklized;
+        uint256 queryHashNonMerklized;
         uint256[] allowedIssuers;
     }
 
@@ -45,45 +47,31 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
 
     function getCircuitId() external pure virtual returns (string memory id);
 
-    function getChallengeInputIndex() external pure virtual returns (uint256 index);
+    function inputIndexOf(string memory name) external pure virtual returns (uint256);
 
     function verify(
         uint256[] calldata inputs,
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c,
-        bytes calldata cirquitQueryData
+        bytes calldata data
     ) external view virtual returns (bool) {
         // verify that zkp is valid
         require(verifier.verifyProof(a, b, c, inputs), "Proof is not valid");
-        CredentialAtomicQuery memory credAtomicQuery = abi.decode(
-            cirquitQueryData,
-            (CredentialAtomicQuery)
-        );
-
-        if (credAtomicQuery.queryHash == 0) {
-            // only merklized claims are supported (claimPathNotExists is false, slot index is set to 0 )
-            uint256 valueHash = PoseidonFacade.poseidonSponge(credAtomicQuery.value);
-            uint256 queryHash = PoseidonFacade.poseidon6(
-                [
-                    credAtomicQuery.schema,
-                    0,
-                    credAtomicQuery.operator,
-                    credAtomicQuery.claimPathKey,
-                    0,
-                    valueHash
-                ]
-            );
-            credAtomicQuery.queryHash = queryHash;
-        }
+        CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
 
         //destrcut values from result array
         uint256[] memory validationParams = _getInputValidationParameters(inputs);
+        uint256 queryHash;
+        if (validationParams[6] == 1) {
+            queryHash = credAtomicQuery.queryHashMerklized;
+            require(queryHash != 0, "queryHashMerklized should not be zero");
+        } else {
+            queryHash = credAtomicQuery.queryHashNonMerklized;
+            require(queryHash != 0, "queryHashNonMerklized should not be zero");
+        }
         uint256 inputQueryHash = validationParams[0];
-        require(
-            inputQueryHash == credAtomicQuery.queryHash,
-            "query hash does not match the requested one"
-        );
+        require(inputQueryHash == queryHash, "query hash does not match the requested one");
 
         uint256 gistRoot = validationParams[1];
         _checkGistRoot(gistRoot);
@@ -153,6 +141,9 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     }
 
     function _checkProofGeneratedExpiration(uint256 _proofGenerationTimestamp) internal view {
+        if (_proofGenerationTimestamp > block.timestamp) {
+            revert("Proof generated in the future is not valid");
+        }
         if (block.timestamp - _proofGenerationTimestamp > proofGenerationExpirationTime) {
             revert("Generated proof is outdated");
         }

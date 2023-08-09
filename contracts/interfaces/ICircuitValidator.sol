@@ -7,10 +7,10 @@ interface ICircuitValidator {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c,
-        bytes calldata circuitQueryData
+        bytes calldata data
     ) external view returns (bool r);
 
     function getCircuitId() external pure returns (string memory id);
 
-    function getChallengeInputIndex() external pure returns (uint256 index);
+    function inputIndexOf(string memory name) external view returns (uint256);
 }

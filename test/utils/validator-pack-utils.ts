@@ -9,8 +9,10 @@
                 "schema": 'uint256',
                 "claimPathKey": 'uint256',
                 "operator": 'uint256',
+                "slotIndex": 'uint256',
                 "value": 'uint256[]',
-                "queryHash": 'uint256',
+                "queryHashMerklized": 'uint256',
+                "queryHashNonMerklized": 'uint256',
                 "allowedIssuers": 'uint256[]'
             }
         },
@@ -18,8 +20,10 @@
             "schema": query.schema,
             "claimPathKey": query.claimPathKey,
             "operator": query.operator,
+            "slotIndex": query.slotIndex,
             "value": query.value,
-            "queryHash": query.queryHash,
+            "queryHashMerklized": query.queryHashMerklized,
+            "queryHashNonMerklized": query.queryHashNonMerklized,
             "allowedIssuers": allowedIssuers
         }
     );

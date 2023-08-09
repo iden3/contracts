@@ -279,17 +279,10 @@ export class DeployHelper {
       validatorContractVerifierWrapper.address
     );
 
-    const poseidonFacade = await deployPoseidonFacade();
-    const ValidatorContract = await ethers.getContractFactory(validatorContractName, {
-        libraries: {
-          PoseidonFacade: poseidonFacade.address
-        }
-      });
+    const ValidatorContract = await ethers.getContractFactory(validatorContractName);
 
     const validatorContractProxy = await upgrades.deployProxy(ValidatorContract, [
-      validatorContractVerifierWrapper.address, stateAddress,], {
-        unsafeAllowLinkedLibraries: true,
-      });
+      validatorContractVerifierWrapper.address, stateAddress]);
 
     await validatorContractProxy.deployed();
     console.log(`${validatorContractName} deployed to: ${validatorContractProxy.address}`);
@@ -313,18 +306,10 @@ export class DeployHelper {
 
     const owner = this.signers[0];
 
-    this.log("deploying poseidons facade...");
-    const poseidonFacade = await deployPoseidonFacade();
-
     this.log("upgrading validator...");
-    const ValidatorFactory = await ethers.getContractFactory(validatorContractName, {
-      libraries: {
-        PoseidonFacade: poseidonFacade.address
-      },
-    });
+    const ValidatorFactory = await ethers.getContractFactory(validatorContractName);
     const validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory, {
-      unsafeAllowLinkedLibraries: true,
-      unsafeSkipStorageCheck: true,
+      unsafeSkipStorageCheck: true
     });
     await validator.deployed();
     this.log(`Validator ${validatorContractName} upgraded at address ${validator.address} from ${owner.address}`);

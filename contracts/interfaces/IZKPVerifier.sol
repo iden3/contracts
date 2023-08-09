@@ -6,10 +6,9 @@ import {ICircuitValidator} from "./ICircuitValidator.sol";
 
 interface IZKPVerifier {
     struct ZKPRequest {
-        string circuitId;
         string metadata;
         ICircuitValidator validator;
-        bytes queryData;
+        bytes data;
     }
 
     function submitZKPResponse(
@@ -24,8 +23,10 @@ interface IZKPVerifier {
         uint64 requestId,
         string calldata metadata,
         ICircuitValidator validator,
-        bytes calldata queryData
+        bytes calldata data
     ) external returns (bool);
+
+    function getZKPRequestsCount() external view returns (uint256);
 
     function getZKPRequest(uint64 requestId) external view returns (ZKPRequest memory);
 
