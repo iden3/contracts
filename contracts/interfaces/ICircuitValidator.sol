@@ -2,12 +2,6 @@
 pragma solidity 0.8.16;
 
 interface ICircuitValidator {
-    struct CircuitQuery {
-        string circuitId;
-        string metadata;
-        bytes queryData;
-    }
-
     function verify(
         uint256[] memory inputs,
         uint256[2] memory a,

@@ -55,10 +55,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         bytes calldata cirquitQueryData
     ) external view virtual returns (bool) {
         // verify that zkp is valid
-        require(
-            verifier.verifyProof(a, b, c, inputs),
-            "Proof is not valid"
-        );
+        require(verifier.verifyProof(a, b, c, inputs), "Proof is not valid");
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(
             cirquitQueryData,
             (CredentialAtomicQuery)

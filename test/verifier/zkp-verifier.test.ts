@@ -17,14 +17,14 @@ describe("ZKP Verifier", function () {
 
   it('test query param pagination', async () => {
     for (let i = 0; i < 30; i++) {
-        await verifier.setZKPReques(i, 'metadataN' + i, sig.address, '0x00');
+        await verifier.setZKPRequest(i, 'metadataN' + i, sig.address, '0x00');
     }
-    let queries = await verifier.getRequestQueries(5, 10);
+    let queries = await verifier.getZKPRequests(5, 10);
     expect(queries.length).to.be.equal(10);
     expect(queries[0].metadata).to.be.equal('metadataN5');
     expect(queries[9].metadata).to.be.equal('metadataN14');
 
-    queries = await verifier.getRequestQueries(15, 3);
+    queries = await verifier.getZKPRequests(15, 3);
     expect(queries.length).to.be.equal(3);
     expect(queries[0].metadata).to.be.equal('metadataN15');
     expect(queries[1].metadata).to.be.equal('metadataN16');

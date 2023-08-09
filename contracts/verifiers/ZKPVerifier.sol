@@ -17,10 +17,9 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
     // msg.sender-> ( requestID -> is proof given )
     mapping(address => mapping(uint64 => bool)) public proofs;
 
-    mapping(uint64 => ICircuitValidator.CircuitQuery) public requestQueries;
-    mapping(uint64 => ICircuitValidator) public requestValidators;
+    mapping(uint64 => IZKPVerifier.ZKPRequest) public requestQueries;
 
-    ICircuitValidator.CircuitQuery[] public requestQueriesArr;
+    IZKPVerifier.ZKPRequest[] public requestQueriesArr;
 
     uint64[] internal _supportedRequests;
 
@@ -32,48 +31,54 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256[2] calldata c
     ) public override returns (bool) {
         require(
-            requestValidators[requestId] != ICircuitValidator(address(0)),
+            requestQueries[requestId].validator != ICircuitValidator(address(0)),
             "validator is not set for this request id"
         ); // validator exists
 
-        _beforeProofSubmit(requestId, inputs, requestValidators[requestId]);
+        _beforeProofSubmit(requestId, inputs, requestQueries[requestId].validator);
 
         require(
-            requestValidators[requestId].verify(inputs, a, b, c, requestQueries[requestId].queryData),
+            requestQueries[requestId].validator.verify(
+                inputs,
+                a,
+                b,
+                c,
+                requestQueries[requestId].queryData
+            ),
             "proof response is not valid"
         );
 
         proofs[msg.sender][requestId] = true; // user provided a valid proof for request
 
-        _afterProofSubmit(requestId, inputs, requestValidators[requestId]);
+        _afterProofSubmit(requestId, inputs, requestQueries[requestId].validator);
         return true;
     }
 
     function getZKPRequest(
         uint64 requestId
-    ) public view override returns (ICircuitValidator.CircuitQuery memory) {
+    ) public view override returns (IZKPVerifier.ZKPRequest memory) {
         return requestQueries[requestId];
     }
 
-    function setZKPReques(
+    function setZKPRequest(
         uint64 requestId,
         string calldata metadata,
         ICircuitValidator validator,
         bytes calldata queryData
     ) public override onlyOwner returns (bool) {
-        if (requestValidators[requestId] == ICircuitValidator(address(0x00))) {
+        if (requestQueries[requestId].validator == ICircuitValidator(address(0x00))) {
             _supportedRequests.push(requestId);
         }
-        ICircuitValidator.CircuitQuery memory circuitQuery = ICircuitValidator.CircuitQuery({
+        IZKPVerifier.ZKPRequest memory circuitQuery = IZKPVerifier.ZKPRequest({
             circuitId: validator.getCircuitId(),
             metadata: metadata,
+            validator: validator,
             queryData: queryData
         });
 
         requestQueries[requestId] = circuitQuery;
         requestQueriesArr.push(circuitQuery);
 
-        requestValidators[requestId] = validator;
         return true;
     }
 
@@ -81,10 +86,10 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         return _supportedRequests;
     }
 
-    function getRequestQueries(
+    function getZKPRequests(
         uint256 startIndex,
         uint256 length
-    ) public view returns (ICircuitValidator.CircuitQuery[] memory) {
+    ) public view returns (IZKPVerifier.ZKPRequest[] memory) {
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
             requestQueriesArr.length,
             startIndex,
@@ -92,9 +97,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
             REQUEST_QUERIES_RETURN_LIMIT
         );
 
-        ICircuitValidator.CircuitQuery[] memory result = new ICircuitValidator.CircuitQuery[](
-            end - start
-        );
+        IZKPVerifier.ZKPRequest[] memory result = new IZKPVerifier.ZKPRequest[](end - start);
 
         for (uint256 i = start; i < end; i++) {
             result[i - start] = requestQueriesArr[i];
