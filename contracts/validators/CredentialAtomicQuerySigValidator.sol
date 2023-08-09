@@ -10,6 +10,7 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
         return CIRCUIT_ID;
     }
 
+    /* solhint-disable code-complexity */
     function inputIndexOf(string memory name) public pure override returns (uint256) {
         if (keccak256(bytes(name)) == keccak256(bytes("merklized"))) {
             return 0;
@@ -41,6 +42,8 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
             revert("Invalid input name");
         }
     }
+
+    /* solhint-disable code-complexity */
 
     function _getInputValidationParameters(
         uint256[] calldata inputs
