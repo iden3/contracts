@@ -1,8 +1,31 @@
 import { expect } from "chai";
 import { DeployHelper } from "../../helpers/DeployHelper";
+import { ethers } from "hardhat";
+import { packValidatorParams } from "../utils/validator-pack-utils";
+import { prepareInputs, publishState } from "../utils/state-utils";
 
 describe("ZKP Verifier", function () {
-  let verifier: any, sig: any;
+  let verifier: any, sig: any, state: any;
+
+  const query = {
+        schema: ethers.BigNumber.from("180410020913331409885634153623124536270"),
+        claimPathKey: ethers.BigNumber.from(
+          "8566939875427719562376598811066985304309117528846759529734201066483458512800"
+        ),
+        operator: ethers.BigNumber.from(1),
+        value: [
+          ethers.BigNumber.from("1420070400000000000"),
+          ...new Array(63).fill("0").map((x) => ethers.BigNumber.from(x)),
+        ],
+        queryHash: ethers.BigNumber.from(
+          "1496222740463292783938163206931059379817846775593932664024082849882751356658"
+        ),
+        circuitId: "credentialAtomicQueryMTPV2OnChain",
+        metadata: "test medatada"
+  };
+
+  const proofJson = require("../validators/sig/data/valid_sig_user_genesis.json");
+  const stateTransition = require("../validators/common-data/issuer_genesis_state.json");
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize(null, true);
@@ -13,6 +36,16 @@ describe("ZKP Verifier", function () {
       "CredentialAtomicQuerySigValidator"
     );
     sig = contracts.validator;
+    state = contracts.state;
+  });
+
+  it('test submit response (for gas estimation puprose)', async () => {
+    await publishState(state, stateTransition); 
+    await verifier.setZKPRequest(0, "metadata", sig.address, packValidatorParams(query));
+    await sig.setProofGenerationExpirationTime(315360000);
+
+    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+    await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
   });
 
   it('test query param pagination', async () => {
