@@ -29,7 +29,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     function initialize(
         address _verifierContractAddr,
         address _stateContractAddr
-    ) public initializer {
+    ) public virtual initializer {
         revocationStateExpirationTime = 1 hours;
         proofGenerationExpirationTime = 1 hours;
         verifier = IVerifier(_verifierContractAddr);
@@ -46,8 +46,6 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     }
 
     function getCircuitId() external pure virtual returns (string memory id);
-
-    function inputIndexOf(string memory name) external pure virtual returns (uint256);
 
     function verify(
         uint256[] calldata inputs,

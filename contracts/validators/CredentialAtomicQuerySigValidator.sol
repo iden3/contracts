@@ -5,45 +5,43 @@ import {CredentialAtomicQueryValidator} from "./CredentialAtomicQueryValidator.s
 
 contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
     string internal constant CIRCUIT_ID = "credentialAtomicQuerySigV2OnChain";
+    string[] internal valueIndex;
+
+    function initialize(
+        address _verifierContractAddr,
+        address _stateContractAddr
+    ) public override initializer {
+        valueIndex = [
+            "merklized",
+            "userID",
+            "circuitQueryHash",
+            "issuerAuthState",
+            "requestID",
+            "challenge",
+            "gistRoot",
+            "issuerID",
+            "isRevocationChecked",
+            "issuerClaimNonRevState",
+            "timestamp",
+            "claimPathNotExists",
+            "claimPathKey"
+        ];
+        super.initialize(_verifierContractAddr, _stateContractAddr);
+    }
 
     function getCircuitId() external pure override returns (string memory id) {
         return CIRCUIT_ID;
     }
 
-    /* solhint-disable code-complexity */
-    function inputIndexOf(string memory name) public pure override returns (uint256) {
-        if (keccak256(bytes(name)) == keccak256(bytes("merklized"))) {
-            return 0;
-        } else if (keccak256(bytes(name)) == keccak256(bytes("userID"))) {
-            return 1;
-        } else if (keccak256(bytes(name)) == keccak256(bytes("circuitQueryHash"))) {
-            return 2;
-        } else if (keccak256(bytes(name)) == keccak256(bytes("issuerAuthState"))) {
-            return 3;
-        } else if (keccak256(bytes(name)) == keccak256(bytes("requestID"))) {
-            return 4;
-        } else if (keccak256(bytes(name)) == keccak256(bytes("challenge"))) {
-            return 5;
-        } else if (keccak256(bytes(name)) == keccak256(bytes("gistRoot"))) {
-            return 6;
-        } else if (keccak256(bytes(name)) == keccak256(bytes("issuerID"))) {
-            return 7;
-        } else if (keccak256(bytes(name)) == keccak256(bytes("isRevocationChecked"))) {
-            return 8;
-        } else if (keccak256(bytes(name)) == keccak256(bytes("issuerClaimNonRevState"))) {
-            return 9;
-        } else if (keccak256(bytes(name)) == keccak256(bytes("timestamp"))) {
-            return 10;
-        } else if (keccak256(bytes(name)) == keccak256(bytes("claimPathNotExists"))) {
-            return 11;
-        } else if (keccak256(bytes(name)) == keccak256(bytes("claimPathKey"))) {
-            return 12;
-        } else {
-            revert("Invalid input name");
+    function inputIndexOf(string memory name) public view override returns (uint256) {
+        for (uint256 i = 0; i < valueIndex.length; i++) {
+            if (keccak256(bytes(name)) == keccak256(bytes(valueIndex[i]))) {
+                return i;
+            }
         }
-    }
 
-    /* solhint-disable code-complexity */
+        revert("Invalid input name");
+    }
 
     function _getInputValidationParameters(
         uint256[] calldata inputs
