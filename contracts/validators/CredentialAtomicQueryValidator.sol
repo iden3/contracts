@@ -48,12 +48,15 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     function getChallengeInputIndex() external pure virtual returns (uint256 index);
 
     function verify(
-        ZKPResponse calldata zkpResponse,
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
         bytes calldata cirquitQueryData
     ) external view virtual returns (bool) {
         // verify that zkp is valid
         require(
-            verifier.verifyProof(zkpResponse.a, zkpResponse.b, zkpResponse.c, zkpResponse.inputs),
+            verifier.verifyProof(a, b, c, inputs),
             "Proof is not valid"
         );
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(
@@ -78,7 +81,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         }
 
         //destrcut values from result array
-        uint256[] memory validationParams = _getInputValidationParameters(zkpResponse.inputs);
+        uint256[] memory validationParams = _getInputValidationParameters(inputs);
         uint256 inputQueryHash = validationParams[0];
         require(
             inputQueryHash == credAtomicQuery.queryHash,

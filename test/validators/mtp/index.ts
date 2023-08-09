@@ -115,13 +115,13 @@ describe("Atomic MTP Validator", function () {
         await mtpValidator.setRevocationStateExpirationTime(test.setExpiration);
       }
       if (test.errorMessage) {
-        await expect(mtpValidator.verify([inputs, pi_a, pi_b, pi_c], packValidatorParams(query, test.allowedIssuers))).to.be.revertedWith(
+        await expect(mtpValidator.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers))).to.be.revertedWith(
           test.errorMessage
         );
       } else if (test.errorMessage === "") {
-        await expect(mtpValidator.verify([inputs, pi_a, pi_b, pi_c], packValidatorParams(query, test.allowedIssuers))).to.be.reverted;
+        await expect(mtpValidator.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers))).to.be.reverted;
       } else {
-        const verified = await mtpValidator.verify([inputs, pi_a, pi_b, pi_c], packValidatorParams(query, test.allowedIssuers));
+        const verified = await mtpValidator.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers));
         expect(verified).to.be.true;
       }
     });

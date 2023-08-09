@@ -26,23 +26,26 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
 
     function submitZKPResponse(
         uint64 requestId,
-        ICircuitValidator.ZKPResponse calldata zkpResponse
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c
     ) public override returns (bool) {
         require(
             requestValidators[requestId] != ICircuitValidator(address(0)),
             "validator is not set for this request id"
         ); // validator exists
 
-        _beforeProofSubmit(requestId, zkpResponse.inputs, requestValidators[requestId]);
+        _beforeProofSubmit(requestId, inputs, requestValidators[requestId]);
 
         require(
-            requestValidators[requestId].verify(zkpResponse, requestQueries[requestId].queryData),
+            requestValidators[requestId].verify(inputs, a, b, c, requestQueries[requestId].queryData),
             "proof response is not valid"
         );
 
         proofs[msg.sender][requestId] = true; // user provided a valid proof for request
 
-        _afterProofSubmit(requestId, zkpResponse.inputs, requestValidators[requestId]);
+        _afterProofSubmit(requestId, inputs, requestValidators[requestId]);
         return true;
     }
 

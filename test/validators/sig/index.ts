@@ -114,13 +114,13 @@ describe("Atomic Sig Validator", function () {
       }
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
       if (test.errorMessage) {
-        await expect(sig.verify([inputs, pi_a, pi_b, pi_c], packValidatorParams(query, test.allowedIssuers))).to.be.revertedWith(
+        await expect(sig.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers))).to.be.revertedWith(
           test.errorMessage
         );
       } else if (test.errorMessage === "") {
-        await expect(sig.verify([inputs, pi_a, pi_b, pi_c], packValidatorParams(query, test.allowedIssuers))).to.be.reverted;
+        await expect(sig.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers))).to.be.reverted;
       } else {
-        const verified = await sig.verify([inputs, pi_a, pi_b, pi_c], packValidatorParams(query, test.allowedIssuers));
+        const verified = await sig.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers));
         expect(verified).to.be.true;
       }
     });

@@ -8,15 +8,11 @@ interface ICircuitValidator {
         bytes queryData;
     }
 
-    struct ZKPResponse {
-        uint256[] inputs;
-        uint256[2] a;
-        uint256[2][2] b;
-        uint256[2] c;
-    }
-
     function verify(
-        ZKPResponse calldata zkpResponse,
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
         bytes calldata circuitQueryData
     ) external view returns (bool r);
 
