@@ -302,6 +302,39 @@ export class DeployHelper {
       state,
     };
   }
+
+  async upgradeValidator(
+    validatorAddress: string,
+    validatorContractName = "CredentialAtomicQueryMTPValidator",
+  ): Promise<{
+    validator: Contract;
+  }> {
+    this.log("======== Validator: upgrade started ========");
+
+    const owner = this.signers[0];
+
+    this.log("deploying poseidons facade...");
+    const poseidonFacade = await deployPoseidonFacade();
+
+    this.log("upgrading validator...");
+    const ValidatorFactory = await ethers.getContractFactory(validatorContractName, {
+      libraries: {
+        PoseidonFacade: poseidonFacade.address
+      },
+    });
+    const validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory, {
+      unsafeAllowLinkedLibraries: true,
+      unsafeSkipStorageCheck: true,
+    });
+    await validator.deployed();
+    this.log(`Validator ${validatorContractName} upgraded at address ${validator.address} from ${owner.address}`);
+
+    this.log("======== Validator: upgrade completed ========");
+    return {
+      validator: validator
+    };
+  }
+
   async deployGenesisUtilsWrapper(): Promise<{
     address: string;
   }> {
