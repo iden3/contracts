@@ -4,14 +4,14 @@ pragma solidity 0.8.16;
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {IState} from "../interfaces/IState.sol";
 import {ClaimBuilder} from "../lib/ClaimBuilder.sol";
-import {OnChainIdentity} from "../lib/OnChainIdentity.sol";
+import {IdentityLib} from "../lib/OnChainIdentity.sol";
 import {IdentityBase} from "../lib/IdentityBase.sol";
 
 // /**
 //  * @dev Contract managing onchain identity
 //  */
 contract IdentityExample is IdentityBase, OwnableUpgradeable {
-    using OnChainIdentity for OnChainIdentity.Identity;
+    using IdentityLib for OnChainIdentity.Data;
 
     // This empty reserved space is put in place to allow future versions
     // of the State contract to inherit from other contracts without a risk of
@@ -38,6 +38,11 @@ contract IdentityExample is IdentityBase, OwnableUpgradeable {
         transitState();
     }
 
+    function addClaimsTreeRootAndTransit(uint256 root) public onlyOwner {
+        addClaimsTreeRoot(root);
+        transitState();
+    }
+
     function revokeClaimAndTransit(uint64 revocationNonce) public onlyOwner {
         revokeClaim(revocationNonce);
         transitState();
@@ -49,6 +54,10 @@ contract IdentityExample is IdentityBase, OwnableUpgradeable {
      */
     function addClaim(uint256[8] calldata claim) public virtual onlyOwner {
         identity.addClaim(claim);
+    }
+
+    function addClaimsTreeRoot(uint256 root) public virtual onlyOwner {
+        identity.addClaimsTreeRoot(root);
     }
 
     /**

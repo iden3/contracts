@@ -49,6 +49,7 @@ library SmtLib {
         mapping(uint256 => uint256[]) rootIndexes; // root => rootEntryIndex[]
         uint256 maxDepth;
         bool initialized;
+        bool rootsOnly; // shouldn't take additional storage slot;
         // This empty reserved space is put in place to allow future versions
         // of the SMT library to add new Data struct fields without shifting down
         // storage of upgradable contracts that use this struct as a state variable
@@ -141,7 +142,10 @@ library SmtLib {
      * @param i Index of a leaf
      * @param v Value of a leaf
      */
-    function addLeaf(Data storage self, uint256 i, uint256 v) external onlyInitialized(self) {
+    function addLeaf(Data storage self, uint256 i, uint256 v)
+    external
+    onlyInitialized(self)
+    fullTree(self) {
         Node memory node = Node({
             nodeType: NodeType.LEAF,
             childLeft: 0,
@@ -153,7 +157,16 @@ library SmtLib {
         uint256 prevRoot = getRoot(self);
         uint256 newRoot = _addLeaf(self, node, prevRoot, 0);
 
-        _addEntry(self, newRoot, block.timestamp, block.number);
+        _addRootEntry(self, newRoot, block.timestamp, block.number);
+    }
+
+    function addRootEntry(Data storage self, uint256 root)
+    external
+    onlyInitialized(self)
+    rootsOnly(self) {
+        uint256 timestamp = block.timestamp;
+        uint256 blockNumber = block.number;
+        _addRootEntry(self, root, timestamp, blockNumber);
     }
 
     /**
@@ -204,7 +217,7 @@ library SmtLib {
      * @param index A node index.
      * @return SMT proof struct.
      */
-    function getProof(Data storage self, uint256 index) external view returns (Proof memory) {
+    function getProof(Data storage self, uint256 index) external view fullTree(self) returns (Proof memory) {
         return getProofByRoot(self, index, getRoot(self));
     }
 
@@ -218,7 +231,7 @@ library SmtLib {
         Data storage self,
         uint256 index,
         uint256 historicalRoot
-    ) public view onlyExistingRoot(self, historicalRoot) returns (Proof memory) {
+    ) public view onlyExistingRoot(self, historicalRoot) fullTree(self) returns (Proof memory) {
         uint256[] memory siblings = new uint256[](self.maxDepth);
         // Solidity does not guarantee that memory vars are zeroed out
         for (uint256 i = 0; i < self.maxDepth; i++) {
@@ -280,7 +293,7 @@ library SmtLib {
         Data storage self,
         uint256 index,
         uint256 timestamp
-    ) public view returns (Proof memory) {
+    ) public view fullTree(self) returns (Proof memory) {
         RootEntryInfo memory rootInfo = getRootInfoByTime(self, timestamp);
         return getProofByRoot(self, index, rootInfo.root);
     }
@@ -295,7 +308,7 @@ library SmtLib {
         Data storage self,
         uint256 index,
         uint256 blockNumber
-    ) external view returns (Proof memory) {
+    ) external view fullTree(self) returns (Proof memory) {
         RootEntryInfo memory rootInfo = getRootInfoByBlock(self, blockNumber);
         return getProofByRoot(self, index, rootInfo.root);
     }
@@ -407,7 +420,7 @@ library SmtLib {
      * @dev Sets max depth of the SMT
      * @param maxDepth max depth
      */
-    function setMaxDepth(Data storage self, uint256 maxDepth) public {
+    function setMaxDepth(Data storage self, uint256 maxDepth) public fullTree(self) {
         require(maxDepth > 0, "Max depth must be greater than zero");
         require(maxDepth > self.maxDepth, "Max depth can only be increased");
         require(maxDepth <= MAX_DEPTH_HARD_CAP, "Max depth is greater than hard cap");
@@ -426,15 +439,27 @@ library SmtLib {
      * @dev Initialize SMT with max depth and root entry of an empty tree.
      * @param maxDepth Max depth of the SMT.
      */
-    function initialize(Data storage self, uint256 maxDepth) external {
+    function initialize(Data storage self, uint256 maxDepth, bool rootsOnly ) external {
         require(!isInitialized(self), "Smt is already initialized");
+        require(rootsOnly && maxDepth == 0, "Max depth must be zero for roots only tree");
         setMaxDepth(self, maxDepth);
-        _addEntry(self, 0, 0, 0);
+        self.rootsOnly = rootsOnly;
+        _addRootEntry(self, 0, 0, 0);
         self.initialized = true;
     }
 
     modifier onlyInitialized(Data storage self) {
         require(isInitialized(self), "Smt is not initialized");
+        _;
+    }
+
+    modifier rootsOnly(Data storage self) {
+        require(self.rootsOnly, "The tree is configures to only store roots");
+        _;
+    }
+
+    modifier fullTree(Data storage self) {
+        require(!self.rootsOnly, "The tree is configures to store full tree");
         _;
     }
 
@@ -607,7 +632,7 @@ library SmtLib {
         return _getRootInfoByIndex(self, index);
     }
 
-    function _addEntry(
+    function _addRootEntry(
         Data storage self,
         uint256 root,
         uint256 _timestamp,

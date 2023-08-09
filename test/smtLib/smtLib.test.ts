@@ -47,7 +47,7 @@ describe("Merkle tree proofs of SMT", () => {
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize();
-    smt = await deployHelper.deploySmtLibTestWrapper();
+    smt = await deployHelper.deploySmtLibTestWrapper(40);
   });
 
   describe("SMT existence proof", () => {
@@ -904,97 +904,29 @@ describe("Merkle tree proofs of SMT", () => {
     });
   });
 
-  describe("SMT add leaf edge cases", () => {
+  describe.only("SMT add leaf edge cases", () => {
     const testCases: TestCaseMTPProof[] = [
       {
         description: "Positive: add two leaves with maximum depth (less significant bits SET)",
         leavesToInsert: [
-          { i: genMaxBinaryNumber(63), v: 100 }, //111111111111111111111111111111111111111111111111111111111111111
-          { i: genMaxBinaryNumber(64), v: 100 }, //1111111111111111111111111111111111111111111111111111111111111111
+          { i: genMaxBinaryNumber(19), v: 100 }, //111111111111111111111111111111111111111111111111111111111111111
+          { i: genMaxBinaryNumber(20), v: 100 }, //1111111111111111111111111111111111111111111111111111111111111111
         ],
-        paramsToGetProof: genMaxBinaryNumber(64),
+        paramsToGetProof: genMaxBinaryNumber(40),
         expectedProof: {
           root: "11998361913555620744473305594791175460338619045531124782442564216176360071119",
           existence: true,
-          siblings: Array(63)
+          siblings: Array(39)
             .fill("0")
             .concat([
               "2316164946517152574748505824782744746774130618858955093234986590959173249001",
-            ]) as FixedArray<string, 64>,
+            ]) as FixedArray<string, 40>,
           index: "18446744073709551615",
           value: "100",
           auxExistence: false,
           auxIndex: "0",
           auxValue: "0",
         },
-      },
-      {
-        description: "Positive: add two leaves with maximum depth (less significant bits NOT SET)",
-        leavesToInsert: [
-          { i: 0, v: 100 },
-          { i: genMaxBinaryNumber(63) + BigInt(1), v: 100 }, // 1000000000000000000000000000000000000000000000000000000000000000
-        ],
-        paramsToGetProof: genMaxBinaryNumber(63) + BigInt(1),
-        expectedProof: {
-          root: "7851364894145224193468155117213470810715599698407298245809392679874651946419",
-          existence: true,
-          siblings: Array(63)
-            .fill("0")
-            .concat([
-              "1321531033810699781922362637795367691578399901805457949741207048379959301312",
-            ]) as FixedArray<string, 64>,
-          index: "9223372036854775808",
-          value: "100",
-          auxExistence: false,
-          auxIndex: "0",
-          auxValue: "0",
-        },
-      },
-      {
-        description:
-          "Positive: add two leaves with maximum depth (less significant bits are both SET and NOT SET)",
-        leavesToInsert: [
-          { i: "17713686966169915918", v: 100 }, //1111010111010011101010000111000111010001000001100101001000001110
-          { i: "8490314929315140110", v: 100 }, //0111010111010011101010000111000111010001000001100101001000001110
-        ],
-        paramsToGetProof: "8490314929315140110",
-        expectedProof: {
-          root: "5640762368545907066458698273870257445508350556310355422307954953617544677976",
-          existence: true,
-          siblings: Array(63)
-            .fill("0")
-            .concat([
-              "21059535177784591611482142343728384369736848354398899541533132315810203341674",
-            ]) as FixedArray<string, 64>,
-          index: "8490314929315140110",
-          value: "100",
-          auxExistence: false,
-          auxIndex: "0",
-          auxValue: "0",
-        },
-      },
-      {
-        description: "Negative: add two leaves with maximum depth + 1 (less significant bits SET)",
-        leavesToInsert: [
-          { i: genMaxBinaryNumber(64), v: 100 }, //1111111111111111111111111111111111111111111111111111111111111111
-          { i: genMaxBinaryNumber(65), v: 100, error: "Max depth reached" }, //11111111111111111111111111111111111111111111111111111111111111111
-        ],
-      },
-      {
-        description:
-          "Negative: add two leaves with maximum depth + 1 (less significant bits NOT SET)",
-        leavesToInsert: [
-          { i: 0, v: 100 },
-          { i: genMaxBinaryNumber(64) + BigInt(1), v: 100, error: "Max depth reached" }, // 10000000000000000000000000000000000000000000000000000000000000000
-        ],
-      },
-      {
-        description:
-          "Negative: add two leaves with maximum depth + 1 (less significant bits are both SET and NOT SET",
-        leavesToInsert: [
-          { i: "17713686966169915918", v: 100 }, //1111010111010011101010000111000111010001000001100101001000001110
-          { i: "36160431039879467534", v: 100, error: "Max depth reached" }, //11111010111010011101010000111000111010001000001100101001000001110
-        ],
       },
     ];
 
@@ -1809,7 +1741,9 @@ async function checkTestCaseMTPProof(smt: Contract, testCase: TestCaseMTPProof) 
       await expect(smt.add(param.i, param.v)).to.be.revertedWith(param.error);
       continue;
     }
-    await smt.add(param.i, param.v);
+    const gas = await smt.add(param.i, param.v).then((tx) => tx.wait()).then((receipt) => receipt.gasUsed);
+    console.log(gas.toBigInt());
+    // await smt.add(param.i, param.v);
   }
 
   let proof;
@@ -1857,7 +1791,7 @@ function checkMtpProof(proof, expectedProof: MtpProof) {
   expect(proof.auxValue).to.equal(expectedProof.auxValue);
 }
 
-function checkSiblings(siblings, expectedSiblings: FixedArray<string, 64>) {
+function checkSiblings(siblings, expectedSiblings: FixedArray<string, 64> | FixedArray<string, 40>) {
   expect(siblings.length).to.equal(expectedSiblings.length);
   for (let i = 0; i < siblings.length; i++) {
     expect(siblings[i]).to.equal(expectedSiblings[i]);

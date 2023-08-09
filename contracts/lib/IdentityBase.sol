@@ -3,7 +3,7 @@ pragma solidity 0.8.16;
 
 import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredentialStatusResolver.sol";
 import {IState} from "../interfaces/IState.sol";
-import {OnChainIdentity} from "../lib/OnChainIdentity.sol";
+import {IdentityLib} from "../lib/OnChainIdentity.sol";
 import {SmtLib} from "../lib/SmtLib.sol";
 
 // /**
@@ -16,9 +16,9 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
     uint256[500] private __gapBefore;
 
-    using OnChainIdentity for OnChainIdentity.Identity;
+    using IdentityLib for OnChainIdentity.Data;
 
-    OnChainIdentity.Identity internal identity;
+    OnChainIdentity.Data internal identity;
 
     // This empty reserved space is put in place to allow future versions
     // of this contract to add new variables without shifting down
@@ -35,11 +35,11 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
     }
 
     /**
-     * @dev Initialization of OnChainIdentity library
+     * @dev Initialization of IdentityLib library
      * @param _stateContractAddr - address of the State contract
      */
-    function initialize(address _stateContractAddr) public virtual {
-        identity.initialize(_stateContractAddr, address(this), getSmtDepth());
+    function initialize(address _stateContractAddr, bool _isRootsOnlyClaimsTree) public virtual {
+        identity.initialize(_stateContractAddr, address(this), getSmtDepth(), _isRootsOnlyClaimsTree);
     }
 
     /**

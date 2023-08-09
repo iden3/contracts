@@ -15,7 +15,7 @@ export type FixedArray<T, N extends number> = GrowToSize<T, [], N>;
 export type MtpProof = {
   root: number | string;
   existence: boolean;
-  siblings: FixedArray<string, 64>;
+  siblings: FixedArray<string, 64> | FixedArray<string, 40>;
   index: number | string;
   value: number | string;
   auxExistence: boolean;

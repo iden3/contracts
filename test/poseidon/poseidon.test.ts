@@ -13,6 +13,7 @@ describe("poseidon", () => {
     // poseidon goiden3 [extracted using go-iden3-crypto/poseidon implementation]
     const resGo = "7853200120776062878684798364095072458815029376092732009249414926327459813530";
     // poseidon smartcontract
+    const gas = await poseidonFacade.estimateGas.poseidon2([1, 2]);
     const resSC = await poseidonFacade.poseidon2([1, 2]);
     expect(resSC).to.be.equal(resGo);
   });
@@ -21,6 +22,7 @@ describe("poseidon", () => {
     // poseidon goiden3 [extracted using go-iden3-crypto/poseidon implementation]
     const resGo = "6542985608222806190361240322586112750744169038454362455181422643027100751666";
     // poseidon smartcontract
+    const gas = await poseidonFacade.estimateGas.poseidon3([1, 2, 3]);
     const resSC = await poseidonFacade.poseidon3([1, 2, 3]);
     expect(resSC).to.be.equal(resGo);
   });
