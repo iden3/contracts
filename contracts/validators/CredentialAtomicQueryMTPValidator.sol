@@ -7,7 +7,6 @@ import {IState} from "../interfaces/IState.sol";
 
 contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
     string internal constant CIRCUIT_ID = "credentialAtomicQueryMTPV2OnChain";
-    string[] internal valueIndex;
 
     function initialize(
         address _verifierContractAddr,
@@ -31,16 +30,6 @@ contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
 
     function getCircuitId() external pure override returns (string memory id) {
         return CIRCUIT_ID;
-    }
-
-    function inputIndexOf(string memory name) public view override returns (uint256) {
-        for (uint256 i = 0; i < valueIndex.length; i++) {
-            if (keccak256(bytes(name)) == keccak256(bytes(valueIndex[i]))) {
-                return i;
-            }
-        }
-
-        revert("Invalid input name");
     }
 
     function _getInputValidationParameters(
