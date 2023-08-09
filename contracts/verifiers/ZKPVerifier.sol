@@ -26,10 +26,10 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
 
     function submitZKPResponse(
         uint64 requestId,
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c
     ) public override returns (bool) {
         require(
             requestValidators[requestId] != ICircuitValidator(address(0)),
