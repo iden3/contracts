@@ -12,5 +12,5 @@ interface ICircuitValidator {
 
     function getCircuitId() external pure returns (string memory id);
 
-    function inputIndexOf(string memory name) external view returns (uint256);
+    function inputIndexOf(string memory name) external pure returns (uint256);
 }
