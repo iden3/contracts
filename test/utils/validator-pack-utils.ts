@@ -11,8 +11,7 @@
                 "operator": 'uint256',
                 "slotIndex": 'uint256',
                 "value": 'uint256[]',
-                "queryHashMerklized": 'uint256',
-                "queryHashNonMerklized": 'uint256',
+                "queryHash": 'uint256',
                 "allowedIssuers": 'uint256[]'
             }
         },
@@ -22,8 +21,7 @@
             "operator": query.operator,
             "slotIndex": query.slotIndex,
             "value": query.value,
-            "queryHashMerklized": query.queryHashMerklized,
-            "queryHashNonMerklized": query.queryHashNonMerklized,
+            "queryHash": query.queryHash,
             "allowedIssuers": allowedIssuers
         }
     );

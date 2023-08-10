@@ -15,8 +15,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256 operator;
         uint256 slotIndex;
         uint256[] value;
-        uint256 queryHashMerklized;
-        uint256 queryHashNonMerklized;
+        uint256 queryHash;
         uint256[] allowedIssuers;
     }
 
@@ -75,16 +74,8 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
 
         //destrcut values from result array
         uint256[] memory validationParams = _getInputValidationParameters(inputs);
-        uint256 queryHash;
-        if (validationParams[6] == 1) {
-            queryHash = credAtomicQuery.queryHashMerklized;
-            require(queryHash != 0, "queryHashMerklized should not be zero");
-        } else {
-            queryHash = credAtomicQuery.queryHashNonMerklized;
-            require(queryHash != 0, "queryHashNonMerklized should not be zero");
-        }
         uint256 inputQueryHash = validationParams[0];
-        require(inputQueryHash == queryHash, "query hash does not match the requested one");
+        require(inputQueryHash == credAtomicQuery.queryHash, "query hash does not match the requested one");
 
         uint256 gistRoot = validationParams[1];
         _checkGistRoot(gistRoot);

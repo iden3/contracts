@@ -31,14 +31,13 @@ contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
     function _getInputValidationParameters(
         uint256[] calldata inputs
     ) internal pure override returns (uint256[] memory) {
-        uint256[] memory params = new uint256[](7);
+        uint256[] memory params = new uint256[](6);
         params[0] = inputs[2]; // queryHash
         params[1] = inputs[5]; // gistRoot
         params[2] = inputs[6]; // issuerId
         params[3] = inputs[7]; // issuerClaimIdenState
         params[4] = inputs[9]; // issuerClaimNonRevState
         params[5] = inputs[10]; // timestamp
-        params[6] = inputs[0]; // merklized
         return params;
     }
 }

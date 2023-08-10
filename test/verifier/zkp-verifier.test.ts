@@ -18,11 +18,8 @@ describe("ZKP Verifier", function () {
           ethers.BigNumber.from("1420070400000000000"),
           ...new Array(63).fill("0").map((x) => ethers.BigNumber.from(x)),
         ],
-        queryHashMerklized: ethers.BigNumber.from(
+        queryHash: ethers.BigNumber.from(
           "1496222740463292783938163206931059379817846775593932664024082849882751356658"
-        ),
-         queryHashNonMerklized: ethers.BigNumber.from(
-          "0"
         ),
         circuitId: "credentialAtomicQueryMTPV2OnChain",
         metadata: "test medatada"
