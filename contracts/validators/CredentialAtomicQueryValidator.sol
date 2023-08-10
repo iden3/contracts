@@ -50,7 +50,6 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         return supportedCircuits;
     }
 
-
     function inputIndexOf(string memory name) external view virtual returns (uint256) {
         for (uint256 i = 0; i < valueIndex.length; i++) {
             if (keccak256(bytes(name)) == keccak256(bytes(valueIndex[i]))) {
@@ -75,7 +74,10 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         //destrcut values from result array
         uint256[] memory validationParams = _getInputValidationParameters(inputs);
         uint256 inputQueryHash = validationParams[0];
-        require(inputQueryHash == credAtomicQuery.queryHash, "query hash does not match the requested one");
+        require(
+            inputQueryHash == credAtomicQuery.queryHash,
+            "query hash does not match the requested one"
+        );
 
         uint256 gistRoot = validationParams[1];
         _checkGistRoot(gistRoot);

@@ -6,7 +6,6 @@ import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
 
 contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
-
     function initialize(
         address _verifierContractAddr,
         address _stateContractAddr
