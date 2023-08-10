@@ -10,7 +10,7 @@ interface ICircuitValidator {
         bytes calldata data
     ) external view returns (bool r);
 
-    function getCircuitId() external pure returns (string memory id);
+    function getSupportedCircuitIds() external view returns (string[] memory ids);
 
     function inputIndexOf(string memory name) external view returns (uint256);
 }

@@ -4,8 +4,6 @@ pragma solidity 0.8.16;
 import {CredentialAtomicQueryValidator} from "./CredentialAtomicQueryValidator.sol";
 
 contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
-    string internal constant CIRCUIT_ID = "credentialAtomicQuerySigV2OnChain";
-
     function initialize(
         address _verifierContractAddr,
         address _stateContractAddr
@@ -25,11 +23,8 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
             "claimPathNotExists",
             "claimPathKey"
         ];
+        supportedCircuits = ["credentialAtomicQuerySigV2OnChain"];
         super.initialize(_verifierContractAddr, _stateContractAddr);
-    }
-
-    function getCircuitId() external pure override returns (string memory id) {
-        return CIRCUIT_ID;
     }
 
     function _getInputValidationParameters(

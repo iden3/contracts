@@ -6,7 +6,6 @@ import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
 
 contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
-    string internal constant CIRCUIT_ID = "credentialAtomicQueryMTPV2OnChain";
 
     function initialize(
         address _verifierContractAddr,
@@ -25,11 +24,8 @@ contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
             "issuerClaimNonRevState",
             "timestamp"
         ];
+        supportedCircuits = ["credentialAtomicQueryMTPV2OnChain"];
         super.initialize(_verifierContractAddr, _stateContractAddr);
-    }
-
-    function getCircuitId() external pure override returns (string memory id) {
-        return CIRCUIT_ID;
     }
 
     function _getInputValidationParameters(

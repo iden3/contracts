@@ -26,6 +26,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     uint256 public revocationStateExpirationTime;
     uint256 public proofGenerationExpirationTime;
     string[] internal valueIndex;
+    string[] internal supportedCircuits;
 
     function initialize(
         address _verifierContractAddr,
@@ -46,7 +47,10 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         proofGenerationExpirationTime = expirationTime;
     }
 
-    function getCircuitId() external pure virtual returns (string memory id);
+    function getSupportedCircuitIds() external view virtual returns (string[] memory ids) {
+        return supportedCircuits;
+    }
+
 
     function inputIndexOf(string memory name) external view virtual returns (uint256) {
         for (uint256 i = 0; i < valueIndex.length; i++) {
