@@ -1,4 +1,3 @@
- import { ethers } from "hardhat";
  import Web3 from 'web3';
  
  export function packValidatorParams(query: any, allowedIssuers: any[] = []) {
@@ -12,7 +11,8 @@
                 "slotIndex": 'uint256',
                 "value": 'uint256[]',
                 "queryHash": 'uint256',
-                "allowedIssuers": 'uint256[]'
+                "allowedIssuers": 'uint256[]',
+                "circuitIds": 'string[]'
             }
         },
         {
@@ -22,7 +22,8 @@
             "slotIndex": query.slotIndex,
             "value": query.value,
             "queryHash": query.queryHash,
-            "allowedIssuers": allowedIssuers
+            "allowedIssuers": allowedIssuers,
+            "circuitIds": query.circuitIds
         }
     );
  }

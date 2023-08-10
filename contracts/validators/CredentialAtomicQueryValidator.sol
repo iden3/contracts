@@ -17,6 +17,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256[] value;
         uint256 queryHash;
         uint256[] allowedIssuers;
+        string[] circuitIds;
     }
 
     IVerifier public verifier;
@@ -24,8 +25,8 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
 
     uint256 public revocationStateExpirationTime;
     uint256 public proofGenerationExpirationTime;
-    string[] internal valueIndex;
-    string[] internal supportedCircuits;
+    string[] internal _valueIndex;
+    string[] internal _supportedCircuitIds;
 
     function initialize(
         address _verifierContractAddr,
@@ -47,12 +48,12 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     }
 
     function getSupportedCircuitIds() external view virtual returns (string[] memory ids) {
-        return supportedCircuits;
+        return _supportedCircuitIds;
     }
 
     function inputIndexOf(string memory name) external view virtual returns (uint256) {
-        for (uint256 i = 0; i < valueIndex.length; i++) {
-            if (keccak256(bytes(name)) == keccak256(bytes(valueIndex[i]))) {
+        for (uint256 i = 0; i < _valueIndex.length; i++) {
+            if (keccak256(bytes(name)) == keccak256(bytes(_valueIndex[i]))) {
                 return i;
             }
         }
@@ -70,6 +71,12 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         // verify that zkp is valid
         require(verifier.verifyProof(a, b, c, inputs), "Proof is not valid");
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
+        require(
+            credAtomicQuery.circuitIds.length == 1 &&
+                keccak256(bytes(credAtomicQuery.circuitIds[0])) ==
+                keccak256(bytes(_supportedCircuitIds[0])),
+            "Invalid circuit ID"
+        );
 
         //destrcut values from result array
         uint256[] memory validationParams = _getInputValidationParameters(inputs);

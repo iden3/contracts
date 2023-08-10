@@ -8,7 +8,7 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
         address _verifierContractAddr,
         address _stateContractAddr
     ) public override initializer {
-        valueIndex = [
+        _valueIndex = [
             "merklized",
             "userID",
             "circuitQueryHash",
@@ -23,7 +23,7 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
             "claimPathNotExists",
             "claimPathKey"
         ];
-        supportedCircuits = ["credentialAtomicQuerySigV2OnChain"];
+        _supportedCircuitIds = ["credentialAtomicQuerySigV2OnChain"];
         super.initialize(_verifierContractAddr, _stateContractAddr);
     }
 

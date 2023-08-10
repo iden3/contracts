@@ -104,8 +104,9 @@ describe("Atomic MTP Validator", function () {
         queryHash: ethers.BigNumber.from(
           "1496222740463292783938163206931059379817846775593932664024082849882751356658"
         ),
-        circuitId: "credentialAtomicQueryMTPV2OnChain",
-        metadata: "test medatada"
+        circuitIds: ["credentialAtomicQueryMTPV2OnChain"],
+        metadata: "test medatada",
+
       };
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);

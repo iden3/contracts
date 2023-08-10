@@ -10,7 +10,7 @@ contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
         address _verifierContractAddr,
         address _stateContractAddr
     ) public override initializer {
-        valueIndex = [
+        _valueIndex = [
             "merklized",
             "userID",
             "circuitQueryHash",
@@ -23,7 +23,7 @@ contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
             "issuerClaimNonRevState",
             "timestamp"
         ];
-        supportedCircuits = ["credentialAtomicQueryMTPV2OnChain"];
+        _supportedCircuitIds = ["credentialAtomicQueryMTPV2OnChain"];
         super.initialize(_verifierContractAddr, _stateContractAddr);
     }
 

@@ -21,9 +21,9 @@ describe("ZKP Verifier", function () {
         queryHash: ethers.BigNumber.from(
           "1496222740463292783938163206931059379817846775593932664024082849882751356658"
         ),
-        circuitId: "credentialAtomicQueryMTPV2OnChain",
+        circuitIds: ["credentialAtomicQuerySigV2OnChain"],
         metadata: "test medatada"
-  };
+      };
 
   const proofJson = require("../validators/sig/data/valid_sig_user_genesis.json");
   const stateTransition = require("../validators/common-data/issuer_genesis_state.json");
