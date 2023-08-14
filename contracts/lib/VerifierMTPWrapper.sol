@@ -13,7 +13,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import "./verifierMTP.sol";
+import "./VerifierMTP.sol";
 import "../interfaces/IVerifier.sol";
 
 contract VerifierMTPWrapper is VerifierMTP,IVerifier {
@@ -22,10 +22,10 @@ contract VerifierMTPWrapper is VerifierMTP,IVerifier {
 
     /// @return r  bool true if proof is valid
     function verify(
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
-        uint256[] calldata input
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
+        uint256[] memory input
     ) public view returns (bool r) {
 
         uint[PUBSIGNALS_LENGTH] memory pubSignals;

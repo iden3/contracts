@@ -22,7 +22,7 @@ pragma solidity >=0.7.0 <0.9.0;
 
 import "../interfaces/IStateTransitionVerifier.sol";
 
-contract Verifier is IStateTransitionVerifier {
+contract VerifierStateTransition is IStateTransitionVerifier {
     // Scalar field size
     uint256 constant r    = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
     // Base field size

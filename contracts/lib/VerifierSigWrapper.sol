@@ -13,7 +13,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import "./verifierSig.sol";
+import "./VerifierSig.sol";
 import "../interfaces/IVerifier.sol";
 
 contract VerifierSigWrapper is VerifierSig, IVerifier {
@@ -34,7 +34,6 @@ contract VerifierSigWrapper is VerifierSig, IVerifier {
         for (uint256 i = 0; i < PUBSIGNALS_LENGTH; i++) {
             pubSignals[i] = input[i];
         }
-
-    return this.verifyProof(a,b,c,pubSignals) ;
+        return  this.verifyProof(a,b,c,pubSignals) ;
     }
 }
