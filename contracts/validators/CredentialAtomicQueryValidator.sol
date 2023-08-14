@@ -20,12 +20,26 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         string[] circuitIds;
     }
 
+    struct ValidationParams {
+        uint256 queryHash;
+        uint256 gistRoot;
+        uint256 issuerId;
+        uint256 issuerClaimState;
+        uint256 issuerClaimNonRevState;
+        uint256 timestamp;
+        // This empty reserved space is put in place to allow future versions
+        // of the CredentialAtomicQueryValidator contract to add new ValidationParams struct fields without shifting down
+        // storage of upgradable contracts that use this struct as a state variable
+        // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+        uint256[44] __gap;
+    }
+
     IVerifier public verifier;
     IState public state;
 
     uint256 public revocationStateExpirationTime;
     uint256 public proofGenerationExpirationTime;
-    string[] internal _valueIndex;
+    mapping(string => uint256) internal _inputNameToIndex;
     string[] internal _supportedCircuitIds;
 
     function initialize(
@@ -52,13 +66,9 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     }
 
     function inputIndexOf(string memory name) external view virtual returns (uint256) {
-        for (uint256 i = 0; i < _valueIndex.length; i++) {
-            if (keccak256(bytes(name)) == keccak256(bytes(_valueIndex[i]))) {
-                return i;
-            }
-        }
-
-        revert("Invalid input name");
+        uint256 index = _inputNameToIndex[name];
+        require(index != 0, "Input name not found");
+        return --index; // we save 1-based index, but return 0-based
     }
 
     function verify(
@@ -79,30 +89,24 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         );
 
         //destrcut values from result array
-        uint256[] memory validationParams = _getInputValidationParameters(inputs);
-        uint256 inputQueryHash = validationParams[0];
+        ValidationParams memory validationParams = _getInputValidationParameters(inputs);
         require(
-            inputQueryHash == credAtomicQuery.queryHash,
+            validationParams.queryHash == credAtomicQuery.queryHash,
             "query hash does not match the requested one"
         );
 
-        uint256 gistRoot = validationParams[1];
-        _checkGistRoot(gistRoot);
+        _checkGistRoot(validationParams.gistRoot);
 
-        uint256 issuerId = validationParams[2];
-        _checkAllowedIssuers(issuerId, credAtomicQuery.allowedIssuers);
-        uint256 issuerClaissuerClaimState = validationParams[3];
-        _checkStateContractOrGenesis(issuerId, issuerClaissuerClaimState);
-        uint256 issuerClaimNonRevState = validationParams[4];
-        _checkClaimNonRevState(issuerId, issuerClaimNonRevState);
-        uint256 proofGenerationTimestamp = validationParams[5];
-        _checkProofGeneratedExpiration(proofGenerationTimestamp);
+        _checkAllowedIssuers(validationParams.issuerId, credAtomicQuery.allowedIssuers);
+        _checkStateContractOrGenesis(validationParams.issuerId, validationParams.issuerClaimState);
+        _checkClaimNonRevState(validationParams.issuerId, validationParams.issuerClaimNonRevState);
+        _checkProofGeneratedExpiration(validationParams.timestamp);
         return (true);
     }
 
     function _getInputValidationParameters(
         uint256[] calldata inputs
-    ) internal pure virtual returns (uint256[] memory);
+    ) internal pure virtual returns (ValidationParams memory);
 
     function _checkGistRoot(uint256 gistRoot) internal view {
         IState.GistRootInfo memory rootInfo = state.getGISTRootInfo(gistRoot);
@@ -175,5 +179,9 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         }
 
         revert("Issuer is not on the Allowed Issuers list");
+    }
+
+    function _setInputToIndex(string memory inputName, uint256 index) internal {
+        _inputNameToIndex[inputName] = ++index; // increment index to avoid 0
     }
 }

@@ -10,33 +10,35 @@ contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
         address _verifierContractAddr,
         address _stateContractAddr
     ) public override initializer {
-        _valueIndex = [
-            "merklized",
-            "userID",
-            "circuitQueryHash",
-            "requestID",
-            "challenge",
-            "gistRoot",
-            "issuerID",
-            "issuerClaimIdenState",
-            "isRevocationChecked",
-            "issuerClaimNonRevState",
-            "timestamp"
-        ];
+        _setInputToIndex("merklized", 0);
+        _setInputToIndex("userID", 1);
+        _setInputToIndex("circuitQueryHash", 2);
+        _setInputToIndex("requestID", 3);
+        _setInputToIndex("challenge", 4);
+        _setInputToIndex("gistRoot", 5);
+        _setInputToIndex("issuerID", 6);
+        _setInputToIndex("issuerClaimIdenState", 7);
+        _setInputToIndex("isRevocationChecked", 8);
+        _setInputToIndex("issuerClaimNonRevState", 9);
+        _setInputToIndex("timestamp", 10);
         _supportedCircuitIds = ["credentialAtomicQueryMTPV2OnChain"];
         super.initialize(_verifierContractAddr, _stateContractAddr);
     }
 
     function _getInputValidationParameters(
         uint256[] calldata inputs
-    ) internal pure override returns (uint256[] memory) {
-        uint256[] memory params = new uint256[](6);
-        params[0] = inputs[2]; // queryHash
-        params[1] = inputs[5]; // gistRoot
-        params[2] = inputs[6]; // issuerId
-        params[3] = inputs[7]; // issuerClaimIdenState
-        params[4] = inputs[9]; // issuerClaimNonRevState
-        params[5] = inputs[10]; // timestamp
+    ) internal pure override returns (ValidationParams memory) {
+        uint256[44] memory gapParam;
+        ValidationParams memory params = ValidationParams({
+            queryHash: inputs[2],
+            gistRoot: inputs[5],
+            issuerId: inputs[6],
+            issuerClaimState: inputs[7],// issuerClaimIdenState
+            issuerClaimNonRevState: inputs[9],
+            timestamp: inputs[10],
+            __gap: gapParam
+        });
+
         return params;
     }
 }

@@ -12,14 +12,14 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
     /**
      * @dev Max return array length for request queries
      */
-    uint256 public constant REQUEST_QUERIES_RETURN_LIMIT = 1000;
+    uint256 public constant REQUESTS_RETURN_LIMIT = 1000;
 
     // msg.sender-> ( requestID -> is proof given )
     mapping(address => mapping(uint64 => bool)) public proofs;
 
-    mapping(uint64 => IZKPVerifier.ZKPRequest) public requestQueries;
+    mapping(uint64 => IZKPVerifier.ZKPRequest) internal _requests;
 
-    IZKPVerifier.ZKPRequest[] internal _supportedRequests;
+    IZKPVerifier.ZKPRequest[] internal _requestsList;
 
     function submitZKPResponse(
         uint64 requestId,
@@ -29,33 +29,27 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256[2] calldata c
     ) public override returns (bool) {
         require(
-            requestQueries[requestId].validator != ICircuitValidator(address(0)),
+            _requests[requestId].validator != ICircuitValidator(address(0)),
             "validator is not set for this request id"
         ); // validator exists
 
-        _beforeProofSubmit(requestId, inputs, requestQueries[requestId].validator);
+        _beforeProofSubmit(requestId, inputs, _requests[requestId].validator);
 
         require(
-            requestQueries[requestId].validator.verify(
-                inputs,
-                a,
-                b,
-                c,
-                requestQueries[requestId].data
-            ),
+            _requests[requestId].validator.verify(inputs, a, b, c, _requests[requestId].data),
             "proof response is not valid"
         );
 
         proofs[msg.sender][requestId] = true; // user provided a valid proof for request
 
-        _afterProofSubmit(requestId, inputs, requestQueries[requestId].validator);
+        _afterProofSubmit(requestId, inputs, _requests[requestId].validator);
         return true;
     }
 
     function getZKPRequest(
         uint64 requestId
     ) public view override returns (IZKPVerifier.ZKPRequest memory) {
-        return requestQueries[requestId];
+        return _requests[requestId];
     }
 
     function setZKPRequest(
@@ -70,14 +64,14 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
             data: data
         });
 
-        requestQueries[requestId] = request;
-        _supportedRequests.push(request);
+        _requests[requestId] = request;
+        _requestsList.push(request);
 
         return true;
     }
 
     function getZKPRequestsCount() public view returns (uint256) {
-        return _supportedRequests.length;
+        return _requestsList.length;
     }
 
     function getZKPRequests(
@@ -85,16 +79,16 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256 length
     ) public view returns (IZKPVerifier.ZKPRequest[] memory) {
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
-            _supportedRequests.length,
+            _requestsList.length,
             startIndex,
             length,
-            REQUEST_QUERIES_RETURN_LIMIT
+            REQUESTS_RETURN_LIMIT
         );
 
         IZKPVerifier.ZKPRequest[] memory result = new IZKPVerifier.ZKPRequest[](end - start);
 
         for (uint256 i = start; i < end; i++) {
-            result[i - start] = _supportedRequests[i];
+            result[i - start] = _requestsList[i];
         }
 
         return result;
