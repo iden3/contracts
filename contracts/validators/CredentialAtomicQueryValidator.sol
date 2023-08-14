@@ -27,20 +27,18 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256 issuerClaimState;
         uint256 issuerClaimNonRevState;
         uint256 timestamp;
-        // This empty reserved space is put in place to allow future versions
-        // of the CredentialAtomicQueryValidator contract to add new struct fields without shifting down
-        // storage of upgradable contracts that use this struct as a state variable
-        // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-        uint256[44] __gap;
     }
 
-    IVerifier public verifier;
+    mapping(string => IVerifier) internal _circuitIdToVerifier;
+    string[] internal _supportedCircuitIds;
+
     IState public state;
 
     uint256 public revocationStateExpirationTime;
     uint256 public proofGenerationExpirationTime;
     mapping(string => uint256) internal _inputNameToIndex;
-    string[] internal _supportedCircuitIds;
+
+    uint256[44] __gap;
 
     function initialize(
         address _verifierContractAddr,
@@ -48,7 +46,6 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     ) public virtual initializer {
         revocationStateExpirationTime = 1 hours;
         proofGenerationExpirationTime = 1 hours;
-        verifier = IVerifier(_verifierContractAddr);
         state = IState(_stateContractAddr);
         __Ownable_init();
     }
@@ -78,16 +75,14 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256[2] calldata c,
         bytes calldata data
     ) external view virtual returns (bool) {
-        // verify that zkp is valid
-        require(verifier.verifyProof(a, b, c, inputs), "Proof is not valid");
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
+        IVerifier verifier = _circuitIdToVerifier[credAtomicQuery.circuitIds[0]];
         require(
-            credAtomicQuery.circuitIds.length == 1 &&
-                keccak256(bytes(credAtomicQuery.circuitIds[0])) ==
-                keccak256(bytes(_supportedCircuitIds[0])),
+            credAtomicQuery.circuitIds.length == 1 && verifier != IVerifier(address(0)),
             "Invalid circuit ID"
         );
-
+        // verify that zkp is valid
+        require(verifier.verifyProof(a, b, c, inputs), "Proof is not valid");
         //destrcut values from result array
         ValidationParams memory validationParams = _getInputValidationParameters(inputs);
         require(

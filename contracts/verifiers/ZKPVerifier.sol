@@ -14,12 +14,24 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
      */
     uint256 public constant REQUESTS_RETURN_LIMIT = 1000;
 
+    // This empty reserved space is put in place to allow future versions
+    // of the ZKPVerifier contract to inherit from other contracts without a risk of
+    // breaking the storage layout. This is necessary because the parent contracts in the
+    // future may introduce some storage variables, which are placed before the ZKPVerifier
+    // contract's storage variables.
+    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+    // slither-disable-next-line shadowing-state
+    // slither-disable-next-line unused-state
+    uint256[500] private __inheritGap;
+
     // msg.sender-> ( requestID -> is proof given )
     mapping(address => mapping(uint64 => bool)) public proofs;
 
     mapping(uint64 => IZKPVerifier.ZKPRequest) internal _requests;
 
-    IZKPVerifier.ZKPRequest[] internal _requestsList;
+    uint64[] internal _requestIds;
+
+    uint256[47] __gap;
 
     function submitZKPResponse(
         uint64 requestId,
@@ -65,13 +77,13 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         });
 
         _requests[requestId] = request;
-        _requestsList.push(request);
+        _requestIds.push(requestId);
 
         return true;
     }
 
     function getZKPRequestsCount() public view returns (uint256) {
-        return _requestsList.length;
+        return _requestIds.length;
     }
 
     function getZKPRequests(
@@ -79,7 +91,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256 length
     ) public view returns (IZKPVerifier.ZKPRequest[] memory) {
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
-            _requestsList.length,
+            _requestIds.length,
             startIndex,
             length,
             REQUESTS_RETURN_LIMIT
@@ -88,7 +100,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         IZKPVerifier.ZKPRequest[] memory result = new IZKPVerifier.ZKPRequest[](end - start);
 
         for (uint256 i = start; i < end; i++) {
-            result[i - start] = _requestsList[i];
+            result[i - start] = _requests[_requestIds[i]];
         }
 
         return result;
