@@ -16,13 +16,14 @@ async function main() {
 
     const oldContractABI = [];  // abi of contract that will be upgraded
     const contractAddress = "";  // address of contract that will be upgraded
+    const contractName = ""; // validator contract name
     const mtpValidator = await ethers.getContractAt(
       oldContractABI,
       contractAddress,
       signers[0]
     );
 
-    const validator = await deployHelper.upgradeValidator(contractAddress, 'CredentialAtomicQueryMTPValidator');
+    const validator = await deployHelper.upgradeValidator(contractAddress, contractName);
 
     console.log("Contract Upgrade Finished");
 }

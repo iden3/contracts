@@ -22,7 +22,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
     // slither-disable-next-line shadowing-state
     // slither-disable-next-line unused-state
-    uint256[500] private __gap_inherit;
+    uint256[500] private __gap_before;
 
     // msg.sender-> ( requestID -> is proof given )
     mapping(address => mapping(uint64 => bool)) public proofs;
@@ -30,8 +30,6 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
     mapping(uint64 => IZKPVerifier.ZKPRequest) internal _requests;
 
     uint64[] internal _requestIds;
-
-    uint256[47] __gap;
 
     function submitZKPResponse(
         uint64 requestId,
@@ -123,4 +121,10 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256[] memory inputs,
         ICircuitValidator validator
     ) internal virtual {}
+
+    // This empty reserved space is put in place to allow future versions
+    // of this contract to add new variables without shifting down
+    // storage of child contracts that use this contract as a base
+    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+    uint256[47] __gap_after;
 }

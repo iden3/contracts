@@ -9,6 +9,16 @@ import {IState} from "../interfaces/IState.sol";
 import {PoseidonFacade} from "../lib/Poseidon.sol";
 
 abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuitValidator {
+    // This empty reserved space is put in place to allow future versions
+    // of the CredentialAtomicQuerySigValidator contract to inherit from other contracts without a risk of
+    // breaking the storage layout. This is necessary because the parent contracts in the
+    // future may introduce some storage variables, which are placed before the CredentialAtomicQuerySigValidator
+    // contract's storage variables.
+    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+    // slither-disable-next-line shadowing-state
+    // slither-disable-next-line unused-state
+    uint256[500] private __gap_before;
+
     struct CredentialAtomicQuery {
         uint256 schema;
         uint256 claimPathKey;
@@ -37,8 +47,6 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     uint256 public revocationStateExpirationTime;
     uint256 public proofGenerationExpirationTime;
     mapping(string => uint256) internal _inputNameToIndex;
-
-    uint256[44] __gap;
 
     function initialize(
         address _verifierContractAddr,
@@ -179,4 +187,10 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     function _setInputToIndex(string memory inputName, uint256 index) internal {
         _inputNameToIndex[inputName] = ++index; // increment index to avoid 0
     }
+
+    // This empty reserved space is put in place to allow future versions
+    // of this contract to add new variables without shifting down
+    // storage of child contracts that use this contract as a base
+    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+    uint256[44] __gap_after;
 }

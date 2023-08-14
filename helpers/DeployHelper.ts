@@ -298,7 +298,7 @@ export class DeployHelper {
 
   async upgradeValidator(
     validatorAddress: string,
-    validatorContractName = "CredentialAtomicQueryMTPValidator",
+    validatorContractName: string,
   ): Promise<{
     validator: Contract;
   }> {

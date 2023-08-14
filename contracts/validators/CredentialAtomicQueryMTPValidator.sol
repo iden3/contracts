@@ -8,16 +8,6 @@ import {IState} from "../interfaces/IState.sol";
 contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
     string internal constant CIRCUIT_ID = "credentialAtomicQueryMTPV2OnChain";
 
-    // This empty reserved space is put in place to allow future versions
-    // of the CredentialAtomicQueryMTPValidator contract to inherit from other contracts without a risk of
-    // breaking the storage layout. This is necessary because the parent contracts in the
-    // future may introduce some storage variables, which are placed before the CredentialAtomicQueryMTPValidator
-    // contract's storage variables.
-    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-    // slither-disable-next-line shadowing-state
-    // slither-disable-next-line unused-state
-    uint256[500] private __gap_inherit;
-
     function initialize(
         address _verifierContractAddr,
         address _stateContractAddr
