@@ -28,7 +28,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256 issuerClaimNonRevState;
         uint256 timestamp;
         // This empty reserved space is put in place to allow future versions
-        // of the CredentialAtomicQueryValidator contract to add new ValidationParams struct fields without shifting down
+        // of the CredentialAtomicQueryValidator contract to add new struct fields without shifting down
         // storage of upgradable contracts that use this struct as a state variable
         // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
         uint256[44] __gap;

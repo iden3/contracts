@@ -33,7 +33,7 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
             queryHash: inputs[2],
             gistRoot: inputs[6],
             issuerId: inputs[7],
-            issuerClaimState: inputs[3],// issuerClaimAuthState
+            issuerClaimState: inputs[3], // issuerClaimAuthState
             issuerClaimNonRevState: inputs[9],
             timestamp: inputs[10],
             __gap: gapParam

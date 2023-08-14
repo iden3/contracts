@@ -33,7 +33,7 @@ contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
             queryHash: inputs[2],
             gistRoot: inputs[5],
             issuerId: inputs[6],
-            issuerClaimState: inputs[7],// issuerClaimIdenState
+            issuerClaimState: inputs[7], // issuerClaimIdenState
             issuerClaimNonRevState: inputs[9],
             timestamp: inputs[10],
             __gap: gapParam
