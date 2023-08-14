@@ -16,7 +16,7 @@ contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
     // slither-disable-next-line shadowing-state
     // slither-disable-next-line unused-state
-    uint256[500] private __inheritGap;
+    uint256[500] private __gap_inherit;
 
     function initialize(
         address _verifierContractAddr,

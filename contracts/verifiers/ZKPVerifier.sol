@@ -22,7 +22,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
     // slither-disable-next-line shadowing-state
     // slither-disable-next-line unused-state
-    uint256[500] private __inheritGap;
+    uint256[500] private __gap_inherit;
 
     // msg.sender-> ( requestID -> is proof given )
     mapping(address => mapping(uint64 => bool)) public proofs;
