@@ -13,27 +13,33 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import "./verifierMTP.sol";
+import "./VerifierMTP.sol";
 import "../interfaces/IVerifier.sol";
 
-contract VerifierMTPWrapper is VerifierMTP, IVerifier {
-    /// @return r  bool true if proof is valid
-    function verifyProof(
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        uint256[] memory input
-    ) public view returns (bool r) {
-        // slither-disable-next-line uninitialized-local
-        Proof memory proof;
-        proof.A = Pairing.G1Point(a[0], a[1]);
-        proof.B = Pairing.G2Point([b[0][0], b[0][1]], [b[1][0], b[1][1]]);
-        proof.C = Pairing.G1Point(c[0], c[1]);
+contract VerifierMTPWrapper is VerifierMTP,IVerifier {
 
-        if (verify(input, proof) == 0) {
-            return true;
-        } else {
-            return false;
+    /**
+        * @dev Number of public signals for atomic mtp circuit
+     */
+    uint constant PUBSIGNALS_LENGTH = 11;
+
+    /// @return r  bool true if proof is valid
+    function verify(
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
+        uint256[] calldata input
+    ) public view returns (bool r) {
+
+        uint[PUBSIGNALS_LENGTH] memory pubSignals;
+
+        require(input.length == PUBSIGNALS_LENGTH, "expected array length is 11");
+
+        for (uint256 i = 0; i < PUBSIGNALS_LENGTH; i++) {
+            pubSignals[i] = input[i];
         }
+
+        return this.verifyProof(a,b,c,pubSignals) ;
+
     }
 }

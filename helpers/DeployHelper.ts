@@ -26,7 +26,7 @@ export class DeployHelper {
   }
 
   async deployState(
-    verifierContractName = "Verifier"
+    verifierContractName = "VerifierStateTransition"
   ): Promise<{
     state: Contract;
     verifier: Contract;
@@ -95,7 +95,7 @@ export class DeployHelper {
 
   async upgradeState(
     stateAddress: string,
-    verifierContractName = "Verifier",
+    verifierContractName = "VerifierStateTransition",
     stateContractName = "State"
   ): Promise<{
     state: Contract;

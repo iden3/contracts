@@ -96,7 +96,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
             "Invalid circuit ID"
         );
         // verify that zkp is valid
-        require(verifier.verifyProof(a, b, c, inputs), "Proof is not valid");
+        require(verifier.verify(a, b, c, inputs), "Proof is not valid");
         //destrcut values from result array
         ValidationParams memory validationParams = _getInputValidationParameters(inputs);
         require(
