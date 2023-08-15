@@ -17,14 +17,18 @@ import "./VerifierSig.sol";
 import "../interfaces/IVerifier.sol";
 
 contract VerifierSigWrapper is VerifierSig, IVerifier {
+
+    /**
+     * @dev Number of public signals for atomic sig circuit
+     */
     uint constant PUBSIGNALS_LENGTH = 11;
 
     /// @return r  bool true if proof is valid
     function verify(
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        uint256[] memory input
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
+        uint256[] calldata input
     ) public view returns (bool r) {
         // slither-disable-next-line uninitialized-local
         uint[PUBSIGNALS_LENGTH] memory pubSignals;
