@@ -193,5 +193,4 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     function _setInputToIndex(string memory inputName, uint256 index) internal {
         _inputNameToIndex[inputName] = ++index; // increment index to avoid 0
     }
-    
 }

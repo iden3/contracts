@@ -127,5 +127,4 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256[] memory inputs,
         ICircuitValidator validator
     ) internal virtual {}
-
 }
