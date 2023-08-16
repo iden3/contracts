@@ -48,6 +48,12 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     uint256 public proofGenerationExpirationTime;
     mapping(string => uint256) internal _inputNameToIndex;
 
+    // This empty reserved space is put in place to allow future versions
+    // of this contract to add new variables without shifting down
+    // storage of child contracts that use this contract as a base
+    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+    uint256[44] __gap_after;
+
     function initialize(
         address _verifierContractAddr,
         address _stateContractAddr
@@ -187,10 +193,5 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     function _setInputToIndex(string memory inputName, uint256 index) internal {
         _inputNameToIndex[inputName] = ++index; // increment index to avoid 0
     }
-
-    // This empty reserved space is put in place to allow future versions
-    // of this contract to add new variables without shifting down
-    // storage of child contracts that use this contract as a base
-    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-    uint256[44] __gap_after;
+    
 }

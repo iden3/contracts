@@ -31,6 +31,12 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
 
     uint64[] internal _requestIds;
 
+    // This empty reserved space is put in place to allow future versions
+    // of this contract to add new variables without shifting down
+    // storage of child contracts that use this contract as a base
+    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+    uint256[47] __gap_after;
+
     function submitZKPResponse(
         uint64 requestId,
         uint256[] calldata inputs,
@@ -122,9 +128,4 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         ICircuitValidator validator
     ) internal virtual {}
 
-    // This empty reserved space is put in place to allow future versions
-    // of this contract to add new variables without shifting down
-    // storage of child contracts that use this contract as a base
-    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-    uint256[47] __gap_after;
 }
