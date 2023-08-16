@@ -372,7 +372,6 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
     ) internal {
         require(id != 0, "ID should not be zero");
         require(newState != 0, "New state should not be zero");
-        require(!stateExists(id, newState), "New state already exists");
 
         if (isOldStateGenesis) {
             require(!idExists(id), "Old state is genesis but identity already exists");
@@ -390,6 +389,8 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
             require(prevStateInfo.state == oldState, "Old state does not match the latest state");
         }
 
+        // this checks that oldState != newState as well
+        require(!stateExists(id, newState), "New state already exists");
         _stateData.addState(id, newState);
         _gistData.addLeaf(PoseidonUnit1L.poseidon([id]), newState);
     }
