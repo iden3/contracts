@@ -5,9 +5,9 @@ import {BytesLib} from "solidity-bytes-utils/contracts/BytesLib.sol";
 
 library GenesisUtils {
     /**
-     * @dev int256ToBytes
+     * @dev uint256ToBytes
      */
-    function int256ToBytes(uint256 x) internal pure returns (bytes memory b) {
+    function uint256ToBytes(uint256 x) internal pure returns (bytes memory b) {
         b = new bytes(32);
         assembly {
             mstore(add(b, 32), x)
@@ -79,7 +79,7 @@ library GenesisUtils {
      * @dev isGenesisState
      */
     function isGenesisState(uint256 id, uint256 idState) internal pure returns (bool) {
-        bytes2 idType = bytes2(int256ToBytes(reverse(id)));
+        bytes2 idType = bytes2(uint256ToBytes(reverse(id)));
         uint256 computedId = calcIdFromGenesisState(idType, idState);
         return id == computedId;
     }
@@ -91,7 +91,7 @@ library GenesisUtils {
         bytes2 idType,
         uint256 idState
     ) internal pure returns (uint256) {
-        bytes memory userStateB1 = int256ToBytes(reverse(idState));
+        bytes memory userStateB1 = uint256ToBytes(reverse(idState));
 
         bytes memory cutState = BytesLib.slice(userStateB1, userStateB1.length - 27, 27);
 
@@ -139,9 +139,9 @@ library GenesisUtils {
     }
 
     /**
-     * @dev int256ToAddress
+     * @dev uint256ToAddress
      */
-    function int256ToAddress(uint256 input) internal pure returns (address) {
-        return bytesToAddress(int256ToBytes(reverse(input)));
+    function uint256ToAddress(uint256 input) internal pure returns (address) {
+        return bytesToAddress(uint256ToBytes(reverse(input)));
     }
 }
