@@ -142,6 +142,10 @@ contract StateV2 is Ownable2StepUpgradeable, IState {
             require(calcId == id, "msg.sender is not owner of the identity");
             require(methodParams.length == 0, "methodParams should be empty");
 
+            if (isOldStateGenesis) {
+                require(oldState == 0, "Old state should be zero");
+            }
+
             _transitState(id, oldState, newState, isOldStateGenesis);
         } else {
             revert("Unknown state transition method id");
