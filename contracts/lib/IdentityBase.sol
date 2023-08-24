@@ -3,7 +3,7 @@ pragma solidity 0.8.16;
 
 import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredentialStatusResolver.sol";
 import {IState} from "../interfaces/IState.sol";
-import {OnChainIdentity} from "../lib/OnChainIdentity.sol";
+import {IdentityLib} from "../lib/IdentityLib.sol";
 import {SmtLib} from "../lib/SmtLib.sol";
 
 // /**
@@ -16,9 +16,9 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
     uint256[500] private __gapBefore;
 
-    using OnChainIdentity for OnChainIdentity.Identity;
+    using IdentityLib for IdentityLib.Data;
 
-    OnChainIdentity.Identity internal identity;
+    IdentityLib.Data internal identity;
 
     // This empty reserved space is put in place to allow future versions
     // of this contract to add new variables without shifting down
@@ -35,7 +35,7 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
     }
 
     /**
-     * @dev Initialization of OnChainIdentity library
+     * @dev Initialization of IdentityLib library
      * @param _stateContractAddr - address of the State contract
      */
     function initialize(address _stateContractAddr) public virtual {
@@ -144,9 +144,7 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
      * @param state identity state
      * @return set of roots
      */
-    function getRootsByState(
-        uint256 state
-    ) public view virtual returns (OnChainIdentity.Roots memory) {
+    function getRootsByState(uint256 state) public view virtual returns (IdentityLib.Roots memory) {
         return identity.getRootsByState(state);
     }
 
@@ -210,7 +208,7 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
     ) public view returns (CredentialStatus memory) {
         require(id == identity.id, "Identity id mismatch");
         uint256 latestState = identity.latestState;
-        OnChainIdentity.Roots memory historicalStates = identity.getRootsByState(latestState);
+        IdentityLib.Roots memory historicalStates = identity.getRootsByState(latestState);
         IdentityStateRoots memory issuerStates = IdentityStateRoots({
             state: latestState,
             rootOfRoots: historicalStates.rootsRoot,

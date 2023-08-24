@@ -9,13 +9,13 @@ import {GenesisUtils} from "../lib/GenesisUtils.sol";
 // /**
 //  * @dev Contract managing onchain identity
 //  */
-library OnChainIdentity {
+library IdentityLib {
     using SmtLib for SmtLib.Data;
 
     uint256 public constant IDENTITY_MAX_SMT_DEPTH = 40;
 
     /**
-     * @dev Identity
+     * @dev Data
      * Id
      * Identity latest state
      * Is old state genesis flag
@@ -24,7 +24,7 @@ library OnChainIdentity {
      * Trees
      * Last tree roots
      */
-    struct Identity {
+    struct Data {
         uint256 id;
         uint256 latestState;
         bool isOldStateGenesis;
@@ -64,7 +64,7 @@ library OnChainIdentity {
      * @param depth - depth of identity SMTs
      */
     function initialize(
-        Identity storage self,
+        Data storage self,
         address _stateContractAddr,
         address _identityAddr,
         uint256 depth
@@ -77,7 +77,7 @@ library OnChainIdentity {
         self.trees.revocationsTree.initialize(depth);
         self.trees.rootsTree.initialize(depth);
 
-        self.id = GenesisUtils.calcOnchainIdFromAddress(
+        self.id = GenesisUtils.calcIdFromEthAddress(
             self.stateContract.getDefaultIdType(),
             _identityAddr
         );
@@ -87,7 +87,7 @@ library OnChainIdentity {
      * @dev Add claim
      * @param claim - claim data
      */
-    function addClaim(Identity storage self, uint256[8] calldata claim) external {
+    function addClaim(Data storage self, uint256[8] calldata claim) external {
         uint256[4] memory claimIndex;
         uint256[4] memory claimValue;
         for (uint8 i = 0; i < 4; i++) {
@@ -104,7 +104,7 @@ library OnChainIdentity {
      * @param hashIndex - hash of claim index part
      * @param hashValue - hash of claim value part
      */
-    function addClaimHash(Identity storage self, uint256 hashIndex, uint256 hashValue) external {
+    function addClaimHash(Data storage self, uint256 hashIndex, uint256 hashValue) external {
         self.trees.claimsTree.addLeaf(hashIndex, hashValue);
     }
 
@@ -112,14 +112,14 @@ library OnChainIdentity {
      * @dev Revoke claim using it's revocationNonce
      * @param revocationNonce - revocation nonce
      */
-    function revokeClaim(Identity storage self, uint64 revocationNonce) external {
+    function revokeClaim(Data storage self, uint64 revocationNonce) external {
         self.trees.revocationsTree.addLeaf(uint256(revocationNonce), 0);
     }
 
     /**
      * @dev Make state transition
      */
-    function transitState(Identity storage self) external {
+    function transitState(Data storage self) external {
         uint256 currentClaimsTreeRoot = self.trees.claimsTree.getRoot();
         uint256 currentRevocationsTreeRoot = self.trees.revocationsTree.getRoot();
         uint256 currentRootsTreeRoot = self.trees.rootsTree.getRoot();
@@ -173,7 +173,7 @@ library OnChainIdentity {
      * @dev Calculate IdentityState
      * @return IdentityState
      */
-    function calcIdentityState(Identity storage self) public view returns (uint256) {
+    function calcIdentityState(Data storage self) public view returns (uint256) {
         return
             PoseidonUnit3L.poseidon(
                 [
@@ -190,7 +190,7 @@ library OnChainIdentity {
      * @return The ClaimsTree inclusion or non-inclusion proof for the claim
      */
     function getClaimProof(
-        Identity storage self,
+        Data storage self,
         uint256 claimIndexHash
     ) external view returns (SmtLib.Proof memory) {
         return self.trees.claimsTree.getProof(claimIndexHash);
@@ -203,7 +203,7 @@ library OnChainIdentity {
      * @return The ClaimsTree inclusion or non-inclusion proof for the claim
      */
     function getClaimProofByRoot(
-        Identity storage self,
+        Data storage self,
         uint256 claimIndexHash,
         uint256 root
     ) external view returns (SmtLib.Proof memory) {
@@ -214,7 +214,7 @@ library OnChainIdentity {
      * @dev Retrieve ClaimsTree latest root.
      * @return The latest ClaimsTree root
      */
-    function getClaimsTreeRoot(Identity storage self) external view returns (uint256) {
+    function getClaimsTreeRoot(Data storage self) external view returns (uint256) {
         return self.trees.claimsTree.getRoot();
     }
 
@@ -224,7 +224,7 @@ library OnChainIdentity {
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
     function getRevocationProof(
-        Identity storage self,
+        Data storage self,
         uint64 revocationNonce
     ) external view returns (SmtLib.Proof memory) {
         return self.trees.revocationsTree.getProof(uint256(revocationNonce));
@@ -237,7 +237,7 @@ library OnChainIdentity {
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
     function getRevocationProofByRoot(
-        Identity storage self,
+        Data storage self,
         uint64 revocationNonce,
         uint256 root
     ) external view returns (SmtLib.Proof memory) {
@@ -248,7 +248,7 @@ library OnChainIdentity {
      * @dev Retrieve RevocationsTree latest root.
      * @return The latest RevocationsTree root
      */
-    function getRevocationsTreeRoot(Identity storage self) external view returns (uint256) {
+    function getRevocationsTreeRoot(Data storage self) external view returns (uint256) {
         return self.trees.revocationsTree.getRoot();
     }
 
@@ -258,7 +258,7 @@ library OnChainIdentity {
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
     function getRootProof(
-        Identity storage self,
+        Data storage self,
         uint256 claimsTreeRoot
     ) external view returns (SmtLib.Proof memory) {
         return self.trees.rootsTree.getProof(claimsTreeRoot);
@@ -271,7 +271,7 @@ library OnChainIdentity {
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
     function getRootProofByRoot(
-        Identity storage self,
+        Data storage self,
         uint256 claimsTreeRoot,
         uint256 root
     ) external view returns (SmtLib.Proof memory) {
@@ -282,7 +282,7 @@ library OnChainIdentity {
      * @dev Retrieve RootsTree latest root.
      * @return The latest RootsTree root
      */
-    function getRootsTreeRoot(Identity storage self) external view returns (uint256) {
+    function getRootsTreeRoot(Data storage self) external view returns (uint256) {
         return self.trees.rootsTree.getRoot();
     }
 
@@ -292,7 +292,7 @@ library OnChainIdentity {
      * @param state identity state
      * @param roots set of roots
      */
-    function writeHistory(Identity storage self, uint256 state, Roots memory roots) internal {
+    function writeHistory(Data storage self, uint256 state, Roots memory roots) internal {
         require(
             self.rootsByState[state].claimsRoot == 0 &&
                 self.rootsByState[state].revocationsRoot == 0 &&
@@ -309,7 +309,7 @@ library OnChainIdentity {
      * @return set of roots
      */
     function getRootsByState(
-        Identity storage self,
+        Data storage self,
         uint256 state
     ) external view returns (Roots memory) {
         require(

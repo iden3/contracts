@@ -109,12 +109,9 @@ library GenesisUtils {
     }
 
     /**
-     * @dev calcOnchainIdFromAddress
+     * @dev calcIdFromEthAddress
      */
-    function calcOnchainIdFromAddress(
-        bytes2 idType,
-        address caller
-    ) internal pure returns (uint256) {
+    function calcIdFromEthAddress(bytes2 idType, address caller) internal pure returns (uint256) {
         uint256 addr = uint256(uint160(caller));
 
         return calcIdFromGenesisState(idType, reverse(addr));
