@@ -29,7 +29,7 @@ const testCases: any[] = [
     setProofExpiration: tenYears,
   },
   {
-    name: "The non-revocation issuer state is not expired (is not too old)",
+    name: "The non-revocation issuer state is not expired",
     stateTransitions: [
       require("../common-data/issuer_genesis_state.json"),
       require("../common-data/user_state_transition.json"),
@@ -39,19 +39,36 @@ const testCases: any[] = [
     setProofExpiration: tenYears,
   },
   {
-    name: "The non-revocation issuer state is expired (old enough)",
+    name: "The non-revocation issuer state is expired",
     stateTransitions: [
       require("../common-data/issuer_genesis_state.json"),
       require("../common-data/user_state_transition.json"),
       require("../common-data/issuer_next_state_transition.json"),
+      require("../common-data/user_next_state_transition.json"),
     ],
+    stateTransitionDelayMs: 5000, // 1.....2.....3.....4
     proofJson: require("./data/valid_sig_user_non_genesis.json"),
-    setExpiration: 1,
+    setRevStateExpiration: 13, // 1.....2.*...3.....4 <-- (*) - marks where the expiration threshold is
     errorMessage: "Non-Revocation state of Issuer expired",
     setProofExpiration: tenYears,
   },
   {
-    name: "The generated proof is expired (old enough)",
+    name: "GIST root expired, Issuer revocation state is not expired",
+    stateTransitions: [
+      require("../common-data/issuer_genesis_state.json"), // 0-1s
+      require("../common-data/user_state_transition.json"), // 5-7s
+      require("../common-data/user_next_state_transition.json"), // 10-13s. Note: order of the last two is changed
+      require("../common-data/issuer_next_state_transition.json"), // 15-19s
+    ],
+    // 1.....2.....3.....4
+    stateTransitionDelayMs: 5000,
+    proofJson: require("./data/valid_sig_user_non_genesis.json"), // generated on step 2
+    setGISTRootExpiration: 4, // 1.....2.....3.*...4 <-- (*) - marks where the expiration threshold is
+    errorMessage: "Gist root is expired",
+    setProofExpiration: tenYears,
+  },
+  {
+    name: "The generated proof is expired",
     stateTransitions: [
       require("../common-data/issuer_genesis_state.json"),
       require("../common-data/user_state_transition.json"),
@@ -70,6 +87,10 @@ const testCases: any[] = [
   },
 ];
 
+function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 describe("Atomic Sig Validator", function () {
   let state: any, sig: any;
 
@@ -85,9 +106,13 @@ describe("Atomic Sig Validator", function () {
   });
 
   for (const test of testCases) {
-    it(test.name, async () => {
-      for (const json of test.stateTransitions) {
-        await publishState(state, json);
+    it(test.name, async function () {
+      this.timeout(50000);
+      for (let i = 0; i < test.stateTransitions.length; i++) {
+        if (i > 0 && test.stateTransitionDelayMs) {
+          await delay(test.stateTransitionDelayMs);
+        }
+        await publishState(state, test.stateTransitions[i]);
       }
 
       const query = {
@@ -107,13 +132,17 @@ describe("Atomic Sig Validator", function () {
         circuitIds: ["credentialAtomicQuerySigV2OnChain"],
         metadata: "test medatada"
       };
-      if (test.setProofExpiration) {
-        await sig.setProofGenerationExpirationTime(test.setProofExpiration);
-      }
-      if (test.setExpiration) {
-        await sig.setRevocationStateExpirationTime(test.setExpiration);
-      }
+
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
+      if (test.setProofExpiration) {
+        await sig.setProofExpirationTimeout(test.setProofExpiration);
+      }
+      if (test.setRevStateExpiration) {
+        await sig.setRevocationStateExpirationTimeout(test.setRevStateExpiration);
+      }
+      if (test.setGISTRootExpiration) {
+        await sig.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
+      }
       if (test.errorMessage) {
         await expect(sig.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers))).to.be.revertedWith(
           test.errorMessage

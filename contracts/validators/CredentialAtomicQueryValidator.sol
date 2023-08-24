@@ -9,16 +9,6 @@ import {IState} from "../interfaces/IState.sol";
 import {PoseidonFacade} from "../lib/Poseidon.sol";
 
 abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuitValidator {
-    // This empty reserved space is put in place to allow future versions
-    // of the CredentialAtomicQuerySigValidator contract to inherit from other contracts without a risk of
-    // breaking the storage layout. This is necessary because the parent contracts in the
-    // future may introduce some storage variables, which are placed before the CredentialAtomicQuerySigValidator
-    // contract's storage variables.
-    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-    // slither-disable-next-line shadowing-state
-    // slither-disable-next-line unused-state
-    uint256[500] private __gap_before;
-
     struct CredentialAtomicQuery {
         uint256 schema;
         uint256 claimPathKey;
@@ -30,22 +20,25 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         string[] circuitIds;
     }
 
-    struct ValidationParams {
-        uint256 queryHash;
-        uint256 gistRoot;
-        uint256 issuerId;
-        uint256 issuerClaimState;
-        uint256 issuerClaimNonRevState;
-        uint256 timestamp;
-    }
+    // This empty reserved space is put in place to allow future versions
+    // of the CredentialAtomicQuerySigValidator contract to inherit from other contracts without a risk of
+    // breaking the storage layout. This is necessary because the parent contracts in the
+    // future may introduce some storage variables, which are placed before the CredentialAtomicQuerySigValidator
+    // contract's storage variables.
+    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+    // slither-disable-next-line shadowing-state
+    // slither-disable-next-line unused-state
+    uint256[500] private __gap_before;
 
     mapping(string => IVerifier) internal _circuitIdToVerifier;
     string[] internal _supportedCircuitIds;
 
     IState public state;
 
-    uint256 public revocationStateExpirationTime;
-    uint256 public proofGenerationExpirationTime;
+    uint256 public revocationStateExpirationTimeout;
+    uint256 public proofExpirationTimeout;
+    uint256 public gistRootExpirationTimeout;
+
     mapping(string => uint256) internal _inputNameToIndex;
 
     // This empty reserved space is put in place to allow future versions
@@ -58,18 +51,23 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         address _verifierContractAddr,
         address _stateContractAddr
     ) public virtual onlyInitializing {
-        revocationStateExpirationTime = 1 hours;
-        proofGenerationExpirationTime = 1 hours;
+        revocationStateExpirationTimeout = 1 hours;
+        proofExpirationTimeout = 1 hours;
+        gistRootExpirationTimeout = 1 hours;
         state = IState(_stateContractAddr);
         __Ownable_init();
     }
 
-    function setRevocationStateExpirationTime(uint256 expirationTime) public virtual onlyOwner {
-        revocationStateExpirationTime = expirationTime;
+    function setRevocationStateExpirationTimeout(uint256 expirationTimeout) public virtual onlyOwner {
+        revocationStateExpirationTimeout = expirationTimeout;
     }
 
-    function setProofGenerationExpirationTime(uint256 expirationTime) public virtual onlyOwner {
-        proofGenerationExpirationTime = expirationTime;
+    function setProofExpirationTimeout(uint256 expirationTimeout) public virtual onlyOwner {
+        proofExpirationTimeout = expirationTimeout;
+    }
+
+    function setGISTRootExpirationTimeout(uint256 expirationTimeout) public virtual onlyOwner {
+        gistRootExpirationTimeout = expirationTimeout;
     }
 
     function getSupportedCircuitIds() external view virtual returns (string[] memory ids) {
@@ -82,52 +80,21 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         return --index; // we save 1-based index, but return 0-based
     }
 
-    function verify(
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
-        bytes calldata data
-    ) external view virtual returns (bool) {
-        CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
-        IVerifier verifier = _circuitIdToVerifier[credAtomicQuery.circuitIds[0]];
-        require(
-            credAtomicQuery.circuitIds.length == 1 && verifier != IVerifier(address(0)),
-            "Invalid circuit ID"
-        );
-        // verify that zkp is valid
-        require(verifier.verify(a, b, c, inputs), "Proof is not valid");
-        //destrcut values from result array
-        ValidationParams memory validationParams = _getInputValidationParameters(inputs);
-        require(
-            validationParams.queryHash == credAtomicQuery.queryHash,
-            "query hash does not match the requested one"
-        );
-
-        _checkGistRoot(validationParams.gistRoot);
-
-        _checkAllowedIssuers(validationParams.issuerId, credAtomicQuery.allowedIssuers);
-        _checkStateContractOrGenesis(validationParams.issuerId, validationParams.issuerClaimState);
-        _checkClaimNonRevState(validationParams.issuerId, validationParams.issuerClaimNonRevState);
-        _checkProofGeneratedExpiration(validationParams.timestamp);
-        return (true);
-    }
-
-    function _getInputValidationParameters(
-        uint256[] calldata inputs
-    ) internal pure virtual returns (ValidationParams memory);
-
     function _checkGistRoot(uint256 gistRoot) internal view {
         IState.GistRootInfo memory rootInfo = state.getGISTRootInfo(gistRoot);
         require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
+        if (rootInfo.replacedAtTimestamp != 0
+            && block.timestamp - rootInfo.replacedAtTimestamp > gistRootExpirationTimeout) {
+            revert("Gist root is expired");
+        }
     }
 
-    function _checkStateContractOrGenesis(uint256 _id, uint256 _state) internal view {
+    function _checkClaimIssuanceState(uint256 _id, uint256 _state) internal view {
         bool isStateGenesis = GenesisUtils.isGenesisState(_id, _state);
 
         if (!isStateGenesis) {
             IState.StateInfo memory stateInfo = state.getStateInfoByIdAndState(_id, _state);
-            require(_id == stateInfo.id, "state doesn't exist in state contract");
+            require(_id == stateInfo.id, "State doesn't exist in state contract");
         }
     }
 
@@ -149,7 +116,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
                 );
 
                 if (claimNonRevLatestStateInfo.id == 0 || claimNonRevLatestStateInfo.id != _id) {
-                    revert("state in transition info contains invalid id");
+                    revert("State in transition info contains invalid id");
                 }
 
                 if (claimNonRevLatestStateInfo.replacedAtTimestamp == 0) {
@@ -158,7 +125,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
 
                 if (
                     block.timestamp - claimNonRevLatestStateInfo.replacedAtTimestamp >
-                    revocationStateExpirationTime
+                    revocationStateExpirationTimeout
                 ) {
                     revert("Non-Revocation state of Issuer expired");
                 }
@@ -166,11 +133,11 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         }
     }
 
-    function _checkProofGeneratedExpiration(uint256 _proofGenerationTimestamp) internal view {
+    function _checkProofExpiration(uint256 _proofGenerationTimestamp) internal view {
         if (_proofGenerationTimestamp > block.timestamp) {
             revert("Proof generated in the future is not valid");
         }
-        if (block.timestamp - _proofGenerationTimestamp > proofGenerationExpirationTime) {
+        if (block.timestamp - _proofGenerationTimestamp > proofExpirationTimeout) {
             revert("Generated proof is outdated");
         }
     }
@@ -188,6 +155,14 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         }
 
         revert("Issuer is not on the Allowed Issuers list");
+    }
+
+    function _checkMerklized(uint256 merklized, uint256 queryClaimPathKey) internal pure {
+        uint256 shouldBeMerklized = 0;
+        if (queryClaimPathKey != 0) {
+            shouldBeMerklized = 1;
+        }
+        require(merklized == shouldBeMerklized, "Merklized value is not correct");
     }
 
     function _setInputToIndex(string memory inputName, uint256 index) internal {

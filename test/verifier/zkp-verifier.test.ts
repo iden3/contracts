@@ -43,7 +43,7 @@ describe("ZKP Verifier", function () {
   it('test submit response (for gas estimation puprose)', async () => {
     await publishState(state, stateTransition); 
     await verifier.setZKPRequest(0, "metadata", sig.address, packValidatorParams(query));
-    await sig.setProofGenerationExpirationTime(315360000);
+    await sig.setProofExpirationTimeout(315360000);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
     await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
