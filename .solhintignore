@@ -1,8 +1,8 @@
 # directories
 **/lib/Pairing.sol
-**/lib/verifierMTP.sol
-**/lib/verifierMTPWrapper.sol
-**/lib/verifierSig.sol
-**/lib/verifierSigWrapper.sol
-**/lib/verifierV2.sol
+**/lib/VerifierMTP.sol
+**/lib/VerifierMTPWrapper.sol
+**/lib/VerifierSig.sol
+**/lib/VerifierSigWrapper.sol
+**/lib/VerifierStateTransition.sol
 **/node_modules
