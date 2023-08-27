@@ -42,28 +42,27 @@ const testCases: any[] = [
     name: "The non-revocation issuer state is expired",
     stateTransitions: [
       require("../common-data/issuer_genesis_state.json"),
-      require("../common-data/user_state_transition.json"),
+      require("../common-data/user_state_transition.json"), // proof was generated after this state transition
       require("../common-data/issuer_next_state_transition.json"),
       require("../common-data/user_next_state_transition.json"),
     ],
-    stateTransitionDelayMs: 5000, // 1.....2.....3.....4
+    stateTransitionDelayMs: 5000, // [1....][2....][3....][4....] - each block is 5 seconds long
     proofJson: require("./data/valid_mtp_user_non_genesis.json"),
-    setRevStateExpiration: 13, // 1.....2.*...3.....4 <-- (*) - marks where the expiration threshold is
+    setRevStateExpiration: 7, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
     errorMessage: "Non-Revocation state of Issuer expired",
     setProofExpiration: tenYears,
   },
   {
     name: "GIST root expired, Issuer revocation state is not expired",
     stateTransitions: [
-      require("../common-data/issuer_genesis_state.json"), // 0-1s
-      require("../common-data/user_state_transition.json"), // 5-7s
-      require("../common-data/user_next_state_transition.json"), // 10-13s. Note: order of the last two is changed
-      require("../common-data/issuer_next_state_transition.json"), // 15-19s
+      require("../common-data/issuer_genesis_state.json"),
+      require("../common-data/user_state_transition.json"), // proof was generated after this state transition
+      require("../common-data/user_next_state_transition.json"),
+      require("../common-data/issuer_next_state_transition.json"),
     ],
-    // 1.....2.....3.....4
-    stateTransitionDelayMs: 5000,
+    stateTransitionDelayMs: 5000, // [1....][2....][3....][4....] - each block is 5 seconds long
     proofJson: require("./data/valid_mtp_user_non_genesis.json"), // generated on step 2
-    setGISTRootExpiration: 4, // 1.....2.....3.*...4 <-- (*) - marks where the expiration threshold is
+    setGISTRootExpiration: 7, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
     errorMessage: "Gist root is expired",
     setProofExpiration: tenYears,
   },
@@ -109,10 +108,11 @@ describe("Atomic MTP Validator", function () {
     it(test.name, async function () {
       this.timeout(50000);
       for (let i = 0; i < test.stateTransitions.length; i++) {
-        if (i > 0 && test.stateTransitionDelayMs) {
-          await delay(test.stateTransitionDelayMs);
+        if (test.stateTransitionDelayMs) {
+          await Promise.all([publishState(state, test.stateTransitions[i]), delay(test.stateTransitionDelayMs)]);
+        } else {
+          await publishState(state, test.stateTransitions[i]);
         }
-        await publishState(state, test.stateTransitions[i]);
       }
 
       const query = {
@@ -156,7 +156,7 @@ describe("Atomic MTP Validator", function () {
     });
   }
 
-   it ('check inputIndexOf', async () => {
+  it ('check inputIndexOf', async () => {
     const challengeIndx = await mtpValidator.inputIndexOf('challenge');
     expect(challengeIndx).to.be.equal(4);
   });
