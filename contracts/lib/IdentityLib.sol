@@ -120,6 +120,7 @@ library IdentityLib {
      * @dev Make state transition
      */
     function transitState(Data storage self) external {
+        uint256 oldIdentityState = self.latestState;
         uint256 currentClaimsTreeRoot = self.trees.claimsTree.getRoot();
         uint256 currentRevocationsTreeRoot = self.trees.revocationsTree.getRoot();
         uint256 currentRootsTreeRoot = self.trees.rootsTree.getRoot();
@@ -138,21 +139,13 @@ library IdentityLib {
 
         uint256 newIdentityState = calcIdentityState(self);
 
-        // do state transition in State Contract
-        self.stateContract.transitStateGeneric(
-            self.id,
-            self.latestState,
-            newIdentityState,
-            self.isOldStateGenesis,
-            1, // state transition method id: 1 - using ethereum auth
-            new bytes(0) // empty method params
-        );
-
         // update internal state vars
         self.latestState = newIdentityState;
         self.lastTreeRoots.claimsRoot = currentClaimsTreeRoot;
         self.lastTreeRoots.revocationsRoot = currentRevocationsTreeRoot;
         self.lastTreeRoots.rootsRoot = self.trees.rootsTree.getRoot();
+
+        bool isOldStateGenesis = self.isOldStateGenesis;
         // it may have changed since we've got currentRootsTreeRoot
         // related to the documentation set isOldStateGenesis to false each time is faster and cheaper
         // https://docs.google.com/spreadsheets/d/1m89CVujrQe5LAFJ8-YAUCcNK950dUzMQPMJBxRtGCqs/edit#gid=0
@@ -166,6 +159,16 @@ library IdentityLib {
                 revocationsRoot: self.lastTreeRoots.revocationsRoot,
                 rootsRoot: self.lastTreeRoots.rootsRoot
             })
+        );
+
+        // do state transition in State Contract
+        self.stateContract.transitStateGeneric(
+            self.id,
+            oldIdentityState,
+            newIdentityState,
+            isOldStateGenesis,
+            1, // state transition method id: 1 - using ethereum auth
+            new bytes(0) // empty method params
         );
     }
 
