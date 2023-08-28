@@ -61,7 +61,7 @@ const testCases: any[] = [
       require("../common-data/issuer_next_state_transition.json"),
     ],
     stateTransitionDelayMs: 5000, // [1....][2....][3....][4....] - each block is 5 seconds long
-    proofJson: require("./data/valid_mtp_user_non_genesis.json"), // generated on step 2
+    proofJson: require("./data/valid_sig_user_non_genesis.json"), // generated on step 2
     setGISTRootExpiration: 7, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
     errorMessage: "Gist root is expired",
     setProofExpiration: tenYears,
