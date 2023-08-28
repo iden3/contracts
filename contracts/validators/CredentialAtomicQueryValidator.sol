@@ -85,8 +85,10 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     function _checkGistRoot(uint256 gistRoot) internal view {
         IState.GistRootInfo memory rootInfo = state.getGISTRootInfo(gistRoot);
         require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
-        if (rootInfo.replacedAtTimestamp != 0 &&
-            block.timestamp - rootInfo.replacedAtTimestamp > gistRootExpirationTimeout) {
+        if (
+            rootInfo.replacedAtTimestamp != 0 &&
+            block.timestamp - rootInfo.replacedAtTimestamp > gistRootExpirationTimeout
+        ) {
             revert("Gist root is expired");
         }
     }
