@@ -135,12 +135,13 @@ contract State is Ownable2StepUpgradeable, IState {
         bytes calldata methodParams
     ) public {
         if (methodId == 1) {
-            uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(
-                this.getDefaultIdType(),
-                msg.sender
-            );
+            uint256 calcId = GenesisUtils.calcIdFromEthAddress(this.getDefaultIdType(), msg.sender);
             require(calcId == id, "msg.sender is not owner of the identity");
             require(methodParams.length == 0, "methodParams should be empty");
+
+            if (isOldStateGenesis) {
+                require(oldState == 0, "Old state should be zero");
+            }
 
             _transitState(id, oldState, newState, isOldStateGenesis);
         } else {
@@ -372,7 +373,6 @@ contract State is Ownable2StepUpgradeable, IState {
     ) internal {
         require(id != 0, "ID should not be zero");
         require(newState != 0, "New state should not be zero");
-        require(!stateExists(id, newState), "New state already exists");
 
         if (isOldStateGenesis) {
             require(!idExists(id), "Old state is genesis but identity already exists");
@@ -390,6 +390,8 @@ contract State is Ownable2StepUpgradeable, IState {
             require(prevStateInfo.state == oldState, "Old state does not match the latest state");
         }
 
+        // this checks that oldState != newState as well
+        require(!stateExists(id, newState), "New state already exists");
         _stateData.addState(id, newState);
         _gistData.addLeaf(PoseidonUnit1L.poseidon([id]), newState);
     }

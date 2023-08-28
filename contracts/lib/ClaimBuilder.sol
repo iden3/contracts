@@ -66,7 +66,7 @@ library ClaimBuilder {
 
         // Schema
         bytes memory cutSchema = BytesLib.slice(
-            GenesisUtils.int256ToBytes(GenesisUtils.reverse(c.schemaHash)),
+            GenesisUtils.uint256ToBytes(GenesisUtils.reverse(c.schemaHash)),
             0,
             16
         );
