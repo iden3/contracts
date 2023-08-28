@@ -9,7 +9,7 @@ import {SmtLib} from "../lib/SmtLib.sol";
 // /**
 //  * @dev Contract managing onchain identity
 //  */
-contract IdentityBase is IOnchainCredentialStatusResolver {
+abstract contract IdentityBase is IOnchainCredentialStatusResolver {
     // This empty reserved space is put in place to allow future versions
     // of this contract to add new parent contracts without shifting down
     // storage of child contracts that use this contract as a base
@@ -77,7 +77,7 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
     /**
      * @dev Retrieve inclusion or non-inclusion proof for a given revocation nonce.
      * @param revocationNonce - revocation nonce
-     * @return The RevocationsTree inclusion or non-inclusion proof for the claim
+     * @return The RevocationsTree inclusion or non-inclusion proof for the revocation nonce
      */
     function getRevocationProof(
         uint64 revocationNonce
@@ -89,7 +89,7 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
      * @dev Retrieve inclusion or non-inclusion proof for a given revocation nonce by target root.
      * @param revocationNonce - revocation nonce
      * @param root - root of the tree
-     * @return The RevocationsTree inclusion or non-inclusion proof for the claim
+     * @return The RevocationsTree inclusion or non-inclusion proof for the revocation nonce
      */
     function getRevocationProofByRoot(
         uint64 revocationNonce,
@@ -109,7 +109,7 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
     /**
      * @dev Retrieve inclusion or non-inclusion proof for a given claimsTreeRoot.
      * @param claimsTreeRoot - claims tree root
-     * @return The RevocationsTree inclusion or non-inclusion proof for the claim
+     * @return The ClaimsTree inclusion or non-inclusion proof for the claim
      */
     function getRootProof(
         uint256 claimsTreeRoot
@@ -121,7 +121,7 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
      * @dev Retrieve inclusion or non-inclusion proof for a given claimsTreeRoot by target root.
      * @param claimsTreeRoot - claims tree root
      * @param root - root of the tree
-     * @return The RevocationsTree inclusion or non-inclusion proof for the claim
+     * @return The ClaimsTree inclusion or non-inclusion proof for the claim
      */
     function getRootProofByRoot(
         uint256 claimsTreeRoot,
@@ -176,7 +176,7 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
 
     /**
      * @dev returns last revocation root
-     * @return claimsRoot
+     * @return revocationsRoot
      */
     function getLastRevocationsRoot() public view returns (uint256) {
         return identity.lastTreeRoots.revocationsRoot;
