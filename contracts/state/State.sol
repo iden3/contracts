@@ -135,7 +135,7 @@ contract State is Ownable2StepUpgradeable, IState {
         bytes calldata methodParams
     ) public {
         if (methodId == 1) {
-            uint256 calcId = GenesisUtils.calcOnchainIdFromAddress(getDefaultIdType(), msg.sender);
+            uint256 calcId = GenesisUtils.calcIdFromEthAddress(this.getDefaultIdType(), msg.sender);
             require(calcId == id, "msg.sender is not owner of the identity");
             require(methodParams.length == 0, "methodParams should be empty");
 
