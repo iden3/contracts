@@ -3,10 +3,23 @@ pragma solidity 0.8.16;
 
 import {CredentialAtomicQueryValidator} from "./CredentialAtomicQueryValidator.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
-import {IState} from "../interfaces/IState.sol";
 
 contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
     string internal constant CIRCUIT_ID = "credentialAtomicQueryMTPV2OnChain";
+
+    struct PublicSignals {
+        uint256 merklized;
+        uint256 userID;
+        uint256 circuitQueryHash;
+        uint256 requestID;
+        uint256 challenge;
+        uint256 gistRoot;
+        uint256 issuerID;
+        uint256 issuerClaimIdenState;
+        uint256 isRevocationChecked;
+        uint256 issuerClaimNonRevState;
+        uint256 timestamp;
+    }
 
     function initialize(
         address _verifierContractAddr,
@@ -28,14 +41,61 @@ contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
         super.initialize(_verifierContractAddr, _stateContractAddr);
     }
 
-    function _getInputValidationParameters(
+    function verify(
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
+        bytes calldata data
+    ) external view virtual returns (bool) {
+        CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
+        IVerifier verifier = _circuitIdToVerifier[credAtomicQuery.circuitIds[0]];
+
+        require(
+            credAtomicQuery.circuitIds.length == 1 && verifier != IVerifier(address(0)),
+            "Invalid circuit ID"
+        );
+
+        // verify that zkp is valid
+        require(verifier.verify(a, b, c, inputs), "Proof is not valid");
+
+        // parse public signals from inputs array
+        PublicSignals memory signals = parsePublicSignals(inputs);
+
+        // check circuitQueryHash
+        require(
+            signals.circuitQueryHash == credAtomicQuery.queryHash,
+            "Query hash does not match the requested one"
+        );
+
+        // TODO: add support for query to specific userID and then verifying it
+
+        _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
+        _checkGistRoot(signals.gistRoot);
+        _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
+        _checkClaimIssuanceState(signals.issuerID, signals.issuerClaimIdenState);
+        _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
+        _checkProofExpiration(signals.timestamp);
+        _checkIsRevocationChecked(
+            signals.isRevocationChecked,
+            credAtomicQuery.skipClaimRevocationCheck
+        );
+        return (true);
+    }
+
+    function parsePublicSignals(
         uint256[] calldata inputs
-    ) internal pure override returns (ValidationParams memory) {
-        ValidationParams memory params = ValidationParams({
-            queryHash: inputs[2],
+    ) public pure returns (PublicSignals memory) {
+        PublicSignals memory params = PublicSignals({
+            merklized: inputs[0],
+            userID: inputs[1],
+            circuitQueryHash: inputs[2],
+            requestID: inputs[3],
+            challenge: inputs[4],
             gistRoot: inputs[5],
-            issuerId: inputs[6],
-            issuerClaimState: inputs[7], // issuerClaimIdenState
+            issuerID: inputs[6],
+            issuerClaimIdenState: inputs[7],
+            isRevocationChecked: inputs[8],
             issuerClaimNonRevState: inputs[9],
             timestamp: inputs[10]
         });

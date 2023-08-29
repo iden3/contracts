@@ -12,7 +12,8 @@
                 "value": 'uint256[]',
                 "queryHash": 'uint256',
                 "allowedIssuers": 'uint256[]',
-                "circuitIds": 'string[]'
+                "circuitIds": 'string[]',
+                "skipClaimRevocationCheck": 'bool'
             }
         },
         {
@@ -23,7 +24,8 @@
             "value": query.value,
             "queryHash": query.queryHash,
             "allowedIssuers": allowedIssuers,
-            "circuitIds": query.circuitIds
+            "circuitIds": query.circuitIds,
+            "skipClaimRevocationCheck": query.skipClaimRevocationCheck
         }
     );
  }
