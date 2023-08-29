@@ -76,7 +76,10 @@ contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
         _checkClaimIssuanceState(signals.issuerID, signals.issuerClaimIdenState);
         _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
         _checkProofExpiration(signals.timestamp);
-        _checkIsRevocationChecked(signals.isRevocationChecked, credAtomicQuery.skipClaimRevocationCheck);
+        _checkIsRevocationChecked(
+            signals.isRevocationChecked,
+            credAtomicQuery.skipClaimRevocationCheck
+        );
         return (true);
     }
 
