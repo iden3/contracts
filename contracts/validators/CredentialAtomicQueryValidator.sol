@@ -18,6 +18,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256 queryHash;
         uint256[] allowedIssuers;
         string[] circuitIds;
+        bool skipClaimRevocationCheck;
     }
 
     // This empty reserved space is put in place to allow future versions
@@ -167,6 +168,20 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
             shouldBeMerklized = 1;
         }
         require(merklized == shouldBeMerklized, "Merklized value is not correct");
+    }
+
+    function _checkIsRevocationChecked(
+        uint256 isRevocationChecked,
+        bool skipClaimRevocationCheck
+    ) internal pure {
+        uint256 expectedIsRevocationChecked = 1;
+        if (skipClaimRevocationCheck) {
+            expectedIsRevocationChecked = 0;
+        }
+        require(
+            signals.isRevocationChecked == expectedIsRevocationChecked,
+            "Revocation check should match the query"
+        );
     }
 
     function _setInputToIndex(string memory inputName, uint256 index) internal {

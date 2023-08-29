@@ -70,17 +70,13 @@ contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
 
         // TODO: add support for query to specific userID and then verifying it
 
-        // check isRevocationChecked flag
-        // TODO: add support for skipping revocation check to query
-        // until then it should be verified as enabled
-        require(signals.isRevocationChecked == 1, "Revocation check should be enabled");
-
         _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
         _checkGistRoot(signals.gistRoot);
         _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
         _checkClaimIssuanceState(signals.issuerID, signals.issuerClaimIdenState);
         _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
         _checkProofExpiration(signals.timestamp);
+        _checkIsRevocationChecked(signals.isRevocationChecked, credAtomicQuery.skipClaimRevocationCheck);
         return (true);
     }
 
