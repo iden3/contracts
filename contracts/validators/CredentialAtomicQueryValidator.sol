@@ -179,7 +179,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
             expectedIsRevocationChecked = 0;
         }
         require(
-            signals.isRevocationChecked == expectedIsRevocationChecked,
+            isRevocationChecked == expectedIsRevocationChecked,
             "Revocation check should match the query"
         );
     }
