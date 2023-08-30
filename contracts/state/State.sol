@@ -383,10 +383,6 @@ contract State is Ownable2StepUpgradeable, IState {
             require(idExists(id), "Old state is not genesis but identity does not yet exist");
 
             StateLib.EntryInfo memory prevStateInfo = _stateData.getStateInfoById(id);
-            require(
-                prevStateInfo.createdAtBlock != block.number,
-                "No multiple set in the same block"
-            );
             require(prevStateInfo.state == oldState, "Old state does not match the latest state");
         }
 
