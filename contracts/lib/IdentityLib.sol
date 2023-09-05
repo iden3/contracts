@@ -258,7 +258,7 @@ library IdentityLib {
     /**
      * @dev Retrieve inclusion or non-inclusion proof for a given claimsTreeRoot.
      * @param claimsTreeRoot - claims tree root
-     * @return The RevocationsTree inclusion or non-inclusion proof for the claim
+     * @return The RootsTree inclusion or non-inclusion proof for the claim tree root
      */
     function getRootProof(
         Data storage self,
@@ -271,7 +271,7 @@ library IdentityLib {
      * @dev Retrieve inclusion or non-inclusion proof for a given claimsTreeRoot by target root.
      * @param claimsTreeRoot - claims tree root
      * @param root - root of the tree
-     * @return The RevocationsTree inclusion or non-inclusion proof for the claim
+     * @return The RootsTree inclusion or non-inclusion proof for the claim tree root
      */
     function getRootProofByRoot(
         Data storage self,

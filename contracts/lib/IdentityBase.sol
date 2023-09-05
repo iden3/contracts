@@ -109,7 +109,7 @@ abstract contract IdentityBase is IOnchainCredentialStatusResolver {
     /**
      * @dev Retrieve inclusion or non-inclusion proof for a given claimsTreeRoot.
      * @param claimsTreeRoot - claims tree root
-     * @return The ClaimsTree inclusion or non-inclusion proof for the claim
+     * @return The RootsTree inclusion or non-inclusion proof for the claim tree root
      */
     function getRootProof(
         uint256 claimsTreeRoot
@@ -121,7 +121,7 @@ abstract contract IdentityBase is IOnchainCredentialStatusResolver {
      * @dev Retrieve inclusion or non-inclusion proof for a given claimsTreeRoot by target root.
      * @param claimsTreeRoot - claims tree root
      * @param root - root of the tree
-     * @return The ClaimsTree inclusion or non-inclusion proof for the claim
+     * @return The RootsTree inclusion or non-inclusion proof for the claim tree root
      */
     function getRootProofByRoot(
         uint256 claimsTreeRoot,
