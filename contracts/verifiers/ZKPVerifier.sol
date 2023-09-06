@@ -43,7 +43,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c
-    ) public override returns (bool) {
+    ) public override {
         require(
             _requests[requestId].validator != ICircuitValidator(address(0)),
             "validator is not set for this request id"
@@ -51,20 +51,17 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
 
         _beforeProofSubmit(requestId, inputs, _requests[requestId].validator);
 
-        require(
-            _requests[requestId].validator.verify(inputs, a, b, c, _requests[requestId].data),
-            "proof response is not valid"
-        );
+        _requests[requestId].validator.verify(inputs, a, b, c, _requests[requestId].data);
 
         proofs[msg.sender][requestId] = true; // user provided a valid proof for request
 
         _afterProofSubmit(requestId, inputs, _requests[requestId].validator);
-        return true;
     }
 
     function getZKPRequest(
         uint64 requestId
     ) public view override returns (IZKPVerifier.ZKPRequest memory) {
+        require(isRequestIdExists(requestId), "request id doesn't exist");
         return _requests[requestId];
     }
 
@@ -73,7 +70,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         string calldata metadata,
         ICircuitValidator validator,
         bytes calldata data
-    ) public override onlyOwner returns (bool) {
+    ) public override onlyOwner {
         IZKPVerifier.ZKPRequest memory request = IZKPVerifier.ZKPRequest({
             metadata: metadata,
             validator: validator,
@@ -82,12 +79,20 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
 
         _requests[requestId] = request;
         _requestIds.push(requestId);
-
-        return true;
     }
 
     function getZKPRequestsCount() public view returns (uint256) {
         return _requestIds.length;
+    }
+
+    function isRequestIdExists(uint64 requestId) public view override returns (bool) {
+        for (uint i = 0; i < _requestIds.length; i++) {
+            if (_requestIds[i] == requestId) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     function getZKPRequests(

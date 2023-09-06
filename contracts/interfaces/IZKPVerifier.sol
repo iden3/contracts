@@ -17,16 +17,18 @@ interface IZKPVerifier {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
-    ) external returns (bool);
+    ) external;
 
     function setZKPRequest(
         uint64 requestId,
         string calldata metadata,
         ICircuitValidator validator,
         bytes calldata data
-    ) external returns (bool);
+    ) external;
 
     function getZKPRequestsCount() external view returns (uint256);
+
+    function isRequestIdExists(uint64 requestId) external view returns (bool);
 
     function getZKPRequest(uint64 requestId) external view returns (ZKPRequest memory);
 

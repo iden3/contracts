@@ -8,7 +8,7 @@ interface ICircuitValidator {
         uint256[2][2] memory b,
         uint256[2] memory c,
         bytes calldata data
-    ) external view returns (bool r);
+    ) external view;
 
     function getSupportedCircuitIds() external view returns (string[] memory ids);
 

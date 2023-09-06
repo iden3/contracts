@@ -67,4 +67,25 @@ describe("ZKP Verifier", function () {
     expect(queries[1].metadata).to.be.equal('metadataN16');
     expect(queries[2].metadata).to.be.equal('metadataN17');
   });
+
+   it('test getZKPRequest and request id exists', async () => {
+    const requestsCount = 3;
+    for (let i = 0; i < requestsCount; i++) {
+        await verifier.setZKPRequest(i, 'metadataN' + i, sig.address, '0x00');
+        const reqeustIdExists = await verifier.isRequestIdExists(i);
+        expect(reqeustIdExists).to.be.true;
+        const reqeustIdDoesntExists = await verifier.isRequestIdExists(i + 1);
+        expect(reqeustIdDoesntExists).to.be.false;
+
+        const request = await verifier.getZKPRequest(i);
+        expect(request.metadata).to.be.equal('metadataN' + i);
+        await expect(verifier.getZKPRequest(i + 1)).to.be.revertedWith(
+          'request id doesn\'t exist'
+        );
+    }
+     const count = await verifier.getZKPRequestsCount();
+     expect(count).to.be.equal(requestsCount);
+
+  });
+
 });

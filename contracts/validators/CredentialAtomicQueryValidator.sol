@@ -29,7 +29,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
     // slither-disable-next-line shadowing-state
     // slither-disable-next-line unused-state
-    uint256[500] private __gap_before;
+    uint256[500] private __gap_before_base;
 
     mapping(string => IVerifier) internal _circuitIdToVerifier;
     string[] internal _supportedCircuitIds;
@@ -46,7 +46,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     // of this contract to add new variables without shifting down
     // storage of child contracts that use this contract as a base
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-    uint256[44] __gap_after;
+    uint256[44] __gap_after_base;
 
     function initialize(
         address _verifierContractAddr,
@@ -163,10 +163,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     }
 
     function _checkMerklized(uint256 merklized, uint256 queryClaimPathKey) internal pure {
-        uint256 shouldBeMerklized = 0;
-        if (queryClaimPathKey != 0) {
-            shouldBeMerklized = 1;
-        }
+        uint256 shouldBeMerklized = queryClaimPathKey != 0 ? 1 : 0;
         require(merklized == shouldBeMerklized, "Merklized value is not correct");
     }
 
