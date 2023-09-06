@@ -308,9 +308,7 @@ export class DeployHelper {
 
     this.log("upgrading validator...");
     const ValidatorFactory = await ethers.getContractFactory(validatorContractName);
-    const validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory, {
-      unsafeSkipStorageCheck: true
-    });
+    const validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory);
     await validator.deployed();
     this.log(`Validator ${validatorContractName} upgraded at address ${validator.address} from ${owner.address}`);
 
