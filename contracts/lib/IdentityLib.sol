@@ -189,6 +189,7 @@ library IdentityLib {
 
     /**
      * @dev Retrieve Claim inclusion or non-inclusion proof for a given claim index.
+     * Note that proof is taken for the latest published claims tree root.
      * @param claimIndexHash - hash of Claim Index
      * @return The ClaimsTree inclusion or non-inclusion proof for the claim
      */
@@ -196,7 +197,11 @@ library IdentityLib {
         Data storage self,
         uint256 claimIndexHash
     ) external view returns (SmtLib.Proof memory) {
-        return self.trees.claimsTree.getProof(claimIndexHash);
+        return
+            self.trees.claimsTree.getProofByRoot(
+                claimIndexHash,
+                self.latestPublishedTreeRoots.claimsRoot
+            );
     }
 
     /**
@@ -223,6 +228,7 @@ library IdentityLib {
 
     /**
      * @dev Retrieve inclusion or non-inclusion proof for a given revocation nonce.
+     Note that proof is taken for the latest published revocation tree root.
      * @param revocationNonce - revocation nonce
      * @return The RevocationsTree inclusion or non-inclusion proof for the claim
      */
@@ -230,7 +236,11 @@ library IdentityLib {
         Data storage self,
         uint64 revocationNonce
     ) external view returns (SmtLib.Proof memory) {
-        return self.trees.revocationsTree.getProof(uint256(revocationNonce));
+        return
+            self.trees.revocationsTree.getProofByRoot(
+                uint256(revocationNonce),
+                self.latestPublishedTreeRoots.revocationsRoot
+            );
     }
 
     /**
@@ -257,6 +267,7 @@ library IdentityLib {
 
     /**
      * @dev Retrieve inclusion or non-inclusion proof for a given claimsTreeRoot.
+     Note that proof is taken for the latest published roots tree root.
      * @param claimsTreeRoot - claims tree root
      * @return The RootsTree inclusion or non-inclusion proof for the claim tree root
      */
@@ -264,7 +275,11 @@ library IdentityLib {
         Data storage self,
         uint256 claimsTreeRoot
     ) external view returns (SmtLib.Proof memory) {
-        return self.trees.rootsTree.getProof(claimsTreeRoot);
+        return
+            self.trees.rootsTree.getProofByRoot(
+                claimsTreeRoot,
+                self.latestPublishedTreeRoots.rootsRoot
+            );
     }
 
     /**
