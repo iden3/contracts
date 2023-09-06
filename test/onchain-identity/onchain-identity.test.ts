@@ -72,9 +72,9 @@ describe("Next tests reproduce identity life cycle", function() {
     });
 
     it("last roots should be empty", async function () {
-      const lastClaimTreeRoot = await identity.getLastClaimsRoot();
-      const lastRevocationTreeRoot = await identity.getLastRevocationsRoot();
-      const lastRootOfRootsTreeRoot = await identity.getLastRootsRoot();
+      const lastClaimTreeRoot = await identity.getLatestPublishedClaimsRoot();
+      const lastRevocationTreeRoot = await identity.getLatestPublishedRevocationsRoot();
+      const lastRootOfRootsTreeRoot = await identity.getLatestPublishedRootsRoot();
 
       expect(lastClaimTreeRoot).to.be.equal(initialClaimTreeRoot);
       expect(lastRevocationTreeRoot).to.be.equal(0);
@@ -106,9 +106,9 @@ describe("Next tests reproduce identity life cycle", function() {
       initialRevocationTreeRoot = await identity.getRevocationsTreeRoot();
       initialRootOfRootsTreeRoot = await identity.getRootsTreeRoot();
 
-      lastClaimTreeRoot = await identity.getLastClaimsRoot();
-      lastRevocationTreeRoot = await identity.getLastRevocationsRoot();
-      lastRootOfRootsTreeRoot = await identity.getLastRootsRoot();
+      lastClaimTreeRoot = await identity.getLatestPublishedClaimsRoot();
+      lastRevocationTreeRoot = await identity.getLatestPublishedRevocationsRoot();
+      lastRootOfRootsTreeRoot = await identity.getLatestPublishedRootsRoot();
       await identity.addClaimHash(1, 2);
     });
 
@@ -132,9 +132,9 @@ describe("Next tests reproduce identity life cycle", function() {
     });
 
     it("latest roots should't be change", async function () {
-      const afterInsertLastClaimTreeRoot = await identity.getLastClaimsRoot();
-      const afterInsertLastRevocationTreeRoot = await identity.getLastRevocationsRoot();
-      const afterInsertLastRootOfRootsTreeRoot = await identity.getLastRootsRoot();
+      const afterInsertLastClaimTreeRoot = await identity.getLatestPublishedClaimsRoot();
+      const afterInsertLastRevocationTreeRoot = await identity.getLatestPublishedRevocationsRoot();
+      const afterInsertLastRootOfRootsTreeRoot = await identity.getLatestPublishedRootsRoot();
       expect(afterInsertLastClaimTreeRoot).to.be.equal(lastClaimTreeRoot);
       expect(afterInsertLastRevocationTreeRoot).to.be.equal(lastRevocationTreeRoot);
       expect(afterInsertLastRootOfRootsTreeRoot).to.be.equal(lastRootOfRootsTreeRoot);
@@ -153,25 +153,25 @@ describe("Next tests reproduce identity life cycle", function() {
       beforeTransitionRootOfRootsTreeRoot;
 
     before(async function () {
-      beforeTransitionClaimTreeRoot = await identity.getLastClaimsRoot();
-      beforeTransitionRevocationTreeRoot = await identity.getLastRevocationsRoot();
-      beforeTransitionRootOfRootsTreeRoot = await identity.getLastRootsRoot();
+      beforeTransitionClaimTreeRoot = await identity.getLatestPublishedClaimsRoot();
+      beforeTransitionRevocationTreeRoot = await identity.getLatestPublishedRevocationsRoot();
+      beforeTransitionRootOfRootsTreeRoot = await identity.getLatestPublishedRootsRoot();
       await identity.transitState();
     });
 
     it("latest roots for ClaimsTree and RootOfRoots should be updated", async function () {
-      const afterTransitionClaimTreeRoot = await identity.getLastClaimsRoot();
+      const afterTransitionClaimTreeRoot = await identity.getLatestPublishedClaimsRoot();
       expect(afterTransitionClaimTreeRoot).to.be.not.equal(beforeTransitionClaimTreeRoot);
     });
     it("Revocation root should be empty", async function () {
-      const afterTransitionRevocationTreeRoot = await identity.getLastRevocationsRoot();
+      const afterTransitionRevocationTreeRoot = await identity.getLatestPublishedRevocationsRoot();
       expect(afterTransitionRevocationTreeRoot).to.be.equal(0);
       expect(afterTransitionRevocationTreeRoot).to.be.equal(beforeTransitionRevocationTreeRoot);
     });
 
     it("Root of roots and claims root should be updated", async function () {
       const afterTranstionLatestSavedState = await identity.getIdentityLatestState();
-      const afterTransitionRootOfRootsTreeRoot = await identity.getLastRootsRoot();
+      const afterTransitionRootOfRootsTreeRoot = await identity.getLatestPublishedRootsRoot();
 
       expect(afterTransitionRootOfRootsTreeRoot).to.be.not.equal(0);
       expect(afterTransitionRootOfRootsTreeRoot).to.be.not.equal(
@@ -192,9 +192,9 @@ describe("Next tests reproduce identity life cycle", function() {
       beforeRevocationRootOfRootsTreeRoot;
 
     before(async function () {
-      beforeRevocationClaimTreeRoot = await identity.getLastClaimsRoot();
-      beforeRevocationRevocationTreeRoot = await identity.getLastRevocationsRoot();
-      beforeRevocationRootOfRootsTreeRoot = await identity.getLastRootsRoot();
+      beforeRevocationClaimTreeRoot = await identity.getLatestPublishedClaimsRoot();
+      beforeRevocationRevocationTreeRoot = await identity.getLatestPublishedRevocationsRoot();
+      beforeRevocationRootOfRootsTreeRoot = await identity.getLatestPublishedRootsRoot();
       await identity.revokeClaim(1);
     });
 
@@ -205,13 +205,13 @@ describe("Next tests reproduce identity life cycle", function() {
     });
 
     it("transit of revocation tree shouldn't update root of roots tree", async function () {
-      const beforeRevocationRootOfRootsTreeRoot = await identity.getLastRevocationsRoot();
+      const beforeRevocationRootOfRootsTreeRoot = await identity.getLatestPublishedRevocationsRoot();
       expect(beforeRevocationRootOfRootsTreeRoot).to.be.equal(beforeRevocationRevocationTreeRoot);
     });
 
     it("Root of Roots and Claims Root should be changed", async function () {
-      const afterRevocationClaimTreeRoot = await identity.getLastClaimsRoot();
-      const afterRevocationRootOfRootsTreeRoot = await identity.getLastRootsRoot();
+      const afterRevocationClaimTreeRoot = await identity.getLatestPublishedClaimsRoot();
+      const afterRevocationRootOfRootsTreeRoot = await identity.getLatestPublishedRootsRoot();
 
       expect(afterRevocationClaimTreeRoot).to.be.equal(beforeRevocationClaimTreeRoot);
       expect(afterRevocationRootOfRootsTreeRoot).to.be.equal(beforeRevocationRootOfRootsTreeRoot);
@@ -385,7 +385,7 @@ describe("Root of roots tree proofs", () => {
   describe("Check historical Claim tree root in claims tree root", () => {
     let currentClaimsTreeRoot, latestRootOfRootsRoot;
     before(async function () {
-      latestRootOfRootsRoot = await identity.getLastRootsRoot();
+      latestRootOfRootsRoot = await identity.getLatestPublishedRootsRoot();
       await identity.addClaimHash(4, 2);
       await identity.transitState();
       currentClaimsTreeRoot = await identity.getClaimsTreeRoot();

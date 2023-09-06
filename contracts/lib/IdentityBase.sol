@@ -165,27 +165,27 @@ abstract contract IdentityBase is IOnchainCredentialStatusResolver {
     }
 
     /**
-     * @dev returns last claims root
+     * @dev returns latest published claims tree root
      * @return claimsRoot
      */
-    function getLastClaimsRoot() public view returns (uint256) {
-        return identity.lastTreeRoots.claimsRoot;
+    function getLatestPublishedClaimsRoot() public view returns (uint256) {
+        return identity.latestPublishedTreeRoots.claimsRoot;
     }
 
     /**
-     * @dev returns last revocation root
+     * @dev returns latest published revocation tree root
      * @return revocationsRoot
      */
-    function getLastRevocationsRoot() public view returns (uint256) {
-        return identity.lastTreeRoots.revocationsRoot;
+    function getLatestPublishedRevocationsRoot() public view returns (uint256) {
+        return identity.latestPublishedTreeRoots.revocationsRoot;
     }
 
     /**
-     * @dev returns last roots root
+     * @dev returns latest published roots tree root
      * @return rootsRoot
      */
-    function getLastRootsRoot() public view returns (uint256) {
-        return identity.lastTreeRoots.rootsRoot;
+    function getLatestPublishedRootsRoot() public view returns (uint256) {
+        return identity.latestPublishedTreeRoots.rootsRoot;
     }
 
     /**
@@ -193,7 +193,7 @@ abstract contract IdentityBase is IOnchainCredentialStatusResolver {
      * @return uint256 identityLatestState
      */
     function getIdentityLatestState() public view returns (uint256) {
-        return identity.latestState;
+        return identity.latestPublishedState;
     }
 
     /**
@@ -207,7 +207,7 @@ abstract contract IdentityBase is IOnchainCredentialStatusResolver {
         uint64 nonce
     ) public view returns (CredentialStatus memory) {
         require(id == identity.id, "Identity id mismatch");
-        uint256 latestState = identity.latestState;
+        uint256 latestState = identity.latestPublishedState;
         IdentityLib.Roots memory historicalStates = identity.getRootsByState(latestState);
         IdentityStateRoots memory issuerStates = IdentityStateRoots({
             state: latestState,

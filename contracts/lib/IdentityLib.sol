@@ -26,12 +26,12 @@ library IdentityLib {
      */
     struct Data {
         uint256 id;
-        uint256 latestState;
+        uint256 latestPublishedState;
         bool isOldStateGenesis;
         IState stateContract;
         mapping(uint256 => Roots) rootsByState;
         Trees trees;
-        Roots lastTreeRoots;
+        Roots latestPublishedTreeRoots;
         // This empty reserved space is put in place to allow future versions
         // of the SMT library to add new Data struct fields without shifting down
         // storage of upgradable contracts that use this struct as a state variable
@@ -120,30 +120,30 @@ library IdentityLib {
      * @dev Make state transition
      */
     function transitState(Data storage self) external {
-        uint256 oldIdentityState = self.latestState;
+        uint256 oldIdentityState = self.latestPublishedState;
         uint256 currentClaimsTreeRoot = self.trees.claimsTree.getRoot();
         uint256 currentRevocationsTreeRoot = self.trees.revocationsTree.getRoot();
         uint256 currentRootsTreeRoot = self.trees.rootsTree.getRoot();
 
         require(
-            (self.lastTreeRoots.claimsRoot != currentClaimsTreeRoot) ||
-                (self.lastTreeRoots.revocationsRoot != currentRevocationsTreeRoot) ||
-                (self.lastTreeRoots.rootsRoot != currentRootsTreeRoot),
+            (self.latestPublishedTreeRoots.claimsRoot != currentClaimsTreeRoot) ||
+                (self.latestPublishedTreeRoots.revocationsRoot != currentRevocationsTreeRoot) ||
+                (self.latestPublishedTreeRoots.rootsRoot != currentRootsTreeRoot),
             "Identity trees haven't changed"
         );
 
         // if claimsTreeRoot changed, then add it to rootsTree
-        if (self.lastTreeRoots.claimsRoot != currentClaimsTreeRoot) {
+        if (self.latestPublishedTreeRoots.claimsRoot != currentClaimsTreeRoot) {
             self.trees.rootsTree.addLeaf(currentClaimsTreeRoot, 0);
         }
 
         uint256 newIdentityState = calcIdentityState(self);
 
         // update internal state vars
-        self.latestState = newIdentityState;
-        self.lastTreeRoots.claimsRoot = currentClaimsTreeRoot;
-        self.lastTreeRoots.revocationsRoot = currentRevocationsTreeRoot;
-        self.lastTreeRoots.rootsRoot = self.trees.rootsTree.getRoot();
+        self.latestPublishedState = newIdentityState;
+        self.latestPublishedTreeRoots.claimsRoot = currentClaimsTreeRoot;
+        self.latestPublishedTreeRoots.revocationsRoot = currentRevocationsTreeRoot;
+        self.latestPublishedTreeRoots.rootsRoot = self.trees.rootsTree.getRoot();
 
         bool isOldStateGenesis = self.isOldStateGenesis;
         // it may have changed since we've got currentRootsTreeRoot
@@ -153,11 +153,11 @@ library IdentityLib {
 
         writeHistory(
             self,
-            self.latestState,
+            self.latestPublishedState,
             Roots({
-                claimsRoot: self.lastTreeRoots.claimsRoot,
-                revocationsRoot: self.lastTreeRoots.revocationsRoot,
-                rootsRoot: self.lastTreeRoots.rootsRoot
+                claimsRoot: self.latestPublishedTreeRoots.claimsRoot,
+                revocationsRoot: self.latestPublishedTreeRoots.revocationsRoot,
+                rootsRoot: self.latestPublishedTreeRoots.rootsRoot
             })
         );
 
