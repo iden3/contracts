@@ -207,17 +207,17 @@ abstract contract IdentityBase is IOnchainCredentialStatusResolver {
         uint64 nonce
     ) public view returns (CredentialStatus memory) {
         uint256 latestState = identity.latestState;
-        return getRevocationStatusByIdAndStates(id, latestState, nonce);
+        return getRevocationStatusByIdAndState(id, latestState, nonce);
     }
 
     /**
      * @dev returns revocation status of a claim using given revocation nonce, id and states
      * @param id Issuer's identifier
-     * @param id Issuer's state
+     * @param state of the Issuer
      * @param nonce Revocation nonce
      * @return CredentialStatus
      */
-    function getRevocationStatusByIdAndStates(
+    function getRevocationStatusByIdAndState(
         uint256 id,
         uint256 state,
         uint64 nonce

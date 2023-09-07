@@ -62,7 +62,7 @@ interface IOnchainCredentialStatusResolver {
     /**
      * @dev returns revocation status of a claim using given revocation nonce, id and states
      * @param id Issuer's identifier
-     * @param id Issuer's state
+     * @param state of the Issuer
      * @param nonce Revocation nonce
      * @return CredentialStatus
      */
