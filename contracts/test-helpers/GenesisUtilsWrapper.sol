@@ -13,6 +13,6 @@ contract GenesisUtilsWrapper {
     }
 
     function calcOnchainIdFromAddress(bytes2 idType, address caller) public pure returns (uint256) {
-        return GenesisUtils.calcOnchainIdFromAddress(idType, caller);
+        return GenesisUtils.calcIdFromEthAddress(idType, caller);
     }
 }

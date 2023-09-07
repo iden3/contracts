@@ -46,7 +46,7 @@ export async function deployPoseidons(
   return result;
 }
 
-export async function deployPoseidonFacade(): Promise<Contract> {
+export async function deployPoseidonFacade(): Promise<any> {
   const poseidonContracts = await deployPoseidons(
     (
       await ethers.getSigners()
@@ -71,5 +71,14 @@ export async function deployPoseidonFacade(): Promise<Contract> {
   const poseidonFacade = await PoseidonFacade.deploy();
   await poseidonFacade.deployed();
   console.log("PoseidonFacade deployed to:", poseidonFacade.address);
-  return poseidonFacade;
+  return {
+    PoseidonFacade: poseidonFacade,
+    PoseidonUnit1L: poseidonContracts[0],
+    PoseidonUnit2L: poseidonContracts[1],
+    PoseidonUnit3L: poseidonContracts[2],
+    PoseidonUnit4L: poseidonContracts[3],
+    PoseidonUnit5L: poseidonContracts[4],
+    PoseidonUnit6L: poseidonContracts[5],
+    SpongePoseidon: spongePoseidon,
+  };
 }

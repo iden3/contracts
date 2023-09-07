@@ -3,22 +3,22 @@ pragma solidity 0.8.16;
 
 import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredentialStatusResolver.sol";
 import {IState} from "../interfaces/IState.sol";
-import {OnChainIdentity} from "../lib/OnChainIdentity.sol";
+import {IdentityLib} from "../lib/IdentityLib.sol";
 import {SmtLib} from "../lib/SmtLib.sol";
 
 // /**
 //  * @dev Contract managing onchain identity
 //  */
-    contract IdentityBase is IOnchainCredentialStatusResolver {
+    abstract contract IdentityBase is IOnchainCredentialStatusResolver {
     // This empty reserved space is put in place to allow future versions
     // of this contract to add new parent contracts without shifting down
     // storage of child contracts that use this contract as a base
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
     uint256[500] private __gapBefore;
 
-    using OnChainIdentity for OnChainIdentity.Identity;
+    using IdentityLib for IdentityLib.Data;
 
-    OnChainIdentity.Identity internal identity;
+    IdentityLib.Data internal identity;
 
     // This empty reserved space is put in place to allow future versions
     // of this contract to add new variables without shifting down
@@ -35,7 +35,7 @@ import {SmtLib} from "../lib/SmtLib.sol";
     }
 
     /**
-     * @dev Initialization of OnChainIdentity library
+     * @dev Initialization of IdentityLib library
      * @param _stateContractAddr - address of the State contract
      */
     function initialize(address _stateContractAddr) public virtual {
@@ -77,7 +77,7 @@ import {SmtLib} from "../lib/SmtLib.sol";
     /**
      * @dev Retrieve inclusion or non-inclusion proof for a given revocation nonce.
      * @param revocationNonce - revocation nonce
-     * @return The RevocationsTree inclusion or non-inclusion proof for the claim
+     * @return The RevocationsTree inclusion or non-inclusion proof for the revocation nonce
      */
     function getRevocationProof(
         uint64 revocationNonce
@@ -89,7 +89,7 @@ import {SmtLib} from "../lib/SmtLib.sol";
      * @dev Retrieve inclusion or non-inclusion proof for a given revocation nonce by target root.
      * @param revocationNonce - revocation nonce
      * @param root - root of the tree
-     * @return The RevocationsTree inclusion or non-inclusion proof for the claim
+     * @return The RevocationsTree inclusion or non-inclusion proof for the revocation nonce
      */
     function getRevocationProofByRoot(
         uint64 revocationNonce,
@@ -109,7 +109,7 @@ import {SmtLib} from "../lib/SmtLib.sol";
     /**
      * @dev Retrieve inclusion or non-inclusion proof for a given claimsTreeRoot.
      * @param claimsTreeRoot - claims tree root
-     * @return The RevocationsTree inclusion or non-inclusion proof for the claim
+     * @return The ClaimsTree inclusion or non-inclusion proof for the claim
      */
     function getRootProof(
         uint256 claimsTreeRoot
@@ -121,7 +121,7 @@ import {SmtLib} from "../lib/SmtLib.sol";
      * @dev Retrieve inclusion or non-inclusion proof for a given claimsTreeRoot by target root.
      * @param claimsTreeRoot - claims tree root
      * @param root - root of the tree
-     * @return The RevocationsTree inclusion or non-inclusion proof for the claim
+     * @return The ClaimsTree inclusion or non-inclusion proof for the claim
      */
     function getRootProofByRoot(
         uint256 claimsTreeRoot,
@@ -144,9 +144,7 @@ import {SmtLib} from "../lib/SmtLib.sol";
      * @param state identity state
      * @return set of roots
      */
-    function getRootsByState(
-        uint256 state
-    ) public view virtual returns (OnChainIdentity.Roots memory) {
+    function getRootsByState(uint256 state) public view virtual returns (IdentityLib.Roots memory) {
         return identity.getRootsByState(state);
     }
 
@@ -176,7 +174,7 @@ import {SmtLib} from "../lib/SmtLib.sol";
 
     /**
      * @dev returns last revocation root
-     * @return claimsRoot
+     * @return revocationsRoot
      */
     function getLastRevocationsRoot() public view returns (uint256) {
         return identity.lastTreeRoots.revocationsRoot;
@@ -225,7 +223,7 @@ import {SmtLib} from "../lib/SmtLib.sol";
         uint64 nonce
     ) public view returns (CredentialStatus memory) {
         require(id == identity.id, "Identity id mismatch");
-        OnChainIdentity.Roots memory historicalStates = identity.getRootsByState(state);
+        IdentityLib.Roots memory historicalStates = identity.getRootsByState(latestState);
         IdentityStateRoots memory issuerStates = IdentityStateRoots({
             state: state,
             rootOfRoots: historicalStates.rootsRoot,
