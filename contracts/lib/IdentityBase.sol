@@ -223,7 +223,7 @@ abstract contract IdentityBase is IOnchainCredentialStatusResolver {
         uint64 nonce
     ) public view returns (CredentialStatus memory) {
         require(id == identity.id, "Identity id mismatch");
-        IdentityLib.Roots memory historicalStates = identity.getRootsByState(latestState);
+        IdentityLib.Roots memory historicalStates = identity.getRootsByState(state);
         IdentityStateRoots memory issuerStates = IdentityStateRoots({
             state: state,
             rootOfRoots: historicalStates.rootsRoot,
