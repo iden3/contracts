@@ -9,7 +9,7 @@ import {SmtLib} from "../lib/SmtLib.sol";
 // /**
 //  * @dev Contract managing onchain identity
 //  */
-contract IdentityBase is IOnchainCredentialStatusResolver {
+    contract IdentityBase is IOnchainCredentialStatusResolver {
     // This empty reserved space is put in place to allow future versions
     // of this contract to add new parent contracts without shifting down
     // storage of child contracts that use this contract as a base
@@ -208,11 +208,26 @@ contract IdentityBase is IOnchainCredentialStatusResolver {
         uint256 id,
         uint64 nonce
     ) public view returns (CredentialStatus memory) {
-        require(id == identity.id, "Identity id mismatch");
         uint256 latestState = identity.latestState;
-        OnChainIdentity.Roots memory historicalStates = identity.getRootsByState(latestState);
+        return getRevocationStatusByIdAndStates(id, latestState, nonce);
+    }
+
+    /**
+     * @dev returns revocation status of a claim using given revocation nonce, id and states
+     * @param id Issuer's identifier
+     * @param id Issuer's state
+     * @param nonce Revocation nonce
+     * @return CredentialStatus
+     */
+    function getRevocationStatusByIdAndStates(
+        uint256 id,
+        uint256 state,
+        uint64 nonce
+    ) public view returns (CredentialStatus memory) {
+        require(id == identity.id, "Identity id mismatch");
+        OnChainIdentity.Roots memory historicalStates = identity.getRootsByState(state);
         IdentityStateRoots memory issuerStates = IdentityStateRoots({
-            state: latestState,
+            state: state,
             rootOfRoots: historicalStates.rootsRoot,
             claimsTreeRoot: historicalStates.claimsRoot,
             revocationTreeRoot: historicalStates.revocationsRoot
