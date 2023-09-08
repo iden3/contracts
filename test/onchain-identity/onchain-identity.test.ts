@@ -87,7 +87,7 @@ describe("Next tests reproduce identity life cycle", function() {
     it(
         "latest identity state should be empty",
       async function () {
-        latestSavedState = await identity.getLatestIdentityState();
+        latestSavedState = await identity.getLatestPublishedState();
         expect(latestSavedState).to.be.equal(0);
       }
     );
@@ -142,7 +142,7 @@ describe("Next tests reproduce identity life cycle", function() {
 
     it("computes state should be different from latest saved state", async function () {
       latestComputedState = await identity.calcIdentityState();
-      latestSavedState = await identity.getLatestIdentityState();
+      latestSavedState = await identity.getLatestPublishedState();
       expect(latestComputedState).to.be.not.equal(latestSavedState);
     });
   });
@@ -176,7 +176,7 @@ describe("Next tests reproduce identity life cycle", function() {
     });
 
     it("Root of roots and claims root should be updated", async function () {
-      const afterTranstionLatestSavedState = await identity.getLatestIdentityState();
+      const afterTranstionLatestSavedState = await identity.getLatestPublishedState();
       const afterTransitionRootOfRootsTreeRoot = await identity.getLatestPublishedRootsRoot();
 
       expect(afterTransitionRootOfRootsTreeRoot).to.be.not.equal(0);
@@ -228,7 +228,7 @@ describe("Next tests reproduce identity life cycle", function() {
     let beforeTransitionLatestSavedState;
 
     before(async function () {
-      beforeTransitionLatestSavedState = await identity.getLatestIdentityState();
+      beforeTransitionLatestSavedState = await identity.getLatestPublishedState();
       await identity.transitState();
     });
 
@@ -239,7 +239,7 @@ describe("Next tests reproduce identity life cycle", function() {
     });
 
     it("state should be updated", async function () {
-      const afterTransitionLatestSavedState = await identity.getLatestIdentityState();
+      const afterTransitionLatestSavedState = await identity.getLatestPublishedState();
       expect(beforeTransitionLatestSavedState).to.be.not.equal(afterTransitionLatestSavedState);
     });
   });
@@ -450,7 +450,7 @@ describe("Compare historical roots with latest roots from tree", () => {
       await identity.revokeClaim(1);
       await identity.transitState();
 
-      latestState = await identity.getLatestIdentityState();
+      latestState = await identity.getLatestPublishedState();
     });
     it("Compare latest claims tree root", async function () {
       const latestClaimsTreeRoot = await identity.getClaimsTreeRoot();
@@ -500,7 +500,7 @@ describe("Compare historical roots with latest roots from tree", () => {
       await identity.addClaimHash(1, 2);
       await identity.revokeClaim(1);
       await identity.transitState();
-      prevState = await identity.getLatestIdentityState();
+      prevState = await identity.getLatestPublishedState();
     });
     it("Compare latest claims tree root", async function () {
       const latestClaimsTreeRoot = await identity.getClaimsTreeRoot();
