@@ -192,7 +192,7 @@ abstract contract IdentityBase is IOnchainCredentialStatusResolver {
      * @dev returns identity latest state
      * @return uint256 identityLatestState
      */
-    function getIdentityLatestState() public view returns (uint256) {
+    function getLatestIdentityState() public view returns (uint256) {
         return identity.latestPublishedState;
     }
 
