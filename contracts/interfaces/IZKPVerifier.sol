@@ -28,7 +28,7 @@ interface IZKPVerifier {
 
     function getZKPRequestsCount() external view returns (uint256);
 
-    function isRequestIdExists(uint64 requestId) external view returns (bool);
+    function requestIdExists(uint64 requestId) external view returns (bool);
 
     function getZKPRequest(uint64 requestId) external view returns (ZKPRequest memory);
 

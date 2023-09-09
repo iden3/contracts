@@ -61,7 +61,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
     function getZKPRequest(
         uint64 requestId
     ) public view override returns (IZKPVerifier.ZKPRequest memory) {
-        require(isRequestIdExists(requestId), "request id doesn't exist");
+        require(requestIdExists(requestId), "request id doesn't exist");
         return _requests[requestId];
     }
 
@@ -85,7 +85,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         return _requestIds.length;
     }
 
-    function isRequestIdExists(uint64 requestId) public view override returns (bool) {
+    function requestIdExists(uint64 requestId) public view override returns (bool) {
         for (uint i = 0; i < _requestIds.length; i++) {
             if (_requestIds[i] == requestId) {
                 return true;

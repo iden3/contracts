@@ -72,9 +72,9 @@ describe("ZKP Verifier", function () {
     const requestsCount = 3;
     for (let i = 0; i < requestsCount; i++) {
         await verifier.setZKPRequest(i, 'metadataN' + i, sig.address, '0x00');
-        const reqeustIdExists = await verifier.isRequestIdExists(i);
+        const reqeustIdExists = await verifier.requestIdExists(i);
         expect(reqeustIdExists).to.be.true;
-        const reqeustIdDoesntExists = await verifier.isRequestIdExists(i + 1);
+        const reqeustIdDoesntExists = await verifier.requestIdExists(i + 1);
         expect(reqeustIdDoesntExists).to.be.false;
 
         const request = await verifier.getZKPRequest(i);
