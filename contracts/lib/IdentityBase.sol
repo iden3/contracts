@@ -206,11 +206,26 @@ abstract contract IdentityBase is IOnchainCredentialStatusResolver {
         uint256 id,
         uint64 nonce
     ) public view returns (CredentialStatus memory) {
-        require(id == identity.id, "Identity id mismatch");
         uint256 latestState = identity.latestState;
-        IdentityLib.Roots memory historicalStates = identity.getRootsByState(latestState);
+        return getRevocationStatusByIdAndState(id, latestState, nonce);
+    }
+
+    /**
+     * @dev returns revocation status of a claim using given revocation nonce, id and state
+     * @param id Issuer's identifier
+     * @param state of the Issuer
+     * @param nonce Revocation nonce
+     * @return CredentialStatus
+     */
+    function getRevocationStatusByIdAndState(
+        uint256 id,
+        uint256 state,
+        uint64 nonce
+    ) public view returns (CredentialStatus memory) {
+        require(id == identity.id, "Identity id mismatch");
+        IdentityLib.Roots memory historicalStates = identity.getRootsByState(state);
         IdentityStateRoots memory issuerStates = IdentityStateRoots({
-            state: latestState,
+            state: state,
             rootOfRoots: historicalStates.rootsRoot,
             claimsTreeRoot: historicalStates.claimsRoot,
             revocationTreeRoot: historicalStates.revocationsRoot
