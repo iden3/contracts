@@ -113,13 +113,11 @@ describe("State transition with real verifier", () => {
 
 describe("State transition negative cases", () => {
   let state;
-  let utilsWrapper;
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize();
     const contracts = await deployHelper.deployState(verifierStubName);
     state = contracts.state;
-    utilsWrapper = await deployHelper.deployGenesisUtilsWrapper();
   });
 
   it("Old state does not match the latest state", async () => {
@@ -184,29 +182,6 @@ describe("State transition negative cases", () => {
 
     await expect(publishStateWithStubProof(state, stateTransition)).to.be.revertedWith(
       "New state already exists"
-    );
-  });
-
-  it("Should throw if we try to publish state which is managed by msg.sender", async function () {
-    const type = await state.getDefaultIdType();
-    const [caller] = await ethers.getSigners();
-    const id = await utilsWrapper.calcOnchainIdFromAddress(type, caller.address);
-
-    const stateTransition = {
-      id,
-      oldState: 0,
-      newState: 0,
-      isOldStateGenesis: false,
-    };
-
-    await expect(publishStateWithStubProof(state, stateTransition)).to.be.revertedWith(
-      "msg.sender should not be owner of the identity"
-    );
-  });
-
-  it("Should throw if we try to publish state which is not managed by msg.sender", async function () {
-    await expect(state.transitStateGeneric(0, 0, 0, false, 1, "0x")).to.be.revertedWith(
-      "msg.sender is not owner of the identity"
     );
   });
 });

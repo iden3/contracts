@@ -108,7 +108,6 @@ contract State is Ownable2StepUpgradeable, IState {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) public {
-        require(!_isIdManagedByMsgSender(id), "msg.sender should not be owner of the identity");
         uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis ? 1 : 0)];
         require(
             verifier.verifyProof(a, b, c, input),
@@ -136,7 +135,8 @@ contract State is Ownable2StepUpgradeable, IState {
         bytes calldata methodParams
     ) public {
         if (methodId == 1) {
-            require(_isIdManagedByMsgSender(id), "msg.sender is not owner of the identity");
+            uint256 calcId = GenesisUtils.calcIdFromEthAddress(getDefaultIdType(), msg.sender);
+            require(calcId == id, "msg.sender is not owner of the identity");
             require(methodParams.length == 0, "methodParams should be empty");
 
             if (isOldStateGenesis) {
@@ -451,14 +451,5 @@ contract State is Ownable2StepUpgradeable, IState {
     function _setDefaultIdType(bytes2 defaultIdType) internal {
         _defaultIdType = defaultIdType;
         _defaultIdTypeInitialized = true;
-    }
-
-    /**
-     * @dev Check if the identity is managed by the msg.sender
-     * @param id Identity
-     * @return True if the identity is managed by the msg.sender
-     */
-    function _isIdManagedByMsgSender(uint256 id) internal view returns (bool) {
-        return id == GenesisUtils.calcIdFromEthAddress(getDefaultIdType(), msg.sender);
     }
 }
