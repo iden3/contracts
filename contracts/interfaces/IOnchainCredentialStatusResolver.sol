@@ -60,7 +60,7 @@ interface IOnchainCredentialStatusResolver {
     ) external view returns (CredentialStatus memory);
 
     /**
-     * @dev returns revocation status of a claim using given revocation nonce, id and states
+     * @dev returns revocation status of a claim using given revocation nonce, id and state
      * @param id Issuer's identifier
      * @param state of the Issuer
      * @param nonce Revocation nonce
