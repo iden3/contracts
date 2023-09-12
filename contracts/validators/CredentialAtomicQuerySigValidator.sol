@@ -52,17 +52,17 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
         uint256[2] calldata c,
         bytes calldata data
     ) external view virtual {
-        uint256 issuerAuthState = inputs[3];
-        _verify(inputs, a, b, c, data, issuerAuthState);
+        _verify(inputs, a, b, c, data);
     }
 
-    function parseBasePubSignals(
+    function parseCommonPubSignals(
         uint256[] calldata inputs
-    ) public pure override returns (BasePublicSignals memory) {
-        BasePublicSignals memory params = BasePublicSignals({
+    ) public pure override returns (CommonPubSignals memory) {
+        CommonPubSignals memory params = CommonPubSignals({
             merklized: inputs[0],
             userID: inputs[1],
             circuitQueryHash: inputs[2],
+            issuanceState: inputs[3],
             requestID: inputs[4],
             challenge: inputs[5],
             gistRoot: inputs[6],

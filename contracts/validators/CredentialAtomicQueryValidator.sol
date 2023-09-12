@@ -21,9 +21,10 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         bool skipClaimRevocationCheck;
     }
 
-    struct BasePublicSignals {
+    struct CommonPubSignals {
         uint256 merklized;
         uint256 userID;
+        uint256 issuanceState;
         uint256 circuitQueryHash;
         uint256 requestID;
         uint256 challenge;
@@ -72,9 +73,9 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         __Ownable_init();
     }
 
-    function parseBasePubSignals(
+    function parseCommonPubSignals(
         uint256[] calldata inputs
-    ) public pure virtual returns (BasePublicSignals memory);
+    ) public pure virtual returns (CommonPubSignals memory);
 
     function setRevocationStateExpirationTimeout(
         uint256 expirationTimeout
@@ -105,8 +106,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c,
-        bytes calldata data,
-        uint256 issuanceState
+        bytes calldata data
     ) internal view virtual {
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
         IVerifier verifier = _circuitIdToVerifier[credAtomicQuery.circuitIds[0]];
@@ -119,7 +119,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         // verify that zkp is valid
         require(verifier.verify(a, b, c, inputs), "Proof is not valid");
 
-        BasePublicSignals memory signals = parseBasePubSignals(inputs);
+        CommonPubSignals memory signals = parseCommonPubSignals(inputs);
 
         // check circuitQueryHash
         require(
@@ -132,7 +132,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
         _checkGistRoot(signals.gistRoot);
         _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
-        _checkClaimIssuanceState(signals.issuerID, issuanceState);
+        _checkClaimIssuanceState(signals.issuerID, signals.issuanceState);
         _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
         _checkProofExpiration(signals.timestamp);
         _checkIsRevocationChecked(
