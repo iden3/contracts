@@ -72,6 +72,10 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         __Ownable_init();
     }
 
+    function parsePublicSignals(
+        uint256[] calldata inputs
+    ) public pure virtual returns (BasePublicSignals memory);
+
     function setRevocationStateExpirationTimeout(
         uint256 expirationTimeout
     ) public virtual onlyOwner {
@@ -102,7 +106,6 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256[2][2] calldata b,
         uint256[2] calldata c,
         bytes calldata data,
-        BasePublicSignals memory signals,
         uint256 issuanceState
     ) internal view virtual {
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
@@ -115,6 +118,9 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
 
         // verify that zkp is valid
         require(verifier.verify(a, b, c, inputs), "Proof is not valid");
+
+        // parse common public signals from inputs array
+        BasePublicSignals memory signals = parsePublicSignals(inputs);
 
         // check circuitQueryHash
         require(

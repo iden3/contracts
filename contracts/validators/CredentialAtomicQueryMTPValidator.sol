@@ -52,15 +52,13 @@ contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
         uint256[2] calldata c,
         bytes calldata data
     ) external view virtual {
-        // parse common public signals from inputs array
-        BasePublicSignals memory signals = parsePublicSignals(inputs);
         uint256 issuerClaimIdenState = inputs[7];
-        _verify(inputs, a, b, c, data, signals, issuerClaimIdenState);
+        _verify(inputs, a, b, c, data, issuerClaimIdenState);
     }
 
     function parsePublicSignals(
         uint256[] calldata inputs
-    ) public pure returns (BasePublicSignals memory) {
+    ) public pure override returns (BasePublicSignals memory) {
         BasePublicSignals memory params = BasePublicSignals({
             merklized: inputs[0],
             userID: inputs[1],
