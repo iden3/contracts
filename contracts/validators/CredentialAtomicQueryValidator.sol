@@ -72,7 +72,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         __Ownable_init();
     }
 
-    function parsePublicSignals(
+    function parseBasePubSignals(
         uint256[] calldata inputs
     ) public pure virtual returns (BasePublicSignals memory);
 
@@ -119,8 +119,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         // verify that zkp is valid
         require(verifier.verify(a, b, c, inputs), "Proof is not valid");
 
-        // parse common public signals from inputs array
-        BasePublicSignals memory signals = parsePublicSignals(inputs);
+        BasePublicSignals memory signals = parseBasePubSignals(inputs);
 
         // check circuitQueryHash
         require(

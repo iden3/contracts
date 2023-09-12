@@ -56,7 +56,7 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
         _verify(inputs, a, b, c, data, issuerAuthState);
     }
 
-    function parsePublicSignals(
+    function parseBasePubSignals(
         uint256[] calldata inputs
     ) public pure override returns (BasePublicSignals memory) {
         BasePublicSignals memory params = BasePublicSignals({
