@@ -135,7 +135,7 @@ contract State is Ownable2StepUpgradeable, IState {
         bytes calldata methodParams
     ) public {
         if (methodId == 1) {
-            uint256 calcId = GenesisUtils.calcIdFromEthAddress(this.getDefaultIdType(), msg.sender);
+            uint256 calcId = GenesisUtils.calcIdFromEthAddress(getDefaultIdType(), msg.sender);
             require(calcId == id, "msg.sender is not owner of the identity");
             require(methodParams.length == 0, "methodParams should be empty");
 
@@ -383,10 +383,6 @@ contract State is Ownable2StepUpgradeable, IState {
             require(idExists(id), "Old state is not genesis but identity does not yet exist");
 
             StateLib.EntryInfo memory prevStateInfo = _stateData.getStateInfoById(id);
-            require(
-                prevStateInfo.createdAtBlock != block.number,
-                "No multiple set in the same block"
-            );
             require(prevStateInfo.state == oldState, "Old state does not match the latest state");
         }
 

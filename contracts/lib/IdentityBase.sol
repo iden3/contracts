@@ -109,7 +109,7 @@ abstract contract IdentityBase is IOnchainCredentialStatusResolver {
     /**
      * @dev Retrieve inclusion or non-inclusion proof for a given claimsTreeRoot.
      * @param claimsTreeRoot - claims tree root
-     * @return The ClaimsTree inclusion or non-inclusion proof for the claim
+     * @return The RootsTree inclusion or non-inclusion proof for the claim tree root
      */
     function getRootProof(
         uint256 claimsTreeRoot
@@ -121,7 +121,7 @@ abstract contract IdentityBase is IOnchainCredentialStatusResolver {
      * @dev Retrieve inclusion or non-inclusion proof for a given claimsTreeRoot by target root.
      * @param claimsTreeRoot - claims tree root
      * @param root - root of the tree
-     * @return The ClaimsTree inclusion or non-inclusion proof for the claim
+     * @return The RootsTree inclusion or non-inclusion proof for the claim tree root
      */
     function getRootProofByRoot(
         uint256 claimsTreeRoot,
@@ -165,35 +165,35 @@ abstract contract IdentityBase is IOnchainCredentialStatusResolver {
     }
 
     /**
-     * @dev returns last claims root
+     * @dev returns latest published claims tree root
      * @return claimsRoot
      */
-    function getLastClaimsRoot() public view returns (uint256) {
-        return identity.lastTreeRoots.claimsRoot;
+    function getLatestPublishedClaimsRoot() public view returns (uint256) {
+        return identity.latestPublishedTreeRoots.claimsRoot;
     }
 
     /**
-     * @dev returns last revocation root
+     * @dev returns latest published revocation tree root
      * @return revocationsRoot
      */
-    function getLastRevocationsRoot() public view returns (uint256) {
-        return identity.lastTreeRoots.revocationsRoot;
+    function getLatestPublishedRevocationsRoot() public view returns (uint256) {
+        return identity.latestPublishedTreeRoots.revocationsRoot;
     }
 
     /**
-     * @dev returns last roots root
+     * @dev returns latest published roots tree root
      * @return rootsRoot
      */
-    function getLastRootsRoot() public view returns (uint256) {
-        return identity.lastTreeRoots.rootsRoot;
+    function getLatestPublishedRootsRoot() public view returns (uint256) {
+        return identity.latestPublishedTreeRoots.rootsRoot;
     }
 
     /**
      * @dev returns identity latest state
      * @return uint256 identityLatestState
      */
-    function getIdentityLatestState() public view returns (uint256) {
-        return identity.latestState;
+    function getLatestPublishedState() public view returns (uint256) {
+        return identity.latestPublishedState;
     }
 
     /**
@@ -206,11 +206,26 @@ abstract contract IdentityBase is IOnchainCredentialStatusResolver {
         uint256 id,
         uint64 nonce
     ) public view returns (CredentialStatus memory) {
+        uint256 latestState = identity.latestPublishedState;
+        return getRevocationStatusByIdAndState(id, latestState, nonce);
+    }
+
+    /**
+     * @dev returns revocation status of a claim using given revocation nonce, id and state
+     * @param id Issuer's identifier
+     * @param state of the Issuer
+     * @param nonce Revocation nonce
+     * @return CredentialStatus
+     */
+    function getRevocationStatusByIdAndState(
+        uint256 id,
+        uint256 state,
+        uint64 nonce
+    ) public view returns (CredentialStatus memory) {
         require(id == identity.id, "Identity id mismatch");
-        uint256 latestState = identity.latestState;
-        IdentityLib.Roots memory historicalStates = identity.getRootsByState(latestState);
+        IdentityLib.Roots memory historicalStates = identity.getRootsByState(state);
         IdentityStateRoots memory issuerStates = IdentityStateRoots({
-            state: latestState,
+            state: state,
             rootOfRoots: historicalStates.rootsRoot,
             claimsTreeRoot: historicalStates.claimsRoot,
             revocationTreeRoot: historicalStates.revocationsRoot
