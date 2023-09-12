@@ -29,6 +29,6 @@ library ReverseHashLib {
     }
 
     function getPreimage(Data storage self, uint256 id) internal view returns (uint256[] memory) {
-        return (self.hashesToPreimages[id]);
+        return self.hashesToPreimages[id];
     }
 }

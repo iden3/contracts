@@ -1,16 +1,10 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
-import { ReverseHashWrapper } from "../typechain/ReverseHashWrapper";
 import { deployPoseidons } from "../../helpers/PoseidonDeployHelper";
-
-function calculateKeccak256Hash(preimage: number[]): string {
-  const keccak256 = ethers.utils.keccak256;
-  const packedData = ethers.utils.solidityPack(["uint256[]"], [preimage]);
-  return keccak256(packedData);
-}
+import { poseidon } from "@iden3/js-crypto";
 
 describe("ReverseHashWrapper", function () {
-  let reverseHashWrapper: ReverseHashWrapper;
+  let reverseHashWrapper;
 
   beforeEach(async function () {
     const [owner] = await ethers.getSigners();
@@ -29,47 +23,30 @@ describe("ReverseHashWrapper", function () {
   });
 
   it("should add and retrieve a preimage", async function () {
-    const preimage = [2, 3, 4];
-    const hash = calculateKeccak256Hash(preimage);
+    const preimage = [1n, 2n, 3n];
+    const hash = poseidon.hash(preimage);
 
     await reverseHashWrapper.addPreimage(preimage);
     const retrievedPreimage = await reverseHashWrapper.getPreimage(hash);
 
-    for (let i = 0; i < retrievedPreimage.length; i++) {
+    for (let i = 0; i < preimage.length; i++) {
       expect(retrievedPreimage[i]).to.equal(preimage[i]);
     }
   });
 
   it("should add many nodes", async function () {
-    const preimageBulk = [
-      [2, 3],
-      [5, 6],
-      [8, 9],
-      [10, 11],
-      [12, 13],
-      [14, 15],
-      [16, 17],
-      [18, 19],
-      [20, 21],
-      [22, 23],
-      [24, 25],
-      [26, 27],
-      [28, 29],
-      [30, 31],
-      [32, 33],
-      [34, 35],
-      [36, 37],
-      [38, 39],
-      [40, 41],
-      [10, 11, 12],
+    const preimageBulk: bigint[][] = [
+      [2n, 3n],
+      [5n, 6n],
+      [10n, 11n, 12n],
     ];
 
     await reverseHashWrapper.addPreimageBulk(preimageBulk);
 
     for (let i = 0; i < preimageBulk.length; i++) {
-      const hash = await calculateKeccak256Hash(preimageBulk[i]);
+      const hash = await poseidon.hash(preimageBulk[i]);
       const retrievedPreimage = await reverseHashWrapper.getPreimage(hash);
-      for (let j = 0; j < retrievedPreimage.length; j++) {
+      for (let j = 0; j < preimageBulk[i].length; j++) {
         expect(retrievedPreimage[j]).to.equal(preimageBulk[i][j]);
       }
     }

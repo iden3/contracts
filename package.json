@@ -12,6 +12,7 @@
   },
   "homepage": "https://github.com/iden3/contracts",
   "devDependencies": {
+    "@iden3/js-crypto": "^1.0.1",
     "@nomiclabs/hardhat-ethers": "^2.0.6",
     "@nomiclabs/hardhat-etherscan": "^3.0.3",
     "@nomiclabs/hardhat-waffle": "^2.0.5",
