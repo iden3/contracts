@@ -65,7 +65,10 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         return _requests[requestId];
     }
 
-    function setZKPRequest(uint64 requestId, ZKPRequest calldata request) public override onlyOwner {
+    function setZKPRequest(
+        uint64 requestId,
+        ZKPRequest calldata request
+    ) public override onlyOwner {
         _requests[requestId] = request;
         _requestIds.push(requestId);
     }
