@@ -103,7 +103,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256[2] calldata c,
         bytes calldata data,
         BasePublicSignals memory signals,
-        uint256 issuanseState
+        uint256 issuanceState
     ) internal view virtual {
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
         IVerifier verifier = _circuitIdToVerifier[credAtomicQuery.circuitIds[0]];
@@ -127,7 +127,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
         _checkGistRoot(signals.gistRoot);
         _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
-        _checkClaimIssuanceState(signals.issuerID, issuanseState);
+        _checkClaimIssuanceState(signals.issuerID, issuanceState);
         _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
         _checkProofExpiration(signals.timestamp);
         _checkIsRevocationChecked(
