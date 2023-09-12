@@ -21,6 +21,19 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         bool skipClaimRevocationCheck;
     }
 
+    struct BasePublicSignals {
+        uint256 merklized;
+        uint256 userID;
+        uint256 circuitQueryHash;
+        uint256 requestID;
+        uint256 challenge;
+        uint256 gistRoot;
+        uint256 issuerID;
+        uint256 isRevocationChecked;
+        uint256 issuerClaimNonRevState;
+        uint256 timestamp;
+    }
+
     // This empty reserved space is put in place to allow future versions
     // of the CredentialAtomicQuerySigValidator contract to inherit from other contracts without a risk of
     // breaking the storage layout. This is necessary because the parent contracts in the
@@ -46,7 +59,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     // of this contract to add new variables without shifting down
     // storage of child contracts that use this contract as a base
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-    uint256[44] __gap_after_base;
+    uint256[43] __gap_after_base;
 
     function initialize(
         address _verifierContractAddr,
@@ -81,6 +94,46 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256 index = _inputNameToIndex[name];
         require(index != 0, "Input name not found");
         return --index; // we save 1-based index, but return 0-based
+    }
+
+    function _verify(
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
+        bytes calldata data,
+        BasePublicSignals memory signals,
+        uint256 issuanseState
+    ) internal view virtual {
+        CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
+        IVerifier verifier = _circuitIdToVerifier[credAtomicQuery.circuitIds[0]];
+
+        require(
+            credAtomicQuery.circuitIds.length == 1 && verifier != IVerifier(address(0)),
+            "Invalid circuit ID"
+        );
+
+        // verify that zkp is valid
+        require(verifier.verify(a, b, c, inputs), "Proof is not valid");
+
+        // check circuitQueryHash
+        require(
+            signals.circuitQueryHash == credAtomicQuery.queryHash,
+            "Query hash does not match the requested one"
+        );
+
+        // TODO: add support for query to specific userID and then verifying it
+
+        _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
+        _checkGistRoot(signals.gistRoot);
+        _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
+        _checkClaimIssuanceState(signals.issuerID, issuanseState);
+        _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
+        _checkProofExpiration(signals.timestamp);
+        _checkIsRevocationChecked(
+            signals.isRevocationChecked,
+            credAtomicQuery.skipClaimRevocationCheck
+        );
     }
 
     function _checkGistRoot(uint256 gistRoot) internal view {

@@ -42,7 +42,7 @@ describe("ZKP Verifier", function () {
 
   it('test submit response (for gas estimation puprose)', async () => {
     await publishState(state, stateTransition); 
-    await verifier.setZKPRequest(0, "metadata", sig.address, packValidatorParams(query));
+    await verifier.setZKPRequest(0, { metadata: "metadata", validator: sig.address, data: packValidatorParams(query) });
     await sig.setProofExpirationTimeout(315360000);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
@@ -51,7 +51,7 @@ describe("ZKP Verifier", function () {
 
   it('test query param pagination', async () => {
     for (let i = 0; i < 30; i++) {
-        await verifier.setZKPRequest(i, 'metadataN' + i, sig.address, '0x00');
+        await verifier.setZKPRequest(i, { metadata: 'metadataN' + i, validator: sig.address, data: '0x00' });
     }
     let queries = await verifier.getZKPRequests(5, 10);
     expect(queries.length).to.be.equal(10);
@@ -71,7 +71,7 @@ describe("ZKP Verifier", function () {
    it('test getZKPRequest and request id exists', async () => {
     const requestsCount = 3;
     for (let i = 0; i < requestsCount; i++) {
-        await verifier.setZKPRequest(i, 'metadataN' + i, sig.address, '0x00');
+        await verifier.setZKPRequest(i, { metadata: 'metadataN' + i, validator: sig.address, data: '0x00' });
         const reqeustIdExists = await verifier.requestIdExists(i);
         expect(reqeustIdExists).to.be.true;
         const reqeustIdDoesntExists = await verifier.requestIdExists(i + 1);

@@ -7,20 +7,6 @@ import {IVerifier} from "../interfaces/IVerifier.sol";
 contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
     string internal constant CIRCUIT_ID = "credentialAtomicQuerySigV2OnChain";
 
-    struct PublicSignals {
-        uint256 merklized;
-        uint256 userID;
-        uint256 circuitQueryHash;
-        uint256 issuerAuthState;
-        uint256 requestID;
-        uint256 challenge;
-        uint256 gistRoot;
-        uint256 issuerID;
-        uint256 isRevocationChecked;
-        uint256 issuerClaimNonRevState;
-        uint256 timestamp;
-    }
-
     // This empty reserved space is put in place to allow future versions
     // of the CredentialAtomicQuerySigValidator contract to inherit from other contracts without a risk of
     // breaking the storage layout. This is necessary because the parent contracts in the
@@ -31,13 +17,13 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
     // slither-disable-next-line unused-state
     uint256[500] private __gap_before;
 
-    // put new state variables here
+    // PUT NEW STATE VARIABLES HERE
 
     // This empty reserved space is put in place to allow future versions
     // of this contract to add new variables without shifting down
     // storage of child contracts that use this contract as a base
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-    uint256[44] __gap_after;
+    uint256[50] __gap_after;
 
     function initialize(
         address _verifierContractAddr,
@@ -66,48 +52,19 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
         uint256[2] calldata c,
         bytes calldata data
     ) external view virtual {
-        CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
-        IVerifier verifier = _circuitIdToVerifier[credAtomicQuery.circuitIds[0]];
-
-        require(
-            credAtomicQuery.circuitIds.length == 1 && verifier != IVerifier(address(0)),
-            "Invalid circuit ID"
-        );
-
-        // verify that zkp is valid
-        require(verifier.verify(a, b, c, inputs), "Proof is not valid");
-
-        // parse public signals from inputs array
-        PublicSignals memory signals = parsePublicSignals(inputs);
-
-        // check circuitQueryHash
-        require(
-            signals.circuitQueryHash == credAtomicQuery.queryHash,
-            "Query hash does not match the requested one"
-        );
-
-        // TODO: add support for query to specific userID and then verifying it
-
-        _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
-        _checkGistRoot(signals.gistRoot);
-        _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
-        _checkClaimIssuanceState(signals.issuerID, signals.issuerAuthState);
-        _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
-        _checkProofExpiration(signals.timestamp);
-        _checkIsRevocationChecked(
-            signals.isRevocationChecked,
-            credAtomicQuery.skipClaimRevocationCheck
-        );
+        // parse common public signals from inputs array
+        BasePublicSignals memory signals = parsePublicSignals(inputs);
+        uint256 issuerAuthState = inputs[3];
+        _verify(inputs, a, b, c, data, signals, issuerAuthState);
     }
 
     function parsePublicSignals(
         uint256[] calldata inputs
-    ) public pure returns (PublicSignals memory) {
-        PublicSignals memory params = PublicSignals({
+    ) public pure returns (BasePublicSignals memory) {
+        BasePublicSignals memory params = BasePublicSignals({
             merklized: inputs[0],
             userID: inputs[1],
             circuitQueryHash: inputs[2],
-            issuerAuthState: inputs[3],
             requestID: inputs[4],
             challenge: inputs[5],
             gistRoot: inputs[6],
