@@ -318,6 +318,27 @@ export class DeployHelper {
     return { defaultIdType, chainId };
   }
 
+  async deployIdentityTreeStore(stateContractAddress: string): Promise<{
+    identityTreeStore: Contract;
+  }> {
+    const owner = this.signers[0];
+    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons(owner, [2, 3]);
+
+    const IdentityTreeStore = await ethers.getContractFactory("IdentityTreeStore", {
+      libraries: {
+        PoseidonUnit2L: poseidon2Elements.address,
+        PoseidonUnit3L: poseidon3Elements.address,
+      },
+    });
+    const identityTreeStore = await IdentityTreeStore.deploy(stateContractAddress);
+    await identityTreeStore.deployed();
+
+    console.log("IdentityTreeStore deployed to:", identityTreeStore.address);
+    return {
+      identityTreeStore,
+    };
+  }
+
   private log(...args): void {
     this.enableLogging && console.log(args);
   }

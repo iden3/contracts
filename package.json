@@ -69,11 +69,10 @@
     "upgrade:localhost": "npx hardhat run scripts/upgrade.ts --network localhost",
     "deployStateV1:localhost": "npx hardhat run ./scripts/deployStateV1.ts --network localhost",
     "deploy:ropsten": "npx hardhat run scripts/deploy.ts --network ropsten",
+    "deploy:identitytreestore": "npx hardhat run scripts/deployIdentityTreeStore.ts --network localhost",
     "verify:ropsten": "npx hardhat run scripts/verifyEtherescan.js --network ropsten",
     "lint:contracts": "npx solhint contracts/**/*.sol",
     "lint:contracts:format": "npx prettier --write contracts/**/*.sol",
-    "slither": "slither .",
-    "deploy:temp": "npx hardhat run ./scripts/deployOnchainIdentityTreeStore.ts  --network localhost",
-    "test:temp": "npx hardhat test ./test/reverseHash/reverseHash.test.ts"
+    "slither": "slither ."
   }
 }

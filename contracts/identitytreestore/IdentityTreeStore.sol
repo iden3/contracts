@@ -6,7 +6,9 @@ import {PoseidonUnit2L, PoseidonUnit3L} from "../lib/Poseidon.sol";
 import {IState} from "../interfaces/IState.sol";
 import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredentialStatusResolver.sol";
 
-contract OnchainIdentityTreeStore is IOnchainCredentialStatusResolver {
+uint256 constant MAX_SMT_DEPTH = 40;
+
+contract IdentityTreeStore is IOnchainCredentialStatusResolver {
     using ReverseHashLib for ReverseHashLib.Data;
 
     ReverseHashLib.Data private data;
@@ -60,7 +62,8 @@ contract OnchainIdentityTreeStore is IOnchainCredentialStatusResolver {
         Unknown,
         Middle,
         Leaf,
-        State
+        State,
+        Empty
     }
 
     function _nodeType(uint256[] memory node) internal pure returns (NodeType) {
@@ -76,6 +79,10 @@ contract OnchainIdentityTreeStore is IOnchainCredentialStatusResolver {
             return NodeType.State;
         }
 
+        if (node.length == 0) {
+            return NodeType.Empty;
+        }
+
         return NodeType.Unknown;
     }
 
@@ -84,10 +91,9 @@ contract OnchainIdentityTreeStore is IOnchainCredentialStatusResolver {
         uint256 index
     ) internal view returns (Proof memory) {
 
-        uint MAX_DEPTH = 40; // todo: refactor
-        uint256[] memory siblings = new uint256[](MAX_DEPTH);
+        uint256[] memory siblings = new uint256[](MAX_SMT_DEPTH);
         // Solidity does not guarantee that memory vars are zeroed out
-        for (uint256 i = 0; i < MAX_DEPTH; i++) {
+        for (uint256 i = 0; i < MAX_SMT_DEPTH; i++) {
             siblings[i] = 0;
         }
 
@@ -105,10 +111,13 @@ contract OnchainIdentityTreeStore is IOnchainCredentialStatusResolver {
         uint256 nextNodeHash = root;
         uint256[] memory children;
 
-        for (uint256 i = 0; i <= MAX_DEPTH; i++) {
+        for (uint256 i = 0; i <= MAX_SMT_DEPTH; i++) {
             children = data.hashesToPreimages[nextNodeHash];
 
             NodeType nodeType = _nodeType(children);
+            if (nodeType == NodeType.Empty) {
+                break;
+            }
 
             if(nodeType == NodeType.Leaf) {
                 if (children[0] == index) {

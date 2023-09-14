@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import "hardhat/console.sol";
-
 library ReverseHashLib {
     struct Data {
         mapping(uint256 => uint256[]) hashesToPreimages;
@@ -14,7 +12,6 @@ library ReverseHashLib {
         function(uint256[] memory) pure returns (uint256) hashFunction
     ) internal {
         uint256 id = hashFunction(preimage);
-        console.log("id: %s", id);
         self.hashesToPreimages[id] = preimage;
     }
 
