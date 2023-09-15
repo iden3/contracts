@@ -6,20 +6,28 @@ import {PoseidonUnit2L, PoseidonUnit3L} from "../lib/Poseidon.sol";
 import {IState} from "../interfaces/IState.sol";
 import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredentialStatusResolver.sol";
 
-uint256 constant MAX_SMT_DEPTH = 40;
-
 contract IdentityTreeStore is IOnchainCredentialStatusResolver {
+    enum NodeType {
+        Unknown,
+        Middle,
+        Leaf,
+        State,
+        Empty
+    }
+
+    uint256 constant MAX_SMT_DEPTH = 40;
+
     using ReverseHashLib for ReverseHashLib.Data;
 
-    ReverseHashLib.Data private data;
+    ReverseHashLib.Data private _data;
     IState private _state;
 
     constructor(address state) {
         _state = IState(state);
     }
 
-    function addNodes(uint256[][] memory preimage) public {
-        return data.addPreimageBulk(preimage, _hashFunc);
+    function saveNodes(uint256[][] memory preimage) public {
+        return _data.savePreimages(preimage, _hashFunc);
     }
 
     function getRevocationStatus(
@@ -58,39 +66,14 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver {
         return status;
     }
 
-    enum NodeType {
-        Unknown,
-        Middle,
-        Leaf,
-        State,
-        Empty
-    }
-
-    function _nodeType(uint256[] memory node) internal pure returns (NodeType) {
-        if (node.length == 2) {
-            return NodeType.Middle;
-        }
-
-        if (node.length == 3 && node[2] == 1) {
-            return NodeType.Leaf;
-        }
-
-        if (node.length == 3) {
-            return NodeType.State;
-        }
-
-        if (node.length == 0) {
-            return NodeType.Empty;
-        }
-
-        return NodeType.Unknown;
+    function _getNode(uint256 id) public view returns (uint256[] memory) {
+        return _data.getPreimage(id);
     }
 
     function _getProof(
         uint256 root,
         uint256 index
     ) internal view returns (Proof memory) {
-
         uint256[] memory siblings = new uint256[](MAX_SMT_DEPTH);
         // Solidity does not guarantee that memory vars are zeroed out
         for (uint256 i = 0; i < MAX_SMT_DEPTH; i++) {
@@ -112,7 +95,7 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver {
         uint256[] memory children;
 
         for (uint256 i = 0; i <= MAX_SMT_DEPTH; i++) {
-            children = data.hashesToPreimages[nextNodeHash];
+            children = _data.hashesToPreimages[nextNodeHash];
 
             NodeType nodeType = _nodeType(children);
             if (nodeType == NodeType.Empty) {
@@ -145,6 +128,25 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver {
 
         return proof;
     }
+    function _nodeType(uint256[] memory node) internal pure returns (NodeType) {
+        if (node.length == 2) {
+            return NodeType.Middle;
+        }
+
+        if (node.length == 3 && node[2] == 1) {
+            return NodeType.Leaf;
+        }
+
+        if (node.length == 3) {
+            return NodeType.State;
+        }
+
+        if (node.length == 0) {
+            return NodeType.Empty;
+        }
+
+        return NodeType.Unknown;
+    }
 
     function _hashFunc(uint256[] memory preimage) public pure returns (uint256) {
         if (preimage.length == 2) {
@@ -154,13 +156,5 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver {
             return PoseidonUnit3L.poseidon([preimage[0], preimage[1], preimage[2]]);
         }
         revert("Unsupported length");
-    }
-
-    function _addNode(uint256[] memory preimage) private {
-        return data.addPreimage(preimage, _hashFunc);
-    }
-
-    function _getNode(uint256 id) public view returns (uint256[] memory) {
-        return data.getPreimage(id);
     }
 }

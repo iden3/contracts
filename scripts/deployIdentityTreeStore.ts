@@ -21,7 +21,7 @@ import { poseidon } from "@iden3/js-crypto";
   const roots = [
     [claimsRoot, revRoot, rootOfRoots]
   ];
-  await identityTreeStore.addNodes(roots);
+  await identityTreeStore.saveNodes(roots);
 
   const expectedState = poseidon.hash(roots[0]);
   console.log("Expected state: ", expectedState);

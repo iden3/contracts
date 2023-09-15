@@ -9,16 +9,12 @@ contract ReverseHashWrapper {
 
     ReverseHashLib.Data private data;
 
-    function addPreimage(uint256[] memory preimage) public {
-        return data.addPreimage(preimage, hash);
+    function savePreimages(uint256[][] memory preimage) public {
+        return data.savePreimages(preimage, hash);
     }
 
     function getPreimage(uint256 id) public view returns (uint256[] memory) {
         return data.getPreimage(id);
-    }
-
-    function addPreimageBulk(uint256[][] memory preimage) public {
-        return data.addPreimageBulk(preimage, hash);
     }
 
     function hash(uint256[] memory preimage) public pure returns (uint256) {

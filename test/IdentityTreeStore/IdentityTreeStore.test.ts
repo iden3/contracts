@@ -23,7 +23,7 @@ describe("IdentityTreeStore", function () {
     const preimages = [[1n, revRoot, 3n], leafWithNonceIndex];
     const state = poseidon.hash(preimages[0]);
 
-    await identityTreeStore.addNodes(preimages);
+    await identityTreeStore.saveNodes(preimages);
     const revStatusByState = await identityTreeStore.getRevocationStatusByIdAndState(
       id,
       state,
@@ -78,7 +78,7 @@ describe("IdentityTreeStore", function () {
       [1n, revRoot, 3n], // state
     ];
 
-    await identityTreeStore.addNodes(preimages);
+    await identityTreeStore.saveNodes(preimages);
     const revStatusByState = await identityTreeStore.getRevocationStatusByIdAndState(
       id,
       state,
@@ -123,7 +123,7 @@ describe("IdentityTreeStore", function () {
   it("Should revert on invalid roots length", async function () {
     const id = 1;
     const preimages = [[1n, 2n]];
-    await identityTreeStore.addNodes(preimages);
+    await identityTreeStore.saveNodes(preimages);
     const state = poseidon.hash(preimages[0]);
     const nonce = 12345;
 
