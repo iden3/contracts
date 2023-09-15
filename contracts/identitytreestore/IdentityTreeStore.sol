@@ -51,7 +51,7 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver {
         uint64 nonce
     ) internal view returns (CredentialStatus memory) {
         uint256[] memory roots = _getNode(state);
-        require(roots.length == 3, "Invalid roots length");
+        require(_nodeType(roots) == NodeType.State , "Invalid state node");
 
         CredentialStatus memory status = CredentialStatus({
             issuer: IdentityStateRoots({
