@@ -24,7 +24,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     struct CommonPubSignals {
         uint256 merklized;
         uint256 userID;
-        uint256 issuanceState;
+        uint256 issuerState;
         uint256 circuitQueryHash;
         uint256 requestID;
         uint256 challenge;
@@ -132,7 +132,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
         _checkGistRoot(signals.gistRoot);
         _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
-        _checkClaimIssuanceState(signals.issuerID, signals.issuanceState);
+        _checkClaimIssuanceState(signals.issuerID, signals.issuerState);
         _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
         _checkProofExpiration(signals.timestamp);
         _checkIsRevocationChecked(

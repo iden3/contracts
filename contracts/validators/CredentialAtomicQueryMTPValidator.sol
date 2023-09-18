@@ -66,7 +66,7 @@ contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
             challenge: inputs[4],
             gistRoot: inputs[5],
             issuerID: inputs[6],
-            issuanceState: inputs[7],
+            issuerState: inputs[7],
             isRevocationChecked: inputs[8],
             issuerClaimNonRevState: inputs[9],
             timestamp: inputs[10]

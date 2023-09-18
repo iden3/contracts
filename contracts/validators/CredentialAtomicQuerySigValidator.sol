@@ -62,7 +62,7 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
             merklized: inputs[0],
             userID: inputs[1],
             circuitQueryHash: inputs[2],
-            issuanceState: inputs[3],
+            issuerState: inputs[3],
             requestID: inputs[4],
             challenge: inputs[5],
             gistRoot: inputs[6],
