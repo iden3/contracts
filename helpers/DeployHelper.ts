@@ -1,7 +1,7 @@
 import { ethers, upgrades, network } from "hardhat";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { deployPoseidons } from "./PoseidonDeployHelper";
+import { deployPoseidonFacade, deployPoseidons } from "./PoseidonDeployHelper";
 import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
 
 const SMT_MAX_DEPTH = 64;
@@ -267,7 +267,7 @@ export class DeployHelper {
       const { state } = await stateDeployHelper.deployState();
       stateAddress = state.address;
     }
-
+    
     const ValidatorContractVerifierWrapper = await ethers.getContractFactory(
       verifierContractWrapperName
     );
@@ -282,9 +282,7 @@ export class DeployHelper {
     const ValidatorContract = await ethers.getContractFactory(validatorContractName);
 
     const validatorContractProxy = await upgrades.deployProxy(ValidatorContract, [
-      validatorContractVerifierWrapper.address,
-      stateAddress,
-    ]);
+      validatorContractVerifierWrapper.address, stateAddress]);
 
     await validatorContractProxy.deployed();
     console.log(`${validatorContractName} deployed to: ${validatorContractProxy.address}`);
@@ -297,6 +295,29 @@ export class DeployHelper {
       state,
     };
   }
+
+  async upgradeValidator(
+    validatorAddress: string,
+    validatorContractName: string,
+  ): Promise<{
+    validator: Contract;
+  }> {
+    this.log("======== Validator: upgrade started ========");
+
+    const owner = this.signers[0];
+
+    this.log("upgrading validator...");
+    const ValidatorFactory = await ethers.getContractFactory(validatorContractName);
+    const validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory);
+    await validator.deployed();
+    this.log(`Validator ${validatorContractName} upgraded at address ${validator.address} from ${owner.address}`);
+
+    this.log("======== Validator: upgrade completed ========");
+    return {
+      validator: validator
+    };
+  }
+
   async deployGenesisUtilsWrapper(): Promise<{
     address: string;
   }> {
@@ -307,6 +328,18 @@ export class DeployHelper {
     const genesisUtilsWrapper = await GenesisUtilsWrapper.deploy();
     console.log("GenesisUtilsWrapper deployed to:", genesisUtilsWrapper.address);
     return genesisUtilsWrapper;
+  }
+
+  async deployZKPVerifier(): Promise<{
+    address: string;
+    }> {
+
+    const ZKPVerifier = await ethers.getContractFactory(
+        "ZKPVerifier"
+    );
+    const zkpVerifier = await ZKPVerifier.deploy();
+    console.log("ZKPVerifier deployed to:", zkpVerifier.address);
+    return zkpVerifier;
   }
 
   async getDefaultIdType(): Promise<{defaultIdType: number, chainId: number}> {

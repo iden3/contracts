@@ -86,7 +86,12 @@ contract VerifierSig {
 
     uint16 constant pLastMem = 896;
 
-    function verifyProof(uint[2] calldata _pA, uint[2][2] calldata _pB, uint[2] calldata _pC, uint[11] calldata _pubSignals) public view returns (bool) {
+    function verifyProof(
+        uint[2] calldata _pA,
+        uint[2][2] calldata _pB,
+        uint[2] calldata _pC,
+        uint[11] calldata _pubSignals
+    ) public view returns (bool) {
         assembly {
             function checkField(v) {
                 if iszero(lt(v, q)) {
@@ -95,7 +100,7 @@ contract VerifierSig {
                 }
             }
 
-        // G1 function to multiply a G1 value(x,y) to value in an address
+            // G1 function to multiply a G1 value(x,y) to value in an address
             function g1_mulAccC(pR, x, y, s) {
                 let success
                 let mIn := mload(0x40)
@@ -128,7 +133,7 @@ contract VerifierSig {
                 mstore(_pVk, IC0x)
                 mstore(add(_pVk, 32), IC0y)
 
-            // Compute the linear combination vk_x
+                // Compute the linear combination vk_x
 
                 g1_mulAccC(_pVk, IC1x, IC1y, calldataload(add(pubSignals, 0)))
 
@@ -152,48 +157,45 @@ contract VerifierSig {
 
                 g1_mulAccC(_pVk, IC11x, IC11y, calldataload(add(pubSignals, 320)))
 
-
-            // -A
+                // -A
                 mstore(_pPairing, calldataload(pA))
                 mstore(add(_pPairing, 32), mod(sub(q, calldataload(add(pA, 32))), q))
 
-            // B
+                // B
                 mstore(add(_pPairing, 64), calldataload(pB))
                 mstore(add(_pPairing, 96), calldataload(add(pB, 32)))
                 mstore(add(_pPairing, 128), calldataload(add(pB, 64)))
                 mstore(add(_pPairing, 160), calldataload(add(pB, 96)))
 
-            // alpha1
+                // alpha1
                 mstore(add(_pPairing, 192), alphax)
                 mstore(add(_pPairing, 224), alphay)
 
-            // beta2
+                // beta2
                 mstore(add(_pPairing, 256), betax1)
                 mstore(add(_pPairing, 288), betax2)
                 mstore(add(_pPairing, 320), betay1)
                 mstore(add(_pPairing, 352), betay2)
 
-            // vk_x
+                // vk_x
                 mstore(add(_pPairing, 384), mload(add(pMem, pVk)))
                 mstore(add(_pPairing, 416), mload(add(pMem, add(pVk, 32))))
 
-
-            // gamma2
+                // gamma2
                 mstore(add(_pPairing, 448), gammax1)
                 mstore(add(_pPairing, 480), gammax2)
                 mstore(add(_pPairing, 512), gammay1)
                 mstore(add(_pPairing, 544), gammay2)
 
-            // C
+                // C
                 mstore(add(_pPairing, 576), calldataload(pC))
                 mstore(add(_pPairing, 608), calldataload(add(pC, 32)))
 
-            // delta2
+                // delta2
                 mstore(add(_pPairing, 640), deltax1)
                 mstore(add(_pPairing, 672), deltax2)
                 mstore(add(_pPairing, 704), deltay1)
                 mstore(add(_pPairing, 736), deltay2)
-
 
                 let success := staticcall(sub(gas(), 2000), 8, _pPairing, 768, _pPairing, 0x20)
 
@@ -203,7 +205,7 @@ contract VerifierSig {
             let pMem := mload(0x40)
             mstore(0x40, add(pMem, pLastMem))
 
-        // Validate that all evaluations ∈ F
+            // Validate that all evaluations ∈ F
 
             checkField(calldataload(add(_pubSignals, 0)))
 
@@ -229,8 +231,7 @@ contract VerifierSig {
 
             checkField(calldataload(add(_pubSignals, 352)))
 
-
-        // Validate all evaluations
+            // Validate all evaluations
             let isValid := checkPairing(_pA, _pB, _pC, _pubSignals, pMem)
 
             mstore(0, isValid)

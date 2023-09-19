@@ -2,29 +2,76 @@
 pragma solidity 0.8.16;
 
 import {CredentialAtomicQueryValidator} from "./CredentialAtomicQueryValidator.sol";
+import {IVerifier} from "../interfaces/IVerifier.sol";
 
 contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
     string internal constant CIRCUIT_ID = "credentialAtomicQuerySigV2OnChain";
-    uint256 internal constant CHALLENGE_INDEX = 5;
 
-    function getCircuitId() external pure override returns (string memory id) {
-        return CIRCUIT_ID;
+    // This empty reserved space is put in place to allow future versions
+    // of the CredentialAtomicQuerySigValidator contract to inherit from other contracts without a risk of
+    // breaking the storage layout. This is necessary because the parent contracts in the
+    // future may introduce some storage variables, which are placed before the CredentialAtomicQuerySigValidator
+    // contract's storage variables.
+    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+    // slither-disable-next-line shadowing-state
+    // slither-disable-next-line unused-state
+    uint256[500] private __gap_before;
+
+    // PUT NEW STATE VARIABLES HERE
+
+    // This empty reserved space is put in place to allow future versions
+    // of this contract to add new variables without shifting down
+    // storage of child contracts that use this contract as a base
+    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+    uint256[50] __gap_after;
+
+    function initialize(
+        address _verifierContractAddr,
+        address _stateContractAddr
+    ) public override initializer {
+        _setInputToIndex("merklized", 0);
+        _setInputToIndex("userID", 1);
+        _setInputToIndex("circuitQueryHash", 2);
+        _setInputToIndex("issuerAuthState", 3);
+        _setInputToIndex("requestID", 4);
+        _setInputToIndex("challenge", 5);
+        _setInputToIndex("gistRoot", 6);
+        _setInputToIndex("issuerID", 7);
+        _setInputToIndex("isRevocationChecked", 8);
+        _setInputToIndex("issuerClaimNonRevState", 9);
+        _setInputToIndex("timestamp", 10);
+        _supportedCircuitIds = [CIRCUIT_ID];
+        _circuitIdToVerifier[CIRCUIT_ID] = IVerifier(_verifierContractAddr);
+        super.initialize(_verifierContractAddr, _stateContractAddr);
     }
 
-    function getChallengeInputIndex() external pure override returns (uint256 index) {
-        return CHALLENGE_INDEX;
+    function verify(
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
+        bytes calldata data
+    ) external view virtual {
+        _verify(inputs, a, b, c, data);
     }
 
-    function _getInputValidationParameters(
+    function parseCommonPubSignals(
         uint256[] calldata inputs
-    ) internal pure override returns (uint256[] memory) {
-        uint256[] memory params = new uint256[](6);
-        params[0] = inputs[2]; // queryHash
-        params[1] = inputs[6]; // gistRoot
-        params[2] = inputs[7]; // issuerId
-        params[3] = inputs[3]; // issuerClaimAuthState
-        params[4] = inputs[9]; // issuerClaimNonRevState
-        params[5] = inputs[10]; // timestamp
+    ) public pure override returns (CommonPubSignals memory) {
+        CommonPubSignals memory params = CommonPubSignals({
+            merklized: inputs[0],
+            userID: inputs[1],
+            circuitQueryHash: inputs[2],
+            issuerState: inputs[3],
+            requestID: inputs[4],
+            challenge: inputs[5],
+            gistRoot: inputs[6],
+            issuerID: inputs[7],
+            isRevocationChecked: inputs[8],
+            issuerClaimNonRevState: inputs[9],
+            timestamp: inputs[10]
+        });
+
         return params;
     }
 }
