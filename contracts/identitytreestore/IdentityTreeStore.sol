@@ -30,6 +30,12 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver {
         return _data.savePreimages(preimage, _hashFunc);
     }
 
+    function getNode(uint256 id) public view returns (uint256[] memory) {
+        uint256[] memory preim = _data.getPreimage(id);
+        require(preim.length > 0, "Node not found");
+        return preim;
+    }
+
     function getRevocationStatus(
         uint256 id,
         uint64 nonce
@@ -50,7 +56,7 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver {
         uint256 state,
         uint64 nonce
     ) internal view returns (CredentialStatus memory) {
-        uint256[] memory roots = _getNode(state);
+        uint256[] memory roots = getNode(state);
         require(_nodeType(roots) == NodeType.State , "Invalid state node");
 
         CredentialStatus memory status = CredentialStatus({
@@ -64,10 +70,6 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver {
         });
 
         return status;
-    }
-
-    function _getNode(uint256 id) public view returns (uint256[] memory) {
-        return _data.getPreimage(id);
     }
 
     function _getProof(
