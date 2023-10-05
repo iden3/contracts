@@ -4,7 +4,9 @@ pragma solidity 0.8.16;
 library ReverseHashLib {
     struct Data {
         mapping(uint256 => uint256[]) hashesToPreimages;
+        function(uint256[] memory) pure returns (uint256) hashFunction;
     }
+
     function savePreimages(
         Data storage self,
         uint256[][] memory preimages,
@@ -16,7 +18,7 @@ library ReverseHashLib {
         }
     }
 
-    function getPreimage(Data storage self, uint256 id) internal view returns (uint256[] memory) {
-        return self.hashesToPreimages[id];
+    function getPreimage(Data storage self, uint256 hash) internal view returns (uint256[] memory) {
+        return self.hashesToPreimages[hash];
     }
 }

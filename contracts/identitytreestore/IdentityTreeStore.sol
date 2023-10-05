@@ -7,6 +7,9 @@ import {IState} from "../interfaces/IState.sol";
 import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredentialStatusResolver.sol";
 
 contract IdentityTreeStore is IOnchainCredentialStatusResolver {
+    /**
+     * @dev Enum for node types
+     */
     enum NodeType {
         Unknown,
         Middle,
@@ -15,27 +18,52 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver {
         Empty
     }
 
+    /**
+     * @dev Max SMT depth for the CredentialStatus proof
+     */
     uint256 constant MAX_SMT_DEPTH = 40;
 
     using ReverseHashLib for ReverseHashLib.Data;
 
+    /**
+     * @dev ReverseHashLib data
+     */
     ReverseHashLib.Data private _data;
+
+    /**
+     * @dev State contract address
+     */
     IState private _state;
 
     constructor(address state) {
         _state = IState(state);
     }
 
-    function saveNodes(uint256[][] memory preimage) public {
-        return _data.savePreimages(preimage, _hashFunc);
+    /**
+     * @dev Saves nodes
+     * @param nodes An two-dimension array of nodes
+     */
+    function saveNodes(uint256[][] memory nodes) public {
+        return _data.savePreimages(nodes, _hashFunc);
     }
 
-    function getNode(uint256 id) public view returns (uint256[] memory) {
-        uint256[] memory preim = _data.getPreimage(id);
+    /**
+     * @dev Returns nodes by hash
+     * @param hash A hash of the nodes
+     * @return nodes
+     */
+    function getNode(uint256 hash) public view returns (uint256[] memory) {
+        uint256[] memory preim = _data.getPreimage(hash);
         require(preim.length > 0, "Node not found");
         return preim;
     }
 
+    /**
+     * @dev returns revocation status of a claim using given revocation nonce
+     * @param id Issuer's identifier
+     * @param nonce Revocation nonce
+     * @return CredentialStatus
+     */
     function getRevocationStatus(
         uint256 id,
         uint64 nonce
@@ -44,6 +72,13 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver {
         return _getRevocationStatusByState(state, nonce);
     }
 
+    /**
+     * @dev returns revocation status of a claim using given revocation nonce, id and state
+     * @param id Issuer's identifier
+     * @param state of the Issuer
+     * @param nonce Revocation nonce
+     * @return CredentialStatus
+     */
     function getRevocationStatusByIdAndState(
         uint256 id,
         uint256 state,
@@ -57,15 +92,15 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver {
         uint64 nonce
     ) internal view returns (CredentialStatus memory) {
         uint256[] memory roots = getNode(state);
-        require(_nodeType(roots) == NodeType.State , "Invalid state node");
+        require(_nodeType(roots) == NodeType.State, "Invalid state node");
 
         CredentialStatus memory status = CredentialStatus({
             issuer: IdentityStateRoots({
-                state: state,
-                claimsTreeRoot: roots[0],
-                revocationTreeRoot: roots[1],
-                rootOfRoots: roots[2]
-            }),
+            state: state,
+            claimsTreeRoot: roots[0],
+            revocationTreeRoot: roots[1],
+            rootOfRoots: roots[2]
+        }),
             mtp: _getProof(roots[1], nonce)
         });
 
@@ -104,7 +139,7 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver {
                 break;
             }
 
-            if(nodeType == NodeType.Leaf) {
+            if (nodeType == NodeType.Leaf) {
                 if (children[0] == index) {
                     proof.existence = true;
                     proof.value = children[1];
@@ -115,7 +150,7 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver {
                 proof.auxIndex = children[0];
                 proof.auxValue = children[1];
                 break;
-            } else if(nodeType == NodeType.Middle) {
+            } else if (nodeType == NodeType.Middle) {
                 if ((proof.index >> i) & 1 == 1) {
                     nextNodeHash = children[1];
                     proof.siblings[i] = children[0];
@@ -123,13 +158,14 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver {
                     nextNodeHash = children[0];
                     proof.siblings[i] = children[1];
                 }
-            } else  {
+            } else {
                 revert("Invalid node type");
             }
         }
 
         return proof;
     }
+
     function _nodeType(uint256[] memory node) internal pure returns (NodeType) {
         if (node.length == 2) {
             return NodeType.Middle;

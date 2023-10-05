@@ -333,7 +333,7 @@ export class DeployHelper {
     const identityTreeStore = await IdentityTreeStore.deploy(stateContractAddress);
     await identityTreeStore.deployed();
 
-    console.log("IdentityTreeStore deployed to:", identityTreeStore.address);
+    console.log("\nIdentityTreeStore deployed to:", identityTreeStore.address);
     return {
       identityTreeStore,
     };
