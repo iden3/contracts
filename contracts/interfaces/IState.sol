@@ -138,7 +138,7 @@ interface IState {
      * @param id Identity
      * @return True if the identity exists
      */
-   function idExists(uint256 id) external view returns (bool);
+    function idExists(uint256 id) external view returns (bool);
 
     /**
      * @dev Check if state exists.
