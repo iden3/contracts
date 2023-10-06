@@ -137,3 +137,17 @@ describe("test is genesis state with base 10 bigint", function () {
   });
 
 });
+
+describe("test calculate id from ETH address", function () {
+    const expectedId = '23006274145546572515053798212160025855323582904648170675239778444296327681';
+    let address = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
+    // address LE 256 bits
+    let addressLE = '0x6622B9FFCF797282B86ACEF4F688AD1AE5D69FF3000000000000000000000000';
+    it("calcOnchainIdFromAddress", async () => {
+      const idResultFromAddress = await guWrpr.calcOnchainIdFromAddress('0x0112', address);
+      const idResultFromGenesis = await guWrpr.calcIdFromGenesisState('0x0112', addressLE); 
+      expect(idResultFromAddress).eq(expectedId);
+      expect(idResultFromGenesis).eq(idResultFromAddress);
+  });
+
+});
