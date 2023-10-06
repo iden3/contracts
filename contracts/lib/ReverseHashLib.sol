@@ -7,18 +7,25 @@ library ReverseHashLib {
         function(uint256[] memory) pure returns (uint256) hashFunction;
     }
 
-    function savePreimages(
-        Data storage self,
-        uint256[][] memory preimages,
-        function(uint256[] memory) pure returns (uint256) hashFunction
-    ) internal {
-        for(uint256 i = 0; i < preimages.length; i++) {
-            uint256 key = hashFunction(preimages[i]);
+    /**
+     * @dev Saves preimages by their keys, which are a hashes of preimages.
+     * Each preimage is an array.
+     * @param preimages A two-dimension array of preimages
+     */
+    function savePreimages(Data storage self, uint256[][] memory preimages) internal {
+        for (uint256 i = 0; i < preimages.length; i++) {
+            uint256 key = self.hashFunction(preimages[i]);
             self.hashesToPreimages[key] = preimages[i];
         }
     }
 
-    function getPreimage(Data storage self, uint256 hash) internal view returns (uint256[] memory) {
-        return self.hashesToPreimages[hash];
+    /**
+     * @dev Returns preimage by the key, which is a hash of the preimage.
+     * The preimage is an array.
+     * @param key A key
+     * @return A preimage
+     */
+    function getPreimage(Data storage self, uint256 key) internal view returns (uint256[] memory) {
+        return self.hashesToPreimages[key];
     }
 }

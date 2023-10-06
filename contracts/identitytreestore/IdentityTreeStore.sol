@@ -37,29 +37,30 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver {
 
     constructor(address state) {
         _state = IState(state);
+        _data.hashFunction = _hashFunc;
     }
 
     /**
-     * @dev Saves nodes
-     * @param nodes An two-dimension array of nodes
+     * @dev Saves nodes array. Note that each node contains an array itself.
+     * @param nodes An array of nodes
      */
     function saveNodes(uint256[][] memory nodes) public {
-        return _data.savePreimages(nodes, _hashFunc);
+        return _data.savePreimages(nodes);
     }
 
     /**
-     * @dev Returns nodes by hash
-     * @param hash A hash of the nodes
-     * @return nodes
+     * @dev Returns a node by its key. Note that a node contains an array.
+     * @param key The key of the node
+     * @return The node
      */
-    function getNode(uint256 hash) public view returns (uint256[] memory) {
-        uint256[] memory preim = _data.getPreimage(hash);
+    function getNode(uint256 key) public view returns (uint256[] memory) {
+        uint256[] memory preim = _data.getPreimage(key);
         require(preim.length > 0, "Node not found");
         return preim;
     }
 
     /**
-     * @dev returns revocation status of a claim using given revocation nonce
+     * @dev Returns revocation status of a claim using given identity id and revocation nonce.
      * @param id Issuer's identifier
      * @param nonce Revocation nonce
      * @return CredentialStatus
@@ -73,7 +74,7 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver {
     }
 
     /**
-     * @dev returns revocation status of a claim using given revocation nonce, id and state
+     * @dev Returns revocation status of a claim using given identity id, revocation nonce and state
      * @param id Issuer's identifier
      * @param state of the Issuer
      * @param nonce Revocation nonce
@@ -96,21 +97,18 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver {
 
         CredentialStatus memory status = CredentialStatus({
             issuer: IdentityStateRoots({
-            state: state,
-            claimsTreeRoot: roots[0],
-            revocationTreeRoot: roots[1],
-            rootOfRoots: roots[2]
-        }),
+                state: state,
+                claimsTreeRoot: roots[0],
+                revocationTreeRoot: roots[1],
+                rootOfRoots: roots[2]
+            }),
             mtp: _getProof(roots[1], nonce)
         });
 
         return status;
     }
 
-    function _getProof(
-        uint256 root,
-        uint256 index
-    ) internal view returns (Proof memory) {
+    function _getProof(uint256 root, uint256 index) internal view returns (Proof memory) {
         uint256[] memory siblings = new uint256[](MAX_SMT_DEPTH);
         // Solidity does not guarantee that memory vars are zeroed out
         for (uint256 i = 0; i < MAX_SMT_DEPTH; i++) {
