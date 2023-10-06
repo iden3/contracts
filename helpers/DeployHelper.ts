@@ -3,6 +3,7 @@ import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
 import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
+import { GenesisUtilsWrapper } from "../typechain";
 
 const SMT_MAX_DEPTH = 64;
 
@@ -297,10 +298,7 @@ export class DeployHelper {
       state,
     };
   }
-  async deployGenesisUtilsWrapper(): Promise<{
-    address: string;
-  }> {
-
+  async deployGenesisUtilsWrapper(): Promise<GenesisUtilsWrapper> {
     const GenesisUtilsWrapper = await ethers.getContractFactory(
         "GenesisUtilsWrapper"
     );
