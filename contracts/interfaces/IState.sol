@@ -132,4 +132,19 @@ interface IState {
         uint256 methodId,
         bytes calldata methodParams
     ) external;
+
+    /**
+     * @dev Check if identity exists.
+     * @param id Identity
+     * @return True if the identity exists
+     */
+   function idExists(uint256 id) public view returns (bool);
+
+    /**
+     * @dev Check if state exists.
+     * @param id Identity
+     * @param state State
+     * @return True if the state exists
+     */
+    function stateExists(uint256 id, uint256 state) public view returns (bool);
 }
