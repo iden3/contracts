@@ -162,14 +162,17 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     }
 
     function _checkClaimNonRevState(uint256 _id, uint256 _claimNonRevState) internal view {
-        IState.StateInfo memory claimNonRevStateInfo = state.getStateInfoById(_id);
+        // check if identity transited any state in contract
+        bool idExists = state.idExists(_id);
 
-        if (claimNonRevStateInfo.state == 0) {
+        // if identity didn't transit any state it must be genesis
+        if (!idExists) {
             require(
                 GenesisUtils.isGenesisState(_id, _claimNonRevState),
-                "Non-Revocation state isn't in state contract and not genesis"
+                "Issuer revocation state doesn't exist in state contract and is not genesis"
             );
         } else {
+            IState.StateInfo memory claimNonRevStateInfo = state.getStateInfoById(_id);
             // The non-empty state is returned, and it's not equal to the state that the user has provided.
             if (claimNonRevStateInfo.state != _claimNonRevState) {
                 // Get the time of the latest state and compare it to the transition time of state provided by the user.
