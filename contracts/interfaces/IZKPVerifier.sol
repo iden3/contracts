@@ -5,34 +5,30 @@ pragma solidity 0.8.16;
 import {ICircuitValidator} from "./ICircuitValidator.sol";
 
 interface IZKPVerifier {
+    struct ZKPRequest {
+        string metadata;
+        ICircuitValidator validator;
+        bytes data;
+    }
+
     function submitZKPResponse(
         uint64 requestId,
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
-    ) external returns (bool);
+    ) external;
 
-    function setZKPRequest(
-        uint64 requestId,
-        ICircuitValidator validator,
-        uint256 schema,
-        uint256 slotIndex,
-        uint256 operator,
-        uint256[] calldata value
-    ) external returns (bool);
+    function setZKPRequest(uint64 requestId, ZKPRequest calldata request) external;
 
-    function setZKPRequestRaw(
-        uint64 requestId,
-        ICircuitValidator validator,
-        uint256 schema,
-        uint256 slotIndex,
-        uint256 operator,
-        uint256[] calldata value,
-        uint256 queryHash
-    ) external returns (bool);
+    function getZKPRequestsCount() external view returns (uint256);
 
-    function getZKPRequest(
-        uint64 requestId
-    ) external returns (ICircuitValidator.CircuitQuery memory);
+    function requestIdExists(uint64 requestId) external view returns (bool);
+
+    function getZKPRequest(uint64 requestId) external view returns (ZKPRequest memory);
+
+    function getZKPRequests(
+        uint256 startIndex,
+        uint256 length
+    ) external view returns (ZKPRequest[] memory);
 }

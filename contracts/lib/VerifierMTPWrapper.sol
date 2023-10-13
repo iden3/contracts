@@ -16,10 +16,9 @@ pragma solidity 0.8.16;
 import "./VerifierMTP.sol";
 import "../interfaces/IVerifier.sol";
 
-contract VerifierMTPWrapper is VerifierMTP,IVerifier {
-
+contract VerifierMTPWrapper is VerifierMTP, IVerifier {
     /**
-        * @dev Number of public signals for atomic mtp circuit
+     * @dev Number of public signals for atomic mtp circuit
      */
     uint constant PUBSIGNALS_LENGTH = 11;
 
@@ -30,7 +29,6 @@ contract VerifierMTPWrapper is VerifierMTP,IVerifier {
         uint256[2] calldata c,
         uint256[] calldata input
     ) public view returns (bool r) {
-
         uint[PUBSIGNALS_LENGTH] memory pubSignals;
 
         require(input.length == PUBSIGNALS_LENGTH, "expected array length is 11");
@@ -39,7 +37,6 @@ contract VerifierMTPWrapper is VerifierMTP,IVerifier {
             pubSignals[i] = input[i];
         }
 
-        return this.verifyProof(a,b,c,pubSignals) ;
-
+        return this.verifyProof(a, b, c, pubSignals);
     }
 }

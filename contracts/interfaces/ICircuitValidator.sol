@@ -2,24 +2,15 @@
 pragma solidity 0.8.16;
 
 interface ICircuitValidator {
-    struct CircuitQuery {
-        uint256 schema;
-        uint256 claimPathKey;
-        uint256 operator;
-        uint256[] value;
-        uint256 queryHash;
-        string circuitId;
-    }
-
     function verify(
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c,
-        uint256 queryHash
-    ) external view returns (bool r);
+        bytes calldata data
+    ) external view;
 
-    function getCircuitId() external pure returns (string memory id);
+    function getSupportedCircuitIds() external view returns (string[] memory ids);
 
-    function getChallengeInputIndex() external pure returns (uint256 index);
+    function inputIndexOf(string memory name) external view returns (uint256);
 }

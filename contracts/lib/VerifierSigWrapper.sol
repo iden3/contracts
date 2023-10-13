@@ -17,7 +17,6 @@ import "./VerifierSig.sol";
 import "../interfaces/IVerifier.sol";
 
 contract VerifierSigWrapper is VerifierSig, IVerifier {
-
     /**
      * @dev Number of public signals for atomic sig circuit
      */
@@ -38,6 +37,6 @@ contract VerifierSigWrapper is VerifierSig, IVerifier {
         for (uint256 i = 0; i < PUBSIGNALS_LENGTH; i++) {
             pubSignals[i] = input[i];
         }
-        return  this.verifyProof(a,b,c,pubSignals) ;
+        return this.verifyProof(a, b, c, pubSignals);
     }
 }
