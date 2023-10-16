@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import { ethers, network } from "hardhat";
 import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeployHelper";
 import { DeployHelper } from "../../helpers/DeployHelper";
 
@@ -9,21 +8,11 @@ describe("Next tests reproduce identity life cycle", function() {
   let identity;
   let latestSavedState;
   let latestComputedState;
+  let identityId;
 
   before(async function () {
-    const signer = await ethers.getImpersonatedSigner("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
-    await network.provider.send("hardhat_setBalance", [
-      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-      "0x1000000000000000000",
-    ]);
-
-    await network.provider.send("hardhat_setNonce", [
-      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-      "0xffffffff0000"
-    ]);
-
-    const stDeployHelper = await DeployHelper.initialize([signer]);
-    const deployHelper = await OnchainIdentityDeployHelper.initialize([signer]);
+    const stDeployHelper = await DeployHelper.initialize();
+    const deployHelper = await OnchainIdentityDeployHelper.initialize();
     const stContracts = await stDeployHelper.deployState();
     const contracts = await deployHelper.deployIdentity(
         stContracts.state,
@@ -34,6 +23,9 @@ describe("Next tests reproduce identity life cycle", function() {
         stContracts.poseidon4
     );
     identity = contracts.identity;
+    const idType = await stContracts.state.getDefaultIdType();
+    const guWrpr = await stDeployHelper.deployGenesisUtilsWrapper();
+    identityId = await guWrpr.calcOnchainIdFromAddress(idType, identity.address);
   });
 
   describe("create identity", function () {
@@ -45,15 +37,7 @@ describe("Next tests reproduce identity life cycle", function() {
 
     it("validate identity's id", async function () {
       const id = await identity.getId();
-
-      console.log(identity.address);
-
-      expect(id).to.be.equal(
-        16318200065989903207865860093614592605747279308745685922538039864771744258n
-      );
-
-      console.log(BigInt(id).toString(16));
-
+      expect(id).to.be.equal(identityId);
     });
   });
 

@@ -12,6 +12,7 @@
   },
   "homepage": "https://github.com/iden3/contracts",
   "devDependencies": {
+    "@iden3/js-crypto": "^1.0.1",
     "@nomiclabs/hardhat-ethers": "^2.0.6",
     "@nomiclabs/hardhat-etherscan": "^3.0.3",
     "@nomiclabs/hardhat-waffle": "^2.0.5",
@@ -68,6 +69,7 @@
     "upgrade:localhost": "npx hardhat run scripts/upgrade.ts --network localhost",
     "deployStateV1:localhost": "npx hardhat run ./scripts/deployStateV1.ts --network localhost",
     "deploy:ropsten": "npx hardhat run scripts/deploy.ts --network ropsten",
+    "deploy:identitytreestore": "npx hardhat run scripts/deployIdentityTreeStore.ts --network localhost",
     "verify:ropsten": "npx hardhat run scripts/verifyEtherescan.js --network ropsten",
     "lint:contracts": "npx solhint contracts/**/*.sol",
     "lint:contracts:format": "npx prettier --write contracts/**/*.sol",

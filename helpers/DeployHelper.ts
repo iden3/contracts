@@ -1,8 +1,9 @@
-import { ethers, upgrades, network } from "hardhat";
+import { ethers, network, upgrades } from "hardhat";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { deployPoseidonFacade, deployPoseidons } from "./PoseidonDeployHelper";
+import { deployPoseidons } from "./PoseidonDeployHelper";
 import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
+import { GenesisUtilsWrapper } from "../typechain";
 
 const SMT_MAX_DEPTH = 64;
 
@@ -10,7 +11,8 @@ export class DeployHelper {
   constructor(
     private signers: SignerWithAddress[],
     private readonly enableLogging: boolean = false
-  ) {}
+  ) {
+  }
 
   static async initialize(
     signers: SignerWithAddress[] | null = null,
@@ -267,7 +269,7 @@ export class DeployHelper {
       const { state } = await stateDeployHelper.deployState();
       stateAddress = state.address;
     }
-    
+
     const ValidatorContractVerifierWrapper = await ethers.getContractFactory(
       verifierContractWrapperName
     );
@@ -318,12 +320,9 @@ export class DeployHelper {
     };
   }
 
-  async deployGenesisUtilsWrapper(): Promise<{
-    address: string;
-  }> {
-
+  async deployGenesisUtilsWrapper(): Promise<GenesisUtilsWrapper> {
     const GenesisUtilsWrapper = await ethers.getContractFactory(
-        "GenesisUtilsWrapper"
+      "GenesisUtilsWrapper"
     );
     const genesisUtilsWrapper = await GenesisUtilsWrapper.deploy();
     console.log("GenesisUtilsWrapper deployed to:", genesisUtilsWrapper.address);
@@ -332,23 +331,43 @@ export class DeployHelper {
 
   async deployZKPVerifier(): Promise<{
     address: string;
-    }> {
-
+  }> {
     const ZKPVerifier = await ethers.getContractFactory(
-        "ZKPVerifier"
+      "ZKPVerifier"
     );
     const zkpVerifier = await ZKPVerifier.deploy();
     console.log("ZKPVerifier deployed to:", zkpVerifier.address);
     return zkpVerifier;
   }
 
-  async getDefaultIdType(): Promise<{defaultIdType: number, chainId: number}> {
+  async getDefaultIdType(): Promise<{ defaultIdType: number, chainId: number }> {
     const chainId = parseInt(await network.provider.send('eth_chainId'), 16);
     const defaultIdType = chainIdDefaultIdTypeMap.get(chainId);
     if (!defaultIdType) {
       throw new Error(`Failed to find defaultIdType in Map for chainId ${chainId}`);
     }
     return { defaultIdType, chainId };
+  }
+
+  async deployIdentityTreeStore(stateContractAddress: string): Promise<{
+    identityTreeStore: Contract;
+  }> {
+    const owner = this.signers[0];
+    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons(owner, [2, 3]);
+
+    const IdentityTreeStore = await ethers.getContractFactory("IdentityTreeStore", {
+      libraries: {
+        PoseidonUnit2L: poseidon2Elements.address,
+        PoseidonUnit3L: poseidon3Elements.address,
+      },
+    });
+    const identityTreeStore = await IdentityTreeStore.deploy(stateContractAddress);
+    await identityTreeStore.deployed();
+
+    console.log("\nIdentityTreeStore deployed to:", identityTreeStore.address);
+    return {
+      identityTreeStore,
+    };
   }
 
   private log(...args): void {
