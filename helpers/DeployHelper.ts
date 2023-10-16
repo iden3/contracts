@@ -1,7 +1,7 @@
-import { ethers, upgrades, network } from "hardhat";
+import { ethers, network, upgrades } from "hardhat";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { deployPoseidonFacade, deployPoseidons } from "./PoseidonDeployHelper";
+import { deployPoseidons } from "./PoseidonDeployHelper";
 import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
 import { GenesisUtilsWrapper } from "../typechain";
 
@@ -11,7 +11,8 @@ export class DeployHelper {
   constructor(
     private signers: SignerWithAddress[],
     private readonly enableLogging: boolean = false
-  ) {}
+  ) {
+  }
 
   static async initialize(
     signers: SignerWithAddress[] | null = null,
@@ -319,10 +320,9 @@ export class DeployHelper {
     };
   }
 
-  async deployGenesisUtilsWrapper(): Promise<{GenesisUtilsWrapper}> {
-
+  async deployGenesisUtilsWrapper(): Promise<GenesisUtilsWrapper> {
     const GenesisUtilsWrapper = await ethers.getContractFactory(
-        "GenesisUtilsWrapper"
+      "GenesisUtilsWrapper"
     );
     const genesisUtilsWrapper = await GenesisUtilsWrapper.deploy();
     console.log("GenesisUtilsWrapper deployed to:", genesisUtilsWrapper.address);
@@ -331,17 +331,16 @@ export class DeployHelper {
 
   async deployZKPVerifier(): Promise<{
     address: string;
-    }> {
-
+  }> {
     const ZKPVerifier = await ethers.getContractFactory(
-        "ZKPVerifier"
+      "ZKPVerifier"
     );
     const zkpVerifier = await ZKPVerifier.deploy();
     console.log("ZKPVerifier deployed to:", zkpVerifier.address);
     return zkpVerifier;
   }
 
-  async getDefaultIdType(): Promise<{defaultIdType: number, chainId: number}> {
+  async getDefaultIdType(): Promise<{ defaultIdType: number, chainId: number }> {
     const chainId = parseInt(await network.provider.send('eth_chainId'), 16);
     const defaultIdType = chainIdDefaultIdTypeMap.get(chainId);
     if (!defaultIdType) {
