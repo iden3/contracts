@@ -34,15 +34,15 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
-    // ropsten: {
-    //     chainId: 3,
-    //     url: "https://ropsten.infura.io/v3/{infuraID}",
-    //     accounts: [<private key here>],
+    // main: {
+    //   chainId: 137,
+    //   url: `${process.env.MAIN_RPC_URL}`,
+    //   accounts: [`0x${process.env.MAIN_PRIVATE_KEY}`],
     // },
     // mumbai: {
-    //     chainId: 80001,
-    //     url: "url here",
-    //     accounts: ["private key here"],
+    //   chainId: 80001,
+    //   url: `${process.env.MUMBAI_RPC_URL}`,
+    //   accounts: [`0x${process.env.MUMBAI_PRIVATE_KEY}`],
     // },
     localhost: {
       url: "http://127.0.0.1:8545",

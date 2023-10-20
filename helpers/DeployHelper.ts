@@ -4,6 +4,8 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
 import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
 import { GenesisUtilsWrapper } from "../typechain";
+import {BigNumber} from "@ethersproject/bignumber";
+
 
 const SMT_MAX_DEPTH = 64;
 
@@ -134,7 +136,17 @@ export class DeployHelper {
     const stateLib = await this.deployStateLib();
 
     this.log("upgrading state...");
+
+    /*
+
+    // in case you need to redefine priority fee config for upgrade operation
+
+    const feedata = await owner.provider!.getFeeData();
+    feedata.maxPriorityFeePerGas = BigNumber.from("100000000000");
+    owner.provider!.getFeeData = async () => (feedata);
+   */
     const StateFactory = await ethers.getContractFactory(stateContractName, {
+      signer: owner,
       libraries: {
         StateLib: stateLib.address,
         SmtLib: smtLib.address,
@@ -143,7 +155,7 @@ export class DeployHelper {
     });
     const state = await upgrades.upgradeProxy(stateAddress, StateFactory, {
       unsafeAllowLinkedLibraries: true,
-      unsafeSkipStorageCheck: true,
+      unsafeSkipStorageCheck: true, // TODO: remove for next upgrade
     });
     await state.deployed();
     this.log(`State contract upgraded at address ${state.address} from ${owner.address}`);
