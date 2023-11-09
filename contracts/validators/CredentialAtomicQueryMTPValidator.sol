@@ -5,6 +5,11 @@ import {CredentialAtomicQueryValidator} from "./CredentialAtomicQueryValidator.s
 import {IVerifier} from "../interfaces/IVerifier.sol";
 
 contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
+    /**
+     * @dev Version of contract
+     */
+    string public constant VERSION = "1.0.0";
+
     string internal constant CIRCUIT_ID = "credentialAtomicQueryMTPV2OnChain";
 
     // This empty reserved space is put in place to allow future versions
