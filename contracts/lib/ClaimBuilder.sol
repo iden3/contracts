@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import {BytesLib} from "solidity-bytes-utils/contracts/BytesLib.sol";
+import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
 library ClaimBuilder {
@@ -65,8 +65,8 @@ library ClaimBuilder {
         uint32 flags;
 
         // Schema
-        bytes memory cutSchema = BytesLib.slice(
-            GenesisUtils.uint256ToBytes(GenesisUtils.reverse(c.schemaHash)),
+        bytes memory cutSchema = PrimitiveTypeUtils.slice(
+            PrimitiveTypeUtils.uint256ToBytes(PrimitiveTypeUtils.reverse(c.schemaHash)),
             0,
             16
         );
@@ -125,19 +125,19 @@ library ClaimBuilder {
             require(c.merklizedRoot == 0, "merklizedRoot should be 0 for non merklized claim");
         }
 
-        bytes memory claim0 = BytesLib.concat(
+        bytes memory claim0 = PrimitiveTypeUtils.concat(
             cutSchema, // 128 bits
-            abi.encodePacked(reverse(flags)) // 32 bits
+            abi.encodePacked(PrimitiveTypeUtils.reverse32(flags)) // 32 bits
         );
 
-        bytes memory claim02 = BytesLib.concat(
-            abi.encodePacked(reverse(c.version)), // 32 bits
+        bytes memory claim02 = PrimitiveTypeUtils.concat(
+            abi.encodePacked(PrimitiveTypeUtils.reverse32(c.version)), // 32 bits
             abi.encodePacked(empty64)
         );
 
-        claim0 = BytesLib.concat(claim0, claim02);
+        claim0 = PrimitiveTypeUtils.concat(claim0, claim02);
 
-        claim[0] = GenesisUtils.reverse(uint256(bytes32(claim0)));
+        claim[0] = PrimitiveTypeUtils.reverse(uint256(bytes32(claim0)));
 
         // claim[1] was written before
 
@@ -153,15 +153,5 @@ library ClaimBuilder {
         claim[7] = c.valueDataSlotB;
 
         return claim;
-    }
-
-    function reverse(uint32 input) internal pure returns (uint32 v) {
-        v = input;
-
-        // swap bytes
-        v = ((v & 0xFF00FF00) >> 8) | ((v & 0x00FF00FF) << 8);
-
-        // swap 2-byte long pairs
-        v = (v >> 16) | (v << 16);
     }
 }

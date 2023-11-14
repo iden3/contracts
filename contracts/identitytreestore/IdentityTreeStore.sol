@@ -5,7 +5,7 @@ import {ReverseHashLib} from "../lib/ReverseHashLib.sol";
 import {PoseidonUnit2L, PoseidonUnit3L} from "../lib/Poseidon.sol";
 import {IState} from "../interfaces/IState.sol";
 import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredentialStatusResolver.sol";
-import "../interfaces/IRHSStorage.sol";
+import {IRHSStorage} from "../interfaces/IRHSStorage.sol";
 
 contract IdentityTreeStore is IOnchainCredentialStatusResolver, IRHSStorage {
     /**
