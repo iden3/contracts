@@ -132,6 +132,7 @@ describe("Atomic Sig Validator", function () {
         circuitIds: ["credentialAtomicQuerySigV2OnChain"],
         metadata: "test medatada",
         skipClaimRevocationCheck: false,
+        claimPathNotExists: 0
       };
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);

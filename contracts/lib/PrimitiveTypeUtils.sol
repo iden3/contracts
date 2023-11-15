@@ -15,9 +15,9 @@ library PrimitiveTypeUtils {
     }
 
     /**
-     * @dev reverse
+     * @dev reverse uint256
      */
-    function reverse(uint256 input) internal pure returns (uint256 v) {
+    function reverseUint256(uint256 input) internal pure returns (uint256 v) {
         v = input;
 
         // swap bytes
@@ -47,7 +47,7 @@ library PrimitiveTypeUtils {
     /**
      * @dev reverse uint16
      */
-    function reverse16(uint16 input) internal pure returns (uint16 v) {
+    function reverseUint16(uint16 input) internal pure returns (uint16 v) {
         v = input;
 
         // swap bytes
@@ -57,7 +57,7 @@ library PrimitiveTypeUtils {
     /**
      * @dev reverse uint32
      */
-    function reverse32(uint32 input) internal pure returns (uint32 v) {
+    function reverseUint32(uint32 input) internal pure returns (uint32 v) {
         v = input;
 
         // swap bytes
@@ -99,7 +99,7 @@ library PrimitiveTypeUtils {
      * @dev int256ToAddress
      */
     function int256ToAddress(uint256 input) internal pure returns (address) {
-        return bytesToAddress(uint256ToBytes(reverse(input)));
+        return bytesToAddress(uint256ToBytes(reverseUint256(input)));
     }
 
     /**

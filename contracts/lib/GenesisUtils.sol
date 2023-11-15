@@ -19,7 +19,7 @@ library GenesisUtils {
      * @dev isGenesisState
      */
     function isGenesisState(uint256 id, uint256 idState) internal pure returns (bool) {
-        bytes2 idType = bytes2(PrimitiveTypeUtils.uint256ToBytes(PrimitiveTypeUtils.reverse(id)));
+        bytes2 idType = bytes2(PrimitiveTypeUtils.uint256ToBytes(PrimitiveTypeUtils.reverseUint256(id)));
         uint256 computedId = calcIdFromGenesisState(idType, idState);
         return id == computedId;
     }
@@ -32,7 +32,7 @@ library GenesisUtils {
         uint256 idState
     ) internal pure returns (uint256) {
         bytes memory userStateB1 = PrimitiveTypeUtils.uint256ToBytes(
-            PrimitiveTypeUtils.reverse(idState)
+            PrimitiveTypeUtils.reverseUint256(idState)
         );
 
         bytes memory cutState = PrimitiveTypeUtils.slice(userStateB1, userStateB1.length - 27, 27);
@@ -40,14 +40,14 @@ library GenesisUtils {
         bytes memory beforeChecksum = PrimitiveTypeUtils.concat(abi.encodePacked(idType), cutState);
         require(beforeChecksum.length == 29, "Checksum requires 29 length array");
 
-        uint16 checksum = PrimitiveTypeUtils.reverse16(sum(beforeChecksum));
+        uint16 checksum = PrimitiveTypeUtils.reverseUint16(sum(beforeChecksum));
 
         bytes memory checkSumBytes = abi.encodePacked(checksum);
 
         bytes memory idBytes = PrimitiveTypeUtils.concat(beforeChecksum, checkSumBytes);
         require(idBytes.length == 31, "idBytes requires 31 length array");
 
-        return PrimitiveTypeUtils.reverse(PrimitiveTypeUtils.toUint256(idBytes));
+        return PrimitiveTypeUtils.reverseUint256(PrimitiveTypeUtils.toUint256(idBytes));
     }
 
     /**
@@ -56,6 +56,6 @@ library GenesisUtils {
     function calcIdFromEthAddress(bytes2 idType, address caller) internal pure returns (uint256) {
         uint256 addr = uint256(uint160(caller));
 
-        return calcIdFromGenesisState(idType, PrimitiveTypeUtils.reverse(addr));
+        return calcIdFromGenesisState(idType, PrimitiveTypeUtils.reverseUint256(addr));
     }
 }

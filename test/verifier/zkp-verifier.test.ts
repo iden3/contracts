@@ -22,7 +22,8 @@ describe("ZKP Verifier", function () {
           "1496222740463292783938163206931059379817846775593932664024082849882751356658"
         ),
         circuitIds: ["credentialAtomicQuerySigV2OnChain"],
-        metadata: "test medatada"
+        metadata: "test medatada",
+        claimPathNotExists: 0
       };
 
   const proofJson = require("../validators/sig/data/valid_sig_user_genesis.json");
