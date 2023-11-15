@@ -130,7 +130,6 @@ describe("Atomic Sig Validator", function () {
           "1496222740463292783938163206931059379817846775593932664024082849882751356658"
         ),
         circuitIds: ["credentialAtomicQuerySigV2OnChain"],
-        metadata: "test medatada",
         skipClaimRevocationCheck: false,
         claimPathNotExists: 0
       };
