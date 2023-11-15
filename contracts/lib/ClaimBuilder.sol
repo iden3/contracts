@@ -2,7 +2,6 @@
 pragma solidity 0.8.16;
 
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
-import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
 library ClaimBuilder {
     // ID_POSITION_NONE means ID value not located in claim.

@@ -19,7 +19,9 @@ library GenesisUtils {
      * @dev isGenesisState
      */
     function isGenesisState(uint256 id, uint256 idState) internal pure returns (bool) {
-        bytes2 idType = bytes2(PrimitiveTypeUtils.uint256ToBytes(PrimitiveTypeUtils.reverseUint256(id)));
+        bytes2 idType = bytes2(
+            PrimitiveTypeUtils.uint256ToBytes(PrimitiveTypeUtils.reverseUint256(id))
+        );
         uint256 computedId = calcIdFromGenesisState(idType, idState);
         return id == computedId;
     }
