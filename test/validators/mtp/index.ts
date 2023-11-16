@@ -130,8 +130,8 @@ describe("Atomic MTP Validator", function () {
           "1496222740463292783938163206931059379817846775593932664024082849882751356658"
         ),
         circuitIds: ["credentialAtomicQueryMTPV2OnChain"],
-        metadata: "test medatada",
         skipClaimRevocationCheck: false,
+        claimPathNotExists: 0
       };
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);

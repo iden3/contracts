@@ -19,6 +19,8 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256[] allowedIssuers;
         string[] circuitIds;
         bool skipClaimRevocationCheck;
+        // 0 for inclusion in merklized credentials, 1 for non-inclusion and for non-merklized credentials
+        uint256 claimPathNotExists;
     }
 
     struct CommonPubSignals {

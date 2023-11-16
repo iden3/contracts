@@ -13,7 +13,8 @@
                 "queryHash": 'uint256',
                 "allowedIssuers": 'uint256[]',
                 "circuitIds": 'string[]',
-                "skipClaimRevocationCheck": 'bool'
+                "skipClaimRevocationCheck": 'bool',
+                "claimPathNotExists": 'uint256'
             }
         },
         {
@@ -25,7 +26,8 @@
             "queryHash": query.queryHash,
             "allowedIssuers": allowedIssuers,
             "circuitIds": query.circuitIds,
-            "skipClaimRevocationCheck": query.skipClaimRevocationCheck
+            "skipClaimRevocationCheck": query.skipClaimRevocationCheck,
+            "claimPathNotExists": query.claimPathNotExists
         }
     );
  }

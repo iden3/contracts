@@ -2,7 +2,6 @@
 pragma solidity 0.8.16;
 
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
-import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
 library ClaimBuilder {
     // ID_POSITION_NONE means ID value not located in claim.
@@ -66,7 +65,7 @@ library ClaimBuilder {
 
         // Schema
         bytes memory cutSchema = PrimitiveTypeUtils.slice(
-            PrimitiveTypeUtils.uint256ToBytes(PrimitiveTypeUtils.reverse(c.schemaHash)),
+            PrimitiveTypeUtils.uint256ToBytes(PrimitiveTypeUtils.reverseUint256(c.schemaHash)),
             0,
             16
         );
@@ -127,17 +126,17 @@ library ClaimBuilder {
 
         bytes memory claim0 = PrimitiveTypeUtils.concat(
             cutSchema, // 128 bits
-            abi.encodePacked(PrimitiveTypeUtils.reverse32(flags)) // 32 bits
+            abi.encodePacked(PrimitiveTypeUtils.reverseUint32(flags)) // 32 bits
         );
 
         bytes memory claim02 = PrimitiveTypeUtils.concat(
-            abi.encodePacked(PrimitiveTypeUtils.reverse32(c.version)), // 32 bits
+            abi.encodePacked(PrimitiveTypeUtils.reverseUint32(c.version)), // 32 bits
             abi.encodePacked(empty64)
         );
 
         claim0 = PrimitiveTypeUtils.concat(claim0, claim02);
 
-        claim[0] = PrimitiveTypeUtils.reverse(uint256(bytes32(claim0)));
+        claim[0] = PrimitiveTypeUtils.reverseUint256(uint256(bytes32(claim0)));
 
         // claim[1] was written before
 
