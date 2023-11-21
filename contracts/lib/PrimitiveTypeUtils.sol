@@ -126,9 +126,7 @@ library PrimitiveTypeUtils {
     /**
      * @dev addressToUint256
      */
-    function addressToUint256(
-        address _addr
-    ) internal pure returns (uint256) {
+    function addressToUint256(address _addr) internal pure returns (uint256) {
         return uint256(uint160(_addr));
     }
 }
