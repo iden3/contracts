@@ -5,7 +5,7 @@ import {CredentialAtomicQueryValidator} from "./CredentialAtomicQueryValidator.s
 import {IVerifier} from "../interfaces/IVerifier.sol";
 
 /**
- * @dev CredentialAtomicQueryV3 validator 
+ * @dev CredentialAtomicQueryV3 validator
  */
 contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
     /**
@@ -49,7 +49,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         _setInputToIndex("challenge", 9);
         _setInputToIndex("gistRoot", 10);
         _setInputToIndex("issuerID", 11);
-        _setInputToIndex("isRevocationChecked",12);
+        _setInputToIndex("isRevocationChecked", 12);
         _setInputToIndex("issuerClaimNonRevState", 13);
         _setInputToIndex("timestamp", 14);
         _setInputToIndex("verifierID", 15);
