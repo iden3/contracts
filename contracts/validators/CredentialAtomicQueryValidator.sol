@@ -93,6 +93,10 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         gistRootExpirationTimeout = expirationTimeout;
     }
 
+    function setStateAddress(address stateContractAddr) public virtual onlyOwner {
+        state = IState(stateContractAddr);
+    }
+
     function getSupportedCircuitIds() external view virtual returns (string[] memory ids) {
         return _supportedCircuitIds;
     }
