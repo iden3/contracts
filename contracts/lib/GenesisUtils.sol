@@ -56,7 +56,7 @@ library GenesisUtils {
      * @dev calcIdFromEthAddress
      */
     function calcIdFromEthAddress(bytes2 idType, address caller) internal pure returns (uint256) {
-        uint256 addr = uint256(uint160(caller));
+        uint256 addr = PrimitiveTypeUtils.addressToUint256(caller);
 
         return calcIdFromGenesisState(idType, PrimitiveTypeUtils.reverseUint256(addr));
     }
