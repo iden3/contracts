@@ -8,6 +8,31 @@ import {IVerifier} from "../interfaces/IVerifier.sol";
  * @dev CredentialAtomicQueryV3 validator
  */
 contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
+    struct CredentialAtomicQueryV3 {
+        uint256 schema;
+        uint256 claimPathKey;
+        uint256 operator;
+        uint256 slotIndex;
+        uint256[] value;
+        uint256 queryHash;
+        uint256[] allowedIssuers;
+        string[] circuitIds;
+        bool skipClaimRevocationCheck;
+        // 0 for inclusion in merklized credentials, 1 for non-inclusion and for non-merklized credentials
+        uint256 claimPathNotExists;
+        uint256 verifierID;
+    }
+
+    struct V3PugSignals {
+        uint256 linkID;
+        uint256 nullifier;
+        uint256 operatorOutput;
+        uint256 proofType;
+        uint256 verifierID;
+        uint256 verifierSessionID;
+        uint256 authEnabled;
+    }
+
     /**
      * @dev Version of contract
      */
@@ -67,13 +92,53 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         uint256[2] calldata c,
         bytes calldata data
     ) external view virtual {
-        _verify(inputs, a, b, c, data);
+        CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
+            data,
+            (CredentialAtomicQueryV3)
+        );
+        IVerifier verifier = _circuitIdToVerifier[credAtomicQuery.circuitIds[0]];
+
+        require(
+            credAtomicQuery.circuitIds.length == 1 && verifier != IVerifier(address(0)),
+            "Invalid circuit ID"
+        );
+
+        // verify that zkp is valid
+        require(verifier.verify(a, b, c, inputs), "Proof is not valid");
+
+        CommonPubSignals memory signals = parseCommonPubSignals(inputs);
+
+        // check circuitQueryHash
+        require(
+            signals.circuitQueryHash == credAtomicQuery.queryHash,
+            "Query hash does not match the requested one"
+        );
+
+        // TODO: add support for query to specific userID and then verifying it
+
+        _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
+        _checkGistRoot(signals.gistRoot);
+        _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
+        _checkClaimIssuanceState(signals.issuerID, signals.issuerState);
+        _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
+        _checkProofExpiration(signals.timestamp);
+        _checkIsRevocationChecked(
+            signals.isRevocationChecked,
+            credAtomicQuery.skipClaimRevocationCheck
+        );
+
+        V3PugSignals memory v3PugSignals = parseV3SpecificPubSignals(inputs);
+        _checkVerifierID(credAtomicQuery.verifierID, v3PugSignals.verifierID);
+    }
+
+    function _checkVerifierID(uint256 queryVerifierID, uint256 inputVerifierID) internal pure {
+        require(queryVerifierID == inputVerifierID, "Verifier ID should match the query");
     }
 
     function parseCommonPubSignals(
         uint256[] calldata inputs
     ) public pure override returns (CommonPubSignals memory) {
-        CommonPubSignals memory params = CommonPubSignals({
+        CommonPubSignals memory pubSignals = CommonPubSignals({
             merklized: inputs[0],
             userID: inputs[1],
             circuitQueryHash: inputs[2],
@@ -87,6 +152,22 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
             timestamp: inputs[14]
         });
 
-        return params;
+        return pubSignals;
+    }
+
+    function parseV3SpecificPubSignals(
+        uint256[] calldata inputs
+    ) internal pure returns (V3PugSignals memory) {
+        V3PugSignals memory pubSignals = V3PugSignals({
+            linkID: inputs[4],
+            nullifier: inputs[5],
+            operatorOutput: inputs[6],
+            proofType: inputs[7],
+            verifierID: inputs[15],
+            verifierSessionID: inputs[16],
+            authEnabled: inputs[17]
+        });
+
+        return pubSignals;
     }
 }
