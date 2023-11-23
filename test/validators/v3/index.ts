@@ -1,17 +1,30 @@
 import { expect } from "chai";
 import { prepareInputs, publishState } from "../../utils/state-utils";
 import { DeployHelper } from "../../../helpers/DeployHelper";
-import { packV3ValidatorParams, packValidatorParams } from "../../utils/validator-pack-utils";
+import { packV3ValidatorParams } from "../../utils/validator-pack-utils";
 import { calculateQueryHash } from "../../utils/query-hash-utils";
 
 const tenYears = 315360000;
 const testCases: any[] = [
   {
     name: "Non merklized SigProof (AuthEnabled=0)",
-    stateTransitions: [require("../common-data/issuer_genesis_state.json")],
+    stateTransitions: [
+      require("../common-data/issuer_genesis_state.json")
+    ],
     proofJson: require("./data/non-merk-sig-proof-no-auth.json"),
     setProofExpiration: tenYears,
-  }
+    errorMessage: "Address in challange is not a sender address",
+    authEnabled: 0
+  },
+  //  {
+  //   name: "Non merklized SigProof (AuthEnabled=1)",
+  //   stateTransitions: [
+  //     require("../common-data/issuer_genesis_state.json"),
+  //   ],
+  //   proofJson: require("./data/non-merk-sig-proof-auth.json"),
+  //   setProofExpiration: tenYears,
+  //   authEnabled: 1
+  // }
 ];
 
 function delay(ms: number) {
@@ -19,7 +32,7 @@ function delay(ms: number) {
 }
 
 describe.only("Atomic V3 Validator", function () {
-  let state: any, sig: any;
+  let state: any, v3: any;
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize(null, true);
@@ -29,7 +42,7 @@ describe.only("Atomic V3 Validator", function () {
       "CredentialAtomicQueryV3Validator"
     );
     state = contracts.state;
-    sig = contracts.validator;
+    v3 = contracts.validator;
   });
 
   for (const test of testCases) {
@@ -69,33 +82,38 @@ describe.only("Atomic V3 Validator", function () {
             operator,
             claimPathKey,
             claimPathNotExists).toString(),
-        verifierID: 0
+        linkID: 0,
+        nullifier: 0,
+        proofType: 1,
+        verifierID: 0,
+        verifierSessionID: 0,
+        authEnabled: test.authEnabled
       };
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
       if (test.setProofExpiration) {
-        await sig.setProofExpirationTimeout(test.setProofExpiration);
+        await v3.setProofExpirationTimeout(test.setProofExpiration);
       }
       if (test.setRevStateExpiration) {
-        await sig.setRevocationStateExpirationTimeout(test.setRevStateExpiration);
+        await v3.setRevocationStateExpirationTimeout(test.setRevStateExpiration);
       }
       if (test.setGISTRootExpiration) {
-        await sig.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
+        await v3.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
       }
       if (test.errorMessage) {
-        await expect(sig.verify(inputs, pi_a, pi_b, pi_c, packV3ValidatorParams(query, test.allowedIssuers))).to.be.revertedWith(
+        await expect(v3.verify(inputs, pi_a, pi_b, pi_c, packV3ValidatorParams(query, test.allowedIssuers))).to.be.revertedWith(
           test.errorMessage
         );
       } else if (test.errorMessage === "") {
-        await expect(sig.verify(inputs, pi_a, pi_b, pi_c, packV3ValidatorParams(query, test.allowedIssuers))).to.be.reverted;
+        await expect(v3.verify(inputs, pi_a, pi_b, pi_c, packV3ValidatorParams(query, test.allowedIssuers))).to.be.reverted;
       } else {
-        await sig.verify(inputs, pi_a, pi_b, pi_c, packV3ValidatorParams(query, test.allowedIssuers));
+        await v3.verify(inputs, pi_a, pi_b, pi_c, packV3ValidatorParams(query, test.allowedIssuers));
       }
     });
   }
 
   it ('check inputIndexOf', async () => {
-    const challengeIndx = await sig.inputIndexOf('challenge');
+    const challengeIndx = await v3.inputIndexOf('challenge');
     expect(challengeIndx).to.be.equal(9);
   });
 });

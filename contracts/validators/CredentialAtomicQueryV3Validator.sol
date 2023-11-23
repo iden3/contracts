@@ -3,6 +3,7 @@ pragma solidity 0.8.16;
 
 import {CredentialAtomicQueryValidator} from "./CredentialAtomicQueryValidator.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
+import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
 
 /**
  * @dev CredentialAtomicQueryV3 validator
@@ -20,17 +21,22 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         bool skipClaimRevocationCheck;
         // 0 for inclusion in merklized credentials, 1 for non-inclusion and for non-merklized credentials
         uint256 claimPathNotExists;
+        uint256 linkID;
+        uint256 nullifier;
+        uint256 proofType;
         uint256 verifierID;
+        uint256 verifierSessionID;
+        uint256 authEnabled;
     }
 
     struct V3PugSignals {
         uint256 linkID;
         uint256 nullifier;
-        uint256 operatorOutput;
-        uint256 proofType;
+        uint256 operatorOutput; // sd
+        uint256 proofType; // 0 - skip, else compare with query value
         uint256 verifierID;
         uint256 verifierSessionID;
-        uint256 authEnabled;
+        uint256 authEnabled; // if 0 check user id = msg.sender
     }
 
     /**
@@ -129,10 +135,67 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
 
         V3PugSignals memory v3PugSignals = parseV3SpecificPubSignals(inputs);
         _checkVerifierID(credAtomicQuery.verifierID, v3PugSignals.verifierID);
+        _checkVerifierSessionID(credAtomicQuery.verifierSessionID, v3PugSignals.verifierSessionID);
+        _checklinkID(credAtomicQuery.linkID, v3PugSignals.linkID);
+        _checkProofType(credAtomicQuery.proofType, v3PugSignals.proofType);
+        _checkNullify(
+            v3PugSignals.nullifier,
+            v3PugSignals.verifierID,
+            v3PugSignals.verifierSessionID,
+            v3PugSignals.linkID
+        );
+        _checkAuthEnabled(v3PugSignals.authEnabled, credAtomicQuery.authEnabled, signals.challenge);
     }
 
-    function _checkVerifierID(uint256 queryVerifierID, uint256 inputVerifierID) internal pure {
-        require(queryVerifierID == inputVerifierID, "Verifier ID should match the query");
+    function _checkVerifierID(uint256 queryVerifierID, uint256 pubSignalVerifierID) internal pure {
+        require(queryVerifierID == pubSignalVerifierID, "Verifier ID should match the query");
+    }
+
+    function _checkVerifierSessionID(
+        uint256 queryVerifierSessionID,
+        uint256 pubSignalVerifierSessionID
+    ) internal pure {
+        require(
+            queryVerifierSessionID == pubSignalVerifierSessionID,
+            "Verifier session ID should match the query"
+        );
+    }
+
+    function _checklinkID(uint256 queryLinkID, uint256 pubSignalLinkID) internal pure {
+        require(queryLinkID == pubSignalLinkID, "Link ID should match the query");
+    }
+
+    function _checkProofType(uint256 queryProofType, uint256 pubSignalProofType) internal pure {
+        require(
+            pubSignalProofType == 0 || queryProofType == pubSignalProofType,
+            "Proof type should match the query"
+        );
+    }
+
+    function _checkNullify(
+        uint256 nullify,
+        uint256 verifierID,
+        uint256 verifierSessionID,
+        uint256 linkID
+    ) internal pure {
+        require(
+            verifierID == 0 || verifierSessionID == 0 || linkID == 0 || nullify != 0,
+            "Invalid nullify pub signal"
+        );
+    }
+
+    function _checkAuthEnabled(
+        uint256 pubSignalAuthEnabled,
+        uint256 queryAuthEnabled,
+        uint256 challange
+    ) internal view {
+        require(pubSignalAuthEnabled == queryAuthEnabled, "Auth enabled should match the query");
+
+        require(
+            pubSignalAuthEnabled == 1 ||
+                PrimitiveTypeUtils.int256ToAddress(challange) == msg.sender,
+            "Address in challange is not a sender address"
+        );
     }
 
     function parseCommonPubSignals(
