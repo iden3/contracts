@@ -8,20 +8,37 @@ const tenYears = 315360000;
 const testCases: any[] = [
   {
     name: "Non merklized SigProof (AuthEnabled=0)",
-    stateTransitions: [
-      require("../common-data/issuer_genesis_state.json")
-    ],
+    stateTransitions: [],
     proofJson: require("./data/non-merk-sig-proof-no-auth.json"),
     setProofExpiration: tenYears,
     errorMessage: "Address in challange is not a sender address",
     authEnabled: 0
   },
+  // {
+  //   name: "Non merklized MTPProof (AuthEnabled=0)",
+  //   stateTransitions: [
+  //     require("../common-data/issuer_genesis_state.json"),
+  //   ],
+  //   proofJson: require("./data/non-merk-mtp-proof-no-auth.json"),
+  //   setProofExpiration: tenYears,
+  //   errorMessage: "Address in challange is not a sender address",
+  //   authEnabled: 0
+  // },
   //  {
   //   name: "Non merklized SigProof (AuthEnabled=1)",
   //   stateTransitions: [
   //     require("../common-data/issuer_genesis_state.json"),
   //   ],
   //   proofJson: require("./data/non-merk-sig-proof-auth.json"),
+  //   setProofExpiration: tenYears,
+  //   authEnabled: 1
+  // },
+  //  {
+  //   name: "Non merklized MTPProof (AuthEnabled=1)",
+  //   stateTransitions: [
+  //     require("../common-data/issuer_genesis_state.json"),
+  //   ],
+  //   proofJson: require("./data/non-merk-mtp-proof-auth.json"),
   //   setProofExpiration: tenYears,
   //   authEnabled: 1
   // }
@@ -31,7 +48,7 @@ function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-describe.only("Atomic V3 Validator", function () {
+describe("Atomic V3 Validator", function () {
   let state: any, v3: any;
 
   beforeEach(async () => {

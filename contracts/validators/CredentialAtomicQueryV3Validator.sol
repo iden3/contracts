@@ -32,11 +32,11 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
     struct V3PugSignals {
         uint256 linkID;
         uint256 nullifier;
-        uint256 operatorOutput; // sd
-        uint256 proofType; // 0 - skip, else compare with query value
+        uint256 operatorOutput;
+        uint256 proofType;
         uint256 verifierID;
         uint256 verifierSessionID;
-        uint256 authEnabled; // if 0 check user id = msg.sender
+        uint256 authEnabled;
     }
 
     /**
@@ -142,7 +142,8 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
             v3PugSignals.nullifier,
             v3PugSignals.verifierID,
             v3PugSignals.verifierSessionID,
-            v3PugSignals.linkID
+            v3PugSignals.linkID,
+            credAtomicQuery.nullifier
         );
         _checkAuthEnabled(v3PugSignals.authEnabled, credAtomicQuery.authEnabled, signals.challenge);
     }
@@ -173,13 +174,16 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
     }
 
     function _checkNullify(
-        uint256 nullify,
+        uint256 nullifier,
         uint256 verifierID,
         uint256 verifierSessionID,
-        uint256 linkID
+        uint256 linkID,
+        uint256 queryNullifier
     ) internal pure {
+        require(queryNullifier == nullifier, "Nullifier should match the query");
+
         require(
-            verifierID == 0 || verifierSessionID == 0 || linkID == 0 || nullify != 0,
+            verifierID == 0 || verifierSessionID == 0 || linkID == 0 || nullifier != 0,
             "Invalid nullify pub signal"
         );
     }
