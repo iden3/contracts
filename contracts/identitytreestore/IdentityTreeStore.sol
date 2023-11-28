@@ -6,8 +6,13 @@ import {PoseidonUnit2L, PoseidonUnit3L} from "../lib/Poseidon.sol";
 import {IState} from "../interfaces/IState.sol";
 import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredentialStatusResolver.sol";
 import {IRHSStorage} from "../interfaces/IRHSStorage.sol";
+import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 
-contract IdentityTreeStore is IOnchainCredentialStatusResolver, IRHSStorage {
+contract IdentityTreeStore is
+    Ownable2StepUpgradeable,
+    IOnchainCredentialStatusResolver,
+    IRHSStorage
+{
     /**
      * @dev Enum for node types
      */
@@ -22,31 +27,56 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver, IRHSStorage {
     /**
      * @dev Max SMT depth for the CredentialStatus proof
      */
-    uint256 constant MAX_SMT_DEPTH = 40;
+    uint256 public constant MAX_SMT_DEPTH = 40;
 
     using ReverseHashLib for ReverseHashLib.Data;
 
-    /**
-     * @dev ReverseHashLib data
-     */
-    ReverseHashLib.Data private _data;
+    /// @custom:storage-location erc7201:iden3.storage.IdentityTreeStore.ReverseHashLibData
+    struct ReverseHashLibDataStorage {
+        ReverseHashLib.Data _data;
+    }
 
-    /**
-     * @dev State contract address
-     */
-    IState private _state;
+    // keccak256(abi.encode(uint256(keccak256("iden3.storage.IdentityTreeStore.ReverseHashLibData")) - 1)) &
+    //    ~bytes32(uint256(0xff));
+    bytes32 private constant ReverseHashLibDataStorageLocation =
+        0x0f7e3bdc6cc0e880d509aa1f6b8d1a88e5fcb7274e18dfba772424a36fe9b400;
 
-    constructor(address state) {
-        _state = IState(state);
-        _data.hashFunction = _hashFunc;
+    function _getReverseHashLibDataStorage()
+        private
+        pure
+        returns (ReverseHashLibDataStorage storage $)
+    {
+        assembly {
+            $.slot := ReverseHashLibDataStorageLocation
+        }
+    }
+
+    /// @custom:storage-location erc7201:iden3.storage.IdentityTreeStore.Main
+    struct MainStorage {
+        IState _state;
+    }
+
+    // keccak256(abi.encode(uint256(keccak256("iden3.storage.IdentityTreeStore.Main")) - 1)) & ~bytes32(uint256(0xff));
+    bytes32 private constant MainStorageLocation =
+        0x95ca427007e091a13a7ccfcb233b8a2ed19d987330a248c445b1b483a35bb800;
+
+    function _getMainStorage() private pure returns (MainStorage storage $) {
+        assembly {
+            $.slot := MainStorageLocation
+        }
+    }
+
+    function initialize(address state) public initializer {
+        _getMainStorage()._state = IState(state);
+        _getReverseHashLibDataStorage()._data.hashFunction = _hashFunc;
     }
 
     /**
      * @dev Saves nodes array. Note that each node contains an array itself.
      * @param nodes An array of nodes
      */
-    function saveNodes(uint256[][] memory nodes) public {
-        return _data.savePreimages(nodes);
+    function saveNodes(uint256[][] memory nodes) external {
+        return _getReverseHashLibDataStorage()._data.savePreimages(nodes);
     }
 
     /**
@@ -55,7 +85,7 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver, IRHSStorage {
      * @return The node
      */
     function getNode(uint256 key) public view returns (uint256[] memory) {
-        uint256[] memory preim = _data.getPreimage(key);
+        uint256[] memory preim = _getReverseHashLibDataStorage()._data.getPreimage(key);
         require(preim.length > 0, "Node not found");
         return preim;
     }
@@ -70,7 +100,7 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver, IRHSStorage {
         uint256 id,
         uint64 nonce
     ) external view returns (CredentialStatus memory) {
-        uint256 state = _state.getStateInfoById(id).state;
+        uint256 state = _getMainStorage()._state.getStateInfoById(id).state;
         return _getRevocationStatusByState(state, nonce);
     }
 
@@ -130,8 +160,10 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver, IRHSStorage {
         uint256 nextNodeHash = root;
         uint256[] memory children;
 
+        ReverseHashLibDataStorage storage $ = _getReverseHashLibDataStorage();
+
         for (uint256 i = 0; i <= MAX_SMT_DEPTH; i++) {
-            children = _data.hashesToPreimages[nextNodeHash];
+            children = $._data.hashesToPreimages[nextNodeHash];
 
             NodeType nodeType = _nodeType(children);
             if (nodeType == NodeType.Empty) {
@@ -185,7 +217,7 @@ contract IdentityTreeStore is IOnchainCredentialStatusResolver, IRHSStorage {
         return NodeType.Unknown;
     }
 
-    function _hashFunc(uint256[] memory preimage) public pure returns (uint256) {
+    function _hashFunc(uint256[] memory preimage) internal pure returns (uint256) {
         if (preimage.length == 2) {
             return PoseidonUnit2L.poseidon([preimage[0], preimage[1]]);
         }
