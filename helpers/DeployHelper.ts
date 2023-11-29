@@ -373,7 +373,12 @@ export class DeployHelper {
         PoseidonUnit3L: poseidon3Elements.address,
       },
     });
-    const identityTreeStore = await IdentityTreeStore.deploy(stateContractAddress);
+
+    const identityTreeStore = await upgrades.deployProxy(
+      IdentityTreeStore,
+      [stateContractAddress],
+      { unsafeAllow: ["external-library-linking"] }
+    );
     await identityTreeStore.deployed();
 
     console.log("\nIdentityTreeStore deployed to:", identityTreeStore.address);
