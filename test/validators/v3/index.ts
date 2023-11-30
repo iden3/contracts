@@ -11,7 +11,7 @@ const testCases: any[] = [
     stateTransitions: [],
     proofJson: require("./data/non-merk-sig-proof-no-auth.json"),
     setProofExpiration: tenYears,
-    errorMessage: "Address in challange is not a sender address",
+    errorMessage: "Address in challenge is not a sender address",
     authEnabled: 0
   },
   // {
@@ -21,7 +21,7 @@ const testCases: any[] = [
   //   ],
   //   proofJson: require("./data/non-merk-mtp-proof-no-auth.json"),
   //   setProofExpiration: tenYears,
-  //   errorMessage: "Address in challange is not a sender address",
+  //   errorMessage: "Address in challenge is not a sender address",
   //   authEnabled: 0
   // },
   //  {
@@ -99,11 +99,10 @@ describe("Atomic V3 Validator", function () {
             operator,
             claimPathKey,
             claimPathNotExists).toString(),
-        linkID: 0,
-        nullifier: 0,
+        linkSessionID: 0,
+        nullifierSessionID: 0,
         proofType: 1,
         verifierID: 0,
-        verifierSessionID: 0,
         authEnabled: test.authEnabled
       };
 

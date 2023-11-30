@@ -47,11 +47,10 @@
                 "circuitIds": 'string[]',
                 "skipClaimRevocationCheck": 'bool',
                 "claimPathNotExists": 'uint256',
-                "linkID": 'uint256',
-                "nullifier": 'uint256',
+                "linkSessionID": 'uint256',
+                "nullifierSessionID": 'uint256',
                 "proofType": 'uint256',
                 "verifierID": 'uint256',
-                "verifierSessionID": 'uint256',
                 "authEnabled": 'uint256'
             }
         },
@@ -66,11 +65,10 @@
             "circuitIds": query.circuitIds,
             "skipClaimRevocationCheck": query.skipClaimRevocationCheck,
             "claimPathNotExists": query.claimPathNotExists,
-            "linkID": query.linkID,
-            "nullifier": query.nullifier,
+            "linkSessionID": query.linkSessionID,
+            "nullifierSessionID": query.nullifierSessionID,
             "proofType": query.proofType,
             "verifierID": query.verifierID,
-            "verifierSessionID": query.verifierSessionID,
             "authEnabled": query.authEnabled
         }
     );
