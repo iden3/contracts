@@ -169,8 +169,8 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         );
     }
 
-    function _checkNullify(uint256 nullifier, uint256 queryNullifierSessionID) internal pure {
-        require(queryNullifierSessionID == 0 || nullifier != 0, "Invalid nullify pub signal");
+    function _checkNullify(uint256 nullifier, uint256 nullifierSessionID) internal pure {
+        require(nullifierSessionID == 0 || nullifier != 0, "Invalid nullify pub signal");
     }
 
     function _checkAuthEnabled(
