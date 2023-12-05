@@ -122,7 +122,9 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         // TODO: add support for query to specific userID and then verifying it
 
         _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
-        _checkGistRoot(signals.gistRoot);
+        if (credAtomicQuery.authEnabled == 1) {
+            _checkGistRoot(signals.gistRoot);
+        }
         _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
         _checkClaimIssuanceState(signals.issuerID, signals.issuerState);
         _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
