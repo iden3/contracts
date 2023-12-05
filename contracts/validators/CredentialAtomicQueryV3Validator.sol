@@ -181,8 +181,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         require(pubSignalAuthEnabled == queryAuthEnabled, "Auth enabled should match the query");
 
         require(
-            pubSignalAuthEnabled == 1 ||
-                PrimitiveTypeUtils.int256ToAddress(challenge) == tx.origin,
+            pubSignalAuthEnabled == 1 || PrimitiveTypeUtils.int256ToAddress(challenge) == tx.origin,
             "Address in challenge is not a sender address"
         );
     }
