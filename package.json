@@ -62,7 +62,9 @@
   "scripts": {
     "node:local": "hardhat node",
     "compile": "npx hardhat compile",
+    "clean": "npx hardhat clean",
     "test": "npx hardhat test",
+    "test:NewPoseidon": "REPORT_GAS=true npx hardhat test ./test/poseidon/poseidon.test.ts",
     "test:gas": "REPORT_GAS=true npx hardhat test",
     "test:coverage": "npx hardhat coverage",
     "deploy:localhost": "npx hardhat run scripts/deploy.ts --network localhost",

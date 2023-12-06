@@ -34,6 +34,10 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
+    hardhat: {
+      blockGasLimit: 100000000,
+      allowUnlimitedContractSize: true,
+    },
     // main: {
     //   chainId: 137,
     //   url: `${process.env.MAIN_RPC_URL}`,
