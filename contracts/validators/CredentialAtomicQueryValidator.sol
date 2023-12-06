@@ -7,6 +7,7 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
 import {PoseidonFacade} from "../lib/Poseidon.sol";
+import {console} from "hardhat/console.sol";
 
 abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuitValidator {
     struct CredentialAtomicQuery {
@@ -97,7 +98,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         return _supportedCircuitIds;
     }
 
-    function inputIndexOf(string memory name) external view virtual returns (uint256) {
+    function inputIndexOf(string memory name) public view virtual returns (uint256) {
         uint256 index = _inputNameToIndex[name];
         require(index != 0, "Input name not found");
         return --index; // we save 1-based index, but return 0-based
@@ -117,6 +118,12 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
             credAtomicQuery.circuitIds.length == 1 && verifier != IVerifier(address(0)),
             "Invalid circuit ID"
         );
+
+        // TODO move it to the validator without auth (off-chain validator) once we have it
+        uint256 calcId = GenesisUtils.calcIdFromEthAddress(state.getDefaultIdType(), _extractSenderFromCalldata());
+        console.log("_extractSenderFromCalldata", _extractSenderFromCalldata());
+        console.log("calcId", calcId);
+        require(calcId == inputIndexOf("userID"), "User ID is wrong for Ethereum-based identity");
 
         // verify that zkp is valid
         require(verifier.verify(a, b, c, inputs), "Proof is not valid");
@@ -246,5 +253,17 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
 
     function _setInputToIndex(string memory inputName, uint256 index) internal {
         _inputNameToIndex[inputName] = ++index; // increment index to avoid 0
+    }
+
+    function _extractSenderFromCalldata() internal view returns (address sender) {
+        if (msg.data.length >= 20) {  //TODO define the exact length
+            // The assembly code is more direct than the Solidity version using `abi.decode`.
+            /// @solidity memory-safe-assembly
+            assembly {
+                sender := shr(96, calldataload(sub(calldatasize(), 20)))
+            }
+        } else {
+            revert("msg.data.length is less than 20"); //TODO other error message
+        }
     }
 }

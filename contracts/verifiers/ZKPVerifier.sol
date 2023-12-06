@@ -44,6 +44,17 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256[2][2] calldata b,
         uint256[2] calldata c
     ) public override {
+
+        // 1. tx origin  BAD IDEA!
+        // 2 msg.sender in argument BAD IDEA!
+        // 3. preprocessInputs() at ZKPVerifier level BAD IDEA!
+        // 4. validator.preprocessInputs(inputs, msg.sender) at Validator level
+        // 5. msg.sender in calldata serialized with assembly MOST PROMISING IDEA !
+
+//        Linked proof
+        // 1. Ordered approach
+        // 2. Arbitrary order approach
+
         require(
             _requests[requestId].validator != ICircuitValidator(address(0)),
             "validator is not set for this request id"
@@ -51,7 +62,10 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
 
         _beforeProofSubmit(requestId, inputs, _requests[requestId].validator);
 
-        _requests[requestId].validator.verify(inputs, a, b, c, _requests[requestId].data);
+        bytes4 selector = _requests[requestId].validator.verify.selector;
+        bytes memory data = abi.encodePacked(selector, abi.encode(inputs, a, b, c, _requests[requestId].data), msg.sender);
+        (bool success, bytes memory returnData) = address(_requests[requestId].validator).call(data);
+        require(success, "Failed to verify proof"); // TODO figure out if can re-throw error from validator
 
         proofs[msg.sender][requestId] = true; // user provided a valid proof for request
 
