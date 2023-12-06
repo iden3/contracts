@@ -14,34 +14,31 @@ const testCases: any[] = [
     errorMessage: "Address in challenge is not a sender address",
     authEnabled: 0
   },
-  // {
-  //   name: "Non merklized MTPProof (AuthEnabled=0)",
-  //   stateTransitions: [
-  //     require("../common-data/issuer_genesis_state.json"),
-  //   ],
-  //   proofJson: require("./data/non-merk-mtp-proof-no-auth.json"),
-  //   setProofExpiration: tenYears,
-  //   errorMessage: "Address in challenge is not a sender address",
-  //   authEnabled: 0
-  // },
-  //  {
-  //   name: "Non merklized SigProof (AuthEnabled=1)",
-  //   stateTransitions: [
-  //     require("../common-data/issuer_genesis_state.json"),
-  //   ],
-  //   proofJson: require("./data/non-merk-sig-proof-auth.json"),
-  //   setProofExpiration: tenYears,
-  //   authEnabled: 1
-  // },
-  //  {
-  //   name: "Non merklized MTPProof (AuthEnabled=1)",
-  //   stateTransitions: [
-  //     require("../common-data/issuer_genesis_state.json"),
-  //   ],
-  //   proofJson: require("./data/non-merk-mtp-proof-auth.json"),
-  //   setProofExpiration: tenYears,
-  //   authEnabled: 1
-  // }
+  {
+    name: "Non merklized MTPProof (AuthEnabled=0)",
+    proofJson: require("./data/non-merk-mtp-proof-no-auth.json"),
+    stateTransitions: [],
+    setProofExpiration: tenYears,
+    errorMessage: "Address in challenge is not a sender address",
+    authEnabled: 0,
+    skipValidation: true
+  },
+   {
+    name: "Non merklized SigProof (AuthEnabled=1)",
+    proofJson: require("./data/non-merk-sig-proof-auth.json"),
+    stateTransitions: [],
+    setProofExpiration: tenYears,
+    authEnabled: 1,
+    skipValidation: true
+  },
+   {
+    name: "Non merklized MTPProof (AuthEnabled=1)",
+    proofJson: require("./data/non-merk-mtp-proof-auth.json"),
+    stateTransitions: [],
+    setProofExpiration: tenYears,
+    authEnabled: 1,
+    skipValidation: true
+  }
 ];
 
 function delay(ms: number) {
@@ -49,7 +46,7 @@ function delay(ms: number) {
 }
 
 describe("Atomic V3 Validator", function () {
-  let state: any, v3: any;
+  let state: any, v3: any, verifierWrapper: any;
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize(null, true);
@@ -60,9 +57,13 @@ describe("Atomic V3 Validator", function () {
     );
     state = contracts.state;
     v3 = contracts.validator;
+    verifierWrapper = contracts.verifierWrapper;
   });
 
   for (const test of testCases) {
+    if (test.skipValidation) {
+      continue;
+    }
     it(test.name, async function () {
       this.timeout(50000);
       for (let i = 0; i < test.stateTransitions.length; i++) {
@@ -130,5 +131,13 @@ describe("Atomic V3 Validator", function () {
   it ('check inputIndexOf', async () => {
     const challengeIndx = await v3.inputIndexOf('challenge');
     expect(challengeIndx).to.be.equal(9);
+  });
+
+  it('check verifier wrapper', async () => {
+     for (const test of testCases) {
+      const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
+      const valid = await verifierWrapper.verify(pi_a, pi_b, pi_c, inputs);
+      expect(valid).to.be.equal(true);
+    }
   });
 });
