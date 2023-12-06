@@ -143,7 +143,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         if (v3PugSignals.authEnabled == 1) {
             _checkGistRoot(signals.gistRoot);
         } else {
-            _checkChallengeAddress(signals.challenge);
+            _checkAuth(signals.challenge);
         }
     }
 
@@ -176,7 +176,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         require(nullifierSessionID == 0 || nullifier != 0, "Invalid nullify pub signal");
     }
 
-    function _checkChallengeAddress(uint256 challenge) internal view {
+    function _checkAuth(uint256 challenge) internal view {
         require(
             PrimitiveTypeUtils.int256ToAddress(challenge) == tx.origin,
             "Address in challenge is not a sender address"
