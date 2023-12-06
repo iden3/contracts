@@ -50,8 +50,7 @@
                 "linkSessionID": 'uint256',
                 "nullifierSessionID": 'uint256',
                 "proofType": 'uint256',
-                "verifierID": 'uint256',
-                "authEnabled": 'uint256'
+                "verifierID": 'uint256'
             }
         },
         {
@@ -68,8 +67,7 @@
             "linkSessionID": query.linkSessionID,
             "nullifierSessionID": query.nullifierSessionID,
             "proofType": query.proofType,
-            "verifierID": query.verifierID,
-            "authEnabled": query.authEnabled
+            "verifierID": query.verifierID
         }
     );
  }

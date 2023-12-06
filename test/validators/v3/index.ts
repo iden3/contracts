@@ -102,8 +102,7 @@ describe("Atomic V3 Validator", function () {
         linkSessionID: 0,
         nullifierSessionID: 0,
         proofType: 1,
-        verifierID: 0,
-        authEnabled: test.authEnabled
+        verifierID: 0
       };
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);

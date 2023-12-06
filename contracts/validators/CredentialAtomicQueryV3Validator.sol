@@ -25,7 +25,6 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         uint256 nullifierSessionID;
         uint256 proofType;
         uint256 verifierID;
-        uint256 authEnabled;
     }
 
     struct V3PugSignals {
@@ -122,9 +121,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         // TODO: add support for query to specific userID and then verifying it
 
         _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
-        if (credAtomicQuery.authEnabled == 1) {
-            _checkGistRoot(signals.gistRoot);
-        }
+        
         _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
         _checkClaimIssuanceState(signals.issuerID, signals.issuerState);
         _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
@@ -143,7 +140,10 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         _checkLinkID(credAtomicQuery.linkSessionID, v3PugSignals.linkID);
         _checkProofType(credAtomicQuery.proofType, v3PugSignals.proofType);
         _checkNullify(v3PugSignals.nullifier, credAtomicQuery.nullifierSessionID);
-        _checkAuthEnabled(v3PugSignals.authEnabled, credAtomicQuery.authEnabled, signals.challenge);
+        if (v3PugSignals.authEnabled == 1) {
+            _checkGistRoot(signals.gistRoot);
+        }
+        _checkAuthEnabled(v3PugSignals.authEnabled, signals.challenge);
     }
 
     function _checkVerifierID(uint256 queryVerifierID, uint256 pubSignalVerifierID) internal pure {
@@ -176,14 +176,11 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
     }
 
     function _checkAuthEnabled(
-        uint256 pubSignalAuthEnabled,
-        uint256 queryAuthEnabled,
+        uint256 authEnabled,
         uint256 challenge
     ) internal view {
-        require(pubSignalAuthEnabled == queryAuthEnabled, "Auth enabled should match the query");
-
         require(
-            pubSignalAuthEnabled == 1 || PrimitiveTypeUtils.int256ToAddress(challenge) == tx.origin,
+            authEnabled == 1 || PrimitiveTypeUtils.int256ToAddress(challenge) == tx.origin,
             "Address in challenge is not a sender address"
         );
     }
