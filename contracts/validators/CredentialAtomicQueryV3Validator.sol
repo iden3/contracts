@@ -121,7 +121,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         // TODO: add support for query to specific userID and then verifying it
 
         _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
-        
+
         _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
         _checkClaimIssuanceState(signals.issuerID, signals.issuerState);
         _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
@@ -142,8 +142,9 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         _checkNullify(v3PugSignals.nullifier, credAtomicQuery.nullifierSessionID);
         if (v3PugSignals.authEnabled == 1) {
             _checkGistRoot(signals.gistRoot);
+        } else {
+            _checkChallengeAddress(signals.challenge);
         }
-        _checkAuthEnabled(v3PugSignals.authEnabled, signals.challenge);
     }
 
     function _checkVerifierID(uint256 queryVerifierID, uint256 pubSignalVerifierID) internal pure {
@@ -175,12 +176,9 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         require(nullifierSessionID == 0 || nullifier != 0, "Invalid nullify pub signal");
     }
 
-    function _checkAuthEnabled(
-        uint256 authEnabled,
-        uint256 challenge
-    ) internal view {
+    function _checkChallengeAddress(uint256 challenge) internal view {
         require(
-            authEnabled == 1 || PrimitiveTypeUtils.int256ToAddress(challenge) == tx.origin,
+            PrimitiveTypeUtils.int256ToAddress(challenge) == tx.origin,
             "Address in challenge is not a sender address"
         );
     }
