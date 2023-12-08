@@ -21,7 +21,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         bool skipClaimRevocationCheck;
         // 0 for inclusion in merklized credentials, 1 for non-inclusion and for non-merklized credentials
         uint256 claimPathNotExists;
-        uint256 linkSessionID;
+        uint256 groupID;
         uint256 nullifierSessionID;
         uint256 proofType;
         uint256 verifierID;
@@ -137,7 +137,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
             credAtomicQuery.nullifierSessionID,
             v3PugSignals.nullifierSessionID
         );
-        _checkLinkID(credAtomicQuery.linkSessionID, v3PugSignals.linkID);
+        _checkLinkID(credAtomicQuery.groupID, v3PugSignals.linkID);
         _checkProofType(credAtomicQuery.proofType, v3PugSignals.proofType);
         _checkNullify(v3PugSignals.nullifier, credAtomicQuery.nullifierSessionID);
         if (v3PugSignals.authEnabled == 1) {
@@ -161,8 +161,11 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         );
     }
 
-    function _checkLinkID(uint256 linkSessionID, uint256 linkID) internal pure {
-        require(linkSessionID == 0 || linkID != 0, "Invalid Link ID pub signal");
+    function _checkLinkID(uint256 groupID, uint256 linkID) internal pure {
+        require(
+            (groupID == 0 && linkID == 0) || (groupID != 0 && linkID != 0),
+            "Invalid Link ID pub signal"
+        );
     }
 
     function _checkProofType(uint256 queryProofType, uint256 pubSignalProofType) internal pure {
