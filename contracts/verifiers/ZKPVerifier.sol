@@ -44,17 +44,6 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256[2][2] calldata b,
         uint256[2] calldata c
     ) public override {
-
-        // 1. tx origin  BAD IDEA!
-        // 2 msg.sender in argument BAD IDEA!
-        // 3. preprocessInputs() at ZKPVerifier level BAD IDEA!
-        // 4. validator.preprocessInputs(inputs, msg.sender) at Validator level
-        // 5. msg.sender in calldata serialized with assembly MOST PROMISING IDEA !
-
-//        Linked proof
-        // 1. Ordered approach
-        // 2. Arbitrary order approach
-
         require(
             _requests[requestId].validator != ICircuitValidator(address(0)),
             "validator is not set for this request id"
@@ -62,14 +51,44 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
 
         _beforeProofSubmit(requestId, inputs, _requests[requestId].validator);
 
-        bytes4 selector = _requests[requestId].validator.verify.selector;
-        bytes memory data = abi.encodePacked(selector, abi.encode(inputs, a, b, c, _requests[requestId].data), msg.sender);
-        (bool success, bytes memory returnData) = address(_requests[requestId].validator).call(data);
-        require(success, "Failed to verify proof"); // TODO figure out if can re-throw error from validator
+        _callVerifyWithSender(
+            requestId,
+            inputs,
+            a,
+            b,
+            c,
+            msg.sender
+        );
 
         proofs[msg.sender][requestId] = true; // user provided a valid proof for request
 
         _afterProofSubmit(requestId, inputs, _requests[requestId].validator);
+    }
+
+    function _callVerifyWithSender(
+        uint64 requestId,
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
+        address sender
+    ) internal returns (bool) {
+        ZKPRequest memory request = _requests[requestId];
+        bytes4 selector = request.validator.verify.selector;
+        bytes memory data = abi.encodePacked(selector, abi.encode(inputs, a, b, c, request.data), sender);
+        (bool success, bytes memory returnData) = address(request.validator).call(data);
+        if (!success) {
+            if (returnData.length > 0) {
+                // Extract revert reason from returnData
+                assembly {
+                    let returnDataSize := mload(returnData)
+                    revert(add(32, returnData), returnDataSize)
+                }
+            } else {
+                revert("Failed to verify proof without revert reason");
+            }
+        }
+        return success;
     }
 
     function getZKPRequest(
