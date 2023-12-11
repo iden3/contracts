@@ -21,11 +21,10 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         bool skipClaimRevocationCheck;
         // 0 for inclusion in merklized credentials, 1 for non-inclusion and for non-merklized credentials
         uint256 claimPathNotExists;
-        uint256 linkSessionID;
+        uint256 groupID;
         uint256 nullifierSessionID;
         uint256 proofType;
         uint256 verifierID;
-        uint256 authEnabled;
     }
 
     struct V3PugSignals {
@@ -122,7 +121,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         // TODO: add support for query to specific userID and then verifying it
 
         _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
-        _checkGistRoot(signals.gistRoot);
+
         _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
         _checkClaimIssuanceState(signals.issuerID, signals.issuerState);
         _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
@@ -138,10 +137,14 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
             credAtomicQuery.nullifierSessionID,
             v3PugSignals.nullifierSessionID
         );
-        _checkLinkID(credAtomicQuery.linkSessionID, v3PugSignals.linkID);
+        _checkLinkID(credAtomicQuery.groupID, v3PugSignals.linkID);
         _checkProofType(credAtomicQuery.proofType, v3PugSignals.proofType);
         _checkNullify(v3PugSignals.nullifier, credAtomicQuery.nullifierSessionID);
-        _checkAuthEnabled(v3PugSignals.authEnabled, credAtomicQuery.authEnabled, signals.challenge);
+        if (v3PugSignals.authEnabled == 1) {
+            _checkGistRoot(signals.gistRoot);
+        } else {
+            _checkAuth(signals.challenge);
+        }
     }
 
     function _checkVerifierID(uint256 queryVerifierID, uint256 pubSignalVerifierID) internal pure {
@@ -158,8 +161,11 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         );
     }
 
-    function _checkLinkID(uint256 linkSessionID, uint256 linkID) internal pure {
-        require(linkSessionID == 0 || linkID != 0, "Invalid Link ID pub signal");
+    function _checkLinkID(uint256 groupID, uint256 linkID) internal pure {
+        require(
+            (groupID == 0 && linkID == 0) || (groupID != 0 && linkID != 0),
+            "Invalid Link ID pub signal"
+        );
     }
 
     function _checkProofType(uint256 queryProofType, uint256 pubSignalProofType) internal pure {
@@ -173,16 +179,9 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         require(nullifierSessionID == 0 || nullifier != 0, "Invalid nullify pub signal");
     }
 
-    function _checkAuthEnabled(
-        uint256 pubSignalAuthEnabled,
-        uint256 queryAuthEnabled,
-        uint256 challenge
-    ) internal view {
-        require(pubSignalAuthEnabled == queryAuthEnabled, "Auth enabled should match the query");
-
+    function _checkAuth(uint256 challenge) internal view {
         require(
-            pubSignalAuthEnabled == 1 ||
-                PrimitiveTypeUtils.int256ToAddress(challenge) == msg.sender,
+            PrimitiveTypeUtils.int256ToAddress(challenge) == tx.origin,
             "Address in challenge is not a sender address"
         );
     }
