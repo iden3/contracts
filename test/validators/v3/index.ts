@@ -48,24 +48,23 @@ const testCases: any[] = [
       require("../common-data/user_from_first_state_to_second_transition_v3"),
     ],
     stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
-    proofJson:  require("./data/valid_bjj_user_second_issuer_first_v3"),
+    proofJson: require("./data/valid_bjj_user_second_issuer_first_v3"),
     setRevStateExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
     errorMessage: "Non-Revocation state of Issuer expired",
     setProofExpiration: tenYears,
   },
   {
     name: "GIST root expired, Issuer revocation state is not expired",
-
     stateTransitions: [
       require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
       require("../common-data/user_from_genesis_state_to_first_transition_v3"),
-      require("../common-data/issuer_from_first_state_to_second_transition_v3"),
       require("../common-data/user_from_first_state_to_second_transition_v3"),
+      require("../common-data/issuer_from_first_state_to_second_transition_v3"),
     ],
-    proofJson:  require("./data/valid_bjj_user_first_issuer_second_v3"),
+    proofJson: require("./data/valid_bjj_user_first_v3"),
 
     stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
-    setGISTRootExpiration: 2, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
+    setGISTRootExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
     errorMessage: "Gist root is expired",
     setProofExpiration: tenYears,
   },
