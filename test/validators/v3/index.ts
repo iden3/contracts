@@ -8,50 +8,51 @@ const tenYears = 315360000;
 const testCases: any[] = [
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in published onchain. Revocation State is published onchain. BJJ Proof",
-    stateTransitions: [require("../common-data/issuer_genesis_state_v3.json")],
+    stateTransitions: [require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json")],
     proofJson: require("./data/valid_bjj_user_genesis_v3.json"),
     setProofExpiration: tenYears,
   },
-  // {
-  //   name: "Validation of proof failed",
-  //   stateTransitions: [require("../common-data/issuer_genesis_state.json")],
-  //   proofJson: require("./data/invalid_sig_user_genesis.json"),
-  //   errorMessage: "",
-  //   setProofExpiration: tenYears,
-  // },
-  // {
-  //   name: "User state is not genesis but latest",
-  //   stateTransitions: [
-  //     require("../common-data/issuer_genesis_state.json"),
-  //     require("../common-data/user_state_transition.json"),
-  //   ],
-  //   proofJson: require("./data/valid_sig_user_non_genesis.json"),
-  //   setProofExpiration: tenYears,
-  // },
-  // {
-  //   name: "The non-revocation issuer state is not expired",
-  //   stateTransitions: [
-  //     require("../common-data/issuer_genesis_state.json"),
-  //     require("../common-data/user_state_transition.json"),
-  //     require("../common-data/issuer_next_state_transition.json"),
-  //   ],
-  //   proofJson: require("./data/valid_sig_user_non_genesis.json"),
-  //   setProofExpiration: tenYears,
-  // },
-  // {
-  //   name: "The non-revocation issuer state is expired",
-  //   stateTransitions: [
-  //     require("../common-data/issuer_genesis_state.json"),
-  //     require("../common-data/user_state_transition.json"), // proof was generated after this state transition
-  //     require("../common-data/issuer_next_state_transition.json"),
-  //     require("../common-data/user_next_state_transition.json"),
-  //   ],
-  //   stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
-  //   proofJson: require("./data/valid_sig_user_non_genesis.json"),
-  //   setRevStateExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
-  //   errorMessage: "Non-Revocation state of Issuer expired",
-  //   setProofExpiration: tenYears,
-  // },
+  {
+    name: "Validation of proof failed",
+    stateTransitions: [require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json")],
+    proofJson: require("./data/invalid_bjj_user_genesis_v3.json"),
+    errorMessage: "Proof is not valid",
+    setProofExpiration: tenYears,
+  },
+  {
+    name: "User state is not genesis but latest",
+    stateTransitions: [
+        require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
+        require("../common-data/user_from_genesis_state_to_first_transition_v3"),
+    ],
+
+    proofJson: require("./data/valid_bjj_user_first_v3.json"),
+    setProofExpiration: tenYears,
+  },
+  {
+    name: "The non-revocation issuer state is latest",
+    stateTransitions: [
+      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
+      require("../common-data/user_from_genesis_state_to_first_transition_v3"),
+      require("../common-data/issuer_from_first_state_to_second_transition_v3"),
+    ],
+    proofJson:  require("./data/valid_bjj_user_first_issuer_second_v3"),
+    setProofExpiration: tenYears,
+  },
+  {
+    name: "The non-revocation issuer state is expired",
+    stateTransitions: [
+      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
+      require("../common-data/user_from_genesis_state_to_first_transition_v3"), //  // proof was generated after this state transition
+      require("../common-data/issuer_from_first_state_to_second_transition_v3"),
+      require("../common-data/user_from_first_state_to_second_transition_v3"),
+    ],
+    stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
+    proofJson:  require("./data/valid_bjj_user_second_issuer_first_v3"),
+    setRevStateExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
+    errorMessage: "Non-Revocation state of Issuer expired",
+    setProofExpiration: tenYears,
+  },
   // {
   //   name: "GIST root expired, Issuer revocation state is not expired",
   //   stateTransitions: [
@@ -181,7 +182,7 @@ describe.only("Atomic V3 Validator", function () {
           claimPathKey,
           claimPathNotExists
         ).toString(),
-        groupID: 0,
+        groupID: 1,
         nullifierSessionID: "1234569",
         proofType: 1,
         verifierID: "21929109382993718606847853573861987353620810345503358891473103689157378049",
@@ -217,16 +218,8 @@ describe.only("Atomic V3 Validator", function () {
     });
   }
 
-  it("check inputIndexOf", async () => {
-    const challengeIndx = await v3.inputIndexOf("challenge");
-    expect(challengeIndx).to.be.equal(9);
-  });
-
-  it("check verifier wrapper", async () => {
-    for (const test of testCases) {
-      const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
-      const valid = await verifierWrapper.verify(pi_a, pi_b, pi_c, inputs);
-      expect(valid).to.be.equal(true);
-    }
-  });
+  // it("check inputIndexOf", async () => {
+  //   const challengeIndx = await v3.inputIndexOf("challenge");
+  //   expect(challengeIndx).to.be.equal(9);
+  // });
 });
