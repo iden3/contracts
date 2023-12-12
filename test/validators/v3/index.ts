@@ -238,7 +238,7 @@ function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-describe.only("Atomic V3 Validator", function () {
+describe("Atomic V3 Validator", function () {
   let state: any, v3: any, verifierWrapper: any;
 
   beforeEach(async () => {
