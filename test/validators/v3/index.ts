@@ -223,13 +223,22 @@ const testCases: any[] = [
     authEnabled: 0,
     isMtpProof: true
   },
+  // Issuer Genesis State 
+  {
+    name: "Validate First User State, Issuer Genesis. BJJ Proof",
+    stateTransitions: [
+      require("../common-data/user_from_genesis_state_to_first_transition_v3.json"),
+    ],
+    proofJson: require("./data/valid_bjj_user_first_issuer_genesis_v3.json"),
+    setProofExpiration: tenYears,
+  },
 ];
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-describe("Atomic V3 Validator", function () {
+describe.only("Atomic V3 Validator", function () {
   let state: any, v3: any, verifierWrapper: any;
 
   beforeEach(async () => {
