@@ -100,7 +100,6 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3.json"),
     setProofExpiration: tenYears,
-    // errorMessage: "Address in challenge is not a sender address",
     authEnabled: 0,
   },
   // MTP Proofs
@@ -202,13 +201,35 @@ const testCases: any[] = [
     authEnabled: 0,
     isMtpProof: true
   },
+  // Auth Disabled invalid challenge
+  {
+    name: "Valid BJJ genesis proof with AuthEnabled=0 (not sender eth address in challenge)",
+    stateTransitions: [
+      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
+    ],
+    proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_invalid_challenge_v3.json"),
+    setProofExpiration: tenYears,
+    errorMessage: "Address in challenge is not a sender address",
+    authEnabled: 0,
+  },
+  {
+    name: "Valid MTP genesis proof with AuthEnabled=0 (not sender eth address in challenge)",
+    stateTransitions: [
+      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
+    ],
+    proofJson: require("./data/valid_mtp_user_genesis_auth_disabled_invalid_challenge_v3.json"),
+    setProofExpiration: tenYears,
+    errorMessage: "Address in challenge is not a sender address",
+    authEnabled: 0,
+    isMtpProof: true
+  },
 ];
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-describe.only("Atomic V3 Validator", function () {
+describe("Atomic V3 Validator", function () {
   let state: any, v3: any, verifierWrapper: any;
 
   beforeEach(async () => {
