@@ -16,7 +16,7 @@ const testCases: any[] = [
     setProofExpiration: tenYears,
   },
   {
-    name: "Validation of proof failed",
+    name: "Validation of Sig proof failed",
     stateTransitions: [
       require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
     ],
@@ -103,15 +103,105 @@ const testCases: any[] = [
     // errorMessage: "Address in challenge is not a sender address",
     authEnabled: 0,
   },
-  // {
-  //   name: "Non merklized MTPProof (AuthEnabled=0)",
-  //   proofJson: require("./data/non-merk-mtp-proof-no-auth.json"),
-  //   stateTransitions: [],
-  //   setProofExpiration: tenYears,
-  //   errorMessage: "Address in challenge is not a sender address",
-  //   authEnabled: 0,
-  //   skipValidation: true
-  // },
+  // MTP Proofs
+   {
+    name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain. MTP Proof.",
+    stateTransitions: [require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json")],
+    proofJson: require("./data/valid_mtp_user_genesis_v3.json"),
+    setProofExpiration: tenYears,
+    isMtpProof: true,
+  },
+  {
+    name: "Validation of MTP proof failed",
+    stateTransitions: [require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json")],
+    proofJson: require("./data/invalid_mtp_user_genesis_v3.json"),
+    errorMessage: "Proof is not valid",
+    setProofExpiration: tenYears,
+    isMtpProof: true
+  },
+  {
+    name: "User state is not genesis but latest. MTP Proof.",
+    stateTransitions: [
+      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
+      require("../common-data/user_from_genesis_state_to_first_transition_v3"),
+    ],
+    proofJson: require("./data/valid_mtp_user_first_v3.json"),
+    setProofExpiration: tenYears,
+    isMtpProof: true
+  },
+  {
+    name: "The non-revocation issuer state is not expired. MTP Proof.",
+    stateTransitions: [
+      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
+      require("../common-data/user_from_genesis_state_to_first_transition_v3"), //  // proof was generated after this state transition
+      require("../common-data/issuer_from_first_state_to_second_transition_v3"),
+    ],
+    proofJson: require("./data/valid_mtp_user_first_issuer_second_v3.json"),
+    setProofExpiration: tenYears,
+    isMtpProof: true
+  },
+  {
+    name: "The non-revocation issuer state is expired. MTP Proof.",
+    stateTransitions: [
+      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
+      require("../common-data/user_from_genesis_state_to_first_transition_v3"), //  // proof was generated after this state transition
+      require("../common-data/issuer_from_first_state_to_second_transition_v3"),
+      require("../common-data/user_from_first_state_to_second_transition_v3"),
+    ],
+    stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
+    proofJson: require("./data/valid_mtp_user_second_issuer_first_v3.json"),
+    setRevStateExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
+    errorMessage: "Non-Revocation state of Issuer expired",
+    setProofExpiration: tenYears,
+    isMtpProof: true
+  },
+  {
+    name: "GIST root expired, Issuer revocation state is not expired. MTP Proof.",
+     stateTransitions: [
+      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
+      require("../common-data/user_from_genesis_state_to_first_transition_v3"), // proof was generated after this state transition
+      require("../common-data/issuer_from_first_state_to_second_transition_v3"),
+      require("../common-data/user_from_first_state_to_second_transition_v3"),
+    ],
+    proofJson: require("./data/valid_mtp_user_first_v3"),
+    stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
+    setGISTRootExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
+    errorMessage: "Gist root is expired",
+    setProofExpiration: tenYears,
+    isMtpProof: true
+  },
+  {
+    name: "The generated proof is expired. MTP Proof.",
+    stateTransitions: [
+      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
+      require("../common-data/user_from_genesis_state_to_first_transition_v3.json"),
+      require("../common-data/issuer_from_first_state_to_second_transition_v3.json"),
+    ],
+    proofJson: require("./data/valid_mtp_user_first_v3.json"),
+    errorMessage: "Generated proof is outdated",
+    isMtpProof: true
+  },
+  {
+    name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain. MTP Proof.",
+   stateTransitions: [
+      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
+    ],
+    proofJson: require("./data/valid_mtp_user_genesis_v3.json"),
+    setProofExpiration: tenYears,
+    allowedIssuers: [ethers.BigNumber.from(123)],
+    errorMessage: 'Issuer is not on the Allowed Issuers list',
+    isMtpProof: true
+  },
+  {
+    name: "Valid MTP genesis proof with AuthEnabled=0 (eth address in challenge)",
+    stateTransitions: [
+      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
+    ],
+    proofJson: require("./data/valid_mtp_user_genesis_auth_disabled_v3.json"),
+    setProofExpiration: tenYears,
+    authEnabled: 0,
+    isMtpProof: true
+  },
 ];
 
 function delay(ms: number) {
@@ -134,9 +224,6 @@ describe.only("Atomic V3 Validator", function () {
   });
 
   for (const test of testCases) {
-    if (test.skipValidation) {
-      continue;
-    }
     it(test.name, async function () {
       this.timeout(50000);
       for (let i = 0; i < test.stateTransitions.length; i++) {
@@ -153,7 +240,7 @@ describe.only("Atomic V3 Validator", function () {
       const value = ["20010101", ...new Array(63).fill("0")];
 
       const schema = "267831521922558027206082390043321796944";
-      const slotIndex = 0;
+      const slotIndex = test.isMtpProof ? 2 : 0;
       const operator = 2;
       const claimPathKey =
         "20376033832371109177683048456014525905119173674985843915445634726167450989630";
@@ -178,7 +265,7 @@ describe.only("Atomic V3 Validator", function () {
         ).toString(),
         groupID: 1,
         nullifierSessionID: "1234569",
-        proofType: 1,
+        proofType: test.isMtpProof ? 2 : 1,
         verifierID: "21929109382993718606847853573861987353620810345503358891473103689157378049",
       };
 
@@ -212,8 +299,8 @@ describe.only("Atomic V3 Validator", function () {
     });
   }
 
-  // it("check inputIndexOf", async () => {
-  //   const challengeIndx = await v3.inputIndexOf("challenge");
-  //   expect(challengeIndx).to.be.equal(9);
-  // });
+  it("check inputIndexOf", async () => {
+    const challengeIndx = await v3.inputIndexOf("challenge");
+    expect(challengeIndx).to.be.equal(9);
+  });
 });
