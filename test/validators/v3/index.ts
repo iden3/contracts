@@ -223,7 +223,7 @@ const testCases: any[] = [
     authEnabled: 0,
     isMtpProof: true
   },
-  // Issuer Genesis State 
+  // Issuer Genesis State
   {
     name: "Validate First User State, Issuer Genesis. BJJ Proof",
     stateTransitions: [
@@ -239,7 +239,7 @@ function delay(ms: number) {
 }
 
 describe("Atomic V3 Validator", function () {
-  let state: any, v3: any, verifierWrapper: any;
+  let state: any, v3, v3testWrapper: any, verifierWrapper: any;
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize(null, true);
@@ -251,6 +251,8 @@ describe("Atomic V3 Validator", function () {
     state = contracts.state;
     v3 = contracts.validator;
     verifierWrapper = contracts.verifierWrapper;
+
+    v3testWrapper = await ethers.deployContract("ValidatorTestWrapper", [v3.address]);
   });
 
   for (const test of testCases) {
@@ -318,7 +320,7 @@ describe("Atomic V3 Validator", function () {
           v3.verify(inputs, pi_a, pi_b, pi_c, packV3ValidatorParams(query, test.allowedIssuers))
         ).to.be.reverted;
       } else {
-        await v3.verify(
+        await v3testWrapper.verify(
           inputs,
           pi_a,
           pi_b,
