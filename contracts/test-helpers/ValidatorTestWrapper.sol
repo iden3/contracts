@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+pragma solidity 0.8.16;
 
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 
@@ -19,7 +19,11 @@ contract ValidatorTestWrapper {
         bytes calldata data
     ) public returns (bool r) {
         bytes4 selector = validator.verify.selector;
-        bytes memory data = abi.encodePacked(selector, abi.encode(inputs, a, b, c, data), msg.sender);
+        bytes memory data = abi.encodePacked(
+            selector,
+            abi.encode(inputs, a, b, c, data),
+            msg.sender
+        );
         (bool success, bytes memory returnData) = address(validator).call(data);
         if (!success) {
             if (returnData.length > 0) {

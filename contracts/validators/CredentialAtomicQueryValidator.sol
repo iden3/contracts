@@ -248,7 +248,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         _inputNameToIndex[inputName] = ++index; // increment index to avoid 0
     }
 
-    function _extractSenderFromCalldata() internal virtual view returns (address sender) {
+    function _extractSenderFromCalldata() internal view virtual returns (address sender) {
         if (msg.data.length >= 20) {
             /// @solidity memory-safe-assembly
             assembly {

@@ -51,14 +51,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
 
         _beforeProofSubmit(requestId, inputs, _requests[requestId].validator);
 
-        _callVerifyWithSender(
-            requestId,
-            inputs,
-            a,
-            b,
-            c,
-            msg.sender
-        );
+        _callVerifyWithSender(requestId, inputs, a, b, c, msg.sender);
 
         proofs[msg.sender][requestId] = true; // user provided a valid proof for request
 
@@ -75,7 +68,11 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
     ) internal returns (bool) {
         ZKPRequest memory request = _requests[requestId];
         bytes4 selector = request.validator.verify.selector;
-        bytes memory data = abi.encodePacked(selector, abi.encode(inputs, a, b, c, request.data), sender);
+        bytes memory data = abi.encodePacked(
+            selector,
+            abi.encode(inputs, a, b, c, request.data),
+            sender
+        );
         (bool success, bytes memory returnData) = address(request.validator).call(data);
         if (!success) {
             if (returnData.length > 0) {
