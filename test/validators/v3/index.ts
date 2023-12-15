@@ -94,7 +94,7 @@ const testCases: any[] = [
     errorMessage: "Issuer is not on the Allowed Issuers list",
   },
   {
-    name: "Valid BJJ genesis proof with AuthEnabled=0 (eth address in challenge)",
+    name: "Valid BJJ genesis proof with AuthEnabled=0 (UserID correspond to the sender)",
     stateTransitions: [
       require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
     ],
@@ -192,7 +192,7 @@ const testCases: any[] = [
     isMtpProof: true
   },
   {
-    name: "Valid MTP genesis proof with AuthEnabled=0 (eth address in challenge)",
+    name: "Valid MTP genesis proof with AuthEnabled=0 (UserID correspond to the sender)",
     stateTransitions: [
       require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
     ],
@@ -202,27 +202,27 @@ const testCases: any[] = [
     isMtpProof: true,
   },
   // Auth Disabled invalid challenge
-  // {
-  //   name: "Valid BJJ genesis proof with AuthEnabled=0 (another id is sender)",
-  //   stateTransitions: [
-  //     require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3_wrong_id.json"),
-  //   ],
-  //   proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3_wrong_id.json"),
-  //   setProofExpiration: tenYears,
-  //   errorMessage: "",
-  //   ethereumBasedUser: true,
-  // },
-  // {
-  //   name: "Valid MTP genesis proof with AuthEnabled=0 (another id is sender)",
-  //   stateTransitions: [
-  //     require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3_wrong_id.json"),
-  //   ],
-  //   proofJson: require("./data/valid_mtp_user_genesis_auth_disabled_v3_wrong_id.json"),
-  //   setProofExpiration: tenYears,
-  //   errorMessage: "Address in challenge is not a sender address",
-  //   ethereumBasedUser: true,
-  //   isMtpProof: true
-  // },
+  {
+    name: "Valid BJJ genesis proof with AuthEnabled=0 (UserID does not correspond to the sender)",
+    stateTransitions: [
+      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3_wrong_id.json"),
+    ],
+    proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3_wrong_id.json"),
+    setProofExpiration: tenYears,
+    errorMessage: "UserID does not correspond to the sender",
+    ethereumBasedUser: true,
+  },
+  {
+    name: "Valid MTP genesis proof with AuthEnabled=0 (UserID does not correspond to the sender)",
+    stateTransitions: [
+      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3_wrong_id.json"),
+    ],
+    proofJson: require("./data/valid_mtp_user_genesis_auth_disabled_v3_wrong_id.json"),
+    setProofExpiration: tenYears,
+    errorMessage: "UserID does not correspond to the sender",
+    ethereumBasedUser: true,
+    isMtpProof: true
+  },
   // Issuer Genesis State
   {
     name: "Validate First User State, Issuer Genesis. BJJ Proof",
