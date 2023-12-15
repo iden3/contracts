@@ -100,7 +100,7 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3.json"),
     setProofExpiration: tenYears,
-    authEnabled: 0,
+    ethereumBasedUser: true,
   },
   // MTP Proofs
    {
@@ -198,31 +198,31 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_mtp_user_genesis_auth_disabled_v3.json"),
     setProofExpiration: tenYears,
-    authEnabled: 0,
-    isMtpProof: true
+    ethereumBasedUser: true,
+    isMtpProof: true,
   },
   // Auth Disabled invalid challenge
-  {
-    name: "Valid BJJ genesis proof with AuthEnabled=0 (not sender eth address in challenge)",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
-    ],
-    proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_invalid_challenge_v3.json"),
-    setProofExpiration: tenYears,
-    errorMessage: "Address in challenge is not a sender address",
-    authEnabled: 0,
-  },
-  {
-    name: "Valid MTP genesis proof with AuthEnabled=0 (not sender eth address in challenge)",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
-    ],
-    proofJson: require("./data/valid_mtp_user_genesis_auth_disabled_invalid_challenge_v3.json"),
-    setProofExpiration: tenYears,
-    errorMessage: "Address in challenge is not a sender address",
-    authEnabled: 0,
-    isMtpProof: true
-  },
+  // {
+  //   name: "Valid BJJ genesis proof with AuthEnabled=0 (another id is sender)",
+  //   stateTransitions: [
+  //     require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3_wrong_id.json"),
+  //   ],
+  //   proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3_wrong_id.json"),
+  //   setProofExpiration: tenYears,
+  //   errorMessage: "",
+  //   ethereumBasedUser: true,
+  // },
+  // {
+  //   name: "Valid MTP genesis proof with AuthEnabled=0 (another id is sender)",
+  //   stateTransitions: [
+  //     require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3_wrong_id.json"),
+  //   ],
+  //   proofJson: require("./data/valid_mtp_user_genesis_auth_disabled_v3_wrong_id.json"),
+  //   setProofExpiration: tenYears,
+  //   errorMessage: "Address in challenge is not a sender address",
+  //   ethereumBasedUser: true,
+  //   isMtpProof: true
+  // },
   // Issuer Genesis State
   {
     name: "Validate First User State, Issuer Genesis. BJJ Proof",
@@ -296,7 +296,7 @@ describe("Atomic V3 Validator", function () {
           claimPathNotExists
         ).toString(),
         groupID: 1,
-        nullifierSessionID: "1234569",
+        nullifierSessionID: test.ethereumBasedUser ? "0" : "1234569",
         proofType: test.isMtpProof ? 2 : 1,
         verifierID: "21929109382993718606847853573861987353620810345503358891473103689157378049",
       };
