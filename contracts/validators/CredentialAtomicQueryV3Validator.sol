@@ -4,6 +4,7 @@ pragma solidity 0.8.16;
 import {CredentialAtomicQueryValidator} from "./CredentialAtomicQueryValidator.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
+import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
 /**
  * @dev CredentialAtomicQueryV3 validator
@@ -131,19 +132,19 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
             credAtomicQuery.skipClaimRevocationCheck
         );
 
-        V3PugSignals memory v3PugSignals = parseV3SpecificPubSignals(inputs);
-        _checkVerifierID(credAtomicQuery.verifierID, v3PugSignals.verifierID);
+        V3PugSignals memory v3PubSignals = parseV3SpecificPubSignals(inputs);
+        _checkVerifierID(credAtomicQuery.verifierID, v3PubSignals.verifierID);
         _checkNullifierSessionID(
             credAtomicQuery.nullifierSessionID,
-            v3PugSignals.nullifierSessionID
+            v3PubSignals.nullifierSessionID
         );
-        _checkLinkID(credAtomicQuery.groupID, v3PugSignals.linkID);
-        _checkProofType(credAtomicQuery.proofType, v3PugSignals.proofType);
-        _checkNullify(v3PugSignals.nullifier, credAtomicQuery.nullifierSessionID);
-        if (v3PugSignals.authEnabled == 1) {
+        _checkLinkID(credAtomicQuery.groupID, v3PubSignals.linkID);
+        _checkProofType(credAtomicQuery.proofType, v3PubSignals.proofType);
+        _checkNullify(v3PubSignals.nullifier, credAtomicQuery.nullifierSessionID);
+        if (v3PubSignals.authEnabled == 1) {
             _checkGistRoot(signals.gistRoot);
         } else {
-            _checkAuth(signals.challenge);
+            _checkAuth(signals.userID, _extractSenderFromCalldata());
         }
     }
 
@@ -179,10 +180,10 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         require(nullifierSessionID == 0 || nullifier != 0, "Invalid nullify pub signal");
     }
 
-    function _checkAuth(uint256 challenge) internal view {
+    function _checkAuth(uint256 userID, address ethIdentityOwner) internal view {
         require(
-            PrimitiveTypeUtils.int256ToAddress(challenge) == tx.origin,
-            "Address in challenge is not a sender address"
+            userID == GenesisUtils.calcIdFromEthAddress(state.getDefaultIdType(), ethIdentityOwner),
+            "UserID does not correspond to the sender"
         );
     }
 
