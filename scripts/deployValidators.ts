@@ -16,6 +16,10 @@ async function main() {
       verifierContractWrapperName: "VerifierSigWrapper",
       validatorContractName: "CredentialAtomicQuerySigValidator",
     },
+    {
+      verifierContractWrapperName: "VerifierV3Wrapper",
+      validatorContractName: "CredentialAtomicQueryV3Validator",
+    },
   ];
   const deployHelper = await DeployHelper.initialize(null, true);
 

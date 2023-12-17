@@ -101,7 +101,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         return _supportedCircuitIds;
     }
 
-    function inputIndexOf(string memory name) external view virtual returns (uint256) {
+    function inputIndexOf(string memory name) public view virtual returns (uint256) {
         uint256 index = _inputNameToIndex[name];
         require(index != 0, "Input name not found");
         return --index; // we save 1-based index, but return 0-based
@@ -250,5 +250,16 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
 
     function _setInputToIndex(string memory inputName, uint256 index) internal {
         _inputNameToIndex[inputName] = ++index; // increment index to avoid 0
+    }
+
+    function _extractSenderFromCalldata() internal view virtual returns (address sender) {
+        if (msg.data.length >= 20) {
+            /// @solidity memory-safe-assembly
+            assembly {
+                sender := shr(96, calldataload(sub(calldatasize(), 20)))
+            }
+        } else {
+            revert("msg.data.length is less than required");
+        }
     }
 }

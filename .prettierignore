@@ -1,3 +1,4 @@
 **/lib/VerifierMTP.sol
 **/lib/VerifierSig.sol
+**/lib/VerifierV3.sol
 **/lib/VerifierStateTransition.sol
