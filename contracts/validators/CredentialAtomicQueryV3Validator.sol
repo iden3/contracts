@@ -149,7 +149,10 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
     }
 
     function _checkVerifierID(uint256 queryVerifierID, uint256 pubSignalVerifierID) internal pure {
-        require(queryVerifierID == pubSignalVerifierID, "Verifier ID should match the query");
+        require(
+            queryVerifierID == 0 || queryVerifierID == pubSignalVerifierID,
+            "Verifier ID should match the query"
+        );
     }
 
     function _checkNullifierSessionID(
