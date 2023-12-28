@@ -15,6 +15,17 @@ library PrimitiveTypeUtils {
     }
 
     /**
+     * TODO(illia-korotia): Can we consider using this code for swap endianness?
+     * function swapEndian(uint256 value) internal pure returns (uint256) {
+            uint256 swapped = 0;
+            for (uint i = 0; i < 32; i++) {
+                swapped = (swapped << 8) | ((value >> (i * 8)) & 0xFF);
+            }
+            return swapped;
+        }
+     */
+    
+    /**
      * @dev reverse uint256
      */
     function reverseUint256(uint256 input) internal pure returns (uint256 v) {
@@ -128,5 +139,28 @@ library PrimitiveTypeUtils {
      */
     function addressToUint256(address _addr) internal pure returns (uint256) {
         return uint256(uint160(_addr));
+    }
+
+    /**
+     * @dev bytesToHex returns hex representation of bytes without '0x' prefix
+     */
+    function bytesToHex(bytes memory data) internal pure returns (string memory) {
+        bytes memory hexChars = '0123456789abcdef';
+        bytes memory hexString = new bytes(data.length * 2);
+
+        for (uint i = 0; i < data.length; i++) {
+            hexString[i * 2] = hexChars[uint8(data[i] >> 4)];
+            hexString[1 + i * 2] = hexChars[uint8(data[i] & 0x0f)];
+        }
+
+        return string(hexString);
+    }
+
+    /**
+     * @dev uint256ToHex returns hex representation of uint256 without '0x' prefix
+     */
+    function uint256ToHex(uint256 value) internal pure returns (string memory) {
+        bytes memory bytesUint = uint256ToBytes(value);
+        return bytesToHex(bytesUint);
     }
 }
