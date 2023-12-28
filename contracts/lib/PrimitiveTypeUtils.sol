@@ -24,7 +24,6 @@ library PrimitiveTypeUtils {
             return swapped;
         }
      */
-    
     /**
      * @dev reverse uint256
      */
@@ -145,7 +144,7 @@ library PrimitiveTypeUtils {
      * @dev bytesToHex returns hex representation of bytes without '0x' prefix
      */
     function bytesToHex(bytes memory data) internal pure returns (string memory) {
-        bytes memory hexChars = '0123456789abcdef';
+        bytes memory hexChars = "0123456789abcdef";
         bytes memory hexString = new bytes(data.length * 2);
 
         for (uint i = 0; i < data.length; i++) {

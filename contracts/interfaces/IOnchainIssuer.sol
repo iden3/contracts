@@ -8,5 +8,6 @@ import {W3CLib} from "../lib/W3CLib.sol";
  */
 interface IOnchainIssuer {
     function getCredentials(uint256 _userId) external view returns (W3CLib.Credential[] memory);
+
     function issueCredential(uint256 _userId) external;
 }
