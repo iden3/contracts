@@ -352,6 +352,17 @@ export class DeployHelper {
     return zkpVerifier;
   }
 
+  async deployUniversalVerifier(): Promise<{
+    address: string;
+  }> {
+    const verifier = await ethers.getContractFactory(
+      "UniversalVerifier"
+    );
+    const zkpVerifier = await verifier.deploy();
+    console.log("UniversalVerifier deployed to:", zkpVerifier.address);
+    return zkpVerifier;
+  }
+
   async getDefaultIdType(): Promise<{ defaultIdType: number, chainId: number }> {
     const chainId = parseInt(await network.provider.send('eth_chainId'), 16);
     const defaultIdType = chainIdDefaultIdTypeMap.get(chainId);

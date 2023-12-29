@@ -11,6 +11,13 @@ interface IZKPVerifier {
         bytes data;
     }
 
+    struct ZKPRequestWithController {
+        string metadata;
+        ICircuitValidator validator;
+        bytes data;
+        address controller;
+    }
+
     function submitZKPResponse(
         uint64 requestId,
         uint256[] memory inputs,
