@@ -36,7 +36,7 @@ interface IW3CVerifiableCredential {
         State state;
     }
 
-    struct Proof {
+    struct IssuanceProof {
         string _type;
         uint256[8] coreClaim;
         IssuerData issuerData;
@@ -53,10 +53,14 @@ interface IW3CVerifiableCredential {
         SubjectField[] credentialSubject;
         Status credentialStatus;
         Schema credentialSchema;
-        Proof[] proof;
+        IssuanceProof[] proof;
     }
 
-    function listUserCredentials(uint256 _userId) external view returns (uint256[] memory);
+    struct Id {
+        uint256 id;
+    }
+
+    function listUserCredentials(uint256 _userId) external view returns (Id[] memory);
 
     function getCredential(
         uint256 _userId,
