@@ -15,16 +15,6 @@ library PrimitiveTypeUtils {
     }
 
     /**
-     * TODO(illia-korotia): Can we consider using this code for swap endianness?
-     * function swapEndian(uint256 value) internal pure returns (uint256) {
-            uint256 swapped = 0;
-            for (uint i = 0; i < 32; i++) {
-                swapped = (swapped << 8) | ((value >> (i * 8)) & 0xFF);
-            }
-            return swapped;
-        }
-     */
-    /**
      * @dev reverse uint256
      */
     function reverseUint256(uint256 input) internal pure returns (uint256 v) {
