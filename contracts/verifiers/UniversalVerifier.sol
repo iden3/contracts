@@ -26,7 +26,7 @@ contract UniversalVerifier is OwnableUpgradeable {
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.UniversalVerifier")) - 1)) & ~bytes32(uint256(0xff));
     bytes32 private constant UNIVERSAL_VERIFIER_STORAGE_LOCATION =
-    0x0c87ac878172a541d6ba539a4e02bbe44e1f3a504bea30ed92c32fb1517db700;
+        0x0c87ac878172a541d6ba539a4e02bbe44e1f3a504bea30ed92c32fb1517db700;
 
     /// @dev Get the main storage using assembly to ensure specific storage location
     function _getMainStorage() private pure returns (MainStorage storage $) {
@@ -48,15 +48,15 @@ contract UniversalVerifier is OwnableUpgradeable {
     }
 
     /// @dev Constructor
-    constructor(){}
+    constructor() {}
 
     /// @notice Adds a new ZKP request
     /// @param request The ZKP request data
     function addZKPRequest(IZKPVerifier.ZKPRequest calldata request) public {
         uint64 requestId = uint64(_getMainStorage().requestIds.length);
         _getMainStorage().requestIds.push(requestId);
-        IZKPVerifier.ZKPRequestWithController memory requestWithController =
-                            IZKPVerifier.ZKPRequestWithController(
+        IZKPVerifier.ZKPRequestWithController memory requestWithController = IZKPVerifier
+            .ZKPRequestWithController(
                 request.metadata,
                 request.validator,
                 request.data,
@@ -72,8 +72,8 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint64 requestId,
         IZKPVerifier.ZKPRequest calldata request
     ) public onlyController(requestId) {
-        IZKPVerifier.ZKPRequestWithController memory requestWithController =
-                            IZKPVerifier.ZKPRequestWithController(
+        IZKPVerifier.ZKPRequestWithController memory requestWithController = IZKPVerifier
+            .ZKPRequestWithController(
                 request.metadata,
                 request.validator,
                 request.data,
@@ -98,7 +98,9 @@ contract UniversalVerifier is OwnableUpgradeable {
     /// @notice Gets a specific ZKP request by ID
     /// @param requestId The ID of the ZKP request
     /// @return The ZKP request data
-    function getZKPRequest(uint64 requestId) public view returns (IZKPVerifier.ZKPRequestWithController memory) {
+    function getZKPRequest(
+        uint64 requestId
+    ) public view returns (IZKPVerifier.ZKPRequestWithController memory) {
         require(requestIdExists(requestId), "request id doesn't exist");
         return _getMainStorage().requests[requestId];
     }
@@ -118,7 +120,8 @@ contract UniversalVerifier is OwnableUpgradeable {
             REQUESTS_RETURN_LIMIT
         );
 
-        IZKPVerifier.ZKPRequestWithController[] memory result = new IZKPVerifier.ZKPRequestWithController[](end - start);
+        IZKPVerifier.ZKPRequestWithController[]
+            memory result = new IZKPVerifier.ZKPRequestWithController[](end - start);
 
         for (uint256 i = start; i < end; i++) {
             result[i - start] = _getMainStorage().requests[_getMainStorage().requestIds[i]];
@@ -174,7 +177,9 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[2] calldata c,
         address sender
     ) internal returns (bool) {
-        IZKPVerifier.ZKPRequestWithController memory request = _getMainStorage().requests[requestId];
+        IZKPVerifier.ZKPRequestWithController memory request = _getMainStorage().requests[
+            requestId
+        ];
         bytes4 selector = request.validator.verify.selector;
         bytes memory data = abi.encodePacked(
             selector,

@@ -45,7 +45,7 @@ describe("ZKP Verifier", function () {
 
   it("Test submit response (for gas estimation purpose)", async () => {
     await publishState(state, stateTransition);
-    await verifier.addZKPRequest({ metadata: "metadata", validator: sig.address, data: packValidatorParams(query), controller: signerAddress });
+    await verifier.addZKPRequest({ metadata: "metadata", validator: sig.address, data: packValidatorParams(query) });
     await sig.setProofExpirationTimeout(315360000);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
@@ -62,7 +62,7 @@ describe("ZKP Verifier", function () {
 
   it('Test query param pagination', async () => {
     for (let i = 0; i < 30; i++) {
-      await verifier.addZKPRequest({ metadata: 'metadataN' + i, validator: sig.address, data: '0x00', controller: signerAddress });
+      await verifier.addZKPRequest({ metadata: 'metadataN' + i, validator: sig.address, data: '0x00' });
     }
     let queries = await verifier.getZKPRequests(5, 10);
     expect(queries.length).to.be.equal(10);
@@ -83,7 +83,7 @@ describe("ZKP Verifier", function () {
     const requestsCount = 3;
 
     for (let i = 0; i < requestsCount; i++) {
-      await verifier.addZKPRequest({ metadata: 'metadataN' + i, validator: sig.address, data: '0x00', controller: signerAddress });
+      await verifier.addZKPRequest({ metadata: 'metadataN' + i, validator: sig.address, data: '0x00' });
       const requestIdExists = await verifier.requestIdExists(i);
       expect(requestIdExists).to.be.true;
       const requestIdDoesntExists = await verifier.requestIdExists(i + 1);
@@ -101,9 +101,9 @@ describe("ZKP Verifier", function () {
 
   it('Should update a request', async function () {
     // add
-    await verifier.addZKPRequest({ metadata: 'metadataN', validator: sig.address, data: '0x00', controller: signerAddress });
+    await verifier.addZKPRequest({ metadata: 'metadataN', validator: sig.address, data: '0x00' });
     // update
-    await verifier.setZKPRequest(0, { metadata: 'metadataN1', validator: state.address, data: '0x0101', controller: signerAddress });
+    await verifier.setZKPRequest(0, { metadata: 'metadataN1', validator: state.address, data: '0x0101' });
     // check
     expect((await verifier.getZKPRequest(0)).metadata).to.be.equal('metadataN1');
     expect((await verifier.getZKPRequest(0)).validator).to.be.equal(state.address);
