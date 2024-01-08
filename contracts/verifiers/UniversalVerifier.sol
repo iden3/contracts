@@ -47,7 +47,7 @@ contract UniversalVerifier is OwnableUpgradeable {
     event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);
 
     /// @dev Event emitted upon adding a ZKP request
-    event ZKPRequestAdded(uint64 indexed requestId, address indexed caller, string metadata);
+    event ZKPRequestAdded(uint64 indexed requestId, address indexed caller, string metadata, bytes data);
 
     /// @dev Modifier to restrict function access to the controller of a request
     modifier onlyController(uint64 requestId) {
@@ -74,7 +74,7 @@ contract UniversalVerifier is OwnableUpgradeable {
                 msg.sender
             );
         _getMainStorage().requests[requestId] = requestWithController;
-        emit ZKPRequestAdded(requestId, msg.sender, request.metadata); // TODO add data
+        emit ZKPRequestAdded(requestId, msg.sender, request.metadata, request.data);
     }
 
     /// @notice Sets a ZKP request by a controller
@@ -92,7 +92,7 @@ contract UniversalVerifier is OwnableUpgradeable {
                 msg.sender
             );
         _getMainStorage().requests[requestId] = requestWithController;
-        emit ZKPRequestAdded(requestId, msg.sender, request.metadata);
+        emit ZKPRequestAdded(requestId, msg.sender, request.metadata, request.data);
     }
 
     /// @notice Checks if a ZKP request ID exists

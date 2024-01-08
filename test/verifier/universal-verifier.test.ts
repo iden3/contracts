@@ -5,7 +5,7 @@ import { packValidatorParams } from "../utils/validator-pack-utils";
 import { prepareInputs, publishState } from "../utils/state-utils";
 
 describe("ZKP Verifier", function () {
-  let verifier: any, sig: any, state: any, signerAddress: any;
+  let verifier: any, sig: any, state: any, signerAddress: string, someAddress: string;
 
   const query = {
     schema: ethers.BigNumber.from("180410020913331409885634153623124536270"),
@@ -39,8 +39,45 @@ describe("ZKP Verifier", function () {
     sig = contracts.validator;
     state = contracts.state;
 
-    const signer = (await ethers.getSigners())[0];
+    const [signer, signer2] = await ethers.getSigners();
     signerAddress = await signer.getAddress();
+    someAddress = await signer2.getAddress();
+  });
+
+  it('Test add, set, get ZKPRequest, requestIdExists, getZKPRequestsCount', async () => {
+    const requestsCount = 3;
+
+    for (let i = 0; i < requestsCount; i++) {
+      await expect(verifier.addZKPRequest({ metadata: 'metadataN' + i, validator: sig.address, data: '0x0' + i }))
+        .to.emit(verifier, 'ZKPRequestAdded').withArgs(i, signerAddress, 'metadataN' + i, '0x0' + i);
+      let request = await verifier.getZKPRequest(i);
+      expect(request.metadata).to.be.equal('metadataN' + i);
+      expect(request.validator).to.be.equal(sig.address);
+      expect(request.data).to.be.equal('0x0' + i);
+      expect(request.controller).to.be.equal(signerAddress);
+
+      await expect(verifier.setZKPRequest(i, { metadata: 'metadataN' + i + 'updated', validator: someAddress, data: '0xff0' + i }))
+        .to.emit(verifier, 'ZKPRequestAdded').withArgs(i, signerAddress, 'metadataN' + i + 'updated', '0xff0' + i);
+
+      const requestIdExists = await verifier.requestIdExists(i);
+      expect(requestIdExists).to.be.true;
+      const requestIdDoesntExists = await verifier.requestIdExists(i + 1);
+      expect(requestIdDoesntExists).to.be.false;
+
+      request = await verifier.getZKPRequest(i);
+      expect(request.metadata).to.be.equal('metadataN' + i + 'updated');
+      expect(request.validator).to.be.equal(someAddress);
+      expect(request.data).to.be.equal('0xff0' + i);
+      expect(request.controller).to.be.equal(signerAddress);
+
+      expect(request.metadata).to.be.equal('metadataN' + i + 'updated');
+      await expect(verifier.getZKPRequest(i + 1)).to.be.revertedWith(
+        'request id doesn\'t exist'
+      );
+    }
+
+    const count = await verifier.getZKPRequestsCount();
+    expect(count).to.be.equal(requestsCount);
   });
 
   it("Test submit response", async () => {
@@ -85,38 +122,5 @@ describe("ZKP Verifier", function () {
     expect(queries[0].metadata).to.be.equal('metadataN15');
     expect(queries[1].metadata).to.be.equal('metadataN16');
     expect(queries[2].metadata).to.be.equal('metadataN17');
-  });
-
-  it('Test getZKPRequest, requestIdExists, getZKPRequestsCount', async () => {
-    const requestsCount = 3;
-
-    for (let i = 0; i < requestsCount; i++) {
-      await expect(verifier.addZKPRequest({ metadata: 'metadataN' + i, validator: sig.address, data: '0x00' }))
-        .to.emit(verifier, 'ZKPRequestAdded').withArgs(i, signerAddress, 'metadataN' + i);
-
-      const requestIdExists = await verifier.requestIdExists(i);
-      expect(requestIdExists).to.be.true;
-      const requestIdDoesntExists = await verifier.requestIdExists(i + 1);
-      expect(requestIdDoesntExists).to.be.false;
-
-      const request = await verifier.getZKPRequest(i);
-      expect(request.metadata).to.be.equal('metadataN' + i);
-      await expect(verifier.getZKPRequest(i + 1)).to.be.revertedWith(
-        'request id doesn\'t exist'
-      );
-    }
-    const count = await verifier.getZKPRequestsCount();
-    expect(count).to.be.equal(requestsCount);
-  });
-
-  it('Should update a request', async function () {
-    // add
-    await verifier.addZKPRequest({ metadata: 'metadataN', validator: sig.address, data: '0x00' });
-    // update
-    await verifier.setZKPRequest(0, { metadata: 'metadataN1', validator: state.address, data: '0x0101' });
-    // check
-    expect((await verifier.getZKPRequest(0)).metadata).to.be.equal('metadataN1');
-    expect((await verifier.getZKPRequest(0)).validator).to.be.equal(state.address);
-    expect((await verifier.getZKPRequest(0)).data).to.be.equal('0x0101');
   });
 });
