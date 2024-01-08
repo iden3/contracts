@@ -6,14 +6,22 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 
+// TODO scripts
+//1. Who requested
+//2. Who submitted
+
+// TODO Request manager sets additional contract to exec once proof is submitted
+// Note: Attestation station resolver contract as example
+
 /// @title Universal Verifier Contract
 /// @notice A contract to manage ZKP (Zero-Knowledge Proof) requests and proofs.
 contract UniversalVerifier is OwnableUpgradeable {
     /// @dev Struct to store ZKP proof and associated data
     struct Proof {
-        bool proof;
-        bytes proofData;
-    }
+        bool isProved;
+        uint256[] pubInputs; //TODO check if it is good approach to save inputs
+        bytes metadata;
+    }ª
 
     /// @dev Main storage structure for the contract
     struct MainStorage {
@@ -36,7 +44,10 @@ contract UniversalVerifier is OwnableUpgradeable {
     }
 
     /// @dev Event emitted upon submitting a ZKP request
-    event RequestSubmitted(uint64 indexed requestId, address indexed caller);
+    event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);
+
+    /// @dev Event emitted upon adding a ZKP request
+    event ZKPRequestAdded(uint64 indexed requestId, address indexed caller, string metadata);
 
     /// @dev Modifier to restrict function access to the controller of a request
     modifier onlyController(uint64 requestId) {
@@ -63,6 +74,7 @@ contract UniversalVerifier is OwnableUpgradeable {
                 msg.sender
             );
         _getMainStorage().requests[requestId] = requestWithController;
+        emit ZKPRequestAdded(requestId, msg.sender, request.metadata); // TODO add data
     }
 
     /// @notice Sets a ZKP request by a controller
@@ -80,6 +92,7 @@ contract UniversalVerifier is OwnableUpgradeable {
                 msg.sender
             );
         _getMainStorage().requests[requestId] = requestWithController;
+        emit ZKPRequestAdded(requestId, msg.sender, request.metadata);
     }
 
     /// @notice Checks if a ZKP request ID exists
@@ -135,15 +148,15 @@ contract UniversalVerifier is OwnableUpgradeable {
     /// @param requestId The ID of the ZKP request
     /// @return The status of the proof
     function getProofStatus(address user, uint64 requestId) public view returns (bool) {
-        return _getMainStorage().proofs[user][requestId].proof;
+        return _getMainStorage().proofs[user][requestId].isProved;
     }
 
-    /// @notice Gets the proof data for a given user and request ID
+    /// @notice Gets the proof for a given user and request ID
     /// @param user The user's address
     /// @param requestId The ID of the ZKP request
-    /// @return The proof data
-    function getProofData(address user, uint64 requestId) public view returns (bytes memory) {
-        return _getMainStorage().proofs[user][requestId].proofData;
+    /// @return The proof
+    function getProof(address user, uint64 requestId) public view returns (Proof memory) {
+        return _getMainStorage().proofs[user][requestId];
     }
 
     /// @notice Submits a ZKP response and updates proof status
@@ -159,15 +172,56 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[2][2] calldata b,
         uint256[2] calldata c
     ) public {
+        address sender = _msgSender();
         require(
             _getMainStorage().requests[requestId].validator != ICircuitValidator(address(0)),
             "validator is not set for this request id"
-        ); // validator exists
+        );
 
-        _callVerifyWithSender(requestId, inputs, a, b, c, msg.sender);
-        _getMainStorage().proofs[msg.sender][requestId] = Proof(true, "");
-        emit RequestSubmitted(requestId, msg.sender);
+        _callVerifyWithSender(requestId, inputs, a, b, c, sender);
+        _getMainStorage().proofs[msg.sender][requestId] = Proof(true, inputs, "");
+        emit ZKPResponseSubmitted(requestId, sender);
     }
+
+    function verifyZKPResponse(
+        uint64 requestId,
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c
+    ) public view {
+        require(
+            _getMainStorage().requests[requestId].validator != ICircuitValidator(address(0)),
+            "validator is not set for this request id"
+        );
+
+        _callVerifyWithSender(requestId, inputs, a, b, c, _msgSender());
+    }
+
+//    function _msgSender() internal view virtual override returns (address sender) {
+//        // TODO Possible solutions
+//
+//        // Identify sender in calldata:
+//        // 1. check difference between msg.data and encoded calldata ??
+//        // 2. check trustedForwarder?
+//
+//        // Auth approach:
+//        // 1. address at the end of calldata
+//        // 2. signature at the end of calldata with ecrecover() sender recovery
+//        // Put into verifyZKPResponse() method
+//
+//          Example
+////        if (isTrustedForwarder(msg.sender)) {  // isTrustedForwarder(msg.sender)
+////            // The assembly code is more direct than the Solidity version using `abi.decode`.
+////            assembly {
+////                sender := shr(96, calldataload(sub(calldatasize(), 20)))
+////            }
+////        } else {
+////            return super._msgSender();
+////        }
+//
+//        return super._msgSender();
+//    }
 
     function _callVerifyWithSender(
         uint64 requestId,
@@ -176,7 +230,7 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[2][2] calldata b,
         uint256[2] calldata c,
         address sender
-    ) internal returns (bool) {
+    ) internal view {
         IZKPVerifier.ZKPRequestWithController memory request = _getMainStorage().requests[
             requestId
         ];
@@ -186,7 +240,7 @@ contract UniversalVerifier is OwnableUpgradeable {
             abi.encode(inputs, a, b, c, request.data),
             sender
         );
-        (bool success, bytes memory returnData) = address(request.validator).call(data);
+        (bool success, bytes memory returnData) = address(request.validator).staticcall(data);
         if (!success) {
             if (returnData.length > 0) {
                 // Extract revert reason from returnData
@@ -198,6 +252,5 @@ contract UniversalVerifier is OwnableUpgradeable {
                 revert("Failed to verify proof without revert reason");
             }
         }
-        return success;
     }
 }

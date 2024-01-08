@@ -43,13 +43,13 @@ describe("ZKP Verifier", function () {
     signerAddress = await signer.getAddress();
   });
 
-  it("Test submit response (for gas estimation purpose)", async () => {
+  it("Test submit response", async () => {
     await publishState(state, stateTransition);
-    await verifier.addZKPRequest({ metadata: "metadata", validator: sig.address, data: packValidatorParams(query) });
-    await sig.setProofExpirationTimeout(315360000);
+    await verifier.addZKPRequest({ metadata: "metadata", validator: sig.address, data: packValidatorParams(query) });    await sig.setProofExpirationTimeout(315360000);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
     await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
+    await verifier.verifyZKPResponse(0, inputs, pi_a, pi_b, pi_c);
 
     const [user] = await ethers.getSigners();
     const userAddress = await user.getAddress();
@@ -58,6 +58,14 @@ describe("ZKP Verifier", function () {
     expect(result).to.be.equal(true);
     result = await verifier.getProofStatus(userAddress, requestId + 1);
     expect(result).to.be.equal(false);
+
+    result = await verifier.getProof(signerAddress, requestId);
+
+    expect(result.isProved).to.be.equal(true);
+    for (let i = 0; i < inputs.length; i++) {
+      expect(result.pubInputs[i]).to.be.equal(inputs[i]);
+    }
+    expect(result.metadata).to.be.equal("0x");
   });
 
   it('Test query param pagination', async () => {
@@ -83,7 +91,9 @@ describe("ZKP Verifier", function () {
     const requestsCount = 3;
 
     for (let i = 0; i < requestsCount; i++) {
-      await verifier.addZKPRequest({ metadata: 'metadataN' + i, validator: sig.address, data: '0x00' });
+      await expect(verifier.addZKPRequest({ metadata: 'metadataN' + i, validator: sig.address, data: '0x00' }))
+        .to.emit(verifier, 'ZKPRequestAdded').withArgs(i, signerAddress, 'metadataN' + i);
+
       const requestIdExists = await verifier.requestIdExists(i);
       expect(requestIdExists).to.be.true;
       const requestIdDoesntExists = await verifier.requestIdExists(i + 1);
