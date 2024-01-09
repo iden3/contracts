@@ -25,6 +25,7 @@ contract UniversalVerifier is OwnableUpgradeable {
         mapping(address => mapping(uint64 => Proof)) proofs;
         mapping(uint64 => IZKPVerifier.ZKPRequestExtended) requests;
         uint64[] requestIds;
+        mapping(address => uint64[]) userRequestIds;
         mapping(ICircuitValidator => bool) whitelistedValidators;
     }
 
@@ -81,8 +82,10 @@ contract UniversalVerifier is OwnableUpgradeable {
     /// @notice Adds a new ZKP request
     /// @param request The ZKP request data
     function addZKPRequest(IZKPVerifier.ZKPRequest calldata request) public isWhitelistedValidator(request.validator) {
+        address sender = _msgSender();
         uint64 requestId = uint64(_getMainStorage().requestIds.length);
         _getMainStorage().requestIds.push(requestId);
+        _getMainStorage().userRequestIds[sender].push(requestId);
         IZKPVerifier.ZKPRequestExtended memory requestWithController = IZKPVerifier
             .ZKPRequestExtended(
                 request.metadata,
@@ -92,7 +95,7 @@ contract UniversalVerifier is OwnableUpgradeable {
                 false
             );
         _getMainStorage().requests[requestId] = requestWithController;
-        emit ZKPRequestAdded(requestId, msg.sender, request.metadata, request.data);
+        emit ZKPRequestAdded(requestId, sender, request.metadata, request.data);
     }
 
     /// @notice Sets a ZKP request
@@ -155,6 +158,33 @@ contract UniversalVerifier is OwnableUpgradeable {
         return result;
     }
 
+    /// @notice Gets multiple ZKP requests within a range for specific controller
+    /// @param controller The controller address
+    /// @param startIndex The starting index of the range
+    /// @param length The length of the range
+    /// @return An array of ZKP requests within the specified range
+    function getControllerZKPRequests(
+        address controller,
+        uint256 startIndex,
+        uint256 length
+    ) public view returns (IZKPVerifier.ZKPRequestExtended[] memory) {
+        (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
+            _getMainStorage().userRequestIds[controller].length,
+            startIndex,
+            length,
+            REQUESTS_RETURN_LIMIT
+        );
+
+        IZKPVerifier.ZKPRequestExtended[]
+            memory result = new IZKPVerifier.ZKPRequestExtended[](end - start);
+
+        for (uint256 i = start; i < end; i++) {
+            result[i - start] = _getMainStorage().requests[_getMainStorage().userRequestIds[controller][i]];
+        }
+
+        return result;
+    }
+
     /// @notice Checks the proof status for a given user and request ID
     /// @param user The user's address
     /// @param requestId The ID of the ZKP request
@@ -195,6 +225,12 @@ contract UniversalVerifier is OwnableUpgradeable {
         emit ZKPResponseSubmitted(requestId, sender);
     }
 
+    /// @notice Verifies a ZKP response without updating any proof status
+    /// @param requestId The ID of the ZKP request
+    /// @param inputs The public inputs for the proof
+    /// @param a The first component of the proof
+    /// @param b The second component of the proof
+    /// @param c The third component of the proof
     function verifyZKPResponse(
         uint64 requestId,
         uint256[] calldata inputs,

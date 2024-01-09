@@ -102,7 +102,7 @@ describe("ZKP Verifier", function () {
     expect(result.metadata).to.be.equal("0x");
   });
 
-  it('Test query param pagination', async () => {
+  it('Test getZKPRequests pagination', async () => {
     for (let i = 0; i < 30; i++) {
       await verifier.addZKPRequest({ metadata: 'metadataN' + i, validator: sig.address, data: '0x00' });
     }
@@ -111,14 +111,36 @@ describe("ZKP Verifier", function () {
     expect(queries[0].metadata).to.be.equal('metadataN5');
     expect(queries[9].metadata).to.be.equal('metadataN14');
 
-    let count = await verifier.getZKPRequestsCount();
-    expect(count).to.be.equal(30);
-
     queries = await verifier.getZKPRequests(15, 3);
     expect(queries.length).to.be.equal(3);
     expect(queries[0].metadata).to.be.equal('metadataN15');
     expect(queries[1].metadata).to.be.equal('metadataN16');
     expect(queries[2].metadata).to.be.equal('metadataN17');
+  });
+
+  it('Test getControllerZKPRequests', async () => {
+    for (let i = 0; i < 5; i++) {
+      await verifier
+        .connect(signer)
+        .addZKPRequest({ metadata: "metadataN" + i, validator: sig.address, data: "0x00" });
+    }
+    for (let i = 0; i < 3; i++) {
+      await verifier
+        .connect(signer2)
+        .addZKPRequest({ metadata: "metadataN" + i, validator: sig.address, data: "0x00" });
+    }
+    let queries = await verifier.getControllerZKPRequests(signerAddress, 3, 5);
+    expect(queries.length).to.be.equal(2);
+    expect(queries[0].metadata).to.be.equal("metadataN3");
+    expect(queries[1].metadata).to.be.equal("metadataN4");
+
+    queries = await verifier.getControllerZKPRequests(signer2Address, 0, 5);
+    expect(queries.length).to.be.equal(3);
+    expect(queries[0].metadata).to.be.equal("metadataN0");
+
+    await expect(verifier.getControllerZKPRequests(signer3Address, 0, 5)).to.be.revertedWith(
+      "Start index out of bounds"
+    );
   });
 
   it('Check disable/enable functionality', async () => {
