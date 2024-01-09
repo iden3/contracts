@@ -5,7 +5,9 @@ import { packValidatorParams } from "../utils/validator-pack-utils";
 import { prepareInputs, publishState } from "../utils/state-utils";
 
 describe("ZKP Verifier", function () {
-  let verifier: any, sig: any, state: any, signerAddress: string, someAddress: string;
+  let verifier: any, sig: any, state: any;
+  let signer, signer2, signer3, signer4;
+  let signerAddress: string, signer2Address: string, signer3Address: string, someAddress: string;
 
   const query = {
     schema: ethers.BigNumber.from("180410020913331409885634153623124536270"),
@@ -29,8 +31,14 @@ describe("ZKP Verifier", function () {
   const stateTransition = require("../validators/common-data/issuer_genesis_state.json");
 
   beforeEach(async () => {
+    [signer, signer2, signer3, signer4] = await ethers.getSigners();
+    signerAddress = await signer.getAddress();
+    signer2Address = await signer2.getAddress();
+    signer3Address = await signer3.getAddress();
+    someAddress = await signer2.getAddress();
+
     const deployHelper = await DeployHelper.initialize(null, true);
-    verifier = await deployHelper.deployUniversalVerifier();
+    verifier = await deployHelper.deployUniversalVerifier(signer);
 
     const contracts = await deployHelper.deployValidatorContracts(
       "VerifierSigWrapper",
@@ -38,10 +46,8 @@ describe("ZKP Verifier", function () {
     );
     sig = contracts.validator;
     state = contracts.state;
-
-    const [signer, signer2] = await ethers.getSigners();
-    signerAddress = await signer.getAddress();
-    someAddress = await signer2.getAddress();
+    await verifier.addWhitelistedValidator(sig.address);
+    await verifier.connect();
   });
 
   it('Test add, set, get ZKPRequest, requestIdExists, getZKPRequestsCount', async () => {
@@ -56,21 +62,11 @@ describe("ZKP Verifier", function () {
       expect(request.data).to.be.equal('0x0' + i);
       expect(request.controller).to.be.equal(signerAddress);
 
-      await expect(verifier.setZKPRequest(i, { metadata: 'metadataN' + i + 'updated', validator: someAddress, data: '0xff0' + i }))
-        .to.emit(verifier, 'ZKPRequestAdded').withArgs(i, signerAddress, 'metadataN' + i + 'updated', '0xff0' + i);
-
       const requestIdExists = await verifier.requestIdExists(i);
       expect(requestIdExists).to.be.true;
       const requestIdDoesntExists = await verifier.requestIdExists(i + 1);
       expect(requestIdDoesntExists).to.be.false;
 
-      request = await verifier.getZKPRequest(i);
-      expect(request.metadata).to.be.equal('metadataN' + i + 'updated');
-      expect(request.validator).to.be.equal(someAddress);
-      expect(request.data).to.be.equal('0xff0' + i);
-      expect(request.controller).to.be.equal(signerAddress);
-
-      expect(request.metadata).to.be.equal('metadataN' + i + 'updated');
       await expect(verifier.getZKPRequest(i + 1)).to.be.revertedWith(
         'request id doesn\'t exist'
       );
@@ -82,7 +78,8 @@ describe("ZKP Verifier", function () {
 
   it("Test submit response", async () => {
     await publishState(state, stateTransition);
-    await verifier.addZKPRequest({ metadata: "metadata", validator: sig.address, data: packValidatorParams(query) });    await sig.setProofExpirationTimeout(315360000);
+    await verifier.addZKPRequest({ metadata: "metadata", validator: sig.address, data: packValidatorParams(query) });
+    await sig.setProofExpirationTimeout(315360000);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
     await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
@@ -122,5 +119,53 @@ describe("ZKP Verifier", function () {
     expect(queries[0].metadata).to.be.equal('metadataN15');
     expect(queries[1].metadata).to.be.equal('metadataN16');
     expect(queries[2].metadata).to.be.equal('metadataN17');
+  });
+
+  it('Check disable/enable functionality', async () => {
+    const owner = signer;
+    const controller = signer2;
+    const someSigner = signer3;
+
+    await publishState(state, stateTransition);
+    await verifier
+      .connect(controller)
+      .addZKPRequest({
+        metadata: "metadata",
+        validator: sig.address,
+        data: packValidatorParams(query),
+      });
+    await sig.setProofExpirationTimeout(315360000);
+
+    await expect(verifier.connect(someSigner).disableZKPRequest(0)).to.be.revertedWith(
+      "Only owner or controller can call this function"
+    );
+    // owner can disable
+    await verifier.connect(owner).disableZKPRequest(0);
+
+    await expect(verifier.connect(someSigner).enableZKPRequest(0)).to.be.revertedWith(
+      "Only owner or controller can call this function"
+    );
+    // controller can enable
+    await verifier.connect(controller).enableZKPRequest(0);
+
+    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+    await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
+
+    await verifier.connect(controller).disableZKPRequest(0);
+    await expect(verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c)).to.be.revertedWith(
+      "Request is disabled"
+    );
+    await expect(verifier.verifyZKPResponse(0, inputs, pi_a, pi_b, pi_c)).to.be.revertedWith(
+      "Request is disabled"
+    );
+  });
+
+  it('Check whitelisted validators', async () => {
+    await expect(verifier.addZKPRequest({ metadata: 'metadata', validator: someAddress, data: '0x00' }))
+      .to.be.revertedWith('Validator is not whitelisted');
+
+    await verifier.addWhitelistedValidator(someAddress);
+
+    verifier.addZKPRequest({ metadata: 'metadata', validator: someAddress, data: '0x00' });
   });
 });

@@ -10,9 +10,6 @@ import {ArrayUtils} from "../lib/ArrayUtils.sol";
 //1. Who requested
 //2. Who submitted
 
-// TODO Request manager sets additional contract to exec once proof is submitted
-// Note: Attestation station resolver contract as example
-
 /// @title Universal Verifier Contract
 /// @notice A contract to manage ZKP (Zero-Knowledge Proof) requests and proofs.
 contract UniversalVerifier is OwnableUpgradeable {
@@ -26,8 +23,9 @@ contract UniversalVerifier is OwnableUpgradeable {
     /// @dev Main storage structure for the contract
     struct MainStorage {
         mapping(address => mapping(uint64 => Proof)) proofs;
-        mapping(uint64 => IZKPVerifier.ZKPRequestWithController) requests;
+        mapping(uint64 => IZKPVerifier.ZKPRequestExtended) requests;
         uint64[] requestIds;
+        mapping(ICircuitValidator => bool) whitelistedValidators;
     }
 
     uint256 constant REQUESTS_RETURN_LIMIT = 1000;
@@ -49,50 +47,64 @@ contract UniversalVerifier is OwnableUpgradeable {
     /// @dev Event emitted upon adding a ZKP request
     event ZKPRequestAdded(uint64 indexed requestId, address indexed caller, string metadata, bytes data);
 
-    /// @dev Modifier to restrict function access to the controller of a request
-    modifier onlyController(uint64 requestId) {
+    /// @dev Modifier to check if the caller is the owner or controller of the ZKP request
+    modifier onlyOwnerOrController(uint64 requestId) {
         require(
-            msg.sender == _getMainStorage().requests[requestId].controller,
-            "Only controller can call this function"
+            msg.sender == _getMainStorage().requests[requestId].controller || msg.sender == owner(),
+            "Only owner or controller can call this function"
         );
         _;
     }
 
-    /// @dev Constructor
-    constructor() {}
+    /// @dev Modifier to check if the ZKP request is enabled
+    modifier enabled(uint64 requestId) {
+        require(!_getMainStorage().requests[requestId].isDisabled, "Request is disabled");
+        _;
+    }
+
+    /// @dev Modifier to check if the validator is whitelisted
+    modifier isWhitelistedValidator(ICircuitValidator validator) {
+        require(_getMainStorage().whitelistedValidators[validator], "Validator is not whitelisted");
+        _;
+    }
+
+    /// @notice Initializes the contract
+    function initialize() public initializer {
+        __Ownable_init();
+    }
+
+    /// @notice Adds a new whitelisted validator
+    function addWhitelistedValidator(ICircuitValidator validator) public onlyOwner {
+        _getMainStorage().whitelistedValidators[validator] = true;
+    }
 
     /// @notice Adds a new ZKP request
     /// @param request The ZKP request data
-    function addZKPRequest(IZKPVerifier.ZKPRequest calldata request) public {
+    function addZKPRequest(IZKPVerifier.ZKPRequest calldata request) public isWhitelistedValidator(request.validator) {
         uint64 requestId = uint64(_getMainStorage().requestIds.length);
         _getMainStorage().requestIds.push(requestId);
-        IZKPVerifier.ZKPRequestWithController memory requestWithController = IZKPVerifier
-            .ZKPRequestWithController(
+        IZKPVerifier.ZKPRequestExtended memory requestWithController = IZKPVerifier
+            .ZKPRequestExtended(
                 request.metadata,
                 request.validator,
                 request.data,
-                msg.sender
+                _msgSender(),
+                false
             );
         _getMainStorage().requests[requestId] = requestWithController;
         emit ZKPRequestAdded(requestId, msg.sender, request.metadata, request.data);
     }
 
-    /// @notice Sets a ZKP request by a controller
+    /// @notice Sets a ZKP request
     /// @param requestId The ID of the ZKP request
-    /// @param request The ZKP request data
-    function setZKPRequest(
-        uint64 requestId,
-        IZKPVerifier.ZKPRequest calldata request
-    ) public onlyController(requestId) {
-        IZKPVerifier.ZKPRequestWithController memory requestWithController = IZKPVerifier
-            .ZKPRequestWithController(
-                request.metadata,
-                request.validator,
-                request.data,
-                msg.sender
-            );
-        _getMainStorage().requests[requestId] = requestWithController;
-        emit ZKPRequestAdded(requestId, msg.sender, request.metadata, request.data);
+    function disableZKPRequest(uint64 requestId) public onlyOwnerOrController(requestId) {
+        _getMainStorage().requests[requestId].isDisabled = true;
+    }
+
+    /// @notice Sets a ZKP request
+    /// @param requestId The ID of the ZKP request
+    function enableZKPRequest(uint64 requestId) public onlyOwnerOrController(requestId) {
+        _getMainStorage().requests[requestId].isDisabled = false;
     }
 
     /// @notice Checks if a ZKP request ID exists
@@ -113,7 +125,7 @@ contract UniversalVerifier is OwnableUpgradeable {
     /// @return The ZKP request data
     function getZKPRequest(
         uint64 requestId
-    ) public view returns (IZKPVerifier.ZKPRequestWithController memory) {
+    ) public view returns (IZKPVerifier.ZKPRequestExtended memory) {
         require(requestIdExists(requestId), "request id doesn't exist");
         return _getMainStorage().requests[requestId];
     }
@@ -125,7 +137,7 @@ contract UniversalVerifier is OwnableUpgradeable {
     function getZKPRequests(
         uint256 startIndex,
         uint256 length
-    ) public view returns (IZKPVerifier.ZKPRequestWithController[] memory) {
+    ) public view returns (IZKPVerifier.ZKPRequestExtended[] memory) {
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
             _getMainStorage().requestIds.length,
             startIndex,
@@ -133,8 +145,8 @@ contract UniversalVerifier is OwnableUpgradeable {
             REQUESTS_RETURN_LIMIT
         );
 
-        IZKPVerifier.ZKPRequestWithController[]
-            memory result = new IZKPVerifier.ZKPRequestWithController[](end - start);
+        IZKPVerifier.ZKPRequestExtended[]
+            memory result = new IZKPVerifier.ZKPRequestExtended[](end - start);
 
         for (uint256 i = start; i < end; i++) {
             result[i - start] = _getMainStorage().requests[_getMainStorage().requestIds[i]];
@@ -171,7 +183,7 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c
-    ) public {
+    ) public enabled(requestId) {
         address sender = _msgSender();
         require(
             _getMainStorage().requests[requestId].validator != ICircuitValidator(address(0)),
@@ -189,7 +201,7 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c
-    ) public view {
+    ) public view enabled(requestId) {
         require(
             _getMainStorage().requests[requestId].validator != ICircuitValidator(address(0)),
             "validator is not set for this request id"
@@ -231,7 +243,7 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[2] calldata c,
         address sender
     ) internal view {
-        IZKPVerifier.ZKPRequestWithController memory request = _getMainStorage().requests[
+        IZKPVerifier.ZKPRequestExtended memory request = _getMainStorage().requests[
             requestId
         ];
         bytes4 selector = request.validator.verify.selector;

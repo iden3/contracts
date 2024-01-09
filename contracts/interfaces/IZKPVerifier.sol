@@ -11,11 +11,12 @@ interface IZKPVerifier {
         bytes data;
     }
 
-    struct ZKPRequestWithController {
+    struct ZKPRequestExtended {
         string metadata;
         ICircuitValidator validator;
         bytes data;
         address controller;
+        bool isDisabled;
     }
 
     function submitZKPResponse(

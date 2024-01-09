@@ -352,13 +352,17 @@ export class DeployHelper {
     return zkpVerifier;
   }
 
-  async deployUniversalVerifier(): Promise<{
+  async deployUniversalVerifier(owner: SignerWithAddress | undefined): Promise<{
     address: string;
   }> {
+    if (!owner) {
+      owner = this.signers[0];
+    }
     const verifier = await ethers.getContractFactory(
-      "UniversalVerifier"
+      "UniversalVerifier", owner
     );
-    const zkpVerifier = await verifier.deploy();
+    const zkpVerifier = await upgrades.deployProxy(verifier);
+    await zkpVerifier.deployed();
     console.log("UniversalVerifier deployed to:", zkpVerifier.address);
     return zkpVerifier;
   }
