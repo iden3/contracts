@@ -262,4 +262,6 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
             revert("msg.data.length is less than required");
         }
     }
+
+    function getSpecialInputNumbers() public pure virtual returns (uint256[] memory);
 }

@@ -97,7 +97,7 @@ describe("ZKP Verifier", function () {
 
     expect(result.isProved).to.be.equal(true);
     for (let i = 0; i < inputs.length; i++) {
-      expect(result.pubInputs[i]).to.be.equal(inputs[i]);
+      expect(result.specialInputs[0]).to.be.equal(inputs[1]); // First special input is UserID
     }
     expect(result.metadata).to.be.equal("0x");
   });

@@ -13,4 +13,6 @@ interface ICircuitValidator {
     function getSupportedCircuitIds() external view returns (string[] memory ids);
 
     function inputIndexOf(string memory name) external view returns (uint256);
+
+    function getSpecialInputNumbers() external pure returns (uint256[] memory);
 }

@@ -16,7 +16,7 @@ contract UniversalVerifier is OwnableUpgradeable {
     /// @dev Struct to store ZKP proof and associated data
     struct Proof {
         bool isProved;
-        uint256[] pubInputs; //TODO check if it is good approach to save inputs
+        uint256[] specialInputs;
         bytes metadata;
     }
 
@@ -220,8 +220,13 @@ contract UniversalVerifier is OwnableUpgradeable {
             "validator is not set for this request id"
         );
 
-        _callVerifyWithSender(requestId, inputs, a, b, c, sender);
-        _getMainStorage().proofs[msg.sender][requestId] = Proof(true, inputs, "");
+        uint[] memory specialInputNumbers = _callVerifyWithSender(requestId, inputs, a, b, c, sender);
+        uint[] memory specialInputs = new uint[](specialInputNumbers.length);
+        for (uint i = 0; i < specialInputNumbers.length; i++) {
+            specialInputs[i] = inputs[specialInputNumbers[i]];
+        }
+
+        _getMainStorage().proofs[msg.sender][requestId] = Proof(true, specialInputs, "");
         emit ZKPResponseSubmitted(requestId, sender);
     }
 
@@ -278,7 +283,7 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[2][2] calldata b,
         uint256[2] calldata c,
         address sender
-    ) internal view {
+    ) internal view returns (uint256[] memory) {
         IZKPVerifier.ZKPRequestExtended memory request = _getMainStorage().requests[
             requestId
         ];
@@ -300,5 +305,6 @@ contract UniversalVerifier is OwnableUpgradeable {
                 revert("Failed to verify proof without revert reason");
             }
         }
+        return request.validator.getSpecialInputNumbers();
     }
 }

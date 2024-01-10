@@ -225,4 +225,11 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
 
         return pubSignals;
     }
+
+    function getSpecialInputNumbers() public pure override returns (uint256[] memory) {
+        uint256[] memory specialInputNumbers = new uint256[](1);
+        //TODO is it correct number?
+        specialInputNumbers[0] = 1; //UserID is special input number with index 1
+        return specialInputNumbers;
+    }
 }
