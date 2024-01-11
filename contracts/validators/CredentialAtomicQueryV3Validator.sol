@@ -28,7 +28,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         uint256 verifierID;
     }
 
-    struct V3PugSignals {
+    struct V3PubSignals {
         uint256 linkID;
         uint256 nullifier;
         uint256 operatorOutput;
@@ -132,7 +132,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
             credAtomicQuery.skipClaimRevocationCheck
         );
 
-        V3PugSignals memory v3PubSignals = parseV3SpecificPubSignals(inputs);
+        V3PubSignals memory v3PubSignals = parseV3SpecificPubSignals(inputs);
         _checkVerifierID(credAtomicQuery.verifierID, v3PubSignals.verifierID);
         _checkNullifierSessionID(
             credAtomicQuery.nullifierSessionID,
@@ -212,8 +212,8 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
 
     function parseV3SpecificPubSignals(
         uint256[] calldata inputs
-    ) internal pure returns (V3PugSignals memory) {
-        V3PugSignals memory pubSignals = V3PugSignals({
+    ) internal pure returns (V3PubSignals memory) {
+        V3PubSignals memory pubSignals = V3PubSignals({
             linkID: inputs[4],
             nullifier: inputs[5],
             operatorOutput: inputs[6],

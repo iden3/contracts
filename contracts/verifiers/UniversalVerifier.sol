@@ -251,31 +251,6 @@ contract UniversalVerifier is OwnableUpgradeable {
         _callVerifyWithSender(requestId, inputs, a, b, c, _msgSender());
     }
 
-    //    function _msgSender() internal view virtual override returns (address sender) {
-    //        // TODO Possible solutions
-    //
-    //        // Identify sender in calldata:
-    //        // 1. check difference between msg.data and encoded calldata ??
-    //        // 2. check trustedForwarder?
-    //
-    //        // Auth approach:
-    //        // 1. address at the end of calldata
-    //        // 2. signature at the end of calldata with ecrecover() sender recovery
-    //        // Put into verifyZKPResponse() method
-    //
-    //          Example
-    ////        if (isTrustedForwarder(msg.sender)) {  // isTrustedForwarder(msg.sender)
-    ////            // The assembly code is more direct than the Solidity version using `abi.decode`.
-    ////            assembly {
-    ////                sender := shr(96, calldataload(sub(calldatasize(), 20)))
-    ////            }
-    ////        } else {
-    ////            return super._msgSender();
-    ////        }
-    //
-    //        return super._msgSender();
-    //    }
-
     function _callVerifyWithSender(
         uint64 requestId,
         uint256[] calldata inputs,
