@@ -227,9 +227,14 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
     }
 
     function getSpecialInputNumbers() public pure override returns (uint256[] memory) {
-        uint256[] memory specialInputNumbers = new uint256[](1);
-        //TODO is it correct number?
-        specialInputNumbers[0] = 1; //UserID is special input number with index 1
+        uint256[] memory specialInputNumbers = new uint256[](7);
+        specialInputNumbers[0] = 1; //UserID
+        specialInputNumbers[1] = 4; //LinkID
+        specialInputNumbers[2] = 5; //Nullifier
+        specialInputNumbers[3] = 6; //OperatorOutput
+        specialInputNumbers[4] = 14; //Timestamp
+        specialInputNumbers[5] = 15; //VerifierID
+        specialInputNumbers[6] = 16; //NullifierSessionID
         return specialInputNumbers;
     }
 }

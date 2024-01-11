@@ -50,7 +50,7 @@ describe("ZKP Verifier", function () {
     await verifier.connect();
   });
 
-  it('Test add, set, get ZKPRequest, requestIdExists, getZKPRequestsCount', async () => {
+  it("Test add, get ZKPRequest, requestIdExists, getZKPRequestsCount", async () => {
     const requestsCount = 3;
 
     for (let i = 0; i < requestsCount; i++) {
@@ -82,7 +82,9 @@ describe("ZKP Verifier", function () {
     await sig.setProofExpirationTimeout(315360000);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
-    await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
+    await expect(verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c))
+      .to.emit(verifier, "ZKPResponseSubmitted")
+      .withArgs(0, signerAddress);
     await verifier.verifyZKPResponse(0, inputs, pi_a, pi_b, pi_c);
 
     const [user] = await ethers.getSigners();
@@ -96,9 +98,8 @@ describe("ZKP Verifier", function () {
     result = await verifier.getProof(signerAddress, requestId);
 
     expect(result.isProved).to.be.equal(true);
-    for (let i = 0; i < inputs.length; i++) {
-      expect(result.specialInputs[0]).to.be.equal(inputs[1]); // First special input is UserID
-    }
+    expect(result.specialInputs[0]).to.be.equal(inputs[1]); // First special input is UserID
+    expect(result.specialInputs[1]).to.be.equal(inputs[10]); // Second special input is Timestamp
     expect(result.metadata).to.be.equal("0x");
   });
 
@@ -118,7 +119,7 @@ describe("ZKP Verifier", function () {
     expect(queries[2].metadata).to.be.equal('metadataN17');
   });
 
-  it('Test getControllerZKPRequests', async () => {
+  it("Test getControllerZKPRequests", async () => {
     for (let i = 0; i < 5; i++) {
       await verifier
         .connect(signer)

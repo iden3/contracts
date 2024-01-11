@@ -46,7 +46,7 @@ contract UniversalVerifier is OwnableUpgradeable {
     event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);
 
     /// @dev Event emitted upon adding a ZKP request
-    event ZKPRequestAdded(uint64 indexed requestId, address indexed caller, string metadata, bytes data);
+    event ZKPRequestAdded(uint64 indexed requestId, address indexed controller, string metadata, bytes data);
 
     /// @dev Modifier to check if the caller is the owner or controller of the ZKP request
     modifier onlyOwnerOrController(uint64 requestId) {
@@ -91,7 +91,7 @@ contract UniversalVerifier is OwnableUpgradeable {
                 request.metadata,
                 request.validator,
                 request.data,
-                _msgSender(),
+                sender,
                 false
             );
         _getMainStorage().requests[requestId] = requestWithController;
@@ -236,6 +236,7 @@ contract UniversalVerifier is OwnableUpgradeable {
     /// @param a The first component of the proof
     /// @param b The second component of the proof
     /// @param c The third component of the proof
+    //TODO should it return bool value?
     function verifyZKPResponse(
         uint64 requestId,
         uint256[] calldata inputs,
