@@ -263,5 +263,9 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         }
     }
 
-    function getSpecialInputPairs() public pure virtual returns (ICircuitValidator.KeyInputIndexPair[] memory);
+    function getSpecialInputPairs()
+        public
+        pure
+        virtual
+        returns (ICircuitValidator.KeyInputIndexPair[] memory);
 }

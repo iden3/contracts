@@ -227,8 +227,14 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         return pubSignals;
     }
 
-    function getSpecialInputPairs() public pure override returns (ICircuitValidator.KeyInputIndexPair[] memory) {
-        ICircuitValidator.KeyInputIndexPair[] memory pairs = new ICircuitValidator.KeyInputIndexPair[](2);
+    function getSpecialInputPairs()
+        public
+        pure
+        override
+        returns (ICircuitValidator.KeyInputIndexPair[] memory)
+    {
+        ICircuitValidator.KeyInputIndexPair[]
+            memory pairs = new ICircuitValidator.KeyInputIndexPair[](2);
         pairs[0] = ICircuitValidator.KeyInputIndexPair({key: "userID", inputIndex: 1});
         pairs[1] = ICircuitValidator.KeyInputIndexPair({key: "linkID", inputIndex: 4});
         pairs[2] = ICircuitValidator.KeyInputIndexPair({key: "nullifier", inputIndex: 5});

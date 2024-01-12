@@ -6,7 +6,7 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 
-// TODO scripts
+// TODO scripts (do we need it?)
 //1. Who requested
 //2. Who submitted
 
@@ -15,7 +15,7 @@ import {ArrayUtils} from "../lib/ArrayUtils.sol";
 contract UniversalVerifier is OwnableUpgradeable {
     struct StorageField {
         uint256 value;
-        bytes rawValue;   // TODO provisioned with separate transactions
+        bytes rawValue; // TODO provisioned with separate transactions
     }
 
     /// @dev Struct to store ZKP proof and associated data
@@ -51,7 +51,12 @@ contract UniversalVerifier is OwnableUpgradeable {
     event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);
 
     /// @dev Event emitted upon adding a ZKP request
-    event ZKPRequestAdded(uint64 indexed requestId, address indexed controller, string metadata, bytes data);
+    event ZKPRequestAdded(
+        uint64 indexed requestId,
+        address indexed controller,
+        string metadata,
+        bytes data
+    );
 
     /// @dev Modifier to check if the caller is the owner or controller of the ZKP request
     modifier onlyOwnerOrController(uint64 requestId) {
@@ -86,19 +91,15 @@ contract UniversalVerifier is OwnableUpgradeable {
 
     /// @notice Adds a new ZKP request
     /// @param request The ZKP request data
-    function addZKPRequest(IZKPVerifier.ZKPRequest calldata request) public isWhitelistedValidator(request.validator) {
+    function addZKPRequest(
+        IZKPVerifier.ZKPRequest calldata request
+    ) public isWhitelistedValidator(request.validator) {
         address sender = _msgSender();
         uint64 requestId = uint64(_getMainStorage().requestIds.length);
         _getMainStorage().requestIds.push(requestId);
         _getMainStorage().userRequestIds[sender].push(requestId);
         IZKPVerifier.ZKPRequestExtended memory requestWithController = IZKPVerifier
-            .ZKPRequestExtended(
-                request.metadata,
-                request.validator,
-                request.data,
-                sender,
-                false
-            );
+            .ZKPRequestExtended(request.metadata, request.validator, request.data, sender, false);
         _getMainStorage().requests[requestId] = requestWithController;
         emit ZKPRequestAdded(requestId, sender, request.metadata, request.data);
     }
@@ -153,8 +154,9 @@ contract UniversalVerifier is OwnableUpgradeable {
             REQUESTS_RETURN_LIMIT
         );
 
-        IZKPVerifier.ZKPRequestExtended[]
-            memory result = new IZKPVerifier.ZKPRequestExtended[](end - start);
+        IZKPVerifier.ZKPRequestExtended[] memory result = new IZKPVerifier.ZKPRequestExtended[](
+            end - start
+        );
 
         for (uint256 i = start; i < end; i++) {
             result[i - start] = _getMainStorage().requests[_getMainStorage().requestIds[i]];
@@ -180,11 +182,14 @@ contract UniversalVerifier is OwnableUpgradeable {
             REQUESTS_RETURN_LIMIT
         );
 
-        IZKPVerifier.ZKPRequestExtended[]
-            memory result = new IZKPVerifier.ZKPRequestExtended[](end - start);
+        IZKPVerifier.ZKPRequestExtended[] memory result = new IZKPVerifier.ZKPRequestExtended[](
+            end - start
+        );
 
         for (uint256 i = start; i < end; i++) {
-            result[i - start] = _getMainStorage().requests[_getMainStorage().userRequestIds[controller][i]];
+            result[i - start] = _getMainStorage().requests[
+                _getMainStorage().userRequestIds[controller][i]
+            ];
         }
 
         return result;
@@ -202,8 +207,11 @@ contract UniversalVerifier is OwnableUpgradeable {
     /// @param user The user's address
     /// @param requestId The ID of the ZKP request
     /// @return The proof
-    // TODO finalize it
-    function getProofStorageItem(address user, uint64 requestId, string memory key) public view returns (uint256) {
+    function getProofStorageItem(
+        address user,
+        uint64 requestId,
+        string memory key
+    ) public view returns (uint256) {
         return _getMainStorage().proofs[user][requestId].storageFields[key].value;
     }
 
@@ -223,10 +231,7 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[] calldata inputs,
         uint256[2] calldata a,
         uint256[2][2] calldata b,
-        uint256[2] calldata c
-        // TODO add additional data and circuit id
-//        bytes calldata additionalData,
-//        string calldata circuitId
+        uint256[2] calldata c // TODO add bytes calldata additionalData, string calldata circuitId
     ) public enabled(requestId) {
         address sender = _msgSender();
         require(
@@ -234,7 +239,14 @@ contract UniversalVerifier is OwnableUpgradeable {
             "validator is not set for this request id"
         );
 
-        ICircuitValidator.KeyInputIndexPair[] memory pairs = _callVerifyWithSender(requestId, inputs, a, b, c, sender);
+        ICircuitValidator.KeyInputIndexPair[] memory pairs = _callVerifyWithSender(
+            requestId,
+            inputs,
+            a,
+            b,
+            c,
+            sender
+        );
         for (uint256 i = 0; i < pairs.length; i++) {
             _getMainStorage().proofs[sender][requestId].storageFields[pairs[i].key] = StorageField(
                 inputs[pairs[i].inputIndex],
@@ -276,9 +288,7 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[2] calldata c,
         address sender
     ) internal view returns (ICircuitValidator.KeyInputIndexPair[] memory) {
-        IZKPVerifier.ZKPRequestExtended memory request = _getMainStorage().requests[
-            requestId
-        ];
+        IZKPVerifier.ZKPRequestExtended memory request = _getMainStorage().requests[requestId];
         bytes4 selector = request.validator.verify.selector;
         bytes memory data = abi.encodePacked(
             selector,
