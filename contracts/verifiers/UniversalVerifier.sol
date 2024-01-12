@@ -15,7 +15,7 @@ import {ArrayUtils} from "../lib/ArrayUtils.sol";
 contract UniversalVerifier is OwnableUpgradeable {
     struct StorageField {
         uint256 value;
-        bytes rawValue; // TODO provisioned with separate transactions
+        bytes rawValue;
     }
 
     /// @dev Struct to store ZKP proof and associated data
@@ -203,23 +203,6 @@ contract UniversalVerifier is OwnableUpgradeable {
         return _getMainStorage().proofs[user][requestId].isProved;
     }
 
-    /// @notice Gets the proof for a given user and request ID
-    /// @param user The user's address
-    /// @param requestId The ID of the ZKP request
-    /// @return The proof
-    function getProofStorageItem(
-        address user,
-        uint64 requestId,
-        string memory key
-    ) public view returns (uint256) {
-        return _getMainStorage().proofs[user][requestId].storageFields[key].value;
-    }
-
-    struct KeyValuePair {
-        string key;
-        uint256 value;
-    }
-
     /// @notice Submits a ZKP response and updates proof status
     /// @param requestId The ID of the ZKP request
     /// @param inputs The input data for the proof
@@ -308,5 +291,31 @@ contract UniversalVerifier is OwnableUpgradeable {
             }
         }
         return request.validator.getSpecialInputPairs();
+    }
+
+    /// @notice Adds a raw value to the proof storage item for a given user, request ID and key
+    /// @param user The user's address
+    /// @param requestId The ID of the ZKP request
+    /// @param key The key of the storage item
+    /// @param rawValue The raw value to add
+    function addStorageFieldRawValue(
+        address user,
+        uint64 requestId,
+        string memory key,
+        bytes memory rawValue
+    ) public onlyOwnerOrController(requestId) {
+        _getMainStorage().proofs[user][requestId].storageFields[key].rawValue = rawValue;
+    }
+
+    /// @notice Gets the proof storage item for a given user, request ID and key
+    /// @param user The user's address
+    /// @param requestId The ID of the ZKP request
+    /// @return The proof
+    function getProofStorageField(
+        address user,
+        uint64 requestId,
+        string memory key
+    ) public view returns (StorageField memory) {
+        return _getMainStorage().proofs[user][requestId].storageFields[key];
     }
 }
