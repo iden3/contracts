@@ -3,6 +3,7 @@ pragma solidity 0.8.16;
 
 import {CredentialAtomicQueryValidator} from "./CredentialAtomicQueryValidator.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
+import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 
 contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
     /**
@@ -80,10 +81,10 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
         return params;
     }
 
-    function getSpecialInputNumbers() public pure override returns (uint256[] memory) {
-        uint256[] memory specialInputNumbers = new uint256[](2);
-        specialInputNumbers[0] = 1; //UserID
-        specialInputNumbers[1] = 10; //Timestamp
-        return specialInputNumbers;
+    function getSpecialInputPairs() public pure override returns (ICircuitValidator.KeyInputIndexPair[] memory) {
+        ICircuitValidator.KeyInputIndexPair[] memory pairs = new ICircuitValidator.KeyInputIndexPair[](2);
+        pairs[0] = ICircuitValidator.KeyInputIndexPair({key: "userID", inputIndex: 1});
+        pairs[1] = ICircuitValidator.KeyInputIndexPair({key: "timestamp", inputIndex: 10});
+        return pairs;
     }
 }

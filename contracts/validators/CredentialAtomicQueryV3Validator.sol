@@ -5,6 +5,7 @@ import {CredentialAtomicQueryValidator} from "./CredentialAtomicQueryValidator.s
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
+import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 
 /**
  * @dev CredentialAtomicQueryV3 validator
@@ -226,15 +227,15 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         return pubSignals;
     }
 
-    function getSpecialInputNumbers() public pure override returns (uint256[] memory) {
-        uint256[] memory specialInputNumbers = new uint256[](7);
-        specialInputNumbers[0] = 1; //UserID
-        specialInputNumbers[1] = 4; //LinkID
-        specialInputNumbers[2] = 5; //Nullifier
-        specialInputNumbers[3] = 6; //OperatorOutput
-        specialInputNumbers[4] = 14; //Timestamp
-        specialInputNumbers[5] = 15; //VerifierID
-        specialInputNumbers[6] = 16; //NullifierSessionID
-        return specialInputNumbers;
+    function getSpecialInputPairs() public pure override returns (ICircuitValidator.KeyInputIndexPair[] memory) {
+        ICircuitValidator.KeyInputIndexPair[] memory pairs = new ICircuitValidator.KeyInputIndexPair[](2);
+        pairs[0] = ICircuitValidator.KeyInputIndexPair({key: "userID", inputIndex: 1});
+        pairs[1] = ICircuitValidator.KeyInputIndexPair({key: "linkID", inputIndex: 4});
+        pairs[2] = ICircuitValidator.KeyInputIndexPair({key: "nullifier", inputIndex: 5});
+        pairs[3] = ICircuitValidator.KeyInputIndexPair({key: "operatorOutput", inputIndex: 6});
+        pairs[4] = ICircuitValidator.KeyInputIndexPair({key: "timestamp", inputIndex: 14});
+        pairs[5] = ICircuitValidator.KeyInputIndexPair({key: "verifierID", inputIndex: 15});
+        pairs[6] = ICircuitValidator.KeyInputIndexPair({key: "nullifierSessionID", inputIndex: 16});
+        return pairs;
     }
 }

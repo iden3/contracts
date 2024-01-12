@@ -13,10 +13,15 @@ import {ArrayUtils} from "../lib/ArrayUtils.sol";
 /// @title Universal Verifier Contract
 /// @notice A contract to manage ZKP (Zero-Knowledge Proof) requests and proofs.
 contract UniversalVerifier is OwnableUpgradeable {
+    struct StorageField {
+        uint256 value;
+        bytes rawValue;   // TODO provisioned with separate transactions
+    }
+
     /// @dev Struct to store ZKP proof and associated data
     struct Proof {
         bool isProved;
-        uint256[] specialInputs;
+        mapping(string => StorageField) storageFields;
         bytes metadata;
     }
 
@@ -197,8 +202,14 @@ contract UniversalVerifier is OwnableUpgradeable {
     /// @param user The user's address
     /// @param requestId The ID of the ZKP request
     /// @return The proof
-    function getProof(address user, uint64 requestId) public view returns (Proof memory) {
-        return _getMainStorage().proofs[user][requestId];
+    // TODO finalize it
+    function getProofStorageItem(address user, uint64 requestId, string memory key) public view returns (uint256) {
+        return _getMainStorage().proofs[user][requestId].storageFields[key].value;
+    }
+
+    struct KeyValuePair {
+        string key;
+        uint256 value;
     }
 
     /// @notice Submits a ZKP response and updates proof status
@@ -213,6 +224,9 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c
+        // TODO add additional data and circuit id
+//        bytes calldata additionalData,
+//        string calldata circuitId
     ) public enabled(requestId) {
         address sender = _msgSender();
         require(
@@ -220,13 +234,15 @@ contract UniversalVerifier is OwnableUpgradeable {
             "validator is not set for this request id"
         );
 
-        uint[] memory specialInputNumbers = _callVerifyWithSender(requestId, inputs, a, b, c, sender);
-        uint[] memory specialInputs = new uint[](specialInputNumbers.length);
-        for (uint i = 0; i < specialInputNumbers.length; i++) {
-            specialInputs[i] = inputs[specialInputNumbers[i]];
+        ICircuitValidator.KeyInputIndexPair[] memory pairs = _callVerifyWithSender(requestId, inputs, a, b, c, sender);
+        for (uint256 i = 0; i < pairs.length; i++) {
+            _getMainStorage().proofs[sender][requestId].storageFields[pairs[i].key] = StorageField(
+                inputs[pairs[i].inputIndex],
+                ""
+            );
         }
 
-        _getMainStorage().proofs[msg.sender][requestId] = Proof(true, specialInputs, "");
+        _getMainStorage().proofs[msg.sender][requestId].isProved = true;
         emit ZKPResponseSubmitted(requestId, sender);
     }
 
@@ -259,7 +275,7 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[2][2] calldata b,
         uint256[2] calldata c,
         address sender
-    ) internal view returns (uint256[] memory) {
+    ) internal view returns (ICircuitValidator.KeyInputIndexPair[] memory) {
         IZKPVerifier.ZKPRequestExtended memory request = _getMainStorage().requests[
             requestId
         ];
@@ -281,6 +297,6 @@ contract UniversalVerifier is OwnableUpgradeable {
                 revert("Failed to verify proof without revert reason");
             }
         }
-        return request.validator.getSpecialInputNumbers();
+        return request.validator.getSpecialInputPairs();
     }
 }

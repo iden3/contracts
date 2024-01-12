@@ -87,20 +87,16 @@ describe("ZKP Verifier", function () {
       .withArgs(0, signerAddress);
     await verifier.verifyZKPResponse(0, inputs, pi_a, pi_b, pi_c);
 
-    const [user] = await ethers.getSigners();
-    const userAddress = await user.getAddress();
     const requestId = 0;
-    let result = await verifier.getProofStatus(userAddress, requestId);
+    let result = await verifier.getProofStatus(signerAddress, requestId);
     expect(result).to.be.equal(true);
-    result = await verifier.getProofStatus(userAddress, requestId + 1);
+    result = await verifier.getProofStatus(signerAddress, requestId + 1);
     expect(result).to.be.equal(false);
 
-    result = await verifier.getProof(signerAddress, requestId);
-
-    expect(result.isProved).to.be.equal(true);
-    expect(result.specialInputs[0]).to.be.equal(inputs[1]); // First special input is UserID
-    expect(result.specialInputs[1]).to.be.equal(inputs[10]); // Second special input is Timestamp
-    expect(result.metadata).to.be.equal("0x");
+    expect(await verifier.getProofStorageItem(signerAddress, requestId, "userID"))
+      .to.equal("23148936466334350744548790012294489365207440754509988986684797708370051073");
+    expect(await verifier.getProofStorageItem(signerAddress, requestId, "timestamp"))
+      .to.equal("1642074362");
   });
 
   it('Test getZKPRequests pagination', async () => {
