@@ -58,6 +58,13 @@ contract UniversalVerifier is OwnableUpgradeable {
         bytes data
     );
 
+    event AddStorageFieldRawValue(
+        address indexed signer,
+        uint64 indexed requestId,
+        string key,
+        bytes rawValue
+    );
+
     /// @dev Modifier to check if the caller is the owner or controller of the ZKP request
     modifier onlyOwnerOrController(uint64 requestId) {
         require(
@@ -294,17 +301,17 @@ contract UniversalVerifier is OwnableUpgradeable {
     }
 
     /// @notice Adds a raw value to the proof storage item for a given user, request ID and key
-    /// @param user The user's address
     /// @param requestId The ID of the ZKP request
     /// @param key The key of the storage item
     /// @param rawValue The raw value to add
     function addStorageFieldRawValue(
-        address user,
         uint64 requestId,
         string memory key,
         bytes memory rawValue
-    ) public onlyOwnerOrController(requestId) {
-        _getMainStorage().proofs[user][requestId].storageFields[key].rawValue = rawValue;
+    ) public {
+        address signer = _msgSender();
+        _getMainStorage().proofs[signer][requestId].storageFields[key].rawValue = rawValue;
+        emit AddStorageFieldRawValue(signer, requestId, key, rawValue);
     }
 
     /// @notice Gets the proof storage item for a given user, request ID and key

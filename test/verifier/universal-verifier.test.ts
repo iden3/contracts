@@ -54,12 +54,19 @@ describe("ZKP Verifier", function () {
     const requestsCount = 3;
 
     for (let i = 0; i < requestsCount; i++) {
-      await expect(verifier.addZKPRequest({ metadata: 'metadataN' + i, validator: sig.address, data: '0x0' + i }))
-        .to.emit(verifier, 'ZKPRequestAdded').withArgs(i, signerAddress, 'metadataN' + i, '0x0' + i);
-      let request = await verifier.getZKPRequest(i);
-      expect(request.metadata).to.be.equal('metadataN' + i);
+      await expect(
+        verifier.addZKPRequest({
+          metadata: "metadataN" + i,
+          validator: sig.address,
+          data: "0x0" + i,
+        })
+      )
+        .to.emit(verifier, "ZKPRequestAdded")
+        .withArgs(i, signerAddress, "metadataN" + i, "0x0" + i);
+      const request = await verifier.getZKPRequest(i);
+      expect(request.metadata).to.be.equal("metadataN" + i);
       expect(request.validator).to.be.equal(sig.address);
-      expect(request.data).to.be.equal('0x0' + i);
+      expect(request.data).to.be.equal("0x0" + i);
       expect(request.controller).to.be.equal(signerAddress);
 
       const requestIdExists = await verifier.requestIdExists(i);
@@ -67,9 +74,7 @@ describe("ZKP Verifier", function () {
       const requestIdDoesntExists = await verifier.requestIdExists(i + 1);
       expect(requestIdDoesntExists).to.be.false;
 
-      await expect(verifier.getZKPRequest(i + 1)).to.be.revertedWith(
-        'request id doesn\'t exist'
-      );
+      await expect(verifier.getZKPRequest(i + 1)).to.be.revertedWith("request id doesn't exist");
     }
 
     const count = await verifier.getZKPRequestsCount();
@@ -78,7 +83,11 @@ describe("ZKP Verifier", function () {
 
   it("Test submit response", async () => {
     await publishState(state, stateTransition);
-    await verifier.addZKPRequest({ metadata: "metadata", validator: sig.address, data: packValidatorParams(query) });
+    await verifier.addZKPRequest({
+      metadata: "metadata",
+      validator: sig.address,
+      data: packValidatorParams(query),
+    });
     await sig.setProofExpirationTimeout(315360000);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
@@ -92,32 +101,26 @@ describe("ZKP Verifier", function () {
     expect(result).to.be.equal(true);
     result = await verifier.getProofStatus(signerAddress, requestId + 1);
     expect(result).to.be.equal(false);
-
-    verifier.addStorageFieldRawValue(signerAddress, requestId, "userID", "0x010203");
-
-    const sf1 = await verifier.getProofStorageField(signerAddress, requestId, "userID");
-    expect(sf1.value).to.equal("23148936466334350744548790012294489365207440754509988986684797708370051073");
-    expect(sf1.rawValue).to.equal("0x010203");
-
-    const sf2 = await verifier.getProofStorageField(signerAddress, requestId, "timestamp");
-    expect(sf2.value).to.equal("1642074362");
-    expect(sf2.rawValue).to.equal("0x");
   });
 
-  it('Test getZKPRequests pagination', async () => {
+  it("Test getZKPRequests pagination", async () => {
     for (let i = 0; i < 30; i++) {
-      await verifier.addZKPRequest({ metadata: 'metadataN' + i, validator: sig.address, data: '0x00' });
+      await verifier.addZKPRequest({
+        metadata: "metadataN" + i,
+        validator: sig.address,
+        data: "0x00",
+      });
     }
     let queries = await verifier.getZKPRequests(5, 10);
     expect(queries.length).to.be.equal(10);
-    expect(queries[0].metadata).to.be.equal('metadataN5');
-    expect(queries[9].metadata).to.be.equal('metadataN14');
+    expect(queries[0].metadata).to.be.equal("metadataN5");
+    expect(queries[9].metadata).to.be.equal("metadataN14");
 
     queries = await verifier.getZKPRequests(15, 3);
     expect(queries.length).to.be.equal(3);
-    expect(queries[0].metadata).to.be.equal('metadataN15');
-    expect(queries[1].metadata).to.be.equal('metadataN16');
-    expect(queries[2].metadata).to.be.equal('metadataN17');
+    expect(queries[0].metadata).to.be.equal("metadataN15");
+    expect(queries[1].metadata).to.be.equal("metadataN16");
+    expect(queries[2].metadata).to.be.equal("metadataN17");
   });
 
   it("Test getControllerZKPRequests", async () => {
@@ -145,19 +148,17 @@ describe("ZKP Verifier", function () {
     );
   });
 
-  it('Check disable/enable functionality', async () => {
+  it("Check disable/enable functionality", async () => {
     const owner = signer;
     const controller = signer2;
     const someSigner = signer3;
 
     await publishState(state, stateTransition);
-    await verifier
-      .connect(controller)
-      .addZKPRequest({
-        metadata: "metadata",
-        validator: sig.address,
-        data: packValidatorParams(query),
-      });
+    await verifier.connect(controller).addZKPRequest({
+      metadata: "metadata",
+      validator: sig.address,
+      data: packValidatorParams(query),
+    });
     await sig.setProofExpirationTimeout(315360000);
 
     await expect(verifier.connect(someSigner).disableZKPRequest(0)).to.be.revertedWith(
@@ -184,12 +185,45 @@ describe("ZKP Verifier", function () {
     );
   });
 
-  it('Check whitelisted validators', async () => {
-    await expect(verifier.addZKPRequest({ metadata: 'metadata', validator: someAddress, data: '0x00' }))
-      .to.be.revertedWith('Validator is not whitelisted');
+  it("Check whitelisted validators", async () => {
+    await expect(
+      verifier.addZKPRequest({ metadata: "metadata", validator: someAddress, data: "0x00" })
+    ).to.be.revertedWith("Validator is not whitelisted");
 
     await verifier.addWhitelistedValidator(someAddress);
 
-    verifier.addZKPRequest({ metadata: 'metadata', validator: someAddress, data: '0x00' });
+    verifier.addZKPRequest({ metadata: "metadata", validator: someAddress, data: "0x00" });
+  });
+
+  it("Check addStorageFieldRawValue", async () => {
+    await publishState(state, stateTransition);
+    await verifier.addZKPRequest({
+      metadata: "metadata",
+      validator: sig.address,
+      data: packValidatorParams(query),
+    });
+    await sig.setProofExpirationTimeout(315360000);
+
+    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+    await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
+
+    const sf1 = await verifier.getProofStorageField(signerAddress, 0, "userID");
+    expect(sf1.value).to.equal(
+      "23148936466334350744548790012294489365207440754509988986684797708370051073"
+    );
+    expect(sf1.rawValue).to.equal("0x");
+    await expect(verifier.addStorageFieldRawValue(0, "userID", "0x010203"))
+      .to.emit(verifier, "AddStorageFieldRawValue")
+      .withArgs(signerAddress, 0, "userID", "0x010203");
+    const sf12 = await verifier.getProofStorageField(signerAddress, 0, "userID");
+    expect(sf12.rawValue).to.equal("0x010203");
+
+    const sf2 = await verifier.getProofStorageField(signerAddress, 0, "timestamp");
+    expect(sf2.rawValue).to.equal("0x");
+    await expect(verifier.addStorageFieldRawValue(0, "timestamp", "0x112233"))
+      .to.emit(verifier, "AddStorageFieldRawValue")
+      .withArgs(signerAddress, 0, "timestamp", "0x112233");
+    const sf22 = await verifier.getProofStorageField(signerAddress, 0, "timestamp");
+    expect(sf22.rawValue).to.equal("0x112233");
   });
 });
