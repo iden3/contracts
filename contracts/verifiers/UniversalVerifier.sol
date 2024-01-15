@@ -6,10 +6,6 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 
-// TODO scripts (do we need it?)
-//1. Who requested
-//2. Who submitted
-
 /// @title Universal Verifier Contract
 /// @notice A contract to manage ZKP (Zero-Knowledge Proof) requests and proofs.
 contract UniversalVerifier is OwnableUpgradeable {
@@ -270,6 +266,32 @@ contract UniversalVerifier is OwnableUpgradeable {
         _callVerifyWithSender(requestId, inputs, a, b, c, _msgSender());
     }
 
+    /// @notice Adds a raw value to the proof storage item for a given user, request ID and key
+    /// @param requestId The ID of the ZKP request
+    /// @param key The key of the storage item
+    /// @param rawValue The raw value to add
+    function addStorageFieldRawValue(
+        uint64 requestId,
+        string memory key,
+        bytes memory rawValue
+    ) public {
+        address signer = _msgSender();
+        _getMainStorage().proofs[signer][requestId].storageFields[key].rawValue = rawValue;
+        emit AddStorageFieldRawValue(signer, requestId, key, rawValue);
+    }
+
+    /// @notice Gets the proof storage item for a given user, request ID and key
+    /// @param user The user's address
+    /// @param requestId The ID of the ZKP request
+    /// @return The proof
+    function getProofStorageField(
+        address user,
+        uint64 requestId,
+        string memory key
+    ) public view returns (StorageField memory) {
+        return _getMainStorage().proofs[user][requestId].storageFields[key];
+    }
+
     function _callVerifyWithSender(
         uint64 requestId,
         uint256[] calldata inputs,
@@ -298,31 +320,5 @@ contract UniversalVerifier is OwnableUpgradeable {
             }
         }
         return request.validator.getSpecialInputPairs();
-    }
-
-    /// @notice Adds a raw value to the proof storage item for a given user, request ID and key
-    /// @param requestId The ID of the ZKP request
-    /// @param key The key of the storage item
-    /// @param rawValue The raw value to add
-    function addStorageFieldRawValue(
-        uint64 requestId,
-        string memory key,
-        bytes memory rawValue
-    ) public {
-        address signer = _msgSender();
-        _getMainStorage().proofs[signer][requestId].storageFields[key].rawValue = rawValue;
-        emit AddStorageFieldRawValue(signer, requestId, key, rawValue);
-    }
-
-    /// @notice Gets the proof storage item for a given user, request ID and key
-    /// @param user The user's address
-    /// @param requestId The ID of the ZKP request
-    /// @return The proof
-    function getProofStorageField(
-        address user,
-        uint64 requestId,
-        string memory key
-    ) public view returns (StorageField memory) {
-        return _getMainStorage().proofs[user][requestId].storageFields[key];
     }
 }
