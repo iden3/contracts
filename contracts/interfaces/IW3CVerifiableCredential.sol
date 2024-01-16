@@ -44,7 +44,7 @@ interface IW3CVerifiableCredential {
     }
 
     struct Credential {
-        uint256 id;
+        string id;
         string[] context;
         string[] _type;
         uint64 expirationDate;
