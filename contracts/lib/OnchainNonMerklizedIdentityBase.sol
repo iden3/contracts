@@ -3,13 +3,13 @@ pragma solidity 0.8.16;
 import {SmtLib} from "../lib/SmtLib.sol";
 import {IdentityLib} from "../lib/IdentityLib.sol";
 import {IdentityBase} from "../lib/IdentityBase.sol";
-import {Strings} from '@openzeppelin/contracts/utils/Strings.sol';
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * @dev Contract building onchain non-merklized identity
  * that can be transformed to W3C verifiable credential
  */
-abstract contract OnchainNonMerklizedIdentityBase is IdentityBase  {
+abstract contract OnchainNonMerklizedIdentityBase is IdentityBase {
     using IdentityLib for IdentityLib.Data;
 
     /**
@@ -44,7 +44,7 @@ abstract contract OnchainNonMerklizedIdentityBase is IdentityBase  {
      * @dev SubjectField credential subject for the credential
      * key - name of the field
      * value - value of the field
-     * rawValue - raw value of the field, 
+     * rawValue - raw value of the field,
      * is used for string and double types to restore source value in W3C verifiable credential
      */
     struct SubjectField {
@@ -130,7 +130,7 @@ abstract contract OnchainNonMerklizedIdentityBase is IdentityBase  {
      * @dev listUserCredentials. Get list of user credentials identifiers
      * @param _userId user id
      */
-    function listUserCredentials(uint256 _userId) external virtual view returns (Id[] memory);
+    function listUserCredentials(uint256 _userId) external virtual returns (Id[] memory);
 
     /**
      * @dev getCredential. Get credential by user id and credential id
@@ -138,7 +138,7 @@ abstract contract OnchainNonMerklizedIdentityBase is IdentityBase  {
     function getCredential(
         uint256 _userId,
         uint256 _credentialId
-    ) external virtual view returns (CredentialData memory);
+    ) external virtual returns (CredentialData memory);
 
     /**
      * @dev processOnchainCredentialData. Build credential data from core claim and additional information
@@ -156,13 +156,10 @@ abstract contract OnchainNonMerklizedIdentityBase is IdentityBase  {
             value: identity.latestPublishedState
         });
 
-        IssuerData memory issuerData = IssuerData({
-            id: identity.id,
-            state: issuerState
-        });
+        IssuerData memory issuerData = IssuerData({id: identity.id, state: issuerState});
 
         SmtLib.Proof memory mtp = identity.getClaimProof(claim.hashIndex);
-        require(mtp.existence, 'Claim does not exist in issuer state');
+        require(mtp.existence, "Claim does not exist in issuer state");
 
         IssuanceProof memory issuanceProof = IssuanceProof({
             _type: "Iden3SparseMerkleTreeProof",
@@ -181,11 +178,11 @@ abstract contract OnchainNonMerklizedIdentityBase is IdentityBase  {
             CredentialData({
                 id: string(
                     abi.encodePacked(
-                        'urn:onchain:',
+                        "urn:onchain:",
                         Strings.toString(chainId),
-                        ':',
+                        ":",
                         Strings.toHexString(uint160(address(this))),
-                        ':',
+                        ":",
                         Strings.toString(credentialMetadata.id)
                     )
                 ),
@@ -200,13 +197,13 @@ abstract contract OnchainNonMerklizedIdentityBase is IdentityBase  {
                     credentialInformation._type
                 ),
                 credentialStatus: Status({
-                    id: '/credentialStatus',
-                    _type: 'Iden3OnchainSparseMerkleTreeProof2023',
+                    id: "/credentialStatus",
+                    _type: "Iden3OnchainSparseMerkleTreeProof2023",
                     revocationNonce: credentialMetadata.revocationNonce
                 }),
                 credentialSchema: Schema({
                     id: credentialInformation.jsonSchemaUrl,
-                    _type: 'JsonSchema2023'
+                    _type: "JsonSchema2023"
                 }),
                 proof: proofs
             });
@@ -230,18 +227,20 @@ abstract contract OnchainNonMerklizedIdentityBase is IdentityBase  {
     }
 
     function fillCredentialSubject(
-        SubjectField[] memory fields, 
+        SubjectField[] memory fields,
         uint256 id,
         string memory _type
     ) private pure returns (SubjectField[] memory) {
-        SubjectField[] memory credentialSubjectWithDefaultFields = new SubjectField[](fields.length + 2);
+        SubjectField[] memory credentialSubjectWithDefaultFields = new SubjectField[](
+            fields.length + 2
+        );
         for (uint256 i = 0; i < fields.length; i++) {
             credentialSubjectWithDefaultFields[i] = fields[i];
         }
         credentialSubjectWithDefaultFields[fields.length] = SubjectField({
             key: "id",
             value: id,
-            rawValue: ''
+            rawValue: ""
         });
         credentialSubjectWithDefaultFields[fields.length + 1] = SubjectField({
             key: "type",
