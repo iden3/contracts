@@ -193,7 +193,6 @@ abstract contract OnchainNonMerklizedIdentityBase is IdentityBase {
                 issuer: identity.id,
                 credentialSubject: fillCredentialSubject(
                     credentialSubject,
-                    credentialMetadata.id,
                     credentialInformation._type
                 ),
                 credentialStatus: Status({
@@ -228,21 +227,15 @@ abstract contract OnchainNonMerklizedIdentityBase is IdentityBase {
 
     function fillCredentialSubject(
         SubjectField[] memory fields,
-        uint256 id,
         string memory _type
     ) private pure returns (SubjectField[] memory) {
         SubjectField[] memory credentialSubjectWithDefaultFields = new SubjectField[](
-            fields.length + 2
+            fields.length + 1
         );
         for (uint256 i = 0; i < fields.length; i++) {
             credentialSubjectWithDefaultFields[i] = fields[i];
         }
         credentialSubjectWithDefaultFields[fields.length] = SubjectField({
-            key: "id",
-            value: id,
-            rawValue: ""
-        });
-        credentialSubjectWithDefaultFields[fields.length + 1] = SubjectField({
             key: "type",
             value: 0,
             rawValue: bytes(_type)
