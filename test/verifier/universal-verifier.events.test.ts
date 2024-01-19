@@ -60,7 +60,7 @@ describe("ZKP Verifier", function () {
       ),
       circuitIds: ["credentialAtomicQuerySigV2OnChain"],
       claimPathNotExists: 0,
-    }
+    },
   ];
 
   const proofJson = require("../validators/sig/data/valid_sig_user_genesis.json");
@@ -107,22 +107,22 @@ describe("ZKP Verifier", function () {
     logs.map((log, index) => {
       const abi = [
         {
-          "components": [
-            {"name": "schema", "type": "uint256"},
-            {"name": "claimPathKey", "type": "uint256"},
-            {"name": "operator", "type": "uint256"},
-            {"name": "slotIndex", "type": "uint256"},
-            {"name": "value", "type": "uint256[]"},
-            {"name": "queryHash", "type": "uint256"},
-            {"name": "circuitIds", "type": "string[]"},
-            {"name": "claimPathNotExists", "type": "uint256"},
-            {"name": "groupID", "type": "uint256"},
-            {"name": "nullifierSessionID", "type": "uint256"},
-            {"name": "proofType", "type": "uint256"},
-            {"name": "verifierID", "type": "uint256"}
+          components: [
+            { name: "schema", type: "uint256" },
+            { name: "claimPathKey", type: "uint256" },
+            { name: "operator", type: "uint256" },
+            { name: "slotIndex", type: "uint256" },
+            { name: "value", type: "uint256[]" },
+            { name: "queryHash", type: "uint256" },
+            { name: "circuitIds", type: "string[]" },
+            { name: "claimPathNotExists", type: "uint256" },
+            { name: "groupID", type: "uint256" },
+            { name: "nullifierSessionID", type: "uint256" },
+            { name: "proofType", type: "uint256" },
+            { name: "verifierID", type: "uint256" },
           ],
-          "name": "",
-          "type": "tuple"
+          name: "",
+          type: "tuple",
         },
       ];
 
