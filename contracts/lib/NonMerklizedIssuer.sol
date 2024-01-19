@@ -9,7 +9,7 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
  * @dev Contract building onchain non-merklized identity
  * that can be transformed to W3C verifiable credential
  */
-abstract contract OnchainNonMerklizedIdentityBase is IdentityBase {
+abstract contract NonMerklizedIssuer is IdentityBase {
     using IdentityLib for IdentityLib.Data;
 
     /**
@@ -115,22 +115,15 @@ abstract contract OnchainNonMerklizedIdentityBase is IdentityBase {
         IssuanceProof[] proof;
     }
 
-    /**
-     * @dev Id
-     */
-    struct Id {
-        uint256 id;
-    }
-
     function initialize(address _stateContractAddr) public virtual override {
         IdentityBase.initialize(_stateContractAddr);
     }
 
     /**
-     * @dev listUserCredentials. Get list of user credentials identifiers
+     * @dev listUserCredentialIds. Get list of user credentials identifiers
      * @param _userId user id
      */
-    function listUserCredentials(uint256 _userId) external virtual returns (Id[] memory);
+    function listUserCredentialIds(uint256 _userId) external virtual returns (uint256[] memory);
 
     /**
      * @dev getCredential. Get credential by user id and credential id
@@ -147,7 +140,8 @@ abstract contract OnchainNonMerklizedIdentityBase is IdentityBase {
         CredentialInformation memory credentialInformation,
         CredentialMetadata memory credentialMetadata,
         SubjectField[] memory credentialSubject,
-        Claim memory claim
+        Claim memory claim,
+        uint256 userId
     ) internal view returns (CredentialData memory) {
         IssuerState memory issuerState = IssuerState({
             rootOfRoots: identity.latestPublishedTreeRoots.rootsRoot,
@@ -193,6 +187,7 @@ abstract contract OnchainNonMerklizedIdentityBase is IdentityBase {
                 issuer: identity.id,
                 credentialSubject: fillCredentialSubject(
                     credentialSubject,
+                    userId,
                     credentialInformation._type
                 ),
                 credentialStatus: Status({
@@ -227,10 +222,16 @@ abstract contract OnchainNonMerklizedIdentityBase is IdentityBase {
 
     function fillCredentialSubject(
         SubjectField[] memory fields,
+        uint256 userId,
         string memory _type
     ) private pure returns (SubjectField[] memory) {
+        uint256 countOfAdditionalFields = 1;
+        if (userId != 0) {
+            countOfAdditionalFields++;
+        }
+
         SubjectField[] memory credentialSubjectWithDefaultFields = new SubjectField[](
-            fields.length + 1
+            fields.length + countOfAdditionalFields
         );
         for (uint256 i = 0; i < fields.length; i++) {
             credentialSubjectWithDefaultFields[i] = fields[i];
@@ -240,6 +241,14 @@ abstract contract OnchainNonMerklizedIdentityBase is IdentityBase {
             value: 0,
             rawValue: bytes(_type)
         });
+        if (userId != 0) {
+            credentialSubjectWithDefaultFields[fields.length + 1] = SubjectField({
+               key: 'id', 
+               value: userId, 
+               rawValue: ''
+            });
+        }
+
         return credentialSubjectWithDefaultFields;
     }
 }
