@@ -243,9 +243,9 @@ abstract contract NonMerklizedIssuer is IdentityBase {
         });
         if (userId != 0) {
             credentialSubjectWithDefaultFields[fields.length + 1] = SubjectField({
-               key: 'id', 
-               value: userId, 
-               rawValue: ''
+                key: "id",
+                value: userId,
+                rawValue: ""
             });
         }
 
