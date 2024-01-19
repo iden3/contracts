@@ -83,10 +83,11 @@ describe("ZKP Verifier", function () {
 
   it("Test submit response", async () => {
     await publishState(state, stateTransition);
+    const data = packValidatorParams(query);
     await verifier.addZKPRequest({
       metadata: "metadata",
       validator: sig.address,
-      data: packValidatorParams(query),
+      data: data,
     });
     await sig.setProofExpirationTimeout(315360000);
 
