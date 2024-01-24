@@ -28,6 +28,7 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint64[] requestIds;
         mapping(address => uint64[]) userRequestIds;
         mapping(ICircuitValidator => bool) whitelistedValidators;
+        mapping(uint256 => bytes) hashPreimages; //TODO add some method to populate
     }
 
     uint256 constant REQUESTS_RETURN_LIMIT = 1000;
@@ -71,7 +72,7 @@ contract UniversalVerifier is OwnableUpgradeable {
     }
 
     /// @dev Modifier to check if the ZKP request is enabled
-    modifier enabled(uint64 requestId) {
+    modifier requestEnabled(uint64 requestId) {
         require(!_getMainStorage().requests[requestId].isDisabled, "Request is disabled");
         _;
     }
@@ -218,14 +219,16 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c // TODO add bytes calldata additionalData, string calldata circuitId
-    ) public enabled(requestId) {
+//        bytes calldata additionalData,
+//        string calldata circuitId
+    ) public requestEnabled(requestId) {
         address sender = _msgSender();
         require(
             _getMainStorage().requests[requestId].validator != ICircuitValidator(address(0)),
             "validator is not set for this request id"
         );
 
-        ICircuitValidator.KeyInputIndexPair[] memory pairs = _callVerifyWithSender(
+        bytes memory returnData = _callVerifyWithSender(
             requestId,
             inputs,
             a,
@@ -233,11 +236,21 @@ contract UniversalVerifier is OwnableUpgradeable {
             c,
             sender
         );
+
+        ICircuitValidator.KeyInputIndexPair[] memory pairs = abi.decode(returnData, (
+            ICircuitValidator.KeyInputIndexPair[]
+        ));
+
         for (uint256 i = 0; i < pairs.length; i++) {
             _getMainStorage().proofs[sender][requestId].storageFields[pairs[i].key] = StorageField(
                 inputs[pairs[i].inputIndex],
                 ""
             );
+            if (keccak256(bytes(pairs[i].key)) == keccak256(bytes("operatorOutput"))) {
+                uint256 hash = inputs[pairs[i].inputIndex];
+                // TODO check against selective disclosure key-value
+                require(_getMainStorage().hashPreimages[hash].length > 0);
+            }
         }
 
         _getMainStorage().proofs[msg.sender][requestId].isProved = true;
@@ -257,7 +270,7 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c
-    ) public view enabled(requestId) {
+    ) public view requestEnabled(requestId) {
         require(
             _getMainStorage().requests[requestId].validator != ICircuitValidator(address(0)),
             "validator is not set for this request id"
@@ -299,7 +312,7 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[2][2] calldata b,
         uint256[2] calldata c,
         address sender
-    ) internal view returns (ICircuitValidator.KeyInputIndexPair[] memory) {
+    ) internal view returns (bytes memory) {
         IZKPVerifier.ZKPRequestExtended memory request = _getMainStorage().requests[requestId];
         bytes4 selector = request.validator.verify.selector;
         bytes memory data = abi.encodePacked(
@@ -319,6 +332,6 @@ contract UniversalVerifier is OwnableUpgradeable {
                 revert("Failed to verify proof without revert reason");
             }
         }
-        return request.validator.getSpecialInputPairs();
+        return returnData;
     }
 }

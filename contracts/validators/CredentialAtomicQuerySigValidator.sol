@@ -81,8 +81,8 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
         return params;
     }
 
-    function getSpecialInputPairs()
-        public
+    function _getSpecialInputPairs(bool hasSelectiveDisclosure)
+        internal
         pure
         override
         returns (ICircuitValidator.KeyInputIndexPair[] memory)

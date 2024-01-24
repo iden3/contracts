@@ -145,6 +145,14 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
             signals.isRevocationChecked,
             credAtomicQuery.skipClaimRevocationCheck
         );
+
+        ICircuitValidator.KeyInputIndexPair[] memory pairs = _getSpecialInputPairs(credAtomicQuery.operator == 16);
+        bytes memory encodedPairs = abi.encode(pairs);
+        uint256 epLength = encodedPairs.length;
+
+        assembly {
+            return(add(encodedPairs, 0x20), epLength)
+        }
     }
 
     function _checkGistRoot(uint256 gistRoot) internal view {
@@ -263,8 +271,8 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         }
     }
 
-    function getSpecialInputPairs()
-        public
+    function _getSpecialInputPairs(bool hasSelectiveDisclosure)
+        internal
         pure
         virtual
         returns (ICircuitValidator.KeyInputIndexPair[] memory);

@@ -147,7 +147,38 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         } else {
             _checkAuth(signals.userID, _extractSenderFromCalldata());
         }
+
+        ICircuitValidator.KeyInputIndexPair[] memory pairs = _getSpecialInputPairs(credAtomicQuery.operator == 16);
+        bytes memory encodedPairs = abi.encode(pairs);
+        uint256 epLength = encodedPairs.length;
+
+        assembly {
+            return(add(encodedPairs, 0x20), epLength)
+        }
     }
+
+    //TODO check if this is needed
+//    function verifyWithSender(
+//        uint256[] calldata inputs,
+//        uint256[2] calldata a,
+//        uint256[2][2] calldata b,
+//        uint256[2] calldata c,
+//        bytes calldata data,
+//        address sender
+//    ) external view virtual {
+//        CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
+//            data,
+//            (CredentialAtomicQueryV3)
+//        );
+//
+//        CommonPubSignals memory signals = parseCommonPubSignals(inputs);
+//
+//        if (v3PubSignals.authEnabled == 1) {
+//            _checkGistRoot(signals.gistRoot);
+//        } else {
+//            _checkAuth(signals.userID, sender);
+//        }
+//    }
 
     function _checkVerifierID(uint256 queryVerifierID, uint256 pubSignalVerifierID) internal pure {
         require(
@@ -227,21 +258,27 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         return pubSignals;
     }
 
-    function getSpecialInputPairs()
-        public
+    function _getSpecialInputPairs(bool hasSelectiveDisclosure)
+        internal
         pure
         override
         returns (ICircuitValidator.KeyInputIndexPair[] memory)
     {
+        uint256 numPairs = hasSelectiveDisclosure ? 7 : 6;
         ICircuitValidator.KeyInputIndexPair[]
-            memory pairs = new ICircuitValidator.KeyInputIndexPair[](2);
-        pairs[0] = ICircuitValidator.KeyInputIndexPair({key: "userID", inputIndex: 1});
-        pairs[1] = ICircuitValidator.KeyInputIndexPair({key: "linkID", inputIndex: 4});
-        pairs[2] = ICircuitValidator.KeyInputIndexPair({key: "nullifier", inputIndex: 5});
-        pairs[3] = ICircuitValidator.KeyInputIndexPair({key: "operatorOutput", inputIndex: 6});
-        pairs[4] = ICircuitValidator.KeyInputIndexPair({key: "timestamp", inputIndex: 14});
-        pairs[5] = ICircuitValidator.KeyInputIndexPair({key: "verifierID", inputIndex: 15});
-        pairs[6] = ICircuitValidator.KeyInputIndexPair({key: "nullifierSessionID", inputIndex: 16});
+            memory pairs = new ICircuitValidator.KeyInputIndexPair[](numPairs);
+
+        uint i = 0;
+        pairs[i++] = ICircuitValidator.KeyInputIndexPair({key: "userID", inputIndex: 1});
+        pairs[i++] = ICircuitValidator.KeyInputIndexPair({key: "linkID", inputIndex: 4});
+        pairs[i++] = ICircuitValidator.KeyInputIndexPair({key: "nullifier", inputIndex: 5});
+        if (hasSelectiveDisclosure) {
+            pairs[i++] = ICircuitValidator.KeyInputIndexPair({key: "operatorOutput", inputIndex: 6});
+        }
+        pairs[i++] = ICircuitValidator.KeyInputIndexPair({key: "timestamp", inputIndex: 14});
+        pairs[i++] = ICircuitValidator.KeyInputIndexPair({key: "verifierID", inputIndex: 15});
+        pairs[i++] = ICircuitValidator.KeyInputIndexPair({key: "nullifierSessionID", inputIndex: 16});
+
         return pairs;
     }
 }
