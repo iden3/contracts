@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.16;
+pragma solidity 0.8.20;
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {IState, MAX_SMT_DEPTH} from "../interfaces/IState.sol";
@@ -70,7 +70,7 @@ contract State is Ownable2StepUpgradeable, IState {
         verifier = verifierContractAddr;
         _setDefaultIdType(defaultIdType);
         _gistData.initialize(MAX_SMT_DEPTH);
-        __Ownable_init();
+        __Ownable_init(msg.sender);
     }
 
     /**

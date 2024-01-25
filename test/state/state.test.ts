@@ -392,7 +392,7 @@ describe("Set Verifier", () => {
       "0x8ba1f109551bd432803012645ac136ddd64dba72"
     );
     await expect(state.connect(notOwner).setVerifier(newVerifierAddress)).to.be.revertedWith(
-      "Ownable: caller is not the owner"
+      "OwnableUnauthorizedAccount"
     );
   });
 

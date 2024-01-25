@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.16;
+pragma solidity 0.8.20;
 
 import {ReverseHashLib} from "../lib/ReverseHashLib.sol";
 import {PoseidonUnit2L, PoseidonUnit3L} from "../lib/Poseidon.sol";
