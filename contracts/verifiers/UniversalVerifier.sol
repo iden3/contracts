@@ -219,8 +219,8 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c // TODO add bytes calldata additionalData, string calldata circuitId
-//        bytes calldata additionalData,
 //        string calldata circuitId
+//        bytes calldata additionalData,
     ) public requestEnabled(requestId) {
         address sender = _msgSender();
         require(
@@ -263,7 +263,6 @@ contract UniversalVerifier is OwnableUpgradeable {
     /// @param a The first component of the proof
     /// @param b The second component of the proof
     /// @param c The third component of the proof
-    //TODO should it return bool value?
     function verifyZKPResponse(
         uint64 requestId,
         uint256[] calldata inputs,

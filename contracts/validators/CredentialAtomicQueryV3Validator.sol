@@ -165,7 +165,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
 //        uint256[2] calldata c,
 //        bytes calldata data,
 //        address sender
-//    ) external view virtual {
+//    ) external view virtual returns (ICircuitValidator.KeyInputIndexPair[] memory) {
 //        CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
 //            data,
 //            (CredentialAtomicQueryV3)
@@ -178,6 +178,8 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
 //        } else {
 //            _checkAuth(signals.userID, sender);
 //        }
+//
+//
 //    }
 
     function _checkVerifierID(uint256 queryVerifierID, uint256 pubSignalVerifierID) internal pure {
