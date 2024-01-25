@@ -218,7 +218,7 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[] calldata inputs,
         uint256[2] calldata a,
         uint256[2][2] calldata b,
-        uint256[2] calldata c, // TODO add bytes calldata additionalData, string calldata circuitId
+        uint256[2] calldata c // TODO add bytes calldata additionalData, string calldata circuitId
 //        string calldata circuitId
 //        bytes calldata additionalData,
     ) public requestEnabled(requestId) {
