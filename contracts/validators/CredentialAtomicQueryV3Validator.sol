@@ -158,29 +158,29 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
     }
 
     //TODO check if this is needed
-    function verifyWithSender(
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
-        bytes calldata data,
-        address sender
-    ) external view virtual returns (ICircuitValidator.KeyInputIndexPair[] memory) {
-        CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
-            data,
-            (CredentialAtomicQueryV3)
-        );
-
-        CommonPubSignals memory signals = parseCommonPubSignals(inputs);
-
-        if (v3PubSignals.authEnabled == 1) {
-            _checkGistRoot(signals.gistRoot);
-        } else {
-            _checkAuth(signals.userID, sender);
-        }
-
-
-    }
+//    function verifyWithSender(
+//        uint256[] calldata inputs,
+//        uint256[2] calldata a,
+//        uint256[2][2] calldata b,
+//        uint256[2] calldata c,
+//        bytes calldata data,
+//        address sender
+//    ) external view virtual returns (ICircuitValidator.KeyInputIndexPair[] memory) {
+//        CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
+//            data,
+//            (CredentialAtomicQueryV3)
+//        );
+//
+//        CommonPubSignals memory signals = parseCommonPubSignals(inputs);
+//
+//        if (v3PubSignals.authEnabled == 1) {
+//            _checkGistRoot(signals.gistRoot);
+//        } else {
+//            _checkAuth(signals.userID, sender);
+//        }
+//
+//
+//    }
 
     function _checkVerifierID(uint256 queryVerifierID, uint256 pubSignalVerifierID) internal pure {
         require(
