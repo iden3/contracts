@@ -174,8 +174,8 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
 
     function _checkProofType(uint256 queryProofType, uint256 pubSignalProofType) internal pure {
         require(
-            pubSignalProofType == 0 || queryProofType == pubSignalProofType,
-            "Proof type should match the query"
+            queryProofType == 0 || queryProofType == pubSignalProofType,
+            "Proof type should match the requested one in query"
         );
     }
 
