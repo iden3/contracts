@@ -2,6 +2,7 @@
 pragma solidity 0.8.16;
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {ICircuitValidatorExtended} from "../interfaces/ICircuitValidatorExtended.sol";
@@ -9,7 +10,7 @@ import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
 import {PoseidonFacade} from "../lib/Poseidon.sol";
 
-abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuitValidatorExtended {
+abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuitValidatorExtended, ERC165 {
     struct CredentialAtomicQuery {
         uint256 schema;
         uint256 claimPathKey;
@@ -106,6 +107,13 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256 index = _inputNameToIndex[name];
         require(index != 0, "Input name not found");
         return --index; // we save 1-based index, but return 0-based
+    }
+
+    /**
+ * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return interfaceId == type(ICircuitValidatorExtended).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function _verify(

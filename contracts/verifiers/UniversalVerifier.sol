@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
@@ -260,8 +261,11 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[2] calldata c
     ) public view requestEnabled(requestId) checkValidatorIsSet(requestId) {
         IZKPVerifier.ZKPRequestExtended memory request = _getMainStorage().requests[requestId];
+        require(
+            IERC165(address(request.validator)).supportsInterface(type(ICircuitValidatorExtended).interfaceId),
+            "Validator doesn't support extended interface"
+        );
 
-        // TODO check with standard interface detection here!!!
         request.validator.verifyWithSender(inputs, a, b, c, request.data, _msgSender());
     }
 
