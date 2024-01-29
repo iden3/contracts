@@ -58,7 +58,18 @@ contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
         uint256[2] calldata c,
         bytes calldata data
     ) external view virtual {
-        _verify(inputs, a, b, c, data);
+        _verify(inputs, a, b, c, data, msg.sender);
+    }
+
+    function verifyWithSender(
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
+        bytes calldata data,
+        address sender
+    ) external view virtual returns (ICircuitValidator.KeyInputIndexPair[] memory) {
+        return _verify(inputs, a, b, c, data, sender);
     }
 
     function parseCommonPubSignals(

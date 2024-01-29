@@ -98,10 +98,33 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         uint256[2] calldata c,
         bytes calldata data
     ) external view virtual {
+        _verify(inputs, a, b, c, data, msg.sender);
+    }
+
+    function verifyWithSender(
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
+        bytes calldata data,
+        address sender
+    ) external view virtual returns (ICircuitValidator.KeyInputIndexPair[] memory) {
+        return _verify(inputs, a, b, c, data, sender);
+    }
+
+    function _verify(
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
+        bytes calldata data,
+        address sender
+    ) internal view override returns (ICircuitValidator.KeyInputIndexPair[] memory) {
         CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
             data,
             (CredentialAtomicQueryV3)
         );
+
         IVerifier verifier = _circuitIdToVerifier[credAtomicQuery.circuitIds[0]];
 
         require(
@@ -145,42 +168,15 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         if (v3PubSignals.authEnabled == 1) {
             _checkGistRoot(signals.gistRoot);
         } else {
-            _checkAuth(signals.userID, _extractSenderFromCalldata());
+            _checkAuth(signals.userID, sender);
         }
 
         ICircuitValidator.KeyInputIndexPair[] memory pairs = _getSpecialInputPairs(credAtomicQuery.operator == 16);
         bytes memory encodedPairs = abi.encode(pairs);
         uint256 epLength = encodedPairs.length;
 
-        assembly {
-            return(add(encodedPairs, 0x20), epLength)
-        }
+        return pairs;
     }
-
-    //TODO check if this is needed
-//    function verifyWithSender(
-//        uint256[] calldata inputs,
-//        uint256[2] calldata a,
-//        uint256[2][2] calldata b,
-//        uint256[2] calldata c,
-//        bytes calldata data,
-//        address sender
-//    ) external view virtual returns (ICircuitValidator.KeyInputIndexPair[] memory) {
-//        CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
-//            data,
-//            (CredentialAtomicQueryV3)
-//        );
-//
-//        CommonPubSignals memory signals = parseCommonPubSignals(inputs);
-//
-//        if (v3PubSignals.authEnabled == 1) {
-//            _checkGistRoot(signals.gistRoot);
-//        } else {
-//            _checkAuth(signals.userID, sender);
-//        }
-//
-//
-//    }
 
     function _checkVerifierID(uint256 queryVerifierID, uint256 pubSignalVerifierID) internal pure {
         require(

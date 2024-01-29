@@ -4,11 +4,12 @@ pragma solidity 0.8.16;
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {ICircuitValidatorExtended} from "../interfaces/ICircuitValidatorExtended.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
 import {PoseidonFacade} from "../lib/Poseidon.sol";
 
-abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuitValidator {
+abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuitValidatorExtended {
     struct CredentialAtomicQuery {
         uint256 schema;
         uint256 claimPathKey;
@@ -112,8 +113,9 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c,
-        bytes calldata data
-    ) internal view virtual {
+        bytes calldata data,
+        address sender
+    ) internal view virtual returns (ICircuitValidator.KeyInputIndexPair[] memory)  {
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
         IVerifier verifier = _circuitIdToVerifier[credAtomicQuery.circuitIds[0]];
 
@@ -150,9 +152,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         bytes memory encodedPairs = abi.encode(pairs);
         uint256 epLength = encodedPairs.length;
 
-        assembly {
-            return(add(encodedPairs, 0x20), epLength)
-        }
+        return pairs;
     }
 
     function _checkGistRoot(uint256 gistRoot) internal view {
@@ -258,17 +258,6 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
 
     function _setInputToIndex(string memory inputName, uint256 index) internal {
         _inputNameToIndex[inputName] = ++index; // increment index to avoid 0
-    }
-
-    function _extractSenderFromCalldata() internal view virtual returns (address sender) {
-        if (msg.data.length >= 20) {
-            /// @solidity memory-safe-assembly
-            assembly {
-                sender := shr(96, calldataload(sub(calldatasize(), 20)))
-            }
-        } else {
-            revert("msg.data.length is less than required");
-        }
     }
 
     function _getSpecialInputPairs(bool hasSelectiveDisclosure)
