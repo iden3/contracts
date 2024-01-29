@@ -59,6 +59,8 @@ describe("ZKP Verifier", function () {
           metadata: "metadataN" + i,
           validator: sig.address,
           data: "0x0" + i,
+          controller: signerAddress,
+          isDisabled: false,
         })
       )
         .to.emit(verifier, "ZKPRequestAdded")
@@ -88,6 +90,8 @@ describe("ZKP Verifier", function () {
       metadata: "metadata",
       validator: sig.address,
       data: data,
+      controller: signerAddress,
+      isDisabled: false,
     });
     await sig.setProofExpirationTimeout(315360000);
 
@@ -110,6 +114,8 @@ describe("ZKP Verifier", function () {
         metadata: "metadataN" + i,
         validator: sig.address,
         data: "0x00",
+        controller: signerAddress,
+        isDisabled: false,
       });
     }
     let queries = await verifier.getZKPRequests(5, 10);
@@ -128,12 +134,23 @@ describe("ZKP Verifier", function () {
     for (let i = 0; i < 5; i++) {
       await verifier
         .connect(signer)
-        .addZKPRequest({ metadata: "metadataN" + i, validator: sig.address, data: "0x00" });
+        .addZKPRequest({
+          metadata: "metadataN" + i,
+          validator: sig.address,
+          data: "0x00",
+          controller: signerAddress,
+          isDisabled: false
+        });
     }
     for (let i = 0; i < 3; i++) {
       await verifier
         .connect(signer2)
-        .addZKPRequest({ metadata: "metadataN" + i, validator: sig.address, data: "0x00" });
+        .addZKPRequest({
+          metadata: "metadataN" + i,
+          validator: sig.address,data: "0x00",
+          controller: signer2Address,
+          isDisabled: false
+        });
     }
     let queries = await verifier.getControllerZKPRequests(signerAddress, 3, 5);
     expect(queries.length).to.be.equal(2);
@@ -159,6 +176,8 @@ describe("ZKP Verifier", function () {
       metadata: "metadata",
       validator: sig.address,
       data: packValidatorParams(query),
+      controller: await controller.getAddress(),
+      isDisabled: false,
     });
     await sig.setProofExpirationTimeout(315360000);
 
@@ -188,43 +207,23 @@ describe("ZKP Verifier", function () {
 
   it("Check whitelisted validators", async () => {
     await expect(
-      verifier.addZKPRequest({ metadata: "metadata", validator: someAddress, data: "0x00" })
+      verifier.addZKPRequest({
+        metadata: "metadata",
+        validator: someAddress,
+        data: "0x00",
+        controller: signerAddress,
+        isDisabled: false,
+      })
     ).to.be.revertedWith("Validator is not whitelisted");
 
     await verifier.addWhitelistedValidator(someAddress);
 
-    verifier.addZKPRequest({ metadata: "metadata", validator: someAddress, data: "0x00" });
-  });
-
-  it("Check addStorageFieldRawValue", async () => {
-    await publishState(state, stateTransition);
-    await verifier.addZKPRequest({
+    verifier.addZKPRequest({
       metadata: "metadata",
-      validator: sig.address,
-      data: packValidatorParams(query),
+      validator: someAddress,
+      data: "0x00",
+      controller: signerAddress,
+      isDisabled: false,
     });
-    await sig.setProofExpirationTimeout(315360000);
-
-    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
-    await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
-
-    const sf1 = await verifier.getProofStorageField(signerAddress, 0, "userID");
-    expect(sf1.value).to.equal(
-      "23148936466334350744548790012294489365207440754509988986684797708370051073"
-    );
-    expect(sf1.rawValue).to.equal("0x");
-    await expect(verifier.addStorageFieldRawValue(0, "userID", "0x010203"))
-      .to.emit(verifier, "AddStorageFieldRawValue")
-      .withArgs(signerAddress, 0, "userID", "0x010203");
-    const sf12 = await verifier.getProofStorageField(signerAddress, 0, "userID");
-    expect(sf12.rawValue).to.equal("0x010203");
-
-    const sf2 = await verifier.getProofStorageField(signerAddress, 0, "timestamp");
-    expect(sf2.rawValue).to.equal("0x");
-    await expect(verifier.addStorageFieldRawValue(0, "timestamp", "0x112233"))
-      .to.emit(verifier, "AddStorageFieldRawValue")
-      .withArgs(signerAddress, 0, "timestamp", "0x112233");
-    const sf22 = await verifier.getProofStorageField(signerAddress, 0, "timestamp");
-    expect(sf22.rawValue).to.equal("0x112233");
   });
 });

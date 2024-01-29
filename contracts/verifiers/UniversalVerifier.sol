@@ -51,13 +51,6 @@ contract UniversalVerifier is OwnableUpgradeable {
         bytes data
     );
 
-    event AddStorageFieldRawValue(
-        address indexed signer,
-        uint64 indexed requestId,
-        string key,
-        bytes rawValue
-    );
-
     /// @dev Modifier to check if the caller is the owner or controller of the ZKP request
     modifier onlyOwnerOrController(uint64 requestId) {
         require(
