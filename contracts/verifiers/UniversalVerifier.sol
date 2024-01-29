@@ -217,9 +217,11 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c // TODO add bytes calldata additionalData, string calldata circuitId
-//        string calldata circuitId
-//        bytes calldata additionalData,
-    ) public requestEnabled(requestId) checkValidatorIsSet(requestId) {
+    )
+        public
+        requestEnabled(requestId)
+        checkValidatorIsSet(requestId)
+    {
         address sender = _msgSender();
         IZKPVerifier.ZKPRequestExtended memory request = _getMainStorage().requests[requestId];
 
@@ -235,7 +237,9 @@ contract UniversalVerifier is OwnableUpgradeable {
         );
 
         for (uint256 i = 0; i < pairs.length; i++) {
-            _getMainStorage().proofs[sender][requestId].storageFields[pairs[i].key] = inputs[pairs[i].inputIndex];
+            _getMainStorage().proofs[sender][requestId].storageFields[pairs[i].key] = inputs[
+                pairs[i].inputIndex
+            ];
         }
 
         _getMainStorage().proofs[msg.sender][requestId].isProved = true;
@@ -258,9 +262,7 @@ contract UniversalVerifier is OwnableUpgradeable {
         IZKPVerifier.ZKPRequestExtended memory request = _getMainStorage().requests[requestId];
 
         // TODO check with standard interface detection here!!!
-        request.validator.verifyWithSender(
-            inputs, a, b, c, request.data, _msgSender()
-        );
+        request.validator.verifyWithSender(inputs, a, b, c, request.data, _msgSender());
     }
 
     /// @notice Gets the proof storage item for a given user, request ID and key

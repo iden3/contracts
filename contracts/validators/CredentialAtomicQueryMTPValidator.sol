@@ -92,12 +92,9 @@ contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidator {
         return params;
     }
 
-    function _getSpecialInputPairs(bool hasSelectiveDisclosure)
-        internal
-        pure
-        override
-        returns (ICircuitValidator.KeyInputIndexPair[] memory)
-    {
+    function _getSpecialInputPairs(
+        bool hasSelectiveDisclosure
+    ) internal pure override returns (ICircuitValidator.KeyInputIndexPair[] memory) {
         ICircuitValidator.KeyInputIndexPair[]
             memory pairs = new ICircuitValidator.KeyInputIndexPair[](2);
         pairs[0] = ICircuitValidator.KeyInputIndexPair({key: "userID", inputIndex: 1});

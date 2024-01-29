@@ -171,7 +171,9 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
             _checkAuth(signals.userID, sender);
         }
 
-        ICircuitValidator.KeyInputIndexPair[] memory pairs = _getSpecialInputPairs(credAtomicQuery.operator == 16);
+        ICircuitValidator.KeyInputIndexPair[] memory pairs = _getSpecialInputPairs(
+            credAtomicQuery.operator == 16
+        );
         bytes memory encodedPairs = abi.encode(pairs);
         uint256 epLength = encodedPairs.length;
 
@@ -256,12 +258,9 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         return pubSignals;
     }
 
-    function _getSpecialInputPairs(bool hasSelectiveDisclosure)
-        internal
-        pure
-        override
-        returns (ICircuitValidator.KeyInputIndexPair[] memory)
-    {
+    function _getSpecialInputPairs(
+        bool hasSelectiveDisclosure
+    ) internal pure override returns (ICircuitValidator.KeyInputIndexPair[] memory) {
         uint256 numPairs = hasSelectiveDisclosure ? 7 : 6;
         ICircuitValidator.KeyInputIndexPair[]
             memory pairs = new ICircuitValidator.KeyInputIndexPair[](numPairs);
@@ -271,11 +270,17 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         pairs[i++] = ICircuitValidator.KeyInputIndexPair({key: "linkID", inputIndex: 4});
         pairs[i++] = ICircuitValidator.KeyInputIndexPair({key: "nullifier", inputIndex: 5});
         if (hasSelectiveDisclosure) {
-            pairs[i++] = ICircuitValidator.KeyInputIndexPair({key: "operatorOutput", inputIndex: 6});
+            pairs[i++] = ICircuitValidator.KeyInputIndexPair({
+                key: "operatorOutput",
+                inputIndex: 6
+            });
         }
         pairs[i++] = ICircuitValidator.KeyInputIndexPair({key: "timestamp", inputIndex: 14});
         pairs[i++] = ICircuitValidator.KeyInputIndexPair({key: "verifierID", inputIndex: 15});
-        pairs[i++] = ICircuitValidator.KeyInputIndexPair({key: "nullifierSessionID", inputIndex: 16});
+        pairs[i++] = ICircuitValidator.KeyInputIndexPair({
+            key: "nullifierSessionID",
+            inputIndex: 16
+        });
 
         return pairs;
     }
