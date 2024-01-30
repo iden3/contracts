@@ -10,7 +10,11 @@ import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
 import {PoseidonFacade} from "../lib/Poseidon.sol";
 
-abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuitValidatorExtended, ERC165 {
+abstract contract CredentialAtomicQueryValidator is
+    OwnableUpgradeable,
+    ICircuitValidatorExtended,
+    ERC165
+{
     struct CredentialAtomicQuery {
         uint256 schema;
         uint256 claimPathKey;
@@ -110,10 +114,12 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     }
 
     /**
- * @dev See {IERC165-supportsInterface}.
+     * @dev See {IERC165-supportsInterface}.
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return interfaceId == type(ICircuitValidatorExtended).interfaceId || super.supportsInterface(interfaceId);
+        return
+            interfaceId == type(ICircuitValidatorExtended).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 
     function _verify(

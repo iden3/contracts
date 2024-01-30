@@ -218,11 +218,7 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c // TODO add bytes calldata additionalData, string calldata circuitId
-    )
-        public
-        requestEnabled(requestId)
-        checkValidatorIsSet(requestId)
-    {
+    ) public requestEnabled(requestId) checkValidatorIsSet(requestId) {
         address sender = _msgSender();
         IZKPVerifier.ZKPRequestExtended memory request = _getMainStorage().requests[requestId];
 
@@ -262,7 +258,9 @@ contract UniversalVerifier is OwnableUpgradeable {
     ) public view requestEnabled(requestId) checkValidatorIsSet(requestId) {
         IZKPVerifier.ZKPRequestExtended memory request = _getMainStorage().requests[requestId];
         require(
-            IERC165(address(request.validator)).supportsInterface(type(ICircuitValidatorExtended).interfaceId),
+            IERC165(address(request.validator)).supportsInterface(
+                type(ICircuitValidatorExtended).interfaceId
+            ),
             "Validator doesn't support extended interface"
         );
 
