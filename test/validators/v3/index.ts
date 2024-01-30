@@ -239,7 +239,7 @@ function delay(ms: number) {
 }
 
 describe("Atomic V3 Validator", function () {
-  let state: any, v3, v3testWrapper: any, verifierWrapper: any;
+  let state: any, v3validator, verifierWrapper: any;
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize(null, true);
@@ -249,10 +249,8 @@ describe("Atomic V3 Validator", function () {
       "CredentialAtomicQueryV3Validator"
     );
     state = contracts.state;
-    v3 = contracts.validator;
+    v3validator = contracts.validator;
     verifierWrapper = contracts.verifierWrapper;
-
-    v3testWrapper = await ethers.deployContract("ValidatorTestWrapper", [v3.address]);
   });
 
   for (const test of testCases) {
@@ -303,24 +301,24 @@ describe("Atomic V3 Validator", function () {
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
       if (test.setProofExpiration) {
-        await v3.setProofExpirationTimeout(test.setProofExpiration);
+        await v3validator.setProofExpirationTimeout(test.setProofExpiration);
       }
       if (test.setRevStateExpiration) {
-        await v3.setRevocationStateExpirationTimeout(test.setRevStateExpiration);
+        await v3validator.setRevocationStateExpirationTimeout(test.setRevStateExpiration);
       }
       if (test.setGISTRootExpiration) {
-        await v3.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
+        await v3validator.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
       }
       if (test.errorMessage) {
         await expect(
-          v3.verify(inputs, pi_a, pi_b, pi_c, packV3ValidatorParams(query, test.allowedIssuers))
+          v3validator.verify(inputs, pi_a, pi_b, pi_c, packV3ValidatorParams(query, test.allowedIssuers))
         ).to.be.revertedWith(test.errorMessage);
       } else if (test.errorMessage === "") {
         await expect(
-          v3.verify(inputs, pi_a, pi_b, pi_c, packV3ValidatorParams(query, test.allowedIssuers))
+          v3validator.verify(inputs, pi_a, pi_b, pi_c, packV3ValidatorParams(query, test.allowedIssuers))
         ).to.be.reverted;
       } else {
-        await v3testWrapper.verify(
+        await v3validator.verify(
           inputs,
           pi_a,
           pi_b,
@@ -332,7 +330,7 @@ describe("Atomic V3 Validator", function () {
   }
 
   it("check inputIndexOf", async () => {
-    const challengeIndx = await v3.inputIndexOf("challenge");
+    const challengeIndx = await v3validator.inputIndexOf("challenge");
     expect(challengeIndx).to.be.equal(9);
   });
 });

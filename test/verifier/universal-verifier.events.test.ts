@@ -99,6 +99,8 @@ describe("ZKP Verifier", function () {
         metadata: "metadataN" + i,
         validator: sig.address,
         data: data[i],
+        controller: signerAddress,
+        isDisabled: false,
       });
     }
 
