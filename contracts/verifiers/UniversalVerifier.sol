@@ -7,7 +7,6 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
-import {ICircuitValidatorExtended} from "../interfaces/ICircuitValidatorExtended.sol";
 
 /// @title Universal Verifier Contract
 /// @notice A contract to manage ZKP (Zero-Knowledge Proof) requests and proofs.
@@ -222,11 +221,11 @@ contract UniversalVerifier is OwnableUpgradeable {
         address sender = _msgSender();
         IZKPVerifier.ZKPRequestExtended memory request = _getMainStorage().requests[requestId];
 
-        ICircuitValidatorExtended validator = ICircuitValidatorExtended(request.validator);
+        ICircuitValidator validator = ICircuitValidator(request.validator);
 
         require(
             IERC165(address(request.validator)).supportsInterface(
-                type(ICircuitValidatorExtended).interfaceId
+                type(ICircuitValidator).interfaceId
             ),
             "Validator doesn't support extended interface"
         );
@@ -266,7 +265,7 @@ contract UniversalVerifier is OwnableUpgradeable {
         IZKPVerifier.ZKPRequestExtended memory request = _getMainStorage().requests[requestId];
         require(
             IERC165(address(request.validator)).supportsInterface(
-                type(ICircuitValidatorExtended).interfaceId
+                type(ICircuitValidator).interfaceId
             ),
             "Validator doesn't support extended interface"
         );

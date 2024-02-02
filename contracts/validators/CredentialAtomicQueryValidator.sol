@@ -5,14 +5,13 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
-import {ICircuitValidatorExtended} from "../interfaces/ICircuitValidatorExtended.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
 import {PoseidonFacade} from "../lib/Poseidon.sol";
 
 abstract contract CredentialAtomicQueryValidator is
     OwnableUpgradeable,
-    ICircuitValidatorExtended,
+    ICircuitValidator,
     ERC165
 {
     struct CredentialAtomicQuery {
@@ -118,7 +117,7 @@ abstract contract CredentialAtomicQueryValidator is
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return
-            interfaceId == type(ICircuitValidatorExtended).interfaceId ||
+            interfaceId == type(ICircuitValidator).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 

@@ -3,7 +3,6 @@
 pragma solidity 0.8.16;
 
 import {ICircuitValidator} from "./ICircuitValidator.sol";
-import {ICircuitValidatorExtended} from "./ICircuitValidatorExtended.sol";
 
 interface IZKPVerifier {
     struct ZKPRequest {
@@ -14,7 +13,7 @@ interface IZKPVerifier {
 
     struct ZKPRequestExtended {
         string metadata;
-        ICircuitValidatorExtended validator;
+        ICircuitValidator validator;
         bytes data;
         address controller;
         bool isDisabled;

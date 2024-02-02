@@ -15,6 +15,15 @@ interface ICircuitValidator {
         bytes calldata data
     ) external view;
 
+    function verifyWithSender(
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
+        bytes calldata data,
+        address sender
+    ) external view returns (ICircuitValidator.KeyInputIndexPair[] memory);
+
     function getSupportedCircuitIds() external view returns (string[] memory ids);
 
     function inputIndexOf(string memory name) external view returns (uint256);
