@@ -7,6 +7,8 @@ interface ICircuitValidator {
         uint256 inputIndex;
     }
 
+    function version() external view returns (string memory);
+
     function verify(
         uint256[] memory inputs,
         uint256[2] memory a,

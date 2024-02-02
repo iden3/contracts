@@ -103,9 +103,11 @@ describe("ZKP Verifier", function () {
 
     const requestId = 0;
     let result = await verifier.getProofStatus(signerAddress, requestId);
-    expect(result).to.be.equal(true);
+    expect(result.isProved).to.be.true;
+    expect(result.validatorVersion).to.be.equal("1.0.1");
     result = await verifier.getProofStatus(signerAddress, requestId + 1);
-    expect(result).to.be.equal(false);
+    expect(result.isProved).to.be.equal(false);
+    expect(result.validatorVersion).to.be.equal("");
   });
 
   it("Test getZKPRequests pagination", async () => {

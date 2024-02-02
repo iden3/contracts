@@ -14,7 +14,13 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
     struct Proof {
         bool isProved;
         mapping(string => uint256) storageFields;
-        bytes metadata;
+        string validatorVersion;
+    }
+
+    /// @dev Struct for ZKP proof status
+    struct ProofStatus {
+        bool isProved;
+        string validatorVersion;
     }
 
     /// @dev Main storage structure for the contract
@@ -199,9 +205,13 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
     /// @notice Checks the proof status for a given user and request ID
     /// @param user The user's address
     /// @param requestId The ID of the ZKP request
-    /// @return The status of the proof
-    function getProofStatus(address user, uint64 requestId) public view returns (bool) {
-        return _getMainStorage().proofs[user][requestId].isProved;
+    /// @return The proof status
+    function getProofStatus(address user, uint64 requestId) public view returns (ProofStatus memory) {
+        return
+            ProofStatus(
+                _getMainStorage().proofs[user][requestId].isProved,
+                _getMainStorage().proofs[user][requestId].validatorVersion
+            );
     }
 
     /// @notice Submits a ZKP response and updates proof status
@@ -215,7 +225,7 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
         uint256[] calldata inputs,
         uint256[2] calldata a,
         uint256[2][2] calldata b,
-        uint256[2] calldata c // TODO add bytes calldata additionalData, string calldata circuitId
+        uint256[2] calldata c
     ) public requestEnabled(requestId) checkValidatorIsSet(requestId) {
         address sender = _msgSender();
         IUniversalVerifier.ZKPRequest memory request = _getMainStorage().requests[requestId];
@@ -245,6 +255,7 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
         }
 
         _getMainStorage().proofs[msg.sender][requestId].isProved = true;
+        _getMainStorage().proofs[msg.sender][requestId].validatorVersion = validator.version();
         emit ZKPResponseSubmitted(requestId, sender);
     }
 

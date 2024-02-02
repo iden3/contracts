@@ -42,7 +42,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.0.0";
+    string internal constant VERSION = "1.0.0";
 
     string internal constant CIRCUIT_ID = "credentialAtomicQueryV3OnChain";
 
@@ -89,6 +89,46 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         _supportedCircuitIds = [CIRCUIT_ID];
         _circuitIdToVerifier[CIRCUIT_ID] = IVerifier(_verifierContractAddr);
         super.initialize(_verifierContractAddr, _stateContractAddr);
+    }
+
+    function version() public pure override returns (string memory) {
+        return VERSION;
+    }
+
+    function parseCommonPubSignals(
+        uint256[] calldata inputs
+    ) public pure override returns (CommonPubSignals memory) {
+        CommonPubSignals memory pubSignals = CommonPubSignals({
+            merklized: inputs[0],
+            userID: inputs[1],
+            circuitQueryHash: inputs[2],
+            requestID: inputs[8],
+            challenge: inputs[9],
+            gistRoot: inputs[10],
+            issuerID: inputs[11],
+            issuerState: inputs[3],
+            isRevocationChecked: inputs[12],
+            issuerClaimNonRevState: inputs[13],
+            timestamp: inputs[14]
+        });
+
+        return pubSignals;
+    }
+
+    function parseV3SpecificPubSignals(
+        uint256[] calldata inputs
+    ) internal pure returns (V3PubSignals memory) {
+        V3PubSignals memory pubSignals = V3PubSignals({
+            linkID: inputs[4],
+            nullifier: inputs[5],
+            operatorOutput: inputs[6],
+            proofType: inputs[7],
+            verifierID: inputs[15],
+            nullifierSessionID: inputs[16],
+            authEnabled: inputs[17]
+        });
+
+        return pubSignals;
     }
 
     function _verify(
@@ -198,42 +238,6 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
             userID == GenesisUtils.calcIdFromEthAddress(state.getDefaultIdType(), ethIdentityOwner),
             "UserID does not correspond to the sender"
         );
-    }
-
-    function parseCommonPubSignals(
-        uint256[] calldata inputs
-    ) public pure override returns (CommonPubSignals memory) {
-        CommonPubSignals memory pubSignals = CommonPubSignals({
-            merklized: inputs[0],
-            userID: inputs[1],
-            circuitQueryHash: inputs[2],
-            requestID: inputs[8],
-            challenge: inputs[9],
-            gistRoot: inputs[10],
-            issuerID: inputs[11],
-            issuerState: inputs[3],
-            isRevocationChecked: inputs[12],
-            issuerClaimNonRevState: inputs[13],
-            timestamp: inputs[14]
-        });
-
-        return pubSignals;
-    }
-
-    function parseV3SpecificPubSignals(
-        uint256[] calldata inputs
-    ) internal pure returns (V3PubSignals memory) {
-        V3PubSignals memory pubSignals = V3PubSignals({
-            linkID: inputs[4],
-            nullifier: inputs[5],
-            operatorOutput: inputs[6],
-            proofType: inputs[7],
-            verifierID: inputs[15],
-            nullifierSessionID: inputs[16],
-            authEnabled: inputs[17]
-        });
-
-        return pubSignals;
     }
 
     function _getSpecialInputPairs(

@@ -9,7 +9,7 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.0.1";
+    string internal constant VERSION = "1.0.1";
 
     string internal constant CIRCUIT_ID = "credentialAtomicQuerySigV2OnChain";
 
@@ -49,6 +49,10 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
         _supportedCircuitIds = [CIRCUIT_ID];
         _circuitIdToVerifier[CIRCUIT_ID] = IVerifier(_verifierContractAddr);
         super.initialize(_verifierContractAddr, _stateContractAddr);
+    }
+
+    function version() public pure override returns (string memory) {
+        return VERSION;
     }
 
     function parseCommonPubSignals(

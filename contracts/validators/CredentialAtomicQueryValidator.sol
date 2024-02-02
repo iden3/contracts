@@ -80,6 +80,8 @@ abstract contract CredentialAtomicQueryValidator is
         __Ownable_init();
     }
 
+    function version() public pure virtual returns (string memory);
+
     function parseCommonPubSignals(
         uint256[] calldata inputs
     ) public pure virtual returns (CommonPubSignals memory);
