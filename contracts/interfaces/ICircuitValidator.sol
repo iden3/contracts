@@ -15,7 +15,7 @@ interface ICircuitValidator {
         bytes calldata data
     ) external view;
 
-    function verifyWithSender(
+    function verifyV2(
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,

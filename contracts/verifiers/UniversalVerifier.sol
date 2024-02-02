@@ -229,7 +229,7 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
             "Validator doesn't support extended interface"
         );
 
-        ICircuitValidator.KeyInputIndexPair[] memory pairs = validator.verifyWithSender(
+        ICircuitValidator.KeyInputIndexPair[] memory pairs = validator.verifyV2(
             inputs,
             a,
             b,
@@ -269,7 +269,7 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
             "Validator doesn't support extended interface"
         );
 
-        request.validator.verifyWithSender(inputs, a, b, c, request.data, _msgSender());
+        request.validator.verifyV2(inputs, a, b, c, request.data, _msgSender());
     }
 
     /// @notice Gets the proof storage item for a given user, request ID and key
