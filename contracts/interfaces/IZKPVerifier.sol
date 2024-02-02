@@ -11,7 +11,7 @@ interface IZKPVerifier {
         bytes data;
     }
 
-    struct ZKPRequestExtended {
+    struct ZKPRequestV2 {
         string metadata;
         ICircuitValidator validator;
         bytes data;

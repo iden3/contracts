@@ -21,7 +21,7 @@ contract UniversalVerifier is OwnableUpgradeable {
     /// @dev Main storage structure for the contract
     struct MainStorage {
         mapping(address => mapping(uint64 => Proof)) proofs;
-        mapping(uint64 => IZKPVerifier.ZKPRequestExtended) requests;
+        mapping(uint64 => IZKPVerifier.ZKPRequestV2) requests;
         uint64[] requestIds;
         mapping(address => uint64[]) userRequestIds;
         mapping(ICircuitValidator => bool) whitelistedValidators;
@@ -94,14 +94,14 @@ contract UniversalVerifier is OwnableUpgradeable {
     /// @notice Adds a new ZKP request
     /// @param request The ZKP request data
     function addZKPRequest(
-        IZKPVerifier.ZKPRequestExtended calldata request
+        IZKPVerifier.ZKPRequestV2 calldata request
     ) public isWhitelistedValidator(request.validator) {
         address sender = _msgSender();
         uint64 requestId = uint64(_getMainStorage().requestIds.length);
         _getMainStorage().requestIds.push(requestId);
         _getMainStorage().userRequestIds[sender].push(requestId);
-        IZKPVerifier.ZKPRequestExtended memory requestWithController = IZKPVerifier
-            .ZKPRequestExtended(request.metadata, request.validator, request.data, sender, false);
+        IZKPVerifier.ZKPRequestV2 memory requestWithController = IZKPVerifier
+            .ZKPRcquestV2(request.metadata, request.validator, request.data, sender, false);
         _getMainStorage().requests[requestId] = requestWithController;
         emit ZKPRequestAdded(requestId, sender, request.metadata, request.data);
     }
@@ -136,7 +136,7 @@ contract UniversalVerifier is OwnableUpgradeable {
     /// @return The ZKP request data
     function getZKPRequest(
         uint64 requestId
-    ) public view returns (IZKPVerifier.ZKPRequestExtended memory) {
+    ) public view returns (IZKPVerifier.ZKPRequestV2 memory) {
         require(requestIdExists(requestId), "request id doesn't exist");
         return _getMainStorage().requests[requestId];
     }
@@ -148,7 +148,7 @@ contract UniversalVerifier is OwnableUpgradeable {
     function getZKPRequests(
         uint256 startIndex,
         uint256 length
-    ) public view returns (IZKPVerifier.ZKPRequestExtended[] memory) {
+    ) public view returns (IZKPVerifier.ZKPRequestV2[] memory) {
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
             _getMainStorage().requestIds.length,
             startIndex,
@@ -156,7 +156,7 @@ contract UniversalVerifier is OwnableUpgradeable {
             REQUESTS_RETURN_LIMIT
         );
 
-        IZKPVerifier.ZKPRequestExtended[] memory result = new IZKPVerifier.ZKPRequestExtended[](
+        IZKPVerifier.ZKPRequestV2[] memory result = new IZKPVerifier.ZKPRequestV2[](
             end - start
         );
 
@@ -176,7 +176,7 @@ contract UniversalVerifier is OwnableUpgradeable {
         address controller,
         uint256 startIndex,
         uint256 length
-    ) public view returns (IZKPVerifier.ZKPRequestExtended[] memory) {
+    ) public view returns (IZKPVerifier.ZKPRequestV2[] memory) {
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
             _getMainStorage().userRequestIds[controller].length,
             startIndex,
@@ -184,7 +184,7 @@ contract UniversalVerifier is OwnableUpgradeable {
             REQUESTS_RETURN_LIMIT
         );
 
-        IZKPVerifier.ZKPRequestExtended[] memory result = new IZKPVerifier.ZKPRequestExtended[](
+        IZKPVerifier.ZKPRequestV2[] memory result = new IZKPVerifier.ZKPRequestV2[](
             end - start
         );
 
@@ -219,7 +219,7 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[2] calldata c // TODO add bytes calldata additionalData, string calldata circuitId
     ) public requestEnabled(requestId) checkValidatorIsSet(requestId) {
         address sender = _msgSender();
-        IZKPVerifier.ZKPRequestExtended memory request = _getMainStorage().requests[requestId];
+        IZKPVerifier.ZKPRequestV2 memory request = _getMainStorage().requests[requestId];
 
         ICircuitValidator validator = ICircuitValidator(request.validator);
 
@@ -262,7 +262,7 @@ contract UniversalVerifier is OwnableUpgradeable {
         uint256[2][2] calldata b,
         uint256[2] calldata c
     ) public view requestEnabled(requestId) checkValidatorIsSet(requestId) {
-        IZKPVerifier.ZKPRequestExtended memory request = _getMainStorage().requests[requestId];
+        IZKPVerifier.ZKPRequestV2 memory request = _getMainStorage().requests[requestId];
         require(
             IERC165(address(request.validator)).supportsInterface(
                 type(ICircuitValidator).interfaceId
