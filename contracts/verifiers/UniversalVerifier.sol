@@ -224,6 +224,13 @@ contract UniversalVerifier is OwnableUpgradeable {
 
         ICircuitValidatorExtended validator = ICircuitValidatorExtended(request.validator);
 
+        require(
+            IERC165(address(request.validator)).supportsInterface(
+                type(ICircuitValidatorExtended).interfaceId
+            ),
+            "Validator doesn't support extended interface"
+        );
+
         ICircuitValidator.KeyInputIndexPair[] memory pairs = validator.verifyWithSender(
             inputs,
             a,
