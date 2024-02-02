@@ -2,10 +2,9 @@ import { expect } from "chai";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { ethers } from "hardhat";
 import { packValidatorParams } from "../utils/validator-pack-utils";
-import { prepareInputs, publishState } from "../utils/state-utils";
 
 describe("ZKP Verifier", function () {
-  let verifier: any, sig: any, state: any;
+  let verifier: any, sig: any;
   let signer, signer2, signer3, signer4;
   let signerAddress: string, signer2Address: string, signer3Address: string, someAddress: string;
 
@@ -63,15 +62,12 @@ describe("ZKP Verifier", function () {
     },
   ];
 
-  const proofJson = require("../validators/sig/data/valid_sig_user_genesis.json");
-  const stateTransition = require("../validators/common-data/issuer_genesis_state.json");
-
   beforeEach(async () => {
     [signer, signer2, signer3, signer4] = await ethers.getSigners();
     signerAddress = await signer.getAddress();
     signer2Address = await signer2.getAddress();
     signer3Address = await signer3.getAddress();
-    someAddress = await signer2.getAddress();
+    someAddress = await signer4.getAddress();
 
     const deployHelper = await DeployHelper.initialize(null, true);
     verifier = await deployHelper.deployUniversalVerifier(signer);
@@ -81,7 +77,6 @@ describe("ZKP Verifier", function () {
       "CredentialAtomicQuerySigValidator"
     );
     sig = contracts.validator;
-    state = contracts.state;
     await verifier.addWhitelistedValidator(sig.address);
     await verifier.connect();
   });

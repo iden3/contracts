@@ -35,7 +35,7 @@ describe("ZKP Verifier", function () {
     signerAddress = await signer.getAddress();
     signer2Address = await signer2.getAddress();
     signer3Address = await signer3.getAddress();
-    someAddress = await signer2.getAddress();
+    someAddress = await signer4.getAddress();
 
     const deployHelper = await DeployHelper.initialize(null, true);
     verifier = await deployHelper.deployUniversalVerifier(signer);

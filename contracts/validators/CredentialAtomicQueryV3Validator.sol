@@ -154,7 +154,6 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
             credAtomicQuery.operator == 16
         );
         bytes memory encodedPairs = abi.encode(pairs);
-        uint256 epLength = encodedPairs.length;
 
         return pairs;
     }

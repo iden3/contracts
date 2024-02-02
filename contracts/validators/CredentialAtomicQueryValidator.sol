@@ -186,7 +186,6 @@ abstract contract CredentialAtomicQueryValidator is
             credAtomicQuery.operator == 16
         );
         bytes memory encodedPairs = abi.encode(pairs);
-        uint256 epLength = encodedPairs.length;
 
         return pairs;
     }

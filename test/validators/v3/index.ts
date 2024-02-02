@@ -239,7 +239,7 @@ function delay(ms: number) {
 }
 
 describe("Atomic V3 Validator", function () {
-  let state: any, v3validator, verifierWrapper: any;
+  let state: any, v3validator;
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize(null, true);
@@ -250,7 +250,6 @@ describe("Atomic V3 Validator", function () {
     );
     state = contracts.state;
     v3validator = contracts.validator;
-    verifierWrapper = contracts.verifierWrapper;
   });
 
   for (const test of testCases) {
