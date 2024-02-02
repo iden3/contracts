@@ -91,27 +91,6 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         super.initialize(_verifierContractAddr, _stateContractAddr);
     }
 
-    function verify(
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
-        bytes calldata data
-    ) external view virtual {
-        _verify(inputs, a, b, c, data, msg.sender);
-    }
-
-    function verifyWithSender(
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
-        bytes calldata data,
-        address sender
-    ) external view virtual returns (ICircuitValidator.KeyInputIndexPair[] memory) {
-        return _verify(inputs, a, b, c, data, sender);
-    }
-
     function _verify(
         uint256[] calldata inputs,
         uint256[2] calldata a,
