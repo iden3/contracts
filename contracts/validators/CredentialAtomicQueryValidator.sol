@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.20;
 
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable-v4/access/OwnableUpgradeable.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
@@ -72,7 +72,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         proofExpirationTimeout = 1 hours;
         gistRootExpirationTimeout = 1 hours;
         state = IState(_stateContractAddr);
-        __Ownable_init(msg.sender);
+        __Ownable_init();
     }
 
     function parseCommonPubSignals(

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.20;
 
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable-v4/access/OwnableUpgradeable.sol";
 import {IState} from "../interfaces/IState.sol";
 import {ClaimBuilder} from "../lib/ClaimBuilder.sol";
 import {IdentityLib} from "../lib/IdentityLib.sol";
@@ -13,19 +13,9 @@ import {IdentityBase} from "../lib/IdentityBase.sol";
 contract IdentityExample is IdentityBase, OwnableUpgradeable {
     using IdentityLib for IdentityLib.Data;
 
-    // This empty reserved space is put in place to allow future versions
-    // of the State contract to inherit from other contracts without a risk of
-    // breaking the storage layout. This is necessary because the parent contracts in the
-    // future may introduce some storage variables, which are placed before the State
-    // contract's storage variables.
-    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-    // slither-disable-next-line shadowing-state
-    // slither-disable-next-line unused-state
-    uint256[500] private __gap;
-
     function initialize(address _stateContractAddr) public override initializer {
         super.initialize(_stateContractAddr);
-        __Ownable_init(msg.sender);
+        __Ownable_init();
     }
 
     function addClaimAndTransit(uint256[8] calldata claim) public onlyOwner {

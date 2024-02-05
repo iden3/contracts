@@ -6,7 +6,7 @@ import {PoseidonUnit2L, PoseidonUnit3L} from "../lib/Poseidon.sol";
 import {IState} from "../interfaces/IState.sol";
 import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredentialStatusResolver.sol";
 import {IRHSStorage} from "../interfaces/IRHSStorage.sol";
-import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable-v4/access/Ownable2StepUpgradeable.sol";
 
 contract IdentityTreeStore is
     Ownable2StepUpgradeable,
