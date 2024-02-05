@@ -9,11 +9,7 @@ import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
 import {PoseidonFacade} from "../lib/Poseidon.sol";
 
-abstract contract CredentialAtomicQueryValidator is
-    OwnableUpgradeable,
-    ICircuitValidator,
-    ERC165
-{
+abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuitValidator, ERC165 {
     struct CredentialAtomicQuery {
         uint256 schema;
         uint256 claimPathKey;

@@ -105,8 +105,13 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
         uint64 requestId = uint64(_getMainStorage().requestIds.length);
         _getMainStorage().requestIds.push(requestId);
         _getMainStorage().userRequestIds[sender].push(requestId);
-        IUniversalVerifier.ZKPRequest memory requestWithController = IUniversalVerifier
-            .ZKPRequest(request.metadata, request.validator, request.data, sender, false);
+        IUniversalVerifier.ZKPRequest memory requestWithController = IUniversalVerifier.ZKPRequest(
+            request.metadata,
+            request.validator,
+            request.data,
+            sender,
+            false
+        );
         _getMainStorage().requests[requestId] = requestWithController;
         emit ZKPRequestAdded(requestId, sender, request.metadata, request.data);
     }
@@ -206,7 +211,10 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
     /// @param user The user's address
     /// @param requestId The ID of the ZKP request
     /// @return The proof status
-    function getProofStatus(address user, uint64 requestId) public view returns (ProofStatus memory) {
+    function getProofStatus(
+        address user,
+        uint64 requestId
+    ) public view returns (ProofStatus memory) {
         return
             ProofStatus(
                 _getMainStorage().proofs[user][requestId].isProved,
