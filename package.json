@@ -64,7 +64,7 @@
     "node:local": "hardhat node",
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
-    "test:gas": "REPORT_GAS=true npx hardhat test",
+    "test:gas": "COINMARKETCAP_KEY=<put your key here> REPORT_GAS=true npx hardhat test",
     "test:coverage": "npx hardhat coverage",
     "deploy:localhost": "npx hardhat run scripts/deploy.ts --network localhost",
     "upgrade:localhost": "npx hardhat run scripts/upgrade.ts --network localhost",
