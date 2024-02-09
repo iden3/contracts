@@ -4,7 +4,6 @@ import {SmtLib} from "../lib/SmtLib.sol";
 import {IdentityLib} from "../lib/IdentityLib.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-
 /**
  * @dev INonMerklizedIssuer. Interface for non-merklized issuer
  */
@@ -22,18 +21,19 @@ interface INonMerklizedIssuer {
     function getCredential(
         uint256 _userId,
         uint256 _credentialId
-    ) external returns (
-        NonMerklizedIssuerLib.CredentialData memory, 
-        uint256[8] memory, 
-        NonMerklizedIssuerLib.SubjectField[] memory
-    );
+    )
+        external
+        returns (
+            NonMerklizedIssuerLib.CredentialData memory,
+            uint256[8] memory,
+            NonMerklizedIssuerLib.SubjectField[] memory
+        );
 
     /**
      * @dev credentialProtocolVersion. Get version of the protocol
      */
     function credentialProtocolVersion() external returns (string memory);
 }
-
 
 /**
  * @dev NonMerklizedIssuer. Non-merklized issuer types
@@ -55,7 +55,7 @@ library NonMerklizedIssuerLib {
         uint64 issuanceDate;
         string credentialSchema;
     }
-    
+
     /**
      * @dev SubjectField credential subject for the credential
      * key - name of the field
