@@ -51,7 +51,6 @@ library NonMerklizedIssuerLib {
         uint256 id;
         string[] context;
         string _type;
-        uint64 expirationDate;
         uint64 issuanceDate;
         string credentialSchema;
     }
