@@ -97,18 +97,24 @@ describe("ZKP Verifier", function () {
     await sig.setProofExpirationTimeout(315360000);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
-    await expect(verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c))
-      .to.emit(verifier, "ZKPResponseSubmitted")
-      .withArgs(0, signerAddress);
-    await verifier.verifyZKPResponse(0, inputs, pi_a, pi_b, pi_c);
+    const tx = await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
+    const txRes = await tx.wait();
+    expect(txRes.events[0].event).to.be.equal("ZKPResponseSubmitted");
+    expect(txRes.events[0].args.requestId).to.be.equal(0);
+    expect(txRes.events[0].args.caller).to.be.equal(signerAddress);
+    const { timestamp: txResTimestamp } = await ethers.provider.getBlock(txRes.blockNumber);
+
+    await expect(verifier.verifyZKPResponse(0, inputs, pi_a, pi_b, pi_c)).not.to.be.reverted;
 
     const requestId = 0;
-    let result = await verifier.getProofStatus(signerAddress, requestId);
-    expect(result.isProved).to.be.true;
-    expect(result.validatorVersion).to.be.equal("1.0.1");
-    result = await verifier.getProofStatus(signerAddress, requestId + 1);
-    expect(result.isProved).to.be.equal(false);
-    expect(result.validatorVersion).to.be.equal("");
+    let status = await verifier.getProofStatus(signerAddress, requestId);
+    expect(status.isProved).to.be.true;
+    expect(status.validatorVersion).to.be.equal("1.0.1");
+    expect(status.blockNumber).to.be.equal(txRes.blockNumber);
+    expect(status.blockTimestamp).to.be.equal(txResTimestamp);
+    status = await verifier.getProofStatus(signerAddress, requestId + 1);
+    expect(status.isProved).to.be.equal(false);
+    expect(status.validatorVersion).to.be.equal("");
   });
 
   it("Test getZKPRequests pagination", async () => {

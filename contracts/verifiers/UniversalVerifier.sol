@@ -15,12 +15,16 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
         bool isProved;
         mapping(string => uint256) storageFields;
         string validatorVersion;
+        uint256 blockNumber;
+        uint256 blockTimestamp;
     }
 
     /// @dev Struct for ZKP proof status
     struct ProofStatus {
         bool isProved;
         string validatorVersion;
+        uint256 blockNumber;
+        uint256 blockTimestamp;
     }
 
     /// @dev Main storage structure for the contract
@@ -223,10 +227,14 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
         address user,
         uint64 requestId
     ) public view returns (ProofStatus memory) {
+        Proof storage proof = _getMainStorage().proofs[user][requestId];
+
         return
             ProofStatus(
-                _getMainStorage().proofs[user][requestId].isProved,
-                _getMainStorage().proofs[user][requestId].validatorVersion
+                proof.isProved,
+                proof.validatorVersion,
+                proof.blockNumber,
+                proof.blockTimestamp
             );
     }
 
@@ -248,13 +256,6 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
 
         ICircuitValidator validator = ICircuitValidator(request.validator);
 
-        require(
-            IERC165(address(request.validator)).supportsInterface(
-                type(ICircuitValidator).interfaceId
-            ),
-            "Validator doesn't support extended interface"
-        );
-
         ICircuitValidator.KeyInputIndexPair[] memory pairs = validator.verifyV2(
             inputs,
             a,
@@ -270,8 +271,12 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
             ];
         }
 
-        _getMainStorage().proofs[msg.sender][requestId].isProved = true;
-        _getMainStorage().proofs[msg.sender][requestId].validatorVersion = validator.version();
+        Proof storage proof = _getMainStorage().proofs[sender][requestId];
+        proof.isProved = true;
+        proof.validatorVersion = validator.version();
+        proof.blockNumber = block.number;
+        proof.blockTimestamp = block.timestamp;
+
         emit ZKPResponseSubmitted(requestId, sender);
     }
 
@@ -289,13 +294,6 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
         uint256[2] calldata c
     ) public view requestEnabled(requestId) checkValidatorIsSet(requestId) {
         IUniversalVerifier.ZKPRequest memory request = _getMainStorage().requests[requestId];
-        require(
-            IERC165(address(request.validator)).supportsInterface(
-                type(ICircuitValidator).interfaceId
-            ),
-            "Validator doesn't support extended interface"
-        );
-
         request.validator.verifyV2(inputs, a, b, c, request.data, _msgSender());
     }
 
