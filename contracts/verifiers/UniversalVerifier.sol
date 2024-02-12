@@ -54,7 +54,7 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
     event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);
 
     /// @dev Event emitted upon adding a ZKP request
-    event ZKPRequestAdded(
+    event ZKPRequestSet(
         uint64 indexed requestId,
         address indexed controller,
         string metadata,
@@ -83,11 +83,12 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
     }
 
     /// @dev Modifier to check if the validator is set for the request
-    modifier checkValidatorIsSet(uint64 requestId) {
-        require(
-            _getMainStorage().requests[requestId].validator != ICircuitValidator(address(0)),
-            "validator is not set for this request id"
-        );
+    modifier checkRequestExistence(uint64 requestId, bool existence) {
+        if (existence) {
+            require(requestIdExists(requestId), "request id doesn't exist");
+        } else {
+            require(!requestIdExists(requestId), "request id already exists");
+        }
         _;
     }
 
@@ -108,24 +109,19 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
         _getMainStorage().whitelistedValidators[validator] = true;
     }
 
-    /// @notice Adds a new ZKP request
+    /// @notice Sets a ZKP request
+    /// @param requestId The ID of the ZKP request
     /// @param request The ZKP request data
-    function addZKPRequest(
+    function setZKPRequest(
+        uint64 requestId,
         IUniversalVerifier.ZKPRequest calldata request
-    ) public isWhitelistedValidator(request.validator) {
+    ) public isWhitelistedValidator(request.validator) checkRequestExistence(requestId, false) {
         address sender = _msgSender();
-        uint64 requestId = uint64(_getMainStorage().requestIds.length);
         _getMainStorage().requestIds.push(requestId);
         _getMainStorage().userRequestIds[sender].push(requestId);
-        IUniversalVerifier.ZKPRequest memory requestWithController = IUniversalVerifier.ZKPRequest(
-            request.metadata,
-            request.validator,
-            request.data,
-            sender,
-            false
-        );
-        _getMainStorage().requests[requestId] = requestWithController;
-        emit ZKPRequestAdded(requestId, sender, request.metadata, request.data);
+        _getMainStorage().requests[requestId] = request;
+
+        emit ZKPRequestSet(requestId, sender, request.metadata, request.data);
     }
 
     /// @notice Sets a ZKP request
@@ -250,9 +246,9 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c
-    ) public requestEnabled(requestId) checkValidatorIsSet(requestId) {
+    ) public checkRequestExistence(requestId, true) requestEnabled(requestId) {
         address sender = _msgSender();
-        IUniversalVerifier.ZKPRequest memory request = _getMainStorage().requests[requestId];
+        IUniversalVerifier.ZKPRequest storage request = _getMainStorage().requests[requestId];
 
         ICircuitValidator validator = ICircuitValidator(request.validator);
 
@@ -265,13 +261,13 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
             sender
         );
 
+        Proof storage proof = _getMainStorage().proofs[sender][requestId];
         for (uint256 i = 0; i < pairs.length; i++) {
-            _getMainStorage().proofs[sender][requestId].storageFields[pairs[i].key] = inputs[
+            proof.storageFields[pairs[i].key] = inputs[
                 pairs[i].inputIndex
             ];
         }
 
-        Proof storage proof = _getMainStorage().proofs[sender][requestId];
         proof.isProved = true;
         proof.validatorVersion = validator.version();
         proof.blockNumber = block.number;
@@ -292,7 +288,7 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c
-    ) public view requestEnabled(requestId) checkValidatorIsSet(requestId) {
+    ) public view checkRequestExistence(requestId, true) requestEnabled(requestId) {
         IUniversalVerifier.ZKPRequest memory request = _getMainStorage().requests[requestId];
         request.validator.verifyV2(inputs, a, b, c, request.data, _msgSender());
     }

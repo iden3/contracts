@@ -56,7 +56,7 @@ describe("ZKP Verifier", function () {
 
     for (let i = 0; i < requestsCount; i++) {
       await expect(
-        verifier.addZKPRequest({
+        verifier.setZKPRequest(i, {
           metadata: "metadataN" + i,
           validator: sig.address,
           data: "0x0" + i,
@@ -64,7 +64,7 @@ describe("ZKP Verifier", function () {
           isDisabled: false,
         })
       )
-        .to.emit(verifier, "ZKPRequestAdded")
+        .to.emit(verifier, "ZKPRequestSet")
         .withArgs(i, signerAddress, "metadataN" + i, "0x0" + i);
       const request = await verifier.getZKPRequest(i);
       expect(request.metadata).to.be.equal("metadataN" + i);
@@ -87,7 +87,7 @@ describe("ZKP Verifier", function () {
   it("Test submit response", async () => {
     await publishState(state, stateTransition);
     const data = packValidatorParams(query);
-    await verifier.addZKPRequest({
+    await verifier.setZKPRequest(0, {
       metadata: "metadata",
       validator: sig.address,
       data: data,
@@ -119,7 +119,7 @@ describe("ZKP Verifier", function () {
 
   it("Test getZKPRequests pagination", async () => {
     for (let i = 0; i < 30; i++) {
-      await verifier.addZKPRequest({
+      await verifier.setZKPRequest(i, {
         metadata: "metadataN" + i,
         validator: sig.address,
         data: "0x00",
@@ -143,7 +143,7 @@ describe("ZKP Verifier", function () {
     for (let i = 0; i < 5; i++) {
       await verifier
         .connect(signer)
-        .addZKPRequest({
+        .setZKPRequest(i, {
           metadata: "metadataN" + i,
           validator: sig.address,
           data: "0x00",
@@ -154,7 +154,7 @@ describe("ZKP Verifier", function () {
     for (let i = 0; i < 3; i++) {
       await verifier
         .connect(signer2)
-        .addZKPRequest({
+        .setZKPRequest(1000 + i, {
           metadata: "metadataN" + i,
           validator: sig.address,data: "0x00",
           controller: signer2Address,
@@ -181,7 +181,7 @@ describe("ZKP Verifier", function () {
     const someSigner = signer3;
 
     await publishState(state, stateTransition);
-    await verifier.connect(controller).addZKPRequest({
+    await verifier.connect(controller).setZKPRequest(0, {
       metadata: "metadata",
       validator: sig.address,
       data: packValidatorParams(query),
@@ -221,7 +221,7 @@ describe("ZKP Verifier", function () {
     );
 
     await expect(
-      verifier.addZKPRequest({
+      verifier.setZKPRequest(0, {
         metadata: "metadata",
         validator: mtp.address,
         data: "0x00",
@@ -233,7 +233,7 @@ describe("ZKP Verifier", function () {
     verifier.addWhitelistedValidator(mtp.address);
 
     await expect(
-      verifier.addZKPRequest({
+      verifier.setZKPRequest(0, {
         metadata: "metadata",
         validator: mtp.address,
         data: "0x00",
@@ -246,7 +246,7 @@ describe("ZKP Verifier", function () {
     await expect(verifier.addWhitelistedValidator(someAddress)).to.be.reverted;
 
     await expect(
-      verifier.addZKPRequest({
+      verifier.setZKPRequest(1, {
         metadata: "metadata",
         validator: someAddress,
         data: "0x00",

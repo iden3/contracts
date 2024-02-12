@@ -63,11 +63,8 @@ describe("ZKP Verifier", function () {
   ];
 
   beforeEach(async () => {
-    [signer, signer2, signer3, signer4] = await ethers.getSigners();
+    [signer] = await ethers.getSigners();
     signerAddress = await signer.getAddress();
-    signer2Address = await signer2.getAddress();
-    signer3Address = await signer3.getAddress();
-    someAddress = await signer4.getAddress();
 
     const deployHelper = await DeployHelper.initialize(null, true);
     verifier = await deployHelper.deployUniversalVerifier(signer);
@@ -81,7 +78,7 @@ describe("ZKP Verifier", function () {
     await verifier.connect();
   });
 
-  it("Check ZKPRequestAdded event", async () => {
+  it("Check ZKPRequestSet event", async () => {
     const requestsCount = 3;
     const data = [
       packValidatorParams(queries[0]),
@@ -90,7 +87,7 @@ describe("ZKP Verifier", function () {
     ];
 
     for (let i = 0; i < requestsCount; i++) {
-      await verifier.addZKPRequest({
+      await verifier.setZKPRequest(i, {
         metadata: "metadataN" + i,
         validator: sig.address,
         data: data[i],
@@ -99,7 +96,7 @@ describe("ZKP Verifier", function () {
       });
     }
 
-    const filter = verifier.filters.ZKPRequestAdded(null, null);
+    const filter = verifier.filters.ZKPRequestSet(null, null);
     const logs = await verifier.queryFilter(filter, 0, "latest");
     logs.map((log, index) => {
       const abi = [

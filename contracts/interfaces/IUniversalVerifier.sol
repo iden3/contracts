@@ -21,7 +21,7 @@ interface IUniversalVerifier {
         uint256[2] memory c
     ) external;
 
-    function addZKPRequest(ZKPRequest calldata request) external;
+    function setZKPRequest(uint64 requestId, ZKPRequest calldata request) external;
 
     function getZKPRequestsCount() external view returns (uint256);
 
