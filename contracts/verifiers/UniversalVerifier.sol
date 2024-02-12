@@ -25,6 +25,7 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
 
     /// @dev Main storage structure for the contract
     struct MainStorage {
+        // user -> ( requestID -> proof )
         mapping(address => mapping(uint64 => Proof)) proofs;
         mapping(uint64 => IUniversalVerifier.ZKPRequest) requests;
         uint64[] requestIds;
@@ -93,6 +94,13 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
 
     /// @notice Adds a new whitelisted validator
     function addWhitelistedValidator(ICircuitValidator validator) public onlyOwner {
+        require(
+            IERC165(address(validator)).supportsInterface(
+                type(ICircuitValidator).interfaceId
+            ),
+            "Validator doesn't support extended interface"
+        );
+
         _getMainStorage().whitelistedValidators[validator] = true;
     }
 

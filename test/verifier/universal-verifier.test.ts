@@ -8,6 +8,7 @@ describe("ZKP Verifier", function () {
   let verifier: any, sig: any, state: any;
   let signer, signer2, signer3, signer4;
   let signerAddress: string, signer2Address: string, signer3Address: string, someAddress: string;
+  let deployHelper: DeployHelper;
 
   const query = {
     schema: ethers.BigNumber.from("180410020913331409885634153623124536270"),
@@ -37,7 +38,7 @@ describe("ZKP Verifier", function () {
     signer3Address = await signer3.getAddress();
     someAddress = await signer4.getAddress();
 
-    const deployHelper = await DeployHelper.initialize(null, true);
+    deployHelper = await DeployHelper.initialize(null, true);
     verifier = await deployHelper.deployUniversalVerifier(signer);
 
     const contracts = await deployHelper.deployValidatorContracts(
@@ -208,6 +209,36 @@ describe("ZKP Verifier", function () {
   });
 
   it("Check whitelisted validators", async () => {
+    const { validator: mtp } = await deployHelper.deployValidatorContracts(
+      "VerifierMTPWrapper",
+      "CredentialAtomicQueryMTPValidator"
+    );
+
+    await expect(
+      verifier.addZKPRequest({
+        metadata: "metadata",
+        validator: mtp.address,
+        data: "0x00",
+        controller: signerAddress,
+        isDisabled: false,
+      })
+    ).to.be.revertedWith("Validator is not whitelisted");
+
+    verifier.addWhitelistedValidator(mtp.address);
+
+    await expect(
+      verifier.addZKPRequest({
+        metadata: "metadata",
+        validator: mtp.address,
+        data: "0x00",
+        controller: signerAddress,
+        isDisabled: false,
+      })
+    ).not.to.be.reverted;
+
+    // can't whitelist validator, which does not support ICircuitValidator interface
+    await expect(verifier.addWhitelistedValidator(someAddress)).to.be.reverted;
+
     await expect(
       verifier.addZKPRequest({
         metadata: "metadata",
@@ -217,15 +248,5 @@ describe("ZKP Verifier", function () {
         isDisabled: false,
       })
     ).to.be.revertedWith("Validator is not whitelisted");
-
-    await verifier.addWhitelistedValidator(someAddress);
-
-    verifier.addZKPRequest({
-      metadata: "metadata",
-      validator: someAddress,
-      data: "0x00",
-      controller: signerAddress,
-      isDisabled: false,
-    });
   });
 });
