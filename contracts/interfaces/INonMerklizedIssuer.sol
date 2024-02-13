@@ -5,7 +5,7 @@ pragma solidity 0.8.16;
  * @dev INonMerklizedIssuer. Interface for non-merklized issuer
  */
 interface INonMerklizedIssuer {
-     /**
+    /**
      * @dev CredentialInformation. Information about the credential
      */
     struct CredentialData {
@@ -44,13 +44,7 @@ interface INonMerklizedIssuer {
     function getCredential(
         uint256 _userId,
         uint256 _credentialId
-    )
-        external
-        returns (
-            CredentialData memory,
-            uint256[8] memory,
-            SubjectField[] memory
-        );
+    ) external returns (CredentialData memory, uint256[8] memory, SubjectField[] memory);
 
     /**
      * @dev credentialProtocolVersion. Get version of the protocol
