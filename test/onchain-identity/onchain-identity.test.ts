@@ -182,7 +182,7 @@ describe("Next tests reproduce identity life cycle", function () {
       expect(latestComputedState).to.be.equal(latestSavedState);
     });
 
-    it("claim proof should be existence after publishing and StateInfo should be latest", async function () {
+    it("claim proof must exist after publishing and StateInfo should be latest", async function () {
       const latestState = await identity.getLatestPublishedState();
       const latestClaimTreeRoot = await identity.getLatestPublishedClaimsRoot();
       const latestRevocationTreeRoot = await identity.getLatestPublishedRevocationsRoot();
@@ -249,7 +249,7 @@ describe("Next tests reproduce identity life cycle", function () {
       expect(beforeTransitionLatestSavedState).to.be.not.equal(afterTransitionLatestSavedState);
     });
 
-    it("revocation proof should be existence after publishing and StateInfo should be latest", async function () {
+    it("revocation proof must exist after publishing and StateInfo should be latest", async function () {
       const latestState = await identity.getLatestPublishedState();
       const latestClaimTreeRoot = await identity.getLatestPublishedClaimsRoot();
       const latestRevocationTreeRoot = await identity.getLatestPublishedRevocationsRoot();
