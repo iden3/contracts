@@ -47,7 +47,7 @@ interface INonMerklizedIssuer {
     ) external returns (CredentialData memory, uint256[8] memory, SubjectField[] memory);
 
     /**
-     * @dev credentialProtocolVersion. Get version of the protocol
+     * @dev getCredentialProtocolVersion. Get version of the protocol
      */
-    function credentialProtocolVersion() external returns (string memory);
+    function getCredentialProtocolVersion() external returns (string memory);
 }
