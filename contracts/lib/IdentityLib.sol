@@ -237,7 +237,6 @@ library IdentityLib {
             })
         );
     }
-    
 
     /**
      * @dev Retrieve Claim inclusion or non-inclusion proof for a given claim index by target root.

@@ -133,9 +133,7 @@ abstract contract IdentityBase is IOnchainCredentialStatusResolver {
      * @param rootsTreeRoot - roots tree root
      * @return The RootsTree inclusion or non-inclusion proof for the roots tree root
      */
-    function getRootProof(
-        uint256 rootsTreeRoot
-    ) public view virtual returns (SmtLib.Proof memory) {
+    function getRootProof(uint256 rootsTreeRoot) public view virtual returns (SmtLib.Proof memory) {
         return identity.getRootProof(rootsTreeRoot);
     }
 
