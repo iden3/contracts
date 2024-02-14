@@ -100,9 +100,7 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
     /// @notice Adds a new whitelisted validator
     function addWhitelistedValidator(ICircuitValidator validator) public onlyOwner {
         require(
-            IERC165(address(validator)).supportsInterface(
-                type(ICircuitValidator).interfaceId
-            ),
+            IERC165(address(validator)).supportsInterface(type(ICircuitValidator).interfaceId),
             "Validator doesn't support extended interface"
         );
 
@@ -264,9 +262,7 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
 
         Proof storage proof = _getMainStorage().proofs[sender][requestId];
         for (uint256 i = 0; i < pairs.length; i++) {
-            proof.storageFields[pairs[i].key] = inputs[
-                pairs[i].inputIndex
-            ];
+            proof.storageFields[pairs[i].key] = inputs[pairs[i].inputIndex];
         }
 
         proof.isProved = true;
@@ -308,7 +304,9 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
         return _getMainStorage().proofs[user][requestId].storageFields[key];
     }
 
-    function _extractSenderFromCalldata(uint256 expectedArgLen) internal view virtual returns (address sender) {
+    function _extractSenderFromCalldata(
+        uint256 expectedArgLen
+    ) internal view virtual returns (address sender) {
         if (msg.data.length - expectedArgLen == 20) {
             /// @solidity memory-safe-assembly
             assembly {
