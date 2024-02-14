@@ -54,6 +54,17 @@ abstract contract IdentityBase is IOnchainCredentialStatusResolver {
     }
 
     /**
+     * @dev Retrieve Claim inclusion or non-inclusion proof for a given claim index with state info.
+     * @param claimIndexHash - hash of Claim Index
+     * @return The ClaimsTree inclusion or non-inclusion proof for the claim and state info.
+     */
+    function getClaimProofWithStateInfo(
+        uint256 claimIndexHash
+    ) public view virtual returns (SmtLib.Proof memory, IdentityLib.StateInfo memory) {
+        return identity.getClaimProofWithStateInfo(claimIndexHash);
+    }
+
+    /**
      * @dev Retrieve Claim inclusion or non-inclusion proof for a given claim index by target root.
      * @param claimIndexHash - hash of Claim Index
      * @param root - root of the tree
@@ -86,6 +97,17 @@ abstract contract IdentityBase is IOnchainCredentialStatusResolver {
     }
 
     /**
+     * @dev Retrieve inclusion or non-inclusion proof for a given revocation nonce with state info.
+     * @param revocationNonce - revocation nonce
+     * @return The RevocationsTree inclusion or non-inclusion proof for the revocation nonce and state info.
+     */
+    function getRevocationProofWithStateInfo(
+        uint64 revocationNonce
+    ) public view virtual returns (SmtLib.Proof memory, IdentityLib.StateInfo memory) {
+        return identity.getRevocationProofWithStateInfo(revocationNonce);
+    }
+
+    /**
      * @dev Retrieve inclusion or non-inclusion proof for a given revocation nonce by target root.
      * @param revocationNonce - revocation nonce
      * @param root - root of the tree
@@ -107,14 +129,25 @@ abstract contract IdentityBase is IOnchainCredentialStatusResolver {
     }
 
     /**
-     * @dev Retrieve inclusion or non-inclusion proof for a given claimsTreeRoot.
-     * @param claimsTreeRoot - claims tree root
-     * @return The RootsTree inclusion or non-inclusion proof for the claim tree root
+     * @dev Retrieve inclusion or non-inclusion proof for a given rootsTreeRoot.
+     * @param rootsTreeRoot - roots tree root
+     * @return The RootsTree inclusion or non-inclusion proof for the roots tree root
      */
     function getRootProof(
-        uint256 claimsTreeRoot
+        uint256 rootsTreeRoot
     ) public view virtual returns (SmtLib.Proof memory) {
-        return identity.getRootProof(claimsTreeRoot);
+        return identity.getRootProof(rootsTreeRoot);
+    }
+
+    /**
+     * @dev Retrieve inclusion or non-inclusion proof for a given rootsTreeRoot with state info.
+     * @param rootsTreeRoot - roots tree root
+     * @return The RootsTree inclusion or non-inclusion proof for the claim tree root and state info.
+     */
+    function getRootProofWithStateInfo(
+        uint256 rootsTreeRoot
+    ) public view virtual returns (SmtLib.Proof memory, IdentityLib.StateInfo memory) {
+        return identity.getRootProofWithStateInfo(rootsTreeRoot);
     }
 
     /**
