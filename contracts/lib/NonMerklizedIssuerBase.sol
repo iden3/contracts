@@ -13,9 +13,9 @@ abstract contract NonMerklizedIssuerBase is INonMerklizedIssuer {
     string public constant CREDENTIAL_PROTOCOL_VERSION = "0.0.1";
 
     /**
-     * @dev credentialProtocolVersionl. Get version of the credential protocol
+     * @dev getCredentialProtocolVersion. Get version of the credential protocol
      */
-    function credentialProtocolVersion() external pure returns (string memory) {
+    function getCredentialProtocolVersion() external pure returns (string memory) {
         return CREDENTIAL_PROTOCOL_VERSION;
     }
 }
