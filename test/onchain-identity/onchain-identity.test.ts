@@ -39,7 +39,7 @@ describe("Next tests reproduce identity life cycle", function () {
     });
   });
 
-  describe.only("validate initial identity", function () {
+  describe("validate initial identity", function () {
     let initialClaimTreeRoot, initialRevocationTreeRoot, initialRootOfRootsTreeRoot: any;
     before(async function () {
       initialClaimTreeRoot = await identity.getClaimsTreeRoot();
@@ -70,7 +70,6 @@ describe("Next tests reproduce identity life cycle", function () {
       latestSavedState = await identity.getLatestPublishedState();
       expect(latestSavedState).to.be.equal(0);
     });
-    // TODO (illia-korotia): by code should be an error here.
     it("getClaimProofWithStateInfo should return non-existence proof", async function () {
       const proof = await identity.getClaimProofWithStateInfo(1);
       expect(proof[0].existence).to.be.false;
