@@ -41,7 +41,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.0.0-beta.0";
+    string public constant VERSION = "1.0.1-beta.0";
 
     string internal constant CIRCUIT_ID = "credentialAtomicQueryV3OnChain-beta.0";
 
@@ -174,8 +174,8 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
 
     function _checkProofType(uint256 queryProofType, uint256 pubSignalProofType) internal pure {
         require(
-            pubSignalProofType == 0 || queryProofType == pubSignalProofType,
-            "Proof type should match the query"
+            queryProofType == 0 || queryProofType == pubSignalProofType,
+            "Proof type should match the requested one in query"
         );
     }
 
