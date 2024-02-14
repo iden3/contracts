@@ -74,6 +74,14 @@ describe("Next tests reproduce identity life cycle", function () {
       const proof = await identity.getClaimProofWithStateInfo(1);
       expect(proof[0].existence).to.be.false;
     });
+    it("getRevocationProofWithStateInfo should return non-existence proof", async function () {
+      const proof = await identity.getRevocationProofWithStateInfo(1);
+      expect(proof[0].existence).to.be.false;
+    });
+    it("getRootProofWithStateInfo should return non-existence proof", async function () {
+      const proof = await identity.getRootProofWithStateInfo(1);
+      expect(proof[0].existence).to.be.false;
+    });
   });
 
   describe("add claim", function () {
@@ -173,6 +181,20 @@ describe("Next tests reproduce identity life cycle", function () {
       latestComputedState = await identity.calcIdentityState();
       expect(latestComputedState).to.be.equal(latestSavedState);
     });
+
+    it("claim proof should be existence after publishing and StateInfo should be latest", async function () {
+      const latestState = await identity.getLatestPublishedState();
+      const latestClaimTreeRoot = await identity.getLatestPublishedClaimsRoot();
+      const latestRevocationTreeRoot = await identity.getLatestPublishedRevocationsRoot();
+      const latestTransitionRootOfRootsTreeRoot = await identity.getLatestPublishedRootsRoot();
+
+      const claimProof = await identity.getClaimProofWithStateInfo(1);
+      expect(claimProof[0].existence).to.be.true;
+      expect(claimProof[1].state).to.be.equal(latestState);
+      expect(claimProof[1].claimsRoot).to.be.equal(latestClaimTreeRoot);
+      expect(claimProof[1].revocationsRoot).to.be.equal(latestRevocationTreeRoot);
+      expect(claimProof[1].rootsRoot).to.be.equal(latestTransitionRootOfRootsTreeRoot);
+    });
   });
 
   describe("revoke state", function () {
@@ -225,6 +247,20 @@ describe("Next tests reproduce identity life cycle", function () {
     it("state should be updated", async function () {
       const afterTransitionLatestSavedState = await identity.getLatestPublishedState();
       expect(beforeTransitionLatestSavedState).to.be.not.equal(afterTransitionLatestSavedState);
+    });
+
+    it("revocation proof should be existence after publishing and StateInfo should be latest", async function () {
+      const latestState = await identity.getLatestPublishedState();
+      const latestClaimTreeRoot = await identity.getLatestPublishedClaimsRoot();
+      const latestRevocationTreeRoot = await identity.getLatestPublishedRevocationsRoot();
+      const latestTransitionRootOfRootsTreeRoot = await identity.getLatestPublishedRootsRoot();
+
+      const revocationProof = await identity.getRevocationProofWithStateInfo(1);
+      expect(revocationProof[0].existence).to.be.true;
+      expect(revocationProof[1].state).to.be.equal(latestState);
+      expect(revocationProof[1].claimsRoot).to.be.equal(latestClaimTreeRoot);
+      expect(revocationProof[1].revocationsRoot).to.be.equal(latestRevocationTreeRoot);
+      expect(revocationProof[1].rootsRoot).to.be.equal(latestTransitionRootOfRootsTreeRoot);
     });
   });
 });
