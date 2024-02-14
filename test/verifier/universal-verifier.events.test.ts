@@ -3,10 +3,10 @@ import { DeployHelper } from "../../helpers/DeployHelper";
 import { ethers } from "hardhat";
 import { packValidatorParams } from "../utils/validator-pack-utils";
 
-describe("ZKP Verifier", function () {
+describe("Universal Verifier", function () {
   let verifier: any, sig: any;
-  let signer, signer2, signer3, signer4;
-  let signerAddress: string, signer2Address: string, signer3Address: string, someAddress: string;
+  let signer;
+  let signerAddress: string;
 
   const queries = [
     {

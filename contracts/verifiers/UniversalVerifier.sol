@@ -247,7 +247,8 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
         uint256[2][2] calldata b,
         uint256[2] calldata c
     ) public checkRequestExistence(requestId, true) requestEnabled(requestId) {
-        address sender = _msgSender();
+        // 356 is the length when inputs array is empty plus its length multiple by 32
+        address sender = _extractSenderFromCalldata(inputs.length * 32 + 356);
         IUniversalVerifier.ZKPRequest storage request = _getMainStorage().requests[requestId];
 
         ICircuitValidator validator = ICircuitValidator(request.validator);
@@ -290,7 +291,9 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
         uint256[2] calldata c
     ) public view checkRequestExistence(requestId, true) requestEnabled(requestId) {
         IUniversalVerifier.ZKPRequest memory request = _getMainStorage().requests[requestId];
-        request.validator.verifyV2(inputs, a, b, c, request.data, _msgSender());
+        // 356 is the length when inputs array is empty plus its length multiple by 32
+        address sender = _extractSenderFromCalldata(inputs.length * 32 + 356);
+        request.validator.verifyV2(inputs, a, b, c, request.data, sender);
     }
 
     /// @notice Gets the proof storage item for a given user, request ID and key
@@ -303,5 +306,16 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
         string memory key
     ) public view returns (uint256) {
         return _getMainStorage().proofs[user][requestId].storageFields[key];
+    }
+
+    function _extractSenderFromCalldata(uint256 expectedArgLen) internal view virtual returns (address sender) {
+        if (msg.data.length - expectedArgLen == 20) {
+            /// @solidity memory-safe-assembly
+            assembly {
+                sender := shr(96, calldataload(sub(calldatasize(), 20)))
+            }
+        } else {
+            sender = _msgSender();
+        }
     }
 }
