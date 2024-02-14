@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeployHelper";
 import { DeployHelper } from "../../helpers/DeployHelper";
 
-describe("Next tests reproduce identity life cycle", function() {
+describe("Next tests reproduce identity life cycle", function () {
   this.timeout(10000);
 
   let identity;
@@ -15,12 +15,12 @@ describe("Next tests reproduce identity life cycle", function() {
     const deployHelper = await OnchainIdentityDeployHelper.initialize();
     const stContracts = await stDeployHelper.deployState();
     const contracts = await deployHelper.deployIdentity(
-        stContracts.state,
-        stContracts.smtLib,
-        stContracts.poseidon1,
-        stContracts.poseidon2,
-        stContracts.poseidon3,
-        stContracts.poseidon4
+      stContracts.state,
+      stContracts.smtLib,
+      stContracts.poseidon1,
+      stContracts.poseidon2,
+      stContracts.poseidon3,
+      stContracts.poseidon4
     );
     identity = contracts.identity;
     const idType = await stContracts.state.getDefaultIdType();
@@ -30,9 +30,7 @@ describe("Next tests reproduce identity life cycle", function() {
 
   describe("create identity", function () {
     it("deploy state and identity", async function () {
-      expect(await identity.getIsOldStateGenesis()).to.be.equal(
-        true
-      );
+      expect(await identity.getIsOldStateGenesis()).to.be.equal(true);
     });
 
     it("validate identity's id", async function () {
@@ -68,13 +66,22 @@ describe("Next tests reproduce identity life cycle", function() {
       const isOldStateGenesis = await identity.getIsOldStateGenesis();
       expect(isOldStateGenesis).to.be.true;
     });
-    it(
-        "latest identity state should be empty",
-      async function () {
-        latestSavedState = await identity.getLatestPublishedState();
-        expect(latestSavedState).to.be.equal(0);
-      }
-    );
+    it("latest identity state should be empty", async function () {
+      latestSavedState = await identity.getLatestPublishedState();
+      expect(latestSavedState).to.be.equal(0);
+    });
+    it("getClaimProofWithStateInfo should return non-existence proof", async function () {
+      const proof = await identity.getClaimProofWithStateInfo(1);
+      expect(proof[0].existence).to.be.false;
+    });
+    it("getRevocationProofWithStateInfo should return non-existence proof", async function () {
+      const proof = await identity.getRevocationProofWithStateInfo(1);
+      expect(proof[0].existence).to.be.false;
+    });
+    it("getRootProofWithStateInfo should return non-existence proof", async function () {
+      const proof = await identity.getRootProofWithStateInfo(1);
+      expect(proof[0].existence).to.be.false;
+    });
   });
 
   describe("add claim", function () {
@@ -174,6 +181,20 @@ describe("Next tests reproduce identity life cycle", function() {
       latestComputedState = await identity.calcIdentityState();
       expect(latestComputedState).to.be.equal(latestSavedState);
     });
+
+    it("claim proof must exist after publishing and StateInfo should be latest", async function () {
+      const latestState = await identity.getLatestPublishedState();
+      const latestClaimTreeRoot = await identity.getLatestPublishedClaimsRoot();
+      const latestRevocationTreeRoot = await identity.getLatestPublishedRevocationsRoot();
+      const latestTransitionRootOfRootsTreeRoot = await identity.getLatestPublishedRootsRoot();
+
+      const claimProof = await identity.getClaimProofWithStateInfo(1);
+      expect(claimProof[0].existence).to.be.true;
+      expect(claimProof[1].state).to.be.equal(latestState);
+      expect(claimProof[1].claimsRoot).to.be.equal(latestClaimTreeRoot);
+      expect(claimProof[1].revocationsRoot).to.be.equal(latestRevocationTreeRoot);
+      expect(claimProof[1].rootsRoot).to.be.equal(latestTransitionRootOfRootsTreeRoot);
+    });
   });
 
   describe("revoke state", function () {
@@ -195,7 +216,8 @@ describe("Next tests reproduce identity life cycle", function() {
     });
 
     it("transit of revocation tree shouldn't update root of roots tree", async function () {
-      const beforeRevocationRootOfRootsTreeRoot = await identity.getLatestPublishedRevocationsRoot();
+      const beforeRevocationRootOfRootsTreeRoot =
+        await identity.getLatestPublishedRevocationsRoot();
       expect(beforeRevocationRootOfRootsTreeRoot).to.be.equal(beforeRevocationRevocationTreeRoot);
     });
 
@@ -225,6 +247,20 @@ describe("Next tests reproduce identity life cycle", function() {
     it("state should be updated", async function () {
       const afterTransitionLatestSavedState = await identity.getLatestPublishedState();
       expect(beforeTransitionLatestSavedState).to.be.not.equal(afterTransitionLatestSavedState);
+    });
+
+    it("revocation proof must exist after publishing and StateInfo should be latest", async function () {
+      const latestState = await identity.getLatestPublishedState();
+      const latestClaimTreeRoot = await identity.getLatestPublishedClaimsRoot();
+      const latestRevocationTreeRoot = await identity.getLatestPublishedRevocationsRoot();
+      const latestTransitionRootOfRootsTreeRoot = await identity.getLatestPublishedRootsRoot();
+
+      const revocationProof = await identity.getRevocationProofWithStateInfo(1);
+      expect(revocationProof[0].existence).to.be.true;
+      expect(revocationProof[1].state).to.be.equal(latestState);
+      expect(revocationProof[1].claimsRoot).to.be.equal(latestClaimTreeRoot);
+      expect(revocationProof[1].revocationsRoot).to.be.equal(latestRevocationTreeRoot);
+      expect(revocationProof[1].rootsRoot).to.be.equal(latestTransitionRootOfRootsTreeRoot);
     });
   });
 });
@@ -567,7 +603,7 @@ describe("Genesis state doens't have history of states", () => {
       const latestState = await identity.calcIdentityState();
       try {
         await identity.getRootsByState(latestState);
-        expect.fail('The transaction should have thrown an error');
+        expect.fail("The transaction should have thrown an error");
       } catch (err: any) {
         expect(err.reason).to.be.equal("Roots for this state doesn't exist");
       }
