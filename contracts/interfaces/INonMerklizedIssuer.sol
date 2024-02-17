@@ -6,6 +6,15 @@ pragma solidity 0.8.16;
  */
 interface INonMerklizedIssuer {
     /**
+     * @dev DisplayMethod display method for the credential
+     * Optional fields
+     */
+    struct DisplayMethod {
+        string id;
+        string _type;
+    }
+
+    /**
      * @dev CredentialInformation. Information about the credential
      */
     struct CredentialData {
@@ -14,6 +23,7 @@ interface INonMerklizedIssuer {
         string _type;
         uint64 issuanceDate;
         string credentialSchema;
+        DisplayMethod displayMethod;
     }
 
     /**
