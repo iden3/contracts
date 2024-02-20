@@ -20,6 +20,8 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
     }
 
     /// @dev Struct for ZKP proof status
+    /// This is just to return the proof status info from getter methods
+    /// as we can't return the mapping from Solidity
     struct ProofStatus {
         bool isProved;
         string validatorVersion;
@@ -245,8 +247,7 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
         uint256[2][2] calldata b,
         uint256[2] calldata c
     ) public checkRequestExistence(requestId, true) requestEnabled(requestId) {
-        // 356 is the length when inputs array is empty plus its length multiple by 32
-        address sender = _extractSenderFromCalldata(inputs.length * 32 + 356);
+        address sender = _msgSender();
         IUniversalVerifier.ZKPRequest storage request = _getMainStorage().requests[requestId];
 
         ICircuitValidator validator = ICircuitValidator(request.validator);
@@ -284,12 +285,25 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
         uint256[] calldata inputs,
         uint256[2] calldata a,
         uint256[2][2] calldata b,
-        uint256[2] calldata c
-    ) public view checkRequestExistence(requestId, true) requestEnabled(requestId) {
+        uint256[2] calldata c,
+        address sender
+    )
+        public
+        view
+        checkRequestExistence(requestId, true)
+        requestEnabled(requestId)
+        returns (ICircuitValidator.KeyInputIndexPair[] memory)
+    {
         IUniversalVerifier.ZKPRequest memory request = _getMainStorage().requests[requestId];
-        // 356 is the length when inputs array is empty plus its length multiple by 32
-        address sender = _extractSenderFromCalldata(inputs.length * 32 + 356);
-        request.validator.verifyV2(inputs, a, b, c, request.data, sender);
+        ICircuitValidator.KeyInputIndexPair[] memory pairs = request.validator.verifyV2(
+            inputs,
+            a,
+            b,
+            c,
+            request.data,
+            sender
+        );
+        return pairs;
     }
 
     /// @notice Gets the proof storage item for a given user, request ID and key

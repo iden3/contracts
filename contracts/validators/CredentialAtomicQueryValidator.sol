@@ -183,8 +183,6 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         ICircuitValidator.KeyInputIndexPair[] memory pairs = _getSpecialInputPairs(
             credAtomicQuery.operator == 16
         );
-        bytes memory encodedPairs = abi.encode(pairs);
-
         return pairs;
     }
 

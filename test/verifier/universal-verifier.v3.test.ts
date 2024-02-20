@@ -80,49 +80,6 @@ describe("Universal Verifier", function () {
 
     // await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
 
-    // const rawData = verifier.interface.encodeFunctionData("submitZKPResponse", [
-    //   0,
-    //   inputs,
-    //   pi_a,
-    //   pi_b,
-    //   pi_c,
-    // ]);
-    //
-    // // This works as user ID corresponds to ETH address
-    // let result = rawData + signerAddress.slice(2);
-    //
-    // let tx = {
-    //   to: verifier.address,
-    //   data: result,
-    //   nonce: await ethers.provider.getTransactionCount(signerAddress, "latest"),
-    //   gasLimit: 30000000,
-    //   gasPrice: ethers.utils.parseUnits("30", "gwei"),
-    //   chainId: 31337,
-    // };
-    //
-    // // Sign the transaction
-    // const privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
-    // const wallet = new ethers.Wallet(privateKey, ethers.provider);
-    //
-    // let signedTx = await wallet.signTransaction(tx);
-    // await ethers.provider.sendTransaction(signedTx);
-    //
-    // // This should fail as user ID does not correspond to ETH address
-    // result = rawData + signer2Address.slice(2);
-    // tx = {
-    //   to: verifier.address,
-    //   data: result,
-    //   nonce: await ethers.provider.getTransactionCount(signerAddress, "latest"),
-    //   gasLimit: 30000000,
-    //   gasPrice: ethers.utils.parseUnits("30", "gwei"),
-    //   chainId: 31337,
-    // };
-    //
-    // signedTx = await wallet.signTransaction(tx);
-    // await expect(ethers.provider.sendTransaction(signedTx)).to.be.revertedWith(
-    //   "UserID does not correspond to the sender"
-    // );
-
     // Deploy UniversalVerifierTestWrapper
     const UVTestWrapper = await ethers.getContractFactory(
       "UniversalVerifierTestWrapper"
@@ -132,9 +89,11 @@ describe("Universal Verifier", function () {
     );
     await uvTestWrapper.deployed();
 
-    await uvTestWrapper.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
+    await uvTestWrapper.verifyZKPResponse(0, inputs, pi_a, pi_b, pi_c, "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266");
+    // TODO figure out how to test positive flow for submitZKPResponse
+    // The test wrapper contract address does not correspond to the address in the challenge input
     await expect(
-      uvTestWrapper.submitZKPResponseJustProxy(0, inputs, pi_a, pi_b, pi_c)
-    ).to.be.revertedWith("UserID does not correspond to the sender");
+      uvTestWrapper.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c)
+    ).to.be.revertedWith("Challenge should match the sender");
   });
 });

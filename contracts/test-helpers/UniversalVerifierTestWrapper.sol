@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import { IUniversalVerifier } from '../interfaces/IUniversalVerifier.sol';
+import {IUniversalVerifier} from "../interfaces/IUniversalVerifier.sol";
+import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 
 contract UniversalVerifierTestWrapper {
     IUniversalVerifier private verifier;
@@ -10,18 +11,30 @@ contract UniversalVerifierTestWrapper {
         verifier = _verifier;
     }
 
-    function submitZKPResponse(
+    function verifyZKPResponse(
         uint64 requestId,
         uint256[] calldata inputs,
         uint256[2] calldata a,
         uint256[2][2] calldata b,
-        uint256[2] calldata c
+        uint256[2] calldata c,
+        address sender
     ) external {
-        address sender = msg.sender;
-        _callVerifyWithSender(requestId, inputs, a, b, c, sender);
+        ICircuitValidator.KeyInputIndexPair[] memory pairs = verifier.verifyZKPResponse(
+            requestId,
+            inputs,
+            a,
+            b,
+            c,
+            sender
+        );
+
+        // user pairs in some way
+        // ...
+
+        //doAirDrop() or whatever is needed in the business logic
     }
 
-    function submitZKPResponseJustProxy(
+    function submitZKPResponse(
         uint64 requestId,
         uint256[] calldata inputs,
         uint256[2] calldata a,
@@ -51,9 +64,9 @@ contract UniversalVerifierTestWrapper {
             if (returnData.length > 0) {
                 // Extract revert reason from returnData
                 assembly {
-                let returnDataSize := mload(returnData)
-                revert(add(32, returnData), returnDataSize)
-            }
+                    let returnDataSize := mload(returnData)
+                    revert(add(32, returnData), returnDataSize)
+                }
             } else {
                 revert("Failed to verify proof without revert reason");
             }

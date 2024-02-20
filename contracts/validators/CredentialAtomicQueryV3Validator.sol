@@ -184,6 +184,8 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         _checkLinkID(credAtomicQuery.groupID, v3PubSignals.linkID);
         _checkProofType(credAtomicQuery.proofType, v3PubSignals.proofType);
         _checkNullify(v3PubSignals.nullifier, credAtomicQuery.nullifierSessionID);
+        // TODO 1. put challenge checks into the docs
+        _checkChallenge(signals.challenge, sender);
         if (v3PubSignals.authEnabled == 1) {
             _checkGistRoot(signals.gistRoot);
         } else {
@@ -193,8 +195,6 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         ICircuitValidator.KeyInputIndexPair[] memory pairs = _getSpecialInputPairs(
             credAtomicQuery.operator == 16
         );
-        bytes memory encodedPairs = abi.encode(pairs);
-
         return pairs;
     }
 
@@ -265,5 +265,12 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         });
 
         return pairs;
+    }
+
+    function _checkChallenge(uint256 challenge, address sender) internal view {
+        require(
+            PrimitiveTypeUtils.int256ToAddress(challenge) == sender,
+            "Challenge should match the sender"
+        );
     }
 }

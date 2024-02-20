@@ -104,7 +104,7 @@ describe("ZKP Verifier", function () {
     expect(txRes.events[0].args.caller).to.be.equal(signerAddress);
     const { timestamp: txResTimestamp } = await ethers.provider.getBlock(txRes.blockNumber);
 
-    await expect(verifier.verifyZKPResponse(0, inputs, pi_a, pi_b, pi_c)).not.to.be.reverted;
+    await expect(verifier.verifyZKPResponse(0, inputs, pi_a, pi_b, pi_c, "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266")).not.to.be.reverted;
 
     const requestId = 0;
     let status = await verifier.getProofStatus(signerAddress, requestId);
@@ -209,7 +209,7 @@ describe("ZKP Verifier", function () {
     await expect(verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c)).to.be.revertedWith(
       "Request is disabled"
     );
-    await expect(verifier.verifyZKPResponse(0, inputs, pi_a, pi_b, pi_c)).to.be.revertedWith(
+    await expect(verifier.verifyZKPResponse(0, inputs, pi_a, pi_b, pi_c, "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266")).to.be.revertedWith(
       "Request is disabled"
     );
   });
