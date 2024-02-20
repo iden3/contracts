@@ -25,7 +25,7 @@ abstract contract NonMerklizedIssuerBase is INonMerklizedIssuer, ERC165 {
      */
     function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
         return
-          interfaceId == type(INonMerklizedIssuer).interfaceId ||
+            interfaceId == type(INonMerklizedIssuer).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 }
