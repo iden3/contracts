@@ -23,7 +23,7 @@ abstract contract NonMerklizedIssuerBase is INonMerklizedIssuer, ERC165 {
     /**
      * @dev supportsInterface. Check if the contract supports the interface
      */
-    function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view override virtual returns (bool) {
         return
             interfaceId == type(INonMerklizedIssuer).interfaceId ||
             super.supportsInterface(interfaceId);
