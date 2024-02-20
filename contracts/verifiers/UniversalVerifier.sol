@@ -103,7 +103,7 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
     function addWhitelistedValidator(ICircuitValidator validator) public onlyOwner {
         require(
             IERC165(address(validator)).supportsInterface(type(ICircuitValidator).interfaceId),
-            "Validator doesn't support extended interface"
+            "Validator doesn't support relevant interface"
         );
 
         _getMainStorage().whitelistedValidators[validator] = true;
