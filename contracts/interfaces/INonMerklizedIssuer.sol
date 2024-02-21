@@ -40,10 +40,10 @@ interface INonMerklizedIssuer {
     }
 
     /**
-     * @dev listUserCredentialIds. Get list of user credentials identifiers
+     * @dev getUserCredentialIds. Get list of user credentials identifiers
      * @param _userId user id
      */
-    function listUserCredentialIds(uint256 _userId) external view returns (uint256[] memory);
+    function getUserCredentialIds(uint256 _userId) external view returns (uint256[] memory);
 
     /**
      * @dev getCredential. Get credential by user id and credential id.
