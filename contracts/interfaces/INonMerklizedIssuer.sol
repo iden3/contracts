@@ -15,6 +15,14 @@ interface INonMerklizedIssuer {
     }
 
     /**
+     * @dev CredentialSchema. Schema for the credential
+     */
+    struct CredentialSchema {
+        string id;
+        string _type;
+    }
+
+    /**
      * @dev CredentialInformation. Information about the credential
      */
     struct CredentialData {
@@ -22,7 +30,7 @@ interface INonMerklizedIssuer {
         string[] context;
         string _type;
         uint64 issuanceDate;
-        string credentialSchema;
+        CredentialSchema credentialSchema;
         DisplayMethod displayMethod;
     }
 
