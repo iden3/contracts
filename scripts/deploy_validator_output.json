@@ -1,0 +1,23 @@
+{
+ "info": [
+  {
+   "verifierContractWrapperName": "VerifierMTPWrapper",
+   "validatorContractName": "CredentialAtomicQueryMTPValidator",
+   "validator": "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0",
+   "verifier": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
+  },
+  {
+   "verifierContractWrapperName": "VerifierSigWrapper",
+   "validatorContractName": "CredentialAtomicQuerySigValidator",
+   "validator": "0x0B306BF915C4d645ff596e518fAf3F9669b97016",
+   "verifier": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
+  },
+  {
+   "verifierContractWrapperName": "VerifierV3Wrapper",
+   "validatorContractName": "CredentialAtomicQueryV3Validator",
+   "validator": "0x68B1D87F95878fE05B998F19b66F4baba5De1aed",
+   "verifier": "0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1"
+  }
+ ],
+ "network": "localhost"
+}

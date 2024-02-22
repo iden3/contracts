@@ -17,7 +17,7 @@ Uncomment networks object and updated blockchain provider **url** and **private 
 Then run the deployment script:
 
 ```shell
-npx hardhat run --network <your-network> scripts/deploy.js
+npx hardhat run --network <your-network> scripts/deploy.ts
 ```
 
 ## Run tests
