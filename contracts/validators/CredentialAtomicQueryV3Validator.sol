@@ -184,9 +184,11 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         _checkLinkID(credAtomicQuery.groupID, v3PubSignals.linkID);
         _checkProofType(credAtomicQuery.proofType, v3PubSignals.proofType);
         _checkNullify(v3PubSignals.nullifier, credAtomicQuery.nullifierSessionID);
+
         // TODO 1. put challenge checks into the docs
-        _checkChallenge(signals.challenge, sender);
         if (v3PubSignals.authEnabled == 1) {
+            // Checking challenge to prevent replay attacks from other addresses
+            _checkChallenge(signals.challenge, sender);
             _checkGistRoot(signals.gistRoot);
         } else {
             _checkAuth(signals.userID, sender);

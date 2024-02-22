@@ -91,9 +91,9 @@ describe("Universal Verifier", function () {
 
     await uvTestWrapper.verifyZKPResponse(0, inputs, pi_a, pi_b, pi_c, "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266");
     // TODO figure out how to test positive flow for submitZKPResponse
-    // The test wrapper contract address does not correspond to the address in the challenge input
-    await expect(
-      uvTestWrapper.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c)
-    ).to.be.revertedWith("Challenge should match the sender");
+    // userID public signal should correspond to UV test wrapper address
+    await expect(uvTestWrapper.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c)).to.be.revertedWith(
+      "UserID does not correspond to the sender"
+    );
   });
 });

@@ -14,6 +14,7 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_bjj_user_genesis_v3.json"),
     setProofExpiration: tenYears,
+    sender: "0x3930000000000000000000000000000000000000",
   },
   {
     name: "Validation of Sig proof failed",
@@ -23,6 +24,7 @@ const testCases: any[] = [
     proofJson: require("./data/invalid_bjj_user_genesis_v3.json"),
     errorMessage: "Proof is not valid",
     setProofExpiration: tenYears,
+    sender: "0x3930000000000000000000000000000000000000",
   },
   {
     name: "User state is not genesis but latest",
@@ -33,6 +35,7 @@ const testCases: any[] = [
 
     proofJson: require("./data/valid_bjj_user_first_v3.json"),
     setProofExpiration: tenYears,
+    sender: "0x3930000000000000000000000000000000000000",
   },
   {
     name: "The non-revocation issuer state is latest",
@@ -43,6 +46,7 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_bjj_user_first_issuer_second_v3"),
     setProofExpiration: tenYears,
+    sender: "0x3930000000000000000000000000000000000000",
   },
   {
     name: "The non-revocation issuer state is expired",
@@ -57,6 +61,7 @@ const testCases: any[] = [
     setRevStateExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
     errorMessage: "Non-Revocation state of Issuer expired",
     setProofExpiration: tenYears,
+    sender: "0x3930000000000000000000000000000000000000",
   },
   {
     name: "GIST root expired, Issuer revocation state is not expired",
@@ -72,6 +77,7 @@ const testCases: any[] = [
     setGISTRootExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
     errorMessage: "Gist root is expired",
     setProofExpiration: tenYears,
+    sender: "0x3930000000000000000000000000000000000000",
   },
   {
     name: "The generated proof is expired",
@@ -82,6 +88,7 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_bjj_user_first_v3.json"),
     errorMessage: "Generated proof is outdated",
+    sender: "0x3930000000000000000000000000000000000000",
   },
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain",
@@ -92,6 +99,7 @@ const testCases: any[] = [
     setProofExpiration: tenYears,
     allowedIssuers: [ethers.BigNumber.from(123)],
     errorMessage: "Issuer is not on the Allowed Issuers list",
+    sender: "0x3930000000000000000000000000000000000000",
   },
   {
     name: "Valid BJJ genesis proof with AuthEnabled=0 (UserID correspond to the sender)",
@@ -101,14 +109,16 @@ const testCases: any[] = [
     proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3.json"),
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   // MTP Proofs
-   {
+  {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain. MTP Proof.",
     stateTransitions: [require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json")],
     proofJson: require("./data/valid_mtp_user_genesis_v3.json"),
     setProofExpiration: tenYears,
     isMtpProof: true,
+    sender: "0x3930000000000000000000000000000000000000",
   },
   {
     name: "Validation of MTP proof failed",
@@ -116,7 +126,8 @@ const testCases: any[] = [
     proofJson: require("./data/invalid_mtp_user_genesis_v3.json"),
     errorMessage: "Proof is not valid",
     setProofExpiration: tenYears,
-    isMtpProof: true
+    isMtpProof: true,
+    sender: "0x3930000000000000000000000000000000000000",
   },
   {
     name: "User state is not genesis but latest. MTP Proof.",
@@ -126,7 +137,8 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_mtp_user_first_v3.json"),
     setProofExpiration: tenYears,
-    isMtpProof: true
+    isMtpProof: true,
+    sender: "0x3930000000000000000000000000000000000000",
   },
   {
     name: "The non-revocation issuer state is not expired. MTP Proof.",
@@ -137,7 +149,8 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_mtp_user_first_issuer_second_v3.json"),
     setProofExpiration: tenYears,
-    isMtpProof: true
+    isMtpProof: true,
+    sender: "0x3930000000000000000000000000000000000000",
   },
   {
     name: "The non-revocation issuer state is expired. MTP Proof.",
@@ -152,7 +165,8 @@ const testCases: any[] = [
     setRevStateExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
     errorMessage: "Non-Revocation state of Issuer expired",
     setProofExpiration: tenYears,
-    isMtpProof: true
+    isMtpProof: true,
+    sender: "0x3930000000000000000000000000000000000000",
   },
   {
     name: "GIST root expired, Issuer revocation state is not expired. MTP Proof.",
@@ -167,7 +181,8 @@ const testCases: any[] = [
     setGISTRootExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
     errorMessage: "Gist root is expired",
     setProofExpiration: tenYears,
-    isMtpProof: true
+    isMtpProof: true,
+    sender: "0x3930000000000000000000000000000000000000",
   },
   {
     name: "The generated proof is expired. MTP Proof.",
@@ -178,7 +193,8 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_mtp_user_first_v3.json"),
     errorMessage: "Generated proof is outdated",
-    isMtpProof: true
+    isMtpProof: true,
+    sender: "0x3930000000000000000000000000000000000000",
   },
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain. MTP Proof.",
@@ -189,7 +205,8 @@ const testCases: any[] = [
     setProofExpiration: tenYears,
     allowedIssuers: [ethers.BigNumber.from(123)],
     errorMessage: 'Issuer is not on the Allowed Issuers list',
-    isMtpProof: true
+    isMtpProof: true,
+    sender: "0x3930000000000000000000000000000000000000",
   },
   {
     name: "Valid MTP genesis proof with AuthEnabled=0 (UserID correspond to the sender)",
@@ -200,6 +217,7 @@ const testCases: any[] = [
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
     isMtpProof: true,
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   // Auth Disabled invalid challenge
   {
@@ -211,6 +229,7 @@ const testCases: any[] = [
     setProofExpiration: tenYears,
     errorMessage: "UserID does not correspond to the sender",
     ethereumBasedUser: true,
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
     name: "Valid MTP genesis proof with AuthEnabled=0 (UserID does not correspond to the sender)",
@@ -221,7 +240,8 @@ const testCases: any[] = [
     setProofExpiration: tenYears,
     errorMessage: "UserID does not correspond to the sender",
     ethereumBasedUser: true,
-    isMtpProof: true
+    isMtpProof: true,
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   // Issuer Genesis State
   {
@@ -231,6 +251,7 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_bjj_user_first_issuer_genesis_v3.json"),
     setProofExpiration: tenYears,
+    sender: "0x3930000000000000000000000000000000000000",
   },
 ];
 
@@ -310,19 +331,34 @@ describe("Atomic V3 Validator", function () {
       }
       if (test.errorMessage) {
         await expect(
-          v3validator.verify(inputs, pi_a, pi_b, pi_c, packV3ValidatorParams(query, test.allowedIssuers))
+          v3validator.verifyV2(
+            inputs,
+            pi_a,
+            pi_b,
+            pi_c,
+            packV3ValidatorParams(query, test.allowedIssuers),
+            test.sender
+          )
         ).to.be.revertedWith(test.errorMessage);
       } else if (test.errorMessage === "") {
         await expect(
-          v3validator.verify(inputs, pi_a, pi_b, pi_c, packV3ValidatorParams(query, test.allowedIssuers))
+          v3validator.verifyV2(
+            inputs,
+            pi_a,
+            pi_b,
+            pi_c,
+            packV3ValidatorParams(query, test.allowedIssuers),
+            test.sender
+          )
         ).to.be.reverted;
       } else {
-        await v3validator.verify(
+        await v3validator.verifyV2(
           inputs,
           pi_a,
           pi_b,
           pi_c,
-          packV3ValidatorParams(query, test.allowedIssuers)
+          packV3ValidatorParams(query, test.allowedIssuers),
+          test.sender
         );
       }
     });
