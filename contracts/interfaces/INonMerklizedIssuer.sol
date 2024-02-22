@@ -6,6 +6,23 @@ pragma solidity 0.8.16;
  */
 interface INonMerklizedIssuer {
     /**
+     * @dev DisplayMethod display method for the credential
+     * Optional fields
+     */
+    struct DisplayMethod {
+        string id;
+        string _type;
+    }
+
+    /**
+     * @dev CredentialSchema. Schema for the credential
+     */
+    struct CredentialSchema {
+        string id;
+        string _type;
+    }
+
+    /**
      * @dev CredentialInformation. Information about the credential
      */
     struct CredentialData {
@@ -13,7 +30,8 @@ interface INonMerklizedIssuer {
         string[] context;
         string _type;
         uint64 issuanceDate;
-        string credentialSchema;
+        CredentialSchema credentialSchema;
+        DisplayMethod displayMethod;
     }
 
     /**
@@ -30,10 +48,10 @@ interface INonMerklizedIssuer {
     }
 
     /**
-     * @dev listUserCredentialIds. Get list of user credentials identifiers
+     * @dev getUserCredentialIds. Get list of user credentials identifiers
      * @param _userId user id
      */
-    function listUserCredentialIds(uint256 _userId) external returns (uint256[] memory);
+    function getUserCredentialIds(uint256 _userId) external view returns (uint256[] memory);
 
     /**
      * @dev getCredential. Get credential by user id and credential id.
@@ -44,10 +62,10 @@ interface INonMerklizedIssuer {
     function getCredential(
         uint256 _userId,
         uint256 _credentialId
-    ) external returns (CredentialData memory, uint256[8] memory, SubjectField[] memory);
+    ) external view returns (CredentialData memory, uint256[8] memory, SubjectField[] memory);
 
     /**
-     * @dev getCredentialProtocolVersion. Get version of the protocol
+     * @dev getCredentialAdapterVersion. Get version of the credential adapter
      */
-    function getCredentialProtocolVersion() external returns (string memory);
+    function getCredentialAdapterVersion() external view returns (string memory);
 }
