@@ -1,12 +1,14 @@
-import { ethers, upgrades } from "hardhat";
 import fs from "fs";
 import path from "path";
 import {DeployHelper} from "../helpers/DeployHelper";
+import dotenv from "dotenv";
 
 const pathOutputJson = path.join(__dirname, "./deploy_validator_output.json");
 
 async function main() {
-  const stateAddress = "0x134B1BE34911E39A8397ec6289782989729807a4";
+  dotenv.config();
+  
+  const stateAddress = process.env.STATE_ADDRESS;
   const validators = [
     {
       verifierContractWrapperName: "VerifierMTPWrapper",

@@ -18,7 +18,9 @@ Then run the deployment script:
 
 ```shell
 npx hardhat run --network <your-network> scripts/deploy.ts
+
 ```
+
 
 ## Run tests
 

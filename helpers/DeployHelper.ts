@@ -54,7 +54,7 @@ export class DeployHelper {
     const verifier = await verifierFactory.deploy();
     await verifier.deployed();
     this.log(
-      `${verifierContractName} contract deployed to address ${verifier.address} from ${owner.address}`
+      `${verifierContractName} contract deployed to address ${verifier.address}`
     );
 
     this.log("deploying poseidons...");
@@ -81,7 +81,13 @@ export class DeployHelper {
       unsafeAllowLinkedLibraries: true,
     });
     await state.deployed();
-    this.log(`State contract deployed to address ${state.address} from ${owner.address}`);
+    
+    this.log(`State contract deployed to address ${state.address}`);
+    this.log(`${verifierContractName} contract deployed to address ${verifier.address}`);
+    this.log (`Poseidon1 address: ${poseidon1Elements.address}`);
+    this.log (`Poseidon2 address: ${poseidon2Elements.address}`);
+    this.log (`Poseidon3 address: ${poseidon3Elements.address}`);
+    this.log (`Poseidon4 address: ${poseidon4Elements.address}`);
 
     this.log("======== State: deploy completed ========");
 
@@ -137,14 +143,6 @@ export class DeployHelper {
 
     this.log("upgrading state...");
 
-    /*
-
-    // in case you need to redefine priority fee config for upgrade operation
-
-    const feedata = await owner.provider!.getFeeData();
-    feedata.maxPriorityFeePerGas = BigNumber.from("100000000000");
-    owner.provider!.getFeeData = async () => (feedata);
-   */
     const StateFactory = await ethers.getContractFactory(stateContractName, {
       signer: owner,
       libraries: {
@@ -155,7 +153,7 @@ export class DeployHelper {
     });
     const state = await upgrades.upgradeProxy(stateAddress, StateFactory, {
       unsafeAllowLinkedLibraries: true,
-      unsafeSkipStorageCheck: true, // TODO: remove for next upgrade
+      unsafeSkipStorageCheck: true,
     });
     await state.deployed();
     this.log(`State contract upgraded at address ${state.address} from ${owner.address}`);
