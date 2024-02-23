@@ -7,8 +7,8 @@ import { expect } from "chai";
 
 describe("Universal Verifier", function () {
   let verifier: any, v3: any, state: any;
-  let signer, signer2;
-  let signerAddress: string, signer2Address: string;
+  let signer;
+  let signerAddress: string;
   let deployHelper: DeployHelper;
 
   const value = ["20010101", ...new Array(63).fill("0")];
@@ -26,7 +26,7 @@ describe("Universal Verifier", function () {
     operator,
     slotIndex,
     value,
-    circuitIds: ["credentialAtomicQueryV3OnChain"],
+    circuitIds: ["credentialAtomicQueryV3OnChain-beta.0"],
     skipClaimRevocationCheck: false,
     claimPathNotExists,
     queryHash: calculateQueryHash(
@@ -49,7 +49,6 @@ describe("Universal Verifier", function () {
   beforeEach(async () => {
     [signer, signer2] = await ethers.getSigners();
     signerAddress = await signer.getAddress();
-    signer2Address = await signer2.getAddress();
 
     deployHelper = await DeployHelper.initialize(null, true);
     verifier = await deployHelper.deployUniversalVerifier(signer);
