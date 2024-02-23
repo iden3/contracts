@@ -47,7 +47,7 @@ describe("Universal Verifier", function () {
   const stateTransition1 = require("../validators/common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json");
 
   beforeEach(async () => {
-    [signer, signer2] = await ethers.getSigners();
+    [signer] = await ethers.getSigners();
     signerAddress = await signer.getAddress();
 
     deployHelper = await DeployHelper.initialize(null, true);
@@ -80,15 +80,18 @@ describe("Universal Verifier", function () {
     // await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
 
     // Deploy UniversalVerifierTestWrapper
-    const UVTestWrapper = await ethers.getContractFactory(
-      "UniversalVerifierTestWrapper"
-    );
-    const uvTestWrapper = await UVTestWrapper.deploy(
-      verifier.address
-    );
+    const UVTestWrapper = await ethers.getContractFactory("UniversalVerifierTestWrapper");
+    const uvTestWrapper = await UVTestWrapper.deploy(verifier.address);
     await uvTestWrapper.deployed();
 
-    await uvTestWrapper.verifyZKPResponse(0, inputs, pi_a, pi_b, pi_c, "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266");
+    await uvTestWrapper.verifyZKPResponse(
+      0,
+      inputs,
+      pi_a,
+      pi_b,
+      pi_c,
+      "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+    );
     // TODO figure out how to test positive flow for submitZKPResponse
     // userID public signal should correspond to UV test wrapper address
     await expect(uvTestWrapper.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c)).to.be.revertedWith(
