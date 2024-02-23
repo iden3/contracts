@@ -6,6 +6,7 @@ import {IVerifier} from "../interfaces/IVerifier.sol";
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {console} from "hardhat/console.sol";
 
 /**
  * @dev CredentialAtomicQueryV3 validator
@@ -145,6 +146,11 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         );
 
         IVerifier verifier = _circuitIdToVerifier[credAtomicQuery.circuitIds[0]];
+
+        console.log("verifier: %s", address(verifier));
+        console.log("credAtomicQuery.circuitIds.length: %s", credAtomicQuery.circuitIds.length);
+        console.log("credAtomicQuery.circuitIds[0]", credAtomicQuery.circuitIds[0]);
+        console.log("verifier != IVerifier(address(0)): %s", verifier != IVerifier(address(0)));
 
         require(
             credAtomicQuery.circuitIds.length == 1 && verifier != IVerifier(address(0)),
