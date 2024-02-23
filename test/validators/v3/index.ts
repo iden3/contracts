@@ -302,7 +302,7 @@ describe("Atomic V3 Validator", function () {
         operator,
         slotIndex,
         value,
-        circuitIds: ["credentialAtomicQueryV3OnChain"],
+        circuitIds: ["credentialAtomicQueryV3OnChain-beta.0"],
         skipClaimRevocationCheck: false,
         claimPathNotExists,
         queryHash: calculateQueryHash(
