@@ -5,7 +5,7 @@ import { prepareInputs, publishState } from "../utils/state-utils";
 import { calculateQueryHash } from "../utils/query-hash-utils";
 import { expect } from "chai";
 
-describe("Universal Verifier", function () {
+describe("Universal Verifier V3 validator", function () {
   let verifier: any, v3: any, state: any;
   let signer;
   let signerAddress: string;

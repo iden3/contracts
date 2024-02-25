@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { packValidatorParams } from "../utils/validator-pack-utils";
 import { prepareInputs, publishState } from "../utils/state-utils";
 
-describe("ZKP Verifier", function () {
+describe("Universal Verifier MTP & SIG validators", function () {
   let verifier: any, sig: any, state: any;
   let signer, signer2, signer3, signer4;
   let signerAddress: string, signer2Address: string, signer3Address: string, someAddress: string;

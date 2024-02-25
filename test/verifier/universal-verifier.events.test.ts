@@ -3,7 +3,7 @@ import { DeployHelper } from "../../helpers/DeployHelper";
 import { ethers } from "hardhat";
 import { packValidatorParams } from "../utils/validator-pack-utils";
 
-describe("Universal Verifier", function () {
+describe("Universal Verifier events", function () {
   let verifier: any, sig: any;
   let signer;
   let signerAddress: string;
