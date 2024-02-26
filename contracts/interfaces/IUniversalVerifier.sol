@@ -28,7 +28,7 @@ interface IUniversalVerifier {
         uint256[2][2] memory b,
         uint256[2] memory c,
         address sender
-    ) external returns (ICircuitValidator.KeyInputIndexPair[] memory);
+    ) external returns (ICircuitValidator.KeyToInputIndex[] memory);
 
     function setZKPRequest(uint64 requestId, ZKPRequest calldata request) external;
 

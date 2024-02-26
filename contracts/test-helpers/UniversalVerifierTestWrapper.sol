@@ -19,7 +19,7 @@ contract UniversalVerifierTestWrapper {
         uint256[2] calldata c,
         address sender
     ) external {
-        ICircuitValidator.KeyInputIndexPair[] memory pairs = verifier.verifyZKPResponse(
+        ICircuitValidator.KeyToInputIndex[] memory pairs = verifier.verifyZKPResponse(
             requestId,
             inputs,
             a,

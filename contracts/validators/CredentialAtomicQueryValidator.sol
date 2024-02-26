@@ -117,7 +117,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256[2] calldata c,
         bytes calldata data,
         address sender
-    ) external view virtual returns (ICircuitValidator.KeyInputIndexPair[] memory) {
+    ) external view virtual returns (ICircuitValidator.KeyToInputIndex[] memory) {
         return _verify(inputs, a, b, c, data, sender);
     }
 
@@ -147,7 +147,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256[2] calldata c,
         bytes calldata data,
         address sender
-    ) internal view virtual returns (ICircuitValidator.KeyInputIndexPair[] memory) {
+    ) internal view virtual returns (ICircuitValidator.KeyToInputIndex[] memory) {
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
         IVerifier verifier = _circuitIdToVerifier[credAtomicQuery.circuitIds[0]];
 
@@ -180,7 +180,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
             credAtomicQuery.skipClaimRevocationCheck
         );
 
-        ICircuitValidator.KeyInputIndexPair[] memory pairs = _getSpecialInputPairs(
+        ICircuitValidator.KeyToInputIndex[] memory pairs = _getSpecialInputPairs(
             credAtomicQuery.operator == 16
         );
         return pairs;
@@ -293,5 +293,5 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
 
     function _getSpecialInputPairs(
         bool hasSelectiveDisclosure
-    ) internal pure virtual returns (ICircuitValidator.KeyInputIndexPair[] memory);
+    ) internal pure virtual returns (ICircuitValidator.KeyToInputIndex[] memory);
 }

@@ -2,7 +2,7 @@
 pragma solidity 0.8.16;
 
 interface ICircuitValidator {
-    struct KeyInputIndexPair {
+    struct KeyToInputIndex {
         string key;
         uint256 inputIndex;
     }
@@ -24,7 +24,7 @@ interface ICircuitValidator {
         uint256[2] memory c,
         bytes calldata data,
         address sender
-    ) external view returns (ICircuitValidator.KeyInputIndexPair[] memory);
+    ) external view returns (ICircuitValidator.KeyToInputIndex[] memory);
 
     function getSupportedCircuitIds() external view returns (string[] memory ids);
 

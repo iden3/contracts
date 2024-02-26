@@ -36,7 +36,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         uint256 proofType;
         uint256 verifierID;
         uint256 nullifierSessionID;
-        uint256 authEnabled;
+        uint256 isBJJAuth;
     }
 
     /**
@@ -125,7 +125,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
             proofType: inputs[7],
             verifierID: inputs[15],
             nullifierSessionID: inputs[16],
-            authEnabled: inputs[17]
+            isBJJAuth: inputs[17]
         });
 
         return pubSignals;
@@ -138,7 +138,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         uint256[2] calldata c,
         bytes calldata data,
         address sender
-    ) internal view override returns (ICircuitValidator.KeyInputIndexPair[] memory) {
+    ) internal view override returns (ICircuitValidator.KeyToInputIndex[] memory) {
         CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
             data,
             (CredentialAtomicQueryV3)
@@ -186,7 +186,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         _checkNullify(v3PubSignals.nullifier, credAtomicQuery.nullifierSessionID);
 
         // TODO 1. put challenge checks into the docs
-        if (v3PubSignals.authEnabled == 1) {
+        if (v3PubSignals.isBJJAuth == 1) {
             // Checking challenge to prevent replay attacks from other addresses
             _checkChallenge(signals.challenge, sender);
             _checkGistRoot(signals.gistRoot);
@@ -194,7 +194,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
             _checkAuth(signals.userID, sender);
         }
 
-        ICircuitValidator.KeyInputIndexPair[] memory pairs = _getSpecialInputPairs(
+        ICircuitValidator.KeyToInputIndex[] memory pairs = _getSpecialInputPairs(
             credAtomicQuery.operator == 16
         );
         return pairs;
@@ -244,24 +244,24 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
 
     function _getSpecialInputPairs(
         bool hasSelectiveDisclosure
-    ) internal pure override returns (ICircuitValidator.KeyInputIndexPair[] memory) {
+    ) internal pure override returns (ICircuitValidator.KeyToInputIndex[] memory) {
         uint256 numPairs = hasSelectiveDisclosure ? 7 : 6;
-        ICircuitValidator.KeyInputIndexPair[]
-            memory pairs = new ICircuitValidator.KeyInputIndexPair[](numPairs);
+        ICircuitValidator.KeyToInputIndex[]
+            memory pairs = new ICircuitValidator.KeyToInputIndex[](numPairs);
 
         uint i = 0;
-        pairs[i++] = ICircuitValidator.KeyInputIndexPair({key: "userID", inputIndex: 1});
-        pairs[i++] = ICircuitValidator.KeyInputIndexPair({key: "linkID", inputIndex: 4});
-        pairs[i++] = ICircuitValidator.KeyInputIndexPair({key: "nullifier", inputIndex: 5});
+        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "userID", inputIndex: 1});
+        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "linkID", inputIndex: 4});
+        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "nullifier", inputIndex: 5});
         if (hasSelectiveDisclosure) {
-            pairs[i++] = ICircuitValidator.KeyInputIndexPair({
+            pairs[i++] = ICircuitValidator.KeyToInputIndex({
                 key: "operatorOutput",
                 inputIndex: 6
             });
         }
-        pairs[i++] = ICircuitValidator.KeyInputIndexPair({key: "timestamp", inputIndex: 14});
-        pairs[i++] = ICircuitValidator.KeyInputIndexPair({key: "verifierID", inputIndex: 15});
-        pairs[i++] = ICircuitValidator.KeyInputIndexPair({
+        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "timestamp", inputIndex: 14});
+        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "verifierID", inputIndex: 15});
+        pairs[i++] = ICircuitValidator.KeyToInputIndex({
             key: "nullifierSessionID",
             inputIndex: 16
         });
