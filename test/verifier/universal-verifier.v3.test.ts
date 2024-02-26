@@ -7,8 +7,8 @@ import { expect } from "chai";
 
 describe("Universal Verifier V3 validator", function () {
   let verifier: any, v3: any, state: any;
-  let signer;
-  let signerAddress: string;
+  let signer, signer2;
+  let signerAddress: string, signer2Address: string;
   let deployHelper: DeployHelper;
 
   const value = ["20010101", ...new Array(63).fill("0")];
@@ -47,7 +47,7 @@ describe("Universal Verifier V3 validator", function () {
   const stateTransition1 = require("../validators/common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json");
 
   beforeEach(async () => {
-    [signer] = await ethers.getSigners();
+    [signer, signer2] = await ethers.getSigners();
     signerAddress = await signer.getAddress();
 
     deployHelper = await DeployHelper.initialize(null, true);
@@ -77,14 +77,7 @@ describe("Universal Verifier V3 validator", function () {
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
 
-    // await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
-
-    // Deploy UniversalVerifierTestWrapper
-    const UVTestWrapper = await ethers.getContractFactory("UniversalVerifierTestWrapper");
-    const uvTestWrapper = await UVTestWrapper.deploy(verifier.address);
-    await uvTestWrapper.deployed();
-
-    await uvTestWrapper.verifyZKPResponse(
+    await verifier.verifyZKPResponse(
       0,
       inputs,
       pi_a,
@@ -92,10 +85,10 @@ describe("Universal Verifier V3 validator", function () {
       pi_c,
       "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
     );
-    // TODO figure out how to test positive flow for submitZKPResponse
-    // userID public signal should correspond to UV test wrapper address
-    await expect(uvTestWrapper.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c)).to.be.revertedWith(
-      "UserID does not correspond to the sender"
-    );
+
+    await expect(verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c)).not.to.be.reverted;
+    await expect(
+      verifier.connect(signer2).submitZKPResponse(0, inputs, pi_a, pi_b, pi_c)
+    ).to.be.revertedWith("UserID does not correspond to the sender");
   });
 });
