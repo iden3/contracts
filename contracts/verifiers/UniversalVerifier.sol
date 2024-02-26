@@ -317,17 +317,4 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
     ) public view returns (uint256) {
         return _getMainStorage().proofs[user][requestId].storageFields[key];
     }
-
-    function _extractSenderFromCalldata(
-        uint256 expectedArgLen
-    ) internal view virtual returns (address sender) {
-        if (msg.data.length - expectedArgLen == 20) {
-            /// @solidity memory-safe-assembly
-            assembly {
-                sender := shr(96, calldataload(sub(calldatasize(), 20)))
-            }
-        } else {
-            sender = _msgSender();
-        }
-    }
 }

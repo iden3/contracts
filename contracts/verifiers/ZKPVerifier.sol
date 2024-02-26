@@ -51,41 +51,12 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
 
         _beforeProofSubmit(requestId, inputs, _requests[requestId].validator);
 
-        _callVerifyWithSender(requestId, inputs, a, b, c, msg.sender);
+        IZKPVerifier.ZKPRequest storage request = _requests[requestId];
+        request.validator.verifyV2(inputs, a, b, c, request.data, msg.sender);
 
         proofs[msg.sender][requestId] = true; // user provided a valid proof for request
 
         _afterProofSubmit(requestId, inputs, _requests[requestId].validator);
-    }
-
-    function _callVerifyWithSender(
-        uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
-        address sender
-    ) internal returns (bool) {
-        ZKPRequest memory request = _requests[requestId];
-        bytes4 selector = request.validator.verify.selector;
-        bytes memory data = abi.encodePacked(
-            selector,
-            abi.encode(inputs, a, b, c, request.data),
-            sender
-        );
-        (bool success, bytes memory returnData) = address(request.validator).call(data);
-        if (!success) {
-            if (returnData.length > 0) {
-                // Extract revert reason from returnData
-                assembly {
-                    let returnDataSize := mload(returnData)
-                    revert(add(32, returnData), returnDataSize)
-                }
-            } else {
-                revert("Failed to verify proof without revert reason");
-            }
-        }
-        return success;
     }
 
     function getZKPRequest(

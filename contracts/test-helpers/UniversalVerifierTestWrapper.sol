@@ -43,34 +43,4 @@ contract UniversalVerifierTestWrapper {
     ) external {
         verifier.submitZKPResponse(requestId, inputs, a, b, c);
     }
-
-    function _callVerifyWithSender(
-        uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
-        address sender
-    ) internal returns (bytes memory) {
-        bytes4 selector = verifier.submitZKPResponse.selector;
-        bytes memory data = abi.encodePacked(
-            selector,
-            abi.encode(requestId, inputs, a, b, c),
-            sender
-        );
-        (bool success, bytes memory returnData) = address(verifier).call(data);
-
-        if (!success) {
-            if (returnData.length > 0) {
-                // Extract revert reason from returnData
-                assembly {
-                    let returnDataSize := mload(returnData)
-                    revert(add(32, returnData), returnDataSize)
-                }
-            } else {
-                revert("Failed to verify proof without revert reason");
-            }
-        }
-        return returnData;
-    }
 }
