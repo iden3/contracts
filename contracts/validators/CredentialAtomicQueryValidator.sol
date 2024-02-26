@@ -105,16 +105,6 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c,
-        bytes calldata data
-    ) external view virtual {
-        _verify(inputs, a, b, c, data, msg.sender);
-    }
-
-    function verifyV2(
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
         bytes calldata data,
         address sender
     ) external view virtual returns (ICircuitValidator.KeyToInputIndex[] memory) {

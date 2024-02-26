@@ -252,7 +252,7 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
 
         ICircuitValidator validator = ICircuitValidator(request.validator);
 
-        ICircuitValidator.KeyToInputIndex[] memory pairs = validator.verifyV2(
+        ICircuitValidator.KeyToInputIndex[] memory pairs = validator.verify(
             inputs,
             a,
             b,
@@ -295,7 +295,7 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
         returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
         IUniversalVerifier.ZKPRequest memory request = _getMainStorage().requests[requestId];
-        ICircuitValidator.KeyToInputIndex[] memory pairs = request.validator.verifyV2(
+        ICircuitValidator.KeyToInputIndex[] memory pairs = request.validator.verify(
             inputs,
             a,
             b,

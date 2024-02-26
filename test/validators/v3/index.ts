@@ -331,7 +331,7 @@ describe("Atomic V3 Validator", function () {
       }
       if (test.errorMessage) {
         await expect(
-          v3validator.verifyV2(
+          v3validator.verify(
             inputs,
             pi_a,
             pi_b,
@@ -342,7 +342,7 @@ describe("Atomic V3 Validator", function () {
         ).to.be.revertedWith(test.errorMessage);
       } else if (test.errorMessage === "") {
         await expect(
-          v3validator.verifyV2(
+          v3validator.verify(
             inputs,
             pi_a,
             pi_b,
@@ -352,7 +352,7 @@ describe("Atomic V3 Validator", function () {
           )
         ).to.be.reverted;
       } else {
-        await v3validator.verifyV2(
+        await v3validator.verify(
           inputs,
           pi_a,
           pi_b,

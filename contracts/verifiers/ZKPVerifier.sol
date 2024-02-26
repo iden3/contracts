@@ -52,7 +52,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         _beforeProofSubmit(requestId, inputs, _requests[requestId].validator);
 
         IZKPVerifier.ZKPRequest storage request = _requests[requestId];
-        request.validator.verifyV2(inputs, a, b, c, request.data, msg.sender);
+        request.validator.verify(inputs, a, b, c, request.data, msg.sender);
 
         proofs[msg.sender][requestId] = true; // user provided a valid proof for request
 

@@ -78,8 +78,9 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
     function _getSpecialInputPairs(
         bool hasSelectiveDisclosure
     ) internal pure override returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        ICircuitValidator.KeyToInputIndex[]
-            memory pairs = new ICircuitValidator.KeyToInputIndex[](2);
+        ICircuitValidator.KeyToInputIndex[] memory pairs = new ICircuitValidator.KeyToInputIndex[](
+            2
+        );
         pairs[0] = ICircuitValidator.KeyToInputIndex({key: "userID", inputIndex: 1});
         pairs[1] = ICircuitValidator.KeyToInputIndex({key: "timestamp", inputIndex: 10});
         return pairs;

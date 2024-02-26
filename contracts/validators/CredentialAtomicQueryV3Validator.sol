@@ -246,25 +246,20 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         bool hasSelectiveDisclosure
     ) internal pure override returns (ICircuitValidator.KeyToInputIndex[] memory) {
         uint256 numPairs = hasSelectiveDisclosure ? 7 : 6;
-        ICircuitValidator.KeyToInputIndex[]
-            memory pairs = new ICircuitValidator.KeyToInputIndex[](numPairs);
+        ICircuitValidator.KeyToInputIndex[] memory pairs = new ICircuitValidator.KeyToInputIndex[](
+            numPairs
+        );
 
         uint i = 0;
         pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "userID", inputIndex: 1});
         pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "linkID", inputIndex: 4});
         pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "nullifier", inputIndex: 5});
         if (hasSelectiveDisclosure) {
-            pairs[i++] = ICircuitValidator.KeyToInputIndex({
-                key: "operatorOutput",
-                inputIndex: 6
-            });
+            pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "operatorOutput", inputIndex: 6});
         }
         pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "timestamp", inputIndex: 14});
         pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "verifierID", inputIndex: 15});
-        pairs[i++] = ICircuitValidator.KeyToInputIndex({
-            key: "nullifierSessionID",
-            inputIndex: 16
-        });
+        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "nullifierSessionID", inputIndex: 16});
 
         return pairs;
     }

@@ -92,8 +92,12 @@ function delay(ms: number) {
 
 describe("Atomic Sig Validator", function () {
   let state: any, sig: any;
+  let sender: any;
+  let senderAddress: string;
 
   beforeEach(async () => {
+    [sender] = await ethers.getSigners();
+    senderAddress = await sender.getAddress();
     const deployHelper = await DeployHelper.initialize(null, true);
 
     const contracts = await deployHelper.deployValidatorContracts(
@@ -145,13 +149,13 @@ describe("Atomic Sig Validator", function () {
         await sig.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
       }
       if (test.errorMessage) {
-        await expect(sig.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers))).to.be.revertedWith(
+        await expect(sig.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers), senderAddress)).to.be.revertedWith(
           test.errorMessage
         );
       } else if (test.errorMessage === "") {
-        await expect(sig.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers))).to.be.reverted;
+        await expect(sig.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers), senderAddress)).to.be.reverted;
       } else {
-        await sig.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers));
+        await sig.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers), senderAddress);
       }
     });
   }

@@ -14,14 +14,6 @@ interface ICircuitValidator {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c,
-        bytes calldata data
-    ) external view;
-
-    function verifyV2(
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
         bytes calldata data,
         address sender
     ) external view returns (ICircuitValidator.KeyToInputIndex[] memory);
