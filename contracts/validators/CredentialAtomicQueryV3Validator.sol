@@ -169,14 +169,14 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         _checkProofType(credAtomicQuery.proofType, v3PubSignals.proofType);
         _checkNullify(v3PubSignals.nullifier, credAtomicQuery.nullifierSessionID);
 
-        // TODO 1. put challenge checks into the docs
         if (v3PubSignals.isBJJAuth == 1) {
-            // Checking challenge to prevent replay attacks from other addresses
-            _checkChallenge(signals.challenge, sender);
             _checkGistRoot(signals.gistRoot);
         } else {
             _checkAuth(signals.userID, sender);
         }
+
+        // Checking challenge to prevent replay attacks from other addresses
+        _checkChallenge(signals.challenge, sender);
 
         ICircuitValidator.KeyToInputIndex[] memory pairs = _getSpecialInputPairs(
             credAtomicQuery.operator == 16

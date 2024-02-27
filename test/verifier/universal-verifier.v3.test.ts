@@ -90,5 +90,7 @@ describe("Universal Verifier V3 validator", function () {
     await expect(
       verifier.connect(signer2).submitZKPResponse(0, inputs, pi_a, pi_b, pi_c)
     ).to.be.revertedWith("UserID does not correspond to the sender");
+
+    // TODO make some test with correct UserID but with wrong challenge
   });
 });
