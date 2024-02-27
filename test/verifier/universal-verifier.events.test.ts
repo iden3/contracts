@@ -24,7 +24,8 @@ describe("Universal Verifier events", function () {
         "1496222740463292783938163206931059379817846775593932664024082849882751356658"
       ),
       circuitIds: ["credentialAtomicQuerySigV2OnChain"],
-      claimPathNotExists: 0,
+      skipClaimRevocationCheck: false,
+      claimPathNotExists: ethers.BigNumber.from(0),
     },
     {
       schema: ethers.BigNumber.from("222"),
@@ -41,7 +42,8 @@ describe("Universal Verifier events", function () {
         "1496222740463292783938163206931059379817846775593932664024082849882751356658"
       ),
       circuitIds: ["credentialAtomicQuerySigV2OnChain"],
-      claimPathNotExists: 0,
+      skipClaimRevocationCheck: true,
+      claimPathNotExists: ethers.BigNumber.from(0),
     },
     {
       schema: ethers.BigNumber.from("333"),
@@ -58,7 +60,8 @@ describe("Universal Verifier events", function () {
         "1496222740463292783938163206931059379817846775593932664024082849882751356658"
       ),
       circuitIds: ["credentialAtomicQuerySigV2OnChain"],
-      claimPathNotExists: 0,
+      skipClaimRevocationCheck: false,
+      claimPathNotExists: ethers.BigNumber.from(0),
     },
   ];
 
@@ -96,32 +99,45 @@ describe("Universal Verifier events", function () {
       });
     }
 
+    const abi = [
+      {
+        components: [
+          { name: "schema", type: "uint256" },
+          { name: "claimPathKey", type: "uint256" },
+          { name: "operator", type: "uint256" },
+          { name: "slotIndex", type: "uint256" },
+          { name: "value", type: "uint256[]" },
+          { name: "queryHash", type: "uint256" },
+          { name: "allowedIssuers", type: "uint256[]" },
+          { name: "circuitIds", type: "string[]" },
+          { name: "skipClaimRevocationCheck", type: "bool" },
+          { name: "claimPathNotExists", type: "uint256" },
+        ],
+        name: "",
+        type: "tuple",
+      },
+    ];
+
     const filter = verifier.filters.ZKPRequestSet(null, null);
     const logs = await verifier.queryFilter(filter, 0, "latest");
-    logs.map((log, index) => {
-      const abi = [
-        {
-          components: [
-            { name: "schema", type: "uint256" },
-            { name: "claimPathKey", type: "uint256" },
-            { name: "operator", type: "uint256" },
-            { name: "slotIndex", type: "uint256" },
-            { name: "value", type: "uint256[]" },
-            { name: "queryHash", type: "uint256" },
-            { name: "circuitIds", type: "string[]" },
-            { name: "claimPathNotExists", type: "uint256" },
-            { name: "groupID", type: "uint256" },
-            { name: "nullifierSessionID", type: "uint256" },
-            { name: "proofType", type: "uint256" },
-            { name: "verifierID", type: "uint256" },
-          ],
-          name: "",
-          type: "tuple",
-        },
-      ];
 
-      const decodedData = ethers.utils.defaultAbiCoder.decode(abi, log.args.data);
-      expect(decodedData[0][0]).to.equal(queries[index].schema);
+    logs.map((log, index) => {
+      const [decodedData] = ethers.utils.defaultAbiCoder.decode(abi, log.args.data);
+      expect(decodedData.schema).to.equal(queries[index].schema);
+      expect(decodedData.claimPathKey).to.equal(queries[index].claimPathKey);
+      expect(decodedData.operator).to.equal(queries[index].operator);
+      expect(decodedData.slotIndex).to.equal(queries[index].slotIndex);
+      decodedData.value.forEach((v, i) => {
+        expect(v).to.equal(queries[index].value[i]);
+      });
+      expect(decodedData.queryHash).to.equal(queries[index].queryHash);
+      decodedData.circuitIds.forEach((circuitId, i) => {
+        expect(circuitId).to.equal(queries[index].circuitIds[i]);
+      });
+      expect(decodedData.skipClaimRevocationCheck).to.equal(
+        queries[index].skipClaimRevocationCheck
+      );
+      expect(decodedData.claimPathNotExists).to.equal(queries[index].claimPathNotExists);
     });
   });
 });
