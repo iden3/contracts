@@ -86,16 +86,32 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         _getMainStorage().revocationStateExpirationTimeout = expirationTimeout;
     }
 
+    function getRevocationStateExpirationTimeout() public view virtual returns (uint256) {
+        return _getMainStorage().revocationStateExpirationTimeout;
+    }
+
     function setProofExpirationTimeout(uint256 expirationTimeout) public virtual onlyOwner {
         _getMainStorage().proofExpirationTimeout = expirationTimeout;
+    }
+
+    function getProofExpirationTimeout() public view virtual returns (uint256) {
+        return _getMainStorage().proofExpirationTimeout;
     }
 
     function setGISTRootExpirationTimeout(uint256 expirationTimeout) public virtual onlyOwner {
         _getMainStorage().gistRootExpirationTimeout = expirationTimeout;
     }
 
+    function getGISTRootExpirationTimeout() public view virtual returns (uint256) {
+        return _getMainStorage().gistRootExpirationTimeout;
+    }
+
     function setStateAddress(address stateContractAddr) public virtual onlyOwner {
         _getMainStorage().state = IState(stateContractAddr);
+    }
+
+    function getStateAddress() public view virtual returns (address) {
+        return address(_getMainStorage().state);
     }
 
     function verify(
