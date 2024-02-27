@@ -42,13 +42,10 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
     struct MainStorage {
         mapping(string => IVerifier) _circuitIdToVerifier;
         string[] _supportedCircuitIds;
-
         IState state;
-
         uint256 revocationStateExpirationTimeout;
         uint256 proofExpirationTimeout;
         uint256 gistRootExpirationTimeout;
-
         mapping(string => uint256) _inputNameToIndex;
     }
 
@@ -192,7 +189,10 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         bool isStateGenesis = GenesisUtils.isGenesisState(_id, _state);
 
         if (!isStateGenesis) {
-            IState.StateInfo memory stateInfo = _getMainStorage().state.getStateInfoByIdAndState(_id, _state);
+            IState.StateInfo memory stateInfo = _getMainStorage().state.getStateInfoByIdAndState(
+                _id,
+                _state
+            );
             require(_id == stateInfo.id, "State doesn't exist in state contract");
         }
     }
@@ -214,10 +214,9 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
             // The non-empty state is returned, and it's not equal to the state that the user has provided.
             if (claimNonRevStateInfo.state != _claimNonRevState) {
                 // Get the time of the latest state and compare it to the transition time of state provided by the user.
-                IState.StateInfo memory claimNonRevLatestStateInfo = s.state.getStateInfoByIdAndState(
-                    _id,
-                    _claimNonRevState
-                );
+                IState.StateInfo memory claimNonRevLatestStateInfo = s
+                    .state
+                    .getStateInfoByIdAndState(_id, _claimNonRevState);
 
                 if (claimNonRevLatestStateInfo.id == 0 || claimNonRevLatestStateInfo.id != _id) {
                     revert("State in transition info contains invalid id");
@@ -241,7 +240,9 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         if (_proofGenerationTimestamp > block.timestamp) {
             revert("Proof generated in the future is not valid");
         }
-        if (block.timestamp - _proofGenerationTimestamp > _getMainStorage().proofExpirationTimeout) {
+        if (
+            block.timestamp - _proofGenerationTimestamp > _getMainStorage().proofExpirationTimeout
+        ) {
             revert("Generated proof is outdated");
         }
     }

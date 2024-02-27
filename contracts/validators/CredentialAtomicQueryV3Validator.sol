@@ -221,7 +221,11 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
 
     function _checkAuth(uint256 userID, address ethIdentityOwner) internal view {
         require(
-            userID == GenesisUtils.calcIdFromEthAddress(_getMainStorage().state.getDefaultIdType(), ethIdentityOwner),
+            userID ==
+                GenesisUtils.calcIdFromEthAddress(
+                    _getMainStorage().state.getDefaultIdType(),
+                    ethIdentityOwner
+                ),
             "UserID does not correspond to the sender"
         );
     }
