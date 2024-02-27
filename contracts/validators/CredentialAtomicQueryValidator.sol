@@ -49,7 +49,8 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         mapping(string => uint256) _inputNameToIndex;
     }
 
-    // keccak256(abi.encode(uint256(keccak256("iden3.storage.CredentialAtomicQueryValidator")) - 1)) & ~bytes32(uint256(0xff));
+    // keccak256(abi.encode(uint256(keccak256("iden3.storage.CredentialAtomicQueryValidator")) - 1))
+    //  & ~bytes32(uint256(0xff));
     bytes32 private constant CRED_ATOMIC_QUERY_VERIFIER_STORAGE_LOCATION =
         0x28c92975a30f1f2f7970a65953987652034d896ba2d3b7a4961ada9e18287500;
 
