@@ -36,7 +36,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         uint256 proofType;
         uint256 verifierID;
         uint256 nullifierSessionID;
-        uint256 isBJJAuth;
+        uint256 isBJJAuthEnabled;
     }
 
     /**
@@ -109,7 +109,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
             proofType: inputs[7],
             verifierID: inputs[15],
             nullifierSessionID: inputs[16],
-            isBJJAuth: inputs[17]
+            isBJJAuthEnabled: inputs[17]
         });
 
         return pubSignals;
@@ -169,7 +169,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         _checkProofType(credAtomicQuery.proofType, v3PubSignals.proofType);
         _checkNullify(v3PubSignals.nullifier, credAtomicQuery.nullifierSessionID);
 
-        if (v3PubSignals.isBJJAuth == 1) {
+        if (v3PubSignals.isBJJAuthEnabled == 1) {
             _checkGistRoot(signals.gistRoot);
         } else {
             _checkAuth(signals.userID, sender);
