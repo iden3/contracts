@@ -42,27 +42,9 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.0.1-beta.0";
+    string public constant VERSION = "2.0.0";
 
     string internal constant CIRCUIT_ID = "credentialAtomicQueryV3OnChain-beta.0";
-
-    // This empty reserved space is put in place to allow future versions
-    // of the CredentialAtomicQueryV3Validator contract to inherit from other contracts without a risk of
-    // breaking the storage layout. This is necessary because the parent contracts in the
-    // future may introduce some storage variables, which are placed before the CredentialAtomicQueryV3Validator
-    // contract's storage variables.
-    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-    // slither-disable-next-line shadowing-state
-    // slither-disable-next-line unused-state
-    uint256[500] private __gap_before;
-
-    // PUT NEW STATE VARIABLES HERE
-
-    // This empty reserved space is put in place to allow future versions
-    // of this contract to add new variables without shifting down
-    // storage of child contracts that use this contract as a base
-    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-    uint256[50] __gap_after;
 
     function initialize(
         address _verifierContractAddr,
@@ -86,8 +68,10 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         _setInputToIndex("verifierID", 15);
         _setInputToIndex("nullifierSessionID", 16);
         _setInputToIndex("authEnabled", 17);
-        _supportedCircuitIds = [CIRCUIT_ID];
-        _circuitIdToVerifier[CIRCUIT_ID] = IVerifier(_verifierContractAddr);
+
+        MainStorage storage s = _getMainStorage();
+        s._supportedCircuitIds = [CIRCUIT_ID];
+        s._circuitIdToVerifier[CIRCUIT_ID] = IVerifier(_verifierContractAddr);
         super.initialize(_verifierContractAddr, _stateContractAddr);
     }
 
@@ -144,7 +128,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
             (CredentialAtomicQueryV3)
         );
 
-        IVerifier verifier = _circuitIdToVerifier[credAtomicQuery.circuitIds[0]];
+        IVerifier verifier = _getMainStorage()._circuitIdToVerifier[credAtomicQuery.circuitIds[0]];
 
         require(
             credAtomicQuery.circuitIds.length == 1 && verifier != IVerifier(address(0)),
@@ -237,7 +221,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
 
     function _checkAuth(uint256 userID, address ethIdentityOwner) internal view {
         require(
-            userID == GenesisUtils.calcIdFromEthAddress(state.getDefaultIdType(), ethIdentityOwner),
+            userID == GenesisUtils.calcIdFromEthAddress(_getMainStorage().state.getDefaultIdType(), ethIdentityOwner),
             "UserID does not correspond to the sender"
         );
     }
