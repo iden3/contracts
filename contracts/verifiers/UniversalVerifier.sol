@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.16;
+pragma solidity 0.8.20;
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
@@ -96,7 +96,7 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
 
     /// @notice Initializes the contract
     function initialize() public initializer {
-        __Ownable_init();
+        __Ownable_init(_msgSender());
     }
 
     /// @notice Adds a new whitelisted validator
