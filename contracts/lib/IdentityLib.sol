@@ -58,6 +58,16 @@ library IdentityLib {
     }
 
     /**
+     * @dev state info
+     */
+    struct StateInfo {
+        uint256 state;
+        uint256 claimsRoot;
+        uint256 revocationsRoot;
+        uint256 rootsRoot;
+    }
+
+    /**
      * @dev Initialization of the library state variables
      * @param _stateContractAddr - address of the State contract
      * @param _identityAddr - address of the Identity contract, which calls this function
@@ -205,6 +215,30 @@ library IdentityLib {
     }
 
     /**
+     * @dev Retrieve Claim inclusion or non-inclusion proof for a given claim index with state info.
+     * Note that proof is taken for the latest published claims tree root.
+     * @param claimIndexHash - hash of Claim Index
+     * @return The ClaimsTree inclusion or non-inclusion proof for the claim and state info
+     */
+    function getClaimProofWithStateInfo(
+        Data storage self,
+        uint256 claimIndexHash
+    ) external view returns (SmtLib.Proof memory, StateInfo memory) {
+        return (
+            self.trees.claimsTree.getProofByRoot(
+                claimIndexHash,
+                self.latestPublishedTreeRoots.claimsRoot
+            ),
+            StateInfo({
+                state: self.latestPublishedState,
+                claimsRoot: self.latestPublishedTreeRoots.claimsRoot,
+                revocationsRoot: self.latestPublishedTreeRoots.revocationsRoot,
+                rootsRoot: self.latestPublishedTreeRoots.rootsRoot
+            })
+        );
+    }
+
+    /**
      * @dev Retrieve Claim inclusion or non-inclusion proof for a given claim index by target root.
      * @param claimIndexHash - hash of Claim Index
      * @param root - root of the tree
@@ -244,6 +278,30 @@ library IdentityLib {
     }
 
     /**
+     * @dev Retrieve inclusion or non-inclusion proof for a given revocation nonce with state info.
+     Note that proof is taken for the latest published revocation tree root.
+     * @param revocationNonce - revocation nonce
+     * @return The RevocationsTree inclusion or non-inclusion proof for the claim and state info.
+     */
+    function getRevocationProofWithStateInfo(
+        Data storage self,
+        uint64 revocationNonce
+    ) external view returns (SmtLib.Proof memory, StateInfo memory) {
+        return (
+            self.trees.revocationsTree.getProofByRoot(
+                uint256(revocationNonce),
+                self.latestPublishedTreeRoots.revocationsRoot
+            ),
+            StateInfo({
+                state: self.latestPublishedState,
+                claimsRoot: self.latestPublishedTreeRoots.claimsRoot,
+                revocationsRoot: self.latestPublishedTreeRoots.revocationsRoot,
+                rootsRoot: self.latestPublishedTreeRoots.rootsRoot
+            })
+        );
+    }
+
+    /**
      * @dev Retrieve inclusion or non-inclusion proof for a given revocation nonce by target root.
      * @param revocationNonce - revocation nonce
      * @param root - root of the tree
@@ -266,20 +324,44 @@ library IdentityLib {
     }
 
     /**
-     * @dev Retrieve inclusion or non-inclusion proof for a given claimsTreeRoot.
+     * @dev Retrieve inclusion or non-inclusion proof for a given rootsTreeRoot.
      Note that proof is taken for the latest published roots tree root.
-     * @param claimsTreeRoot - claims tree root
-     * @return The RootsTree inclusion or non-inclusion proof for the claim tree root
+     * @param rootsTreeRoot - roots tree root
+     * @return The RootsTree inclusion or non-inclusion proof for the roots tree root
      */
     function getRootProof(
         Data storage self,
-        uint256 claimsTreeRoot
+        uint256 rootsTreeRoot
     ) external view returns (SmtLib.Proof memory) {
         return
             self.trees.rootsTree.getProofByRoot(
-                claimsTreeRoot,
+                rootsTreeRoot,
                 self.latestPublishedTreeRoots.rootsRoot
             );
+    }
+
+    /**
+     * @dev Retrieve inclusion or non-inclusion proof for a given rootsTreeRoot and state info.
+     Note that proof is taken for the latest published roots tree root.
+     * @param rootsTreeRoot - roots tree root
+     * @return The RootsTree inclusion or non-inclusion proof for the roots tree root and state info.
+     */
+    function getRootProofWithStateInfo(
+        Data storage self,
+        uint256 rootsTreeRoot
+    ) external view returns (SmtLib.Proof memory, StateInfo memory) {
+        return (
+            self.trees.rootsTree.getProofByRoot(
+                rootsTreeRoot,
+                self.latestPublishedTreeRoots.rootsRoot
+            ),
+            StateInfo({
+                state: self.latestPublishedState,
+                claimsRoot: self.latestPublishedTreeRoots.claimsRoot,
+                revocationsRoot: self.latestPublishedTreeRoots.revocationsRoot,
+                rootsRoot: self.latestPublishedTreeRoots.rootsRoot
+            })
+        );
     }
 
     /**
