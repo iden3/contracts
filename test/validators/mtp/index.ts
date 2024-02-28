@@ -92,8 +92,12 @@ function delay(ms: number) {
 
 describe("Atomic MTP Validator", function () {
   let state: any, mtpValidator: any;
+  let sender: any;
+  let senderAddress: string;
 
   beforeEach(async () => {
+    [sender] = await ethers.getSigners();
+    senderAddress = sender.address;
     const deployHelper = await DeployHelper.initialize(null, true);
 
     const contracts = await deployHelper.deployValidatorContracts(
@@ -145,13 +149,13 @@ describe("Atomic MTP Validator", function () {
         await mtpValidator.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
       }
       if (test.errorMessage) {
-        await expect(mtpValidator.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers))).to.be.revertedWith(
+        await expect(mtpValidator.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers), senderAddress)).to.be.revertedWith(
           test.errorMessage
         );
       } else if (test.errorMessage === "") {
-        await expect(mtpValidator.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers))).to.be.reverted;
+        await expect(mtpValidator.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers), senderAddress)).to.be.reverted;
       } else {
-        await mtpValidator.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers));
+        await mtpValidator.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers), senderAddress);
       }
     });
   }

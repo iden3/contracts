@@ -5,6 +5,7 @@ import {CredentialAtomicQueryValidator} from "./CredentialAtomicQueryValidator.s
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
+import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 
 /**
  * @dev CredentialAtomicQueryV3 validator
@@ -28,40 +29,22 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         uint256 verifierID;
     }
 
-    struct V3PugSignals {
+    struct V3PubSignals {
         uint256 linkID;
         uint256 nullifier;
         uint256 operatorOutput;
         uint256 proofType;
         uint256 verifierID;
         uint256 nullifierSessionID;
-        uint256 authEnabled;
+        uint256 isBJJAuthEnabled;
     }
 
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.0.1-beta.0";
+    string public constant VERSION = "2.0.0-beta.0";
 
     string internal constant CIRCUIT_ID = "credentialAtomicQueryV3OnChain-beta.0";
-
-    // This empty reserved space is put in place to allow future versions
-    // of the CredentialAtomicQueryV3Validator contract to inherit from other contracts without a risk of
-    // breaking the storage layout. This is necessary because the parent contracts in the
-    // future may introduce some storage variables, which are placed before the CredentialAtomicQueryV3Validator
-    // contract's storage variables.
-    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-    // slither-disable-next-line shadowing-state
-    // slither-disable-next-line unused-state
-    uint256[500] private __gap_before;
-
-    // PUT NEW STATE VARIABLES HERE
-
-    // This empty reserved space is put in place to allow future versions
-    // of this contract to add new variables without shifting down
-    // storage of child contracts that use this contract as a base
-    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-    uint256[50] __gap_after;
 
     function initialize(
         address _verifierContractAddr,
@@ -85,23 +68,67 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         _setInputToIndex("verifierID", 15);
         _setInputToIndex("nullifierSessionID", 16);
         _setInputToIndex("authEnabled", 17);
-        _supportedCircuitIds = [CIRCUIT_ID];
-        _circuitIdToVerifier[CIRCUIT_ID] = IVerifier(_verifierContractAddr);
+
+        MainStorage storage s = _getMainStorage();
+        s._supportedCircuitIds = [CIRCUIT_ID];
+        s._circuitIdToVerifier[CIRCUIT_ID] = IVerifier(_verifierContractAddr);
         super.initialize(_verifierContractAddr, _stateContractAddr);
     }
 
-    function verify(
+    function version() public pure override returns (string memory) {
+        return VERSION;
+    }
+
+    function parseCommonPubSignals(
+        uint256[] calldata inputs
+    ) public pure override returns (CommonPubSignals memory) {
+        CommonPubSignals memory pubSignals = CommonPubSignals({
+            merklized: inputs[0],
+            userID: inputs[1],
+            circuitQueryHash: inputs[2],
+            requestID: inputs[8],
+            challenge: inputs[9],
+            gistRoot: inputs[10],
+            issuerID: inputs[11],
+            issuerState: inputs[3],
+            isRevocationChecked: inputs[12],
+            issuerClaimNonRevState: inputs[13],
+            timestamp: inputs[14]
+        });
+
+        return pubSignals;
+    }
+
+    function parseV3SpecificPubSignals(
+        uint256[] calldata inputs
+    ) internal pure returns (V3PubSignals memory) {
+        V3PubSignals memory pubSignals = V3PubSignals({
+            linkID: inputs[4],
+            nullifier: inputs[5],
+            operatorOutput: inputs[6],
+            proofType: inputs[7],
+            verifierID: inputs[15],
+            nullifierSessionID: inputs[16],
+            isBJJAuthEnabled: inputs[17]
+        });
+
+        return pubSignals;
+    }
+
+    function _verify(
         uint256[] calldata inputs,
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c,
-        bytes calldata data
-    ) external view virtual {
+        bytes calldata data,
+        address sender
+    ) internal view override returns (ICircuitValidator.KeyToInputIndex[] memory) {
         CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
             data,
             (CredentialAtomicQueryV3)
         );
-        IVerifier verifier = _circuitIdToVerifier[credAtomicQuery.circuitIds[0]];
+
+        IVerifier verifier = _getMainStorage()._circuitIdToVerifier[credAtomicQuery.circuitIds[0]];
 
         require(
             credAtomicQuery.circuitIds.length == 1 && verifier != IVerifier(address(0)),
@@ -132,7 +159,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
             credAtomicQuery.skipClaimRevocationCheck
         );
 
-        V3PugSignals memory v3PubSignals = parseV3SpecificPubSignals(inputs);
+        V3PubSignals memory v3PubSignals = parseV3SpecificPubSignals(inputs);
         _checkVerifierID(credAtomicQuery.verifierID, v3PubSignals.verifierID);
         _checkNullifierSessionID(
             credAtomicQuery.nullifierSessionID,
@@ -141,11 +168,20 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         _checkLinkID(credAtomicQuery.groupID, v3PubSignals.linkID);
         _checkProofType(credAtomicQuery.proofType, v3PubSignals.proofType);
         _checkNullify(v3PubSignals.nullifier, credAtomicQuery.nullifierSessionID);
-        if (v3PubSignals.authEnabled == 1) {
+
+        if (v3PubSignals.isBJJAuthEnabled == 1) {
             _checkGistRoot(signals.gistRoot);
         } else {
-            _checkAuth(signals.userID, _extractSenderFromCalldata());
+            _checkAuth(signals.userID, sender);
         }
+
+        // Checking challenge to prevent replay attacks from other addresses
+        _checkChallenge(signals.challenge, sender);
+
+        ICircuitValidator.KeyToInputIndex[] memory pairs = _getSpecialInputPairs(
+            credAtomicQuery.operator == 16
+        );
+        return pairs;
     }
 
     function _checkVerifierID(uint256 queryVerifierID, uint256 pubSignalVerifierID) internal pure {
@@ -185,44 +221,41 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
 
     function _checkAuth(uint256 userID, address ethIdentityOwner) internal view {
         require(
-            userID == GenesisUtils.calcIdFromEthAddress(state.getDefaultIdType(), ethIdentityOwner),
+            userID ==
+                GenesisUtils.calcIdFromEthAddress(
+                    _getMainStorage().state.getDefaultIdType(),
+                    ethIdentityOwner
+                ),
             "UserID does not correspond to the sender"
         );
     }
 
-    function parseCommonPubSignals(
-        uint256[] calldata inputs
-    ) public pure override returns (CommonPubSignals memory) {
-        CommonPubSignals memory pubSignals = CommonPubSignals({
-            merklized: inputs[0],
-            userID: inputs[1],
-            circuitQueryHash: inputs[2],
-            requestID: inputs[8],
-            challenge: inputs[9],
-            gistRoot: inputs[10],
-            issuerID: inputs[11],
-            issuerState: inputs[3],
-            isRevocationChecked: inputs[12],
-            issuerClaimNonRevState: inputs[13],
-            timestamp: inputs[14]
-        });
+    function _getSpecialInputPairs(
+        bool hasSelectiveDisclosure
+    ) internal pure override returns (ICircuitValidator.KeyToInputIndex[] memory) {
+        uint256 numPairs = hasSelectiveDisclosure ? 7 : 6;
+        ICircuitValidator.KeyToInputIndex[] memory pairs = new ICircuitValidator.KeyToInputIndex[](
+            numPairs
+        );
 
-        return pubSignals;
+        uint i = 0;
+        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "userID", inputIndex: 1});
+        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "linkID", inputIndex: 4});
+        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "nullifier", inputIndex: 5});
+        if (hasSelectiveDisclosure) {
+            pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "operatorOutput", inputIndex: 6});
+        }
+        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "timestamp", inputIndex: 14});
+        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "verifierID", inputIndex: 15});
+        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "nullifierSessionID", inputIndex: 16});
+
+        return pairs;
     }
 
-    function parseV3SpecificPubSignals(
-        uint256[] calldata inputs
-    ) internal pure returns (V3PugSignals memory) {
-        V3PugSignals memory pubSignals = V3PugSignals({
-            linkID: inputs[4],
-            nullifier: inputs[5],
-            operatorOutput: inputs[6],
-            proofType: inputs[7],
-            verifierID: inputs[15],
-            nullifierSessionID: inputs[16],
-            authEnabled: inputs[17]
-        });
-
-        return pubSignals;
+    function _checkChallenge(uint256 challenge, address sender) internal view {
+        require(
+            PrimitiveTypeUtils.int256ToAddress(challenge) == sender,
+            "Challenge should match the sender"
+        );
     }
 }
