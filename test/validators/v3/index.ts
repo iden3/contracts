@@ -102,7 +102,7 @@ const testCases: any[] = [
     sender: "0x3930000000000000000000000000000000000000",
   },
   {
-    name: "Valid BJJ genesis proof with AuthEnabled=0 (UserID correspond to the sender)",
+    name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (UserID correspond to the sender)",
     stateTransitions: [
       require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
     ],
@@ -209,7 +209,7 @@ const testCases: any[] = [
     sender: "0x3930000000000000000000000000000000000000",
   },
   {
-    name: "Valid MTP genesis proof with AuthEnabled=0 (UserID correspond to the sender)",
+    name: "Valid MTP genesis proof with isBJJAuthEnabled=0 (UserID correspond to the sender)",
     stateTransitions: [
       require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
     ],
@@ -219,9 +219,9 @@ const testCases: any[] = [
     isMtpProof: true,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
-  // Auth Disabled invalid challenge
+  // Auth Disabled. UserID does NOT correspond to the sender
   {
-    name: "Valid BJJ genesis proof with AuthEnabled=0 (UserID does not correspond to the sender)",
+    name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (UserID does NOT correspond to the sender)",
     stateTransitions: [
       require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3_wrong_id.json"),
     ],
@@ -232,7 +232,7 @@ const testCases: any[] = [
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
-    name: "Valid MTP genesis proof with AuthEnabled=0 (UserID does not correspond to the sender)",
+    name: "Valid MTP genesis proof with isBJJAuthEnabled=0 (UserID does NOT correspond to the sender)",
     stateTransitions: [
       require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3_wrong_id.json"),
     ],
@@ -252,6 +252,17 @@ const testCases: any[] = [
     proofJson: require("./data/valid_bjj_user_first_issuer_genesis_v3.json"),
     setProofExpiration: tenYears,
     sender: "0x3930000000000000000000000000000000000000",
+  },
+  // Wrong challenge
+  {
+    name: "Validate First User State, Issuer Genesis. BJJ Proof (Challenge should match the sender)",
+    stateTransitions: [
+      require("../common-data/user_from_genesis_state_to_first_transition_v3.json"),
+    ],
+    proofJson: require("./data/valid_bjj_user_first_issuer_genesis_v3.json"),
+    errorMessage: "Challenge should match the sender",
+    setProofExpiration: tenYears,
+    sender: "0x0000000000000000000000000000000000000000",
   },
 ];
 
