@@ -14,28 +14,24 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
      */
     uint256 public constant REQUESTS_RETURN_LIMIT = 1000;
 
-    // This empty reserved space is put in place to allow future versions
-    // of the ZKPVerifier contract to inherit from other contracts without a risk of
-    // breaking the storage layout. This is necessary because the parent contracts in the
-    // future may introduce some storage variables, which are placed before the ZKPVerifier
-    // contract's storage variables.
-    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-    // slither-disable-next-line shadowing-state
-    // slither-disable-next-line unused-state
-    uint256[500] private __gap_before;
+    /// @dev Main storage structure for the contract
+    struct MainStorage {
+        // msg.sender-> ( requestID -> is proof given )
+        mapping(address => mapping(uint64 => bool)) proofs;
+        mapping(uint64 => IZKPVerifier.ZKPRequest) _requests;
+        uint64[] _requestIds;
+    }
 
-    // msg.sender-> ( requestID -> is proof given )
-    mapping(address => mapping(uint64 => bool)) public proofs;
+    // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifier")) - 1)) & ~bytes32(uint256(0xff));
+    bytes32 internal constant ZKP_VERIFIER_VERIFIER_STORAGE_LOCATION =
+        0x512d18c55869273fec77e70d8a8586e3fb133e90f1db24c6bcf4ff3506ef6a00;
 
-    mapping(uint64 => IZKPVerifier.ZKPRequest) internal _requests;
-
-    uint64[] internal _requestIds;
-
-    // This empty reserved space is put in place to allow future versions
-    // of this contract to add new variables without shifting down
-    // storage of child contracts that use this contract as a base
-    // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-    uint256[47] __gap_after;
+    /// @dev Get the main storage using assembly to ensure specific storage location
+    function _getMainStorage() internal pure returns (MainStorage storage $) {
+        assembly {
+            $.slot := ZKP_VERIFIER_VERIFIER_STORAGE_LOCATION
+        }
+    }
 
     constructor() Ownable(msg.sender) {}
 
@@ -46,72 +42,44 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256[2][2] calldata b,
         uint256[2] calldata c
     ) public override {
+        MainStorage storage s = _getMainStorage();
+        IZKPVerifier.ZKPRequest storage request = s._requests[requestId];
+
         require(
-            _requests[requestId].validator != ICircuitValidator(address(0)),
+            request.validator != ICircuitValidator(address(0)),
             "validator is not set for this request id"
         ); // validator exists
 
-        _beforeProofSubmit(requestId, inputs, _requests[requestId].validator);
-
-        _callVerifyWithSender(requestId, inputs, a, b, c, msg.sender);
-
-        proofs[msg.sender][requestId] = true; // user provided a valid proof for request
-
-        _afterProofSubmit(requestId, inputs, _requests[requestId].validator);
-    }
-
-    function _callVerifyWithSender(
-        uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
-        address sender
-    ) internal returns (bool) {
-        ZKPRequest memory request = _requests[requestId];
-        bytes4 selector = request.validator.verify.selector;
-        bytes memory data = abi.encodePacked(
-            selector,
-            abi.encode(inputs, a, b, c, request.data),
-            sender
-        );
-        (bool success, bytes memory returnData) = address(request.validator).call(data);
-        if (!success) {
-            if (returnData.length > 0) {
-                // Extract revert reason from returnData
-                assembly {
-                    let returnDataSize := mload(returnData)
-                    revert(add(32, returnData), returnDataSize)
-                }
-            } else {
-                revert("Failed to verify proof without revert reason");
-            }
-        }
-        return success;
+        _beforeProofSubmit(requestId, inputs, request.validator);
+        request.validator.verify(inputs, a, b, c, request.data, msg.sender);
+        s.proofs[msg.sender][requestId] = true; // user provided a valid proof for request
+        _afterProofSubmit(requestId, inputs, request.validator);
     }
 
     function getZKPRequest(
         uint64 requestId
     ) public view override returns (IZKPVerifier.ZKPRequest memory) {
         require(requestIdExists(requestId), "request id doesn't exist");
-        return _requests[requestId];
+        return _getMainStorage()._requests[requestId];
     }
 
     function setZKPRequest(
         uint64 requestId,
         ZKPRequest calldata request
     ) public override onlyOwner {
-        _requests[requestId] = request;
-        _requestIds.push(requestId);
+        MainStorage storage s = _getMainStorage();
+        s._requests[requestId] = request;
+        s._requestIds.push(requestId);
     }
 
     function getZKPRequestsCount() public view returns (uint256) {
-        return _requestIds.length;
+        return _getMainStorage()._requestIds.length;
     }
 
     function requestIdExists(uint64 requestId) public view override returns (bool) {
-        for (uint i = 0; i < _requestIds.length; i++) {
-            if (_requestIds[i] == requestId) {
+        MainStorage storage s = _getMainStorage();
+        for (uint i = 0; i < s._requestIds.length; i++) {
+            if (s._requestIds[i] == requestId) {
                 return true;
             }
         }
@@ -123,8 +91,9 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         uint256 startIndex,
         uint256 length
     ) public view returns (IZKPVerifier.ZKPRequest[] memory) {
+        MainStorage storage s = _getMainStorage();
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
-            _requestIds.length,
+            s._requestIds.length,
             startIndex,
             length,
             REQUESTS_RETURN_LIMIT
@@ -133,7 +102,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         IZKPVerifier.ZKPRequest[] memory result = new IZKPVerifier.ZKPRequest[](end - start);
 
         for (uint256 i = start; i < end; i++) {
-            result[i - start] = _requests[_requestIds[i]];
+            result[i - start] = s._requests[s._requestIds[i]];
         }
 
         return result;
