@@ -33,7 +33,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         }
     }
 
-    constructor() Ownable(msg.sender) {}
+    constructor() Ownable(_msgSender()) {}
 
     function submitZKPResponse(
         uint64 requestId,
