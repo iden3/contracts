@@ -38,7 +38,7 @@ contract IdentityExample is IdentityBase, OwnableUpgradeable {
      * @param claim - claim data
      */
     function addClaim(uint256[8] calldata claim) public virtual onlyOwner {
-        identity.addClaim(claim);
+        IdentityBase._getMainStorage().identity.addClaim(claim);
     }
 
     /**
@@ -47,7 +47,7 @@ contract IdentityExample is IdentityBase, OwnableUpgradeable {
      * @param hashValue - hash of claim value part
      */
     function addClaimHash(uint256 hashIndex, uint256 hashValue) public virtual onlyOwner {
-        identity.addClaimHash(hashIndex, hashValue);
+        IdentityBase._getMainStorage().identity.addClaimHash(hashIndex, hashValue);
     }
 
     /**
@@ -55,14 +55,14 @@ contract IdentityExample is IdentityBase, OwnableUpgradeable {
      * @param revocationNonce - revocation nonce
      */
     function revokeClaim(uint64 revocationNonce) public virtual onlyOwner {
-        identity.revokeClaim(revocationNonce);
+        IdentityBase._getMainStorage().identity.revokeClaim(revocationNonce);
     }
 
     /**
      * @dev Make state transition
      */
     function transitState() public virtual onlyOwner {
-        identity.transitState();
+        IdentityBase._getMainStorage().identity.transitState();
     }
 
     /**
@@ -70,7 +70,7 @@ contract IdentityExample is IdentityBase, OwnableUpgradeable {
      * @return IdentityState
      */
     function calcIdentityState() public view virtual returns (uint256) {
-        return identity.calcIdentityState();
+        return IdentityBase._getMainStorage().identity.calcIdentityState();
     }
 
     function newClaimData() public pure virtual returns (ClaimBuilder.ClaimData memory) {
