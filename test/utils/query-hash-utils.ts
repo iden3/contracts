@@ -1,7 +1,7 @@
-import { poseidon } from '@iden3/js-crypto';
-import { SchemaHash } from '@iden3/js-iden3-core';
+import { poseidon } from "@iden3/js-crypto";
+import { SchemaHash } from "@iden3/js-iden3-core";
 
-export function calculateQueryHash(
+export function calculateQueryHashV2(
   values: bigint[],
   schema: string,
   slotIndex: string | number,
@@ -18,12 +18,49 @@ export function calculateQueryHash(
     BigInt(operator),
     BigInt(claimPathKey),
     BigInt(claimPathNotExists),
-    valueHash
+    valueHash,
   ]);
   return quaryHash;
 }
 
-let prepareCircuitArrayValues = (arr: bigint[], size: number): bigint[] => {
+export function calculateQueryHashV3(
+  values: bigint[],
+  schema: string,
+  slotIndex: string | number,
+  operator: string | number,
+  claimPathKey: string | number,
+  valueArraySize: string | number,
+  merklized: string | number,
+  isRevocationChecked: string | number,
+  verifierID: string | number,
+  nullifierSessionID: string | number
+): bigint {
+  const expValue = prepareCircuitArrayValues(values, 64);
+  const valueHash = poseidon.spongeHashX(expValue, 6);
+  const schemaHash = coreSchemaFromStr(schema);
+
+
+  const firstPartQueryHash = poseidon.hash([
+    schemaHash.bigInt(),
+    BigInt(slotIndex),
+    BigInt(operator),
+    BigInt(claimPathKey),
+    BigInt(merklized),
+    valueHash,
+  ]);
+
+  const queryHash = poseidon.hash([
+    firstPartQueryHash,
+    BigInt(valueArraySize),
+    BigInt(isRevocationChecked),
+    BigInt(verifierID),
+    BigInt(nullifierSessionID),
+    BigInt(0n),
+  ]);
+  return queryHash;
+}
+
+const prepareCircuitArrayValues = (arr: bigint[], size: number): bigint[] => {
   if (!arr) {
     arr = [];
   }
@@ -39,7 +76,7 @@ let prepareCircuitArrayValues = (arr: bigint[], size: number): bigint[] => {
   return arr;
 };
 
-let coreSchemaFromStr = (schemaIntString: string) => {
+const coreSchemaFromStr = (schemaIntString: string) => {
   const schemaInt = BigInt(schemaIntString);
   return SchemaHash.newSchemaHashFromInt(schemaInt);
 };

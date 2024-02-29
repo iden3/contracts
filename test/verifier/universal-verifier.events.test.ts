@@ -122,6 +122,7 @@ describe("Universal Verifier events", function () {
     const logs = await verifier.queryFilter(filter, 0, "latest");
 
     logs.map((log, index) => {
+      // @ts-ignore
       const [decodedData] = ethers.utils.defaultAbiCoder.decode(abi, log.args.data);
       expect(decodedData.schema).to.equal(queries[index].schema);
       expect(decodedData.claimPathKey).to.equal(queries[index].claimPathKey);

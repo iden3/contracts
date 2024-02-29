@@ -2,7 +2,7 @@ import { DeployHelper } from "../../helpers/DeployHelper";
 import { ethers } from "hardhat";
 import { packV3ValidatorParams } from "../utils/validator-pack-utils";
 import { prepareInputs, publishState } from "../utils/state-utils";
-import { calculateQueryHash } from "../utils/query-hash-utils";
+import { calculateQueryHashV3} from "../utils/query-hash-utils";
 import { expect } from "chai";
 
 describe("Universal Verifier V3 validator", function () {
@@ -18,7 +18,22 @@ describe("Universal Verifier V3 validator", function () {
   const operator = 2;
   const claimPathKey =
     "20376033832371109177683048456014525905119173674985843915445634726167450989630";
-  const claimPathNotExists = 0;
+
+  const valueArrSize = 1;
+  const nullifierSessionId =  "0" ;
+  const verifierId = "21929109382993718606847853573861987353620810345503358891473103689157378049"
+  const queryHash = calculateQueryHashV3(
+      value,
+      schema,
+      slotIndex,
+      operator,
+      claimPathKey,
+      valueArrSize,
+      1,
+      1,
+      verifierId,
+      nullifierSessionId,
+  )
 
   const query = {
     schema,
@@ -26,22 +41,15 @@ describe("Universal Verifier V3 validator", function () {
     operator,
     slotIndex,
     value,
-    circuitIds: ["credentialAtomicQueryV3OnChain-beta.0"],
+    circuitIds: ["credentialAtomicQueryV3OnChain-beta.1"],
     skipClaimRevocationCheck: false,
-    claimPathNotExists,
-    queryHash: calculateQueryHash(
-      value,
-      schema,
-      slotIndex,
-      operator,
-      claimPathKey,
-      claimPathNotExists
-    ).toString(),
+    queryHash,
     groupID: 1,
-    nullifierSessionID: "0", // for ethereum based user
+    nullifierSessionID: nullifierSessionId, // for ethereum based user
     proofType: 1, // 1 for BJJ
-    verifierID: "21929109382993718606847853573861987353620810345503358891473103689157378049",
+    verifierID: verifierId,
   };
+
 
   const proofJson = require("../validators/v3/data/valid_bjj_user_genesis_auth_disabled_v3.json");
   const stateTransition1 = require("../validators/common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json");
@@ -66,7 +74,7 @@ describe("Universal Verifier V3 validator", function () {
   it("Test submit response", async () => {
     await publishState(state, stateTransition1);
     const data = packV3ValidatorParams(query);
-    await verifier.setZKPRequest(0, {
+    await verifier.setZKPRequest(32, {
       metadata: "metadata",
       validator: v3.address,
       data: data,
@@ -78,7 +86,7 @@ describe("Universal Verifier V3 validator", function () {
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
 
     await verifier.verifyZKPResponse(
-      0,
+      32,
       inputs,
       pi_a,
       pi_b,
@@ -86,9 +94,9 @@ describe("Universal Verifier V3 validator", function () {
       "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
     );
 
-    await expect(verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c)).not.to.be.reverted;
+    await expect(verifier.submitZKPResponse(32, inputs, pi_a, pi_b, pi_c)).not.to.be.reverted;
     await expect(
-      verifier.connect(signer2).submitZKPResponse(0, inputs, pi_a, pi_b, pi_c)
+      verifier.connect(signer2).submitZKPResponse(32, inputs, pi_a, pi_b, pi_c)
     ).to.be.revertedWith("UserID does not correspond to the sender");
 
     // TODO make some test with correct UserID but with wrong challenge

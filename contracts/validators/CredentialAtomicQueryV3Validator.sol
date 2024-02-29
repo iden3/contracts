@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import {CredentialAtomicQueryValidator} from "./CredentialAtomicQueryValidator.sol";
+import {CredentialAtomicQueryValidatorBase} from "./CredentialAtomicQueryValidatorBase.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
@@ -10,7 +10,7 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 /**
  * @dev CredentialAtomicQueryV3 validator
  */
-contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
+contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase {
     struct CredentialAtomicQueryV3 {
         uint256 schema;
         uint256 claimPathKey;
@@ -21,8 +21,6 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         uint256[] allowedIssuers;
         string[] circuitIds;
         bool skipClaimRevocationCheck;
-        // 0 for inclusion in merklized credentials, 1 for non-inclusion and for non-merklized credentials
-        uint256 claimPathNotExists;
         uint256 groupID;
         uint256 nullifierSessionID;
         uint256 proofType;
@@ -34,40 +32,43 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         uint256 nullifier;
         uint256 operatorOutput;
         uint256 proofType;
-        uint256 verifierID;
-        uint256 nullifierSessionID;
         uint256 isBJJAuthEnabled;
+        uint256 userID;
+        uint256 issuerState;
+        uint256 circuitQueryHash;
+        uint256 requestID;
+        uint256 challenge;
+        uint256 gistRoot;
+        uint256 issuerID;
+        uint256 issuerClaimNonRevState;
+        uint256 timestamp;
     }
 
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.0.0-beta.0";
+    string public constant VERSION = "2.0.0-beta.1";
 
-    string internal constant CIRCUIT_ID = "credentialAtomicQueryV3OnChain-beta.0";
+    string internal constant CIRCUIT_ID = "credentialAtomicQueryV3OnChain-beta.1";
 
     function initialize(
         address _verifierContractAddr,
         address _stateContractAddr
     ) public override initializer {
-        _setInputToIndex("merklized", 0);
-        _setInputToIndex("userID", 1);
-        _setInputToIndex("circuitQueryHash", 2);
-        _setInputToIndex("issuerState", 3);
-        _setInputToIndex("linkID", 4);
-        _setInputToIndex("nullifier", 5);
-        _setInputToIndex("operatorOutput", 6);
-        _setInputToIndex("proofType", 7);
-        _setInputToIndex("requestID", 8);
-        _setInputToIndex("challenge", 9);
-        _setInputToIndex("gistRoot", 10);
-        _setInputToIndex("issuerID", 11);
-        _setInputToIndex("isRevocationChecked", 12);
-        _setInputToIndex("issuerClaimNonRevState", 13);
-        _setInputToIndex("timestamp", 14);
-        _setInputToIndex("verifierID", 15);
-        _setInputToIndex("nullifierSessionID", 16);
-        _setInputToIndex("authEnabled", 17);
+        _setInputToIndex("userID", 0);
+        _setInputToIndex("circuitQueryHash", 1);
+        _setInputToIndex("issuerState", 2);
+        _setInputToIndex("linkID", 3);
+        _setInputToIndex("nullifier", 4);
+        _setInputToIndex("operatorOutput", 5);
+        _setInputToIndex("proofType", 6);
+        _setInputToIndex("requestID", 7);
+        _setInputToIndex("challenge", 8);
+        _setInputToIndex("gistRoot", 9);
+        _setInputToIndex("issuerID", 10);
+        _setInputToIndex("issuerClaimNonRevState", 11);
+        _setInputToIndex("timestamp", 12);
+        _setInputToIndex("isBJJAuthEnabled", 13);
 
         MainStorage storage s = _getMainStorage();
         s._supportedCircuitIds = [CIRCUIT_ID];
@@ -79,50 +80,35 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         return VERSION;
     }
 
-    function parseCommonPubSignals(
-        uint256[] calldata inputs
-    ) public pure override returns (CommonPubSignals memory) {
-        CommonPubSignals memory pubSignals = CommonPubSignals({
-            merklized: inputs[0],
-            userID: inputs[1],
-            circuitQueryHash: inputs[2],
-            requestID: inputs[8],
-            challenge: inputs[9],
-            gistRoot: inputs[10],
-            issuerID: inputs[11],
-            issuerState: inputs[3],
-            isRevocationChecked: inputs[12],
-            issuerClaimNonRevState: inputs[13],
-            timestamp: inputs[14]
-        });
-
-        return pubSignals;
-    }
-
-    function parseV3SpecificPubSignals(
-        uint256[] calldata inputs
-    ) internal pure returns (V3PubSignals memory) {
+    function parsePubSignals(uint256[] calldata inputs) public pure returns (V3PubSignals memory) {
         V3PubSignals memory pubSignals = V3PubSignals({
-            linkID: inputs[4],
-            nullifier: inputs[5],
-            operatorOutput: inputs[6],
-            proofType: inputs[7],
-            verifierID: inputs[15],
-            nullifierSessionID: inputs[16],
-            isBJJAuthEnabled: inputs[17]
+            userID: inputs[0],
+            circuitQueryHash: inputs[1],
+            issuerState: inputs[2],
+            linkID: inputs[3],
+            nullifier: inputs[4],
+            operatorOutput: inputs[5],
+            proofType: inputs[6],
+            requestID: inputs[7],
+            challenge: inputs[8],
+            gistRoot: inputs[9],
+            issuerID: inputs[10],
+            issuerClaimNonRevState: inputs[11],
+            timestamp: inputs[12],
+            isBJJAuthEnabled: inputs[13]
         });
 
         return pubSignals;
     }
 
-    function _verify(
+    function verify(
         uint256[] calldata inputs,
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c,
         bytes calldata data,
         address sender
-    ) internal view override returns (ICircuitValidator.KeyToInputIndex[] memory) {
+    ) external view override returns (ICircuitValidator.KeyToInputIndex[] memory) {
         CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
             data,
             (CredentialAtomicQueryV3)
@@ -138,7 +124,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
         // verify that zkp is valid
         require(verifier.verify(a, b, c, inputs), "Proof is not valid");
 
-        CommonPubSignals memory signals = parseCommonPubSignals(inputs);
+        V3PubSignals memory signals = parsePubSignals(inputs);
 
         // check circuitQueryHash
         require(
@@ -146,25 +132,12 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
             "Query hash does not match the requested one"
         );
 
-        // TODO: add support for query to specific userID and then verifying it
-
-        _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
-
         _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
         _checkClaimIssuanceState(signals.issuerID, signals.issuerState);
         _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
         _checkProofExpiration(signals.timestamp);
-        _checkIsRevocationChecked(
-            signals.isRevocationChecked,
-            credAtomicQuery.skipClaimRevocationCheck
-        );
 
-        V3PubSignals memory v3PubSignals = parseV3SpecificPubSignals(inputs);
-        _checkVerifierID(credAtomicQuery.verifierID, v3PubSignals.verifierID);
-        _checkNullifierSessionID(
-            credAtomicQuery.nullifierSessionID,
-            v3PubSignals.nullifierSessionID
-        );
+        V3PubSignals memory v3PubSignals = parsePubSignals(inputs);
         _checkLinkID(credAtomicQuery.groupID, v3PubSignals.linkID);
         _checkProofType(credAtomicQuery.proofType, v3PubSignals.proofType);
         _checkNullify(v3PubSignals.nullifier, credAtomicQuery.nullifierSessionID);
@@ -182,23 +155,6 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
             credAtomicQuery.operator == 16
         );
         return pairs;
-    }
-
-    function _checkVerifierID(uint256 queryVerifierID, uint256 pubSignalVerifierID) internal pure {
-        require(
-            queryVerifierID == 0 || queryVerifierID == pubSignalVerifierID,
-            "Verifier ID should match the query"
-        );
-    }
-
-    function _checkNullifierSessionID(
-        uint256 queryNullifierSessionID,
-        uint256 pubSignalNullifierSessionID
-    ) internal pure {
-        require(
-            queryNullifierSessionID == pubSignalNullifierSessionID,
-            "Nullifier session ID should match the query"
-        );
     }
 
     function _checkLinkID(uint256 groupID, uint256 linkID) internal pure {
@@ -232,27 +188,25 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidator {
 
     function _getSpecialInputPairs(
         bool hasSelectiveDisclosure
-    ) internal pure override returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        uint256 numPairs = hasSelectiveDisclosure ? 7 : 6;
+    ) internal pure returns (ICircuitValidator.KeyToInputIndex[] memory) {
+        uint256 numPairs = hasSelectiveDisclosure ? 5 : 4;
         ICircuitValidator.KeyToInputIndex[] memory pairs = new ICircuitValidator.KeyToInputIndex[](
             numPairs
         );
 
         uint i = 0;
-        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "userID", inputIndex: 1});
-        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "linkID", inputIndex: 4});
-        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "nullifier", inputIndex: 5});
+        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "userID", inputIndex: 0});
+        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "linkID", inputIndex: 3});
+        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "nullifier", inputIndex: 4});
         if (hasSelectiveDisclosure) {
-            pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "operatorOutput", inputIndex: 6});
+            pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "operatorOutput", inputIndex: 5});
         }
-        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "timestamp", inputIndex: 14});
-        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "verifierID", inputIndex: 15});
-        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "nullifierSessionID", inputIndex: 16});
+        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "timestamp", inputIndex: 12});
 
         return pairs;
     }
 
-    function _checkChallenge(uint256 challenge, address sender) internal view {
+    function _checkChallenge(uint256 challenge, address sender) internal pure {
         require(
             PrimitiveTypeUtils.int256ToAddress(challenge) == sender,
             "Challenge should match the sender"

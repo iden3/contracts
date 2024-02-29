@@ -20,7 +20,7 @@ contract VerifierV3Wrapper is VerifierV3, IVerifier {
     /**
      * @dev Number of public signals for atomic V3 circuit
      */
-    uint constant PUBSIGNALS_LENGTH = 18;
+    uint constant PUBSIGNALS_LENGTH = 14;
 
     /// @return r  bool true if proof is valid
     function verify(
