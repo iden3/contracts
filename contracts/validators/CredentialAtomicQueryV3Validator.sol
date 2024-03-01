@@ -73,9 +73,8 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         s._supportedCircuitIds = [CIRCUIT_ID];
         s._circuitIdToVerifier[CIRCUIT_ID] = IVerifier(_verifierContractAddr);
 
-        _initDefaultStateVariables(_stateContractAddr,_verifierContractAddr, CIRCUIT_ID);
+        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID);
         __Ownable_init();
-
     }
 
     function version() public pure override returns (string memory) {

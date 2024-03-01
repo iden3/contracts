@@ -38,7 +38,11 @@ abstract contract CredentialAtomicQueryValidatorBase is
         }
     }
 
-    function _initDefaultStateVariables(address _stateContractAddr, address _verifierContractAddr,  string memory circuitId) internal {
+    function _initDefaultStateVariables(
+        address _stateContractAddr,
+        address _verifierContractAddr,
+        string memory circuitId
+    ) internal {
         MainStorage storage s = _getMainStorage();
 
         s.revocationStateExpirationTimeout = 1 hours;
