@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import {CredentialAtomicQueryValidator} from "./CredentialAtomicQueryValidator.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {CredentialAtomicQueryV2ValidatorBase} from "./CredentialAtomicQueryV2ValidatorBase.sol";
 
-contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
+contract CredentialAtomicQuerySigV2Validator is CredentialAtomicQueryV2ValidatorBase {
     /**
      * @dev Version of contract
      */
@@ -16,7 +16,7 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
     function initialize(
         address _verifierContractAddr,
         address _stateContractAddr
-    ) public override initializer {
+    ) public initializer {
         _setInputToIndex("merklized", 0);
         _setInputToIndex("userID", 1);
         _setInputToIndex("circuitQueryHash", 2);
@@ -29,20 +29,18 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
         _setInputToIndex("issuerClaimNonRevState", 9);
         _setInputToIndex("timestamp", 10);
 
-        MainStorage storage s = _getMainStorage();
-        s._supportedCircuitIds = [CIRCUIT_ID];
-        s._circuitIdToVerifier[CIRCUIT_ID] = IVerifier(_verifierContractAddr);
-        super.initialize(_verifierContractAddr, _stateContractAddr);
+        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID);
+        __Ownable_init();
     }
 
     function version() public pure override returns (string memory) {
         return VERSION;
     }
 
-    function parseCommonPubSignals(
+    function parsePubSignals(
         uint256[] calldata inputs
-    ) public pure override returns (CommonPubSignals memory) {
-        CommonPubSignals memory params = CommonPubSignals({
+    ) public pure override returns (PubSignals memory) {
+        PubSignals memory params = PubSignals({
             merklized: inputs[0],
             userID: inputs[1],
             circuitQueryHash: inputs[2],
@@ -57,16 +55,5 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidator {
         });
 
         return params;
-    }
-
-    function _getSpecialInputPairs(
-        bool hasSelectiveDisclosure
-    ) internal pure override returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        ICircuitValidator.KeyToInputIndex[] memory pairs = new ICircuitValidator.KeyToInputIndex[](
-            2
-        );
-        pairs[0] = ICircuitValidator.KeyToInputIndex({key: "userID", inputIndex: 1});
-        pairs[1] = ICircuitValidator.KeyToInputIndex({key: "timestamp", inputIndex: 10});
-        return pairs;
     }
 }

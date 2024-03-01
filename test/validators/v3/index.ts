@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { prepareInputs, publishState } from "../../utils/state-utils";
 import { DeployHelper } from "../../../helpers/DeployHelper";
 import { packV3ValidatorParams } from "../../utils/validator-pack-utils";
-import { calculateQueryHash } from "../../utils/query-hash-utils";
+import { calculateQueryHashV3} from "../../utils/query-hash-utils";
 import { ethers } from "hardhat";
 
 const tenYears = 315360000;
@@ -14,7 +14,7 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_bjj_user_genesis_v3.json"),
     setProofExpiration: tenYears,
-    sender: "0x3930000000000000000000000000000000000000",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
     name: "Validation of Sig proof failed",
@@ -24,7 +24,7 @@ const testCases: any[] = [
     proofJson: require("./data/invalid_bjj_user_genesis_v3.json"),
     errorMessage: "Proof is not valid",
     setProofExpiration: tenYears,
-    sender: "0x3930000000000000000000000000000000000000",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
     name: "User state is not genesis but latest",
@@ -35,7 +35,7 @@ const testCases: any[] = [
 
     proofJson: require("./data/valid_bjj_user_first_v3.json"),
     setProofExpiration: tenYears,
-    sender: "0x3930000000000000000000000000000000000000",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
     name: "The non-revocation issuer state is latest",
@@ -46,7 +46,7 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_bjj_user_first_issuer_second_v3"),
     setProofExpiration: tenYears,
-    sender: "0x3930000000000000000000000000000000000000",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
     name: "The non-revocation issuer state is expired",
@@ -61,7 +61,7 @@ const testCases: any[] = [
     setRevStateExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
     errorMessage: "Non-Revocation state of Issuer expired",
     setProofExpiration: tenYears,
-    sender: "0x3930000000000000000000000000000000000000",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
     name: "GIST root expired, Issuer revocation state is not expired",
@@ -77,7 +77,7 @@ const testCases: any[] = [
     setGISTRootExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
     errorMessage: "Gist root is expired",
     setProofExpiration: tenYears,
-    sender: "0x3930000000000000000000000000000000000000",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
     name: "The generated proof is expired",
@@ -88,7 +88,7 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_bjj_user_first_v3.json"),
     errorMessage: "Generated proof is outdated",
-    sender: "0x3930000000000000000000000000000000000000",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain",
@@ -99,7 +99,7 @@ const testCases: any[] = [
     setProofExpiration: tenYears,
     allowedIssuers: [ethers.BigNumber.from(123)],
     errorMessage: "Issuer is not on the Allowed Issuers list",
-    sender: "0x3930000000000000000000000000000000000000",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
     name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (UserID correspond to the sender)",
@@ -118,7 +118,7 @@ const testCases: any[] = [
     proofJson: require("./data/valid_mtp_user_genesis_v3.json"),
     setProofExpiration: tenYears,
     isMtpProof: true,
-    sender: "0x3930000000000000000000000000000000000000",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
     name: "Validation of MTP proof failed",
@@ -127,7 +127,7 @@ const testCases: any[] = [
     errorMessage: "Proof is not valid",
     setProofExpiration: tenYears,
     isMtpProof: true,
-    sender: "0x3930000000000000000000000000000000000000",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
     name: "User state is not genesis but latest. MTP Proof.",
@@ -138,7 +138,7 @@ const testCases: any[] = [
     proofJson: require("./data/valid_mtp_user_first_v3.json"),
     setProofExpiration: tenYears,
     isMtpProof: true,
-    sender: "0x3930000000000000000000000000000000000000",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
     name: "The non-revocation issuer state is not expired. MTP Proof.",
@@ -150,7 +150,7 @@ const testCases: any[] = [
     proofJson: require("./data/valid_mtp_user_first_issuer_second_v3.json"),
     setProofExpiration: tenYears,
     isMtpProof: true,
-    sender: "0x3930000000000000000000000000000000000000",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
     name: "The non-revocation issuer state is expired. MTP Proof.",
@@ -166,7 +166,7 @@ const testCases: any[] = [
     errorMessage: "Non-Revocation state of Issuer expired",
     setProofExpiration: tenYears,
     isMtpProof: true,
-    sender: "0x3930000000000000000000000000000000000000",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
     name: "GIST root expired, Issuer revocation state is not expired. MTP Proof.",
@@ -182,7 +182,7 @@ const testCases: any[] = [
     errorMessage: "Gist root is expired",
     setProofExpiration: tenYears,
     isMtpProof: true,
-    sender: "0x3930000000000000000000000000000000000000",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
     name: "The generated proof is expired. MTP Proof.",
@@ -194,7 +194,7 @@ const testCases: any[] = [
     proofJson: require("./data/valid_mtp_user_first_v3.json"),
     errorMessage: "Generated proof is outdated",
     isMtpProof: true,
-    sender: "0x3930000000000000000000000000000000000000",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain. MTP Proof.",
@@ -206,7 +206,7 @@ const testCases: any[] = [
     allowedIssuers: [ethers.BigNumber.from(123)],
     errorMessage: 'Issuer is not on the Allowed Issuers list',
     isMtpProof: true,
-    sender: "0x3930000000000000000000000000000000000000",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
     name: "Valid MTP genesis proof with isBJJAuthEnabled=0 (UserID correspond to the sender)",
@@ -223,25 +223,25 @@ const testCases: any[] = [
   {
     name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (UserID does NOT correspond to the sender)",
     stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3_wrong_id.json"),
+          require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
     ],
     proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3_wrong_id.json"),
     setProofExpiration: tenYears,
     errorMessage: "UserID does not correspond to the sender",
     ethereumBasedUser: true,
-    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    sender: "0x6edFa588aFd58803F728AbC91984c69528C00854",
   },
   {
     name: "Valid MTP genesis proof with isBJJAuthEnabled=0 (UserID does NOT correspond to the sender)",
     stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3_wrong_id.json"),
+      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
     ],
     proofJson: require("./data/valid_mtp_user_genesis_auth_disabled_v3_wrong_id.json"),
     setProofExpiration: tenYears,
     errorMessage: "UserID does not correspond to the sender",
     ethereumBasedUser: true,
     isMtpProof: true,
-    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    sender: "0x6edFa588aFd58803F728AbC91984c69528C00854",
   },
   // Issuer Genesis State
   {
@@ -251,7 +251,7 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_bjj_user_first_issuer_genesis_v3.json"),
     setProofExpiration: tenYears,
-    sender: "0x3930000000000000000000000000000000000000",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   // Wrong challenge
   {
@@ -305,7 +305,21 @@ describe("Atomic V3 Validator", function () {
       const operator = 2;
       const claimPathKey =
         "20376033832371109177683048456014525905119173674985843915445634726167450989630";
-      const claimPathNotExists = 0;
+      const valueArrSize = 1;
+      const nullifierSessionId = test.ethereumBasedUser ? "0" : "1234569";
+      const verifierId = "21929109382993718606847853573861987353620810345503358891473103689157378049"
+      const queryHash = calculateQueryHashV3(
+          value,
+          schema,
+          slotIndex,
+          operator,
+          claimPathKey,
+          valueArrSize,
+          1,
+          1,
+          verifierId,
+          nullifierSessionId,
+      )
 
       const query = {
         schema,
@@ -313,21 +327,13 @@ describe("Atomic V3 Validator", function () {
         operator,
         slotIndex,
         value,
-        circuitIds: ["credentialAtomicQueryV3OnChain-beta.0"],
+        circuitIds: ["credentialAtomicQueryV3OnChain-beta.1"],
         skipClaimRevocationCheck: false,
-        claimPathNotExists,
-        queryHash: calculateQueryHash(
-          value,
-          schema,
-          slotIndex,
-          operator,
-          claimPathKey,
-          claimPathNotExists
-        ).toString(),
+        queryHash: queryHash,
         groupID: 1,
-        nullifierSessionID: test.ethereumBasedUser ? "0" : "1234569",
+        nullifierSessionID: nullifierSessionId,
         proofType: test.isMtpProof ? 2 : 1,
-        verifierID: "21929109382993718606847853573861987353620810345503358891473103689157378049",
+        verifierID: verifierId,
       };
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
@@ -374,9 +380,4 @@ describe("Atomic V3 Validator", function () {
       }
     });
   }
-
-  it("check inputIndexOf", async () => {
-    const challengeIndx = await v3validator.inputIndexOf("challenge");
-    expect(challengeIndx).to.be.equal(9);
-  });
 });

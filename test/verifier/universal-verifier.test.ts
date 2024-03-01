@@ -2,10 +2,10 @@ import { expect } from "chai";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { ethers } from "hardhat";
 import { packValidatorParams } from "../utils/validator-pack-utils";
-import { prepareInputs, publishState } from "../utils/state-utils";
+import { prepareInputs } from "../utils/state-utils";
 
 describe("Universal Verifier MTP & SIG validators", function () {
-  let verifier: any, sig: any, state: any;
+  let verifier: any, sig: any;
   let signer, signer2, signer3, signer4;
   let signerAddress: string, signer2Address: string, signer3Address: string, someAddress: string;
   let deployHelper: DeployHelper;
@@ -29,7 +29,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
   };
 
   const proofJson = require("../validators/sig/data/valid_sig_user_genesis.json");
-  const stateTransition = require("../validators/common-data/issuer_genesis_state.json");
 
   beforeEach(async () => {
     [signer, signer2, signer3, signer4] = await ethers.getSigners();
@@ -41,12 +40,9 @@ describe("Universal Verifier MTP & SIG validators", function () {
     deployHelper = await DeployHelper.initialize(null, true);
     verifier = await deployHelper.deployUniversalVerifier(signer);
 
-    const contracts = await deployHelper.deployValidatorContracts(
-      "VerifierSigWrapper",
-      "CredentialAtomicQuerySigValidator"
-    );
-    sig = contracts.validator;
-    state = contracts.state;
+    const stub = await deployHelper.deployValidatorStub();
+
+    sig = stub;
     await verifier.addWhitelistedValidator(sig.address);
     await verifier.connect();
   });
@@ -85,7 +81,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
   });
 
   it("Test submit response", async () => {
-    await publishState(state, stateTransition);
     const data = packValidatorParams(query);
     await verifier.setZKPRequest(0, {
       metadata: "metadata",
@@ -94,7 +89,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
       controller: signerAddress,
       isDisabled: false,
     });
-    await sig.setProofExpirationTimeout(315360000);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
     const tx = await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
@@ -109,7 +103,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const requestId = 0;
     let status = await verifier.getProofStatus(signerAddress, requestId);
     expect(status.isProved).to.be.true;
-    expect(status.validatorVersion).to.be.equal("2.0.0");
+    expect(status.validatorVersion).to.be.equal("2.0.0-mock");
     expect(status.blockNumber).to.be.equal(txRes.blockNumber);
     expect(status.blockTimestamp).to.be.equal(txResTimestamp);
     status = await verifier.getProofStatus(signerAddress, requestId + 1);
@@ -180,7 +174,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const controller = signer2;
     const someSigner = signer3;
 
-    await publishState(state, stateTransition);
     await verifier.connect(controller).setZKPRequest(0, {
       metadata: "metadata",
       validator: sig.address,
@@ -188,7 +181,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
       controller: await controller.getAddress(),
       isDisabled: false,
     });
-    await sig.setProofExpirationTimeout(315360000);
 
     await expect(verifier.connect(someSigner).disableZKPRequest(0)).to.be.revertedWith(
       "Only owner or controller can call this function"
@@ -217,7 +209,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
   it("Check whitelisted validators", async () => {
     const { validator: mtp } = await deployHelper.deployValidatorContracts(
       "VerifierMTPWrapper",
-      "CredentialAtomicQueryMTPValidator"
+      "CredentialAtomicQueryMTPV2Validator"
     );
 
     await expect(

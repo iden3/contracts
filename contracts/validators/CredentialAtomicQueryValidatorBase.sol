@@ -8,36 +8,13 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
 import {PoseidonFacade} from "../lib/Poseidon.sol";
+import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
 
-abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuitValidator, ERC165 {
-    struct CredentialAtomicQuery {
-        uint256 schema;
-        uint256 claimPathKey;
-        uint256 operator;
-        uint256 slotIndex;
-        uint256[] value;
-        uint256 queryHash;
-        uint256[] allowedIssuers;
-        string[] circuitIds;
-        bool skipClaimRevocationCheck;
-        // 0 for inclusion in merklized credentials, 1 for non-inclusion and for non-merklized credentials
-        uint256 claimPathNotExists;
-    }
-
-    struct CommonPubSignals {
-        uint256 merklized;
-        uint256 userID;
-        uint256 issuerState;
-        uint256 circuitQueryHash;
-        uint256 requestID;
-        uint256 challenge;
-        uint256 gistRoot;
-        uint256 issuerID;
-        uint256 isRevocationChecked;
-        uint256 issuerClaimNonRevState;
-        uint256 timestamp;
-    }
-
+abstract contract CredentialAtomicQueryValidatorBase is
+    OwnableUpgradeable,
+    ICircuitValidator,
+    ERC165
+{
     /// @dev Main storage structure for the contract
     struct MainStorage {
         mapping(string => IVerifier) _circuitIdToVerifier;
@@ -61,24 +38,22 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         }
     }
 
-    function initialize(
+    function _initDefaultStateVariables(
+        address _stateContractAddr,
         address _verifierContractAddr,
-        address _stateContractAddr
-    ) public virtual onlyInitializing {
+        string memory circuitId
+    ) internal {
         MainStorage storage s = _getMainStorage();
 
         s.revocationStateExpirationTimeout = 1 hours;
         s.proofExpirationTimeout = 1 hours;
         s.gistRootExpirationTimeout = 1 hours;
+        s._supportedCircuitIds = [circuitId];
+        s._circuitIdToVerifier[circuitId] = IVerifier(_verifierContractAddr);
         s.state = IState(_stateContractAddr);
-        __Ownable_init();
     }
 
     function version() public pure virtual returns (string memory);
-
-    function parseCommonPubSignals(
-        uint256[] calldata inputs
-    ) public pure virtual returns (CommonPubSignals memory);
 
     function setRevocationStateExpirationTimeout(
         uint256 expirationTimeout
@@ -121,9 +96,7 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         uint256[2] calldata c,
         bytes calldata data,
         address sender
-    ) external view virtual returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        return _verify(inputs, a, b, c, data, sender);
-    }
+    ) external view virtual returns (ICircuitValidator.KeyToInputIndex[] memory);
 
     function getSupportedCircuitIds() external view virtual returns (string[] memory ids) {
         return _getMainStorage()._supportedCircuitIds;
@@ -142,52 +115,6 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         return
             interfaceId == type(ICircuitValidator).interfaceId ||
             super.supportsInterface(interfaceId);
-    }
-
-    function _verify(
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
-        bytes calldata data,
-        address sender
-    ) internal view virtual returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
-        IVerifier verifier = _getMainStorage()._circuitIdToVerifier[credAtomicQuery.circuitIds[0]];
-
-        require(
-            credAtomicQuery.circuitIds.length == 1 && verifier != IVerifier(address(0)),
-            "Invalid circuit ID"
-        );
-
-        // verify that zkp is valid
-        require(verifier.verify(a, b, c, inputs), "Proof is not valid");
-
-        CommonPubSignals memory signals = parseCommonPubSignals(inputs);
-
-        // check circuitQueryHash
-        require(
-            signals.circuitQueryHash == credAtomicQuery.queryHash,
-            "Query hash does not match the requested one"
-        );
-
-        // TODO: add support for query to specific userID and then verifying it
-
-        _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
-        _checkGistRoot(signals.gistRoot);
-        _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
-        _checkClaimIssuanceState(signals.issuerID, signals.issuerState);
-        _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
-        _checkProofExpiration(signals.timestamp);
-        _checkIsRevocationChecked(
-            signals.isRevocationChecked,
-            credAtomicQuery.skipClaimRevocationCheck
-        );
-
-        ICircuitValidator.KeyToInputIndex[] memory pairs = _getSpecialInputPairs(
-            credAtomicQuery.operator == 16
-        );
-        return pairs;
     }
 
     function _checkGistRoot(uint256 gistRoot) internal view {
@@ -279,30 +206,14 @@ abstract contract CredentialAtomicQueryValidator is OwnableUpgradeable, ICircuit
         revert("Issuer is not on the Allowed Issuers list");
     }
 
-    function _checkMerklized(uint256 merklized, uint256 queryClaimPathKey) internal pure {
-        uint256 shouldBeMerklized = queryClaimPathKey != 0 ? 1 : 0;
-        require(merklized == shouldBeMerklized, "Merklized value is not correct");
-    }
-
-    function _checkIsRevocationChecked(
-        uint256 isRevocationChecked,
-        bool skipClaimRevocationCheck
-    ) internal pure {
-        uint256 expectedIsRevocationChecked = 1;
-        if (skipClaimRevocationCheck) {
-            expectedIsRevocationChecked = 0;
-        }
+    function _checkChallenge(uint256 challenge, address sender) internal pure {
         require(
-            isRevocationChecked == expectedIsRevocationChecked,
-            "Revocation check should match the query"
+            PrimitiveTypeUtils.int256ToAddress(challenge) == sender,
+            "Challenge should match the sender"
         );
     }
 
     function _setInputToIndex(string memory inputName, uint256 index) internal {
         _getMainStorage()._inputNameToIndex[inputName] = ++index; // increment index to avoid 0
     }
-
-    function _getSpecialInputPairs(
-        bool hasSelectiveDisclosure
-    ) internal pure virtual returns (ICircuitValidator.KeyToInputIndex[] memory);
 }
