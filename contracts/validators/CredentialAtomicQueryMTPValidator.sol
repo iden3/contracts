@@ -26,7 +26,7 @@ contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidatorBase
         // 0 for inclusion in merklized credentials, 1 for non-inclusion and for non-merklized credentials
         uint256 claimPathNotExists;
     }
-    struct V2PubSignals {
+        struct PubSignals {
         uint256 merklized;
         uint256 userID;
         uint256 issuerState;
@@ -66,8 +66,8 @@ contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidatorBase
         return VERSION;
     }
 
-    function parsePubSignals(uint256[] calldata inputs) public pure returns (V2PubSignals memory) {
-        V2PubSignals memory params = V2PubSignals({
+    function parsePubSignals(uint256[] calldata inputs) public pure returns (PubSignals memory) {
+        PubSignals memory params = PubSignals({
             merklized: inputs[0],
             userID: inputs[1],
             circuitQueryHash: inputs[2],
@@ -116,7 +116,7 @@ contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidatorBase
         // verify that zkp is valid
         require(verifier.verify(a, b, c, inputs), "Proof is not valid");
 
-        V2PubSignals memory signals = parsePubSignals(inputs);
+        PubSignals memory signals = parsePubSignals(inputs);
 
         // check circuitQueryHash
         require(

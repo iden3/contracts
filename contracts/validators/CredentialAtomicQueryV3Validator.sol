@@ -27,7 +27,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         uint256 verifierID;
     }
 
-    struct V3PubSignals {
+    struct PubSignals {
         uint256 linkID;
         uint256 nullifier;
         uint256 operatorOutput;
@@ -80,8 +80,8 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         return VERSION;
     }
 
-    function parsePubSignals(uint256[] calldata inputs) public pure returns (V3PubSignals memory) {
-        V3PubSignals memory pubSignals = V3PubSignals({
+    function parsePubSignals(uint256[] calldata inputs) public pure returns (PubSignals memory) {
+        PubSignals memory pubSignals = PubSignals({
             userID: inputs[0],
             circuitQueryHash: inputs[1],
             issuerState: inputs[2],
@@ -124,7 +124,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         // verify that zkp is valid
         require(verifier.verify(a, b, c, inputs), "Proof is not valid");
 
-        V3PubSignals memory signals = parsePubSignals(inputs);
+        PubSignals memory signals = parsePubSignals(inputs);
 
         // check circuitQueryHash
         require(
@@ -137,7 +137,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
         _checkProofExpiration(signals.timestamp);
 
-        V3PubSignals memory v3PubSignals = parsePubSignals(inputs);
+        PubSignals memory v3PubSignals = parsePubSignals(inputs);
         _checkLinkID(credAtomicQuery.groupID, v3PubSignals.linkID);
         _checkProofType(credAtomicQuery.proofType, v3PubSignals.proofType);
         _checkNullify(v3PubSignals.nullifier, credAtomicQuery.nullifierSessionID);

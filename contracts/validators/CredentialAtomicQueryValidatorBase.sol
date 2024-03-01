@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.16;
 
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
@@ -47,7 +46,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         s.proofExpirationTimeout = 1 hours;
         s.gistRootExpirationTimeout = 1 hours;
         s.state = IState(_stateContractAddr);
-        __Ownable_init();
+        __Ownable2Step_init();
     }
 
     function version() public pure virtual returns (string memory);
