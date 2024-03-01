@@ -92,17 +92,15 @@ function delay(ms: number) {
 
 describe("Atomic MTP Validator", function () {
   let state: any, mtpValidator: any;
-  let sender: any;
   let senderAddress: string;
 
   beforeEach(async () => {
-    [sender] = await ethers.getSigners();
-    senderAddress = sender.address;
+    senderAddress = '0x3930000000000000000000000000000000000000'; // because challenge is 12345 in proofs.
     const deployHelper = await DeployHelper.initialize(null, true);
 
     const contracts = await deployHelper.deployValidatorContracts(
       "VerifierMTPWrapper",
-      "CredentialAtomicQueryMTPValidator"
+      "CredentialAtomicQueryMTPV2Validator"
     );
     state = contracts.state;
     mtpValidator = contracts.validator;

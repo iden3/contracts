@@ -3,7 +3,6 @@ pragma solidity 0.8.16;
 
 import {CredentialAtomicQueryValidatorBase} from "./CredentialAtomicQueryValidatorBase.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
-import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 
@@ -54,7 +53,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
     function initialize(
         address _verifierContractAddr,
         address _stateContractAddr
-    ) public override initializer {
+    ) public initializer {
         _setInputToIndex("userID", 0);
         _setInputToIndex("circuitQueryHash", 1);
         _setInputToIndex("issuerState", 2);
@@ -73,7 +72,10 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         MainStorage storage s = _getMainStorage();
         s._supportedCircuitIds = [CIRCUIT_ID];
         s._circuitIdToVerifier[CIRCUIT_ID] = IVerifier(_verifierContractAddr);
-        super.initialize(_verifierContractAddr, _stateContractAddr);
+
+        _initDefaultStateVariables(_stateContractAddr,_verifierContractAddr, CIRCUIT_ID);
+        __Ownable_init();
+
     }
 
     function version() public pure override returns (string memory) {
@@ -137,12 +139,11 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
         _checkProofExpiration(signals.timestamp);
 
-        PubSignals memory v3PubSignals = parsePubSignals(inputs);
-        _checkLinkID(credAtomicQuery.groupID, v3PubSignals.linkID);
-        _checkProofType(credAtomicQuery.proofType, v3PubSignals.proofType);
-        _checkNullify(v3PubSignals.nullifier, credAtomicQuery.nullifierSessionID);
+        _checkLinkID(credAtomicQuery.groupID, signals.linkID);
+        _checkProofType(credAtomicQuery.proofType, signals.proofType);
+        _checkNullify(signals.nullifier, credAtomicQuery.nullifierSessionID);
 
-        if (v3PubSignals.isBJJAuthEnabled == 1) {
+        if (signals.isBJJAuthEnabled == 1) {
             _checkGistRoot(signals.gistRoot);
         } else {
             _checkAuth(signals.userID, sender);
@@ -151,10 +152,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         // Checking challenge to prevent replay attacks from other addresses
         _checkChallenge(signals.challenge, sender);
 
-
-        return _getSpecialInputPairs(
-            credAtomicQuery.operator == 16
-        );
+        return _getSpecialInputPairs(credAtomicQuery.operator == 16);
     }
 
     function _checkLinkID(uint256 groupID, uint256 linkID) internal pure {
@@ -204,12 +202,5 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "timestamp", inputIndex: 12});
 
         return pairs;
-    }
-
-    function _checkChallenge(uint256 challenge, address sender) internal pure {
-        require(
-            PrimitiveTypeUtils.int256ToAddress(challenge) == sender,
-            "Challenge should match the sender"
-        );
     }
 }

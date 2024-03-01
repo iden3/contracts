@@ -8,6 +8,7 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
 import {PoseidonFacade} from "../lib/Poseidon.sol";
+import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
 
 abstract contract CredentialAtomicQueryValidatorBase is
     OwnableUpgradeable,
@@ -37,17 +38,15 @@ abstract contract CredentialAtomicQueryValidatorBase is
         }
     }
 
-    function initialize(
-        address _verifierContractAddr,
-        address _stateContractAddr
-    ) public virtual onlyInitializing {
+    function _initDefaultStateVariables(address _stateContractAddr, address _verifierContractAddr,  string memory circuitId) internal {
         MainStorage storage s = _getMainStorage();
 
         s.revocationStateExpirationTimeout = 1 hours;
         s.proofExpirationTimeout = 1 hours;
         s.gistRootExpirationTimeout = 1 hours;
+        s._supportedCircuitIds = [circuitId];
+        s._circuitIdToVerifier[circuitId] = IVerifier(_verifierContractAddr);
         s.state = IState(_stateContractAddr);
-        __Ownable_init();
     }
 
     function version() public pure virtual returns (string memory);
@@ -201,6 +200,13 @@ abstract contract CredentialAtomicQueryValidatorBase is
         }
 
         revert("Issuer is not on the Allowed Issuers list");
+    }
+
+    function _checkChallenge(uint256 challenge, address sender) internal pure {
+        require(
+            PrimitiveTypeUtils.int256ToAddress(challenge) == sender,
+            "Challenge should match the sender"
+        );
     }
 
     function _setInputToIndex(string memory inputName, uint256 index) internal {

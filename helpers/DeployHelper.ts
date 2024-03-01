@@ -310,6 +310,23 @@ export class DeployHelper {
     };
   }
 
+
+  async deployValidatorStub(
+  ): Promise<Contract> {
+
+    const stub = await ethers.getContractFactory(
+        "ValidatorStub"
+    );
+    const stubInstance = await stub.deploy();
+    await stubInstance.deployed();
+
+    console.log(
+        "Validator stub  deployed to:",
+        stubInstance.address
+    );
+     return  stubInstance;
+  }
+
   async upgradeValidator(
     validatorAddress: string,
     validatorContractName: string,

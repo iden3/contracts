@@ -5,13 +5,10 @@ import {CredentialAtomicQueryValidatorBase} from "./CredentialAtomicQueryValidat
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 
-contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidatorBase {
+abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryValidatorBase {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.0.0";
-
-    string internal constant CIRCUIT_ID = "credentialAtomicQuerySigV2OnChain";
 
     struct CredentialAtomicQuery {
         uint256 schema;
@@ -26,6 +23,7 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidatorBase
         // 0 for inclusion in merklized credentials, 1 for non-inclusion and for non-merklized credentials
         uint256 claimPathNotExists;
     }
+
     struct PubSignals {
         uint256 merklized;
         uint256 userID;
@@ -40,62 +38,11 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidatorBase
         uint256 timestamp;
     }
 
-    function initialize(
-        address _verifierContractAddr,
-        address _stateContractAddr
-    ) public override initializer {
-        _setInputToIndex("merklized", 0);
-        _setInputToIndex("userID", 1);
-        _setInputToIndex("circuitQueryHash", 2);
-        _setInputToIndex("issuerAuthState", 3);
-        _setInputToIndex("requestID", 4);
-        _setInputToIndex("challenge", 5);
-        _setInputToIndex("gistRoot", 6);
-        _setInputToIndex("issuerID", 7);
-        _setInputToIndex("isRevocationChecked", 8);
-        _setInputToIndex("issuerClaimNonRevState", 9);
-        _setInputToIndex("timestamp", 10);
+    function version() public pure virtual override returns (string memory);
 
-        MainStorage storage s = _getMainStorage();
-        s._supportedCircuitIds = [CIRCUIT_ID];
-        s._circuitIdToVerifier[CIRCUIT_ID] = IVerifier(_verifierContractAddr);
-        super.initialize(_verifierContractAddr, _stateContractAddr);
-    }
-
-    function version() public pure override returns (string memory) {
-        return VERSION;
-    }
-
-    function parsePubSignals(uint256[] calldata inputs) public pure returns (PubSignals memory) {
-        PubSignals memory params = PubSignals({
-            merklized: inputs[0],
-            userID: inputs[1],
-            circuitQueryHash: inputs[2],
-            issuerState: inputs[3],
-            requestID: inputs[4],
-            challenge: inputs[5],
-            gistRoot: inputs[6],
-            issuerID: inputs[7],
-            isRevocationChecked: inputs[8],
-            issuerClaimNonRevState: inputs[9],
-            timestamp: inputs[10]
-        });
-
-        return params;
-    }
-
-    function _getSpecialInputPairs()
-        internal
-        pure
-        returns (ICircuitValidator.KeyToInputIndex[] memory)
-    {
-        ICircuitValidator.KeyToInputIndex[] memory pairs = new ICircuitValidator.KeyToInputIndex[](
-            2
-        );
-        pairs[0] = ICircuitValidator.KeyToInputIndex({key: "userID", inputIndex: 1});
-        pairs[1] = ICircuitValidator.KeyToInputIndex({key: "timestamp", inputIndex: 10});
-        return pairs;
-    }
+    function parsePubSignals(
+        uint256[] calldata inputs
+    ) public pure virtual returns (PubSignals memory);
 
     function verify(
         uint256[] calldata inputs,
@@ -137,6 +84,9 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidatorBase
             credAtomicQuery.skipClaimRevocationCheck
         );
 
+        // Checking challenge to prevent replay attacks from other addresses
+        _checkChallenge(signals.challenge, sender);
+
         // selective disclosure is not supported for v2 onchain circuits
         return _getSpecialInputPairs();
     }
@@ -158,5 +108,18 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidatorBase
             isRevocationChecked == expectedIsRevocationChecked,
             "Revocation check should match the query"
         );
+    }
+
+    function _getSpecialInputPairs()
+        internal
+        pure
+        returns (ICircuitValidator.KeyToInputIndex[] memory)
+    {
+        ICircuitValidator.KeyToInputIndex[] memory pairs = new ICircuitValidator.KeyToInputIndex[](
+            2
+        );
+        pairs[0] = ICircuitValidator.KeyToInputIndex({key: "userID", inputIndex: 1});
+        pairs[1] = ICircuitValidator.KeyToInputIndex({key: "timestamp", inputIndex: 10});
+        return pairs;
     }
 }

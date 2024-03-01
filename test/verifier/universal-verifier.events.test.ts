@@ -74,7 +74,7 @@ describe("Universal Verifier events", function () {
 
     const contracts = await deployHelper.deployValidatorContracts(
       "VerifierSigWrapper",
-      "CredentialAtomicQuerySigValidator"
+      "CredentialAtomicQuerySigV2Validator"
     );
     sig = contracts.validator;
     await verifier.addWhitelistedValidator(sig.address);
