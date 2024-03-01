@@ -138,8 +138,7 @@ contract CredentialAtomicQuerySigValidator is CredentialAtomicQueryValidatorBase
         );
 
         // selective disclosure is not supported for v2 onchain circuits
-        ICircuitValidator.KeyToInputIndex[] memory pairs = _getSpecialInputPairs();
-        return pairs;
+        return _getSpecialInputPairs();
     }
 
     function _checkMerklized(uint256 merklized, uint256 queryClaimPathKey) internal pure {

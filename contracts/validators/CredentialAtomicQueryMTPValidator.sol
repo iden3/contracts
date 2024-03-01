@@ -137,8 +137,8 @@ contract CredentialAtomicQueryMTPValidator is CredentialAtomicQueryValidatorBase
             credAtomicQuery.skipClaimRevocationCheck
         );
 
-        ICircuitValidator.KeyToInputIndex[] memory pairs = _getSpecialInputPairs();
-        return pairs;
+        // selective disclosure is not supported for v2 onchain circuits
+        return _getSpecialInputPairs();
     }
 
     function _checkMerklized(uint256 merklized, uint256 queryClaimPathKey) internal pure {

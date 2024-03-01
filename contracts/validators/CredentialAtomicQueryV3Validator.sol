@@ -151,10 +151,10 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         // Checking challenge to prevent replay attacks from other addresses
         _checkChallenge(signals.challenge, sender);
 
-        ICircuitValidator.KeyToInputIndex[] memory pairs = _getSpecialInputPairs(
+
+        return _getSpecialInputPairs(
             credAtomicQuery.operator == 16
         );
-        return pairs;
     }
 
     function _checkLinkID(uint256 groupID, uint256 linkID) internal pure {
