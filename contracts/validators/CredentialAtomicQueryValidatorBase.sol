@@ -47,7 +47,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         s.proofExpirationTimeout = 1 hours;
         s.gistRootExpirationTimeout = 1 hours;
         s.state = IState(_stateContractAddr);
-        __Ownable2Step_init();
+        __Ownable_init();
     }
 
     function version() public pure virtual returns (string memory);
