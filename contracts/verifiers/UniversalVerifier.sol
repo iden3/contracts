@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IUniversalVerifier} from "../interfaces/IUniversalVerifier.sol";
@@ -9,7 +9,7 @@ import {ArrayUtils} from "../lib/ArrayUtils.sol";
 
 /// @title Universal Verifier Contract
 /// @notice A contract to manage ZKP (Zero-Knowledge Proof) requests and proofs.
-contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
+contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
     /// @dev Struct to store ZKP proof and associated data
     struct Proof {
         bool isProved;

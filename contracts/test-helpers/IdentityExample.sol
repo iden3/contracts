@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.20;
 
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable-v4/access/OwnableUpgradeable.sol";
+import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {IState} from "../interfaces/IState.sol";
 import {ClaimBuilder} from "../lib/ClaimBuilder.sol";
 import {IdentityLib} from "../lib/IdentityLib.sol";
@@ -10,12 +10,12 @@ import {IdentityBase} from "../lib/IdentityBase.sol";
 // /**
 //  * @dev Contract managing onchain identity
 //  */
-contract IdentityExample is IdentityBase, OwnableUpgradeable {
+contract IdentityExample is IdentityBase, Ownable2StepUpgradeable {
     using IdentityLib for IdentityLib.Data;
 
     function initialize(address _stateContractAddr) public override initializer {
         super.initialize(_stateContractAddr);
-        __Ownable_init();
+        __Ownable_init(_msgSender());
     }
 
     function addClaimAndTransit(uint256[8] calldata claim) public onlyOwner {

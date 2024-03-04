@@ -10,7 +10,6 @@ import {SmtLib} from "../lib/SmtLib.sol";
 //  * @dev Contract managing onchain identity
 //  */
 abstract contract IdentityBase is IOnchainCredentialStatusResolver {
-
     using IdentityLib for IdentityLib.Data;
 
     /// @dev Main storage structure for the contract
@@ -258,7 +257,9 @@ abstract contract IdentityBase is IOnchainCredentialStatusResolver {
         uint64 nonce
     ) public view returns (CredentialStatus memory) {
         require(id == _getMainStorage().identity.id, "Identity id mismatch");
-        IdentityLib.Roots memory historicalStates = _getMainStorage().identity.getRootsByState(state);
+        IdentityLib.Roots memory historicalStates = _getMainStorage().identity.getRootsByState(
+            state
+        );
         IdentityStateRoots memory issuerStates = IdentityStateRoots({
             state: state,
             rootOfRoots: historicalStates.rootsRoot,
