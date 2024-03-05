@@ -41,6 +41,9 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
 
     uint256 constant REQUESTS_RETURN_LIMIT = 1000;
 
+    /// @dev Key to retrieve the linkID from the proof storage
+    string constant LINKED_PROOF_KEY = "linkID";
+
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.UniversalVerifier")) - 1)) & ~bytes32(uint256(0xff));
     bytes32 private constant UNIVERSAL_VERIFIER_STORAGE_LOCATION =
         0x0c87ac878172a541d6ba539a4e02bbe44e1f3a504bea30ed92c32fb1517db700;
@@ -316,5 +319,32 @@ contract UniversalVerifier is OwnableUpgradeable, IUniversalVerifier {
         string memory key
     ) public view returns (uint256) {
         return _getMainStorage().proofs[user][requestId].storageFields[key];
+    }
+
+    /// @notice Gets the list of reuest IDs and verifies the proofs are linked
+    /// @param requestIds the list of reuest IDs
+    /// @return Whether the proofs are linked
+    function verifyLinkedProofs(uint64[] calldata requestIds) public view returns (bool) {
+        Proof storage firstProof = _getMainStorage().proofs[_msgSender()][requestIds[0]];
+        uint256 linkIdToCompare = firstProof.storageFields[LINKED_PROOF_KEY];
+
+        if (linkIdToCompare == 0) {
+            revert("linkID cannot be 0.");
+        }
+
+        for (uint256 i = 1; i < requestIds.length; i++) {
+            Proof storage proof = _getMainStorage().proofs[_msgSender()][requestIds[i]];
+            uint256 linkID = proof.storageFields[LINKED_PROOF_KEY];
+
+            if (linkID == 0) {
+                revert("linkID cannot be 0.");
+            }
+
+            if (linkIdToCompare != linkID) {
+                revert("linkID verification failed");
+            }
+        }
+
+        return true;
     }
 }
