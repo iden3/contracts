@@ -341,13 +341,15 @@ export class DeployHelper {
     return genesisUtilsWrapper;
   }
 
-  async deployZKPVerifier(): Promise<{
+  async deployZKPVerifier(
+    owner: SignerWithAddress
+  ): Promise<{
     address: string;
   }> {
     const ZKPVerifier = await ethers.getContractFactory(
       "ZKPVerifier"
     );
-    const zkpVerifier = await ZKPVerifier.deploy();
+    const zkpVerifier = await ZKPVerifier.deploy(owner.address);
     console.log("ZKPVerifier deployed to:", zkpVerifier.address);
     return zkpVerifier;
   }

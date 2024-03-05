@@ -30,7 +30,8 @@ describe("ZKP Verifier", function () {
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize(null, true);
-    verifier = await deployHelper.deployZKPVerifier();
+    const [owner] = await ethers.getSigners();
+    verifier = await deployHelper.deployZKPVerifier(owner);
 
     const contracts = await deployHelper.deployValidatorContracts(
       "VerifierSigWrapper",
@@ -41,7 +42,7 @@ describe("ZKP Verifier", function () {
   });
 
   it('test submit response (for gas estimation puprose)', async () => {
-    await publishState(state, stateTransition); 
+    await publishState(state, stateTransition);
     await verifier.setZKPRequest(0, { metadata: "metadata", validator: sig.address, data: packValidatorParams(query) });
     await sig.setProofExpirationTimeout(315360000);
 
