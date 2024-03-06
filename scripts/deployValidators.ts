@@ -10,11 +10,11 @@ async function main() {
   const validators = [
     {
       verifierContractWrapperName: "VerifierMTPWrapper",
-      validatorContractName: "CredentialAtomicQueryMTPValidator",
+      validatorContractName: "CredentialAtomicQueryMTPV2Validator",
     },
     {
       verifierContractWrapperName: "VerifierSigWrapper",
-      validatorContractName: "CredentialAtomicQuerySigValidator",
+      validatorContractName: "CredentialAtomicQuerySigV2Validator",
     },
     {
       verifierContractWrapperName: "VerifierV3Wrapper",

@@ -92,17 +92,15 @@ function delay(ms: number) {
 
 describe("Atomic Sig Validator", function () {
   let state: any, sig: any;
-  let sender: any;
   let senderAddress: string;
 
   beforeEach(async () => {
-    [sender] = await ethers.getSigners();
-    senderAddress = await sender.getAddress();
+    senderAddress = '0x3930000000000000000000000000000000000000'; // because challenge is 12345 in proofs.
     const deployHelper = await DeployHelper.initialize(null, true);
 
     const contracts = await deployHelper.deployValidatorContracts(
       "VerifierSigWrapper",
-      "CredentialAtomicQuerySigValidator"
+      "CredentialAtomicQuerySigV2Validator"
     );
     state = contracts.state;
     sig = contracts.validator;
