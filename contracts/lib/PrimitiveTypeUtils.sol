@@ -96,13 +96,6 @@ library PrimitiveTypeUtils {
     }
 
     /**
-     * @dev int256ToAddress
-     */
-    function int256ToAddress(uint256 input) internal pure returns (address) {
-        return bytesToAddress(uint256ToBytes(reverseUint256(input)));
-    }
-
-    /**
      * @dev concat
      */
     function concat(
@@ -129,4 +122,32 @@ library PrimitiveTypeUtils {
     function addressToUint256(address _addr) internal pure returns (uint256) {
         return uint256(uint160(_addr));
     }
+
+    /**
+    * @dev uint256ToAddress
+     */
+    function uint256ToAddress(uint256 input) internal pure returns (address) {
+        return bytesToAddress(uint256ToBytes(input));
+    }
+
+    /**
+    * @dev addressToChallenge
+     */
+    function addressToChallenge(address _addr) internal pure returns (uint256) {
+        return reverseUint256(toUint256(addressToBytes(_addr)));
+    }
+
+    /**
+     * @dev challengeToAddress
+     */
+    function challengeToAddress(uint256 input) internal pure returns (address) {
+        require(input == uint256(uint160(input)), "given challenge is not an address, given uint256 have more than valuable 20 bytes");
+        return bytesToAddress(uint256ToBytes(reverseUint256(input)));
+    }
+
+
+    function addressToBytes(address a) internal pure returns (bytes memory) {
+        return abi.encodePacked(a);
+    }
+
 }

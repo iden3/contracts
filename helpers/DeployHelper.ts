@@ -3,8 +3,7 @@ import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
 import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
-import { GenesisUtilsWrapper } from "../typechain";
-import {BigNumber} from "@ethersproject/bignumber";
+import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain";
 
 
 const SMT_MAX_DEPTH = 64;
@@ -356,6 +355,14 @@ export class DeployHelper {
     const genesisUtilsWrapper = await GenesisUtilsWrapper.deploy();
     console.log("GenesisUtilsWrapper deployed to:", genesisUtilsWrapper.address);
     return genesisUtilsWrapper;
+  }
+  async deployPrimitiveTypeUtilsWrapper(): Promise<PrimitiveTypeUtilsWrapper> {
+    const PrimitiveTypeUtilsWrapper = await ethers.getContractFactory(
+        "PrimitiveTypeUtilsWrapper"
+    );
+    const primitiveTypeUtilsWrapper = await PrimitiveTypeUtilsWrapper.deploy();
+    console.log("PrimitiveUtilsWrapper deployed to:", primitiveTypeUtilsWrapper.address);
+    return primitiveTypeUtilsWrapper;
   }
 
   async deployZKPVerifier(
