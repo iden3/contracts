@@ -31,7 +31,7 @@ contract CredentialAtomicQueryMTPV2Validator is CredentialAtomicQueryV2Validator
 
         _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID);
 
-        __Ownable_init();
+        __Ownable_init(_msgSender());
     }
 
     function version() public pure override returns (string memory) {
