@@ -2,13 +2,13 @@
 pragma solidity 0.8.20;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 
-contract ZKPVerifier is IZKPVerifier, Ownable {
+contract ZKPVerifier is IZKPVerifier, Ownable2StepUpgradeable {
     /**
      * @dev Max return array length for request queries
      */
@@ -33,7 +33,9 @@ contract ZKPVerifier is IZKPVerifier, Ownable {
         }
     }
 
-    constructor(address initialOwner) Ownable(initialOwner) {}
+    function initialize(address initialOwner) public initializer {
+        __Ownable_init(initialOwner);
+    }
 
     function submitZKPResponse(
         uint64 requestId,

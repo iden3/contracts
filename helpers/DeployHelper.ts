@@ -363,12 +363,14 @@ export class DeployHelper {
   ): Promise<{
     address: string;
   }> {
-    const ZKPVerifier = await ethers.getContractFactory(
+    const Verifier = await ethers.getContractFactory(
       "ZKPVerifier"
     );
-    const zkpVerifier = await ZKPVerifier.deploy(owner.address);
-    console.log("ZKPVerifier deployed to:", zkpVerifier.address);
-    return zkpVerifier;
+    // const zkpVerifier = await ZKPVerifier.deploy(owner.address);
+    const verifier = await upgrades.deployProxy(Verifier, [owner.address]);
+    await verifier.deployed();
+    console.log("ZKPVerifier deployed to:", verifier.address);
+    return verifier;
   }
 
   async deployUniversalVerifier(owner: SignerWithAddress | undefined): Promise<{
@@ -377,13 +379,13 @@ export class DeployHelper {
     if (!owner) {
       owner = this.signers[0];
     }
-    const verifier = await ethers.getContractFactory(
+    const Verifier = await ethers.getContractFactory(
       "UniversalVerifier", owner
     );
-    const zkpVerifier = await upgrades.deployProxy(verifier);
-    await zkpVerifier.deployed();
-    console.log("UniversalVerifier deployed to:", zkpVerifier.address);
-    return zkpVerifier;
+    const verifier = await upgrades.deployProxy(Verifier);
+    await verifier.deployed();
+    console.log("UniversalVerifier deployed to:", verifier.address);
+    return verifier;
   }
 
   async getDefaultIdType(): Promise<{ defaultIdType: number, chainId: number }> {
