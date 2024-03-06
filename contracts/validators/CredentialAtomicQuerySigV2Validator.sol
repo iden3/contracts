@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.16;
+pragma solidity 0.8.20;
 
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
@@ -30,7 +30,7 @@ contract CredentialAtomicQuerySigV2Validator is CredentialAtomicQueryV2Validator
         _setInputToIndex("timestamp", 10);
 
         _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID);
-        __Ownable_init();
+        __Ownable_init(_msgSender());
     }
 
     function version() public pure override returns (string memory) {
