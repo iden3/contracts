@@ -5,7 +5,6 @@ import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
 contract PrimitiveTypeUtilsWrapper {
-
     function addressToChallenge(address _addr) public pure returns (uint256) {
         return PrimitiveTypeUtils.addressToChallenge(_addr);
     }
@@ -13,5 +12,4 @@ contract PrimitiveTypeUtilsWrapper {
     function challengeToAddress(uint256 input) public pure returns (address) {
         return PrimitiveTypeUtils.challengeToAddress(input);
     }
-
 }
