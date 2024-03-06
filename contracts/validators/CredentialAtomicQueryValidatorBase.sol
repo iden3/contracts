@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.20;
 
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
@@ -11,7 +11,7 @@ import {PoseidonFacade} from "../lib/Poseidon.sol";
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
 
 abstract contract CredentialAtomicQueryValidatorBase is
-    OwnableUpgradeable,
+    Ownable2StepUpgradeable,
     ICircuitValidator,
     ERC165
 {
