@@ -83,9 +83,7 @@ library PrimitiveTypeUtils {
      * @return value e.g 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000
      */
     function padRightToUint256(bytes memory b) internal pure returns (uint256 value) {
-        assembly {
-            value := mload(add(b, 0x20))
-        }
+        return uint256(bytes32(b));
     }
 
     /**
