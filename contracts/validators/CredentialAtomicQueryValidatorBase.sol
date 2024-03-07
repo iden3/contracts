@@ -209,7 +209,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
 
     function _checkChallenge(uint256 challenge, address sender) internal pure {
         require(
-            PrimitiveTypeUtils.challengeToAddress(challenge) == sender,
+            PrimitiveTypeUtils.uint256LEToAddress(challenge) == sender,
             "Challenge should match the sender"
         );
     }
