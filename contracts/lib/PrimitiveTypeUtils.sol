@@ -78,11 +78,13 @@ library PrimitiveTypeUtils {
     }
 
     /**
-     * @dev toUint256
+     * @dev padRightToUint256 shift left 12 bytes
+     * @param b, bytes array with max length 32, other bytes are cut. e.g. 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+     * @return 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000
      */
-    function toUint256(bytes memory bys) internal pure returns (uint256 value) {
+    function padRightToUint256(bytes memory b) internal pure returns (uint256 value) {
         assembly {
-            value := mload(add(bys, 0x20))
+            value := mload(add(b, 0x20))
         }
     }
 
@@ -118,6 +120,9 @@ library PrimitiveTypeUtils {
 
     /**
      * @dev addressToUint256
+     * @param _addr is ethereum address: eg.0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+     * which as 0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266 converted to uint160
+     * @return uint256 representation of address 1390849295786071768276380950238675083608645509734
      */
     function addressToUint256(address _addr) internal pure returns (uint256) {
         return uint256(uint160(_addr));
@@ -125,25 +130,41 @@ library PrimitiveTypeUtils {
 
     /**
      * @dev uint256ToAddress
+     * @param input uint256 e.g. 1390849295786071768276380950238675083608645509734
+     * which as 0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266 converted to address
+     * @return address representation of uint256 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
      */
     function uint256ToAddress(uint256 input) internal pure returns (address) {
-        return bytesToAddress(uint256ToBytes(input));
+        require(
+            input == uint256(uint160(input)),
+            "given input is not a representation of address, 12 most significant bytes should be zero"
+        );
+        return  address(uint160(input));
     }
 
     /**
      * @dev addressToChallenge
+     * @param _addr is ethereum address: eg.0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+     * addressToBytes: 0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266
+     * padRightToUint256: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000,
+     * reverseUint256 result: 0x0000000000000000000000006622b9ffcf797282b86acef4f688ad1ae5d69ff3
+     * @return uint256 where lower 20 bytes is representation of address in LittleEndian: 583091486781463398742321306787801699791102451699
      */
     function addressToChallenge(address _addr) internal pure returns (uint256) {
-        return reverseUint256(toUint256(addressToBytes(_addr)));
+        return reverseUint256(padRightToUint256(addressToBytes(_addr)));
     }
 
     /**
      * @dev challengeToAddress
+     * @param input is uint256 which is created from bytes in LittleEndian: eg. 583091486781463398742321306787801699791102451699 or 0x0000000000000000000000006622b9ffcf797282b86acef4f688ad1ae5d69ff3
+     * reverseUint256 result: 110194434039389003190498847789203126033799499726478230611233094447786700570624
+     * uint256ToBytes result: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000
+     * @return address - 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
      */
     function challengeToAddress(uint256 input) internal pure returns (address) {
         require(
             input == uint256(uint160(input)),
-            "given challenge is not an address, given uint256 have more than valuable 20 bytes"
+            "given challenge is not an address, 12 most significant bytes should be zero"
         );
         return bytesToAddress(uint256ToBytes(reverseUint256(input)));
     }

@@ -49,7 +49,7 @@ library GenesisUtils {
         bytes memory idBytes = PrimitiveTypeUtils.concat(beforeChecksum, checkSumBytes);
         require(idBytes.length == 31, "idBytes requires 31 length array");
 
-        return PrimitiveTypeUtils.reverseUint256(PrimitiveTypeUtils.toUint256(idBytes));
+        return PrimitiveTypeUtils.reverseUint256(PrimitiveTypeUtils.padRightToUint256(idBytes));
     }
 
     /**
