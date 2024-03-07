@@ -170,7 +170,7 @@ library PrimitiveTypeUtils {
     function uint256LEToAddress(uint256 input) internal pure returns (address) {
         require(
             input == uint256(uint160(input)),
-            "given challenge is not an address, 12 most significant bytes should be zero"
+            "given uint256 is not a representation of an address, 12 most significant bytes should be zero"
         );
         return bytesToAddress(uint256ToBytes(reverseUint256(input)));
     }
