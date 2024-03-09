@@ -29,7 +29,8 @@ describe("ZKP Verifier", function () {
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize(null, true);
-    verifier = await deployHelper.deployZKPVerifier();
+    const [owner] = await ethers.getSigners();
+    verifier = await deployHelper.deployZKPVerifier(owner);
 
     const stub = await deployHelper.deployValidatorStub();
     sig = stub;
