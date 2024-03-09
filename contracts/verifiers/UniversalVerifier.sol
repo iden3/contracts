@@ -44,6 +44,9 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
     /// @dev Key to retrieve the linkID from the proof storage
     string constant LINKED_PROOF_KEY = "linkID";
 
+    /// @dev Linked proof custom error
+    error LinkedProofError(string message, uint256 linkIdToCompare, uint256 linkID);
+
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.UniversalVerifier")) - 1)) & ~bytes32(uint256(0xff));
     bytes32 private constant UNIVERSAL_VERIFIER_STORAGE_LOCATION =
         0x0c87ac878172a541d6ba539a4e02bbe44e1f3a504bea30ed92c32fb1517db700;
@@ -321,30 +324,30 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         return _getMainStorage().proofs[user][requestId].storageFields[key];
     }
 
-    /// @notice Gets the list of reuest IDs and verifies the proofs are linked
+    /// @notice Gets the list of request IDs and verifies the proofs are linked
     /// @param requestIds the list of reuest IDs
-    /// @return Whether the proofs are linked
-    function verifyLinkedProofs(uint64[] calldata requestIds) public view returns (bool) {
-        Proof storage firstProof = _getMainStorage().proofs[_msgSender()][requestIds[0]];
-        uint256 linkIdToCompare = firstProof.storageFields[LINKED_PROOF_KEY];
+    /// Throws if the proofs are not linked
+    function verifyLinkedProofs(uint64[] calldata requestIds) public view {
+        require(requestIds.length > 1, "Linked proof verification needs more than 1 request");
 
-        if (linkIdToCompare == 0) {
-            revert("linkID cannot be 0.");
+        Proof storage firstProof = _getMainStorage().proofs[_msgSender()][requestIds[0]];
+        uint256 expectedLinkID = firstProof.storageFields[LINKED_PROOF_KEY];
+
+        if (expectedLinkID == 0) {
+            revert("LinkID cannot be 0.");
         }
 
         for (uint256 i = 1; i < requestIds.length; i++) {
             Proof storage proof = _getMainStorage().proofs[_msgSender()][requestIds[i]];
-            uint256 linkID = proof.storageFields[LINKED_PROOF_KEY];
+            uint256 actualLinkID = proof.storageFields[LINKED_PROOF_KEY];
 
-            if (linkID == 0) {
-                revert("linkID cannot be 0.");
+            if (actualLinkID == 0) {
+                revert("LinkID cannot be 0.");
             }
 
-            if (linkIdToCompare != linkID) {
-                revert("linkID verification failed");
+            if (expectedLinkID != actualLinkID) {
+                revert LinkedProofError("Proofs are not linked", expectedLinkID, actualLinkID);
             }
         }
-
-        return true;
     }
 }

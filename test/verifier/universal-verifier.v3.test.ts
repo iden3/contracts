@@ -120,13 +120,13 @@ describe("Universal Verifier V3 validator", function () {
       await verifier.submitZKPResponse(100 + i, inputs, pi_a, pi_b, pi_c);
     }
 
-    expect(await verifier.verifyLinkedProofs([101, 102])).to.be.true;
-    expect(await verifier.verifyLinkedProofs([100, 103])).to.be.true;
-    await expect(verifier.verifyLinkedProofs([100, 101])).to.be.revertedWith(
-      "linkID verification failed"
-    );
-    await expect(verifier.verifyLinkedProofs([102, 103])).to.be.revertedWith(
-      "linkID verification failed"
+    expect(await verifier.verifyLinkedProofs([101, 102])).not.to.throw;
+    expect(await verifier.verifyLinkedProofs([100, 103])).not.to.throw;
+    await expect(verifier.verifyLinkedProofs([100, 101])).to.be.revertedWith("LinkedProofError");
+    await expect(verifier.verifyLinkedProofs([102, 103])).to.be.revertedWith("LinkedProofError");
+
+    await expect(verifier.verifyLinkedProofs([102])).to.be.revertedWith(
+      "Linked proof verification needs more than 1 request"
     );
   });
 });
