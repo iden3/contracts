@@ -110,8 +110,8 @@ contract ZKPVerifier is IZKPVerifier, Ownable2StepUpgradeable {
         return result;
     }
 
-    function isProofSubmitted(address sender, uint64 requestID) returns (bool) {
-        return _getMainStorage().proofs[address][requestID];
+    function isProofSubmitted(address sender, uint64 requestID) public view returns (bool) {
+        return _getMainStorage().proofs[sender][requestID];
     }
 
     /**
