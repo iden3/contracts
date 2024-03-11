@@ -48,7 +48,7 @@ contract ZKPVerifier is IZKPVerifier, Ownable2StepUpgradeable {
     }
 
     function ___ZKPVerifier_init_unchained(address initialOwner) internal onlyInitializing {
-         __Ownable_init(initialOwner);
+        __Ownable_init(initialOwner);
     }
 
     function submitZKPResponse(
