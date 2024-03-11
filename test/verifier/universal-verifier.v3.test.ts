@@ -9,7 +9,7 @@ import testData from "./linked-proofs-data.json";
 describe("Universal Verifier V3 validator", function () {
   let verifier: any, v3: any, state: any;
   let signer, signer2;
-  let signerAddress: string, signer2Address: string;
+  let signerAddress: string;
   let deployHelper: DeployHelper;
 
   const value = ["20010101", ...new Array(63).fill("0")];
