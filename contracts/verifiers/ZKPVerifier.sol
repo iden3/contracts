@@ -110,6 +110,10 @@ contract ZKPVerifier is IZKPVerifier, Ownable2StepUpgradeable {
         return result;
     }
 
+    function isProofSubmitted(address sender, uint64 requestID) returns (bool) {
+        return _getMainStorage().proofs[address][requestID];
+    }
+
     /**
      * @dev Hook that is called before any proof response submit
      */
