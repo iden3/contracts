@@ -8,7 +8,7 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 
-contract ZKPVerifier is IZKPVerifier, Ownable2StepUpgradeable {
+abstract contract ZKPVerifier is IZKPVerifier, Ownable2StepUpgradeable {
     /**
      * @dev Max return array length for request queries
      */
@@ -33,7 +33,17 @@ contract ZKPVerifier is IZKPVerifier, Ownable2StepUpgradeable {
         }
     }
 
-    function initialize(address initialOwner) public initializer {
+    /**
+     * @dev Sets the value for {initialOwner}.
+     *
+     * This value is immutable: it can only be set once during
+     * construction.
+     */
+    function __ZKPVerifier_init(address initialOwner) internal onlyInitializing {
+        ___ZKPVerifier_init_unchained(initialOwner);
+    }
+
+    function ___ZKPVerifier_init_unchained(address initialOwner) internal onlyInitializing {
         __Ownable_init(initialOwner);
     }
 
@@ -108,6 +118,10 @@ contract ZKPVerifier is IZKPVerifier, Ownable2StepUpgradeable {
         }
 
         return result;
+    }
+
+    function isProofSubmitted(address sender, uint64 requestID) public view returns (bool) {
+        return _getMainStorage().proofs[sender][requestID];
     }
 
     /**
