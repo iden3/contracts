@@ -19,8 +19,7 @@ describe("Universal Verifier V3 validator", function () {
   const operator = 2;
   const claimPathKey =
     "20376033832371109177683048456014525905119173674985843915445634726167450989630";
-
-  const valueArrSize = 1;
+  const [merklized, isRevocationChecked, valueArrSize] = [1, 1, 1];
   const nullifierSessionId = "0";
   const verifierId = "21929109382993718606847853573861987353620810345503358891473103689157378049";
   const queryHash = calculateQueryHashV3(
@@ -30,8 +29,8 @@ describe("Universal Verifier V3 validator", function () {
     operator,
     claimPathKey,
     valueArrSize,
-    1,
-    1,
+    merklized,
+    isRevocationChecked,
     verifierId,
     nullifierSessionId
   );
