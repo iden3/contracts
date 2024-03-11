@@ -33,8 +33,22 @@ contract ZKPVerifier is IZKPVerifier, Ownable2StepUpgradeable {
         }
     }
 
-    function initialize(address initialOwner) public initializer {
-        __Ownable_init(initialOwner);
+    function initialize(address initialOwner) public virtual initializer {
+        __ZKPVerifier_init(initialOwner);
+    }
+
+    /**
+     * @dev Sets the value for {initialOwner}.
+     *
+     * This value is immutable: it can only be set once during
+     * construction.
+     */
+    function __ZKPVerifier_init(address initialOwner) internal onlyInitializing {
+        ___ZKPVerifier_init_unchained(initialOwner);
+    }
+
+    function ___ZKPVerifier_init_unchained(address initialOwner) internal onlyInitializing {
+         __Ownable_init(initialOwner);
     }
 
     function submitZKPResponse(
