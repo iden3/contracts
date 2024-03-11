@@ -371,12 +371,12 @@ export class DeployHelper {
     address: string;
   }> {
     const Verifier = await ethers.getContractFactory(
-      "ZKPVerifier"
+      "ZKPVerifierWrapper"
     );
     // const zkpVerifier = await ZKPVerifier.deploy(owner.address);
     const verifier = await upgrades.deployProxy(Verifier, [owner.address]);
     await verifier.deployed();
-    console.log("ZKPVerifier deployed to:", verifier.address);
+    console.log("ZKPVerifierWrapper deployed to:", verifier.address);
     return verifier;
   }
 
