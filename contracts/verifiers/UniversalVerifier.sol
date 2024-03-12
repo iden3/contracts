@@ -45,6 +45,16 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
     bytes32 private constant UNIVERSAL_VERIFIER_STORAGE_LOCATION =
         0x0c87ac878172a541d6ba539a4e02bbe44e1f3a504bea30ed92c32fb1517db700;
 
+    /**
+     * @dev Version of contract
+     */
+    string public constant VERSION = "1.0.0-beta.0";
+
+    /// @dev Version of contract getter
+    function version() public pure returns (string memory) {
+        return VERSION;
+    }
+
     /// @dev Get the main storage using assembly to ensure specific storage location
     function _getMainStorage() private pure returns (MainStorage storage $) {
         assembly {
