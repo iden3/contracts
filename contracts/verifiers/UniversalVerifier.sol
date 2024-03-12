@@ -45,7 +45,13 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
     string constant LINKED_PROOF_KEY = "linkID";
 
     /// @dev Linked proof custom error
-    error LinkedProofError(string message, uint256 linkIdToCompare, uint256 linkID);
+    error LinkedProofError(
+        string message,
+        uint64 requestId,
+        uint256 linkID,
+        uint64 requestIdToCompare,
+        uint256 linkIdToCompare
+    );
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.UniversalVerifier")) - 1)) & ~bytes32(uint256(0xff));
     bytes32 private constant UNIVERSAL_VERIFIER_STORAGE_LOCATION =
@@ -325,7 +331,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
     }
 
     /// @notice Gets the list of request IDs and verifies the proofs are linked
-    /// @param requestIds the list of reuest IDs
+    /// @param requestIds the list of request IDs
     /// Throws if the proofs are not linked
     function verifyLinkedProofs(uint64[] calldata requestIds) public view {
         require(requestIds.length > 1, "Linked proof verification needs more than 1 request");
@@ -346,7 +352,13 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
             }
 
             if (expectedLinkID != actualLinkID) {
-                revert LinkedProofError("Proofs are not linked", expectedLinkID, actualLinkID);
+                revert LinkedProofError(
+                    "Proofs are not linked",
+                    requestIds[0],
+                    expectedLinkID,
+                    requestIds[i],
+                    actualLinkID
+                );
             }
         }
     }
