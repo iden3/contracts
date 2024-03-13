@@ -335,8 +335,8 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
     /// Throws if the proofs are not linked
     function verifyLinkedProofs(uint64[] calldata requestIds) public view {
         require(requestIds.length > 1, "Linked proof verification needs more than 1 request");
-
-        Proof storage firstProof = _getMainStorage().proofs[_msgSender()][requestIds[0]];
+        mapping(uint64 => Proof) storage proofs = _getMainStorage().proofs[_msgSender()];
+        Proof storage firstProof = proofs[requestIds[0]];
         uint256 expectedLinkID = firstProof.storageFields[LINKED_PROOF_KEY];
 
         if (expectedLinkID == 0) {
@@ -344,12 +344,8 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         }
 
         for (uint256 i = 1; i < requestIds.length; i++) {
-            Proof storage proof = _getMainStorage().proofs[_msgSender()][requestIds[i]];
+            Proof storage proof = proofs[requestIds[i]];
             uint256 actualLinkID = proof.storageFields[LINKED_PROOF_KEY];
-
-            if (actualLinkID == 0) {
-                revert("LinkID cannot be 0.");
-            }
 
             if (expectedLinkID != actualLinkID) {
                 revert LinkedProofError(
