@@ -1,0 +1,68 @@
+import { DeployHelper } from "../../helpers/DeployHelper";
+import { ethers } from "hardhat";
+import { packV3ValidatorParams } from "../utils/validator-pack-utils";
+import { prepareInputs, publishState } from "../utils/state-utils";
+import { expect } from "chai";
+import testData from "./linked-proofs-data.json";
+
+describe("Universal Verifier Linked proofs", function () {
+  let verifier: any, v3: any, state: any;
+  let signer, signer2;
+  let signerAddress: string;
+  let deployHelper: DeployHelper;
+
+  beforeEach(async () => {
+    [signer, signer2] = await ethers.getSigners();
+    signerAddress = await signer.getAddress();
+
+    deployHelper = await DeployHelper.initialize(null, true);
+    verifier = await deployHelper.deployUniversalVerifier(signer);
+
+    const contracts = await deployHelper.deployValidatorContracts(
+      "VerifierV3Wrapper",
+      "CredentialAtomicQueryV3Validator"
+    );
+    v3 = contracts.validator;
+    state = contracts.state;
+    await verifier.addWhitelistedValidator(v3.address);
+    await verifier.connect();
+
+    await publishState(state, testData.state as unknown as { [key: string]: string });
+    await v3.setProofExpirationTimeout(315360000);
+    for (let i = 0; i < testData.queryData.zkpRequests.length; i++) {
+      await verifier.setZKPRequest(100 + i, {
+        metadata: "linkedProofN" + i,
+        validator: v3.address,
+        data: packV3ValidatorParams(testData.queryData.zkpRequests[i].request),
+        controller: signerAddress,
+        isDisabled: false,
+      });
+    }
+
+    for (let i = 0; i < testData.queryData.zkpResponses.length; i++) {
+      const { inputs, pi_a, pi_b, pi_c } = prepareInputs(testData.queryData.zkpResponses[i]);
+      await verifier.submitZKPResponse(100 + i, inputs, pi_a, pi_b, pi_c);
+    }
+  });
+
+  it("should linked proof validation pass", async () => {
+    expect(await verifier.verifyLinkedProofs(signerAddress, [101, 102])).not.to.throw;
+    expect(await verifier.verifyLinkedProofs(signerAddress, [100, 103])).not.to.throw;
+  });
+
+  it("should linked proof validation fail", async () => {
+    await expect(verifier.verifyLinkedProofs(signerAddress, [100, 101])).to.be.revertedWith(
+      "LinkedProofError"
+    );
+    await expect(verifier.verifyLinkedProofs(signerAddress, [102, 103])).to.be.revertedWith(
+      "LinkedProofError"
+    );
+
+    await expect(verifier.verifyLinkedProofs(signerAddress, [102])).to.be.revertedWith(
+      "Linked proof verification needs more than 1 request"
+    );
+    await expect(verifier.verifyLinkedProofs(signer2.address, [101, 102])).to.be.revertedWith(
+      `Can't find linkID for given request Ids and user address`
+    );
+  });
+});

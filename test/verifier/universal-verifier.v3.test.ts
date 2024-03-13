@@ -4,7 +4,6 @@ import { packV3ValidatorParams } from "../utils/validator-pack-utils";
 import { prepareInputs, publishState } from "../utils/state-utils";
 import { calculateQueryHashV3 } from "../utils/query-hash-utils";
 import { expect } from "chai";
-import testData from "./linked-proofs-data.json";
 
 describe("Universal Verifier V3 validator", function () {
   let verifier: any, v3: any, state: any;
@@ -99,33 +98,5 @@ describe("Universal Verifier V3 validator", function () {
     ).to.be.revertedWith("UserID does not correspond to the sender");
 
     // TODO make some test with correct UserID but with wrong challenge
-  });
-
-  it("Test linked proofs", async () => {
-    await publishState(state, testData.state as any);
-    await v3.setProofExpirationTimeout(315360000);
-    for (let i = 0; i < testData.queryData.zkpRequests.length; i++) {
-      await verifier.setZKPRequest(100 + i, {
-        metadata: "linkedProofN" + i,
-        validator: v3.address,
-        data: packV3ValidatorParams(testData.queryData.zkpRequests[i].request),
-        controller: signerAddress,
-        isDisabled: false,
-      });
-    }
-
-    for (let i = 0; i < testData.queryData.zkpResponses.length; i++) {
-      const { inputs, pi_a, pi_b, pi_c } = prepareInputs(testData.queryData.zkpResponses[i]);
-      await verifier.submitZKPResponse(100 + i, inputs, pi_a, pi_b, pi_c);
-    }
-
-    expect(await verifier.verifyLinkedProofs([101, 102])).not.to.throw;
-    expect(await verifier.verifyLinkedProofs([100, 103])).not.to.throw;
-    await expect(verifier.verifyLinkedProofs([100, 101])).to.be.revertedWith("LinkedProofError");
-    await expect(verifier.verifyLinkedProofs([102, 103])).to.be.revertedWith("LinkedProofError");
-
-    await expect(verifier.verifyLinkedProofs([102])).to.be.revertedWith(
-      "Linked proof verification needs more than 1 request"
-    );
   });
 });
