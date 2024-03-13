@@ -341,7 +341,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         uint256 expectedLinkID = firstProof.storageFields[LINKED_PROOF_KEY];
 
         if (expectedLinkID == 0) {
-            revert("Can't find linkID for given requestIds and user address");
+            revert("Can't find linkID for given request Ids and user address");
         }
 
         for (uint256 i = 1; i < requestIds.length; i++) {
