@@ -16,7 +16,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
     ERC165
 {
     /// @dev Main storage structure for the contract
-    struct MainStorage {
+    struct CredentialAtomicQueryValidatorBaseStorage {
         mapping(string => IVerifier) _circuitIdToVerifier;
         string[] _supportedCircuitIds;
         IState state;
@@ -28,13 +28,13 @@ abstract contract CredentialAtomicQueryValidatorBase is
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.CredentialAtomicQueryValidator")) - 1))
     //  & ~bytes32(uint256(0xff));
-    bytes32 private constant CRED_ATOMIC_QUERY_VERIFIER_STORAGE_LOCATION =
+    bytes32 private constant CredentialAtomicQueryValidatorBaseStorageLocation =
         0x28c92975a30f1f2f7970a65953987652034d896ba2d3b7a4961ada9e18287500;
 
     /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getMainStorage() internal pure returns (MainStorage storage $) {
+    function _getCredentialAtomicQueryValidatorBaseStorage() internal pure returns (CredentialAtomicQueryValidatorBaseStorage storage $) {
         assembly {
-            $.slot := CRED_ATOMIC_QUERY_VERIFIER_STORAGE_LOCATION
+            $.slot := CredentialAtomicQueryValidatorBaseStorageLocation
         }
     }
 
@@ -43,7 +43,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         address _verifierContractAddr,
         string memory circuitId
     ) internal {
-        MainStorage storage s = _getMainStorage();
+        CredentialAtomicQueryValidatorBaseStorage storage s = _getCredentialAtomicQueryValidatorBaseStorage();
 
         s.revocationStateExpirationTimeout = 1 hours;
         s.proofExpirationTimeout = 1 hours;
@@ -59,35 +59,35 @@ abstract contract CredentialAtomicQueryValidatorBase is
     function setRevocationStateExpirationTimeout(
         uint256 expirationTimeout
     ) public virtual onlyOwner {
-        _getMainStorage().revocationStateExpirationTimeout = expirationTimeout;
+        _getCredentialAtomicQueryValidatorBaseStorage().revocationStateExpirationTimeout = expirationTimeout;
     }
 
     function getRevocationStateExpirationTimeout() public view virtual returns (uint256) {
-        return _getMainStorage().revocationStateExpirationTimeout;
+        return _getCredentialAtomicQueryValidatorBaseStorage().revocationStateExpirationTimeout;
     }
 
     function setProofExpirationTimeout(uint256 expirationTimeout) public virtual onlyOwner {
-        _getMainStorage().proofExpirationTimeout = expirationTimeout;
+        _getCredentialAtomicQueryValidatorBaseStorage().proofExpirationTimeout = expirationTimeout;
     }
 
     function getProofExpirationTimeout() public view virtual returns (uint256) {
-        return _getMainStorage().proofExpirationTimeout;
+        return _getCredentialAtomicQueryValidatorBaseStorage().proofExpirationTimeout;
     }
 
     function setGISTRootExpirationTimeout(uint256 expirationTimeout) public virtual onlyOwner {
-        _getMainStorage().gistRootExpirationTimeout = expirationTimeout;
+        _getCredentialAtomicQueryValidatorBaseStorage().gistRootExpirationTimeout = expirationTimeout;
     }
 
     function getGISTRootExpirationTimeout() public view virtual returns (uint256) {
-        return _getMainStorage().gistRootExpirationTimeout;
+        return _getCredentialAtomicQueryValidatorBaseStorage().gistRootExpirationTimeout;
     }
 
     function setStateAddress(address stateContractAddr) public virtual onlyOwner {
-        _getMainStorage().state = IState(stateContractAddr);
+        _getCredentialAtomicQueryValidatorBaseStorage().state = IState(stateContractAddr);
     }
 
     function getStateAddress() public view virtual returns (address) {
-        return address(_getMainStorage().state);
+        return address(_getCredentialAtomicQueryValidatorBaseStorage().state);
     }
 
     function verify(
@@ -100,11 +100,11 @@ abstract contract CredentialAtomicQueryValidatorBase is
     ) external view virtual returns (ICircuitValidator.KeyToInputIndex[] memory);
 
     function getSupportedCircuitIds() external view virtual returns (string[] memory ids) {
-        return _getMainStorage()._supportedCircuitIds;
+        return _getCredentialAtomicQueryValidatorBaseStorage()._supportedCircuitIds;
     }
 
     function inputIndexOf(string memory name) public view virtual returns (uint256) {
-        uint256 index = _getMainStorage()._inputNameToIndex[name];
+        uint256 index = _getCredentialAtomicQueryValidatorBaseStorage()._inputNameToIndex[name];
         require(index != 0, "Input name not found");
         return --index; // we save 1-based index, but return 0-based
     }
@@ -119,7 +119,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function _checkGistRoot(uint256 gistRoot) internal view {
-        MainStorage storage s = _getMainStorage();
+        CredentialAtomicQueryValidatorBaseStorage storage s = _getCredentialAtomicQueryValidatorBaseStorage();
         IState.GistRootInfo memory rootInfo = s.state.getGISTRootInfo(gistRoot);
         require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
         if (
@@ -134,7 +134,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         bool isStateGenesis = GenesisUtils.isGenesisState(_id, _state);
 
         if (!isStateGenesis) {
-            IState.StateInfo memory stateInfo = _getMainStorage().state.getStateInfoByIdAndState(
+            IState.StateInfo memory stateInfo = _getCredentialAtomicQueryValidatorBaseStorage().state.getStateInfoByIdAndState(
                 _id,
                 _state
             );
@@ -143,7 +143,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function _checkClaimNonRevState(uint256 _id, uint256 _claimNonRevState) internal view {
-        MainStorage storage s = _getMainStorage();
+        CredentialAtomicQueryValidatorBaseStorage storage s = _getCredentialAtomicQueryValidatorBaseStorage();
 
         // check if identity transited any state in contract
         bool idExists = s.state.idExists(_id);
@@ -186,7 +186,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
             revert("Proof generated in the future is not valid");
         }
         if (
-            block.timestamp - _proofGenerationTimestamp > _getMainStorage().proofExpirationTimeout
+            block.timestamp - _proofGenerationTimestamp > _getCredentialAtomicQueryValidatorBaseStorage().proofExpirationTimeout
         ) {
             revert("Generated proof is outdated");
         }
@@ -215,6 +215,6 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function _setInputToIndex(string memory inputName, uint256 index) internal {
-        _getMainStorage()._inputNameToIndex[inputName] = ++index; // increment index to avoid 0
+        _getCredentialAtomicQueryValidatorBaseStorage()._inputNameToIndex[inputName] = ++index; // increment index to avoid 0
     }
 }

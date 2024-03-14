@@ -14,19 +14,19 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
     using IdentityLib for IdentityLib.Data;
 
     /// @dev Main storage structure for the contract
-    struct MainStorage {
+    struct IdentityBaseStorage {
         IdentityLib.Data identity;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.IdentityBase")) - 1))
     //      & ~bytes32(uint256(0xff));
-    bytes32 private constant IDENTITY_BASE_STORAGE_LOCATION =
+    bytes32 private constant IdentityBaseStorageLocation =
         0x3018a310c36c4f8228f09bf3b1822685cf0971daa8265a58ca807c4a4daba400;
 
     /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getMainStorage() internal pure returns (MainStorage storage $) {
+    function _getIdentityBaseStorage() internal pure returns (IdentityBaseStorage storage $) {
         assembly {
-            $.slot := IDENTITY_BASE_STORAGE_LOCATION
+            $.slot := IdentityBaseStorageLocation
         }
     }
 
@@ -43,7 +43,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
      * @param _stateContractAddr - address of the State contract
      */
     function initialize(address _stateContractAddr) public virtual {
-        _getMainStorage().identity.initialize(_stateContractAddr, address(this), getSmtDepth());
+        _getIdentityBaseStorage().identity.initialize(_stateContractAddr, address(this), getSmtDepth());
     }
 
     /**
@@ -54,7 +54,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
     function getClaimProof(
         uint256 claimIndexHash
     ) public view virtual returns (SmtLib.Proof memory) {
-        return _getMainStorage().identity.getClaimProof(claimIndexHash);
+        return _getIdentityBaseStorage().identity.getClaimProof(claimIndexHash);
     }
 
     /**
@@ -65,7 +65,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
     function getClaimProofWithStateInfo(
         uint256 claimIndexHash
     ) public view virtual returns (SmtLib.Proof memory, IdentityLib.StateInfo memory) {
-        return _getMainStorage().identity.getClaimProofWithStateInfo(claimIndexHash);
+        return _getIdentityBaseStorage().identity.getClaimProofWithStateInfo(claimIndexHash);
     }
 
     /**
@@ -78,7 +78,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
         uint256 claimIndexHash,
         uint256 root
     ) public view virtual returns (SmtLib.Proof memory) {
-        return _getMainStorage().identity.getClaimProofByRoot(claimIndexHash, root);
+        return _getIdentityBaseStorage().identity.getClaimProofByRoot(claimIndexHash, root);
     }
 
     /**
@@ -86,7 +86,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
      * @return The latest ClaimsTree root
      */
     function getClaimsTreeRoot() public view virtual returns (uint256) {
-        return _getMainStorage().identity.getClaimsTreeRoot();
+        return _getIdentityBaseStorage().identity.getClaimsTreeRoot();
     }
 
     /**
@@ -97,7 +97,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
     function getRevocationProof(
         uint64 revocationNonce
     ) public view virtual returns (SmtLib.Proof memory) {
-        return _getMainStorage().identity.getRevocationProof(revocationNonce);
+        return _getIdentityBaseStorage().identity.getRevocationProof(revocationNonce);
     }
 
     /**
@@ -108,7 +108,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
     function getRevocationProofWithStateInfo(
         uint64 revocationNonce
     ) public view virtual returns (SmtLib.Proof memory, IdentityLib.StateInfo memory) {
-        return _getMainStorage().identity.getRevocationProofWithStateInfo(revocationNonce);
+        return _getIdentityBaseStorage().identity.getRevocationProofWithStateInfo(revocationNonce);
     }
 
     /**
@@ -121,7 +121,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
         uint64 revocationNonce,
         uint256 root
     ) public view virtual returns (SmtLib.Proof memory) {
-        return _getMainStorage().identity.getRevocationProofByRoot(revocationNonce, root);
+        return _getIdentityBaseStorage().identity.getRevocationProofByRoot(revocationNonce, root);
     }
 
     /**
@@ -129,7 +129,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
      * @return The latest RevocationsTree root
      */
     function getRevocationsTreeRoot() public view virtual returns (uint256) {
-        return _getMainStorage().identity.getRevocationsTreeRoot();
+        return _getIdentityBaseStorage().identity.getRevocationsTreeRoot();
     }
 
     /**
@@ -138,7 +138,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
      * @return The RootsTree inclusion or non-inclusion proof for the roots tree root
      */
     function getRootProof(uint256 rootsTreeRoot) public view virtual returns (SmtLib.Proof memory) {
-        return _getMainStorage().identity.getRootProof(rootsTreeRoot);
+        return _getIdentityBaseStorage().identity.getRootProof(rootsTreeRoot);
     }
 
     /**
@@ -149,7 +149,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
     function getRootProofWithStateInfo(
         uint256 rootsTreeRoot
     ) public view virtual returns (SmtLib.Proof memory, IdentityLib.StateInfo memory) {
-        return _getMainStorage().identity.getRootProofWithStateInfo(rootsTreeRoot);
+        return _getIdentityBaseStorage().identity.getRootProofWithStateInfo(rootsTreeRoot);
     }
 
     /**
@@ -162,7 +162,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
         uint256 claimsTreeRoot,
         uint256 root
     ) public view virtual returns (SmtLib.Proof memory) {
-        return _getMainStorage().identity.getRootProofByRoot(claimsTreeRoot, root);
+        return _getIdentityBaseStorage().identity.getRootProofByRoot(claimsTreeRoot, root);
     }
 
     /**
@@ -170,7 +170,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
      * @return The latest RootsTree root
      */
     function getRootsTreeRoot() public view virtual returns (uint256) {
-        return _getMainStorage().identity.getRootsTreeRoot();
+        return _getIdentityBaseStorage().identity.getRootsTreeRoot();
     }
 
     /**
@@ -180,7 +180,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
      * @return set of roots
      */
     function getRootsByState(uint256 state) public view virtual returns (IdentityLib.Roots memory) {
-        return _getMainStorage().identity.getRootsByState(state);
+        return _getIdentityBaseStorage().identity.getRootsByState(state);
     }
 
     /**
@@ -188,7 +188,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
      * @return uint256 Id
      */
     function getId() public view returns (uint256) {
-        return _getMainStorage().identity.id;
+        return _getIdentityBaseStorage().identity.id;
     }
 
     /**
@@ -196,7 +196,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
      * @return bool isOldStateGenesis
      */
     function getIsOldStateGenesis() public view returns (bool) {
-        return _getMainStorage().identity.isOldStateGenesis;
+        return _getIdentityBaseStorage().identity.isOldStateGenesis;
     }
 
     /**
@@ -204,7 +204,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
      * @return claimsRoot
      */
     function getLatestPublishedClaimsRoot() public view returns (uint256) {
-        return _getMainStorage().identity.latestPublishedTreeRoots.claimsRoot;
+        return _getIdentityBaseStorage().identity.latestPublishedTreeRoots.claimsRoot;
     }
 
     /**
@@ -212,7 +212,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
      * @return revocationsRoot
      */
     function getLatestPublishedRevocationsRoot() public view returns (uint256) {
-        return _getMainStorage().identity.latestPublishedTreeRoots.revocationsRoot;
+        return _getIdentityBaseStorage().identity.latestPublishedTreeRoots.revocationsRoot;
     }
 
     /**
@@ -220,7 +220,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
      * @return rootsRoot
      */
     function getLatestPublishedRootsRoot() public view returns (uint256) {
-        return _getMainStorage().identity.latestPublishedTreeRoots.rootsRoot;
+        return _getIdentityBaseStorage().identity.latestPublishedTreeRoots.rootsRoot;
     }
 
     /**
@@ -228,7 +228,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
      * @return uint256 identityLatestState
      */
     function getLatestPublishedState() public view returns (uint256) {
-        return _getMainStorage().identity.latestPublishedState;
+        return _getIdentityBaseStorage().identity.latestPublishedState;
     }
 
     /**
@@ -241,7 +241,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
         uint256 id,
         uint64 nonce
     ) public view returns (CredentialStatus memory) {
-        uint256 latestState = _getMainStorage().identity.latestPublishedState;
+        uint256 latestState = _getIdentityBaseStorage().identity.latestPublishedState;
         return getRevocationStatusByIdAndState(id, latestState, nonce);
     }
 
@@ -257,8 +257,8 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
         uint256 state,
         uint64 nonce
     ) public view returns (CredentialStatus memory) {
-        require(id == _getMainStorage().identity.id, "Identity id mismatch");
-        IdentityLib.Roots memory historicalStates = _getMainStorage().identity.getRootsByState(
+        require(id == _getIdentityBaseStorage().identity.id, "Identity id mismatch");
+        IdentityLib.Roots memory historicalStates = _getIdentityBaseStorage().identity.getRootsByState(
             state
         );
         IdentityStateRoots memory issuerStates = IdentityStateRoots({
@@ -268,7 +268,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
             revocationTreeRoot: historicalStates.revocationsRoot
         });
 
-        SmtLib.Proof memory p = _getMainStorage().identity.getRevocationProofByRoot(
+        SmtLib.Proof memory p = _getIdentityBaseStorage().identity.getRevocationProofByRoot(
             nonce,
             historicalStates.revocationsRoot
         );
