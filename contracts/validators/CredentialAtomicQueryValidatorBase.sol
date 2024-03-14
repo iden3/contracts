@@ -224,6 +224,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function _setInputToIndex(string memory inputName, uint256 index) internal {
-        _getCredentialAtomicQueryValidatorBaseStorage()._inputNameToIndex[inputName] = ++index; // increment index to avoid 0
+        // increment index to avoid 0
+        _getCredentialAtomicQueryValidatorBaseStorage()._inputNameToIndex[inputName] = ++index;
     }
 }

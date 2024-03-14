@@ -59,7 +59,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.0.0";
+    string public constant VERSION = "1.0.1";
 
     /// @dev Version of contract getter
     function version() public pure returns (string memory) {
