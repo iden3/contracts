@@ -52,7 +52,7 @@
   "dependencies": {
     "@nomiclabs/hardhat-etherscan": "^3.0.3",
     "@openzeppelin/contracts": "^5.0.2",
-    "@openzeppelin/contracts-upgradeable": "^5.0.1",
+    "@openzeppelin/contracts-upgradeable": "^5.0.2",
     "@openzeppelin/contracts-upgradeable-v4": "npm:@openzeppelin/contracts-upgradeable@^4.9.5",
     "circomlibjs": "^0.1.6",
     "codecov": "^3.8.2",
