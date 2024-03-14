@@ -54,7 +54,11 @@ contract IdentityTreeStore is
         0x95ca427007e091a13a7ccfcb233b8a2ed19d987330a248c445b1b483a35bb800;
 
     /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getIdentityTreeStoreMainStorage() private pure returns (IdentityTreeStoreMainStorage storage $) {
+    function _getIdentityTreeStoreMainStorage()
+        private
+        pure
+        returns (IdentityTreeStoreMainStorage storage $)
+    {
         assembly {
             $.slot := IdentityTreeStoreMainStorageLocation
         }

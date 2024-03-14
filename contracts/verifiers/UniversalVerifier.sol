@@ -44,7 +44,11 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         0x0c87ac878172a541d6ba539a4e02bbe44e1f3a504bea30ed92c32fb1517db700;
 
     /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getUniversalVerifierStorage() private pure returns (UniversalVerifierStorage storage $) {
+    function _getUniversalVerifierStorage()
+        private
+        pure
+        returns (UniversalVerifierStorage storage $)
+    {
         assembly {
             $.slot := UniversalVerifierStorageLocation
         }
@@ -76,7 +80,8 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
     /// @dev Modifier to check if the caller is the owner or controller of the ZKP request
     modifier onlyOwnerOrController(uint64 requestId) {
         require(
-            msg.sender == _getUniversalVerifierStorage().requests[requestId].controller || msg.sender == owner(),
+            msg.sender == _getUniversalVerifierStorage().requests[requestId].controller ||
+                msg.sender == owner(),
             "Only owner or controller can call this function"
         );
         _;
@@ -84,13 +89,19 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
 
     /// @dev Modifier to check if the ZKP request is enabled
     modifier requestEnabled(uint64 requestId) {
-        require(!_getUniversalVerifierStorage().requests[requestId].isDisabled, "Request is disabled");
+        require(
+            !_getUniversalVerifierStorage().requests[requestId].isDisabled,
+            "Request is disabled"
+        );
         _;
     }
 
     /// @dev Modifier to check if the validator is whitelisted
     modifier isWhitelistedValidator(ICircuitValidator validator) {
-        require(_getUniversalVerifierStorage().whitelistedValidators[validator], "Validator is not whitelisted");
+        require(
+            _getUniversalVerifierStorage().whitelistedValidators[validator],
+            "Validator is not whitelisted"
+        );
         _;
     }
 
@@ -150,7 +161,9 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
     /// @param requestId The ID of the ZKP request
     /// @return Whether the request ID exists
     function requestIdExists(uint64 requestId) public view returns (bool) {
-        return _getUniversalVerifierStorage().requests[requestId].validator != ICircuitValidator(address(0));
+        return
+            _getUniversalVerifierStorage().requests[requestId].validator !=
+            ICircuitValidator(address(0));
     }
 
     /// @notice Gets the count of ZKP requests
@@ -189,7 +202,9 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         );
 
         for (uint256 i = start; i < end; i++) {
-            result[i - start] = _getUniversalVerifierStorage().requests[_getUniversalVerifierStorage().requestIds[i]];
+            result[i - start] = _getUniversalVerifierStorage().requests[
+                _getUniversalVerifierStorage().requestIds[i]
+            ];
         }
 
         return result;
@@ -258,7 +273,9 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         uint256[2] calldata c
     ) public checkRequestExistence(requestId, true) requestEnabled(requestId) {
         address sender = _msgSender();
-        IUniversalVerifier.ZKPRequest storage request = _getUniversalVerifierStorage().requests[requestId];
+        IUniversalVerifier.ZKPRequest storage request = _getUniversalVerifierStorage().requests[
+            requestId
+        ];
 
         ICircuitValidator validator = ICircuitValidator(request.validator);
 
@@ -304,7 +321,9 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         requestEnabled(requestId)
         returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
-        IUniversalVerifier.ZKPRequest memory request = _getUniversalVerifierStorage().requests[requestId];
+        IUniversalVerifier.ZKPRequest memory request = _getUniversalVerifierStorage().requests[
+            requestId
+        ];
         ICircuitValidator.KeyToInputIndex[] memory pairs = request.validator.verify(
             inputs,
             a,

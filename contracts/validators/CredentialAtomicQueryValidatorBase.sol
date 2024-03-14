@@ -32,7 +32,11 @@ abstract contract CredentialAtomicQueryValidatorBase is
         0x28c92975a30f1f2f7970a65953987652034d896ba2d3b7a4961ada9e18287500;
 
     /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getCredentialAtomicQueryValidatorBaseStorage() internal pure returns (CredentialAtomicQueryValidatorBaseStorage storage $) {
+    function _getCredentialAtomicQueryValidatorBaseStorage()
+        internal
+        pure
+        returns (CredentialAtomicQueryValidatorBaseStorage storage $)
+    {
         assembly {
             $.slot := CredentialAtomicQueryValidatorBaseStorageLocation
         }
@@ -43,7 +47,8 @@ abstract contract CredentialAtomicQueryValidatorBase is
         address _verifierContractAddr,
         string memory circuitId
     ) internal {
-        CredentialAtomicQueryValidatorBaseStorage storage s = _getCredentialAtomicQueryValidatorBaseStorage();
+        CredentialAtomicQueryValidatorBaseStorage
+            storage s = _getCredentialAtomicQueryValidatorBaseStorage();
 
         s.revocationStateExpirationTimeout = 1 hours;
         s.proofExpirationTimeout = 1 hours;
@@ -59,7 +64,8 @@ abstract contract CredentialAtomicQueryValidatorBase is
     function setRevocationStateExpirationTimeout(
         uint256 expirationTimeout
     ) public virtual onlyOwner {
-        _getCredentialAtomicQueryValidatorBaseStorage().revocationStateExpirationTimeout = expirationTimeout;
+        _getCredentialAtomicQueryValidatorBaseStorage()
+            .revocationStateExpirationTimeout = expirationTimeout;
     }
 
     function getRevocationStateExpirationTimeout() public view virtual returns (uint256) {
@@ -75,7 +81,8 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function setGISTRootExpirationTimeout(uint256 expirationTimeout) public virtual onlyOwner {
-        _getCredentialAtomicQueryValidatorBaseStorage().gistRootExpirationTimeout = expirationTimeout;
+        _getCredentialAtomicQueryValidatorBaseStorage()
+            .gistRootExpirationTimeout = expirationTimeout;
     }
 
     function getGISTRootExpirationTimeout() public view virtual returns (uint256) {
@@ -119,7 +126,8 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function _checkGistRoot(uint256 gistRoot) internal view {
-        CredentialAtomicQueryValidatorBaseStorage storage s = _getCredentialAtomicQueryValidatorBaseStorage();
+        CredentialAtomicQueryValidatorBaseStorage
+            storage s = _getCredentialAtomicQueryValidatorBaseStorage();
         IState.GistRootInfo memory rootInfo = s.state.getGISTRootInfo(gistRoot);
         require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
         if (
@@ -134,16 +142,16 @@ abstract contract CredentialAtomicQueryValidatorBase is
         bool isStateGenesis = GenesisUtils.isGenesisState(_id, _state);
 
         if (!isStateGenesis) {
-            IState.StateInfo memory stateInfo = _getCredentialAtomicQueryValidatorBaseStorage().state.getStateInfoByIdAndState(
-                _id,
-                _state
-            );
+            IState.StateInfo memory stateInfo = _getCredentialAtomicQueryValidatorBaseStorage()
+                .state
+                .getStateInfoByIdAndState(_id, _state);
             require(_id == stateInfo.id, "State doesn't exist in state contract");
         }
     }
 
     function _checkClaimNonRevState(uint256 _id, uint256 _claimNonRevState) internal view {
-        CredentialAtomicQueryValidatorBaseStorage storage s = _getCredentialAtomicQueryValidatorBaseStorage();
+        CredentialAtomicQueryValidatorBaseStorage
+            storage s = _getCredentialAtomicQueryValidatorBaseStorage();
 
         // check if identity transited any state in contract
         bool idExists = s.state.idExists(_id);
@@ -186,7 +194,8 @@ abstract contract CredentialAtomicQueryValidatorBase is
             revert("Proof generated in the future is not valid");
         }
         if (
-            block.timestamp - _proofGenerationTimestamp > _getCredentialAtomicQueryValidatorBaseStorage().proofExpirationTimeout
+            block.timestamp - _proofGenerationTimestamp >
+            _getCredentialAtomicQueryValidatorBaseStorage().proofExpirationTimeout
         ) {
             revert("Generated proof is outdated");
         }

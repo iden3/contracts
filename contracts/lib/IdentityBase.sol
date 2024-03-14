@@ -43,7 +43,11 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
      * @param _stateContractAddr - address of the State contract
      */
     function initialize(address _stateContractAddr) public virtual {
-        _getIdentityBaseStorage().identity.initialize(_stateContractAddr, address(this), getSmtDepth());
+        _getIdentityBaseStorage().identity.initialize(
+            _stateContractAddr,
+            address(this),
+            getSmtDepth()
+        );
     }
 
     /**
@@ -258,9 +262,9 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
         uint64 nonce
     ) public view returns (CredentialStatus memory) {
         require(id == _getIdentityBaseStorage().identity.id, "Identity id mismatch");
-        IdentityLib.Roots memory historicalStates = _getIdentityBaseStorage().identity.getRootsByState(
-            state
-        );
+        IdentityLib.Roots memory historicalStates = _getIdentityBaseStorage()
+            .identity
+            .getRootsByState(state);
         IdentityStateRoots memory issuerStates = IdentityStateRoots({
             state: state,
             rootOfRoots: historicalStates.rootsRoot,

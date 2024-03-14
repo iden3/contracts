@@ -69,7 +69,8 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _setInputToIndex("timestamp", 12);
         _setInputToIndex("isBJJAuthEnabled", 13);
 
-        CredentialAtomicQueryValidatorBaseStorage storage s = _getCredentialAtomicQueryValidatorBaseStorage();
+        CredentialAtomicQueryValidatorBaseStorage
+            storage s = _getCredentialAtomicQueryValidatorBaseStorage();
         s._supportedCircuitIds = [CIRCUIT_ID];
         s._circuitIdToVerifier[CIRCUIT_ID] = IVerifier(_verifierContractAddr);
 
@@ -115,7 +116,9 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
             (CredentialAtomicQueryV3)
         );
 
-        IVerifier verifier = _getCredentialAtomicQueryValidatorBaseStorage()._circuitIdToVerifier[credAtomicQuery.circuitIds[0]];
+        IVerifier verifier = _getCredentialAtomicQueryValidatorBaseStorage()._circuitIdToVerifier[
+            credAtomicQuery.circuitIds[0]
+        ];
 
         require(
             credAtomicQuery.circuitIds.length == 1 && verifier != IVerifier(address(0)),
