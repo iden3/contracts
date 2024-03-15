@@ -61,10 +61,8 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
      */
     string public constant VERSION = "1.0.1";
 
-    /// @dev Version of contract getter
-    function version() public pure returns (string memory) {
-        return VERSION;
-    }
+    /// @dev Key to retrieve the linkID from the proof storage
+    string constant LINKED_PROOF_KEY = "linkID";
 
     /// @dev Event emitted upon submitting a ZKP request
     event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);
@@ -75,6 +73,15 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         address indexed controller,
         string metadata,
         bytes data
+    );
+
+    /// @dev Linked proof custom error
+    error LinkedProofError(
+        string message,
+        uint64 requestId,
+        uint256 linkID,
+        uint64 requestIdToCompare,
+        uint256 linkIdToCompare
     );
 
     /// @dev Modifier to check if the caller is the owner or controller of the ZKP request
@@ -118,6 +125,11 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
     /// @notice Initializes the contract
     function initialize() public initializer {
         __Ownable_init(_msgSender());
+    }
+
+    /// @dev Version of contract getter
+    function version() public pure returns (string memory) {
+        return VERSION;
     }
 
     /// @notice Adds a new whitelisted validator
@@ -345,5 +357,35 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         string memory key
     ) public view returns (uint256) {
         return _getUniversalVerifierStorage().proofs[user][requestId].storageFields[key];
+    }
+
+    /// @notice Gets the list of request IDs and verifies the proofs are linked
+    /// @param sender the user's address
+    /// @param requestIds the list of request IDs
+    /// Throws if the proofs are not linked
+    function verifyLinkedProofs(address sender, uint64[] calldata requestIds) public view {
+        require(requestIds.length > 1, "Linked proof verification needs more than 1 request");
+        mapping(uint64 => Proof) storage proofs = _getMainStorage().proofs[sender];
+        Proof storage firstProof = proofs[requestIds[0]];
+        uint256 expectedLinkID = firstProof.storageFields[LINKED_PROOF_KEY];
+
+        if (expectedLinkID == 0) {
+            revert("Can't find linkID for given request Ids and user address");
+        }
+
+        for (uint256 i = 1; i < requestIds.length; i++) {
+            Proof storage proof = proofs[requestIds[i]];
+            uint256 actualLinkID = proof.storageFields[LINKED_PROOF_KEY];
+
+            if (expectedLinkID != actualLinkID) {
+                revert LinkedProofError(
+                    "Proofs are not linked",
+                    requestIds[0],
+                    expectedLinkID,
+                    requestIds[i],
+                    actualLinkID
+                );
+            }
+        }
     }
 }
