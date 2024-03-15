@@ -6,11 +6,12 @@ import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredential
 import {IState} from "../interfaces/IState.sol";
 import {IdentityLib} from "../lib/IdentityLib.sol";
 import {SmtLib} from "../lib/SmtLib.sol";
+import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 // /**
 //  * @dev Contract managing onchain identity
 //  */
-abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolver {
+abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolver, ERC165 {
     using IdentityLib for IdentityLib.Data;
 
     /// @dev Main storage structure for the contract
@@ -288,5 +289,14 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
         });
 
         return CredentialStatus({issuer: issuerStates, mtp: mtp});
+    }
+
+    /**
+     * @dev supportsInterface. Check if the contract supports the interface
+     */
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return
+            interfaceId == type(IIdentifiable).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 }
