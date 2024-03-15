@@ -296,7 +296,6 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return
-            interfaceId == type(IIdentifiable).interfaceId ||
-            super.supportsInterface(interfaceId);
+            interfaceId == type(IIdentifiable).interfaceId || super.supportsInterface(interfaceId);
     }
 }
