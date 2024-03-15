@@ -41,6 +41,18 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
 
     uint256 constant REQUESTS_RETURN_LIMIT = 1000;
 
+    /// @dev Key to retrieve the linkID from the proof storage
+    string constant LINKED_PROOF_KEY = "linkID";
+
+    /// @dev Linked proof custom error
+    error LinkedProofError(
+        string message,
+        uint64 requestId,
+        uint256 linkID,
+        uint64 requestIdToCompare,
+        uint256 linkIdToCompare
+    );
+
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.UniversalVerifier")) - 1)) & ~bytes32(uint256(0xff));
     bytes32 private constant UNIVERSAL_VERIFIER_STORAGE_LOCATION =
         0x0c87ac878172a541d6ba539a4e02bbe44e1f3a504bea30ed92c32fb1517db700;
@@ -326,5 +338,35 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         string memory key
     ) public view returns (uint256) {
         return _getMainStorage().proofs[user][requestId].storageFields[key];
+    }
+
+    /// @notice Gets the list of request IDs and verifies the proofs are linked
+    /// @param sender the user's address
+    /// @param requestIds the list of request IDs
+    /// Throws if the proofs are not linked
+    function verifyLinkedProofs(address sender, uint64[] calldata requestIds) public view {
+        require(requestIds.length > 1, "Linked proof verification needs more than 1 request");
+        mapping(uint64 => Proof) storage proofs = _getMainStorage().proofs[sender];
+        Proof storage firstProof = proofs[requestIds[0]];
+        uint256 expectedLinkID = firstProof.storageFields[LINKED_PROOF_KEY];
+
+        if (expectedLinkID == 0) {
+            revert("Can't find linkID for given request Ids and user address");
+        }
+
+        for (uint256 i = 1; i < requestIds.length; i++) {
+            Proof storage proof = proofs[requestIds[i]];
+            uint256 actualLinkID = proof.storageFields[LINKED_PROOF_KEY];
+
+            if (expectedLinkID != actualLinkID) {
+                revert LinkedProofError(
+                    "Proofs are not linked",
+                    requestIds[0],
+                    expectedLinkID,
+                    requestIds[i],
+                    actualLinkID
+                );
+            }
+        }
     }
 }

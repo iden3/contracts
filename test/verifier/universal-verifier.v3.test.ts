@@ -2,13 +2,13 @@ import { DeployHelper } from "../../helpers/DeployHelper";
 import { ethers } from "hardhat";
 import { packV3ValidatorParams } from "../utils/validator-pack-utils";
 import { prepareInputs, publishState } from "../utils/state-utils";
-import { calculateQueryHashV3} from "../utils/query-hash-utils";
+import { calculateQueryHashV3 } from "../utils/query-hash-utils";
 import { expect } from "chai";
 
 describe("Universal Verifier V3 validator", function () {
   let verifier: any, v3: any, state: any;
   let signer, signer2;
-  let signerAddress: string, signer2Address: string;
+  let signerAddress: string;
   let deployHelper: DeployHelper;
 
   const value = ["20010101", ...new Array(63).fill("0")];
@@ -18,22 +18,21 @@ describe("Universal Verifier V3 validator", function () {
   const operator = 2;
   const claimPathKey =
     "20376033832371109177683048456014525905119173674985843915445634726167450989630";
-
-  const valueArrSize = 1;
-  const nullifierSessionId =  "0" ;
-  const verifierId = "21929109382993718606847853573861987353620810345503358891473103689157378049"
+  const [merklized, isRevocationChecked, valueArrSize] = [1, 1, 1];
+  const nullifierSessionId = "0";
+  const verifierId = "21929109382993718606847853573861987353620810345503358891473103689157378049";
   const queryHash = calculateQueryHashV3(
-      value,
-      schema,
-      slotIndex,
-      operator,
-      claimPathKey,
-      valueArrSize,
-      1,
-      1,
-      verifierId,
-      nullifierSessionId,
-  )
+    value,
+    schema,
+    slotIndex,
+    operator,
+    claimPathKey,
+    valueArrSize,
+    merklized,
+    isRevocationChecked,
+    verifierId,
+    nullifierSessionId
+  );
 
   const query = {
     schema,
@@ -49,7 +48,6 @@ describe("Universal Verifier V3 validator", function () {
     proofType: 1, // 1 for BJJ
     verifierID: verifierId,
   };
-
 
   const proofJson = require("../validators/v3/data/valid_bjj_user_genesis_auth_disabled_v3.json");
   const stateTransition1 = require("../validators/common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json");
