@@ -30,7 +30,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
     }
 
     /// @dev Main storage structure for the contract
-    struct MainStorage {
+    struct UniversalVerifierStorage {
         // user -> ( requestID -> proof )
         mapping(address => mapping(uint64 => Proof)) proofs;
         mapping(uint64 => IUniversalVerifier.ZKPRequest) requests;
@@ -39,40 +39,30 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         mapping(ICircuitValidator => bool) whitelistedValidators;
     }
 
-    uint256 constant REQUESTS_RETURN_LIMIT = 1000;
-
-    /// @dev Key to retrieve the linkID from the proof storage
-    string constant LINKED_PROOF_KEY = "linkID";
-
-    /// @dev Linked proof custom error
-    error LinkedProofError(
-        string message,
-        uint64 requestId,
-        uint256 linkID,
-        uint64 requestIdToCompare,
-        uint256 linkIdToCompare
-    );
-
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.UniversalVerifier")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant UNIVERSAL_VERIFIER_STORAGE_LOCATION =
+    bytes32 private constant UniversalVerifierStorageLocation =
         0x0c87ac878172a541d6ba539a4e02bbe44e1f3a504bea30ed92c32fb1517db700;
+
+    /// @dev Get the main storage using assembly to ensure specific storage location
+    function _getUniversalVerifierStorage()
+        private
+        pure
+        returns (UniversalVerifierStorage storage $)
+    {
+        assembly {
+            $.slot := UniversalVerifierStorageLocation
+        }
+    }
+
+    uint256 constant REQUESTS_RETURN_LIMIT = 1000;
 
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.0.0";
+    string public constant VERSION = "1.0.1";
 
-    /// @dev Version of contract getter
-    function version() public pure returns (string memory) {
-        return VERSION;
-    }
-
-    /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getMainStorage() private pure returns (MainStorage storage $) {
-        assembly {
-            $.slot := UNIVERSAL_VERIFIER_STORAGE_LOCATION
-        }
-    }
+    /// @dev Key to retrieve the linkID from the proof storage
+    string constant LINKED_PROOF_KEY = "linkID";
 
     /// @dev Event emitted upon submitting a ZKP request
     event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);
@@ -85,10 +75,20 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         bytes data
     );
 
+    /// @dev Linked proof custom error
+    error LinkedProofError(
+        string message,
+        uint64 requestId,
+        uint256 linkID,
+        uint64 requestIdToCompare,
+        uint256 linkIdToCompare
+    );
+
     /// @dev Modifier to check if the caller is the owner or controller of the ZKP request
     modifier onlyOwnerOrController(uint64 requestId) {
         require(
-            msg.sender == _getMainStorage().requests[requestId].controller || msg.sender == owner(),
+            msg.sender == _getUniversalVerifierStorage().requests[requestId].controller ||
+                msg.sender == owner(),
             "Only owner or controller can call this function"
         );
         _;
@@ -96,13 +96,19 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
 
     /// @dev Modifier to check if the ZKP request is enabled
     modifier requestEnabled(uint64 requestId) {
-        require(!_getMainStorage().requests[requestId].isDisabled, "Request is disabled");
+        require(
+            !_getUniversalVerifierStorage().requests[requestId].isDisabled,
+            "Request is disabled"
+        );
         _;
     }
 
     /// @dev Modifier to check if the validator is whitelisted
     modifier isWhitelistedValidator(ICircuitValidator validator) {
-        require(_getMainStorage().whitelistedValidators[validator], "Validator is not whitelisted");
+        require(
+            _getUniversalVerifierStorage().whitelistedValidators[validator],
+            "Validator is not whitelisted"
+        );
         _;
     }
 
@@ -121,6 +127,11 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         __Ownable_init(_msgSender());
     }
 
+    /// @dev Version of contract getter
+    function version() public pure returns (string memory) {
+        return VERSION;
+    }
+
     /// @notice Adds a new whitelisted validator
     function addWhitelistedValidator(ICircuitValidator validator) public onlyOwner {
         require(
@@ -128,7 +139,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
             "Validator doesn't support relevant interface"
         );
 
-        _getMainStorage().whitelistedValidators[validator] = true;
+        _getUniversalVerifierStorage().whitelistedValidators[validator] = true;
     }
 
     /// @notice Sets a ZKP request
@@ -139,9 +150,9 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         IUniversalVerifier.ZKPRequest calldata request
     ) public isWhitelistedValidator(request.validator) checkRequestExistence(requestId, false) {
         address sender = _msgSender();
-        _getMainStorage().requestIds.push(requestId);
-        _getMainStorage().userRequestIds[sender].push(requestId);
-        _getMainStorage().requests[requestId] = request;
+        _getUniversalVerifierStorage().requestIds.push(requestId);
+        _getUniversalVerifierStorage().userRequestIds[sender].push(requestId);
+        _getUniversalVerifierStorage().requests[requestId] = request;
 
         emit ZKPRequestSet(requestId, sender, request.metadata, request.data);
     }
@@ -149,26 +160,28 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
     /// @notice Sets a ZKP request
     /// @param requestId The ID of the ZKP request
     function disableZKPRequest(uint64 requestId) public onlyOwnerOrController(requestId) {
-        _getMainStorage().requests[requestId].isDisabled = true;
+        _getUniversalVerifierStorage().requests[requestId].isDisabled = true;
     }
 
     /// @notice Sets a ZKP request
     /// @param requestId The ID of the ZKP request
     function enableZKPRequest(uint64 requestId) public onlyOwnerOrController(requestId) {
-        _getMainStorage().requests[requestId].isDisabled = false;
+        _getUniversalVerifierStorage().requests[requestId].isDisabled = false;
     }
 
     /// @notice Checks if a ZKP request ID exists
     /// @param requestId The ID of the ZKP request
     /// @return Whether the request ID exists
     function requestIdExists(uint64 requestId) public view returns (bool) {
-        return _getMainStorage().requests[requestId].validator != ICircuitValidator(address(0));
+        return
+            _getUniversalVerifierStorage().requests[requestId].validator !=
+            ICircuitValidator(address(0));
     }
 
     /// @notice Gets the count of ZKP requests
     /// @return The count of ZKP requests
     function getZKPRequestsCount() public view returns (uint256) {
-        return _getMainStorage().requestIds.length;
+        return _getUniversalVerifierStorage().requestIds.length;
     }
 
     /// @notice Gets a specific ZKP request by ID
@@ -178,7 +191,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         uint64 requestId
     ) public view returns (IUniversalVerifier.ZKPRequest memory) {
         require(requestIdExists(requestId), "request id doesn't exist");
-        return _getMainStorage().requests[requestId];
+        return _getUniversalVerifierStorage().requests[requestId];
     }
 
     /// @notice Gets multiple ZKP requests within a range
@@ -190,7 +203,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         uint256 length
     ) public view returns (IUniversalVerifier.ZKPRequest[] memory) {
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
-            _getMainStorage().requestIds.length,
+            _getUniversalVerifierStorage().requestIds.length,
             startIndex,
             length,
             REQUESTS_RETURN_LIMIT
@@ -201,7 +214,9 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         );
 
         for (uint256 i = start; i < end; i++) {
-            result[i - start] = _getMainStorage().requests[_getMainStorage().requestIds[i]];
+            result[i - start] = _getUniversalVerifierStorage().requests[
+                _getUniversalVerifierStorage().requestIds[i]
+            ];
         }
 
         return result;
@@ -218,7 +233,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         uint256 length
     ) public view returns (IUniversalVerifier.ZKPRequest[] memory) {
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
-            _getMainStorage().userRequestIds[controller].length,
+            _getUniversalVerifierStorage().userRequestIds[controller].length,
             startIndex,
             length,
             REQUESTS_RETURN_LIMIT
@@ -229,8 +244,8 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         );
 
         for (uint256 i = start; i < end; i++) {
-            result[i - start] = _getMainStorage().requests[
-                _getMainStorage().userRequestIds[controller][i]
+            result[i - start] = _getUniversalVerifierStorage().requests[
+                _getUniversalVerifierStorage().userRequestIds[controller][i]
             ];
         }
 
@@ -245,7 +260,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         address user,
         uint64 requestId
     ) public view returns (ProofStatus memory) {
-        Proof storage proof = _getMainStorage().proofs[user][requestId];
+        Proof storage proof = _getUniversalVerifierStorage().proofs[user][requestId];
 
         return
             ProofStatus(
@@ -270,7 +285,9 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         uint256[2] calldata c
     ) public checkRequestExistence(requestId, true) requestEnabled(requestId) {
         address sender = _msgSender();
-        IUniversalVerifier.ZKPRequest storage request = _getMainStorage().requests[requestId];
+        IUniversalVerifier.ZKPRequest storage request = _getUniversalVerifierStorage().requests[
+            requestId
+        ];
 
         ICircuitValidator validator = ICircuitValidator(request.validator);
 
@@ -283,7 +300,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
             sender
         );
 
-        Proof storage proof = _getMainStorage().proofs[sender][requestId];
+        Proof storage proof = _getUniversalVerifierStorage().proofs[sender][requestId];
         for (uint256 i = 0; i < pairs.length; i++) {
             proof.storageFields[pairs[i].key] = inputs[pairs[i].inputIndex];
         }
@@ -316,7 +333,9 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         requestEnabled(requestId)
         returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
-        IUniversalVerifier.ZKPRequest memory request = _getMainStorage().requests[requestId];
+        IUniversalVerifier.ZKPRequest memory request = _getUniversalVerifierStorage().requests[
+            requestId
+        ];
         ICircuitValidator.KeyToInputIndex[] memory pairs = request.validator.verify(
             inputs,
             a,
@@ -337,7 +356,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
         uint64 requestId,
         string memory key
     ) public view returns (uint256) {
-        return _getMainStorage().proofs[user][requestId].storageFields[key];
+        return _getUniversalVerifierStorage().proofs[user][requestId].storageFields[key];
     }
 
     /// @notice Gets the list of request IDs and verifies the proofs are linked
@@ -346,7 +365,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, IUniversalVerifier {
     /// Throws if the proofs are not linked
     function verifyLinkedProofs(address sender, uint64[] calldata requestIds) public view {
         require(requestIds.length > 1, "Linked proof verification needs more than 1 request");
-        mapping(uint64 => Proof) storage proofs = _getMainStorage().proofs[sender];
+        mapping(uint64 => Proof) storage proofs = _getUniversalVerifierStorage().proofs[sender];
         Proof storage firstProof = proofs[requestIds[0]];
         uint256 expectedLinkID = firstProof.storageFields[LINKED_PROOF_KEY];
 

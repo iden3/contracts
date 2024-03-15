@@ -1,7 +1,7 @@
 {
   "name": "@iden3/contracts",
   "description": "Smart Contract library for Solidity",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "files": [
     "**/*.sol",
     "/build/contracts/*.json",
@@ -22,8 +22,8 @@
     "url": "https://github.com/iden3/contracts/issues"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.0.1",
-    "@openzeppelin/contracts-upgradeable": "^5.0.1",
+    "@openzeppelin/contracts": "^5.0.2",
+    "@openzeppelin/contracts-upgradeable": "^5.0.2",
     "@openzeppelin/contracts-upgradeable-v4": "npm:@openzeppelin/contracts-upgradeable@^4.9.5"
   }
 }

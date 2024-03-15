@@ -38,7 +38,7 @@ contract IdentityExample is IdentityBase, Ownable2StepUpgradeable {
      * @param claim - claim data
      */
     function addClaim(uint256[8] calldata claim) public virtual onlyOwner {
-        IdentityBase._getMainStorage().identity.addClaim(claim);
+        _getIdentityBaseStorage().identity.addClaim(claim);
     }
 
     /**
@@ -47,7 +47,7 @@ contract IdentityExample is IdentityBase, Ownable2StepUpgradeable {
      * @param hashValue - hash of claim value part
      */
     function addClaimHash(uint256 hashIndex, uint256 hashValue) public virtual onlyOwner {
-        IdentityBase._getMainStorage().identity.addClaimHash(hashIndex, hashValue);
+        _getIdentityBaseStorage().identity.addClaimHash(hashIndex, hashValue);
     }
 
     /**
@@ -55,14 +55,14 @@ contract IdentityExample is IdentityBase, Ownable2StepUpgradeable {
      * @param revocationNonce - revocation nonce
      */
     function revokeClaim(uint64 revocationNonce) public virtual onlyOwner {
-        IdentityBase._getMainStorage().identity.revokeClaim(revocationNonce);
+        _getIdentityBaseStorage().identity.revokeClaim(revocationNonce);
     }
 
     /**
      * @dev Make state transition
      */
     function transitState() public virtual onlyOwner {
-        IdentityBase._getMainStorage().identity.transitState();
+        _getIdentityBaseStorage().identity.transitState();
     }
 
     /**
@@ -70,7 +70,7 @@ contract IdentityExample is IdentityBase, Ownable2StepUpgradeable {
      * @return IdentityState
      */
     function calcIdentityState() public view virtual returns (uint256) {
-        return IdentityBase._getMainStorage().identity.calcIdentityState();
+        return _getIdentityBaseStorage().identity.calcIdentityState();
     }
 
     function newClaimData() public pure virtual returns (ClaimBuilder.ClaimData memory) {

@@ -46,7 +46,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.0.0-beta.1";
+    string public constant VERSION = "2.0.1-beta.1";
 
     string internal constant CIRCUIT_ID = "credentialAtomicQueryV3OnChain-beta.1";
 
@@ -69,7 +69,8 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _setInputToIndex("timestamp", 12);
         _setInputToIndex("isBJJAuthEnabled", 13);
 
-        MainStorage storage s = _getMainStorage();
+        CredentialAtomicQueryValidatorBaseStorage
+            storage s = _getCredentialAtomicQueryValidatorBaseStorage();
         s._supportedCircuitIds = [CIRCUIT_ID];
         s._circuitIdToVerifier[CIRCUIT_ID] = IVerifier(_verifierContractAddr);
 
@@ -115,7 +116,9 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
             (CredentialAtomicQueryV3)
         );
 
-        IVerifier verifier = _getMainStorage()._circuitIdToVerifier[credAtomicQuery.circuitIds[0]];
+        IVerifier verifier = _getCredentialAtomicQueryValidatorBaseStorage()._circuitIdToVerifier[
+            credAtomicQuery.circuitIds[0]
+        ];
 
         require(
             credAtomicQuery.circuitIds.length == 1 && verifier != IVerifier(address(0)),
@@ -176,7 +179,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         require(
             userID ==
                 GenesisUtils.calcIdFromEthAddress(
-                    _getMainStorage().state.getDefaultIdType(),
+                    _getCredentialAtomicQueryValidatorBaseStorage().state.getDefaultIdType(),
                     ethIdentityOwner
                 ),
             "UserID does not correspond to the sender"

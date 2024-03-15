@@ -35,32 +35,37 @@ contract IdentityTreeStore is
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.IdentityTreeStore.ReverseHashLibData")) - 1)) &
     //    ~bytes32(uint256(0xff));
-    bytes32 private constant REVERSE_HASH_LIB_DATA_STORAGE_LOCATION =
+    bytes32 private constant ReverseHashLibDataStorageLocation =
         0x0f7e3bdc6cc0e880d509aa1f6b8d1a88e5fcb7274e18dfba772424a36fe9b400;
 
     function _getReverseHashLibDataStorage() private pure returns (ReverseHashLib.Data storage $) {
         assembly {
-            $.slot := REVERSE_HASH_LIB_DATA_STORAGE_LOCATION
+            $.slot := ReverseHashLibDataStorageLocation
         }
     }
 
     /// @custom:storage-location erc7201:iden3.storage.IdentityTreeStore.Main
-    struct MainStorage {
+    struct IdentityTreeStoreMainStorage {
         IState _state;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.IdentityTreeStore.Main")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant MAIN_STORAGE_LOCATION =
+    bytes32 private constant IdentityTreeStoreMainStorageLocation =
         0x95ca427007e091a13a7ccfcb233b8a2ed19d987330a248c445b1b483a35bb800;
 
-    function _getMainStorage() private pure returns (MainStorage storage $) {
+    /// @dev Get the main storage using assembly to ensure specific storage location
+    function _getIdentityTreeStoreMainStorage()
+        private
+        pure
+        returns (IdentityTreeStoreMainStorage storage $)
+    {
         assembly {
-            $.slot := MAIN_STORAGE_LOCATION
+            $.slot := IdentityTreeStoreMainStorageLocation
         }
     }
 
     function initialize(address state) public initializer {
-        _getMainStorage()._state = IState(state);
+        _getIdentityTreeStoreMainStorage()._state = IState(state);
         _getReverseHashLibDataStorage().hashFunction = _hashFunc;
     }
 
@@ -93,7 +98,7 @@ contract IdentityTreeStore is
         uint256 id,
         uint64 nonce
     ) external view returns (CredentialStatus memory) {
-        uint256 state = _getMainStorage()._state.getStateInfoById(id).state;
+        uint256 state = _getIdentityTreeStoreMainStorage()._state.getStateInfoById(id).state;
         return _getRevocationStatusByState(state, nonce);
     }
 
