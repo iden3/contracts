@@ -44,6 +44,12 @@ const config: HardhatUserConfig = {
     //   url: `${process.env.MUMBAI_RPC_URL}`,
     //   accounts: [`0x${process.env.MUMBAI_PRIVATE_KEY}`],
     // },
+    // hardhat: {
+    //   forking: {
+    //     url: `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`,
+    //     blockNumber: 46689454,
+    //   },
+    // },
     localhost: {
       url: "http://127.0.0.1:8545",
       accounts: {
