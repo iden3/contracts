@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.20;
 
-import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable-v4/access/Ownable2StepUpgradeable.sol";
+import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {IState, MAX_SMT_DEPTH} from "../interfaces/IState.sol";
 import {IStateTransitionVerifier} from "../interfaces/IStateTransitionVerifier.sol";
 import {SmtLib} from "../lib/SmtLib.sol";
@@ -62,15 +62,29 @@ contract State is Ownable2StepUpgradeable, IState {
     /**
      * @dev Initialize the contract
      * @param verifierContractAddr Verifier address
+     * @param defaultIdType default id type for Ethereum-based IDs calculation
      */
     function initialize(
         IStateTransitionVerifier verifierContractAddr,
         bytes2 defaultIdType
     ) public initializer {
-        verifier = verifierContractAddr;
-        _setDefaultIdType(defaultIdType);
-        _gistData.initialize(MAX_SMT_DEPTH);
-        __Ownable_init();
+        if (
+            address(verifier) == address(0) || !_defaultIdTypeInitialized || !_gistData.initialized
+        ) {
+            // this is the first initialization of a proxy with a brand new state
+            verifier = verifierContractAddr;
+            _setDefaultIdType(defaultIdType);
+            _gistData.initialize(MAX_SMT_DEPTH);
+        } else if (
+            address(verifier) != address(0) && _defaultIdTypeInitialized && _gistData.initialized
+        ) {
+            // this is reinitialization to set the contract owner and initialized version
+            // in the new slots of new OpenZeppelin library v5 with Namespace Storage Layout}
+        } else {
+            revert("State variables data is not consistent or belongs to another contract");
+        }
+
+        __Ownable_init(_msgSender());
     }
 
     /**

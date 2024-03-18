@@ -6,7 +6,7 @@ import {PoseidonUnit2L, PoseidonUnit3L} from "../lib/Poseidon.sol";
 import {IState} from "../interfaces/IState.sol";
 import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredentialStatusResolver.sol";
 import {IRHSStorage} from "../interfaces/IRHSStorage.sol";
-import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable-v4/access/Ownable2StepUpgradeable.sol";
+import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 
 contract IdentityTreeStore is
     Ownable2StepUpgradeable,
@@ -65,8 +65,20 @@ contract IdentityTreeStore is
     }
 
     function initialize(address state) public initializer {
-        _getIdentityTreeStoreMainStorage()._state = IState(state);
-        _getReverseHashLibDataStorage().hashFunction = _hashFunc;
+        IdentityTreeStoreMainStorage storage $its = _getIdentityTreeStoreMainStorage();
+        ReverseHashLib.Data storage $rhl = _getReverseHashLibDataStorage();
+        if (address($its._state) == address(0) && $rhl.hashFunction != _hashFunc) {
+            // this is the first initialization of a proxy with a brand new state
+            $its._state = IState(state);
+            $rhl.hashFunction = _hashFunc;
+        } else if (address($its._state) != address(0) && $rhl.hashFunction == _hashFunc) {
+            // this is reinitialization to set the contract owner and initialized version
+            // in the new slots of new OpenZeppelin library v5 with Namespace Storage Layout
+        } else {
+            revert("State variables data is not consistent or belongs to another contract");
+        }
+
+        __Ownable_init(_msgSender());
     }
 
     /**
