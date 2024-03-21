@@ -76,7 +76,10 @@ export class DeployHelper {
         PoseidonUnit1L: poseidon1Elements.address,
       },
     });
-    const state = await upgrades.deployProxy(StateFactory, [verifier.address, defaultIdType], {
+    const state = await upgrades.deployProxy(
+      StateFactory,
+      [verifier.address, defaultIdType, owner.address],
+      {
       unsafeAllowLinkedLibraries: true,
     });
     await state.deployed();
@@ -424,7 +427,7 @@ export class DeployHelper {
 
     const identityTreeStore = await upgrades.deployProxy(
       IdentityTreeStore,
-      [stateContractAddress],
+      [stateContractAddress, owner.address],
       { unsafeAllow: ["external-library-linking"] }
     );
     await identityTreeStore.deployed();

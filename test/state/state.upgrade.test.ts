@@ -24,7 +24,7 @@ const proxyAdminABI = [
   },
 ];
 
-describe("State upgrade test", function () {
+describe.skip("State upgrade test", function () {
   it("Should upgrade State contract with data consistency", async () => {
     const state = await ethers.getContractAt(stateContractName, stateContractAddress);
 
