@@ -111,7 +111,8 @@ export class DeployHelper {
   }> {
     this.log("======== State: upgrade started ========");
 
-    const owner = this.signers[0];
+    const proxyAdminOwner = this.signers[0];
+    const stateAdminOwner = this.signers[1];
 
     this.log("deploying verifier...");
 
@@ -119,12 +120,12 @@ export class DeployHelper {
     const verifier = await verifierFactory.deploy();
     await verifier.deployed();
     this.log(
-      `${verifierContractName} contract deployed to address ${verifier.address} from ${owner.address}`
+      `${verifierContractName} contract deployed to address ${verifier.address} from ${proxyAdminOwner.address}`
     );
 
     this.log("deploying poseidons...");
     const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons(
-      owner,
+      proxyAdminOwner,
       [1, 2, 3]
     );
 
@@ -145,7 +146,7 @@ export class DeployHelper {
     owner.provider!.getFeeData = async () => (feedata);
    */
     const StateFactory = await ethers.getContractFactory(stateContractName, {
-      signer: owner,
+      signer: proxyAdminOwner,
       libraries: {
         StateLib: stateLib.address,
         SmtLib: smtLib.address,
@@ -155,12 +156,16 @@ export class DeployHelper {
     const state = await upgrades.upgradeProxy(stateAddress, StateFactory, {
       unsafeAllowLinkedLibraries: true,
       unsafeSkipStorageCheck: true, // TODO: remove for next upgrade
+      call: {
+        fn: "initialize",
+        args: [ethers.constants.AddressZero, "0x0000", stateAdminOwner.address],
+      },
     });
     await state.deployed();
-    this.log(`State contract upgraded at address ${state.address} from ${owner.address}`);
+    this.log(`State contract upgraded at address ${state.address} from ${proxyAdminOwner.address}`);
 
     this.log("======== State: setVerifier ========");
-    const tx = await state.setVerifier(verifier.address);
+    const tx = await state.connect(stateAdminOwner).setVerifier(verifier.address);
     const receipt = await tx.wait();
 
     if (receipt.status !== 1) {

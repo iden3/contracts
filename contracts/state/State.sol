@@ -24,7 +24,7 @@ contract State is Ownable2StepUpgradeable, IState {
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
     // slither-disable-next-line shadowing-state
     // slither-disable-next-line unused-state
-    uint256[500] private __gap;
+    uint256[651] private __gap;
 
     /**
      * @dev Verifier address
@@ -66,7 +66,8 @@ contract State is Ownable2StepUpgradeable, IState {
      */
     function initialize(
         IStateTransitionVerifier verifierContractAddr,
-        bytes2 defaultIdType
+        bytes2 defaultIdType,
+        address owner
     ) public initializer {
         if (
             address(verifier) == address(0) || !_defaultIdTypeInitialized || !_gistData.initialized
@@ -84,7 +85,7 @@ contract State is Ownable2StepUpgradeable, IState {
             revert("State variables data is not consistent or belongs to another contract");
         }
 
-        __Ownable_init(_msgSender());
+        __Ownable_init(owner);
     }
 
     /**

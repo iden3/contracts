@@ -64,7 +64,7 @@ contract IdentityTreeStore is
         }
     }
 
-    function initialize(address state) public initializer {
+    function initialize(address state, address owner) public initializer {
         IdentityTreeStoreMainStorage storage $its = _getIdentityTreeStoreMainStorage();
         ReverseHashLib.Data storage $rhl = _getReverseHashLibDataStorage();
         if (address($its._state) == address(0) && $rhl.hashFunction != _hashFunc) {
@@ -78,7 +78,7 @@ contract IdentityTreeStore is
             revert("State variables data is not consistent or belongs to another contract");
         }
 
-        __Ownable_init(_msgSender());
+        __Ownable_init(owner);
     }
 
     /**
