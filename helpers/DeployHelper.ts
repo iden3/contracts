@@ -432,10 +432,52 @@ export class DeployHelper {
     );
     await identityTreeStore.deployed();
 
-    console.log("\nIdentityTreeStore deployed to:", identityTreeStore.address);
+    this.log("\nIdentityTreeStore deployed to:", identityTreeStore.address);
     return {
       identityTreeStore,
     };
+  }
+
+  async upgradeIdentityTreeStore(
+    identityTreeStoreAddress: string,
+    stateAddress: string
+  ): Promise<Contract> {
+    const proxyAdminOwnerSigner = this.signers[0];
+    const itsOwnerSigner = this.signers[1];
+
+    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons(
+      proxyAdminOwnerSigner,
+      [2, 3]
+    );
+
+    const IdentityTreeStore = await ethers.getContractFactory("IdentityTreeStore", {
+      libraries: {
+        PoseidonUnit2L: poseidon2Elements.address,
+        PoseidonUnit3L: poseidon3Elements.address,
+      },
+      signer: proxyAdminOwnerSigner,
+    });
+
+    const identityTreeStore = await upgrades.upgradeProxy(
+      identityTreeStoreAddress,
+      IdentityTreeStore,
+      {
+        unsafeAllow: ["external-library-linking"],
+        unsafeSkipStorageCheck: true,
+        call: {
+          fn: "initialize",
+          args: [ethers.constants.AddressZero, itsOwnerSigner.address],
+        },
+      }
+    );
+
+    await identityTreeStore.deployed();
+
+    this.log(
+      `IdentityTreeStore contract upgraded at address ${identityTreeStore.address} from ${proxyAdminOwnerSigner.address}`
+    );
+
+    return identityTreeStore;
   }
 
   private log(...args): void {

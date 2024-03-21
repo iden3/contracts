@@ -67,11 +67,12 @@ contract IdentityTreeStore is
     function initialize(address state, address owner) public initializer {
         IdentityTreeStoreMainStorage storage $its = _getIdentityTreeStoreMainStorage();
         ReverseHashLib.Data storage $rhl = _getReverseHashLibDataStorage();
-        if (address($its._state) == address(0) && $rhl.hashFunction != _hashFunc) {
+
+        if (address($its._state) == address(0)) {
             // this is the first initialization of a proxy with a brand new state
             $its._state = IState(state);
             $rhl.hashFunction = _hashFunc;
-        } else if (address($its._state) != address(0) && $rhl.hashFunction == _hashFunc) {
+        } else if (address($its._state) != address(0)) {
             // this is reinitialization to set the contract owner and initialized version
             // in the new slots of new OpenZeppelin library v5 with Namespace Storage Layout
         } else {

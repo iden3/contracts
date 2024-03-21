@@ -44,7 +44,10 @@ async function main() {
 
   expect(stateOwnerAddressBefore).to.equal(stateOwnerAddress);
 
+  // **** Upgrade State ****
   await migrationHelper.upgradeContract(stateContract);
+  // ************************
+
   const dataAfterUpgrade = await migrationHelper.getDataFromContract(stateContract, id, stateValue);
   migrationHelper.checkData(dataBeforeUpgrade, dataAfterUpgrade);
 
