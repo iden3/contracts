@@ -71,7 +71,6 @@ contract IdentityTreeStore is
         if (address($its._state) == address(0)) {
             // this is the first initialization of a proxy with a brand new state
             $its._state = IState(state);
-            $rhl.hashFunction = _hashFunc;
         } else if (address($its._state) != address(0)) {
             // this is reinitialization to set the contract owner and initialized version
             // in the new slots of new OpenZeppelin library v5 with Namespace Storage Layout
@@ -79,6 +78,8 @@ contract IdentityTreeStore is
             revert("State variables data is not consistent or belongs to another contract");
         }
 
+        // this binding is mandatory for any contract upgrade
+        $rhl.hashFunction = _hashFunc;
         __Ownable_init(owner);
     }
 

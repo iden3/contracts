@@ -41,7 +41,9 @@ describe.skip("State upgrade test", function () {
 
     const deployHelper = await DeployHelper.initialize([imProxyAdminOwner, imStateOwner]);
 
+    // **** Upgrade State ****
     await deployHelper.upgradeState(state.address);
+    // ************************
 
     const stateHistoryLengthAfter = await state.getStateInfoHistoryLengthById(id);
     const stateInfosAfter = await state.getStateInfoHistoryById(id, 0, stateHistoryLengthBefore);
@@ -58,11 +60,12 @@ describe.skip("State upgrade test", function () {
     await state.connect(imStateOwner).setVerifier(verifierStub.address);
     const oldStateInfo = await state.getStateInfoById(id);
 
+    const newState = 12345;
     await expect(
       state.transitState(
         id,
         oldStateInfo.state,
-        12345,
+        newState,
         false,
         [0, 0],
         [
@@ -74,7 +77,7 @@ describe.skip("State upgrade test", function () {
     ).not.to.be.reverted;
 
     const newStateInfo = await state.getStateInfoById(id);
-    expect(newStateInfo.state).to.equal(12345);
+    expect(newStateInfo.state).to.equal(newState);
     const stateHistoryLength = await state.getStateInfoHistoryLengthById(id);
     expect(stateHistoryLength).to.equal(stateHistoryLengthAfter.add(1));
   });
