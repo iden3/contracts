@@ -8,11 +8,7 @@ import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredential
 import {IRHSStorage} from "../interfaces/IRHSStorage.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract IdentityTreeStore is
-    Initializable,
-    IOnchainCredentialStatusResolver,
-    IRHSStorage
-{
+contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, IRHSStorage {
     /**
      * @dev Enum for node types
      */
