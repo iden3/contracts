@@ -11,9 +11,22 @@ const proxyAdminOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
 const stateContractAddress = "0x134B1BE34911E39A8397ec6289782989729807a4";
 const stateOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
 
+async function getSigners(useImpersonation: boolean): Promise<any> {
+  if (useImpersonation) {
+    const privateKey = process.env.PRIVATE_KEY as string;
+    // create signer from private key
+    const proxyAdminOwnerSigner = new ethers.Wallet(privateKey, ethers.provider);
+    const stateOwnerSigner = new ethers.Wallet(privateKey, ethers.provider);
+    return { proxyAdminOwnerSigner, stateOwnerSigner };
+  } else {
+    const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(proxyAdminOwnerAddress);
+    const stateOwnerSigner = await ethers.getImpersonatedSigner(stateOwnerAddress);
+    return { proxyAdminOwnerSigner, stateOwnerSigner };
+  }
+}
+
 async function main() {
-  const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(proxyAdminOwnerAddress);
-  const stateOwnerSigner = await ethers.getImpersonatedSigner(stateOwnerAddress);
+  const { proxyAdminOwnerSigner, stateOwnerSigner } = await getSigners(true);
 
   const id = "0x000b9921a67e1b1492902d04d9b5c521bee1288f530b14b10a6a8c94ca741201";
   const stateValue = "0x2c68da47bf4c9acb3320076513905f7b63d8070ed8276ad16ca5402b267a7c26";

@@ -9,8 +9,20 @@ const proxyAdminOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
 const stateContractAddress = "0x134B1BE34911E39A8397ec6289782989729807a4";
 const identityTreeStoreContractAddress = "0x16A1ae4c460C0a42f0a87e69c526c61599B28BC9";
 
+async function getSigners(useImpersonation: boolean): Promise<any> {
+  if (useImpersonation) {
+    const privateKey = process.env.PRIVATE_KEY as string;
+    // create signer from private key
+    const proxyAdminOwnerSigner = new ethers.Wallet(privateKey, ethers.provider);
+    return { proxyAdminOwnerSigner };
+  } else {
+    const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(proxyAdminOwnerAddress);
+    return { proxyAdminOwnerSigner };
+  }
+}
+
 async function main() {
-  const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(proxyAdminOwnerAddress);
+  const { proxyAdminOwnerSigner } = await getSigners(true);
 
   const identityTreeStore = await ethers.getContractAt(
     "IdentityTreeStore",
