@@ -6,10 +6,10 @@ import {PoseidonUnit2L, PoseidonUnit3L} from "../lib/Poseidon.sol";
 import {IState} from "../interfaces/IState.sol";
 import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredentialStatusResolver.sol";
 import {IRHSStorage} from "../interfaces/IRHSStorage.sol";
-import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 contract IdentityTreeStore is
-    Ownable2StepUpgradeable,
+    Initializable,
     IOnchainCredentialStatusResolver,
     IRHSStorage
 {
@@ -64,7 +64,7 @@ contract IdentityTreeStore is
         }
     }
 
-    function initialize(address state, address owner) public initializer {
+    function initialize(address state) public initializer {
         IdentityTreeStoreMainStorage storage $its = _getIdentityTreeStoreMainStorage();
         ReverseHashLib.Data storage $rhl = _getReverseHashLibDataStorage();
 
@@ -80,7 +80,6 @@ contract IdentityTreeStore is
 
         // this binding is mandatory for any contract upgrade
         $rhl.hashFunction = _hashFunc;
-        __Ownable_init(owner);
     }
 
     /**

@@ -415,8 +415,8 @@ export class DeployHelper {
   async deployIdentityTreeStore(stateContractAddress: string): Promise<{
     identityTreeStore: Contract;
   }> {
-    const owner = this.signers[0];
-    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons(owner, [2, 3]);
+    const signer = this.signers[0];
+    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons(signer, [2, 3]);
 
     const IdentityTreeStore = await ethers.getContractFactory("IdentityTreeStore", {
       libraries: {
@@ -427,7 +427,7 @@ export class DeployHelper {
 
     const identityTreeStore = await upgrades.deployProxy(
       IdentityTreeStore,
-      [stateContractAddress, owner.address],
+      [stateContractAddress],
       { unsafeAllow: ["external-library-linking"] }
     );
     await identityTreeStore.deployed();
@@ -458,6 +458,8 @@ export class DeployHelper {
       signer: proxyAdminOwnerSigner,
     });
 
+    // Note: state address is not used in the initialize function when upgrading
+    // the IdentityTreeStore contract, so we use the zero address
     const identityTreeStore = await upgrades.upgradeProxy(
       identityTreeStoreAddress,
       IdentityTreeStore,
@@ -466,7 +468,7 @@ export class DeployHelper {
         unsafeSkipStorageCheck: true,
         call: {
           fn: "initialize",
-          args: [ethers.constants.AddressZero, itsOwnerSigner.address],
+          args: [ethers.constants.AddressZero],
         },
       }
     );

@@ -5,14 +5,12 @@ import { expect } from "chai";
 
 const proxyAdminContractAddress = "0x09bCEf4386D6c19BDb24a85e5C60adEc6921701a";
 const proxyAdminOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
-const itsOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
 
 const stateContractAddress = "0x134B1BE34911E39A8397ec6289782989729807a4";
 const identityTreeStoreContractAddress = "0x16A1ae4c460C0a42f0a87e69c526c61599B28BC9";
 
 async function main() {
   const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(proxyAdminOwnerAddress);
-  const itsOwnerSigner = await ethers.getImpersonatedSigner(itsOwnerAddress);
 
   const identityTreeStore = await ethers.getContractAt(
     "IdentityTreeStore",
@@ -44,7 +42,7 @@ async function main() {
   // **** Upgrade IdentityTreeStore ****
 
   const stateDeployHelper = await DeployHelper.initialize(
-    [proxyAdminOwnerSigner, itsOwnerSigner],
+    [proxyAdminOwnerSigner],
     true
   );
 
@@ -69,8 +67,6 @@ async function main() {
 
   // **********************************
 
-  const itsOwnerAfter = await identityTreeStore.owner();
-  expect(itsOwnerAfter).to.equal(itsOwnerAddress);
 
   // **** Additional read-write checks (to be deleted before real upgrade) ****
 
