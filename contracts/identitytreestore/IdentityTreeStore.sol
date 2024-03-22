@@ -65,7 +65,7 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
         ReverseHashLib.Data storage $rhl = _getReverseHashLibDataStorage();
 
         if (address($its._state) == address(0)) {
-            // this is the first initialization of a proxy with a brand new state
+            // this is the first initialization in a proxy with a brand new state
             $its._state = IState(state);
         } else if (address($its._state) != address(0)) {
             // this is reinitialization to set the contract owner and initialized version

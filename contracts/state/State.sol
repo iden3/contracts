@@ -72,7 +72,7 @@ contract State is Ownable2StepUpgradeable, IState {
         if (
             address(verifier) == address(0) || !_defaultIdTypeInitialized || !_gistData.initialized
         ) {
-            // this is the first initialization of a proxy with a brand new state
+            // this is the first initialization in a proxy with a brand new state
             verifier = verifierContractAddr;
             _setDefaultIdType(defaultIdType);
             _gistData.initialize(MAX_SMT_DEPTH);
