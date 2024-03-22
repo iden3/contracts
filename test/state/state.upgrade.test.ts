@@ -39,11 +39,12 @@ describe.skip("State upgrade test", function () {
     const stateOwnerAddressBefore = await state.owner();
     const imStateOwner = await ethers.getImpersonatedSigner(stateOwnerAddressBefore);
 
-    const deployHelper = await DeployHelper.initialize([imProxyAdminOwner, imStateOwner]);
 
     // **** Upgrade State ****
+    const deployHelper = await DeployHelper.initialize([imProxyAdminOwner, imStateOwner]);
     await deployHelper.upgradeState(state.address);
     // ************************
+
 
     const stateHistoryLengthAfter = await state.getStateInfoHistoryLengthById(id);
     const stateInfosAfter = await state.getStateInfoHistoryById(id, 0, stateHistoryLengthBefore);
@@ -56,6 +57,8 @@ describe.skip("State upgrade test", function () {
     const defaultIdType = await state.connect(imStateOwner).getDefaultIdType();
     expect(defaultIdType).to.equal(defaultIdTypeBefore);
 
+
+    // **** Additional write-read tests ****
     const verifierStub = await ethers.deployContract(verifierStubContractName);
     await state.connect(imStateOwner).setVerifier(verifierStub.address);
     const oldStateInfo = await state.getStateInfoById(id);
@@ -80,5 +83,7 @@ describe.skip("State upgrade test", function () {
     expect(newStateInfo.state).to.equal(newState);
     const stateHistoryLength = await state.getStateInfoHistoryLengthById(id);
     expect(stateHistoryLength).to.equal(stateHistoryLengthAfter.add(1));
+    // **********************************
+
   });
 });

@@ -17,9 +17,9 @@ async function main() {
     identityTreeStoreContractAddress
   );
 
-  // **** Write data before upgrade (to be deleted in real upgrade) ****
-
   const id = "0x000b9921a67e1b1492902d04d9b5c521bee1288f530b14b10a6a8c94ca741201";
+
+  // **** Write data before upgrade (to be deleted in real upgrade) ****
   let nonce = 1n;
   let revRoot = poseidon.hash([nonce, 0n, 1n]);
   let preimages = [
@@ -30,14 +30,14 @@ async function main() {
 
   await identityTreeStore.saveNodes(preimages);
 
+  // **********************************
+
+
   const revStatusByStateBefore = await identityTreeStore.getRevocationStatusByIdAndState(
     id,
     state,
     nonce
   );
-
-  // **********************************
-
 
   // **** Upgrade IdentityTreeStore ****
 
@@ -53,10 +53,6 @@ async function main() {
 
   // **********************************
 
-
-
-  // **** Read data after upgrade (to be deleted in real upgrade) ****
-
   const revStatusByStateAfter = await identityTreeStore.getRevocationStatusByIdAndState(
     id,
     state,
@@ -64,8 +60,6 @@ async function main() {
   );
 
   expect(revStatusByStateBefore).to.deep.equal(revStatusByStateAfter);
-
-  // **********************************
 
 
   // **** Additional read-write checks (to be deleted before real upgrade) ****
