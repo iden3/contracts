@@ -458,8 +458,6 @@ export class DeployHelper {
       signer: proxyAdminOwnerSigner,
     });
 
-    // Note: state address is not used in the initialize function when upgrading
-    // the IdentityTreeStore contract, so we use the zero address
     const identityTreeStore = await upgrades.upgradeProxy(
       identityTreeStoreAddress,
       IdentityTreeStore,
@@ -468,7 +466,7 @@ export class DeployHelper {
         unsafeSkipStorageCheck: true,
         call: {
           fn: "initialize",
-          args: [ethers.constants.AddressZero],
+          args: [stateAddress],
         },
       }
     );

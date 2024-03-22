@@ -64,17 +64,7 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
         IdentityTreeStoreMainStorage storage $its = _getIdentityTreeStoreMainStorage();
         ReverseHashLib.Data storage $rhl = _getReverseHashLibDataStorage();
 
-        if (address($its._state) == address(0)) {
-            // this is the first initialization in a proxy with a brand new state
-            $its._state = IState(state);
-        } else if (address($its._state) != address(0)) {
-            // this is reinitialization to set the contract owner and initialized version
-            // in the new slots of new OpenZeppelin library v5 with Namespace Storage Layout
-        } else {
-            revert("State variables data is not consistent or belongs to another contract");
-        }
-
-        // this binding is mandatory for any contract upgrade
+        $its._state = IState(state);
         $rhl.hashFunction = _hashFunc;
     }
 
