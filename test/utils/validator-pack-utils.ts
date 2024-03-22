@@ -50,7 +50,7 @@ export function packV3ValidatorParams(query: any, allowedIssuers: any[] = []): s
         "bool skipClaimRevocationCheck," +
         "uint256 groupID," +
         "uint256 nullifierSessionID," +
-        "string proofType," +
+        "uint256 proofType," +
         "uint256 verifierID" +
         ")",
     ],
