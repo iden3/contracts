@@ -61,7 +61,7 @@
     "solium": "0.1.3"
   },
   "scripts": {
-    "node:local": "hardhat node",
+    "node:local": "npx hardhat node",
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "test:gas": "COINMARKETCAP_KEY=<put your key here> REPORT_GAS=true npx hardhat test",

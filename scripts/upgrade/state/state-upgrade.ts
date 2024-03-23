@@ -13,14 +13,14 @@ const stateOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
 
 async function getSigners(useImpersonation: boolean): Promise<any> {
   if (useImpersonation) {
+    const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(proxyAdminOwnerAddress);
+    const stateOwnerSigner = await ethers.getImpersonatedSigner(stateOwnerAddress);
+    return { proxyAdminOwnerSigner, stateOwnerSigner };
+  } else {
     const privateKey = process.env.PRIVATE_KEY as string;
     // create signer from private key
     const proxyAdminOwnerSigner = new ethers.Wallet(privateKey, ethers.provider);
     const stateOwnerSigner = new ethers.Wallet(privateKey, ethers.provider);
-    return { proxyAdminOwnerSigner, stateOwnerSigner };
-  } else {
-    const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(proxyAdminOwnerAddress);
-    const stateOwnerSigner = await ethers.getImpersonatedSigner(stateOwnerAddress);
     return { proxyAdminOwnerSigner, stateOwnerSigner };
   }
 }
@@ -75,34 +75,34 @@ async function main() {
 
 
   // **** Additional write-read tests (remove in real upgrade) ****
-  const verifierStubContractName = "VerifierStub";
+        const verifierStubContractName = "VerifierStub";
 
-  const verifierStub = await ethers.deployContract(verifierStubContractName);
-  await stateContract.connect(stateOwnerSigner).setVerifier(verifierStub.address);
-  const oldStateInfo = await stateContract.getStateInfoById(id);
+        const verifierStub = await ethers.deployContract(verifierStubContractName);
+        await stateContract.connect(stateOwnerSigner).setVerifier(verifierStub.address);
+        const oldStateInfo = await stateContract.getStateInfoById(id);
 
-  const stateHistoryLengthBefore = await stateContract.getStateInfoHistoryLengthById(id);
+        const stateHistoryLengthBefore = await stateContract.getStateInfoHistoryLengthById(id);
 
-  const newState = 12345;
-  await expect(
-    stateContract.transitState(
-      id,
-      oldStateInfo.state,
-      newState,
-      false,
-      [0, 0],
-      [
-        [0, 0],
-        [0, 0],
-      ],
-      [0, 0]
-    )
-  ).not.to.be.reverted;
+        const newState = 12345;
+        await expect(
+          stateContract.transitState(
+            id,
+            oldStateInfo.state,
+            newState,
+            false,
+            [0, 0],
+            [
+              [0, 0],
+              [0, 0],
+            ],
+            [0, 0]
+          )
+        ).not.to.be.reverted;
 
-  const newStateInfo = await stateContract.getStateInfoById(id);
-  expect(newStateInfo.state).to.equal(newState);
-  const stateHistoryLengthAfter = await stateContract.getStateInfoHistoryLengthById(id);
-  expect(stateHistoryLengthAfter).to.equal(stateHistoryLengthBefore.add(1));
+        const newStateInfo = await stateContract.getStateInfoById(id);
+        expect(newStateInfo.state).to.equal(newState);
+        const stateHistoryLengthAfter = await stateContract.getStateInfoHistoryLengthById(id);
+        expect(stateHistoryLengthAfter).to.equal(stateHistoryLengthBefore.add(1));
   // **********************************
 
 }
