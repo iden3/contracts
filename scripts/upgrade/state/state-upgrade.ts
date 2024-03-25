@@ -36,17 +36,17 @@ async function main() {
     true
   );
 
-  const migrationHelper = new StateContractMigrationHelper(
+  const stateMigrationHelper = new StateContractMigrationHelper(
     stateDeployHelper,
     proxyAdminOwnerSigner
   );
 
-  const stateContract = await migrationHelper.getInitContract({
+  const stateContract = await stateMigrationHelper.getInitContract({
     contractNameOrAbi: stateArtifact.abi,
     address: stateContractAddress,
   });
 
-  const dataBeforeUpgrade = await migrationHelper.getDataFromContract(
+  const dataBeforeUpgrade = await stateMigrationHelper.getDataFromContract(
     stateContract,
     id,
     stateValue
@@ -57,19 +57,23 @@ async function main() {
 
   expect(stateOwnerAddressBefore).to.equal(stateOwnerAddress);
 
+  const verifierBefore = await stateContract.getVerifier();
+
 
   // **** Upgrade State ****
-  await migrationHelper.upgradeContract(stateContract);
+  await stateMigrationHelper.upgradeContract(stateContract);
   // ************************
 
 
-  const dataAfterUpgrade = await migrationHelper.getDataFromContract(stateContract, id, stateValue);
-  migrationHelper.checkData(dataBeforeUpgrade, dataAfterUpgrade);
+  const dataAfterUpgrade = await stateMigrationHelper.getDataFromContract(stateContract, id, stateValue);
+  stateMigrationHelper.checkData(dataBeforeUpgrade, dataAfterUpgrade);
 
   const defaultIdTypeAfter = await stateContract.getDefaultIdType();
   const stateOwnerAddressAfter = await stateContract.owner();
+  const verifierAfter = await stateContract.getVerifier();
   expect(defaultIdTypeAfter).to.equal(defaultIdTypeBefore);
   expect(stateOwnerAddressAfter).to.equal(stateOwnerAddressBefore);
+  expect(verifierAfter).to.equal(verifierBefore);
 
   console.log("Contract Upgrade Finished");
 

@@ -63,28 +63,23 @@ contract State is Ownable2StepUpgradeable, IState {
      * @dev Initialize the contract
      * @param verifierContractAddr Verifier address
      * @param defaultIdType default id type for Ethereum-based IDs calculation
+     * @param owner Owner of the contract with administrative functions
      */
     function initialize(
         IStateTransitionVerifier verifierContractAddr,
         bytes2 defaultIdType,
         address owner
     ) public initializer {
-        if (
-            address(verifier) == address(0) || !_defaultIdTypeInitialized || !_gistData.initialized
-        ) {
-            // this is the first initialization in a proxy with a brand new state
-            verifier = verifierContractAddr;
-            _setDefaultIdType(defaultIdType);
+        if (!_gistData.initialized) {
             _gistData.initialize(MAX_SMT_DEPTH);
-        } else if (
-            address(verifier) != address(0) && _defaultIdTypeInitialized && _gistData.initialized
-        ) {
-            // this is reinitialization to set the contract owner and initialized version
-            // in the new slots of new OpenZeppelin library v5 with Namespace Storage Layout}
-        } else {
-            revert("State variables data is not consistent or belongs to another contract");
         }
 
+        if (address(verifierContractAddr) == address(0)) {
+            revert("Verifier contract address should not be zero");
+        }
+
+        verifier = verifierContractAddr;
+        _setDefaultIdType(defaultIdType);
         __Ownable_init(owner);
     }
 

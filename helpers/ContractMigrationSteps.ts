@@ -92,7 +92,10 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
 
   abstract populateData(contract: Contract, stateTransitionPayload: any[]): Promise<void>;
 
-  abstract upgradeContract(contract: Contract, afterUpgrade?: () => Promise<void>): Promise<any>;
+  abstract upgradeContract(
+    stateContract: Contract,
+    afterUpgrade?: () => Promise<void>
+  ): Promise<any>;
 
   abstract checkData(...args: any[]): Promise<any>;
 

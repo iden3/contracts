@@ -101,6 +101,7 @@ export class DeployHelper {
 
   async upgradeState(
     stateAddress: string,
+    redeployVerifier = true,
     verifierContractName = "VerifierStateTransition",
     stateContractName = "State"
   ): Promise<{
@@ -114,17 +115,27 @@ export class DeployHelper {
   }> {
     this.log("======== State: upgrade started ========");
 
+    let stateContract: Contract = await ethers.getContractAt("State", stateAddress);
+
     const proxyAdminOwner = this.signers[0];
     const stateAdminOwner = this.signers[1];
 
     this.log("deploying verifier...");
 
-    const verifierFactory = await ethers.getContractFactory(verifierContractName);
-    const verifier = await verifierFactory.deploy();
-    await verifier.deployed();
-    this.log(
-      `${verifierContractName} contract deployed to address ${verifier.address} from ${proxyAdminOwner.address}`
-    );
+    let verifierContract: Contract;
+    if (redeployVerifier) {
+      const verifierFactory = await ethers.getContractFactory(verifierContractName);
+      verifierContract = await verifierFactory.deploy();
+      await verifierContract.deployed();
+      this.log(
+        `${verifierContractName} contract deployed to address ${verifierContract.address} from ${proxyAdminOwner.address}`
+      );
+    } else {
+      verifierContract = await ethers.getContractAt(
+        "VerifierStateTransition",
+        await stateContract.getVerifier()
+      );
+    }
 
     this.log("deploying poseidons...");
     const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons(
@@ -156,30 +167,27 @@ export class DeployHelper {
         PoseidonUnit1L: poseidon1Elements.address,
       },
     });
-    const state = await upgrades.upgradeProxy(stateAddress, StateFactory, {
+    stateContract = await upgrades.upgradeProxy(stateAddress, StateFactory, {
       unsafeAllowLinkedLibraries: true,
       unsafeSkipStorageCheck: true, // TODO: remove for next upgrade
       call: {
         fn: "initialize",
-        args: [ethers.constants.AddressZero, "0x0000", stateAdminOwner.address],
+        args: [
+          verifierContract.address,
+          await stateContract.getDefaultIdType(),
+          stateAdminOwner.address,
+        ],
       },
     });
-    await state.deployed();
-    this.log(`State contract upgraded at address ${state.address} from ${proxyAdminOwner.address}`);
-
-    this.log("======== State: setVerifier ========");
-    const tx = await state.connect(stateAdminOwner).setVerifier(verifier.address);
-    const receipt = await tx.wait();
-
-    if (receipt.status !== 1) {
-      throw new Error("Failed to set verifier");
-    }
-    this.log("======== State: setVerifier completed ========");
+    await stateContract.deployed();
+    this.log(
+      `State contract upgraded at address ${stateContract.address} from ${proxyAdminOwner.address}`
+    );
 
     this.log("======== State: upgrade completed ========");
     return {
-      state: state,
-      verifier,
+      state: stateContract,
+      verifier: verifierContract,
       smtLib,
       stateLib,
       poseidon1: poseidon1Elements,
