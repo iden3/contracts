@@ -41,7 +41,7 @@ export class StateContractMigrationHelper extends ContractMigrationSteps {
   }
 
   @log
-  async checkData(...args: any[]): Promise<any> {
+  checkData(...args: any[]): any {
     const result1 = args[0];
     const result2 = args[1];
     const {
@@ -139,9 +139,10 @@ export class StateContractMigrationHelper extends ContractMigrationSteps {
   }
 
   @log
-  async upgradeContract(contract: Contract): Promise<any> {
-    return await this._stateDeployHelper.upgradeState(contract.address);
+  async upgradeContract(stateContract: Contract, redeployVerifier = true): Promise<any> {
+    return await this._stateDeployHelper.upgradeState(stateContract.address, redeployVerifier);
   }
+
   private async publishState(
     state: Contract,
     json: { [key: string]: string }

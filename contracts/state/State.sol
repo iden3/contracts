@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.20;
 
-import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable-v4/access/Ownable2StepUpgradeable.sol";
+import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {IState, MAX_SMT_DEPTH} from "../interfaces/IState.sol";
 import {IStateTransitionVerifier} from "../interfaces/IStateTransitionVerifier.sol";
 import {SmtLib} from "../lib/SmtLib.sol";
@@ -14,7 +14,7 @@ contract State is Ownable2StepUpgradeable, IState {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.3.0";
+    string public constant VERSION = "2.4.0";
 
     // This empty reserved space is put in place to allow future versions
     // of the State contract to inherit from other contracts without a risk of
@@ -24,7 +24,7 @@ contract State is Ownable2StepUpgradeable, IState {
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
     // slither-disable-next-line shadowing-state
     // slither-disable-next-line unused-state
-    uint256[500] private __gap;
+    uint256[651] private __gap;
 
     /**
      * @dev Verifier address
@@ -62,15 +62,25 @@ contract State is Ownable2StepUpgradeable, IState {
     /**
      * @dev Initialize the contract
      * @param verifierContractAddr Verifier address
+     * @param defaultIdType default id type for Ethereum-based IDs calculation
+     * @param owner Owner of the contract with administrative functions
      */
     function initialize(
         IStateTransitionVerifier verifierContractAddr,
-        bytes2 defaultIdType
+        bytes2 defaultIdType,
+        address owner
     ) public initializer {
+        if (!_gistData.initialized) {
+            _gistData.initialize(MAX_SMT_DEPTH);
+        }
+
+        if (address(verifierContractAddr) == address(0)) {
+            revert("Verifier contract address should not be zero");
+        }
+
         verifier = verifierContractAddr;
         _setDefaultIdType(defaultIdType);
-        _gistData.initialize(MAX_SMT_DEPTH);
-        __Ownable_init();
+        __Ownable_init(owner);
     }
 
     /**

@@ -1,6 +1,6 @@
-import { DeployHelper } from "../../../helpers/DeployHelper";
+import { DeployHelper } from "../../../../helpers/DeployHelper";
 import { ethers } from "hardhat";
-import { StateContractMigrationHelper } from "../../../helpers/StateContractMigrationHelper";
+import { StateContractMigrationHelper } from "../../../../helpers/StateContractMigrationHelper";
 import fs from "fs";
 
 /*
@@ -48,11 +48,7 @@ async function main() {
   const verifierName = "Verifier";
   const stateContractMigrationName = "StateV2-intermediate-migration";
 
-  const { state: stateMigration, verifier } = await stateDeployHelper.upgradeState(
-    stateContractInstance.address,
-    verifierName,
-      stateContractMigrationName
-  );
+  const { state: stateMigration, verifier } = await stateDeployHelper.upgradeState(stateContractInstance.address, undefined, undefined, verifierName, stateContractMigrationName);
   console.log("============= Finish: upgradeToStateV2_migration =============");
 
   const logHistory = await migrationSteps.readEventLogData(

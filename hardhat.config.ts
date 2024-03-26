@@ -44,6 +44,46 @@ const config: HardhatUserConfig = {
     //   url: `${process.env.MUMBAI_RPC_URL}`,
     //   accounts: [`0x${process.env.MUMBAI_PRIVATE_KEY}`],
     // },
+    // hardhat: {
+    //   forking: {
+    //     url: `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`,
+    //     blockNumber: 46689454,
+    //   },
+    // },
+    // hardhat: {
+    //   chainId: 80001,
+    //   forking: {
+    //     url: `https://polygon-mumbai.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+    //     blockNumber: 47392227,
+    //   },
+    //   chains: {
+    //     80001: {
+    //       hardforkHistory: {
+    //         london: 20000000,
+    //       },
+    //     },
+    //   },
+    //   accounts: [
+    //     {
+    //       privateKey: process.env.MUMBAI_PRIVATE_KEY as string,
+    //       balance: "1000000000000000000000000",
+    //     },
+    //   ],
+    // },
+    // hardhat: {
+    //   chainId: 137,
+    //   forking: {
+    //     url: `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+    //     blockNumber: 55067427,
+    //   },
+    //   chains: {
+    //     137: {
+    //       hardforkHistory: {
+    //         london: 20000000,
+    //       },
+    //     },
+    //   },
+    // },
     localhost: {
       url: "http://127.0.0.1:8545",
       accounts: {

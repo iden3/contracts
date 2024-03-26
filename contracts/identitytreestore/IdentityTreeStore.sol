@@ -6,13 +6,9 @@ import {PoseidonUnit2L, PoseidonUnit3L} from "../lib/Poseidon.sol";
 import {IState} from "../interfaces/IState.sol";
 import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredentialStatusResolver.sol";
 import {IRHSStorage} from "../interfaces/IRHSStorage.sol";
-import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable-v4/access/Ownable2StepUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract IdentityTreeStore is
-    Ownable2StepUpgradeable,
-    IOnchainCredentialStatusResolver,
-    IRHSStorage
-{
+contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, IRHSStorage {
     /**
      * @dev Enum for node types
      */
@@ -23,6 +19,11 @@ contract IdentityTreeStore is
         State,
         Empty
     }
+
+    /**
+     * @dev Version of contract
+     */
+    string public constant VERSION = "1.1.0";
 
     /**
      * @dev Max SMT depth for the CredentialStatus proof
@@ -65,8 +66,11 @@ contract IdentityTreeStore is
     }
 
     function initialize(address state) public initializer {
-        _getIdentityTreeStoreMainStorage()._state = IState(state);
-        _getReverseHashLibDataStorage().hashFunction = _hashFunc;
+        IdentityTreeStoreMainStorage storage $its = _getIdentityTreeStoreMainStorage();
+        ReverseHashLib.Data storage $rhl = _getReverseHashLibDataStorage();
+
+        $its._state = IState(state);
+        $rhl.hashFunction = _hashFunc;
     }
 
     /**
