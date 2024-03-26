@@ -94,6 +94,7 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
 
   abstract upgradeContract(
     stateContract: Contract,
+    redeployVerifier?: boolean,
     afterUpgrade?: () => Promise<void>
   ): Promise<any>;
 
