@@ -139,8 +139,8 @@ export class StateContractMigrationHelper extends ContractMigrationSteps {
   }
 
   @log
-  async upgradeContract(stateContract: Contract): Promise<any> {
-    return await this._stateDeployHelper.upgradeState(stateContract.address, false);
+  async upgradeContract(stateContract: Contract, redeployVerifier = true): Promise<any> {
+    return await this._stateDeployHelper.upgradeState(stateContract.address, redeployVerifier);
   }
 
   private async publishState(

@@ -451,7 +451,6 @@ export class DeployHelper {
     stateAddress: string
   ): Promise<Contract> {
     const proxyAdminOwnerSigner = this.signers[0];
-    const itsOwnerSigner = this.signers[1];
 
     const [poseidon2Elements, poseidon3Elements] = await deployPoseidons(
       proxyAdminOwnerSigner,
