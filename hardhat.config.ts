@@ -63,6 +63,12 @@ const config: HardhatUserConfig = {
     //       },
     //     },
     //   },
+    //   accounts: [
+    //     {
+    //       privateKey: process.env.MUMBAI_PRIVATE_KEY as string,
+    //       balance: "1000000000000000000000000",
+    //     },
+    //   ],
     // },
     // hardhat: {
     //   chainId: 137,
@@ -87,10 +93,6 @@ const config: HardhatUserConfig = {
         count: 20,
       },
     },
-    // localhost_fork_polygon_mumbai: {
-    //   url: "http://127.0.0.1:8545",
-    //   accounts: [`0x${process.env.MUMBAI_PRIVATE_KEY}`],
-    // },
   },
   gasReporter: {
     currency: "USD",

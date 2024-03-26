@@ -9,6 +9,7 @@ const proxyAdminOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
 const stateContractAddress = "0x134B1BE34911E39A8397ec6289782989729807a4";
 const identityTreeStoreContractAddress = "0x16A1ae4c460C0a42f0a87e69c526c61599B28BC9";
 const id = "0x000b9921a67e1b1492902d04d9b5c521bee1288f530b14b10a6a8c94ca741201";
+const impersonate = false;
 
 // Polygon PoS mainnet
 
@@ -16,6 +17,7 @@ const id = "0x000b9921a67e1b1492902d04d9b5c521bee1288f530b14b10a6a8c94ca741201";
 // const stateContractAddress = "0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D";
 // const identityTreeStoreContractAddress = "0xbEeB6bB53504E8C872023451fd0D23BeF01d320B";
 // const id = "27400734408475525514287944072871082260891789330025154387098461662248702210";
+// const impersonate = true;
 
 
 async function getSigners(useImpersonation: boolean): Promise<any> {
@@ -34,7 +36,7 @@ async function getSigners(useImpersonation: boolean): Promise<any> {
 }
 
 async function main() {
-  const { proxyAdminOwnerSigner } = await getSigners(true);
+  const { proxyAdminOwnerSigner } = await getSigners(impersonate);
 
   const identityTreeStore = await ethers.getContractAt(
     "IdentityTreeStore",
