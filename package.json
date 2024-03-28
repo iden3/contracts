@@ -72,6 +72,11 @@
     "verify:ropsten": "npx hardhat run scripts/verifyEtherescan.js --network ropsten",
     "lint:contracts": "npx solhint contracts/**/*.sol",
     "lint:contracts:format": "npx prettier --write contracts/**/*.sol",
+    "upgrade:contracts:its:mumbai": "npx hardhat run scripts/upgrade/identitytreestore/identitytreestore-upgrade.ts --network mumbai",
+    "upgrade:contracts:state:mumbai": "npx hardhat run scripts/upgrade/state/state-upgrade.ts --network mumbai",
+    "upgrade:contracts:its:main": "npx hardhat run scripts/upgrade/identitytreestore/identitytreestore-upgrade.ts --network main",
+    "upgrade:contracts:state:main": "npx hardhat run scripts/upgrade/state/state-upgrade.ts --network main",
+
     "slither": "slither ."
   }
 }
