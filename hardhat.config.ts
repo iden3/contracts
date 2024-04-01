@@ -44,6 +44,11 @@ const config: HardhatUserConfig = {
     //   url: `${process.env.MUMBAI_RPC_URL}`,
     //   accounts: [`0x${process.env.MUMBAI_PRIVATE_KEY}`],
     // },
+    // amoy: {
+    //   chainId: 80002,
+    //   url: `${process.env.AMOY_RPC_URL}`,
+    //   accounts: [`0x${process.env.AMOY_PRIVATE_KEY}`],
+    // },
     // hardhat: {
     //   forking: {
     //     url: `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`,

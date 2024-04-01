@@ -76,6 +76,8 @@
     "upgrade:contracts:state:mumbai": "npx hardhat run scripts/upgrade/state/state-upgrade.ts --network mumbai",
     "upgrade:contracts:its:main": "npx hardhat run scripts/upgrade/identitytreestore/identitytreestore-upgrade.ts --network main",
     "upgrade:contracts:state:main": "npx hardhat run scripts/upgrade/state/state-upgrade.ts --network main",
+    "deploy:state:amoy": "npx hardhat run scripts/deployState.ts --network amoy",
+    "deploy:its:amoy": "npx hardhat run scripts/deployIdentityTreeStore.ts --network amoy",
 
     "slither": "slither ."
   }
