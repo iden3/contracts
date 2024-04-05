@@ -440,7 +440,7 @@ export class DeployHelper {
     );
     await identityTreeStore.deployed();
 
-    this.log("\nIdentityTreeStore deployed to:", identityTreeStore.address);
+    console.log("\nIdentityTreeStore deployed to:", identityTreeStore.address);
     return {
       identityTreeStore,
     };
