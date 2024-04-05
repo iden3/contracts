@@ -396,9 +396,7 @@ export class DeployHelper {
     return verifier;
   }
 
-  async deployUniversalVerifier(owner: SignerWithAddress | undefined): Promise<{
-    address: string;
-  }> {
+  async deployUniversalVerifier(owner: SignerWithAddress | undefined): Promise<Contract> {
     if (!owner) {
       owner = this.signers[0];
     }
