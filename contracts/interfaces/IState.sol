@@ -56,7 +56,7 @@ interface IState {
     struct GistProof {
         uint256 root;
         bool existence;
-        uint256[MAX_SMT_DEPTH] siblings;
+        uint256[64] siblings;
         uint256 index;
         uint256 value;
         bool auxExistence;

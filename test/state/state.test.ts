@@ -2,7 +2,6 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { publishState, publishStateWithStubProof } from "../utils/state-utils";
 import { DeployHelper } from "../../helpers/DeployHelper";
-import bigInt from "big-integer";
 
 const verifierStubName = "VerifierStub";
 
@@ -51,7 +50,7 @@ describe("State transition with real verifier", () => {
     const params = await publishState(state, stateTransitionsWithProofs[0]);
 
     const res0 = await state.getStateInfoById(params.id);
-    expect(res0.state).to.be.equal(bigInt(params.newState).toString());
+    expect(res0.state).to.be.equal(BigInt(params.newState).toString());
 
     expect(await state.stateExists(params.id, params.newState)).to.be.equal(true);
     const stInfoNew = await state.getStateInfoByIdAndState(params.id, params.newState);

@@ -394,11 +394,7 @@ export class DeployHelper {
     return primitiveTypeUtilsWrapper;
   }
 
-  async deployZKPVerifier(
-    owner: SignerWithAddress
-  ): Promise<{
-    address: string;
-  }> {
+  async deployZKPVerifier(owner: SignerWithAddress): Promise<Contract> {
     const Verifier = await ethers.getContractFactory(
       "ZKPVerifierWrapper"
     );
@@ -406,12 +402,10 @@ export class DeployHelper {
     const verifier = await upgrades.deployProxy(Verifier, [await owner.getAddress()]);
     await verifier.waitForDeployment();
     console.log("ZKPVerifierWrapper deployed to:", await verifier.getAddress());
-    return { address: await verifier.getAddress() };
+    return verifier;
   }
 
-  async deployUniversalVerifier(owner: SignerWithAddress | undefined): Promise<{
-    address: string;
-  }> {
+  async deployUniversalVerifier(owner: SignerWithAddress | undefined): Promise<Contract> {
     if (!owner) {
       owner = this.signers[0];
     }
@@ -421,7 +415,7 @@ export class DeployHelper {
     const verifier = await upgrades.deployProxy(Verifier);
     await verifier.waitForDeployment();
     console.log("UniversalVerifier deployed to:", await verifier.getAddress());
-    return { address: await verifier.getAddress() };
+    return verifier;
   }
 
   async getDefaultIdType(): Promise<{ defaultIdType: number, chainId: number }> {
