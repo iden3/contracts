@@ -47,8 +47,7 @@
     "solhint-plugin-prettier": "^0.1.0",
     "codecov": "^3.8.2",
     "solidity-bytes-utils": "^0.8.0",
-    "solidity-coverage": "^0.8.12",
-    "solium": "^1.2.5"
+    "solidity-coverage": "^0.8.12"
   },
   "scripts": {
     "node:local": "npx hardhat node",
