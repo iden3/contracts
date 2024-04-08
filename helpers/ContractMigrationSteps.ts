@@ -1,6 +1,6 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
-import { BytesLike, Contract, ContractInterface, Wallet } from "ethers";
+import { Block, BytesLike, Contract, ContractInterface, Wallet } from "ethers";
 import * as fs from "fs";
 import { toJson } from "../test/utils/state-utils";
 
@@ -129,7 +129,7 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
     fileName = "events-data.json"
   ): Promise<any[]> {
     const filter = contract.filters[eventName](null, null, null, null);
-    const latestBlock = await ethers.provider.getBlock("latest");
+    const latestBlock = await ethers.provider.getBlock("latest") as Block;
     console.log("startBlock", firstEventBlock, "latestBlock Number", latestBlock.number);
 
     let logHistory: unknown[] = [];

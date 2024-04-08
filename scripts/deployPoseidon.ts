@@ -9,14 +9,14 @@ async function main() {
   const deployInfo: any = [];
   const contracts = await deployPoseidonFacade();
   deployInfo.push({
-    PoseidonFacade: contracts.PoseidonFacade.address,
-    PoseidonUnit1L: contracts.PoseidonUnit1L.address,
-    PoseidonUnit2L: contracts.PoseidonUnit2L.address,
-    PoseidonUnit3L: contracts.PoseidonUnit3L.address,
-    PoseidonUnit4L: contracts.PoseidonUnit4L.address,
-    PoseidonUnit5L: contracts.PoseidonUnit5L.address,
-    PoseidonUnit6L: contracts.PoseidonUnit6L.address,
-    SpongePoseidon: contracts.SpongePoseidon.address,
+    PoseidonFacade: await contracts.PoseidonFacade.getAddress(),
+    PoseidonUnit1L: await contracts.PoseidonUnit1L.getAddress(),
+    PoseidonUnit2L: await contracts.PoseidonUnit2L.getAddress(),
+    PoseidonUnit3L: await contracts.PoseidonUnit3L.getAddress(),
+    PoseidonUnit4L: await contracts.PoseidonUnit4L.getAddress(),
+    PoseidonUnit5L: await contracts.PoseidonUnit5L.getAddress(),
+    PoseidonUnit6L: await contracts.PoseidonUnit6L.getAddress(),
+    SpongePoseidon: await contracts.SpongePoseidon.getAddress(),
   });
   const outputJson = {
     info: deployInfo,

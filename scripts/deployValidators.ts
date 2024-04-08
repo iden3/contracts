@@ -28,9 +28,13 @@ async function main() {
     const { validator, verifierWrapper } = await deployHelper.deployValidatorContracts(
       v.verifierContractWrapperName,
       v.validatorContractName,
-      stateAddress
+      stateAddress,
     );
-    deployInfo.push({ ...v, validator: validator.address, verifier: verifierWrapper.address });
+    deployInfo.push({
+      ...v,
+      validator: await validator.getAddress(),
+      verifier: await verifierWrapper.getAddress(),
+    });
   }
   const outputJson = {
     info: deployInfo,

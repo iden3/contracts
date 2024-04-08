@@ -65,7 +65,7 @@ describe("Universal Verifier V3 validator", function () {
     );
     v3 = contracts.validator;
     state = contracts.state;
-    await verifier.addWhitelistedValidator(v3.address);
+    await verifier.addWhitelistedValidator(await v3.getAddress());
     await verifier.connect();
   });
 
@@ -74,7 +74,7 @@ describe("Universal Verifier V3 validator", function () {
     const data = packV3ValidatorParams(query);
     await verifier.setZKPRequest(32, {
       metadata: "metadata",
-      validator: v3.address,
+      validator: await v3.getAddress(),
       data: data,
       controller: signerAddress,
       isDisabled: false,
@@ -92,10 +92,10 @@ describe("Universal Verifier V3 validator", function () {
       "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
     );
 
-    await expect(verifier.submitZKPResponse(32, inputs, pi_a, pi_b, pi_c)).not.to.be.reverted;
+    await expect(verifier.submitZKPResponse(32, inputs, pi_a, pi_b, pi_c)).not.to.be.rejected;
     await expect(
       verifier.connect(signer2).submitZKPResponse(32, inputs, pi_a, pi_b, pi_c)
-    ).to.be.revertedWith("UserID does not correspond to the sender");
+    ).to.be.rejectedWith("UserID does not correspond to the sender");
 
     // TODO make some test with correct UserID but with wrong challenge
   });

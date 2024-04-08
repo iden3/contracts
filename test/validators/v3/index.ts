@@ -97,7 +97,7 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_bjj_user_genesis_v3.json"),
     setProofExpiration: tenYears,
-    allowedIssuers: [ethers.BigNumber.from(123)],
+    allowedIssuers: [123n],
     errorMessage: "Issuer is not on the Allowed Issuers list",
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
@@ -203,7 +203,7 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_mtp_user_genesis_v3.json"),
     setProofExpiration: tenYears,
-    allowedIssuers: [ethers.BigNumber.from(123)],
+    allowedIssuers: [123n],
     errorMessage: 'Issuer is not on the Allowed Issuers list',
     isMtpProof: true,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -356,7 +356,7 @@ describe("Atomic V3 Validator", function () {
             packV3ValidatorParams(query, test.allowedIssuers),
             test.sender
           )
-        ).to.be.revertedWith(test.errorMessage);
+        ).to.be.rejectedWith(test.errorMessage);
       } else if (test.errorMessage === "") {
         await expect(
           v3validator.verify(

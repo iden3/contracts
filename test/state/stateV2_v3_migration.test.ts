@@ -52,29 +52,32 @@ describe.skip("Get State old Contract and migrate to latest version", () => {
     const res1 = await stateContractInstance.getStateInfoById(params1.id);
     expect(res1.state).to.be.equal(bigInt(params1.newState).toString());
 
-    // 3. migrate 
+    // 3. migrate
     const { state: stateV3 } = await stateContractMigrationHelper.upgradeContract(stateContractInstance);
-  
+
     // 4. publish second state
     const params2 = await publishState(stateV3, stateTransitionsWithProofs[1]);
     const res2 = await stateV3.getStateInfoById(params2.id);
     expect(res2.state).to.be.equal(bigInt(params2.newState).toString());
-  
+
     // 5. check _defaultIdType is not initialized
-    await expect(stateV3.getDefaultIdType()).to.be.revertedWith(
-      "Default Id Type is not initialized"
+    await expect(stateV3.getDefaultIdType()).to.be.rejectedWith(
+      "Default Id Type is not initialized",
     );
     // 6. initialize _defaultIdType
     const { defaultIdType } = await deployHelper.getDefaultIdType();
     await stateV3.setDefaultIdType(defaultIdType);
     const defIdTypeValue = await stateV3.getDefaultIdType();
     expect(defaultIdType).to.be.equal(defIdTypeValue);
-  
+
     // 7. run new 'transitStateGeneric' method
-    const onchainId = await guWrpr.calcOnchainIdFromAddress(defaultIdType, signers[0].address); 
+    const onchainId = await guWrpr.calcOnchainIdFromAddress(
+      defaultIdType,
+      await signers[0].getAddress(),
+    );
     await stateV3.transitStateGeneric(
-      onchainId, 
-      stateTransitionsWithNoProofs[0].oldState, 
+      onchainId,
+      stateTransitionsWithNoProofs[0].oldState,
       stateTransitionsWithNoProofs[0].newState,
       stateTransitionsWithNoProofs[0].isOldStateGenesis,
       1,

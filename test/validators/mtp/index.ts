@@ -81,8 +81,8 @@ const testCases: any[] = [
     stateTransitions: [require("../common-data/issuer_genesis_state.json")],
     proofJson: require("./data/valid_mtp_user_genesis.json"),
     setProofExpiration: tenYears,
-    allowedIssuers: [ethers.BigNumber.from(123)],
-    errorMessage: 'Issuer is not on the Allowed Issuers list'
+    allowedIssuers: [123n],
+    errorMessage: 'Issuer is not on the Allowed Issuers list',
   },
 ];
 
@@ -118,22 +118,22 @@ describe("Atomic MTP Validator", function () {
       }
 
       const query = {
-        schema: ethers.BigNumber.from("180410020913331409885634153623124536270"),
-        claimPathKey: ethers.BigNumber.from(
+        schema: BigInt("180410020913331409885634153623124536270"),
+        claimPathKey: BigInt(
           "8566939875427719562376598811066985304309117528846759529734201066483458512800"
         ),
-        operator: ethers.BigNumber.from(1),
-        slotIndex: ethers.BigNumber.from(0),
+        operator: 1n,
+        slotIndex: 0n,
         value: [
-          ethers.BigNumber.from("1420070400000000000"),
-          ...new Array(63).fill("0").map((x) => ethers.BigNumber.from(x)),
+          1420070400000000000n,
+          ...new Array(63).fill("0").map((x) => BigInt(x)),
         ],
-        queryHash: ethers.BigNumber.from(
+        queryHash: BigInt(
           "1496222740463292783938163206931059379817846775593932664024082849882751356658"
         ),
         circuitIds: ["credentialAtomicQueryMTPV2OnChain"],
         skipClaimRevocationCheck: false,
-        claimPathNotExists: 0
+        claimPathNotExists: 0,
       };
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
@@ -147,7 +147,7 @@ describe("Atomic MTP Validator", function () {
         await mtpValidator.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
       }
       if (test.errorMessage) {
-        await expect(mtpValidator.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers), senderAddress)).to.be.revertedWith(
+        await expect(mtpValidator.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers), senderAddress)).to.be.rejectedWith(
           test.errorMessage
         );
       } else if (test.errorMessage === "") {
@@ -159,7 +159,7 @@ describe("Atomic MTP Validator", function () {
   }
 
   it ('check inputIndexOf', async () => {
-    const challengeIndx = await mtpValidator.inputIndexOf('challenge');
+    const challengeIndx = await mtpValidator.inputIndexOf("challenge");
     expect(challengeIndx).to.be.equal(4);
   });
 });

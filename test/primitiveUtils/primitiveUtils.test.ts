@@ -39,7 +39,7 @@ describe("uint conversions", function () {
   it("invalid challenge (uint256 LE address) must produce error", async () => {
     const address = "0x3930000000000000000000000000000000000000";
     const uint256 = "5010846606798320903600395684540411235907858077292797642081699116";
-    await expect(utilsWrapper.uint256LEToAddress(uint256)).to.be.revertedWith(
+    await expect(utilsWrapper.uint256LEToAddress(uint256)).to.be.rejectedWith(
       "given uint256 is not a representation of an address, 12 most significant bytes should be zero"
     );
   });

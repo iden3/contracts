@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { poseidon } from "@iden3/js-crypto";
 import { DeployHelper } from "../../helpers/DeployHelper";
-import { BigNumber, Contract } from "ethers";
+import { Contract } from "ethers";
 import { publishStateWithStubProof } from "../utils/state-utils";
 
 const verifierStubName = "VerifierStub";
@@ -12,7 +12,9 @@ describe("IdentityTreeStore", function () {
   beforeEach(async function () {
     const deployHelper = await DeployHelper.initialize();
     ({ state: stateContract } = await deployHelper.deployState(verifierStubName));
-    ({ identityTreeStore } = await deployHelper.deployIdentityTreeStore(stateContract.address));
+    ({ identityTreeStore } = await deployHelper.deployIdentityTreeStore(
+      await stateContract.getAddress(),
+    ));
   });
 
   it("Should return the revocation status single leaf", async function () {
@@ -53,7 +55,7 @@ describe("IdentityTreeStore", function () {
 
     expect(revStatusById.mtp.root).to.equal(revRoot);
     expect(revStatusById.mtp.existence).to.equal(true);
-    expect(revStatusById.mtp.siblings).to.deep.equal(Array(40).fill(BigNumber.from(0)));
+    expect(revStatusById.mtp.siblings).to.deep.equal(Array(40).fill(0));
     expect(revStatusById.mtp.index).to.equal(nonce);
     expect(revStatusById.mtp.value).to.equal(0);
     expect(revStatusById.mtp.auxExistence).to.equal(false);
@@ -65,7 +67,7 @@ describe("IdentityTreeStore", function () {
 
     expect(revStatusById.mtp.root).to.equal(revRoot);
     expect(revStatusById.mtp.existence).to.equal(false);
-    expect(revStatusById.mtp.siblings).to.deep.equal(Array(40).fill(BigNumber.from(0)));
+    expect(revStatusById.mtp.siblings).to.deep.equal(Array(40).fill(0));
     expect(revStatusById.mtp.index).to.equal(nonce + 1n);
     expect(revStatusById.mtp.value).to.equal(0);
     expect(revStatusById.mtp.auxExistence).to.equal(true);
@@ -98,7 +100,7 @@ describe("IdentityTreeStore", function () {
       const revStatusByState = await identityTreeStore.getRevocationStatusByIdAndState(
         id,
         state,
-        nonce
+        nonce,
       );
 
       const stateTransitionArgs = {
@@ -124,11 +126,9 @@ describe("IdentityTreeStore", function () {
       expect(revStatusById.mtp.existence).to.equal(true);
       expect(revStatusById.mtp.siblings).to.deep.equal(
         [
-          BigNumber.from(0),
-          BigNumber.from(
-            "6949980352176809960902782436662588039414117260217395356682829284808595441653"
-          ),
-        ].concat(Array(38).fill(BigNumber.from(0)))
+          0n,
+          BigInt("6949980352176809960902782436662588039414117260217395356682829284808595441653"),
+        ].concat(Array(38).fill(0n)),
       );
       expect(revStatusById.mtp.index).to.equal(nonce);
       expect(revStatusById.mtp.value).to.equal(0);
@@ -144,11 +144,9 @@ describe("IdentityTreeStore", function () {
       expect(revStatusById.mtp.existence).to.equal(false);
       expect(revStatusById.mtp.siblings).to.deep.equal(
         [
-          BigNumber.from(0),
-          BigNumber.from(
-            "16893244256367465864542014032080213413654599301942077056250173615273598292583"
-          ),
-        ].concat(Array(38).fill(BigNumber.from(0)))
+          0n,
+          BigInt("16893244256367465864542014032080213413654599301942077056250173615273598292583"),
+        ].concat(Array(38).fill(0n)),
       );
       expect(revStatusById.mtp.index).to.equal(nonExistingIndex);
       expect(revStatusById.mtp.value).to.equal(0);
@@ -164,10 +162,8 @@ describe("IdentityTreeStore", function () {
       expect(revStatusById.mtp.existence).to.equal(false);
       expect(revStatusById.mtp.siblings).to.deep.equal(
         [
-          BigNumber.from(
-            "4923219850055277158065523309848923357324823470193729569414506026481393416506"
-          ),
-        ].concat(Array(39).fill(BigNumber.from(0)))
+          BigInt("4923219850055277158065523309848923357324823470193729569414506026481393416506"),
+        ].concat(Array(39).fill(0n)),
       );
       expect(revStatusById.mtp.index).to.equal(nonExistingIndex);
       expect(revStatusById.mtp.value).to.equal(0);
@@ -226,11 +222,9 @@ describe("IdentityTreeStore", function () {
       expect(revStatusById.mtp.existence).to.equal(true);
       expect(revStatusById.mtp.siblings).to.deep.equal(
         [
-          BigNumber.from(0),
-          BigNumber.from(
-            "18055627789841181316500608856722684043944115961354987268304016120532204822528"
-          ),
-        ].concat(Array(38).fill(BigNumber.from(0)))
+          0n,
+          BigInt("18055627789841181316500608856722684043944115961354987268304016120532204822528"),
+        ].concat(Array(38).fill(0n)),
       );
       expect(revStatusById.mtp.index).to.equal(nonce);
       expect(revStatusById.mtp.value).to.equal(0);
@@ -246,11 +240,9 @@ describe("IdentityTreeStore", function () {
       expect(revStatusById.mtp.existence).to.equal(false);
       expect(revStatusById.mtp.siblings).to.deep.equal(
         [
-          BigNumber.from(0),
-          BigNumber.from(
-            "19374975721259875597650302716689543547647001662517455822229477759190533109280"
-          ),
-        ].concat(Array(38).fill(BigNumber.from(0)))
+          0n,
+          BigInt("19374975721259875597650302716689543547647001662517455822229477759190533109280"),
+        ].concat(Array(38).fill(0n)),
       );
       expect(revStatusById.mtp.index).to.equal(nonExistingIndex);
       expect(revStatusById.mtp.value).to.equal(0);
@@ -266,10 +258,8 @@ describe("IdentityTreeStore", function () {
       expect(revStatusById.mtp.existence).to.equal(false);
       expect(revStatusById.mtp.siblings).to.deep.equal(
         [
-          BigNumber.from(
-            "18003115155595189826451073637653199212465749960078311721824394167192960280094"
-          ),
-        ].concat(Array(39).fill(BigNumber.from(0)))
+          BigInt("18003115155595189826451073637653199212465749960078311721824394167192960280094"),
+        ].concat(Array(39).fill(0n)),
       );
       expect(revStatusById.mtp.index).to.equal(nonExistingIndex);
       expect(revStatusById.mtp.value).to.equal(0);
@@ -297,10 +287,10 @@ describe("IdentityTreeStore", function () {
 
     await expect(
       identityTreeStore.getRevocationStatusByIdAndState(id, state, nonce)
-    ).to.be.revertedWith("Invalid state node");
+    ).to.be.rejectedWith("Invalid state node");
 
-    await expect(identityTreeStore.getRevocationStatus(id, nonce)).to.be.revertedWith(
-      "Invalid state node"
+    await expect(identityTreeStore.getRevocationStatus(id, nonce)).to.be.rejectedWith(
+      "Invalid state node",
     );
   });
 });

@@ -25,7 +25,7 @@ describe("Next tests reproduce identity life cycle", function () {
     identity = contracts.identity;
     const idType = await stContracts.state.getDefaultIdType();
     const guWrpr = await stDeployHelper.deployGenesisUtilsWrapper();
-    identityId = await guWrpr.calcOnchainIdFromAddress(idType, identity.address);
+    identityId = await guWrpr.calcOnchainIdFromAddress(idType, await identity.getAddress());
   });
 
   describe("create identity", function () {
@@ -605,7 +605,7 @@ describe("Genesis state doens't have history of states", () => {
         await identity.getRootsByState(latestState);
         expect.fail("The transaction should have thrown an error");
       } catch (err: any) {
-        expect(err.reason).to.be.equal("Roots for this state doesn't exist");
+        expect(err.message).to.include("Roots for this state doesn't exist");
       }
     });
   });

@@ -20,13 +20,13 @@ async function main() {
 
 
   const outputJson = {
-    state: stContracts.state.address,
-    smtLib: stContracts.smtLib.address,
-    identity: identity.address,
-    poseidon1: stContracts.poseidon1.address,
-    poseidon2: stContracts.poseidon2.address,
-    poseidon3: stContracts.poseidon3.address,
-    poseidon4: stContracts.poseidon4.address,
+    state: await stContracts.state.getAddress(),
+    smtLib: await stContracts.smtLib.getAddress(),
+    identity: await identity.getAddress(),
+    poseidon1: await stContracts.poseidon1.getAddress(),
+    poseidon2: await stContracts.poseidon2.getAddress(),
+    poseidon3: await stContracts.poseidon3.getAddress(),
+    poseidon4: await stContracts.poseidon4.getAddress(),
     network: process.env.HARDHAT_NETWORK,
   };
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));

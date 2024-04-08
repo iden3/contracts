@@ -48,7 +48,7 @@ async function main() {
   const verifierName = "Verifier";
   const stateContractMigrationName = "StateV2-intermediate-migration";
 
-  const { state: stateMigration, verifier } = await stateDeployHelper.upgradeState(stateContractInstance.address, undefined, undefined, verifierName, stateContractMigrationName);
+  const { state: stateMigration, verifier } = await stateDeployHelper.upgradeState(await stateContractInstance.getAddress(), undefined, undefined, verifierName, stateContractMigrationName);
   console.log("============= Finish: upgradeToStateV2_migration =============");
 
   const logHistory = await migrationSteps.readEventLogData(

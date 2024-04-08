@@ -1056,23 +1056,23 @@ describe("Root history requests", function () {
   });
 
   it("should revert if length is zero", async () => {
-    await expect(smt.getRootHistory(0, 0)).to.be.revertedWith("Length should be greater than 0");
+    await expect(smt.getRootHistory(0, 0)).to.be.rejectedWith("Length should be greater than 0");
   });
 
   it("should revert if length limit exceeded", async () => {
-    await expect(smt.getRootHistory(0, 10 ** 6)).to.be.revertedWith("Length limit exceeded");
+    await expect(smt.getRootHistory(0, 10 ** 6)).to.be.rejectedWith("Length limit exceeded");
   });
 
   it("should revert if out of bounds", async () => {
-    await expect(smt.getRootHistory(historyLength, 100)).to.be.revertedWith(
+    await expect(smt.getRootHistory(historyLength, 100)).to.be.rejectedWith(
       "Start index out of bounds"
     );
   });
 
   it("should NOT revert if startIndex + length >= historyLength", async () => {
-    let history = await smt.getRootHistory(historyLength - 1, 100);
+    let history = await smt.getRootHistory(historyLength - 1n, 100);
     expect(history.length).to.be.equal(1);
-    history = await smt.getRootHistory(historyLength - 2, 100);
+    history = await smt.getRootHistory(historyLength - 2n, 100);
     expect(history.length).to.be.equal(2);
   });
 });
@@ -1116,7 +1116,7 @@ describe("Root history duplicates", function () {
     const riSingleRoot = await smt.getRootInfoListByRoot(singleRoot, 0, 100);
     const riDoubleRoot = await smt.getRootInfoListByRoot(doubleRoot, 0, 100);
     const riTripleRoot = await smt.getRootInfoListByRoot(tripleRoot, 0, 100);
-    await expect(smt.getRootInfoListByRoot(nonExistingRoot, 0, 100)).to.be.revertedWith(
+    await expect(smt.getRootInfoListByRoot(nonExistingRoot, 0, 100)).to.be.rejectedWith(
       "Root does not exist"
     );
 
@@ -1148,7 +1148,7 @@ describe("Root history duplicates", function () {
   it("should revert if length is zero", async () => {
     await smt.add(1, 1);
     const root = await smt.getRoot();
-    await expect(smt.getRootInfoListByRoot(root, 0, 0)).to.be.revertedWith(
+    await expect(smt.getRootInfoListByRoot(root, 0, 0)).to.be.rejectedWith(
       "Length should be greater than 0"
     );
   });
@@ -1156,7 +1156,7 @@ describe("Root history duplicates", function () {
   it("should revert if length limit exceeded", async () => {
     await smt.add(1, 1);
     const root = await smt.getRoot();
-    await expect(smt.getRootInfoListByRoot(root, 0, 10 ** 6)).to.be.revertedWith(
+    await expect(smt.getRootInfoListByRoot(root, 0, 10 ** 6)).to.be.rejectedWith(
       "Length limit exceeded"
     );
   });
@@ -1166,7 +1166,7 @@ describe("Root history duplicates", function () {
     await smt.add(1, 2);
     await smt.add(1, 1);
     const root = await smt.getRoot();
-    await expect(smt.getRootInfoListByRoot(root, 3, 100)).to.be.revertedWith(
+    await expect(smt.getRootInfoListByRoot(root, 3, 100)).to.be.rejectedWith(
       "Start index out of bounds"
     );
   });
@@ -1177,9 +1177,9 @@ describe("Root history duplicates", function () {
     await smt.add(1, 1);
     const root = await smt.getRoot();
     const rootInfoListLength = await smt.getRootInfoListLengthByRoot(root);
-    let list = await smt.getRootInfoListByRoot(root, rootInfoListLength - 1, 100);
+    let list = await smt.getRootInfoListByRoot(root, rootInfoListLength - 1n, 100);
     expect(list.length).to.be.equal(1);
-    list = await smt.getRootInfoListByRoot(root, rootInfoListLength - 2, 100);
+    list = await smt.getRootInfoListByRoot(root, rootInfoListLength - 2n, 100);
     expect(list.length).to.be.equal(2);
   });
 
@@ -1748,15 +1748,15 @@ describe("Edge cases with exceptions", () => {
   it("getRootInfo() should throw when root does not exist", async () => {
     await smt.add(1, 1);
     const root = await smt.getRoot();
-    await expect(smt.getRootInfo(root)).not.to.be.reverted;
-    await expect(smt.getRootInfo(root + 1)).to.be.revertedWith("Root does not exist");
+    await expect(smt.getRootInfo(root)).not.to.be.rejected;
+    await expect(smt.getRootInfo(root + 1n)).to.be.rejectedWith("Root does not exist");
   });
 
   it("getProofByRoot() should throw when root does not exist", async () => {
     await smt.add(1, 1);
     const root = await smt.getRoot();
-    await expect(smt.getProofByRoot(1, root)).not.to.be.reverted;
-    await expect(smt.getProofByRoot(1, root + 1)).to.be.revertedWith("Root does not exist");
+    await expect(smt.getProofByRoot(1, root)).not.to.be.rejected;
+    await expect(smt.getProofByRoot(1, root + 1n)).to.be.rejectedWith("Root does not exist");
   });
 });
 
@@ -1784,21 +1784,21 @@ describe("maxDepth setting tests", () => {
   });
 
   it("Should throw when decrease max depth", async () => {
-    await expect(smt.setMaxDepth(127)).to.be.revertedWith("Max depth can only be increased");
+    await expect(smt.setMaxDepth(127)).to.be.rejectedWith("Max depth can only be increased");
   });
 
   it("Should throw when max depth is set to the same value", async () => {
-    await expect(smt.setMaxDepth(128)).to.be.revertedWith("Max depth can only be increased");
+    await expect(smt.setMaxDepth(128)).to.be.rejectedWith("Max depth can only be increased");
   });
 
   it("Should throw when max depth is set to 0", async () => {
-    await expect(smt.setMaxDepth(0)).to.be.revertedWith("Max depth must be greater than zero");
+    await expect(smt.setMaxDepth(0)).to.be.rejectedWith("Max depth must be greater than zero");
   });
 
   it("Should throw when max depth is set to greater than hard cap", async () => {
-    await expect(smt.setMaxDepth(257)).to.be.revertedWith("Max depth is greater than hard cap");
-    await expect(smt.setMaxDepth(1000000000)).to.be.revertedWith(
-      "Max depth is greater than hard cap"
+    await expect(smt.setMaxDepth(257)).to.be.rejectedWith("Max depth is greater than hard cap");
+    await expect(smt.setMaxDepth(1000000000)).to.be.rejectedWith(
+      "Max depth is greater than hard cap",
     );
   });
 });
@@ -1806,7 +1806,7 @@ describe("maxDepth setting tests", () => {
 async function checkTestCaseMTPProof(smt: Contract, testCase: TestCaseMTPProof) {
   for (const param of testCase.leavesToInsert) {
     if (param.error) {
-      await expect(smt.add(param.i, param.v)).to.be.revertedWith(param.error);
+      await expect(smt.add(param.i, param.v)).to.be.rejectedWith(param.error);
       continue;
     }
     await smt.add(param.i, param.v);

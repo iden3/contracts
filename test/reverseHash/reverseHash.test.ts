@@ -13,13 +13,13 @@ describe("ReverseHashWrapper", function () {
     const ReverseHashWrapperFactory = await ethers.getContractFactory(
       "ReverseHashWrapper", {
         libraries: {
-          PoseidonUnit2L: poseidon2Elements.address,
-          PoseidonUnit3L: poseidon3Elements.address,
+          PoseidonUnit2L: await poseidon2Elements.getAddress(),
+          PoseidonUnit3L: await poseidon3Elements.getAddress(),
         }
       }
     );
     reverseHashWrapper = await ReverseHashWrapperFactory.deploy();
-    await reverseHashWrapper.deployed();
+    await reverseHashWrapper.waitForDeployment();
   });
 
   it("Should save and get preimages", async function () {

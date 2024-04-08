@@ -8,17 +8,17 @@ describe("ZKP Verifier", function () {
   let verifier: any, sig: any, state: any;
 
   const query = {
-    schema: ethers.BigNumber.from("180410020913331409885634153623124536270"),
-    claimPathKey: ethers.BigNumber.from(
+    schema: BigInt("180410020913331409885634153623124536270"),
+    claimPathKey: BigInt(
       "8566939875427719562376598811066985304309117528846759529734201066483458512800"
     ),
-    operator: ethers.BigNumber.from(1),
-    slotIndex: ethers.BigNumber.from(0),
+    operator: 1n,
+    slotIndex: 0n,
     value: [
-      ethers.BigNumber.from("1420070400000000000"),
-      ...new Array(63).fill("0").map((x) => ethers.BigNumber.from(x)),
+      1420070400000000000n,
+      ...new Array(63).fill("0").map((x) => BigInt(x)),
     ],
-    queryHash: ethers.BigNumber.from(
+    queryHash: BigInt(
       "1496222740463292783938163206931059379817846775593932664024082849882751356658"
     ),
     circuitIds: ["credentialAtomicQuerySigV2OnChain"],
@@ -39,7 +39,7 @@ describe("ZKP Verifier", function () {
   it("test submit response (for gas estimation puprose)", async () => {
     await verifier.setZKPRequest(0, {
       metadata: "metadata",
-      validator: sig.address,
+      validator: await sig.getAddress(),
       data: packValidatorParams(query),
     });
 
@@ -51,20 +51,20 @@ describe("ZKP Verifier", function () {
     for (let i = 0; i < 30; i++) {
       await verifier.setZKPRequest(i, {
         metadata: "metadataN" + i,
-        validator: sig.address,
+        validator: await sig.getAddress(),
         data: "0x00",
       });
     }
     let queries = await verifier.getZKPRequests(5, 10);
-    expect(queries.length).to.be.equal(10);
+    expect(queries.length).to.be.equal(10n);
     expect(queries[0].metadata).to.be.equal("metadataN5");
     expect(queries[9].metadata).to.be.equal("metadataN14");
 
     const count = await verifier.getZKPRequestsCount();
-    expect(count).to.be.equal(30);
+    expect(count).to.be.equal(30n);
 
     queries = await verifier.getZKPRequests(15, 3);
-    expect(queries.length).to.be.equal(3);
+    expect(queries.length).to.be.equal(3n);
     expect(queries[0].metadata).to.be.equal("metadataN15");
     expect(queries[1].metadata).to.be.equal("metadataN16");
     expect(queries[2].metadata).to.be.equal("metadataN17");
@@ -75,7 +75,7 @@ describe("ZKP Verifier", function () {
     for (let i = 0; i < requestsCount; i++) {
       await verifier.setZKPRequest(i, {
         metadata: "metadataN" + i,
-        validator: sig.address,
+        validator: await sig.getAddress(),
         data: "0x00",
       });
       const reqeustIdExists = await verifier.requestIdExists(i);
@@ -85,7 +85,7 @@ describe("ZKP Verifier", function () {
 
       const request = await verifier.getZKPRequest(i);
       expect(request.metadata).to.be.equal("metadataN" + i);
-      await expect(verifier.getZKPRequest(i + 1)).to.be.revertedWith("request id doesn't exist");
+      await expect(verifier.getZKPRequest(i + 1)).to.be.rejectedWith("request id doesn't exist");
     }
     const count = await verifier.getZKPRequestsCount();
     expect(count).to.be.equal(requestsCount);

@@ -96,7 +96,7 @@ async function main() {
         const verifierStubContractName = "VerifierStub";
 
         const verifierStub = await ethers.deployContract(verifierStubContractName);
-        await stateContract.connect(stateOwnerSigner).setVerifier(verifierStub.address);
+        await stateContract.connect(stateOwnerSigner).setVerifier(await verifierStub.getAddress());
         const oldStateInfo = await stateContract.getStateInfoById(id);
 
         const stateHistoryLengthBefore = await stateContract.getStateInfoHistoryLengthById(id);

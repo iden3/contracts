@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-const abiCoder = new ethers.utils.AbiCoder();
+const abiCoder = new ethers.AbiCoder();
 
 export function packValidatorParams(query: any, allowedIssuers: any[] = []): string {
   return abiCoder.encode(

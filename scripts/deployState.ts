@@ -10,13 +10,13 @@ async function main() {
     await deployHelper.deployState();
 
   const outputJson = {
-    state: state.address,
-    verifier: verifier.address,
-    stateLib: stateLib.address,
-    smtLib: smtLib.address,
-    poseidon1: poseidon1.address,
-    poseidon2: poseidon2.address,
-    poseidon3: poseidon3.address,
+    state: await state.getAddress(),
+    verifier: await verifier.getAddress(),
+    stateLib: await stateLib.getAddress(),
+    smtLib: await smtLib.getAddress(),
+    poseidon1: await poseidon1.getAddress(),
+    poseidon2: await poseidon2.getAddress(),
+    poseidon3: await poseidon3.getAddress(),
     network: process.env.HARDHAT_NETWORK,
   };
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
