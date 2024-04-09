@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.20;
 
+// TODO changing this value don't forget to change GistProof.siblings array size
+// figure out how to reuse the constant in the array size
+// without compiler error
 uint256 constant MAX_SMT_DEPTH = 64;
 
 interface IState {
@@ -56,7 +59,7 @@ interface IState {
     struct GistProof {
         uint256 root;
         bool existence;
-        uint256[64] siblings;
+        uint256[64] siblings; // TODO figure out the way how to use the MAX_SMT_DEPTH constant
         uint256 index;
         uint256 value;
         bool auxExistence;
