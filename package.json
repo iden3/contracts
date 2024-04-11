@@ -38,7 +38,6 @@
     "solhint": "^4.5.2",
     "solhint-plugin-prettier": "^0.1.0",
     "solidity-bytes-utils": "^0.8.0",
-    "solidity-coverage": "^0.8.12",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.4"
   },
