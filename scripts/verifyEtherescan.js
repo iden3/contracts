@@ -3,8 +3,8 @@ const hre = require("hardhat");
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-const pathDeployOutputParameters = path.join(__dirname, "./deploy_output.json");
-const deployOutputParameters = require(pathDeployOutputParameters);
+// const pathDeployOutputParameters = path.join(__dirname, "./deploy_output.json");
+// const deployOutputParameters = require(pathDeployOutputParameters);
 
 const openzeppelinUpgrade = require(`../.openzeppelin/polygon-${process.env.HARDHAT_NETWORK}.json`);
 

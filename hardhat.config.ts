@@ -34,10 +34,10 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
-    // main: {
+    // polygon: {
     //   chainId: 137,
-    //   url: `${process.env.MAIN_RPC_URL}`,
-    //   accounts: [`0x${process.env.MAIN_PRIVATE_KEY}`],
+    //   url: `${process.env.POLYGON_RPC_URL}`,
+    //   accounts: [`0x${process.env.POLYGON_PRIVATE_KEY}`],
     // },
     // mumbai: {
     //   chainId: 80001,
