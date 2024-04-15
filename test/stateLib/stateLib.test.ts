@@ -126,9 +126,9 @@ describe("StateInfo history", function () {
   });
 
   it("should not revert if startIndex + length >= historyLength", async () => {
-    let history = await stateLibWrpr.getStateInfoHistoryById(id1, id1HistoryLength - 1, 100);
+    let history = await stateLibWrpr.getStateInfoHistoryById(id1, id1HistoryLength - 1n, 100);
     expect(history.length).to.be.equal(1);
-    history = await stateLibWrpr.getStateInfoHistoryById(id1, id1HistoryLength - 2, 100);
+    history = await stateLibWrpr.getStateInfoHistoryById(id1, id1HistoryLength - 2n, 100);
     expect(history.length).to.be.equal(2);
   });
 });
@@ -163,35 +163,35 @@ describe("State history duplicates", function () {
     const nonExistingIdAndState2 = [10, 100];
 
     expect(await stateLibWrpr.getStateInfoListLengthByIdAndState(...singleIdAndState)).to.be.equal(
-      1
+      1n,
     );
     expect(await stateLibWrpr.getStateInfoListLengthByIdAndState(...doubleIdAndState)).to.be.equal(
-      2
+      2n,
     );
     expect(await stateLibWrpr.getStateInfoListLengthByIdAndState(...tripleIdAndState)).to.be.equal(
-      3
+      3n,
     );
     expect(
       await stateLibWrpr.getStateInfoListLengthByIdAndState(...nonExistingIdAndState1)
-    ).to.be.equal(0);
+    ).to.be.equal(0n);
     expect(
       await stateLibWrpr.getStateInfoListLengthByIdAndState(...nonExistingIdAndState2)
     ).to.be.equal(0);
 
     const siSingleIdAndState = await stateLibWrpr.getStateInfoListByIdAndState(
       ...singleIdAndState,
-      0,
-      100
+      0n,
+      100n,
     );
     const siDoubleIdAndState = await stateLibWrpr.getStateInfoListByIdAndState(
       ...doubleIdAndState,
-      0,
-      100
+      0n,
+      100n,
     );
     const siTripleIdAndState = await stateLibWrpr.getStateInfoListByIdAndState(
       ...tripleIdAndState,
-      0,
-      100
+      0n,
+      100n,
     );
 
     expect(siSingleIdAndState.length).to.be.equal(1);
@@ -238,8 +238,8 @@ describe("State history duplicates", function () {
     const id = 1;
     const state = 1;
     await stateLibWrpr.addState(id, state);
-    await expect(stateLibWrpr.getStateInfoListByIdAndState(id, state, 0, 0)).to.be.revertedWith(
-      "Length should be greater than 0"
+    await expect(stateLibWrpr.getStateInfoListByIdAndState(id, state, 0, 0)).to.be.rejectedWith(
+      "Length should be greater than 0",
     );
   });
 
@@ -259,7 +259,7 @@ describe("State history duplicates", function () {
     await stateLibWrpr.addState(id, state);
     await stateLibWrpr.addState(id, state);
     await expect(stateLibWrpr.getStateInfoListByIdAndState(id, state, 3, 100)).to.be.revertedWith(
-      "Start index out of bounds"
+      "Start index out of bounds",
     );
 
     it("should NOT revert if startIndex + length >= historyLength", async () => {

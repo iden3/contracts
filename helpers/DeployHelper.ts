@@ -51,9 +51,9 @@ export class DeployHelper {
 
     const verifierFactory = await ethers.getContractFactory(verifierContractName);
     const verifier = await verifierFactory.deploy();
-    await verifier.deployed();
+    await verifier.waitForDeployment();
     this.log(
-      `${verifierContractName} contract deployed to address ${verifier.address} from ${owner.address}`
+      `${verifierContractName} contract deployed to address ${await verifier.getAddress()} from ${await owner.getAddress()}`
     );
 
     this.log("deploying poseidons...");
@@ -63,7 +63,10 @@ export class DeployHelper {
     );
 
     this.log("deploying SmtLib...");
-    const smtLib = await this.deploySmtLib(poseidon2Elements.address, poseidon3Elements.address);
+    const smtLib = await this.deploySmtLib(
+      await poseidon2Elements.getAddress(),
+      await poseidon3Elements.getAddress(),
+    );
 
     this.log("deploying StateLib...");
     const stateLib = await this.deployStateLib();
@@ -71,19 +74,19 @@ export class DeployHelper {
     this.log("deploying state...");
     const StateFactory = await ethers.getContractFactory("State", {
       libraries: {
-        StateLib: stateLib.address,
-        SmtLib: smtLib.address,
-        PoseidonUnit1L: poseidon1Elements.address,
+        StateLib: await stateLib.getAddress(),
+        SmtLib: await smtLib.getAddress(),
+        PoseidonUnit1L: await poseidon1Elements.getAddress(),
       },
     });
     const state = await upgrades.deployProxy(
       StateFactory,
-      [verifier.address, defaultIdType, owner.address],
+      [await verifier.getAddress(), defaultIdType, await owner.getAddress()],
       {
       unsafeAllowLinkedLibraries: true,
     });
-    await state.deployed();
-    this.log(`State contract deployed to address ${state.address} from ${owner.address}`);
+    await state.waitForDeployment();
+    this.log(`State contract deployed to address ${await state.getAddress()} from ${await owner.getAddress()}`);
 
     this.log("======== State: deploy completed ========");
 
@@ -126,9 +129,9 @@ export class DeployHelper {
     if (redeployVerifier) {
       const verifierFactory = await ethers.getContractFactory(verifierContractName);
       verifierContract = await verifierFactory.deploy();
-      await verifierContract.deployed();
+      await verifierContract.waitForDeployment();
       this.log(
-        `${verifierContractName} contract deployed to address ${verifierContract.address} from ${proxyAdminOwner.address}`
+        `${verifierContractName} contract deployed to address ${await verifierContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`
       );
     } else {
       verifierContract = await ethers.getContractAt(
@@ -144,7 +147,10 @@ export class DeployHelper {
     );
 
     this.log("deploying SmtLib...");
-    const smtLib = await this.deploySmtLib(poseidon2Elements.address, poseidon3Elements.address);
+    const smtLib = await this.deploySmtLib(
+      await poseidon2Elements.getAddress(),
+      await poseidon3Elements.getAddress(),
+    );
 
     this.log("deploying StateLib...");
     const stateLib = await this.deployStateLib();
@@ -156,15 +162,15 @@ export class DeployHelper {
     // in case you need to redefine priority fee config for upgrade operation
 
     const feedata = await owner.provider!.getFeeData();
-    feedata.maxPriorityFeePerGas = BigNumber.from("100000000000");
+    feedata.maxPriorityFeePerGas = 100000000000n;
     owner.provider!.getFeeData = async () => (feedata);
    */
     const StateFactory = await ethers.getContractFactory(stateContractName, {
       signer: proxyAdminOwner,
       libraries: {
-        StateLib: stateLib.address,
-        SmtLib: smtLib.address,
-        PoseidonUnit1L: poseidon1Elements.address,
+        StateLib: await stateLib.getAddress(),
+        SmtLib: await smtLib.getAddress(),
+        PoseidonUnit1L: await poseidon1Elements.getAddress(),
       },
     });
     stateContract = await upgrades.upgradeProxy(stateAddress, StateFactory, {
@@ -173,15 +179,15 @@ export class DeployHelper {
       call: {
         fn: "initialize",
         args: [
-          verifierContract.address,
+          await verifierContract.getAddress(),
           await stateContract.getDefaultIdType(),
-          stateAdminOwner.address,
+          await stateAdminOwner.getAddress(),
         ],
       },
     });
-    await stateContract.deployed();
+    await stateContract.waitForDeployment();
     this.log(
-      `State contract upgraded at address ${stateContract.address} from ${proxyAdminOwner.address}`
+      `State contract upgraded at address ${await stateContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`
     );
 
     this.log("======== State: upgrade completed ========");
@@ -208,8 +214,8 @@ export class DeployHelper {
       },
     });
     const smtLib = await SmtLib.deploy();
-    await smtLib.deployed();
-    this.enableLogging && this.log(`${contractName} deployed to:  ${smtLib.address}`);
+    await smtLib.waitForDeployment();
+    this.enableLogging && this.log(`${contractName} deployed to:  ${await smtLib.getAddress()}`);
 
     return smtLib;
   }
@@ -217,8 +223,8 @@ export class DeployHelper {
   async deployStateLib(stateLibName = "StateLib"): Promise<Contract> {
     const StateLib = await ethers.getContractFactory(stateLibName);
     const stateLib = await StateLib.deploy();
-    await stateLib.deployed();
-    this.enableLogging && this.log(`StateLib deployed to:  ${stateLib.address}`);
+    await stateLib.waitForDeployment();
+    this.enableLogging && this.log(`StateLib deployed to:  ${await stateLib.getAddress()}`);
 
     return stateLib;
   }
@@ -230,16 +236,19 @@ export class DeployHelper {
     this.log("deploying poseidons...");
     const [poseidon2Elements, poseidon3Elements] = await deployPoseidons(owner, [2, 3]);
 
-    const smtLib = await this.deploySmtLib(poseidon2Elements.address, poseidon3Elements.address);
+    const smtLib = await this.deploySmtLib(
+      await poseidon2Elements.getAddress(),
+      await poseidon3Elements.getAddress(),
+    );
 
     const SmtWrapper = await ethers.getContractFactory(contractName, {
       libraries: {
-        SmtLib: smtLib.address,
+        SmtLib: await smtLib.getAddress(),
       },
     });
     const smtWrapper = await SmtWrapper.deploy(maxDepth);
-    await smtWrapper.deployed();
-    this.enableLogging && this.log(`${contractName} deployed to:  ${smtWrapper.address}`);
+    await smtWrapper.waitForDeployment();
+    this.enableLogging && this.log(`${contractName} deployed to:  ${await smtWrapper.getAddress()}`);
 
     return smtWrapper;
   }
@@ -251,12 +260,12 @@ export class DeployHelper {
 
     const StateLibWrapper = await ethers.getContractFactory(contractName, {
       libraries: {
-        StateLib: stateLib.address,
+        StateLib: await stateLib.getAddress(),
       },
     });
     const stateLibWrapper = await StateLibWrapper.deploy();
-    await stateLibWrapper.deployed();
-    this.enableLogging && this.log(`${contractName} deployed to:  ${stateLibWrapper.address}`);
+    await stateLibWrapper.waitForDeployment();
+    this.enableLogging && this.log(`${contractName} deployed to:  ${await stateLibWrapper.getAddress()}`);
 
     return stateLibWrapper;
   }
@@ -267,17 +276,17 @@ export class DeployHelper {
     this.log("deploying poseidons...");
     const [poseidon2Elements, poseidon3Elements] = await deployPoseidons(owner, [2, 3]);
 
-    const smtLib = await this.deploySmtLib(poseidon2Elements.address, poseidon3Elements.address);
+    const smtLib = await this.deploySmtLib(await poseidon2Elements.getAddress(), await poseidon3Elements.getAddress());
 
     const bsWrapperName = "BinarySearchTestWrapper";
     const BSWrapper = await ethers.getContractFactory(bsWrapperName, {
       libraries: {
-        SmtLib: smtLib.address,
+        SmtLib: await smtLib.getAddress(),
       },
     });
     const bsWrapper = await BSWrapper.deploy();
-    await bsWrapper.deployed();
-    this.enableLogging && this.log(`${bsWrapperName} deployed to:  ${bsWrapper.address}`);
+    await bsWrapper.waitForDeployment();
+    this.enableLogging && this.log(`${bsWrapperName} deployed to:  ${await bsWrapper.getAddress()}`);
 
     return bsWrapper;
   }
@@ -294,7 +303,7 @@ export class DeployHelper {
     if (!stateAddress) {
       const stateDeployHelper = await DeployHelper.initialize();
       const { state } = await stateDeployHelper.deployState();
-      stateAddress = state.address;
+      stateAddress = await state.getAddress();
     }
 
     const ValidatorContractVerifierWrapper = await ethers.getContractFactory(
@@ -302,19 +311,23 @@ export class DeployHelper {
     );
     const validatorContractVerifierWrapper = await ValidatorContractVerifierWrapper.deploy();
 
-    await validatorContractVerifierWrapper.deployed();
+    await validatorContractVerifierWrapper.waitForDeployment();
     console.log(
       "Validator Verifier Wrapper deployed to:",
-      validatorContractVerifierWrapper.address
+      await validatorContractVerifierWrapper.getAddress(),
     );
 
     const ValidatorContract = await ethers.getContractFactory(validatorContractName);
 
     const validatorContractProxy = await upgrades.deployProxy(ValidatorContract, [
-      validatorContractVerifierWrapper.address, stateAddress]);
+      await validatorContractVerifierWrapper.getAddress(),
+      stateAddress,
+    ]);
 
-    await validatorContractProxy.deployed();
-    console.log(`${validatorContractName} deployed to: ${validatorContractProxy.address}`);
+    await validatorContractProxy.waitForDeployment();
+    console.log(
+      `${validatorContractName} deployed to: ${await validatorContractProxy.getAddress()}`,
+    );
     const signers = await ethers.getSigners();
 
     const state = await ethers.getContractAt("State", stateAddress, signers[0]);
@@ -333,13 +346,11 @@ export class DeployHelper {
         "ValidatorStub"
     );
     const stubInstance = await stub.deploy();
-    await stubInstance.deployed();
+    await stubInstance.waitForDeployment();
 
-    console.log(
-        "Validator stub  deployed to:",
-        stubInstance.address
-    );
-     return  stubInstance;
+    console.log("Validator stub  deployed to:", await stubInstance.getAddress());
+
+    return stubInstance;
   }
 
   async upgradeValidator(
@@ -355,8 +366,10 @@ export class DeployHelper {
     this.log("upgrading validator...");
     const ValidatorFactory = await ethers.getContractFactory(validatorContractName);
     const validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory);
-    await validator.deployed();
-    this.log(`Validator ${validatorContractName} upgraded at address ${validator.address} from ${owner.address}`);
+    await validator.waitForDeployment();
+    this.log(
+      `Validator ${validatorContractName} upgraded at address ${await validator.getAddress()} from ${await owner.getAddress()}`,
+    );
 
     this.log("======== Validator: upgrade completed ========");
     return {
@@ -369,7 +382,7 @@ export class DeployHelper {
       "GenesisUtilsWrapper"
     );
     const genesisUtilsWrapper = await GenesisUtilsWrapper.deploy();
-    console.log("GenesisUtilsWrapper deployed to:", genesisUtilsWrapper.address);
+    console.log("GenesisUtilsWrapper deployed to:", await genesisUtilsWrapper.getAddress());
     return genesisUtilsWrapper;
   }
   async deployPrimitiveTypeUtilsWrapper(): Promise<PrimitiveTypeUtilsWrapper> {
@@ -377,22 +390,18 @@ export class DeployHelper {
         "PrimitiveTypeUtilsWrapper"
     );
     const primitiveTypeUtilsWrapper = await PrimitiveTypeUtilsWrapper.deploy();
-    console.log("PrimitiveUtilsWrapper deployed to:", primitiveTypeUtilsWrapper.address);
+    console.log("PrimitiveUtilsWrapper deployed to:", await primitiveTypeUtilsWrapper.getAddress());
     return primitiveTypeUtilsWrapper;
   }
 
-  async deployZKPVerifier(
-    owner: SignerWithAddress
-  ): Promise<{
-    address: string;
-  }> {
+  async deployZKPVerifier(owner: SignerWithAddress): Promise<Contract> {
     const Verifier = await ethers.getContractFactory(
       "ZKPVerifierWrapper"
     );
-    // const zkpVerifier = await ZKPVerifier.deploy(owner.address);
-    const verifier = await upgrades.deployProxy(Verifier, [owner.address]);
-    await verifier.deployed();
-    console.log("ZKPVerifierWrapper deployed to:", verifier.address);
+    // const zkpVerifier = await ZKPVerifier.deploy(await owner.getAddress());
+    const verifier = await upgrades.deployProxy(Verifier, [await owner.getAddress()]);
+    await verifier.waitForDeployment();
+    console.log("ZKPVerifierWrapper deployed to:", await verifier.getAddress());
     return verifier;
   }
 
@@ -404,8 +413,8 @@ export class DeployHelper {
       "UniversalVerifier", owner
     );
     const verifier = await upgrades.deployProxy(Verifier);
-    await verifier.deployed();
-    console.log("UniversalVerifier deployed to:", verifier.address);
+    await verifier.waitForDeployment();
+    console.log("UniversalVerifier deployed to:", await verifier.getAddress());
     return verifier;
   }
 
@@ -426,8 +435,8 @@ export class DeployHelper {
 
     const IdentityTreeStore = await ethers.getContractFactory("IdentityTreeStore", {
       libraries: {
-        PoseidonUnit2L: poseidon2Elements.address,
-        PoseidonUnit3L: poseidon3Elements.address,
+        PoseidonUnit2L: await poseidon2Elements.getAddress(),
+        PoseidonUnit3L: await poseidon3Elements.getAddress(),
       },
     });
 
@@ -436,9 +445,9 @@ export class DeployHelper {
       [stateContractAddress],
       { unsafeAllow: ["external-library-linking"] }
     );
-    await identityTreeStore.deployed();
+    await identityTreeStore.waitForDeployment();
 
-    console.log("\nIdentityTreeStore deployed to:", identityTreeStore.address);
+    console.log("\nIdentityTreeStore deployed to:", await identityTreeStore.getAddress());
     return {
       identityTreeStore,
     };
@@ -457,8 +466,8 @@ export class DeployHelper {
 
     const IdentityTreeStore = await ethers.getContractFactory("IdentityTreeStore", {
       libraries: {
-        PoseidonUnit2L: poseidon2Elements.address,
-        PoseidonUnit3L: poseidon3Elements.address,
+        PoseidonUnit2L: await poseidon2Elements.getAddress(),
+        PoseidonUnit3L: await poseidon3Elements.getAddress(),
       },
       signer: proxyAdminOwnerSigner,
     });
@@ -476,10 +485,10 @@ export class DeployHelper {
       }
     );
 
-    await identityTreeStore.deployed();
+    await identityTreeStore.waitForDeployment();
 
     this.log(
-      `IdentityTreeStore contract upgraded at address ${identityTreeStore.address} from ${proxyAdminOwnerSigner.address}`
+      `IdentityTreeStore contract upgraded at address ${await identityTreeStore.getAddress()} from ${await proxyAdminOwnerSigner.getAddress()}`
     );
 
     return identityTreeStore;

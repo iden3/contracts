@@ -1,10 +1,10 @@
 import { expect } from "chai";
 import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeployHelper";
-import fs from 'fs'
+import fs from "fs";
 
 describe("Claim builder tests", function() {
   let identity;
-  
+
   before(async () => {
     const stDeployHelper = await OnchainIdentityDeployHelper.initialize();
     identity = await stDeployHelper.deployClaimBuilderWrapper();
@@ -58,7 +58,7 @@ describe("Claim builder tests", function() {
         const claims = await identity.buildClaim(input.contractInput);
         // console.log(claims);
         claims.forEach((c, cIndex) => {
-            expect(c.eq(input.expectedClaims[cIndex])).to.be.true;
+            expect(c == input.expectedClaims[cIndex]).to.be.true;
         });
     }
   });
@@ -108,10 +108,10 @@ describe("Claim builder tests", function() {
             await identity.buildClaim(input.contractInput);
             expect.fail('The transaction should have thrown an error');
         } catch (err: any) {
-            expect(err.reason).to.be.equal(input.expectedErr);
+            expect(err.message).to.include(input.expectedErr);
         }
     }
- 
+
   });
 
   it("validate buildClaim from file", async function () {
@@ -121,7 +121,7 @@ describe("Claim builder tests", function() {
         const input = inputs[i];
         const claims = await identity.buildClaim(input.contractInput);
         claims.forEach((c, cIndex) => {
-            expect(c.eq(input.expectedClaims[cIndex])).to.be.true;
+            expect(c == input.expectedClaims[cIndex]).to.be.true;
         });
     }
   });

@@ -1,10 +1,10 @@
 import { HardhatUserConfig, task } from "hardhat/config";
-import "@nomiclabs/hardhat-etherscan";
-import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 import "@openzeppelin/hardhat-upgrades";
+import "@nomicfoundation/hardhat-chai-matchers";
+import "@nomicfoundation/hardhat-verify";
 
 const DEFAULT_MNEMONIC =
   "test test test test test test test test test test test junk";
@@ -15,7 +15,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   const accounts = await hre.ethers.getSigners();
 
   for (const account of accounts) {
-    console.log(account.address);
+    console.log(await account.getAddress());
   }
 });
 
@@ -34,10 +34,10 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
-    // main: {
+    // polygon: {
     //   chainId: 137,
-    //   url: `${process.env.MAIN_RPC_URL}`,
-    //   accounts: [`0x${process.env.MAIN_PRIVATE_KEY}`],
+    //   url: `${process.env.POLYGON_RPC_URL}`,
+    //   accounts: [`0x${process.env.POLYGON_PRIVATE_KEY}`],
     // },
     // mumbai: {
     //   chainId: 80001,

@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { ethers } from "hardhat";
 import { packValidatorParams } from "../utils/validator-pack-utils";
+import { AbiCoder } from "ethers";
 
 describe("Universal Verifier events", function () {
   let verifier: any, sig: any;
@@ -10,58 +11,56 @@ describe("Universal Verifier events", function () {
 
   const queries = [
     {
-      schema: ethers.BigNumber.from("111"),
-      claimPathKey: ethers.BigNumber.from(
-        "8566939875427719562376598811066985304309117528846759529734201066483458512800"
-      ),
-      operator: ethers.BigNumber.from(1),
-      slotIndex: ethers.BigNumber.from(0),
+      schema: 111n,
+      claimPathKey: 8566939875427719562376598811066985304309117528846759529734201066483458512800n,
+      operator: 1n,
+      slotIndex: 0n,
       value: [
-        ethers.BigNumber.from("1420070400000000000"),
-        ...new Array(63).fill("0").map((x) => ethers.BigNumber.from(x)),
+        1420070400000000000n,
+        ...new Array(63).fill("0").map((x) => BigInt(x)),
       ],
-      queryHash: ethers.BigNumber.from(
+      queryHash: BigInt(
         "1496222740463292783938163206931059379817846775593932664024082849882751356658"
       ),
       circuitIds: ["credentialAtomicQuerySigV2OnChain"],
       skipClaimRevocationCheck: false,
-      claimPathNotExists: ethers.BigNumber.from(0),
+      claimPathNotExists: 0n,
     },
     {
-      schema: ethers.BigNumber.from("222"),
-      claimPathKey: ethers.BigNumber.from(
+      schema: BigInt("222"),
+      claimPathKey: BigInt(
         "8566939875427719562376598811066985304309117528846759529734201066483458512800"
       ),
-      operator: ethers.BigNumber.from(1),
-      slotIndex: ethers.BigNumber.from(0),
+      operator: 1n,
+      slotIndex: 0n,
       value: [
-        ethers.BigNumber.from("1420070400000000000"),
-        ...new Array(63).fill("0").map((x) => ethers.BigNumber.from(x)),
+        1420070400000000000n,
+        ...new Array(63).fill("0").map((x) => BigInt(x)),
       ],
-      queryHash: ethers.BigNumber.from(
+      queryHash: BigInt(
         "1496222740463292783938163206931059379817846775593932664024082849882751356658"
       ),
       circuitIds: ["credentialAtomicQuerySigV2OnChain"],
       skipClaimRevocationCheck: true,
-      claimPathNotExists: ethers.BigNumber.from(0),
+      claimPathNotExists: 0n,
     },
     {
-      schema: ethers.BigNumber.from("333"),
-      claimPathKey: ethers.BigNumber.from(
+      schema: 333n,
+      claimPathKey: BigInt(
         "8566939875427719562376598811066985304309117528846759529734201066483458512800"
       ),
-      operator: ethers.BigNumber.from(1),
-      slotIndex: ethers.BigNumber.from(0),
+      operator: 1n,
+      slotIndex: 0n,
       value: [
-        ethers.BigNumber.from("1420070400000000000"),
-        ...new Array(63).fill("0").map((x) => ethers.BigNumber.from(x)),
+        1420070400000000000n,
+        ...new Array(63).fill("0").map((x) => BigInt(x)),
       ],
-      queryHash: ethers.BigNumber.from(
+      queryHash: BigInt(
         "1496222740463292783938163206931059379817846775593932664024082849882751356658"
       ),
       circuitIds: ["credentialAtomicQuerySigV2OnChain"],
       skipClaimRevocationCheck: false,
-      claimPathNotExists: ethers.BigNumber.from(0),
+      claimPathNotExists: 0n,
     },
   ];
 
@@ -77,7 +76,7 @@ describe("Universal Verifier events", function () {
       "CredentialAtomicQuerySigV2Validator"
     );
     sig = contracts.validator;
-    await verifier.addWhitelistedValidator(sig.address);
+    await verifier.addWhitelistedValidator(await sig.getAddress());
     await verifier.connect();
   });
 
@@ -92,7 +91,7 @@ describe("Universal Verifier events", function () {
     for (let i = 0; i < requestsCount; i++) {
       await verifier.setZKPRequest(i, {
         metadata: "metadataN" + i,
-        validator: sig.address,
+        validator: await sig.getAddress(),
         data: data[i],
         controller: signerAddress,
         isDisabled: false,
@@ -121,9 +120,10 @@ describe("Universal Verifier events", function () {
     const filter = verifier.filters.ZKPRequestSet(null, null);
     const logs = await verifier.queryFilter(filter, 0, "latest");
 
+    const coder = AbiCoder.defaultAbiCoder();
     logs.map((log, index) => {
       // @ts-ignore
-      const [decodedData] = ethers.utils.defaultAbiCoder.decode(abi, log.args.data);
+      const [decodedData] = coder.decode(abi, log.args.data);
       expect(decodedData.schema).to.equal(queries[index].schema);
       expect(decodedData.claimPathKey).to.equal(queries[index].claimPathKey);
       expect(decodedData.operator).to.equal(queries[index].operator);

@@ -2,7 +2,6 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { publishState, publishStateWithStubProof } from "../utils/state-utils";
 import { DeployHelper } from "../../helpers/DeployHelper";
-import bigInt from "big-integer";
 
 const verifierStubName = "VerifierStub";
 
@@ -40,8 +39,8 @@ describe("State transition with real verifier", () => {
     const modifiedStateTransition = JSON.parse(JSON.stringify(stateTransitionsWithProofs[0]));
     modifiedStateTransition.pub_signals[2] = "100"; // change state to make zk proof invalid
 
-    await expect(publishState(state, modifiedStateTransition)).to.be.revertedWith(
-      "Zero-knowledge proof of state transition is not valid"
+    await expect(publishState(state, modifiedStateTransition)).to.be.rejectedWith(
+      "Zero-knowledge proof of state transition is not valid",
     );
   });
 
@@ -51,15 +50,15 @@ describe("State transition with real verifier", () => {
     const params = await publishState(state, stateTransitionsWithProofs[0]);
 
     const res0 = await state.getStateInfoById(params.id);
-    expect(res0.state).to.be.equal(bigInt(params.newState).toString());
+    expect(res0.state).to.be.equal(BigInt(params.newState).toString());
 
     expect(await state.stateExists(params.id, params.newState)).to.be.equal(true);
     const stInfoNew = await state.getStateInfoByIdAndState(params.id, params.newState);
     expect(stInfoNew.id).to.be.equal(params.id);
     expect(stInfoNew.replacedByState).to.be.equal(0);
-    expect(stInfoNew.createdAtTimestamp).not.be.empty;
+    expect(stInfoNew.createdAtTimestamp).not.to.be.equal(0);
     expect(stInfoNew.replacedAtTimestamp).to.be.equal(0);
-    expect(stInfoNew.createdAtBlock).not.be.empty;
+    expect(stInfoNew.createdAtBlock).not.to.be.equal(0);
     expect(stInfoNew.replacedAtBlock).to.be.equal(0);
 
     expect(await state.stateExists(params.id, params.oldState)).to.be.equal(true);
@@ -90,9 +89,9 @@ describe("State transition with real verifier", () => {
     expect(await state.stateExists(params.id, params.newState)).to.be.equal(true);
     const stInfoNew = await state.getStateInfoByIdAndState(params.id, params.newState);
     expect(stInfoNew.replacedAtTimestamp).to.be.equal(0);
-    expect(stInfoNew.createdAtTimestamp).not.be.empty;
+    expect(stInfoNew.createdAtTimestamp).not.be.equal(0);
     expect(stInfoNew.replacedAtBlock).to.be.equal(0);
-    expect(stInfoNew.createdAtBlock).not.be.empty;
+    expect(stInfoNew.createdAtBlock).not.be.equal(0);
     expect(stInfoNew.id).to.be.equal(params.id);
     expect(stInfoNew.replacedByState).to.be.equal(0);
 
@@ -126,8 +125,8 @@ describe("State transition negative cases", () => {
     const modifiedStateTransition = JSON.parse(JSON.stringify(stateTransitionsWithNoProofs[1]));
     modifiedStateTransition.oldState = 10;
 
-    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.revertedWith(
-      "Old state does not match the latest state"
+    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.rejectedWith(
+      "Old state does not match the latest state",
     );
   });
 
@@ -137,8 +136,8 @@ describe("State transition negative cases", () => {
     const modifiedStateTransition = JSON.parse(JSON.stringify(stateTransitionsWithNoProofs[1]));
     modifiedStateTransition.isOldStateGenesis = true;
 
-    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.revertedWith(
-      "Old state is genesis but identity already exists"
+    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.rejectedWith(
+      "Old state is genesis but identity already exists",
     );
   });
 
@@ -146,8 +145,8 @@ describe("State transition negative cases", () => {
     const modifiedStateTransition = JSON.parse(JSON.stringify(stateTransitionsWithNoProofs[0]));
     modifiedStateTransition.isOldStateGenesis = false;
 
-    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.revertedWith(
-      "Old state is not genesis but identity does not yet exist"
+    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.rejectedWith(
+      "Old state is not genesis but identity does not yet exist",
     );
   });
 
@@ -155,8 +154,8 @@ describe("State transition negative cases", () => {
     const modifiedStateTransition = JSON.parse(JSON.stringify(stateTransitionsWithNoProofs[0]));
     modifiedStateTransition.id = 0;
 
-    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.revertedWith(
-      "ID should not be zero"
+    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.rejectedWith(
+      "ID should not be zero",
     );
   });
 
@@ -164,8 +163,8 @@ describe("State transition negative cases", () => {
     const modifiedStateTransition = JSON.parse(JSON.stringify(stateTransitionsWithNoProofs[0]));
     modifiedStateTransition.newState = 0;
 
-    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.revertedWith(
-      "New state should not be zero"
+    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.rejectedWith(
+      "New state should not be zero",
     );
   });
 
@@ -180,8 +179,8 @@ describe("State transition negative cases", () => {
       isOldStateGenesis: false,
     };
 
-    await expect(publishStateWithStubProof(state, stateTransition)).to.be.revertedWith(
-      "New state already exists"
+    await expect(publishStateWithStubProof(state, stateTransition)).to.be.rejectedWith(
+      "New state already exists",
     );
   });
 });
@@ -370,11 +369,9 @@ describe("Set Verifier", () => {
     const { state, verifier } = await deployHelper.deployState();
 
     const verifierAddress = await state.getVerifier();
-    expect(verifierAddress).to.equal(verifier.address);
+    expect(verifierAddress).to.equal(await verifier.getAddress());
 
-    const newVerifierAddress = ethers.utils.getAddress(
-      "0x8ba1f109551bd432803012645ac136ddd64dba72"
-    );
+    const newVerifierAddress = ethers.getAddress("0x8ba1f109551bd432803012645ac136ddd64dba72");
     await state.setVerifier(newVerifierAddress);
     const verifierAddress2 = await state.getVerifier();
     expect(verifierAddress2).to.equal(newVerifierAddress);
@@ -385,14 +382,14 @@ describe("Set Verifier", () => {
     const { state, verifier } = await deployHelper.deployState();
 
     const verifierAddress = await state.getVerifier();
-    expect(verifierAddress).to.equal(verifier.address);
+    expect(verifierAddress).to.equal(await verifier.getAddress());
 
     const notOwner = (await ethers.getSigners())[1];
-    const newVerifierAddress = ethers.utils.getAddress(
+    const newVerifierAddress = ethers.getAddress(
       "0x8ba1f109551bd432803012645ac136ddd64dba72"
     );
-    await expect(state.connect(notOwner).setVerifier(newVerifierAddress)).to.be.revertedWith(
-      "OwnableUnauthorizedAccount"
+    await expect(state.connect(notOwner).setVerifier(newVerifierAddress)).to.be.rejectedWith(
+      "OwnableUnauthorizedAccount",
     );
   });
 
@@ -400,7 +397,7 @@ describe("Set Verifier", () => {
     const deployHelper = await DeployHelper.initialize();
     const { state } = await deployHelper.deployState();
 
-    await state.setVerifier(ethers.constants.AddressZero);
+    await state.setVerifier(ethers.ZeroAddress);
     await expect(publishState(state, stateTransitionsWithProofs[0])).to.be.reverted;
   });
 });

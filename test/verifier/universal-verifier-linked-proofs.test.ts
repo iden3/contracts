@@ -24,7 +24,7 @@ describe("Universal Verifier Linked proofs", function () {
     );
     v3 = contracts.validator;
     state = contracts.state;
-    await verifier.addWhitelistedValidator(v3.address);
+    await verifier.addWhitelistedValidator(await v3.getAddress());
     await verifier.connect();
 
     await publishState(state, testData.state as unknown as { [key: string]: string });
@@ -32,7 +32,7 @@ describe("Universal Verifier Linked proofs", function () {
     for (let i = 0; i < testData.queryData.zkpRequests.length; i++) {
       await verifier.setZKPRequest(100 + i, {
         metadata: "linkedProofN" + i,
-        validator: v3.address,
+        validator: await v3.getAddress(),
         data: packV3ValidatorParams(testData.queryData.zkpRequests[i].request),
         controller: signerAddress,
         isDisabled: false,
@@ -51,17 +51,17 @@ describe("Universal Verifier Linked proofs", function () {
   });
 
   it("should linked proof validation fail", async () => {
-    await expect(verifier.verifyLinkedProofs(signerAddress, [100, 101])).to.be.revertedWith(
-      "LinkedProofError"
+    await expect(verifier.verifyLinkedProofs(signerAddress, [100, 101])).to.be.rejectedWith(
+      "LinkedProofError",
     );
-    await expect(verifier.verifyLinkedProofs(signerAddress, [102, 103])).to.be.revertedWith(
-      "LinkedProofError"
+    await expect(verifier.verifyLinkedProofs(signerAddress, [102, 103])).to.be.rejectedWith(
+      "LinkedProofError",
     );
 
-    await expect(verifier.verifyLinkedProofs(signerAddress, [102])).to.be.revertedWith(
+    await expect(verifier.verifyLinkedProofs(signerAddress, [102])).to.be.rejectedWith(
       "Linked proof verification needs more than 1 request"
     );
-    await expect(verifier.verifyLinkedProofs(signer2.address, [101, 102])).to.be.revertedWith(
+    await expect(verifier.verifyLinkedProofs(await signer2.getAddress(), [101, 102])).to.be.rejectedWith(
       `Can't find linkID for given request Ids and user address`
     );
   });
