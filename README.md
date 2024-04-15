@@ -3,6 +3,22 @@
 - State - State contract, where identity states are published
 - Smt - library to manage Sparse Merkle Trees onchain
 
+## State Contract
+
+|        Network             |     Address                                |
+|:--------------------------:|:------------------------------------------:|
+| **Polygon Mainnet**        | 0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D |
+| **Polygon Amoy testnet**   | 0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124 |
+| Polygon Mumbai testnet     | 0x134B1BE34911E39A8397ec6289782989729807a4 |
+
+## IdentityTreeStore contract (On-chain RHS)
+
+|        Network             |     Address                                |
+|:--------------------------:|:------------------------------------------:|
+| **Polygon Mainnet**        | 0xbEeB6bB53504E8C872023451fd0D23BeF01d320B |
+| **Polygon Amoy testnet**   | 0x3d3763eC0a50CE1AdF83d0b5D99FBE0e3fEB43fb |
+| Polygon Mumbai testnet     | 0x16A1ae4c460C0a42f0a87e69c526c61599B28BC9 |
+
 ## Security Audits
 
 1. [Nethermind](https://nethermind.io/smart-contracts-audits/) has performed a security audit of our core smart contracts (State & Smt) and compiled a report on Apr 18, 2023: 
