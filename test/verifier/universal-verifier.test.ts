@@ -52,22 +52,27 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const requestsCount = 3;
 
     for (let i = 0; i < requestsCount; i++) {
+      const validatorAddr = await sig.getAddress();
       await expect(
         verifier.setZKPRequest(i, {
           metadata: "metadataN" + i,
-          validator: await sig.getAddress(),
+          validator: validatorAddr,
           data: "0x0" + i,
-          controller: signerAddress,
-          isDisabled: false,
         })
       )
         .to.emit(verifier, "ZKPRequestSet")
-        .withArgs(i, signerAddress, "metadataN" + i, "0x0" + i);
+        .withArgs(i, signerAddress, "metadataN" + i, validatorAddr, "0x0" + i);
       const request = await verifier.getZKPRequest(i);
       expect(request.metadata).to.be.equal("metadataN" + i);
-      expect(request.validator).to.be.equal(await sig.getAddress());
+      expect(request.validator).to.be.equal(validatorAddr);
       expect(request.data).to.be.equal("0x0" + i);
-      expect(request.controller).to.be.equal(signerAddress);
+
+      const requestFI = await verifier.getZKPRequestFullInfo(i);
+      expect(request.metadata).to.be.equal("metadataN" + i);
+      expect(request.validator).to.be.equal(validatorAddr);
+      expect(request.data).to.be.equal("0x0" + i);
+      expect(requestFI.controller).to.be.equal(signerAddress);
+      expect(requestFI.isDisabled).to.be.equal(false);
 
       const requestIdExists = await verifier.requestIdExists(i);
       expect(requestIdExists).to.be.true;
@@ -138,7 +143,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     expect(queries[2].metadata).to.be.equal("metadataN17");
   });
 
-  it("Test getControllerZKPRequests", async () => {
+  it("Test getZKPRequestsByController", async () => {
     for (let i = 0; i < 5; i++) {
       await verifier
         .connect(signer)
@@ -160,16 +165,16 @@ describe("Universal Verifier MTP & SIG validators", function () {
           isDisabled: false
         });
     }
-    let queries = await verifier.getControllerZKPRequests(signerAddress, 3, 5);
+    let queries = await verifier.getZKPRequestsByController(signerAddress, 3, 5);
     expect(queries.length).to.be.equal(2);
     expect(queries[0].metadata).to.be.equal("metadataN3");
     expect(queries[1].metadata).to.be.equal("metadataN4");
 
-    queries = await verifier.getControllerZKPRequests(signer2Address, 0, 5);
+    queries = await verifier.getZKPRequestsByController(signer2Address, 0, 5);
     expect(queries.length).to.be.equal(3);
     expect(queries[0].metadata).to.be.equal("metadataN0");
 
-    await expect(verifier.getControllerZKPRequests(signer3Address, 0, 5)).to.be.rejectedWith(
+    await expect(verifier.getZKPRequestsByController(signer3Address, 0, 5)).to.be.rejectedWith(
       "Start index out of bounds"
     );
   });

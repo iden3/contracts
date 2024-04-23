@@ -16,9 +16,8 @@ abstract contract ZKPVerifier is IZKPVerifier, Ownable2StepUpgradeable {
 
     /// @dev Main storage structure for the contract
     struct ZKPVerifierStorage {
-        // msg.sender-> ( requestID -> is proof given )
-        mapping(address => mapping(uint64 => bool)) proofs;
-        mapping(uint64 => IZKPVerifier.ZKPRequest) _requests;
+        mapping(address user => mapping(uint64 requestID => bool isProved)) proofs;
+        mapping(uint64 requestID => IZKPVerifier.ZKPRequest) _requests;
         uint64[] _requestIds;
     }
 
