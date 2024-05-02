@@ -26,9 +26,9 @@ abstract contract ZKPVerifierBase {
 
     /// @dev Main storage structure for the contract
     struct ZKPVerifierBaseStorage {
-        mapping(address user => mapping(uint64 requestID => Proof)) proofs;
-        mapping(uint64 requestID => IZKPVerifier.ZKPRequest) requests;
-        uint64[] requestIds;
+        mapping(address user => mapping(uint64 requestID => Proof)) _proofs;
+        mapping(uint64 requestID => IZKPVerifier.ZKPRequest) _requests;
+        uint64[] _requestIds;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifierBase")) - 1)) & ~bytes32(uint256(0xff));
@@ -44,5 +44,23 @@ abstract contract ZKPVerifierBase {
         assembly {
             $.slot := ZKPVerifierBaseStorageLocation
         }
+    }
+
+    /// @notice Checks the proof status for a given user and request ID
+    /// @param user The user's address
+    /// @param requestId The ID of the ZKP request
+    /// @return The proof status
+    function getProofStatus(
+        address user,
+        uint64 requestId
+    ) public view returns (ProofStatus memory) {
+        Proof storage proof = _getZKPVerifierBaseStorage()._proofs[user][requestId];
+
+        return ProofStatus(
+            proof.isProved,
+            proof.validatorVersion,
+            proof.blockNumber,
+            proof.blockTimestamp
+        );
     }
 }

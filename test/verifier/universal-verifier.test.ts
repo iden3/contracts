@@ -99,9 +99,9 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
     const tx = await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
     const txRes = await tx.wait();
-    const filter = verifier.filters.ZKPResponseSubmitted
+    const filter = verifier.filters.ZKPResponseSubmitted;
 
-    const events = await verifier.queryFilter(filter, -1)
+    const events = await verifier.queryFilter(filter, -1);
     expect(events[0].eventName).to.be.equal("ZKPResponseSubmitted");
     expect(events[0].args.requestId).to.be.equal(0);
     expect(events[0].args.caller).to.be.equal(signerAddress);

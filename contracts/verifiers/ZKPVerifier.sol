@@ -37,16 +37,24 @@ abstract contract ZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         uint256[2] calldata c
     ) public {
         ZKPVerifierBaseStorage storage s = _getZKPVerifierBaseStorage();
-        IZKPVerifier.ZKPRequest storage request = s.requests[requestId];
+        IZKPVerifier.ZKPRequest storage request = s._requests[requestId];
+        address sender = _msgSender();
 
+        ICircuitValidator validator = ICircuitValidator(request.validator);
         require(
-            request.validator != ICircuitValidator(address(0)),
+            validator != ICircuitValidator(address(0)),
             "validator is not set for this request id"
         ); // validator exists
 
         _beforeProofSubmit(requestId, inputs, request.validator);
-        request.validator.verify(inputs, a, b, c, request.data, msg.sender);
-        s.proofs[msg.sender][requestId].isProved = true; // user provided a valid proof for request
+        validator.verify(inputs, a, b, c, request.data, msg.sender);
+
+        Proof storage proof = _getZKPVerifierBaseStorage()._proofs[sender][requestId];
+        proof.isProved = true;
+        proof.validatorVersion = validator.version();
+        proof.blockNumber = block.number;
+        proof.blockTimestamp = block.timestamp;
+
         _afterProofSubmit(requestId, inputs, request.validator);
     }
 
@@ -54,7 +62,7 @@ abstract contract ZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         uint64 requestId
     ) public view returns (IZKPVerifier.ZKPRequest memory) {
         require(requestIdExists(requestId), "request id doesn't exist");
-        return _getZKPVerifierBaseStorage().requests[requestId];
+        return _getZKPVerifierBaseStorage()._requests[requestId];
     }
 
     function setZKPRequest(
@@ -62,18 +70,18 @@ abstract contract ZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         IZKPVerifier.ZKPRequest calldata request
     ) public onlyOwner {
         ZKPVerifierBaseStorage storage s = _getZKPVerifierBaseStorage();
-        s.requests[requestId] = request;
-        s.requestIds.push(requestId);
+        s._requests[requestId] = request;
+        s._requestIds.push(requestId);
     }
 
     function getZKPRequestsCount() public view returns (uint256) {
-        return _getZKPVerifierBaseStorage().requestIds.length;
+        return _getZKPVerifierBaseStorage()._requestIds.length;
     }
 
     function requestIdExists(uint64 requestId) public view returns (bool) {
         ZKPVerifierBaseStorage storage s = _getZKPVerifierBaseStorage();
-        for (uint i = 0; i < s.requestIds.length; i++) {
-            if (s.requestIds[i] == requestId) {
+        for (uint i = 0; i < s._requestIds.length; i++) {
+            if (s._requestIds[i] == requestId) {
                 return true;
             }
         }
@@ -87,7 +95,7 @@ abstract contract ZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
     ) public view returns (IZKPVerifier.ZKPRequest[] memory) {
         ZKPVerifierBaseStorage storage s = _getZKPVerifierBaseStorage();
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
-            s.requestIds.length,
+            s._requestIds.length,
             startIndex,
             length,
             REQUESTS_RETURN_LIMIT
@@ -96,14 +104,14 @@ abstract contract ZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         IZKPVerifier.ZKPRequest[] memory result = new IZKPVerifier.ZKPRequest[](end - start);
 
         for (uint256 i = start; i < end; i++) {
-            result[i - start] = s.requests[s.requestIds[i]];
+            result[i - start] = s._requests[s._requestIds[i]];
         }
 
         return result;
     }
 
     function isProofSubmitted(address sender, uint64 requestID) public view returns (bool) {
-        return _getZKPVerifierBaseStorage().proofs[sender][requestID].isProved;
+        return _getZKPVerifierBaseStorage()._proofs[sender][requestID].isProved;
     }
 
     /**

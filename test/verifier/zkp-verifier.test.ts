@@ -3,9 +3,11 @@ import { DeployHelper } from "../../helpers/DeployHelper";
 import { ethers } from "hardhat";
 import { packValidatorParams } from "../utils/validator-pack-utils";
 import { prepareInputs, publishState } from "../utils/state-utils";
+import { Block, Signer } from "ethers";
 
 describe("ZKP Verifier", function () {
   let verifier: any, sig: any, state: any;
+  let owner: Signer;
 
   const query = {
     schema: BigInt("180410020913331409885634153623124536270"),
@@ -29,14 +31,14 @@ describe("ZKP Verifier", function () {
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize(null, true);
-    const [owner] = await ethers.getSigners();
+    [owner] = await ethers.getSigners();
     verifier = await deployHelper.deployZKPVerifier(owner);
 
     const stub = await deployHelper.deployValidatorStub();
     sig = stub;
   });
 
-  it("test submit response (for gas estimation puprose)", async () => {
+  it("test submit response", async () => {
     await verifier.setZKPRequest(0, {
       metadata: "metadata",
       validator: await sig.getAddress(),
@@ -44,7 +46,22 @@ describe("ZKP Verifier", function () {
     });
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
-    await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
+    const tx = await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
+    const txRes = await tx.wait();
+
+    const ownerAddress = await owner.getAddress();
+    const requestID = 0;
+    const { timestamp: txResTimestamp } = (await ethers.provider.getBlock(
+      txRes.blockNumber,
+    )) as Block;
+
+    const isProofSubmitted = await verifier.isProofSubmitted(ownerAddress, requestID);
+    expect(isProofSubmitted).to.be.equal(true);
+    const proofStatus = await verifier.getProofStatus(ownerAddress, requestID);
+    expect(proofStatus.isProved).to.be.equal(true);
+    expect(proofStatus.validatorVersion).to.be.equal("2.0.0-mock");
+    expect(proofStatus.blockNumber).to.be.equal(txRes.blockNumber);
+    expect(proofStatus.blockTimestamp).to.be.equal(txResTimestamp);
   });
 
   it("test query param pagination", async () => {
