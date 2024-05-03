@@ -53,6 +53,58 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         _;
     }
 
+    /// @notice Submits a ZKP response and updates proof status
+    /// @param requestId The ID of the ZKP request
+    /// @param inputs The input data for the proof
+    /// @param a The first component of the proof
+    /// @param b The second component of the proof
+    /// @param c The third component of the proof
+    function submitZKPResponse(
+        uint64 requestId,
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c
+    ) public virtual checkRequestExistence(requestId, true) {
+        address sender = _msgSender();
+        IZKPVerifier.ZKPRequest storage request = _getZKPVerifierBaseStorage()._requests[
+                    requestId
+            ];
+
+        ICircuitValidator validator = ICircuitValidator(request.validator);
+
+        ICircuitValidator.KeyToInputIndex[] memory pairs = validator.verify(
+            inputs,
+            a,
+            b,
+            c,
+            request.data,
+            sender
+        );
+
+        Proof storage proof = _getZKPVerifierBaseStorage()._proofs[sender][requestId];
+        for (uint256 i = 0; i < pairs.length; i++) {
+            proof.storageFields[pairs[i].key] = inputs[pairs[i].inputIndex];
+        }
+
+        proof.isProved = true;
+        proof.validatorVersion = validator.version();
+        proof.blockNumber = block.number;
+        proof.blockTimestamp = block.timestamp;
+    }
+
+    /// @notice Sets a ZKP request
+    /// @param requestId The ID of the ZKP request
+    /// @param request The ZKP request data
+    function setZKPRequest(
+        uint64 requestId,
+        IZKPVerifier.ZKPRequest calldata request
+    ) public virtual {
+        ZKPVerifierBaseStorage storage s = _getZKPVerifierBaseStorage();
+        s._requests[requestId] = request;
+        s._requestIds.push(requestId);
+    }
+
     /// @notice Gets a specific ZKP request by ID
     /// @param requestId The ID of the ZKP request
     /// @return zkpRequest The ZKP request data
@@ -62,30 +114,10 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         return _getZKPVerifierBaseStorage()._requests[requestId];
     }
 
-    /// @notice Checks if proof submitted for a given sender and request ID
-    /// @param sender The sender's address
-    /// @param requestId The ID of the ZKP request
-    /// @return true if proof submitted
-    function isProofSubmitted(address sender, uint64 requestId) public view returns (bool) {
-        return _getZKPVerifierBaseStorage()._proofs[sender][requestId].isProved;
-    }
-
-    /// @notice Checks the proof status for a given user and request ID
-    /// @param sender The sender's address
-    /// @param requestId The ID of the ZKP request
-    /// @return The proof status structure
-    function getProofStatus(
-        address sender,
-        uint64 requestId
-    ) public view returns (IZKPVerifier.ProofStatus memory) {
-        Proof storage proof = _getZKPVerifierBaseStorage()._proofs[sender][requestId];
-
-        return IZKPVerifier.ProofStatus(
-            proof.isProved,
-            proof.validatorVersion,
-            proof.blockNumber,
-            proof.blockTimestamp
-        );
+    /// @notice Gets the count of ZKP requests
+    /// @return The count of ZKP requests
+    function getZKPRequestsCount() public view returns (uint256) {
+        return _getZKPVerifierBaseStorage()._requestIds.length;
     }
 
     /// @notice Checks if a ZKP request ID exists
@@ -124,62 +156,30 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         return result;
     }
 
-    /// @notice Gets the count of ZKP requests
-    /// @return The count of ZKP requests
-    function getZKPRequestsCount() public view returns (uint256) {
-        return _getZKPVerifierBaseStorage()._requestIds.length;
+    /// @notice Checks if proof submitted for a given sender and request ID
+    /// @param sender The sender's address
+    /// @param requestId The ID of the ZKP request
+    /// @return true if proof submitted
+    function isProofSubmitted(address sender, uint64 requestId) public view returns (bool) {
+        return _getZKPVerifierBaseStorage()._proofs[sender][requestId].isProved;
     }
 
-    /// @notice Sets a ZKP request
+    /// @notice Checks the proof status for a given user and request ID
+    /// @param sender The sender's address
     /// @param requestId The ID of the ZKP request
-    /// @param request The ZKP request data
-    function setZKPRequest(
-        uint64 requestId,
-        IZKPVerifier.ZKPRequest calldata request
-    ) public virtual {
-        ZKPVerifierBaseStorage storage s = _getZKPVerifierBaseStorage();
-        s._requests[requestId] = request;
-        s._requestIds.push(requestId);
-    }
-
-    /// @notice Submits a ZKP response and updates proof status
-    /// @param requestId The ID of the ZKP request
-    /// @param inputs The input data for the proof
-    /// @param a The first component of the proof
-    /// @param b The second component of the proof
-    /// @param c The third component of the proof
-    function submitZKPResponse(
-        uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c
-    ) public virtual checkRequestExistence(requestId, true) {
-        address sender = _msgSender();
-        IZKPVerifier.ZKPRequest storage request = _getZKPVerifierBaseStorage()._requests[
-            requestId
-        ];
-
-        ICircuitValidator validator = ICircuitValidator(request.validator);
-
-        ICircuitValidator.KeyToInputIndex[] memory pairs = validator.verify(
-            inputs,
-            a,
-            b,
-            c,
-            request.data,
-            sender
-        );
-
+    /// @return The proof status structure
+    function getProofStatus(
+        address sender,
+        uint64 requestId
+    ) public view returns (IZKPVerifier.ProofStatus memory) {
         Proof storage proof = _getZKPVerifierBaseStorage()._proofs[sender][requestId];
-        for (uint256 i = 0; i < pairs.length; i++) {
-            proof.storageFields[pairs[i].key] = inputs[pairs[i].inputIndex];
-        }
 
-        proof.isProved = true;
-        proof.validatorVersion = validator.version();
-        proof.blockNumber = block.number;
-        proof.blockTimestamp = block.timestamp;
+        return IZKPVerifier.ProofStatus(
+            proof.isProved,
+            proof.validatorVersion,
+            proof.blockNumber,
+            proof.blockTimestamp
+        );
     }
 
     /// @notice Gets the proof storage item for a given user, request ID and key

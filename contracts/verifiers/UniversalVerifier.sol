@@ -116,14 +116,21 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         return VERSION;
     }
 
-    /// @notice Adds a new whitelisted validator
-    function addWhitelistedValidator(ICircuitValidator validator) public onlyOwner {
-        require(
-            IERC165(address(validator)).supportsInterface(type(ICircuitValidator).interfaceId),
-            "Validator doesn't support relevant interface"
-        );
-
-        _getUniversalVerifierStorage()._whitelistedValidators[validator] = true;
+    /// @notice Submits a ZKP response and updates proof status
+    /// @param requestId The ID of the ZKP request
+    /// @param inputs The input data for the proof
+    /// @param a The first component of the proof
+    /// @param b The second component of the proof
+    /// @param c The third component of the proof
+    function submitZKPResponse(
+        uint64 requestId,
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c
+    ) public override requestEnabled(requestId) {
+        ZKPVerifierBase.submitZKPResponse(requestId, inputs, a, b, c);
+        emit ZKPResponseSubmitted(requestId, _msgSender());
     }
 
     /// @notice Sets a ZKP request
@@ -144,34 +151,6 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
 
         emit ZKPRequestSet(requestId, sender, request.metadata, address(request.validator), request.data);
     }
-
-    /// @notice Sets a ZKP request
-    /// @param requestId The ID of the ZKP request
-    function disableZKPRequest(uint64 requestId) public onlyOwnerOrController(requestId) {
-        _getUniversalVerifierStorage()._requestAccessControls[requestId].isDisabled = true;
-    }
-
-    /// @notice Sets a ZKP request
-    /// @param requestId The ID of the ZKP request
-    function enableZKPRequest(uint64 requestId) public onlyOwnerOrController(requestId) {
-        _getUniversalVerifierStorage()._requestAccessControls[requestId].isDisabled = false;
-    }
-
-    /// @notice Gets a specific ZKP request full info by ID
-    /// @param requestId The ID of the ZKP request
-    /// @return zkpRequestFullInfo The ZKP request data
-    function getZKPRequestFullInfo(
-        uint64 requestId
-    ) public view checkRequestExistence(requestId, true) returns (ZKPRequestFullInfo memory zkpRequestFullInfo) {
-        return ZKPRequestFullInfo({
-            metadata: _getZKPVerifierBaseStorage()._requests[requestId].metadata,
-            validator: _getZKPVerifierBaseStorage()._requests[requestId].validator,
-            data: _getZKPVerifierBaseStorage()._requests[requestId].data,
-            controller: _getUniversalVerifierStorage()._requestAccessControls[requestId].controller,
-            isDisabled: _getUniversalVerifierStorage()._requestAccessControls[requestId].isDisabled
-        });
-    }
-
 
     /// @notice Gets multiple ZKP requests within a range for specific controller
     /// @param controller The controller address
@@ -196,28 +175,26 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
 
         for (uint256 i = start; i < end; i++) {
             result[i - start] = _getZKPVerifierBaseStorage()._requests[
-                _getUniversalVerifierStorage()._controllerRequestIds[controller][i]
-            ];
+                                        _getUniversalVerifierStorage()._controllerRequestIds[controller][i]
+                ];
         }
 
         return result;
     }
 
-    /// @notice Submits a ZKP response and updates proof status
+    /// @notice Gets a specific ZKP request full info by ID
     /// @param requestId The ID of the ZKP request
-    /// @param inputs The input data for the proof
-    /// @param a The first component of the proof
-    /// @param b The second component of the proof
-    /// @param c The third component of the proof
-    function submitZKPResponse(
-        uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c
-    ) public override requestEnabled(requestId) {
-        ZKPVerifierBase.submitZKPResponse(requestId, inputs, a, b, c);
-        emit ZKPResponseSubmitted(requestId, _msgSender());
+    /// @return zkpRequestFullInfo The ZKP request data
+    function getZKPRequestFullInfo(
+        uint64 requestId
+    ) public view checkRequestExistence(requestId, true) returns (ZKPRequestFullInfo memory zkpRequestFullInfo) {
+        return ZKPRequestFullInfo({
+            metadata: _getZKPVerifierBaseStorage()._requests[requestId].metadata,
+            validator: _getZKPVerifierBaseStorage()._requests[requestId].validator,
+            data: _getZKPVerifierBaseStorage()._requests[requestId].data,
+            controller: _getUniversalVerifierStorage()._requestAccessControls[requestId].controller,
+            isDisabled: _getUniversalVerifierStorage()._requestAccessControls[requestId].isDisabled
+        });
     }
 
     /// @notice Verifies a ZKP response without updating any proof status
@@ -282,5 +259,27 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
                 );
             }
         }
+    }
+
+    /// @notice Adds a new whitelisted validator
+    function addWhitelistedValidator(ICircuitValidator validator) public onlyOwner {
+        require(
+            IERC165(address(validator)).supportsInterface(type(ICircuitValidator).interfaceId),
+            "Validator doesn't support relevant interface"
+        );
+
+        _getUniversalVerifierStorage()._whitelistedValidators[validator] = true;
+    }
+
+    /// @notice Sets a ZKP request
+    /// @param requestId The ID of the ZKP request
+    function disableZKPRequest(uint64 requestId) public onlyOwnerOrController(requestId) {
+        _getUniversalVerifierStorage()._requestAccessControls[requestId].isDisabled = true;
+    }
+
+    /// @notice Sets a ZKP request
+    /// @param requestId The ID of the ZKP request
+    function enableZKPRequest(uint64 requestId) public onlyOwnerOrController(requestId) {
+        _getUniversalVerifierStorage()._requestAccessControls[requestId].isDisabled = false;
     }
 }
