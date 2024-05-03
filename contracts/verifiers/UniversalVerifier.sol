@@ -48,8 +48,6 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         }
     }
 
-    uint256 constant REQUESTS_RETURN_LIMIT = 1000;
-
     /**
      * @dev Version of contract
      */
@@ -81,9 +79,10 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
 
     /// @dev Modifier to check if the caller is the owner or controller of the ZKP request
     modifier onlyOwnerOrController(uint64 requestId) {
+        address sender = _msgSender();
         require(
-            msg.sender == _getUniversalVerifierStorage()._requestAccessControls[requestId].controller ||
-                msg.sender == owner(),
+            sender == _getUniversalVerifierStorage()._requestAccessControls[requestId].controller ||
+                sender == owner(),
             "Only owner or controller can call this function"
         );
         _;
@@ -104,16 +103,6 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
             _getUniversalVerifierStorage()._whitelistedValidators[validator],
             "Validator is not whitelisted"
         );
-        _;
-    }
-
-    /// @dev Modifier to check if the validator is set for the request
-    modifier checkRequestExistence(uint64 requestId, bool existence) {
-        if (existence) {
-            require(requestIdExists(requestId), "request id doesn't exist");
-        } else {
-            require(!requestIdExists(requestId), "request id already exists");
-        }
         _;
     }
 
@@ -143,16 +132,15 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
     function setZKPRequest(
         uint64 requestId,
         IZKPVerifier.ZKPRequest calldata request
-    ) public isWhitelistedValidator(request.validator) checkRequestExistence(requestId, false) {
-        address sender = _msgSender();
-        _getZKPVerifierBaseStorage()._requestIds.push(requestId);
-        _getUniversalVerifierStorage()._controllerRequestIds[sender].push(requestId);
+    ) public override isWhitelistedValidator(request.validator) checkRequestExistence(requestId, false) {
+        ZKPVerifierBase.setZKPRequest(requestId, request);
 
-        _getZKPVerifierBaseStorage()._requests[requestId] = request;
+        address sender = _msgSender();
         _getUniversalVerifierStorage()._requestAccessControls[requestId] = ZKPRequestAccessControl({
             controller: sender,
             isDisabled: false
         });
+        _getUniversalVerifierStorage()._controllerRequestIds[sender].push(requestId);
 
         emit ZKPRequestSet(requestId, sender, request.metadata, address(request.validator), request.data);
     }
@@ -167,30 +155,6 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
     /// @param requestId The ID of the ZKP request
     function enableZKPRequest(uint64 requestId) public onlyOwnerOrController(requestId) {
         _getUniversalVerifierStorage()._requestAccessControls[requestId].isDisabled = false;
-    }
-
-    /// @notice Checks if a ZKP request ID exists
-    /// @param requestId The ID of the ZKP request
-    /// @return Whether the request ID exists
-    function requestIdExists(uint64 requestId) public view returns (bool) {
-        return
-            _getZKPVerifierBaseStorage()._requests[requestId].validator !=
-            ICircuitValidator(address(0));
-    }
-
-    /// @notice Gets the count of ZKP requests
-    /// @return The count of ZKP requests
-    function getZKPRequestsCount() public view returns (uint256) {
-        return _getZKPVerifierBaseStorage()._requestIds.length;
-    }
-
-    /// @notice Gets a specific ZKP request by ID
-    /// @param requestId The ID of the ZKP request
-    /// @return zkpRequest The ZKP request data
-    function getZKPRequest(
-        uint64 requestId
-    ) public view checkRequestExistence(requestId, true) returns (IZKPVerifier.ZKPRequest memory zkpRequest) {
-        return _getZKPVerifierBaseStorage()._requests[requestId];
     }
 
     /// @notice Gets a specific ZKP request full info by ID
@@ -208,37 +172,6 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         });
     }
 
-
-    /// @notice Gets multiple ZKP requests within a range
-    /// @param startIndex The starting index of the range
-    /// @param length The length of the range
-    /// @return An array of ZKP requests within the specified range
-    function getZKPRequests(
-        uint256 startIndex,
-        uint256 length
-    ) public view returns (IZKPVerifier.ZKPRequest[] memory) {
-        (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
-            _getZKPVerifierBaseStorage()._requestIds.length,
-            startIndex,
-            length,
-            REQUESTS_RETURN_LIMIT
-        );
-
-        IZKPVerifier.ZKPRequest[] memory result = new IZKPVerifier.ZKPRequest[](
-            end - start
-        );
-
-        for (uint256 i = start; i < end; i++) {
-            IZKPVerifier.ZKPRequest storage rd = _getZKPVerifierBaseStorage()._requests[
-                _getZKPVerifierBaseStorage()._requestIds[i]
-            ];
-            result[i - start].metadata = rd.metadata;
-            result[i - start].validator = rd.validator;
-            result[i - start].data = rd.data;
-        }
-
-        return result;
-    }
 
     /// @notice Gets multiple ZKP requests within a range for specific controller
     /// @param controller The controller address
@@ -262,12 +195,9 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         );
 
         for (uint256 i = start; i < end; i++) {
-            IZKPVerifier.ZKPRequest storage rd = _getZKPVerifierBaseStorage()._requests[
+            result[i - start] = _getZKPVerifierBaseStorage()._requests[
                 _getUniversalVerifierStorage()._controllerRequestIds[controller][i]
             ];
-            result[i - start].metadata = rd.metadata;
-            result[i - start].validator = rd.validator;
-            result[i - start].data = rd.data;
         }
 
         return result;
@@ -285,34 +215,9 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c
-    ) public checkRequestExistence(requestId, true) requestEnabled(requestId) {
-        address sender = _msgSender();
-        IZKPVerifier.ZKPRequest storage request = _getZKPVerifierBaseStorage()._requests[
-            requestId
-        ];
-
-        ICircuitValidator validator = ICircuitValidator(request.validator);
-
-        ICircuitValidator.KeyToInputIndex[] memory pairs = validator.verify(
-            inputs,
-            a,
-            b,
-            c,
-            request.data,
-            sender
-        );
-
-        Proof storage proof = _getZKPVerifierBaseStorage()._proofs[sender][requestId];
-        for (uint256 i = 0; i < pairs.length; i++) {
-            proof.storageFields[pairs[i].key] = inputs[pairs[i].inputIndex];
-        }
-
-        proof.isProved = true;
-        proof.validatorVersion = validator.version();
-        proof.blockNumber = block.number;
-        proof.blockTimestamp = block.timestamp;
-
-        emit ZKPResponseSubmitted(requestId, sender);
+    ) public override requestEnabled(requestId) {
+        ZKPVerifierBase.submitZKPResponse(requestId, inputs, a, b, c);
+        emit ZKPResponseSubmitted(requestId, _msgSender());
     }
 
     /// @notice Verifies a ZKP response without updating any proof status
@@ -347,18 +252,6 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
             sender
         );
         return pairs;
-    }
-
-    /// @notice Gets the proof storage item for a given user, request ID and key
-    /// @param user The user's address
-    /// @param requestId The ID of the ZKP request
-    /// @return The proof
-    function getProofStorageField(
-        address user,
-        uint64 requestId,
-        string memory key
-    ) public view returns (uint256) {
-        return _getZKPVerifierBaseStorage()._proofs[user][requestId].storageFields[key];
     }
 
     /// @notice Gets the list of request IDs and verifies the proofs are linked
