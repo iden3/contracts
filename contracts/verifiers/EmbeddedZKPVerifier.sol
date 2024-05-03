@@ -31,7 +31,7 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
         uint256[2][2] calldata b,
         uint256[2] calldata c
     ) public override {
-        IZKPVerifier.ZKPRequest storage request = _getZKPVerifierBaseStorage()._requests[requestId];
+        IZKPVerifier.ZKPRequest memory request = getZKPRequest(requestId);
         _beforeProofSubmit(requestId, inputs, request.validator);
         ZKPVerifierBase.submitZKPResponse(requestId, inputs, a, b, c);
         _afterProofSubmit(requestId, inputs, request.validator);

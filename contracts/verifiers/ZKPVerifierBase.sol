@@ -28,7 +28,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         0x798436fb702b181ab172db1a17ad6ad6f8b729bf17fe59ff767e4903dab89000;
 
     /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getZKPVerifierBaseStorage() internal pure returns (ZKPVerifierBaseStorage storage $) {
+    function _getZKPVerifierBaseStorage() private pure returns (ZKPVerifierBaseStorage storage $) {
         assembly {
             $.slot := ZKPVerifierBaseStorageLocation
         }

@@ -183,9 +183,9 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         IZKPVerifier.ZKPRequest[] memory result = new IZKPVerifier.ZKPRequest[](end - start);
 
         for (uint256 i = start; i < end; i++) {
-            result[i - start] = _getZKPVerifierBaseStorage()._requests[
+            result[i - start] = getZKPRequest(
                 _getUniversalVerifierStorage()._controllerRequestIds[controller][i]
-            ];
+            );
         }
 
         return result;
@@ -202,11 +202,13 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         checkRequestExistence(requestId, true)
         returns (ZKPRequestFullInfo memory zkpRequestFullInfo)
     {
+        IZKPVerifier.ZKPRequest memory request = getZKPRequest(requestId);
+
         return
             ZKPRequestFullInfo({
-                metadata: _getZKPVerifierBaseStorage()._requests[requestId].metadata,
-                validator: _getZKPVerifierBaseStorage()._requests[requestId].validator,
-                data: _getZKPVerifierBaseStorage()._requests[requestId].data,
+                metadata: request.metadata,
+                validator: request.validator,
+                data: request.data,
                 controller: _getUniversalVerifierStorage()
                     ._requestAccessControls[requestId]
                     .controller,
@@ -236,7 +238,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         requestEnabled(requestId)
         returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
-        IZKPVerifier.ZKPRequest memory request = _getZKPVerifierBaseStorage()._requests[requestId];
+        IZKPVerifier.ZKPRequest memory request = getZKPRequest(requestId);
         ICircuitValidator.KeyToInputIndex[] memory pairs = request.validator.verify(
             inputs,
             a,
@@ -254,17 +256,15 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
     /// Throws if the proofs are not linked
     function verifyLinkedProofs(address sender, uint64[] calldata requestIds) public view {
         require(requestIds.length > 1, "Linked proof verification needs more than 1 request");
-        mapping(uint64 => Proof) storage proofs = _getZKPVerifierBaseStorage()._proofs[sender];
-        Proof storage firstProof = proofs[requestIds[0]];
-        uint256 expectedLinkID = firstProof.storageFields[LINKED_PROOF_KEY];
+
+        uint256 expectedLinkID =  getProofStorageField(sender, requestIds[0], LINKED_PROOF_KEY);
 
         if (expectedLinkID == 0) {
             revert("Can't find linkID for given request Ids and user address");
         }
 
         for (uint256 i = 1; i < requestIds.length; i++) {
-            Proof storage proof = proofs[requestIds[i]];
-            uint256 actualLinkID = proof.storageFields[LINKED_PROOF_KEY];
+            uint256 actualLinkID = getProofStorageField(sender, requestIds[i], LINKED_PROOF_KEY);
 
             if (expectedLinkID != actualLinkID) {
                 revert LinkedProofError(
