@@ -34,8 +34,6 @@ describe("Universal Verifier Linked proofs", function () {
         metadata: "linkedProofN" + i,
         validator: await v3.getAddress(),
         data: packV3ValidatorParams(testData.queryData.zkpRequests[i].request),
-        controller: signerAddress,
-        isDisabled: false,
       });
     }
 

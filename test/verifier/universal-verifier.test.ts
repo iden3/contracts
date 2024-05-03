@@ -92,8 +92,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
       metadata: "metadata",
       validator: await sig.getAddress(),
       data: data,
-      controller: signerAddress,
-      isDisabled: false,
     });
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
@@ -127,8 +125,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
         metadata: "metadataN" + i,
         validator: await sig.getAddress(),
         data: "0x00",
-        controller: signerAddress,
-        isDisabled: false,
       });
     }
     let queries = await verifier.getZKPRequests(5, 10);
@@ -151,8 +147,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
           metadata: "metadataN" + i,
           validator: await sig.getAddress(),
           data: "0x00",
-          controller: signerAddress,
-          isDisabled: false
         });
     }
     for (let i = 0; i < 3; i++) {
@@ -161,8 +155,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
         .setZKPRequest(1000 + i, {
           metadata: "metadataN" + i,
           validator: await sig.getAddress(),data: "0x00",
-          controller: signer2Address,
-          isDisabled: false
         });
     }
     let queries = await verifier.getZKPRequestsByController(signerAddress, 3, 5);
@@ -188,8 +180,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
       metadata: "metadata",
       validator: await sig.getAddress(),
       data: packValidatorParams(query),
-      controller: await controller.getAddress(),
-      isDisabled: false,
     });
 
     await expect(verifier.connect(someSigner).disableZKPRequest(0)).to.be.rejectedWith(
@@ -227,8 +217,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
         metadata: "metadata",
         validator: await mtp.getAddress(),
         data: "0x00",
-        controller: signerAddress,
-        isDisabled: false,
       })
     ).to.be.rejectedWith("Validator is not whitelisted");
 
@@ -239,8 +227,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
         metadata: "metadata",
         validator: await mtp.getAddress(),
         data: "0x00",
-        controller: signerAddress,
-        isDisabled: false,
       })
     ).not.to.be.rejected;
 
@@ -252,8 +238,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
         metadata: "metadata",
         validator: someAddress,
         data: "0x00",
-        controller: signerAddress,
-        isDisabled: false,
       })
     ).to.be.rejectedWith("Validator is not whitelisted");
   });

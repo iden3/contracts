@@ -5,7 +5,7 @@ import { packValidatorParams } from "../utils/validator-pack-utils";
 import { prepareInputs, publishState } from "../utils/state-utils";
 import { Block, Signer } from "ethers";
 
-describe("ZKP Verifier", function () {
+describe("Embedded ZKP Verifier", function () {
   let verifier: any, sig: any, state: any;
   let owner: Signer;
 

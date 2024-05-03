@@ -93,8 +93,6 @@ describe("Universal Verifier events", function () {
         metadata: "metadataN" + i,
         validator: await sig.getAddress(),
         data: data[i],
-        controller: signerAddress,
-        isDisabled: false,
       });
     }
 

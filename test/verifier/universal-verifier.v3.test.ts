@@ -76,8 +76,6 @@ describe("Universal Verifier V3 validator", function () {
       metadata: "metadata",
       validator: await v3.getAddress(),
       data: data,
-      controller: signerAddress,
-      isDisabled: false,
     });
     await v3.setProofExpirationTimeout(315360000);
 
