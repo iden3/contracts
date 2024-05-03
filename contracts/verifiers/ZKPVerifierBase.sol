@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+pragma solidity 0.8.20;
 
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
