@@ -139,7 +139,12 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
     function setZKPRequest(
         uint64 requestId,
         IZKPVerifier.ZKPRequest calldata request
-    ) public override isWhitelistedValidator(request.validator) checkRequestExistence(requestId, false) {
+    )
+        public
+        override
+        isWhitelistedValidator(request.validator)
+        checkRequestExistence(requestId, false)
+    {
         ZKPVerifierBase.setZKPRequest(requestId, request);
 
         address sender = _msgSender();
@@ -149,7 +154,13 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         });
         _getUniversalVerifierStorage()._controllerRequestIds[sender].push(requestId);
 
-        emit ZKPRequestSet(requestId, sender, request.metadata, address(request.validator), request.data);
+        emit ZKPRequestSet(
+            requestId,
+            sender,
+            request.metadata,
+            address(request.validator),
+            request.data
+        );
     }
 
     /// @notice Gets multiple ZKP requests within a range for specific controller
@@ -169,14 +180,12 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
             REQUESTS_RETURN_LIMIT
         );
 
-        IZKPVerifier.ZKPRequest[] memory result = new IZKPVerifier.ZKPRequest[](
-            end - start
-        );
+        IZKPVerifier.ZKPRequest[] memory result = new IZKPVerifier.ZKPRequest[](end - start);
 
         for (uint256 i = start; i < end; i++) {
             result[i - start] = _getZKPVerifierBaseStorage()._requests[
-                                        _getUniversalVerifierStorage()._controllerRequestIds[controller][i]
-                ];
+                _getUniversalVerifierStorage()._controllerRequestIds[controller][i]
+            ];
         }
 
         return result;
@@ -187,14 +196,24 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
     /// @return zkpRequestFullInfo The ZKP request data
     function getZKPRequestFullInfo(
         uint64 requestId
-    ) public view checkRequestExistence(requestId, true) returns (ZKPRequestFullInfo memory zkpRequestFullInfo) {
-        return ZKPRequestFullInfo({
-            metadata: _getZKPVerifierBaseStorage()._requests[requestId].metadata,
-            validator: _getZKPVerifierBaseStorage()._requests[requestId].validator,
-            data: _getZKPVerifierBaseStorage()._requests[requestId].data,
-            controller: _getUniversalVerifierStorage()._requestAccessControls[requestId].controller,
-            isDisabled: _getUniversalVerifierStorage()._requestAccessControls[requestId].isDisabled
-        });
+    )
+        public
+        view
+        checkRequestExistence(requestId, true)
+        returns (ZKPRequestFullInfo memory zkpRequestFullInfo)
+    {
+        return
+            ZKPRequestFullInfo({
+                metadata: _getZKPVerifierBaseStorage()._requests[requestId].metadata,
+                validator: _getZKPVerifierBaseStorage()._requests[requestId].validator,
+                data: _getZKPVerifierBaseStorage()._requests[requestId].data,
+                controller: _getUniversalVerifierStorage()
+                    ._requestAccessControls[requestId]
+                    .controller,
+                isDisabled: _getUniversalVerifierStorage()
+                    ._requestAccessControls[requestId]
+                    .isDisabled
+            });
     }
 
     /// @notice Verifies a ZKP response without updating any proof status
@@ -217,9 +236,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         requestEnabled(requestId)
         returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
-        IZKPVerifier.ZKPRequest memory request = _getZKPVerifierBaseStorage()._requests[
-            requestId
-        ];
+        IZKPVerifier.ZKPRequest memory request = _getZKPVerifierBaseStorage()._requests[requestId];
         ICircuitValidator.KeyToInputIndex[] memory pairs = request.validator.verify(
             inputs,
             a,

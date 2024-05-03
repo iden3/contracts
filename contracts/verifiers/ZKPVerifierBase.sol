@@ -28,11 +28,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         0x798436fb702b181ab172db1a17ad6ad6f8b729bf17fe59ff767e4903dab89000;
 
     /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getZKPVerifierBaseStorage()
-    internal
-    pure
-    returns (ZKPVerifierBaseStorage storage $)
-    {
+    function _getZKPVerifierBaseStorage() internal pure returns (ZKPVerifierBaseStorage storage $) {
         assembly {
             $.slot := ZKPVerifierBaseStorageLocation
         }
@@ -67,9 +63,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         uint256[2] calldata c
     ) public virtual checkRequestExistence(requestId, true) {
         address sender = _msgSender();
-        IZKPVerifier.ZKPRequest storage request = _getZKPVerifierBaseStorage()._requests[
-                    requestId
-            ];
+        IZKPVerifier.ZKPRequest storage request = _getZKPVerifierBaseStorage()._requests[requestId];
 
         ICircuitValidator validator = ICircuitValidator(request.validator);
 
@@ -110,7 +104,12 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @return zkpRequest The ZKP request data
     function getZKPRequest(
         uint64 requestId
-    ) public view checkRequestExistence(requestId, true) returns (IZKPVerifier.ZKPRequest memory zkpRequest) {
+    )
+        public
+        view
+        checkRequestExistence(requestId, true)
+        returns (IZKPVerifier.ZKPRequest memory zkpRequest)
+    {
         return _getZKPVerifierBaseStorage()._requests[requestId];
     }
 
@@ -145,9 +144,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             REQUESTS_RETURN_LIMIT
         );
 
-        IZKPVerifier.ZKPRequest[] memory result = new IZKPVerifier.ZKPRequest[](
-            end - start
-        );
+        IZKPVerifier.ZKPRequest[] memory result = new IZKPVerifier.ZKPRequest[](end - start);
 
         for (uint256 i = start; i < end; i++) {
             result[i - start] = s._requests[s._requestIds[i]];
@@ -174,12 +171,13 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     ) public view returns (IZKPVerifier.ProofStatus memory) {
         Proof storage proof = _getZKPVerifierBaseStorage()._proofs[sender][requestId];
 
-        return IZKPVerifier.ProofStatus(
-            proof.isProved,
-            proof.validatorVersion,
-            proof.blockNumber,
-            proof.blockTimestamp
-        );
+        return
+            IZKPVerifier.ProofStatus(
+                proof.isProved,
+                proof.validatorVersion,
+                proof.blockNumber,
+                proof.blockTimestamp
+            );
     }
 
     /// @notice Gets the proof storage item for a given user, request ID and key
