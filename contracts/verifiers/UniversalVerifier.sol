@@ -257,7 +257,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
     function verifyLinkedProofs(address sender, uint64[] calldata requestIds) public view {
         require(requestIds.length > 1, "Linked proof verification needs more than 1 request");
 
-        uint256 expectedLinkID =  getProofStorageField(sender, requestIds[0], LINKED_PROOF_KEY);
+        uint256 expectedLinkID = getProofStorageField(sender, requestIds[0], LINKED_PROOF_KEY);
 
         if (expectedLinkID == 0) {
             revert("Can't find linkID for given request Ids and user address");

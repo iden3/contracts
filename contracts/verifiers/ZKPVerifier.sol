@@ -7,5 +7,4 @@ import {EmbeddedZKPVerifier} from "./EmbeddedZKPVerifier.sol";
  * @dev The ZKPVerifier is deprecated and will be removed in the future major versions
  * Please use EmbeddedZKPVerifier instead
  */
-contract ZKPVerifier is EmbeddedZKPVerifier {
-}
+contract ZKPVerifier is EmbeddedZKPVerifier {}

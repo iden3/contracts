@@ -110,11 +110,13 @@ abstract contract CredentialAtomicQueryValidatorBase is
         return _getCredentialAtomicQueryValidatorBaseStorage()._supportedCircuitIds;
     }
 
-    function getVerifierByCircuitId(string memory circuitId) public view virtual returns (IVerifier) {
+    function getVerifierByCircuitId(
+        string memory circuitId
+    ) public view virtual returns (IVerifier) {
         return _getCredentialAtomicQueryValidatorBaseStorage()._circuitIdToVerifier[circuitId];
     }
 
-    function getState() internal view returns(IState) {
+    function getState() internal view returns (IState) {
         return _getCredentialAtomicQueryValidatorBaseStorage().state;
     }
 
