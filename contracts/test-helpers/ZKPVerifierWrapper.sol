@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.20;
 
-import {ZKPVerifier} from "../verifiers/ZKPVerifier.sol";
+import {EmbeddedZKPVerifier} from "../verifiers/EmbeddedZKPVerifier.sol";
 
-contract ZKPVerifierWrapper is ZKPVerifier {
+contract ZKPVerifierWrapper is EmbeddedZKPVerifier {
     function initialize(address initialOwner) public initializer {
         super.__ZKPVerifier_init(initialOwner);
     }

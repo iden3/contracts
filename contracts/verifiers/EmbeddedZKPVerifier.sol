@@ -9,7 +9,7 @@ import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 
-abstract contract ZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
+abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
     /**
      * @dev Sets the value for {initialOwner}.
      *
