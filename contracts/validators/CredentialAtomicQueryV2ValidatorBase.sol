@@ -53,11 +53,17 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         address sender
     ) external view override returns (ICircuitValidator.KeyToInputIndex[] memory) {
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
+
+        require(
+            credAtomicQuery.circuitIds.length == 1,
+            "circuitIds length is not equal to 1"
+        );
+
         IVerifier verifier = getVerifierByCircuitId(credAtomicQuery.circuitIds[0]);
 
         require(
-            credAtomicQuery.circuitIds.length == 1 && verifier != IVerifier(address(0)),
-            "Invalid circuit ID"
+            verifier != IVerifier(address(0)),
+            "Verifier address should not be zero"
         );
 
         // verify that zkp is valid
