@@ -65,7 +65,7 @@ describe("Universal Verifier V3 validator", function () {
     );
     v3 = contracts.validator;
     state = contracts.state;
-    await verifier.addWhitelistedValidator(await v3.getAddress());
+    await verifier.approveValidator(await v3.getAddress());
     await verifier.connect();
   });
 

@@ -44,7 +44,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const stub = await deployHelper.deployValidatorStub();
 
     sig = stub;
-    await verifier.addWhitelistedValidator(await sig.getAddress());
+    await verifier.approveValidator(await sig.getAddress());
     await verifier.connect();
   });
 
@@ -206,7 +206,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     );
   });
 
-  it("Check whitelisted validators", async () => {
+  it("Check approved validators", async () => {
     const { validator: mtp } = await deployHelper.deployValidatorContracts(
       "VerifierMTPWrapper",
       "CredentialAtomicQueryMTPV2Validator"
@@ -218,9 +218,9 @@ describe("Universal Verifier MTP & SIG validators", function () {
         validator: await mtp.getAddress(),
         data: "0x00",
       })
-    ).to.be.rejectedWith("Validator is not whitelisted");
+    ).to.be.rejectedWith("Validator is not approved");
 
-    verifier.addWhitelistedValidator(await mtp.getAddress());
+    verifier.approveValidator(await mtp.getAddress());
 
     await expect(
       verifier.setZKPRequest(0, {
@@ -230,8 +230,8 @@ describe("Universal Verifier MTP & SIG validators", function () {
       })
     ).not.to.be.rejected;
 
-    // can't whitelist validator, which does not support ICircuitValidator interface
-    await expect(verifier.addWhitelistedValidator(someAddress)).to.be.reverted;
+    // can't approve validator, which does not support ICircuitValidator interface
+    await expect(verifier.approveValidator(someAddress)).to.be.reverted;
 
     await expect(
       verifier.setZKPRequest(1, {
@@ -239,6 +239,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
         validator: someAddress,
         data: "0x00",
       })
-    ).to.be.rejectedWith("Validator is not whitelisted");
+    ).to.be.rejectedWith("Validator is not approved");
   });
 });

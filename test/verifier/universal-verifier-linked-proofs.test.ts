@@ -24,7 +24,7 @@ describe("Universal Verifier Linked proofs", function () {
     );
     v3 = contracts.validator;
     state = contracts.state;
-    await verifier.addWhitelistedValidator(await v3.getAddress());
+    await verifier.approveValidator(await v3.getAddress());
     await verifier.connect();
 
     await publishState(state, testData.state as unknown as { [key: string]: string });

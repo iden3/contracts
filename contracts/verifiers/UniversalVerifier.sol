@@ -21,7 +21,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
     struct UniversalVerifierStorage {
         mapping(uint64 requestID => ZKPRequestAccessControl) _requestAccessControls;
         mapping(address controller => uint64[] requestIds) _controllerRequestIds;
-        mapping(ICircuitValidator => bool isWhitelisted) _whitelistedValidators;
+        mapping(ICircuitValidator => bool isApproved) _approvedValidators;
     }
 
     /// @dev Struct for ZKP request full info
@@ -97,11 +97,11 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         _;
     }
 
-    /// @dev Modifier to check if the validator is whitelisted
-    modifier isWhitelistedValidator(ICircuitValidator validator) {
+    /// @dev Modifier to check if the validator is approved
+    modifier isApprovedValidator(ICircuitValidator validator) {
         require(
-            _getUniversalVerifierStorage()._whitelistedValidators[validator],
-            "Validator is not whitelisted"
+            _getUniversalVerifierStorage()._approvedValidators[validator],
+            "Validator is not approved"
         );
         _;
     }
@@ -142,7 +142,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
     )
         public
         override
-        isWhitelistedValidator(request.validator)
+        isApprovedValidator(request.validator)
         checkRequestExistence(requestId, false)
     {
         ZKPVerifierBase.setZKPRequest(requestId, request);
@@ -278,14 +278,14 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         }
     }
 
-    /// @notice Adds a new whitelisted validator
-    function addWhitelistedValidator(ICircuitValidator validator) public onlyOwner {
+    /// @notice Approve a new validator
+    function approveValidator(ICircuitValidator validator) public onlyOwner {
         require(
             IERC165(address(validator)).supportsInterface(type(ICircuitValidator).interfaceId),
             "Validator doesn't support relevant interface"
         );
 
-        _getUniversalVerifierStorage()._whitelistedValidators[validator] = true;
+        _getUniversalVerifierStorage()._approvedValidators[validator] = true;
     }
 
     /// @notice Sets a ZKP request
