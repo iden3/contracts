@@ -111,17 +111,11 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
             (CredentialAtomicQueryV3)
         );
 
-        require(
-            credAtomicQuery.circuitIds.length == 1,
-            "circuitIds length is not equal to 1"
-        );
+        require(credAtomicQuery.circuitIds.length == 1, "circuitIds length is not equal to 1");
 
         IVerifier verifier = getVerifierByCircuitId(credAtomicQuery.circuitIds[0]);
 
-        require(
-            verifier != IVerifier(address(0)),
-            "Verifier address should not be zero"
-        );
+        require(verifier != IVerifier(address(0)), "Verifier address should not be zero");
 
         // verify that zkp is valid
         require(verifier.verify(a, b, c, inputs), "Proof is not valid");
