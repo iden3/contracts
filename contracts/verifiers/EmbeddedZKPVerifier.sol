@@ -37,7 +37,7 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
         _afterProofSubmit(requestId, inputs, request.validator);
     }
 
-    /// @notice Sets a ZKP request
+    /// @dev Sets a ZKP request
     /// @param requestId The ID of the ZKP request
     /// @param request The ZKP request data
     function setZKPRequest(

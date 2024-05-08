@@ -11,7 +11,7 @@ import {ArrayUtils} from "../lib/ArrayUtils.sol";
 /// @title Universal Verifier Contract
 /// @notice A contract to manage ZKP (Zero-Knowledge Proof) requests and proofs.
 contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
-    // This goes to Universal Verifier
+    /// @dev Struct to store access control data
     struct ZKPRequestAccessControl {
         address controller;
         bool isDisabled;
@@ -106,7 +106,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         _;
     }
 
-    /// @notice Initializes the contract
+    /// @dev Initializes the contract
     function initialize() public initializer {
         __Ownable_init(_msgSender());
     }
@@ -116,7 +116,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         return VERSION;
     }
 
-    /// @notice Submits a ZKP response and updates proof status
+    /// @dev Submits a ZKP response and updates proof status
     /// @param requestId The ID of the ZKP request
     /// @param inputs The input data for the proof
     /// @param a The first component of the proof
@@ -133,7 +133,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         emit ZKPResponseSubmitted(requestId, _msgSender());
     }
 
-    /// @notice Sets a ZKP request
+    /// @dev Sets a ZKP request
     /// @param requestId The ID of the ZKP request
     /// @param request The ZKP request data
     function setZKPRequest(
@@ -163,7 +163,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         );
     }
 
-    /// @notice Gets multiple ZKP requests within a range for specific controller
+    /// @dev Gets multiple ZKP requests within a range for specific controller
     /// @param controller The controller address
     /// @param startIndex The starting index of the range
     /// @param length The length of the range
@@ -191,7 +191,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         return result;
     }
 
-    /// @notice Gets a specific ZKP request full info by ID
+    /// @dev Gets a specific ZKP request full info by ID
     /// @param requestId The ID of the ZKP request
     /// @return zkpRequestFullInfo The ZKP request data
     function getZKPRequestFullInfo(
@@ -218,7 +218,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
             });
     }
 
-    /// @notice Verifies a ZKP response without updating any proof status
+    /// @dev Verifies a ZKP response without updating any proof status
     /// @param requestId The ID of the ZKP request
     /// @param inputs The public inputs for the proof
     /// @param a The first component of the proof
@@ -250,7 +250,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         return pairs;
     }
 
-    /// @notice Gets the list of request IDs and verifies the proofs are linked
+    /// @dev Gets the list of request IDs and verifies the proofs are linked
     /// @param sender the user's address
     /// @param requestIds the list of request IDs
     /// Throws if the proofs are not linked
@@ -278,7 +278,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         }
     }
 
-    /// @notice Approve a new validator
+    /// @dev Approve a new validator
     function approveValidator(ICircuitValidator validator) public onlyOwner {
         require(
             IERC165(address(validator)).supportsInterface(type(ICircuitValidator).interfaceId),
@@ -288,13 +288,13 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         _getUniversalVerifierStorage()._approvedValidators[validator] = true;
     }
 
-    /// @notice Sets a ZKP request
+    /// @dev Sets a ZKP request
     /// @param requestId The ID of the ZKP request
     function disableZKPRequest(uint64 requestId) public onlyOwnerOrController(requestId) {
         _getUniversalVerifierStorage()._requestAccessControls[requestId].isDisabled = true;
     }
 
-    /// @notice Sets a ZKP request
+    /// @dev Sets a ZKP request
     /// @param requestId The ID of the ZKP request
     function enableZKPRequest(uint64 requestId) public onlyOwnerOrController(requestId) {
         _getUniversalVerifierStorage()._requestAccessControls[requestId].isDisabled = false;

@@ -87,7 +87,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         proof.blockTimestamp = block.timestamp;
     }
 
-    /// @notice Sets a ZKP request
+    /// @dev Sets a ZKP request
     /// @param requestId The ID of the ZKP request
     /// @param request The ZKP request data
     function setZKPRequest(
@@ -99,7 +99,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         s._requestIds.push(requestId);
     }
 
-    /// @notice Gets a specific ZKP request by ID
+    /// @dev Gets a specific ZKP request by ID
     /// @param requestId The ID of the ZKP request
     /// @return zkpRequest The ZKP request data
     function getZKPRequest(
@@ -113,13 +113,13 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         return _getZKPVerifierBaseStorage()._requests[requestId];
     }
 
-    /// @notice Gets the count of ZKP requests
+    /// @dev Gets the count of ZKP requests
     /// @return The count of ZKP requests
     function getZKPRequestsCount() public view returns (uint256) {
         return _getZKPVerifierBaseStorage()._requestIds.length;
     }
 
-    /// @notice Checks if a ZKP request ID exists
+    /// @dev Checks if a ZKP request ID exists
     /// @param requestId The ID of the ZKP request
     /// @return Whether the request ID exists
     function requestIdExists(uint64 requestId) public view override returns (bool) {
@@ -128,7 +128,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             ICircuitValidator(address(0));
     }
 
-    /// @notice Gets multiple ZKP requests within a range
+    /// @dev Gets multiple ZKP requests within a range
     /// @param startIndex The starting index of the range
     /// @param length The length of the range
     /// @return An array of ZKP requests within the specified range
@@ -153,7 +153,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         return result;
     }
 
-    /// @notice Checks if proof submitted for a given sender and request ID
+    /// @dev Checks if proof submitted for a given sender and request ID
     /// @param sender The sender's address
     /// @param requestId The ID of the ZKP request
     /// @return true if proof submitted
@@ -161,7 +161,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         return _getZKPVerifierBaseStorage()._proofs[sender][requestId].isProved;
     }
 
-    /// @notice Checks the proof status for a given user and request ID
+    /// @dev Checks the proof status for a given user and request ID
     /// @param sender The sender's address
     /// @param requestId The ID of the ZKP request
     /// @return The proof status structure
@@ -180,7 +180,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             );
     }
 
-    /// @notice Gets the proof storage item for a given user, request ID and key
+    /// @dev Gets the proof storage item for a given user, request ID and key
     /// @param user The user's address
     /// @param requestId The ID of the ZKP request
     /// @return The proof
