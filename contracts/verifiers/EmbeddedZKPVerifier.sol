@@ -17,11 +17,11 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
      * construction.
      */
     function __ZKPVerifier_init(address initialOwner) internal onlyInitializing {
+        __Ownable_init(initialOwner);
         ___ZKPVerifier_init_unchained(initialOwner);
     }
 
     function ___ZKPVerifier_init_unchained(address initialOwner) internal onlyInitializing {
-        __Ownable_init(initialOwner);
     }
 
     function submitZKPResponse(
