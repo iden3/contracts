@@ -11,10 +11,7 @@ import {ArrayUtils} from "../lib/ArrayUtils.sol";
 
 abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
     /**
-     * @dev Sets the value for {initialOwner}.
-     *
-     * This value is immutable: it can only be set once during
-     * construction.
+     * @dev Sets the value for Owner
      */
     function __ZKPVerifier_init(address initialOwner) internal onlyInitializing {
         __Ownable_init(initialOwner);
