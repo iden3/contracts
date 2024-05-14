@@ -72,7 +72,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
       expect(request.validator).to.be.equal(validatorAddr);
       expect(request.data).to.be.equal("0x0" + i);
       expect(requestFI.controller).to.be.equal(signerAddress);
-      expect(requestFI.isDisabled).to.be.equal(false);
+      expect(requestFI.isEnabled).to.be.equal(true);
 
       const requestIdExists = await verifier.requestIdExists(i);
       expect(requestIdExists).to.be.true;
@@ -139,38 +139,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
     expect(queries[2].metadata).to.be.equal("metadataN17");
   });
 
-  it("Test getZKPRequestsByController", async () => {
-    for (let i = 0; i < 5; i++) {
-      await verifier
-        .connect(signer)
-        .setZKPRequest(i, {
-          metadata: "metadataN" + i,
-          validator: await sig.getAddress(),
-          data: "0x00",
-        });
-    }
-    for (let i = 0; i < 3; i++) {
-      await verifier
-        .connect(signer2)
-        .setZKPRequest(1000 + i, {
-          metadata: "metadataN" + i,
-          validator: await sig.getAddress(),data: "0x00",
-        });
-    }
-    let queries = await verifier.getZKPRequestsByController(signerAddress, 3, 5);
-    expect(queries.length).to.be.equal(2);
-    expect(queries[0].metadata).to.be.equal("metadataN3");
-    expect(queries[1].metadata).to.be.equal("metadataN4");
-
-    queries = await verifier.getZKPRequestsByController(signer2Address, 0, 5);
-    expect(queries.length).to.be.equal(3);
-    expect(queries[0].metadata).to.be.equal("metadataN0");
-
-    await expect(verifier.getZKPRequestsByController(signer3Address, 0, 5)).to.be.rejectedWith(
-      "Start index out of bounds"
-    );
-  });
-
   it("Check disable/enable functionality", async () => {
     const owner = signer;
     const controller = signer2;
@@ -204,6 +172,9 @@ describe("Universal Verifier MTP & SIG validators", function () {
     await expect(verifier.verifyZKPResponse(0, inputs, pi_a, pi_b, pi_c, "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266")).to.be.rejectedWith(
       "Request is disabled"
     );
+
+    const fi = await verifier.getZKPRequestFullInfo(0);
+    expect(fi.isEnabled).to.be.false;
   });
 
   it("Check approved validators", async () => {

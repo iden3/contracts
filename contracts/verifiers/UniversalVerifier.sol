@@ -2,50 +2,30 @@
 pragma solidity 0.8.20;
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
+import {RequestAccessControl} from "./RequestAccessControl.sol";
+import {RequestToggle} from "./RequestToggle.sol";
+import {RequestWhitelist} from "./RequestWhitelist.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 
 /// @title Universal Verifier Contract
 /// @notice A contract to manage ZKP (Zero-Knowledge Proof) requests and proofs.
-contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
-    /// @dev Struct to store access control data
-    struct ZKPRequestAccessControl {
-        address controller;
-        bool isDisabled;
-    }
-
-    /// @dev Main storage structure for the contract
-    struct UniversalVerifierStorage {
-        mapping(uint64 requestID => ZKPRequestAccessControl) _requestAccessControls;
-        mapping(address controller => uint64[] requestIds) _controllerRequestIds;
-        mapping(ICircuitValidator => bool isApproved) _approvedValidators;
-    }
-
+contract UniversalVerifier is
+    Ownable2StepUpgradeable,
+    ZKPVerifierBase,
+    RequestAccessControl,
+    RequestToggle,
+    RequestWhitelist
+{
     /// @dev Struct for ZKP request full info
     struct ZKPRequestFullInfo {
         string metadata;
         ICircuitValidator validator;
         bytes data;
         address controller;
-        bool isDisabled;
-    }
-
-    // keccak256(abi.encode(uint256(keccak256("iden3.storage.UniversalVerifier")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant UniversalVerifierStorageLocation =
-        0x0c87ac878172a541d6ba539a4e02bbe44e1f3a504bea30ed92c32fb1517db700;
-
-    /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getUniversalVerifierStorage()
-        private
-        pure
-        returns (UniversalVerifierStorage storage $)
-    {
-        assembly {
-            $.slot := UniversalVerifierStorageLocation
-        }
+        bool isEnabled;
     }
 
     /**
@@ -81,8 +61,7 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
     modifier onlyOwnerOrController(uint64 requestId) {
         address sender = _msgSender();
         require(
-            sender == _getUniversalVerifierStorage()._requestAccessControls[requestId].controller ||
-                sender == owner(),
+            sender == getController(requestId) || sender == owner(),
             "Only owner or controller can call this function"
         );
         _;
@@ -90,19 +69,13 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
 
     /// @dev Modifier to check if the ZKP request is enabled
     modifier requestEnabled(uint64 requestId) {
-        require(
-            !_getUniversalVerifierStorage()._requestAccessControls[requestId].isDisabled,
-            "Request is disabled"
-        );
+        require(isRequestEnabled(requestId), "Request is disabled");
         _;
     }
 
     /// @dev Modifier to check if the validator is approved
-    modifier isApprovedValidator(ICircuitValidator validator) {
-        require(
-            _getUniversalVerifierStorage()._approvedValidators[validator],
-            "Validator is not approved"
-        );
+    modifier approvedValidator(ICircuitValidator validator) {
+        require(isApprovedValidator(validator), "Validator is not approved");
         _;
     }
 
@@ -139,20 +112,11 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
     function setZKPRequest(
         uint64 requestId,
         IZKPVerifier.ZKPRequest calldata request
-    )
-        public
-        override
-        isApprovedValidator(request.validator)
-        checkRequestExistence(requestId, false)
-    {
+    ) public override approvedValidator(request.validator) checkRequestExistence(requestId, false) {
         ZKPVerifierBase.setZKPRequest(requestId, request);
 
         address sender = _msgSender();
-        _getUniversalVerifierStorage()._requestAccessControls[requestId] = ZKPRequestAccessControl({
-            controller: sender,
-            isDisabled: false
-        });
-        _getUniversalVerifierStorage()._controllerRequestIds[sender].push(requestId);
+        _setController(requestId, sender);
 
         emit ZKPRequestSet(
             requestId,
@@ -161,34 +125,6 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
             address(request.validator),
             request.data
         );
-    }
-
-    /// @dev Gets multiple ZKP requests within a range for specific controller
-    /// @param controller The controller address
-    /// @param startIndex The starting index of the range
-    /// @param length The length of the range
-    /// @return An array of ZKP requests within the specified range
-    function getZKPRequestsByController(
-        address controller,
-        uint256 startIndex,
-        uint256 length
-    ) public view returns (IZKPVerifier.ZKPRequest[] memory) {
-        (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
-            _getUniversalVerifierStorage()._controllerRequestIds[controller].length,
-            startIndex,
-            length,
-            REQUESTS_RETURN_LIMIT
-        );
-
-        IZKPVerifier.ZKPRequest[] memory result = new IZKPVerifier.ZKPRequest[](end - start);
-
-        for (uint256 i = start; i < end; i++) {
-            result[i - start] = getZKPRequest(
-                _getUniversalVerifierStorage()._controllerRequestIds[controller][i]
-            );
-        }
-
-        return result;
     }
 
     /// @dev Gets a specific ZKP request full info by ID
@@ -209,12 +145,8 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
                 metadata: request.metadata,
                 validator: request.validator,
                 data: request.data,
-                controller: _getUniversalVerifierStorage()
-                    ._requestAccessControls[requestId]
-                    .controller,
-                isDisabled: _getUniversalVerifierStorage()
-                    ._requestAccessControls[requestId]
-                    .isDisabled
+                controller: getController(requestId),
+                isEnabled: isRequestEnabled(requestId)
             });
     }
 
@@ -278,25 +210,35 @@ contract UniversalVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
         }
     }
 
+    /// @dev Sets ZKP Request controller address
+    /// @param requestId The ID of the ZKP request
+    /// @param controller ZKP Request controller address
+    function setController(
+        uint64 requestId,
+        address controller
+    ) public onlyOwnerOrController(requestId) checkRequestExistence(requestId, true) {
+        _setController(requestId, controller);
+    }
+
+    /// @dev Disables ZKP Request
+    /// @param requestId The ID of the ZKP request
+    function disableZKPRequest(
+        uint64 requestId
+    ) public onlyOwnerOrController(requestId) checkRequestExistence(requestId, true) {
+        _disableZKPRequest(requestId);
+    }
+
+    /// @dev Enables ZKP Request
+    /// @param requestId The ID of the ZKP request
+    function enableZKPRequest(
+        uint64 requestId
+    ) public onlyOwnerOrController(requestId) checkRequestExistence(requestId, true) {
+        _enableZKPRequest(requestId);
+    }
+
     /// @dev Approve a new validator
+    /// @param validator Validator address
     function approveValidator(ICircuitValidator validator) public onlyOwner {
-        require(
-            IERC165(address(validator)).supportsInterface(type(ICircuitValidator).interfaceId),
-            "Validator doesn't support relevant interface"
-        );
-
-        _getUniversalVerifierStorage()._approvedValidators[validator] = true;
-    }
-
-    /// @dev Sets a ZKP request
-    /// @param requestId The ID of the ZKP request
-    function disableZKPRequest(uint64 requestId) public onlyOwnerOrController(requestId) {
-        _getUniversalVerifierStorage()._requestAccessControls[requestId].isDisabled = true;
-    }
-
-    /// @dev Sets a ZKP request
-    /// @param requestId The ID of the ZKP request
-    function enableZKPRequest(uint64 requestId) public onlyOwnerOrController(requestId) {
-        _getUniversalVerifierStorage()._requestAccessControls[requestId].isDisabled = false;
+        _approveValidator(validator);
     }
 }

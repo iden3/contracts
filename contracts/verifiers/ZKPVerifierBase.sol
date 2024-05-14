@@ -16,7 +16,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         uint256 blockTimestamp;
     }
 
-    /// @dev Main storage structure for the contract
+    /// @custom:storage-location iden3.storage.ZKPVerifierBase
     struct ZKPVerifierBaseStorage {
         mapping(address user => mapping(uint64 requestID => Proof)) _proofs;
         mapping(uint64 requestID => IZKPVerifier.ZKPRequest) _requests;
