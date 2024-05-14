@@ -93,7 +93,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     function setZKPRequest(
         uint64 requestId,
         IZKPVerifier.ZKPRequest calldata request
-    ) public virtual {
+    ) public virtual checkRequestExistence(requestId, false) {
         ZKPVerifierBaseStorage storage s = _getZKPVerifierBaseStorage();
         s._requests[requestId] = request;
         s._requestIds.push(requestId);

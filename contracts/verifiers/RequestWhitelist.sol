@@ -3,8 +3,9 @@ pragma solidity 0.8.20;
 
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 
-contract RequestWhitelist {
+contract RequestWhitelist is ZKPVerifierBase {
     /// @custom:storage-location iden3.storage.RequestWhitelist
     struct RequestWhitelistStorage {
         mapping(ICircuitValidator => bool isApproved) _approvedValidators;

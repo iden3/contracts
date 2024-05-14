@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.20;
 
-contract RequestToggle {
+import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
+
+contract RequestToggle is ZKPVerifierBase {
     /// @custom:storage-location iden3.storage.RequestToggle
     struct RequestToggleStorage {
         mapping(uint64 requestID => bool isDisabled) _requestToggles;
@@ -17,15 +19,17 @@ contract RequestToggle {
         }
     }
 
-    function isRequestEnabled(uint64 requestID) public view virtual returns (bool) {
-        return !_getRequestToggleStorage()._requestToggles[requestID];
+    function isRequestEnabled(
+        uint64 requestId
+    ) public view virtual checkRequestExistence(requestId, true) returns (bool) {
+        return !_getRequestToggleStorage()._requestToggles[requestId];
     }
 
-    function _disableZKPRequest(uint64 requestId) internal {
+    function _disableZKPRequest(uint64 requestId) internal checkRequestExistence(requestId, true) {
         _getRequestToggleStorage()._requestToggles[requestId] = true;
     }
 
-    function _enableZKPRequest(uint64 requestId) internal {
+    function _enableZKPRequest(uint64 requestId) internal checkRequestExistence(requestId, true) {
         _getRequestToggleStorage()._requestToggles[requestId] = false;
     }
 }

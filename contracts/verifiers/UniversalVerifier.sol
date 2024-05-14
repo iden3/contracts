@@ -4,7 +4,6 @@ pragma solidity 0.8.20;
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
-import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 import {RequestAccessControl} from "./RequestAccessControl.sol";
 import {RequestToggle} from "./RequestToggle.sol";
 import {RequestWhitelist} from "./RequestWhitelist.sol";
@@ -14,7 +13,6 @@ import {ArrayUtils} from "../lib/ArrayUtils.sol";
 /// @notice A contract to manage ZKP (Zero-Knowledge Proof) requests and proofs.
 contract UniversalVerifier is
     Ownable2StepUpgradeable,
-    ZKPVerifierBase,
     RequestAccessControl,
     RequestToggle,
     RequestWhitelist
@@ -102,7 +100,7 @@ contract UniversalVerifier is
         uint256[2][2] calldata b,
         uint256[2] calldata c
     ) public override requestEnabled(requestId) {
-        ZKPVerifierBase.submitZKPResponse(requestId, inputs, a, b, c);
+        super.submitZKPResponse(requestId, inputs, a, b, c);
         emit ZKPResponseSubmitted(requestId, _msgSender());
     }
 
@@ -112,8 +110,8 @@ contract UniversalVerifier is
     function setZKPRequest(
         uint64 requestId,
         IZKPVerifier.ZKPRequest calldata request
-    ) public override approvedValidator(request.validator) checkRequestExistence(requestId, false) {
-        ZKPVerifierBase.setZKPRequest(requestId, request);
+    ) public override approvedValidator(request.validator) {
+        super.setZKPRequest(requestId, request);
 
         address sender = _msgSender();
         _setController(requestId, sender);
@@ -135,7 +133,6 @@ contract UniversalVerifier is
     )
         public
         view
-        checkRequestExistence(requestId, true)
         returns (ZKPRequestFullInfo memory zkpRequestFullInfo)
     {
         IZKPVerifier.ZKPRequest memory request = getZKPRequest(requestId);
@@ -166,7 +163,6 @@ contract UniversalVerifier is
     )
         public
         view
-        checkRequestExistence(requestId, true)
         requestEnabled(requestId)
         returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
@@ -216,7 +212,7 @@ contract UniversalVerifier is
     function setController(
         uint64 requestId,
         address controller
-    ) public onlyOwnerOrController(requestId) checkRequestExistence(requestId, true) {
+    ) public onlyOwnerOrController(requestId) {
         _setController(requestId, controller);
     }
 
@@ -224,7 +220,7 @@ contract UniversalVerifier is
     /// @param requestId The ID of the ZKP request
     function disableZKPRequest(
         uint64 requestId
-    ) public onlyOwnerOrController(requestId) checkRequestExistence(requestId, true) {
+    ) public onlyOwnerOrController(requestId) {
         _disableZKPRequest(requestId);
     }
 
@@ -232,7 +228,7 @@ contract UniversalVerifier is
     /// @param requestId The ID of the ZKP request
     function enableZKPRequest(
         uint64 requestId
-    ) public onlyOwnerOrController(requestId) checkRequestExistence(requestId, true) {
+    ) public onlyOwnerOrController(requestId) {
         _enableZKPRequest(requestId);
     }
 

@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.20;
 
-abstract contract RequestAccessControl {
+import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
+
+abstract contract RequestAccessControl is ZKPVerifierBase {
     /// @custom:storage-location iden3.storage.RequestAccessControl
     struct RequestAccessControlStorage {
         mapping(uint64 requestID => address controller) _requestAccessControls;
@@ -21,12 +23,17 @@ abstract contract RequestAccessControl {
         }
     }
 
-    function getController(uint64 requestID) public view virtual returns (address) {
-        return _getRequestAccessControlStorage()._requestAccessControls[requestID];
+    function getController(
+        uint64 requestId
+    ) public view virtual checkRequestExistence(requestId, true) returns (address) {
+        return _getRequestAccessControlStorage()._requestAccessControls[requestId];
     }
 
-    function _setController(uint64 requestID, address controller) internal {
+    function _setController(
+        uint64 requestId,
+        address controller
+    ) internal checkRequestExistence(requestId, true) {
         RequestAccessControlStorage storage $ = _getRequestAccessControlStorage();
-        $._requestAccessControls[requestID] = controller;
+        $._requestAccessControls[requestId] = controller;
     }
 }
