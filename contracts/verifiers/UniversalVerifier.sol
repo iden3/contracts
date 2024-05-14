@@ -67,7 +67,7 @@ contract UniversalVerifier is
 
     /// @dev Modifier to check if the ZKP request is enabled
     modifier requestEnabled(uint64 requestId) {
-        require(isRequestEnabled(requestId), "Request is disabled");
+        require(isZKPRequestEnabled(requestId), "Request is disabled");
         _;
     }
 
@@ -143,7 +143,7 @@ contract UniversalVerifier is
                 validator: request.validator,
                 data: request.data,
                 controller: getController(requestId),
-                isEnabled: isRequestEnabled(requestId)
+                isEnabled: isZKPRequestEnabled(requestId)
             });
     }
 

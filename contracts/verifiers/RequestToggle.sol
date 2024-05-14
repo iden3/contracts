@@ -19,7 +19,7 @@ contract RequestToggle is ZKPVerifierBase {
         }
     }
 
-    function isRequestEnabled(
+    function isZKPRequestEnabled(
         uint64 requestId
     ) public view virtual checkRequestExistence(requestId, true) returns (bool) {
         return !_getRequestToggleStorage()._requestToggles[requestId];
