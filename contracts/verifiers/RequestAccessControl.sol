@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 
 abstract contract RequestAccessControl is ZKPVerifierBase {
-    /// @custom:storage-location iden3.storage.RequestAccessControl
+    /// @custom:storage-location erc7201:iden3.storage.RequestAccessControl
     struct RequestAccessControlStorage {
         mapping(uint64 requestID => address controller) _requestAccessControls;
     }
@@ -23,6 +23,9 @@ abstract contract RequestAccessControl is ZKPVerifierBase {
         }
     }
 
+    /// @dev Get controller for a ZKPRequest
+    /// @param requestId The ID of a ZKP Request
+    /// @return The controller address
     function getController(
         uint64 requestId
     ) public view virtual checkRequestExistence(requestId, true) returns (address) {

@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 
 contract RequestToggle is ZKPVerifierBase {
-    /// @custom:storage-location iden3.storage.RequestToggle
+    /// @custom:storage-location erc7201:iden3.storage.RequestToggle
     struct RequestToggleStorage {
         mapping(uint64 requestID => bool isDisabled) _requestToggles;
     }
@@ -19,6 +19,9 @@ contract RequestToggle is ZKPVerifierBase {
         }
     }
 
+    /// @dev Checks if ZKP Request is enabled
+    /// @param requestId The ID of the ZKP request
+    /// @return True if ZKP Request enabled, otherwise returns false
     function isZKPRequestEnabled(
         uint64 requestId
     ) public view virtual checkRequestExistence(requestId, true) returns (bool) {

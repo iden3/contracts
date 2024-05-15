@@ -6,7 +6,7 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 
 contract RequestWhitelist is ZKPVerifierBase {
-    /// @custom:storage-location iden3.storage.RequestWhitelist
+    /// @custom:storage-location erc7201:iden3.storage.RequestWhitelist
     struct RequestWhitelistStorage {
         mapping(ICircuitValidator => bool isApproved) _approvedValidators;
     }
@@ -25,6 +25,9 @@ contract RequestWhitelist is ZKPVerifierBase {
         }
     }
 
+    /// @dev Checks if validator is approved
+    /// @param validator The validator address
+    /// @return True if validator is approved, otherwise returns false
     function isApprovedValidator(ICircuitValidator validator) public view virtual returns (bool) {
         return _getRequestWhitelistStorage()._approvedValidators[validator];
     }
