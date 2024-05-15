@@ -67,13 +67,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
       expect(request.validator).to.be.equal(validatorAddr);
       expect(request.data).to.be.equal("0x0" + i);
 
-      const requestFI = await verifier.getZKPRequestFullInfo(i);
-      expect(request.metadata).to.be.equal("metadataN" + i);
-      expect(request.validator).to.be.equal(validatorAddr);
-      expect(request.data).to.be.equal("0x0" + i);
-      expect(requestFI.controller).to.be.equal(signerAddress);
-      expect(requestFI.isEnabled).to.be.equal(true);
-
       const requestIdExists = await verifier.requestIdExists(i);
       expect(requestIdExists).to.be.true;
       const requestIdDoesntExists = await verifier.requestIdExists(i + 1);
@@ -248,9 +241,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
     await expect(verifier.enableZKPRequest(nonExistentRequestId)).to.be.rejectedWith(
       "request id doesn't exist",
     );
-
-    const fi = await verifier.getZKPRequestFullInfo(requestId);
-    expect(fi.isEnabled).to.be.false;
   });
 
   it("Check approved validators", async () => {

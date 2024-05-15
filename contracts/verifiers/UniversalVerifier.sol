@@ -17,15 +17,6 @@ contract UniversalVerifier is
     RequestToggle,
     RequestWhitelist
 {
-    /// @dev Struct for ZKP request full info
-    struct ZKPRequestFullInfo {
-        string metadata;
-        ICircuitValidator validator;
-        bytes data;
-        address controller;
-        bool isEnabled;
-    }
-
     /**
      * @dev Version of contract
      */
@@ -123,24 +114,6 @@ contract UniversalVerifier is
             address(request.validator),
             request.data
         );
-    }
-
-    /// @dev Gets a specific ZKP request full info by ID
-    /// @param requestId The ID of the ZKP request
-    /// @return zkpRequestFullInfo The ZKP request data
-    function getZKPRequestFullInfo(
-        uint64 requestId
-    ) public view returns (ZKPRequestFullInfo memory zkpRequestFullInfo) {
-        IZKPVerifier.ZKPRequest memory request = getZKPRequest(requestId);
-
-        return
-            ZKPRequestFullInfo({
-                metadata: request.metadata,
-                validator: request.validator,
-                data: request.data,
-                controller: getController(requestId),
-                isEnabled: isZKPRequestEnabled(requestId)
-            });
     }
 
     /// @dev Verifies a ZKP response without updating any proof status
