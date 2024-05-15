@@ -61,18 +61,14 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c
-    ) public virtual checkRequestExistence(requestId, true) {
+    ) public virtual {
         address sender = _msgSender();
-        IZKPVerifier.ZKPRequest storage request = _getZKPVerifierStorage()._requests[requestId];
-
-        ICircuitValidator validator = ICircuitValidator(request.validator);
-
-        ICircuitValidator.KeyToInputIndex[] memory pairs = validator.verify(
+        ICircuitValidator.KeyToInputIndex[] memory pairs = verifyZKPResponse(
+            requestId,
             inputs,
             a,
             b,
             c,
-            request.data,
             sender
         );
 
@@ -82,7 +78,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         }
 
         proof.isProved = true;
-        proof.validatorVersion = validator.version();
+        proof.validatorVersion = _getZKPVerifierStorage()._requests[requestId].validator.version();
         proof.blockNumber = block.number;
         proof.blockTimestamp = block.timestamp;
     }
@@ -97,6 +93,33 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         ZKPVerifierStorage storage s = _getZKPVerifierStorage();
         s._requests[requestId] = request;
         s._requestIds.push(requestId);
+    }
+
+    /// @dev Verifies a ZKP response without updating any proof status
+    /// @param requestId The ID of the ZKP request
+    /// @param inputs The public inputs for the proof
+    /// @param a The first component of the proof
+    /// @param b The second component of the proof
+    /// @param c The third component of the proof
+    /// @param sender The sender on behalf of which the proof is done
+    function verifyZKPResponse(
+        uint64 requestId,
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
+        address sender
+    ) public view virtual checkRequestExistence(requestId, true) returns (ICircuitValidator.KeyToInputIndex[] memory) {
+        IZKPVerifier.ZKPRequest memory request = _getZKPVerifierStorage()._requests[requestId];
+        ICircuitValidator.KeyToInputIndex[] memory pairs = request.validator.verify(
+            inputs,
+            a,
+            b,
+            c,
+            request.data,
+            sender
+        );
+        return pairs;
     }
 
     /// @dev Gets a specific ZKP request by ID
@@ -157,7 +180,10 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @param sender The sender's address
     /// @param requestId The ID of the ZKP request
     /// @return true if proof submitted
-    function isProofSubmitted(address sender, uint64 requestId) public view returns (bool) {
+    function isProofSubmitted(
+        address sender,
+        uint64 requestId
+    ) public view checkRequestExistence(requestId, true) returns (bool) {
         return _getZKPVerifierStorage()._proofs[sender][requestId].isProved;
     }
 
@@ -168,7 +194,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     function getProofStatus(
         address sender,
         uint64 requestId
-    ) public view returns (IZKPVerifier.ProofStatus memory) {
+    ) public view checkRequestExistence(requestId, true) returns (IZKPVerifier.ProofStatus memory) {
         Proof storage proof = _getZKPVerifierStorage()._proofs[sender][requestId];
 
         return
@@ -188,7 +214,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         address user,
         uint64 requestId,
         string memory key
-    ) public view returns (uint256) {
+    ) public view checkRequestExistence(requestId, true) returns (uint256) {
         return _getZKPVerifierStorage()._proofs[user][requestId].storageFields[key];
     }
 }

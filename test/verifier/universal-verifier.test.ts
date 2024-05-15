@@ -87,7 +87,10 @@ describe("Universal Verifier MTP & SIG validators", function () {
   });
 
   it("Test submit response", async () => {
+    const requestId = 0;
+    const nonExistingRequestId = 1;
     const data = packValidatorParams(query);
+
     await verifier.setZKPRequest(0, {
       metadata: "metadata",
       validator: await sig.getAddress(),
@@ -106,17 +109,26 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
     const { timestamp: txResTimestamp } = await ethers.provider.getBlock(txRes.blockNumber) as Block;
 
-    await expect(verifier.verifyZKPResponse(0, inputs, pi_a, pi_b, pi_c, "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266")).not.to.be.rejected;
+    await expect(
+      verifier.verifyZKPResponse(
+        0,
+        inputs,
+        pi_a,
+        pi_b,
+        pi_c,
+        "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+      ),
+    ).not.to.be.rejected;
 
-    const requestId = 0;
-    let status = await verifier.getProofStatus(signerAddress, requestId);
+    const status = await verifier.getProofStatus(signerAddress, requestId);
     expect(status.isProved).to.be.true;
     expect(status.validatorVersion).to.be.equal("2.0.0-mock");
     expect(status.blockNumber).to.be.equal(txRes.blockNumber);
     expect(status.blockTimestamp).to.be.equal(txResTimestamp);
-    status = await verifier.getProofStatus(signerAddress, requestId + 1);
-    expect(status.isProved).to.be.equal(false);
-    expect(status.validatorVersion).to.be.equal("");
+
+    await expect(verifier.getProofStatus(signerAddress, nonExistingRequestId)).to.be.rejectedWith(
+      "request id doesn't exist",
+    );
   });
 
   it("Test getZKPRequests pagination", async () => {

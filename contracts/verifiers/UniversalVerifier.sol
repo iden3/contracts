@@ -130,11 +130,7 @@ contract UniversalVerifier is
     /// @return zkpRequestFullInfo The ZKP request data
     function getZKPRequestFullInfo(
         uint64 requestId
-    )
-        public
-        view
-        returns (ZKPRequestFullInfo memory zkpRequestFullInfo)
-    {
+    ) public view returns (ZKPRequestFullInfo memory zkpRequestFullInfo) {
         IZKPVerifier.ZKPRequest memory request = getZKPRequest(requestId);
 
         return
@@ -153,6 +149,7 @@ contract UniversalVerifier is
     /// @param a The first component of the proof
     /// @param b The second component of the proof
     /// @param c The third component of the proof
+    /// @param sender The sender on behalf of which the proof is done
     function verifyZKPResponse(
         uint64 requestId,
         uint256[] calldata inputs,
@@ -163,19 +160,11 @@ contract UniversalVerifier is
     )
         public
         view
+        override
         requestEnabled(requestId)
         returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
-        IZKPVerifier.ZKPRequest memory request = getZKPRequest(requestId);
-        ICircuitValidator.KeyToInputIndex[] memory pairs = request.validator.verify(
-            inputs,
-            a,
-            b,
-            c,
-            request.data,
-            sender
-        );
-        return pairs;
+        return super.verifyZKPResponse(requestId, inputs, a, b, c, sender);
     }
 
     /// @dev Gets the list of request IDs and verifies the proofs are linked
@@ -218,17 +207,13 @@ contract UniversalVerifier is
 
     /// @dev Disables ZKP Request
     /// @param requestId The ID of the ZKP request
-    function disableZKPRequest(
-        uint64 requestId
-    ) public onlyOwnerOrController(requestId) {
+    function disableZKPRequest(uint64 requestId) public onlyOwnerOrController(requestId) {
         _disableZKPRequest(requestId);
     }
 
     /// @dev Enables ZKP Request
     /// @param requestId The ID of the ZKP request
-    function enableZKPRequest(
-        uint64 requestId
-    ) public onlyOwnerOrController(requestId) {
+    function enableZKPRequest(uint64 requestId) public onlyOwnerOrController(requestId) {
         _enableZKPRequest(requestId);
     }
 
