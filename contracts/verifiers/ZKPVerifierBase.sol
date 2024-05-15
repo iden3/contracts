@@ -16,21 +16,21 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         uint256 blockTimestamp;
     }
 
-    /// @custom:storage-location erc7201:iden3.storage.ZKPVerifierBase
-    struct ZKPVerifierBaseStorage {
+    /// @custom:storage-location erc7201:iden3.storage.ZKPVerifier
+    struct ZKPVerifierStorage {
         mapping(address user => mapping(uint64 requestID => Proof)) _proofs;
         mapping(uint64 requestID => IZKPVerifier.ZKPRequest) _requests;
         uint64[] _requestIds;
     }
 
-    // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifierBase")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 private constant ZKPVerifierBaseStorageLocation =
-        0x798436fb702b181ab172db1a17ad6ad6f8b729bf17fe59ff767e4903dab89000;
+    // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifier")) - 1)) & ~bytes32(uint256(0xff));
+    bytes32 internal constant ZKPVerifierStorageLocation =
+        0x512d18c55869273fec77e70d8a8586e3fb133e90f1db24c6bcf4ff3506ef6a00;
 
     /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getZKPVerifierBaseStorage() private pure returns (ZKPVerifierBaseStorage storage $) {
+    function _getZKPVerifierStorage() private pure returns (ZKPVerifierStorage storage $) {
         assembly {
-            $.slot := ZKPVerifierBaseStorageLocation
+            $.slot := ZKPVerifierStorageLocation
         }
     }
 
@@ -63,7 +63,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         uint256[2] calldata c
     ) public virtual checkRequestExistence(requestId, true) {
         address sender = _msgSender();
-        IZKPVerifier.ZKPRequest storage request = _getZKPVerifierBaseStorage()._requests[requestId];
+        IZKPVerifier.ZKPRequest storage request = _getZKPVerifierStorage()._requests[requestId];
 
         ICircuitValidator validator = ICircuitValidator(request.validator);
 
@@ -76,7 +76,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             sender
         );
 
-        Proof storage proof = _getZKPVerifierBaseStorage()._proofs[sender][requestId];
+        Proof storage proof = _getZKPVerifierStorage()._proofs[sender][requestId];
         for (uint256 i = 0; i < pairs.length; i++) {
             proof.storageFields[pairs[i].key] = inputs[pairs[i].inputIndex];
         }
@@ -94,7 +94,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         uint64 requestId,
         IZKPVerifier.ZKPRequest calldata request
     ) public virtual checkRequestExistence(requestId, false) {
-        ZKPVerifierBaseStorage storage s = _getZKPVerifierBaseStorage();
+        ZKPVerifierStorage storage s = _getZKPVerifierStorage();
         s._requests[requestId] = request;
         s._requestIds.push(requestId);
     }
@@ -110,13 +110,13 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         checkRequestExistence(requestId, true)
         returns (IZKPVerifier.ZKPRequest memory zkpRequest)
     {
-        return _getZKPVerifierBaseStorage()._requests[requestId];
+        return _getZKPVerifierStorage()._requests[requestId];
     }
 
     /// @dev Gets the count of ZKP requests
     /// @return The count of ZKP requests
     function getZKPRequestsCount() public view returns (uint256) {
-        return _getZKPVerifierBaseStorage()._requestIds.length;
+        return _getZKPVerifierStorage()._requestIds.length;
     }
 
     /// @dev Checks if a ZKP request ID exists
@@ -124,7 +124,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @return Whether the request ID exists
     function requestIdExists(uint64 requestId) public view override returns (bool) {
         return
-            _getZKPVerifierBaseStorage()._requests[requestId].validator !=
+            _getZKPVerifierStorage()._requests[requestId].validator !=
             ICircuitValidator(address(0));
     }
 
@@ -136,7 +136,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         uint256 startIndex,
         uint256 length
     ) public view returns (IZKPVerifier.ZKPRequest[] memory) {
-        ZKPVerifierBaseStorage storage s = _getZKPVerifierBaseStorage();
+        ZKPVerifierStorage storage s = _getZKPVerifierStorage();
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
             s._requestIds.length,
             startIndex,
@@ -158,7 +158,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @param requestId The ID of the ZKP request
     /// @return true if proof submitted
     function isProofSubmitted(address sender, uint64 requestId) public view returns (bool) {
-        return _getZKPVerifierBaseStorage()._proofs[sender][requestId].isProved;
+        return _getZKPVerifierStorage()._proofs[sender][requestId].isProved;
     }
 
     /// @dev Checks the proof status for a given user and request ID
@@ -169,7 +169,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         address sender,
         uint64 requestId
     ) public view returns (IZKPVerifier.ProofStatus memory) {
-        Proof storage proof = _getZKPVerifierBaseStorage()._proofs[sender][requestId];
+        Proof storage proof = _getZKPVerifierStorage()._proofs[sender][requestId];
 
         return
             IZKPVerifier.ProofStatus(
@@ -189,6 +189,6 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         uint64 requestId,
         string memory key
     ) public view returns (uint256) {
-        return _getZKPVerifierBaseStorage()._proofs[user][requestId].storageFields[key];
+        return _getZKPVerifierStorage()._proofs[user][requestId].storageFields[key];
     }
 }
