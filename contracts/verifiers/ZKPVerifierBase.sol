@@ -109,7 +109,13 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         uint256[2][2] calldata b,
         uint256[2] calldata c,
         address sender
-    ) public view virtual checkRequestExistence(requestId, true) returns (ICircuitValidator.KeyToInputIndex[] memory) {
+    )
+        public
+        view
+        virtual
+        checkRequestExistence(requestId, true)
+        returns (ICircuitValidator.KeyToInputIndex[] memory)
+    {
         IZKPVerifier.ZKPRequest memory request = _getZKPVerifierStorage()._requests[requestId];
         ICircuitValidator.KeyToInputIndex[] memory pairs = request.validator.verify(
             inputs,
