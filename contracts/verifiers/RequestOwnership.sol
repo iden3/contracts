@@ -23,20 +23,20 @@ abstract contract RequestOwnership is ZKPVerifierBase {
         }
     }
 
-    /// @dev Get controller for a ZKPRequest
+    /// @dev Get a ZKP Request Owner address
     /// @param requestId The ID of a ZKP Request
-    /// @return The controller address
-    function getController(
+    /// @return The ZKP Request Owner address
+    function getRequestOwner(
         uint64 requestId
     ) public view virtual checkRequestExistence(requestId, true) returns (address) {
         return _getRequestOwnershipStorage()._requestOwners[requestId];
     }
 
-    function _setController(
+    function _setRequestOwner(
         uint64 requestId,
-        address controller
+        address requestOwner
     ) internal checkRequestExistence(requestId, true) {
         RequestOwnershipStorage storage $ = _getRequestOwnershipStorage();
-        $._requestOwners[requestId] = controller;
+        $._requestOwners[requestId] = requestOwner;
     }
 }

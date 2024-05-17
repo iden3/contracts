@@ -153,28 +153,28 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const controllerAddress = await controller.getAddress();
     const someSignerAddress = await someSigner.getAddress();
 
-    await expect(verifier.getController(requestId)).to.be.rejectedWith("request id doesn't exist");
+    await expect(verifier.getRequestOwner(requestId)).to.be.rejectedWith("request id doesn't exist");
     await verifier.connect(controller).setZKPRequest(requestId, {
       metadata: "metadata",
       validator: await sig.getAddress(),
       data: packValidatorParams(query),
     });
 
-    expect(await verifier.getController(requestId)).to.be.equal(controllerAddress);
+    expect(await verifier.getRequestOwner(requestId)).to.be.equal(controllerAddress);
     await expect(
       verifier.connect(someSigner).setController(requestId, someSigner),
     ).to.be.rejectedWith("Only owner or controller can call this function");
 
     await verifier.connect(controller).setController(requestId, someSigner);
-    expect(await verifier.getController(requestId)).to.be.equal(someSignerAddress);
+    expect(await verifier.getRequestOwner(requestId)).to.be.equal(someSignerAddress);
 
     await expect(
       verifier.connect(controller).setController(requestId, controllerAddress),
     ).to.be.rejectedWith("Only owner or controller can call this function");
     await verifier.connect(owner).setController(requestId, controllerAddress);
-    expect(await verifier.getController(requestId)).to.be.equal(controllerAddress);
+    expect(await verifier.getRequestOwner(requestId)).to.be.equal(controllerAddress);
 
-    await expect(verifier.getController(nonExistentRequestId)).to.be.rejectedWith(
+    await expect(verifier.getRequestOwner(nonExistentRequestId)).to.be.rejectedWith(
       "request id doesn't exist",
     );
     await expect(

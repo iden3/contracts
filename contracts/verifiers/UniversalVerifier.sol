@@ -38,7 +38,7 @@ contract UniversalVerifier is
     modifier onlyOwnerOrController(uint64 requestId) {
         address sender = _msgSender();
         require(
-            sender == getController(requestId) || sender == owner(),
+            sender == getRequestOwner(requestId) || sender == owner(),
             "Only owner or controller can call this function"
         );
         _;
@@ -93,7 +93,7 @@ contract UniversalVerifier is
         super.setZKPRequest(requestId, request);
 
         address sender = _msgSender();
-        _setController(requestId, sender);
+        _setRequestOwner(requestId, sender);
 
         emit ZKPRequestSet(
             requestId,
@@ -128,14 +128,14 @@ contract UniversalVerifier is
         return super.verifyZKPResponse(requestId, inputs, a, b, c, sender);
     }
 
-    /// @dev Sets ZKP Request controller address
+    /// @dev Sets ZKP Request Owner address
     /// @param requestId The ID of the ZKP request
-    /// @param controller ZKP Request controller address
+    /// @param requestOwner ZKP Request Owner address
     function setController(
         uint64 requestId,
-        address controller
+        address requestOwner
     ) public onlyOwnerOrController(requestId) {
-        _setController(requestId, controller);
+        _setRequestOwner(requestId, requestOwner);
     }
 
     /// @dev Disables ZKP Request
