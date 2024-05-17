@@ -20,27 +20,33 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
 
     function ___ZKPVerifier_init_unchained(address initialOwner) internal onlyInitializing {}
 
-    function submitZKPResponse(
-        uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c
-    ) public override {
-        IZKPVerifier.ZKPRequest memory request = getZKPRequest(requestId);
-        _beforeProofSubmit(requestId, inputs, request.validator);
-        super.submitZKPResponse(requestId, inputs, a, b, c);
-        _afterProofSubmit(requestId, inputs, request.validator);
-    }
-
     /// @dev Sets a ZKP request
     /// @param requestId The ID of the ZKP request
     /// @param request The ZKP request data
     function setZKPRequest(
         uint64 requestId,
         IZKPVerifier.ZKPRequest calldata request
-    ) public override onlyOwner {
+    ) public virtual override onlyOwner {
         super.setZKPRequest(requestId, request);
+    }
+
+    /// @dev Submits a ZKP response and updates proof status
+    /// @param requestId The ID of the ZKP request
+    /// @param inputs The input data for the proof
+    /// @param a The first component of the proof
+    /// @param b The second component of the proof
+    /// @param c The third component of the proof
+    function submitZKPResponse(
+        uint64 requestId,
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c
+    ) public virtual override {
+        IZKPVerifier.ZKPRequest memory request = getZKPRequest(requestId);
+        _beforeProofSubmit(requestId, inputs, request.validator);
+        super.submitZKPResponse(requestId, inputs, a, b, c);
+        _afterProofSubmit(requestId, inputs, request.validator);
     }
 
     /**
