@@ -39,6 +39,18 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
      */
     uint256 public constant REQUESTS_RETURN_LIMIT = 1000;
 
+    /// @dev Key to retrieve the linkID from the proof storage
+    string constant LINKED_PROOF_KEY = "linkID";
+
+    /// @dev Linked proof custom error
+    error LinkedProofError(
+        string message,
+        uint64 requestId,
+        uint256 linkID,
+        uint64 requestIdToCompare,
+        uint256 linkIdToCompare
+    );
+
     /// @dev Modifier to check if the validator is set for the request
     modifier checkRequestExistence(uint64 requestId, bool existence) {
         if (existence) {
@@ -126,6 +138,34 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             sender
         );
         return pairs;
+    }
+
+    /// @dev Gets the list of request IDs and verifies the proofs are linked
+    /// @param sender the user's address
+    /// @param requestIds the list of request IDs
+    /// Throws if the proofs are not linked
+    function verifyLinkedProofs(address sender, uint64[] calldata requestIds) public virtual view {
+        require(requestIds.length > 1, "Linked proof verification needs more than 1 request");
+
+        uint256 expectedLinkID = getProofStorageField(sender, requestIds[0], LINKED_PROOF_KEY);
+
+        if (expectedLinkID == 0) {
+            revert("Can't find linkID for given request Ids and user address");
+        }
+
+        for (uint256 i = 1; i < requestIds.length; i++) {
+            uint256 actualLinkID = getProofStorageField(sender, requestIds[i], LINKED_PROOF_KEY);
+
+            if (expectedLinkID != actualLinkID) {
+                revert LinkedProofError(
+                    "Proofs are not linked",
+                    requestIds[0],
+                    expectedLinkID,
+                    requestIds[i],
+                    actualLinkID
+                );
+            }
+        }
     }
 
     /// @dev Gets a specific ZKP request by ID

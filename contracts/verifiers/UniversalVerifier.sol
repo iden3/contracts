@@ -22,9 +22,6 @@ contract UniversalVerifier is
      */
     string public constant VERSION = "1.0.1";
 
-    /// @dev Key to retrieve the linkID from the proof storage
-    string constant LINKED_PROOF_KEY = "linkID";
-
     /// @dev Event emitted upon submitting a ZKP request
     event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);
 
@@ -35,15 +32,6 @@ contract UniversalVerifier is
         string metadata,
         address validator,
         bytes data
-    );
-
-    /// @dev Linked proof custom error
-    error LinkedProofError(
-        string message,
-        uint64 requestId,
-        uint256 linkID,
-        uint64 requestIdToCompare,
-        uint256 linkIdToCompare
     );
 
     /// @dev Modifier to check if the caller is the owner or controller of the ZKP request
@@ -138,34 +126,6 @@ contract UniversalVerifier is
         returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
         return super.verifyZKPResponse(requestId, inputs, a, b, c, sender);
-    }
-
-    /// @dev Gets the list of request IDs and verifies the proofs are linked
-    /// @param sender the user's address
-    /// @param requestIds the list of request IDs
-    /// Throws if the proofs are not linked
-    function verifyLinkedProofs(address sender, uint64[] calldata requestIds) public view {
-        require(requestIds.length > 1, "Linked proof verification needs more than 1 request");
-
-        uint256 expectedLinkID = getProofStorageField(sender, requestIds[0], LINKED_PROOF_KEY);
-
-        if (expectedLinkID == 0) {
-            revert("Can't find linkID for given request Ids and user address");
-        }
-
-        for (uint256 i = 1; i < requestIds.length; i++) {
-            uint256 actualLinkID = getProofStorageField(sender, requestIds[i], LINKED_PROOF_KEY);
-
-            if (expectedLinkID != actualLinkID) {
-                revert LinkedProofError(
-                    "Proofs are not linked",
-                    requestIds[0],
-                    expectedLinkID,
-                    requestIds[i],
-                    actualLinkID
-                );
-            }
-        }
     }
 
     /// @dev Sets ZKP Request controller address
