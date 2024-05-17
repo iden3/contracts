@@ -2,6 +2,7 @@
 pragma solidity 0.8.20;
 
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
+import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 
 contract RequestDisable is ZKPVerifierBase {
     /// @custom:storage-location erc7201:iden3.storage.RequestDisable
@@ -37,8 +38,33 @@ contract RequestDisable is ZKPVerifierBase {
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c
-    ) public override virtual requestEnabled(requestId) {
+    ) public virtual override requestEnabled(requestId) {
         super.submitZKPResponse(requestId, inputs, a, b, c);
+    }
+
+    /// @dev Verifies a ZKP response without updating any proof status
+    /// @param requestId The ID of the ZKP request
+    /// @param inputs The public inputs for the proof
+    /// @param a The first component of the proof
+    /// @param b The second component of the proof
+    /// @param c The third component of the proof
+    /// @param sender The sender on behalf of which the proof is done
+    function verifyZKPResponse(
+        uint64 requestId,
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
+        address sender
+    )
+        public
+        view
+        virtual
+        override
+        requestEnabled(requestId)
+        returns (ICircuitValidator.KeyToInputIndex[] memory)
+    {
+        return super.verifyZKPResponse(requestId, inputs, a, b, c, sender);
     }
 
     /// @dev Checks if ZKP Request is enabled

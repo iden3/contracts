@@ -37,7 +37,7 @@ contract ValidatorWhitelist is ZKPVerifierBase {
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c
-    ) public override virtual {
+    ) public virtual override {
         ICircuitValidator validator = getZKPRequest(requestId).validator;
         require(isWhitelistedValidator(validator), "Validator is not whitelisted");
         super.submitZKPResponse(requestId, inputs, a, b, c);
@@ -46,7 +46,9 @@ contract ValidatorWhitelist is ZKPVerifierBase {
     /// @dev Checks if validator is whitelisted
     /// @param validator The validator address
     /// @return True if validator is whitelisted, otherwise returns false
-    function isWhitelistedValidator(ICircuitValidator validator) public view virtual returns (bool) {
+    function isWhitelistedValidator(
+        ICircuitValidator validator
+    ) public view virtual returns (bool) {
         return _getValidatorWhitelistStorage()._validatorWhitelist[validator];
     }
 

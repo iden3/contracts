@@ -2,6 +2,7 @@
 pragma solidity 0.8.20;
 
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
+import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 
 abstract contract RequestOwnership is ZKPVerifierBase {
     /// @custom:storage-location erc7201:iden3.storage.RequestOwnership.sol
@@ -27,6 +28,17 @@ abstract contract RequestOwnership is ZKPVerifierBase {
     modifier onlyRequestOwner(uint64 requestId) virtual {
         require(getRequestOwner(requestId) == _msgSender(), "Not a request owner");
         _;
+    }
+
+    /// @dev Sets a ZKP request
+    /// @param requestId The ID of the ZKP request
+    /// @param request The ZKP request data
+    function setZKPRequest(
+        uint64 requestId,
+        IZKPVerifier.ZKPRequest calldata request
+    ) public virtual override {
+        super.setZKPRequest(requestId, request);
+        _setRequestOwner(requestId, _msgSender());
     }
 
     /// @dev Get a ZKP Request Owner address

@@ -84,15 +84,12 @@ contract UniversalVerifier is
     function setZKPRequest(
         uint64 requestId,
         IZKPVerifier.ZKPRequest calldata request
-    ) public override approvedValidator(request.validator) {
+    ) public override(RequestOwnership, ZKPVerifierBase) approvedValidator(request.validator) {
         super.setZKPRequest(requestId, request);
-
-        address sender = _msgSender();
-        _setRequestOwner(requestId, sender);
 
         emit ZKPRequestSet(
             requestId,
-            sender,
+            _msgSender(),
             request.metadata,
             address(request.validator),
             request.data
@@ -116,8 +113,7 @@ contract UniversalVerifier is
     )
         public
         view
-        override
-        requestEnabled(requestId)
+        override(RequestDisable, ZKPVerifierBase)
         returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
         return super.verifyZKPResponse(requestId, inputs, a, b, c, sender);
