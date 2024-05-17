@@ -146,33 +146,33 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
   it("Check access control", async () => {
     const owner = signer;
-    const controller = signer2;
+    const requestOwner = signer2;
     const someSigner = signer3;
     const requestId = 0;
     const nonExistentRequestId = 1;
-    const controllerAddress = await controller.getAddress();
+    const requestOwnerAddr = await requestOwner.getAddress();
     const someSignerAddress = await someSigner.getAddress();
 
     await expect(verifier.getRequestOwner(requestId)).to.be.rejectedWith("request id doesn't exist");
-    await verifier.connect(controller).setZKPRequest(requestId, {
+    await verifier.connect(requestOwner).setZKPRequest(requestId, {
       metadata: "metadata",
       validator: await sig.getAddress(),
       data: packValidatorParams(query),
     });
 
-    expect(await verifier.getRequestOwner(requestId)).to.be.equal(controllerAddress);
+    expect(await verifier.getRequestOwner(requestId)).to.be.equal(requestOwnerAddr);
     await expect(
       verifier.connect(someSigner).setRequestOwner(requestId, someSigner),
     ).to.be.rejectedWith("Only owner or request owner can call this function");
 
-    await verifier.connect(controller).setRequestOwner(requestId, someSigner);
+    await verifier.connect(requestOwner).setRequestOwner(requestId, someSigner);
     expect(await verifier.getRequestOwner(requestId)).to.be.equal(someSignerAddress);
 
     await expect(
-      verifier.connect(controller).setRequestOwner(requestId, controllerAddress),
+      verifier.connect(requestOwner).setRequestOwner(requestId, requestOwnerAddr),
     ).to.be.rejectedWith("Only owner or request owner can call this function");
-    await verifier.connect(owner).setRequestOwner(requestId, controllerAddress);
-    expect(await verifier.getRequestOwner(requestId)).to.be.equal(controllerAddress);
+    await verifier.connect(owner).setRequestOwner(requestId, requestOwnerAddr);
+    expect(await verifier.getRequestOwner(requestId)).to.be.equal(requestOwnerAddr);
 
     await expect(verifier.getRequestOwner(nonExistentRequestId)).to.be.rejectedWith(
       "request id doesn't exist",
@@ -184,7 +184,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
   it("Check disable/enable functionality", async () => {
     const owner = signer;
-    const controller = signer2;
+    const requestOwner = signer2;
     const someSigner = signer3;
     const requestId = 0;
     const nonExistentRequestId = 1;
@@ -193,7 +193,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
       "request id doesn't exist",
     );
 
-    await verifier.connect(controller).setZKPRequest(requestId, {
+    await verifier.connect(requestOwner).setZKPRequest(requestId, {
       metadata: "metadata",
       validator: await sig.getAddress(),
       data: packValidatorParams(query),
@@ -211,13 +211,13 @@ describe("Universal Verifier MTP & SIG validators", function () {
     await expect(verifier.connect(someSigner).enableZKPRequest(requestId)).to.be.rejectedWith(
       "Only owner or request owner can call this function",
     );
-    await verifier.connect(controller).enableZKPRequest(requestId);
+    await verifier.connect(requestOwner).enableZKPRequest(requestId);
     expect(await verifier.isZKPRequestEnabled(requestId)).to.be.true;
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
     await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
 
-    await verifier.connect(controller).disableZKPRequest(requestId);
+    await verifier.connect(requestOwner).disableZKPRequest(requestId);
     await expect(verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c)).to.be.rejectedWith(
       "Request is disabled",
     );
