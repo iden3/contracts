@@ -144,7 +144,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @param sender the user's address
     /// @param requestIds the list of request IDs
     /// Throws if the proofs are not linked
-    function verifyLinkedProofs(address sender, uint64[] calldata requestIds) public virtual view {
+    function verifyLinkedProofs(address sender, uint64[] calldata requestIds) public view virtual {
         require(requestIds.length > 1, "Linked proof verification needs more than 1 request");
 
         uint256 expectedLinkID = getProofStorageField(sender, requestIds[0], LINKED_PROOF_KEY);
