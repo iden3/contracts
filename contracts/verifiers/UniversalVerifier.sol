@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
-import {RequestAccessControl} from "./RequestAccessControl.sol";
+import {RequestOwnership} from "./RequestOwnership.sol";
 import {RequestToggle} from "./RequestToggle.sol";
 import {RequestWhitelist} from "./RequestWhitelist.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
@@ -13,7 +13,7 @@ import {ArrayUtils} from "../lib/ArrayUtils.sol";
 /// @notice A contract to manage ZKP (Zero-Knowledge Proof) requests and proofs.
 contract UniversalVerifier is
     Ownable2StepUpgradeable,
-    RequestAccessControl,
+    RequestOwnership,
     RequestToggle,
     RequestWhitelist
 {
