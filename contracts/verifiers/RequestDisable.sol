@@ -19,6 +19,28 @@ contract RequestDisable is ZKPVerifierBase {
         }
     }
 
+    /// @dev Modifier to check if the ZKP request is enabled
+    modifier requestEnabled(uint64 requestId) {
+        require(isZKPRequestEnabled(requestId), "Request is disabled");
+        _;
+    }
+
+    /// @dev Submits a ZKP response and updates proof status
+    /// @param requestId The ID of the ZKP request
+    /// @param inputs The input data for the proof
+    /// @param a The first component of the proof
+    /// @param b The second component of the proof
+    /// @param c The third component of the proof
+    function submitZKPResponse(
+        uint64 requestId,
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c
+    ) public override virtual requestEnabled(requestId) {
+        super.submitZKPResponse(requestId, inputs, a, b, c);
+    }
+
     /// @dev Checks if ZKP Request is enabled
     /// @param requestId The ID of the ZKP request
     /// @return True if ZKP Request enabled, otherwise returns false

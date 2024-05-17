@@ -7,6 +7,7 @@ import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {RequestOwnership} from "./RequestOwnership.sol";
 import {RequestDisable} from "./RequestDisable.sol";
 import {ValidatorWhitelist} from "./ValidatorWhitelist.sol";
+import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 
 /// @title Universal Verifier Contract
@@ -35,18 +36,12 @@ contract UniversalVerifier is
     );
 
     /// @dev Modifier to check if the caller is the contract Owner or ZKP Request Owner
-    modifier onlyOwnerOrRequestOwner(uint64 requestId) {
+    modifier onlyRequestOwner(uint64 requestId) override {
         address sender = _msgSender();
         require(
             sender == getRequestOwner(requestId) || sender == owner(),
             "Not an owner or request owner"
         );
-        _;
-    }
-
-    /// @dev Modifier to check if the ZKP request is enabled
-    modifier requestEnabled(uint64 requestId) {
-        require(isZKPRequestEnabled(requestId), "Request is disabled");
         _;
     }
 
@@ -78,9 +73,7 @@ contract UniversalVerifier is
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c
-    ) public override requestEnabled(requestId) {
-        ICircuitValidator validator = getZKPRequest(requestId).validator;
-        require(isWhitelistedValidator(validator), "Validator is not whitelisted");
+    ) public override(RequestDisable, ValidatorWhitelist, ZKPVerifierBase) {
         super.submitZKPResponse(requestId, inputs, a, b, c);
         emit ZKPResponseSubmitted(requestId, _msgSender());
     }
@@ -136,19 +129,19 @@ contract UniversalVerifier is
     function setRequestOwner(
         uint64 requestId,
         address requestOwner
-    ) public onlyOwnerOrRequestOwner(requestId) {
+    ) public onlyRequestOwner(requestId) {
         _setRequestOwner(requestId, requestOwner);
     }
 
     /// @dev Disables ZKP Request
     /// @param requestId The ID of the ZKP request
-    function disableZKPRequest(uint64 requestId) public onlyOwnerOrRequestOwner(requestId) {
+    function disableZKPRequest(uint64 requestId) public onlyRequestOwner(requestId) {
         _disableZKPRequest(requestId);
     }
 
     /// @dev Enables ZKP Request
     /// @param requestId The ID of the ZKP request
-    function enableZKPRequest(uint64 requestId) public onlyOwnerOrRequestOwner(requestId) {
+    function enableZKPRequest(uint64 requestId) public onlyRequestOwner(requestId) {
         _enableZKPRequest(requestId);
     }
 
