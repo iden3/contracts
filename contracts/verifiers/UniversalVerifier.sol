@@ -5,7 +5,7 @@ import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/acces
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {RequestOwnership} from "./RequestOwnership.sol";
-import {RequestToggle} from "./RequestToggle.sol";
+import {RequestDisable} from "./RequestDisable.sol";
 import {RequestWhitelist} from "./RequestWhitelist.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 
@@ -14,7 +14,7 @@ import {ArrayUtils} from "../lib/ArrayUtils.sol";
 contract UniversalVerifier is
     Ownable2StepUpgradeable,
     RequestOwnership,
-    RequestToggle,
+    RequestDisable,
     RequestWhitelist
 {
     /**
