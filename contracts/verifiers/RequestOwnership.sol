@@ -23,6 +23,12 @@ abstract contract RequestOwnership is ZKPVerifierBase {
         }
     }
 
+    /// @dev Modifier to check if the caller is ZKP Request owner
+    modifier onlyRequestOwner(uint64 requestId) {
+        require(getRequestOwner(requestId) == _msgSender(), "Not a request owner");
+        _;
+    }
+
     /// @dev Get a ZKP Request Owner address
     /// @param requestId The ID of a ZKP Request
     /// @return The ZKP Request Owner address

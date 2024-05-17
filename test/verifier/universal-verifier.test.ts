@@ -163,14 +163,14 @@ describe("Universal Verifier MTP & SIG validators", function () {
     expect(await verifier.getRequestOwner(requestId)).to.be.equal(requestOwnerAddr);
     await expect(
       verifier.connect(someSigner).setRequestOwner(requestId, someSigner),
-    ).to.be.rejectedWith("Only owner or request owner can call this function");
+    ).to.be.rejectedWith("Not an owner or request owner");
 
     await verifier.connect(requestOwner).setRequestOwner(requestId, someSigner);
     expect(await verifier.getRequestOwner(requestId)).to.be.equal(someSignerAddress);
 
     await expect(
       verifier.connect(requestOwner).setRequestOwner(requestId, requestOwnerAddr),
-    ).to.be.rejectedWith("Only owner or request owner can call this function");
+    ).to.be.rejectedWith("Not an owner or request owner");
     await verifier.connect(owner).setRequestOwner(requestId, requestOwnerAddr);
     expect(await verifier.getRequestOwner(requestId)).to.be.equal(requestOwnerAddr);
 
@@ -201,7 +201,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     expect(await verifier.isZKPRequestEnabled(requestId)).to.be.true;
 
     await expect(verifier.connect(someSigner).disableZKPRequest(requestId)).to.be.rejectedWith(
-      "Only owner or request owner can call this function",
+      "Not an owner or request owner",
     );
     expect(await verifier.isZKPRequestEnabled(requestId)).to.be.true;
 
@@ -209,7 +209,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     expect(await verifier.isZKPRequestEnabled(requestId)).to.be.false;
 
     await expect(verifier.connect(someSigner).enableZKPRequest(requestId)).to.be.rejectedWith(
-      "Only owner or request owner can call this function",
+      "Not an owner or request owner",
     );
     await verifier.connect(requestOwner).enableZKPRequest(requestId);
     expect(await verifier.isZKPRequestEnabled(requestId)).to.be.true;

@@ -39,7 +39,7 @@ contract UniversalVerifier is
         address sender = _msgSender();
         require(
             sender == getRequestOwner(requestId) || sender == owner(),
-            "Only owner or request owner can call this function"
+            "Not an owner or request owner"
         );
         _;
     }
