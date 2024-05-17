@@ -50,9 +50,9 @@ contract UniversalVerifier is
         _;
     }
 
-    /// @dev Modifier to check if the validator is approved
+    /// @dev Modifier to check if the validator is whitelisted
     modifier approvedValidator(ICircuitValidator validator) {
-        require(isWhitelistedValidator(validator), "Validator is not approved");
+        require(isWhitelistedValidator(validator), "Validator is not whitelisted");
         _;
     }
 
@@ -158,6 +158,8 @@ contract UniversalVerifier is
         _addValidatorToWhitelist(validator);
     }
 
+    /// @dev Remove validator from the whitelist
+    /// @param validator Validator address
     function removeValidatorFromWhitelist(ICircuitValidator validator) public onlyOwner {
         _removeValidatorFromWhitelist(validator);
     }

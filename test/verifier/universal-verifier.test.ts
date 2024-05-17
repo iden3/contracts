@@ -153,7 +153,9 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const requestOwnerAddr = await requestOwner.getAddress();
     const someSignerAddress = await someSigner.getAddress();
 
-    await expect(verifier.getRequestOwner(requestId)).to.be.rejectedWith("request id doesn't exist");
+    await expect(verifier.getRequestOwner(requestId)).to.be.rejectedWith(
+      "request id doesn't exist",
+    );
     await verifier.connect(requestOwner).setZKPRequest(requestId, {
       metadata: "metadata",
       validator: await sig.getAddress(),
@@ -243,7 +245,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     );
   });
 
-  it("Check approved validators", async () => {
+  it("Check whitelisted validators", async () => {
     const owner = signer;
     const someAddress = signer2;
 
@@ -260,7 +262,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
         validator: mtpValAddr,
         data: "0x00",
       })
-    ).to.be.rejectedWith("Validator is not approved");
+    ).to.be.rejectedWith("Validator is not whitelisted");
 
     await expect(verifier.connect(someAddress).addValidatorToWhitelist(mtpValAddr))
       .to.be.revertedWithCustomError(verifier, "OwnableUnauthorizedAccount")
@@ -278,7 +280,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
       })
     ).not.to.be.rejected;
 
-    // can't approve validator, which does not support ICircuitValidator interface
+    // can't whitelist validator, which does not support ICircuitValidator interface
     await expect(verifier.addValidatorToWhitelist(someAddress)).to.be.rejected;
 
     await expect(
@@ -287,6 +289,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
         validator: someAddress,
         data: "0x00",
       })
-    ).to.be.rejectedWith("Validator is not approved");
+    ).to.be.rejectedWith("Validator is not whitelisted");
   });
 });
