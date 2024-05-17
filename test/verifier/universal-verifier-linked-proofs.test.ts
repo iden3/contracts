@@ -20,11 +20,11 @@ describe("Universal Verifier Linked proofs", function () {
 
     const contracts = await deployHelper.deployValidatorContracts(
       "VerifierV3Wrapper",
-      "CredentialAtomicQueryV3Validator"
+      "CredentialAtomicQueryV3Validator",
     );
     v3 = contracts.validator;
     state = contracts.state;
-    await verifier.approveValidator(await v3.getAddress());
+    await verifier.addValidatorToWhitelist(await v3.getAddress());
     await verifier.connect();
 
     await publishState(state, testData.state as unknown as { [key: string]: string });
@@ -57,10 +57,10 @@ describe("Universal Verifier Linked proofs", function () {
     );
 
     await expect(verifier.verifyLinkedProofs(signerAddress, [102])).to.be.rejectedWith(
-      "Linked proof verification needs more than 1 request"
+      "Linked proof verification needs more than 1 request",
     );
-    await expect(verifier.verifyLinkedProofs(await signer2.getAddress(), [101, 102])).to.be.rejectedWith(
-      `Can't find linkID for given request Ids and user address`
-    );
+    await expect(
+      verifier.verifyLinkedProofs(await signer2.getAddress(), [101, 102]),
+    ).to.be.rejectedWith(`Can't find linkID for given request Ids and user address`);
   });
 });

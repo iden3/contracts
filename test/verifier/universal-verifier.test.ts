@@ -44,7 +44,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const stub = await deployHelper.deployValidatorStub();
 
     sig = stub;
-    await verifier.approveValidator(await sig.getAddress());
+    await verifier.addValidatorToWhitelist(await sig.getAddress());
     await verifier.connect();
   });
 
@@ -262,12 +262,12 @@ describe("Universal Verifier MTP & SIG validators", function () {
       })
     ).to.be.rejectedWith("Validator is not approved");
 
-    await expect(verifier.connect(someAddress).approveValidator(mtpValAddr))
+    await expect(verifier.connect(someAddress).addValidatorToWhitelist(mtpValAddr))
       .to.be.revertedWithCustomError(verifier, "OwnableUnauthorizedAccount")
       .withArgs(someAddress);
     expect(await verifier.isApprovedValidator(mtpValAddr)).to.be.false;
 
-    await verifier.connect(owner).approveValidator(mtpValAddr);
+    await verifier.connect(owner).addValidatorToWhitelist(mtpValAddr);
     expect(await verifier.isApprovedValidator(mtpValAddr)).to.be.true;
 
     await expect(
@@ -279,7 +279,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     ).not.to.be.rejected;
 
     // can't approve validator, which does not support ICircuitValidator interface
-    await expect(verifier.approveValidator(someAddress)).to.be.rejected;
+    await expect(verifier.addValidatorToWhitelist(someAddress)).to.be.rejected;
 
     await expect(
       verifier.setZKPRequest(1, {

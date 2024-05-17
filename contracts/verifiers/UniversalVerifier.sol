@@ -6,7 +6,7 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {RequestOwnership} from "./RequestOwnership.sol";
 import {RequestDisable} from "./RequestDisable.sol";
-import {RequestWhitelist} from "./RequestWhitelist.sol";
+import {ValidatorWhitelist} from "./ValidatorWhitelist.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 
 /// @title Universal Verifier Contract
@@ -15,7 +15,7 @@ contract UniversalVerifier is
     Ownable2StepUpgradeable,
     RequestOwnership,
     RequestDisable,
-    RequestWhitelist
+    ValidatorWhitelist
 {
     /**
      * @dev Version of contract
@@ -150,9 +150,9 @@ contract UniversalVerifier is
         _enableZKPRequest(requestId);
     }
 
-    /// @dev Approve a new validator
+    /// @dev Add new validator to the whitelist
     /// @param validator Validator address
-    function approveValidator(ICircuitValidator validator) public onlyOwner {
-        _approveValidator(validator);
+    function addValidatorToWhitelist(ICircuitValidator validator) public onlyOwner {
+        _addValidatorToWhitelist(validator);
     }
 }

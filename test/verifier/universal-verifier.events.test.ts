@@ -76,7 +76,7 @@ describe("Universal Verifier events", function () {
       "CredentialAtomicQuerySigV2Validator"
     );
     sig = contracts.validator;
-    await verifier.approveValidator(await sig.getAddress());
+    await verifier.addValidatorToWhitelist(await sig.getAddress());
     await verifier.connect();
   });
 
