@@ -45,12 +45,6 @@ contract UniversalVerifier is
         _;
     }
 
-    /// @dev Modifier to check if the validator is whitelisted
-    modifier approvedValidator(ICircuitValidator validator) {
-        require(isWhitelistedValidator(validator), "Validator is not whitelisted");
-        _;
-    }
-
     /// @dev Initializes the contract
     function initialize() public initializer {
         __Ownable_init(_msgSender());
@@ -59,6 +53,24 @@ contract UniversalVerifier is
     /// @dev Version of contract getter
     function version() public pure returns (string memory) {
         return VERSION;
+    }
+
+    /// @dev Sets a ZKP request
+    /// @param requestId The ID of the ZKP request
+    /// @param request The ZKP request data
+    function setZKPRequest(
+        uint64 requestId,
+        IZKPVerifier.ZKPRequest calldata request
+    ) public override(RequestOwnership, ValidatorWhitelist, ZKPVerifierBase) {
+        super.setZKPRequest(requestId, request);
+
+        emit ZKPRequestSet(
+            requestId,
+            _msgSender(),
+            request.metadata,
+            address(request.validator),
+            request.data
+        );
     }
 
     /// @dev Submits a ZKP response and updates proof status
@@ -76,24 +88,6 @@ contract UniversalVerifier is
     ) public override(RequestDisable, ValidatorWhitelist, ZKPVerifierBase) {
         super.submitZKPResponse(requestId, inputs, a, b, c);
         emit ZKPResponseSubmitted(requestId, _msgSender());
-    }
-
-    /// @dev Sets a ZKP request
-    /// @param requestId The ID of the ZKP request
-    /// @param request The ZKP request data
-    function setZKPRequest(
-        uint64 requestId,
-        IZKPVerifier.ZKPRequest calldata request
-    ) public override(RequestOwnership, ZKPVerifierBase) approvedValidator(request.validator) {
-        super.setZKPRequest(requestId, request);
-
-        emit ZKPRequestSet(
-            requestId,
-            _msgSender(),
-            request.metadata,
-            address(request.validator),
-            request.data
-        );
     }
 
     /// @dev Verifies a ZKP response without updating any proof status

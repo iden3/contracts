@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
+import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 
 contract ValidatorWhitelist is ZKPVerifierBase {
     /// @custom:storage-location erc7201:iden3.storage.ValidatorWhitelist
@@ -23,6 +24,22 @@ contract ValidatorWhitelist is ZKPVerifierBase {
         assembly {
             $.slot := ValidatorWhitelistStorageLocation
         }
+    }
+
+    /// @dev Modifier to check if the validator is whitelisted
+    modifier whitelistedValidator(ICircuitValidator validator) {
+        require(isWhitelistedValidator(validator), "Validator is not whitelisted");
+        _;
+    }
+
+    /// @dev Sets a ZKP request
+    /// @param requestId The ID of the ZKP request
+    /// @param request The ZKP request data
+    function setZKPRequest(
+        uint64 requestId,
+        IZKPVerifier.ZKPRequest calldata request
+    ) public virtual override whitelistedValidator(request.validator) {
+        super.setZKPRequest(requestId, request);
     }
 
     /// @dev Submits a ZKP response and updates proof status
