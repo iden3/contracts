@@ -9,7 +9,7 @@ import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Cont
 abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @dev Struct to store ZKP proof and associated data
     struct Proof {
-        bool isProved;
+        bool isVerified;
         mapping(string key => uint256 inputIndex) storageFields;
         string validatorVersion;
         uint256 blockNumber;
@@ -89,7 +89,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             proof.storageFields[pairs[i].key] = inputs[pairs[i].inputIndex];
         }
 
-        proof.isProved = true;
+        proof.isVerified = true;
         proof.validatorVersion = _getZKPVerifierStorage()._requests[requestId].validator.version();
         proof.blockNumber = block.number;
         proof.blockTimestamp = block.timestamp;
@@ -230,7 +230,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         address sender,
         uint64 requestId
     ) public view checkRequestExistence(requestId, true) returns (bool) {
-        return _getZKPVerifierStorage()._proofs[sender][requestId].isProved;
+        return _getZKPVerifierStorage()._proofs[sender][requestId].isVerified;
     }
 
     /// @dev Checks the proof status for a given user and request ID
@@ -245,7 +245,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
 
         return
             IZKPVerifier.ProofStatus(
-                proof.isProved,
+                proof.isVerified,
                 proof.validatorVersion,
                 proof.blockNumber,
                 proof.blockTimestamp
