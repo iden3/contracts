@@ -107,7 +107,7 @@ contract UniversalVerifier is
     )
         public
         view
-        override(RequestDisable, ZKPVerifierBase)
+        override(RequestDisable, ValidatorWhitelist, ZKPVerifierBase)
         returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
         return super.verifyZKPResponse(requestId, inputs, a, b, c, sender);

@@ -85,9 +85,9 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c
-    ) public virtual {
+    ) public virtual checkRequestExistence(requestId, true) {
         address sender = _msgSender();
-        ICircuitValidator.KeyToInputIndex[] memory pairs = verifyZKPResponse(
+        ICircuitValidator.KeyToInputIndex[] memory pairs = _verifyZKPResponse(
             requestId,
             inputs,
             a,
@@ -128,16 +128,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         checkRequestExistence(requestId, true)
         returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
-        IZKPVerifier.ZKPRequest memory request = _getZKPVerifierStorage()._requests[requestId];
-        ICircuitValidator.KeyToInputIndex[] memory pairs = request.validator.verify(
-            inputs,
-            a,
-            b,
-            c,
-            request.data,
-            sender
-        );
-        return pairs;
+        return _verifyZKPResponse(requestId, inputs, a, b, c, sender);
     }
 
     /// @dev Gets the list of request IDs and verifies the proofs are linked
@@ -262,5 +253,25 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         string memory key
     ) public view checkRequestExistence(requestId, true) returns (uint256) {
         return _getZKPVerifierStorage()._proofs[user][requestId].storageFields[key];
+    }
+
+    function _verifyZKPResponse(
+        uint64 requestId,
+        uint256[] calldata inputs,
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
+        address sender
+    ) private view returns (ICircuitValidator.KeyToInputIndex[] memory) {
+        IZKPVerifier.ZKPRequest memory request = _getZKPVerifierStorage()._requests[requestId];
+        ICircuitValidator.KeyToInputIndex[] memory pairs = request.validator.verify(
+            inputs,
+            a,
+            b,
+            c,
+            request.data,
+            sender
+        );
+        return pairs;
     }
 }
