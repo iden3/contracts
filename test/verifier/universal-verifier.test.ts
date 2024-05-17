@@ -248,6 +248,8 @@ describe("Universal Verifier MTP & SIG validators", function () {
   it("Check whitelisted validators", async () => {
     const owner = signer;
     const someAddress = signer2;
+    const requestId = 1;
+    const otherRequestId = 2;
 
     const { validator: mtp } = await deployHelper.deployValidatorContracts(
       "VerifierMTPWrapper",
@@ -257,7 +259,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     expect(await verifier.isWhitelistedValidator(mtpValAddr)).to.be.false;
 
     await expect(
-      verifier.setZKPRequest(0, {
+      verifier.setZKPRequest(requestId, {
         metadata: "metadata",
         validator: mtpValAddr,
         data: "0x00",
@@ -273,7 +275,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     expect(await verifier.isWhitelistedValidator(mtpValAddr)).to.be.true;
 
     await expect(
-      verifier.setZKPRequest(0, {
+      verifier.setZKPRequest(requestId, {
         metadata: "metadata",
         validator: mtpValAddr,
         data: "0x00",
@@ -284,11 +286,26 @@ describe("Universal Verifier MTP & SIG validators", function () {
     await expect(verifier.addValidatorToWhitelist(someAddress)).to.be.rejected;
 
     await expect(
-      verifier.setZKPRequest(1, {
+      verifier.setZKPRequest(otherRequestId, {
         metadata: "metadata",
         validator: someAddress,
         data: "0x00",
       })
+    ).to.be.rejectedWith("Validator is not whitelisted");
+
+    await verifier.removeValidatorFromWhitelist(mtpValAddr);
+
+    await expect(
+      verifier.submitZKPResponse(
+        requestId,
+        [],
+        [0, 0],
+        [
+          [0, 0],
+          [0, 0],
+        ],
+        [0, 0],
+      ),
     ).to.be.rejectedWith("Validator is not whitelisted");
   });
 });
