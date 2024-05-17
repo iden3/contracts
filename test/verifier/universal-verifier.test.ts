@@ -162,23 +162,23 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
     expect(await verifier.getRequestOwner(requestId)).to.be.equal(controllerAddress);
     await expect(
-      verifier.connect(someSigner).setController(requestId, someSigner),
-    ).to.be.rejectedWith("Only owner or controller can call this function");
+      verifier.connect(someSigner).setRequestOwner(requestId, someSigner),
+    ).to.be.rejectedWith("Only owner or request owner can call this function");
 
-    await verifier.connect(controller).setController(requestId, someSigner);
+    await verifier.connect(controller).setRequestOwner(requestId, someSigner);
     expect(await verifier.getRequestOwner(requestId)).to.be.equal(someSignerAddress);
 
     await expect(
-      verifier.connect(controller).setController(requestId, controllerAddress),
-    ).to.be.rejectedWith("Only owner or controller can call this function");
-    await verifier.connect(owner).setController(requestId, controllerAddress);
+      verifier.connect(controller).setRequestOwner(requestId, controllerAddress),
+    ).to.be.rejectedWith("Only owner or request owner can call this function");
+    await verifier.connect(owner).setRequestOwner(requestId, controllerAddress);
     expect(await verifier.getRequestOwner(requestId)).to.be.equal(controllerAddress);
 
     await expect(verifier.getRequestOwner(nonExistentRequestId)).to.be.rejectedWith(
       "request id doesn't exist",
     );
     await expect(
-      verifier.setController(nonExistentRequestId, someSignerAddress),
+      verifier.setRequestOwner(nonExistentRequestId, someSignerAddress),
     ).to.be.rejectedWith("request id doesn't exist");
   });
 
@@ -201,7 +201,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     expect(await verifier.isZKPRequestEnabled(requestId)).to.be.true;
 
     await expect(verifier.connect(someSigner).disableZKPRequest(requestId)).to.be.rejectedWith(
-      "Only owner or controller can call this function",
+      "Only owner or request owner can call this function",
     );
     expect(await verifier.isZKPRequestEnabled(requestId)).to.be.true;
 
@@ -209,7 +209,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     expect(await verifier.isZKPRequestEnabled(requestId)).to.be.false;
 
     await expect(verifier.connect(someSigner).enableZKPRequest(requestId)).to.be.rejectedWith(
-      "Only owner or controller can call this function",
+      "Only owner or request owner can call this function",
     );
     await verifier.connect(controller).enableZKPRequest(requestId);
     expect(await verifier.isZKPRequestEnabled(requestId)).to.be.true;

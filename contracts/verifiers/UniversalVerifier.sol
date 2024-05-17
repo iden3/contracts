@@ -28,18 +28,18 @@ contract UniversalVerifier is
     /// @dev Event emitted upon adding a ZKP request
     event ZKPRequestSet(
         uint64 indexed requestId,
-        address indexed controller,
+        address indexed requestOwner,
         string metadata,
         address validator,
         bytes data
     );
 
-    /// @dev Modifier to check if the caller is the owner or controller of the ZKP request
-    modifier onlyOwnerOrController(uint64 requestId) {
+    /// @dev Modifier to check if the caller is the contract Owner or ZKP Request Owner
+    modifier onlyOwnerOrRequestOwner(uint64 requestId) {
         address sender = _msgSender();
         require(
             sender == getRequestOwner(requestId) || sender == owner(),
-            "Only owner or controller can call this function"
+            "Only owner or request owner can call this function"
         );
         _;
     }
@@ -131,22 +131,22 @@ contract UniversalVerifier is
     /// @dev Sets ZKP Request Owner address
     /// @param requestId The ID of the ZKP request
     /// @param requestOwner ZKP Request Owner address
-    function setController(
+    function setRequestOwner(
         uint64 requestId,
         address requestOwner
-    ) public onlyOwnerOrController(requestId) {
+    ) public onlyOwnerOrRequestOwner(requestId) {
         _setRequestOwner(requestId, requestOwner);
     }
 
     /// @dev Disables ZKP Request
     /// @param requestId The ID of the ZKP request
-    function disableZKPRequest(uint64 requestId) public onlyOwnerOrController(requestId) {
+    function disableZKPRequest(uint64 requestId) public onlyOwnerOrRequestOwner(requestId) {
         _disableZKPRequest(requestId);
     }
 
     /// @dev Enables ZKP Request
     /// @param requestId The ID of the ZKP request
-    function enableZKPRequest(uint64 requestId) public onlyOwnerOrController(requestId) {
+    function enableZKPRequest(uint64 requestId) public onlyOwnerOrRequestOwner(requestId) {
         _enableZKPRequest(requestId);
     }
 
