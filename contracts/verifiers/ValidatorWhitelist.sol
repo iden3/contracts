@@ -25,10 +25,10 @@ contract ValidatorWhitelist is ZKPVerifierBase {
         }
     }
 
-    /// @dev Checks if validator is approved
+    /// @dev Checks if validator is whitelisted
     /// @param validator The validator address
-    /// @return True if validator is approved, otherwise returns false
-    function isApprovedValidator(ICircuitValidator validator) public view virtual returns (bool) {
+    /// @return True if validator is whitelisted, otherwise returns false
+    function isWhitelistedValidator(ICircuitValidator validator) public view virtual returns (bool) {
         return _getValidatorWhitelistStorage()._validatorWhitelist[validator];
     }
 
@@ -39,5 +39,9 @@ contract ValidatorWhitelist is ZKPVerifierBase {
         );
 
         _getValidatorWhitelistStorage()._validatorWhitelist[validator] = true;
+    }
+
+    function _removeValidatorFromWhitelist(ICircuitValidator validator) internal {
+        _getValidatorWhitelistStorage()._validatorWhitelist[validator] = false;
     }
 }

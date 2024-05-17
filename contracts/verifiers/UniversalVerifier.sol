@@ -52,7 +52,7 @@ contract UniversalVerifier is
 
     /// @dev Modifier to check if the validator is approved
     modifier approvedValidator(ICircuitValidator validator) {
-        require(isApprovedValidator(validator), "Validator is not approved");
+        require(isWhitelistedValidator(validator), "Validator is not approved");
         _;
     }
 
@@ -79,6 +79,8 @@ contract UniversalVerifier is
         uint256[2][2] calldata b,
         uint256[2] calldata c
     ) public override requestEnabled(requestId) {
+        ICircuitValidator validator = getZKPRequest(requestId).validator;
+        require(isWhitelistedValidator(validator), "Validator is not whitelisted");
         super.submitZKPResponse(requestId, inputs, a, b, c);
         emit ZKPResponseSubmitted(requestId, _msgSender());
     }
@@ -154,5 +156,9 @@ contract UniversalVerifier is
     /// @param validator Validator address
     function addValidatorToWhitelist(ICircuitValidator validator) public onlyOwner {
         _addValidatorToWhitelist(validator);
+    }
+
+    function removeValidatorFromWhitelist(ICircuitValidator validator) public onlyOwner {
+        _removeValidatorFromWhitelist(validator);
     }
 }

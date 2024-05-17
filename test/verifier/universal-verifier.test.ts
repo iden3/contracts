@@ -252,7 +252,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
       "CredentialAtomicQueryMTPV2Validator",
     );
     const mtpValAddr = await mtp.getAddress();
-    expect(await verifier.isApprovedValidator(mtpValAddr)).to.be.false;
+    expect(await verifier.isWhitelistedValidator(mtpValAddr)).to.be.false;
 
     await expect(
       verifier.setZKPRequest(0, {
@@ -265,10 +265,10 @@ describe("Universal Verifier MTP & SIG validators", function () {
     await expect(verifier.connect(someAddress).addValidatorToWhitelist(mtpValAddr))
       .to.be.revertedWithCustomError(verifier, "OwnableUnauthorizedAccount")
       .withArgs(someAddress);
-    expect(await verifier.isApprovedValidator(mtpValAddr)).to.be.false;
+    expect(await verifier.isWhitelistedValidator(mtpValAddr)).to.be.false;
 
     await verifier.connect(owner).addValidatorToWhitelist(mtpValAddr);
-    expect(await verifier.isApprovedValidator(mtpValAddr)).to.be.true;
+    expect(await verifier.isWhitelistedValidator(mtpValAddr)).to.be.true;
 
     await expect(
       verifier.setZKPRequest(0, {
