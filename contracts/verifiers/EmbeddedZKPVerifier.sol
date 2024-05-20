@@ -13,12 +13,12 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
     /**
      * @dev Sets the value for Owner
      */
-    function __ZKPVerifier_init(address initialOwner) internal onlyInitializing {
+    function __EmbeddedZKPVerifier_init(address initialOwner) internal onlyInitializing {
         __Ownable_init(initialOwner);
-        ___ZKPVerifier_init_unchained(initialOwner);
+        ___EmbeddedZKPVerifier_init_unchained(initialOwner);
     }
 
-    function ___ZKPVerifier_init_unchained(address initialOwner) internal onlyInitializing {}
+    function ___EmbeddedZKPVerifier_init_unchained(address initialOwner) internal onlyInitializing {}
 
     /// @dev Sets a ZKP request
     /// @param requestId The ID of the ZKP request

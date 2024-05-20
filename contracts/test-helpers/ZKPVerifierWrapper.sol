@@ -5,6 +5,6 @@ import {EmbeddedZKPVerifier} from "../verifiers/EmbeddedZKPVerifier.sol";
 
 contract ZKPVerifierWrapper is EmbeddedZKPVerifier {
     function initialize(address initialOwner) public initializer {
-        super.__ZKPVerifier_init(initialOwner);
+        super.__EmbeddedZKPVerifier_init(initialOwner);
     }
 }
