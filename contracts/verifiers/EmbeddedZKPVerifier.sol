@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.20;
 
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
@@ -18,7 +17,9 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
         ___EmbeddedZKPVerifier_init_unchained(initialOwner);
     }
 
-    function ___EmbeddedZKPVerifier_init_unchained(address initialOwner) internal onlyInitializing {}
+    function ___EmbeddedZKPVerifier_init_unchained(
+        address initialOwner
+    ) internal onlyInitializing {}
 
     /// @dev Sets a ZKP request
     /// @param requestId The ID of the ZKP request

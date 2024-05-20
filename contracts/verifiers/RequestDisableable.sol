@@ -4,15 +4,15 @@ pragma solidity 0.8.20;
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 
-contract RequestDisable is ZKPVerifierBase {
-    /// @custom:storage-location erc7201:iden3.storage.RequestDisable
+contract RequestDisableable is ZKPVerifierBase {
+    /// @custom:storage-location erc7201:iden3.storage.RequestDisableable
     struct RequestDisableStorage {
         mapping(uint64 requestID => bool isDisabled) _requestDisabling;
     }
 
-    // keccak256(abi.encode(uint256(keccak256("iden3.storage.RequestDisable")) - 1)) & ~bytes32(uint256(0xff));
+    // keccak256(abi.encode(uint256(keccak256("iden3.storage.RequestDisableable")) - 1)) & ~bytes32(uint256(0xff));
     bytes32 private constant RequestDisableStorageLocation =
-        0xd3b813ca1545297f983e6a57a9996f864572183cb0b19e5e1bde10e5f6c4fb00;
+        0x70325635d67d74932012fa921ccb2f335d3b1d69e3a487f50d001cc65f531600;
 
     function _getRequestDisableStorage() private pure returns (RequestDisableStorage storage $) {
         assembly {

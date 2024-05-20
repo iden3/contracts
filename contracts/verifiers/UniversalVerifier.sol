@@ -5,7 +5,7 @@ import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/acces
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {RequestOwnership} from "./RequestOwnership.sol";
-import {RequestDisable} from "./RequestDisable.sol";
+import {RequestDisableable} from "./RequestDisableable.sol";
 import {ValidatorWhitelist} from "./ValidatorWhitelist.sol";
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
@@ -15,7 +15,7 @@ import {ArrayUtils} from "../lib/ArrayUtils.sol";
 contract UniversalVerifier is
     Ownable2StepUpgradeable,
     RequestOwnership,
-    RequestDisable,
+    RequestDisableable,
     ValidatorWhitelist
 {
     /**
@@ -85,7 +85,7 @@ contract UniversalVerifier is
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c
-    ) public override(RequestDisable, ValidatorWhitelist, ZKPVerifierBase) {
+    ) public override(RequestDisableable, ValidatorWhitelist, ZKPVerifierBase) {
         super.submitZKPResponse(requestId, inputs, a, b, c);
         emit ZKPResponseSubmitted(requestId, _msgSender());
     }
@@ -107,7 +107,7 @@ contract UniversalVerifier is
     )
         public
         view
-        override(RequestDisable, ValidatorWhitelist, ZKPVerifierBase)
+        override(RequestDisableable, ValidatorWhitelist, ZKPVerifierBase)
         returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
         return super.verifyZKPResponse(requestId, inputs, a, b, c, sender);
