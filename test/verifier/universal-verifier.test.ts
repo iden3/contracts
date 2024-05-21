@@ -50,9 +50,9 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
   it("Test add, get ZKPRequest, requestIdExists, getZKPRequestsCount", async () => {
     const requestsCount = 3;
+    const validatorAddr = await sig.getAddress();
 
     for (let i = 0; i < requestsCount; i++) {
-      const validatorAddr = await sig.getAddress();
       await expect(
         verifier.setZKPRequest(i, {
           metadata: "metadataN" + i,
@@ -114,7 +114,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     ).not.to.be.rejected;
 
     const status = await verifier.getProofStatus(signerAddress, requestId);
-    expect(status.isProved).to.be.true;
+    expect(status.isVerified).to.be.true;
     expect(status.validatorVersion).to.be.equal("2.0.0-mock");
     expect(status.blockNumber).to.be.equal(txRes.blockNumber);
     expect(status.blockTimestamp).to.be.equal(txResTimestamp);

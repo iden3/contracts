@@ -12,7 +12,7 @@ interface IZKPVerifier {
     }
 
     struct ProofStatus {
-        bool isProved;
+        bool isVerified;
         string validatorVersion;
         uint256 blockNumber;
         uint256 blockTimestamp;

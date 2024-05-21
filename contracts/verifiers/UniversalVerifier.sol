@@ -36,7 +36,7 @@ contract UniversalVerifier is
     );
 
     /// @dev Modifier to check if the caller is the contract Owner or ZKP Request Owner
-    modifier onlyRequestOwner(uint64 requestId) override {
+    modifier onlyOwnerOrRequestOwner(uint64 requestId) {
         address sender = _msgSender();
         require(
             sender == getRequestOwner(requestId) || sender == owner(),
@@ -119,19 +119,19 @@ contract UniversalVerifier is
     function setRequestOwner(
         uint64 requestId,
         address requestOwner
-    ) public onlyRequestOwner(requestId) {
+    ) public onlyOwnerOrRequestOwner(requestId) {
         _setRequestOwner(requestId, requestOwner);
     }
 
     /// @dev Disables ZKP Request
     /// @param requestId The ID of the ZKP request
-    function disableZKPRequest(uint64 requestId) public onlyRequestOwner(requestId) {
+    function disableZKPRequest(uint64 requestId) public onlyOwnerOrRequestOwner(requestId) {
         _disableZKPRequest(requestId);
     }
 
     /// @dev Enables ZKP Request
     /// @param requestId The ID of the ZKP request
-    function enableZKPRequest(uint64 requestId) public onlyRequestOwner(requestId) {
+    function enableZKPRequest(uint64 requestId) public onlyOwnerOrRequestOwner(requestId) {
         _enableZKPRequest(requestId);
     }
 

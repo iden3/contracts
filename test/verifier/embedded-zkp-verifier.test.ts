@@ -58,7 +58,7 @@ describe("Embedded ZKP Verifier", function () {
     const isProofSubmitted = await verifier.isProofSubmitted(ownerAddress, requestID);
     expect(isProofSubmitted).to.be.equal(true);
     const proofStatus = await verifier.getProofStatus(ownerAddress, requestID);
-    expect(proofStatus.isProved).to.be.equal(true);
+    expect(proofStatus.isVerified).to.be.equal(true);
     expect(proofStatus.validatorVersion).to.be.equal("2.0.0-mock");
     expect(proofStatus.blockNumber).to.be.equal(txRes.blockNumber);
     expect(proofStatus.blockTimestamp).to.be.equal(txResTimestamp);
