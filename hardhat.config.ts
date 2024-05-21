@@ -49,6 +49,11 @@ const config: HardhatUserConfig = {
     //   url: `${process.env.AMOY_RPC_URL}`,
     //   accounts: [`0x${process.env.AMOY_PRIVATE_KEY}`],
     // },
+    // linea_sepolia: {
+    //   chainId: 59141,
+    //   url: `${process.env.LINEA_S_RPC_URL}`,
+    //   accounts: [`0x${process.env.LINEA_S_PRIVATE_KEY}`],
+    // },
     // hardhat: {
     //   forking: {
     //     url: `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`,
