@@ -65,7 +65,7 @@ describe("Universal Verifier V3 validator", function () {
     );
     v3 = contracts.validator;
     state = contracts.state;
-    await verifier.addWhitelistedValidator(await v3.getAddress());
+    await verifier.addValidatorToWhitelist(await v3.getAddress());
     await verifier.connect();
   });
 
@@ -76,8 +76,6 @@ describe("Universal Verifier V3 validator", function () {
       metadata: "metadata",
       validator: await v3.getAddress(),
       data: data,
-      controller: signerAddress,
-      isDisabled: false,
     });
     await v3.setProofExpirationTimeout(315360000);
 

@@ -76,7 +76,7 @@ describe("Universal Verifier events", function () {
       "CredentialAtomicQuerySigV2Validator"
     );
     sig = contracts.validator;
-    await verifier.addWhitelistedValidator(await sig.getAddress());
+    await verifier.addValidatorToWhitelist(await sig.getAddress());
     await verifier.connect();
   });
 
@@ -93,8 +93,6 @@ describe("Universal Verifier events", function () {
         metadata: "metadataN" + i,
         validator: await sig.getAddress(),
         data: data[i],
-        controller: signerAddress,
-        isDisabled: false,
       });
     }
 

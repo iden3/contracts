@@ -33,7 +33,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
 
     /// @dev Get the main storage using assembly to ensure specific storage location
     function _getCredentialAtomicQueryValidatorBaseStorage()
-        internal
+        private
         pure
         returns (CredentialAtomicQueryValidatorBaseStorage storage $)
     {
@@ -108,6 +108,16 @@ abstract contract CredentialAtomicQueryValidatorBase is
 
     function getSupportedCircuitIds() external view virtual returns (string[] memory ids) {
         return _getCredentialAtomicQueryValidatorBaseStorage()._supportedCircuitIds;
+    }
+
+    function getVerifierByCircuitId(
+        string memory circuitId
+    ) public view virtual returns (IVerifier) {
+        return _getCredentialAtomicQueryValidatorBaseStorage()._circuitIdToVerifier[circuitId];
+    }
+
+    function getState() internal view returns (IState) {
+        return _getCredentialAtomicQueryValidatorBaseStorage().state;
     }
 
     function inputIndexOf(string memory name) public view virtual returns (uint256) {
