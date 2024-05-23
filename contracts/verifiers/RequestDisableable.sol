@@ -21,7 +21,7 @@ contract RequestDisableable is ZKPVerifierBase {
     }
 
     /// @dev Modifier to check if the ZKP request is enabled
-    modifier requestEnabled(uint64 requestId) {
+    modifier onlyEnabledRequest(uint64 requestId) {
         require(isZKPRequestEnabled(requestId), "Request is disabled");
         _;
     }
@@ -38,7 +38,7 @@ contract RequestDisableable is ZKPVerifierBase {
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c
-    ) public virtual override requestEnabled(requestId) {
+    ) public virtual override onlyEnabledRequest(requestId) {
         super.submitZKPResponse(requestId, inputs, a, b, c);
     }
 
@@ -61,7 +61,7 @@ contract RequestDisableable is ZKPVerifierBase {
         view
         virtual
         override
-        requestEnabled(requestId)
+        onlyEnabledRequest(requestId)
         returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
         return super.verifyZKPResponse(requestId, inputs, a, b, c, sender);

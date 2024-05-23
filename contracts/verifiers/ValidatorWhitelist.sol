@@ -27,7 +27,7 @@ contract ValidatorWhitelist is ZKPVerifierBase {
     }
 
     /// @dev Modifier to check if the validator is whitelisted
-    modifier whitelistedValidator(ICircuitValidator validator) {
+    modifier onlyWhitelistedValidator(ICircuitValidator validator) {
         require(isWhitelistedValidator(validator), "Validator is not whitelisted");
         _;
     }
@@ -38,7 +38,7 @@ contract ValidatorWhitelist is ZKPVerifierBase {
     function setZKPRequest(
         uint64 requestId,
         IZKPVerifier.ZKPRequest calldata request
-    ) public virtual override whitelistedValidator(request.validator) {
+    ) public virtual override onlyWhitelistedValidator(request.validator) {
         super.setZKPRequest(requestId, request);
     }
 
