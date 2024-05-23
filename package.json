@@ -50,7 +50,7 @@
     "deploy:state:localhost": "npx hardhat run scripts/deployState.ts --network localhost",
     "deploy:state:ropsten": "npx hardhat run scripts/deployState.ts --network ropsten",
     "deploy:identitytreestore:localhost": "npx hardhat run scripts/deployIdentityTreeStore.ts --network localhost",
-    "deploy:universal:verifier": "npx hardhat run scripts/deployUniversalVerifier.ts",
+    "deploy:universalverifier:localhost": "npx hardhat run scripts/deployUniversalVerifier.ts --network localhost",
     "verify:polygon": "npx hardhat run scripts/verifyEtherescan.js --network polygon",
     "lint:contracts": "npx solhint contracts/**/*.sol",
     "prettier:contracts": "prettier --write --plugin=prettier-plugin-solidity 'contracts/**/*.sol'",
