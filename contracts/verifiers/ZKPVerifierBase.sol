@@ -217,7 +217,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @param sender The sender's address
     /// @param requestId The ID of the ZKP request
     /// @return true if proof submitted
-    function isProofSubmitted(
+    function isProofVerified(
         address sender,
         uint64 requestId
     ) public view checkRequestExistence(requestId, true) returns (bool) {

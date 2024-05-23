@@ -39,7 +39,7 @@ interface IZKPVerifier {
         uint256 length
     ) external view returns (ZKPRequest[] memory);
 
-    function isProofSubmitted(address sender, uint64 requestId) external view returns (bool);
+    function isProofVerified(address sender, uint64 requestId) external view returns (bool);
 
     function getProofStatus(
         address sender,
