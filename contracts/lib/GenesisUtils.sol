@@ -38,12 +38,9 @@ library GenesisUtils {
         );
 
         bytes memory cutState = PrimitiveTypeUtils.slice(userStateB1, userStateB1.length - 27, 27);
-
         bytes memory beforeChecksum = PrimitiveTypeUtils.concat(abi.encodePacked(idType), cutState);
-        require(beforeChecksum.length == 29, "Checksum requires 29 length array");
 
         uint16 checksum = PrimitiveTypeUtils.reverseUint16(sum(beforeChecksum));
-
         bytes memory checkSumBytes = abi.encodePacked(checksum);
 
         bytes memory idBytes = PrimitiveTypeUtils.concat(beforeChecksum, checkSumBytes);
