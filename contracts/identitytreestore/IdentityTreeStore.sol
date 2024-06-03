@@ -23,7 +23,7 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.1.1";
+    string public constant VERSION = "1.1.0";
 
     /**
      * @dev Max SMT depth for the CredentialStatus proof
