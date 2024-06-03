@@ -19,6 +19,14 @@
 | **Polygon Amoy testnet**   | 0x3d3763eC0a50CE1AdF83d0b5D99FBE0e3fEB43fb |
 | Polygon Mumbai testnet     | 0x16A1ae4c460C0a42f0a87e69c526c61599B28BC9 |
 
+
+## Universal Verifier contract
+
+|        Network             |     Address                                |
+|:--------------------------:|:------------------------------------------:|
+| **Polygon Mainnet**        | 0x394d1dad46907bd54d15926A1ab4535EF2BF47b1 |
+| **Polygon Amoy testnet**   | 0x1B20320042b29AE5c1a3ADc1674cb6bF8760530f |
+
 ## Security Audits
 
 1. [Nethermind](https://nethermind.io/smart-contracts-audits/) has performed a security audit of our core smart contracts (State & Smt) and compiled a report on Apr 18, 2023: 
