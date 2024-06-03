@@ -11,7 +11,7 @@ abstract contract NonMerklizedIssuerBase is INonMerklizedIssuer, IdentityBase {
     /**
      * @dev Constant representing the credential adapter version
      */
-    string public constant CREDENTIAL_ADAPTER_VERSION = "0.0.2";
+    string public constant CREDENTIAL_ADAPTER_VERSION = "0.0.1";
 
     /**
      * @dev getCredentialAdapterVersion. Get version of the credential adapter
