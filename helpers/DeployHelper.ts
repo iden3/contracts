@@ -5,7 +5,7 @@ import { deployPoseidons } from "./PoseidonDeployHelper";
 import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain";
 import { StateModule } from '../ignition/modules/state'
-import { StateLibModule } from '../ignition/modules/libraries';
+import { StateLibModule, SmtLibModule } from '../ignition/modules/libraries';
 
 const SMT_MAX_DEPTH = 64;
 
@@ -28,9 +28,9 @@ export class DeployHelper {
     }
     return new DeployHelper(sgrs, enableLogging);
   }
-
   async deployState(
-    verifierContractName = "VerifierStateTransition"
+    verifierContractName = "VerifierStateTransition",
+    deployStrategy: 'basic' | 'create2' = 'basic'
   ): Promise<{
     state: Contract;
     verifier: Contract;
@@ -59,35 +59,22 @@ export class DeployHelper {
 
     this.log("deploying poseidons...");
     const [poseidon1Elements, poseidon2Elements, poseidon3Elements, poseidon4Elements] = await deployPoseidons(
-      [1, 2, 3, 4]
+      [1, 2, 3, 4],
+      deployStrategy
     );
 
     this.log("deploying SmtLib...");
     const smtLib = await this.deploySmtLib(
       await poseidon2Elements.getAddress(),
       await poseidon3Elements.getAddress(),
+      "SmtLib",
+      deployStrategy
     );
 
     this.log("deploying StateLib...");
-    const stateLib = await this.deployStateLib();
+    const stateLib = await this.deployStateLib(deployStrategy);
 
     this.log("deploying state...");
-    // const StateFactory = await ethers.getContractFactory("State", {
-    //   libraries: {
-    //     StateLib: await stateLib.getAddress(),
-    //     SmtLib: await smtLib.getAddress(),
-    //     PoseidonUnit1L: await poseidon1Elements.getAddress(),
-    //   },
-    // });
-
-    // const state = await upgrades.deployProxy(
-    //   StateFactory,
-    //   [await verifier.getAddress(), defaultIdType, await owner.getAddress()],
-    //   {
-    //   unsafeAllowLinkedLibraries: true,
-    // });
-    // await state.waitForDeployment();
-
     const stateDeploy = await ignition.deploy(StateModule, 
       {
         parameters: {
@@ -97,7 +84,7 @@ export class DeployHelper {
             poseidonUnit1LAddress: await poseidon1Elements.getAddress()
           }
         },
-        strategy: 'create2'
+        strategy: deployStrategy
       });
     
     const state = stateDeploy.state;
@@ -105,10 +92,6 @@ export class DeployHelper {
     this.log(`State contract deployed to address ${await state.getAddress()} from ${await owner.getAddress()}`);
 
     await state.initialize(await verifier.getAddress(), defaultIdType, await owner.getAddress());
-  
-    const defIdTyp = await state.getDefaultIdType();
-    console.log('DefaultIdType initialized', defIdTyp);
-
     this.log("======== State: deploy completed ========");
 
     return {
@@ -225,23 +208,31 @@ export class DeployHelper {
   async deploySmtLib(
     poseidon2Address: string,
     poseidon3Address: string,
-    contractName = "SmtLib"
+    contractName = "SmtLib",
+    deployStrategy: 'basic' | 'create2' = 'basic'
   ): Promise<Contract> {
-    const SmtLib = await ethers.getContractFactory(contractName, {
-      libraries: {
-        PoseidonUnit2L: poseidon2Address,
-        PoseidonUnit3L: poseidon3Address,
+
+    const smtLibDeploy = await ignition.deploy(SmtLibModule, {
+      parameters: {
+        SmtLibModule: {
+          poseidon2ElementAddress: poseidon2Address,
+          poseidon3ElementAddress: poseidon3Address
+        }
       },
+      strategy: deployStrategy
     });
-    const smtLib = await SmtLib.deploy();
+
+    const smtLib = smtLibDeploy.smtLib;
     await smtLib.waitForDeployment();
     this.enableLogging && this.log(`${contractName} deployed to:  ${await smtLib.getAddress()}`);
 
     return smtLib;
   }
 
-  async deployStateLib(stateLibName = "StateLib"): Promise<Contract> {
-    const stateLibDeploy = await ignition.deploy(StateLibModule);
+  async deployStateLib(deployStrategy: 'basic' | 'create2' = 'basic'): Promise<Contract> {
+    const stateLibDeploy = await ignition.deploy(StateLibModule, {
+      strategy: deployStrategy
+    });
     const stateLib = stateLibDeploy.stateLib;
     await stateLib.waitForDeployment();
     this.enableLogging && this.log(`StateLib deployed to:  ${await stateLib.getAddress()}`);
@@ -251,7 +242,6 @@ export class DeployHelper {
 
   async deploySmtLibTestWrapper(maxDepth: number = SMT_MAX_DEPTH): Promise<Contract> {
     const contractName = "SmtLibTestWrapper";
-    const owner = this.signers[0];
 
     this.log("deploying poseidons...");
     const [poseidon2Elements, poseidon3Elements] = await deployPoseidons([2, 3]);

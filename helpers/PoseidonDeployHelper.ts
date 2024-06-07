@@ -16,7 +16,8 @@ export async function deploySpongePoseidon(poseidon6ContractAddress: string): Pr
 }
 
 export async function deployPoseidons(
-  poseidonSizeParams: number[]
+  poseidonSizeParams: number[],
+  deployStrategy: 'basic' | 'create2' = 'basic'
 ): Promise<Contract[]> {
   poseidonSizeParams.forEach((size) => {
     if (![1, 2, 3, 4, 5, 6].includes(size)) {
@@ -49,9 +50,12 @@ export async function deployPoseidons(
         break;
     }
     
-    const poseidonDeploy = await ignition.deploy(poseidonModule);
+    const poseidonDeploy = await ignition.deploy(poseidonModule, {
+      strategy: deployStrategy
+    });
     const poseidonN = poseidonDeploy.poseidon;
     await poseidonN.waitForDeployment();
+    console.log(`Poseidon${params}Element deployed to: ${await poseidonN.getAddress()}`);
     return poseidonN;
   };
 
