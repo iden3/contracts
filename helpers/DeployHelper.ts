@@ -8,6 +8,7 @@ import { StateModule } from '../ignition/modules/state'
 import { StateLibModule, SmtLibModule } from '../ignition/modules/libraries';
 
 const SMT_MAX_DEPTH = 64;
+const hardhatChainId = 31337;
 
 export class DeployHelper {
   constructor(
@@ -53,7 +54,9 @@ export class DeployHelper {
     const verifierFactory = await ethers.getContractFactory(verifierContractName);
     const verifier = await verifierFactory.deploy();
     await verifier.waitForDeployment();
-    await (verifier.deploymentTransaction())?.wait(6);
+    if (chainId !== hardhatChainId) { // hardhat
+      await (verifier.deploymentTransaction())?.wait(6);
+    }
     this.log(
       `${verifierContractName} contract deployed to address ${await verifier.getAddress()} from ${await owner.getAddress()}`
     );
