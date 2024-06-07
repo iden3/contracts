@@ -1,10 +1,10 @@
-import { ethers, network, upgrades } from "hardhat";
+import { ethers, network, upgrades, ignition } from "hardhat";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
 import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain";
-
+import { StateModule } from '../ignition/modules/state'
 
 const SMT_MAX_DEPTH = 64;
 
@@ -72,26 +72,47 @@ export class DeployHelper {
     const stateLib = await this.deployStateLib();
 
     this.log("deploying state...");
-    const StateFactory = await ethers.getContractFactory("State", {
-      libraries: {
-        StateLib: await stateLib.getAddress(),
-        SmtLib: await smtLib.getAddress(),
-        PoseidonUnit1L: await poseidon1Elements.getAddress(),
-      },
-    });
-    const state = await upgrades.deployProxy(
-      StateFactory,
-      [await verifier.getAddress(), defaultIdType, await owner.getAddress()],
+    // const StateFactory = await ethers.getContractFactory("State", {
+    //   libraries: {
+    //     StateLib: await stateLib.getAddress(),
+    //     SmtLib: await smtLib.getAddress(),
+    //     PoseidonUnit1L: await poseidon1Elements.getAddress(),
+    //   },
+    // });
+
+    // const state = await upgrades.deployProxy(
+    //   StateFactory,
+    //   [await verifier.getAddress(), defaultIdType, await owner.getAddress()],
+    //   {
+    //   unsafeAllowLinkedLibraries: true,
+    // });
+    // await state.waitForDeployment();
+
+    const stateDeploy = await ignition.deploy(StateModule, 
       {
-      unsafeAllowLinkedLibraries: true,
-    });
+        parameters: {
+          StateProxyModule: {
+            stateLibAddress: await stateLib.getAddress(),
+            smtLibAddress: await smtLib.getAddress(),
+            poseidonUnit1LAddress: await poseidon1Elements.getAddress()
+          }
+        },
+        strategy: 'create2'
+      });
+    
+    const state = stateDeploy.state;
     await state.waitForDeployment();
     this.log(`State contract deployed to address ${await state.getAddress()} from ${await owner.getAddress()}`);
+
+    await state.initialize(await verifier.getAddress(), defaultIdType, await owner.getAddress());
+  
+    const defIdTyp = await state.getDefaultIdType();
+    console.log('DefaultIdType initialized', defIdTyp);
 
     this.log("======== State: deploy completed ========");
 
     return {
-      state: state,
+      state,
       verifier,
       stateLib,
       smtLib,

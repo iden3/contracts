@@ -5,6 +5,7 @@ import "solidity-coverage";
 import "@openzeppelin/hardhat-upgrades";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomicfoundation/hardhat-verify";
+import "@nomicfoundation/hardhat-ignition-ethers";
 
 const DEFAULT_MNEMONIC =
   "test test test test test test test test test test test junk";
@@ -109,7 +110,15 @@ const config: HardhatUserConfig = {
   },
   // etherscan: {
   //     apiKey: "etherscan API key"
-  // }
+  // },
+  ignition: {
+    strategyConfig: {
+      create2: {
+        // To learn more about salts, see the CreateX documentation
+        salt: "0x0000000000000000000000000000000000000000000000000000000000000000",
+      },
+    },
+  },
 };
 
 export default config;
