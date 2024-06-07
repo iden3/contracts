@@ -53,6 +53,7 @@ export class DeployHelper {
     const verifierFactory = await ethers.getContractFactory(verifierContractName);
     const verifier = await verifierFactory.deploy();
     await verifier.waitForDeployment();
+    await (verifier.deploymentTransaction())?.wait(6);
     this.log(
       `${verifierContractName} contract deployed to address ${await verifier.getAddress()} from ${await owner.getAddress()}`
     );

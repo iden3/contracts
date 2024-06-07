@@ -50,6 +50,11 @@ const config: HardhatUserConfig = {
     //   url: `${process.env.AMOY_RPC_URL}`,
     //   accounts: [`0x${process.env.AMOY_PRIVATE_KEY}`],
     // },
+    // 'linea-sepolia': {
+    //   chainId: 59141,
+    //   url: `${process.env.SEPOLIA_RPC_URL}`,
+    //   accounts: [`0x${process.env.SEPOLIA_PRIVATE_KEY}`],
+    // },
     // hardhat: {
     //   forking: {
     //     url: `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`,
@@ -114,10 +119,10 @@ const config: HardhatUserConfig = {
   ignition: {
     strategyConfig: {
       create2: {
-        // To learn more about salts, see the CreateX documentation
-        salt: "0x9999a0000000000000000000000000000000000000000000000000000000021a",
+        salt: "0x9999aa000000000000000000000000000000000000000000000000000000021a",
       },
     },
+    requiredConfirmations: 1
   },
 };
 
