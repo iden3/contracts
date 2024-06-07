@@ -115,7 +115,7 @@ const config: HardhatUserConfig = {
     strategyConfig: {
       create2: {
         // To learn more about salts, see the CreateX documentation
-        salt: "0x0000000000000000000000000000000000000000000000000000000000000000",
+        salt: "0x9999a0000000000000000000000000000000000000000000000000000000021a",
       },
     },
   },

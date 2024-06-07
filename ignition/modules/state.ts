@@ -1,5 +1,4 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { ethers } from "ethers";
 
 /**
  * This is the first module that will be run. It deploys the proxy and the

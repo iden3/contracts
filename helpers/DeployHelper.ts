@@ -5,6 +5,7 @@ import { deployPoseidons } from "./PoseidonDeployHelper";
 import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain";
 import { StateModule } from '../ignition/modules/state'
+import { StateLibModule } from '../ignition/modules/libraries';
 
 const SMT_MAX_DEPTH = 64;
 
@@ -58,7 +59,6 @@ export class DeployHelper {
 
     this.log("deploying poseidons...");
     const [poseidon1Elements, poseidon2Elements, poseidon3Elements, poseidon4Elements] = await deployPoseidons(
-      owner,
       [1, 2, 3, 4]
     );
 
@@ -163,7 +163,6 @@ export class DeployHelper {
 
     this.log("deploying poseidons...");
     const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons(
-      proxyAdminOwner,
       [1, 2, 3]
     );
 
@@ -242,8 +241,8 @@ export class DeployHelper {
   }
 
   async deployStateLib(stateLibName = "StateLib"): Promise<Contract> {
-    const StateLib = await ethers.getContractFactory(stateLibName);
-    const stateLib = await StateLib.deploy();
+    const stateLibDeploy = await ignition.deploy(StateLibModule);
+    const stateLib = stateLibDeploy.stateLib;
     await stateLib.waitForDeployment();
     this.enableLogging && this.log(`StateLib deployed to:  ${await stateLib.getAddress()}`);
 
@@ -255,7 +254,7 @@ export class DeployHelper {
     const owner = this.signers[0];
 
     this.log("deploying poseidons...");
-    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons(owner, [2, 3]);
+    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons([2, 3]);
 
     const smtLib = await this.deploySmtLib(
       await poseidon2Elements.getAddress(),
@@ -292,10 +291,8 @@ export class DeployHelper {
   }
 
   async deployBinarySearchTestWrapper(): Promise<Contract> {
-    const owner = this.signers[0];
-
     this.log("deploying poseidons...");
-    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons(owner, [2, 3]);
+    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons([2, 3]);
 
     const smtLib = await this.deploySmtLib(await poseidon2Elements.getAddress(), await poseidon3Elements.getAddress());
 
@@ -451,8 +448,7 @@ export class DeployHelper {
   async deployIdentityTreeStore(stateContractAddress: string): Promise<{
     identityTreeStore: Contract;
   }> {
-    const signer = this.signers[0];
-    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons(signer, [2, 3]);
+    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons([2, 3]);
 
     const IdentityTreeStore = await ethers.getContractFactory("IdentityTreeStore", {
       libraries: {
@@ -481,7 +477,6 @@ export class DeployHelper {
     const proxyAdminOwnerSigner = this.signers[0];
 
     const [poseidon2Elements, poseidon3Elements] = await deployPoseidons(
-      proxyAdminOwnerSigner,
       [2, 3]
     );
 
