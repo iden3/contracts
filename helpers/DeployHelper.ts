@@ -8,9 +8,9 @@ import { StateModule } from '../ignition/modules/state'
 import { StateLibModule, SmtLibModule } from '../ignition/modules/libraries';
 import { VerifierStateTransitionModule, VerifierStubModule } from '../ignition/modules/verifiers';
 import { IdentityTreeStoreModule } from '../ignition/modules/identityTreeStore';
+import { UniversalVerifierModule } from '../ignition/modules/universalVerifier';
 
 const SMT_MAX_DEPTH = 64;
-const hardhatChainId = 31337;
 
 export class DeployHelper {
   constructor(
@@ -428,15 +428,20 @@ export class DeployHelper {
     return verifier;
   }
 
-  async deployUniversalVerifier(owner: SignerWithAddress | undefined): Promise<Contract> {
+  async deployUniversalVerifier(
+    owner: SignerWithAddress | undefined,
+    deployStrategy: 'basic' | 'create2' = 'basic'
+  ): Promise<Contract> {
     if (!owner) {
       owner = this.signers[0];
     }
-    const Verifier = await ethers.getContractFactory(
-      "UniversalVerifier", owner
-    );
-    const verifier = await upgrades.deployProxy(Verifier);
+    const verifierDeploy = await ignition.deploy(UniversalVerifierModule,
+      {
+        strategy: deployStrategy
+      });
+    const verifier = verifierDeploy.universalVerifier;
     await verifier.waitForDeployment();
+    await verifier.initialize();
     console.log("UniversalVerifier deployed to:", await verifier.getAddress());
     return verifier;
   }
