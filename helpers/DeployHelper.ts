@@ -4,7 +4,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
 import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain";
-import { StateModule } from '../ignition/modules/state'
+import { StateModule, StateUpgradeModule } from '../ignition/modules/state';
 import { StateLibModule, SmtLibModule } from '../ignition/modules/libraries';
 import { VerifierStateTransitionModule, VerifierStubModule } from '../ignition/modules/verifiers';
 import { IdentityTreeStoreModule } from '../ignition/modules/identityTreeStore';
@@ -220,6 +220,54 @@ export class DeployHelper {
     };
   }
 
+  async upgradeState2(
+    stateAddress: string,
+    proxyAdminAddress: string,
+    stateLibAddress: string,
+    smtLibAddress: string,
+    poseidonUnit1LAddress: string,
+    verifierAddress: string
+  ): Promise<{
+    state: Contract;
+    verifier: string;
+    smtLib: string;
+    stateLib: string;
+    poseidon1: string;
+  }> {
+    const { defaultIdType, chainId } = await this.getDefaultIdType();
+    this.log(`found defaultIdType ${defaultIdType} for chainId ${chainId}`);
+
+    const owner = this.signers[0];
+    this.log("======== State: upgrade started ========");
+    const stateUpgrade = await ignition.deploy(StateUpgradeModule, {
+      parameters: {
+        StateUpgradeModule5: {
+          stateLibAddress,
+          smtLibAddress,
+          poseidonUnit1LAddress,
+          transparentUpgradeableProxyAddress: stateAddress,
+          proxyAdminAddress
+        },
+      },
+      strategy: 'create2'
+    });
+    const stateContract = stateUpgrade.state;
+   
+    await stateContract.waitForDeployment();
+    this.log(
+      `State contract upgraded at address ${await stateContract.getAddress()} from ${await owner.getAddress()}`
+    );
+
+    this.log("======== State: upgrade completed ========");
+    return {
+      state: stateContract,
+      verifier: verifierAddress,
+      smtLib: smtLibAddress,
+      stateLib: stateLibAddress,
+      poseidon1: poseidonUnit1LAddress,
+    };
+  }
+
   async deploySmtLib(
     poseidon2Address: string,
     poseidon3Address: string,
@@ -360,7 +408,6 @@ export class DeployHelper {
       state,
     };
   }
-
 
   async deployValidatorStub(
   ): Promise<Contract> {
