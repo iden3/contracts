@@ -33,7 +33,8 @@ export class DeployHelper {
   }
   async deployState(
     verifierContractName: "VerifierStateTransition" | "VerifierStub" = "VerifierStateTransition",
-    deployStrategy: 'basic' | 'create2' = 'basic'
+    deployStrategy: 'basic' | 'create2' = 'basic',
+    useOpenzeppelinPlugin = false
   ): Promise<{
     state: Contract;
     verifier: Contract;
@@ -90,6 +91,22 @@ export class DeployHelper {
     const stateLib = await this.deployStateLib(deployStrategy);
 
     this.log("deploying state...");
+    if (useOpenzeppelinPlugin) {
+      const StateFactory = await ethers.getContractFactory("State", {
+        libraries: {
+          StateLib: await stateLib.getAddress(),
+          SmtLib: await smtLib.getAddress(),
+          PoseidonUnit1L: await poseidon1Elements.getAddress(),
+        },
+      });
+      const state = await upgrades.deployProxy(
+        StateFactory,
+        [await verifier.getAddress(), defaultIdType, await owner.getAddress()],
+        {
+        unsafeAllowLinkedLibraries: true,
+      });
+      await state.waitForDeployment();
+    } else {
     const stateDeploy = await ignition.deploy(StateModule, 
       {
         parameters: {
@@ -101,12 +118,12 @@ export class DeployHelper {
         },
         strategy: deployStrategy
       });
+      const state = stateDeploy.state;
+      await state.initialize(await verifier.getAddress(), defaultIdType, await owner.getAddress());
+    }
     
-    const state = stateDeploy.state;
-    await state.waitForDeployment();
+    
     this.log(`State contract deployed to address ${await state.getAddress()} from ${await owner.getAddress()}`);
-
-    await state.initialize(await verifier.getAddress(), defaultIdType, await owner.getAddress());
     this.log("======== State: deploy completed ========");
 
     return {
