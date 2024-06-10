@@ -6,6 +6,7 @@ import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain";
 import { StateModule } from '../ignition/modules/state'
 import { StateLibModule, SmtLibModule } from '../ignition/modules/libraries';
+import { VerifierStateTransitionModule, VerifierStubModule } from '../ignition/modules/verifiers';
 
 const SMT_MAX_DEPTH = 64;
 const hardhatChainId = 31337;
@@ -30,7 +31,7 @@ export class DeployHelper {
     return new DeployHelper(sgrs, enableLogging);
   }
   async deployState(
-    verifierContractName = "VerifierStateTransition",
+    verifierContractName: "VerifierStateTransition" | "VerifierStub" = "VerifierStateTransition",
     deployStrategy: 'basic' | 'create2' = 'basic'
   ): Promise<{
     state: Contract;
@@ -51,12 +52,21 @@ export class DeployHelper {
 
     this.log("deploying verifier...");
 
-    const verifierFactory = await ethers.getContractFactory(verifierContractName);
-    const verifier = await verifierFactory.deploy();
-    await verifier.waitForDeployment();
-    if (chainId !== hardhatChainId) { // hardhat
-      await (verifier.deploymentTransaction())?.wait(6);
+    let verifier;
+    if (verifierContractName === "VerifierStateTransition") {
+      const verifierDeploy = await ignition.deploy(VerifierStateTransitionModule, {
+        strategy: deployStrategy
+      });
+      verifier = verifierDeploy.verifierStateTransition;
+    } else if (verifierContractName === "VerifierStub") {
+      const verifierDeploy = await ignition.deploy(VerifierStubModule, {
+        strategy: deployStrategy
+      });
+      verifier = verifierDeploy.verifierStub;
+    } else {
+      throw new Error("invalid verifierContractName");
     }
+    await verifier.waitForDeployment();
     this.log(
       `${verifierContractName} contract deployed to address ${await verifier.getAddress()} from ${await owner.getAddress()}`
     );
