@@ -91,6 +91,7 @@ export class DeployHelper {
     const stateLib = await this.deployStateLib(deployStrategy);
 
     this.log("deploying state...");
+    let state;
     if (useOpenzeppelinPlugin) {
       const StateFactory = await ethers.getContractFactory("State", {
         libraries: {
@@ -99,7 +100,7 @@ export class DeployHelper {
           PoseidonUnit1L: await poseidon1Elements.getAddress(),
         },
       });
-      const state = await upgrades.deployProxy(
+      state = await upgrades.deployProxy(
         StateFactory,
         [await verifier.getAddress(), defaultIdType, await owner.getAddress()],
         {
@@ -118,7 +119,7 @@ export class DeployHelper {
         },
         strategy: deployStrategy
       });
-      const state = stateDeploy.state;
+      state = stateDeploy.state;
       await state.initialize(await verifier.getAddress(), defaultIdType, await owner.getAddress());
     }
     
