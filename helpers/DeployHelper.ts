@@ -523,7 +523,8 @@ export class DeployHelper {
   async deployIdentityTreeStore(stateContractAddress: string,
     poseidon2ElementsAddress: string = '',
     poseidon3ElementsAddress: string = '',
-    deployStrategy: 'basic' | 'create2' = 'basic'
+    deployStrategy: 'basic' | 'create2' = 'basic',
+    useOz: boolean = false,
     ): Promise<{
     identityTreeStore: Contract;
   }> {
@@ -534,23 +535,41 @@ export class DeployHelper {
       poseidon3ElementsAddress = await poseidon3Elements.getAddress();
     }
 
-    const identityTreeStoreDeploy = await ignition.deploy(IdentityTreeStoreModule, {
-      parameters: {
-        IdentityTreeStoreProxyModule: {
-          poseidonUnit2LAddress: poseidon2ElementsAddress,
-          poseidonUnit3LAddress: poseidon3ElementsAddress
+    if (!useOz){
+      const identityTreeStoreDeploy = await ignition.deploy(IdentityTreeStoreModule, {
+        parameters: {
+          IdentityTreeStoreProxyModule: {
+            poseidonUnit2LAddress: poseidon2ElementsAddress,
+            poseidonUnit3LAddress: poseidon3ElementsAddress
+          },
         },
-      },
-      strategy: deployStrategy
-    });
-
-    const identityTreeStore = identityTreeStoreDeploy.identityTreeStore;
-    await identityTreeStore.waitForDeployment();
-    await identityTreeStore.initialize(stateContractAddress);
-    console.log("\nIdentityTreeStore deployed to:", await identityTreeStore.getAddress());
-    return {
-      identityTreeStore,
-    };
+        strategy: deployStrategy
+      });
+  
+      const identityTreeStore = identityTreeStoreDeploy.identityTreeStore;
+      await identityTreeStore.waitForDeployment();
+      await identityTreeStore.initialize(stateContractAddress);
+      console.log("\nIdentityTreeStore deployed to:", await identityTreeStore.getAddress());
+      return {
+        identityTreeStore,
+      };
+    } else {
+      const IdentityTreeStore = await ethers.getContractFactory("IdentityTreeStore", {
+        libraries: {
+          PoseidonUnit2L: poseidon2ElementsAddress,
+          PoseidonUnit3L: poseidon3ElementsAddress
+        },
+      });
+  
+      const identityTreeStore = await upgrades.deployProxy(
+        IdentityTreeStore,
+        [stateContractAddress],
+        { unsafeAllow: ["external-library-linking"] }
+      );
+      await identityTreeStore.waitForDeployment();
+      console.log(await identityTreeStore.getAddress())
+    }
+  
   }
 
   async upgradeIdentityTreeStore(
