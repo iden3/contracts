@@ -56,7 +56,7 @@ const config: HardhatUserConfig = {
     //   accounts: [`0x${process.env.SEPOLIA_PRIVATE_KEY}`],
     // },
     // 'privado-main': {
-    //   chainId: 11101,
+    //   chainId: 21000,
     //   url: `${process.env.PRIVADO_MAIN_RPC_URL}`,
     //   accounts: [`0x${process.env.PRIVADO_MAIN_PRIVATE_KEY}`],
     // },
@@ -124,7 +124,7 @@ const config: HardhatUserConfig = {
   ignition: {
     strategyConfig: {
       create2: {
-        salt: "0x9999aa000000000000000000000000000000000000000000000000000000021a",
+        salt: "0x99aaaaa00000000000000000000000000000000000000000000000000000021a",
       },
     },
     requiredConfirmations: 1
