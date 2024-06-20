@@ -3,6 +3,7 @@
 pragma solidity 0.8.20;
 
 import {ICircuitValidator} from "./ICircuitValidator.sol";
+import {IWormhole} from "../validators/wormhole/interfaces/IWormhole.sol";
 
 interface IZKPVerifier {
     struct ZKPRequest {
@@ -16,7 +17,9 @@ interface IZKPVerifier {
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
-        uint256[2] memory c
+        uint256[2] memory c,
+        bytes memory response,
+        IWormhole.Signature[] memory signatures
     ) external;
 
     function setZKPRequest(uint64 requestId, ZKPRequest calldata request) external;

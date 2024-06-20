@@ -9,13 +9,13 @@ contract CredentialAtomicQuerySigV2Validator is CredentialAtomicQueryV2Validator
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.0.0";
+    string public constant VERSION_VALIDATOR = "2.0.0";
 
     string internal constant CIRCUIT_ID = "credentialAtomicQuerySigV2OnChain";
 
     function initialize(
         address _verifierContractAddr,
-        address _stateContractAddr
+        address _wormholeCoreContractAddr
     ) public initializer {
         _setInputToIndex("merklized", 0);
         _setInputToIndex("userID", 1);
@@ -29,16 +29,17 @@ contract CredentialAtomicQuerySigV2Validator is CredentialAtomicQueryV2Validator
         _setInputToIndex("issuerClaimNonRevState", 9);
         _setInputToIndex("timestamp", 10);
 
-        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID);
+        _initDefaultStateVariables(_verifierContractAddr, CIRCUIT_ID);
         __Ownable_init(_msgSender());
+        _QueryResponse_init(_wormholeCoreContractAddr);
     }
 
     function version() public pure override returns (string memory) {
-        return VERSION;
+        return VERSION_VALIDATOR;
     }
 
     function parsePubSignals(
-        uint256[] calldata inputs
+        uint256[] memory inputs
     ) public pure override returns (PubSignals memory) {
         PubSignals memory params = PubSignals({
             merklized: inputs[0],

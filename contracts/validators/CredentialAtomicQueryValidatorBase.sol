@@ -4,15 +4,17 @@ pragma solidity 0.8.20;
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
-import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {ICircuitValidator, InputParams} from "../interfaces/ICircuitValidator.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
 import {PoseidonFacade} from "../lib/Poseidon.sol";
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
+import {IWormhole} from "./wormhole/interfaces/IWormhole.sol";
+import {IState} from "../interfaces/IState.sol";
+import "hardhat/console.sol";
 
 abstract contract CredentialAtomicQueryValidatorBase is
     Ownable2StepUpgradeable,
-    ICircuitValidator,
     ERC165
 {
     /// @dev Main storage structure for the contract
@@ -39,7 +41,6 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function _initDefaultStateVariables(
-        address _stateContractAddr,
         address _verifierContractAddr,
         string memory circuitId
     ) internal {
@@ -50,7 +51,6 @@ abstract contract CredentialAtomicQueryValidatorBase is
         s.gistRootExpirationTimeout = 1 hours;
         s._supportedCircuitIds = [circuitId];
         s._circuitIdToVerifier[circuitId] = IVerifier(_verifierContractAddr);
-        s.state = IState(_stateContractAddr);
         __Ownable_init(_msgSender());
     }
 
@@ -91,12 +91,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function verify(
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
-        bytes calldata data,
-        address sender
+        InputParams memory params
     ) external view virtual returns (ICircuitValidator.KeyToInputIndex[] memory);
 
     function getSupportedCircuitIds() external view virtual returns (string[] memory ids) {
@@ -118,65 +113,47 @@ abstract contract CredentialAtomicQueryValidatorBase is
             super.supportsInterface(interfaceId);
     }
 
-    function _checkGistRoot(uint256 gistRoot) internal view {
+    function _checkGistRoot(IState.GistRootInfo memory gistInfo) internal view {
         MainStorage storage s = _getMainStorage();
-        IState.GistRootInfo memory rootInfo = s.state.getGISTRootInfo(gistRoot);
-        require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
         if (
-            rootInfo.replacedAtTimestamp != 0 &&
-            block.timestamp - rootInfo.replacedAtTimestamp > s.gistRootExpirationTimeout
+            gistInfo.replacedAtTimestamp != 0 &&
+            block.timestamp - gistInfo.replacedAtTimestamp > s.gistRootExpirationTimeout
         ) {
             revert("Gist root is expired");
         }
     }
 
-    function _checkClaimIssuanceState(uint256 _id, uint256 _state) internal view {
-        bool isStateGenesis = GenesisUtils.isGenesisState(_id, _state);
-
-        if (!isStateGenesis) {
-            IState.StateInfo memory stateInfo = _getMainStorage().state.getStateInfoByIdAndState(
-                _id,
-                _state
-            );
-            require(_id == stateInfo.id, "State doesn't exist in state contract");
-        }
+    function _checkClaimIssuanceState(uint256 _id, uint256 _state, IState.StateInfo memory _stateinfo) internal view {
+        require(_id == _stateinfo.id, "Issuance issuer id from wormhole has different id");
+        require(_state == _stateinfo.state, "Issuance issuer state from wormhole has different state");
     }
 
-    function _checkClaimNonRevState(uint256 _id, uint256 _claimNonRevState) internal view {
+    function _checkExisting(bool isExist) internal pure {
+        require(isExist, "State doesn't exist in state contract");
+    }
+
+    function _checkClaimNonRevState(
+        uint256 _id, 
+        uint256 _claimNonRevState, 
+        IState.StateInfo memory _historicallStateInfo, 
+        IState.StateInfo memory _latestStateInfo
+    ) internal view {
         MainStorage storage s = _getMainStorage();
 
-        // check if identity transited any state in contract
-        bool idExists = s.state.idExists(_id);
+        if (_latestStateInfo.state != _claimNonRevState) {
+            if (_historicallStateInfo.id == 0 || _historicallStateInfo.id != _id) {
+                revert("State in transition info contains invalid id");
+            }
 
-        // if identity didn't transit any state it must be genesis
-        if (!idExists) {
-            require(
-                GenesisUtils.isGenesisState(_id, _claimNonRevState),
-                "Issuer revocation state doesn't exist in state contract and is not genesis"
-            );
-        } else {
-            IState.StateInfo memory claimNonRevStateInfo = s.state.getStateInfoById(_id);
-            // The non-empty state is returned, and it's not equal to the state that the user has provided.
-            if (claimNonRevStateInfo.state != _claimNonRevState) {
-                // Get the time of the latest state and compare it to the transition time of state provided by the user.
-                IState.StateInfo memory claimNonRevLatestStateInfo = s
-                    .state
-                    .getStateInfoByIdAndState(_id, _claimNonRevState);
+            if (_historicallStateInfo.replacedAtTimestamp == 0) {
+                revert("Non-Latest state doesn't contain replacement information");
+            }
 
-                if (claimNonRevLatestStateInfo.id == 0 || claimNonRevLatestStateInfo.id != _id) {
-                    revert("State in transition info contains invalid id");
-                }
-
-                if (claimNonRevLatestStateInfo.replacedAtTimestamp == 0) {
-                    revert("Non-Latest state doesn't contain replacement information");
-                }
-
-                if (
-                    block.timestamp - claimNonRevLatestStateInfo.replacedAtTimestamp >
-                    s.revocationStateExpirationTimeout
-                ) {
-                    revert("Non-Revocation state of Issuer expired");
-                }
+            if (
+                block.timestamp - _historicallStateInfo.replacedAtTimestamp >
+                s.revocationStateExpirationTimeout
+            ) {
+                revert("Non-Revocation state of Issuer expired");
             }
         }
     }

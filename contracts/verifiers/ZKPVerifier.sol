@@ -4,9 +4,11 @@ pragma solidity 0.8.20;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
-import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {ICircuitValidator, InputParams} from "../interfaces/ICircuitValidator.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
+import {IWormhole} from "../validators/wormhole/interfaces/IWormhole.sol";
+import "hardhat/console.sol";
 
 contract ZKPVerifier is IZKPVerifier, Ownable2StepUpgradeable {
     /**
@@ -42,7 +44,9 @@ contract ZKPVerifier is IZKPVerifier, Ownable2StepUpgradeable {
         uint256[] calldata inputs,
         uint256[2] calldata a,
         uint256[2][2] calldata b,
-        uint256[2] calldata c
+        uint256[2] calldata c,
+        bytes calldata response,
+        IWormhole.Signature[] calldata signatures
     ) public override {
         MainStorage storage s = _getMainStorage();
         IZKPVerifier.ZKPRequest storage request = s._requests[requestId];
@@ -53,7 +57,17 @@ contract ZKPVerifier is IZKPVerifier, Ownable2StepUpgradeable {
         ); // validator exists
 
         _beforeProofSubmit(requestId, inputs, request.validator);
-        request.validator.verify(inputs, a, b, c, request.data, msg.sender);
+        InputParams memory params = InputParams({
+            inputs: inputs,
+            a: a,
+            b: b,
+            c: c,
+            data: request.data,
+            sender: msg.sender,
+            response: response,
+            signatures: signatures
+        });
+        request.validator.verify(params);
         s.proofs[msg.sender][requestId] = true; // user provided a valid proof for request
         _afterProofSubmit(requestId, inputs, request.validator);
     }

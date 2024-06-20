@@ -75,6 +75,7 @@
     "verify:ropsten": "npx hardhat run scripts/verifyEtherescan.js --network ropsten",
     "lint:contracts": "npx solhint contracts/**/*.sol",
     "lint:contracts:format": "npx prettier --write contracts/**/*.sol",
-    "slither": "slither ."
+    "slither": "slither .",
+    "deploy:optsopolia:validator": "npx hardhat run scripts/deployValidators.ts --network optsopolia"
   }
 }

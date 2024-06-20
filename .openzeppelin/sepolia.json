@@ -1,0 +1,70 @@
+{
+  "manifestVersion": "3.2",
+  "proxies": [],
+  "impls": {
+    "5f049e4093cb36f09d10659d495b0e53fb97d819e41f966e87da9c742a0306ed": {
+      "address": "0xcBfb7e75daE5ADdAb4E2634d4b9218eEC1FE8113",
+      "txHash": "0x664b460c2a4059908f49a3ad2686e266a580b9953d8c70f9212854a66f1a37d9",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "wormhole",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IWormhole)14228",
+            "contract": "QueryResponse",
+            "src": "contracts/validators/wormhole/QueryResponse.sol:62"
+          }
+        ],
+        "types": {
+          "t_contract(IWormhole)14228": {
+            "label": "contract IWormhole",
+            "numberOfBytes": "20"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint64": {
+            "label": "uint64"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.Ownable2Step": [
+            {
+              "contract": "Ownable2StepUpgradeable",
+              "label": "_pendingOwner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol:23"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

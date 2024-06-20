@@ -5,15 +5,13 @@ import { deployPoseidons } from "./PoseidonDeployHelper";
 import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain";
 
-
 const SMT_MAX_DEPTH = 64;
 
 export class DeployHelper {
   constructor(
     private signers: SignerWithAddress[],
     private readonly enableLogging: boolean = false
-  ) {
-  }
+  ) {}
 
   static async initialize(
     signers: SignerWithAddress[] | null = null,
@@ -28,9 +26,7 @@ export class DeployHelper {
     return new DeployHelper(sgrs, enableLogging);
   }
 
-  async deployState(
-    verifierContractName = "VerifierStateTransition"
-  ): Promise<{
+  async deployState(verifierContractName = "VerifierStateTransition"): Promise<{
     state: Contract;
     verifier: Contract;
     stateLib: Contract;
@@ -57,10 +53,8 @@ export class DeployHelper {
     );
 
     this.log("deploying poseidons...");
-    const [poseidon1Elements, poseidon2Elements, poseidon3Elements, poseidon4Elements] = await deployPoseidons(
-      owner,
-      [1, 2, 3, 4]
-    );
+    const [poseidon1Elements, poseidon2Elements, poseidon3Elements, poseidon4Elements] =
+      await deployPoseidons(owner, [1, 2, 3, 4]);
 
     this.log("deploying SmtLib...");
     const smtLib = await this.deploySmtLib(poseidon2Elements.address, poseidon3Elements.address);
@@ -269,18 +263,11 @@ export class DeployHelper {
   async deployValidatorContracts(
     verifierContractWrapperName: string,
     validatorContractName: string,
-    stateAddress = ""
+    wormholeCoreAddress: string
   ): Promise<{
-    state: any;
     verifierWrapper: any;
     validator: any;
   }> {
-    if (!stateAddress) {
-      const stateDeployHelper = await DeployHelper.initialize();
-      const { state } = await stateDeployHelper.deployState();
-      stateAddress = state.address;
-    }
-
     const ValidatorContractVerifierWrapper = await ethers.getContractFactory(
       verifierContractWrapperName
     );
@@ -295,40 +282,31 @@ export class DeployHelper {
     const ValidatorContract = await ethers.getContractFactory(validatorContractName);
 
     const validatorContractProxy = await upgrades.deployProxy(ValidatorContract, [
-      validatorContractVerifierWrapper.address, stateAddress]);
+      validatorContractVerifierWrapper.address,
+      wormholeCoreAddress,
+    ]);
 
     await validatorContractProxy.deployed();
     console.log(`${validatorContractName} deployed to: ${validatorContractProxy.address}`);
-    const signers = await ethers.getSigners();
 
-    const state = await ethers.getContractAt("State", stateAddress, signers[0]);
     return {
       validator: validatorContractProxy,
       verifierWrapper: validatorContractVerifierWrapper,
-      state,
     };
   }
 
-
-  async deployValidatorStub(
-  ): Promise<Contract> {
-
-    const stub = await ethers.getContractFactory(
-        "ValidatorStub"
-    );
+  async deployValidatorStub(): Promise<Contract> {
+    const stub = await ethers.getContractFactory("ValidatorStub");
     const stubInstance = await stub.deploy();
     await stubInstance.deployed();
 
-    console.log(
-        "Validator stub  deployed to:",
-        stubInstance.address
-    );
-     return  stubInstance;
+    console.log("Validator stub  deployed to:", stubInstance.address);
+    return stubInstance;
   }
 
   async upgradeValidator(
     validatorAddress: string,
-    validatorContractName: string,
+    validatorContractName: string
   ): Promise<{
     validator: Contract;
   }> {
@@ -340,39 +318,33 @@ export class DeployHelper {
     const ValidatorFactory = await ethers.getContractFactory(validatorContractName);
     const validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory);
     await validator.deployed();
-    this.log(`Validator ${validatorContractName} upgraded at address ${validator.address} from ${owner.address}`);
+    this.log(
+      `Validator ${validatorContractName} upgraded at address ${validator.address} from ${owner.address}`
+    );
 
     this.log("======== Validator: upgrade completed ========");
     return {
-      validator: validator
+      validator: validator,
     };
   }
 
   async deployGenesisUtilsWrapper(): Promise<GenesisUtilsWrapper> {
-    const GenesisUtilsWrapper = await ethers.getContractFactory(
-      "GenesisUtilsWrapper"
-    );
+    const GenesisUtilsWrapper = await ethers.getContractFactory("GenesisUtilsWrapper");
     const genesisUtilsWrapper = await GenesisUtilsWrapper.deploy();
     console.log("GenesisUtilsWrapper deployed to:", genesisUtilsWrapper.address);
     return genesisUtilsWrapper;
   }
   async deployPrimitiveTypeUtilsWrapper(): Promise<PrimitiveTypeUtilsWrapper> {
-    const PrimitiveTypeUtilsWrapper = await ethers.getContractFactory(
-        "PrimitiveTypeUtilsWrapper"
-    );
+    const PrimitiveTypeUtilsWrapper = await ethers.getContractFactory("PrimitiveTypeUtilsWrapper");
     const primitiveTypeUtilsWrapper = await PrimitiveTypeUtilsWrapper.deploy();
     console.log("PrimitiveUtilsWrapper deployed to:", primitiveTypeUtilsWrapper.address);
     return primitiveTypeUtilsWrapper;
   }
 
-  async deployZKPVerifier(
-    owner: SignerWithAddress
-  ): Promise<{
+  async deployZKPVerifier(owner: SignerWithAddress): Promise<{
     address: string;
   }> {
-    const Verifier = await ethers.getContractFactory(
-      "ZKPVerifier"
-    );
+    const Verifier = await ethers.getContractFactory("ZKPVerifier");
     // const zkpVerifier = await ZKPVerifier.deploy(owner.address);
     const verifier = await upgrades.deployProxy(Verifier, [owner.address]);
     await verifier.deployed();
@@ -386,17 +358,15 @@ export class DeployHelper {
     if (!owner) {
       owner = this.signers[0];
     }
-    const Verifier = await ethers.getContractFactory(
-      "UniversalVerifier", owner
-    );
+    const Verifier = await ethers.getContractFactory("UniversalVerifier", owner);
     const verifier = await upgrades.deployProxy(Verifier);
     await verifier.deployed();
     console.log("UniversalVerifier deployed to:", verifier.address);
     return verifier;
   }
 
-  async getDefaultIdType(): Promise<{ defaultIdType: number, chainId: number }> {
-    const chainId = parseInt(await network.provider.send('eth_chainId'), 16);
+  async getDefaultIdType(): Promise<{ defaultIdType: number; chainId: number }> {
+    const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
     const defaultIdType = chainIdDefaultIdTypeMap.get(chainId);
     if (!defaultIdType) {
       throw new Error(`Failed to find defaultIdType in Map for chainId ${chainId}`);
