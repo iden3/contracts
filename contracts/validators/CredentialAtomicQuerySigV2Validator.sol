@@ -9,7 +9,7 @@ contract CredentialAtomicQuerySigV2Validator is CredentialAtomicQueryV2Validator
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.0.3";
+    string public constant VERSION = "2.0.4";
 
     string internal constant CIRCUIT_ID = "credentialAtomicQuerySigV2OnChain";
 
