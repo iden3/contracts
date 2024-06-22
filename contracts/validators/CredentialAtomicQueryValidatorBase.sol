@@ -173,9 +173,10 @@ abstract contract CredentialAtomicQueryValidatorBase is
                 "Issuer revocation state doesn't exist in state contract and is not genesis"
             );
         } else {
-            IState.StateInfo memory claimNonRevLatestStateInfo = s
-                .state
-                .getStateInfoByIdAndState(_id, _claimNonRevState);
+            IState.StateInfo memory claimNonRevLatestStateInfo = s.state.getStateInfoByIdAndState(
+                _id,
+                _claimNonRevState
+            );
 
             if (
                 claimNonRevLatestStateInfo.replacedAtTimestamp != 0 &&
