@@ -173,28 +173,16 @@ abstract contract CredentialAtomicQueryValidatorBase is
                 "Issuer revocation state doesn't exist in state contract and is not genesis"
             );
         } else {
-            IState.StateInfo memory claimNonRevStateInfo = s.state.getStateInfoById(_id);
-            // The non-empty state is returned, and it's not equal to the state that the user has provided.
-            if (claimNonRevStateInfo.state != _claimNonRevState) {
-                // Get the time of the latest state and compare it to the transition time of state provided by the user.
-                IState.StateInfo memory claimNonRevLatestStateInfo = s
-                    .state
-                    .getStateInfoByIdAndState(_id, _claimNonRevState);
+            IState.StateInfo memory claimNonRevLatestStateInfo = s
+                .state
+                .getStateInfoByIdAndState(_id, _claimNonRevState);
 
-                if (claimNonRevLatestStateInfo.id == 0 || claimNonRevLatestStateInfo.id != _id) {
-                    revert("State in transition info contains invalid id");
-                }
-
-                if (claimNonRevLatestStateInfo.replacedAtTimestamp == 0) {
-                    revert("Non-Latest state doesn't contain replacement information");
-                }
-
-                if (
-                    block.timestamp - claimNonRevLatestStateInfo.replacedAtTimestamp >
-                    s.revocationStateExpirationTimeout
-                ) {
-                    revert("Non-Revocation state of Issuer expired");
-                }
+            if (
+                claimNonRevLatestStateInfo.replacedAtTimestamp != 0 &&
+                block.timestamp - claimNonRevLatestStateInfo.replacedAtTimestamp >
+                s.revocationStateExpirationTimeout
+            ) {
+                revert("Non-Revocation state of Issuer expired");
             }
         }
     }
