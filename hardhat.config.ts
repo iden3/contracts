@@ -5,6 +5,7 @@ import "solidity-coverage";
 import "@openzeppelin/hardhat-upgrades";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomicfoundation/hardhat-verify";
+import "@nomicfoundation/hardhat-ignition-ethers";
 
 const DEFAULT_MNEMONIC =
   "test test test test test test test test test test test junk";
@@ -49,6 +50,21 @@ const config: HardhatUserConfig = {
     //   url: `${process.env.AMOY_RPC_URL}`,
     //   accounts: [`0x${process.env.AMOY_PRIVATE_KEY}`],
     // },
+    // 'linea-sepolia': {
+    //   chainId: 59141,
+    //   url: `${process.env.SEPOLIA_RPC_URL}`,
+    //   accounts: [`0x${process.env.SEPOLIA_PRIVATE_KEY}`],
+    // },
+    // 'privado-main': {
+    //   chainId: 21000,
+    //   url: `${process.env.PRIVADO_MAIN_RPC_URL}`,
+    //   accounts: [`0x${process.env.PRIVADO_MAIN_PRIVATE_KEY}`],
+    // },
+    // 'privado-test': {
+    //   chainId: 21001,
+    //   url: `${process.env.PRIVADO_TEST_RPC_URL}`,
+    //   accounts: [`0x${process.env.PRIVADO_TEST_PRIVATE_KEY}`],
+    // },    
     // hardhat: {
     //   forking: {
     //     url: `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`,
@@ -109,7 +125,14 @@ const config: HardhatUserConfig = {
   },
   // etherscan: {
   //     apiKey: "etherscan API key"
-  // }
+  // },
+  ignition: {
+    strategyConfig: {
+      create2: {
+        salt: "< >" // 20 bytes: zero address; 1 byte: 00 - no cross chain protection, 11 bytes - random salt.
+      },
+    }
+  },
 };
 
 export default config;
