@@ -61,7 +61,9 @@
     "upgrade:contracts:state:polygon": "npx hardhat run scripts/upgrade/state/state-upgrade.ts --network polygon",
     "deploy:state:amoy": "npx hardhat run scripts/deployState.ts --network amoy",
     "deploy:state:privado:main": "npx hardhat run scripts/deployState.ts --network privado-main",
+    "deploy:state:privado:test": "npx hardhat run scripts/deployState.ts --network privado-test",
     "deploy:its:privado:main": "npx hardhat run scripts/deployIdentityTreeStore.ts --network  privado-main",
+    "deploy:its:privado:test": "npx hardhat run scripts/deployIdentityTreeStore.ts --network  privado-test",
     "deploy:its:amoy": "npx hardhat run scripts/deployIdentityTreeStore.ts --network amoy",
     "slither": "slither ."
   }

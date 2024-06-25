@@ -60,6 +60,11 @@ const config: HardhatUserConfig = {
     //   url: `${process.env.PRIVADO_MAIN_RPC_URL}`,
     //   accounts: [`0x${process.env.PRIVADO_MAIN_PRIVATE_KEY}`],
     // },
+    // 'privado-test': {
+    //   chainId: 21001,
+    //   url: `${process.env.PRIVADO_TEST_RPC_URL}`,
+    //   accounts: [`0x${process.env.PRIVADO_TEST_PRIVATE_KEY}`],
+    // },    
     // hardhat: {
     //   forking: {
     //     url: `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`,
