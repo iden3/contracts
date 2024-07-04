@@ -205,7 +205,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
             or new transactions being included in the block with a previously defined timestamp.
             https://github.com/ethereum/go-ethereum/issues/24152
         */
-        if (_proofGenerationTimestamp > (block.timestamp + 5 minutes)) { 
+        if (_proofGenerationTimestamp > (block.timestamp + 5 minutes)) {
             revert("Proof generated in the future is not valid");
         }
         if (
