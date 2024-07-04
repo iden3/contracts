@@ -200,7 +200,12 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function _checkProofExpiration(uint256 _proofGenerationTimestamp) internal view {
-        if (_proofGenerationTimestamp > block.timestamp) {
+        /*
+            Add 5 minutes to `block.timestamp` to prevent potential issues caused by unsynchronized clocks
+            or new transactions being included in the block with a previously defined timestamp.
+            https://github.com/ethereum/go-ethereum/issues/24152
+        */
+        if (_proofGenerationTimestamp > (block.timestamp + 5 minutes)) { 
             revert("Proof generated in the future is not valid");
         }
         if (
