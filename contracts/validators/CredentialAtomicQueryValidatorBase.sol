@@ -142,7 +142,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
         if (
             rootInfo.replacedAtTimestamp != 0 &&
-            block.timestamp - rootInfo.replacedAtTimestamp > s.gistRootExpirationTimeout
+            block.timestamp > s.gistRootExpirationTimeout + rootInfo.replacedAtTimestamp
         ) {
             revert("Gist root is expired");
         }
@@ -190,8 +190,9 @@ abstract contract CredentialAtomicQueryValidatorBase is
                 }
 
                 if (
-                    block.timestamp - claimNonRevLatestStateInfo.replacedAtTimestamp >
-                    s.revocationStateExpirationTimeout
+                    block.timestamp >
+                    s.revocationStateExpirationTimeout +
+                        claimNonRevLatestStateInfo.replacedAtTimestamp
                 ) {
                     revert("Non-Revocation state of Issuer expired");
                 }
@@ -209,8 +210,9 @@ abstract contract CredentialAtomicQueryValidatorBase is
             revert("Proof generated in the future is not valid");
         }
         if (
-            block.timestamp - _proofGenerationTimestamp >
-            _getCredentialAtomicQueryValidatorBaseStorage().proofExpirationTimeout
+            block.timestamp >
+            _getCredentialAtomicQueryValidatorBaseStorage().proofExpirationTimeout +
+                _proofGenerationTimestamp
         ) {
             revert("Generated proof is outdated");
         }
