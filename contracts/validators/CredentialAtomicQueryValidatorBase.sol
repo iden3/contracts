@@ -142,7 +142,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
         if (
             rootInfo.replacedAtTimestamp != 0 &&
-            block.timestamp - rootInfo.replacedAtTimestamp > s.gistRootExpirationTimeout
+            block.timestamp > s.gistRootExpirationTimeout + rootInfo.replacedAtTimestamp
         ) {
             revert("Gist root is expired");
         }
@@ -190,8 +190,9 @@ abstract contract CredentialAtomicQueryValidatorBase is
                 }
 
                 if (
-                    block.timestamp - claimNonRevLatestStateInfo.replacedAtTimestamp >
-                    s.revocationStateExpirationTimeout
+                    block.timestamp >
+                    s.revocationStateExpirationTimeout +
+                        claimNonRevLatestStateInfo.replacedAtTimestamp
                 ) {
                     revert("Non-Revocation state of Issuer expired");
                 }
@@ -200,12 +201,18 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function _checkProofExpiration(uint256 _proofGenerationTimestamp) internal view {
-        if (_proofGenerationTimestamp > block.timestamp) {
+        /*
+            Add 5 minutes to `block.timestamp` to prevent potential issues caused by unsynchronized clocks
+            or new transactions being included in the block with a previously defined timestamp.
+            https://github.com/ethereum/go-ethereum/issues/24152
+        */
+        if (_proofGenerationTimestamp > (block.timestamp + 5 minutes)) {
             revert("Proof generated in the future is not valid");
         }
         if (
-            block.timestamp - _proofGenerationTimestamp >
-            _getCredentialAtomicQueryValidatorBaseStorage().proofExpirationTimeout
+            block.timestamp >
+            _getCredentialAtomicQueryValidatorBaseStorage().proofExpirationTimeout +
+                _proofGenerationTimestamp
         ) {
             revert("Generated proof is outdated");
         }
