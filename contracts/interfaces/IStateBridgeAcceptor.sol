@@ -19,4 +19,3 @@ interface IStateBridgeAcceptor {
         bytes memory oracleProof
     ) external;
 }
-
