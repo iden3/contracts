@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils, EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
-import {console} from "hardhat/console.sol";
+
 
 contract OracleProofValidator is EIP712 {
     using ECDSA for bytes32;
@@ -11,52 +11,54 @@ contract OracleProofValidator is EIP712 {
         address from;
         uint256 timestamp;
         uint256 state;
+        uint256 stateReplacedByState;
         uint256 stateCreatedAtTimestamp;
         uint256 stateReplacedAtTimestamp;
         uint256 gistRoot;
+        uint256 gistRootReplacedByRoot;
         uint256 gistRootCreatedAtTimestamp;
         uint256 gistRootReplacedAtTimestamp;
         uint256 identity;
     }
 
-    bytes32 constant TYPE_HASH =
-        keccak256(
-            "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-        );
+    struct SignedMessage {
+        IdentityStateMessage message;
+        bytes signature;
+    }
 
-    bytes32 private immutable _typedDataHash;
-    bytes32 private immutable _hashedName;
-    bytes32 private immutable _hashedVersion;
-    bytes32 private immutable _domainSeparator;
+    bytes32 constant TYPE_HASH = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
 
-    constructor(
-        string memory domainName,
-        string memory signatureVersion,
-        bytes32 typedDataHash_
-    ) EIP712(domainName, signatureVersion) {
+    bytes32 immutable _typedDataHash;
+    bytes32 immutable _domainSeparator;
+
+    constructor(string memory domainName, string memory signatureVersion, bytes32 typedDataHash_) EIP712(domainName, signatureVersion) {
         _typedDataHash = typedDataHash_;
 
-        _hashedName = keccak256(bytes(domainName));
-        _hashedVersion = keccak256(bytes(signatureVersion));
-        _domainSeparator = _buildCustomDomainSeparator();
+        bytes32 hashedName = keccak256(bytes(domainName));
+        bytes32 hashedVersion = keccak256(bytes(signatureVersion));
+        uint256 chainId = 0;
+        address verifyingContract = address(0);
+        _domainSeparator = keccak256(abi.encode(TYPE_HASH, hashedName, hashedVersion, chainId, verifyingContract));
     }
 
     function verifyBytes(
         bytes calldata proof
     )
-        public
-        view
-        returns (
-            address from,
-            uint256 timestamp,
-            uint256 state,
-            uint256 stateCreatedAtTimestamp,
-            uint256 stateReplacedAtTimestamp,
-            uint256 gistRoot,
-            uint256 gistRootCreatedAtTimestamp,
-            uint256 gistRootReplacedAtTimestamp,
-            uint256 identity
-        )
+    public
+    view
+    returns (
+        address from,
+        uint256 timestamp,
+        uint256 state,
+        uint256 stateReplacedByState,
+        uint256 stateCreatedAtTimestamp,
+        uint256 stateReplacedAtTimestamp,
+        uint256 gistRoot,
+        uint256 gistRootReplacedByRoot,
+        uint256 gistRootCreatedAtTimestamp,
+        uint256 gistRootReplacedAtTimestamp,
+        uint256 identity
+    )
     {
         (IdentityStateMessage memory ids, bytes memory signature) = abi.decode(
             proof,
@@ -69,15 +71,22 @@ contract OracleProofValidator is EIP712 {
             ids.from,
             ids.timestamp,
             ids.state,
+            ids.stateReplacedByState,
             ids.stateCreatedAtTimestamp,
             ids.stateReplacedAtTimestamp,
             ids.gistRoot,
+            ids.gistRootReplacedByRoot,
             ids.gistRootCreatedAtTimestamp,
             ids.gistRootReplacedAtTimestamp,
             ids.identity
         );
     }
 
+    /**
+     * @dev Returns `true` if a message is valid for a provided `signature`.
+     *
+     * A transaction is considered valid when the signer matches the `from` parameter of the signed message.
+     */
     function verify(
         IdentityStateMessage memory message,
         bytes memory signature
@@ -90,7 +99,11 @@ contract OracleProofValidator is EIP712 {
         IdentityStateMessage memory message,
         bytes memory signature
     ) internal view virtual returns (bool signerMatch, address signer) {
-        (bool isValid, address recovered) = _recoverIdentityStateSigner(message, signature);
+        SignedMessage memory sigMessage = SignedMessage(message, signature);
+
+        (bool isValid, address recovered) = _recoverIdentityStateSigner(
+            sigMessage
+        );
 
         return (isValid && recovered == message.from, recovered);
     }
@@ -102,27 +115,28 @@ contract OracleProofValidator is EIP712 {
      * NOTE: The signature is considered valid if {ECDSA-tryRecover} indicates no recover error for it.
      */
     function _recoverIdentityStateSigner(
-        IdentityStateMessage memory message,
-        bytes memory signature
+        SignedMessage memory sigMessage
     ) internal view virtual returns (bool, address) {
         bytes32 hashTypedData = _hashTypedDataV4(
             keccak256(
                 abi.encode(
                     _typedDataHash,
-                    message.from,
-                    message.timestamp,
-                    message.state,
-                    message.stateCreatedAtTimestamp,
-                    message.stateReplacedAtTimestamp,
-                    message.gistRoot,
-                    message.gistRootCreatedAtTimestamp,
-                    message.gistRootReplacedAtTimestamp,
-                    message.identity
+                    sigMessage.message.from,
+                    sigMessage.message.timestamp,
+                    sigMessage.message.state,
+                    sigMessage.message.stateReplacedByState,
+                    sigMessage.message.stateCreatedAtTimestamp,
+                    sigMessage.message.stateReplacedAtTimestamp,
+                    sigMessage.message.gistRoot,
+                    sigMessage.message.gistRootReplacedByRoot,
+                    sigMessage.message.gistRootCreatedAtTimestamp,
+                    sigMessage.message.gistRootReplacedAtTimestamp,
+                    sigMessage.message.identity
                 )
             )
         );
 
-        (address recovered, ECDSA.RecoverError err, ) = hashTypedData.tryRecover(signature);
+        (address recovered, ECDSA.RecoverError err, ) = hashTypedData.tryRecover(sigMessage.signature);
 
         return (err == ECDSA.RecoverError.NoError, recovered);
     }
@@ -131,12 +145,31 @@ contract OracleProofValidator is EIP712 {
         return MessageHashUtils.toTypedDataHash(_domainSeparator, structHash);
     }
 
-    function _buildCustomDomainSeparator() private view returns (bytes32) {
-        uint256 chainId = 0;
-        address verifyingContract = address(0);
-        return
-            keccak256(
-                abi.encode(TYPE_HASH, _hashedName, _hashedVersion, chainId, verifyingContract)
-            );
+    /**
+     * @dev See {IERC-5267}.
+     */
+    function eip712Domain()
+    public
+    view
+    override
+    returns (
+        bytes1 fields,
+        string memory name,
+        string memory version,
+        uint256 chainId,
+        address verifyingContract,
+        bytes32 salt,
+        uint256[] memory extensions
+    )
+    {
+        return (
+            hex"0f", // 01111
+            _EIP712Name(),
+            _EIP712Version(),
+            0,
+            address(0),
+            bytes32(0),
+            new uint256[](0)
+        );
     }
 }

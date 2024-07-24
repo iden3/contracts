@@ -6,9 +6,11 @@ interface IdentityStateMessage {
   from: string;
   timestamp: bigint;
   state: bigint;
+  stateReplacedByState: bigint;
   stateCreatedAtTimestamp: bigint;
   stateReplacedAtTimestamp: bigint;
   gistRoot: bigint;
+  gistRootReplacedByRoot: bigint;
   gistRootCreatedAtTimestamp: bigint;
   gistRootReplacedAtTimestamp: bigint;
   identity: bigint;
@@ -27,9 +29,11 @@ describe("Oracle Proof Validator", function () {
       from: await owner.getAddress(),
       timestamp: 1721407330n,
       state: 13704162472154210473949595093402377697496480870900777124562670166655890846618n,
+      stateReplacedByState: 0n,
       stateCreatedAtTimestamp: 1720111993n,
       stateReplacedAtTimestamp: 0n,
       gistRoot: 6376828012722752730323542484049180893581903547300301354812470207953471379731n,
+      gistRootReplacedByRoot: 0n,
       gistRootCreatedAtTimestamp: 1721404722n,
       gistRootReplacedAtTimestamp: 0n,
       identity: 19090607534999372304474213543962416547920895595808567155882840509226423042n,
@@ -40,7 +44,7 @@ describe("Oracle Proof Validator", function () {
     const chainId = 0;
     const verifyingContract = ethers.ZeroAddress;
     const typeHash =
-      "StateInfo(address from,uint256 timestamp,uint256 state,uint256 stateCreatedAtTimestamp,uint256 stateReplacedAtTimestamp,uint256 gistRoot,uint256 gistRootCreatedAtTimestamp,uint256 gistRootReplacedAtTimestamp,uint256 identity)";
+      "StateInfo(address from,uint256 timestamp,uint256 state,uint256 stateReplacedByState,uint256 stateCreatedAtTimestamp,uint256 stateReplacedAtTimestamp,uint256 gistRoot,uint256 gistRootReplacedByRoot,uint256 gistRootCreatedAtTimestamp,uint256 gistRootReplacedAtTimestamp,uint256 identity)";
     const argumentTypeHash = ethers.keccak256(ethers.toUtf8Bytes(typeHash));
 
     const domain = {
@@ -55,9 +59,11 @@ describe("Oracle Proof Validator", function () {
         { name: "from", type: "address" },
         { name: "timestamp", type: "uint256" },
         { name: "state", type: "uint256" },
+        { name: "stateReplacedByState", type: "uint256" },
         { name: "stateCreatedAtTimestamp", type: "uint256" },
         { name: "stateReplacedAtTimestamp", type: "uint256" },
         { name: "gistRoot", type: "uint256" },
+        { name: "gistRootReplacedByRoot", type: "uint256" },
         { name: "gistRootCreatedAtTimestamp", type: "uint256" },
         { name: "gistRootReplacedAtTimestamp", type: "uint256" },
         { name: "identity", type: "uint256" },

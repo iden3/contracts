@@ -6,7 +6,7 @@ import {IState} from "../interfaces/IState.sol";
 import {IStateBridgeAcceptor} from "../interfaces/IStateBridgeAcceptor.sol";
 import {OracleProofValidator} from "../state/OracleProofValidator.sol";
 
-//TODO make non-abstract contract
+//TODO make non-abstract contract, split IState interface maybe
 abstract contract LiteState is Ownable2StepUpgradeable, IState, IStateBridgeAcceptor {
     // TODO define if better to use timestamp from the next entry instead fo replaceAt
     struct Entry {
@@ -108,16 +108,14 @@ abstract contract LiteState is Ownable2StepUpgradeable, IState, IStateBridgeAcce
     function setStateInfo(bytes memory oracleProof) external {
         LiteStateStorage storage $ = _getLiteStateStorage();
 
-        //TODO include replacedByState in the proof
-        uint256 replacedByState = 0;
-
         (
             ,
             uint256 timestamp,
             uint256 state,
+            uint256 replacedByState,
             uint256 createdAt,
             uint256 replacedAt,
-            ,,,
+            ,,,,
             uint256 id
         ) = $._resolverProofProcessing.verifyBytes(oracleProof);
 
@@ -138,14 +136,12 @@ abstract contract LiteState is Ownable2StepUpgradeable, IState, IStateBridgeAcce
     ) external {
         LiteStateStorage storage $ = _getLiteStateStorage();
 
-        //TODO include replacedByState in the proof
-        uint256 replacedByRoot = 0;
-
         (
             ,
             uint256 timestamp,
-            ,,,
+            ,,,,
             uint256 root,
+            uint256 replacedByRoot,
             uint256 createdAt,
             uint256 replacedAt,
             uint256 id
