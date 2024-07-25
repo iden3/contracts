@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {IState} from "../interfaces/IState.sol";
 import {IStateBridgeAcceptor} from "../interfaces/IStateBridgeAcceptor.sol";
-import {OracleProofValidator} from "../state/OracleProofValidator.sol";
+import {OracleProofValidator, IdentityStateMessage, GlobalStateMessage} from "../state/OracleProofValidator.sol";
 
 //TODO make non-abstract contract, split IState interface maybe
 abstract contract LiteState is Ownable2StepUpgradeable, IState, IStateBridgeAcceptor {
@@ -105,56 +105,42 @@ abstract contract LiteState is Ownable2StepUpgradeable, IState, IStateBridgeAcce
             });
     }
 
-    function setStateInfo(bytes memory oracleProof) external {
+    function setStateInfo(IdentityStateMessage memory msg, bytes memory signature) external {
         LiteStateStorage storage $ = _getLiteStateStorage();
 
-        (
-            ,
-            uint256 timestamp,
-            uint256 state,
-            uint256 replacedByState,
-            uint256 createdAt,
-            uint256 replacedAt,
-            ,,,,
-            uint256 id
-        ) = $._resolverProofProcessing.verifyBytes(oracleProof);
+        require(
+            $._resolverProofProcessing.verifyIdentityState(msg, signature),
+            "Identity state proof is not valid"
+        );
 
-        $._idToEntry[id][state] = Entry({
-            timestamp: createdAt,
-            replacedByState: replacedByState,
-            replaceAt: replacedAt == 0 ? replacedAt : timestamp
+        $._idToEntry[msg.identity][msg.state] = Entry({
+            timestamp: msg.createdAtTimestamp,
+            replacedByState: msg.replacedByState,
+            replaceAt: msg.replacedAtTimestamp == 0 ? msg.timestamp : msg.replacedAtTimestamp
         });
 
-        uint256 lastState = $._idToLastState[id];
-        if ($._idToEntry[id][lastState].timestamp < createdAt) {
-            $._idToLastState[id] = state;
+        uint256 lastState = $._idToLastState[msg.identity];
+        if ($._idToEntry[msg.identity][lastState].timestamp < msg.createdAtTimestamp) {
+            $._idToLastState[msg.identity] = msg.state;
         }
     }
 
-    function setGistRootInfo(
-        bytes memory oracleProof
-    ) external {
+    function setGistRootInfo(GlobalStateMessage calldata msg, bytes calldata signature) external {
         LiteStateStorage storage $ = _getLiteStateStorage();
 
-        (
-            ,
-            uint256 timestamp,
-            ,,,,
-            uint256 root,
-            uint256 replacedByRoot,
-            uint256 createdAt,
-            uint256 replacedAt,
-            uint256 id
-        ) = $._resolverProofProcessing.verifyBytes(oracleProof);
+        require(
+            $._resolverProofProcessing.verifyGlobalState(msg, signature),
+            "Global state proof is not valid"
+        );
 
-        $._rootToGistRootEntry[root] = GistRootEntry({
-            replacedByRoot: replacedByRoot,
-            createdAt: createdAt,
-            replacedAt: replacedAt == 0 ? replacedAt : timestamp
+        $._rootToGistRootEntry[msg.root] = GistRootEntry({
+            replacedByRoot: msg.replacedByRoot,
+            createdAt: msg.createdAtTimestamp,
+            replacedAt: msg.replacedAtTimestamp == 0 ? msg.timestamp : msg.replacedAtTimestamp
         });
 
-        if ($._rootToGistRootEntry[$._lastGistRoot].createdAt < createdAt) {
-            $._lastGistRoot = root;
+        if ($._rootToGistRootEntry[$._lastGistRoot].createdAt < msg.createdAtTimestamp) {
+            $._lastGistRoot = msg.root;
         }
     }
 }

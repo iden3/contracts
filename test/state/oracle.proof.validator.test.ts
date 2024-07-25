@@ -5,47 +5,36 @@ import { Contract, Signer } from "ethers";
 interface IdentityStateMessage {
   from: string;
   timestamp: bigint;
-  state: bigint;
-  stateReplacedByState: bigint;
-  stateCreatedAtTimestamp: bigint;
-  stateReplacedAtTimestamp: bigint;
-  gistRoot: bigint;
-  gistRootReplacedByRoot: bigint;
-  gistRootCreatedAtTimestamp: bigint;
-  gistRootReplacedAtTimestamp: bigint;
   identity: bigint;
+  state: bigint;
+  replacedByState: bigint;
+  createdAtTimestamp: bigint;
+  replacedAtTimestamp: bigint;
+}
+
+interface GlobalStateMessage {
+  from: string;
+  timestamp: bigint;
+  root: bigint;
+  replacedByRoot: bigint;
+  createdAtTimestamp: bigint;
+  replacedAtTimestamp: bigint;
 }
 
 describe("Oracle Proof Validator", function () {
   let contract: Contract;
   let owner: Signer;
   let identityStateMessage: IdentityStateMessage;
-  let signature: string;
+  let globalStateMessage: GlobalStateMessage;
+  let signatureISM, signatureGSM: string;
 
   beforeEach(async function () {
     [owner] = await ethers.getSigners();
-
-    identityStateMessage = {
-      from: await owner.getAddress(),
-      timestamp: 1721407330n,
-      state: 13704162472154210473949595093402377697496480870900777124562670166655890846618n,
-      stateReplacedByState: 0n,
-      stateCreatedAtTimestamp: 1720111993n,
-      stateReplacedAtTimestamp: 0n,
-      gistRoot: 6376828012722752730323542484049180893581903547300301354812470207953471379731n,
-      gistRootReplacedByRoot: 0n,
-      gistRootCreatedAtTimestamp: 1721404722n,
-      gistRootReplacedAtTimestamp: 0n,
-      identity: 19090607534999372304474213543962416547920895595808567155882840509226423042n,
-    };
 
     const domainName = "StateInfo";
     const signatureVersion = "1";
     const chainId = 0;
     const verifyingContract = ethers.ZeroAddress;
-    const typeHash =
-      "StateInfo(address from,uint256 timestamp,uint256 state,uint256 stateReplacedByState,uint256 stateCreatedAtTimestamp,uint256 stateReplacedAtTimestamp,uint256 gistRoot,uint256 gistRootReplacedByRoot,uint256 gistRootCreatedAtTimestamp,uint256 gistRootReplacedAtTimestamp,uint256 identity)";
-    const argumentTypeHash = ethers.keccak256(ethers.toUtf8Bytes(typeHash));
 
     const domain = {
       name: domainName,
@@ -54,45 +43,73 @@ describe("Oracle Proof Validator", function () {
       verifyingContract,
     };
 
-    const types = {
-      StateInfo: [
+    identityStateMessage = {
+      from: await owner.getAddress(),
+      timestamp: 1721407330n,
+      identity: 19090607534999372304474213543962416547920895595808567155882840509226423042n,
+      state: 0n,
+      replacedByState: 0n,
+      createdAtTimestamp: 1720111993n,
+      replacedAtTimestamp: 0n,
+    };
+
+    globalStateMessage = {
+      from: await owner.getAddress(),
+      timestamp: 1721407330n,
+      root: 6376828012722752730323542484049180893581903547300301354812470207953471379731n,
+      replacedByRoot: 0n,
+      createdAtTimestamp: 1721404722n,
+      replacedAtTimestamp: 0n,
+    };
+
+    const ismTypes = {
+      IdentityState: [
         { name: "from", type: "address" },
         { name: "timestamp", type: "uint256" },
-        { name: "state", type: "uint256" },
-        { name: "stateReplacedByState", type: "uint256" },
-        { name: "stateCreatedAtTimestamp", type: "uint256" },
-        { name: "stateReplacedAtTimestamp", type: "uint256" },
-        { name: "gistRoot", type: "uint256" },
-        { name: "gistRootReplacedByRoot", type: "uint256" },
-        { name: "gistRootCreatedAtTimestamp", type: "uint256" },
-        { name: "gistRootReplacedAtTimestamp", type: "uint256" },
         { name: "identity", type: "uint256" },
+        { name: "state", type: "uint256" },
+        { name: "replacedByState", type: "uint256" },
+        { name: "createdAtTimestamp", type: "uint256" },
+        { name: "replacedAtTimestamp", type: "uint256" },
       ],
     };
 
-    signature = await owner.signTypedData(domain, types, identityStateMessage);
+    const gsmTypes = {
+      GlobalState: [
+        { name: "from", type: "address" },
+        { name: "timestamp", type: "uint256" },
+        { name: "root", type: "uint256" },
+        { name: "replacedByRoot", type: "uint256" },
+        { name: "createdAtTimestamp", type: "uint256" },
+        { name: "replacedAtTimestamp", type: "uint256" },
+      ],
+    };
 
-    console.log("signature JS: ", signature);
+    signatureISM = await owner.signTypedData(domain, ismTypes, identityStateMessage);
+    signatureGSM = await owner.signTypedData(domain, gsmTypes, globalStateMessage);
 
-    contract = await ethers.deployContract("OracleProofValidator", [
-      domainName,
-      signatureVersion,
-      argumentTypeHash,
-    ]);
+    console.log("signatureISM: ", signatureISM);
+    console.log("signatureGSM: ", signatureGSM);
+
+    contract = await ethers.deployContract("OracleProofValidator", [domainName, signatureVersion]);
     await contract.waitForDeployment();
   });
 
   it("should verify the message", async function () {
     // Assume _validate function and any other dependencies are properly implemented in the contract
-    const result = await contract.verify(identityStateMessage, signature);
+    let result = await contract.verifyIdentityState(identityStateMessage, signatureISM);
+    expect(result).to.be.true;
+    result = await contract.verifyGlobalState(globalStateMessage, signatureGSM);
     expect(result).to.be.true;
   });
 
   it("should fail to verify an invalid message", async function () {
-    // Modify the message to make it invalid
-    identityStateMessage.state = 2n;
+    globalStateMessage.root++; // modify to make the message invalid
+    let result = await contract.verifyGlobalState(globalStateMessage, signatureGSM);
+    expect(result).to.be.false;
 
-    const result = await contract.verify(identityStateMessage, signature);
+    identityStateMessage.state++; // modify to make the message invalid
+    result = await contract.verifyIdentityState(identityStateMessage, signatureISM);
     expect(result).to.be.false;
   });
 });
