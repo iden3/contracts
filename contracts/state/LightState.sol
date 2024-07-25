@@ -2,15 +2,13 @@
 pragma solidity 0.8.20;
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import {IState} from "../interfaces/IState.sol";
-import {IStateBridgeAcceptor} from "../interfaces/IStateBridgeAcceptor.sol";
+import {ILiteState} from "../interfaces/ILiteState.sol";
+import {IStateOracleProofAcceptor} from "../interfaces/IStateOracleProofAcceptor.sol";
 import {IOracleProofValidator, IdentityStateMessage, GlobalStateMessage} from "../interfaces/IOracleProofValidator.sol";
 
-//TODO make non-abstract contract, split IState interface maybe
-abstract contract LiteState is Ownable2StepUpgradeable, IState, IStateBridgeAcceptor {
-    // TODO define if better to use timestamp from the next entry instead fo replaceAt
+contract LiteState is Ownable2StepUpgradeable, ILiteState {
     struct Entry {
-        uint256 timestamp;
+        uint256 createdAt;
         uint256 replacedByState;
         uint256 replaceAt;
     }
@@ -54,13 +52,14 @@ abstract contract LiteState is Ownable2StepUpgradeable, IState, IStateBridgeAcce
                 id: id,
                 state: lastState,
                 replacedByState: entry.replacedByState,
-                createdAtTimestamp: entry.timestamp,
+                createdAtTimestamp: entry.createdAt,
                 replacedAtTimestamp: entry.replaceAt,
                 createdAtBlock: 0,
                 replacedAtBlock: 0
             });
     }
 
+    //TODO check for the id + state existence
     function getStateInfoByIdAndState(
         uint256 id,
         uint256 state
@@ -73,7 +72,7 @@ abstract contract LiteState is Ownable2StepUpgradeable, IState, IStateBridgeAcce
                 id: id,
                 state: state,
                 replacedByState: entry.replacedByState,
-                createdAtTimestamp: entry.timestamp,
+                createdAtTimestamp: entry.createdAt,
                 replacedAtTimestamp: entry.replaceAt,
                 createdAtBlock: 0,
                 replacedAtBlock: 0
@@ -87,7 +86,7 @@ abstract contract LiteState is Ownable2StepUpgradeable, IState, IStateBridgeAcce
 
     function stateExists(uint256 id, uint256 state) external view returns (bool) {
         LiteStateStorage storage s = _getLiteStateStorage();
-        return s._idToEntry[id][state].timestamp != 0;
+        return s._idToEntry[id][state].createdAt != 0;
     }
 
     function getGISTRootInfo(uint256 root) external view returns (GistRootInfo memory) {
@@ -114,13 +113,13 @@ abstract contract LiteState is Ownable2StepUpgradeable, IState, IStateBridgeAcce
         );
 
         $._idToEntry[msg.identity][msg.state] = Entry({
-            timestamp: msg.createdAtTimestamp,
             replacedByState: msg.replacedByState,
+            createdAt: msg.createdAtTimestamp,
             replaceAt: msg.replacedAtTimestamp == 0 ? msg.timestamp : msg.replacedAtTimestamp
         });
 
         uint256 lastState = $._idToLastState[msg.identity];
-        if ($._idToEntry[msg.identity][lastState].timestamp < msg.createdAtTimestamp) {
+        if ($._idToEntry[msg.identity][lastState].createdAt < msg.createdAtTimestamp) {
             $._idToLastState[msg.identity] = msg.state;
         }
     }
@@ -142,5 +141,32 @@ abstract contract LiteState is Ownable2StepUpgradeable, IState, IStateBridgeAcce
         if ($._rootToGistRootEntry[$._lastGistRoot].createdAt < msg.createdAtTimestamp) {
             $._lastGistRoot = msg.root;
         }
+    }
+
+    function getDefaultIdType() external view returns (bytes2) {
+        revert ("Not implemented");
+    }
+
+    function transitState(
+        uint256 id,
+        uint256 oldState,
+        uint256 newState,
+        bool isOldStateGenesis,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c
+    ) external {
+        revert ("Not implemented");
+    }
+
+    function transitStateGeneric(
+        uint256 id,
+        uint256 oldState,
+        uint256 newState,
+        bool isOldStateGenesis,
+        uint256 methodId,
+        bytes calldata methodParams
+    ) external {
+        revert ("Not implemented");
     }
 }

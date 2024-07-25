@@ -135,6 +135,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
             super.supportsInterface(interfaceId);
     }
 
+    //TODO add oracle data to the args or create another method version
     function _checkGistRoot(uint256 gistRoot) internal view {
         CredentialAtomicQueryValidatorBaseStorage
             storage s = _getCredentialAtomicQueryValidatorBaseStorage();
@@ -159,6 +160,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         }
     }
 
+    //TODO add oracle data to the args or create another method version
     function _checkClaimNonRevState(uint256 _id, uint256 _claimNonRevState) internal view {
         CredentialAtomicQueryValidatorBaseStorage
             storage s = _getCredentialAtomicQueryValidatorBaseStorage();

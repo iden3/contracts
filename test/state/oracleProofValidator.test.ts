@@ -1,25 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { Contract, Signer } from "ethers";
-
-interface IdentityStateMessage {
-  from: string;
-  timestamp: bigint;
-  identity: bigint;
-  state: bigint;
-  replacedByState: bigint;
-  createdAtTimestamp: bigint;
-  replacedAtTimestamp: bigint;
-}
-
-interface GlobalStateMessage {
-  from: string;
-  timestamp: bigint;
-  root: bigint;
-  replacedByRoot: bigint;
-  createdAtTimestamp: bigint;
-  replacedAtTimestamp: bigint;
-}
+import { IdentityStateMessage, GlobalStateMessage } from "./messages";
 
 describe("Oracle Proof Validator", function () {
   let contract: Contract;

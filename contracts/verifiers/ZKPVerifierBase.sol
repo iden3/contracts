@@ -262,8 +262,20 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         uint256[2][2] calldata b,
         uint256[2] calldata c,
         address sender
-    ) private view returns (ICircuitValidator.KeyToInputIndex[] memory) {
+    )
+        private
+        view
+        returns (
+            // OPTION 2 & OPTION 3 oracleProof1, oracleProof2
+            ICircuitValidator.KeyToInputIndex[] memory
+        )
+    {
         IZKPVerifier.ZKPRequest memory request = _getZKPVerifierStorage()._requests[requestId];
+
+        // OPTION 2:
+        // litestate.setStateInfo(oracleProof1);
+        // litestate.setGISTRootInfo(oracleProof2);
+
         ICircuitValidator.KeyToInputIndex[] memory pairs = request.validator.verify(
             inputs,
             a,
@@ -271,6 +283,8 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             c,
             request.data,
             sender
+            // OPTION 2: litestate contract address
+            // OPTION 3: oracleProof1 message, oracleProof2 message
         );
         return pairs;
     }
