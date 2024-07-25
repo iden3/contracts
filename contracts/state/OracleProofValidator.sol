@@ -2,27 +2,9 @@
 pragma solidity ^0.8.0;
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils, EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+import {IOracleProofValidator, IdentityStateMessage, GlobalStateMessage} from "../interfaces/IOracleProofValidator.sol";
 
-struct IdentityStateMessage {
-    address from;
-    uint256 timestamp;
-    uint256 identity;
-    uint256 state;
-    uint256 replacedByState;
-    uint256 createdAtTimestamp;
-    uint256 replacedAtTimestamp;
-}
-
-struct GlobalStateMessage {
-    address from;
-    uint256 timestamp;
-    uint256 root;
-    uint256 replacedByRoot;
-    uint256 createdAtTimestamp;
-    uint256 replacedAtTimestamp;
-}
-
-contract OracleProofValidator is EIP712 {
+contract OracleProofValidator is EIP712, IOracleProofValidator {
     using ECDSA for bytes32;
 
     bytes32 public constant TYPE_HASH =

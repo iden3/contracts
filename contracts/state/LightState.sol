@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {IState} from "../interfaces/IState.sol";
 import {IStateBridgeAcceptor} from "../interfaces/IStateBridgeAcceptor.sol";
-import {OracleProofValidator, IdentityStateMessage, GlobalStateMessage} from "../state/OracleProofValidator.sol";
+import {IOracleProofValidator, IdentityStateMessage, GlobalStateMessage} from "../interfaces/IOracleProofValidator.sol";
 
 //TODO make non-abstract contract, split IState interface maybe
 abstract contract LiteState is Ownable2StepUpgradeable, IState, IStateBridgeAcceptor {
@@ -26,7 +26,7 @@ abstract contract LiteState is Ownable2StepUpgradeable, IState, IStateBridgeAcce
         mapping(uint256 id => uint256 lastState) _idToLastState;
         mapping(uint256 root => GistRootEntry) _rootToGistRootEntry;
         uint256 _lastGistRoot;
-        OracleProofValidator _resolverProofProcessing;
+        IOracleProofValidator _oracleProofValidator;
     }
 
     // TODO check the hash correctness
@@ -39,9 +39,9 @@ abstract contract LiteState is Ownable2StepUpgradeable, IState, IStateBridgeAcce
         }
     }
 
-    constructor(OracleProofValidator resolverProofProcessing) {
+    constructor(IOracleProofValidator validator) {
         LiteStateStorage storage s = _getLiteStateStorage();
-        s._resolverProofProcessing = resolverProofProcessing;
+        s._oracleProofValidator = validator;
     }
 
     function getStateInfoById(uint256 id) external view returns (StateInfo memory) {
@@ -109,7 +109,7 @@ abstract contract LiteState is Ownable2StepUpgradeable, IState, IStateBridgeAcce
         LiteStateStorage storage $ = _getLiteStateStorage();
 
         require(
-            $._resolverProofProcessing.verifyIdentityState(msg, signature),
+            $._oracleProofValidator.verifyIdentityState(msg, signature),
             "Identity state proof is not valid"
         );
 
@@ -129,7 +129,7 @@ abstract contract LiteState is Ownable2StepUpgradeable, IState, IStateBridgeAcce
         LiteStateStorage storage $ = _getLiteStateStorage();
 
         require(
-            $._resolverProofProcessing.verifyGlobalState(msg, signature),
+            $._oracleProofValidator.verifyGlobalState(msg, signature),
             "Global state proof is not valid"
         );
 
