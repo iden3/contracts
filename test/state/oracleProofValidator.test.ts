@@ -5,13 +5,13 @@ import { IdentityStateMessage, GlobalStateMessage } from "./messages";
 
 describe("Oracle Proof Validator", function () {
   let contract: Contract;
-  let owner: Signer;
+  let signer: Signer;
   let identityStateMessage: IdentityStateMessage;
   let globalStateMessage: GlobalStateMessage;
   let signatureISM, signatureGSM: string;
 
   beforeEach(async function () {
-    [owner] = await ethers.getSigners();
+    [signer] = await ethers.getSigners();
 
     const domainName = "StateInfo";
     const signatureVersion = "1";
@@ -26,7 +26,7 @@ describe("Oracle Proof Validator", function () {
     };
 
     identityStateMessage = {
-      from: await owner.getAddress(),
+      from: await signer.getAddress(),
       timestamp: 1721407330n,
       identity: 19090607534999372304474213543962416547920895595808567155882840509226423042n,
       state: 0n,
@@ -36,7 +36,7 @@ describe("Oracle Proof Validator", function () {
     };
 
     globalStateMessage = {
-      from: await owner.getAddress(),
+      from: await signer.getAddress(),
       timestamp: 1721407330n,
       root: 6376828012722752730323542484049180893581903547300301354812470207953471379731n,
       replacedByRoot: 0n,
@@ -67,8 +67,8 @@ describe("Oracle Proof Validator", function () {
       ],
     };
 
-    signatureISM = await owner.signTypedData(domain, ismTypes, identityStateMessage);
-    signatureGSM = await owner.signTypedData(domain, gsmTypes, globalStateMessage);
+    signatureISM = await signer.signTypedData(domain, ismTypes, identityStateMessage);
+    signatureGSM = await signer.signTypedData(domain, gsmTypes, globalStateMessage);
 
     console.log("signatureISM: ", signatureISM);
     console.log("signatureGSM: ", signatureGSM);

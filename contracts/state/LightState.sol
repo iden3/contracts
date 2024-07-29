@@ -7,7 +7,7 @@ import {IStateOracleProofAcceptor} from "../interfaces/IStateOracleProofAcceptor
 import {IOracleProofValidator, IdentityStateMessage, GlobalStateMessage} from "../interfaces/IOracleProofValidator.sol";
 
 contract LiteState is Ownable2StepUpgradeable, ILiteState {
-    struct Entry {
+    struct StateEntry {
         uint256 createdAt;
         uint256 replacedByState;
         uint256 replaceAt;
@@ -20,7 +20,7 @@ contract LiteState is Ownable2StepUpgradeable, ILiteState {
     }
 
     struct LiteStateStorage {
-        mapping(uint256 id => mapping(uint256 state => Entry)) _idToEntry;
+        mapping(uint256 id => mapping(uint256 state => StateEntry)) _idToEntry;
         mapping(uint256 id => uint256 lastState) _idToLastState;
         mapping(uint256 root => GistRootEntry) _rootToGistRootEntry;
         uint256 _lastGistRoot;
@@ -30,6 +30,18 @@ contract LiteState is Ownable2StepUpgradeable, ILiteState {
     // TODO check the hash correctness
     bytes32 private constant LiteStateStorageLocation =
         0x0f7e3bdc6cc0e880d509aa1f6b8d1a88e5fcb7274e18dfba772424a36fe9b400;
+
+    modifier stateEntryExists(uint256 id, uint256 state) {
+        LiteStateStorage storage s = _getLiteStateStorage();
+        require(s._idToEntry[id][state].createdAt != 0, "Entry not found");
+        _;
+    }
+
+    modifier gistRootEntryExists(uint256 root) {
+        LiteStateStorage storage s = _getLiteStateStorage();
+        require(s._rootToGistRootEntry[root].createdAt != 0, "Gist root not found");
+        _;
+    }
 
     function _getLiteStateStorage() private pure returns (LiteStateStorage storage $) {
         assembly {
@@ -45,7 +57,8 @@ contract LiteState is Ownable2StepUpgradeable, ILiteState {
     function getStateInfoById(uint256 id) external view returns (StateInfo memory) {
         LiteStateStorage storage s = _getLiteStateStorage();
         uint256 lastState = s._idToLastState[id];
-        Entry storage entry = s._idToEntry[id][lastState];
+        StateEntry storage entry = s._idToEntry[id][lastState];
+        require(entry.createdAt != 0, "State not found");
 
         return
             StateInfo({
@@ -59,13 +72,12 @@ contract LiteState is Ownable2StepUpgradeable, ILiteState {
             });
     }
 
-    //TODO check for the id + state existence
     function getStateInfoByIdAndState(
         uint256 id,
         uint256 state
-    ) external view returns (StateInfo memory) {
+    ) external view stateEntryExists(id, state) returns (StateInfo memory) {
         LiteStateStorage storage s = _getLiteStateStorage();
-        Entry storage entry = s._idToEntry[id][state];
+        StateEntry storage entry = s._idToEntry[id][state];
 
         return
             StateInfo({
@@ -89,7 +101,7 @@ contract LiteState is Ownable2StepUpgradeable, ILiteState {
         return s._idToEntry[id][state].createdAt != 0;
     }
 
-    function getGISTRootInfo(uint256 root) external view returns (GistRootInfo memory) {
+    function getGISTRootInfo(uint256 root) external view gistRootEntryExists(root) returns (GistRootInfo memory) {
         LiteStateStorage storage s = _getLiteStateStorage();
         GistRootEntry storage entry = s._rootToGistRootEntry[root];
 
@@ -112,7 +124,7 @@ contract LiteState is Ownable2StepUpgradeable, ILiteState {
             "Identity state proof is not valid"
         );
 
-        $._idToEntry[msg.identity][msg.state] = Entry({
+        $._idToEntry[msg.identity][msg.state] = StateEntry({
             replacedByState: msg.replacedByState,
             createdAt: msg.createdAtTimestamp,
             replaceAt: msg.replacedAtTimestamp == 0 ? msg.timestamp : msg.replacedAtTimestamp
@@ -144,7 +156,7 @@ contract LiteState is Ownable2StepUpgradeable, ILiteState {
     }
 
     function getDefaultIdType() external view returns (bytes2) {
-        revert ("Not implemented");
+        revert("Not implemented");
     }
 
     function transitState(
@@ -156,7 +168,7 @@ contract LiteState is Ownable2StepUpgradeable, ILiteState {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) external {
-        revert ("Not implemented");
+        revert("Not implemented");
     }
 
     function transitStateGeneric(
@@ -167,6 +179,6 @@ contract LiteState is Ownable2StepUpgradeable, ILiteState {
         uint256 methodId,
         bytes calldata methodParams
     ) external {
-        revert ("Not implemented");
+        revert("Not implemented");
     }
 }
