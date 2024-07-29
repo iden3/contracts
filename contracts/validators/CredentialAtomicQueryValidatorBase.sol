@@ -176,7 +176,10 @@ abstract contract CredentialAtomicQueryValidatorBase is
             IState.StateInfo memory claimNonRevStateInfo = s.state.getStateInfoById(_id);
             bytes2 idType = GenesisUtils.idTypeFromId(_id);
             // for privado chain and genesis state info we don't need to check for expiration
-            if ((idType == 0x01a1 || idType == 0x01a2) && claimNonRevStateInfo.replacedAtTimestamp == 0) {
+            if (
+                (idType == 0x01a1 || idType == 0x01a2) &&
+                claimNonRevStateInfo.replacedAtTimestamp == 0
+            ) {
                 return;
             }
             // The non-empty state is returned, and it's not equal to the state that the user has provided.
