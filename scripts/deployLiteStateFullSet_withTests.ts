@@ -27,8 +27,8 @@ async function main() {
   const deployHelper = await DeployHelper.initialize(null, true);
 
   const { validator, verifierWrapper } = await deployHelper.deployValidatorContracts(
-    "VerifierSigStub", // "VerifierSigWrapper"
-    "CredentialAtomicQuerySigV2Validator",
+    "VerifierMTPStub", // "VerifierSigWrapper"
+    "CredentialAtomicQueryMTPV2Validator",
     await state.getAddress(),
   );
 
@@ -45,11 +45,7 @@ async function main() {
 
   const test: any = {
     name: "User state is not genesis but latest",
-    stateTransitions: [
-      require("../test/validators/common-data/issuer_genesis_state.json"),
-      require("../test/validators/common-data/user_state_transition.json"),
-    ],
-    proofJson: require("../test/validators/sig/data/valid_sig_user_non_genesis.json"),
+    proofJson: require("../test/validators/mtp/data/valid_mtp_user_non_genesis.json"),
     setProofExpiration: tenYears,
   };
 
@@ -86,21 +82,33 @@ async function main() {
   const query = {
     schema: BigInt("180410020913331409885634153623124536270"),
     claimPathKey: BigInt(
-      "8566939875427719562376598811066985304309117528846759529734201066483458512800",
+      "8566939875427719562376598811066985304309117528846759529734201066483458512800"
     ),
     operator: 1n,
     slotIndex: 0n,
-    value: [1420070400000000000n, ...new Array(63).fill("0").map((x) => BigInt(x))],
+    value: [
+      1420070400000000000n,
+      ...new Array(63).fill("0").map((x) => BigInt(x)),
+    ],
     queryHash: BigInt(
-      "1496222740463292783938163206931059379817846775593932664024082849882751356658",
+      "1496222740463292783938163206931059379817846775593932664024082849882751356658"
     ),
-    circuitIds: ["credentialAtomicQuerySigV2OnChain"],
+    circuitIds: ["credentialAtomicQueryMTPV2OnChain"],
     skipClaimRevocationCheck: false,
     claimPathNotExists: 0,
   };
 
-  //!!!!!!! NOTE: reassing this gistRoot public input only when ZK is off
-  inputs[6] = 19853722820696076614866442632484667785322331972748898388598571979196209718924n;
+  //!!!!!!! NOTE: reassing these inputs only when ZK is off
+  // gistRoot
+  inputs[5] = 19853722820696076614866442632484667785322331972748898388598571979196209718924n;
+  // issuerID
+  inputs[6] = 19090607534999372304474213543962416547920895595808567155882840509226423042n
+  // issuerClaimIdenState
+  inputs[7] = 13704162472154210473949595093402377697496480870900777124562670166655890846618n;
+  // issuerClaimNonRevState
+  inputs[9] = 13704162472154210473949595093402377697496480870900777124562670166655890846618n;
+
+  // inputs[]
 
   await validator.setProofExpirationTimeout(test.setProofExpiration);
   await validator.setGISTRootExpirationTimeout(tenYears);
@@ -120,8 +128,7 @@ async function main() {
 
 
   const requestId = 12345;
-  const proofJson = require("../test/validators/sig/data/valid_sig_user_genesis.json");
-  ({ inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson));
+  ({ inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson));
 
   const validatorAddr = await validator.getAddress();
   await verifier.addValidatorToWhitelist(validatorAddr);
@@ -158,17 +165,14 @@ async function main() {
     replacedAtTimestamp: 0,
   };
 
-  // await network.provider.request({
-  //   method: "hardhat_impersonateAccount",
-  //   params: ["0x615031554479128d65f30Ffa721791D6441d9727"],
-  // });
-  //
-  // const signerImpersonated = await ethers.getSigner("0x615031554479128d65f30Ffa721791D6441d9727");
-
   signatureGSM = await signer.signTypedData(domain, gsmTypes, globalStateMessage);
   await state.setGistRootInfo(globalStateMessage, signatureGSM);
 
-  const tx = await verifier.submitZKPResponse(requestId, inputs, pi_a, pi_b, pi_c);
+  //!!!!!!! NOTE: reassing these inputs only when ZK is off
+  // challenge
+  inputs[4] = BigInt("0x6622b9ffcf797282b86acef4f688ad1ae5d69ff3");
+
+  await verifier.submitZKPResponse(requestId, inputs, pi_a, pi_b, pi_c);
 
 }
 
