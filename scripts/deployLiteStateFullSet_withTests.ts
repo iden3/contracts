@@ -11,18 +11,14 @@ async function main() {
   const chainId = 0;
   const verifyingContract = ethers.ZeroAddress;
 
-
   // ##################### LiteState deploy #####################
-
 
   const opv = await ethers.deployContract("OracleProofValidator", [domainName, signatureVersion]);
   const state = await ethers.deployContract("LiteState", [await opv.getAddress()]);
 
   console.log("LiteState deployed to:", await state.getAddress());
 
-
   // ##################### Validator deploy #####################
-
 
   const deployHelper = await DeployHelper.initialize(null, true);
 
@@ -34,12 +30,9 @@ async function main() {
 
   // ##################### Verifier deploy #####################
 
-
   const verifier = await deployHelper.deployUniversalVerifier(undefined);
 
-
   // ##################### Tests Validator #####################
-
 
   const tenYears = 315360000;
 
@@ -82,16 +75,13 @@ async function main() {
   const query = {
     schema: BigInt("180410020913331409885634153623124536270"),
     claimPathKey: BigInt(
-      "8566939875427719562376598811066985304309117528846759529734201066483458512800"
+      "8566939875427719562376598811066985304309117528846759529734201066483458512800",
     ),
     operator: 1n,
     slotIndex: 0n,
-    value: [
-      1420070400000000000n,
-      ...new Array(63).fill("0").map((x) => BigInt(x)),
-    ],
+    value: [1420070400000000000n, ...new Array(63).fill("0").map((x) => BigInt(x))],
     queryHash: BigInt(
-      "1496222740463292783938163206931059379817846775593932664024082849882751356658"
+      "1496222740463292783938163206931059379817846775593932664024082849882751356658",
     ),
     circuitIds: ["credentialAtomicQueryMTPV2OnChain"],
     skipClaimRevocationCheck: false,
@@ -102,7 +92,7 @@ async function main() {
   // gistRoot
   inputs[5] = 19853722820696076614866442632484667785322331972748898388598571979196209718924n;
   // issuerID
-  inputs[6] = 19090607534999372304474213543962416547920895595808567155882840509226423042n
+  inputs[6] = 19090607534999372304474213543962416547920895595808567155882840509226423042n;
   // issuerClaimIdenState
   inputs[7] = 13704162472154210473949595093402377697496480870900777124562670166655890846618n;
   // issuerClaimNonRevState
@@ -114,18 +104,9 @@ async function main() {
   await validator.setGISTRootExpirationTimeout(tenYears);
 
   const data = packValidatorParams(query, test.allowedIssuers);
-  await validator.verify(
-    inputs,
-    pi_a,
-    pi_b,
-    pi_c,
-    data,
-    senderAddress,
-  );
-
+  await validator.verify(inputs, pi_a, pi_b, pi_c, data, senderAddress);
 
   // ##################### Test Verifier #####################
-
 
   const requestId = 12345;
   ({ inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson));
@@ -173,7 +154,6 @@ async function main() {
   inputs[4] = BigInt("0x6622b9ffcf797282b86acef4f688ad1ae5d69ff3");
 
   await verifier.submitZKPResponse(requestId, inputs, pi_a, pi_b, pi_c);
-
 }
 
 main()
