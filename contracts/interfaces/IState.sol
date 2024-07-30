@@ -99,6 +99,13 @@ interface IState {
     function getDefaultIdType() external view returns (bytes2);
 
     /**
+     * @dev Check if the id type exists.
+     * @param idType id type.
+     * @return True if the id type exists.
+     */
+    function isIdTypeExists(bytes2 idType) external view returns (bool);
+
+    /**
      * @dev Performs state transition
      * @param id Identifier of the identity
      * @param oldState Previous state of the identity

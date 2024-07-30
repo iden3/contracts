@@ -5,7 +5,6 @@ import { deployPoseidons } from "./PoseidonDeployHelper";
 import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain";
 
-
 const SMT_MAX_DEPTH = 64;
 
 export class DeployHelper {
@@ -39,10 +38,11 @@ export class DeployHelper {
     poseidon2: Contract;
     poseidon3: Contract;
     poseidon4: Contract;
+    defaultIdType;
   }> {
     this.log("======== State: deploy started ========");
 
-    const { defaultIdType, chainId } = await this.getDefaultIdType();
+    const { defaultIdType, chainId } = await this.getDefaultIdType();  
     this.log(`found defaultIdType ${defaultIdType} for chainId ${chainId}`);
 
     const owner = this.signers[0];
@@ -83,7 +83,7 @@ export class DeployHelper {
       StateFactory,
       [await verifier.getAddress(), defaultIdType, await owner.getAddress()],
       {
-      unsafeAllowLinkedLibraries: true,
+        unsafeAllowLinkedLibraries: true,
     });
     await state.waitForDeployment();
     this.log(`State contract deployed to address ${await state.getAddress()} from ${await owner.getAddress()}`);
@@ -99,6 +99,7 @@ export class DeployHelper {
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
       poseidon4: poseidon4Elements,
+      defaultIdType,
     };
   }
 

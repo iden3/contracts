@@ -5,6 +5,8 @@ import {IState} from "../interfaces/IState.sol";
 import {SmtLib} from "../lib/SmtLib.sol";
 import {PoseidonUnit3L, PoseidonUnit4L} from "../lib/Poseidon.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
+import "hardhat/console.sol";
+
 
 // /**
 //  * @dev Contract managing onchain identity
@@ -72,23 +74,25 @@ library IdentityLib {
      * @param _stateContractAddr - address of the State contract
      * @param _identityAddr - address of the Identity contract, which calls this function
      * @param depth - depth of identity SMTs
+     * @param idType - idType
      */
     function initialize(
         Data storage self,
         address _stateContractAddr,
         address _identityAddr,
-        uint256 depth
+        uint256 depth,
+        bytes2 idType
     ) external {
         require(depth <= IDENTITY_MAX_SMT_DEPTH, "SMT depth is greater than max allowed depth");
         self.stateContract = IState(_stateContractAddr);
+        bool isIdTypeExists = self.stateContract.isIdTypeExists(idType);
+        require(isIdTypeExists, "id type doesn't exist");
         self.isOldStateGenesis = true;
-
         self.trees.claimsTree.initialize(depth);
         self.trees.revocationsTree.initialize(depth);
         self.trees.rootsTree.initialize(depth);
-
         self.id = GenesisUtils.calcIdFromEthAddress(
-            self.stateContract.getDefaultIdType(),
+            idType,
             _identityAddr
         );
     }

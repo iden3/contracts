@@ -7,7 +7,7 @@ import {IState} from "../interfaces/IState.sol";
 import {IdentityLib} from "../lib/IdentityLib.sol";
 import {SmtLib} from "../lib/SmtLib.sol";
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-
+import "hardhat/console.sol";
 // /**
 //  * @dev Contract managing onchain identity
 //  */
@@ -43,11 +43,14 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
      * @dev Initialization of IdentityLib library
      * @param _stateContractAddr - address of the State contract
      */
-    function initialize(address _stateContractAddr) public virtual {
+    function initialize(address _stateContractAddr, bytes2 idType) public virtual {
+
+        console.log("IdentityBase:initialize");
         _getIdentityBaseStorage().identity.initialize(
             _stateContractAddr,
             address(this),
-            getSmtDepth()
+            getSmtDepth(),
+            idType
         );
     }
 

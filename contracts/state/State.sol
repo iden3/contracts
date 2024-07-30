@@ -51,6 +51,8 @@ contract State is Ownable2StepUpgradeable, IState {
      */
     bool internal _defaultIdTypeInitialized;
 
+    mapping(bytes2 => bool) internal _typeIdMap;
+
     using SmtLib for SmtLib.Data;
     using StateLib for StateLib.Data;
 
@@ -145,7 +147,9 @@ contract State is Ownable2StepUpgradeable, IState {
         bytes calldata methodParams
     ) public {
         if (methodId == 1) {
-            uint256 calcId = GenesisUtils.calcIdFromEthAddress(getDefaultIdType(), msg.sender);
+            bytes2 idType = GenesisUtils.getIdType(id);
+            require(_typeIdMap[idType], "id type is not registered");
+            uint256 calcId = GenesisUtils.calcIdFromEthAddress(idType, msg.sender);
             require(calcId == id, "msg.sender is not owner of the identity");
             require(methodParams.length == 0, "methodParams should be empty");
 
@@ -174,6 +178,14 @@ contract State is Ownable2StepUpgradeable, IState {
     function getDefaultIdType() public view returns (bytes2) {
         require(_defaultIdTypeInitialized, "Default Id Type is not initialized");
         return _defaultIdType;
+    }
+
+    /**
+     * @dev Check if id type exists
+     * @return bool
+     */
+    function isIdTypeExists(bytes2 idType) public view returns (bool) {
+        return _typeIdMap[idType];
     }
 
     /**
@@ -459,7 +471,16 @@ contract State is Ownable2StepUpgradeable, IState {
      * @param defaultIdType default id type
      */
     function _setDefaultIdType(bytes2 defaultIdType) internal {
+        _typeIdMap[defaultIdType] = true;
         _defaultIdType = defaultIdType;
         _defaultIdTypeInitialized = true;
+    }
+
+    /**
+     * @dev Set IdType  setter
+     * @param idType id type
+     */
+    function setIdType(bytes2 idType) public onlyOwner {
+        _typeIdMap[idType] = true;
     }
 }

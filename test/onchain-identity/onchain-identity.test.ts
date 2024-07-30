@@ -9,6 +9,7 @@ describe("Next tests reproduce identity life cycle", function () {
   let latestSavedState;
   let latestComputedState;
   let identityId;
+  let idType;
 
   before(async function () {
     const stDeployHelper = await DeployHelper.initialize();
@@ -20,10 +21,11 @@ describe("Next tests reproduce identity life cycle", function () {
       stContracts.poseidon1,
       stContracts.poseidon2,
       stContracts.poseidon3,
-      stContracts.poseidon4
+      stContracts.poseidon4,
+      stContracts.defaultIdType,
     );
     identity = contracts.identity;
-    const idType = await stContracts.state.getDefaultIdType();
+    idType = await stContracts.state.getDefaultIdType();
     const guWrpr = await stDeployHelper.deployGenesisUtilsWrapper();
     identityId = await guWrpr.calcOnchainIdFromAddress(idType, await identity.getAddress());
   });
@@ -279,7 +281,8 @@ describe("Claims tree proofs", () => {
       stContracts.poseidon1,
       stContracts.poseidon2,
       stContracts.poseidon3,
-      stContracts.poseidon4
+      stContracts.poseidon4,
+      stContracts.defaultIdType,
     );
     identity = contracts.identity;
   });
@@ -335,7 +338,8 @@ describe("Revocation tree proofs", () => {
       stContracts.poseidon1,
       stContracts.poseidon2,
       stContracts.poseidon3,
-      stContracts.poseidon4
+      stContracts.poseidon4,
+      stContracts.defaultIdType,
     );
     identity = contracts.identity;
   });
@@ -391,7 +395,8 @@ describe("Root of roots tree proofs", () => {
       stContracts.poseidon1,
       stContracts.poseidon2,
       stContracts.poseidon3,
-      stContracts.poseidon4
+      stContracts.poseidon4,
+      stContracts.defaultIdType,
     );
     identity = contracts.identity;
   });
@@ -458,7 +463,8 @@ describe("Compare historical roots with latest roots from tree", () => {
       stContracts.poseidon1,
       stContracts.poseidon2,
       stContracts.poseidon3,
-      stContracts.poseidon4
+      stContracts.poseidon4,
+      stContracts.defaultIdType,
     );
     identity = contracts.identity;
   });
@@ -510,7 +516,8 @@ describe("Compare historical roots with latest roots from tree", () => {
       stContracts.poseidon1,
       stContracts.poseidon2,
       stContracts.poseidon3,
-      stContracts.poseidon4
+      stContracts.poseidon4,
+      stContracts.defaultIdType,
     );
     identity = contracts.identity;
   });
@@ -593,7 +600,8 @@ describe("Genesis state doens't have history of states", () => {
       stContracts.poseidon1,
       stContracts.poseidon2,
       stContracts.poseidon3,
-      stContracts.poseidon4
+      stContracts.poseidon4,
+      stContracts.defaultIdType,
     );
     identity = contracts.identity;
   });
