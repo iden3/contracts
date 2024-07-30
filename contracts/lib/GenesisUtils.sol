@@ -16,7 +16,7 @@ library GenesisUtils {
     }
 
     /**
-     * @dev isGenesiidTypeFromIdsState
+     * @dev idTypeFromId
      */
     function idTypeFromId(uint256 id) internal pure returns (bytes2) {
         return bytes2(PrimitiveTypeUtils.uint256ToBytes(PrimitiveTypeUtils.reverseUint256(id)));
