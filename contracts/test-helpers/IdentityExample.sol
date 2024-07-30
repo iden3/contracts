@@ -7,15 +7,14 @@ import {ClaimBuilder} from "../lib/ClaimBuilder.sol";
 import {IdentityLib} from "../lib/IdentityLib.sol";
 import {IdentityBase} from "../lib/IdentityBase.sol";
 
-
 // /**
 //  * @dev Contract managing onchain identity
 //  */
 contract IdentityExample is IdentityBase, Ownable2StepUpgradeable {
     using IdentityLib for IdentityLib.Data;
 
-    function initialize(address _stateContractAddr, bytes2 idType) public override initializer {
-        super.initialize(_stateContractAddr, idType);
+    function initialize(address _stateContractAddr, bytes2 _idType) public override initializer {
+        super.initialize(_stateContractAddr, _idType);
         __Ownable_init(_msgSender());
     }
 

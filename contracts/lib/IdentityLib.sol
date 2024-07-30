@@ -5,8 +5,6 @@ import {IState} from "../interfaces/IState.sol";
 import {SmtLib} from "../lib/SmtLib.sol";
 import {PoseidonUnit3L, PoseidonUnit4L} from "../lib/Poseidon.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
-import "hardhat/console.sol";
-
 
 // /**
 //  * @dev Contract managing onchain identity
@@ -91,10 +89,7 @@ library IdentityLib {
         self.trees.claimsTree.initialize(depth);
         self.trees.revocationsTree.initialize(depth);
         self.trees.rootsTree.initialize(depth);
-        self.id = GenesisUtils.calcIdFromEthAddress(
-            idType,
-            _identityAddr
-        );
+        self.id = GenesisUtils.calcIdFromEthAddress(idType, _identityAddr);
     }
 
     /**
