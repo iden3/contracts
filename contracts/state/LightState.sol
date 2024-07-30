@@ -33,7 +33,8 @@ contract LiteState is Ownable2StepUpgradeable, ILiteState {
 
     modifier stateEntryExists(uint256 id, uint256 state) {
         LiteStateStorage storage s = _getLiteStateStorage();
-        require(s._idToEntry[id][state].createdAt != 0, "Entry not found");
+
+        require(state == 0 || s._idToEntry[id][state].createdAt != 0, "Entry not found");
         _;
     }
 
