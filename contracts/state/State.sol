@@ -14,7 +14,7 @@ contract State is Ownable2StepUpgradeable, IState {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.4.1";
+    string public constant VERSION = "2.5.0";
 
     // This empty reserved space is put in place to allow future versions
     // of the State contract to inherit from other contracts without a risk of
@@ -50,8 +50,6 @@ contract State is Ownable2StepUpgradeable, IState {
      * @dev Default Id Type initialized flag
      */
     bool internal _defaultIdTypeInitialized;
-
-    mapping(bytes2 => bool) internal _typeIdMap;
 
     using SmtLib for SmtLib.Data;
     using StateLib for StateLib.Data;
@@ -148,7 +146,7 @@ contract State is Ownable2StepUpgradeable, IState {
     ) public {
         if (methodId == 1) {
             bytes2 idType = GenesisUtils.getIdType(id);
-            require(_typeIdMap[idType], "id type is not registered");
+            require(_stateData.existingTypeIds[idType], "id type is not registered");
             uint256 calcId = GenesisUtils.calcIdFromEthAddress(idType, msg.sender);
             require(calcId == id, "msg.sender is not owner of the identity");
             require(methodParams.length == 0, "methodParams should be empty");
@@ -185,7 +183,7 @@ contract State is Ownable2StepUpgradeable, IState {
      * @return bool
      */
     function isIdTypeExists(bytes2 idType) public view returns (bool) {
-        return _typeIdMap[idType];
+        return _stateData.existingTypeIds[idType];
     }
 
     /**
@@ -471,7 +469,7 @@ contract State is Ownable2StepUpgradeable, IState {
      * @param defaultIdType default id type
      */
     function _setDefaultIdType(bytes2 defaultIdType) internal {
-        _typeIdMap[defaultIdType] = true;
+        _stateData.existingTypeIds[defaultIdType] = true;
         _defaultIdType = defaultIdType;
         _defaultIdTypeInitialized = true;
     }
@@ -481,6 +479,6 @@ contract State is Ownable2StepUpgradeable, IState {
      * @param idType id type
      */
     function setIdType(bytes2 idType) public onlyOwner {
-        _typeIdMap[idType] = true;
+        _stateData.existingTypeIds[idType] = true;
     }
 }
