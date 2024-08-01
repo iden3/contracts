@@ -32,7 +32,7 @@ async function main() {
 
   const verifier = await deployHelper.deployUniversalVerifier(undefined);
 
-  // ##################### Tests Validator #####################
+  // ##################### Test Verifier #####################
 
   const tenYears = 315360000;
 
@@ -42,35 +42,7 @@ async function main() {
     setProofExpiration: tenYears,
   };
 
-  const identityStateMessage = {
-    from: "0x615031554479128d65f30Ffa721791D6441d9727",
-    timestamp: 1722003509,
-    identity: 19090607534999372304474213543962416547920895595808567155882840509226423042n,
-    state: 13704162472154210473949595093402377697496480870900777124562670166655890846618n,
-    replacedByState: 0,
-    createdAtTimestamp: 1722000063,
-    replacedAtTimestamp: 0,
-  };
-
-  const signatureISM =
-    "0x4ae1511455ec833ce709854aa7d9fad3d1bdc703659cc039a8c7df5febbe8e3774d1a7f06e30ec0391669e33d64db76766ed0bc2dbbbc36535ee295e3599c9a71c";
-  await state.setStateInfo(identityStateMessage, signatureISM);
-
-  let globalStateMessage = {
-    from: "0x615031554479128d65f30Ffa721791D6441d9727",
-    timestamp: 1722003716,
-    root: 19853722820696076614866442632484667785322331972748898388598571979196209718924n,
-    replacedByRoot: 0n,
-    createdAtTimestamp: 1722000063,
-    replacedAtTimestamp: 0,
-  };
-  // const signatureGSM = await signer.signTypedData(domain, gsmTypes, globalStateMessage);
-  let signatureGSM =
-    "0x9465aae6a9ffa1cda7c5952115716d0d7c7e139aa9a20ee6312d70598c86e92c5fd1fd03d6dabbe2eee4ad7d58cdebabfd17c54501ce3748ed272e981d5599411b";
-  await state.setGistRootInfo(globalStateMessage, signatureGSM);
-
-  const senderAddress = "0x3930000000000000000000000000000000000000"; // because challenge is 12345 in proofs.
-  let { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
+  const requestId = 12345;
 
   const query = {
     schema: BigInt("180410020913331409885634153623124536270"),
@@ -88,28 +60,8 @@ async function main() {
     claimPathNotExists: 0,
   };
 
-  //!!!!!!! NOTE: reassing these inputs only when ZK is off
-  // gistRoot
-  inputs[5] = 19853722820696076614866442632484667785322331972748898388598571979196209718924n;
-  // issuerID
-  inputs[6] = 19090607534999372304474213543962416547920895595808567155882840509226423042n;
-  // issuerClaimIdenState
-  inputs[7] = 13704162472154210473949595093402377697496480870900777124562670166655890846618n;
-  // issuerClaimNonRevState
-  inputs[9] = 13704162472154210473949595093402377697496480870900777124562670166655890846618n;
-
-  // inputs[]
-
-  await validator.setProofExpirationTimeout(test.setProofExpiration);
-  await validator.setGISTRootExpirationTimeout(tenYears);
-
   const data = packValidatorParams(query, test.allowedIssuers);
-  await validator.verify(inputs, pi_a, pi_b, pi_c, data, senderAddress);
-
-  // ##################### Test Verifier #####################
-
-  const requestId = 12345;
-  ({ inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson));
+  const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
 
   const validatorAddr = await validator.getAddress();
   await verifier.addValidatorToWhitelist(validatorAddr);
@@ -126,6 +78,44 @@ async function main() {
     verifyingContract: ethers.ZeroAddress,
   };
 
+  const ismTypes = {
+    IdentityState: [
+      { name: "from", type: "address" },
+      { name: "timestamp", type: "uint256" },
+      { name: "identity", type: "uint256" },
+      { name: "state", type: "uint256" },
+      { name: "replacedByState", type: "uint256" },
+      { name: "createdAtTimestamp", type: "uint256" },
+      { name: "replacedAtTimestamp", type: "uint256" },
+    ],
+  };
+
+  let identityStateMessage = {
+    from: await signer.getAddress(),
+    timestamp: 1722003509,
+    identity: 21933750065545691586450392143787330185992517860945727248803138245838110721n,
+    state: 14350982505419309247370121592555562539756979893755695438303858350858014373778n,
+    replacedByState: 0,
+    createdAtTimestamp: 1722000063,
+    replacedAtTimestamp: 0,
+  };
+
+  let signatureISM = await signer.signTypedData(domain, ismTypes, identityStateMessage);
+  await state.setStateInfo(identityStateMessage, signatureISM);
+
+  identityStateMessage = {
+    from: await signer.getAddress(),
+    timestamp: 1722528262,
+    identity: 21933750065545691586450392143787330185992517860945727248803138245838110721n,
+    state: 14350982505419309247370121592555562539756979893755695438303858350858014373778n,
+    replacedByState: 0,
+    createdAtTimestamp: 1722528262,
+    replacedAtTimestamp: 0,
+  };
+
+  signatureISM = await signer.signTypedData(domain, ismTypes, identityStateMessage);
+  await state.setStateInfo(identityStateMessage, signatureISM);
+
   const gsmTypes = {
     GlobalState: [
       { name: "from", type: "address" },
@@ -137,21 +127,23 @@ async function main() {
     ],
   };
 
-  globalStateMessage = {
+  const globalStateMessage = {
     from: await signer.getAddress(),
-    timestamp: 1722003716,
-    root: 9261952740082697154168142614372093837079863683752625783051369996839209879956n,
+    timestamp: 1722527640,
+    root: 2330632222887470777740058486814238715476391492444368442359814550649181604485n,
     replacedByRoot: 0n,
-    createdAtTimestamp: 1722000063,
+    createdAtTimestamp: 1722527640,
     replacedAtTimestamp: 0,
   };
 
-  signatureGSM = await signer.signTypedData(domain, gsmTypes, globalStateMessage);
+  const signatureGSM = await signer.signTypedData(domain, gsmTypes, globalStateMessage);
   await state.setGistRootInfo(globalStateMessage, signatureGSM);
 
   //!!!!!!! NOTE: reassing these inputs only when ZK is off
   // challenge
   inputs[4] = BigInt("0x6622b9ffcf797282b86acef4f688ad1ae5d69ff3");
+
+  await validator.setProofExpirationTimeout(tenYears);
 
   await verifier.submitZKPResponse(requestId, inputs, pi_a, pi_b, pi_c);
 }
