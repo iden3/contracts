@@ -146,7 +146,7 @@ contract State is Ownable2StepUpgradeable, IState {
     ) public {
         if (methodId == 1) {
             bytes2 idType = GenesisUtils.getIdType(id);
-            require(_stateData.existingTypeIds[idType], "id type is not registered");
+            require(_stateData.isIdTypeSupported[idType], "id type is not registered");
             uint256 calcId = GenesisUtils.calcIdFromEthAddress(idType, msg.sender);
             require(calcId == id, "msg.sender is not owner of the identity");
             require(methodParams.length == 0, "methodParams should be empty");
@@ -183,7 +183,7 @@ contract State is Ownable2StepUpgradeable, IState {
      * @return bool
      */
     function isIdTypeExists(bytes2 idType) public view returns (bool) {
-        return _stateData.existingTypeIds[idType];
+        return _stateData.isIdTypeSupported[idType];
     }
 
     /**
@@ -469,7 +469,7 @@ contract State is Ownable2StepUpgradeable, IState {
      * @param defaultIdType default id type
      */
     function _setDefaultIdType(bytes2 defaultIdType) internal {
-        _stateData.existingTypeIds[defaultIdType] = true;
+        _stateData.isIdTypeSupported[defaultIdType] = true;
         _defaultIdType = defaultIdType;
         _defaultIdTypeInitialized = true;
     }
@@ -479,6 +479,6 @@ contract State is Ownable2StepUpgradeable, IState {
      * @param idType id type
      */
     function setIdType(bytes2 idType) public onlyOwner {
-        _stateData.existingTypeIds[idType] = true;
+        _stateData.isIdTypeSupported[idType] = true;
     }
 }
