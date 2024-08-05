@@ -68,7 +68,7 @@ library StateLib {
         id1 => state2 => [index1]
          */
         mapping(uint256 => mapping(uint256 => uint256[])) stateIndexes;
-        // exisitingTypeIds is used to keep track of existing typeIds
+        // isIdTypeSupported is used to keep track of existing typeIds
         mapping(bytes2 => bool) isIdTypeSupported;
         // This empty reserved space is put in place to allow future versions
         // of the State contract to add new SmtData struct fields without shifting down
