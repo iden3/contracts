@@ -179,10 +179,10 @@ contract State is Ownable2StepUpgradeable, IState {
     }
 
     /**
-     * @dev Check if id type exists
+     * @dev Check if id type supported
      * @return bool
      */
-    function isIdTypeExists(bytes2 idType) public view returns (bool) {
+    function isIdTypeSupported(bytes2 idType) public view returns (bool) {
         return _stateData.isIdTypeSupported[idType];
     }
 
