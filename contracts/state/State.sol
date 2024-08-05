@@ -146,7 +146,7 @@ contract State is Ownable2StepUpgradeable, IState {
     ) public {
         if (methodId == 1) {
             bytes2 idType = GenesisUtils.getIdType(id);
-            require(_stateData.isIdTypeSupported[idType], "id type is not registered");
+            require(_stateData.isIdTypeSupported[idType], "id type is not supported");
             uint256 calcId = GenesisUtils.calcIdFromEthAddress(idType, msg.sender);
             require(calcId == id, "msg.sender is not owner of the identity");
             require(methodParams.length == 0, "methodParams should be empty");
