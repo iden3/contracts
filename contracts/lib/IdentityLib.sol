@@ -83,7 +83,7 @@ library IdentityLib {
     ) external {
         require(depth <= IDENTITY_MAX_SMT_DEPTH, "SMT depth is greater than max allowed depth");
         self.stateContract = IState(_stateContractAddr);
-        require(self.stateContract.isIdTypeSupported(idType), "id type doesn't exist");
+        require(self.stateContract.isIdTypeSupported(idType), "id type is not supported");
         self.isOldStateGenesis = true;
         self.trees.claimsTree.initialize(depth);
         self.trees.revocationsTree.initialize(depth);
