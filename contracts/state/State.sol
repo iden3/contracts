@@ -84,6 +84,16 @@ contract State is Ownable2StepUpgradeable, IState {
     }
 
     /**
+     * @dev Modifier to check if the id type is supported
+     * @param id Identity
+     */
+    modifier onlySupportedTypeId(uint256 id) {
+        bytes2 idType = GenesisUtils.getIdType(id);
+        require(_stateData.isIdTypeSupported[idType], "id type is not supported");
+        _;
+    }
+
+    /**
      * @dev Set ZKP verifier contract address
      * @param newVerifierAddr Verifier contract address
      */
@@ -117,9 +127,7 @@ contract State is Ownable2StepUpgradeable, IState {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
-    ) public {
-        bytes2 idType = GenesisUtils.getIdType(id);
-        require(_stateData.isIdTypeSupported[idType], "id type is not supported");
+    ) public onlySupportedTypeId(id) {
         uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis ? 1 : 0)];
         require(
             verifier.verifyProof(a, b, c, input),
@@ -480,7 +488,7 @@ contract State is Ownable2StepUpgradeable, IState {
      * @dev Set supported IdType setter
      * @param idType id type
      */
-    function setIdTypeSupported(bytes2 idType) public onlyOwner {
+    function setSupportedIdType(bytes2 idType) public onlyOwner {
         _stateData.isIdTypeSupported[idType] = true;
     }
 }

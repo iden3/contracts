@@ -7,7 +7,6 @@ import { AbiCoder } from "ethers";
 describe("Universal Verifier events", function () {
   let verifier: any, sig: any;
   let signer;
-  let signerAddress: string;
 
   const queries = [
     {
@@ -66,14 +65,17 @@ describe("Universal Verifier events", function () {
 
   beforeEach(async () => {
     [signer] = await ethers.getSigners();
-    signerAddress = await signer.getAddress();
 
     const deployHelper = await DeployHelper.initialize(null, true);
     verifier = await deployHelper.deployUniversalVerifier(signer);
 
+    const { state: stateContract } = await deployHelper.deployState(["0x0112"]);
+    const state = stateContract;
+
     const contracts = await deployHelper.deployValidatorContracts(
       "VerifierSigWrapper",
-      "CredentialAtomicQuerySigV2Validator"
+      "CredentialAtomicQuerySigV2Validator",
+      await state.getAddress(),
     );
     sig = contracts.validator;
     await verifier.addValidatorToWhitelist(await sig.getAddress());

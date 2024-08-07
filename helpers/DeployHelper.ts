@@ -28,7 +28,8 @@ export class DeployHelper {
   }
 
   async deployState(
-    verifierContractName = "VerifierStateTransition"
+    supportedIdTypes: string[] = [],
+    verifierContractName = "VerifierStateTransition",
   ): Promise<{
     state: Contract;
     verifier: Contract;
@@ -42,7 +43,7 @@ export class DeployHelper {
   }> {
     this.log("======== State: deploy started ========");
 
-    const { defaultIdType, chainId } = await this.getDefaultIdType();  
+    const { defaultIdType, chainId } = await this.getDefaultIdType();
     this.log(`found defaultIdType ${defaultIdType} for chainId ${chainId}`);
 
     const owner = this.signers[0];
@@ -88,6 +89,14 @@ export class DeployHelper {
     await state.waitForDeployment();
     this.log(`State contract deployed to address ${await state.getAddress()} from ${await owner.getAddress()}`);
 
+    if (supportedIdTypes.length) {
+      supportedIdTypes = [...new Set(supportedIdTypes)];
+      for (const idType of supportedIdTypes) {
+        const tx = await state.setSupportedIdType(idType);
+        await tx.wait();
+        this.log(`Added id type ${idType}`);
+      }
+    }
     this.log("======== State: deploy completed ========");
 
     return {
@@ -295,20 +304,14 @@ export class DeployHelper {
   async deployValidatorContracts(
     verifierContractWrapperName: string,
     validatorContractName: string,
-    stateAddress = ""
+    stateAddress: string,
   ): Promise<{
     state: any;
     verifierWrapper: any;
     validator: any;
   }> {
-    if (!stateAddress) {
-      const stateDeployHelper = await DeployHelper.initialize();
-      const { state } = await stateDeployHelper.deployState();
-      stateAddress = await state.getAddress();
-    }
-
     const ValidatorContractVerifierWrapper = await ethers.getContractFactory(
-      verifierContractWrapperName
+      verifierContractWrapperName,
     );
     const validatorContractVerifierWrapper = await ValidatorContractVerifierWrapper.deploy();
 

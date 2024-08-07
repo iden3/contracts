@@ -31,7 +31,7 @@ describe("State transition with real verifier", () => {
   before(async function () {
     this.timeout(5000);
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployState();
+    const contracts = await deployHelper.deployState(["0x0100"]);
     state = contracts.state;
   });
 
@@ -115,7 +115,7 @@ describe("State transition negative cases", () => {
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployState(verifierStubName);
+    const contracts = await deployHelper.deployState(["0x0000"], verifierStubName);
     state = contracts.state;
   });
 
@@ -191,7 +191,7 @@ describe("StateInfo history", function () {
 
   before(async () => {
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployState(verifierStubName);
+    const contracts = await deployHelper.deployState(["0x0000"], verifierStubName);
     state = contracts.state;
 
     publishedStates = [];
@@ -227,7 +227,7 @@ describe("GIST proofs", () => {
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployState(verifierStubName);
+    const contracts = await deployHelper.deployState(["0x0000"], verifierStubName);
     state = contracts.state;
   });
 
@@ -300,7 +300,7 @@ describe("GIST root history", () => {
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployState(verifierStubName);
+    const contracts = await deployHelper.deployState(["0x0000"], verifierStubName);
     state = contracts.state;
   });
 
