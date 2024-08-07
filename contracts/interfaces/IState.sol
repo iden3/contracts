@@ -99,7 +99,6 @@ interface IState {
      */
     function isIdTypeSupported(bytes2 idType) external view returns (bool);
 
-
     /**
      * @dev Check if the id type supported for the id.
      * @param id An identity.
