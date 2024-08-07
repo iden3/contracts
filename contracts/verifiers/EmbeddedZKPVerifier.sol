@@ -39,10 +39,10 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
     /// @param c The third component of the proof
     function submitZKPResponse(
         uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c
     ) public virtual override {
         IZKPVerifier.ZKPRequest memory request = getZKPRequest(requestId);
         _beforeProofSubmit(requestId, inputs, request.validator);

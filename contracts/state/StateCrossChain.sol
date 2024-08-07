@@ -2,11 +2,11 @@
 pragma solidity 0.8.20;
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import {ILiteState} from "../interfaces/ILiteState.sol";
-import {IStateOracleProofAcceptor} from "../interfaces/IStateOracleProofAcceptor.sol";
+import {IState} from "../interfaces/IState.sol";
+import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 import {IOracleProofValidator, IdentityStateMessage, GlobalStateMessage} from "../interfaces/IOracleProofValidator.sol";
 
-contract LiteState is Ownable2StepUpgradeable, ILiteState {
+contract StateCrossChain is Ownable2StepUpgradeable, IStateCrossChain, IState {
     struct StateEntry {
         uint256 createdAt;
         uint256 replacedByState;
@@ -19,7 +19,8 @@ contract LiteState is Ownable2StepUpgradeable, ILiteState {
         uint256 replacedAt;
     }
 
-    struct LiteStateStorage {
+    /// @custom:storage-location erc7201:iden3.storage.StateCrossChain
+    struct StateCrossChainStorage {
         mapping(uint256 id => mapping(uint256 state => StateEntry)) _idToEntry;
         mapping(uint256 id => uint256 lastState) _idToLastState;
         mapping(uint256 root => GistRootEntry) _rootToGistRootEntry;
@@ -27,36 +28,52 @@ contract LiteState is Ownable2StepUpgradeable, ILiteState {
         IOracleProofValidator _oracleProofValidator;
     }
 
-    // TODO check the hash correctness
-    bytes32 private constant LiteStateStorageLocation =
-        0x0f7e3bdc6cc0e880d509aa1f6b8d1a88e5fcb7274e18dfba772424a36fe9b400;
+    struct IdentityStateUpdate {
+        IdentityStateMessage idStateMsg;
+        bytes signature;
+    }
+
+    struct GlobalStateUpdate {
+        GlobalStateMessage globalStateMsg;
+        bytes signature;
+    }
+
+    struct CrossChainProof {
+        string proofType; // gross16,
+        bytes proof;
+    }
+
+    // keccak256(abi.encode(uint256(keccak256("iden3.storage.StateCrossChain")) - 1))
+    //  & ~bytes32(uint256(0xff));
+    bytes32 private constant StateCrossChainStorageLocation =
+        0xfe6de916382846695d2555237dc6c0ef6555f4c949d4ba263e03532600778100;
 
     modifier stateEntryExists(uint256 id, uint256 state) {
-        LiteStateStorage storage s = _getLiteStateStorage();
+        StateCrossChainStorage storage s = _getStateCrossChainStorage();
 
         require(s._idToEntry[id][state].createdAt != 0, "Entry not found");
         _;
     }
 
     modifier gistRootEntryExists(uint256 root) {
-        LiteStateStorage storage s = _getLiteStateStorage();
+        StateCrossChainStorage storage s = _getStateCrossChainStorage();
         require(root == 0 || s._rootToGistRootEntry[root].createdAt != 0, "Gist root not found");
         _;
     }
 
-    function _getLiteStateStorage() private pure returns (LiteStateStorage storage $) {
+    function _getStateCrossChainStorage() private pure returns (StateCrossChainStorage storage $) {
         assembly {
-            $.slot := LiteStateStorageLocation
+            $.slot := StateCrossChainStorageLocation
         }
     }
 
     constructor(IOracleProofValidator validator) {
-        LiteStateStorage storage s = _getLiteStateStorage();
+        StateCrossChainStorage storage s = _getStateCrossChainStorage();
         s._oracleProofValidator = validator;
     }
 
     function getStateInfoById(uint256 id) external view returns (StateInfo memory) {
-        LiteStateStorage storage s = _getLiteStateStorage();
+        StateCrossChainStorage storage s = _getStateCrossChainStorage();
         uint256 lastState = s._idToLastState[id];
         StateEntry storage entry = s._idToEntry[id][lastState];
         require(entry.createdAt != 0, "State not found");
@@ -77,7 +94,7 @@ contract LiteState is Ownable2StepUpgradeable, ILiteState {
         uint256 id,
         uint256 state
     ) external view stateEntryExists(id, state) returns (StateInfo memory) {
-        LiteStateStorage storage s = _getLiteStateStorage();
+        StateCrossChainStorage storage s = _getStateCrossChainStorage();
         StateEntry storage entry = s._idToEntry[id][state];
 
         return
@@ -93,17 +110,19 @@ contract LiteState is Ownable2StepUpgradeable, ILiteState {
     }
 
     function idExists(uint256 id) external view returns (bool) {
-        LiteStateStorage storage s = _getLiteStateStorage();
+        StateCrossChainStorage storage s = _getStateCrossChainStorage();
         return s._idToLastState[id] != 0;
     }
 
     function stateExists(uint256 id, uint256 state) external view returns (bool) {
-        LiteStateStorage storage s = _getLiteStateStorage();
+        StateCrossChainStorage storage s = _getStateCrossChainStorage();
         return s._idToEntry[id][state].createdAt != 0;
     }
 
-    function getGISTRootInfo(uint256 root) external view gistRootEntryExists(root) returns (GistRootInfo memory) {
-        LiteStateStorage storage s = _getLiteStateStorage();
+    function getGISTRootInfo(
+        uint256 root
+    ) external view gistRootEntryExists(root) returns (GistRootInfo memory) {
+        StateCrossChainStorage storage s = _getStateCrossChainStorage();
         GistRootEntry storage entry = s._rootToGistRootEntry[root];
 
         return
@@ -117,8 +136,39 @@ contract LiteState is Ownable2StepUpgradeable, ILiteState {
             });
     }
 
-    function setStateInfo(IdentityStateMessage memory msg, bytes memory signature) external {
-        LiteStateStorage storage $ = _getLiteStateStorage();
+    function processProof(
+        bytes calldata proof
+    ) public {
+        (CrossChainProof[] memory proofs)
+            = abi.decode(proof, (CrossChainProof[]));
+
+        for (uint256 i = 0; i < proofs.length; i++) {
+
+            if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("globalStateProof"))) {
+                (GlobalStateUpdate memory globalStateUpd)
+                    = abi.decode(proofs[i].proof, (GlobalStateUpdate));
+
+                setGistRootInfo(
+                    globalStateUpd.globalStateMsg,
+                    globalStateUpd.signature
+                );
+
+            } else if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("stateProof"))) {
+                IdentityStateUpdate memory idStateUpd
+                    = abi.decode(proofs[i].proof, (IdentityStateUpdate));
+
+                setStateInfo(
+                    idStateUpd.idStateMsg,
+                    idStateUpd.signature
+                );
+            } else {
+                revert("Unknown proof type");
+            }
+        }
+    }
+
+    function setStateInfo(IdentityStateMessage memory msg, bytes memory signature) public {
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
 
         require(
             $._oracleProofValidator.verifyIdentityState(msg, signature),
@@ -137,8 +187,8 @@ contract LiteState is Ownable2StepUpgradeable, ILiteState {
         }
     }
 
-    function setGistRootInfo(GlobalStateMessage calldata msg, bytes calldata signature) external {
-        LiteStateStorage storage $ = _getLiteStateStorage();
+    function setGistRootInfo(GlobalStateMessage memory msg, bytes memory signature) public {
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
 
         require(
             $._oracleProofValidator.verifyGlobalState(msg, signature),

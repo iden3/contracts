@@ -50,10 +50,10 @@ contract ValidatorWhitelist is ZKPVerifierBase {
     /// @param c The third component of the proof
     function submitZKPResponse(
         uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c
     ) public virtual override {
         ICircuitValidator validator = getZKPRequest(requestId).validator;
         require(isWhitelistedValidator(validator), "Validator is not whitelisted");
@@ -69,10 +69,10 @@ contract ValidatorWhitelist is ZKPVerifierBase {
     /// @param sender The sender on behalf of which the proof is done
     function verifyZKPResponse(
         uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
         address sender
     ) public view virtual override returns (ICircuitValidator.KeyToInputIndex[] memory) {
         ICircuitValidator validator = getZKPRequest(requestId).validator;

@@ -34,10 +34,10 @@ contract RequestDisableable is ZKPVerifierBase {
     /// @param c The third component of the proof
     function submitZKPResponse(
         uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c
     ) public virtual override onlyEnabledRequest(requestId) {
         super.submitZKPResponse(requestId, inputs, a, b, c);
     }
@@ -51,10 +51,10 @@ contract RequestDisableable is ZKPVerifierBase {
     /// @param sender The sender on behalf of which the proof is done
     function verifyZKPResponse(
         uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
         address sender
     )
         public

@@ -41,14 +41,14 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
     function version() public pure virtual override returns (string memory);
 
     function parsePubSignals(
-        uint256[] calldata inputs
+        uint256[] memory inputs
     ) public pure virtual returns (PubSignals memory);
 
     function verify(
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
         bytes calldata data,
         address sender
     ) external view override returns (ICircuitValidator.KeyToInputIndex[] memory) {

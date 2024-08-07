@@ -24,6 +24,12 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         uint256 nullifierSessionID;
         uint256 proofType;
         uint256 verifierID;
+        SDInfo[] sdInfo;
+    }
+
+    struct SDInfo {
+        string key;
+        uint256[] allowedValues;
     }
 
     struct PubSignals {
@@ -77,7 +83,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         return VERSION;
     }
 
-    function parsePubSignals(uint256[] calldata inputs) public pure returns (PubSignals memory) {
+    function parsePubSignals(uint256[] memory inputs) public pure returns (PubSignals memory) {
         PubSignals memory pubSignals = PubSignals({
             userID: inputs[0],
             circuitQueryHash: inputs[1],
@@ -99,10 +105,10 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
     }
 
     function verify(
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
         bytes calldata data,
         address sender
     ) external view override returns (ICircuitValidator.KeyToInputIndex[] memory) {

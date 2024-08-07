@@ -9,6 +9,7 @@ import {RequestDisableable} from "./RequestDisableable.sol";
 import {ValidatorWhitelist} from "./ValidatorWhitelist.sol";
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
+import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 
 /// @title Universal Verifier Contract
 /// @notice A contract to manage ZKP (Zero-Knowledge Proof) requests and proofs.
@@ -46,8 +47,9 @@ contract UniversalVerifier is
     }
 
     /// @dev Initializes the contract
-    function initialize() public initializer {
+    function initialize(IStateCrossChain _state) public initializer {
         __Ownable_init(_msgSender());
+        super.__ZKPVerifierBase_init(_state);
     }
 
     /// @dev Version of contract getter
@@ -81,10 +83,10 @@ contract UniversalVerifier is
     /// @param c The third component of the proof
     function submitZKPResponse(
         uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c
     ) public override(RequestDisableable, ValidatorWhitelist, ZKPVerifierBase) {
         super.submitZKPResponse(requestId, inputs, a, b, c);
         emit ZKPResponseSubmitted(requestId, _msgSender());
@@ -99,10 +101,10 @@ contract UniversalVerifier is
     /// @param sender The sender on behalf of which the proof is done
     function verifyZKPResponse(
         uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
         address sender
     )
         public

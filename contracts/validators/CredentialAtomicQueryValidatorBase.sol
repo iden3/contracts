@@ -98,10 +98,10 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function verify(
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
         bytes calldata data,
         address sender
     ) external view virtual returns (ICircuitValidator.KeyToInputIndex[] memory);
@@ -149,6 +149,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         }
     }
 
+    //TODO add oracle data to the args or create another method version
     function _checkClaimIssuanceState(uint256 _id, uint256 _state) internal view {
         bool isStateGenesis = GenesisUtils.isGenesisState(_id, _state);
 

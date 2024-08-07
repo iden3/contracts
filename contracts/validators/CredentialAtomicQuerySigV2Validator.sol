@@ -38,7 +38,7 @@ contract CredentialAtomicQuerySigV2Validator is CredentialAtomicQueryV2Validator
     }
 
     function parsePubSignals(
-        uint256[] calldata inputs
+        uint256[] memory inputs
     ) public pure override returns (PubSignals memory) {
         PubSignals memory params = PubSignals({
             merklized: inputs[0],
