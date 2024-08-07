@@ -9,7 +9,6 @@ describe("Next tests reproduce identity life cycle", function () {
   let latestSavedState;
   let latestComputedState;
   let identityId;
-  let idType;
 
   before(async function () {
     const stDeployHelper = await DeployHelper.initialize();
@@ -25,9 +24,11 @@ describe("Next tests reproduce identity life cycle", function () {
       stContracts.defaultIdType,
     );
     identity = contracts.identity;
-    idType = await stContracts.state.getDefaultIdType();
     const guWrpr = await stDeployHelper.deployGenesisUtilsWrapper();
-    identityId = await guWrpr.calcOnchainIdFromAddress(idType, await identity.getAddress());
+    identityId = await guWrpr.calcOnchainIdFromAddress(
+      stContracts.defaultIdType,
+      await identity.getAddress(),
+    );
   });
 
   describe("create identity", function () {

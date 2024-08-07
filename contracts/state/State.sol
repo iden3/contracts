@@ -41,16 +41,6 @@ contract State is Ownable2StepUpgradeable, IState {
      */
     SmtLib.Data internal _gistData;
 
-    /**
-     * @dev Default Id Type
-     */
-    bytes2 internal _defaultIdType;
-
-    /**
-     * @dev Default Id Type initialized flag
-     */
-    bool internal _defaultIdTypeInitialized;
-
     using SmtLib for SmtLib.Data;
     using StateLib for StateLib.Data;
 
@@ -79,18 +69,13 @@ contract State is Ownable2StepUpgradeable, IState {
         }
 
         verifier = verifierContractAddr;
-        _setDefaultIdType(defaultIdType);
+        _setIdType(defaultIdType);
         __Ownable_init(owner);
-    }
-
-    /**
-     * @dev Modifier to check if the id type is supported
-     * @param id Identity
-     */
-    modifier onlySupportedTypeId(uint256 id) {
-        bytes2 idType = GenesisUtils.getIdType(id);
-        require(_stateData.isIdTypeSupported[idType], "id type is not supported");
-        _;
+        // clear the slot where _defaultIdTypeInitialized and _defaultIdType are stored
+        // need to remove this line after the next upgrade
+        assembly {
+            sstore(752, 0)
+        }
     }
 
     /**
@@ -99,14 +84,6 @@ contract State is Ownable2StepUpgradeable, IState {
      */
     function setVerifier(address newVerifierAddr) external onlyOwner {
         verifier = IStateTransitionVerifier(newVerifierAddr);
-    }
-
-    /**
-     * @dev Set defaultIdType external wrapper (only owner can call)
-     * @param defaultIdType default id type
-     */
-    function setDefaultIdType(bytes2 defaultIdType) external onlyOwner {
-        _setDefaultIdType(defaultIdType);
     }
 
     /**
@@ -127,7 +104,8 @@ contract State is Ownable2StepUpgradeable, IState {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
-    ) public onlySupportedTypeId(id) {
+    ) public {
+        checkSupportedIdTypeForId(id);
         uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis ? 1 : 0)];
         require(
             verifier.verifyProof(a, b, c, input),
@@ -154,8 +132,7 @@ contract State is Ownable2StepUpgradeable, IState {
         uint256 methodId,
         bytes calldata methodParams
     ) public {
-        bytes2 idType = GenesisUtils.getIdType(id);
-        require(_stateData.isIdTypeSupported[idType], "id type is not supported");
+        bytes2 idType = checkSupportedIdTypeForId(id);
         if (methodId == 1) {
             uint256 calcId = GenesisUtils.calcIdFromEthAddress(idType, msg.sender);
             require(calcId == id, "msg.sender is not owner of the identity");
@@ -177,15 +154,6 @@ contract State is Ownable2StepUpgradeable, IState {
      */
     function getVerifier() external view returns (address) {
         return address(verifier);
-    }
-
-    /**
-     * @dev Get defaultIdType
-     * @return defaultIdType
-     */
-    function getDefaultIdType() public view returns (bytes2) {
-        require(_defaultIdTypeInitialized, "Default Id Type is not initialized");
-        return _defaultIdType;
     }
 
     /**
@@ -475,13 +443,21 @@ contract State is Ownable2StepUpgradeable, IState {
     }
 
     /**
-     * @dev Set defaultIdType internal setter
+     * @dev Set set id type internal setter
      * @param defaultIdType default id type
      */
-    function _setDefaultIdType(bytes2 defaultIdType) internal {
+    function _setIdType(bytes2 defaultIdType) internal {
         _stateData.isIdTypeSupported[defaultIdType] = true;
-        _defaultIdType = defaultIdType;
-        _defaultIdTypeInitialized = true;
+    }
+
+    /**
+     * @dev Check if the id type is supported and return the id type
+     * @param id Identity
+     */
+    function checkSupportedIdTypeForId(uint256 id) public view returns (bytes2) {
+        bytes2 idType = GenesisUtils.getIdType(id);
+        require(_stateData.isIdTypeSupported[idType], "id type is not supported");
+        return idType;
     }
 
     /**
@@ -489,6 +465,6 @@ contract State is Ownable2StepUpgradeable, IState {
      * @param idType id type
      */
     function setSupportedIdType(bytes2 idType) public onlyOwner {
-        _stateData.isIdTypeSupported[idType] = true;
+        _setIdType(idType);
     }
 }
