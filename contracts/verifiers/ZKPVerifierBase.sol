@@ -143,9 +143,9 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
 
         // SAVE METADATA
 
-        (Metadata[] memory meta) = abi.decode(data, (Metadata[]));
-
         if (data.length > 0) {
+            (Metadata[] memory meta) = abi.decode(data, (Metadata[]));
+
             Proof storage proof = _getZKPVerifierStorage()._proofs[_msgSender()][requestId];
             for (uint256 i = 0; i < meta.length; i++) {
                 // TODO check the Poseidon Sponge hash
