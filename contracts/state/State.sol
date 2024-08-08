@@ -105,7 +105,8 @@ contract State is Ownable2StepUpgradeable, IState {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) public {
-        checkSupportedIdTypeForId(id);
+        // Check if the id type is supported
+        getIdTypeIfSupported(id);
         uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis ? 1 : 0)];
         require(
             verifier.verifyProof(a, b, c, input),
@@ -132,7 +133,7 @@ contract State is Ownable2StepUpgradeable, IState {
         uint256 methodId,
         bytes calldata methodParams
     ) public {
-        bytes2 idType = checkSupportedIdTypeForId(id);
+        bytes2 idType = getIdTypeIfSupported(id);
         if (methodId == 1) {
             uint256 calcId = GenesisUtils.calcIdFromEthAddress(idType, msg.sender);
             require(calcId == id, "msg.sender is not owner of the identity");
@@ -453,8 +454,9 @@ contract State is Ownable2StepUpgradeable, IState {
     /**
      * @dev Check if the id type is supported and return the id type
      * @param id Identity
+     * trows if id type is not supported
      */
-    function checkSupportedIdTypeForId(uint256 id) public view returns (bytes2) {
+    function getIdTypeIfSupported(uint256 id) public view returns (bytes2) {
         bytes2 idType = GenesisUtils.getIdType(id);
         require(_stateData.isIdTypeSupported[idType], "id type is not supported");
         return idType;

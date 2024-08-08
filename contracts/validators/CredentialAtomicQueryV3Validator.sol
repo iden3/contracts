@@ -171,7 +171,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         require(
             userID ==
                 GenesisUtils.calcIdFromEthAddress(
-                    getState().checkSupportedIdTypeForId(userID),
+                    getState().getIdTypeIfSupported(userID),
                     ethIdentityOwner
                 ),
             "UserID does not correspond to the sender"

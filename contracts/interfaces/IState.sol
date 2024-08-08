@@ -100,11 +100,11 @@ interface IState {
     function isIdTypeSupported(bytes2 idType) external view returns (bool);
 
     /**
-     * @dev Check if the id type supported for the id.
+     * @dev Get id if the id type supported for the id, otherwise revert.
      * @param id An identity.
      * @return The id type.
      */
-    function checkSupportedIdTypeForId(uint256 id) external view returns (bytes2);
+    function getIdTypeIfSupported(uint256 id) external view returns (bytes2);
 
     /**
      * @dev Performs state transition
