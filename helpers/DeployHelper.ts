@@ -92,7 +92,7 @@ export class DeployHelper {
     if (supportedIdTypes.length) {
       supportedIdTypes = [...new Set(supportedIdTypes)];
       for (const idType of supportedIdTypes) {
-        const tx = await state.setSupportedIdType(idType);
+        const tx = await state.setSupportedIdType(idType, true);
         await tx.wait();
         this.log(`Added id type ${idType}`);
       }

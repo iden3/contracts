@@ -465,8 +465,9 @@ contract State is Ownable2StepUpgradeable, IState {
     /**
      * @dev Set supported IdType setter
      * @param idType id type
+     * @param supported ability to enable or disable id type support
      */
-    function setSupportedIdType(bytes2 idType) public onlyOwner {
-        _setIdType(idType);
+    function setSupportedIdType(bytes2 idType, bool supported) public onlyOwner {
+        _stateData.isIdTypeSupported[idType] = supported;
     }
 }
