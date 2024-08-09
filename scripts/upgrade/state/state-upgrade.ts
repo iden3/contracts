@@ -23,6 +23,7 @@ const impersonate = false;
 // const stateValue = "1406871096418685973996308927175869145223551926097850896167027746851817634897";
 // const impersonate = true;
 
+
 async function getSigners(useImpersonation: boolean): Promise<any> {
   if (useImpersonation) {
     const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(proxyAdminOwnerAddress);
@@ -46,12 +47,12 @@ async function main() {
 
   const stateDeployHelper = await DeployHelper.initialize(
     [proxyAdminOwnerSigner, stateOwnerSigner],
-    true,
+    true
   );
 
   const stateMigrationHelper = new StateContractMigrationHelper(
     stateDeployHelper,
-    proxyAdminOwnerSigner,
+    proxyAdminOwnerSigner
   );
 
   const stateContract = await stateMigrationHelper.getInitContract({
@@ -62,7 +63,7 @@ async function main() {
   const dataBeforeUpgrade = await stateMigrationHelper.getDataFromContract(
     stateContract,
     id,
-    stateValue,
+    stateValue
   );
 
   const defaultIdTypeBefore = await stateContract.getDefaultIdType();
@@ -72,54 +73,57 @@ async function main() {
 
   const verifierBefore = await stateContract.getVerifier();
 
+
   // **** Upgrade State ****
   await stateMigrationHelper.upgradeContract(stateContract, false);
   // ************************
 
-  const dataAfterUpgrade = await stateMigrationHelper.getDataFromContract(
-    stateContract,
-    id,
-    stateValue,
-  );
+
+  const dataAfterUpgrade = await stateMigrationHelper.getDataFromContract(stateContract, id, stateValue);
   stateMigrationHelper.checkData(dataBeforeUpgrade, dataAfterUpgrade);
+
+  const defaultIdTypeAfter = await stateContract.getDefaultIdType();
   const stateOwnerAddressAfter = await stateContract.owner();
   const verifierAfter = await stateContract.getVerifier();
+  expect(defaultIdTypeAfter).to.equal(defaultIdTypeBefore);
   expect(stateOwnerAddressAfter).to.equal(stateOwnerAddressBefore);
   expect(verifierAfter).to.equal(verifierBefore);
   expect(stateContract.isIdTypeSupported(defaultIdTypeBefore)).to.be.true;
 
   console.log("Contract Upgrade Finished");
 
+
   // **** Additional write-read tests (remove in real upgrade) ****
-  const verifierStubContractName = "VerifierStub";
+        const verifierStubContractName = "VerifierStub";
 
-  const verifierStub = await ethers.deployContract(verifierStubContractName);
-  await stateContract.connect(stateOwnerSigner).setVerifier(await verifierStub.getAddress());
-  const oldStateInfo = await stateContract.getStateInfoById(id);
+        const verifierStub = await ethers.deployContract(verifierStubContractName);
+        await stateContract.connect(stateOwnerSigner).setVerifier(await verifierStub.getAddress());
+        const oldStateInfo = await stateContract.getStateInfoById(id);
 
-  const stateHistoryLengthBefore = await stateContract.getStateInfoHistoryLengthById(id);
+        const stateHistoryLengthBefore = await stateContract.getStateInfoHistoryLengthById(id);
 
-  const newState = 12345;
-  await expect(
-    stateContract.transitState(
-      id,
-      oldStateInfo.state,
-      newState,
-      false,
-      [0, 0],
-      [
-        [0, 0],
-        [0, 0],
-      ],
-      [0, 0],
-    ),
-  ).not.to.be.reverted;
+        const newState = 12345;
+        await expect(
+          stateContract.transitState(
+            id,
+            oldStateInfo.state,
+            newState,
+            false,
+            [0, 0],
+            [
+              [0, 0],
+              [0, 0],
+            ],
+            [0, 0]
+          )
+        ).not.to.be.reverted;
 
-  const newStateInfo = await stateContract.getStateInfoById(id);
-  expect(newStateInfo.state).to.equal(newState);
-  const stateHistoryLengthAfter = await stateContract.getStateInfoHistoryLengthById(id);
-  expect(stateHistoryLengthAfter).to.equal(stateHistoryLengthBefore.add(1));
+        const newStateInfo = await stateContract.getStateInfoById(id);
+        expect(newStateInfo.state).to.equal(newState);
+        const stateHistoryLengthAfter = await stateContract.getStateInfoHistoryLengthById(id);
+        expect(stateHistoryLengthAfter).to.equal(stateHistoryLengthBefore.add(1));
   // **********************************
+
 }
 
 main()
