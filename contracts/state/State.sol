@@ -41,6 +41,16 @@ contract State is Ownable2StepUpgradeable, IState {
      */
     SmtLib.Data internal _gistData;
 
+    /**
+     * @dev Default Id Type
+     */
+    bytes2 internal _defaultIdType;
+
+    /**
+     * @dev Default Id Type initialized flag
+     */
+    bool internal _defaultIdTypeInitialized;
+
     using SmtLib for SmtLib.Data;
     using StateLib for StateLib.Data;
 
@@ -69,13 +79,8 @@ contract State is Ownable2StepUpgradeable, IState {
         }
 
         verifier = verifierContractAddr;
-        _setIdType(defaultIdType);
+        _setDefaultIdType(defaultIdType);
         __Ownable_init(owner);
-        // clear the slot where _defaultIdTypeInitialized and _defaultIdType are stored
-        // need to remove this line after the next upgrade
-        assembly {
-            sstore(752, 0)
-        }
     }
 
     /**
@@ -84,6 +89,15 @@ contract State is Ownable2StepUpgradeable, IState {
      */
     function setVerifier(address newVerifierAddr) external onlyOwner {
         verifier = IStateTransitionVerifier(newVerifierAddr);
+    }
+
+    /**
+     * @dev Get defaultIdType
+     * @return defaultIdType
+     */
+    function getDefaultIdType() public view returns (bytes2) {
+        require(_defaultIdTypeInitialized, "Default Id Type is not initialized");
+        return _defaultIdType;
     }
 
     /**
@@ -444,10 +458,12 @@ contract State is Ownable2StepUpgradeable, IState {
     }
 
     /**
-     * @dev Set set id type internal setter
+     * @dev Set set default id type internal setter
      * @param defaultIdType default id type
      */
-    function _setIdType(bytes2 defaultIdType) internal {
+    function _setDefaultIdType(bytes2 defaultIdType) internal {
+        _defaultIdType = defaultIdType;
+        _defaultIdTypeInitialized = true;
         _stateData.isIdTypeSupported[defaultIdType] = true;
     }
 
