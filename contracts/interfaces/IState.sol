@@ -93,6 +93,20 @@ interface IState {
     function getGISTRootInfo(uint256 root) external view returns (GistRootInfo memory);
 
     /**
+     * @dev Check if the id type supported.
+     * @param idType id type.
+     * @return True if the id type supported.
+     */
+    function isIdTypeSupported(bytes2 idType) external view returns (bool);
+
+    /**
+     * @dev Get id if the id type supported for the id, otherwise revert.
+     * @param id An identity.
+     * @return The id type.
+     */
+    function getIdTypeIfSupported(uint256 id) external view returns (bytes2);
+
+    /**
      * @dev Get defaultIdType
      * @return defaultIdType
      */

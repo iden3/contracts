@@ -27,7 +27,8 @@ export class OnchainIdentityDeployHelper {
     poseidon1: Contract,
     poseidon2: Contract,
     poseidon3: Contract,
-    poseidon4: Contract
+    poseidon4: Contract,
+    idType: Uint8Array,
   ): Promise<{
     identity: Contract;
   }> {
@@ -49,9 +50,11 @@ export class OnchainIdentityDeployHelper {
         IdentityLib: await il.getAddress(),
       },
     });
-    // const IdentityFactory = await ethers.getContractFactory("Identity");
-    const Identity = await upgrades.deployProxy(IdentityFactory, [await state.getAddress()], {
-      unsafeAllowLinkedLibraries: true,
+    const Identity = await upgrades.deployProxy(
+      IdentityFactory,
+      [await state.getAddress(), idType],
+      {
+        unsafeAllowLinkedLibraries: true,
     });
     await Identity.waitForDeployment();
     this.log(
@@ -80,9 +83,9 @@ export class OnchainIdentityDeployHelper {
     poseidonUtil4lAddress: string,
   ): Promise<Contract> {
     const Identity = await ethers.getContractFactory("IdentityLib", { libraries: {
-      SmtLib: smtpAddress,
-      PoseidonUnit3L: poseidonUtil3lAddress,
-      PoseidonUnit4L: poseidonUtil4lAddress,
+        SmtLib: smtpAddress,
+        PoseidonUnit3L: poseidonUtil3lAddress,
+        PoseidonUnit4L: poseidonUtil4lAddress,
     }});
     const il = await Identity.deploy();
     await il.waitForDeployment();

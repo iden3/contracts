@@ -13,8 +13,8 @@ import {IdentityBase} from "../lib/IdentityBase.sol";
 contract IdentityExample is IdentityBase, Ownable2StepUpgradeable {
     using IdentityLib for IdentityLib.Data;
 
-    function initialize(address _stateContractAddr) public override initializer {
-        super.initialize(_stateContractAddr);
+    function initialize(address _stateContractAddr, bytes2 _idType) public override initializer {
+        super.initialize(_stateContractAddr, _idType);
         __Ownable_init(_msgSender());
     }
 

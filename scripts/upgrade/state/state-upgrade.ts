@@ -88,6 +88,7 @@ async function main() {
   expect(defaultIdTypeAfter).to.equal(defaultIdTypeBefore);
   expect(stateOwnerAddressAfter).to.equal(stateOwnerAddressBefore);
   expect(verifierAfter).to.equal(verifierBefore);
+  expect(stateContract.isIdTypeSupported(defaultIdTypeBefore)).to.be.true;
 
   console.log("Contract Upgrade Finished");
 

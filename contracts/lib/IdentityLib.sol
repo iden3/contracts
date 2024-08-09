@@ -72,25 +72,23 @@ library IdentityLib {
      * @param _stateContractAddr - address of the State contract
      * @param _identityAddr - address of the Identity contract, which calls this function
      * @param depth - depth of identity SMTs
+     * @param idType - idType
      */
     function initialize(
         Data storage self,
         address _stateContractAddr,
         address _identityAddr,
-        uint256 depth
+        uint256 depth,
+        bytes2 idType
     ) external {
         require(depth <= IDENTITY_MAX_SMT_DEPTH, "SMT depth is greater than max allowed depth");
         self.stateContract = IState(_stateContractAddr);
+        require(self.stateContract.isIdTypeSupported(idType), "id type is not supported");
         self.isOldStateGenesis = true;
-
         self.trees.claimsTree.initialize(depth);
         self.trees.revocationsTree.initialize(depth);
         self.trees.rootsTree.initialize(depth);
-
-        self.id = GenesisUtils.calcIdFromEthAddress(
-            self.stateContract.getDefaultIdType(),
-            _identityAddr
-        );
+        self.id = GenesisUtils.calcIdFromEthAddress(idType, _identityAddr);
     }
 
     /**
