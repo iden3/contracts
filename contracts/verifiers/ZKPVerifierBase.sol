@@ -17,7 +17,6 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         string validatorVersion;
         uint256 blockNumber;
         uint256 blockTimestamp;
-        mapping(string key => bytes) metadata;
     }
 
     /// @custom:storage-location erc7201:iden3.storage.ZKPVerifier
@@ -25,7 +24,6 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         mapping(address user => mapping(uint64 requestID => Proof)) _proofs;
         mapping(uint64 requestID => IZKPVerifier.ZKPRequest) _requests;
         uint64[] _requestIds;
-        IStateCrossChain _stateCrossChain;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifier")) - 1)) & ~bytes32(uint256(0xff));
@@ -64,11 +62,6 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             require(!requestIdExists(requestId), "request id already exists");
         }
         _;
-    }
-
-    function __ZKPVerifierBase_init(IStateCrossChain _stateCrossChain) public initializer {
-        ZKPVerifierStorage storage s = _getZKPVerifierStorage();
-        s._stateCrossChain = IStateCrossChain(_stateCrossChain);
     }
 
     /// @dev Sets a ZKP request
@@ -120,39 +113,6 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     struct Metadata {
         string key;
         bytes value;
-    }
-
-    function submitZKPResponseCrossChain(
-        uint64 requestId,
-        bytes calldata zkProof, // groth16
-        bytes calldata crossChainProof, // oracleType1
-        bytes calldata data // selectiveDisclosure
-    ) public {
-
-        // CHECK CrossChainProof
-
-        ZKPVerifierStorage storage s = _getZKPVerifierStorage();
-        s._stateCrossChain.processProof(crossChainProof);
-
-        // CHECK ZKProof
-
-        (uint256[] memory inputs, uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c)
-            = abi.decode(zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
-
-        submitZKPResponse(requestId, inputs, a, b, c);
-
-        // SAVE METADATA
-
-        if (data.length > 0) {
-            (Metadata[] memory meta) = abi.decode(data, (Metadata[]));
-
-            Proof storage proof = _getZKPVerifierStorage()._proofs[_msgSender()][requestId];
-            for (uint256 i = 0; i < meta.length; i++) {
-                // TODO check the Poseidon Sponge hash
-    //            require(meta[i].value ==  or sig or ... )
-                proof.metadata[meta[i].key] = meta[i].value;
-            }
-        }
     }
 
     /// @dev Verifies a ZKP response without updating any proof status

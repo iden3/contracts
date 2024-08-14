@@ -10,6 +10,7 @@ import {ValidatorWhitelist} from "./ValidatorWhitelist.sol";
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
+import {ZKPVerifierBaseV2} from "./ZKPVerifierBaseV2.sol";
 
 /// @title Universal Verifier Contract
 /// @notice A contract to manage ZKP (Zero-Knowledge Proof) requests and proofs.
@@ -17,7 +18,8 @@ contract UniversalVerifier is
     Ownable2StepUpgradeable,
     RequestOwnership,
     RequestDisableable,
-    ValidatorWhitelist
+    ValidatorWhitelist,
+    ZKPVerifierBaseV2
 {
     /**
      * @dev Version of contract
