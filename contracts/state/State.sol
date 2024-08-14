@@ -103,8 +103,6 @@ contract State is Ownable2StepUpgradeable, IState {
     /**
      * @dev Set defaultIdType external wrapper (only owner can call)
      * @param defaultIdType default id type
-     * @dev Get defaultIdType
-     * @return defaultIdType
      */
     function setDefaultIdType(bytes2 defaultIdType) external onlyOwner {
         _setDefaultIdType(defaultIdType);
