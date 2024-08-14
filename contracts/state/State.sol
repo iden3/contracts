@@ -101,6 +101,16 @@ contract State is Ownable2StepUpgradeable, IState {
     }
 
     /**
+     * @dev Set defaultIdType external wrapper (only owner can call)
+     * @param defaultIdType default id type
+     * @dev Get defaultIdType
+     * @return defaultIdType
+     */
+    function setDefaultIdType(bytes2 defaultIdType) external onlyOwner {
+        _setDefaultIdType(defaultIdType);
+    }
+
+    /**
      * @dev Change the state of an identity (transit to the new state) with ZKP ownership check.
      * @param id Identity
      * @param oldState Previous identity state
