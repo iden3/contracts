@@ -3,6 +3,13 @@ pragma solidity ^0.8.0;
 
 import "./ZKPVerifierBase.sol";
 
+struct ZKPResponse {
+    uint64 requestId;
+    bytes zkProof;
+    bytes crossChainProof;
+    bytes data;
+}
+
 contract ZKPVerifierBaseV2 is ZKPVerifierBase {
     struct ProofV2 {
         mapping(string key => bytes) metadata;
@@ -31,35 +38,35 @@ contract ZKPVerifierBaseV2 is ZKPVerifierBase {
     }
 
     function submitZKPResponseV2(
-        uint64 requestId,
-        bytes calldata zkProof, // groth16
-        bytes calldata crossChainProof, // oracleType1
-        bytes calldata data // selectiveDisclosure
+        ZKPResponse[] memory responses
     ) public {
+        ZKPVerifierV2Storage storage $ = _getZKPVerifierV2Storage();
 
-        // CHECK CrossChainProof
+        for (uint256 i = 0; i < responses.length; i++) {
+            ZKPResponse memory response = responses[i];
 
-        ZKPVerifierV2Storage storage s = _getZKPVerifierV2Storage();
-        s._stateCrossChain.processProof(crossChainProof);
+            $._stateCrossChain.processProof(response.crossChainProof);
 
-        // CHECK ZKProof
+            (
+                uint256[] memory inputs,
+                uint256[2] memory a,
+                uint256[2][2] memory b,
+                uint256[2] memory c
+            ) = abi.decode(response.zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
-        (uint256[] memory inputs, uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c)
-        = abi.decode(zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
+            submitZKPResponse(response.requestId, inputs, a, b, c);
 
-        submitZKPResponse(requestId, inputs, a, b, c);
+            if (response.data.length > 0) {
+                Metadata[] memory meta = abi.decode(response.data, (Metadata[]));
 
-        // SAVE METADATA
-
-        if (data.length > 0) {
-            (Metadata[] memory meta) = abi.decode(data, (Metadata[]));
-
-            ProofV2 storage proof = _getZKPVerifierV2Storage()._proofs[_msgSender()][requestId];
-            for (uint256 i = 0; i < meta.length; i++) {
-                // TODO check the Poseidon Sponge hash
-                //            require(meta[i].value ==  or sig or ... )
-                proof.metadata[meta[i].key] = meta[i].value;
+                ProofV2 storage proof = $._proofs[_msgSender()][response.requestId];
+                for (uint256 j = 0; j < meta.length; j++) {
+                    // TODO check the Poseidon Sponge hash
+                    // require(meta[j].value == expectedValue || meta[j].signature == expectedSignature, "Invalid metadata");
+                    proof.metadata[meta[j].key] = meta[j].value;
+                }
             }
         }
     }
 }
+
