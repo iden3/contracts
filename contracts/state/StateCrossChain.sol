@@ -136,38 +136,31 @@ contract StateCrossChain is Ownable2StepUpgradeable, IStateCrossChain, IState {
             });
     }
 
-    function processProof(
-        bytes calldata proof
-    ) public {
-        (CrossChainProof[] memory proofs)
-            = abi.decode(proof, (CrossChainProof[]));
+    function processProof(bytes calldata proof) public {
+        CrossChainProof[] memory proofs = abi.decode(proof, (CrossChainProof[]));
 
         for (uint256 i = 0; i < proofs.length; i++) {
-
             if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("globalStateProof"))) {
-                (GlobalStateUpdate memory globalStateUpd)
-                    = abi.decode(proofs[i].proof, (GlobalStateUpdate));
-
-                setGistRootInfo(
-                    globalStateUpd.globalStateMsg,
-                    globalStateUpd.signature
+                GlobalStateUpdate memory globalStateUpd = abi.decode(
+                    proofs[i].proof,
+                    (GlobalStateUpdate)
                 );
 
+                _setGistRootInfo(globalStateUpd.globalStateMsg, globalStateUpd.signature);
             } else if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("stateProof"))) {
-                IdentityStateUpdate memory idStateUpd
-                    = abi.decode(proofs[i].proof, (IdentityStateUpdate));
-
-                setStateInfo(
-                    idStateUpd.idStateMsg,
-                    idStateUpd.signature
+                IdentityStateUpdate memory idStateUpd = abi.decode(
+                    proofs[i].proof,
+                    (IdentityStateUpdate)
                 );
+
+                _setStateInfo(idStateUpd.idStateMsg, idStateUpd.signature);
             } else {
                 revert("Unknown proof type");
             }
         }
     }
 
-    function setStateInfo(IdentityStateMessage memory msg, bytes memory signature) public {
+    function _setStateInfo(IdentityStateMessage memory msg, bytes memory signature) internal {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
 
         require(
@@ -187,7 +180,7 @@ contract StateCrossChain is Ownable2StepUpgradeable, IStateCrossChain, IState {
         }
     }
 
-    function setGistRootInfo(GlobalStateMessage memory msg, bytes memory signature) public {
+    function _setGistRootInfo(GlobalStateMessage memory msg, bytes memory signature) internal {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
 
         require(

@@ -31,8 +31,18 @@ contract ValidatorStub is ICircuitValidator, ERC165 {
         uint256[2] calldata c,
         bytes calldata data,
         address sender
-    ) external pure override returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        ICircuitValidator.KeyToInputIndex[] memory keypair;
+    ) external pure override returns (ICircuitValidator.KeyToInputValue[] memory) {
+        ICircuitValidator.KeyToInputValue[] memory keypair;
+        return keypair;
+    }
+
+    function verifyV2(
+        bytes calldata zkProof,
+        bytes calldata data,
+        bytes calldata crossChainProof,
+        address sender
+    ) external view override returns (ICircuitValidator.KeyToInputValue[] memory) {
+        ICircuitValidator.KeyToInputValue[] memory keypair;
         return keypair;
     }
 

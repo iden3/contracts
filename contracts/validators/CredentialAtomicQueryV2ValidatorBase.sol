@@ -51,7 +51,7 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         uint256[2] memory c,
         bytes calldata data,
         address sender
-    ) external view override returns (ICircuitValidator.KeyToInputIndex[] memory) {
+    ) public view override returns (ICircuitValidator.KeyToInputValue[] memory) {
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
 
         require(credAtomicQuery.circuitIds.length == 1, "circuitIds length is not equal to 1");
@@ -87,8 +87,35 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         // Checking challenge to prevent replay attacks from other addresses
         _checkChallenge(signals.challenge, sender);
 
+        // get special input values
         // selective disclosure is not supported for v2 onchain circuits
-        return _getSpecialInputPairs();
+        ICircuitValidator.KeyToInputValue[] memory pairs = new ICircuitValidator.KeyToInputValue[](
+            2
+        );
+        pairs[0] = ICircuitValidator.KeyToInputValue({key: "userID", inputValue: signals.userID});
+        pairs[1] = ICircuitValidator.KeyToInputValue({
+            key: "timestamp",
+            inputValue: signals.timestamp
+        });
+        return pairs;
+    }
+
+    function verifyV2(
+        bytes calldata zkProof,
+        bytes calldata data,
+        bytes calldata crossChainProof,
+        address sender
+    ) external override returns (ICircuitValidator.KeyToInputValue[] memory) {
+        _getStateCrossChain().processProof(crossChainProof);
+
+        (
+            uint256[] memory inputs,
+            uint256[2] memory a,
+            uint256[2][2] memory b,
+            uint256[2] memory c
+        ) = abi.decode(zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
+
+        return verify(inputs, a, b, c, data, sender);
     }
 
     function _checkMerklized(uint256 merklized, uint256 queryClaimPathKey) internal pure {
@@ -108,18 +135,5 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
             isRevocationChecked == expectedIsRevocationChecked,
             "Revocation check should match the query"
         );
-    }
-
-    function _getSpecialInputPairs()
-        internal
-        pure
-        returns (ICircuitValidator.KeyToInputIndex[] memory)
-    {
-        ICircuitValidator.KeyToInputIndex[] memory pairs = new ICircuitValidator.KeyToInputIndex[](
-            2
-        );
-        pairs[0] = ICircuitValidator.KeyToInputIndex({key: "userID", inputIndex: 1});
-        pairs[1] = ICircuitValidator.KeyToInputIndex({key: "timestamp", inputIndex: 10});
-        return pairs;
     }
 }

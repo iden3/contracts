@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {CredentialAtomicQueryV2ValidatorBase} from "./CredentialAtomicQueryV2ValidatorBase.sol";
+import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 
 contract CredentialAtomicQueryMTPV2Validator is CredentialAtomicQueryV2ValidatorBase {
     /**
@@ -15,7 +16,8 @@ contract CredentialAtomicQueryMTPV2Validator is CredentialAtomicQueryV2Validator
 
     function initialize(
         address _verifierContractAddr,
-        address _stateContractAddr
+        address _stateContractAddr,
+        IStateCrossChain _stateCrossChain
     ) public initializer {
         _setInputToIndex("merklized", 0);
         _setInputToIndex("userID", 1);
@@ -29,7 +31,12 @@ contract CredentialAtomicQueryMTPV2Validator is CredentialAtomicQueryV2Validator
         _setInputToIndex("issuerClaimNonRevState", 9);
         _setInputToIndex("timestamp", 10);
 
-        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID);
+        _initDefaultStateVariables(
+            _stateContractAddr,
+            _verifierContractAddr,
+            CIRCUIT_ID,
+            _stateCrossChain
+        );
 
         __Ownable_init(_msgSender());
     }

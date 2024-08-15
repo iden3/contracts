@@ -32,30 +32,26 @@ contract ZKPVerifierBaseV2 is ZKPVerifierBase {
         }
     }
 
-    function __ZKPVerifierBase_init(IStateCrossChain _stateCrossChain) public initializer {
-        ZKPVerifierV2Storage storage $ = _getZKPVerifierV2Storage();
-        $._stateCrossChain = IStateCrossChain(_stateCrossChain);
-    }
-
-    function submitZKPResponseV2(
-        ZKPResponse[] memory responses
-    ) public {
+    function submitZKPResponseV2(ZKPResponse[] memory responses) public virtual {
         ZKPVerifierV2Storage storage $ = _getZKPVerifierV2Storage();
 
         for (uint256 i = 0; i < responses.length; i++) {
             ZKPResponse memory response = responses[i];
 
-            $._stateCrossChain.processProof(response.crossChainProof);
+            address sender = _msgSender();
 
-            (
-                uint256[] memory inputs,
-                uint256[2] memory a,
-                uint256[2][2] memory b,
-                uint256[2] memory c
-            ) = abi.decode(response.zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
+            // TODO some internal method and storage location to save gas?
+            IZKPVerifier.ZKPRequest memory request = getZKPRequest(response.requestId);
+            ICircuitValidator.KeyToInputValue[] memory pairs = request.validator.verifyV2(
+                response.zkProof,
+                request.data,
+                response.crossChainProof,
+                sender
+            );
 
-            submitZKPResponse(response.requestId, inputs, a, b, c);
+            _writeProofResults(sender, response.requestId, pairs);
 
+            // TODO throw if metadata > 0 for now?
             if (response.data.length > 0) {
                 Metadata[] memory meta = abi.decode(response.data, (Metadata[]));
 
@@ -69,4 +65,3 @@ contract ZKPVerifierBaseV2 is ZKPVerifierBase {
         }
     }
 }
-

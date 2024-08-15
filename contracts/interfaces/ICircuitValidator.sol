@@ -2,9 +2,9 @@
 pragma solidity 0.8.20;
 
 interface ICircuitValidator {
-    struct KeyToInputIndex {
+    struct KeyToInputValue {
         string key;
-        uint256 inputIndex;
+        uint256 inputValue;
     }
 
     function version() external view returns (string memory);
@@ -16,7 +16,14 @@ interface ICircuitValidator {
         uint256[2] memory c,
         bytes calldata data,
         address sender
-    ) external view returns (ICircuitValidator.KeyToInputIndex[] memory);
+    ) external returns (ICircuitValidator.KeyToInputValue[] memory);
+
+    function verifyV2(
+        bytes calldata zkProof,
+        bytes calldata data,
+        bytes calldata crossChainProof,
+        address sender
+    ) external returns (ICircuitValidator.KeyToInputValue[] memory);
 
     function getSupportedCircuitIds() external view returns (string[] memory ids);
 

@@ -294,7 +294,8 @@ export class DeployHelper {
   async deployValidatorContracts(
     verifierContractWrapperName: string,
     validatorContractName: string,
-    stateAddress = ""
+    stateAddress = "",
+    stateCrossChainAddress = "",
   ): Promise<{
     state: any;
     verifierWrapper: any;
@@ -322,6 +323,7 @@ export class DeployHelper {
     const validatorContractProxy = await upgrades.deployProxy(ValidatorContract, [
       await validatorContractVerifierWrapper.getAddress(),
       stateAddress,
+      stateCrossChainAddress,
     ]);
 
     await validatorContractProxy.waitForDeployment();
@@ -405,14 +407,14 @@ export class DeployHelper {
     return verifier;
   }
 
-  async deployUniversalVerifier(owner: SignerWithAddress | undefined, stateCrossChain: string): Promise<Contract> {
+  async deployUniversalVerifier(owner: SignerWithAddress | undefined): Promise<Contract> {
     if (!owner) {
       owner = this.signers[0];
     }
     const Verifier = await ethers.getContractFactory(
       "UniversalVerifier", owner
     );
-    const verifier = await upgrades.deployProxy(Verifier, [stateCrossChain]);
+    const verifier = await upgrades.deployProxy(Verifier);
     await verifier.waitForDeployment();
     console.log("UniversalVerifier deployed to:", await verifier.getAddress());
     return verifier;

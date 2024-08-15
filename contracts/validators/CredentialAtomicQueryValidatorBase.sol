@@ -9,6 +9,7 @@ import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
 import {PoseidonFacade} from "../lib/Poseidon.sol";
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
+import "../interfaces/IStateCrossChain.sol";
 
 abstract contract CredentialAtomicQueryValidatorBase is
     Ownable2StepUpgradeable,
@@ -24,6 +25,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256 proofExpirationTimeout;
         uint256 gistRootExpirationTimeout;
         mapping(string => uint256) _inputNameToIndex;
+        IStateCrossChain _stateCrossChain;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.CredentialAtomicQueryValidator")) - 1))
@@ -45,7 +47,8 @@ abstract contract CredentialAtomicQueryValidatorBase is
     function _initDefaultStateVariables(
         address _stateContractAddr,
         address _verifierContractAddr,
-        string memory circuitId
+        string memory circuitId,
+        IStateCrossChain _stateCrossChain
     ) internal {
         CredentialAtomicQueryValidatorBaseStorage
             storage s = _getCredentialAtomicQueryValidatorBaseStorage();
@@ -56,6 +59,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         s._supportedCircuitIds = [circuitId];
         s._circuitIdToVerifier[circuitId] = IVerifier(_verifierContractAddr);
         s.state = IState(_stateContractAddr);
+        s._stateCrossChain = IStateCrossChain(_stateCrossChain);
         __Ownable_init(_msgSender());
     }
 
@@ -104,7 +108,14 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256[2] memory c,
         bytes calldata data,
         address sender
-    ) external view virtual returns (ICircuitValidator.KeyToInputIndex[] memory);
+    ) external virtual returns (ICircuitValidator.KeyToInputValue[] memory);
+
+    function verifyV2(
+        bytes calldata zkProof,
+        bytes calldata data,
+        bytes calldata crossChainProof,
+        address sender
+    ) external virtual returns (ICircuitValidator.KeyToInputValue[] memory);
 
     function getSupportedCircuitIds() external view virtual returns (string[] memory ids) {
         return _getCredentialAtomicQueryValidatorBaseStorage()._supportedCircuitIds;
@@ -116,7 +127,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         return _getCredentialAtomicQueryValidatorBaseStorage()._circuitIdToVerifier[circuitId];
     }
 
-    function getState() internal view returns (IState) {
+    function _getState() internal view returns (IState) {
         return _getCredentialAtomicQueryValidatorBaseStorage().state;
     }
 
@@ -139,7 +150,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
     function _checkGistRoot(uint256 gistRoot) internal view {
         CredentialAtomicQueryValidatorBaseStorage
             storage s = _getCredentialAtomicQueryValidatorBaseStorage();
-        IState.GistRootInfo memory rootInfo = s.state.getGISTRootInfo(gistRoot);
+        IState.GistRootInfo memory rootInfo = _getGISTRootInfo(gistRoot);
         require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
         if (
             rootInfo.replacedAtTimestamp != 0 &&
@@ -149,15 +160,34 @@ abstract contract CredentialAtomicQueryValidatorBase is
         }
     }
 
+    function _getGISTRootInfo(uint256 gistRoot) internal view returns (IState.GistRootInfo memory) {
+        try _getState().getGISTRootInfo(gistRoot) returns (IState.GistRootInfo memory rootInfo) {
+            return rootInfo;
+        } catch {
+            return IState(address(_getStateCrossChain())).getGISTRootInfo(gistRoot);
+        }
+    }
+
     //TODO add oracle data to the args or create another method version
     function _checkClaimIssuanceState(uint256 _id, uint256 _state) internal view {
         bool isStateGenesis = GenesisUtils.isGenesisState(_id, _state);
 
         if (!isStateGenesis) {
-            IState.StateInfo memory stateInfo = _getCredentialAtomicQueryValidatorBaseStorage()
-                .state
-                .getStateInfoByIdAndState(_id, _state);
+            IState.StateInfo memory stateInfo = _getStateInfoByIdAndState(_id, _state);
             require(_id == stateInfo.id, "State doesn't exist in state contract");
+        }
+    }
+
+    function _getStateInfoByIdAndState(
+        uint256 id,
+        uint256 state
+    ) internal view returns (IState.StateInfo memory) {
+        try _getState().getStateInfoByIdAndState(id, state) returns (
+            IState.StateInfo memory stateInfo
+        ) {
+            return stateInfo;
+        } catch {
+            return IState(address(_getStateCrossChain())).getStateInfoByIdAndState(id, state);
         }
     }
 
@@ -167,7 +197,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
             storage s = _getCredentialAtomicQueryValidatorBaseStorage();
 
         // check if identity transited any state in contract
-        bool idExists = s.state.idExists(_id);
+        bool idExists = _idExists(_id);
 
         // if identity didn't transit any state it must be genesis
         if (!idExists) {
@@ -176,7 +206,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
                 "Issuer revocation state doesn't exist in state contract and is not genesis"
             );
         } else {
-            IState.StateInfo memory claimNonRevLatestStateInfo = s.state.getStateInfoByIdAndState(
+            IState.StateInfo memory claimNonRevLatestStateInfo = _getStateInfoByIdAndState(
                 _id,
                 _claimNonRevState
             );
@@ -188,6 +218,14 @@ abstract contract CredentialAtomicQueryValidatorBase is
             ) {
                 revert("Non-Revocation state of Issuer expired");
             }
+        }
+    }
+
+    function _idExists(uint256 id) internal view returns (bool) {
+        try _getState().idExists(id) returns (bool exists) {
+            return exists;
+        } catch {
+            return IState(address(_getStateCrossChain())).idExists(id);
         }
     }
 
@@ -228,5 +266,9 @@ abstract contract CredentialAtomicQueryValidatorBase is
     function _setInputToIndex(string memory inputName, uint256 index) internal {
         // increment index to avoid 0
         _getCredentialAtomicQueryValidatorBaseStorage()._inputNameToIndex[inputName] = ++index;
+    }
+
+    function _getStateCrossChain() internal view returns (IStateCrossChain) {
+        return _getCredentialAtomicQueryValidatorBaseStorage()._stateCrossChain;
     }
 }

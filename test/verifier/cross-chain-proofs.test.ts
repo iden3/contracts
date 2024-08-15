@@ -62,11 +62,13 @@ describe("Cross-chain verification", function () {
     const chainId = 0;
     const verifyingContract = ethers.ZeroAddress;
 
-    const opv = await ethers.deployContract("OracleProofValidator", [domainName, signatureVersion]);
-    const state = await ethers.deployContract("StateCrossChain", [await opv.getAddress()]);
-
     deployHelper = await DeployHelper.initialize(null, true);
-    verifier = await deployHelper.deployUniversalVerifier(signer, await state.getAddress());
+    const opv = await ethers.deployContract("OracleProofValidator", [domainName, signatureVersion]);
+    const { state } = await deployHelper.deployState();
+    const stateCrossChain = await ethers.deployContract("StateCrossChain", [await opv.getAddress()]);
+
+
+    verifier = await deployHelper.deployUniversalVerifier(signer);
 
     // ##################### Deploy verifiers #####################
 
@@ -74,6 +76,7 @@ describe("Cross-chain verification", function () {
       "VerifierSigWrapper",
       "CredentialAtomicQuerySigV2Validator",
       await state.getAddress(),
+      await stateCrossChain.getAddress(),
     ));
 
     await verifier.addValidatorToWhitelist(validator);

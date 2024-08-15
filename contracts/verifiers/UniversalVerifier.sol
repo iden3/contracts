@@ -9,8 +9,8 @@ import {RequestDisableable} from "./RequestDisableable.sol";
 import {ValidatorWhitelist} from "./ValidatorWhitelist.sol";
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
-import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 import {ZKPVerifierBaseV2} from "./ZKPVerifierBaseV2.sol";
+import {ZKPResponse} from "./ZKPVerifierBaseV2.sol";
 
 /// @title Universal Verifier Contract
 /// @notice A contract to manage ZKP (Zero-Knowledge Proof) requests and proofs.
@@ -49,9 +49,8 @@ contract UniversalVerifier is
     }
 
     /// @dev Initializes the contract
-    function initialize(IStateCrossChain _state) public initializer {
+    function initialize() public initializer {
         __Ownable_init(_msgSender());
-        super.__ZKPVerifierBase_init(_state);
     }
 
     /// @dev Version of contract getter
@@ -94,6 +93,13 @@ contract UniversalVerifier is
         emit ZKPResponseSubmitted(requestId, _msgSender());
     }
 
+    function submitZKPResponseV2(ZKPResponse[] memory responses) public override {
+        super.submitZKPResponseV2(responses);
+        for (uint256 i = 0; i < responses.length; i++) {
+            emit ZKPResponseSubmitted(responses[i].requestId, _msgSender());
+        }
+    }
+
     /// @dev Verifies a ZKP response without updating any proof status
     /// @param requestId The ID of the ZKP request
     /// @param inputs The public inputs for the proof
@@ -110,9 +116,8 @@ contract UniversalVerifier is
         address sender
     )
         public
-        view
         override(RequestDisableable, ValidatorWhitelist, ZKPVerifierBase)
-        returns (ICircuitValidator.KeyToInputIndex[] memory)
+        returns (ICircuitValidator.KeyToInputValue[] memory)
     {
         return super.verifyZKPResponse(requestId, inputs, a, b, c, sender);
     }

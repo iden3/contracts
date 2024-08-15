@@ -9,6 +9,11 @@ import {IOracleProofValidator, IdentityStateMessage, GlobalStateMessage} from ".
 import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 import {StateCrossChain} from "../state/StateCrossChain.sol";
 
+struct Metadata {
+    string key;
+    bytes value;
+}
+
 abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @dev Struct to store ZKP proof and associated data
     struct Proof {
@@ -90,29 +95,18 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         uint256[2] memory c
     ) public virtual checkRequestExistence(requestId, true) {
         address sender = _msgSender();
-        ICircuitValidator.KeyToInputIndex[] memory pairs = _verifyZKPResponse(
-            requestId,
+
+        IZKPVerifier.ZKPRequest memory request = _getZKPVerifierStorage()._requests[requestId];
+        ICircuitValidator.KeyToInputValue[] memory pairs = request.validator.verify(
             inputs,
             a,
             b,
             c,
+            request.data,
             sender
         );
 
-        Proof storage proof = _getZKPVerifierStorage()._proofs[sender][requestId];
-        for (uint256 i = 0; i < pairs.length; i++) {
-            proof.storageFields[pairs[i].key] = inputs[pairs[i].inputIndex];
-        }
-
-        proof.isVerified = true;
-        proof.validatorVersion = _getZKPVerifierStorage()._requests[requestId].validator.version();
-        proof.blockNumber = block.number;
-        proof.blockTimestamp = block.timestamp;
-    }
-
-    struct Metadata {
-        string key;
-        bytes value;
+        _writeProofResults(sender, requestId, pairs);
     }
 
     /// @dev Verifies a ZKP response without updating any proof status
@@ -131,12 +125,12 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         address sender
     )
         public
-        view
         virtual
         checkRequestExistence(requestId, true)
-        returns (ICircuitValidator.KeyToInputIndex[] memory)
+        returns (ICircuitValidator.KeyToInputValue[] memory)
     {
-        return _verifyZKPResponse(requestId, inputs, a, b, c, sender);
+        IZKPVerifier.ZKPRequest storage request = _getZKPVerifierStorage()._requests[requestId];
+        return request.validator.verify(inputs, a, b, c, request.data, sender);
     }
 
     /// @dev Gets the list of request IDs and verifies the proofs are linked
@@ -263,37 +257,19 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         return _getZKPVerifierStorage()._proofs[user][requestId].storageFields[key];
     }
 
-    function _verifyZKPResponse(
+    function _writeProofResults(
+        address sender,
         uint64 requestId,
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        address sender
-    )
-        private
-        view
-        returns (
-            // OPTION 2 & OPTION 3 oracleProof1, oracleProof2
-            ICircuitValidator.KeyToInputIndex[] memory
-        )
-    {
-        IZKPVerifier.ZKPRequest memory request = _getZKPVerifierStorage()._requests[requestId];
+        ICircuitValidator.KeyToInputValue[] memory pairs
+    ) internal {
+        Proof storage proof = _getZKPVerifierStorage()._proofs[sender][requestId];
+        for (uint256 i = 0; i < pairs.length; i++) {
+            proof.storageFields[pairs[i].key] = pairs[i].inputValue;
+        }
 
-        // OPTION 2:
-        // statecrosschain.setStateInfo(oracleProof1);
-        // statecrosschain.setGISTRootInfo(oracleProof2);
-
-        ICircuitValidator.KeyToInputIndex[] memory pairs = request.validator.verify(
-            inputs,
-            a,
-            b,
-            c,
-            request.data,
-            sender
-            // OPTION 2: statecrosschain contract address
-            // OPTION 3: oracleProof1 message, oracleProof2 message
-        );
-        return pairs;
+        proof.isVerified = true;
+        proof.validatorVersion = _getZKPVerifierStorage()._requests[requestId].validator.version();
+        proof.blockNumber = block.number;
+        proof.blockTimestamp = block.timestamp;
     }
 }

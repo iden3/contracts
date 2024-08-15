@@ -5,6 +5,7 @@ import {CredentialAtomicQueryValidatorBase} from "./CredentialAtomicQueryValidat
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 
 /**
  * @dev CredentialAtomicQueryV3 validator
@@ -58,7 +59,8 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
 
     function initialize(
         address _verifierContractAddr,
-        address _stateContractAddr
+        address _stateContractAddr,
+        IStateCrossChain _stateCrossChain
     ) public initializer {
         _setInputToIndex("userID", 0);
         _setInputToIndex("circuitQueryHash", 1);
@@ -75,7 +77,12 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _setInputToIndex("timestamp", 12);
         _setInputToIndex("isBJJAuthEnabled", 13);
 
-        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID);
+        _initDefaultStateVariables(
+            _stateContractAddr,
+            _verifierContractAddr,
+            CIRCUIT_ID,
+            _stateCrossChain
+        );
         __Ownable_init(_msgSender());
     }
 
@@ -111,7 +118,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         uint256[2] memory c,
         bytes calldata data,
         address sender
-    ) external view override returns (ICircuitValidator.KeyToInputIndex[] memory) {
+    ) public view override returns (ICircuitValidator.KeyToInputValue[] memory) {
         CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
             data,
             (CredentialAtomicQueryV3)
@@ -152,7 +159,25 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         // Checking challenge to prevent replay attacks from other addresses
         _checkChallenge(signals.challenge, sender);
 
-        return _getSpecialInputPairs(credAtomicQuery.operator == 16);
+        return _getSpecialInputValues(signals, credAtomicQuery.operator == 16);
+    }
+
+    function verifyV2(
+        bytes calldata zkProof,
+        bytes calldata data,
+        bytes calldata crossChainProof,
+        address sender
+    ) external override returns (ICircuitValidator.KeyToInputValue[] memory) {
+        _getStateCrossChain().processProof(crossChainProof);
+
+        (
+            uint256[] memory inputs,
+            uint256[2] memory a,
+            uint256[2][2] memory b,
+            uint256[2] memory c
+        ) = abi.decode(zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
+
+        return verify(inputs, a, b, c, data, sender);
     }
 
     function _checkLinkID(uint256 groupID, uint256 linkID) internal pure {
@@ -176,27 +201,37 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
     function _checkAuth(uint256 userID, address ethIdentityOwner) internal view {
         require(
             userID ==
-                GenesisUtils.calcIdFromEthAddress(getState().getDefaultIdType(), ethIdentityOwner),
+                GenesisUtils.calcIdFromEthAddress(_getState().getDefaultIdType(), ethIdentityOwner),
             "UserID does not correspond to the sender"
         );
     }
 
-    function _getSpecialInputPairs(
+    function _getSpecialInputValues(
+        PubSignals memory signals,
         bool hasSelectiveDisclosure
-    ) internal pure returns (ICircuitValidator.KeyToInputIndex[] memory) {
+    ) internal pure returns (ICircuitValidator.KeyToInputValue[] memory) {
         uint256 numPairs = hasSelectiveDisclosure ? 5 : 4;
-        ICircuitValidator.KeyToInputIndex[] memory pairs = new ICircuitValidator.KeyToInputIndex[](
+        ICircuitValidator.KeyToInputValue[] memory pairs = new ICircuitValidator.KeyToInputValue[](
             numPairs
         );
 
         uint i = 0;
-        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "userID", inputIndex: 0});
-        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "linkID", inputIndex: 3});
-        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "nullifier", inputIndex: 4});
+        pairs[i++] = ICircuitValidator.KeyToInputValue({key: "userID", inputValue: signals.userID});
+        pairs[i++] = ICircuitValidator.KeyToInputValue({key: "linkID", inputValue: signals.linkID});
+        pairs[i++] = ICircuitValidator.KeyToInputValue({
+            key: "nullifier",
+            inputValue: signals.nullifier
+        });
         if (hasSelectiveDisclosure) {
-            pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "operatorOutput", inputIndex: 5});
+            pairs[i++] = ICircuitValidator.KeyToInputValue({
+                key: "operatorOutput",
+                inputValue: signals.operatorOutput
+            });
         }
-        pairs[i++] = ICircuitValidator.KeyToInputIndex({key: "timestamp", inputIndex: 12});
+        pairs[i++] = ICircuitValidator.KeyToInputValue({
+            key: "timestamp",
+            inputValue: signals.timestamp
+        });
 
         return pairs;
     }
