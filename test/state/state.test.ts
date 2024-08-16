@@ -12,15 +12,15 @@ const stateTransitionsWithProofs = [
 
 const stateTransitionsWithNoProofs = [
   {
-    id: '6901746346790563787434755862277025452451108972170386555162524223864832',
-    oldState: '1099511627776',
-    newState: '2199023255552',
+    id: "27421469027114773745011513799725419039783723398312596785118397457757012226",
+    oldState: "1099511627776",
+    newState: "2199023255552",
     isOldStateGenesis: true,
   },
   {
-    id: '6901746346790563787434755862277025452451108972170386555162524223864832',
-    oldState: '2199023255552',
-    newState: '3298534883328',
+    id: "27421469027114773745011513799725419039783723398312596785118397457757012226",
+    oldState: "2199023255552",
+    newState: "3298534883328",
     isOldStateGenesis: false,
   },
 ];
@@ -31,7 +31,7 @@ describe("State transition with real verifier", () => {
   before(async function () {
     this.timeout(5000);
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployState();
+    const contracts = await deployHelper.deployState(["0x0100"]);
     state = contracts.state;
   });
 
@@ -79,7 +79,7 @@ describe("State transition with real verifier", () => {
     this.timeout(5000);
     const stateInfoBeforeUpdate = await state.getStateInfoByIdAndState(
       stateTransitionsWithProofs[1].pub_signals[0],
-      stateTransitionsWithProofs[1].pub_signals[1]
+      stateTransitionsWithProofs[1].pub_signals[1],
     );
 
     const params = await publishState(state, stateTransitionsWithProofs[1]);
@@ -115,7 +115,7 @@ describe("State transition negative cases", () => {
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployState(verifierStubName);
+    const contracts = await deployHelper.deployState(["0x0281", "0x0000"], verifierStubName);
     state = contracts.state;
   });
 
@@ -173,9 +173,9 @@ describe("State transition negative cases", () => {
     await publishStateWithStubProof(state, stateTransitionsWithNoProofs[1]);
 
     const stateTransition = {
-      id: '6901746346790563787434755862277025452451108972170386555162524223864832',
-      oldState: '3298534883328',
-      newState: '2199023255552',
+      id: "27421469027114773745011513799725419039783723398312596785118397457757012226",
+      oldState: "3298534883328",
+      newState: "2199023255552",
       isOldStateGenesis: false,
     };
 
@@ -191,7 +191,7 @@ describe("StateInfo history", function () {
 
   before(async () => {
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployState(verifierStubName);
+    const contracts = await deployHelper.deployState(["0x0281"], verifierStubName);
     state = contracts.state;
 
     publishedStates = [];
@@ -227,7 +227,7 @@ describe("GIST proofs", () => {
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployState(verifierStubName);
+    const contracts = await deployHelper.deployState(["0x0281"], verifierStubName);
     state = contracts.state;
   });
 
@@ -300,7 +300,7 @@ describe("GIST root history", () => {
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployState(verifierStubName);
+    const contracts = await deployHelper.deployState(["0x0281"], verifierStubName);
     state = contracts.state;
   });
 

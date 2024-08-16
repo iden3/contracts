@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
 import { prepareInputs, publishState } from "../../utils/state-utils";
 import { DeployHelper } from "../../../helpers/DeployHelper";
 import { packValidatorParams } from "../../utils/validator-pack-utils";
@@ -98,9 +97,13 @@ describe("Atomic MTP Validator", function () {
     senderAddress = '0x3930000000000000000000000000000000000000'; // because challenge is 12345 in proofs.
     const deployHelper = await DeployHelper.initialize(null, true);
 
+    const { state: stateContract } = await deployHelper.deployState(["0x0100"]);
+    state = stateContract;
+
     const contracts = await deployHelper.deployValidatorContracts(
       "VerifierMTPWrapper",
-      "CredentialAtomicQueryMTPV2Validator"
+      "CredentialAtomicQueryMTPV2Validator",
+      await state.getAddress(),
     );
     state = contracts.state;
     mtpValidator = contracts.validator;

@@ -43,11 +43,12 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
      * @dev Initialization of IdentityLib library
      * @param _stateContractAddr - address of the State contract
      */
-    function initialize(address _stateContractAddr) public virtual {
+    function initialize(address _stateContractAddr, bytes2 idType) public virtual {
         _getIdentityBaseStorage().identity.initialize(
             _stateContractAddr,
             address(this),
-            getSmtDepth()
+            getSmtDepth(),
+            idType
         );
     }
 
