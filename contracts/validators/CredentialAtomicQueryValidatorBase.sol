@@ -174,7 +174,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
             );
         } else {
             IState.StateInfo memory claimNonRevStateInfo = s.state.getStateInfoById(_id);
-            bytes2 idType = GenesisUtils.idTypeFromId(_id);
+            bytes2 idType = GenesisUtils.getIdType(_id);
             // for privado chain and genesis state info we don't need to check for expiration
             if (
                 (idType == 0x01a1 || idType == 0x01a2) &&

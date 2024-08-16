@@ -187,7 +187,7 @@ describe("test calculate id type from id", function () {
         didTypeIdType[i].didType,
         BigInt("7521024223205616003431860562270429547098131848980857190502964780628723574810"),
       );
-      const genResult = await guWrpr.idTypeFromId(identifier.bigInt());
+      const genResult = await guWrpr.getIdType(identifier.bigInt());
       expect(didTypeIdType[i].idType).eq(Number(genResult));
     }
   });
