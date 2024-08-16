@@ -2,6 +2,7 @@ import { ethers, network, upgrades } from "hardhat";
 import { packValidatorParams } from "../test/utils/validator-pack-utils";
 import { prepareInputs } from "../test/utils/state-utils";
 import { DeployHelper } from "../helpers/DeployHelper";
+import { calculateQueryHashV2 } from "../test/utils/query-hash-utils";
 
 async function main() {
   const [signer] = await ethers.getSigners();
@@ -11,141 +12,144 @@ async function main() {
   const chainId = 0;
   const verifyingContract = ethers.ZeroAddress;
 
+  const deployHelper = await DeployHelper.initialize(null, true);
+
   // ##################### StateCrossChain deploy #####################
 
   const opv = await ethers.deployContract("OracleProofValidator", [domainName, signatureVersion]);
-  const state = await ethers.deployContract("StateCrossChain", [await opv.getAddress()]);
+  const { state } = await deployHelper.deployState();
+  const stateCrossChain = await ethers.deployContract("StateCrossChain", [await opv.getAddress()]);
 
-  console.log("StateCrossChain deployed to:", await state.getAddress());
+  console.log("StateCrossChain deployed to:", await stateCrossChain.getAddress());
 
   // ##################### Validator deploy #####################
 
-  const deployHelper = await DeployHelper.initialize(null, true);
-
-  const { validator, verifierWrapper } = await deployHelper.deployValidatorContracts(
-    "VerifierMTPWrapper", // "VerifierSigWrapper"
+  const { validator: validatorMTP } = await deployHelper.deployValidatorContracts(
+    "VerifierMTPWrapper",
     "CredentialAtomicQueryMTPV2Validator",
     await state.getAddress(),
+    await stateCrossChain.getAddress(),
+  );
+
+  const { validator: validatorSig } = await deployHelper.deployValidatorContracts(
+    "VerifierSigWrapper",
+    "CredentialAtomicQuerySigV2Validator",
+    await state.getAddress(),
+    await stateCrossChain.getAddress(),
   );
 
   // ##################### Verifier deploy #####################
 
-  const verifier = await deployHelper.deployUniversalVerifier(undefined, await state.getAddress());
+  const verifier = await deployHelper.deployUniversalVerifier(undefined);
+
+  await verifier.addValidatorToWhitelist(await validatorSig.getAddress());
+  await verifier.addValidatorToWhitelist(await validatorMTP.getAddress());
+
+  // ##################### SetZKPRequest #####################
+
+  console.log("================= setZKPRequest SIG ===================");
+
+  const Operators = {
+    NOOP: 0, // No operation, skip query verification in circuit
+    EQ: 1, // equal
+    LT: 2, // less than
+    GT: 3, // greater than
+    IN: 4, // in
+    NIN: 5, // not in
+    NE: 6, // not equal
+  };
+
+  // you can run https://go.dev/play/p/oB_oOW7kBEw to get schema hash and claimPathKey using YOUR schema
+  const schemaBigInt = "74977327600848231385663280181476307657";
+
+  // merklized path to field in the W3C credential according to JSONLD  schema e.g. birthday in the KYCAgeCredential under the url "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld"
+  const schemaClaimPathKey =
+    "20376033832371109177683048456014525905119173674985843915445634726167450989630";
+
+  const requestId_Sig = 4;
+
+  const query: any = {
+    requestId: requestId_Sig,
+    schema: schemaBigInt,
+    claimPathKey: schemaClaimPathKey,
+    operator: Operators.LT,
+    slotIndex: 0,
+    value: [20020101, ...new Array(63).fill(0)], // for operators 1-3 only first value matters
+    circuitIds: ["credentialAtomicQuerySigV2OnChain"],
+    skipClaimRevocationCheck: false,
+    claimPathNotExists: 0,
+  };
+
+  query.queryHash = calculateQueryHashV2(
+    query.value,
+    query.schema,
+    query.slotIndex,
+    query.operator,
+    query.claimPathKey,
+    query.claimPathNotExists,
+  ).toString();
+
+  let data = packValidatorParams(query);
+  await verifier.setZKPRequest(
+    requestId_Sig,
+    {
+      metadata: "metadata",
+      validator: await validatorSig.getAddress(),
+      data: data,
+    },
+    // {
+    //   gasPrice: 50000000000,
+    //   initialBaseFeePerGas: 25000000000,
+    //   gasLimit: 10000000
+    // }
+  );
+
+  console.log(`Request ID: ${requestId_Sig} is set`);
+
+  console.log("================= setZKPRequest MTP ===================");
+
+  query.circuitIds = ["credentialAtomicQueryMTPV2OnChain"];
+  data = packValidatorParams(query);
+  const requestId_Mtp = 2;
+
+  await verifier.setZKPRequest(
+    requestId_Mtp,
+    {
+      metadata: "metadata",
+      validator: await validatorMTP.getAddress(),
+      data: data,
+    },
+    // {
+    //   gasPrice: 50000000000,
+    //   initialBaseFeePerGas: 25000000000,
+    //   gasLimit: 10000000
+    // }
+  );
+
+  console.log(`Request ID: ${requestId_Mtp} is set`);
 
   // ##################### Test Verifier #####################
-
-  // const tenYears = 315360000;
   //
-  // const test: any = {
-  //   name: "User state is not genesis but latest",
-  //   proofJson: require("../test/validators/mtp/data/valid_mtp_user_non_genesis.json"),
-  //   setProofExpiration: tenYears,
-  // };
+  // const validator = validatorSig;
   //
-  // const requestId = 12345;
+  // const tenYears = 60 * 60 * 24 * 365 * 10;
+  // await validator.setGISTRootExpirationTimeout(tenYears); // 1 year
+  // await validator.setProofExpirationTimeout(tenYears); // 1 year
   //
-  // const query = {
-  //   schema: BigInt("180410020913331409885634153623124536270"),
-  //   claimPathKey: BigInt(
-  //     "8566939875427719562376598811066985304309117528846759529734201066483458512800",
-  //   ),
-  //   operator: 1n,
-  //   slotIndex: 0n,
-  //   value: [1420070400000000000n, ...new Array(63).fill("0").map((x) => BigInt(x))],
-  //   queryHash: BigInt(
-  //     "1496222740463292783938163206931059379817846775593932664024082849882751356658",
-  //   ),
-  //   circuitIds: ["credentialAtomicQueryMTPV2OnChain"],
-  //   skipClaimRevocationCheck: false,
-  //   claimPathNotExists: 0,
-  // };
+  // const tx = await verifier.submitZKPResponseV2([
+  //   {
+  //     requestId: requestId_Sig,
+  //     zkProof:
+  //       "0x00000000000000000000000000000000000000000000000000000000000001200c44028cb50c482b459e23838a4aa90afd8eff9e6a9984879ec7fab82cd706a71cb01c95afc3fc89f8dc067b43c9343798ba095e6bced0d933b658e5101cb0cd1fcc86d9926fe3c36a76d4358b52e17feeabcb9b92fa744f3f0194c289af9005025e392a604a1d7e300d6515b40fb44bb8c65f08a4b76506b330067b4179d0d6169b975d16c685de161f33681e831134176f84b959c3ef4649544c8cba48aeb213b6e4d9ed8bf185ef2400f1ff0ce60b5dd60a2bce3aa7bbf4e1ed3d887ba73d19a8db4f62ba5477c41e758315db7fa96285a060d136d171999bcd860a3e83aa1288c06f0dbc930d5a10e876853e390c0672a16d566d72ad1a0f6c27f497ae5a000000000000000000000000000000000000000000000000000000000000000b0000000000000000000000000000000000000000000000000000000000000001000e54027f41a1961526b608019ce250b2cd7afae0e6f2fdf2439b314404a1012143527826f525f196d17fd8eaf64ef1818c6ab5c4f8c054161053c1afb7cc8f25dd092801bbc04b50b3dd4f16134ae8f97aabbdc07dd4740e2dbea38333937b00000000000000000000000000000000000000000000000000000000000000040000000000000000000000004df9fe847b25bd454cb15306fa1efed2f74349e40000000000000000000000000000000000000000000000000000000000000000000d8025dd092801bbc04b50b3dd4f16134ae8f97aabbdc07dd4740e2dbea201000000000000000000000000000000000000000000000000000000000000000125dd092801bbc04b50b3dd4f16134ae8f97aabbdc07dd4740e2dbea38333937b0000000000000000000000000000000000000000000000000000000066bb4760",
+  //     crossChainProof:
+  //       "0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000028000000000000000000000000000000000000000000000000000000000000004c0000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000010676c6f62616c537461746550726f6f660000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001800000000000000000000000000000000000000000000000000000000000000020000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb922660000000000000000000000000000000000000000000000000000000066bb4766000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000000000000000000000000000000000000000041a27b6cbcf78d3618ad68b1eb86ad5517c60778651799174a28bb1eed644df2407e2f2c433c41ea5c6a2f7ebb82c0f45b18caf4845469bfdf2e9bfb36dac44c5b1c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000a737461746550726f6f660000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001a00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb922660000000000000000000000000000000000000000000000000000000066bb4764000d8025dd092801bbc04b50b3dd4f16134ae8f97aabbdc07dd4740e2dbea20125dd092801bbc04b50b3dd4f16134ae8f97aabbdc07dd4740e2dbea38333937b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000004117a1c3e8d2c53e2e723d03d2fa74f626955ebb4715305a077c805327b5ecf74155c41d2c969ed419ef81cdff64a409622cb3caf204781c677791a51e2adfb69b1b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000a737461746550726f6f660000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001a00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb922660000000000000000000000000000000000000000000000000000000066bb4765000d8025dd092801bbc04b50b3dd4f16134ae8f97aabbdc07dd4740e2dbea20125dd092801bbc04b50b3dd4f16134ae8f97aabbdc07dd4740e2dbea38333937b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000041476073c3e9568e7ea006d4c2547224fc45204a87ef92b3df49702c8f1462b91a1dae3ca145fcb92df36875f2b78d5d6874b987d444a02a545ff4aba7f1b742b61b00000000000000000000000000000000000000000000000000000000000000",
+  //     data: "0x",
+  //   },
+  // ]);
   //
-  // const data = packValidatorParams(query, test.allowedIssuers);
-  // const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
+  // await tx.wait();
   //
-  // const validatorAddr = await validator.getAddress();
-  // await verifier.addValidatorToWhitelist(validatorAddr);
-  // await verifier.setZKPRequest(requestId, {
-  //   metadata: "metadata",
-  //   validator: validatorAddr,
-  //   data: data,
-  // });
-  //
-  // const domain = {
-  //   name: "StateInfo",
-  //   version: "1",
-  //   chainId: 0,
-  //   verifyingContract: ethers.ZeroAddress,
-  // };
-  //
-  // const ismTypes = {
-  //   IdentityState: [
-  //     { name: "from", type: "address" },
-  //     { name: "timestamp", type: "uint256" },
-  //     { name: "identity", type: "uint256" },
-  //     { name: "state", type: "uint256" },
-  //     { name: "replacedByState", type: "uint256" },
-  //     { name: "createdAtTimestamp", type: "uint256" },
-  //     { name: "replacedAtTimestamp", type: "uint256" },
-  //   ],
-  // };
-  //
-  // let identityStateMessage = {
-  //   from: await signer.getAddress(),
-  //   timestamp: 1722003509,
-  //   identity: 21933750065545691586450392143787330185992517860945727248803138245838110721n,
-  //   state: 14350982505419309247370121592555562539756979893755695438303858350858014373778n,
-  //   replacedByState: 0,
-  //   createdAtTimestamp: 1722000063,
-  //   replacedAtTimestamp: 0,
-  // };
-  //
-  // let signatureISM = await signer.signTypedData(domain, ismTypes, identityStateMessage);
-  // await state.setStateInfo(identityStateMessage, signatureISM);
-  //
-  // identityStateMessage = {
-  //   from: await signer.getAddress(),
-  //   timestamp: 1722528262,
-  //   identity: 21933750065545691586450392143787330185992517860945727248803138245838110721n,
-  //   state: 14350982505419309247370121592555562539756979893755695438303858350858014373778n,
-  //   replacedByState: 0,
-  //   createdAtTimestamp: 1722528262,
-  //   replacedAtTimestamp: 0,
-  // };
-  //
-  // signatureISM = await signer.signTypedData(domain, ismTypes, identityStateMessage);
-  // await state.setStateInfo(identityStateMessage, signatureISM);
-  //
-  // const gsmTypes = {
-  //   GlobalState: [
-  //     { name: "from", type: "address" },
-  //     { name: "timestamp", type: "uint256" },
-  //     { name: "root", type: "uint256" },
-  //     { name: "replacedByRoot", type: "uint256" },
-  //     { name: "createdAtTimestamp", type: "uint256" },
-  //     { name: "replacedAtTimestamp", type: "uint256" },
-  //   ],
-  // };
-  //
-  // const globalStateMessage = {
-  //   from: await signer.getAddress(),
-  //   timestamp: 1722527640,
-  //   root: 2330632222887470777740058486814238715476391492444368442359814550649181604485n,
-  //   replacedByRoot: 0n,
-  //   createdAtTimestamp: 1722527640,
-  //   replacedAtTimestamp: 0,
-  // };
-  //
-  // const signatureGSM = await signer.signTypedData(domain, gsmTypes, globalStateMessage);
-  // await state.setGistRootInfo(globalStateMessage, signatureGSM);
-  //
-  // //!!!!!!! NOTE: reassing these inputs only when ZK is off
-  // // challenge
-  // inputs[4] = BigInt("0x6622b9ffcf797282b86acef4f688ad1ae5d69ff3");
-  //
-  // await validator.setProofExpirationTimeout(tenYears);
-  //
-  // await verifier.submitZKPResponse(requestId, inputs, pi_a, pi_b, pi_c);
+  // console.log(`ZKPResponse submitted. Tx hash: ${tx.hash}`);
 }
 
 main()
