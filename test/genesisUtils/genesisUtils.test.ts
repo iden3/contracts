@@ -1,3 +1,4 @@
+import { Blockchain, buildDIDType, DidMethod, Id, NetworkId } from "@iden3/js-iden3-core";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
 
@@ -150,4 +151,44 @@ describe("test calculate id from ETH address", function () {
       expect(idResultFromGenesis).eq(idResultFromAddress);
   });
 
+});
+
+describe("test calculate id type from id", function () {
+  it("Iden3 Polygon Amoy", async () => {
+    const iden3PolygonAmoyDidType = buildDIDType(
+      DidMethod.Iden3,
+      Blockchain.Polygon,
+      NetworkId.Amoy,
+    );
+    const polygonIdPolygonMainDidType = buildDIDType(
+      DidMethod.PolygonId,
+      Blockchain.Polygon,
+      NetworkId.Main,
+    );
+    const iden3PrivadoMainDidType = buildDIDType(
+      DidMethod.Iden3,
+      Blockchain.Privado,
+      NetworkId.Main,
+    );
+    const iden3PrivadoTestDidType = buildDIDType(
+      DidMethod.Iden3,
+      Blockchain.Privado,
+      NetworkId.Test,
+    );
+    const didTypeIdType = [
+      { didType: iden3PolygonAmoyDidType, idType: 0x0113 },
+      { didType: polygonIdPolygonMainDidType, idType: 0x0211 },
+      { didType: iden3PrivadoMainDidType, idType: 0x01a1 },
+      { didType: iden3PrivadoTestDidType, idType: 0x01a2 },
+    ];
+
+    for (let i = 0; i < didTypeIdType.length; i++) {
+      const identifier = Id.idGenesisFromIdenState(
+        didTypeIdType[i].didType,
+        BigInt("7521024223205616003431860562270429547098131848980857190502964780628723574810"),
+      );
+      const genResult = await guWrpr.getIdType(identifier.bigInt());
+      expect(didTypeIdType[i].idType).eq(Number(genResult));
+    }
+  });
 });
