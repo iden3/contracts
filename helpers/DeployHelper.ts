@@ -5,7 +5,6 @@ import { deployPoseidons } from "./PoseidonDeployHelper";
 import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain";
 
-
 const SMT_MAX_DEPTH = 64;
 
 export class DeployHelper {
@@ -29,7 +28,8 @@ export class DeployHelper {
   }
 
   async deployState(
-    verifierContractName = "VerifierStateTransition"
+    supportedIdTypes: string[] = [],
+    verifierContractName = "VerifierStateTransition",
   ): Promise<{
     state: Contract;
     verifier: Contract;
@@ -39,6 +39,7 @@ export class DeployHelper {
     poseidon2: Contract;
     poseidon3: Contract;
     poseidon4: Contract;
+    defaultIdType;
   }> {
     this.log("======== State: deploy started ========");
 
@@ -83,11 +84,19 @@ export class DeployHelper {
       StateFactory,
       [await verifier.getAddress(), defaultIdType, await owner.getAddress()],
       {
-      unsafeAllowLinkedLibraries: true,
+        unsafeAllowLinkedLibraries: true,
     });
     await state.waitForDeployment();
     this.log(`State contract deployed to address ${await state.getAddress()} from ${await owner.getAddress()}`);
 
+    if (supportedIdTypes.length) {
+      supportedIdTypes = [...new Set(supportedIdTypes)];
+      for (const idType of supportedIdTypes) {
+        const tx = await state.setSupportedIdType(idType, true);
+        await tx.wait();
+        this.log(`Added id type ${idType}`);
+      }
+    }
     this.log("======== State: deploy completed ========");
 
     return {
@@ -99,6 +108,7 @@ export class DeployHelper {
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
       poseidon4: poseidon4Elements,
+      defaultIdType,
     };
   }
 
@@ -294,20 +304,14 @@ export class DeployHelper {
   async deployValidatorContracts(
     verifierContractWrapperName: string,
     validatorContractName: string,
-    stateAddress = ""
+    stateAddress: string,
   ): Promise<{
     state: any;
     verifierWrapper: any;
     validator: any;
   }> {
-    if (!stateAddress) {
-      const stateDeployHelper = await DeployHelper.initialize();
-      const { state } = await stateDeployHelper.deployState();
-      stateAddress = await state.getAddress();
-    }
-
     const ValidatorContractVerifierWrapper = await ethers.getContractFactory(
-      verifierContractWrapperName
+      verifierContractWrapperName,
     );
     const validatorContractVerifierWrapper = await ValidatorContractVerifierWrapper.deploy();
 

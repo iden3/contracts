@@ -7,8 +7,8 @@ import { Block } from "ethers";
 
 describe("Universal Verifier MTP & SIG validators", function () {
   let verifier: any, sig: any;
-  let signer, signer2, signer3, signer4;
-  let signerAddress: string, signer2Address: string, signer3Address: string, someAddress: string;
+  let signer, signer2, signer3;
+  let signerAddress: string;
   let deployHelper: DeployHelper;
 
   const query = {
@@ -32,11 +32,8 @@ describe("Universal Verifier MTP & SIG validators", function () {
   const proofJson = require("../validators/sig/data/valid_sig_user_genesis.json");
 
   beforeEach(async () => {
-    [signer, signer2, signer3, signer4] = await ethers.getSigners();
+    [signer, signer2, signer3] = await ethers.getSigners();
     signerAddress = await signer.getAddress();
-    signer2Address = await signer2.getAddress();
-    signer3Address = await signer3.getAddress();
-    someAddress = await signer4.getAddress();
 
     deployHelper = await DeployHelper.initialize(null, true);
     verifier = await deployHelper.deployUniversalVerifier(signer);
@@ -250,10 +247,11 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const someAddress = signer2;
     const requestId = 1;
     const otherRequestId = 2;
-
+    const { state } = await deployHelper.deployState();
     const { validator: mtp } = await deployHelper.deployValidatorContracts(
       "VerifierMTPWrapper",
       "CredentialAtomicQueryMTPV2Validator",
+      await state.getAddress(),
     );
     const mtpValAddr = await mtp.getAddress();
     expect(await verifier.isWhitelistedValidator(mtpValAddr)).to.be.false;
