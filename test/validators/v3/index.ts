@@ -284,7 +284,7 @@ describe("Atomic V3 Validator", function () {
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize(null, true);
 
-    const { state: stateContract } = await deployHelper.deployState(["0x0112"]);
+    const { state: stateContract } = await deployHelper.deployState(["0x0112", "0x01A1"]);
     state = stateContract;
 
     const contracts = await deployHelper.deployValidatorContracts(
