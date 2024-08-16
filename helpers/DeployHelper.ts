@@ -184,16 +184,7 @@ export class DeployHelper {
       },
     });
     stateContract = await upgrades.upgradeProxy(stateAddress, StateFactory, {
-      unsafeAllowLinkedLibraries: true,
-      unsafeSkipStorageCheck: true, // TODO: remove for next upgrade
-      call: {
-        fn: "initialize",
-        args: [
-          await verifierContract.getAddress(),
-          await stateContract.getDefaultIdType(),
-          await stateAdminOwner.getAddress(),
-        ],
-      },
+      unsafeAllowLinkedLibraries: true
     });
     await stateContract.waitForDeployment();
     this.log(
