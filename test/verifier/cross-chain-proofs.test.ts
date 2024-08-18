@@ -2,10 +2,8 @@ import { expect } from "chai";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import hre, { ethers } from "hardhat";
 import { packValidatorParams } from "../utils/validator-pack-utils";
-import { prepareInputs } from "../utils/state-utils";
 import { Block } from "ethers";
 import { calculateQueryHashV2 } from "../utils/query-hash-utils";
-import { impersonateAccount } from "@nomicfoundation/hardhat-network-helpers";
 
 describe("Cross-chain verification", function () {
   let verifier: any, validator: any;
@@ -92,8 +90,8 @@ describe("Cross-chain verification", function () {
     });
 
     const tenYears = 60 * 60 * 24 * 365 * 10;
-    validator.setGISTRootExpirationTimeout(tenYears); // 1 year
-    validator.setProofExpirationTimeout(tenYears); // 1 year
+    await validator.setGISTRootExpirationTimeout(tenYears); // 1 year
+    await validator.setProofExpirationTimeout(tenYears); // 1 year
 
     // TODO the account in the hardhat config is expected to be 0xe44943f7d2fe1efa0653b14c45bd257b84fef94d
     // consider better configuration
