@@ -59,13 +59,13 @@ describe("StateCrossChain test", function () {
 
     await stateCrossChain.processProof(crossChainProof);
 
-    const stateReplacedAt = await stateCrossChain.getStateReplacedAt(
+    const stateReplacedAt = await stateCrossChain.getReplacedAtOfState(
       su.idStateMsg.identity,
       su.idStateMsg.state,
     );
     expect(stateReplacedAt).to.be.equal(su.idStateMsg.timestamp);
 
-    const globalStateReplacedAt = await stateCrossChain.getGistRootReplacedAt(
+    const globalStateReplacedAt = await stateCrossChain.getReplacedAtOfGistRoot(
       gsu.globalStateMsg.root,
     );
     expect(globalStateReplacedAt).to.be.equal(gsu.globalStateMsg.timestamp);

@@ -93,7 +93,7 @@ contract StateCrossChain is IStateCrossChain, IStateForProofValidation {
         }
     }
 
-    function getStateReplacedAt(
+    function getReplacedAtOfState(
         uint256 id,
         uint256 state
     ) external view stateEntryExists(id, state) returns (uint256 replacedAt) {
@@ -101,7 +101,7 @@ contract StateCrossChain is IStateCrossChain, IStateForProofValidation {
         replacedAt = $._idToStateReplacedAt[id][state];
     }
 
-    function getGistRootReplacedAt(
+    function getReplacedAtOfGistRoot(
         uint256 root
     ) external view gistRootEntryExists(root) returns (uint256 replacedAt) {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
