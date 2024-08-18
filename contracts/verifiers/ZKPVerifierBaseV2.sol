@@ -18,7 +18,7 @@ contract ZKPVerifierBaseV2 is ZKPVerifierBase {
     /// @custom:storage-location erc7201:iden3.storage.ZKPVerifierBaseV2
     struct ZKPVerifierV2Storage {
         mapping(address user => mapping(uint64 requestID => ProofV2)) _proofs;
-        IStateCrossChain _stateCrossChain;
+        ICrossChainProofProcessor _stateCrossChain;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifierBaseV2")) - 1)) & ~bytes32(uint256(0xff));

@@ -2,11 +2,11 @@
 pragma solidity 0.8.20;
 
 import {IState} from "../interfaces/IState.sol";
-import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
+import {ICrossChainProofProcessor} from "../interfaces/ICrossChainProofProcessor.sol";
 import {IOracleProofValidator, IdentityStateMessage, GlobalStateMessage} from "../interfaces/IOracleProofValidator.sol";
 import {IStateForProofValidation} from "../interfaces/IStateForProofValidation.sol";
 
-contract StateCrossChain is IStateCrossChain, IStateForProofValidation {
+contract StateCrossChain is ICrossChainProofProcessor, IStateForProofValidation {
     /// @custom:storage-location erc7201:iden3.storage.StateCrossChain
     struct StateCrossChainStorage {
         mapping(uint256 id => mapping(uint256 state => uint256)) _idToStateReplacedAt;
