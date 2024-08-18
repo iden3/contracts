@@ -61,10 +61,8 @@ describe("Cross-chain verification", function () {
     const verifyingContract = ethers.ZeroAddress;
 
     deployHelper = await DeployHelper.initialize(null, true);
-    const opv = await ethers.deployContract("OracleProofValidator", [domainName, signatureVersion]);
     const { state } = await deployHelper.deployState();
-    const stateCrossChain = await ethers.deployContract("StateCrossChain", [await opv.getAddress()]);
-
+    const { stateCrossChain } = await deployHelper.deployStateCrossChain();
 
     verifier = await deployHelper.deployUniversalVerifier(signer);
 
