@@ -8,7 +8,6 @@ import { expect } from "chai";
 describe("Universal Verifier V3 validator", function () {
   let verifier: any, v3: any, state: any;
   let signer, signer2;
-  let signerAddress: string;
   let deployHelper: DeployHelper;
 
   const value = ["20010101", ...new Array(63).fill("0")];
@@ -54,14 +53,13 @@ describe("Universal Verifier V3 validator", function () {
 
   beforeEach(async () => {
     [signer, signer2] = await ethers.getSigners();
-    signerAddress = await signer.getAddress();
 
     deployHelper = await DeployHelper.initialize(null, true);
     verifier = await deployHelper.deployUniversalVerifier(signer);
 
     const contracts = await deployHelper.deployValidatorContracts(
       "VerifierV3Wrapper",
-      "CredentialAtomicQueryV3Validator"
+      "CredentialAtomicQueryV3Validator",
     );
     v3 = contracts.validator;
     state = contracts.state;

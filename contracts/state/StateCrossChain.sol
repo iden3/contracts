@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.20;
 
-import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {IState} from "../interfaces/IState.sol";
 import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 import {IOracleProofValidator, IdentityStateMessage, GlobalStateMessage} from "../interfaces/IOracleProofValidator.sol";
 import {IStateForProofValidation} from "../interfaces/IStateForProofValidation.sol";
 
-contract StateCrossChain is Ownable2StepUpgradeable, IStateCrossChain, IStateForProofValidation {
+contract StateCrossChain is IStateCrossChain, IStateForProofValidation {
     /// @custom:storage-location erc7201:iden3.storage.StateCrossChain
     struct StateCrossChainStorage {
         mapping(uint256 id => mapping(uint256 state => uint256)) _idToStateReplacedAt;
@@ -58,8 +57,8 @@ contract StateCrossChain is Ownable2StepUpgradeable, IStateCrossChain, IStateFor
     }
 
     constructor(IOracleProofValidator validator) {
-        StateCrossChainStorage storage s = _getStateCrossChainStorage();
-        s._oracleProofValidator = validator;
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+        $._oracleProofValidator = validator;
     }
 
     function processProof(bytes calldata proof) public {
@@ -118,29 +117,29 @@ contract StateCrossChain is Ownable2StepUpgradeable, IStateCrossChain, IStateFor
         replacedAt = $._rootToGistRootRelacedAt[root];
     }
 
-    function _setStateInfo(IdentityStateMessage memory msg, bytes memory signature) internal {
+    function _setStateInfo(IdentityStateMessage memory message, bytes memory signature) internal {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
 
         require(
-            $._oracleProofValidator.verifyIdentityState(msg, signature),
+            $._oracleProofValidator.verifyIdentityState(message, signature),
             "Identity state proof is not valid"
         );
 
-        $._idToStateReplacedAt[msg.identity][msg.state] = msg.replacedAtTimestamp == 0
-            ? msg.timestamp
-            : msg.replacedAtTimestamp;
+        $._idToStateReplacedAt[message.identity][message.state] = message.replacedAtTimestamp == 0
+            ? message.timestamp
+            : message.replacedAtTimestamp;
     }
 
-    function _setGistRootInfo(GlobalStateMessage memory msg, bytes memory signature) internal {
+    function _setGistRootInfo(GlobalStateMessage memory message, bytes memory signature) internal {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
 
         require(
-            $._oracleProofValidator.verifyGlobalState(msg, signature),
+            $._oracleProofValidator.verifyGlobalState(message, signature),
             "Global state proof is not valid"
         );
 
-        $._rootToGistRootRelacedAt[msg.root] = msg.replacedAtTimestamp == 0
-            ? msg.timestamp
-            : msg.replacedAtTimestamp;
+        $._rootToGistRootRelacedAt[message.root] = message.replacedAtTimestamp == 0
+            ? message.timestamp
+            : message.replacedAtTimestamp;
     }
 }

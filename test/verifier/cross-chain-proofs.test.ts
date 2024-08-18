@@ -80,7 +80,7 @@ describe("Cross-chain verification", function () {
     await verifier.addValidatorToWhitelist(validator);
   });
 
-  it("submitZKPResponse", async () => {
+  it("submitZKPResponse Sig, from payload", async () => {
     const data = packValidatorParams(query);
 
     await verifier.setZKPRequest(requestId, {
