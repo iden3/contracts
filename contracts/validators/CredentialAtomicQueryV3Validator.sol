@@ -5,7 +5,7 @@ import {CredentialAtomicQueryValidatorBase} from "./CredentialAtomicQueryValidat
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
-import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
+import {StateCrossChain} from "../state/StateCrossChain.sol";
 
 /**
  * @dev CredentialAtomicQueryV3 validator
@@ -60,7 +60,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
     function initialize(
         address _verifierContractAddr,
         address _stateContractAddr,
-        IStateCrossChain _stateCrossChain
+        StateCrossChain _stateCrossChain
     ) public initializer {
         _setInputToIndex("userID", 0);
         _setInputToIndex("circuitQueryHash", 1);

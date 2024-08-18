@@ -5,26 +5,21 @@ import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/acces
 import {IState} from "../interfaces/IState.sol";
 import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 import {IOracleProofValidator, IdentityStateMessage, GlobalStateMessage} from "../interfaces/IOracleProofValidator.sol";
+import {IStateForProofValidation} from "../interfaces/IStateForProofValidation.sol";
 
-contract StateCrossChain is Ownable2StepUpgradeable, IStateCrossChain, IState {
+contract StateCrossChain is Ownable2StepUpgradeable, IStateCrossChain, IStateForProofValidation {
     struct StateEntry {
-        uint256 createdAt;
-        uint256 replacedByState;
-        uint256 replaceAt;
+        uint256 replacedAt;
     }
 
     struct GistRootEntry {
-        uint256 replacedByRoot;
-        uint256 createdAt;
         uint256 replacedAt;
     }
 
     /// @custom:storage-location erc7201:iden3.storage.StateCrossChain
     struct StateCrossChainStorage {
-        mapping(uint256 id => mapping(uint256 state => StateEntry)) _idToEntry;
-        mapping(uint256 id => uint256 lastState) _idToLastState;
+        mapping(uint256 id => mapping(uint256 state => StateEntry)) _idToStateEntry;
         mapping(uint256 root => GistRootEntry) _rootToGistRootEntry;
-        uint256 _lastGistRoot;
         IOracleProofValidator _oracleProofValidator;
     }
 
@@ -51,13 +46,16 @@ contract StateCrossChain is Ownable2StepUpgradeable, IStateCrossChain, IState {
     modifier stateEntryExists(uint256 id, uint256 state) {
         StateCrossChainStorage storage s = _getStateCrossChainStorage();
 
-        require(s._idToEntry[id][state].createdAt != 0, "Entry not found");
+        // Check by replacedAt by assumption that it is never 0
+        require(s._idToStateEntry[id][state].replacedAt != 0, "State entry not found");
         _;
     }
 
     modifier gistRootEntryExists(uint256 root) {
         StateCrossChainStorage storage s = _getStateCrossChainStorage();
-        require(root == 0 || s._rootToGistRootEntry[root].createdAt != 0, "Gist root not found");
+
+        // Check by replacedAt by assumption that it is never 0
+        require(root == 0 || s._rootToGistRootEntry[root].replacedAt != 0, "Gist root not found");
         _;
     }
 
@@ -70,70 +68,6 @@ contract StateCrossChain is Ownable2StepUpgradeable, IStateCrossChain, IState {
     constructor(IOracleProofValidator validator) {
         StateCrossChainStorage storage s = _getStateCrossChainStorage();
         s._oracleProofValidator = validator;
-    }
-
-    function getStateInfoById(uint256 id) external view returns (StateInfo memory) {
-        StateCrossChainStorage storage s = _getStateCrossChainStorage();
-        uint256 lastState = s._idToLastState[id];
-        StateEntry storage entry = s._idToEntry[id][lastState];
-        require(entry.createdAt != 0, "State not found");
-
-        return
-            StateInfo({
-                id: id,
-                state: lastState,
-                replacedByState: entry.replacedByState,
-                createdAtTimestamp: entry.createdAt,
-                replacedAtTimestamp: entry.replaceAt,
-                createdAtBlock: 0,
-                replacedAtBlock: 0
-            });
-    }
-
-    function getStateInfoByIdAndState(
-        uint256 id,
-        uint256 state
-    ) external view stateEntryExists(id, state) returns (StateInfo memory) {
-        StateCrossChainStorage storage s = _getStateCrossChainStorage();
-        StateEntry storage entry = s._idToEntry[id][state];
-
-        return
-            StateInfo({
-                id: id,
-                state: state,
-                replacedByState: entry.replacedByState,
-                createdAtTimestamp: entry.createdAt,
-                replacedAtTimestamp: entry.replaceAt,
-                createdAtBlock: 0,
-                replacedAtBlock: 0
-            });
-    }
-
-    function idExists(uint256 id) external view returns (bool) {
-        StateCrossChainStorage storage s = _getStateCrossChainStorage();
-        return s._idToLastState[id] != 0;
-    }
-
-    function stateExists(uint256 id, uint256 state) external view returns (bool) {
-        StateCrossChainStorage storage s = _getStateCrossChainStorage();
-        return s._idToEntry[id][state].createdAt != 0;
-    }
-
-    function getGISTRootInfo(
-        uint256 root
-    ) external view gistRootEntryExists(root) returns (GistRootInfo memory) {
-        StateCrossChainStorage storage s = _getStateCrossChainStorage();
-        GistRootEntry storage entry = s._rootToGistRootEntry[root];
-
-        return
-            GistRootInfo({
-                root: root,
-                replacedByRoot: entry.replacedByRoot,
-                createdAtTimestamp: entry.createdAt,
-                replacedAtTimestamp: entry.replacedAt,
-                createdAtBlock: 0,
-                replacedAtBlock: 0
-            });
     }
 
     function processProof(bytes calldata proof) public {
@@ -160,6 +94,21 @@ contract StateCrossChain is Ownable2StepUpgradeable, IStateCrossChain, IState {
         }
     }
 
+    function getStateReplacedAt(
+        uint256 id,
+        uint256 state
+    ) external view stateEntryExists(id, state) returns (uint256 replacedAt) {
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+        replacedAt = $._idToStateEntry[id][state].replacedAt;
+    }
+
+    function getGistRootReplacedAt(
+        uint256 root
+    ) external view gistRootEntryExists(root) returns (uint256 replacedAt) {
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+        replacedAt = $._rootToGistRootEntry[root].replacedAt;
+    }
+
     function _setStateInfo(IdentityStateMessage memory msg, bytes memory signature) internal {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
 
@@ -168,16 +117,9 @@ contract StateCrossChain is Ownable2StepUpgradeable, IStateCrossChain, IState {
             "Identity state proof is not valid"
         );
 
-        $._idToEntry[msg.identity][msg.state] = StateEntry({
-            replacedByState: msg.replacedByState,
-            createdAt: msg.createdAtTimestamp,
-            replaceAt: msg.replacedAtTimestamp == 0 ? msg.timestamp : msg.replacedAtTimestamp
+        $._idToStateEntry[msg.identity][msg.state] = StateEntry({
+            replacedAt: msg.replacedAtTimestamp == 0 ? msg.timestamp : msg.replacedAtTimestamp
         });
-
-        uint256 lastState = $._idToLastState[msg.identity];
-        if ($._idToEntry[msg.identity][lastState].createdAt < msg.createdAtTimestamp) {
-            $._idToLastState[msg.identity] = msg.state;
-        }
     }
 
     function _setGistRootInfo(GlobalStateMessage memory msg, bytes memory signature) internal {
@@ -189,40 +131,7 @@ contract StateCrossChain is Ownable2StepUpgradeable, IStateCrossChain, IState {
         );
 
         $._rootToGistRootEntry[msg.root] = GistRootEntry({
-            replacedByRoot: msg.replacedByRoot,
-            createdAt: msg.createdAtTimestamp,
             replacedAt: msg.replacedAtTimestamp == 0 ? msg.timestamp : msg.replacedAtTimestamp
         });
-
-        if ($._rootToGistRootEntry[$._lastGistRoot].createdAt < msg.createdAtTimestamp) {
-            $._lastGistRoot = msg.root;
-        }
-    }
-
-    function getDefaultIdType() external view returns (bytes2) {
-        revert("Not implemented");
-    }
-
-    function transitState(
-        uint256 id,
-        uint256 oldState,
-        uint256 newState,
-        bool isOldStateGenesis,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c
-    ) external {
-        revert("Not implemented");
-    }
-
-    function transitStateGeneric(
-        uint256 id,
-        uint256 oldState,
-        uint256 newState,
-        bool isOldStateGenesis,
-        uint256 methodId,
-        bytes calldata methodParams
-    ) external {
-        revert("Not implemented");
     }
 }

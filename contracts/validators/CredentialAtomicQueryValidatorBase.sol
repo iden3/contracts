@@ -9,7 +9,7 @@ import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
 import {PoseidonFacade} from "../lib/Poseidon.sol";
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
-import "../interfaces/IStateCrossChain.sol";
+import {StateCrossChain} from "../state/StateCrossChain.sol";
 
 abstract contract CredentialAtomicQueryValidatorBase is
     Ownable2StepUpgradeable,
@@ -25,7 +25,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256 proofExpirationTimeout;
         uint256 gistRootExpirationTimeout;
         mapping(string => uint256) _inputNameToIndex;
-        IStateCrossChain _stateCrossChain;
+        StateCrossChain _stateCrossChain;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.CredentialAtomicQueryValidator")) - 1))
@@ -48,7 +48,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         address _stateContractAddr,
         address _verifierContractAddr,
         string memory circuitId,
-        IStateCrossChain _stateCrossChain
+        StateCrossChain _stateCrossChain
     ) internal {
         CredentialAtomicQueryValidatorBaseStorage
             storage s = _getCredentialAtomicQueryValidatorBaseStorage();
@@ -59,7 +59,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         s._supportedCircuitIds = [circuitId];
         s._circuitIdToVerifier[circuitId] = IVerifier(_verifierContractAddr);
         s.state = IState(_stateContractAddr);
-        s._stateCrossChain = IStateCrossChain(_stateCrossChain);
+        s._stateCrossChain = StateCrossChain(_stateCrossChain);
         __Ownable_init(_msgSender());
     }
 
@@ -268,7 +268,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         _getCredentialAtomicQueryValidatorBaseStorage()._inputNameToIndex[inputName] = ++index;
     }
 
-    function _getStateCrossChain() internal view returns (IStateCrossChain) {
+    function _getStateCrossChain() internal view returns (StateCrossChain) {
         return _getCredentialAtomicQueryValidatorBaseStorage()._stateCrossChain;
     }
 }
