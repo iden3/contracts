@@ -62,6 +62,10 @@ contract StateCrossChain is IStateCrossChain, IStateForProofValidation {
     }
 
     function processProof(bytes calldata proof) public {
+        if (proof.length == 0) {
+            return;
+        }
+
         CrossChainProof[] memory proofs = abi.decode(proof, (CrossChainProof[]));
         uint globalStateProofCount = 0;
         uint stateProofCount = 0;

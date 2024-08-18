@@ -25,12 +25,6 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         uint256 nullifierSessionID;
         uint256 proofType;
         uint256 verifierID;
-        SDInfo[] sdInfo;
-    }
-
-    struct SDInfo {
-        string key;
-        uint256[] allowedValues;
     }
 
     struct PubSignals {

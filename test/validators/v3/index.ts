@@ -2,8 +2,7 @@ import { expect } from "chai";
 import { prepareInputs, publishState } from "../../utils/state-utils";
 import { DeployHelper } from "../../../helpers/DeployHelper";
 import { packV3ValidatorParams } from "../../utils/validator-pack-utils";
-import { calculateQueryHashV3} from "../../utils/query-hash-utils";
-import { ethers } from "hardhat";
+import { calculateQueryHashV3 } from "../../utils/query-hash-utils";
 
 const tenYears = 315360000;
 const testCases: any[] = [
@@ -346,6 +345,9 @@ describe("Atomic V3 Validator", function () {
       if (test.setGISTRootExpiration) {
         await v3validator.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
       }
+
+      const packedParams = packV3ValidatorParams(query, test.allowedIssuers);
+
       if (test.errorMessage) {
         await expect(
           v3validator.verify(
@@ -353,7 +355,7 @@ describe("Atomic V3 Validator", function () {
             pi_a,
             pi_b,
             pi_c,
-            packV3ValidatorParams(query, test.allowedIssuers),
+            packedParams,
             test.sender
           )
         ).to.be.rejectedWith(test.errorMessage);
@@ -364,7 +366,7 @@ describe("Atomic V3 Validator", function () {
             pi_a,
             pi_b,
             pi_c,
-            packV3ValidatorParams(query, test.allowedIssuers),
+            packedParams,
             test.sender
           )
         ).to.be.reverted;
@@ -374,7 +376,7 @@ describe("Atomic V3 Validator", function () {
           pi_a,
           pi_b,
           pi_c,
-          packV3ValidatorParams(query, test.allowedIssuers),
+          packedParams,
           test.sender
         );
       }
