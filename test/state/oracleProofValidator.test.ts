@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { Contract, Signer } from "ethers";
-import { IdentityStateMessage, GlobalStateMessage } from "./messages";
+import { IdentityStateMessage, GlobalStateMessage } from "../utils/packData";
 
 describe("Oracle Proof Validator", function () {
   let contract: Contract;

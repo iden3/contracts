@@ -99,9 +99,11 @@ export class DeployHelper {
     };
   }
 
-  async deployStateCrossChain() {
+  async deployStateCrossChain(oracleProofValidatorContractName = "OracleProofValidator"): Promise<{
+    stateCrossChain: Contract;
+  }> {
     // deploy oracle proof validator
-    const opv = await ethers.deployContract("OracleProofValidator", ["StateInfo", "1"]);
+    const opv = await ethers.deployContract(oracleProofValidatorContractName, ["StateInfo", "1"]);
 
     const stateCrossChain = await ethers.deployContract(
       "StateCrossChain",

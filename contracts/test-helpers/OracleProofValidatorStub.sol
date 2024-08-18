@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import {IOracleProofValidator, IdentityStateMessage, GlobalStateMessage} from "../interfaces/IOracleProofValidator.sol";
 
 contract OracleProofValidatorStub is IOracleProofValidator {
+    constructor(string memory domainName, string memory signatureVersion) {}
+
     function verifyIdentityState(
         IdentityStateMessage calldata message,
         bytes calldata signature

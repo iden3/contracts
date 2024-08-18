@@ -91,19 +91,6 @@ contract StateCrossChain is IStateCrossChain, IStateForProofValidation {
                 revert("Unknown proof type");
             }
         }
-
-        if (proofs.length == 1) {
-            require(globalStateProofCount == 1, "Exactly one global state proof should be provided");
-        }
-
-        if (proofs.length == 2) {
-            require(stateProofCount == 2, "Exactly two state proofs should be provided");
-        }
-
-        if (proofs.length == 3) {
-            require(globalStateProofCount == 1, "Exactly one global state proof should be provided");
-            require(stateProofCount == 2, "Exactly two state proofs should be provided");
-        }
     }
 
     function getStateReplacedAt(
