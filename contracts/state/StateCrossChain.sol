@@ -25,7 +25,7 @@ contract StateCrossChain is ICrossChainProofProcessor, IStateForProofValidation 
     }
 
     struct CrossChainProof {
-        string proofType; // gross16,
+        string proofType;
         bytes proof;
     }
 
@@ -33,6 +33,12 @@ contract StateCrossChain is ICrossChainProofProcessor, IStateForProofValidation 
     //  & ~bytes32(uint256(0xff));
     bytes32 private constant StateCrossChainStorageLocation =
         0xfe6de916382846695d2555237dc6c0ef6555f4c949d4ba263e03532600778100;
+
+    function _getStateCrossChainStorage() private pure returns (StateCrossChainStorage storage $) {
+        assembly {
+            $.slot := StateCrossChainStorageLocation
+        }
+    }
 
     modifier stateEntryExists(uint256 id, uint256 state) {
         StateCrossChainStorage storage s = _getStateCrossChainStorage();
@@ -48,12 +54,6 @@ contract StateCrossChain is ICrossChainProofProcessor, IStateForProofValidation 
         // Check by replacedAt by assumption that it is never 0
         require(root == 0 || s._rootToGistRootRelacedAt[root] != 0, "Gist root not found");
         _;
-    }
-
-    function _getStateCrossChainStorage() private pure returns (StateCrossChainStorage storage $) {
-        assembly {
-            $.slot := StateCrossChainStorageLocation
-        }
     }
 
     constructor(IOracleProofValidator validator) {
