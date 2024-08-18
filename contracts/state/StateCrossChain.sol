@@ -64,6 +64,8 @@ contract StateCrossChain is Ownable2StepUpgradeable, IStateCrossChain, IStateFor
 
     function processProof(bytes calldata proof) public {
         CrossChainProof[] memory proofs = abi.decode(proof, (CrossChainProof[]));
+        uint globalStateProofCount = 0;
+        uint stateProofCount = 0;
 
         for (uint256 i = 0; i < proofs.length; i++) {
             if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("globalStateProof"))) {
@@ -73,6 +75,7 @@ contract StateCrossChain is Ownable2StepUpgradeable, IStateCrossChain, IStateFor
                 );
 
                 _setGistRootInfo(globalStateUpd.globalStateMsg, globalStateUpd.signature);
+                globalStateProofCount++;
             } else if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("stateProof"))) {
                 IdentityStateUpdate memory idStateUpd = abi.decode(
                     proofs[i].proof,
@@ -80,9 +83,23 @@ contract StateCrossChain is Ownable2StepUpgradeable, IStateCrossChain, IStateFor
                 );
 
                 _setStateInfo(idStateUpd.idStateMsg, idStateUpd.signature);
+                stateProofCount++;
             } else {
                 revert("Unknown proof type");
             }
+        }
+
+        if (proofs.length == 1) {
+            require(globalStateProofCount == 1, "Exactly one global state proof should be provided");
+        }
+
+        if (proofs.length == 2) {
+            require(stateProofCount == 2, "Exactly two state proofs should be provided");
+        }
+
+        if (proofs.length == 3) {
+            require(globalStateProofCount == 1, "Exactly one global state proof should be provided");
+            require(stateProofCount == 2, "Exactly two state proofs should be provided");
         }
     }
 
