@@ -147,7 +147,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         // check existance of gist root in state contract
         IState.GistProof memory gistProof = s.state.getGISTProofByRoot(_id, gistRoot);
         require(gistProof.existence, "Gist proof doesn't exist in state contract");
-        
+
         IState.GistRootInfo memory rootInfo = s.state.getGISTRootInfo(gistRoot);
         require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
         if (
@@ -185,10 +185,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         } else {
             IState.StateInfo memory claimNonRevStateInfo = s.state.getStateInfoById(_id);
             // for privado identity and genesis state info we don't need to check for expiration
-            if (
-                _isPrivadoId(_id) &&
-                claimNonRevStateInfo.replacedAtTimestamp == 0
-            ) {
+            if (_isPrivadoId(_id) && claimNonRevStateInfo.replacedAtTimestamp == 0) {
                 return;
             }
             // The non-empty state is returned, and it's not equal to the state that the user has provided.
