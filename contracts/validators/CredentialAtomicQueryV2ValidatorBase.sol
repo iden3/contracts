@@ -74,7 +74,7 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         // TODO: add support for query to specific userID and then verifying it
 
         _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
-        _checkGistRoot(signals.gistRoot);
+        _checkGistRoot(signals.userID, signals.gistRoot);
         _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
         _checkClaimIssuanceState(signals.issuerID, signals.issuerState);
         _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);

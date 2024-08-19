@@ -135,9 +135,19 @@ abstract contract CredentialAtomicQueryValidatorBase is
             super.supportsInterface(interfaceId);
     }
 
-    function _checkGistRoot(uint256 gistRoot) internal view {
+    function _checkGistRoot(uint256 _id, uint256 gistRoot) internal view {
         CredentialAtomicQueryValidatorBaseStorage
             storage s = _getCredentialAtomicQueryValidatorBaseStorage();
+
+        // for privado identity and 0 gist root we don't need to check for root info
+        if (gistRoot == 0 && _isPrivadoId(_id)) {
+            return;
+        }
+
+        // check existance of gist root in state contract
+        IState.GistProof memory gistProof = s.state.getGISTProofByRoot(_id, gistRoot);
+        require(gistProof.existence, "Gist proof doesn't exist in state contract");
+        
         IState.GistRootInfo memory rootInfo = s.state.getGISTRootInfo(gistRoot);
         require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
         if (
@@ -174,10 +184,9 @@ abstract contract CredentialAtomicQueryValidatorBase is
             );
         } else {
             IState.StateInfo memory claimNonRevStateInfo = s.state.getStateInfoById(_id);
-            bytes2 idType = GenesisUtils.getIdType(_id);
-            // for privado chain and genesis state info we don't need to check for expiration
+            // for privado identity and genesis state info we don't need to check for expiration
             if (
-                (idType == 0x01a1 || idType == 0x01a2) &&
+                _isPrivadoId(_id) &&
                 claimNonRevStateInfo.replacedAtTimestamp == 0
             ) {
                 return;
@@ -251,5 +260,10 @@ abstract contract CredentialAtomicQueryValidatorBase is
     function _setInputToIndex(string memory inputName, uint256 index) internal {
         // increment index to avoid 0
         _getCredentialAtomicQueryValidatorBaseStorage()._inputNameToIndex[inputName] = ++index;
+    }
+
+    function _isPrivadoId(uint256 _id) internal pure returns (bool) {
+        bytes2 idType = GenesisUtils.getIdType(_id);
+        return idType == 0x01a1 || idType == 0x01a2;
     }
 }
