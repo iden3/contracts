@@ -144,9 +144,11 @@ abstract contract CredentialAtomicQueryValidatorBase is
             return;
         }
 
-        // check existance of gist root in state contract
-        IState.GistProof memory gistProof = s.state.getGISTProofByRoot(_id, gistRoot);
-        require(gistProof.existence, "Gist proof doesn't exist in state contract");
+        if (gistRoot != 0) {
+            // check existance of gist proof in state contract
+            IState.GistProof memory gistProof = s.state.getGISTProofByRoot(_id, gistRoot);
+            require(gistProof.existence, "Gist proof doesn't exist in state contract");
+        }
 
         IState.GistRootInfo memory rootInfo = s.state.getGISTRootInfo(gistRoot);
         require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
