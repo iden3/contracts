@@ -320,6 +320,100 @@ async function main() {
   );
 
   console.log(`Request ID: ${requestId_Mtp} is set`);
+
+  console.log("================= setZKPRequest V3 SIG KYCAgeCredential ===================");
+
+  const requestId_V3_KYCAgeCredential = 5;
+
+  const queryV3KYCAgeCredential = {
+    requestId: requestId_V3_KYCAgeCredential,
+    schema: schemaBigInt,
+    claimPathKey: schemaClaimPathKey,
+    operator: Operators.LT,
+    value: [20020101, ...new Array(63).fill(0)], // for operators 1-3 only first value matters
+    slotIndex: 0,
+    queryHash: "",
+    circuitIds: ["credentialAtomicQueryV3OnChain-beta.1"],
+    allowedIssuers: [],
+    skipClaimRevocationCheck: false,
+    verifierID: verifierId.bigInt(),
+    nullifierSessionID: 11837215,
+    groupID: 0,
+    proofType: 0,
+  };
+
+  queryV3KYCAgeCredential.queryHash = calculateQueryHashV3(
+    queryV3KYCAgeCredential.value.map((i) => BigInt(i)),
+    queryV3KYCAgeCredential.schema,
+    queryV3KYCAgeCredential.slotIndex,
+    queryV3KYCAgeCredential.operator,
+    queryV3KYCAgeCredential.claimPathKey,
+    queryV3KYCAgeCredential.value.length,
+    1, // merklized
+    queryV3KYCAgeCredential.skipClaimRevocationCheck ? 0 : 1,
+    queryV3KYCAgeCredential.verifierID.toString(),
+    queryV3KYCAgeCredential.nullifierSessionID,
+  ).toString();
+  console.log(
+    "params query hash: ",
+    queryV3KYCAgeCredential.value.map((i) => BigInt(i)),
+    queryV3KYCAgeCredential.schema,
+    queryV3KYCAgeCredential.slotIndex,
+    queryV3KYCAgeCredential.operator,
+    queryV3KYCAgeCredential.claimPathKey,
+    queryV3KYCAgeCredential.value.length,
+    1, // merklized
+    queryV3KYCAgeCredential.skipClaimRevocationCheck ? 0 : 1,
+    queryV3KYCAgeCredential.verifierID.toString(),
+    queryV3KYCAgeCredential.nullifierSessionID,
+  );
+
+  console.log("queryV3KYCAgeCredential.queryHash:", queryV3KYCAgeCredential.queryHash);
+  const dataV3KYCAgeCredential = packV3ValidatorParams(queryV3KYCAgeCredential);
+
+  const invokeRequestMetadataKYCAgeCredential = {
+    id: "7f38a193-0918-4a48-9fac-36adfdb8b543",
+    typ: "application/iden3comm-plain-json",
+    type: "https://iden3-communication.io/proofs/1.0/contract-invoke-request",
+    thid: "7f38a193-0918-4a48-9fac-36adfdb8b543",
+    from: DID.parseFromId(verifierId).string(),
+    body: {
+      reason: "for testing submitZKPResponseV2",
+      transaction_data: {
+        contract_address: verifier.address,
+        method_id: "b68967e2",
+        chain_id: chainId,
+        network: network,
+      },
+      scope: [
+        {
+          id: queryV3KYCAgeCredential.requestId,
+          circuitId: queryV3KYCAgeCredential.circuitIds[0],
+          query: {
+            allowedIssuers: !queryV3KYCAgeCredential.allowedIssuers.length
+              ? ["*"]
+              : queryV3KYCAgeCredential.allowedIssuers,
+            context:
+              "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
+            credentialSubject: {
+              birthday: {
+                $lt: 20020101,
+              },
+            },
+            type: "KYCAgeCredential",
+          },
+        },
+      ],
+    },
+  };
+
+  await verifier.setZKPRequest(requestId_V3_KYCAgeCredential, {
+    metadata: JSON.stringify(invokeRequestMetadataKYCAgeCredential),
+    validator: validatorV3,
+    data: dataV3KYCAgeCredential,
+  });
+
+  console.log(`Request ID: ${requestId_V3_KYCAgeCredential} is set`);
 }
 
 main()
