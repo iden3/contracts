@@ -202,7 +202,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
             storage s = _getCredentialAtomicQueryValidatorBaseStorage();
 
         // check if identity transited any state in contract
-        bool idExists = _idExists(_id);
+        bool idExists = _getState().idExists(_id);
 
         // if identity didn't transit any state it must be genesis
         if (!idExists) {
@@ -224,17 +224,6 @@ abstract contract CredentialAtomicQueryValidatorBase is
         if (replacedAt != 0 && block.timestamp - replacedAt > $.revocationStateExpirationTimeout) {
             revert("Non-Revocation state of Issuer expired");
         }
-    }
-
-    function _idExists(uint256 id) internal view returns (bool) {
-        return true;
-        //        try _getState().idExists(id) returns (bool exists) {
-        //            console.log("_idExists(state)");
-        //            return exists;
-        //        } catch {
-        //            console.log("_idExists(state cross chain)");
-        //            return true;
-        //        }
     }
 
     function _checkProofExpiration(uint256 _proofGenerationTimestamp) internal view {
