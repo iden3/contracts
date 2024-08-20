@@ -147,7 +147,9 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
         );
     }
 
-    function processProof(bytes calldata proof) public returns(IState.GistRootInfo[] memory, IState.StateInfo[] memory) {
+    function processProof(
+        bytes calldata proof
+    ) public returns (IState.GistRootInfo[] memory, IState.StateInfo[] memory) {
         if (proof.length == 0) {
             return (new IState.GistRootInfo[](0), new IState.StateInfo[](0));
         }
@@ -166,7 +168,10 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
                     (GlobalStateUpdate)
                 );
 
-                require(verifyGlobalState(globalStateUpd.globalStateMsg, globalStateUpd.signature), "Invalid global state signature");
+                require(
+                    verifyGlobalState(globalStateUpd.globalStateMsg, globalStateUpd.signature),
+                    "Invalid global state signature"
+                );
 
                 gri[globalStateProofCount++] = IState.GistRootInfo({
                     root: globalStateUpd.globalStateMsg.root,
@@ -182,7 +187,10 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
                     (IdentityStateUpdate)
                 );
 
-                require(verifyIdentityState(idStateUpd.idStateMsg, idStateUpd.signature), "Invalid identity state signature");
+                require(
+                    verifyIdentityState(idStateUpd.idStateMsg, idStateUpd.signature),
+                    "Invalid identity state signature"
+                );
 
                 si[stateProofCount++] = IState.StateInfo({
                     id: idStateUpd.idStateMsg.identity,

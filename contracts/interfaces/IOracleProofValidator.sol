@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
+import {IState} from "./IState.sol";
+
 interface IOracleProofValidator {
     struct IdentityStateMessage {
         address from;
@@ -45,4 +47,8 @@ interface IOracleProofValidator {
         GlobalStateMessage calldata message,
         bytes calldata signature
     ) external view returns (bool);
+
+    function processProof(
+        bytes calldata proof
+    ) external returns (IState.GistRootInfo[] memory, IState.StateInfo[] memory);
 }

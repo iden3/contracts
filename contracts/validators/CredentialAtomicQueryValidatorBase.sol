@@ -191,10 +191,8 @@ abstract contract CredentialAtomicQueryValidatorBase is
                 "Issuer revocation state doesn't exist in state contract and is not genesis"
             );
         } else {
-            IState.StateInfo memory claimNonRevLatestStateInfo = _getState().getStateInfoByIdAndState(
-                _id,
-                _claimNonRevState
-            );
+            IState.StateInfo memory claimNonRevLatestStateInfo = _getState()
+                .getStateInfoByIdAndState(_id, _claimNonRevState);
 
             if (
                 claimNonRevLatestStateInfo.replacedAtTimestamp != 0 &&
@@ -208,13 +206,13 @@ abstract contract CredentialAtomicQueryValidatorBase is
 
     function _idExists(uint256 id) internal view returns (bool) {
         return true;
-//        try _getState().idExists(id) returns (bool exists) {
-//            console.log("_idExists(state)");
-//            return exists;
-//        } catch {
-//            console.log("_idExists(state cross chain)");
-//            return true;
-//        }
+        //        try _getState().idExists(id) returns (bool exists) {
+        //            console.log("_idExists(state)");
+        //            return exists;
+        //        } catch {
+        //            console.log("_idExists(state cross chain)");
+        //            return true;
+        //        }
     }
 
     function _checkProofExpiration(uint256 _proofGenerationTimestamp) internal view {

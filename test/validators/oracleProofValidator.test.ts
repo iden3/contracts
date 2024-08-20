@@ -87,7 +87,7 @@ describe("Oracle Proof Validator", function () {
     await contract.waitForDeployment();
   });
 
-  it("should verify the message", async function () {
+  it("Should verify the message", async function () {
     // Assume _validate function and any other dependencies are properly implemented in the contract
     let result = await contract.verifyIdentityState(identityStateMessage, signatureISM);
     expect(result).to.be.true;
@@ -95,7 +95,7 @@ describe("Oracle Proof Validator", function () {
     expect(result).to.be.true;
   });
 
-  it("should fail to verify an invalid message", async function () {
+  it("Should fail to verify an invalid message", async function () {
     globalStateMessage.root++; // modify to make the message invalid
     let result = await contract.verifyGlobalState(globalStateMessage, signatureGSM);
     expect(result).to.be.false;
@@ -105,7 +105,7 @@ describe("Oracle Proof Validator", function () {
     expect(result).to.be.false;
   });
 
-  it("test", async function () {
+  it("Should process the message", async function () {
     const su: StateUpdate = {
       idStateMsg: identityStateMessage,
       signature: signatureISM,
