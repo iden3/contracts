@@ -136,19 +136,17 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function _checkGistRoot(uint256 _id, uint256 gistRoot) internal view {
-        CredentialAtomicQueryValidatorBaseStorage
-            storage s = _getCredentialAtomicQueryValidatorBaseStorage();
-
-        // for privado identity and 0 gist root we don't need to check for root info
-        if (gistRoot == 0 && _isPrivadoId(_id)) {
+         // for privado identity and 0 gist root we don't need to check for root info
+        if (_isPrivadoId(_id)) {
+            require(gistRoot == 0, "Privado identity can't have gist root");
             return;
         }
 
-        if (gistRoot != 0) {
-            // check existance of gist proof in state contract
-            IState.GistProof memory gistProof = s.state.getGISTProofByRoot(_id, gistRoot);
-            require(gistProof.existence, "Gist proof doesn't exist in state contract");
-        }
+        CredentialAtomicQueryValidatorBaseStorage
+            storage s = _getCredentialAtomicQueryValidatorBaseStorage();
+
+        // Check if the id type is supported
+        s.state.getIdTypeIfSupported(_id);
 
         IState.GistRootInfo memory rootInfo = s.state.getGISTRootInfo(gistRoot);
         require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
@@ -172,6 +170,12 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function _checkClaimNonRevState(uint256 _id, uint256 _claimNonRevState) internal view {
+        // for privado identity and genesis state we don't need to check for expiration
+        if (_isPrivadoId(_id)) {
+            require(GenesisUtils.isGenesisState(_id, _claimNonRevState), "Privado identity is not genesis");
+            return;
+        }
+
         CredentialAtomicQueryValidatorBaseStorage
             storage s = _getCredentialAtomicQueryValidatorBaseStorage();
 
@@ -186,10 +190,6 @@ abstract contract CredentialAtomicQueryValidatorBase is
             );
         } else {
             IState.StateInfo memory claimNonRevStateInfo = s.state.getStateInfoById(_id);
-            // for privado identity and genesis state info we don't need to check for expiration
-            if (_isPrivadoId(_id) && claimNonRevStateInfo.replacedAtTimestamp == 0) {
-                return;
-            }
             // The non-empty state is returned, and it's not equal to the state that the user has provided.
             if (claimNonRevStateInfo.state != _claimNonRevState) {
                 // Get the time of the latest state and compare it to the transition time of state provided by the user.

@@ -93,18 +93,6 @@ interface IState {
     function getGISTRootInfo(uint256 root) external view returns (GistRootInfo memory);
 
     /**
-     * @dev Retrieve GIST inclusion or non-inclusion proof for a given identity for
-     * some GIST root in the past.
-     * @param id Identity
-     * @param root GIST root
-     * @return The GIST inclusion or non-inclusion proof for the identity
-     */
-    function getGISTProofByRoot(
-        uint256 id,
-        uint256 root
-    ) external view returns (IState.GistProof memory);
-
-    /**
      * @dev Check if the id type supported.
      * @param idType id type.
      * @return True if the id type supported.
