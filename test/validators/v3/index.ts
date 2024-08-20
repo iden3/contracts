@@ -264,13 +264,12 @@ const testCases: any[] = [
     sender: "0x0000000000000000000000000000000000000000",
   },
   {
-    name: "Privado Main id type, Validate Genesis User State. Issuer Claim IdenState is in published onchain. Revocation State is published onchain. BJJ Proof",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_privado_main_v3.json"),
-    ],
+    name: "Privado Main id type, Validate Genesis User State. Issuer genesis. BJJ Proof",
+    stateTransitions: [],
     proofJson: require("./data/valid_bjj_user_genesis_privado_main_v3.json"),
     setProofExpiration: tenYears,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    errorMessage: "Privado identity is not genesis",
   },
 ];
 
@@ -284,7 +283,7 @@ describe("Atomic V3 Validator", function () {
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize(null, true);
 
-    const { state: stateContract } = await deployHelper.deployState(["0x0112", "0x01A1"]);
+    const { state: stateContract } = await deployHelper.deployState(["0x0112"]);
     state = stateContract;
 
     const contracts = await deployHelper.deployValidatorContracts(

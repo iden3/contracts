@@ -135,9 +135,19 @@ abstract contract CredentialAtomicQueryValidatorBase is
             super.supportsInterface(interfaceId);
     }
 
-    function _checkGistRoot(uint256 gistRoot) internal view {
+    function _checkGistRoot(uint256 _id, uint256 gistRoot) internal view {
+        // for privado identity and 0 gist root we don't need to check for root info
+        if (_isPrivadoId(_id)) {
+            require(gistRoot == 0, "Privado identity can't have gist root");
+            return;
+        }
+
         CredentialAtomicQueryValidatorBaseStorage
             storage s = _getCredentialAtomicQueryValidatorBaseStorage();
+
+        // Check if the id type is supported
+        s.state.getIdTypeIfSupported(_id);
+
         IState.GistRootInfo memory rootInfo = s.state.getGISTRootInfo(gistRoot);
         require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
         if (
@@ -160,6 +170,15 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function _checkClaimNonRevState(uint256 _id, uint256 _claimNonRevState) internal view {
+        // for privado identity and genesis state we don't need to check for expiration
+        if (_isPrivadoId(_id)) {
+            require(
+                GenesisUtils.isGenesisState(_id, _claimNonRevState),
+                "Privado identity is not genesis"
+            );
+            return;
+        }
+
         CredentialAtomicQueryValidatorBaseStorage
             storage s = _getCredentialAtomicQueryValidatorBaseStorage();
 
@@ -174,14 +193,6 @@ abstract contract CredentialAtomicQueryValidatorBase is
             );
         } else {
             IState.StateInfo memory claimNonRevStateInfo = s.state.getStateInfoById(_id);
-            bytes2 idType = GenesisUtils.getIdType(_id);
-            // for privado chain and genesis state info we don't need to check for expiration
-            if (
-                (idType == 0x01a1 || idType == 0x01a2) &&
-                claimNonRevStateInfo.replacedAtTimestamp == 0
-            ) {
-                return;
-            }
             // The non-empty state is returned, and it's not equal to the state that the user has provided.
             if (claimNonRevStateInfo.state != _claimNonRevState) {
                 // Get the time of the latest state and compare it to the transition time of state provided by the user.
@@ -251,5 +262,10 @@ abstract contract CredentialAtomicQueryValidatorBase is
     function _setInputToIndex(string memory inputName, uint256 index) internal {
         // increment index to avoid 0
         _getCredentialAtomicQueryValidatorBaseStorage()._inputNameToIndex[inputName] = ++index;
+    }
+
+    function _isPrivadoId(uint256 _id) internal pure returns (bool) {
+        bytes2 idType = GenesisUtils.getIdType(_id);
+        return idType == 0x01a1 || idType == 0x01a2;
     }
 }
