@@ -17,19 +17,14 @@ import { Hex } from "@iden3/js-crypto";
 import { Merklizer } from "@iden3/js-jsonld-merklization";
 
 async function main() {
-  const domainName = "StateInfo";
-  const signatureVersion = "1";
   const deployHelper = await DeployHelper.initialize(null, true);
 
   const chainId = hre.network.config.chainId;
   const network = hre.network.name;
   // ##################### StateCrossChain deploy #####################
 
-  const opv = await ethers.deployContract("OracleProofValidator", [domainName, signatureVersion]);
+  const oracleProofValidator = await deployHelper.deployOracleProofValidator();
   const { state } = await deployHelper.deployState();
-  const stateCrossChain = await ethers.deployContract("StateCrossChain", [await opv.getAddress()]);
-
-  console.log("StateCrossChain deployed to:", await stateCrossChain.getAddress());
 
   // ##################### Validator deploy #####################
 
@@ -37,21 +32,21 @@ async function main() {
     "VerifierMTPWrapper",
     "CredentialAtomicQueryMTPV2Validator",
     await state.getAddress(),
-    await stateCrossChain.getAddress(),
+    await oracleProofValidator.getAddress(),
   );
 
   const { validator: validatorSig } = await deployHelper.deployValidatorContracts(
     "VerifierSigWrapper",
     "CredentialAtomicQuerySigV2Validator",
     await state.getAddress(),
-    await stateCrossChain.getAddress(),
+    await oracleProofValidator.getAddress(),
   );
 
   const { validator: validatorV3 } = await deployHelper.deployValidatorContracts(
     "VerifierV3Wrapper",
     "CredentialAtomicQueryV3Validator",
     await state.getAddress(),
-    await stateCrossChain.getAddress(),
+    await oracleProofValidator.getAddress(),
   );
 
   // // ##################### Verifier deploy #####################

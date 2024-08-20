@@ -52,7 +52,8 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
 
     function initialize(
         address _verifierContractAddr,
-        address _stateContractAddr
+        address _stateContractAddr,
+        address _oracleProofValidatorAddr
     ) public initializer {
         _setInputToIndex("userID", 0);
         _setInputToIndex("circuitQueryHash", 1);
@@ -69,7 +70,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _setInputToIndex("timestamp", 12);
         _setInputToIndex("isBJJAuthEnabled", 13);
 
-        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID);
+        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, _oracleProofValidatorAddr);
         __Ownable_init(_msgSender());
     }
 
@@ -98,14 +99,15 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         return pubSignals;
     }
 
-    function verify(
+    function _verify(
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c,
         bytes calldata data,
-        address sender
-    ) public view override returns (ICircuitValidator.KeyToInputValue[] memory) {
+        address sender,
+        bytes memory crossChainProof
+    ) internal view override returns (ICircuitValidator.KeyToInputValue[] memory) {
         CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
             data,
             (CredentialAtomicQueryV3)

@@ -9,6 +9,7 @@ import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
 import {PoseidonFacade} from "../lib/Poseidon.sol";
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
+import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
 import {console} from "hardhat/console.sol";
 
 abstract contract CredentialAtomicQueryValidatorBase is
@@ -25,6 +26,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256 proofExpirationTimeout;
         uint256 gistRootExpirationTimeout;
         mapping(string => uint256) _inputNameToIndex;
+        IOracleProofValidator _oracleProofValidator;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.CredentialAtomicQueryValidator")) - 1))
@@ -46,7 +48,8 @@ abstract contract CredentialAtomicQueryValidatorBase is
     function _initDefaultStateVariables(
         address _stateContractAddr,
         address _verifierContractAddr,
-        string memory circuitId
+        string memory circuitId,
+        address _oracleProofValidatorAddr
     ) internal {
         CredentialAtomicQueryValidatorBaseStorage
             storage s = _getCredentialAtomicQueryValidatorBaseStorage();
@@ -57,6 +60,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         s._supportedCircuitIds = [circuitId];
         s._circuitIdToVerifier[circuitId] = IVerifier(_verifierContractAddr);
         s.state = IState(_stateContractAddr);
+        s._oracleProofValidator = IOracleProofValidator(_oracleProofValidatorAddr);
         __Ownable_init(_msgSender());
     }
 
@@ -105,7 +109,9 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256[2] memory c,
         bytes calldata data,
         address sender
-    ) public virtual returns (ICircuitValidator.KeyToInputValue[] memory);
+    ) public view override returns (ICircuitValidator.KeyToInputValue[] memory) {
+        return _verify(inputs, a, b, c, data, sender, hex"");
+    }
 
     function verifyV2(
         bytes calldata zkProof,
@@ -120,8 +126,18 @@ abstract contract CredentialAtomicQueryValidatorBase is
             uint256[2] memory c
         ) = abi.decode(zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
-        return verify(inputs, a, b, c, data, sender);
+        return _verify(inputs, a, b, c, data, sender, crossChainProof);
     }
+
+    function _verify(
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
+        bytes calldata data,
+        address sender,
+        bytes memory crossChainProof
+    ) internal view virtual returns (ICircuitValidator.KeyToInputValue[] memory);
 
     function getSupportedCircuitIds() external view virtual returns (string[] memory ids) {
         return _getCredentialAtomicQueryValidatorBaseStorage()._supportedCircuitIds;
@@ -135,6 +151,10 @@ abstract contract CredentialAtomicQueryValidatorBase is
 
     function _getState() internal view returns (IState) {
         return _getCredentialAtomicQueryValidatorBaseStorage().state;
+    }
+
+    function _getOracleProofValidator() internal view returns (IOracleProofValidator) {
+        return _getCredentialAtomicQueryValidatorBaseStorage()._oracleProofValidator;
     }
 
     function inputIndexOf(string memory name) public view virtual returns (uint256) {
@@ -152,21 +172,22 @@ abstract contract CredentialAtomicQueryValidatorBase is
             super.supportsInterface(interfaceId);
     }
 
-    //TODO add oracle data to the args or create another method version
     function _checkGistRoot(uint256 gistRoot) internal view {
         CredentialAtomicQueryValidatorBaseStorage
             storage s = _getCredentialAtomicQueryValidatorBaseStorage();
         IState.GistRootInfo memory rootInfo = _getState().getGISTRootInfo(gistRoot);
         require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
-        if (
-            rootInfo.replacedAtTimestamp != 0 &&
-            block.timestamp - rootInfo.replacedAtTimestamp > s.gistRootExpirationTimeout
-        ) {
+        _checkGistRootExpiration(rootInfo.replacedAtTimestamp);
+    }
+
+    function _checkGistRootExpiration(uint256 replacedAt) internal view {
+        CredentialAtomicQueryValidatorBaseStorage
+            storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
+        if (replacedAt != 0 && block.timestamp - replacedAt > $.gistRootExpirationTimeout) {
             revert("Gist root is expired");
         }
     }
 
-    //TODO add oracle data to the args or create another method version
     function _checkClaimIssuanceState(uint256 _id, uint256 _state) internal view {
         bool isStateGenesis = GenesisUtils.isGenesisState(_id, _state);
 
@@ -176,7 +197,6 @@ abstract contract CredentialAtomicQueryValidatorBase is
         }
     }
 
-    //TODO add oracle data to the args or create another method version
     function _checkClaimNonRevState(uint256 _id, uint256 _claimNonRevState) internal view {
         CredentialAtomicQueryValidatorBaseStorage
             storage s = _getCredentialAtomicQueryValidatorBaseStorage();
@@ -194,13 +214,15 @@ abstract contract CredentialAtomicQueryValidatorBase is
             IState.StateInfo memory claimNonRevLatestStateInfo = _getState()
                 .getStateInfoByIdAndState(_id, _claimNonRevState);
 
-            if (
-                claimNonRevLatestStateInfo.replacedAtTimestamp != 0 &&
-                block.timestamp - claimNonRevLatestStateInfo.replacedAtTimestamp >
-                s.revocationStateExpirationTimeout
-            ) {
-                revert("Non-Revocation state of Issuer expired");
-            }
+            _checkClaimNonRevStateExpiration(claimNonRevLatestStateInfo.replacedAtTimestamp);
+        }
+    }
+
+    function _checkClaimNonRevStateExpiration(uint256 replacedAt) internal view {
+        CredentialAtomicQueryValidatorBaseStorage
+            storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
+        if (replacedAt != 0 && block.timestamp - replacedAt > $.revocationStateExpirationTimeout) {
+            revert("Non-Revocation state of Issuer expired");
         }
     }
 

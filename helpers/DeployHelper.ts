@@ -99,23 +99,6 @@ export class DeployHelper {
     };
   }
 
-  async deployStateCrossChain(oracleProofValidatorContractName = "OracleProofValidator"): Promise<{
-    stateCrossChain: Contract;
-  }> {
-    // deploy oracle proof validator
-    const opv = await ethers.deployContract(oracleProofValidatorContractName, ["StateInfo", "1"]);
-
-    const stateCrossChain = await ethers.deployContract(
-      "StateCrossChain",
-      [await opv.getAddress()],
-      {},
-    );
-    console.log("\nStateCrossChain deployed to:", await stateCrossChain.getAddress());
-    return {
-      stateCrossChain,
-    };
-  }
-
   async upgradeState(
     stateAddress: string,
     redeployVerifier = true,
@@ -311,15 +294,26 @@ export class DeployHelper {
     return bsWrapper;
   }
 
+  async deployOracleProofValidator(domainName = "StateInfo", signatureVersion = "1") {
+    const oracleProofValidator = await ethers.deployContract("OracleProofValidator", [
+      domainName,
+      signatureVersion,
+    ]);
+    await oracleProofValidator.waitForDeployment();
+    console.log("OracleProofValidator deployed to:", await oracleProofValidator.getAddress());
+    return oracleProofValidator;
+  }
+
   async deployValidatorContracts(
     verifierContractWrapperName: string,
     validatorContractName: string,
     stateAddress = "",
-    stateCrossChainAddress = "",
+    oracleProofValidatorAddress = "",
   ): Promise<{
     state: any;
     verifierWrapper: any;
     validator: any;
+    oracleProofValidator: Contract;
   }> {
     if (!stateAddress) {
       const stateDeployHelper = await DeployHelper.initialize();
@@ -327,9 +321,9 @@ export class DeployHelper {
       stateAddress = await state.getAddress();
     }
 
-    if (!stateCrossChainAddress) {
-      const { stateCrossChain } = await this.deployStateCrossChain();
-      stateCrossChainAddress = await stateCrossChain.getAddress();
+    if (!oracleProofValidatorAddress) {
+      const oracleProofValidator = await this.deployOracleProofValidator();
+      oracleProofValidatorAddress = await oracleProofValidator.getAddress();
     }
 
     const ValidatorContractVerifierWrapper = await ethers.getContractFactory(
@@ -348,7 +342,7 @@ export class DeployHelper {
     const validatorContractProxy = await upgrades.deployProxy(ValidatorContract, [
       await validatorContractVerifierWrapper.getAddress(),
       stateAddress,
-      stateCrossChainAddress,
+      oracleProofValidatorAddress,
     ]);
 
     await validatorContractProxy.waitForDeployment();
@@ -358,10 +352,16 @@ export class DeployHelper {
     const signers = await ethers.getSigners();
 
     const state = await ethers.getContractAt("State", stateAddress, signers[0]);
+    const oracleProofValidator = await ethers.getContractAt(
+      "OracleProofValidator",
+      oracleProofValidatorAddress,
+      signers[0],
+    );
     return {
       validator: validatorContractProxy,
       verifierWrapper: validatorContractVerifierWrapper,
       state,
+      oracleProofValidator,
     };
   }
 

@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import {CredentialAtomicQueryValidatorBase} from "./CredentialAtomicQueryValidatorBase.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {IState} from "../interfaces/IState.sol";
 import {console} from "hardhat/console.sol";
 
 abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryValidatorBase {
@@ -45,14 +46,15 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         uint256[] memory inputs
     ) public pure virtual returns (PubSignals memory);
 
-    function verify(
+    function _verify(
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c,
         bytes calldata data,
-        address sender
-    ) public view override returns (ICircuitValidator.KeyToInputValue[] memory) {
+        address sender,
+        bytes memory crossChainProof
+    ) internal view override returns (ICircuitValidator.KeyToInputValue[] memory) {
         console.log("Begin verify");
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
 
@@ -77,10 +79,8 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         // TODO: add support for query to specific userID and then verifying it
 
         _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
-        _checkGistRoot(signals.gistRoot);
+
         _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
-        _checkClaimIssuanceState(signals.issuerID, signals.issuerState);
-        _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
         _checkProofExpiration(signals.timestamp);
         _checkIsRevocationChecked(
             signals.isRevocationChecked,
@@ -89,6 +89,37 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
 
         // Checking challenge to prevent replay attacks from other addresses
         _checkChallenge(signals.challenge, sender);
+
+        // GIST root and state checks
+        (
+            IState.GistRootInfo[] memory gri,
+            IState.StateInfo[] memory si
+        ) = _getOracleProofValidator().processProof(crossChainProof);
+
+        if (gri.length == 1) {
+            _checkGistRootExpiration(gri[0].replacedAtTimestamp);
+        } else {
+            _checkGistRoot(signals.gistRoot);
+        }
+
+        if (si.length == 1 && signals.issuerState != si[0].state) {
+            _checkClaimIssuanceState(signals.issuerID, signals.issuerState);
+        }
+        if (
+            si.length == 2 &&
+            signals.issuerState != si[0].state &&
+            signals.issuerState != si[1].state
+        ) {
+            _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
+        }
+
+        if ((si.length == 1 || si.length == 2) && signals.issuerClaimNonRevState == si[0].state) {
+            _checkClaimNonRevStateExpiration(si[0].replacedAtTimestamp);
+        } else if (si.length == 2 && signals.issuerClaimNonRevState == si[1].state) {
+            _checkClaimNonRevStateExpiration(si[1].replacedAtTimestamp);
+        } else {
+            _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
+        }
 
         // get special input values
         // selective disclosure is not supported for v2 onchain circuits

@@ -50,5 +50,5 @@ interface IOracleProofValidator {
 
     function processProof(
         bytes calldata proof
-    ) external returns (IState.GistRootInfo[] memory, IState.StateInfo[] memory);
+    ) external view returns (IState.GistRootInfo[] memory, IState.StateInfo[] memory);
 }

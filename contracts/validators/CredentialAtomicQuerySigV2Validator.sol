@@ -15,7 +15,8 @@ contract CredentialAtomicQuerySigV2Validator is CredentialAtomicQueryV2Validator
 
     function initialize(
         address _verifierContractAddr,
-        address _stateContractAddr
+        address _stateContractAddr,
+        address _oracleProofValidatorAddr
     ) public initializer {
         _setInputToIndex("merklized", 0);
         _setInputToIndex("userID", 1);
@@ -29,7 +30,7 @@ contract CredentialAtomicQuerySigV2Validator is CredentialAtomicQueryV2Validator
         _setInputToIndex("issuerClaimNonRevState", 9);
         _setInputToIndex("timestamp", 10);
 
-        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID);
+        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, _oracleProofValidatorAddr);
         __Ownable_init(_msgSender());
     }
 
