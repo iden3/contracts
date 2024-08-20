@@ -35,32 +35,18 @@ describe("Oracle Proof Validator", function () {
       verifyingContract,
     };
 
-    //          "message": {
-    //             "replacedAtTimestamp": "1723492214",
-    //             "state": "19584423714379092908357767184459178747839560563821033685241877638802820366565",
-    //             "timestamp": "1724170397",
-    //             "userID": "19829108207309885047084260525570486092116576508054294263928858481001996801"
-    //           }
-
     identityStateMessage = {
-      timestamp: 1721407330n,
-      userID: 19090607534999372304474213543962416547920895595808567155882840509226423042n,
-      state: 0n,
-      replacedAtTimestamp: 0n,
+      timestamp: 1723492214n,
+      userID: 19829108207309885047084260525570486092116576508054294263928858481001996801n,
+      state: 19584423714379092908357767184459178747839560563821033685241877638802820366565n,
+      replacedAtTimestamp: 1723492214n,
     };
 
-    //           "message": {
-    //             "replacedAtTimestamp": "1722211019",
-    //             "root": "0",
-    //             "timestamp": "1724170431",
-    //             "userID": "19829108207309885047084260525570486092116576508054294263928858481001996801"
-    //           }
-
     globalStateMessage = {
-      timestamp: 1721407330n,
+      timestamp: 1724170431n,
       userID: 19829108207309885047084260525570486092116576508054294263928858481001996801n,
-      root: 6376828012722752730323542484049180893581903547300301354812470207953471379731n,
-      replacedAtTimestamp: 0n,
+      root: 0n,
+      replacedAtTimestamp: 1722211019n,
     };
 
     const ismTypes = {
@@ -82,7 +68,11 @@ describe("Oracle Proof Validator", function () {
     };
 
     signatureISM = await signer.signTypedData(domain, ismTypes, identityStateMessage);
+    // signatureISM =
+    //   "0xcb5d416d913bdfbc9e2a9ec18685430ef4e157e459ce61f48364a375d071ec080e06498456932f24daa41fbe09954f9e88797d6d8aa3fd47d0c2af6242de906e1b";
     signatureGSM = await signer.signTypedData(domain, gsmTypes, globalStateMessage);
+    // signatureGSM =
+    //   "0x8d781b70e7188e0bbee474af9f72a884a937bc624deded1fc8438a5a4af7dee35a9b88ef52f8bfbd5f8b90c8df19837aa14433797a2e847cd3c93db4b5542a181c";
 
     console.log("signatureISM: ", signatureISM);
     console.log("signatureGSM: ", signatureGSM);
