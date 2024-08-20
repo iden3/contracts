@@ -91,6 +91,7 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         _checkChallenge(signals.challenge, sender);
 
         // GIST root and state checks
+        // TODO get rid of DRY violation (put into different function)
         (
             IState.GistRootInfo[] memory gri,
             IState.StateInfo[] memory si
@@ -102,15 +103,14 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
             _checkGistRoot(signals.gistRoot);
         }
 
-        if (si.length == 1 && signals.issuerState != si[0].state) {
-            _checkClaimIssuanceState(signals.issuerID, signals.issuerState);
-        }
+        // TODO get rid of DRY violation (put into different function)
         if (
-            si.length == 2 &&
-            signals.issuerState != si[0].state &&
-            signals.issuerState != si[1].state
+            (si.length == 1 && signals.issuerState != si[0].state) ||
+            (si.length == 2 &&
+                signals.issuerState != si[0].state &&
+                signals.issuerState != si[1].state)
         ) {
-            _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
+            _checkClaimIssuanceState(signals.issuerID, signals.issuerState);
         }
 
         if ((si.length == 1 || si.length == 2) && signals.issuerClaimNonRevState == si[0].state) {

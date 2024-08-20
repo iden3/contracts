@@ -5,6 +5,7 @@ import {CredentialAtomicQueryValidatorBase} from "./CredentialAtomicQueryValidat
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {IState} from "../interfaces/IState.sol";
 
 /**
  * @dev CredentialAtomicQueryV3 validator
@@ -70,7 +71,12 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _setInputToIndex("timestamp", 12);
         _setInputToIndex("isBJJAuthEnabled", 13);
 
-        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, _oracleProofValidatorAddr);
+        _initDefaultStateVariables(
+            _stateContractAddr,
+            _verifierContractAddr,
+            CIRCUIT_ID,
+            _oracleProofValidatorAddr
+        );
         __Ownable_init(_msgSender());
     }
 
@@ -131,22 +137,48 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         );
 
         _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
-        _checkClaimIssuanceState(signals.issuerID, signals.issuerState);
-        _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
         _checkProofExpiration(signals.timestamp);
 
         _checkLinkID(credAtomicQuery.groupID, signals.linkID);
         _checkProofType(credAtomicQuery.proofType, signals.proofType);
         _checkNullify(signals.nullifier, credAtomicQuery.nullifierSessionID);
 
+        // Checking challenge to prevent replay attacks from other addresses
+        _checkChallenge(signals.challenge, sender);
+
+        // GIST root and state checks
+        (
+            IState.GistRootInfo[] memory gri,
+            IState.StateInfo[] memory si
+        ) = _getOracleProofValidator().processProof(crossChainProof);
+
         if (signals.isBJJAuthEnabled == 1) {
-            _checkGistRoot(signals.gistRoot);
+            if (gri.length == 1) {
+                _checkGistRootExpiration(gri[0].replacedAtTimestamp);
+            } else {
+                _checkGistRoot(signals.gistRoot);
+            }
         } else {
             _checkAuth(signals.userID, sender);
         }
 
-        // Checking challenge to prevent replay attacks from other addresses
-        _checkChallenge(signals.challenge, sender);
+        // TODO get rid of DRY violation (put into different function)
+        if (
+            (si.length == 1 && signals.issuerState != si[0].state) ||
+            (si.length == 2 &&
+                signals.issuerState != si[0].state &&
+                signals.issuerState != si[1].state)
+        ) {
+            _checkClaimIssuanceState(signals.issuerID, signals.issuerState);
+        }
+
+        if ((si.length == 1 || si.length == 2) && signals.issuerClaimNonRevState == si[0].state) {
+            _checkClaimNonRevStateExpiration(si[0].replacedAtTimestamp);
+        } else if (si.length == 2 && signals.issuerClaimNonRevState == si[1].state) {
+            _checkClaimNonRevStateExpiration(si[1].replacedAtTimestamp);
+        } else {
+            _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
+        }
 
         return _getSpecialInputValues(signals, credAtomicQuery.operator == 16);
     }
