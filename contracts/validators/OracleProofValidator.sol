@@ -15,12 +15,12 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
 
     bytes32 public constant IDENTITY_STATE_MESSAGE_TYPEHASH =
         keccak256(
-            "IdentityState(address from,uint256 timestamp,uint256 identity,uint256 state,uint256 replacedByState,uint256 createdAtTimestamp,uint256 replacedAtTimestamp)"
+            "IdentityState(uint256 timestamp,uint256 userID,uint256 state,uint256 replacedAtTimestamp)"
         );
 
     bytes32 public constant GLOBAL_STATE_MESSAGE_TYPEHASH =
         keccak256(
-            "GlobalState(address from,uint256 timestamp,uint256 root,uint256 replacedByRoot,uint256 createdAtTimestamp,uint256 replacedAtTimestamp)"
+            "GlobalState(uint256 timestamp,uint256 userID,uint256 root,uint256 replacedAtTimestamp)"
         );
 
     bytes32 public immutable DOMAIN_SEPARATOR;
@@ -44,7 +44,7 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
     ) public view virtual returns (bool) {
         (bool isValid, address recovered) = _recoverIdentityStateSigner(message, signature);
 
-        return (isValid && recovered == message.from);
+        return (isValid && recovered == address(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266));
     }
 
     function verifyGlobalState(
@@ -53,7 +53,7 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
     ) public view virtual returns (bool) {
         (bool isValid, address recovered) = _recoverGlobalStateSigner(message, signature);
 
-        return (isValid && recovered == message.from);
+        return (isValid && recovered == address(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266));
     }
 
     /**
@@ -70,12 +70,9 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
             keccak256(
                 abi.encode(
                     IDENTITY_STATE_MESSAGE_TYPEHASH,
-                    message.from,
                     message.timestamp,
-                    message.identity,
+                    message.userID,
                     message.state,
-                    message.replacedByState,
-                    message.createdAtTimestamp,
                     message.replacedAtTimestamp
                 )
             )
@@ -100,11 +97,9 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
             keccak256(
                 abi.encode(
                     GLOBAL_STATE_MESSAGE_TYPEHASH,
-                    message.from,
                     message.timestamp,
+                    message.userID,
                     message.root,
-                    message.replacedByRoot,
-                    message.createdAtTimestamp,
                     message.replacedAtTimestamp
                 )
             )
@@ -173,10 +168,11 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
                     "Invalid global state signature"
                 );
 
+                //TODO simplify to avoid GistRootInfo, StateInfo struct
                 gri[globalStateProofCount++] = IState.GistRootInfo({
                     root: globalStateUpd.globalStateMsg.root,
-                    replacedByRoot: globalStateUpd.globalStateMsg.replacedByRoot,
-                    createdAtTimestamp: globalStateUpd.globalStateMsg.createdAtTimestamp,
+                    replacedByRoot: 0,
+                    createdAtTimestamp: 0,
                     replacedAtTimestamp: globalStateUpd.globalStateMsg.replacedAtTimestamp,
                     createdAtBlock: 0,
                     replacedAtBlock: 0
@@ -193,10 +189,10 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
                 );
 
                 si[stateProofCount++] = IState.StateInfo({
-                    id: idStateUpd.idStateMsg.identity,
+                    id: idStateUpd.idStateMsg.userID,
                     state: idStateUpd.idStateMsg.state,
-                    replacedByState: idStateUpd.idStateMsg.replacedByState,
-                    createdAtTimestamp: idStateUpd.idStateMsg.createdAtTimestamp,
+                    replacedByState: 0,
+                    createdAtTimestamp: 0,
                     replacedAtTimestamp: idStateUpd.idStateMsg.replacedAtTimestamp,
                     createdAtBlock: 0,
                     replacedAtBlock: 0

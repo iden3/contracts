@@ -3,21 +3,16 @@ import { ethers } from "ethers";
 const abiCoder = new ethers.AbiCoder();
 
 export type IdentityStateMessage = {
-  from: string;
   timestamp: bigint;
-  identity: bigint;
+  userID: bigint;
   state: bigint;
-  replacedByState: bigint;
-  createdAtTimestamp: bigint;
   replacedAtTimestamp: bigint;
 };
 
 export type GlobalStateMessage = {
-  from: string;
   timestamp: bigint;
+  userID: bigint;
   root: bigint;
-  replacedByRoot: bigint;
-  createdAtTimestamp: bigint;
   replacedAtTimestamp: bigint;
 };
 
@@ -50,12 +45,9 @@ export function packIdentityStateUpdate(msg: StateUpdate): string {
     [
       "tuple(" +
         "tuple(" +
-        "address from," +
         "uint256 timestamp," +
-        "uint256 identity," +
+        "uint256 userID," +
         "uint256 state," +
-        "uint256 replacedByState," +
-        "uint256 createdAtTimestamp," +
         "uint256 replacedAtTimestamp" +
         ") idStateMsg," +
         "bytes signature," +
@@ -70,11 +62,9 @@ export function packGlobalStateUpdate(msg: GlobalStateUpdate): string {
     [
       "tuple(" +
         "tuple(" +
-        "address from," +
         "uint256 timestamp," +
+        "uint256 userID," +
         "uint256 root," +
-        "uint256 replacedByRoot," +
-        "uint256 createdAtTimestamp," +
         "uint256 replacedAtTimestamp" +
         ") globalStateMsg," +
         "bytes signature," +

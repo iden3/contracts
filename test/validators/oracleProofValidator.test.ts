@@ -35,44 +35,48 @@ describe("Oracle Proof Validator", function () {
       verifyingContract,
     };
 
+    //          "message": {
+    //             "replacedAtTimestamp": "1723492214",
+    //             "state": "19584423714379092908357767184459178747839560563821033685241877638802820366565",
+    //             "timestamp": "1724170397",
+    //             "userID": "19829108207309885047084260525570486092116576508054294263928858481001996801"
+    //           }
+
     identityStateMessage = {
-      from: await signer.getAddress(),
       timestamp: 1721407330n,
-      identity: 19090607534999372304474213543962416547920895595808567155882840509226423042n,
+      userID: 19090607534999372304474213543962416547920895595808567155882840509226423042n,
       state: 0n,
-      replacedByState: 0n,
-      createdAtTimestamp: 1720111993n,
       replacedAtTimestamp: 0n,
     };
 
+    //           "message": {
+    //             "replacedAtTimestamp": "1722211019",
+    //             "root": "0",
+    //             "timestamp": "1724170431",
+    //             "userID": "19829108207309885047084260525570486092116576508054294263928858481001996801"
+    //           }
+
     globalStateMessage = {
-      from: await signer.getAddress(),
       timestamp: 1721407330n,
+      userID: 19829108207309885047084260525570486092116576508054294263928858481001996801n,
       root: 6376828012722752730323542484049180893581903547300301354812470207953471379731n,
-      replacedByRoot: 0n,
-      createdAtTimestamp: 1721404722n,
       replacedAtTimestamp: 0n,
     };
 
     const ismTypes = {
       IdentityState: [
-        { name: "from", type: "address" },
         { name: "timestamp", type: "uint256" },
-        { name: "identity", type: "uint256" },
+        { name: "userID", type: "uint256" },
         { name: "state", type: "uint256" },
-        { name: "replacedByState", type: "uint256" },
-        { name: "createdAtTimestamp", type: "uint256" },
         { name: "replacedAtTimestamp", type: "uint256" },
       ],
     };
 
     const gsmTypes = {
       GlobalState: [
-        { name: "from", type: "address" },
         { name: "timestamp", type: "uint256" },
+        { name: "userID", type: "uint256" },
         { name: "root", type: "uint256" },
-        { name: "replacedByRoot", type: "uint256" },
-        { name: "createdAtTimestamp", type: "uint256" },
         { name: "replacedAtTimestamp", type: "uint256" },
       ],
     };
@@ -136,16 +140,16 @@ describe("Oracle Proof Validator", function () {
     expect(res[1].length).to.be.equal(2);
 
     expect(res[0][0].root).to.be.equal(globalStateMessage.root);
-    expect(res[0][0].replacedByRoot).to.be.equal(globalStateMessage.replacedByRoot);
-    expect(res[0][0].createdAtTimestamp).to.be.equal(globalStateMessage.createdAtTimestamp);
+    expect(res[0][0].replacedByRoot).to.be.equal(0);
+    expect(res[0][0].createdAtTimestamp).to.be.equal(0);
     expect(res[0][0].replacedAtTimestamp).to.be.equal(globalStateMessage.replacedAtTimestamp);
     expect(res[0][0].createdAtBlock).to.be.equal(0);
     expect(res[0][0].replacedAtBlock).to.be.equal(0);
 
-    expect(res[1][0].id).to.be.equal(identityStateMessage.identity);
+    expect(res[1][0].id).to.be.equal(identityStateMessage.userID);
     expect(res[1][0].state).to.be.equal(identityStateMessage.state);
-    expect(res[1][0].replacedByState).to.be.equal(identityStateMessage.replacedByState);
-    expect(res[1][0].createdAtTimestamp).to.be.equal(identityStateMessage.createdAtTimestamp);
+    expect(res[1][0].replacedByState).to.be.equal(0);
+    expect(res[1][0].createdAtTimestamp).to.be.equal(0);
     expect(res[1][0].replacedAtTimestamp).to.be.equal(identityStateMessage.replacedAtTimestamp);
     expect(res[1][0].createdAtBlock).to.be.equal(0);
     expect(res[1][0].replacedAtBlock).to.be.equal(0);

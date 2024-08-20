@@ -5,21 +5,16 @@ import {IState} from "./IState.sol";
 
 interface IOracleProofValidator {
     struct IdentityStateMessage {
-        address from;
         uint256 timestamp;
-        uint256 identity;
+        uint256 userID;
         uint256 state;
-        uint256 replacedByState;
-        uint256 createdAtTimestamp;
         uint256 replacedAtTimestamp;
     }
 
     struct GlobalStateMessage {
-        address from;
         uint256 timestamp;
+        uint256 userID;
         uint256 root;
-        uint256 replacedByRoot;
-        uint256 createdAtTimestamp;
         uint256 replacedAtTimestamp;
     }
 
