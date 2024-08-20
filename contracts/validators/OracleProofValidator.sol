@@ -149,7 +149,7 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
 
     function processProof(
         bytes calldata proof
-    ) public returns (IState.GistRootInfo[] memory, IState.StateInfo[] memory) {
+    ) public view returns (IState.GistRootInfo[] memory, IState.StateInfo[] memory) {
         if (proof.length == 0) {
             return (new IState.GistRootInfo[](0), new IState.StateInfo[](0));
         }
