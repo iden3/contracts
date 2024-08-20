@@ -1,7 +1,17 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { Contract, Signer } from "ethers";
-import { IdentityStateMessage, GlobalStateMessage } from "../utils/packData";
+import {
+  GlobalStateUpdate,
+  StateUpdate,
+  IdentityStateMessage,
+  GlobalStateMessage,
+} from "../utils/packData";
+import {
+  packCrossChainProofs,
+  packIdentityStateUpdate,
+  packGlobalStateUpdate,
+} from "../utils/packData";
 
 describe("Oracle Proof Validator", function () {
   let contract: Contract;
@@ -93,5 +103,30 @@ describe("Oracle Proof Validator", function () {
     identityStateMessage.state++; // modify to make the message invalid
     result = await contract.verifyIdentityState(identityStateMessage, signatureISM);
     expect(result).to.be.false;
+  });
+
+  it("test", async function () {
+    const su: StateUpdate = {
+      idStateMsg: identityStateMessage,
+      signature: signatureISM,
+    };
+
+    const gsu: GlobalStateUpdate = {
+      globalStateMsg: globalStateMessage,
+      signature: signatureGSM,
+    };
+
+    const crossChainProof = packCrossChainProofs([
+      {
+        proofType: "stateProof",
+        proof: packIdentityStateUpdate(su),
+      },
+      {
+        proofType: "globalStateProof",
+        proof: packGlobalStateUpdate(gsu),
+      },
+    ]);
+
+    await contract.processProof(crossChainProof);
   });
 });

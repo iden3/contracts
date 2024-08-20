@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import {CredentialAtomicQueryValidatorBase} from "./CredentialAtomicQueryValidatorBase.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {console} from "hardhat/console.sol";
 
 abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryValidatorBase {
     /**
@@ -52,6 +53,7 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         bytes calldata data,
         address sender
     ) public view override returns (ICircuitValidator.KeyToInputValue[] memory) {
+        console.log("Begin verify");
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
 
         require(credAtomicQuery.circuitIds.length == 1, "circuitIds length is not equal to 1");
@@ -71,6 +73,7 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
             "Query hash does not match the requested one"
         );
 
+        console.log("Before checks");
         // TODO: add support for query to specific userID and then verifying it
 
         _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
@@ -98,24 +101,6 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
             inputValue: signals.timestamp
         });
         return pairs;
-    }
-
-    function verifyV2(
-        bytes calldata zkProof,
-        bytes calldata data,
-        bytes calldata crossChainProof,
-        address sender
-    ) external override returns (ICircuitValidator.KeyToInputValue[] memory) {
-        _getStateCrossChain().processProof(crossChainProof);
-
-        (
-            uint256[] memory inputs,
-            uint256[2] memory a,
-            uint256[2][2] memory b,
-            uint256[2] memory c
-        ) = abi.decode(zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
-
-        return verify(inputs, a, b, c, data, sender);
     }
 
     function _checkMerklized(uint256 merklized, uint256 queryClaimPathKey) internal pure {

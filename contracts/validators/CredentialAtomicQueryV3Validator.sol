@@ -5,7 +5,6 @@ import {CredentialAtomicQueryValidatorBase} from "./CredentialAtomicQueryValidat
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
-import {StateCrossChain} from "../state/StateCrossChain.sol";
 
 /**
  * @dev CredentialAtomicQueryV3 validator
@@ -53,8 +52,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
 
     function initialize(
         address _verifierContractAddr,
-        address _stateContractAddr,
-        StateCrossChain _stateCrossChain
+        address _stateContractAddr
     ) public initializer {
         _setInputToIndex("userID", 0);
         _setInputToIndex("circuitQueryHash", 1);
@@ -74,8 +72,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _initDefaultStateVariables(
             _stateContractAddr,
             _verifierContractAddr,
-            CIRCUIT_ID,
-            _stateCrossChain
+            CIRCUIT_ID
         );
         __Ownable_init(_msgSender());
     }
@@ -154,24 +151,6 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _checkChallenge(signals.challenge, sender);
 
         return _getSpecialInputValues(signals, credAtomicQuery.operator == 16);
-    }
-
-    function verifyV2(
-        bytes calldata zkProof,
-        bytes calldata data,
-        bytes calldata crossChainProof,
-        address sender
-    ) external override returns (ICircuitValidator.KeyToInputValue[] memory) {
-        _getStateCrossChain().processProof(crossChainProof);
-
-        (
-            uint256[] memory inputs,
-            uint256[2] memory a,
-            uint256[2][2] memory b,
-            uint256[2] memory c
-        ) = abi.decode(zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
-
-        return verify(inputs, a, b, c, data, sender);
     }
 
     function _checkLinkID(uint256 groupID, uint256 linkID) internal pure {
