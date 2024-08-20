@@ -143,9 +143,6 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _checkProofType(credAtomicQuery.proofType, signals.proofType);
         _checkNullify(signals.nullifier, credAtomicQuery.nullifierSessionID);
 
-        // Checking challenge to prevent replay attacks from other addresses
-        _checkChallenge(signals.challenge, sender);
-
         // GIST root and state checks
         (
             IState.GistRootInfo[] memory gri,
@@ -179,6 +176,9 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         } else {
             _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
         }
+
+        // Checking challenge to prevent replay attacks from other addresses
+        _checkChallenge(signals.challenge, sender);
 
         return _getSpecialInputValues(signals, credAtomicQuery.operator == 16);
     }
