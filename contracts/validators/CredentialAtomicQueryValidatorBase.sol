@@ -10,7 +10,6 @@ import {IState} from "../interfaces/IState.sol";
 import {PoseidonFacade} from "../lib/Poseidon.sol";
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
 import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
-import {console} from "hardhat/console.sol";
 
 abstract contract CredentialAtomicQueryValidatorBase is
     Ownable2StepUpgradeable,
