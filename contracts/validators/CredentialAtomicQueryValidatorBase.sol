@@ -136,7 +136,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function _checkGistRoot(uint256 _id, uint256 gistRoot) internal view {
-         // for privado identity and 0 gist root we don't need to check for root info
+        // for privado identity and 0 gist root we don't need to check for root info
         if (_isPrivadoId(_id)) {
             require(gistRoot == 0, "Privado identity can't have gist root");
             return;
@@ -172,7 +172,10 @@ abstract contract CredentialAtomicQueryValidatorBase is
     function _checkClaimNonRevState(uint256 _id, uint256 _claimNonRevState) internal view {
         // for privado identity and genesis state we don't need to check for expiration
         if (_isPrivadoId(_id)) {
-            require(GenesisUtils.isGenesisState(_id, _claimNonRevState), "Privado identity is not genesis");
+            require(
+                GenesisUtils.isGenesisState(_id, _claimNonRevState),
+                "Privado identity is not genesis"
+            );
             return;
         }
 
