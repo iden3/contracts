@@ -177,8 +177,8 @@ abstract contract CredentialAtomicQueryValidatorBase is
         ICircuitValidator.GlobalStateMessage[] memory _gsm
     ) internal view {
         if (_gsm.length == 1) {
-            if (_id != _gsm[0].userID) {
-                revert("UserID not equal to userID public input");
+            if (GenesisUtils.getIdType(_id) != GenesisUtils.getIdType(_gsm[0].userID)) {
+                revert("Different types in UserID and userID public input");
             }
             _checkGistRootExpiration(_gsm[0].replacedAtTimestamp);
         } else {
