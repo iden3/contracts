@@ -348,27 +348,13 @@ async function main() {
     queryV3KYCAgeCredential.slotIndex,
     queryV3KYCAgeCredential.operator,
     queryV3KYCAgeCredential.claimPathKey,
-    queryV3KYCAgeCredential.value.length,
+    1, //queryV3KYCAgeCredential.value.length, // for operator LT it should be 1 for value
     1, // merklized
     queryV3KYCAgeCredential.skipClaimRevocationCheck ? 0 : 1,
     queryV3KYCAgeCredential.verifierID.toString(),
     queryV3KYCAgeCredential.nullifierSessionID,
   ).toString();
-  console.log(
-    "params query hash: ",
-    queryV3KYCAgeCredential.value.map((i) => BigInt(i)),
-    queryV3KYCAgeCredential.schema,
-    queryV3KYCAgeCredential.slotIndex,
-    queryV3KYCAgeCredential.operator,
-    queryV3KYCAgeCredential.claimPathKey,
-    queryV3KYCAgeCredential.value.length,
-    1, // merklized
-    queryV3KYCAgeCredential.skipClaimRevocationCheck ? 0 : 1,
-    queryV3KYCAgeCredential.verifierID.toString(),
-    queryV3KYCAgeCredential.nullifierSessionID,
-  );
 
-  console.log("queryV3KYCAgeCredential.queryHash:", queryV3KYCAgeCredential.queryHash);
   const dataV3KYCAgeCredential = packV3ValidatorParams(queryV3KYCAgeCredential);
 
   const invokeRequestMetadataKYCAgeCredential = {
