@@ -150,7 +150,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         ) = _getOracleProofValidator().processProof(crossChainProof);
 
         if (signals.isBJJAuthEnabled == 1) {
-            _checkGistRoot(signals.gistRoot, gsm);
+            _checkGistRoot(signals.userID, signals.gistRoot, gsm);
         } else {
             _checkAuth(signals.userID, sender);
         }

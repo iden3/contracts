@@ -171,14 +171,21 @@ abstract contract CredentialAtomicQueryValidatorBase is
             super.supportsInterface(interfaceId);
     }
 
-    function _checkGistRoot(uint256 gistRoot, ICircuitValidator.GlobalStateMessage[] memory gsm) internal view {
-        if (gsm.length == 1) {
-            _checkGistRootExpiration(gsm[0].replacedAtTimestamp);
+    function _checkGistRoot(
+        uint256 _id,
+        uint256 _gistRoot,
+        ICircuitValidator.GlobalStateMessage[] memory _gsm
+    ) internal view {
+        if (_gsm.length == 1) {
+            if (_id != _gsm[0].userID) {
+                revert("UserID not equal to userID public input");
+            }
+            _checkGistRootExpiration(_gsm[0].replacedAtTimestamp);
         } else {
             CredentialAtomicQueryValidatorBaseStorage
-                storage s = _getCredentialAtomicQueryValidatorBaseStorage();
-            IState.GistRootInfo memory rootInfo = _getState().getGISTRootInfo(gistRoot);
-            require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
+                storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
+            IState.GistRootInfo memory rootInfo = _getState().getGISTRootInfo(_gistRoot);
+            require(rootInfo.root == _gistRoot, "Gist root state isn't in state contract");
             _checkGistRootExpiration(rootInfo.replacedAtTimestamp);
         }
     }
@@ -191,32 +198,53 @@ abstract contract CredentialAtomicQueryValidatorBase is
         }
     }
 
-    function _checkClaimIssuanceState(uint256 _id, uint256 _state, ICircuitValidator.IdentityStateMessage[] memory ism) internal view {
+    function _checkClaimIssuanceState(
+        uint256 _id,
+        uint256 _state,
+        ICircuitValidator.IdentityStateMessage[] memory _ism
+    ) internal view {
         if (
-            (ism.length == 1 && _state != ism[0].state) ||
-            (ism.length == 2 &&
-                _state != ism[0].state &&
-                _state != ism[1].state)
+            (_ism.length == 0) ||
+            (_ism.length == 1 && _state != _ism[0].state) ||
+            (_ism.length == 2 && _state != _ism[0].state && _state != _ism[1].state)
         ) {
             bool isStateGenesis = GenesisUtils.isGenesisState(_id, _state);
 
             if (!isStateGenesis) {
-                IState.StateInfo memory stateInfo = _getState().getStateInfoByIdAndState(_id, _state);
+                IState.StateInfo memory stateInfo = _getState().getStateInfoByIdAndState(
+                    _id,
+                    _state
+                );
                 require(_id == stateInfo.id, "State doesn't exist in state contract");
+            }
+        } else {
+            if (
+                (_ism.length == 1 && _id != _ism[0].userID) ||
+                (_ism.length == 2 && _id != _ism[0].userID && _id != _ism[1].userID)
+            ) {
+                revert("UserID not equal to issuerID public input");
             }
         }
     }
 
-    function _checkClaimNonRevState(uint256 _id, uint256 _claimNonRevState, ICircuitValidator.IdentityStateMessage[] memory ism) internal view {
+    function _checkClaimNonRevState(
+        uint256 _id,
+        uint256 _claimNonRevState,
+        ICircuitValidator.IdentityStateMessage[] memory _ism
+    ) internal view {
         CredentialAtomicQueryValidatorBaseStorage
             storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
 
-        if (
-            (ism.length == 1 || ism.length == 2) && _claimNonRevState == ism[0].state
-        ) {
-            _checkClaimNonRevStateExpiration(ism[0].replacedAtTimestamp);
-        } else if (ism.length == 2 && _claimNonRevState == ism[1].state) {
-            _checkClaimNonRevStateExpiration(ism[1].replacedAtTimestamp);
+        if ((_ism.length == 1 || _ism.length == 2) && _claimNonRevState == _ism[0].state) {
+            if (_id != _ism[0].userID) {
+                revert("UserID not equal to issuerID public input");
+            }
+            _checkClaimNonRevStateExpiration(_ism[0].replacedAtTimestamp);
+        } else if (_ism.length == 2 && _claimNonRevState == _ism[1].state) {
+            if (_id != _ism[1].userID) {
+                revert("UserID not equal to issuerID public input");
+            }
+            _checkClaimNonRevStateExpiration(_ism[1].replacedAtTimestamp);
         } else {
             // check if identity transited any state in contract
             bool idExists = _getState().idExists(_id);

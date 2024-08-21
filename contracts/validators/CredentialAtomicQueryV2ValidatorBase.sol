@@ -92,7 +92,7 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
             ICircuitValidator.IdentityStateMessage[] memory ism
         ) = _getOracleProofValidator().processProof(crossChainProof);
 
-        _checkGistRoot(signals.gistRoot, gsm);
+        _checkGistRoot(signals.userID, signals.gistRoot, gsm);
         _checkClaimIssuanceState(signals.issuerID, signals.issuerState, ism);
         _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState, ism);
 
