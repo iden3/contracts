@@ -73,6 +73,8 @@ async function main() {
     SD: 16, // selective disclosure
   };
 
+  const methodId = "fd41d8d4";
+
   console.log(
     "================= setZKPRequest V3 SIG Transak `email-verified` $eq true ===================",
   );
@@ -135,8 +137,8 @@ async function main() {
     body: {
       reason: "for testing submitZKPResponseV2",
       transaction_data: {
-        contract_address: verifier.address,
-        method_id: "b68967e2",
+        contract_address: await verifier.getAddress(),
+        method_id: methodId,
         chain_id: chainId,
         network: network,
       },
@@ -166,6 +168,8 @@ async function main() {
     validator: validatorV3,
     data: dataV3EmailVerified,
   });
+
+  console.log(JSON.stringify(invokeRequestMetadataEmailVerified, null, "\t"))
 
   console.log(`Request ID: ${requestIdEmailVerified} is set`);
 
@@ -218,8 +222,8 @@ async function main() {
     body: {
       reason: "for testing submitZKPResponseV2",
       transaction_data: {
-        contract_address: verifier.address,
-        method_id: "b68967e2",
+        contract_address: await verifier.getAddress(),
+        method_id: methodId,
         chain_id: chainId,
         network: network,
       },
@@ -247,6 +251,8 @@ async function main() {
     validator: validatorV3,
     data: dataV3EmailSD,
   });
+
+  console.log(JSON.stringify(invokeRequestMetadataEmailSd, null, "\t"))
 
   console.log(`Request ID: ${requestIdEmail} is set`);
 
@@ -282,11 +288,45 @@ async function main() {
     query.claimPathNotExists,
   ).toString();
 
+  const invokeRequestMetadataKYCAgeCredential_SigV2 = {
+    id: "7f38a193-0918-4a48-9fac-36adfdb8b543",
+    typ: "application/iden3comm-plain-json",
+    type: "https://iden3-communication.io/proofs/1.0/contract-invoke-request",
+    thid: "7f38a193-0918-4a48-9fac-36adfdb8b543",
+    from: DID.parseFromId(verifierId).string(),
+    body: {
+      reason: "for testing submitZKPResponseV2",
+      transaction_data: {
+        contract_address: await verifier.getAddress(),
+        method_id: methodId,
+        chain_id: chainId,
+        network: network,
+      },
+      scope: [
+        {
+          circuitId: "credentialAtomicQuerySigV2OnChain",
+          id: requestId_Sig,
+          query: {
+            allowedIssuers: ["*"],
+            context:
+              "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
+            credentialSubject: {
+              birthday: {
+                $lt: 20020101,
+              },
+            },
+            type: "KYCAgeCredential",
+          },
+        },
+      ],
+    },
+  };
+
   let data = packValidatorParams(query);
   await verifier.setZKPRequest(
     requestId_Sig,
     {
-      metadata: "metadata",
+      metadata: JSON.stringify(invokeRequestMetadataKYCAgeCredential_SigV2),
       validator: validatorSig,
       data: data,
     },
@@ -296,6 +336,7 @@ async function main() {
     //   gasLimit: 10000000
     // }
   );
+  console.log(JSON.stringify(invokeRequestMetadataKYCAgeCredential_SigV2, null, "\t"))
 
   console.log(`Request ID: ${requestId_Sig} is set`);
 
@@ -305,10 +346,44 @@ async function main() {
   data = packValidatorParams(query);
   const requestId_Mtp = 2;
 
+  const invokeRequestMetadataKYCAgeCredential_MTPV2 = {
+    id: "7f38a193-0918-4a48-9fac-36adfdb8b543",
+    typ: "application/iden3comm-plain-json",
+    type: "https://iden3-communication.io/proofs/1.0/contract-invoke-request",
+    thid: "7f38a193-0918-4a48-9fac-36adfdb8b543",
+    from: DID.parseFromId(verifierId).string(),
+    body: {
+      reason: "for testing submitZKPResponseV2",
+      transaction_data: {
+        contract_address: await verifier.getAddress(),
+        method_id: methodId,
+        chain_id: chainId,
+        network: network,
+      },
+      scope: [
+        {
+          circuitId: "credentialAtomicQuerySigV2OnChain",
+          id: requestId_Mtp,
+          query: {
+            allowedIssuers: ["*"],
+            context:
+              "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
+            credentialSubject: {
+              birthday: {
+                $lt: 20020101,
+              },
+            },
+            type: "KYCAgeCredential",
+          },
+        },
+      ],
+    },
+  };
+
   await verifier.setZKPRequest(
     requestId_Mtp,
     {
-      metadata: "metadata",
+      metadata: JSON.stringify(invokeRequestMetadataKYCAgeCredential_MTPV2),
       validator: validatorMTP,
       data: data,
     },
@@ -318,6 +393,8 @@ async function main() {
     //   gasLimit: 10000000
     // }
   );
+
+  console.log(JSON.stringify(invokeRequestMetadataKYCAgeCredential_MTPV2, null, "\t"));
 
   console.log(`Request ID: ${requestId_Mtp} is set`);
 
@@ -366,8 +443,8 @@ async function main() {
     body: {
       reason: "for testing submitZKPResponseV2",
       transaction_data: {
-        contract_address: verifier.address,
-        method_id: "b68967e2",
+        contract_address: await verifier.getAddress(),
+        method_id: methodId,
         chain_id: chainId,
         network: network,
       },
@@ -398,6 +475,8 @@ async function main() {
     validator: validatorV3,
     data: dataV3KYCAgeCredential,
   });
+
+  console.log(JSON.stringify(invokeRequestMetadataKYCAgeCredential, null, "\t"));
 
   console.log(`Request ID: ${requestId_V3_KYCAgeCredential} is set`);
 }
