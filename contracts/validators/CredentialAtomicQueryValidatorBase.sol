@@ -171,12 +171,16 @@ abstract contract CredentialAtomicQueryValidatorBase is
             super.supportsInterface(interfaceId);
     }
 
-    function _checkGistRoot(uint256 gistRoot) internal view {
-        CredentialAtomicQueryValidatorBaseStorage
-            storage s = _getCredentialAtomicQueryValidatorBaseStorage();
-        IState.GistRootInfo memory rootInfo = _getState().getGISTRootInfo(gistRoot);
-        require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
-        _checkGistRootExpiration(rootInfo.replacedAtTimestamp);
+    function _checkGistRoot(uint256 gistRoot, ICircuitValidator.GlobalStateMessage[] memory gsm) internal view {
+        if (gsm.length == 1) {
+            _checkGistRootExpiration(gsm[0].replacedAtTimestamp);
+        } else {
+            CredentialAtomicQueryValidatorBaseStorage
+                storage s = _getCredentialAtomicQueryValidatorBaseStorage();
+            IState.GistRootInfo memory rootInfo = _getState().getGISTRootInfo(gistRoot);
+            require(rootInfo.root == gistRoot, "Gist root state isn't in state contract");
+            _checkGistRootExpiration(rootInfo.replacedAtTimestamp);
+        }
     }
 
     function _checkGistRootExpiration(uint256 replacedAt) internal view {
@@ -187,33 +191,48 @@ abstract contract CredentialAtomicQueryValidatorBase is
         }
     }
 
-    function _checkClaimIssuanceState(uint256 _id, uint256 _state) internal view {
-        bool isStateGenesis = GenesisUtils.isGenesisState(_id, _state);
+    function _checkClaimIssuanceState(uint256 _id, uint256 _state, ICircuitValidator.IdentityStateMessage[] memory ism) internal view {
+        if (
+            (ism.length == 1 && _state != ism[0].state) ||
+            (ism.length == 2 &&
+                _state != ism[0].state &&
+                _state != ism[1].state)
+        ) {
+            bool isStateGenesis = GenesisUtils.isGenesisState(_id, _state);
 
-        if (!isStateGenesis) {
-            IState.StateInfo memory stateInfo = _getState().getStateInfoByIdAndState(_id, _state);
-            require(_id == stateInfo.id, "State doesn't exist in state contract");
+            if (!isStateGenesis) {
+                IState.StateInfo memory stateInfo = _getState().getStateInfoByIdAndState(_id, _state);
+                require(_id == stateInfo.id, "State doesn't exist in state contract");
+            }
         }
     }
 
-    function _checkClaimNonRevState(uint256 _id, uint256 _claimNonRevState) internal view {
+    function _checkClaimNonRevState(uint256 _id, uint256 _claimNonRevState, ICircuitValidator.IdentityStateMessage[] memory ism) internal view {
         CredentialAtomicQueryValidatorBaseStorage
-            storage s = _getCredentialAtomicQueryValidatorBaseStorage();
+            storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
 
-        // check if identity transited any state in contract
-        bool idExists = _getState().idExists(_id);
-
-        // if identity didn't transit any state it must be genesis
-        if (!idExists) {
-            require(
-                GenesisUtils.isGenesisState(_id, _claimNonRevState),
-                "Issuer revocation state doesn't exist in state contract and is not genesis"
-            );
+        if (
+            (ism.length == 1 || ism.length == 2) && _claimNonRevState == ism[0].state
+        ) {
+            _checkClaimNonRevStateExpiration(ism[0].replacedAtTimestamp);
+        } else if (ism.length == 2 && _claimNonRevState == ism[1].state) {
+            _checkClaimNonRevStateExpiration(ism[1].replacedAtTimestamp);
         } else {
-            IState.StateInfo memory claimNonRevLatestStateInfo = _getState()
-                .getStateInfoByIdAndState(_id, _claimNonRevState);
+            // check if identity transited any state in contract
+            bool idExists = _getState().idExists(_id);
 
-            _checkClaimNonRevStateExpiration(claimNonRevLatestStateInfo.replacedAtTimestamp);
+            // if identity didn't transit any state it must be genesis
+            if (!idExists) {
+                require(
+                    GenesisUtils.isGenesisState(_id, _claimNonRevState),
+                    "Issuer revocation state doesn't exist in state contract and is not genesis"
+                );
+            } else {
+                IState.StateInfo memory claimNonRevLatestStateInfo = _getState()
+                    .getStateInfoByIdAndState(_id, _claimNonRevState);
+
+                _checkClaimNonRevStateExpiration(claimNonRevLatestStateInfo.replacedAtTimestamp);
+            }
         }
     }
 

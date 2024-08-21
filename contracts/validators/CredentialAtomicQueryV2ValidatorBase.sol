@@ -76,7 +76,6 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         // TODO: add support for query to specific userID and then verifying it
 
         _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
-
         _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
         _checkProofExpiration(signals.timestamp);
         _checkIsRevocationChecked(
@@ -88,35 +87,14 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         _checkChallenge(signals.challenge, sender);
 
         // GIST root and state checks
-        // TODO get rid of DRY violation (put into different function)
         (
-            IState.GistRootInfo[] memory gri,
-            IState.StateInfo[] memory si
+            ICircuitValidator.GlobalStateMessage[] memory gsm,
+            ICircuitValidator.IdentityStateMessage[] memory ism
         ) = _getOracleProofValidator().processProof(crossChainProof);
 
-        if (gri.length == 1) {
-            _checkGistRootExpiration(gri[0].replacedAtTimestamp);
-        } else {
-            _checkGistRoot(signals.gistRoot);
-        }
-
-        // TODO get rid of DRY violation (put into different function)
-        if (
-            (si.length == 1 && signals.issuerState != si[0].state) ||
-            (si.length == 2 &&
-                signals.issuerState != si[0].state &&
-                signals.issuerState != si[1].state)
-        ) {
-            _checkClaimIssuanceState(signals.issuerID, signals.issuerState);
-        }
-
-        if ((si.length == 1 || si.length == 2) && signals.issuerClaimNonRevState == si[0].state) {
-            _checkClaimNonRevStateExpiration(si[0].replacedAtTimestamp);
-        } else if (si.length == 2 && signals.issuerClaimNonRevState == si[1].state) {
-            _checkClaimNonRevStateExpiration(si[1].replacedAtTimestamp);
-        } else {
-            _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
-        }
+        _checkGistRoot(signals.gistRoot, gsm);
+        _checkClaimIssuanceState(signals.issuerID, signals.issuerState, ism);
+        _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState, ism);
 
         // get special input values
         // selective disclosure is not supported for v2 onchain circuits

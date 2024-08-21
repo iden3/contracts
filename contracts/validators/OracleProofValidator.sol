@@ -4,6 +4,7 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils, EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
 import {IState} from "../interfaces/IState.sol";
+import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 
 contract OracleProofValidator is EIP712, IOracleProofValidator {
     using ECDSA for bytes32;
@@ -39,20 +40,22 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
     }
 
     function verifyIdentityState(
-        IdentityStateMessage memory message,
+        ICircuitValidator.IdentityStateMessage memory message,
         bytes memory signature
     ) public view virtual returns (bool) {
         (bool isValid, address recovered) = _recoverIdentityStateSigner(message, signature);
 
+        // TODO replace the hardcoded address with param
         return (isValid && recovered == address(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266));
     }
 
     function verifyGlobalState(
-        GlobalStateMessage memory message,
+        ICircuitValidator.GlobalStateMessage memory message,
         bytes memory signature
     ) public view virtual returns (bool) {
         (bool isValid, address recovered) = _recoverGlobalStateSigner(message, signature);
 
+        // TODO replace the hardcoded address with param
         return (isValid && recovered == address(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266));
     }
 
@@ -63,7 +66,7 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
      * NOTE: The signature is considered valid if {ECDSA-tryRecover} indicates no recover error for it.
      */
     function _recoverIdentityStateSigner(
-        IdentityStateMessage memory message,
+        ICircuitValidator.IdentityStateMessage memory message,
         bytes memory signature
     ) internal view virtual returns (bool, address) {
         bytes32 hashTypedData = _hashTypedDataV4(
@@ -90,7 +93,7 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
      * NOTE: The signature is considered valid if {ECDSA-tryRecover} indicates no recover error for it.
      */
     function _recoverGlobalStateSigner(
-        GlobalStateMessage memory message,
+        ICircuitValidator.GlobalStateMessage memory message,
         bytes memory signature
     ) internal view virtual returns (bool, address) {
         bytes32 hashTypedData = _hashTypedDataV4(
@@ -144,15 +147,28 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
 
     function processProof(
         bytes calldata proof
-    ) public view returns (IState.GistRootInfo[] memory, IState.StateInfo[] memory) {
+    )
+        public
+        view
+        returns (
+            ICircuitValidator.GlobalStateMessage[] memory,
+            ICircuitValidator.IdentityStateMessage[] memory
+        )
+    {
         if (proof.length == 0) {
-            return (new IState.GistRootInfo[](0), new IState.StateInfo[](0));
+            return (
+                new ICircuitValidator.GlobalStateMessage[](0),
+                new ICircuitValidator.IdentityStateMessage[](0)
+            );
         }
 
         CrossChainProof[] memory proofs = abi.decode(proof, (CrossChainProof[]));
 
-        IState.GistRootInfo[] memory gri = new IState.GistRootInfo[](1);
-        IState.StateInfo[] memory si = new IState.StateInfo[](2);
+        // At most one global state proof and two state proofs for the oracle proof validator
+        ICircuitValidator.GlobalStateMessage[]
+            memory gsm = new ICircuitValidator.GlobalStateMessage[](1);
+        ICircuitValidator.IdentityStateMessage[]
+            memory ism = new ICircuitValidator.IdentityStateMessage[](2);
         uint256 globalStateProofCount = 0;
         uint256 stateProofCount = 0;
 
@@ -168,15 +184,7 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
                     "Invalid global state signature"
                 );
 
-                //TODO simplify to avoid GistRootInfo, StateInfo struct
-                gri[globalStateProofCount++] = IState.GistRootInfo({
-                    root: globalStateUpd.globalStateMsg.root,
-                    replacedByRoot: 0,
-                    createdAtTimestamp: 0,
-                    replacedAtTimestamp: globalStateUpd.globalStateMsg.replacedAtTimestamp,
-                    createdAtBlock: 0,
-                    replacedAtBlock: 0
-                });
+                gsm[globalStateProofCount++] = globalStateUpd.globalStateMsg;
             } else if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("stateProof"))) {
                 IdentityStateUpdate memory idStateUpd = abi.decode(
                     proofs[i].proof,
@@ -188,31 +196,24 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
                     "Invalid identity state signature"
                 );
 
-                si[stateProofCount++] = IState.StateInfo({
-                    id: idStateUpd.idStateMsg.userID,
-                    state: idStateUpd.idStateMsg.state,
-                    replacedByState: 0,
-                    createdAtTimestamp: 0,
-                    replacedAtTimestamp: idStateUpd.idStateMsg.replacedAtTimestamp,
-                    createdAtBlock: 0,
-                    replacedAtBlock: 0
-                });
+                ism[stateProofCount++] = idStateUpd.idStateMsg;
             } else {
                 revert("Unknown proof type");
             }
         }
 
-        // TODO this is not optimal, rewrite
-        IState.GistRootInfo[] memory gri_return = new IState.GistRootInfo[](globalStateProofCount);
+        ICircuitValidator.GlobalStateMessage[]
+            memory gsm_return = new ICircuitValidator.GlobalStateMessage[](globalStateProofCount);
         for (uint256 i = 0; i < globalStateProofCount; i++) {
-            gri_return[i] = gri[i];
+            gsm_return[i] = gsm[i];
         }
 
-        IState.StateInfo[] memory si_return = new IState.StateInfo[](stateProofCount);
+        ICircuitValidator.IdentityStateMessage[]
+            memory sm_return = new ICircuitValidator.IdentityStateMessage[](stateProofCount);
         for (uint256 i = 0; i < stateProofCount; i++) {
-            si_return[i] = si[i];
+            sm_return[i] = ism[i];
         }
 
-        return (gri_return, si_return);
+        return (gsm_return, sm_return);
     }
 }

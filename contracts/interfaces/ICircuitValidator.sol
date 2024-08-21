@@ -7,6 +7,20 @@ interface ICircuitValidator {
         uint256 inputValue;
     }
 
+    struct IdentityStateMessage {
+        uint256 timestamp;
+        uint256 userID;
+        uint256 state;
+        uint256 replacedAtTimestamp;
+    }
+
+    struct GlobalStateMessage {
+        uint256 timestamp;
+        uint256 userID;
+        uint256 root;
+        uint256 replacedAtTimestamp;
+    }
+
     function version() external view returns (string memory);
 
     function verify(
