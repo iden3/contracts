@@ -9,14 +9,14 @@ interface ICircuitValidator {
 
     struct IdentityStateMessage {
         uint256 timestamp;
-        uint256 userID;
+        uint256 id;
         uint256 state;
         uint256 replacedAtTimestamp;
     }
 
     struct GlobalStateMessage {
         uint256 timestamp;
-        uint256 userID;
+        bytes2 idType;
         uint256 root;
         uint256 replacedAtTimestamp;
     }
