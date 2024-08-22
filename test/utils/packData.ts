@@ -26,12 +26,12 @@ export type GlobalStateUpdate = {
   signature: string;
 };
 
-type Metadata = {
+export type Metadata = {
   key: string;
   value: string;
 };
 
-type CrossChainProof = {
+export type CrossChainProof = {
   proofType: string;
   proof: string;
 };

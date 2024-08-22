@@ -6,8 +6,6 @@ import {
   StateUpdate,
   IdentityStateMessage,
   GlobalStateMessage,
-} from "../utils/packData";
-import {
   packCrossChainProofs,
   packIdentityStateUpdate,
   packGlobalStateUpdate,
