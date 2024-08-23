@@ -16,12 +16,12 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
 
     bytes32 public constant IDENTITY_STATE_MESSAGE_TYPEHASH =
         keccak256(
-            "IdentityState(uint256 timestamp,uint256 userID,uint256 state,uint256 replacedAtTimestamp)"
+            "IdentityState(uint256 timestamp,uint256 id,uint256 state,uint256 replacedAtTimestamp)"
         );
 
     bytes32 public constant GLOBAL_STATE_MESSAGE_TYPEHASH =
         keccak256(
-            "GlobalState(uint256 timestamp,uint256 userID,uint256 root,uint256 replacedAtTimestamp)"
+            "GlobalState(uint256 timestamp,bytes2 idType,uint256 root,uint256 replacedAtTimestamp)"
         );
 
     bytes32 public immutable DOMAIN_SEPARATOR;
@@ -74,7 +74,7 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
                 abi.encode(
                     IDENTITY_STATE_MESSAGE_TYPEHASH,
                     message.timestamp,
-                    message.userID,
+                    message.id,
                     message.state,
                     message.replacedAtTimestamp
                 )
@@ -101,7 +101,7 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
                 abi.encode(
                     GLOBAL_STATE_MESSAGE_TYPEHASH,
                     message.timestamp,
-                    message.userID,
+                    message.idType,
                     message.root,
                     message.replacedAtTimestamp
                 )

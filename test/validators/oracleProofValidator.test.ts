@@ -35,22 +35,22 @@ describe("Oracle Proof Validator", function () {
 
     identityStateMessage = {
       timestamp: 1724229639n,
-      userID: 19829108207309885047084260525570486092116576508054294263928858481001996801n,
-      state: 19584423714379092908357767184459178747839560563821033685241877638802820366565n,
-      replacedAtTimestamp: 1723492214n,
+      id: 25061242388220042378440625585145526395156084635704446088069097186261377537n,
+      state: 289901420135126415231045754640573166676181332861318949204015443942679340619n,
+      replacedAtTimestamp: 0n,
     };
 
     globalStateMessage = {
-      timestamp: 1724229626n,
-      userID: 19829108207309885047084260525570486092116576508054294263928858481001996801n,
+      timestamp: 1724339709n,
+      idType: "0x01A1",
       root: 0n,
-      replacedAtTimestamp: 1722211019n,
+      replacedAtTimestamp: 0n,
     };
 
     const ismTypes = {
       IdentityState: [
         { name: "timestamp", type: "uint256" },
-        { name: "userID", type: "uint256" },
+        { name: "id", type: "uint256" },
         { name: "state", type: "uint256" },
         { name: "replacedAtTimestamp", type: "uint256" },
       ],
@@ -59,7 +59,7 @@ describe("Oracle Proof Validator", function () {
     const gsmTypes = {
       GlobalState: [
         { name: "timestamp", type: "uint256" },
-        { name: "userID", type: "uint256" },
+        { name: "idType", type: "bytes2" },
         { name: "root", type: "uint256" },
         { name: "replacedAtTimestamp", type: "uint256" },
       ],
@@ -124,12 +124,12 @@ describe("Oracle Proof Validator", function () {
     expect(res[1].length).to.be.equal(2);
 
     expect(res[0][0].timestamp).to.be.equal(globalStateMessage.timestamp);
-    expect(res[0][0].userID).to.be.equal(globalStateMessage.userID);
+    expect(res[0][0].idType).to.be.equal(globalStateMessage.idType);
     expect(res[0][0].root).to.be.equal(globalStateMessage.root);
     expect(res[0][0].replacedAtTimestamp).to.be.equal(globalStateMessage.replacedAtTimestamp);
 
     expect(res[1][0].timestamp).to.be.equal(identityStateMessage.timestamp);
-    expect(res[1][0].userID).to.be.equal(identityStateMessage.userID);
+    expect(res[1][0].id).to.be.equal(identityStateMessage.id);
     expect(res[1][0].state).to.be.equal(identityStateMessage.state);
     expect(res[1][0].replacedAtTimestamp).to.be.equal(identityStateMessage.replacedAtTimestamp);
   });

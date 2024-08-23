@@ -177,8 +177,8 @@ abstract contract CredentialAtomicQueryValidatorBase is
         ICircuitValidator.GlobalStateMessage[] memory _gsm
     ) internal view {
         if (_gsm.length == 1) {
-            if (GenesisUtils.getIdType(_id) != GenesisUtils.getIdType(_gsm[0].userID)) {
-                revert("Different types in UserID and userID public input");
+            if (GenesisUtils.getIdType(_id) != _gsm[0].idType) {
+                revert("Different types in idType and userID public input");
             }
             _checkGistRootExpiration(_gsm[0].replacedAtTimestamp);
         } else {
@@ -219,10 +219,10 @@ abstract contract CredentialAtomicQueryValidatorBase is
             }
         } else {
             if (
-                (_ism.length == 1 && _id != _ism[0].userID) ||
-                (_ism.length == 2 && _id != _ism[0].userID && _id != _ism[1].userID)
+                (_ism.length == 1 && _id != _ism[0].id) ||
+                (_ism.length == 2 && _id != _ism[0].id && _id != _ism[1].id)
             ) {
-                revert("UserID not equal to issuerID public input");
+                revert("Id not equal to issuerID public input");
             }
         }
     }
@@ -236,13 +236,13 @@ abstract contract CredentialAtomicQueryValidatorBase is
             storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
 
         if ((_ism.length == 1 || _ism.length == 2) && _claimNonRevState == _ism[0].state) {
-            if (_id != _ism[0].userID) {
-                revert("UserID not equal to issuerID public input");
+            if (_id != _ism[0].id) {
+                revert("Id not equal to issuerID public input");
             }
             _checkClaimNonRevStateExpiration(_ism[0].replacedAtTimestamp);
         } else if (_ism.length == 2 && _claimNonRevState == _ism[1].state) {
-            if (_id != _ism[1].userID) {
-                revert("UserID not equal to issuerID public input");
+            if (_id != _ism[1].id) {
+                revert("Id not equal to issuerID public input");
             }
             _checkClaimNonRevStateExpiration(_ism[1].replacedAtTimestamp);
         } else {
