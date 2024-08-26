@@ -86,8 +86,8 @@ contract StateCrossChain is IStateCrossChain {
         }
     }
 
-    function getDefaultIdType() external view returns (bytes2 idType) {
-        return _getStateCrossChainStorage()._state.getDefaultIdType();
+    function getIdTypeIfSupported(uint256 id) external view returns (bytes2 idType) {
+        return _getStateCrossChainStorage()._state.getIdTypeIfSupported(id);
     }
 
     function _setStateInfo(IdentityStateMessage memory message, bytes memory signature) internal {

@@ -120,7 +120,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         bytes calldata data,
         address sender,
         IStateWithTimestampGetters state
-    ) external returns (ICircuitValidator.KeyToInputValue[] memory) {
+    ) external view returns (ICircuitValidator.KeyToInputValue[] memory) {
         (
             uint256[] memory inputs,
             uint256[2] memory a,
@@ -177,7 +177,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
     ) internal view {
         // for privado identity and 0 gist root we don't need to check for root info
         if (_isPrivadoId(_id)) {
-            require(gistRoot == 0, "Privado identity can't have gist root");
+            require(_gistRoot == 0, "Privado identity can't have gist root");
             return;
         }
 

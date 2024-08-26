@@ -12,5 +12,5 @@ interface IStateWithTimestampGetters {
         uint256 root
     ) external view returns (uint256 replacedAtTimestamps);
 
-    function getDefaultIdType() external view returns (bytes2 idType);
+    function getIdTypeIfSupported(uint256 id) external view returns (bytes2 idType);
 }

@@ -42,7 +42,7 @@ contract ValidatorStub is ICircuitValidator, ERC165 {
         bytes calldata data,
         address sender,
         IStateWithTimestampGetters state
-    ) external view override returns (ICircuitValidator.KeyToInputValue[] memory) {
+    ) external pure override returns (ICircuitValidator.KeyToInputValue[] memory) {
         ICircuitValidator.KeyToInputValue[] memory keypair;
         return keypair;
     }

@@ -94,7 +94,7 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
 
         // get special input values
         // selective disclosure is not supported for v2 onchain circuits
-        return _getSpecialInputPairs();
+        return _getSpecialInputPairs(signals);
     }
 
     function _checkMerklized(uint256 merklized, uint256 queryClaimPathKey) internal pure {
@@ -116,16 +116,16 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         );
     }
 
-    function _getSpecialInputPairs()
+    function _getSpecialInputPairs(PubSignals memory signals)
         internal
         pure
-        returns (ICircuitValidator.KeyToInputIndex[] memory)
+        returns (ICircuitValidator.KeyToInputValue[] memory)
     {
-        ICircuitValidator.KeyToInputIndex[] memory pairs = new ICircuitValidator.KeyToInputIndex[](
+        ICircuitValidator.KeyToInputValue[] memory pairs = new ICircuitValidator.KeyToInputValue[](
             2
         );
-        pairs[0] = ICircuitValidator.KeyToInputIndex({key: "userID", inputIndex: 1});
-        pairs[1] = ICircuitValidator.KeyToInputIndex({key: "timestamp", inputIndex: 10});
+        pairs[0] = ICircuitValidator.KeyToInputValue({key: "userID", inputValue: signals.userID});
+        pairs[1] = ICircuitValidator.KeyToInputValue({key: "timestamp", inputValue: signals.timestamp});
         return pairs;
     }
 }

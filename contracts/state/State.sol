@@ -400,7 +400,7 @@ contract State is Ownable2StepUpgradeable, IState, IStateWithTimestampGetters {
         bytes2 idType,
         uint256 root
     ) external view returns (uint256 replacedAt) {
-        // TODO add check for idType support
+        require(isIdTypeSupported(idType), "id type is not supported");
         if (_gistData.rootExists(root)) {
             replacedAt = _gistData.getRootInfo(root).replacedAtTimestamp;
         } else {
@@ -509,7 +509,7 @@ contract State is Ownable2StepUpgradeable, IState, IStateWithTimestampGetters {
      * @param id Identity
      * trows if id type is not supported
      */
-    function getIdTypeIfSupported(uint256 id) public view returns (bytes2) {
+    function getIdTypeIfSupported(uint256 id) public override (IState, IStateWithTimestampGetters) view returns (bytes2) {
         bytes2 idType = GenesisUtils.getIdType(id);
         require(_stateData.isIdTypeSupported[idType], "id type is not supported");
         return idType;
