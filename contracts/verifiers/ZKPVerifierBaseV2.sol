@@ -5,11 +5,18 @@ import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGetters.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 
 struct ZKPResponse {
     uint64 requestId;
     bytes zkProof;
     bytes crossChainProof;
+    bytes data;
+}
+
+struct ZKPResponseV3 {
+    uint64 requestId;
+    bytes zkProof;
     bytes data;
 }
 
@@ -26,7 +33,7 @@ contract ZKPVerifierBaseV2 is ZKPVerifierBase {
     /// @custom:storage-location erc7201:iden3.storage.ZKPVerifierBaseV2
     struct ZKPVerifierV2Storage {
         mapping(address user => mapping(uint64 requestID => ProofV2)) _proofs;
-        IStateWithTimestampGetters _stateCrossChain;
+        IStateCrossChain _stateCrossChain;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifierBaseV2")) - 1)) & ~bytes32(uint256(0xff));
@@ -70,6 +77,32 @@ contract ZKPVerifierBaseV2 is ZKPVerifierBase {
                     proof.metadata[meta[j].key] = meta[j].value;
                 }
             }
+        }
+    }
+
+    function submitZKPResponseV3(
+        ZKPResponseV3[] memory responses,
+        bytes memory crossChainProof
+    ) public virtual {
+        ZKPVerifierV2Storage storage $ = _getZKPVerifierV2Storage();
+
+        $._stateCrossChain.processProof(crossChainProof);
+
+        for (uint256 i = 0; i < responses.length; i++) {
+            ZKPResponseV3 memory response = responses[i];
+
+            address sender = _msgSender();
+
+            // TODO some internal method and storage location to save gas?
+            IZKPVerifier.ZKPRequest memory request = getZKPRequest(response.requestId);
+            ICircuitValidator.KeyToInputValue[] memory pairs = request.validator.verifyV2(
+                response.zkProof,
+                request.data,
+                sender,
+                $._stateCrossChain
+            );
+
+            _writeProofResults(sender, response.requestId, pairs);
         }
     }
 }

@@ -72,11 +72,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _setInputToIndex("timestamp", 12);
         _setInputToIndex("isBJJAuthEnabled", 13);
 
-        _initDefaultStateVariables(
-            _stateContractAddr,
-            _verifierContractAddr,
-            CIRCUIT_ID
-        );
+        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID);
         __Ownable_init(_msgSender());
     }
 

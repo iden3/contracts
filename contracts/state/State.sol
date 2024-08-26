@@ -172,7 +172,12 @@ contract State is Ownable2StepUpgradeable, IState, IStateWithTimestampGetters {
      * @dev Get defaultIdType
      * @return defaultIdType
      */
-    function getDefaultIdType() public override(IState, IStateWithTimestampGetters) view returns (bytes2) {
+    function getDefaultIdType()
+        public
+        view
+        override(IState, IStateWithTimestampGetters)
+        returns (bytes2)
+    {
         require(_defaultIdTypeInitialized, "Default Id Type is not initialized");
         return _defaultIdType;
     }

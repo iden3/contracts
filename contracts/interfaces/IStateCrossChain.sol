@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-interface IStateCrossChainProofProcessor {
+import {IStateWithTimestampGetters} from "./IStateWithTimestampGetters.sol";
+
+interface IStateCrossChain is IStateWithTimestampGetters {
     struct IdentityStateUpdate {
         IdentityStateMessage idStateMsg;
         bytes signature;

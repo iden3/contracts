@@ -4,7 +4,7 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils, EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
 import {IState} from "../interfaces/IState.sol";
-import {IStateCrossChainProofProcessor} from "../interfaces/IStateCrossChainProofProcessor.sol";
+import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 
 contract OracleProofValidator is EIP712, IOracleProofValidator {
     using ECDSA for bytes32;
@@ -40,7 +40,7 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
     }
 
     function verifyIdentityState(
-        IStateCrossChainProofProcessor.IdentityStateMessage memory message,
+        IStateCrossChain.IdentityStateMessage memory message,
         bytes memory signature
     ) public view virtual returns (bool) {
         (bool isValid, address recovered) = _recoverIdentityStateSigner(message, signature);
@@ -50,7 +50,7 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
     }
 
     function verifyGlobalState(
-        IStateCrossChainProofProcessor.GlobalStateMessage memory message,
+        IStateCrossChain.GlobalStateMessage memory message,
         bytes memory signature
     ) public view virtual returns (bool) {
         (bool isValid, address recovered) = _recoverGlobalStateSigner(message, signature);
@@ -66,7 +66,7 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
      * NOTE: The signature is considered valid if {ECDSA-tryRecover} indicates no recover error for it.
      */
     function _recoverIdentityStateSigner(
-        IStateCrossChainProofProcessor.IdentityStateMessage memory message,
+        IStateCrossChain.IdentityStateMessage memory message,
         bytes memory signature
     ) internal view virtual returns (bool, address) {
         bytes32 hashTypedData = _hashTypedDataV4(
@@ -93,7 +93,7 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
      * NOTE: The signature is considered valid if {ECDSA-tryRecover} indicates no recover error for it.
      */
     function _recoverGlobalStateSigner(
-        IStateCrossChainProofProcessor.GlobalStateMessage memory message,
+        IStateCrossChain.GlobalStateMessage memory message,
         bytes memory signature
     ) internal view virtual returns (bool, address) {
         bytes32 hashTypedData = _hashTypedDataV4(

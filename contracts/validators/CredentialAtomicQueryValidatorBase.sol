@@ -93,7 +93,9 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function setStateAddress(address stateContractAddr) public virtual onlyOwner {
-        _getCredentialAtomicQueryValidatorBaseStorage().state = IStateWithTimestampGetters(stateContractAddr);
+        _getCredentialAtomicQueryValidatorBaseStorage().state = IStateWithTimestampGetters(
+            stateContractAddr
+        );
     }
 
     function getStateAddress() public view virtual returns (address) {

@@ -5,9 +5,9 @@ import {IState} from "../interfaces/IState.sol";
 import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGetters.sol";
 import {IState} from "../interfaces/IState.sol";
 import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
-import {IStateCrossChainProofProcessor} from "../interfaces/IStateCrossChainProofProcessor.sol";
+import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 
-contract StateCrossChain is IStateWithTimestampGetters, IStateCrossChainProofProcessor {
+contract StateCrossChain is IStateCrossChain {
     /// @custom:storage-location erc7201:iden3.storage.StateCrossChain
     struct StateCrossChainStorage {
         mapping(uint256 id => mapping(uint256 state => uint256 replacedAt)) _idToStateReplacedAt;
