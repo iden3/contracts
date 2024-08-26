@@ -6,7 +6,6 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
-import {ICrossChainProofProcessor} from "../interfaces/ICrossChainProofProcessor.sol";
 
 struct Metadata {
     string key;

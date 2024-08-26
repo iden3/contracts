@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.8.20;
 
 import "./ZKPVerifierBase.sol";
 
@@ -18,7 +18,7 @@ contract ZKPVerifierBaseV2 is ZKPVerifierBase {
     /// @custom:storage-location erc7201:iden3.storage.ZKPVerifierBaseV2
     struct ZKPVerifierV2Storage {
         mapping(address user => mapping(uint64 requestID => ProofV2)) _proofs;
-        ICrossChainProofProcessor _stateCrossChain;
+        IStateForProofValidation _stateCrossChain;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifierBaseV2")) - 1)) & ~bytes32(uint256(0xff));
