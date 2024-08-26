@@ -4,6 +4,10 @@ pragma solidity 0.8.20;
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
 contract GenesisUtilsWrapper {
+    function getIdType(uint256 id) public pure returns (bytes2) {
+        return GenesisUtils.getIdType(id);
+    }
+
     function isGenesisState(uint256 id, uint256 idState) public pure returns (bool) {
         return GenesisUtils.isGenesisState(id, idState);
     }

@@ -26,7 +26,6 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256 proofExpirationTimeout;
         uint256 gistRootExpirationTimeout;
         mapping(string => uint256) _inputNameToIndex;
-        IOracleProofValidator _oracleProofValidator;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.CredentialAtomicQueryValidator")) - 1))
@@ -156,10 +155,6 @@ abstract contract CredentialAtomicQueryValidatorBase is
         return _getCredentialAtomicQueryValidatorBaseStorage().state;
     }
 
-    function _getOracleProofValidator() internal view returns (IOracleProofValidator) {
-        return _getCredentialAtomicQueryValidatorBaseStorage()._oracleProofValidator;
-    }
-
     function inputIndexOf(string memory name) public view virtual returns (uint256) {
         uint256 index = _getCredentialAtomicQueryValidatorBaseStorage()._inputNameToIndex[name];
         require(index != 0, "Input name not found");
@@ -180,6 +175,12 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256 _gistRoot,
         IStateWithTimestampGetters _stateWGetters
     ) internal view {
+        // for privado identity and 0 gist root we don't need to check for root info
+        if (_isPrivadoId(_id)) {
+            require(gistRoot == 0, "Privado identity can't have gist root");
+            return;
+        }
+
         CredentialAtomicQueryValidatorBaseStorage
             storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
         uint256 replacedAt = _stateWGetters.getStateReplacedAt(_id, _gistRoot);
@@ -201,6 +202,15 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256 _claimNonRevState,
         IStateWithTimestampGetters _stateWGetters
     ) internal view {
+        // for privado identity and genesis state we don't need to check for expiration
+        if (_isPrivadoId(_id)) {
+            require(
+                GenesisUtils.isGenesisState(_id, _claimNonRevState),
+                "Privado identity is not genesis"
+            );
+            return;
+        }
+
         CredentialAtomicQueryValidatorBaseStorage
             storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
         uint256 replacedAt = _stateWGetters.getStateReplacedAt(_id, _claimNonRevState);
@@ -211,12 +221,18 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function _checkProofExpiration(uint256 _proofGenerationTimestamp) internal view {
-        if (_proofGenerationTimestamp > block.timestamp) {
+        /*
+            Add 5 minutes to `block.timestamp` to prevent potential issues caused by unsynchronized clocks
+            or new transactions being included in the block with a previously defined timestamp.
+            https://github.com/ethereum/go-ethereum/issues/24152
+        */
+        if (_proofGenerationTimestamp > (block.timestamp + 5 minutes)) {
             revert("Proof generated in the future is not valid");
         }
         if (
-            block.timestamp - _proofGenerationTimestamp >
-            _getCredentialAtomicQueryValidatorBaseStorage().proofExpirationTimeout
+            block.timestamp >
+            _getCredentialAtomicQueryValidatorBaseStorage().proofExpirationTimeout +
+                _proofGenerationTimestamp
         ) {
             revert("Generated proof is outdated");
         }
@@ -247,5 +263,10 @@ abstract contract CredentialAtomicQueryValidatorBase is
     function _setInputToIndex(string memory inputName, uint256 index) internal {
         // increment index to avoid 0
         _getCredentialAtomicQueryValidatorBaseStorage()._inputNameToIndex[inputName] = ++index;
+    }
+
+    function _isPrivadoId(uint256 _id) internal pure returns (bool) {
+        bytes2 idType = GenesisUtils.getIdType(_id);
+        return idType == 0x01a1 || idType == 0x01a2;
     }
 }

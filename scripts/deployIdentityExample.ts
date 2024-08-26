@@ -14,7 +14,8 @@ async function main() {
       stContracts.poseidon1,
       stContracts.poseidon2,
       stContracts.poseidon3,
-      stContracts.poseidon4);
+      stContracts.poseidon4,
+      stContracts.defaultIdType);
 
     const identity = contracts.identity;
 

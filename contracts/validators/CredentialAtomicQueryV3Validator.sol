@@ -48,14 +48,13 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.0.4-beta.1";
+    string public constant VERSION = "2.0.6-beta.1";
 
     string internal constant CIRCUIT_ID = "credentialAtomicQueryV3OnChain-beta.1";
 
     function initialize(
         address _verifierContractAddr,
-        address _stateContractAddr,
-        address _oracleProofValidatorAddr
+        address _stateContractAddr
     ) public initializer {
         _setInputToIndex("userID", 0);
         _setInputToIndex("circuitQueryHash", 1);
@@ -140,13 +139,13 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _checkNullify(signals.nullifier, credAtomicQuery.nullifierSessionID);
 
         // GIST root and state checks
+        _checkClaimIssuanceState(signals.issuerID, signals.issuerState, state);
+        _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState, state);
         if (signals.isBJJAuthEnabled == 1) {
             _checkGistRoot(signals.userID, signals.gistRoot, state);
         } else {
             _checkAuth(signals.userID, sender);
         }
-        _checkClaimIssuanceState(signals.issuerID, signals.issuerState, state);
-        _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState, state);
 
         // Checking challenge to prevent replay attacks from other addresses
         _checkChallenge(signals.challenge, sender);
@@ -175,7 +174,10 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
     function _checkAuth(uint256 userID, address ethIdentityOwner) internal view {
         require(
             userID ==
-                GenesisUtils.calcIdFromEthAddress(_getState().getDefaultIdType(), ethIdentityOwner),
+                GenesisUtils.calcIdFromEthAddress(
+                    getState().getIdTypeIfSupported(userID),
+                    ethIdentityOwner
+                ),
             "UserID does not correspond to the sender"
         );
     }

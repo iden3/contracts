@@ -7,12 +7,35 @@ import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/Sta
 
 // Polygon Mumbai
 
-const proxyAdminOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
-const stateContractAddress = "0x134B1BE34911E39A8397ec6289782989729807a4";
-const stateOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
-const id = "0x000b9921a67e1b1492902d04d9b5c521bee1288f530b14b10a6a8c94ca741201";
-const stateValue = "0x2c68da47bf4c9acb3320076513905f7b63d8070ed8276ad16ca5402b267a7c26";
+// const proxyAdminOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
+// const stateContractAddress = "0x134B1BE34911E39A8397ec6289782989729807a4";
+// const stateOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
+// const id = "0x000b9921a67e1b1492902d04d9b5c521bee1288f530b14b10a6a8c94ca741201";
+// const stateValue = "0x2c68da47bf4c9acb3320076513905f7b63d8070ed8276ad16ca5402b267a7c26";
+// const impersonate = false;
+
+
+// Privado test
+
+// const proxyAdminOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
+// const stateContractAddress = "0x975556428F077dB5877Ea2474D783D6C69233742";
+// const stateOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
+// // const id = "0x000b9921a67e1b1492902d04d9b5c521bee1288f530b14b10a6a8c94ca741201";
+// // const stateValue = "0x2c68da47bf4c9acb3320076513905f7b63d8070ed8276ad16ca5402b267a7c26";
+// const impersonate = false;
+
+
+
+
+// Privado main
+
+const proxyAdminOwnerAddress = "0x80203136fAe3111B810106bAa500231D4FD08FC6";
+const stateContractAddress = "0x975556428F077dB5877Ea2474D783D6C69233742";
+const stateOwnerAddress = "0x80203136fAe3111B810106bAa500231D4FD08FC6";
+// const id = "0x000b9921a67e1b1492902d04d9b5c521bee1288f530b14b10a6a8c94ca741201";
+// const stateValue = "0x2c68da47bf4c9acb3320076513905f7b63d8070ed8276ad16ca5402b267a7c26";
 const impersonate = false;
+
 
 // Polygon PoS mainnet
 
@@ -59,68 +82,69 @@ async function main() {
     contractNameOrAbi: stateArtifact.abi,
     address: stateContractAddress,
   });
-
-  const dataBeforeUpgrade = await stateMigrationHelper.getDataFromContract(
-    stateContract,
-    id,
-    stateValue
-  );
-
-  const defaultIdTypeBefore = await stateContract.getDefaultIdType();
-  const stateOwnerAddressBefore = await stateContract.owner();
-
-  expect(stateOwnerAddressBefore).to.equal(stateOwnerAddress);
-
-  const verifierBefore = await stateContract.getVerifier();
-
+  //
+  // const dataBeforeUpgrade = await stateMigrationHelper.getDataFromContract(
+  //   stateContract,
+  //   id,
+  //   stateValue
+  // );
+  //
+  // const defaultIdTypeBefore = await stateContract.getDefaultIdType();
+  // const stateOwnerAddressBefore = await stateContract.owner();
+  //
+  // expect(stateOwnerAddressBefore).to.equal(stateOwnerAddress);
+  //
+  // const verifierBefore = await stateContract.getVerifier();
+  //
 
   // **** Upgrade State ****
   await stateMigrationHelper.upgradeContract(stateContract, false);
   // ************************
 
-
-  const dataAfterUpgrade = await stateMigrationHelper.getDataFromContract(stateContract, id, stateValue);
-  stateMigrationHelper.checkData(dataBeforeUpgrade, dataAfterUpgrade);
-
-  const defaultIdTypeAfter = await stateContract.getDefaultIdType();
-  const stateOwnerAddressAfter = await stateContract.owner();
-  const verifierAfter = await stateContract.getVerifier();
-  expect(defaultIdTypeAfter).to.equal(defaultIdTypeBefore);
-  expect(stateOwnerAddressAfter).to.equal(stateOwnerAddressBefore);
-  expect(verifierAfter).to.equal(verifierBefore);
+  //
+  // const dataAfterUpgrade = await stateMigrationHelper.getDataFromContract(stateContract, id, stateValue);
+  // stateMigrationHelper.checkData(dataBeforeUpgrade, dataAfterUpgrade);
+  //
+  // const defaultIdTypeAfter = await stateContract.getDefaultIdType();
+  // const stateOwnerAddressAfter = await stateContract.owner();
+  // const verifierAfter = await stateContract.getVerifier();
+  // expect(defaultIdTypeAfter).to.equal(defaultIdTypeBefore);
+  // expect(stateOwnerAddressAfter).to.equal(stateOwnerAddressBefore);
+  // expect(verifierAfter).to.equal(verifierBefore);
+  // expect(stateContract.isIdTypeSupported(defaultIdTypeBefore)).to.be.true;
 
   console.log("Contract Upgrade Finished");
 
 
-  // **** Additional write-read tests (remove in real upgrade) ****
-        const verifierStubContractName = "VerifierStub";
-
-        const verifierStub = await ethers.deployContract(verifierStubContractName);
-        await stateContract.connect(stateOwnerSigner).setVerifier(await verifierStub.getAddress());
-        const oldStateInfo = await stateContract.getStateInfoById(id);
-
-        const stateHistoryLengthBefore = await stateContract.getStateInfoHistoryLengthById(id);
-
-        const newState = 12345;
-        await expect(
-          stateContract.transitState(
-            id,
-            oldStateInfo.state,
-            newState,
-            false,
-            [0, 0],
-            [
-              [0, 0],
-              [0, 0],
-            ],
-            [0, 0]
-          )
-        ).not.to.be.reverted;
-
-        const newStateInfo = await stateContract.getStateInfoById(id);
-        expect(newStateInfo.state).to.equal(newState);
-        const stateHistoryLengthAfter = await stateContract.getStateInfoHistoryLengthById(id);
-        expect(stateHistoryLengthAfter).to.equal(stateHistoryLengthBefore.add(1));
+  // // **** Additional write-read tests (remove in real upgrade) ****
+  //       const verifierStubContractName = "VerifierStub";
+  //
+  //       const verifierStub = await ethers.deployContract(verifierStubContractName);
+  //       await stateContract.connect(stateOwnerSigner).setVerifier(await verifierStub.getAddress());
+  //       const oldStateInfo = await stateContract.getStateInfoById(id);
+  //
+  //       const stateHistoryLengthBefore = await stateContract.getStateInfoHistoryLengthById(id);
+  //
+  //       const newState = 12345;
+  //       await expect(
+  //         stateContract.transitState(
+  //           id,
+  //           oldStateInfo.state,
+  //           newState,
+  //           false,
+  //           [0, 0],
+  //           [
+  //             [0, 0],
+  //             [0, 0],
+  //           ],
+  //           [0, 0]
+  //         )
+  //       ).not.to.be.reverted;
+  //
+  //       const newStateInfo = await stateContract.getStateInfoById(id);
+  //       expect(newStateInfo.state).to.equal(newState);
+  //       const stateHistoryLengthAfter = await stateContract.getStateInfoHistoryLengthById(id);
+  //       expect(stateHistoryLengthAfter).to.equal(stateHistoryLengthBefore.add(1));
   // **********************************
 
 }

@@ -9,6 +9,8 @@
 |:--------------------------:|:------------------------------------------:|
 | **Polygon Mainnet**        | 0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D |
 | **Polygon Amoy testnet**   | 0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124 |
+| **Privado Main**           | 0x975556428F077dB5877Ea2474D783D6C69233742 |
+| **Privado testnet**        | 0x975556428F077dB5877Ea2474D783D6C69233742 |
 | Polygon Mumbai testnet     | 0x134B1BE34911E39A8397ec6289782989729807a4 |
 
 ## IdentityTreeStore contract (On-chain RHS)
@@ -17,6 +19,8 @@
 |:--------------------------:|:------------------------------------------:|
 | **Polygon Mainnet**        | 0xbEeB6bB53504E8C872023451fd0D23BeF01d320B |
 | **Polygon Amoy testnet**   | 0x3d3763eC0a50CE1AdF83d0b5D99FBE0e3fEB43fb |
+| **Privado Main**           | 0x58485809CfAc875B7E6F54E3fCb5f24614f202e9 |
+| **Privado testnet**        | 0x58485809CfAc875B7E6F54E3fCb5f24614f202e9 |
 | Polygon Mumbai testnet     | 0x16A1ae4c460C0a42f0a87e69c526c61599B28BC9 |
 
 

@@ -88,22 +88,13 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         _checkChallenge(signals.challenge, sender);
 
         // GIST root and state checks
-
         _checkGistRoot(signals.userID, signals.gistRoot, state);
         _checkClaimIssuanceState(signals.issuerID, signals.issuerState, state);
         _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState, state);
 
         // get special input values
         // selective disclosure is not supported for v2 onchain circuits
-        ICircuitValidator.KeyToInputValue[] memory pairs = new ICircuitValidator.KeyToInputValue[](
-            2
-        );
-        pairs[0] = ICircuitValidator.KeyToInputValue({key: "userID", inputValue: signals.userID});
-        pairs[1] = ICircuitValidator.KeyToInputValue({
-            key: "timestamp",
-            inputValue: signals.timestamp
-        });
-        return pairs;
+        return _getSpecialInputPairs();
     }
 
     function _checkMerklized(uint256 merklized, uint256 queryClaimPathKey) internal pure {
@@ -123,5 +114,18 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
             isRevocationChecked == expectedIsRevocationChecked,
             "Revocation check should match the query"
         );
+    }
+
+    function _getSpecialInputPairs()
+        internal
+        pure
+        returns (ICircuitValidator.KeyToInputIndex[] memory)
+    {
+        ICircuitValidator.KeyToInputIndex[] memory pairs = new ICircuitValidator.KeyToInputIndex[](
+            2
+        );
+        pairs[0] = ICircuitValidator.KeyToInputIndex({key: "userID", inputIndex: 1});
+        pairs[1] = ICircuitValidator.KeyToInputIndex({key: "timestamp", inputIndex: 10});
+        return pairs;
     }
 }

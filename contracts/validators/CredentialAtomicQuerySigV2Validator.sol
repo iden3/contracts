@@ -9,14 +9,13 @@ contract CredentialAtomicQuerySigV2Validator is CredentialAtomicQueryV2Validator
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.0.4";
+    string public constant VERSION = "2.0.6";
 
     string internal constant CIRCUIT_ID = "credentialAtomicQuerySigV2OnChain";
 
     function initialize(
         address _verifierContractAddr,
-        address _stateContractAddr,
-        address _oracleProofValidatorAddr
+        address _stateContractAddr
     ) public initializer {
         _setInputToIndex("merklized", 0);
         _setInputToIndex("userID", 1);

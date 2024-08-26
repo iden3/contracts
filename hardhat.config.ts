@@ -44,6 +44,16 @@ const config: HardhatUserConfig = {
     //   url: `${process.env.MUMBAI_RPC_URL}`,
     //   accounts: [`0x${process.env.MUMBAI_PRIVATE_KEY}`],
     // },
+    // 'privado-main': {
+    //   chainId: 21000,
+    //   url: `${process.env.PRIVADO_MAIN_RPC_URL}`,
+    //   accounts: [`0x${process.env.PRIVADO_MAIN_PRIVATE_KEY}`],
+    // },
+    // 'privado-test': {
+    //   chainId: 21001,
+    //   url: `${process.env.PRIVADO_TEST_RPC_URL}`,
+    //   accounts: [`0x${process.env.PRIVADO_TEST_PRIVATE_KEY}`],
+    // },        
     // amoy: {
     //   chainId: 80002,
     //   url: `${process.env.AMOY_RPC_URL}`,

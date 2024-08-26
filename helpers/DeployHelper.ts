@@ -26,7 +26,10 @@ export class DeployHelper {
     return new DeployHelper(sgrs, enableLogging);
   }
 
-  async deployState(verifierContractName = "VerifierStateTransition"): Promise<{
+  async deployState(
+    supportedIdTypes: string[] = [],
+    verifierContractName = "VerifierStateTransition",
+  ): Promise<{
     state: Contract;
     verifier: Contract;
     stateLib: Contract;
@@ -35,6 +38,7 @@ export class DeployHelper {
     poseidon2: Contract;
     poseidon3: Contract;
     poseidon4: Contract;
+    defaultIdType;
   }> {
     this.log("======== State: deploy started ========");
 
@@ -85,6 +89,14 @@ export class DeployHelper {
       `State contract deployed to address ${await state.getAddress()} from ${await owner.getAddress()}`,
     );
 
+    if (supportedIdTypes.length) {
+      supportedIdTypes = [...new Set(supportedIdTypes)];
+      for (const idType of supportedIdTypes) {
+        const tx = await state.setSupportedIdType(idType, true);
+        await tx.wait();
+        this.log(`Added id type ${idType}`);
+      }
+    }
     this.log("======== State: deploy completed ========");
 
     return {
@@ -96,6 +108,7 @@ export class DeployHelper {
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
       poseidon4: poseidon4Elements,
+      defaultIdType,
     };
   }
 
@@ -171,16 +184,7 @@ export class DeployHelper {
       },
     });
     stateContract = await upgrades.upgradeProxy(stateAddress, StateFactory, {
-      unsafeAllowLinkedLibraries: true,
-      unsafeSkipStorageCheck: true, // TODO: remove for next upgrade
-      call: {
-        fn: "initialize",
-        args: [
-          await verifierContract.getAddress(),
-          await stateContract.getDefaultIdType(),
-          await stateAdminOwner.getAddress(),
-        ],
-      },
+      unsafeAllowLinkedLibraries: true
     });
     await stateContract.waitForDeployment();
     this.log(
@@ -307,25 +311,12 @@ export class DeployHelper {
   async deployValidatorContracts(
     verifierContractWrapperName: string,
     validatorContractName: string,
-    stateAddress = "",
-    oracleProofValidatorAddress = "",
+    stateAddress: string,
   ): Promise<{
     state: any;
     verifierWrapper: any;
     validator: any;
-    oracleProofValidator: Contract;
   }> {
-    if (!stateAddress) {
-      const stateDeployHelper = await DeployHelper.initialize();
-      const { state } = await stateDeployHelper.deployState();
-      stateAddress = await state.getAddress();
-    }
-
-    if (!oracleProofValidatorAddress) {
-      const oracleProofValidator = await this.deployOracleProofValidator();
-      oracleProofValidatorAddress = await oracleProofValidator.getAddress();
-    }
-
     const ValidatorContractVerifierWrapper = await ethers.getContractFactory(
       verifierContractWrapperName,
     );
@@ -342,7 +333,6 @@ export class DeployHelper {
     const validatorContractProxy = await upgrades.deployProxy(ValidatorContract, [
       await validatorContractVerifierWrapper.getAddress(),
       stateAddress,
-      oracleProofValidatorAddress,
     ]);
 
     await validatorContractProxy.waitForDeployment();
@@ -352,16 +342,10 @@ export class DeployHelper {
     const signers = await ethers.getSigners();
 
     const state = await ethers.getContractAt("State", stateAddress, signers[0]);
-    const oracleProofValidator = await ethers.getContractAt(
-      "OracleProofValidator",
-      oracleProofValidatorAddress,
-      signers[0],
-    );
     return {
       validator: validatorContractProxy,
       verifierWrapper: validatorContractVerifierWrapper,
       state,
-      oracleProofValidator,
     };
   }
 
