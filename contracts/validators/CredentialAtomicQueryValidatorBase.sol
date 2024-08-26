@@ -10,6 +10,7 @@ import {IState} from "../interfaces/IState.sol";
 import {PoseidonFacade} from "../lib/Poseidon.sol";
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
 import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
+import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGetters.sol";
 
 abstract contract CredentialAtomicQueryValidatorBase is
     Ownable2StepUpgradeable,
@@ -20,7 +21,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
     struct CredentialAtomicQueryValidatorBaseStorage {
         mapping(string => IVerifier) _circuitIdToVerifier;
         string[] _supportedCircuitIds;
-        IState state;
+        IStateWithTimestampGetters state;
         uint256 revocationStateExpirationTimeout;
         uint256 proofExpirationTimeout;
         uint256 gistRootExpirationTimeout;
@@ -47,8 +48,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
     function _initDefaultStateVariables(
         address _stateContractAddr,
         address _verifierContractAddr,
-        string memory circuitId,
-        address _oracleProofValidatorAddr
+        string memory circuitId
     ) internal {
         CredentialAtomicQueryValidatorBaseStorage
             storage s = _getCredentialAtomicQueryValidatorBaseStorage();
@@ -58,8 +58,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         s.gistRootExpirationTimeout = 1 hours;
         s._supportedCircuitIds = [circuitId];
         s._circuitIdToVerifier[circuitId] = IVerifier(_verifierContractAddr);
-        s.state = IState(_stateContractAddr);
-        s._oracleProofValidator = IOracleProofValidator(_oracleProofValidatorAddr);
+        s.state = IStateWithTimestampGetters(_stateContractAddr);
         __Ownable_init(_msgSender());
     }
 
@@ -94,7 +93,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function setStateAddress(address stateContractAddr) public virtual onlyOwner {
-        _getCredentialAtomicQueryValidatorBaseStorage().state = IState(stateContractAddr);
+        _getCredentialAtomicQueryValidatorBaseStorage().state = IStateWithTimestampGetters(stateContractAddr);
     }
 
     function getStateAddress() public view virtual returns (address) {
@@ -109,14 +108,17 @@ abstract contract CredentialAtomicQueryValidatorBase is
         bytes calldata data,
         address sender
     ) public view override returns (ICircuitValidator.KeyToInputValue[] memory) {
-        return _verify(inputs, a, b, c, data, sender, hex"");
+        CredentialAtomicQueryValidatorBaseStorage
+            storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
+
+        return _verify(inputs, a, b, c, data, sender, $.state);
     }
 
     function verifyV2(
         bytes calldata zkProof,
         bytes calldata data,
-        bytes calldata crossChainProof,
-        address sender
+        address sender,
+        IStateWithTimestampGetters state
     ) external returns (ICircuitValidator.KeyToInputValue[] memory) {
         (
             uint256[] memory inputs,
@@ -125,7 +127,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
             uint256[2] memory c
         ) = abi.decode(zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
-        return _verify(inputs, a, b, c, data, sender, crossChainProof);
+        return _verify(inputs, a, b, c, data, sender, state);
     }
 
     function _verify(
@@ -135,7 +137,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256[2] memory c,
         bytes calldata data,
         address sender,
-        bytes memory crossChainProof
+        IStateWithTimestampGetters state
     ) internal view virtual returns (ICircuitValidator.KeyToInputValue[] memory);
 
     function getSupportedCircuitIds() external view virtual returns (string[] memory ids) {
@@ -148,7 +150,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         return _getCredentialAtomicQueryValidatorBaseStorage()._circuitIdToVerifier[circuitId];
     }
 
-    function _getState() internal view returns (IState) {
+    function _getState() internal view returns (IStateWithTimestampGetters) {
         return _getCredentialAtomicQueryValidatorBaseStorage().state;
     }
 
@@ -174,25 +176,11 @@ abstract contract CredentialAtomicQueryValidatorBase is
     function _checkGistRoot(
         uint256 _id,
         uint256 _gistRoot,
-        ICircuitValidator.GlobalStateMessage[] memory _gsm
+        IStateWithTimestampGetters _stateWGetters
     ) internal view {
-        if (_gsm.length == 1) {
-            if (GenesisUtils.getIdType(_id) != _gsm[0].idType) {
-                revert("Different types in idType and userID public input");
-            }
-            _checkGistRootExpiration(_gsm[0].replacedAtTimestamp);
-        } else {
-            CredentialAtomicQueryValidatorBaseStorage
-                storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
-            IState.GistRootInfo memory rootInfo = _getState().getGISTRootInfo(_gistRoot);
-            require(rootInfo.root == _gistRoot, "Gist root state isn't in state contract");
-            _checkGistRootExpiration(rootInfo.replacedAtTimestamp);
-        }
-    }
-
-    function _checkGistRootExpiration(uint256 replacedAt) internal view {
         CredentialAtomicQueryValidatorBaseStorage
             storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
+        uint256 replacedAt = _stateWGetters.getStateReplacedAt(_id, _gistRoot);
         if (replacedAt != 0 && block.timestamp - replacedAt > $.gistRootExpirationTimeout) {
             revert("Gist root is expired");
         }
@@ -201,72 +189,20 @@ abstract contract CredentialAtomicQueryValidatorBase is
     function _checkClaimIssuanceState(
         uint256 _id,
         uint256 _state,
-        ICircuitValidator.IdentityStateMessage[] memory _ism
+        IStateWithTimestampGetters _stateWGetters
     ) internal view {
-        if (
-            (_ism.length == 0) ||
-            (_ism.length == 1 && _state != _ism[0].state) ||
-            (_ism.length == 2 && _state != _ism[0].state && _state != _ism[1].state)
-        ) {
-            bool isStateGenesis = GenesisUtils.isGenesisState(_id, _state);
-
-            if (!isStateGenesis) {
-                IState.StateInfo memory stateInfo = _getState().getStateInfoByIdAndState(
-                    _id,
-                    _state
-                );
-                require(_id == stateInfo.id, "State doesn't exist in state contract");
-            }
-        } else {
-            if (
-                (_ism.length == 1 && _id != _ism[0].id) ||
-                (_ism.length == 2 && _id != _ism[0].id && _id != _ism[1].id)
-            ) {
-                revert("Id not equal to issuerID public input");
-            }
-        }
+        _stateWGetters.getStateReplacedAt(_id, _state);
     }
 
     function _checkClaimNonRevState(
         uint256 _id,
         uint256 _claimNonRevState,
-        ICircuitValidator.IdentityStateMessage[] memory _ism
+        IStateWithTimestampGetters _stateWGetters
     ) internal view {
         CredentialAtomicQueryValidatorBaseStorage
             storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
+        uint256 replacedAt = _stateWGetters.getStateReplacedAt(_id, _claimNonRevState);
 
-        if ((_ism.length == 1 || _ism.length == 2) && _claimNonRevState == _ism[0].state) {
-            if (_id != _ism[0].id) {
-                revert("Id not equal to issuerID public input");
-            }
-            _checkClaimNonRevStateExpiration(_ism[0].replacedAtTimestamp);
-        } else if (_ism.length == 2 && _claimNonRevState == _ism[1].state) {
-            if (_id != _ism[1].id) {
-                revert("Id not equal to issuerID public input");
-            }
-            _checkClaimNonRevStateExpiration(_ism[1].replacedAtTimestamp);
-        } else {
-            // check if identity transited any state in contract
-            bool idExists = _getState().idExists(_id);
-
-            // if identity didn't transit any state it must be genesis
-            if (!idExists) {
-                require(
-                    GenesisUtils.isGenesisState(_id, _claimNonRevState),
-                    "Issuer revocation state doesn't exist in state contract and is not genesis"
-                );
-            } else {
-                IState.StateInfo memory claimNonRevLatestStateInfo = _getState()
-                    .getStateInfoByIdAndState(_id, _claimNonRevState);
-
-                _checkClaimNonRevStateExpiration(claimNonRevLatestStateInfo.replacedAtTimestamp);
-            }
-        }
-    }
-
-    function _checkClaimNonRevStateExpiration(uint256 replacedAt) internal view {
-        CredentialAtomicQueryValidatorBaseStorage
-            storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
         if (replacedAt != 0 && block.timestamp - replacedAt > $.revocationStateExpirationTimeout) {
             revert("Non-Revocation state of Issuer expired");
         }

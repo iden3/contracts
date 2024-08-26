@@ -2,33 +2,18 @@
 pragma solidity 0.8.20;
 
 import {IState} from "../interfaces/IState.sol";
-import {IdentityStateMessage, GlobalStateMessage} from "../interfaces/ICircuitValidator.sol";
-import {IStateForProofValidation} from "../interfaces/IStateForProofValidation.sol";
+import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGetters.sol";
 import {IState} from "../interfaces/IState.sol";
 import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
+import {IStateCrossChainProofProcessor} from "../interfaces/IStateCrossChainProofProcessor.sol";
 
-abstract contract StateCrossChain is IStateForProofValidation {
+contract StateCrossChain is IStateWithTimestampGetters, IStateCrossChainProofProcessor {
     /// @custom:storage-location erc7201:iden3.storage.StateCrossChain
     struct StateCrossChainStorage {
         mapping(uint256 id => mapping(uint256 state => uint256 replacedAt)) _idToStateReplacedAt;
         mapping(bytes2 idType => mapping(uint256 root => uint256 replacedAt)) _rootToGistRootReplacedAt;
         IOracleProofValidator _oracleProofValidator;
-        IState _state;
-    }
-
-    struct IdentityStateUpdate {
-        IdentityStateMessage idStateMsg;
-        bytes signature;
-    }
-
-    struct GlobalStateUpdate {
-        GlobalStateMessage globalStateMsg;
-        bytes signature;
-    }
-
-    struct CrossChainProof {
-        string proofType;
-        bytes proof;
+        IStateWithTimestampGetters _state;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.StateCrossChain")) - 1))
@@ -42,23 +27,10 @@ abstract contract StateCrossChain is IStateForProofValidation {
         }
     }
 
-    modifier stateEntryExists(uint256 id, uint256 state) {
-        StateCrossChainStorage storage s = _getStateCrossChainStorage();
-
-        // Check by replacedAt by assumption that it is never 0
-        require(s._idToStateReplacedAt[id][state] != 0, "State entry not found");
-        _;
-    }
-
-    modifier gistRootEntryExists(uint256 root) {
-        StateCrossChainStorage storage s = _getStateCrossChainStorage();
-
-        // Check by replacedAt by assumption that it is never 0
-        require(root == 0 || s._rootToGistRootReplacedAt[root] != 0, "Gist root not found");
-        _;
-    }
-
-    function initializeStateCrossChain(IOracleProofValidator validator, IState state) internal {
+    function initializeStateCrossChain(
+        IOracleProofValidator validator,
+        IStateWithTimestampGetters state
+    ) internal {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
         $._oracleProofValidator = validator;
         $._state = state;
@@ -95,33 +67,27 @@ abstract contract StateCrossChain is IStateForProofValidation {
     function getStateReplacedAt(
         uint256 id,
         uint256 state
-    ) external view stateEntryExists(id, state) returns (uint256 replacedAt) {
+    ) external view returns (uint256 replacedAt) {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
         replacedAt = $._idToStateReplacedAt[id][state];
         if (replacedAt == 0) {
-            if ($._state.idExists(id)) {
-                replacedAt = $._state.getStateInfoByIdAndState(id, state).createdAtTimestamp;
-            } else {
-                if (GenesisUtils.isGenesisState(id, state)) {
-                    replacedAt = 0;
-                } else {
-                    revert("State entry not found");
-                }
-            }
+            replacedAt = $._state.getStateReplacedAt(id, state);
         }
     }
 
     function getGistRootReplacedAt(
         bytes2 idType,
         uint256 root
-    ) external view gistRootEntryExists(root) returns (uint256 replacedAt) {
+    ) external view returns (uint256 replacedAt) {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
         replacedAt = $._rootToGistRootReplacedAt[idType][root];
         if (replacedAt == 0) {
-            //TODO check if this is correct, or use the other method
-            require($._state.isTypeSupported(idType), "idType not supported by state");
-            replacedAt = $._state.getGISTRootInfo(root).createdAtTimestamp;
+            replacedAt = $._state.getGistRootReplacedAt(idType, root);
         }
+    }
+
+    function getDefaultIdType() external view returns (bytes2 idType) {
+        return _getStateCrossChainStorage()._state.getDefaultIdType();
     }
 
     function _setStateInfo(IdentityStateMessage memory message, bytes memory signature) internal {
@@ -137,7 +103,7 @@ abstract contract StateCrossChain is IStateForProofValidation {
             : message.replacedAtTimestamp;
         require(replacedAt != 0, "ReplacedAt cannot be 0");
 
-        $._idToStateReplacedAt[message.identity][message.state] = replacedAt;
+        $._idToStateReplacedAt[message.id][message.state] = replacedAt;
     }
 
     function _setGistRootInfo(GlobalStateMessage memory message, bytes memory signature) internal {
@@ -153,6 +119,6 @@ abstract contract StateCrossChain is IStateForProofValidation {
             : message.replacedAtTimestamp;
         require(replacedAt != 0, "ReplacedAt cannot be 0");
 
-        $._rootToGistRootReplacedAt[message.root] = replacedAt;
+        $._rootToGistRootReplacedAt[message.idType][message.root] = replacedAt;
     }
 }

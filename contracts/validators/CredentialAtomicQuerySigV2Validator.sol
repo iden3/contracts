@@ -33,8 +33,7 @@ contract CredentialAtomicQuerySigV2Validator is CredentialAtomicQueryV2Validator
         _initDefaultStateVariables(
             _stateContractAddr,
             _verifierContractAddr,
-            CIRCUIT_ID,
-            _oracleProofValidatorAddr
+            CIRCUIT_ID
         );
         __Ownable_init(_msgSender());
     }

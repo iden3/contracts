@@ -4,7 +4,7 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils, EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
 import {IState} from "../interfaces/IState.sol";
-import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {IStateCrossChainProofProcessor} from "../interfaces/IStateCrossChainProofProcessor.sol";
 
 contract OracleProofValidator is EIP712, IOracleProofValidator {
     using ECDSA for bytes32;
@@ -40,7 +40,7 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
     }
 
     function verifyIdentityState(
-        ICircuitValidator.IdentityStateMessage memory message,
+        IStateCrossChainProofProcessor.IdentityStateMessage memory message,
         bytes memory signature
     ) public view virtual returns (bool) {
         (bool isValid, address recovered) = _recoverIdentityStateSigner(message, signature);
@@ -50,7 +50,7 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
     }
 
     function verifyGlobalState(
-        ICircuitValidator.GlobalStateMessage memory message,
+        IStateCrossChainProofProcessor.GlobalStateMessage memory message,
         bytes memory signature
     ) public view virtual returns (bool) {
         (bool isValid, address recovered) = _recoverGlobalStateSigner(message, signature);
@@ -66,7 +66,7 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
      * NOTE: The signature is considered valid if {ECDSA-tryRecover} indicates no recover error for it.
      */
     function _recoverIdentityStateSigner(
-        ICircuitValidator.IdentityStateMessage memory message,
+        IStateCrossChainProofProcessor.IdentityStateMessage memory message,
         bytes memory signature
     ) internal view virtual returns (bool, address) {
         bytes32 hashTypedData = _hashTypedDataV4(
@@ -93,7 +93,7 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
      * NOTE: The signature is considered valid if {ECDSA-tryRecover} indicates no recover error for it.
      */
     function _recoverGlobalStateSigner(
-        ICircuitValidator.GlobalStateMessage memory message,
+        IStateCrossChainProofProcessor.GlobalStateMessage memory message,
         bytes memory signature
     ) internal view virtual returns (bool, address) {
         bytes32 hashTypedData = _hashTypedDataV4(
@@ -143,77 +143,5 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
             bytes32(0),
             new uint256[](0)
         );
-    }
-
-    function processProof(
-        bytes calldata proof
-    )
-        public
-        view
-        returns (
-            ICircuitValidator.GlobalStateMessage[] memory,
-            ICircuitValidator.IdentityStateMessage[] memory
-        )
-    {
-        if (proof.length == 0) {
-            return (
-                new ICircuitValidator.GlobalStateMessage[](0),
-                new ICircuitValidator.IdentityStateMessage[](0)
-            );
-        }
-
-        CrossChainProof[] memory proofs = abi.decode(proof, (CrossChainProof[]));
-
-        // At most one global state proof and two state proofs for the oracle proof validator
-        ICircuitValidator.GlobalStateMessage[]
-            memory gsm = new ICircuitValidator.GlobalStateMessage[](1);
-        ICircuitValidator.IdentityStateMessage[]
-            memory ism = new ICircuitValidator.IdentityStateMessage[](2);
-        uint256 globalStateProofCount = 0;
-        uint256 stateProofCount = 0;
-
-        for (uint256 i = 0; i < proofs.length; i++) {
-            if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("globalStateProof"))) {
-                GlobalStateUpdate memory globalStateUpd = abi.decode(
-                    proofs[i].proof,
-                    (GlobalStateUpdate)
-                );
-
-                require(
-                    verifyGlobalState(globalStateUpd.globalStateMsg, globalStateUpd.signature),
-                    "Invalid global state signature"
-                );
-
-                gsm[globalStateProofCount++] = globalStateUpd.globalStateMsg;
-            } else if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("stateProof"))) {
-                IdentityStateUpdate memory idStateUpd = abi.decode(
-                    proofs[i].proof,
-                    (IdentityStateUpdate)
-                );
-
-                require(
-                    verifyIdentityState(idStateUpd.idStateMsg, idStateUpd.signature),
-                    "Invalid identity state signature"
-                );
-
-                ism[stateProofCount++] = idStateUpd.idStateMsg;
-            } else {
-                revert("Unknown proof type");
-            }
-        }
-
-        ICircuitValidator.GlobalStateMessage[]
-            memory gsm_return = new ICircuitValidator.GlobalStateMessage[](globalStateProofCount);
-        for (uint256 i = 0; i < globalStateProofCount; i++) {
-            gsm_return[i] = gsm[i];
-        }
-
-        ICircuitValidator.IdentityStateMessage[]
-            memory sm_return = new ICircuitValidator.IdentityStateMessage[](stateProofCount);
-        for (uint256 i = 0; i < stateProofCount; i++) {
-            sm_return[i] = ism[i];
-        }
-
-        return (gsm_return, sm_return);
     }
 }

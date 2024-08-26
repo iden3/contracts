@@ -7,11 +7,6 @@ import {ArrayUtils} from "../lib/ArrayUtils.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
 
-struct Metadata {
-    string key;
-    bytes value;
-}
-
 abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @dev Struct to store ZKP proof and associated data
     struct Proof {

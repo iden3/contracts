@@ -8,9 +8,10 @@ import {SmtLib} from "../lib/SmtLib.sol";
 import {PoseidonUnit1L} from "../lib/Poseidon.sol";
 import {StateLib} from "../lib/StateLib.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
+import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGetters.sol";
 
 /// @title Set and get states for each identity
-contract State is Ownable2StepUpgradeable, IState {
+contract State is Ownable2StepUpgradeable, IState, IStateWithTimestampGetters {
     /**
      * @dev Version of contract
      */
@@ -171,7 +172,7 @@ contract State is Ownable2StepUpgradeable, IState {
      * @dev Get defaultIdType
      * @return defaultIdType
      */
-    function getDefaultIdType() public view returns (bytes2) {
+    function getDefaultIdType() public override(IState, IStateWithTimestampGetters) view returns (bytes2) {
         require(_defaultIdTypeInitialized, "Default Id Type is not initialized");
         return _defaultIdType;
     }
@@ -366,6 +367,34 @@ contract State is Ownable2StepUpgradeable, IState {
      */
     function stateExists(uint256 id, uint256 state) public view returns (bool) {
         return _stateData.stateExists(id, state);
+    }
+
+    function getStateReplacedAt(
+        uint256 id,
+        uint256 state
+    ) external view returns (uint256 replacedAt) {
+        // TODO add check for idType support ?
+        if (_stateData.stateExists(id, state)) {
+            replacedAt = _stateData.getStateInfoByIdAndState(id, state).replacedAtTimestamp;
+        } else {
+            if (GenesisUtils.isGenesisState(id, state)) {
+                replacedAt = 0;
+            } else {
+                revert("State entry not found");
+            }
+        }
+    }
+
+    function getGistRootReplacedAt(
+        bytes2 idType,
+        uint256 root
+    ) external view returns (uint256 replacedAt) {
+        // TODO add check for idType support
+        if (_gistData.rootExists(root)) {
+            replacedAt = _gistData.getRootInfo(root).replacedAtTimestamp;
+        } else {
+            revert("Gist root entry not found");
+        }
     }
 
     /**

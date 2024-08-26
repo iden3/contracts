@@ -1,13 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.20;
 
-import "./ZKPVerifierBase.sol";
+import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
+import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
+import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGetters.sol";
+import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 
 struct ZKPResponse {
     uint64 requestId;
     bytes zkProof;
     bytes crossChainProof;
     bytes data;
+}
+
+struct Metadata {
+    string key;
+    bytes value;
 }
 
 contract ZKPVerifierBaseV2 is ZKPVerifierBase {
@@ -18,7 +26,7 @@ contract ZKPVerifierBaseV2 is ZKPVerifierBase {
     /// @custom:storage-location erc7201:iden3.storage.ZKPVerifierBaseV2
     struct ZKPVerifierV2Storage {
         mapping(address user => mapping(uint64 requestID => ProofV2)) _proofs;
-        IStateForProofValidation _stateCrossChain;
+        IStateWithTimestampGetters _stateCrossChain;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifierBaseV2")) - 1)) & ~bytes32(uint256(0xff));
@@ -45,8 +53,8 @@ contract ZKPVerifierBaseV2 is ZKPVerifierBase {
             ICircuitValidator.KeyToInputValue[] memory pairs = request.validator.verifyV2(
                 response.zkProof,
                 request.data,
-                response.crossChainProof,
-                sender
+                sender,
+                $._stateCrossChain
             );
 
             _writeProofResults(sender, response.requestId, pairs);

@@ -5,6 +5,7 @@ import {CredentialAtomicQueryValidatorBase} from "./CredentialAtomicQueryValidat
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IState} from "../interfaces/IState.sol";
+import "../interfaces/IStateWithTimestampGetters.sol";
 
 abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryValidatorBase {
     /**
@@ -52,7 +53,7 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         uint256[2] memory c,
         bytes calldata data,
         address sender,
-        bytes memory crossChainProof
+        IStateWithTimestampGetters state
     ) internal view override returns (ICircuitValidator.KeyToInputValue[] memory) {
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
 
@@ -87,14 +88,10 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         _checkChallenge(signals.challenge, sender);
 
         // GIST root and state checks
-        (
-            ICircuitValidator.GlobalStateMessage[] memory gsm,
-            ICircuitValidator.IdentityStateMessage[] memory ism
-        ) = _getOracleProofValidator().processProof(crossChainProof);
 
-        _checkGistRoot(signals.userID, signals.gistRoot, gsm);
-        _checkClaimIssuanceState(signals.issuerID, signals.issuerState, ism);
-        _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState, ism);
+        _checkGistRoot(signals.userID, signals.gistRoot, state);
+        _checkClaimIssuanceState(signals.issuerID, signals.issuerState, state);
+        _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState, state);
 
         // get special input values
         // selective disclosure is not supported for v2 onchain circuits

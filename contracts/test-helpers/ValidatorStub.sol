@@ -3,6 +3,7 @@ pragma solidity 0.8.20;
 
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGetters.sol";
 
 /**
  * @dev ValidatorStub validator
@@ -39,8 +40,8 @@ contract ValidatorStub is ICircuitValidator, ERC165 {
     function verifyV2(
         bytes calldata zkProof,
         bytes calldata data,
-        bytes calldata crossChainProof,
-        address sender
+        address sender,
+        IStateWithTimestampGetters state
     ) external view override returns (ICircuitValidator.KeyToInputValue[] memory) {
         ICircuitValidator.KeyToInputValue[] memory keypair;
         return keypair;

@@ -6,6 +6,7 @@ import {IVerifier} from "../interfaces/IVerifier.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IState} from "../interfaces/IState.sol";
+import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGetters.sol";
 
 /**
  * @dev CredentialAtomicQueryV3 validator
@@ -74,8 +75,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _initDefaultStateVariables(
             _stateContractAddr,
             _verifierContractAddr,
-            CIRCUIT_ID,
-            _oracleProofValidatorAddr
+            CIRCUIT_ID
         );
         __Ownable_init(_msgSender());
     }
@@ -112,7 +112,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         uint256[2] memory c,
         bytes calldata data,
         address sender,
-        bytes memory crossChainProof
+        IStateWithTimestampGetters state
     ) internal view override returns (ICircuitValidator.KeyToInputValue[] memory) {
         CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
             data,
@@ -144,18 +144,13 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _checkNullify(signals.nullifier, credAtomicQuery.nullifierSessionID);
 
         // GIST root and state checks
-        (
-            ICircuitValidator.GlobalStateMessage[] memory gsm,
-            ICircuitValidator.IdentityStateMessage[] memory ism
-        ) = _getOracleProofValidator().processProof(crossChainProof);
-
         if (signals.isBJJAuthEnabled == 1) {
-            _checkGistRoot(signals.userID, signals.gistRoot, gsm);
+            _checkGistRoot(signals.userID, signals.gistRoot, state);
         } else {
             _checkAuth(signals.userID, sender);
         }
-        _checkClaimIssuanceState(signals.issuerID, signals.issuerState, ism);
-        _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState, ism);
+        _checkClaimIssuanceState(signals.issuerID, signals.issuerState, state);
+        _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState, state);
 
         // Checking challenge to prevent replay attacks from other addresses
         _checkChallenge(signals.challenge, sender);
