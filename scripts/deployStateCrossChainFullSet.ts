@@ -23,7 +23,6 @@ async function main() {
   const network = hre.network.name;
   // ##################### StateCrossChain deploy #####################
 
-  const oracleProofValidator = await deployHelper.deployOracleProofValidator();
   const { state } = await deployHelper.deployState();
 
   // ##################### Validator deploy #####################
@@ -32,26 +31,26 @@ async function main() {
     "VerifierMTPWrapper",
     "CredentialAtomicQueryMTPV2Validator",
     await state.getAddress(),
-    await oracleProofValidator.getAddress(),
   );
 
   const { validator: validatorSig } = await deployHelper.deployValidatorContracts(
     "VerifierSigWrapper",
     "CredentialAtomicQuerySigV2Validator",
     await state.getAddress(),
-    await oracleProofValidator.getAddress(),
   );
 
   const { validator: validatorV3 } = await deployHelper.deployValidatorContracts(
     "VerifierV3Wrapper",
     "CredentialAtomicQueryV3Validator",
     await state.getAddress(),
-    await oracleProofValidator.getAddress(),
   );
 
   // // ##################### Verifier deploy #####################
 
-  const verifier = await deployHelper.deployUniversalVerifier(undefined);
+  const opv = await deployHelper.deployOracleProofValidator();
+  const stateCrossChain = await deployHelper.deployStateCrossChain(await opv.getAddress(), await state.getAddress());
+
+  const verifier = await deployHelper.deployUniversalVerifier(undefined, await stateCrossChain.getAddress());
 
   const addToWhiteList1 = await verifier.addValidatorToWhitelist(await validatorSig.getAddress());
   await addToWhiteList1.wait();

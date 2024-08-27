@@ -7,6 +7,7 @@ import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IState} from "../interfaces/IState.sol";
 import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGetters.sol";
+import {console} from "hardhat/console.sol";
 
 /**
  * @dev CredentialAtomicQueryV3 validator
@@ -139,6 +140,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _checkNullify(signals.nullifier, credAtomicQuery.nullifierSessionID);
 
         // GIST root and state checks
+        console.log("claim issuance state: %s", signals.issuerState);
         _checkClaimIssuanceState(signals.issuerID, signals.issuerState, state);
         _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState, state);
         if (signals.isBJJAuthEnabled == 1) {

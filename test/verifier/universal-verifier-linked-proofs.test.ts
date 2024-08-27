@@ -16,9 +16,12 @@ describe("Universal Verifier Linked proofs", function () {
     signerAddress = await signer.getAddress();
 
     deployHelper = await DeployHelper.initialize(null, true);
-    verifier = await deployHelper.deployUniversalVerifier(signer);
+    ({ state } = await deployHelper.deployState(["0x0112"]));
+    const opv = await deployHelper.deployOracleProofValidator();
+    const stateCrossChain = await deployHelper.deployStateCrossChain(await opv.getAddress(), await state.getAddress());
+
+    verifier = await deployHelper.deployUniversalVerifier(signer, await stateCrossChain.getAddress());
     const { state: stateContract } = await deployHelper.deployState(["0x0112"]);
-    state = stateContract;
 
     const contracts = await deployHelper.deployValidatorContracts(
       "VerifierV3Wrapper",

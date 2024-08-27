@@ -40,6 +40,16 @@ contract ZKPVerifierBaseV2 is ZKPVerifierBase {
         }
     }
 
+    function __ZKPVerifierBaseV2_init(IStateCrossChain stateCrossChain) internal onlyInitializing {
+        __ZKPVerifierBaseV2_init_unchained(stateCrossChain);
+    }
+
+    function __ZKPVerifierBaseV2_init_unchained(
+        IStateCrossChain stateCrossChain
+    ) internal onlyInitializing {
+        _getZKPVerifierV2Storage()._stateCrossChain = stateCrossChain;
+    }
+
     function submitZKPResponseV2(
         ZKPResponse[] memory responses,
         bytes memory crossChainProof

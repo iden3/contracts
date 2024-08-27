@@ -418,12 +418,12 @@ export class DeployHelper {
     return verifier;
   }
 
-  async deployUniversalVerifier(owner: SignerWithAddress | undefined): Promise<Contract> {
+  async deployUniversalVerifier(owner: SignerWithAddress | undefined, stateCrossChainAddr: string): Promise<Contract> {
     if (!owner) {
       owner = this.signers[0];
     }
     const Verifier = await ethers.getContractFactory("UniversalVerifier", owner);
-    const verifier = await upgrades.deployProxy(Verifier);
+    const verifier = await upgrades.deployProxy(Verifier, [stateCrossChainAddr]);
     await verifier.waitForDeployment();
     console.log("UniversalVerifier deployed to:", await verifier.getAddress());
     return verifier;

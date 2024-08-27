@@ -55,10 +55,14 @@ describe("Universal Verifier V3 validator", function () {
     [signer, signer2] = await ethers.getSigners();
 
     deployHelper = await DeployHelper.initialize(null, true);
-    verifier = await deployHelper.deployUniversalVerifier(signer);
 
-    const { state: stateContract } = await deployHelper.deployState(["0x0112"]);
-    state = stateContract;
+    deployHelper = await DeployHelper.initialize(null, true);
+    ({ state } = await deployHelper.deployState(["0x0112"]));
+    const opv = await deployHelper.deployOracleProofValidator();
+    const stateCrossChain = await deployHelper.deployStateCrossChain(await opv.getAddress(), await state.getAddress());
+
+    verifier = await deployHelper.deployUniversalVerifier(signer, await stateCrossChain.getAddress());
+
     const contracts = await deployHelper.deployValidatorContracts(
       "VerifierV3Wrapper",
       "CredentialAtomicQueryV3Validator",

@@ -11,6 +11,7 @@ import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 import {ZKPVerifierBaseV2} from "./ZKPVerifierBaseV2.sol";
 import {ZKPResponse} from "./ZKPVerifierBaseV2.sol";
+import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 
 /// @title Universal Verifier Contract
 /// @notice A contract to manage ZKP (Zero-Knowledge Proof) requests and proofs.
@@ -49,8 +50,9 @@ contract UniversalVerifier is
     }
 
     /// @dev Initializes the contract
-    function initialize() public initializer {
+    function initialize(IStateCrossChain stateCrossChain) public initializer {
         __Ownable_init(_msgSender());
+        __ZKPVerifierBaseV2_init(stateCrossChain);
     }
 
     /// @dev Version of contract getter

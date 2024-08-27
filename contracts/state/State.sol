@@ -9,6 +9,7 @@ import {PoseidonUnit1L} from "../lib/Poseidon.sol";
 import {StateLib} from "../lib/StateLib.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGetters.sol";
+import {console} from "hardhat/console.sol";
 
 /// @title Set and get states for each identity
 contract State is Ownable2StepUpgradeable, IState, IStateWithTimestampGetters {
@@ -513,6 +514,7 @@ contract State is Ownable2StepUpgradeable, IState, IStateWithTimestampGetters {
         uint256 id
     ) public view override(IState, IStateWithTimestampGetters) returns (bytes2) {
         bytes2 idType = GenesisUtils.getIdType(id);
+        console.log("idType: %s, %s", uint256(uint8(idType[0])), uint256(uint8(idType[1])));
         require(_stateData.isIdTypeSupported[idType], "id type is not supported");
         return idType;
     }
