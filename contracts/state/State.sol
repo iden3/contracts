@@ -9,7 +9,6 @@ import {PoseidonUnit1L} from "../lib/Poseidon.sol";
 import {StateLib} from "../lib/StateLib.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGetters.sol";
-import "hardhat/console.sol";
 
 /// @title Set and get states for each identity
 contract State is Ownable2StepUpgradeable, IState, IStateWithTimestampGetters {
@@ -137,8 +136,6 @@ contract State is Ownable2StepUpgradeable, IState, IStateWithTimestampGetters {
             "Zero-knowledge proof of state transition is not valid"
         );
 
-        console.log("oldState: %s", oldState);
-        console.log("newState: %s", newState);
         _transitState(id, oldState, newState, isOldStateGenesis);
     }
 
@@ -389,17 +386,12 @@ contract State is Ownable2StepUpgradeable, IState, IStateWithTimestampGetters {
     ) external view returns (uint256 replacedAt) {
         // TODO add check for idType support ?
 
-        console.log("id: %s", id);
-        console.log("idType: %s", uint16(getIdTypeIfSupported(id)));
-        console.log("state: %s", state);
-
         if (_stateData.stateExists(id, state)) {
             replacedAt = _stateData.getStateInfoByIdAndState(id, state).replacedAtTimestamp;
         } else {
             if (GenesisUtils.isGenesisState(id, state)) {
                 replacedAt = 0;
             } else {
-                console.log("Not found for state: %s", state);
                 revert("State entry not found");
             }
         }
@@ -409,8 +401,6 @@ contract State is Ownable2StepUpgradeable, IState, IStateWithTimestampGetters {
         bytes2 idType,
         uint256 root
     ) external view returns (uint256 replacedAt) {
-        console.log("idType: %s", uint16(idType));
-        console.log("root: %s", root);
         require(isIdTypeSupported(idType), "id type is not supported");
         if (_gistData.rootExists(root)) {
             replacedAt = _gistData.getRootInfo(root).replacedAtTimestamp;
