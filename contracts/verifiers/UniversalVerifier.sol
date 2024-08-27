@@ -28,11 +28,11 @@ contract UniversalVerifier is
     string public constant VERSION = "1.0.2";
 
     /// @dev Event emitted upon submitting a ZKP request
-    event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);
+    event ZKPResponseSubmitted(uint256 indexed requestId, address indexed caller);
 
     /// @dev Event emitted upon adding a ZKP request
     event ZKPRequestSet(
-        uint64 indexed requestId,
+        uint256 indexed requestId,
         address indexed requestOwner,
         string metadata,
         address validator,
@@ -40,7 +40,7 @@ contract UniversalVerifier is
     );
 
     /// @dev Modifier to check if the caller is the contract Owner or ZKP Request Owner
-    modifier onlyOwnerOrRequestOwner(uint64 requestId) {
+    modifier onlyOwnerOrRequestOwner(uint256 requestId) {
         address sender = _msgSender();
         require(
             sender == getRequestOwner(requestId) || sender == owner(),
@@ -64,7 +64,7 @@ contract UniversalVerifier is
     /// @param requestId The ID of the ZKP request
     /// @param request The ZKP request data
     function setZKPRequest(
-        uint64 requestId,
+        uint256 requestId,
         IZKPVerifier.ZKPRequest calldata request
     ) public override(RequestOwnership, ValidatorWhitelist, ZKPVerifierBase) {
         super.setZKPRequest(requestId, request);
@@ -85,7 +85,7 @@ contract UniversalVerifier is
     /// @param b The second component of the proof
     /// @param c The third component of the proof
     function submitZKPResponse(
-        uint64 requestId,
+        uint256 requestId,
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
@@ -113,7 +113,7 @@ contract UniversalVerifier is
     /// @param c The third component of the proof
     /// @param sender The sender on behalf of which the proof is done
     function verifyZKPResponse(
-        uint64 requestId,
+        uint256 requestId,
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
@@ -131,7 +131,7 @@ contract UniversalVerifier is
     /// @param requestId The ID of the ZKP request
     /// @param requestOwner ZKP Request Owner address
     function setRequestOwner(
-        uint64 requestId,
+        uint256 requestId,
         address requestOwner
     ) public onlyOwnerOrRequestOwner(requestId) {
         _setRequestOwner(requestId, requestOwner);
@@ -139,13 +139,13 @@ contract UniversalVerifier is
 
     /// @dev Disables ZKP Request
     /// @param requestId The ID of the ZKP request
-    function disableZKPRequest(uint64 requestId) public onlyOwnerOrRequestOwner(requestId) {
+    function disableZKPRequest(uint256 requestId) public onlyOwnerOrRequestOwner(requestId) {
         _disableZKPRequest(requestId);
     }
 
     /// @dev Enables ZKP Request
     /// @param requestId The ID of the ZKP request
-    function enableZKPRequest(uint64 requestId) public onlyOwnerOrRequestOwner(requestId) {
+    function enableZKPRequest(uint256 requestId) public onlyOwnerOrRequestOwner(requestId) {
         _enableZKPRequest(requestId);
     }
 

@@ -19,10 +19,13 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
 
     /// @custom:storage-location erc7201:iden3.storage.ZKPVerifier
     struct ZKPVerifierStorage {
-        mapping(address user => mapping(uint64 requestID => Proof)) _proofs;
-        mapping(uint64 requestID => IZKPVerifier.ZKPRequest) _requests;
-        uint64[] _requestIds;
+        mapping(address user => mapping(uint256 requestID => Proof)) _proofs;
+        mapping(uint256 requestID => IZKPVerifier.ZKPRequest) _requests;
+        uint256[] _requestIds;
     }
+
+    // Snark scalar field size
+    uint256 constant snark_scalar_field_size    = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifier")) - 1)) & ~bytes32(uint256(0xff));
     bytes32 internal constant ZKPVerifierStorageLocation =
@@ -46,14 +49,14 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @dev Linked proof custom error
     error LinkedProofError(
         string message,
-        uint64 requestId,
+        uint256 requestId,
         uint256 linkID,
-        uint64 requestIdToCompare,
+        uint256 requestIdToCompare,
         uint256 linkIdToCompare
     );
 
     /// @dev Modifier to check if the validator is set for the request
-    modifier checkRequestExistence(uint64 requestId, bool existence) {
+    modifier checkRequestExistence(uint256 requestId, bool existence) {
         if (existence) {
             require(requestIdExists(requestId), "request id doesn't exist");
         } else {
@@ -66,9 +69,11 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @param requestId The ID of the ZKP request
     /// @param request The ZKP request data
     function setZKPRequest(
-        uint64 requestId,
+        uint256 requestId,
         IZKPVerifier.ZKPRequest calldata request
     ) public virtual checkRequestExistence(requestId, false) {
+        // Check requestId fits in snark scalar field size
+        require(requestId < snark_scalar_field_size, "Invalid requestId size");
         ZKPVerifierStorage storage s = _getZKPVerifierStorage();
         s._requests[requestId] = request;
         s._requestIds.push(requestId);
@@ -81,7 +86,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @param b The second component of the proof
     /// @param c The third component of the proof
     function submitZKPResponse(
-        uint64 requestId,
+        uint256 requestId,
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
@@ -110,7 +115,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @param c The third component of the proof
     /// @param sender The sender on behalf of which the proof is done
     function verifyZKPResponse(
-        uint64 requestId,
+        uint256 requestId,
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
@@ -130,7 +135,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @param sender the user's address
     /// @param requestIds the list of request IDs
     /// Throws if the proofs are not linked
-    function verifyLinkedProofs(address sender, uint64[] calldata requestIds) public view virtual {
+    function verifyLinkedProofs(address sender, uint256[] calldata requestIds) public view virtual {
         require(requestIds.length > 1, "Linked proof verification needs more than 1 request");
 
         uint256 expectedLinkID = getProofStorageField(sender, requestIds[0], LINKED_PROOF_KEY);
@@ -158,7 +163,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @param requestId The ID of the ZKP request
     /// @return zkpRequest The ZKP request data
     function getZKPRequest(
-        uint64 requestId
+        uint256 requestId
     )
         public
         view
@@ -177,7 +182,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @dev Checks if a ZKP request ID exists
     /// @param requestId The ID of the ZKP request
     /// @return Whether the request ID exists
-    function requestIdExists(uint64 requestId) public view override returns (bool) {
+    function requestIdExists(uint256 requestId) public view override returns (bool) {
         return
             _getZKPVerifierStorage()._requests[requestId].validator !=
             ICircuitValidator(address(0));
@@ -214,7 +219,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @return true if proof submitted
     function isProofVerified(
         address sender,
-        uint64 requestId
+        uint256 requestId
     ) public view checkRequestExistence(requestId, true) returns (bool) {
         return _getZKPVerifierStorage()._proofs[sender][requestId].isVerified;
     }
@@ -225,7 +230,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @return The proof status structure
     function getProofStatus(
         address sender,
-        uint64 requestId
+        uint256 requestId
     ) public view checkRequestExistence(requestId, true) returns (IZKPVerifier.ProofStatus memory) {
         Proof storage proof = _getZKPVerifierStorage()._proofs[sender][requestId];
 
@@ -244,7 +249,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @return The proof
     function getProofStorageField(
         address user,
-        uint64 requestId,
+        uint256 requestId,
         string memory key
     ) public view checkRequestExistence(requestId, true) returns (uint256) {
         return _getZKPVerifierStorage()._proofs[user][requestId].storageFields[key];
@@ -252,7 +257,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
 
     function _writeProofResults(
         address sender,
-        uint64 requestId,
+        uint256 requestId,
         ICircuitValidator.KeyToInputValue[] memory pairs
     ) internal {
         Proof storage proof = _getZKPVerifierStorage()._proofs[sender][requestId];

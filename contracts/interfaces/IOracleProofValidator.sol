@@ -2,7 +2,6 @@
 pragma solidity ^0.8.20;
 
 import {IState} from "./IState.sol";
-import {ICircuitValidator} from "./ICircuitValidator.sol";
 import {IStateCrossChain} from "./IStateCrossChain.sol";
 
 interface IOracleProofValidator {
