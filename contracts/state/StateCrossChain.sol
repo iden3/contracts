@@ -27,10 +27,7 @@ contract StateCrossChain is IStateCrossChain {
         }
     }
 
-    function initializeStateCrossChain(
-        IOracleProofValidator validator,
-        IStateWithTimestampGetters state
-    ) internal {
+    constructor(IOracleProofValidator validator, IStateWithTimestampGetters state) {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
         $._oracleProofValidator = validator;
         $._state = state;

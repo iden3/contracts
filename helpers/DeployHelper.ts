@@ -184,7 +184,7 @@ export class DeployHelper {
       },
     });
     stateContract = await upgrades.upgradeProxy(stateAddress, StateFactory, {
-      unsafeAllowLinkedLibraries: true
+      unsafeAllowLinkedLibraries: true,
     });
     await stateContract.waitForDeployment();
     this.log(
@@ -271,6 +271,19 @@ export class DeployHelper {
       this.log(`${contractName} deployed to:  ${await stateLibWrapper.getAddress()}`);
 
     return stateLibWrapper;
+  }
+
+  async deployStateCrossChain(oracleProofValidator: string, state: string): Promise<Contract> {
+    const contractName = "StateCrossChain";
+
+    const stateCrossChain = await ethers.deployContract(contractName, [
+      oracleProofValidator,
+      state,
+    ]);
+    this.enableLogging &&
+      this.log(`${contractName} deployed to:  ${await stateCrossChain.getAddress()}`);
+
+    return stateCrossChain;
   }
 
   async deployBinarySearchTestWrapper(): Promise<Contract> {

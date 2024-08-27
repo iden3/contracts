@@ -509,7 +509,9 @@ contract State is Ownable2StepUpgradeable, IState, IStateWithTimestampGetters {
      * @param id Identity
      * trows if id type is not supported
      */
-    function getIdTypeIfSupported(uint256 id) public override (IState, IStateWithTimestampGetters) view returns (bytes2) {
+    function getIdTypeIfSupported(
+        uint256 id
+    ) public view override(IState, IStateWithTimestampGetters) returns (bytes2) {
         bytes2 idType = GenesisUtils.getIdType(id);
         require(_stateData.isIdTypeSupported[idType], "id type is not supported");
         return idType;

@@ -10,9 +10,10 @@ import {
   packIdentityStateUpdate,
   packGlobalStateUpdate,
 } from "../utils/packData";
+import { DeployHelper } from "../../helpers/DeployHelper";
 
 describe("Oracle Proof Validator", function () {
-  let contract: Contract;
+  let stateCrossChain, opv: Contract;
   let signer: Signer;
   let identityStateMessage: IdentityStateMessage;
   let globalStateMessage: GlobalStateMessage;
@@ -20,6 +21,8 @@ describe("Oracle Proof Validator", function () {
 
   beforeEach(async function () {
     [signer] = await ethers.getSigners();
+
+    const deployHelper = await DeployHelper.initialize(null, true);
 
     const domainName = "StateInfo";
     const signatureVersion = "1";
@@ -71,25 +74,33 @@ describe("Oracle Proof Validator", function () {
     console.log("signatureISM: ", signatureISM);
     console.log("signatureGSM: ", signatureGSM);
 
-    contract = await ethers.deployContract("OracleProofValidator", [domainName, signatureVersion]);
-    await contract.waitForDeployment();
+    opv = await deployHelper.deployOracleProofValidator(domainName, signatureVersion);
+    await opv.waitForDeployment();
+
+    const { state } = await deployHelper.deployState();
+
+    stateCrossChain = await deployHelper.deployStateCrossChain(
+      await opv.getAddress(),
+      await state.getAddress(),
+    );
+    await stateCrossChain.waitForDeployment();
   });
 
   it("Should verify the message", async function () {
     // Assume _validate function and any other dependencies are properly implemented in the contract
-    let result = await contract.verifyIdentityState(identityStateMessage, signatureISM);
+    let result = await opv.verifyIdentityState(identityStateMessage, signatureISM);
     expect(result).to.be.true;
-    result = await contract.verifyGlobalState(globalStateMessage, signatureGSM);
+    result = await opv.verifyGlobalState(globalStateMessage, signatureGSM);
     expect(result).to.be.true;
   });
 
   it("Should fail to verify an invalid message", async function () {
     globalStateMessage.root++; // modify to make the message invalid
-    let result = await contract.verifyGlobalState(globalStateMessage, signatureGSM);
+    let result = await opv.verifyGlobalState(globalStateMessage, signatureGSM);
     expect(result).to.be.false;
 
     identityStateMessage.state++; // modify to make the message invalid
-    result = await contract.verifyIdentityState(identityStateMessage, signatureISM);
+    result = await opv.verifyIdentityState(identityStateMessage, signatureISM);
     expect(result).to.be.false;
   });
 
@@ -119,7 +130,7 @@ describe("Oracle Proof Validator", function () {
       },
     ]);
 
-    const res = await contract.processProof(crossChainProof);
+    const res = await stateCrossChain.processProof(crossChainProof);
     expect(res[0].length).to.be.equal(1);
     expect(res[1].length).to.be.equal(2);
 

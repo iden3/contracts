@@ -116,16 +116,17 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         );
     }
 
-    function _getSpecialInputPairs(PubSignals memory signals)
-        internal
-        pure
-        returns (ICircuitValidator.KeyToInputValue[] memory)
-    {
+    function _getSpecialInputPairs(
+        PubSignals memory signals
+    ) internal pure returns (ICircuitValidator.KeyToInputValue[] memory) {
         ICircuitValidator.KeyToInputValue[] memory pairs = new ICircuitValidator.KeyToInputValue[](
             2
         );
         pairs[0] = ICircuitValidator.KeyToInputValue({key: "userID", inputValue: signals.userID});
-        pairs[1] = ICircuitValidator.KeyToInputValue({key: "timestamp", inputValue: signals.timestamp});
+        pairs[1] = ICircuitValidator.KeyToInputValue({
+            key: "timestamp",
+            inputValue: signals.timestamp
+        });
         return pairs;
     }
 }
