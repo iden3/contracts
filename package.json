@@ -46,7 +46,7 @@
     "node:local": "npx hardhat node",
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
-    "test:oracle:proof:validator": "npx hardhat test test/state/oracleProofValidator.test.ts",
+    "test:oracle:proof:validator": "npx hardhat test test/validators/oracleProofValidator.test.ts",
     "test:lite:state": "npx hardhat test test/state/liteState.test.ts",
     "test:gas": "COINMARKETCAP_KEY=<put your key here> REPORT_GAS=true npx hardhat test",
     "test:coverage": "npx hardhat coverage",

@@ -7,7 +7,7 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 contract RequestDisableable is ZKPVerifierBase {
     /// @custom:storage-location erc7201:iden3.storage.RequestDisableable
     struct RequestDisableStorage {
-        mapping(uint64 requestID => bool isDisabled) _requestDisabling;
+        mapping(uint256 requestID => bool isDisabled) _requestDisabling;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.RequestDisableable")) - 1)) & ~bytes32(uint256(0xff));
@@ -21,7 +21,7 @@ contract RequestDisableable is ZKPVerifierBase {
     }
 
     /// @dev Modifier to check if the ZKP request is enabled
-    modifier onlyEnabledRequest(uint64 requestId) {
+    modifier onlyEnabledRequest(uint256 requestId) {
         require(isZKPRequestEnabled(requestId), "Request is disabled");
         _;
     }
@@ -33,7 +33,7 @@ contract RequestDisableable is ZKPVerifierBase {
     /// @param b The second component of the proof
     /// @param c The third component of the proof
     function submitZKPResponse(
-        uint64 requestId,
+        uint256 requestId,
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
@@ -50,7 +50,7 @@ contract RequestDisableable is ZKPVerifierBase {
     /// @param c The third component of the proof
     /// @param sender The sender on behalf of which the proof is done
     function verifyZKPResponse(
-        uint64 requestId,
+        uint256 requestId,
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
@@ -70,16 +70,16 @@ contract RequestDisableable is ZKPVerifierBase {
     /// @param requestId The ID of the ZKP request
     /// @return True if ZKP Request enabled, otherwise returns false
     function isZKPRequestEnabled(
-        uint64 requestId
+        uint256 requestId
     ) public view virtual checkRequestExistence(requestId, true) returns (bool) {
         return !_getRequestDisableStorage()._requestDisabling[requestId];
     }
 
-    function _disableZKPRequest(uint64 requestId) internal checkRequestExistence(requestId, true) {
+    function _disableZKPRequest(uint256 requestId) internal checkRequestExistence(requestId, true) {
         _getRequestDisableStorage()._requestDisabling[requestId] = true;
     }
 
-    function _enableZKPRequest(uint64 requestId) internal checkRequestExistence(requestId, true) {
+    function _enableZKPRequest(uint256 requestId) internal checkRequestExistence(requestId, true) {
         _getRequestDisableStorage()._requestDisabling[requestId] = false;
     }
 }

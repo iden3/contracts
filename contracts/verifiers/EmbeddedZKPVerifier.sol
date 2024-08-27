@@ -25,7 +25,7 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
     /// @param requestId The ID of the ZKP request
     /// @param request The ZKP request data
     function setZKPRequest(
-        uint64 requestId,
+        uint256 requestId,
         IZKPVerifier.ZKPRequest calldata request
     ) public virtual override onlyOwner {
         super.setZKPRequest(requestId, request);
@@ -38,7 +38,7 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
     /// @param b The second component of the proof
     /// @param c The third component of the proof
     function submitZKPResponse(
-        uint64 requestId,
+        uint256 requestId,
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
@@ -54,7 +54,7 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
      * @dev Hook that is called before any proof response submit
      */
     function _beforeProofSubmit(
-        uint64 requestId,
+        uint256 requestId,
         uint256[] memory inputs,
         ICircuitValidator validator
     ) internal virtual {}
@@ -63,7 +63,7 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
      * @dev Hook that is called after any proof response submit
      */
     function _afterProofSubmit(
-        uint64 requestId,
+        uint256 requestId,
         uint256[] memory inputs,
         ICircuitValidator validator
     ) internal virtual {}
