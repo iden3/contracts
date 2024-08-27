@@ -93,8 +93,11 @@ contract UniversalVerifier is
         emit ZKPResponseSubmitted(requestId, _msgSender());
     }
 
-    function submitZKPResponseV2(ZKPResponse[] memory responses) public override {
-        super.submitZKPResponseV2(responses);
+    function submitZKPResponseV2(
+        ZKPResponse[] memory responses,
+        bytes memory crossChainProof
+    ) public override {
+        super.submitZKPResponseV2(responses, crossChainProof);
         for (uint256 i = 0; i < responses.length; i++) {
             emit ZKPResponseSubmitted(responses[i].requestId, _msgSender());
         }

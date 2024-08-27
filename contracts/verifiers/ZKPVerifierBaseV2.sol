@@ -10,13 +10,6 @@ import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 struct ZKPResponse {
     uint64 requestId;
     bytes zkProof;
-    bytes crossChainProof;
-    bytes data;
-}
-
-struct ZKPResponseV3 {
-    uint64 requestId;
-    bytes zkProof;
     bytes data;
 }
 
@@ -47,8 +40,13 @@ contract ZKPVerifierBaseV2 is ZKPVerifierBase {
         }
     }
 
-    function submitZKPResponseV2(ZKPResponse[] memory responses) public virtual {
+    function submitZKPResponseV2(
+        ZKPResponse[] memory responses,
+        bytes memory crossChainProof
+    ) public virtual {
         ZKPVerifierV2Storage storage $ = _getZKPVerifierV2Storage();
+
+        $._stateCrossChain.processProof(crossChainProof);
 
         for (uint256 i = 0; i < responses.length; i++) {
             ZKPResponse memory response = responses[i];
@@ -79,30 +77,4 @@ contract ZKPVerifierBaseV2 is ZKPVerifierBase {
             }
         }
     }
-
-//    function submitZKPResponseV3(
-//        ZKPResponseV3[] memory responses,
-//        bytes memory crossChainProof
-//    ) public virtual {
-//        ZKPVerifierV2Storage storage $ = _getZKPVerifierV2Storage();
-//
-//        $._stateCrossChain.processProof(crossChainProof);
-//
-//        for (uint256 i = 0; i < responses.length; i++) {
-//            ZKPResponseV3 memory response = responses[i];
-//
-//            address sender = _msgSender();
-//
-//            // TODO some internal method and storage location to save gas?
-//            IZKPVerifier.ZKPRequest memory request = getZKPRequest(response.requestId);
-//            ICircuitValidator.KeyToInputValue[] memory pairs = request.validator.verifyV2(
-//                response.zkProof,
-//                request.data,
-//                sender,
-//                $._stateCrossChain
-//            );
-//
-//            _writeProofResults(sender, response.requestId, pairs);
-//        }
-//    }
 }
