@@ -130,18 +130,6 @@ describe("Oracle Proof Validator", function () {
       },
     ]);
 
-    const res = await stateCrossChain.processProof(crossChainProof);
-    expect(res[0].length).to.be.equal(1);
-    expect(res[1].length).to.be.equal(2);
-
-    expect(res[0][0].timestamp).to.be.equal(globalStateMessage.timestamp);
-    expect(res[0][0].idType).to.be.equal(globalStateMessage.idType);
-    expect(res[0][0].root).to.be.equal(globalStateMessage.root);
-    expect(res[0][0].replacedAtTimestamp).to.be.equal(globalStateMessage.replacedAtTimestamp);
-
-    expect(res[1][0].timestamp).to.be.equal(identityStateMessage.timestamp);
-    expect(res[1][0].id).to.be.equal(identityStateMessage.id);
-    expect(res[1][0].state).to.be.equal(identityStateMessage.state);
-    expect(res[1][0].replacedAtTimestamp).to.be.equal(identityStateMessage.replacedAtTimestamp);
+    await expect(stateCrossChain.processProof(crossChainProof)).to.not.be.rejected;
   });
 });

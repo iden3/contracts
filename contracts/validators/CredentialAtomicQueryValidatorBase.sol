@@ -183,7 +183,8 @@ abstract contract CredentialAtomicQueryValidatorBase is
 
         CredentialAtomicQueryValidatorBaseStorage
             storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
-        uint256 replacedAt = _stateWGetters.getStateReplacedAt(_id, _gistRoot);
+        bytes2 idType = GenesisUtils.getIdType(_id);
+        uint256 replacedAt = _stateWGetters.getGistRootReplacedAt(idType, _gistRoot);
         if (replacedAt != 0 && block.timestamp - replacedAt > $.gistRootExpirationTimeout) {
             revert("Gist root is expired");
         }
