@@ -48,9 +48,15 @@ async function main() {
   // // ##################### Verifier deploy #####################
 
   const opv = await deployHelper.deployOracleProofValidator();
-  const stateCrossChain = await deployHelper.deployStateCrossChain(await opv.getAddress(), await state.getAddress());
+  const stateCrossChain = await deployHelper.deployStateCrossChain(
+    await opv.getAddress(),
+    await state.getAddress(),
+  );
 
-  const verifier = await deployHelper.deployUniversalVerifier(undefined, await stateCrossChain.getAddress());
+  const verifier = await deployHelper.deployUniversalVerifier(
+    undefined,
+    await stateCrossChain.getAddress(),
+  );
 
   const addToWhiteList1 = await verifier.addValidatorToWhitelist(await validatorSig.getAddress());
   await addToWhiteList1.wait();
@@ -168,7 +174,7 @@ async function main() {
     data: dataV3EmailVerified,
   });
 
-  console.log(JSON.stringify(invokeRequestMetadataEmailVerified, null, "\t"))
+  console.log(JSON.stringify(invokeRequestMetadataEmailVerified, null, "\t"));
 
   console.log(`Request ID: ${requestIdEmailVerified} is set`);
 
