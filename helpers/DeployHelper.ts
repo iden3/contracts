@@ -373,7 +373,17 @@ export class DeployHelper {
     const stubInstance = await stub.deploy();
     await stubInstance.waitForDeployment();
 
-    console.log("Validator stub  deployed to:", await stubInstance.getAddress());
+    console.log("Validator stub deployed to:", await stubInstance.getAddress());
+
+    return stubInstance;
+  }
+
+  async deployOracleProofValidatorStub(): Promise<Contract> {
+    const stub = await ethers.getContractFactory("OracleProofValidatorStub");
+    const stubInstance = await stub.deploy();
+    await stubInstance.waitForDeployment();
+
+    console.log("Oracle Proof Validator stub deployed to:", await stubInstance.getAddress());
 
     return stubInstance;
   }
