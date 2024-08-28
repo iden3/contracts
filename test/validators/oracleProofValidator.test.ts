@@ -72,6 +72,7 @@ describe("Oracle Proof Validator", function () {
     );
 
     oracleProofValidator = await deployHelper.deployOracleProofValidator(
+      "OracleProofValidator",
       domainName,
       signatureVersion,
       oracleSigningAddress,

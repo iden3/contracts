@@ -312,11 +312,12 @@ export class DeployHelper {
   }
 
   async deployOracleProofValidator(
+    contractName = "OracleProofValidator",
     domainName = "StateInfo",
     signatureVersion = "1",
-    oracleSigningAddress: string,
+    oracleSigningAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   ): Promise<Contract> {
-    const oracleProofValidator = await ethers.deployContract("OracleProofValidator", [
+    const oracleProofValidator = await ethers.deployContract(contractName, [
       domainName,
       signatureVersion,
       oracleSigningAddress,
