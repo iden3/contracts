@@ -311,10 +311,15 @@ export class DeployHelper {
     return bsWrapper;
   }
 
-  async deployOracleProofValidator(domainName = "StateInfo", signatureVersion = "1") {
+  async deployOracleProofValidator(
+    domainName = "StateInfo",
+    signatureVersion = "1",
+    oracleSigningAddress: string,
+  ): Promise<Contract> {
     const oracleProofValidator = await ethers.deployContract("OracleProofValidator", [
       domainName,
       signatureVersion,
+      oracleSigningAddress,
     ]);
     await oracleProofValidator.waitForDeployment();
     console.log("OracleProofValidator deployed to:", await oracleProofValidator.getAddress());
@@ -418,7 +423,10 @@ export class DeployHelper {
     return verifier;
   }
 
-  async deployUniversalVerifier(owner: SignerWithAddress | undefined, stateCrossChainAddr: string): Promise<Contract> {
+  async deployUniversalVerifier(
+    owner: SignerWithAddress | undefined,
+    stateCrossChainAddr: string,
+  ): Promise<Contract> {
     if (!owner) {
       owner = this.signers[0];
     }

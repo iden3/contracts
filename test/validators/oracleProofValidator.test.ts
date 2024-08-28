@@ -1,26 +1,19 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { Contract, Signer } from "ethers";
-import {
-  GlobalStateUpdate,
-  StateUpdate,
-  IdentityStateMessage,
-  GlobalStateMessage,
-  packCrossChainProofs,
-  packIdentityStateUpdate,
-  packGlobalStateUpdate,
-} from "../utils/packData";
+import { IdentityStateMessage, GlobalStateMessage } from "../utils/packData";
 import { DeployHelper } from "../../helpers/DeployHelper";
 
 describe("Oracle Proof Validator", function () {
-  let stateCrossChain, opv: Contract;
-  let signer: Signer;
+  let oracleSigner, otherSigner: Signer;
   let identityStateMessage: IdentityStateMessage;
   let globalStateMessage: GlobalStateMessage;
-  let signatureISM, signatureGSM: string;
+  let signatureISM, signatureGSM, otherSignerSignatureGSM, otherSignerSignatureISM: string;
+  let oracleProofValidator: Contract;
 
-  beforeEach(async function () {
-    [signer] = await ethers.getSigners();
+  before(async function () {
+    [oracleSigner, otherSigner] = await ethers.getSigners();
+    const oracleSigningAddress = await oracleSigner.getAddress();
 
     const deployHelper = await DeployHelper.initialize(null, true);
 
@@ -68,68 +61,51 @@ describe("Oracle Proof Validator", function () {
       ],
     };
 
-    signatureISM = await signer.signTypedData(domain, ismTypes, identityStateMessage);
-    signatureGSM = await signer.signTypedData(domain, gsmTypes, globalStateMessage);
+    signatureGSM = await oracleSigner.signTypedData(domain, gsmTypes, globalStateMessage);
+    signatureISM = await oracleSigner.signTypedData(domain, ismTypes, identityStateMessage);
 
-    console.log("signatureISM: ", signatureISM);
-    console.log("signatureGSM: ", signatureGSM);
-
-    opv = await deployHelper.deployOracleProofValidator(domainName, signatureVersion);
-    await opv.waitForDeployment();
-
-    const { state } = await deployHelper.deployState();
-
-    stateCrossChain = await deployHelper.deployStateCrossChain(
-      await opv.getAddress(),
-      await state.getAddress(),
+    otherSignerSignatureGSM = await otherSigner.signTypedData(domain, gsmTypes, globalStateMessage);
+    otherSignerSignatureISM = await otherSigner.signTypedData(
+      domain,
+      ismTypes,
+      identityStateMessage,
     );
-    await stateCrossChain.waitForDeployment();
+
+    oracleProofValidator = await deployHelper.deployOracleProofValidator(
+      domainName,
+      signatureVersion,
+      oracleSigningAddress,
+    );
   });
 
   it("Should verify the message", async function () {
     // Assume _validate function and any other dependencies are properly implemented in the contract
-    let result = await opv.verifyIdentityState(identityStateMessage, signatureISM);
+    let result = await oracleProofValidator.verifyIdentityState(identityStateMessage, signatureISM);
     expect(result).to.be.true;
-    result = await opv.verifyGlobalState(globalStateMessage, signatureGSM);
+    result = await oracleProofValidator.verifyGlobalState(globalStateMessage, signatureGSM);
     expect(result).to.be.true;
   });
 
   it("Should fail to verify an invalid message", async function () {
     globalStateMessage.root++; // modify to make the message invalid
-    let result = await opv.verifyGlobalState(globalStateMessage, signatureGSM);
+    let result = await oracleProofValidator.verifyGlobalState(globalStateMessage, signatureGSM);
     expect(result).to.be.false;
 
     identityStateMessage.state++; // modify to make the message invalid
-    result = await opv.verifyIdentityState(identityStateMessage, signatureISM);
+    result = await oracleProofValidator.verifyIdentityState(identityStateMessage, signatureISM);
     expect(result).to.be.false;
   });
 
-  it("Should process the message", async function () {
-    const su: StateUpdate = {
-      idStateMsg: identityStateMessage,
-      signature: signatureISM,
-    };
-
-    const gsu: GlobalStateUpdate = {
-      globalStateMsg: globalStateMessage,
-      signature: signatureGSM,
-    };
-
-    const crossChainProof = packCrossChainProofs([
-      {
-        proofType: "globalStateProof",
-        proof: packGlobalStateUpdate(gsu),
-      },
-      {
-        proofType: "stateProof",
-        proof: packIdentityStateUpdate(su),
-      },
-      {
-        proofType: "stateProof",
-        proof: packIdentityStateUpdate(su),
-      },
-    ]);
-
-    await expect(stateCrossChain.processProof(crossChainProof)).to.not.be.rejected;
+  it("Should fail to verify a message signed by another signer", async function () {
+    let result = await oracleProofValidator.verifyIdentityState(
+      identityStateMessage,
+      otherSignerSignatureISM,
+    );
+    expect(result).to.be.false;
+    result = await oracleProofValidator.verifyGlobalState(
+      globalStateMessage,
+      otherSignerSignatureGSM,
+    );
+    expect(result).to.be.false;
   });
 });
