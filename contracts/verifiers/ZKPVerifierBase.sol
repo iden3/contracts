@@ -25,7 +25,8 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     }
 
     // Snark scalar field size
-    uint256 constant snark_scalar_field_size    = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+    uint256 constant snark_scalar_field_size =
+        21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifier")) - 1)) & ~bytes32(uint256(0xff));
     bytes32 internal constant ZKPVerifierStorageLocation =

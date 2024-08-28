@@ -86,18 +86,18 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
      * @dev See {IERC-5267}.
      */
     function eip712Domain()
-    public
-    view
-    override
-    returns (
-        bytes1 fields,
-        string memory name,
-        string memory version,
-        uint256 chainId,
-        address verifyingContract,
-        bytes32 salt,
-        uint256[] memory extensions
-    )
+        public
+        view
+        override
+        returns (
+            bytes1 fields,
+            string memory name,
+            string memory version,
+            uint256 chainId,
+            address verifyingContract,
+            bytes32 salt,
+            uint256[] memory extensions
+        )
     {
         return (
             hex"0f", // 01111

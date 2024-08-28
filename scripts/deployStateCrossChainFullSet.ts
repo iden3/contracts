@@ -257,7 +257,7 @@ async function main() {
     data: dataV3EmailSD,
   });
 
-  console.log(JSON.stringify(invokeRequestMetadataEmailSd, null, "\t"))
+  console.log(JSON.stringify(invokeRequestMetadataEmailSd, null, "\t"));
 
   console.log(`Request ID: ${requestIdEmail} is set`);
 
@@ -341,7 +341,7 @@ async function main() {
     //   gasLimit: 10000000
     // }
   );
-  console.log(JSON.stringify(invokeRequestMetadataKYCAgeCredential_SigV2, null, "\t"))
+  console.log(JSON.stringify(invokeRequestMetadataKYCAgeCredential_SigV2, null, "\t"));
 
   console.log(`Request ID: ${requestId_Sig} is set`);
 
