@@ -7,7 +7,7 @@ import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 abstract contract RequestOwnership is ZKPVerifierBase {
     /// @custom:storage-location erc7201:iden3.storage.RequestOwnership.sol
     struct RequestOwnershipStorage {
-        mapping(uint256 requestID => address requestOwner) _requestOwners;
+        mapping(uint64 requestId => address requestOwner) _requestOwners;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.RequestOwnership")) - 1)) & ~bytes32(uint256(0xff));
@@ -25,7 +25,7 @@ abstract contract RequestOwnership is ZKPVerifierBase {
     }
 
     /// @dev Modifier to check if the caller is ZKP Request owner
-    modifier onlyRequestOwner(uint256 requestId) virtual {
+    modifier onlyRequestOwner(uint64 requestId) virtual {
         require(getRequestOwner(requestId) == _msgSender(), "Not a request owner");
         _;
     }
@@ -34,7 +34,7 @@ abstract contract RequestOwnership is ZKPVerifierBase {
     /// @param requestId The ID of the ZKP request
     /// @param request The ZKP request data
     function setZKPRequest(
-        uint256 requestId,
+        uint64 requestId,
         IZKPVerifier.ZKPRequest calldata request
     ) public virtual override {
         super.setZKPRequest(requestId, request);
@@ -45,13 +45,13 @@ abstract contract RequestOwnership is ZKPVerifierBase {
     /// @param requestId The ID of a ZKP Request
     /// @return The ZKP Request Owner address
     function getRequestOwner(
-        uint256 requestId
+        uint64 requestId
     ) public view virtual checkRequestExistence(requestId, true) returns (address) {
         return _getRequestOwnershipStorage()._requestOwners[requestId];
     }
 
     function _setRequestOwner(
-        uint256 requestId,
+        uint64 requestId,
         address requestOwner
     ) internal checkRequestExistence(requestId, true) {
         RequestOwnershipStorage storage $ = _getRequestOwnershipStorage();
