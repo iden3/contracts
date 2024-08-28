@@ -8,7 +8,7 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 
 struct ZKPResponse {
-    uint256 requestId;
+    uint64 requestId;
     bytes zkProof;
     bytes data;
 }
@@ -25,7 +25,7 @@ contract ZKPVerifierBaseV2 is ZKPVerifierBase {
 
     /// @custom:storage-location erc7201:iden3.storage.ZKPVerifierBaseV2
     struct ZKPVerifierV2Storage {
-        mapping(address user => mapping(uint256 requestID => ProofV2)) _proofs;
+        mapping(address user => mapping(uint64 requestId => ProofV2)) _proofs;
         IStateCrossChain _stateCrossChain;
     }
 

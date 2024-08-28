@@ -36,7 +36,7 @@ contract ValidatorWhitelist is ZKPVerifierBase {
     /// @param requestId The ID of the ZKP request
     /// @param request The ZKP request data
     function setZKPRequest(
-        uint256 requestId,
+        uint64 requestId,
         IZKPVerifier.ZKPRequest calldata request
     ) public virtual override onlyWhitelistedValidator(request.validator) {
         super.setZKPRequest(requestId, request);
@@ -49,7 +49,7 @@ contract ValidatorWhitelist is ZKPVerifierBase {
     /// @param b The second component of the proof
     /// @param c The third component of the proof
     function submitZKPResponse(
-        uint256 requestId,
+        uint64 requestId,
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
@@ -68,7 +68,7 @@ contract ValidatorWhitelist is ZKPVerifierBase {
     /// @param c The third component of the proof
     /// @param sender The sender on behalf of which the proof is done
     function verifyZKPResponse(
-        uint256 requestId,
+        uint64 requestId,
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,

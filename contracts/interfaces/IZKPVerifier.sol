@@ -19,36 +19,36 @@ interface IZKPVerifier {
     }
 
     function submitZKPResponse(
-        uint256 requestId,
+        uint64 requestId,
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
     ) external;
 
-    function setZKPRequest(uint256 requestId, ZKPRequest calldata request) external;
+    function setZKPRequest(uint64 requestId, ZKPRequest calldata request) external;
 
-    function getZKPRequest(uint256 requestId) external view returns (ZKPRequest memory);
+    function getZKPRequest(uint64 requestId) external view returns (ZKPRequest memory);
 
     function getZKPRequestsCount() external view returns (uint256);
 
-    function requestIdExists(uint256 requestId) external view returns (bool);
+    function requestIdExists(uint64 requestId) external view returns (bool);
 
     function getZKPRequests(
         uint256 startIndex,
         uint256 length
     ) external view returns (ZKPRequest[] memory);
 
-    function isProofVerified(address sender, uint256 requestId) external view returns (bool);
+    function isProofVerified(address sender, uint64 requestId) external view returns (bool);
 
     function getProofStatus(
         address sender,
-        uint256 requestId
+        uint64 requestId
     ) external view returns (ProofStatus memory);
 
     function getProofStorageField(
         address user,
-        uint256 requestId,
+        uint64 requestId,
         string memory key
     ) external view returns (uint256);
 }
