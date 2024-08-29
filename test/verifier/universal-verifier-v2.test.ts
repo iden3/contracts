@@ -3,7 +3,7 @@ import { DeployHelper } from "../../helpers/DeployHelper";
 import { ethers } from "hardhat";
 import { packValidatorParams } from "../utils/validator-pack-utils";
 import { prepareInputs } from "../utils/state-utils";
-import { Block } from "ethers";
+import { Block, Contract } from "ethers";
 import proofJson from "../validators/sig/data/valid_sig_user_genesis.json";
 import {
   packCrossChainProofs,
@@ -18,8 +18,10 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
   let signer;
   let signerAddress: string;
   let deployHelper: DeployHelper;
+  let stateCrossChainStub, oracleProofValidatorStub, stateStub, validatorStub: Contract;
 
-  const oracleProofValidatorStub = "OracleProofValidatorStub";
+  const oracleProofValidatorStubContract = "OracleProofValidatorStub";
+  const stateWithTimestampGettersStubContract = "StateWithTimestampGettersStub";
 
   const globalStateUpdate = {
     globalStateMsg: {
@@ -71,21 +73,23 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     signerAddress = await signer.getAddress();
 
     deployHelper = await DeployHelper.initialize(null, true);
-    const { state } = await deployHelper.deployState(["0x0112"]);
-    const opvStub = await deployHelper.deployOracleProofValidator(oracleProofValidatorStub);
-    const stateCrossChain = await deployHelper.deployStateCrossChain(
-      await opvStub.getAddress(),
-      await state.getAddress(),
+    oracleProofValidatorStub = await deployHelper.deployOracleProofValidator(oracleProofValidatorStubContract);
+
+    stateStub = await ethers.deployContract(stateWithTimestampGettersStubContract);
+
+    stateCrossChainStub = await deployHelper.deployStateCrossChain(
+      await oracleProofValidatorStub.getAddress(),
+      await stateStub.getAddress(),
     );
 
     verifier = await deployHelper.deployUniversalVerifier(
       signer,
-      await stateCrossChain.getAddress(),
+      await stateCrossChainStub.getAddress(),
     );
 
-    const stub = await deployHelper.deployValidatorStub();
+    validatorStub = await deployHelper.deployValidatorStub();
 
-    sig = stub;
+    sig = validatorStub;
     await verifier.addValidatorToWhitelist(await sig.getAddress());
     await verifier.connect();
   });
