@@ -73,7 +73,9 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     signerAddress = await signer.getAddress();
 
     deployHelper = await DeployHelper.initialize(null, true);
-    oracleProofValidatorStub = await deployHelper.deployOracleProofValidator(oracleProofValidatorStubContract);
+    oracleProofValidatorStub = await deployHelper.deployOracleProofValidator(
+      oracleProofValidatorStubContract,
+    );
 
     stateStub = await ethers.deployContract(stateWithTimestampGettersStubContract);
 
@@ -163,6 +165,83 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     expect(status.validatorVersion).to.be.equal("2.0.1-mock");
     expect(status.blockNumber).to.be.equal(txRes.blockNumber);
     expect(status.blockTimestamp).to.be.equal(txResTimestamp);
+
+    await expect(verifier.getProofStatus(signerAddress, nonExistingRequestId)).to.be.rejectedWith(
+      "request id doesn't exist",
+    );
+  });
+
+  it("Test submit response V2 multi-request", async () => {
+    const requestIds = [0, 1, 2];
+    const nonExistingRequestId = 3;
+    const data = packValidatorParams(query);
+
+    for (const requestId of requestIds) {
+      await verifier.setZKPRequest(requestId, {
+        metadata: "metadata",
+        validator: await sig.getAddress(),
+        data: data,
+      });
+    }
+
+    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+
+    const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
+
+    const crossChainProofs = packCrossChainProofs([
+      {
+        proofType: "globalStateProof",
+        proof: packGlobalStateUpdate(globalStateUpdate),
+      },
+      {
+        proofType: "stateProof",
+        proof: packIdentityStateUpdate(identityStateUpdate1),
+      },
+      {
+        proofType: "stateProof",
+        proof: packIdentityStateUpdate(identityStateUpdate2),
+      },
+    ]);
+
+    const metadatas = packMetadatas([
+      {
+        key: "someKey",
+        value: "0x4ae1511455ec833ce709854aa7d9",
+      },
+      {
+        key: "someKey2",
+        value: "0x4ae1511455ec833ce709854aa7d9",
+      },
+    ]);
+
+    const tx = await verifier.submitZKPResponseV2(
+      requestIds.map((requestId) => ({
+        requestId,
+        zkProof: zkProof,
+        data: metadatas,
+      })),
+      crossChainProofs,
+    );
+
+    const txRes = await tx.wait();
+    const filter = verifier.filters.ZKPResponseSubmitted;
+
+    const events = await verifier.queryFilter(filter, -1);
+    expect(events[0].eventName).to.be.equal("ZKPResponseSubmitted");
+    expect(events[0].args.requestId).to.be.equal(0);
+    expect(events[0].args.caller).to.be.equal(signerAddress);
+
+    const { timestamp: txResTimestamp } = (await ethers.provider.getBlock(
+      txRes.blockNumber,
+    )) as Block;
+
+    for (const requestId of requestIds) {
+      const status = await verifier.getProofStatus(signerAddress, requestId);
+      expect(status.isVerified).to.be.true;
+      expect(status.validatorVersion).to.be.equal("2.0.1-mock");
+      expect(status.blockNumber).to.be.equal(txRes.blockNumber);
+      expect(status.blockTimestamp).to.be.equal(txResTimestamp);
+    }
 
     await expect(verifier.getProofStatus(signerAddress, nonExistingRequestId)).to.be.rejectedWith(
       "request id doesn't exist",
