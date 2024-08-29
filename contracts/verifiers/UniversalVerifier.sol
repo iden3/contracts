@@ -9,8 +9,6 @@ import {RequestDisableable} from "./RequestDisableable.sol";
 import {ValidatorWhitelist} from "./ValidatorWhitelist.sol";
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
-import {ZKPVerifierBaseV2} from "./ZKPVerifierBaseV2.sol";
-import {ZKPResponse} from "./ZKPVerifierBaseV2.sol";
 import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 
 /// @title Universal Verifier Contract
@@ -19,8 +17,7 @@ contract UniversalVerifier is
     Ownable2StepUpgradeable,
     RequestOwnership,
     RequestDisableable,
-    ValidatorWhitelist,
-    ZKPVerifierBaseV2
+    ValidatorWhitelist
 {
     /**
      * @dev Version of contract
@@ -52,7 +49,7 @@ contract UniversalVerifier is
     /// @dev Initializes the contract
     function initialize(IStateCrossChain stateCrossChain) public initializer {
         __Ownable_init(_msgSender());
-        __ZKPVerifierBaseV2_init(stateCrossChain);
+        __ZKPVerifierBase_init(stateCrossChain);
     }
 
     /// @dev Version of contract getter

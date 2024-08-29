@@ -6,6 +6,7 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
+import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 
 abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @dev Struct to store ZKP proof and associated data
@@ -15,13 +16,26 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         string validatorVersion;
         uint256 blockNumber;
         uint256 blockTimestamp;
+        mapping(string key => bytes) metadata; // new field for ZKPVerifierBaseV2
     }
 
+    struct ZKPResponse {
+        uint64 requestId;
+        bytes zkProof;
+        bytes data;
+    }
+
+    struct Metadata {
+        string key;
+        bytes value;
+    }
+    
     /// @custom:storage-location erc7201:iden3.storage.ZKPVerifier
     struct ZKPVerifierStorage {
         mapping(address user => mapping(uint64 requestId => Proof)) _proofs;
         mapping(uint64 requestId => IZKPVerifier.ZKPRequest) _requests;
         uint64[] _requestIds;
+        IStateCrossChain _stateCrossChain; // new field for ZKPVerifierBaseV2
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifier")) - 1)) & ~bytes32(uint256(0xff));
@@ -33,6 +47,16 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         assembly {
             $.slot := ZKPVerifierStorageLocation
         }
+    }
+
+    function __ZKPVerifierBase_init(IStateCrossChain stateCrossChain) internal onlyInitializing {
+        __ZKPVerifierBase_init_unchained(stateCrossChain);
+    }
+
+    function __ZKPVerifierBase_init_unchained(
+        IStateCrossChain stateCrossChain
+    ) internal onlyInitializing {
+        _getZKPVerifierStorage()._stateCrossChain = stateCrossChain;
     }
 
     /**
@@ -100,6 +124,47 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         );
 
         _writeProofResults(sender, requestId, pairs);
+    }
+
+    /// @notice Submits a ZKP response V2 and updates proof status
+    /// @param responses The list of responses including ZKP request ID, proof and metadata
+    /// @param crossChainProof The list of cross chain proofs from universal resolver
+    function submitZKPResponseV2(
+        ZKPResponse[] memory responses,
+        bytes memory crossChainProof
+    ) public virtual {
+        ZKPVerifierStorage storage $ = _getZKPVerifierStorage();
+
+        $._stateCrossChain.processProof(crossChainProof);
+
+        for (uint256 i = 0; i < responses.length; i++) {
+            ZKPResponse memory response = responses[i];
+
+            address sender = _msgSender();
+
+            // TODO some internal method and storage location to save gas?
+            IZKPVerifier.ZKPRequest memory request = getZKPRequest(response.requestId);
+            ICircuitValidator.KeyToInputValue[] memory pairs = request.validator.verifyV2(
+                response.zkProof,
+                request.data,
+                sender,
+                $._stateCrossChain
+            );
+
+            _writeProofResults(sender, response.requestId, pairs);
+
+            // TODO throw if metadata > 0 for now?
+            if (response.data.length > 0) {
+                Metadata[] memory meta = abi.decode(response.data, (Metadata[]));
+
+                Proof storage proof = $._proofs[_msgSender()][response.requestId];
+                for (uint256 j = 0; j < meta.length; j++) {
+                    // TODO check the Poseidon Sponge hash
+                    // require(meta[j].value == expectedValue || meta[j].signature == expectedSignature, "Invalid metadata");
+                    proof.metadata[meta[j].key] = meta[j].value;
+                }
+            }
+        }
     }
 
     /// @dev Verifies a ZKP response without updating any proof status
