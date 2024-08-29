@@ -19,6 +19,8 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
   let signerAddress: string;
   let deployHelper: DeployHelper;
 
+  const oracleProofValidatorStub = "OracleProofValidatorStub";
+
   const globalStateUpdate = {
     globalStateMsg: {
       timestamp: 1724858029n,
@@ -70,7 +72,7 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
 
     deployHelper = await DeployHelper.initialize(null, true);
     const { state } = await deployHelper.deployState(["0x0112"]);
-    const opvStub = await deployHelper.deployOracleProofValidatorStub();
+    const opvStub = await deployHelper.deployOracleProofValidator(oracleProofValidatorStub);
     const stateCrossChain = await deployHelper.deployStateCrossChain(
       await opvStub.getAddress(),
       await state.getAddress(),

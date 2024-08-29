@@ -323,7 +323,7 @@ export class DeployHelper {
       oracleSigningAddress,
     ]);
     await oracleProofValidator.waitForDeployment();
-    console.log("OracleProofValidator deployed to:", await oracleProofValidator.getAddress());
+    console.log(`${contractName} deployed to:`, await oracleProofValidator.getAddress());
     return oracleProofValidator;
   }
 
@@ -374,16 +374,6 @@ export class DeployHelper {
     await stubInstance.waitForDeployment();
 
     console.log("Validator stub deployed to:", await stubInstance.getAddress());
-
-    return stubInstance;
-  }
-
-  async deployOracleProofValidatorStub(): Promise<Contract> {
-    const stub = await ethers.getContractFactory("OracleProofValidatorStub");
-    const stubInstance = await stub.deploy();
-    await stubInstance.waitForDeployment();
-
-    console.log("Oracle Proof Validator stub deployed to:", await stubInstance.getAddress());
 
     return stubInstance;
   }
