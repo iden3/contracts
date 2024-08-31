@@ -30,7 +30,7 @@ describe("Universal Verifier V3 validator", function () {
     merklized,
     isRevocationChecked,
     verifierId,
-    nullifierSessionId
+    nullifierSessionId,
   );
 
   const query = {
@@ -59,9 +59,15 @@ describe("Universal Verifier V3 validator", function () {
     deployHelper = await DeployHelper.initialize(null, true);
     ({ state } = await deployHelper.deployState(["0x0112"]));
     const opv = await deployHelper.deployOracleProofValidator();
-    const stateCrossChain = await deployHelper.deployStateCrossChain(await opv.getAddress(), await state.getAddress());
+    const stateCrossChain = await deployHelper.deployStateCrossChain(
+      await opv.getAddress(),
+      await state.getAddress(),
+    );
 
-    verifier = await deployHelper.deployUniversalVerifier(signer, await stateCrossChain.getAddress());
+    verifier = await deployHelper.deployUniversalVerifier(
+      signer,
+      await stateCrossChain.getAddress(),
+    );
 
     const contracts = await deployHelper.deployValidatorContracts(
       "VerifierV3Wrapper",
@@ -91,12 +97,12 @@ describe("Universal Verifier V3 validator", function () {
       pi_a,
       pi_b,
       pi_c,
-      "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+      "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
     );
 
     await expect(verifier.submitZKPResponse(32, inputs, pi_a, pi_b, pi_c)).not.to.be.rejected;
     await expect(
-      verifier.connect(signer2).submitZKPResponse(32, inputs, pi_a, pi_b, pi_c)
+      verifier.connect(signer2).submitZKPResponse(32, inputs, pi_a, pi_b, pi_c),
     ).to.be.rejectedWith("UserID does not correspond to the sender");
 
     // TODO make some test with correct UserID but with wrong challenge

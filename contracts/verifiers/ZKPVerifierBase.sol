@@ -29,7 +29,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         string key;
         bytes value;
     }
-    
+
     /// @custom:storage-location erc7201:iden3.storage.ZKPVerifier
     struct ZKPVerifierStorage {
         mapping(address user => mapping(uint64 requestId => Proof)) _proofs;
@@ -127,8 +127,8 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     }
 
     /// @notice Submits a ZKP response V2 and updates proof status
-    /// @param responses The list of responses including ZKP request ID, proof and metadata
-    /// @param crossChainProof The list of cross chain proofs from universal resolver
+    /// @param responses The list of responses including ZKP request ID, ZK proof and metadata
+    /// @param crossChainProof The list of cross chain proofs from universal resolver (oracle)
     function submitZKPResponseV2(
         ZKPResponse[] memory responses,
         bytes memory crossChainProof
