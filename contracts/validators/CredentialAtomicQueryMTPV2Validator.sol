@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity ^0.8.20;
 
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";

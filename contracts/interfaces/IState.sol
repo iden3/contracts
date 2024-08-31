@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity ^0.8.20;
 
 // TODO changing this value don't forget to change GistProof.siblings array size
 // figure out how to reuse the constant in the array size

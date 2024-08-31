@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity ^0.8.20;
 
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
@@ -29,7 +29,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         string key;
         bytes value;
     }
-    
+
     /// @custom:storage-location erc7201:iden3.storage.ZKPVerifier
     struct ZKPVerifierStorage {
         mapping(address user => mapping(uint64 requestId => Proof)) _proofs;

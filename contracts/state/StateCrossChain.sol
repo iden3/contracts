@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity 0.8.26;
 
 import {IState} from "../interfaces/IState.sol";
 import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGetters.sol";
@@ -8,6 +8,13 @@ import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
 import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 
 contract StateCrossChain is IStateCrossChain {
+    enum DataLocation {
+        Storage,
+        TransientStorage
+    }
+
+    DataLocation constant dataLocation = DataLocation.Storage;
+
     /// @custom:storage-location erc7201:iden3.storage.StateCrossChain
     struct StateCrossChainStorage {
         mapping(uint256 id => mapping(uint256 state => uint256 replacedAt)) _idToStateReplacedAt;
@@ -124,7 +131,7 @@ contract StateCrossChain is IStateCrossChain {
         uint256 state
     ) public view returns (uint256 replacedAt) {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
-        mapping (uint256 => mapping(uint256 => uint256)) storage map = $._idToStateReplacedAt;
+        mapping(uint256 => mapping(uint256 => uint256)) storage map = $._idToStateReplacedAt;
         bytes32 slot;
         assembly {
             slot := map.slot
@@ -132,9 +139,7 @@ contract StateCrossChain is IStateCrossChain {
 
         bytes32 idMapLocation = _getMappingValueLocation(slot, bytes32(id));
         bytes32 valueLocation = _getMappingValueLocation(idMapLocation, bytes32(state));
-        assembly {
-            replacedAt := sload(valueLocation)
-        }
+        replacedAt = uint256(_getSlotValue(valueLocation));
     }
 
     function getGistRootReplacedAt2(
@@ -150,9 +155,7 @@ contract StateCrossChain is IStateCrossChain {
 
         bytes32 idTypeMapLocation = _getMappingValueLocation(slot, bytes32(idType));
         bytes32 valueLocation = _getMappingValueLocation(idTypeMapLocation, bytes32(root));
-        assembly {
-            replacedAt := sload(valueLocation)
-        }
+        replacedAt = uint256(_getSlotValue(valueLocation));
     }
 
     function _getMappingValueLocation(
@@ -164,6 +167,20 @@ contract StateCrossChain is IStateCrossChain {
             mstore(ptr, key)
             mstore(add(ptr, 0x20), slot)
             keyLocation := keccak256(ptr, 0x40)
+        }
+    }
+
+    function _getSlotValue(bytes32 slot) internal view returns (bytes32 value) {
+        if (dataLocation == DataLocation.Storage) {
+            assembly {
+                value := sload(slot)
+            }
+        } else if (dataLocation == DataLocation.TransientStorage) {
+            assembly {
+                value := tload(slot)
+            }
+        } else {
+            revert("Invalid data location");
         }
     }
 }
