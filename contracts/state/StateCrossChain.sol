@@ -118,4 +118,44 @@ contract StateCrossChain is IStateCrossChain {
 
         $._rootToGistRootReplacedAt[message.idType][message.root] = replacedAt;
     }
+
+    function getStateReplacedAt2(
+        uint256 id,
+        uint256 state
+    ) public view returns (uint256 replacedAt) {
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+        mapping(uint256 => mapping(uint256 => uint256)) storage map = $._idToStateReplacedAt;
+        assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, id)
+            mstore(add(ptr, 0x20), map.slot)
+            let valueLocation := keccak256(ptr, 0x40)
+
+            ptr := mload(0x40)
+            mstore(ptr, state)
+            mstore(add(ptr, 0x20), valueLocation)
+            valueLocation := keccak256(ptr, 0x40)
+            replacedAt := sload(valueLocation)
+        }
+    }
+
+    function getGistRootReplacedAt2(
+        bytes2 idType,
+        uint256 root
+    ) public view returns (uint256 replacedAt) {
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+        mapping(bytes2 => mapping(uint256 => uint256)) storage map = $._rootToGistRootReplacedAt;
+        assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, idType)
+            mstore(add(ptr, 0x20), map.slot)
+            let valueLocation := keccak256(ptr, 0x40)
+
+            ptr := mload(0x40)
+            mstore(ptr, root)
+            mstore(add(ptr, 0x20), valueLocation)
+            valueLocation := keccak256(ptr, 0x40)
+            replacedAt := sload(valueLocation)
+        }
+    }
 }

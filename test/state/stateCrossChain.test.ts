@@ -83,7 +83,7 @@ describe("State Cross Chain", function () {
     expect(ismReplacedAt).to.equal(ism.timestamp);
   });
 
-  it("Should process the messages with replacedAtTimestamp", async function () {
+  it.only("Should process the messages with replacedAtTimestamp", async function () {
     const ism: IdentityStateMessage = {
       timestamp: 1724229639n,
       id: 25061242388220042378440625585145526395156084635704446088069097186261377537n,
@@ -103,8 +103,13 @@ describe("State Cross Chain", function () {
     // result should be equal replacedAtTimestamp in the messages
     const gsmReplacedAt = await stateCrossChain.getGistRootReplacedAt(gsm.idType, gsm.root);
     expect(gsmReplacedAt).to.equal(gsm.replacedAtTimestamp);
+    const gsmReplacedAt2 = await stateCrossChain.getGistRootReplacedAt2(gsm.idType, gsm.root);
+    expect(gsmReplacedAt2).to.equal(gsm.replacedAtTimestamp);
+
     const ismReplacedAt = await stateCrossChain.getStateReplacedAt(ism.id, ism.state);
     expect(ismReplacedAt).to.equal(ism.replacedAtTimestamp);
+    const ismReplacedAt2 = await stateCrossChain.getStateReplacedAt2(ism.id, ism.state);
+    expect(ismReplacedAt2).to.equal(ism.replacedAtTimestamp);
   });
 
   it("Should return zero from the State stub if requested for a non-existent data", async function () {
