@@ -124,17 +124,15 @@ contract StateCrossChain is IStateCrossChain {
         uint256 state
     ) public view returns (uint256 replacedAt) {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
-        mapping(uint256 => mapping(uint256 => uint256)) storage map = $._idToStateReplacedAt;
+        mapping (uint256 => mapping(uint256 => uint256)) storage map = $._idToStateReplacedAt;
+        bytes32 slot;
         assembly {
-            let ptr := mload(0x40)
-            mstore(ptr, id)
-            mstore(add(ptr, 0x20), map.slot)
-            let valueLocation := keccak256(ptr, 0x40)
+            slot := map.slot
+        }
 
-            ptr := mload(0x40)
-            mstore(ptr, state)
-            mstore(add(ptr, 0x20), valueLocation)
-            valueLocation := keccak256(ptr, 0x40)
+        bytes32 idMapLocation = _getMappingValueLocation(slot, bytes32(id));
+        bytes32 valueLocation = _getMappingValueLocation(idMapLocation, bytes32(state));
+        assembly {
             replacedAt := sload(valueLocation)
         }
     }
@@ -145,17 +143,27 @@ contract StateCrossChain is IStateCrossChain {
     ) public view returns (uint256 replacedAt) {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
         mapping(bytes2 => mapping(uint256 => uint256)) storage map = $._rootToGistRootReplacedAt;
+        bytes32 slot;
+        assembly {
+            slot := map.slot
+        }
+
+        bytes32 idTypeMapLocation = _getMappingValueLocation(slot, bytes32(idType));
+        bytes32 valueLocation = _getMappingValueLocation(idTypeMapLocation, bytes32(root));
+        assembly {
+            replacedAt := sload(valueLocation)
+        }
+    }
+
+    function _getMappingValueLocation(
+        bytes32 slot,
+        bytes32 key
+    ) internal view returns (bytes32 keyLocation) {
         assembly {
             let ptr := mload(0x40)
-            mstore(ptr, idType)
-            mstore(add(ptr, 0x20), map.slot)
-            let valueLocation := keccak256(ptr, 0x40)
-
-            ptr := mload(0x40)
-            mstore(ptr, root)
-            mstore(add(ptr, 0x20), valueLocation)
-            valueLocation := keccak256(ptr, 0x40)
-            replacedAt := sload(valueLocation)
+            mstore(ptr, key)
+            mstore(add(ptr, 0x20), slot)
+            keyLocation := keccak256(ptr, 0x40)
         }
     }
 }
