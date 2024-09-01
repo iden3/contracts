@@ -13,14 +13,13 @@ contract StateCrossChain is IStateCrossChain {
         TransientStorage
     }
 
-    DataLocation constant dataLocation = DataLocation.Storage;
-
     /// @custom:storage-location erc7201:iden3.storage.StateCrossChain
     struct StateCrossChainStorage {
         mapping(uint256 id => mapping(uint256 state => uint256 replacedAt)) _idToStateReplacedAt;
         mapping(bytes2 idType => mapping(uint256 root => uint256 replacedAt)) _rootToGistRootReplacedAt;
         IOracleProofValidator _oracleProofValidator;
         IStateWithTimestampGetters _state;
+        DataLocation _dataLocation;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.StateCrossChain")) - 1))
@@ -34,10 +33,15 @@ contract StateCrossChain is IStateCrossChain {
         }
     }
 
-    constructor(IOracleProofValidator validator, IStateWithTimestampGetters state) {
+    constructor(
+        IOracleProofValidator validator,
+        IStateWithTimestampGetters state,
+        DataLocation dataLocation
+    ) {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
         $._oracleProofValidator = validator;
         $._state = state;
+        $._dataLocation = dataLocation;
     }
 
     function processProof(bytes calldata proof) public {
@@ -73,7 +77,7 @@ contract StateCrossChain is IStateCrossChain {
         uint256 state
     ) external view returns (uint256 replacedAt) {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
-        replacedAt = $._idToStateReplacedAt[id][state];
+        replacedAt = _getStateReplacedAt(id, state);
         if (replacedAt == 0) {
             replacedAt = $._state.getStateReplacedAt(id, state);
         }
@@ -84,7 +88,7 @@ contract StateCrossChain is IStateCrossChain {
         uint256 root
     ) external view returns (uint256 replacedAt) {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
-        replacedAt = $._rootToGistRootReplacedAt[idType][root];
+        replacedAt = _getGistRootReplacedAt(idType, root);
         if (replacedAt == 0) {
             replacedAt = $._state.getGistRootReplacedAt(idType, root);
         }
@@ -107,7 +111,8 @@ contract StateCrossChain is IStateCrossChain {
             : message.replacedAtTimestamp;
         require(replacedAt != 0, "ReplacedAt cannot be 0");
 
-        $._idToStateReplacedAt[message.id][message.state] = replacedAt;
+        bytes32 location = _getStateReplacedAtValueLocation(message.id, message.state);
+        _setSlotValue(location, bytes32(replacedAt));
     }
 
     function _setGistRootInfo(GlobalStateMessage memory message, bytes memory signature) internal {
@@ -123,13 +128,22 @@ contract StateCrossChain is IStateCrossChain {
             : message.replacedAtTimestamp;
         require(replacedAt != 0, "ReplacedAt cannot be 0");
 
-        $._rootToGistRootReplacedAt[message.idType][message.root] = replacedAt;
+        bytes32 location = _getGistRootReplacedAtValueLocation(message.idType, message.root);
+        _setSlotValue(location, bytes32(replacedAt));
     }
 
-    function getStateReplacedAt2(
+    function _getStateReplacedAt(
         uint256 id,
         uint256 state
-    ) public view returns (uint256 replacedAt) {
+    ) internal view returns (uint256 replacedAt) {
+        bytes32 valueLocation = _getStateReplacedAtValueLocation(id, state);
+        replacedAt = uint256(_getSlotValue(valueLocation));
+    }
+
+    function _getStateReplacedAtValueLocation(
+        uint256 id,
+        uint256 state
+    ) internal view returns (bytes32 valueLocation) {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
         mapping(uint256 => mapping(uint256 => uint256)) storage map = $._idToStateReplacedAt;
         bytes32 slot;
@@ -138,14 +152,21 @@ contract StateCrossChain is IStateCrossChain {
         }
 
         bytes32 idMapLocation = _getMappingValueLocation(slot, bytes32(id));
-        bytes32 valueLocation = _getMappingValueLocation(idMapLocation, bytes32(state));
+        valueLocation = _getMappingValueLocation(idMapLocation, bytes32(state));
+    }
+
+    function _getGistRootReplacedAt(
+        bytes2 idType,
+        uint256 root
+    ) internal view returns (uint256 replacedAt) {
+        bytes32 valueLocation = _getGistRootReplacedAtValueLocation(idType, root);
         replacedAt = uint256(_getSlotValue(valueLocation));
     }
 
-    function getGistRootReplacedAt2(
+    function _getGistRootReplacedAtValueLocation(
         bytes2 idType,
         uint256 root
-    ) public view returns (uint256 replacedAt) {
+    ) internal view returns (bytes32 valueLocation) {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
         mapping(bytes2 => mapping(uint256 => uint256)) storage map = $._rootToGistRootReplacedAt;
         bytes32 slot;
@@ -154,8 +175,7 @@ contract StateCrossChain is IStateCrossChain {
         }
 
         bytes32 idTypeMapLocation = _getMappingValueLocation(slot, bytes32(idType));
-        bytes32 valueLocation = _getMappingValueLocation(idTypeMapLocation, bytes32(root));
-        replacedAt = uint256(_getSlotValue(valueLocation));
+        valueLocation = _getMappingValueLocation(idTypeMapLocation, bytes32(root));
     }
 
     function _getMappingValueLocation(
@@ -171,13 +191,29 @@ contract StateCrossChain is IStateCrossChain {
     }
 
     function _getSlotValue(bytes32 slot) internal view returns (bytes32 value) {
-        if (dataLocation == DataLocation.Storage) {
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+        if ($._dataLocation == DataLocation.Storage) {
             assembly {
                 value := sload(slot)
             }
-        } else if (dataLocation == DataLocation.TransientStorage) {
+        } else if ($._dataLocation == DataLocation.TransientStorage) {
             assembly {
                 value := tload(slot)
+            }
+        } else {
+            revert("Invalid data location");
+        }
+    }
+
+    function _setSlotValue(bytes32 slot, bytes32 value) internal {
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+        if ($._dataLocation == DataLocation.Storage) {
+            assembly {
+                sstore(slot, value)
+            }
+        } else if ($._dataLocation == DataLocation.TransientStorage) {
+            assembly {
+                tstore(slot, value)
             }
         } else {
             revert("Invalid data location");

@@ -7,6 +7,11 @@ import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain";
 
 const SMT_MAX_DEPTH = 64;
 
+export enum DataLocation {
+  Storage = 0,
+  TransientStorage = 1,
+}
+
 export class DeployHelper {
   constructor(
     private signers: SignerWithAddress[],
@@ -273,12 +278,17 @@ export class DeployHelper {
     return stateLibWrapper;
   }
 
-  async deployStateCrossChain(oracleProofValidator: string, state: string): Promise<Contract> {
+  async deployStateCrossChain(
+    oracleProofValidator: string,
+    state: string,
+    dataLocation: number,
+  ): Promise<Contract> {
     const contractName = "StateCrossChain";
 
     const stateCrossChain = await ethers.deployContract(contractName, [
       oracleProofValidator,
       state,
+      dataLocation,
     ]);
     this.enableLogging &&
       this.log(`${contractName} deployed to:  ${await stateCrossChain.getAddress()}`);

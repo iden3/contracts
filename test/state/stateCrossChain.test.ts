@@ -8,15 +8,20 @@ import {
   StateUpdate,
 } from "../utils/packData";
 import { expect } from "chai";
-import { DeployHelper } from "../../helpers/DeployHelper";
+import { DataLocation, DeployHelper } from "../../helpers/DeployHelper";
 import { Contract } from "ethers";
 import { ethers } from "hardhat";
 
-async function processMessages(
+async function processCrossChainProofAndGetTimestamps(
   ism: IdentityStateMessage,
   gsm: GlobalStateMessage,
-  stateCrossChain,
-) {
+  stateCrossChainWrapper: Contract,
+): Promise<{
+  gistRootReplacedAt: bigint;
+  stateReplacedAt: bigint;
+  nonExistentGistRootReplacedAt: bigint;
+  nonExistentStateReplacedAt: bigint;
+}> {
   const isu: StateUpdate = {
     idStateMsg: ism,
     signature: "0x",
@@ -38,25 +43,43 @@ async function processMessages(
     },
   ]);
 
-  await expect(stateCrossChain.processProof(crossChainProof)).not.to.be.rejected;
+  const tx = await stateCrossChainWrapper.processProofAndEmitInfo(
+    crossChainProof,
+    gsm.idType,
+    gsm.root,
+    ism.id,
+    ism.state,
+  );
+  const receipt = await tx.wait();
+
+  return {
+    gistRootReplacedAt: receipt.logs[0].args[0],
+    stateReplacedAt: receipt.logs[0].args[1],
+    nonExistentGistRootReplacedAt: receipt.logs[1].args[0],
+    nonExistentStateReplacedAt: receipt.logs[1].args[1],
+  };
 }
 
 describe("State Cross Chain", function () {
-  let stateCrossChain, oracleProofValidator, stateStub: Contract;
-  let ism: IdentityStateMessage;
-  let gsm: GlobalStateMessage;
+  let stateCrossChainWrapper, stateCrossChain, oracleProofValidator, stateStub: Contract;
   const oracleProofValidatorStub = "OracleProofValidatorStub";
   const stateWithTimestampGettersStub = "StateWithTimestampGettersStub";
 
   beforeEach(async function () {
     const deployHelper = await DeployHelper.initialize(null, true);
-    oracleProofValidator = await deployHelper.deployOracleProofValidator(oracleProofValidatorStub);
     stateStub = await ethers.deployContract(stateWithTimestampGettersStub);
+    oracleProofValidator = await deployHelper.deployOracleProofValidator(oracleProofValidatorStub);
 
+    // TODO check both Storage and TransientStorage and use fixtures
     stateCrossChain = await deployHelper.deployStateCrossChain(
       await oracleProofValidator.getAddress(),
       await stateStub.getAddress(),
+      DataLocation.TransientStorage,
     );
+
+    stateCrossChainWrapper = await ethers.deployContract("StateCrossChainWrapper", [
+      await stateCrossChain.getAddress(),
+    ]);
   });
 
   it("Should process the messages without replacedAtTimestamp", async function () {
@@ -74,16 +97,18 @@ describe("State Cross Chain", function () {
       replacedAtTimestamp: 0n,
     };
 
-    await processMessages(ism, gsm, stateCrossChain);
+    const { gistRootReplacedAt, stateReplacedAt } = await processCrossChainProofAndGetTimestamps(
+      ism,
+      gsm,
+      stateCrossChainWrapper,
+    );
 
     // result should be equal to timestamp from oracle as far as replacedAtTimestamp is zero in the messages
-    const gsmReplacedAt = await stateCrossChain.getGistRootReplacedAt(gsm.idType, gsm.root);
-    expect(gsmReplacedAt).to.equal(gsm.timestamp);
-    const ismReplacedAt = await stateCrossChain.getStateReplacedAt(ism.id, ism.state);
-    expect(ismReplacedAt).to.equal(ism.timestamp);
+    expect(gistRootReplacedAt).to.equal(gsm.timestamp);
+    expect(stateReplacedAt).to.equal(ism.timestamp);
   });
 
-  it.only("Should process the messages with replacedAtTimestamp", async function () {
+  it("Should process the messages with replacedAtTimestamp", async function () {
     const ism: IdentityStateMessage = {
       timestamp: 1724229639n,
       id: 25061242388220042378440625585145526395156084635704446088069097186261377537n,
@@ -98,25 +123,36 @@ describe("State Cross Chain", function () {
       replacedAtTimestamp: 100n,
     };
 
-    await processMessages(ism, gsm, stateCrossChain);
+    const { gistRootReplacedAt, stateReplacedAt } = await processCrossChainProofAndGetTimestamps(
+      ism,
+      gsm,
+      stateCrossChainWrapper,
+    );
 
-    // result should be equal replacedAtTimestamp in the messages
-    const gsmReplacedAt = await stateCrossChain.getGistRootReplacedAt(gsm.idType, gsm.root);
-    expect(gsmReplacedAt).to.equal(gsm.replacedAtTimestamp);
-    const gsmReplacedAt2 = await stateCrossChain.getGistRootReplacedAt2(gsm.idType, gsm.root);
-    expect(gsmReplacedAt2).to.equal(gsm.replacedAtTimestamp);
-
-    const ismReplacedAt = await stateCrossChain.getStateReplacedAt(ism.id, ism.state);
-    expect(ismReplacedAt).to.equal(ism.replacedAtTimestamp);
-    const ismReplacedAt2 = await stateCrossChain.getStateReplacedAt2(ism.id, ism.state);
-    expect(ismReplacedAt2).to.equal(ism.replacedAtTimestamp);
+    expect(gistRootReplacedAt).to.equal(gsm.replacedAtTimestamp);
+    expect(stateReplacedAt).to.equal(ism.replacedAtTimestamp);
   });
 
   it("Should return zero from the State stub if requested for a non-existent data", async function () {
-    const gsmReplacedAt = await stateCrossChain.getGistRootReplacedAt("0x0102", 10);
-    expect(gsmReplacedAt).to.equal(0);
-    const ismReplacedAt = await stateCrossChain.getStateReplacedAt(10, 20);
-    expect(ismReplacedAt).to.equal(0);
+    const ism: IdentityStateMessage = {
+      timestamp: 1724229639n,
+      id: 25061242388220042378440625585145526395156084635704446088069097186261377537n,
+      state: 289901420135126415231045754640573166676181332861318949204015443942679340619n,
+      replacedAtTimestamp: 100n,
+    };
+
+    const gsm: GlobalStateMessage = {
+      timestamp: 1724339709n,
+      idType: "0x01A1",
+      root: 0n,
+      replacedAtTimestamp: 100n,
+    };
+
+    const { nonExistentGistRootReplacedAt, nonExistentStateReplacedAt } =
+      await processCrossChainProofAndGetTimestamps(ism, gsm, stateCrossChainWrapper);
+
+    expect(nonExistentGistRootReplacedAt).to.equal(0);
+    expect(nonExistentStateReplacedAt).to.equal(0);
   });
 
   it("Should return correct supported idType", async function () {
