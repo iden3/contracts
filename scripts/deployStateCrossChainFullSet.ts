@@ -15,9 +15,11 @@ import {
 } from "@iden3/js-iden3-core";
 import { Hex } from "@iden3/js-crypto";
 import { Merklizer } from "@iden3/js-jsonld-merklization";
+import { deployPoseidons, deploySpongePoseidon } from "../helpers/PoseidonDeployHelper";
 
 async function main() {
   const deployHelper = await DeployHelper.initialize(null, true);
+  const [signer] = await ethers.getSigners();
 
   const chainId = hre.network.config.chainId;
   const network = hre.network.name;
@@ -45,17 +47,24 @@ async function main() {
     await state.getAddress(),
   );
 
-  // // ##################### Verifier deploy #####################
-
+  // ##################### Oracle Proof Validator deploy #####################
   const opv = await deployHelper.deployOracleProofValidator();
+
+  // ##################### State Cross Chain deploy #####################
   const stateCrossChain = await deployHelper.deployStateCrossChain(
     await opv.getAddress(),
     await state.getAddress(),
   );
 
+  // ##################### Sponge Poseidon deploy #####################
+  const poseidons = await deployPoseidons(signer, [6]);
+  const spongePoseidon = await deploySpongePoseidon(await poseidons[0].getAddress());
+
+  // ##################### Universal Verifier deploy #####################
   const verifier = await deployHelper.deployUniversalVerifier(
     undefined,
     await stateCrossChain.getAddress(),
+    await spongePoseidon.getAddress(),
   );
 
   const addToWhiteList1 = await verifier.addValidatorToWhitelist(await validatorSig.getAddress());
@@ -78,7 +87,7 @@ async function main() {
     SD: 16, // selective disclosure
   };
 
-  const methodId = "fd41d8d4";
+  const methodId = "ade09fcd";
 
   console.log(
     "================= setZKPRequest V3 SIG Transak `email-verified` $eq true ===================",

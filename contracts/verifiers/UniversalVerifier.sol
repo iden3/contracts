@@ -117,7 +117,7 @@ contract UniversalVerifier is
         uint256[2] memory c,
         address sender
     )
-        public
+        internal
         override(RequestDisableable, ValidatorWhitelist, ZKPVerifierBase)
         returns (ICircuitValidator.KeyToInputValue[] memory)
     {

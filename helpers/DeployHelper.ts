@@ -427,12 +427,20 @@ export class DeployHelper {
   async deployUniversalVerifier(
     owner: SignerWithAddress | undefined,
     stateCrossChainAddr: string,
+    spongePoseidonAddr: string,
   ): Promise<Contract> {
     if (!owner) {
       owner = this.signers[0];
     }
-    const Verifier = await ethers.getContractFactory("UniversalVerifier", owner);
-    const verifier = await upgrades.deployProxy(Verifier, [stateCrossChainAddr]);
+    const Verifier = await ethers.getContractFactory("UniversalVerifier", {
+      signer: owner,
+      libraries: {
+        SpongePoseidon: spongePoseidonAddr,
+      },
+    });
+    const verifier = await upgrades.deployProxy(Verifier, [stateCrossChainAddr], {
+      unsafeAllowLinkedLibraries: true,
+    });
     await verifier.waitForDeployment();
     console.log("UniversalVerifier deployed to:", await verifier.getAddress());
     return verifier;

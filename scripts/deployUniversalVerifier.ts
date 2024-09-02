@@ -7,7 +7,14 @@ const pathOutputJson = path.join(__dirname, "./deploy_universal_verifier_output.
 async function main() {
   const deployHelper = await DeployHelper.initialize(null, true);
 
-  const universalVerifier = await deployHelper.deployUniversalVerifier(undefined);
+  const stateCrossChainAddress = "<put the address here>";
+  const spongePoseidonAddress = "<put the address here>";
+
+  const universalVerifier = await deployHelper.deployUniversalVerifier(
+    undefined,
+    stateCrossChainAddress,
+    spongePoseidonAddress,
+  );
 
   const outputJson = {
     universalVerifier: universalVerifier,

@@ -57,7 +57,7 @@ contract RequestDisableable is ZKPVerifierBase {
         uint256[2] memory c,
         address sender
     )
-        public
+        internal
         virtual
         override
         onlyEnabledRequest(requestId)
