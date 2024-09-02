@@ -43,8 +43,19 @@ contract ValidatorStub is ICircuitValidator, ERC165 {
         address sender,
         IStateWithTimestampGetters state
     ) external pure override returns (ICircuitValidator.KeyToInputValue[] memory) {
-        ICircuitValidator.KeyToInputValue[] memory keypair;
-        return keypair;
+        ICircuitValidator.KeyToInputValue[] memory pairs = new ICircuitValidator.KeyToInputValue[](
+            2
+        );
+        pairs[0] = ICircuitValidator.KeyToInputValue({
+            key: "input1Name",
+            inputValue: 4738709701797800586552075642459921104723261125214325001991063996931581119544
+        });
+        pairs[1] = ICircuitValidator.KeyToInputValue({
+            key: "input2Name",
+            inputValue: 9035405010444332688195156022077093661354129858083944503594910647512497655475
+        });
+
+        return pairs;
     }
 
     function inputIndexOf(string memory /*name*/) external pure returns (uint256) {

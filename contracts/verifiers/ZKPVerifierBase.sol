@@ -51,9 +51,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         }
     }
 
-    function __ZKPVerifierBase_init(
-        IStateCrossChain stateCrossChain
-    ) internal onlyInitializing {
+    function __ZKPVerifierBase_init(IStateCrossChain stateCrossChain) internal onlyInitializing {
         __ZKPVerifierBase_init_unchained(stateCrossChain);
     }
 
@@ -186,9 +184,9 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c,
-        address sender
+        address sender // TODO make this function public here and in child contracts when resolving code exceed limit
     )
-        internal // TODO make this function public here and in child contracts when resolving code exceed limit
+        internal
         virtual
         checkRequestExistence(requestId, true)
         returns (ICircuitValidator.KeyToInputValue[] memory)
