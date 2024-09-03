@@ -31,6 +31,12 @@ export class UniversalVerifierContractMigrationHelper extends ContractMigrationS
     const { requests: requestsV1 } = result1;
     const { requests: requestsV2 } = result2;
     console.assert(requestsV1.length === requestsV2.length, "lenght of requests not equal");
+    for (let i = 0; i < requestsV1.length; i++) {
+      console.assert(
+        JSON.stringify(requestsV1[i]) === JSON.stringify(requestsV2[i]),
+        "requests not equal",
+      );
+    }
   }
 
   @log
