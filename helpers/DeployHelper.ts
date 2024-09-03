@@ -404,7 +404,7 @@ export class DeployHelper {
 
   async upgradeUniversalVerifier(
     verifierAddress: string,
-    verifierContractName: string,
+    verifierContractName = "UniversalVerifier",
   ): Promise<{
     verifier: Contract;
   }> {
