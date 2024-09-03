@@ -32,7 +32,7 @@ contract VerifierV3Wrapper is VerifierV3, IVerifier {
         // slither-disable-next-line uninitialized-local
         uint[PUBSIGNALS_LENGTH] memory pubSignals;
 
-        require(input.length == PUBSIGNALS_LENGTH, "expected array length is 18");
+        require(input.length == PUBSIGNALS_LENGTH, "expected array length is 14");
 
         for (uint256 i = 0; i < PUBSIGNALS_LENGTH; i++) {
             pubSignals[i] = input[i];
