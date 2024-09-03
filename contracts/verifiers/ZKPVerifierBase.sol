@@ -51,7 +51,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
 
     function _setStateCrossChain(IStateCrossChain stateCrossChain) internal {
         _getZKPVerifierStorage()._stateCrossChain = stateCrossChain;
-    } 
+    }
 
     function __ZKPVerifierBase_init(IStateCrossChain stateCrossChain) internal onlyInitializing {
         __ZKPVerifierBase_init_unchained(stateCrossChain);
@@ -164,7 +164,8 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
                 Proof storage proof = $._proofs[_msgSender()][response.requestId];
                 for (uint256 j = 0; j < meta.length; j++) {
                     // TODO check the Poseidon Sponge hash
-                    // require(meta[j].value == expectedValue || meta[j].signature == expectedSignature, "Invalid metadata");
+                    // require(meta[j].value == expectedValue ||
+                    // meta[j].signature == expectedSignature, "Invalid metadata");
                     proof.metadata[meta[j].key] = meta[j].value;
                 }
             }

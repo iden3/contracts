@@ -28,7 +28,10 @@ contract StateCrossChain is Ownable, IStateCrossChain {
         }
     }
 
-    constructor(IOracleProofValidator validator, IStateWithTimestampGetters state) Ownable(msg.sender) {
+    constructor(
+        IOracleProofValidator validator,
+        IStateWithTimestampGetters state
+    ) Ownable(msg.sender) {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
         $._oracleProofValidator = validator;
         $._state = state;
