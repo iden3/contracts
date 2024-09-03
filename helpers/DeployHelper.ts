@@ -1,7 +1,7 @@
 import { ethers, network, upgrades } from "hardhat";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { deployPoseidons } from "./PoseidonDeployHelper";
+import { deployPoseidons, deploySpongePoseidon } from "./PoseidonDeployHelper";
 import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain";
 
@@ -273,6 +273,25 @@ export class DeployHelper {
     return stateLibWrapper;
   }
 
+  async deployVerifierLib(): Promise<Contract> {
+    const contractName = "VerifierLib";
+    const signer = this.signers[0];
+
+    this.log(`deploying sponge Poseidon for ${contractName}...`);
+    const [poseidon6] = await deployPoseidons(signer, [6]);
+    const spongePoseidon = await deploySpongePoseidon(await poseidon6.getAddress());
+
+    const verifierLib = await ethers.deployContract(contractName, {
+      libraries: {
+        SpongePoseidon: await spongePoseidon.getAddress(),
+      },
+    });
+
+    this.log(`${contractName} deployed to:  ${await verifierLib.getAddress()}`);
+
+    return verifierLib;
+  }
+
   async deployStateCrossChain(oracleProofValidator: string, state: string): Promise<Contract> {
     const contractName = "StateCrossChain";
 
@@ -415,10 +434,22 @@ export class DeployHelper {
     return primitiveTypeUtilsWrapper;
   }
 
-  async deployZKPVerifier(owner: SignerWithAddress): Promise<Contract> {
-    const Verifier = await ethers.getContractFactory("ZKPVerifierWrapper");
+  async deployEmbeddedZKPVerifier(
+    owner: SignerWithAddress | undefined,
+    stateCrossChainAddr: string,
+    verifierLibAddr: string,
+  ): Promise<Contract> {
+    const Verifier = await ethers.getContractFactory("ZKPVerifierWrapper", {
+      libraries: {
+        VerifierLib: verifierLibAddr,
+      },
+    });
     // const zkpVerifier = await ZKPVerifier.deploy(await owner.getAddress());
-    const verifier = await upgrades.deployProxy(Verifier, [await owner.getAddress()]);
+    const verifier = await upgrades.deployProxy(
+      Verifier,
+      [await owner.getAddress(), stateCrossChainAddr],
+      { unsafeAllow: ["external-library-linking"] },
+    );
     await verifier.waitForDeployment();
     console.log("ZKPVerifierWrapper deployed to:", await verifier.getAddress());
     return verifier;
@@ -427,7 +458,7 @@ export class DeployHelper {
   async deployUniversalVerifier(
     owner: SignerWithAddress | undefined,
     stateCrossChainAddr: string,
-    spongePoseidonAddr: string,
+    verifierLibAddr: string,
   ): Promise<Contract> {
     if (!owner) {
       owner = this.signers[0];
@@ -435,7 +466,7 @@ export class DeployHelper {
     const Verifier = await ethers.getContractFactory("UniversalVerifier", {
       signer: owner,
       libraries: {
-        SpongePoseidon: spongePoseidonAddr,
+        VerifierLib: verifierLibAddr,
       },
     });
     const verifier = await upgrades.deployProxy(Verifier, [stateCrossChainAddr], {

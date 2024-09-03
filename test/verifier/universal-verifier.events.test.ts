@@ -64,9 +64,12 @@ describe("Universal Verifier events", function () {
       await opv.getAddress(),
       await state.getAddress(),
     );
+
+    const verifierLib = await deployHelper.deployVerifierLib();
     verifier = await deployHelper.deployUniversalVerifier(
       signer,
       await stateCrossChain.getAddress(),
+      await verifierLib.getAddress(),
     );
 
     const contracts = await deployHelper.deployValidatorContracts(

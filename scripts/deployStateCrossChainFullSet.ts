@@ -56,15 +56,14 @@ async function main() {
     await state.getAddress(),
   );
 
-  // ##################### Sponge Poseidon deploy #####################
-  const poseidons = await deployPoseidons(signer, [6]);
-  const spongePoseidon = await deploySpongePoseidon(await poseidons[0].getAddress());
+  // ##################### VerifierLib deploy #####################
+  const verifierLib = await deployHelper.deployVerifierLib();
 
   // ##################### Universal Verifier deploy #####################
   const verifier = await deployHelper.deployUniversalVerifier(
     undefined,
     await stateCrossChain.getAddress(),
-    await spongePoseidon.getAddress(),
+    await verifierLib.getAddress(),
   );
 
   const addToWhiteList1 = await verifier.addValidatorToWhitelist(await validatorSig.getAddress());

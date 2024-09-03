@@ -64,9 +64,11 @@ describe("Universal Verifier V3 validator", function () {
       await state.getAddress(),
     );
 
+    const verifierLib = await deployHelper.deployVerifierLib();
     verifier = await deployHelper.deployUniversalVerifier(
       signer,
       await stateCrossChain.getAddress(),
+      await verifierLib.getAddress(),
     );
 
     const contracts = await deployHelper.deployValidatorContracts(

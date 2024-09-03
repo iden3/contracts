@@ -85,13 +85,12 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
       await stateStub.getAddress(),
     );
 
-    const poseidons = await deployPoseidons(signer, [6]);
-    const spongePoseidon = await deploySpongePoseidon(await poseidons[0].getAddress());
+    const verifierLib = await deployHelper.deployVerifierLib();
 
     verifier = await deployHelper.deployUniversalVerifier(
       signer,
       await stateCrossChainStub.getAddress(),
-      await spongePoseidon.getAddress(),
+      await verifierLib.getAddress(),
     );
 
     validatorStub = await deployHelper.deployValidatorStub();

@@ -9,6 +9,7 @@ import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
 import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
 import {SpongePoseidon} from "../lib/Poseidon.sol";
+import {VerifierLib} from "../lib/VerifierLib.sol";
 
 abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @dev Struct to store ZKP proof and associated data
@@ -50,6 +51,8 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             $.slot := ZKPVerifierStorageLocation
         }
     }
+
+    using VerifierLib for ZKPVerifierStorage;
 
     function __ZKPVerifierBase_init(IStateCrossChain stateCrossChain) internal onlyInitializing {
         __ZKPVerifierBase_init_unchained(stateCrossChain);
@@ -154,19 +157,10 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
                 $._stateCrossChain
             );
 
-            _writeProofResults(sender, response.requestId, pairs);
+            $.writeProofResults(sender, response.requestId, pairs);
 
             if (response.data.length > 0) {
-                Metadata[] memory meta = abi.decode(response.data, (Metadata[]));
-
-                Proof storage proof = $._proofs[_msgSender()][response.requestId];
-                for (uint256 j = 0; j < meta.length; j++) {
-                    uint256 hash = SpongePoseidon.hash(
-                        PrimitiveTypeUtils.bytesToUint256Array(meta[j].value)
-                    );
-                    require(proof.storageFields[meta[j].key] == hash, "Invalid metadata hash");
-                    proof.metadata[meta[j].key] = meta[j].value;
-                }
+                $.writeMetadata(sender, response.data, response.requestId);
             }
         }
     }
@@ -184,9 +178,9 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c,
-        address sender // TODO make this function public here and in child contracts when resolving code exceed limit
+        address sender
     )
-        internal
+        public
         virtual
         checkRequestExistence(requestId, true)
         returns (ICircuitValidator.KeyToInputValue[] memory)
