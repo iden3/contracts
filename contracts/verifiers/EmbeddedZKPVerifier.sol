@@ -13,7 +13,10 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
     /**
      * @dev Sets the value for Owner
      */
-    function __EmbeddedZKPVerifier_init(address initialOwner, IStateCrossChain stateCrossChain) internal onlyInitializing {
+    function __EmbeddedZKPVerifier_init(
+        address initialOwner,
+        IStateCrossChain stateCrossChain
+    ) internal onlyInitializing {
         __Ownable_init(initialOwner);
         ___EmbeddedZKPVerifier_init_unchained(initialOwner);
         __ZKPVerifierBase_init(stateCrossChain);

@@ -118,8 +118,9 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         uint256[2] memory c
     ) public virtual checkRequestExistence(requestId, true) {
         address sender = _msgSender();
+        ZKPVerifierStorage storage $ = _getZKPVerifierStorage();
 
-        IZKPVerifier.ZKPRequest memory request = _getZKPVerifierStorage()._requests[requestId];
+        IZKPVerifier.ZKPRequest memory request = $._requests[requestId];
         ICircuitValidator.KeyToInputValue[] memory pairs = request.validator.verify(
             inputs,
             a,
@@ -129,7 +130,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             sender
         );
 
-        _writeProofResults(sender, requestId, pairs);
+        $.writeProofResults(sender, requestId, pairs);
     }
 
     /// @notice Submits a ZKP response V2 and updates proof status
@@ -311,21 +312,5 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         string memory key
     ) public view checkRequestExistence(requestId, true) returns (uint256) {
         return _getZKPVerifierStorage()._proofs[user][requestId].storageFields[key];
-    }
-
-    function _writeProofResults(
-        address sender,
-        uint64 requestId,
-        ICircuitValidator.KeyToInputValue[] memory pairs
-    ) internal {
-        Proof storage proof = _getZKPVerifierStorage()._proofs[sender][requestId];
-        for (uint256 i = 0; i < pairs.length; i++) {
-            proof.storageFields[pairs[i].key] = pairs[i].inputValue;
-        }
-
-        proof.isVerified = true;
-        proof.validatorVersion = _getZKPVerifierStorage()._requests[requestId].validator.version();
-        proof.blockNumber = block.number;
-        proof.blockTimestamp = block.timestamp;
     }
 }
