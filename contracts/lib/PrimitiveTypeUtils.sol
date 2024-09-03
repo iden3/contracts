@@ -176,4 +176,27 @@ library PrimitiveTypeUtils {
     function addressToBytes(address a) internal pure returns (bytes memory) {
         return abi.encodePacked(a);
     }
+
+    function bytesToUint256Array(bytes memory data) internal pure returns (uint256[] memory) {
+        uint256 arrayLength = (data.length + 31) / 32; // Round up the required length
+        uint256[] memory result = new uint256[](arrayLength);
+
+        for (uint256 i = 0; i < arrayLength; i++) {
+            uint256 value;
+            assembly {
+                // Load 32 bytes, starting from the current index in data
+                value := mload(add(data, add(32, mul(i, 32))))
+            }
+
+            // If we're on the last chunk and the data length isn't a full 32 bytes, we need to mask out the extra bytes.
+            if (i == arrayLength - 1 && data.length % 32 != 0) {
+                uint256 mask = (1 << (8 * (data.length % 32))) - 1;
+                value = value & mask;
+            }
+
+            result[i] = value;
+        }
+
+        return result;
+    }
 }

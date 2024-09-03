@@ -18,12 +18,12 @@ export async function deploySpongePoseidon(poseidon6ContractAddress: string): Pr
 
 export async function deployPoseidons(
   deployer: SignerWithAddress,
-  poseidonSizeParams: number[]
+  poseidonSizeParams: number[],
 ): Promise<Contract[]> {
   poseidonSizeParams.forEach((size) => {
     if (![1, 2, 3, 4, 5, 6].includes(size)) {
       throw new Error(
-        `Poseidon should be integer in a range 1..6. Poseidon size provided: ${size}`
+        `Poseidon should be integer in a range 1..6. Poseidon size provided: ${size}`,
       );
     }
   });

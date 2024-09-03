@@ -12,6 +12,7 @@ import {
   packMetadatas,
   packZKProof,
 } from "../utils/packData";
+import { deployPoseidons, deploySpongePoseidon } from "../../helpers/PoseidonDeployHelper";
 
 describe("Universal Verifier V2 MTP & SIG validators", function () {
   let verifier: any, sig: any;
@@ -84,9 +85,12 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
       await stateStub.getAddress(),
     );
 
+    const verifierLib = await deployHelper.deployVerifierLib();
+
     verifier = await deployHelper.deployUniversalVerifier(
       signer,
       await stateCrossChainStub.getAddress(),
+      await verifierLib.getAddress(),
     );
 
     validatorStub = await deployHelper.deployValidatorStub();
@@ -128,12 +132,12 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
 
     const metadatas = packMetadatas([
       {
-        key: "someKey",
-        value: "0x4ae1511455ec833ce709854aa7d9",
+        key: "input1Name",
+        value: ethers.hexlify(Buffer.from("This is some long string")),
       },
       {
-        key: "someKey2",
-        value: "0x4ae1511455ec833ce709854aa7d9",
+        key: "input2Name",
+        value: ethers.hexlify(Buffer.from("This is another long string")),
       },
     ]);
 
@@ -205,12 +209,12 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
 
     const metadatas = packMetadatas([
       {
-        key: "someKey",
-        value: "0x4ae1511455ec833ce709854aa7d9",
+        key: "input1Name",
+        value: ethers.hexlify(Buffer.from("This is some long string")),
       },
       {
-        key: "someKey2",
-        value: "0x4ae1511455ec833ce709854aa7d9",
+        key: "input2Name",
+        value: ethers.hexlify(Buffer.from("This is another long string")),
       },
     ]);
 
