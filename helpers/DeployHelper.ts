@@ -402,6 +402,30 @@ export class DeployHelper {
     };
   }
 
+  async upgradeUniversalVerifier(
+    verifierAddress: string,
+    verifierContractName: string,
+  ): Promise<{
+    verifier: Contract;
+  }> {
+    this.log("======== Verifier: upgrade started ========");
+
+    const owner = this.signers[0];
+
+    this.log("upgrading verifier...");
+    const VerifierFactory = await ethers.getContractFactory(verifierContractName);
+    const verifier = await upgrades.upgradeProxy(verifierAddress, VerifierFactory);
+    await verifier.waitForDeployment();
+    this.log(
+      `Verifier ${verifierContractName} upgraded at address ${await verifier.getAddress()} from ${await owner.getAddress()}`,
+    );
+
+    this.log("======== Verifier: upgrade completed ========");
+    return {
+      verifier: verifier,
+    };
+  }
+
   async deployGenesisUtilsWrapper(): Promise<GenesisUtilsWrapper> {
     const GenesisUtilsWrapper = await ethers.getContractFactory("GenesisUtilsWrapper");
     const genesisUtilsWrapper = await GenesisUtilsWrapper.deploy();

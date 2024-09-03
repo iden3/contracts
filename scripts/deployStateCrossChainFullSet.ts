@@ -1,4 +1,3 @@
-import { ethers } from "hardhat";
 import hre from "hardhat";
 import { packV3ValidatorParams, packValidatorParams } from "../test/utils/validator-pack-utils";
 import { DeployHelper } from "../helpers/DeployHelper";

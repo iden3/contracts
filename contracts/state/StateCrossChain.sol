@@ -6,8 +6,9 @@ import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGette
 import {IState} from "../interfaces/IState.sol";
 import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
 import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract StateCrossChain is IStateCrossChain {
+contract StateCrossChain is Ownable, IStateCrossChain {
     /// @custom:storage-location erc7201:iden3.storage.StateCrossChain
     struct StateCrossChainStorage {
         mapping(uint256 id => mapping(uint256 state => uint256 replacedAt)) _idToStateReplacedAt;
@@ -27,10 +28,14 @@ contract StateCrossChain is IStateCrossChain {
         }
     }
 
-    constructor(IOracleProofValidator validator, IStateWithTimestampGetters state) {
+    constructor(IOracleProofValidator validator, IStateWithTimestampGetters state) Ownable(msg.sender) {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
         $._oracleProofValidator = validator;
         $._state = state;
+    }
+
+    function setValidator(IOracleProofValidator validator) public onlyOwner {
+        _getStateCrossChainStorage()._oracleProofValidator = validator;
     }
 
     function processProof(bytes calldata proof) public {
