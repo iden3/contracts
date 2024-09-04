@@ -17,17 +17,12 @@ describe("Universal Verifier Linked proofs", function () {
 
     deployHelper = await DeployHelper.initialize(null, true);
     ({ state } = await deployHelper.deployState(["0x0112"]));
-    const opv = await deployHelper.deployOracleProofValidator();
-    const stateCrossChain = await deployHelper.deployStateCrossChain(
-      await opv.getAddress(),
-      await state.getAddress(),
-    );
 
     const verifierLib = await deployHelper.deployVerifierLib();
 
     verifier = await deployHelper.deployUniversalVerifier(
       signer,
-      await stateCrossChain.getAddress(),
+      await state.getAddress(),
       await verifierLib.getAddress(),
     );
 

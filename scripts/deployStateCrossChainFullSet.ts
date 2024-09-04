@@ -46,22 +46,13 @@ async function main() {
     await state.getAddress(),
   );
 
-  // ##################### Oracle Proof Validator deploy #####################
-  const opv = await deployHelper.deployOracleProofValidator();
-
-  // ##################### State Cross Chain deploy #####################
-  const stateCrossChain = await deployHelper.deployStateCrossChain(
-    await opv.getAddress(),
-    await state.getAddress(),
-  );
-
   // ##################### VerifierLib deploy #####################
   const verifierLib = await deployHelper.deployVerifierLib();
 
   // ##################### Universal Verifier deploy #####################
   const verifier = await deployHelper.deployUniversalVerifier(
     undefined,
-    await stateCrossChain.getAddress(),
+    await state.getAddress(),
     await verifierLib.getAddress(),
   );
 

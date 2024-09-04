@@ -7,11 +7,14 @@ import {IStateTransitionVerifier} from "../interfaces/IStateTransitionVerifier.s
 import {SmtLib} from "../lib/SmtLib.sol";
 import {PoseidonUnit1L} from "../lib/Poseidon.sol";
 import {StateLib} from "../lib/StateLib.sol";
+import {StateCrossChainLib} from "../lib/StateCrossChainLib.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGetters.sol";
+import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
+import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
 
 /// @title Set and get states for each identity
-contract State is Ownable2StepUpgradeable, IState, IStateWithTimestampGetters {
+contract State is Ownable2StepUpgradeable, IState, IStateCrossChain {
     /**
      * @dev Version of contract
      */
@@ -52,12 +55,32 @@ contract State is Ownable2StepUpgradeable, IState, IStateWithTimestampGetters {
      */
     bool internal _defaultIdTypeInitialized;
 
+    // keccak256(abi.encode(uint256(keccak256("iden3.storage.StateCrossChain")) - 1))
+    //  & ~bytes32(uint256(0xff));
+    bytes32 private constant StateCrossChainStorageLocation =
+        0xfe6de916382846695d2555237dc6c0ef6555f4c949d4ba263e03532600778100;
+
+    /// @custom:storage-location erc7201:iden3.storage.StateCrossChain
+    struct StateCrossChainStorage {
+        mapping(uint256 id => mapping(uint256 state => uint256 replacedAt)) _idToStateReplacedAt;
+        mapping(bytes2 idType => mapping(uint256 root => uint256 replacedAt)) _rootToGistRootReplacedAt;
+        IOracleProofValidator _oracleProofValidator;
+        IStateWithTimestampGetters _state;
+    }
+
     using SmtLib for SmtLib.Data;
     using StateLib for StateLib.Data;
+    using StateCrossChainLib for StateCrossChainStorage;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
+    }
+
+    function _getStateCrossChainStorage() private pure returns (StateCrossChainStorage storage $) {
+        assembly {
+            $.slot := StateCrossChainStorageLocation
+        }
     }
 
     /**
@@ -69,7 +92,8 @@ contract State is Ownable2StepUpgradeable, IState, IStateWithTimestampGetters {
     function initialize(
         IStateTransitionVerifier verifierContractAddr,
         bytes2 defaultIdType,
-        address owner
+        address owner,
+        IOracleProofValidator validator
     ) public initializer {
         if (!_gistData.initialized) {
             _gistData.initialize(MAX_SMT_DEPTH);
@@ -82,6 +106,18 @@ contract State is Ownable2StepUpgradeable, IState, IStateWithTimestampGetters {
         verifier = verifierContractAddr;
         _setDefaultIdType(defaultIdType);
         __Ownable_init(owner);
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+        $._oracleProofValidator = validator;
+    }
+
+    function setValidator(IOracleProofValidator validator) public onlyOwner {
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+        $._oracleProofValidator = validator;
+    }
+
+    function processProof(bytes calldata proof) public {
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+        $.processProof(proof);
     }
 
     /**
@@ -385,6 +421,11 @@ contract State is Ownable2StepUpgradeable, IState, IStateWithTimestampGetters {
         uint256 state
     ) external view returns (uint256 replacedAt) {
         // TODO add check for idType support ?
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+        replacedAt = $._idToStateReplacedAt[id][state];
+        if (replacedAt != 0) {
+            return replacedAt;
+        }
 
         if (_stateData.stateExists(id, state)) {
             replacedAt = _stateData.getStateInfoByIdAndState(id, state).replacedAtTimestamp;
@@ -401,6 +442,12 @@ contract State is Ownable2StepUpgradeable, IState, IStateWithTimestampGetters {
         bytes2 idType,
         uint256 root
     ) external view returns (uint256 replacedAt) {
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+        replacedAt = $._rootToGistRootReplacedAt[idType][root];
+        if (replacedAt != 0) {
+            return replacedAt;
+        }
+
         require(isIdTypeSupported(idType), "id type is not supported");
         if (_gistData.rootExists(root)) {
             replacedAt = _gistData.getRootInfo(root).replacedAtTimestamp;

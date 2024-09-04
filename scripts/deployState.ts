@@ -6,7 +6,7 @@ const pathOutputJson = path.join(__dirname, "./deploy_state_output.json");
 async function main() {
   const deployHelper = await DeployHelper.initialize(null, true);
 
-  const { state, verifier, stateLib, smtLib, poseidon1, poseidon2, poseidon3 } =
+  const { state, verifier, stateLib, smtLib, stateCrossChainLib, poseidon1, poseidon2, poseidon3 } =
     await deployHelper.deployState();
 
   const outputJson = {
@@ -14,6 +14,7 @@ async function main() {
     verifier: await verifier.getAddress(),
     stateLib: await stateLib.getAddress(),
     smtLib: await smtLib.getAddress(),
+    stateCrossChainLib: await stateCrossChainLib.getAddress(),
     poseidon1: await poseidon1.getAddress(),
     poseidon2: await poseidon2.getAddress(),
     poseidon3: await poseidon3.getAddress(),
