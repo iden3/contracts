@@ -48,7 +48,10 @@ library StateCrossChainLib {
             return;
         }
 
-        IStateCrossChain.CrossChainProof[] memory proofs = abi.decode(proof, (IStateCrossChain.CrossChainProof[]));
+        IStateCrossChain.CrossChainProof[] memory proofs = abi.decode(
+            proof,
+            (IStateCrossChain.CrossChainProof[])
+        );
 
         for (uint256 i = 0; i < proofs.length; i++) {
             if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("globalStateProof"))) {

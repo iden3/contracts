@@ -188,7 +188,8 @@ library PrimitiveTypeUtils {
                 value := mload(add(data, add(32, mul(i, 32))))
             }
 
-            // If we're on the last chunk and the data length isn't a full 32 bytes, we need to mask out the extra bytes.
+            // If we're on the last chunk and the data length isn't a full 32 bytes,
+            // we need to mask out the extra bytes.
             if (i == arrayLength - 1 && data.length % 32 != 0) {
                 uint256 mask = (1 << (8 * (data.length % 32))) - 1;
                 value = value & mask;

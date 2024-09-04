@@ -54,8 +54,8 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
 
     function _setStateCrossChain(IStateCrossChain stateCrossChain) internal {
         _getZKPVerifierStorage()._stateCrossChain = stateCrossChain;
-    } 
-    
+    }
+
     using VerifierLib for ZKPVerifierStorage;
 
     function __ZKPVerifierBase_init(IStateCrossChain stateCrossChain) internal onlyInitializing {
