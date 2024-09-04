@@ -10,7 +10,6 @@ import {
 import { expect } from "chai";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { Contract } from "ethers";
-import { ethers } from "hardhat";
 
 async function processMessages(
   ism: IdentityStateMessage,
@@ -42,21 +41,16 @@ async function processMessages(
 }
 
 describe("State Cross Chain", function () {
-  let stateCrossChain, oracleProofValidator, stateStub: Contract;
-  let ism: IdentityStateMessage;
-  let gsm: GlobalStateMessage;
-  const oracleProofValidatorStub = "OracleProofValidatorStub";
-  const stateWithTimestampGettersStub = "StateWithTimestampGettersStub";
+  let stateCrossChain, oracleProofValidatorStub: Contract;
+  const oracleProofValidatorStubContract = "OracleProofValidatorStub";
 
   beforeEach(async function () {
     const deployHelper = await DeployHelper.initialize(null, true);
-    oracleProofValidator = await deployHelper.deployOracleProofValidator(oracleProofValidatorStub);
-    stateStub = await ethers.deployContract(stateWithTimestampGettersStub);
+    oracleProofValidatorStub = await deployHelper.deployOracleProofValidator(oracleProofValidatorStubContract);
 
-    stateCrossChain = await deployHelper.deployStateCrossChain(
-      await oracleProofValidator.getAddress(),
-      await stateStub.getAddress(),
-    );
+    const { state } = await deployHelper.deployState(["0x01A1", "0x0102"]);
+    await state.setValidator(oracleProofValidatorStub);
+    stateCrossChain = state;
   });
 
   it("Should process the messages without replacedAtTimestamp", async function () {
@@ -107,18 +101,12 @@ describe("State Cross Chain", function () {
     expect(ismReplacedAt).to.equal(ism.replacedAtTimestamp);
   });
 
-  it("Should return zero from the State stub if requested for a non-existent data", async function () {
-    const gsmReplacedAt = await stateCrossChain.getGistRootReplacedAt("0x0102", 10);
-    expect(gsmReplacedAt).to.equal(0);
-    const ismReplacedAt = await stateCrossChain.getStateReplacedAt(10, 20);
-    expect(ismReplacedAt).to.equal(0);
-  });
-
-  it("Should return correct supported idType", async function () {
-    // checking if crosschain just redirects the call to the state
-    const id = 25061242388220042378440625585145526395156084635704446088069097186261377537n;
-    const idType = await stateCrossChain.getIdTypeIfSupported(id);
-    const expectedIdType = await stateStub.getIdTypeIfSupported(id);
-    expect(idType).to.equal(expectedIdType);
+  it("Should return zero from the State if requested for a non-existent data", async function () {
+    await expect(stateCrossChain.getGistRootReplacedAt("0x0102", 10)).to.be.rejectedWith(
+      "Gist root entry not found",
+    );
+    await expect(stateCrossChain.getStateReplacedAt(10, 20)).to.be.rejectedWith(
+      "State entry not found",
+    );
   });
 });

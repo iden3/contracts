@@ -12,17 +12,15 @@ import {
   packMetadatas,
   packZKProof,
 } from "../utils/packData";
-import { deployPoseidons, deploySpongePoseidon } from "../../helpers/PoseidonDeployHelper";
 
 describe("Universal Verifier V2 MTP & SIG validators", function () {
   let verifier: any, sig: any;
   let signer;
   let signerAddress: string;
   let deployHelper: DeployHelper;
-  let stateCrossChainStub, oracleProofValidatorStub, stateStub, validatorStub: Contract;
+  let stateCrossChainStub, oracleProofValidatorStub, validatorStub: Contract;
 
   const oracleProofValidatorStubContract = "OracleProofValidatorStub";
-  const stateWithTimestampGettersStubContract = "StateWithTimestampGettersStub";
 
   const globalStateUpdate = {
     globalStateMsg: {
@@ -78,12 +76,9 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
       oracleProofValidatorStubContract,
     );
 
-    stateStub = await ethers.deployContract(stateWithTimestampGettersStubContract);
-
-    stateCrossChainStub = await deployHelper.deployStateCrossChain(
-      await oracleProofValidatorStub.getAddress(),
-      await stateStub.getAddress(),
-    );
+    const { state } = await deployHelper.deployState(["0x01A1", "0x0102"]);
+    await state.setValidator(oracleProofValidatorStub);
+    stateCrossChainStub = state;
 
     const verifierLib = await deployHelper.deployVerifierLib();
 
