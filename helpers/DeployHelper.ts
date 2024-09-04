@@ -136,6 +136,7 @@ export class DeployHelper {
     verifier: Contract;
     smtLib: Contract;
     stateLib: Contract;
+    crossChainStateLib: Contract;
     poseidon1: Contract;
     poseidon2: Contract;
     poseidon3: Contract;
@@ -179,6 +180,9 @@ export class DeployHelper {
     this.log("deploying StateLib...");
     const stateLib = await this.deployStateLib();
 
+    this.log("deploying StateCrossChainLib...");
+    const crossChainStateLib = await this.deployStateCrossChainLib();
+
     this.log("upgrading state...");
 
     /*
@@ -194,6 +198,7 @@ export class DeployHelper {
       libraries: {
         StateLib: await stateLib.getAddress(),
         SmtLib: await smtLib.getAddress(),
+        CrossChainStateLib: await crossChainStateLib.getAddress(),
         PoseidonUnit1L: await poseidon1Elements.getAddress(),
       },
     });
@@ -211,6 +216,7 @@ export class DeployHelper {
       verifier: verifierContract,
       smtLib,
       stateLib,
+      crossChainStateLib,
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
