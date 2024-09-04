@@ -7,6 +7,9 @@ import {ArrayUtils} from "../lib/ArrayUtils.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
 import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
+import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
+import {SpongePoseidon} from "../lib/Poseidon.sol";
+import {VerifierLib} from "../lib/VerifierLib.sol";
 
 abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @dev Struct to store ZKP proof and associated data
@@ -16,7 +19,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         string validatorVersion;
         uint256 blockNumber;
         uint256 blockTimestamp;
-        mapping(string key => bytes) metadata; // new field for ZKPVerifierBaseV2
+        mapping(string key => bytes) metadata;
     }
 
     struct ZKPResponse {
@@ -35,7 +38,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         mapping(address user => mapping(uint64 requestId => Proof)) _proofs;
         mapping(uint64 requestId => IZKPVerifier.ZKPRequest) _requests;
         uint64[] _requestIds;
-        IStateCrossChain _stateCrossChain; // new field for ZKPVerifierBaseV2
+        IStateCrossChain _stateCrossChain;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifier")) - 1)) & ~bytes32(uint256(0xff));
@@ -49,9 +52,13 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         }
     }
 
+<<<<<<< HEAD
     function _setStateCrossChain(IStateCrossChain stateCrossChain) internal {
         _getZKPVerifierStorage()._stateCrossChain = stateCrossChain;
     }
+=======
+    using VerifierLib for ZKPVerifierStorage;
+>>>>>>> feature/lite-state
 
     function __ZKPVerifierBase_init(IStateCrossChain stateCrossChain) internal onlyInitializing {
         __ZKPVerifierBase_init_unchained(stateCrossChain);
@@ -60,7 +67,8 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     function __ZKPVerifierBase_init_unchained(
         IStateCrossChain stateCrossChain
     ) internal onlyInitializing {
-        _getZKPVerifierStorage()._stateCrossChain = stateCrossChain;
+        ZKPVerifierStorage storage $ = _getZKPVerifierStorage();
+        $._stateCrossChain = stateCrossChain;
     }
 
     /**
@@ -116,8 +124,9 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         uint256[2] memory c
     ) public virtual checkRequestExistence(requestId, true) {
         address sender = _msgSender();
+        ZKPVerifierStorage storage $ = _getZKPVerifierStorage();
 
-        IZKPVerifier.ZKPRequest memory request = _getZKPVerifierStorage()._requests[requestId];
+        IZKPVerifier.ZKPRequest memory request = $._requests[requestId];
         ICircuitValidator.KeyToInputValue[] memory pairs = request.validator.verify(
             inputs,
             a,
@@ -127,7 +136,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             sender
         );
 
-        _writeProofResults(sender, requestId, pairs);
+        $.writeProofResults(sender, requestId, pairs);
     }
 
     /// @notice Submits a ZKP response V2 and updates proof status
@@ -155,19 +164,10 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
                 $._stateCrossChain
             );
 
-            _writeProofResults(sender, response.requestId, pairs);
+            $.writeProofResults(sender, response.requestId, pairs);
 
-            // TODO throw if metadata > 0 for now?
             if (response.data.length > 0) {
-                Metadata[] memory meta = abi.decode(response.data, (Metadata[]));
-
-                Proof storage proof = $._proofs[_msgSender()][response.requestId];
-                for (uint256 j = 0; j < meta.length; j++) {
-                    // TODO check the Poseidon Sponge hash
-                    // require(meta[j].value == expectedValue ||
-                    // meta[j].signature == expectedSignature, "Invalid metadata");
-                    proof.metadata[meta[j].key] = meta[j].value;
-                }
+                $.writeMetadata(sender, response.data, response.requestId);
             }
         }
     }
@@ -318,21 +318,5 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         string memory key
     ) public view checkRequestExistence(requestId, true) returns (uint256) {
         return _getZKPVerifierStorage()._proofs[user][requestId].storageFields[key];
-    }
-
-    function _writeProofResults(
-        address sender,
-        uint64 requestId,
-        ICircuitValidator.KeyToInputValue[] memory pairs
-    ) internal {
-        Proof storage proof = _getZKPVerifierStorage()._proofs[sender][requestId];
-        for (uint256 i = 0; i < pairs.length; i++) {
-            proof.storageFields[pairs[i].key] = pairs[i].inputValue;
-        }
-
-        proof.isVerified = true;
-        proof.validatorVersion = _getZKPVerifierStorage()._requests[requestId].validator.version();
-        proof.blockNumber = block.number;
-        proof.blockTimestamp = block.timestamp;
     }
 }
