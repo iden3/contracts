@@ -429,7 +429,6 @@ contract State is Ownable2StepUpgradeable, IState, IStateCrossChain {
         uint256 id,
         uint256 state
     ) external view returns (uint256 replacedAt) {
-        // TODO add check for idType support ?
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
         replacedAt = $._idToStateReplacedAt[id][state];
         if (replacedAt != 0) {
