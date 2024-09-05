@@ -6,7 +6,7 @@ import { expect } from "chai";
 
 // Amoy
 const proxyAdminOwnerAddress = "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb"; // "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-const universalVerifierContractAddress = "0x5e62bB5dEAa3507A31CbbacEBCC9731e1E361BAB";
+const universalVerifierContractAddress = "0x1B20320042b29AE5c1a3ADc1674cb6bF8760530f"; // Amoy UniversalVerifier
 const universalVerifierOwnerAddress = "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb"; // "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 const impersonate = true;
 const whitelistedValidators = [

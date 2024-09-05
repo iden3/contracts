@@ -110,7 +110,7 @@ contract State is Ownable2StepUpgradeable, IState, IStateCrossChain {
         $._oracleProofValidator = validator;
     }
 
-    function setValidator(IOracleProofValidator validator) public onlyOwner {
+    function setOracleProofValidator(IOracleProofValidator validator) public onlyOwner {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
         $._oracleProofValidator = validator;
     }

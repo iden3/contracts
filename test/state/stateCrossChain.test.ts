@@ -51,7 +51,7 @@ describe("State Cross Chain", function () {
     );
 
     const { state } = await deployHelper.deployState(["0x01A1", "0x0102"]);
-    await state.setValidator(oracleProofValidatorStub);
+    await state.setOracleProofValidator(oracleProofValidatorStub);
     stateCrossChain = state;
   });
 

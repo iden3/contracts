@@ -18,6 +18,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
     ERC165
 {
     /// @dev Main storage structure for the contract
+    /// @custom:storage-location iden3.storage.CredentialAtomicQueryValidator
     struct CredentialAtomicQueryValidatorBaseStorage {
         mapping(string => IVerifier) _circuitIdToVerifier;
         string[] _supportedCircuitIds;

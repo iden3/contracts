@@ -38,7 +38,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         mapping(address user => mapping(uint64 requestId => Proof)) _proofs;
         mapping(uint64 requestId => IZKPVerifier.ZKPRequest) _requests;
         uint64[] _requestIds;
-        IStateCrossChain _stateCrossChain;
+        IStateCrossChain _state;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifier")) - 1)) & ~bytes32(uint256(0xff));
@@ -52,8 +52,8 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         }
     }
 
-    function _setStateCrossChain(IStateCrossChain stateCrossChain) internal {
-        _getZKPVerifierStorage()._stateCrossChain = stateCrossChain;
+    function _setState(IStateCrossChain state) internal {
+        _getZKPVerifierStorage()._state = state;
     }
 
     using VerifierLib for ZKPVerifierStorage;
@@ -63,10 +63,10 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     }
 
     function __ZKPVerifierBase_init_unchained(
-        IStateCrossChain stateCrossChain
+        IStateCrossChain state
     ) internal onlyInitializing {
         ZKPVerifierStorage storage $ = _getZKPVerifierStorage();
-        $._stateCrossChain = stateCrossChain;
+        $._state = state;
     }
 
     /**
@@ -146,7 +146,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     ) public virtual {
         ZKPVerifierStorage storage $ = _getZKPVerifierStorage();
 
-        $._stateCrossChain.processProof(crossChainProof);
+        $._state.processProof(crossChainProof);
 
         for (uint256 i = 0; i < responses.length; i++) {
             ZKPResponse memory response = responses[i];
@@ -159,7 +159,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
                 response.zkProof,
                 request.data,
                 sender,
-                $._stateCrossChain
+                $._state
             );
 
             $.writeProofResults(sender, response.requestId, pairs);
