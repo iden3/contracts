@@ -3,7 +3,6 @@ pragma solidity 0.8.20;
 
 import {ZKPVerifierBase} from "../verifiers/ZKPVerifierBase.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
-import {PrimitiveTypeUtils} from "./PrimitiveTypeUtils.sol";
 import {SpongePoseidon} from "./Poseidon.sol";
 
 library VerifierLib {
@@ -34,9 +33,7 @@ library VerifierLib {
 
         ZKPVerifierBase.Proof storage proof = self._proofs[sender][requestId];
         for (uint256 j = 0; j < meta.length; j++) {
-            uint256 hash = SpongePoseidon.hash(
-                PrimitiveTypeUtils.bytesToUint256Array(meta[j].value)
-            );
+            uint256 hash = SpongePoseidon.hashBytes(meta[j].value);
             require(proof.storageFields[meta[j].key] == hash, "Invalid metadata hash");
             proof.metadata[meta[j].key] = meta[j].value;
         }
