@@ -5,26 +5,16 @@ import * as universalVerifierArtifact from "../../../artifacts/contracts/verifie
 import { expect } from "chai";
 
 // Amoy
-const proxyAdminOwnerAddress = "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb"; // "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-const universalVerifierContractAddress = "0x1B20320042b29AE5c1a3ADc1674cb6bF8760530f"; // Amoy UniversalVerifier
-const universalVerifierOwnerAddress = "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb"; // "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+const proxyAdminOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE"; // "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb";
+const universalVerifierContractAddress = "0x1B20320042b29AE5c1a3ADc1674cb6bF8760530f"; //"0xB7487dDa8f0c465730fC715785743C459747bcbC"; // Amoy UniversalVerifier
+const universalVerifierOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE"; // "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb";
 const impersonate = true;
-const whitelistedValidators = [
-  "0x1426F3f629179073De72f3FC3E22DFFBbB0D59D8",
-  "0x089c21fFdFccD9111366368D73BBcf78c562c515",
-  "0xE42c3FF854815605AaFf5c1A695Bdd990bB5324C",
-];
 
 // Hardhat localhost
-/* const proxyAdminOwnerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"; // "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-const universalVerifierContractAddress = "0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f";
-const universalVerifierOwnerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"; // "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-const impersonate = false;
-const whitelistedValidators = [
-  "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
-  "0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1",
-  "0x3Aa5ebB10DC797CAC828524e59A333d0A371443c",
-]; */
+// const proxyAdminOwnerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+// const universalVerifierContractAddress = "0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f";
+// const universalVerifierOwnerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+// const impersonate = false;
 
 async function getSigners(useImpersonation: boolean): Promise<any> {
   if (useImpersonation) {
@@ -64,9 +54,11 @@ async function main() {
     address: universalVerifierContractAddress,
   });
   const universalVerifierOwnerAddressBefore = await universalVerifierContract.owner();
-
+  console.log("Owner Address Before Upgrade: ", universalVerifierOwnerAddressBefore);
   const dataBeforeUpgrade =
     await universalVerifierMigrationHelper.getDataFromContract(universalVerifierContract);
+
+  const whitelistedValidators = dataBeforeUpgrade.validators;
 
   for (const validator of whitelistedValidators) {
     expect(await universalVerifierContract.isWhitelistedValidator(validator)).to.equal(true);
@@ -74,6 +66,7 @@ async function main() {
   // **** Upgrade Universal Verifier ****
   await universalVerifierMigrationHelper.upgradeContract(universalVerifierContract);
   // ************************
+  console.log("Checking data after upgrade");
 
   const dataAfterUpgrade =
     await universalVerifierMigrationHelper.getDataFromContract(universalVerifierContract);

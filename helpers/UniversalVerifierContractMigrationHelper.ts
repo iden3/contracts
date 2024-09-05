@@ -17,9 +17,16 @@ export class UniversalVerifierContractMigrationHelper extends ContractMigrationS
     const countRequests = await contract.getZKPRequestsCount();
     const requests = await contract.getZKPRequests(0, countRequests);
 
-    const requestsObj = requests.map((request: any) => JSON.parse(request[0]));
+    const validators: string[] = [];
+    const requestsObj: any[] = [];
+    for (const request of requests) {
+      if (!validators.includes(request[1])) {
+        validators.push(request[1]);
+      }
+      requestsObj.push(JSON.parse(request[0]));
+    }
 
-    const result = { requests: requestsObj };
+    const result = { requests: requestsObj, validators };
     return result;
   }
 
