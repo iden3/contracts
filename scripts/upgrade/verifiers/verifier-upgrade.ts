@@ -4,16 +4,27 @@ import { UniversalVerifierContractMigrationHelper } from "../../../helpers/Unive
 import * as universalVerifierArtifact from "../../../artifacts/contracts/verifiers/UniversalVerifier.sol/UniversalVerifier.json";
 import { expect } from "chai";
 
+// Amoy
+const proxyAdminOwnerAddress = "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb"; // "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+const universalVerifierContractAddress = "0x5e62bB5dEAa3507A31CbbacEBCC9731e1E361BAB";
+const universalVerifierOwnerAddress = "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb"; // "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+const impersonate = true;
+const whitelistedValidators = [
+  "0x1426F3f629179073De72f3FC3E22DFFBbB0D59D8",
+  "0x089c21fFdFccD9111366368D73BBcf78c562c515",
+  "0xE42c3FF854815605AaFf5c1A695Bdd990bB5324C",
+];
+
 // Hardhat localhost
-const proxyAdminOwnerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-const universalVerifierContractAddress = "0x59b670e9fA9D0A427751Af201D676719a970857b";
-const universalVerifierOwnerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+/* const proxyAdminOwnerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"; // "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+const universalVerifierContractAddress = "0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f";
+const universalVerifierOwnerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"; // "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 const impersonate = false;
 const whitelistedValidators = [
-  "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
-  "0x9A676e781A523b5d0C0e43731313A708CB607508",
-  "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE",
-];
+  "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
+  "0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1",
+  "0x3Aa5ebB10DC797CAC828524e59A333d0A371443c",
+]; */
 
 async function getSigners(useImpersonation: boolean): Promise<any> {
   if (useImpersonation) {
@@ -52,10 +63,10 @@ async function main() {
     contractNameOrAbi: universalVerifierArtifact.abi,
     address: universalVerifierContractAddress,
   });
+  const universalVerifierOwnerAddressBefore = await universalVerifierContract.owner();
 
   const dataBeforeUpgrade =
     await universalVerifierMigrationHelper.getDataFromContract(universalVerifierContract);
-  const universalVerifierOwnerAddressBefore = await universalVerifierContract.owner();
 
   for (const validator of whitelistedValidators) {
     expect(await universalVerifierContract.isWhitelistedValidator(validator)).to.equal(true);

@@ -443,22 +443,45 @@ export class DeployHelper {
     verifierContractName = "UniversalVerifier",
   ): Promise<{
     verifier: Contract;
+    verifierLib: Contract;
   }> {
     this.log("======== Verifier: upgrade started ========");
 
-    const owner = this.signers[0];
+    this.log("deploying StateLib...");
+    const verifierLib = await this.deployStateLib();
 
+    const proxyAdminOwner = this.signers[0];
     this.log("upgrading verifier...");
-    const VerifierFactory = await ethers.getContractFactory(verifierContractName);
-    const verifier = await upgrades.upgradeProxy(verifierAddress, VerifierFactory);
-    await verifier.waitForDeployment();
+    const VerifierFactory = await ethers.getContractFactory(verifierContractName, {
+      signer: proxyAdminOwner,
+      libraries: {
+        VerifierLib: await verifierLib.getAddress(),
+      },
+    });
+
+    this.log("upgrading proxy...");
+    let verifier: Contract;
+    try {
+      verifier = await upgrades.upgradeProxy(verifierAddress, VerifierFactory, {
+        unsafeAllowLinkedLibraries: true,
+      });
+      await verifier.waitForDeployment();
+    } catch (e) {
+      this.log("Error upgrading proxy. Forcing import...");
+      await upgrades.forceImport(verifierAddress, VerifierFactory);
+      verifier = await upgrades.upgradeProxy(verifierAddress, VerifierFactory, {
+        unsafeAllowLinkedLibraries: true,
+      });
+      await verifier.waitForDeployment();
+    }
     this.log(
-      `Verifier ${verifierContractName} upgraded at address ${await verifier.getAddress()} from ${await owner.getAddress()}`,
+      `Verifier ${verifierContractName} upgraded at address ${await verifier.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
     );
 
     this.log("======== Verifier: upgrade completed ========");
     return {
       verifier: verifier,
+      verifierLib: verifierLib,
     };
   }
 

@@ -46,7 +46,9 @@ describe("State Cross Chain", function () {
 
   beforeEach(async function () {
     const deployHelper = await DeployHelper.initialize(null, true);
-    oracleProofValidatorStub = await deployHelper.deployOracleProofValidator(oracleProofValidatorStubContract);
+    oracleProofValidatorStub = await deployHelper.deployOracleProofValidator(
+      oracleProofValidatorStubContract,
+    );
 
     const { state } = await deployHelper.deployState(["0x01A1", "0x0102"]);
     await state.setValidator(oracleProofValidatorStub);

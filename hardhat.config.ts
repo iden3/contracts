@@ -66,6 +66,26 @@ const config: HardhatUserConfig = {
     //   },
     // },
     // hardhat: {
+    //   chainId: 80002,
+    //   forking: {
+    //     url: `${process.env.AMOY_RPC_URL}`,
+    //     blockNumber: 11590440,
+    //   },
+    //   chains: {
+    //     80002: {
+    //       hardforkHistory: {
+    //         london: 10000000,
+    //       },
+    //     },
+    //   },
+    //   accounts: [
+    //     {
+    //       privateKey: process.env.AMOY_PRIVATE_KEY as string,
+    //       balance: "1000000000000000000000000",
+    //     },
+    //   ],
+    // },
+    // hardhat: {
     //   chainId: 80001,
     //   forking: {
     //     url: `https://polygon-mumbai.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
