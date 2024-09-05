@@ -31,16 +31,12 @@ describe("Embedded ZKP Verifier", function () {
     [owner] = await ethers.getSigners();
 
     const { state } = await deployHelper.deployState(["0x0112"]);
-    const opv = await deployHelper.deployOracleProofValidator();
-    const stateCrossChain = await deployHelper.deployStateCrossChain(
-      await opv.getAddress(),
-      await state.getAddress(),
-    );
+
     const verifierLib = await deployHelper.deployVerifierLib();
 
     verifier = await deployHelper.deployEmbeddedZKPVerifier(
       owner,
-      await stateCrossChain.getAddress(),
+      await state.getAddress(),
       await verifierLib.getAddress(),
     );
 

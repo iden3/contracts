@@ -34,6 +34,7 @@ export class DeployHelper {
     verifier: Contract;
     stateLib: Contract;
     smtLib: Contract;
+    stateCrossChainLib: Contract;
     poseidon1: Contract;
     poseidon2: Contract;
     poseidon3: Contract;
@@ -69,17 +70,29 @@ export class DeployHelper {
     this.log("deploying StateLib...");
     const stateLib = await this.deployStateLib();
 
+    this.log("deploying StateCrossChainLib...");
+    const stateCrossChainLib = await this.deployStateCrossChainLib();
+
     this.log("deploying state...");
     const StateFactory = await ethers.getContractFactory("State", {
       libraries: {
         StateLib: await stateLib.getAddress(),
         SmtLib: await smtLib.getAddress(),
         PoseidonUnit1L: await poseidon1Elements.getAddress(),
+        StateCrossChainLib: await stateCrossChainLib.getAddress(),
       },
     });
+
+    // ##################### Oracle Proof Validator deploy #####################
+    const opv = await this.deployOracleProofValidator();
     const state = await upgrades.deployProxy(
       StateFactory,
-      [await verifier.getAddress(), defaultIdType, await owner.getAddress()],
+      [
+        await verifier.getAddress(),
+        defaultIdType,
+        await owner.getAddress(),
+        await opv.getAddress(),
+      ],
       {
         unsafeAllowLinkedLibraries: true,
       },
@@ -104,6 +117,7 @@ export class DeployHelper {
       verifier,
       stateLib,
       smtLib,
+      stateCrossChainLib,
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
@@ -122,6 +136,7 @@ export class DeployHelper {
     verifier: Contract;
     smtLib: Contract;
     stateLib: Contract;
+    crossChainStateLib: Contract;
     poseidon1: Contract;
     poseidon2: Contract;
     poseidon3: Contract;
@@ -165,6 +180,9 @@ export class DeployHelper {
     this.log("deploying StateLib...");
     const stateLib = await this.deployStateLib();
 
+    this.log("deploying StateCrossChainLib...");
+    const crossChainStateLib = await this.deployStateCrossChainLib();
+
     this.log("upgrading state...");
 
     /*
@@ -180,6 +198,7 @@ export class DeployHelper {
       libraries: {
         StateLib: await stateLib.getAddress(),
         SmtLib: await smtLib.getAddress(),
+        CrossChainStateLib: await crossChainStateLib.getAddress(),
         PoseidonUnit1L: await poseidon1Elements.getAddress(),
       },
     });
@@ -197,6 +216,7 @@ export class DeployHelper {
       verifier: verifierContract,
       smtLib,
       stateLib,
+      crossChainStateLib,
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
@@ -228,6 +248,16 @@ export class DeployHelper {
     this.enableLogging && this.log(`StateLib deployed to:  ${await stateLib.getAddress()}`);
 
     return stateLib;
+  }
+
+  async deployStateCrossChainLib(StateCrossChainLibName = "StateCrossChainLib"): Promise<Contract> {
+    const StateCrossChainLib = await ethers.getContractFactory(StateCrossChainLibName);
+    const stateCrossChainLib = await StateCrossChainLib.deploy();
+    await stateCrossChainLib.waitForDeployment();
+    this.enableLogging &&
+      this.log(`StateCrossChainLib deployed to:  ${await stateCrossChainLib.getAddress()}`);
+
+    return stateCrossChainLib;
   }
 
   async deploySmtLibTestWrapper(maxDepth: number = SMT_MAX_DEPTH): Promise<Contract> {
@@ -290,19 +320,6 @@ export class DeployHelper {
     this.log(`${contractName} deployed to:  ${await verifierLib.getAddress()}`);
 
     return verifierLib;
-  }
-
-  async deployStateCrossChain(oracleProofValidator: string, state: string): Promise<Contract> {
-    const contractName = "StateCrossChain";
-
-    const stateCrossChain = await ethers.deployContract(contractName, [
-      oracleProofValidator,
-      state,
-    ]);
-    this.enableLogging &&
-      this.log(`${contractName} deployed to:  ${await stateCrossChain.getAddress()}`);
-
-    return stateCrossChain;
   }
 
   async deployBinarySearchTestWrapper(): Promise<Contract> {
@@ -421,6 +438,53 @@ export class DeployHelper {
     };
   }
 
+  async upgradeUniversalVerifier(
+    verifierAddress: string,
+    verifierContractName = "UniversalVerifier",
+  ): Promise<{
+    verifier: Contract;
+    verifierLib: Contract;
+  }> {
+    this.log("======== Verifier: upgrade started ========");
+
+    this.log("deploying StateLib...");
+    const verifierLib = await this.deployStateLib();
+
+    const proxyAdminOwner = this.signers[0];
+    this.log("upgrading verifier...");
+    const VerifierFactory = await ethers.getContractFactory(verifierContractName, {
+      signer: proxyAdminOwner,
+      libraries: {
+        VerifierLib: await verifierLib.getAddress(),
+      },
+    });
+
+    this.log("upgrading proxy...");
+    let verifier: Contract;
+    try {
+      verifier = await upgrades.upgradeProxy(verifierAddress, VerifierFactory, {
+        unsafeAllowLinkedLibraries: true,
+      });
+      await verifier.waitForDeployment();
+    } catch (e) {
+      this.log("Error upgrading proxy. Forcing import...");
+      await upgrades.forceImport(verifierAddress, VerifierFactory);
+      verifier = await upgrades.upgradeProxy(verifierAddress, VerifierFactory, {
+        unsafeAllowLinkedLibraries: true,
+      });
+      await verifier.waitForDeployment();
+    }
+    this.log(
+      `Verifier ${verifierContractName} upgraded at address ${await verifier.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
+    );
+
+    this.log("======== Verifier: upgrade completed ========");
+    return {
+      verifier: verifier,
+      verifierLib: verifierLib,
+    };
+  }
+
   async deployGenesisUtilsWrapper(): Promise<GenesisUtilsWrapper> {
     const GenesisUtilsWrapper = await ethers.getContractFactory("GenesisUtilsWrapper");
     const genesisUtilsWrapper = await GenesisUtilsWrapper.deploy();
@@ -457,7 +521,7 @@ export class DeployHelper {
 
   async deployUniversalVerifier(
     owner: SignerWithAddress | undefined,
-    stateCrossChainAddr: string,
+    stateAddr: string,
     verifierLibAddr: string,
   ): Promise<Contract> {
     if (!owner) {
@@ -469,7 +533,7 @@ export class DeployHelper {
         VerifierLib: verifierLibAddr,
       },
     });
-    const verifier = await upgrades.deployProxy(Verifier, [stateCrossChainAddr], {
+    const verifier = await upgrades.deployProxy(Verifier, [stateAddr], {
       unsafeAllowLinkedLibraries: true,
     });
     await verifier.waitForDeployment();

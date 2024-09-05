@@ -7,7 +7,7 @@ import {IState} from "../interfaces/IState.sol";
 import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract OracleProofValidator is EIP712, IOracleProofValidator {
+contract OracleProofValidator is Ownable, EIP712, IOracleProofValidator {
     using ECDSA for bytes32;
 
     bytes32 public constant TYPE_HASH =
@@ -33,7 +33,7 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
         string memory domainName,
         string memory signatureVersion,
         address oracleSigningAddress
-    ) EIP712(domainName, signatureVersion) {
+    ) EIP712(domainName, signatureVersion) Ownable(msg.sender) {
         bytes32 hashedName = keccak256(bytes(domainName));
         bytes32 hashedVersion = keccak256(bytes(signatureVersion));
         uint256 chainId = 0;
@@ -50,6 +50,14 @@ contract OracleProofValidator is EIP712, IOracleProofValidator {
      **/
     function getOracleSigningAddress() public view returns (address) {
         return _oracleSigningAddress;
+    }
+
+    /**
+     * @dev Sets the oracle signing address.
+     * @param oracleSigningAddress The new oracle signing address
+     **/
+    function setOracleSigningAddress(address oracleSigningAddress) public onlyOwner {
+        _oracleSigningAddress = oracleSigningAddress;
     }
 
     /**

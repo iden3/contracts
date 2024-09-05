@@ -124,6 +124,10 @@ contract UniversalVerifier is
         return super.verifyZKPResponse(requestId, inputs, a, b, c, sender);
     }
 
+    function setState(IStateCrossChain state) public onlyOwner {
+        _setState(state);
+    }
+
     /// @dev Sets ZKP Request Owner address
     /// @param requestId The ID of the ZKP request
     /// @param requestOwner ZKP Request Owner address

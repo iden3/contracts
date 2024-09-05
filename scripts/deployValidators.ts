@@ -1,7 +1,6 @@
-import { ethers, upgrades } from "hardhat";
 import fs from "fs";
 import path from "path";
-import {DeployHelper} from "../helpers/DeployHelper";
+import { DeployHelper } from "../helpers/DeployHelper";
 
 const pathOutputJson = path.join(__dirname, "./deploy_validator_output.json");
 
