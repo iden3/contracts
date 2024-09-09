@@ -8,7 +8,7 @@ import { Contract } from "ethers";
 import { StateContractMigrationHelper } from "../../../helpers/StateContractMigrationHelper";
 import {
   setZKPRequest_KYCAgeCredential,
-  submitZKPResponseV2_KYCAgeCredential,
+  submitZKPResponses_KYCAgeCredential,
 } from "./helpers/testVerifier";
 
 // Amoy
@@ -49,24 +49,20 @@ async function main() {
   await TestStateUpgrade();
   const { proxyAdminOwnerSigner, universalVerifierOwnerSigner } = await getSigners(impersonate);
 
-  console.log("verifier-upgrade (0)");
   const universalVerifierDeployHelper = await DeployHelper.initialize(
     [proxyAdminOwnerSigner, universalVerifierOwnerSigner],
     true,
   );
-  console.log("verifier-upgrade (1)");
 
   const universalVerifierMigrationHelper = new UniversalVerifierContractMigrationHelper(
     universalVerifierDeployHelper,
     proxyAdminOwnerSigner,
   );
-  console.log("verifier-upgrade (2)");
 
   const universalVerifierContract = await universalVerifierMigrationHelper.getInitContract({
     contractNameOrAbi: universalVerifierArtifact.abi,
     address: universalVerifierContractAddress,
   });
-  console.log("verifier-upgrade (3)");
 
   const universalVerifierOwnerAddressBefore = await universalVerifierContract.owner();
   console.log("Owner Address Before Upgrade: ", universalVerifierOwnerAddressBefore);
@@ -77,7 +73,6 @@ async function main() {
 
   for (const validator of whitelistedValidators) {
     expect(await universalVerifierContract.isWhitelistedValidator(validator)).to.equal(true);
-    console.log("Validator whilisted before: ", validator);
   }
   // **** Upgrade Universal Verifier ****
   await universalVerifierMigrationHelper.upgradeContract(universalVerifierContract);
@@ -91,7 +86,6 @@ async function main() {
 
   for (const validator of whitelistedValidators) {
     expect(await universalVerifierContract.isWhitelistedValidator(validator)).to.equal(true);
-    console.log("Validator whilisted after: ", validator);
   }
 
   expect(universalVerifierOwnerAddressBefore).to.equal(universalVerifierOwnerAddressAfter);
@@ -170,9 +164,12 @@ async function TestStateUpgrade() {
 }
 
 async function TestVerification(verifier: Contract, validatorV3Address: string) {
-  const requestId = 5;
+  const requestId = 112233;
   await setZKPRequest_KYCAgeCredential(requestId, verifier, validatorV3Address);
-  await submitZKPResponseV2_KYCAgeCredential(requestId, verifier);
+  await submitZKPResponses_KYCAgeCredential(requestId, verifier, {
+    stateContractAddress,
+    verifierContractAddress: universalVerifierContractAddress,
+  });
 }
 
 main()

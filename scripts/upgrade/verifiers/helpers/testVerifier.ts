@@ -1,31 +1,297 @@
-import { Contract, ethers } from "ethers";
+import { Contract } from "ethers";
 import { calculateQueryHashV3 } from "../../../../test/utils/query-hash-utils";
 import { packV3ValidatorParams } from "../../../../test/utils/validator-pack-utils";
-import { Blockchain, DID, DidMethod, NetworkId } from "@iden3/js-iden3-core";
-import { buildVerifierId } from "../../../deployStateCrossChainFullSet";
+import {
+  Blockchain,
+  buildDIDType,
+  BytesHelper,
+  DID,
+  DidMethod,
+  genesisFromEthAddress,
+  Id,
+  NetworkId,
+} from "@iden3/js-iden3-core";
 import hre from "hardhat";
+import { Hex } from "@iden3/js-crypto";
+import {
+  initCircuitStorage,
+  initInMemoryDataStorageAndWallets,
+  initProofService,
+} from "./walletSetup";
+import {
+  CircuitId,
+  core,
+  CredentialRequest,
+  CredentialStatusType,
+  hexToBytes,
+  ProofGenerationOptions,
+  ProofService,
+  ProofType,
+  ZeroKnowledgeProofRequest,
+} from "@0xpolygonid/js-sdk";
+import { ProofData } from "@iden3/js-jwz";
+import { packCrossChainProofs, packZKProof } from "../../../../test/utils/packData";
 
-export async function submitZKPResponseV2_KYCAgeCredential(requestId: number, verifier: Contract) {
+const chainId = 80002;
+const rhsUrl = "https://rhs-staging.polygonid.me";
+const rpcUrl = "http://localhost:8545";
+
+function createKYCAgeCredential(did: core.DID, birthday: number) {
+  const credentialRequest: CredentialRequest = {
+    credentialSchema:
+      "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json/KYCAgeCredential-v3.json",
+    type: "KYCAgeCredential",
+    credentialSubject: {
+      id: did.string(),
+      birthday: birthday,
+      documentType: 99,
+    },
+    expiration: 12345678888,
+    revocationOpts: {
+      type: CredentialStatusType.Iden3ReverseSparseMerkleTreeProof,
+      id: rhsUrl,
+    },
+  };
+  return credentialRequest;
+}
+
+function createKYCAgeCredentialRequest(
+  requestId: number,
+  circuitId: CircuitId,
+  credentialRequest: CredentialRequest,
+): ZeroKnowledgeProofRequest {
+  const proofReq: ZeroKnowledgeProofRequest = {
+    id: requestId,
+    circuitId,
+    optional: false,
+    query: {
+      allowedIssuers: ["*"],
+      type: credentialRequest.type,
+      context:
+        "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
+      credentialSubject: {
+        birthday: {
+          $lt: 20020101,
+        },
+      },
+    },
+  };
+
+  const proofReqV3: ZeroKnowledgeProofRequest = {
+    id: requestId,
+    circuitId: CircuitId.AtomicQueryV3OnChain,
+    params: {
+      nullifierSessionId: 11837215,
+    },
+    query: {
+      groupId: 0,
+      allowedIssuers: ["*"],
+      proofType: ProofType.BJJSignature,
+      type: credentialRequest.type,
+      context:
+        "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
+      credentialSubject: {
+        birthday: {
+          $lt: 20020101,
+        },
+      },
+    },
+  };
+
+  if (circuitId === CircuitId.AtomicQueryV3OnChain) {
+    return proofReqV3;
+  }
+  return proofReq;
+}
+
+async function generateProof(
+  circuitId: CircuitId,
+  credentialRequest: CredentialRequest,
+  userDID: core.DID,
+  requestId: number,
+  proofService: ProofService,
+  opts?: ProofGenerationOptions,
+) {
+  const proofReq: ZeroKnowledgeProofRequest = createKYCAgeCredentialRequest(
+    requestId,
+    circuitId,
+    credentialRequest,
+  );
+
+  const { proof, pub_signals } = await proofService.generateProof(proofReq, userDID, opts);
+
+  return { proof, pub_signals };
+}
+
+function buildVerifierId(
+  address: string,
+  info: { method: string; blockchain: string; networkId: string },
+): Id {
+  address = address.replace("0x", "");
+  const ethAddrBytes = Hex.decodeString(address);
+  const ethAddr = ethAddrBytes.slice(0, 20);
+  const genesis = genesisFromEthAddress(ethAddr);
+
+  const tp = buildDIDType(info.method, info.blockchain, info.networkId);
+
+  return new Id(tp, genesis);
+}
+
+function prepareProof(proof: ProofData) {
+  const { pi_a, pi_b, pi_c } = proof;
+  const [[p1, p2], [p3, p4]] = pi_b;
+  const preparedProof = {
+    pi_a: pi_a.slice(0, 2),
+    pi_b: [
+      [p2, p1],
+      [p4, p3],
+    ],
+    pi_c: pi_c.slice(0, 2),
+  };
+
+  return { ...preparedProof };
+}
+
+export async function submitZKPResponses_KYCAgeCredential(
+  requestId: number,
+  verifier: Contract,
+  opts: any,
+) {
   console.log("================= submitZKPResponseV2 V3 SIG KYCAgeCredential ===================");
 
   const [signer] = await hre.ethers.getSigners();
   console.log(signer.address);
-  /*const provider = new ethers.JsonRpcProvider("http://localhost:8545");
-  const signer = new ethers.Wallet(
-    "57d689f9a9334c1c0f72f1d4bd492d990e5061c9cf01cccdc37f2e292689ad1e",
-    provider,
-  ); */
+
+  const {
+    dataStorage: issuerDataStorage,
+    credentialWallet: issuerCredentialWallet,
+    identityWallet: issuerIdentityWallet,
+  } = await initInMemoryDataStorageAndWallets([
+    {
+      rpcUrl: rpcUrl,
+      contractAddress: opts.stateContractAddress,
+      chainId: chainId,
+    },
+  ]);
+
+  const {
+    dataStorage: userDataStorage,
+    credentialWallet: userCredentialWallet,
+    identityWallet: userIdentityWallet,
+  } = await initInMemoryDataStorageAndWallets([
+    {
+      rpcUrl: rpcUrl,
+      contractAddress: opts.stateContractAddress,
+      chainId: chainId,
+    },
+  ]);
+
+  const circuitStorage = await initCircuitStorage();
+  const userProofService = await initProofService(
+    userIdentityWallet,
+    userCredentialWallet,
+    userDataStorage.states,
+    circuitStorage,
+  );
+
+  const issuerProofService = await initProofService(
+    issuerIdentityWallet,
+    issuerCredentialWallet,
+    issuerDataStorage.states,
+    circuitStorage,
+  );
+
+  console.log("=============== user did ===============");
+  const { did: userDID } = await userIdentityWallet.createIdentity({
+    method: core.DidMethod.Iden3,
+    blockchain: core.Blockchain.Polygon,
+    networkId: core.NetworkId.Amoy,
+    revocationOpts: {
+      type: CredentialStatusType.Iden3ReverseSparseMerkleTreeProof,
+      id: rhsUrl,
+    },
+  });
+
+  console.log(userDID.string());
+
+  console.log("=============== issuer did ===============");
+  const { did: issuerDID } = await issuerIdentityWallet.createIdentity({
+    method: core.DidMethod.Iden3,
+    blockchain: core.Blockchain.Polygon,
+    networkId: core.NetworkId.Amoy,
+    revocationOpts: {
+      type: CredentialStatusType.Iden3ReverseSparseMerkleTreeProof,
+      id: rhsUrl,
+    },
+  });
+  console.log(issuerDID.string());
+
+  console.log("=============== issue kyc credential ===============");
+  // credential is issued on the profile!
+  const profileDID = await userIdentityWallet.createProfile(userDID, 50, issuerDID.string());
+  const credentialRequest = createKYCAgeCredential(profileDID, 19960424);
+  const credential = await issuerIdentityWallet.issueCredential(issuerDID, credentialRequest);
+
+  await issuerDataStorage.credential.saveCredential(credential);
+  await userDataStorage.credential.saveCredential(credential);
+
+  const challenge = BytesHelper.bytesToInt(hexToBytes(await signer.getAddress()));
+
+  console.log("================= generate V3 Sig proof ===================");
+  // Verifier Id in the verifier network
+  const verifierId = buildVerifierId(opts.verifierContractAddress, {
+    blockchain: Blockchain.Polygon,
+    networkId: NetworkId.Amoy,
+    method: DidMethod.Iden3,
+  });
+
+  const { proof: proofV3Sig, pub_signals: pub_signalsV3Sig } = await generateProof(
+    CircuitId.AtomicQueryV3OnChain,
+    credentialRequest,
+    profileDID,
+    requestId,
+    userProofService,
+    {
+      verifierDid: DID.parseFromId(verifierId),
+      challenge: BigInt(challenge),
+      skipRevocation: false,
+    },
+  );
+  const preparedProofV3Sig = prepareProof(proofV3Sig);
+
+  console.log("================= submitZKPResponse V3 Sig proof ===================");
+  const txSubmitZKPResponse_V3Sig = await verifier
+    .connect(signer)
+    .submitZKPResponse(
+      requestId,
+      pub_signalsV3Sig,
+      preparedProofV3Sig.pi_a,
+      preparedProofV3Sig.pi_b,
+      preparedProofV3Sig.pi_c,
+    );
+  const receiptV3Sig_old = await txSubmitZKPResponse_V3Sig.wait();
+  console.log(`txSubmitZKPResponse V3 Sig Proof gas consumed: `, receiptV3Sig_old.gasUsed);
+
+  console.log("================= submitZKPResponseV2 V3 Sig proof ===================");
+  const crossChainProofs = packCrossChainProofs([]);
+  const metadatas = "0x";
+
+  const zkProofV3Sig = packZKProof(
+    pub_signalsV3Sig,
+    preparedProofV3Sig.pi_a,
+    preparedProofV3Sig.pi_b,
+    preparedProofV3Sig.pi_c,
+  );
 
   const txSubmitZKPResponseV2_V3Sig = await verifier.connect(signer).submitZKPResponseV2(
     [
       {
-        requestId: requestId,
-        zkProof:
-          "0x00000000000000000000000000000000000000000000000000000000000001201cb20dcc9646913c365643c352c43252992c8b5d0d9485987fddc19a9e217465248f653576543e74d2c25fe478393d576c76a7ff4a9d67df44fee138b7269f61063131064c862b5f0bc804e489db1f4980e2ea7f9f0b0e014699d9488d914ffa1ebc920717098214fa1ddd62550c2e2e52d4067b0f7ce4728455087e8a77cf1a12c7834f023dbe2ad36a8a4db92f9db1fa55ca670a5cd43a8765e5330cdd98671f33d78f47be087dce0a0fef211353e17c27a3e3702a9647d68e0a8db6aacd4711bdb6195759583b42f33ba529eb687ef2dd17013db3e2238ca7ee364be93fa614a28119247fe1e02956796a1ddb47c74f2cf377d120e87f7f32af0899b69167000000000000000000000000000000000000000000000000000000000000000e000c9811c3658ef37990ef27cd48ca08d91d694e0dcc498918e7721d1040a1012b7443000ef33fea860985147edf86593b918a0038d32bafcafad7274929bfda056324c3738c1ec5ac39adf6c152bac5136cfb0eee85bb51f9f422d05f22c7d30000000000000000000000000000000000000000000000000000000000000000007f6d05b407d0f977e64b62a68cc517210c13bff189ae74d6ceb7741f4c06900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000050000000000000000000000006622b9ffcf797282b86acef4f688ad1ae5d69ff30000000000000000000000000000000000000000000000000000000000000000000f25056324c3738c1ec5ac39adf6c152bac5136cfb0eee85bb51f9f422c301247623dbddbfd548d58dd3b32d169374685fa9bb74101cb6bebd7765d0d1cf1d0000000000000000000000000000000000000000000000000000000066db1ca60000000000000000000000000000000000000000000000000000000000000001",
-        data: "0x",
+        requestId,
+        zkProof: zkProofV3Sig,
+        data: metadatas,
       },
     ],
-    "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000002400000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000010676c6f62616c537461746550726f6f6600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000066db1caa01a10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000412b146a50434105104fddbf627a1bd349507a0119f92bc93ed56b4037e098f2390318205fb49aacac129ec904f9a269ff1c2067c8c481c0cd6e158dbe6d9710811c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000a737461746550726f6f6600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000066db1caa000f25056324c3738c1ec5ac39adf6c152bac5136cfb0eee85bb51f9f422c301247623dbddbfd548d58dd3b32d169374685fa9bb74101cb6bebd7765d0d1cf1d000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000041736d0861c84ffc047441b8042b7f8700f4705003f9aad227533a27b5336fb586167458b42dda28516d20420c772c8873cc6eba10cead7961423a6cc1a292b6721c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000a737461746550726f6f6600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000066db1caa000f25056324c3738c1ec5ac39adf6c152bac5136cfb0eee85bb51f9f422c3012eaea58e1fed3c2ad52c433e8a72b3d61e5e354fef0507ad594f5b53863ccd320000000000000000000000000000000000000000000000000000000066db1c9900000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000412c8f5564e1bcea52b14fc6144f931a0e2d0212f408ea6d2c1be74b8d111137d3681a02dc366fb8f3262a115430f088d7c14db6731ae64b218cef8990593ac0251b00000000000000000000000000000000000000000000000000000000000000",
+    crossChainProofs,
   );
 
   const receiptV3Sig = await txSubmitZKPResponseV2_V3Sig.wait();
