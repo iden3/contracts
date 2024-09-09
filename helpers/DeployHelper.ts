@@ -449,9 +449,19 @@ export class DeployHelper {
     const owner = this.signers[0];
 
     this.log("upgrading validator...");
-    const ValidatorFactory = await ethers.getContractFactory(validatorContractName);
-    const validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory);
-    await validator.waitForDeployment();
+    const ValidatorFactory = await ethers.getContractFactory(validatorContractName, {
+      signer: owner,
+    });
+    let validator: Contract;
+    try {
+      validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory);
+      await validator.waitForDeployment();
+    } catch (e) {
+      this.log("Error upgrading proxy. Forcing import...");
+      await upgrades.forceImport(validatorAddress, ValidatorFactory);
+      validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory);
+      await validator.waitForDeployment();
+    }
     this.log(
       `Validator ${validatorContractName} upgraded at address ${await validator.getAddress()} from ${await owner.getAddress()}`,
     );

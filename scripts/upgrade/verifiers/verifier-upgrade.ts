@@ -3,6 +3,7 @@ import { ethers } from "hardhat";
 import { UniversalVerifierContractMigrationHelper } from "../../../helpers/UniversalVerifierContractMigrationHelper";
 import * as universalVerifierArtifact from "../../../artifacts/contracts/verifiers/UniversalVerifier.sol/UniversalVerifier.json";
 import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/State.json";
+import * as verifierV3Artifact from "../../../artifacts/contracts/validators/CredentialAtomicQueryV3Validator.sol/CredentialAtomicQueryV3Validator.json";
 import { expect } from "chai";
 import { Contract } from "ethers";
 import { StateContractMigrationHelper } from "../../../helpers/StateContractMigrationHelper";
@@ -16,6 +17,12 @@ const proxyAdminOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
 const universalVerifierContractAddress = "0x1B20320042b29AE5c1a3ADc1674cb6bF8760530f";
 const universalVerifierOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
 const stateContractAddress = "0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124";
+const validatorSigContractAddress = "0x8c99F13dc5083b1E4c16f269735EaD4cFbc4970d";
+const validatorMTPContractAddress = "0xEEd5068AD8Fecf0b9a91aF730195Fef9faB00356";
+const validatorV3ContractAddress = "0xa5f08979370AF7095cDeDb2B83425367316FAD0B";
+const validatorSigContractName = "CredentialAtomicQuerySigV2Validator";
+const validatorMTPContractName = "CredentialAtomicQueryMTPV2Validator";
+const validatorV3ContractName = "CredentialAtomicQueryV3Validator";
 const impersonate = true;
 
 // Hardhat localhost
@@ -46,16 +53,17 @@ async function getSigners(useImpersonation: boolean): Promise<any> {
 
 async function main() {
   console.log("Starting Universal Verifier Contract Upgrade");
-  await TestStateUpgrade();
   const { proxyAdminOwnerSigner, universalVerifierOwnerSigner } = await getSigners(impersonate);
 
-  const universalVerifierDeployHelper = await DeployHelper.initialize(
+  const deployerHelper = await DeployHelper.initialize(
     [proxyAdminOwnerSigner, universalVerifierOwnerSigner],
     true,
   );
 
+  await TestStateUpgrade(deployerHelper, proxyAdminOwnerSigner);
+
   const universalVerifierMigrationHelper = new UniversalVerifierContractMigrationHelper(
-    universalVerifierDeployHelper,
+    deployerHelper,
     proxyAdminOwnerSigner,
   );
 
@@ -103,53 +111,52 @@ async function main() {
   const tx = await universalVerifierContract.setState(state);
   await tx.wait();
 
-  console.log("Adding new validators");
-  // Add new validators
-  const { validator: validatorMTP } = await universalVerifierDeployHelper.deployValidatorContracts(
-    "VerifierMTPWrapper",
-    "CredentialAtomicQueryMTPV2Validator",
-    stateContractAddress,
-  );
-  const { validator: validatorSig } = await universalVerifierDeployHelper.deployValidatorContracts(
-    "VerifierSigWrapper",
-    "CredentialAtomicQuerySigV2Validator",
-    stateContractAddress,
-  );
-  const { validator: validatorV3 } = await universalVerifierDeployHelper.deployValidatorContracts(
+  console.log("Upgrading validators and adding them to whitelist...");
+
+  const validators = [
+    {
+      validatorContractAddress: validatorMTPContractAddress,
+      validatorContractName: validatorMTPContractName,
+    },
+    {
+      validatorContractAddress: validatorSigContractAddress,
+      validatorContractName: validatorSigContractName,
+    },
+    {
+      validatorContractAddress: validatorV3ContractAddress,
+      validatorContractName: validatorV3ContractName,
+    },
+  ];
+
+  for (const v of validators) {
+    const { validator } = await deployerHelper.upgradeValidator(
+      v.validatorContractAddress,
+      v.validatorContractName,
+    );
+    await validator.waitForDeployment();
+    /* console.log("Validator upgraded!!!");
+    const addToWhiteListTx = await universalVerifierContract.addValidatorToWhitelist(
+      v.validatorContractAddress,
+    );
+    await addToWhiteListTx.wait();
+    console.log("Validator whitelisted!!!");*/
+  }
+
+  /* const { validator: validatorV3 } = await deployerHelper.deployValidatorContracts(
     "VerifierV3Wrapper",
     "CredentialAtomicQueryV3Validator",
     stateContractAddress,
   );
-
-  const addToWhiteList1 = await universalVerifierContract.addValidatorToWhitelist(
-    await validatorSig.getAddress(),
-  );
-  await addToWhiteList1.wait();
-  const addToWhiteList2 = await universalVerifierContract.addValidatorToWhitelist(
-    await validatorMTP.getAddress(),
-  );
-  await addToWhiteList2.wait();
   const addToWhiteList3 = await universalVerifierContract.addValidatorToWhitelist(
     await validatorV3.getAddress(),
   );
-  await addToWhiteList3.wait();
-
+  await addToWhiteList3.wait(); */
   console.log("Testing verifiation with submitZKPResponseV2 after migration...");
-  await TestVerification(universalVerifierContract, await validatorV3.getAddress());
+  await TestVerification(universalVerifierContract, validatorV3ContractAddress);
 }
 
-async function TestStateUpgrade() {
-  const { proxyAdminOwnerSigner, universalVerifierOwnerSigner } = await getSigners(impersonate);
-
-  const stateDeployHelper = await DeployHelper.initialize(
-    [proxyAdminOwnerSigner, universalVerifierOwnerSigner],
-    true,
-  );
-
-  const stateMigrationHelper = new StateContractMigrationHelper(
-    stateDeployHelper,
-    proxyAdminOwnerSigner,
-  );
+async function TestStateUpgrade(deployHelper: DeployHelper, signer: any) {
+  const stateMigrationHelper = new StateContractMigrationHelper(deployHelper, signer);
 
   const stateContract = await stateMigrationHelper.getInitContract({
     contractNameOrAbi: stateArtifact.abi,
