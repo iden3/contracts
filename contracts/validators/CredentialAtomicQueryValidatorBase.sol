@@ -11,7 +11,6 @@ import {PoseidonFacade} from "../lib/Poseidon.sol";
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
 import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
 import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGetters.sol";
-
 abstract contract CredentialAtomicQueryValidatorBase is
     Ownable2StepUpgradeable,
     ICircuitValidator,
@@ -186,6 +185,14 @@ abstract contract CredentialAtomicQueryValidatorBase is
             storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
         bytes2 idType = GenesisUtils.getIdType(_id);
         uint256 replacedAt = _stateWGetters.getGistRootReplacedAt(idType, _gistRoot);
+        if (block.timestamp < replacedAt) {
+            // to avoid "Arithmetic operation overflowed outside of an unchecked block"
+            // if replacedAt is in the future due to some differences 
+            // in different blockchains block.timestamp
+            
+            revert("Gist root is in the future");
+            // replacedAt = block.timestamp; // to test in forked networks
+        }
         if (replacedAt != 0 && block.timestamp - replacedAt > $.gistRootExpirationTimeout) {
             revert("Gist root is expired");
         }
@@ -214,9 +221,17 @@ abstract contract CredentialAtomicQueryValidatorBase is
         }
 
         CredentialAtomicQueryValidatorBaseStorage
-            storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
+        storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
         uint256 replacedAt = _stateWGetters.getStateReplacedAt(_id, _claimNonRevState);
 
+        if (block.timestamp < replacedAt) {
+            // to avoid "Arithmetic operation overflowed outside of an unchecked block"
+            // if replacedAt is in the future due to some differences 
+            // in different blockchains block.timestamp
+            
+            revert("Non-Revocation state of Issuer is in the future");
+            //replacedAt = block.timestamp; // to test in forked networks
+        }
         if (replacedAt != 0 && block.timestamp - replacedAt > $.revocationStateExpirationTimeout) {
             revert("Non-Revocation state of Issuer expired");
         }

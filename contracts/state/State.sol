@@ -217,6 +217,15 @@ contract State is Ownable2StepUpgradeable, IState, IStateCrossChain {
     }
 
     /**
+     * @dev Get Oracle proof validator contract address
+     * @return verifier contract address
+     */
+    function getOracleProofValidator() external view returns (address) {
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+        return address($._oracleProofValidator);
+    }
+    
+    /**
      * @dev Check if id type supported
      * @return bool
      */

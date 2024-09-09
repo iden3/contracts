@@ -65,26 +65,26 @@ const config: HardhatUserConfig = {
     //     blockNumber: 46689454,
     //   },
     // },
-    // hardhat: {
-    //   chainId: 80002,
-    //   forking: {
-    //     url: `${process.env.AMOY_RPC_URL}`,
-    //     blockNumber: 11600091,
-    //   },
-    //   chains: {
-    //     80002: {
-    //       hardforkHistory: {
-    //         london: 10000000,
-    //       },
-    //     },
-    //   },
-    //   accounts: [
-    //     {
-    //       privateKey: process.env.AMOY_PRIVATE_KEY as string,
-    //       balance: "1000000000000000000000000",
-    //     },
-    //   ],
-    // },
+    hardhat: {
+      chainId: 80002,
+      forking: {
+        url: `${process.env.AMOY_RPC_URL}`,
+        // blockNumber: 11600091,
+      },
+      chains: {
+        80002: {
+          hardforkHistory: {
+            london: 10000000,
+          },
+        },
+      },
+      accounts: [
+        {
+          privateKey: process.env.AMOY_PRIVATE_KEY as string,
+          balance: "1000000000000000000000000",
+        },
+      ],
+    },
     // hardhat: {
     //   chainId: 80001,
     //   forking: {
@@ -121,12 +121,12 @@ const config: HardhatUserConfig = {
     // },
     localhost: {
       url: "http://127.0.0.1:8545",
-      accounts: {
+      /* accounts: {
         mnemonic: DEFAULT_MNEMONIC,
         path: "m/44'/60'/0'/0",
         initialIndex: 0,
         count: 20,
-      },
+      }, */
     },
   },
   gasReporter: {

@@ -129,41 +129,27 @@ export class DeployHelper {
   async upgradeState(
     stateAddress: string,
     redeployVerifier = true,
+    redeployOracleProofValidator = true,
     verifierContractName = "VerifierStateTransition",
     stateContractName = "State",
+    oracleProofValidatorContractName = "OracleProofValidator",
   ): Promise<{
     state: Contract;
     verifier: Contract;
+    oracleProofValidator: Contract;
     smtLib: Contract;
     stateLib: Contract;
-    crossChainStateLib: Contract;
+    stateCrossChainLib: Contract;
     poseidon1: Contract;
     poseidon2: Contract;
     poseidon3: Contract;
   }> {
     this.log("======== State: upgrade started ========");
 
-    let stateContract: Contract = await ethers.getContractAt("State", stateAddress);
+    // let stateContract: Contract = await ethers.getContractAt("State", stateAddress);
 
     const proxyAdminOwner = this.signers[0];
-    const stateAdminOwner = this.signers[1];
-
-    this.log("deploying verifier...");
-
-    let verifierContract: Contract;
-    if (redeployVerifier) {
-      const verifierFactory = await ethers.getContractFactory(verifierContractName);
-      verifierContract = await verifierFactory.deploy();
-      await verifierContract.waitForDeployment();
-      this.log(
-        `${verifierContractName} contract deployed to address ${await verifierContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
-      );
-    } else {
-      verifierContract = await ethers.getContractAt(
-        "VerifierStateTransition",
-        await stateContract.getVerifier(),
-      );
-    }
+    // const stateAdminOwner = this.signers[1];
 
     this.log("deploying poseidons...");
     const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons(
@@ -181,7 +167,7 @@ export class DeployHelper {
     const stateLib = await this.deployStateLib();
 
     this.log("deploying StateCrossChainLib...");
-    const crossChainStateLib = await this.deployStateCrossChainLib();
+    const stateCrossChainLib = await this.deployStateCrossChainLib();
 
     this.log("upgrading state...");
 
@@ -198,11 +184,11 @@ export class DeployHelper {
       libraries: {
         StateLib: await stateLib.getAddress(),
         SmtLib: await smtLib.getAddress(),
-        CrossChainStateLib: await crossChainStateLib.getAddress(),
         PoseidonUnit1L: await poseidon1Elements.getAddress(),
+        StateCrossChainLib: await stateCrossChainLib.getAddress(),
       },
     });
-    stateContract = await upgrades.upgradeProxy(stateAddress, StateFactory, {
+    const stateContract = await upgrades.upgradeProxy(stateAddress, StateFactory, {
       unsafeAllowLinkedLibraries: true,
     });
     await stateContract.waitForDeployment();
@@ -210,13 +196,51 @@ export class DeployHelper {
       `State contract upgraded at address ${await stateContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
     );
 
+    this.log("deploying verifier...");
+
+    let verifierContract: Contract;
+    if (redeployVerifier) {
+      const verifierFactory = await ethers.getContractFactory(verifierContractName);
+      verifierContract = await verifierFactory.deploy();
+      await verifierContract.waitForDeployment();
+      this.log(
+        `${verifierContractName} contract deployed to address ${await verifierContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
+      );
+      const tx = await stateContract.setVerifier(await verifierContract.getAddress());
+      await tx.wait();
+    } else {
+      verifierContract = await ethers.getContractAt(
+        verifierContractName,
+        await stateContract.getVerifier(),
+      );
+    }
+
+    this.log("deploying oracleProofValidator...");
+
+    let opvContract: Contract;
+    if (redeployOracleProofValidator) {
+      opvContract = await this.deployOracleProofValidator(oracleProofValidatorContractName);
+      await opvContract.waitForDeployment();
+      this.log(
+        `${oracleProofValidatorContractName} contract deployed to address ${await opvContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
+      );
+      const tx = await stateContract.setOracleProofValidator(opvContract);
+      await tx.wait();
+    } else {
+      opvContract = await ethers.getContractAt(
+        oracleProofValidatorContractName,
+        await stateContract.getOracleProofValidator(),
+      );
+    }
+
     this.log("======== State: upgrade completed ========");
     return {
       state: stateContract,
       verifier: verifierContract,
+      oracleProofValidator: opvContract,
       smtLib,
       stateLib,
-      crossChainStateLib,
+      stateCrossChainLib,
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
@@ -447,8 +471,8 @@ export class DeployHelper {
   }> {
     this.log("======== Verifier: upgrade started ========");
 
-    this.log("deploying StateLib...");
-    const verifierLib = await this.deployStateLib();
+    this.log("deploying verifierLib...");
+    const verifierLib = await this.deployVerifierLib();
 
     const proxyAdminOwner = this.signers[0];
     this.log("upgrading verifier...");
