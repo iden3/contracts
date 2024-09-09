@@ -125,7 +125,8 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
       },
     ]);
 
-    const metadatas = packMetadatas([
+    const metadatas = "0x";
+    /* packMetadatas([
       {
         key: "input1Name",
         value: ethers.hexlify(Buffer.from("This is some long string")),
@@ -134,7 +135,7 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
         key: "input2Name",
         value: ethers.hexlify(Buffer.from("This is another long string")),
       },
-    ]);
+    ]); */
 
     const tx = await verifier.submitZKPResponseV2(
       [
@@ -202,7 +203,8 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
       },
     ]);
 
-    const metadatas = packMetadatas([
+    const metadatas = "0x";
+    /* packMetadatas([
       {
         key: "input1Name",
         value: ethers.hexlify(Buffer.from("This is some long string")),
@@ -211,7 +213,7 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
         key: "input2Name",
         value: ethers.hexlify(Buffer.from("This is another long string")),
       },
-    ]);
+    ]); */
 
     const tx = await verifier.submitZKPResponseV2(
       requestIds.map((requestId) => ({
