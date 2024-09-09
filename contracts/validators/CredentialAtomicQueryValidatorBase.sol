@@ -191,7 +191,6 @@ abstract contract CredentialAtomicQueryValidatorBase is
             // in different blockchains block.timestamp
             
             revert("Gist root is in the future");
-            // replacedAt = block.timestamp; // to test in forked networks
         }
         if (replacedAt != 0 && block.timestamp - replacedAt > $.gistRootExpirationTimeout) {
             revert("Gist root is expired");
@@ -230,7 +229,6 @@ abstract contract CredentialAtomicQueryValidatorBase is
             // in different blockchains block.timestamp
             
             revert("Non-Revocation state of Issuer is in the future");
-            //replacedAt = block.timestamp; // to test in forked networks
         }
         if (replacedAt != 0 && block.timestamp - replacedAt > $.revocationStateExpirationTimeout) {
             revert("Non-Revocation state of Issuer expired");
