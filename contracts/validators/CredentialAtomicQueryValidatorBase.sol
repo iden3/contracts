@@ -187,9 +187,9 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256 replacedAt = _stateWGetters.getGistRootReplacedAt(idType, _gistRoot);
         if (block.timestamp < replacedAt) {
             // to avoid "Arithmetic operation overflowed outside of an unchecked block"
-            // if replacedAt is in the future due to some differences 
+            // if replacedAt is in the future due to some differences
             // in different blockchains block.timestamp
-            
+
             revert("Gist root is in the future");
         }
         if (replacedAt != 0 && block.timestamp - replacedAt > $.gistRootExpirationTimeout) {
@@ -220,14 +220,14 @@ abstract contract CredentialAtomicQueryValidatorBase is
         }
 
         CredentialAtomicQueryValidatorBaseStorage
-        storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
+            storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
         uint256 replacedAt = _stateWGetters.getStateReplacedAt(_id, _claimNonRevState);
 
         if (block.timestamp < replacedAt) {
             // to avoid "Arithmetic operation overflowed outside of an unchecked block"
-            // if replacedAt is in the future due to some differences 
+            // if replacedAt is in the future due to some differences
             // in different blockchains block.timestamp
-            
+
             revert("Non-Revocation state of Issuer is in the future");
         }
         if (replacedAt != 0 && block.timestamp - replacedAt > $.revocationStateExpirationTimeout) {

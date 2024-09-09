@@ -224,7 +224,7 @@ contract State is Ownable2StepUpgradeable, IState, IStateCrossChain {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
         return address($._oracleProofValidator);
     }
-    
+
     /**
      * @dev Check if id type supported
      * @return bool
