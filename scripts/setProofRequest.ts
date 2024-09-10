@@ -2,7 +2,7 @@ import hre, { ethers } from "hardhat";
 import { packValidatorParams } from "../test/utils/validator-pack-utils";
 import { calculateQueryHashV2 } from "../test/utils/query-hash-utils";
 import { Blockchain, DidMethod, NetworkId, DID } from "@iden3/js-iden3-core";
-import { buildVerifierId } from "./deployStateCrossChainFullSet";
+import { buildVerifierId } from "./deployCrossChainVerifierWithRequests";
 
 async function main() {
   const chainId = hre.network.config.chainId;
