@@ -92,9 +92,32 @@ const config: HardhatUserConfig = {
     gasPriceApi: "https://api.polygonscan.com/api?module=proxy&action=eth_gasPrice", // MATIC
     // gasPriceAPI: "https://api.etherscan.io/api?module=proxy&action=eth_gasPrice", // ETH
   },
-  // etherscan: {
-  //     apiKey: "etherscan API key"
-  // }
+  etherscan: {
+    apiKey: {
+      amoy: process.env.POLYGON_API_KEY || "",
+      polygon: process.env.POLYGON_API_KEY || "",
+      linea: process.env.LINEA_API_KEY || "",
+      "linea-sepolia": process.env.LINEA_API_KEY || "",
+    },
+    customChains: [
+      {
+        network: "amoy",
+        chainId: 80002,
+        urls: {
+          apiURL: "https://api-amoy.polygonscan.com/api",
+          browserURL: "https://docs.polygonscan.com",
+        },
+      },
+      {
+        network: "linea-sepolia",
+        chainId: 59141,
+        urls: {
+          apiURL: "https://api-sepolia.lineascan.build/api",
+          browserURL: "https://sepolia.lineascan.build",
+        },
+      },
+    ],
+  },
 };
 
 export default config;
