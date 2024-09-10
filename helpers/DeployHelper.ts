@@ -454,12 +454,16 @@ export class DeployHelper {
     });
     let validator: Contract;
     try {
-      validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory);
+      validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory, {
+        redeployImplementation: "always",
+      });
       await validator.waitForDeployment();
     } catch (e) {
       this.log("Error upgrading proxy. Forcing import...");
       await upgrades.forceImport(validatorAddress, ValidatorFactory);
-      validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory);
+      validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory, {
+        redeployImplementation: "always",
+      });
       await validator.waitForDeployment();
     }
     this.log(

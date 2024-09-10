@@ -3,7 +3,6 @@ import { ethers } from "hardhat";
 import { UniversalVerifierContractMigrationHelper } from "../../../helpers/UniversalVerifierContractMigrationHelper";
 import * as universalVerifierArtifact from "../../../artifacts/contracts/verifiers/UniversalVerifier.sol/UniversalVerifier.json";
 import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/State.json";
-import * as verifierV3Artifact from "../../../artifacts/contracts/validators/CredentialAtomicQueryV3Validator.sol/CredentialAtomicQueryV3Validator.json";
 import { expect } from "chai";
 import { Contract } from "ethers";
 import { StateContractMigrationHelper } from "../../../helpers/StateContractMigrationHelper";
@@ -134,23 +133,16 @@ async function main() {
       v.validatorContractName,
     );
     await validator.waitForDeployment();
-    /* console.log("Validator upgraded!!!");
-    const addToWhiteListTx = await universalVerifierContract.addValidatorToWhitelist(
+    console.log(`Validator ${v.validatorContractName} version:`, await validator.version());
+
+    // This is not the scope of upgrading but we could add the validators
+    // to the whitelist here so future requests can be verified by them
+    /* const addToWhiteListTx = await universalVerifierContract.addValidatorToWhitelist(
       v.validatorContractAddress,
     );
-    await addToWhiteListTx.wait();
-    console.log("Validator whitelisted!!!");*/
+    await addToWhiteListTx.wait(); */
   }
 
-  /* const { validator: validatorV3 } = await deployerHelper.deployValidatorContracts(
-    "VerifierV3Wrapper",
-    "CredentialAtomicQueryV3Validator",
-    stateContractAddress,
-  );
-  const addToWhiteList3 = await universalVerifierContract.addValidatorToWhitelist(
-    await validatorV3.getAddress(),
-  );
-  await addToWhiteList3.wait(); */
   console.log("Testing verifiation with submitZKPResponseV2 after migration...");
   await TestVerification(universalVerifierContract, validatorV3ContractAddress);
 }
