@@ -58,63 +58,20 @@ const config: HardhatUserConfig = {
     //   url: `${process.env.AMOY_RPC_URL}`,
     //   accounts: [`0x${process.env.AMOY_PRIVATE_KEY}`],
     // },
-    // hardhat: {
-    //   forking: {
-    //     url: `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    //     blockNumber: 46689454,
-    //   },
+    // cardona: {
+    //   chainId: 2442,
+    //   url: `https://rpc.cardona.zkevm-rpc.com`,
+    //   accounts: [`0x${process.env.CARDONA_ZKEVM_PRIVATE_KEY}`],
     // },
-    hardhat: {
-      chainId: 80002,
-      forking: {
-        url: `${process.env.AMOY_RPC_URL}`,
-      },
-      chains: {
-        80002: {
-          hardforkHistory: {
-            london: 10000000,
-          },
-        },
-      },
-      accounts: [
-        {
-          privateKey: process.env.AMOY_PRIVATE_KEY as string,
-          balance: "1000000000000000000000000",
-        },
-      ],
-    },
-    // hardhat: {
-    //   chainId: 80001,
-    //   forking: {
-    //     url: `https://polygon-mumbai.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
-    //     blockNumber: 47392227,
-    //   },
-    //   chains: {
-    //     80001: {
-    //       hardforkHistory: {
-    //         london: 20000000,
-    //       },
-    //     },
-    //   },
-    //   accounts: [
-    //     {
-    //       privateKey: process.env.MUMBAI_PRIVATE_KEY as string,
-    //       balance: "1000000000000000000000000",
-    //     },
-    //   ],
+    // zkevm: {
+    //   chainId: 1101,
+    //   url: `https://zkevm-rpc.com`,
+    //   accounts: [`0x${process.env.ZKEVM_PRIVATE_KEY}`],
     // },
     // hardhat: {
-    //   chainId: 137,
+    //   chainId: 2442,
     //   forking: {
-    //     url: `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
-    //     blockNumber: 55067427,
-    //   },
-    //   chains: {
-    //     137: {
-    //       hardforkHistory: {
-    //         london: 20000000,
-    //       },
-    //     },
+    //     url: `${process.env.RPC_URL}`,
     //   },
     // },
     localhost: {

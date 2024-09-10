@@ -12,13 +12,13 @@ import {
 } from "./helpers/testVerifier";
 
 // Amoy
-const proxyAdminOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
-const universalVerifierContractAddress = "0x1B20320042b29AE5c1a3ADc1674cb6bF8760530f";
-const universalVerifierOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
-const stateContractAddress = "0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124";
+const proxyAdminOwnerAddress = "0xE9D7fCDf32dF4772A7EF7C24c76aB40E4A42274a";
+const universalVerifierContractAddress = "0xB752Eec418f178ac8B48f15962B55c37F8D4748d";
+const universalVerifierOwnerAddress = "0x80203136fAe3111B810106bAa500231D4FD08FC6";
+const stateContractAddress = "0x58E6b2dd965B6f67eC3b3C6fB8832CB515C23531";
 const validatorSigContractAddress = "0x8c99F13dc5083b1E4c16f269735EaD4cFbc4970d";
 const validatorMTPContractAddress = "0xEEd5068AD8Fecf0b9a91aF730195Fef9faB00356";
-const validatorV3ContractAddress = "0xa5f08979370AF7095cDeDb2B83425367316FAD0B";
+const validatorV3ContractAddress = "0x48a16180b004726cc12bF55C61A2167Da16CA0f3";
 const validatorSigContractName = "CredentialAtomicQuerySigV2Validator";
 const validatorMTPContractName = "CredentialAtomicQueryMTPV2Validator";
 const validatorV3ContractName = "CredentialAtomicQueryV3Validator";
@@ -113,14 +113,14 @@ async function main() {
   console.log("Upgrading validators and adding them to whitelist...");
 
   const validators = [
-    {
-      validatorContractAddress: validatorMTPContractAddress,
-      validatorContractName: validatorMTPContractName,
-    },
-    {
-      validatorContractAddress: validatorSigContractAddress,
-      validatorContractName: validatorSigContractName,
-    },
+    // {
+    //   validatorContractAddress: validatorMTPContractAddress,
+    //   validatorContractName: validatorMTPContractName,
+    // },
+    // {
+    //   validatorContractAddress: validatorSigContractAddress,
+    //   validatorContractName: validatorSigContractName,
+    // },
     {
       validatorContractAddress: validatorV3ContractAddress,
       validatorContractName: validatorV3ContractName,
