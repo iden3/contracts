@@ -27,9 +27,9 @@ async function main() {
 
   for (const address of [validator1, validator2, validator3]) {
     const validator = await ethers.getContractAt("ICircuitValidator", address);
-    const name = await validator.getSupportedCircuitIds();
-    console.log(name[0]);
-    if (name[0] === circuitName) {
+    const circuitIds = await validator.getSupportedCircuitIds();
+    console.log(circuitIds[0]);
+    if (circuitIds[0] === circuitName) {
       validatorAddress = address;
       break;
     }

@@ -15,7 +15,7 @@ async function processMessages(
   ism: IdentityStateMessage,
   gsm: GlobalStateMessage,
   stateCrossChain,
-) {
+): Promise<string> {
   const isu: StateUpdate = {
     idStateMsg: ism,
     signature: "0x",
@@ -37,7 +37,13 @@ async function processMessages(
     },
   ]);
 
-  await expect(stateCrossChain.processProof(crossChainProof)).not.to.be.rejected;
+  try {
+    await stateCrossChain.processProof(crossChainProof);
+  } catch (e: any) {
+    return e.message;
+  }
+
+  return "";
 }
 
 describe("State Cross Chain", function () {
@@ -56,15 +62,17 @@ describe("State Cross Chain", function () {
   });
 
   it("Should process the messages without replacedAtTimestamp", async function () {
+    const currentTimestamp = BigInt(Math.floor(Date.now() / 1000));
+
     const ism: IdentityStateMessage = {
-      timestamp: 1724229639n,
+      timestamp: currentTimestamp,
       id: 25061242388220042378440625585145526395156084635704446088069097186261377537n,
       state: 289901420135126415231045754640573166676181332861318949204015443942679340619n,
       replacedAtTimestamp: 0n,
     };
 
     const gsm: GlobalStateMessage = {
-      timestamp: 1724339709n,
+      timestamp: currentTimestamp,
       idType: "0x01A1",
       root: 0n,
       replacedAtTimestamp: 0n,
@@ -80,15 +88,18 @@ describe("State Cross Chain", function () {
   });
 
   it("Should process the messages with replacedAtTimestamp", async function () {
+    const currentTimestamp = BigInt(Math.floor(Date.now() / 1000));
+
     const ism: IdentityStateMessage = {
-      timestamp: 1724229639n,
+      // current timestamp
+      timestamp: currentTimestamp,
       id: 25061242388220042378440625585145526395156084635704446088069097186261377537n,
       state: 289901420135126415231045754640573166676181332861318949204015443942679340619n,
       replacedAtTimestamp: 100n,
     };
 
     const gsm: GlobalStateMessage = {
-      timestamp: 1724339709n,
+      timestamp: currentTimestamp,
       idType: "0x01A1",
       root: 0n,
       replacedAtTimestamp: 100n,
@@ -110,5 +121,57 @@ describe("State Cross Chain", function () {
     await expect(stateCrossChain.getStateReplacedAt(10, 20)).to.be.rejectedWith(
       "State entry not found",
     );
+  });
+
+  it("Oracle timestamp should not be in the past", async function () {
+    const currentTimestamp = BigInt(Math.floor(Date.now() / 1000));
+
+    const ism: IdentityStateMessage = {
+      timestamp: currentTimestamp - 10n ** 6n,
+      id: 25061242388220042378440625585145526395156084635704446088069097186261377537n,
+      state: 289901420135126415231045754640573166676181332861318949204015443942679340619n,
+      replacedAtTimestamp: 0n,
+    };
+
+    const gsm: GlobalStateMessage = {
+      timestamp: currentTimestamp,
+      idType: "0x01A1",
+      root: 0n,
+      replacedAtTimestamp: 0n,
+    };
+
+    const result = await processMessages(ism, gsm, stateCrossChain);
+    expect(result).to.contain("Oracle timestamp cannot be in the past");
+  });
+
+  it("Oracle replacedAt or oracle timestamp cannot be in the future", async function () {
+    const currentTimestamp = BigInt(Math.floor(Date.now() / 1000));
+
+    let ism: IdentityStateMessage = {
+      timestamp: currentTimestamp,
+      id: 25061242388220042378440625585145526395156084635704446088069097186261377537n,
+      state: 289901420135126415231045754640573166676181332861318949204015443942679340619n,
+      replacedAtTimestamp: currentTimestamp + 10n ** 6n,
+    };
+
+    const gsm: GlobalStateMessage = {
+      timestamp: currentTimestamp,
+      idType: "0x01A1",
+      root: 0n,
+      replacedAtTimestamp: currentTimestamp + 10n ** 6n,
+    };
+
+    const result = await processMessages(ism, gsm, stateCrossChain);
+    expect(result).to.contain("Oracle replacedAt or oracle timestamp cannot be in the future");
+
+    ism = {
+      timestamp: currentTimestamp + 10n ** 6n,
+      id: 25061242388220042378440625585145526395156084635704446088069097186261377537n,
+      state: 289901420135126415231045754640573166676181332861318949204015443942679340619n,
+      replacedAtTimestamp: 0n,
+    };
+
+    const result2 = await processMessages(ism, gsm, stateCrossChain);
+    expect(result2).to.contain("Oracle replacedAt or timestamp cannot be in the future");
   });
 });

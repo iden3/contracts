@@ -24,7 +24,7 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
 
   const globalStateUpdate = {
     globalStateMsg: {
-      timestamp: 1724858029n,
+      timestamp: Math.floor(Date.now() / 1000),
       idType: "0x01A1",
       root: 0n,
       replacedAtTimestamp: 0n,
@@ -34,7 +34,7 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
 
   const identityStateUpdate1 = {
     idStateMsg: {
-      timestamp: 1724858029n,
+      timestamp: Math.floor(Date.now() / 1000),
       id: 25530185136167283063987925153802803371825564143650291260157676786685420033n,
       state: 4595702004868323299100310062178085028712435650290319955390778053863052230284n,
       replacedAtTimestamp: 0n,
@@ -44,7 +44,7 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
 
   const identityStateUpdate2 = {
     idStateMsg: {
-      timestamp: 1724858029n,
+      timestamp: Math.floor(Date.now() / 1000),
       id: 25530185136167283063987925153802803371825564143650291260157676786685420033n,
       state: 16775015541053109108201708100382933592407720757224325883910784163897594100403n,
       replacedAtTimestamp: 1724858009n,
