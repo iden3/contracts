@@ -195,10 +195,10 @@ library PrimitiveTypeUtils {
             // If we're on the last chunk and the data length isn't a full 31 bytes,
             // we need to mask out the extra bytes from the right
             // TODO fix it
-//            if (i == arrayLength - 1 && data.length % 31 != 0) {
-//                uint256 mask = (1 << (8 * (data.length % 31))) - 1;
-//                value = value & ~mask;
-//            }
+            //            if (i == arrayLength - 1 && data.length % 31 != 0) {
+            //                uint256 mask = (1 << (8 * (data.length % 31))) - 1;
+            //                value = value & ~mask;
+            //            }
 
             result[i] = value;
         }

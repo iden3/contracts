@@ -100,11 +100,7 @@ library StateLib {
      * @param id Identity
      * @param state State
      */
-    modifier onlyExistingState(
-        Data storage self,
-        uint256 id,
-        uint256 state
-    ) {
+    modifier onlyExistingState(Data storage self, uint256 id, uint256 state) {
         require(stateExists(self, id, state), "State does not exist");
         _;
     }
