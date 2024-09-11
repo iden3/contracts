@@ -34,7 +34,6 @@ export class DeployHelper {
     supportedIdTypes: string[] = [],
     verifierContractName: "VerifierStateTransition" | "VerifierStub" = "VerifierStateTransition",
     deployStrategy: "basic" | "create2" = "basic",
-    useOpenzeppelinPlugin = false,
   ): Promise<{
     state: Contract;
     verifier: Contract;
@@ -91,7 +90,7 @@ export class DeployHelper {
 
     this.log("deploying state...");
     let state;
-    if (useOpenzeppelinPlugin) {
+    if (deployStrategy === 'create2') {
       const StateFactory = await ethers.getContractFactory("State", {
         libraries: {
           StateLib: await stateLib.getAddress(),
@@ -236,54 +235,6 @@ export class DeployHelper {
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
-    };
-  }
-
-  async upgradeState2(
-    stateAddress: string,
-    proxyAdminAddress: string,
-    stateLibAddress: string,
-    smtLibAddress: string,
-    poseidonUnit1LAddress: string,
-    verifierAddress: string,
-  ): Promise<{
-    state: Contract;
-    verifier: string;
-    smtLib: string;
-    stateLib: string;
-    poseidon1: string;
-  }> {
-    const { defaultIdType, chainId } = await this.getDefaultIdType();
-    this.log(`found defaultIdType ${defaultIdType} for chainId ${chainId}`);
-
-    const owner = this.signers[0];
-    this.log("======== State: upgrade started ========");
-    const stateUpgrade = await ignition.deploy(StateUpgradeModule, {
-      parameters: {
-        StateUpgradeModule5: {
-          stateLibAddress,
-          smtLibAddress,
-          poseidonUnit1LAddress,
-          transparentUpgradeableProxyAddress: stateAddress,
-          proxyAdminAddress,
-        },
-      },
-      strategy: "create2",
-    });
-    const stateContract = stateUpgrade.state;
-
-    await stateContract.waitForDeployment();
-    this.log(
-      `State contract upgraded at address ${await stateContract.getAddress()} from ${await owner.getAddress()}`,
-    );
-
-    this.log("======== State: upgrade completed ========");
-    return {
-      state: stateContract,
-      verifier: verifierAddress,
-      smtLib: smtLibAddress,
-      stateLib: stateLibAddress,
-      poseidon1: poseidonUnit1LAddress,
     };
   }
 
@@ -514,7 +465,6 @@ export class DeployHelper {
     poseidon2ElementsAddress: string = "",
     poseidon3ElementsAddress: string = "",
     deployStrategy: "basic" | "create2" = "basic",
-    useOz: boolean = false,
   ): Promise<{
     identityTreeStore: Contract;
   }> {
@@ -524,7 +474,7 @@ export class DeployHelper {
       poseidon3ElementsAddress = await poseidon3Elements.getAddress();
     }
 
-    if (!useOz) {
+    if (deployStrategy === 'create2') {
       const identityTreeStoreDeploy = await ignition.deploy(IdentityTreeStoreModule, {
         parameters: {
           IdentityTreeStoreProxyModule: {
