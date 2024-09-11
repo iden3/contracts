@@ -60,6 +60,7 @@
     "deploy:stateCrossChainFullSet:zkevm": "npx hardhat run scripts/deployCrossChainVerifierWithRequests.ts --network zkevm",
     "deploy:validators:localhost": "npx hardhat run scripts/deployValidators.ts --network localhost",
     "deploy:verifier:upgrade": "npx hardhat run scripts/upgrade/verifiers/verifier-upgrade.ts --network localhost",
+    "deploy:set:request:linea-sepolia": "npx hardhat run scripts/setProofRequest.ts --network linea-sepolia",
     "verify:polygon": "npx hardhat run scripts/verifyEtherescan.js --network polygon",
     "lint:contracts": "npx solhint contracts/**/*.sol",
     "prettier:contracts": "prettier --write --plugin=prettier-plugin-solidity 'contracts/**/*.sol'",
