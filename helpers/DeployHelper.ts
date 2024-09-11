@@ -4,7 +4,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
 import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain";
-import { StateModule, StateUpgradeModule } from "../ignition/modules/state";
+import { StateModule } from "../ignition/modules/state";
 import { StateLibModule, SmtLibModule } from "../ignition/modules/libraries";
 import { VerifierStateTransitionModule, VerifierStubModule } from "../ignition/modules/verifiers";
 import { IdentityTreeStoreModule } from "../ignition/modules/identityTreeStore";
@@ -90,7 +90,7 @@ export class DeployHelper {
 
     this.log("deploying state...");
     let state;
-    if (deployStrategy === 'create2') {
+    if (deployStrategy !== "create2") {
       const StateFactory = await ethers.getContractFactory("State", {
         libraries: {
           StateLib: await stateLib.getAddress(),
@@ -507,6 +507,9 @@ export class DeployHelper {
       );
       await identityTreeStore.waitForDeployment();
       console.log(await identityTreeStore.getAddress());
+      return {
+        identityTreeStore,
+      };
     }
   }
 
