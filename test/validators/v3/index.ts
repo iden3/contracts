@@ -2,8 +2,7 @@ import { expect } from "chai";
 import { prepareInputs, publishState } from "../../utils/state-utils";
 import { DeployHelper } from "../../../helpers/DeployHelper";
 import { packV3ValidatorParams } from "../../utils/validator-pack-utils";
-import { calculateQueryHashV3} from "../../utils/query-hash-utils";
-import { ethers } from "hardhat";
+import { calculateQueryHashV3 } from "../../utils/query-hash-utils";
 
 const tenYears = 315360000;
 const testCases: any[] = [
@@ -170,7 +169,7 @@ const testCases: any[] = [
   },
   {
     name: "GIST root expired, Issuer revocation state is not expired. MTP Proof.",
-     stateTransitions: [
+    stateTransitions: [
       require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
       require("../common-data/user_from_genesis_state_to_first_transition_v3"), // proof was generated after this state transition
       require("../common-data/issuer_from_first_state_to_second_transition_v3"),
@@ -198,7 +197,7 @@ const testCases: any[] = [
   },
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain. MTP Proof.",
-   stateTransitions: [
+    stateTransitions: [
       require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
     ],
     proofJson: require("./data/valid_mtp_user_genesis_v3.json"),
@@ -223,7 +222,7 @@ const testCases: any[] = [
   {
     name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (UserID does NOT correspond to the sender)",
     stateTransitions: [
-          require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
+      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
     ],
     proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3_wrong_id.json"),
     setProofExpiration: tenYears,
@@ -264,6 +263,14 @@ const testCases: any[] = [
     setProofExpiration: tenYears,
     sender: "0x0000000000000000000000000000000000000000",
   },
+  {
+    name: "Privado Main id type, Validate Genesis User State. Issuer genesis. BJJ Proof",
+    stateTransitions: [],
+    proofJson: require("./data/valid_bjj_user_genesis_privado_main_v3.json"),
+    setProofExpiration: tenYears,
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    errorMessage: "Privado identity is not genesis",
+  },
 ];
 
 function delay(ms: number) {
@@ -276,11 +283,14 @@ describe("Atomic V3 Validator", function () {
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize(null, true);
 
+    const { state: stateContract } = await deployHelper.deployState(["0x0112"]);
+    state = stateContract;
+
     const contracts = await deployHelper.deployValidatorContracts(
       "VerifierV3Wrapper",
-      "CredentialAtomicQueryV3Validator"
+      "CredentialAtomicQueryV3Validator",
+      await state.getAddress(),
     );
-    state = contracts.state;
     v3validator = contracts.validator;
   });
 
@@ -309,16 +319,16 @@ describe("Atomic V3 Validator", function () {
       const nullifierSessionId = test.ethereumBasedUser ? "0" : "1234569";
       const verifierId = "21929109382993718606847853573861987353620810345503358891473103689157378049"
       const queryHash = calculateQueryHashV3(
-          value,
-          schema,
-          slotIndex,
-          operator,
-          claimPathKey,
-          valueArrSize,
-          1,
-          1,
-          verifierId,
-          nullifierSessionId,
+        value,
+        schema,
+        slotIndex,
+        operator,
+        claimPathKey,
+        valueArrSize,
+        1,
+        1,
+        verifierId,
+        nullifierSessionId,
       )
 
       const query = {

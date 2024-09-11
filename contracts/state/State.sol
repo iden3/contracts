@@ -14,7 +14,7 @@ contract State is Ownable2StepUpgradeable, IState {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.4.1";
+    string public constant VERSION = "2.5.0";
 
     // This empty reserved space is put in place to allow future versions
     // of the State contract to inherit from other contracts without a risk of
@@ -92,6 +92,15 @@ contract State is Ownable2StepUpgradeable, IState {
     }
 
     /**
+     * @dev Get defaultIdType
+     * @return defaultIdType
+     */
+    function getDefaultIdType() public view returns (bytes2) {
+        require(_defaultIdTypeInitialized, "Default Id Type is not initialized");
+        return _defaultIdType;
+    }
+
+    /**
      * @dev Set defaultIdType external wrapper (only owner can call)
      * @param defaultIdType default id type
      */
@@ -118,6 +127,8 @@ contract State is Ownable2StepUpgradeable, IState {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) public {
+        // Check if the id type is supported
+        getIdTypeIfSupported(id);
         uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis ? 1 : 0)];
         require(
             verifier.verifyProof(a, b, c, input),
@@ -144,8 +155,9 @@ contract State is Ownable2StepUpgradeable, IState {
         uint256 methodId,
         bytes calldata methodParams
     ) public {
+        bytes2 idType = getIdTypeIfSupported(id);
         if (methodId == 1) {
-            uint256 calcId = GenesisUtils.calcIdFromEthAddress(getDefaultIdType(), msg.sender);
+            uint256 calcId = GenesisUtils.calcIdFromEthAddress(idType, msg.sender);
             require(calcId == id, "msg.sender is not owner of the identity");
             require(methodParams.length == 0, "methodParams should be empty");
 
@@ -168,12 +180,11 @@ contract State is Ownable2StepUpgradeable, IState {
     }
 
     /**
-     * @dev Get defaultIdType
-     * @return defaultIdType
+     * @dev Check if id type supported
+     * @return bool
      */
-    function getDefaultIdType() public view returns (bytes2) {
-        require(_defaultIdTypeInitialized, "Default Id Type is not initialized");
-        return _defaultIdType;
+    function isIdTypeSupported(bytes2 idType) public view returns (bool) {
+        return _stateData.isIdTypeSupported[idType];
     }
 
     /**
@@ -455,11 +466,32 @@ contract State is Ownable2StepUpgradeable, IState {
     }
 
     /**
-     * @dev Set defaultIdType internal setter
+     * @dev Set set default id type internal setter
      * @param defaultIdType default id type
      */
     function _setDefaultIdType(bytes2 defaultIdType) internal {
         _defaultIdType = defaultIdType;
         _defaultIdTypeInitialized = true;
+        _stateData.isIdTypeSupported[defaultIdType] = true;
+    }
+
+    /**
+     * @dev Check if the id type is supported and return the id type
+     * @param id Identity
+     * trows if id type is not supported
+     */
+    function getIdTypeIfSupported(uint256 id) public view returns (bytes2) {
+        bytes2 idType = GenesisUtils.getIdType(id);
+        require(_stateData.isIdTypeSupported[idType], "id type is not supported");
+        return idType;
+    }
+
+    /**
+     * @dev Set supported IdType setter
+     * @param idType id type
+     * @param supported ability to enable or disable id type support
+     */
+    function setSupportedIdType(bytes2 idType, bool supported) public onlyOwner {
+        _stateData.isIdTypeSupported[idType] = supported;
     }
 }
