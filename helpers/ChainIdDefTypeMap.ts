@@ -8,6 +8,4 @@ export const chainIdDefaultIdTypeMap = new Map()
   .set(11155111, "0x0223") // ethereum sepolia
   .set(59141, "0x0148") // linea-sepolia;
   .set(21000, "0x01A1") // privado-main
-  .set(21001, "0x01A2") // privado-test
-  .set(21000, "0x01A1") // privado-main
   .set(21001, "0x01A2"); // privado-test
