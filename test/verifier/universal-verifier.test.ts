@@ -249,8 +249,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const otherRequestId = 2;
     const { state } = await deployHelper.deployState();
     const { validator: mtp } = await deployHelper.deployValidatorContracts(
-      "VerifierMTPWrapper",
-      "CredentialAtomicQueryMTPV2Validator",
+      "mtpV2",
       await state.getAddress(),
     );
     const mtpValAddr = await mtp.getAddress();

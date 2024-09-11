@@ -287,8 +287,7 @@ describe("Atomic V3 Validator", function () {
     state = stateContract;
 
     const contracts = await deployHelper.deployValidatorContracts(
-      "VerifierV3Wrapper",
-      "CredentialAtomicQueryV3Validator",
+      "v3",
       await state.getAddress(),
     );
     v3validator = contracts.validator;

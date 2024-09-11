@@ -21,8 +21,7 @@ describe("Universal Verifier Linked proofs", function () {
     state = stateContract;
 
     const contracts = await deployHelper.deployValidatorContracts(
-      "VerifierV3Wrapper",
-      "CredentialAtomicQueryV3Validator",
+      "v3",
       await state.getAddress(),
     );
     v3 = contracts.validator;

@@ -4,11 +4,21 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
 import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain";
-import { StateModule } from "../ignition/modules/state";
-import { StateLibModule, SmtLibModule } from "../ignition/modules/libraries";
-import { VerifierStateTransitionModule, VerifierStubModule } from "../ignition/modules/verifiers";
-import { IdentityTreeStoreModule } from "../ignition/modules/identityTreeStore";
-import { UniversalVerifierModule } from "../ignition/modules/universalVerifier";
+import {
+  StateModule,
+  StateLibModule,
+  SmtLibModule,
+  VerifierStateTransitionModule,
+  VerifierStubModule,
+  UniversalVerifierModule,
+  IdentityTreeStoreModule,
+  VerifierMTPWrapperModule,
+  VerifierSigWrapperModule,
+  VerifierV3WrapperModule,
+  CredentialAtomicQueryMTPV2ValidatorModule,
+  CredentialAtomicQuerySigV2ValidatorModule,
+  CredentialAtomicQueryV3ValidatorModule,
+} from "../ignition";
 
 const SMT_MAX_DEPTH = 64;
 
@@ -338,14 +348,70 @@ export class DeployHelper {
   }
 
   async deployValidatorContracts(
-    verifierContractWrapperName: string,
-    validatorContractName: string,
+    validatorType: "mtpV2" | "sigV2" | "v3",
     stateAddress: string,
+    deployStrategy: "basic" | "create2" = "basic",
   ): Promise<{
     state: any;
     verifierWrapper: any;
     validator: any;
   }> {
+    if (deployStrategy === "create2") {
+      let verifierContractWrapperModule, validatorContractModule;
+      switch (validatorType) {
+        case "mtpV2":
+          verifierContractWrapperModule = VerifierMTPWrapperModule;
+          validatorContractModule = CredentialAtomicQueryMTPV2ValidatorModule;
+          break;
+        case "sigV2":
+          verifierContractWrapperModule = VerifierSigWrapperModule;
+          validatorContractModule = CredentialAtomicQuerySigV2ValidatorModule;
+          break;
+        case "v3":
+          verifierContractWrapperModule = VerifierV3WrapperModule;
+          validatorContractModule = CredentialAtomicQueryV3ValidatorModule;
+          break;
+      }
+
+      const wrapperDeploy = await ignition.deploy(verifierContractWrapperModule, {
+        strategy: deployStrategy,
+      });
+      const verifierWrapper = wrapperDeploy.wrapper;
+      await verifierWrapper.waitForDeployment();
+      console.log(`${validatorType} Wrapper deployed to: ${await verifierWrapper.getAddress()}`);
+
+      const validatorDeploy = await ignition.deploy(validatorContractModule, {
+        strategy: deployStrategy,
+      });
+      const validator = validatorDeploy.validator;
+      await validator.waitForDeployment();
+      console.log(`${validatorType} Validator deployed to: ${await validator.getAddress()}`);
+      await validator.initialize(await verifierWrapper.getAddress(), stateAddress);
+      console.log("validator contract initialized");
+
+      const state = await ethers.getContractAt("State", stateAddress);
+      return {
+        validator,
+        verifierWrapper,
+        state,
+      };
+    }
+    let verifierContractWrapperName, validatorContractName;
+    switch (validatorType) {
+      case "mtpV2":
+        verifierContractWrapperName = "VerifierMTPWrapper";
+        validatorContractName = "CredentialAtomicQueryMTPV2Validator";
+        break;
+      case "sigV2":
+        verifierContractWrapperName = "VerifierSigWrapper";
+        validatorContractName = "CredentialAtomicQuerySigV2Validator";
+        break;
+      case "v3":
+        verifierContractWrapperName = "VerifierV3Wrapper";
+        validatorContractName = "CredentialAtomicQueryV3Validator";
+        break;
+    }
+
     const ValidatorContractVerifierWrapper = await ethers.getContractFactory(
       verifierContractWrapperName,
     );
@@ -368,9 +434,8 @@ export class DeployHelper {
     console.log(
       `${validatorContractName} deployed to: ${await validatorContractProxy.getAddress()}`,
     );
-    const signers = await ethers.getSigners();
 
-    const state = await ethers.getContractAt("State", stateAddress, signers[0]);
+    const state = await ethers.getContractAt("State", stateAddress);
     return {
       validator: validatorContractProxy,
       verifierWrapper: validatorContractVerifierWrapper,

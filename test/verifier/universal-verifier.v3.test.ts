@@ -59,11 +59,7 @@ describe("Universal Verifier V3 validator", function () {
 
     const { state: stateContract } = await deployHelper.deployState(["0x0112"]);
     state = stateContract;
-    const contracts = await deployHelper.deployValidatorContracts(
-      "VerifierV3Wrapper",
-      "CredentialAtomicQueryV3Validator",
-      await state.getAddress(),
-    );
+    const contracts = await deployHelper.deployValidatorContracts("v3", await state.getAddress());
     v3 = contracts.validator;
     await verifier.addValidatorToWhitelist(await v3.getAddress());
     await verifier.connect();
