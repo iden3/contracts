@@ -172,6 +172,6 @@ describe("State Cross Chain", function () {
     };
 
     const result2 = await processMessages(ism, gsm, stateCrossChain);
-    expect(result2).to.contain("Oracle replacedAt or timestamp cannot be in the future");
+    expect(result2).to.contain("Oracle replacedAt or oracle timestamp cannot be in the future");
   });
 });
