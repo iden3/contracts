@@ -7,8 +7,7 @@ import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomicfoundation/hardhat-verify";
 import "@nomicfoundation/hardhat-ignition-ethers";
 
-const DEFAULT_MNEMONIC =
-  "test test test test test test test test test test test junk";
+const DEFAULT_MNEMONIC = "test test test test test test test test test test test junk";
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -74,7 +73,7 @@ const config: HardhatUserConfig = {
     //   chainId: 21001,
     //   url: `${process.env.PRIVADO_TEST_RPC_URL}`,
     //   accounts: [`0x${process.env.PRIVADO_TEST_PRIVATE_KEY}`],
-    // },    
+    // },
     // hardhat: {
     //   forking: {
     //     url: `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`,
@@ -140,9 +139,9 @@ const config: HardhatUserConfig = {
   ignition: {
     strategyConfig: {
       create2: {
-        salt: "< >" // 20 bytes: zero address; 1 byte: 00 - no cross chain protection, 11 bytes - random salt.
+        salt: "< >", // 20 bytes: zero address; 1 byte: 00 - no cross chain protection, 11 bytes - random salt.
       },
-    }
+    },
   },
 
   etherscan: {
