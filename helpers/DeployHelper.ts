@@ -534,7 +534,6 @@ export class DeployHelper {
       IdentityTreeStore,
       {
         unsafeAllow: ["external-library-linking"],
-        unsafeSkipStorageCheck: true,
         call: {
           fn: "initialize",
           args: [stateAddress],
