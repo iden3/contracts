@@ -12,21 +12,38 @@ async function main() {
 
   const verifier = await ethers.getContractAt(
     "UniversalVerifier",
-    "", //TODO put correct universal verifier address here
+    "0x830377FF46bEfB4404767Dceba0914c071930Ef3", //TODO put correct universal verifier address here
   );
 
-  const requestId = 0; // TODO put your request here;
+  const validator1 = "0x2389af3406e0a0127756ee62b83800196091e929"; // TODO put you values here
+  const validator2 = "0xce2e2f251c9a7e00d03a295ac04bf38aba836d86"; // TODO put you values here
+  const validator3 = "0xbdc75c0ead262f2dcf73ae0b5cddda83a3e69f00"; // TODO put you values here
+
+  const circuitName = "credentialAtomicQueryMTPV2OnChain";
+
+  const requestId = 20; // TODO put your request here;
 
   let validatorAddress;
-  const requests = await verifier.getZKPRequests(0, 3);
-  for (const request of requests) {
-    const validator = await ethers.getContractAt("ICircuitValidator", request.validator);
-    const circuitName = await validator.getSupportedCircuitIds();
-    if (circuitName.includes("credentialAtomicQuerySigV2OnChain")) {
-      validatorAddress = request.validator;
+
+  for (const address of [validator1, validator2, validator3]) {
+    const validator = await ethers.getContractAt("ICircuitValidator", address);
+    const name = await validator.getSupportedCircuitIds();
+    console.log(name[0]);
+    if (name[0] === circuitName) {
+      validatorAddress = address;
       break;
     }
   }
+
+  // const requests = await verifier.getZKPRequests(0, 3);
+  // for (const request of requests) {
+  //   const validator = await ethers.getContractAt("ICircuitValidator", request.validator);
+  //   const circuitName = await validator.getSupportedCircuitIds();
+  //   if (circuitName.includes("credentialAtomicQueryMTPV2OnChain")) {
+  //     validatorAddress = request.validator;
+  //     break;
+  //   }
+  // }
 
   const verifierId = buildVerifierId(await verifier.getAddress(), {
     blockchain: Blockchain.Polygon,
@@ -56,10 +73,10 @@ async function main() {
     requestId: requestId,
     schema: schemaBigInt,
     claimPathKey: schemaClaimPathKey,
-    operator: Operators.LT,
+    operator: Operators.NE,
     slotIndex: 0,
     value: [20020101, ...new Array(63).fill(0)], // for operators 1-3 only first value matters
-    circuitIds: ["credentialAtomicQuerySigV2OnChain"],
+    circuitIds: [circuitName],
     skipClaimRevocationCheck: false,
     claimPathNotExists: 0,
   };
@@ -89,7 +106,7 @@ async function main() {
       },
       scope: [
         {
-          circuitId: "credentialAtomicQuerySigV2OnChain",
+          circuitId: circuitName,
           id: requestId,
           query: {
             allowedIssuers: ["*"],
@@ -97,7 +114,7 @@ async function main() {
               "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
             credentialSubject: {
               birthday: {
-                $lt: 20020101,
+                $ne: 20020101,
               },
             },
             type: "KYCAgeCredential",
