@@ -12,10 +12,12 @@ const StateProxyModule = buildModule("StateProxyModule", (m) => {
   const stateLibAddress = m.getParameter("stateLibAddress");
   const smtLibAddress = m.getParameter("smtLibAddress");
   const poseidonUnit1LAddress = m.getParameter("poseidonUnit1LAddress");
+  const stateCrossChainLibAddress = m.getParameter("stateCrossChainLibAddress");
 
   const stateLib = m.contractAt('StateLib', stateLibAddress);
   const smtLib = m.contractAt('SmtLib', smtLibAddress);
   const poseidonUnit1L = m.contractAt('PoseidonUnit1L', poseidonUnit1LAddress);
+  const stateCrossChainLib = m.contractAt('StateCrossChainLib', stateCrossChainLibAddress);
 
   // This is our contract that will be proxied.
   // We will upgrade this contract with a new version later.
@@ -23,7 +25,8 @@ const StateProxyModule = buildModule("StateProxyModule", (m) => {
     libraries: {
         StateLib: stateLib,
         SmtLib: smtLib,
-        PoseidonUnit1L: poseidonUnit1L
+        PoseidonUnit1L: poseidonUnit1L,
+        StateCrossChainLib: stateCrossChainLib,
     }
   });
  
