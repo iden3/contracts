@@ -2,8 +2,8 @@ import { ethers, network, upgrades } from "hardhat";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons, deploySpongePoseidon } from "./PoseidonDeployHelper";
-import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain";
+import { chainIdInfoMap } from "./constants";
 
 const SMT_MAX_DEPTH = 64;
 
@@ -35,6 +35,7 @@ export class DeployHelper {
     stateLib: Contract;
     smtLib: Contract;
     stateCrossChainLib: Contract;
+    oracleProofValidator: Contract;
     poseidon1: Contract;
     poseidon2: Contract;
     poseidon3: Contract;
@@ -84,14 +85,14 @@ export class DeployHelper {
     });
 
     // ##################### Oracle Proof Validator deploy #####################
-    const opv = await this.deployOracleProofValidator();
+    const oracleProofValidator = await this.deployOracleProofValidator();
     const state = await upgrades.deployProxy(
       StateFactory,
       [
         await verifier.getAddress(),
         defaultIdType,
         await owner.getAddress(),
-        await opv.getAddress(),
+        await oracleProofValidator.getAddress(),
       ],
       {
         unsafeAllowLinkedLibraries: true,
@@ -118,6 +119,7 @@ export class DeployHelper {
       stateLib,
       smtLib,
       stateCrossChainLib,
+      oracleProofValidator: oracleProofValidator,
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
@@ -375,8 +377,10 @@ export class DeployHelper {
     contractName = "OracleProofValidator",
     domainName = "StateInfo",
     signatureVersion = "1",
-    oracleSigningAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   ): Promise<Contract> {
+    const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+
     const oracleProofValidator = await ethers.deployContract(contractName, [
       domainName,
       signatureVersion,
@@ -581,7 +585,7 @@ export class DeployHelper {
 
   async getDefaultIdType(): Promise<{ defaultIdType: number; chainId: number }> {
     const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
-    const defaultIdType = chainIdDefaultIdTypeMap.get(chainId);
+    const defaultIdType = chainIdInfoMap.get(chainId).idType;
     if (!defaultIdType) {
       throw new Error(`Failed to find defaultIdType in Map for chainId ${chainId}`);
     }

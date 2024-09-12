@@ -1,7 +1,8 @@
 import { DeployHelper } from "../../../../helpers/DeployHelper";
 import { ethers, network } from "hardhat";
 import { StateContractMigrationHelper } from "../../../../helpers/StateContractMigrationHelper";
-import { chainIdDefaultIdTypeMap } from "../../../../helpers/ChainIdDefTypeMap";
+
+import { chainIdInfoMap } from "../../../../helpers/constants";
 /*
 1. deploy State to mumbai from feature/state-v3 branch
 2. run transit-state script
