@@ -1,4 +1,4 @@
-import hre from "hardhat";
+import hre, { ethers, network } from "hardhat";
 import { packV3ValidatorParams, packValidatorParams } from "../test/utils/validator-pack-utils";
 import { DeployHelper } from "../helpers/DeployHelper";
 import { calculateQueryHashV2, calculateQueryHashV3 } from "../test/utils/query-hash-utils";
@@ -14,17 +14,26 @@ import {
 } from "@iden3/js-iden3-core";
 import { Hex } from "@iden3/js-crypto";
 import { Merklizer } from "@iden3/js-jsonld-merklization";
-import { deployPoseidons, deploySpongePoseidon } from "../helpers/PoseidonDeployHelper";
+import path from "path";
+import fs from "fs";
 
 async function main() {
   const deployHelper = await DeployHelper.initialize(null, true);
+
   const [signer] = await ethers.getSigners();
 
-  const chainId = hre.network.config.chainId;
-  const network = hre.network.name;
-  // ##################### StateCrossChain deploy #####################
+  // const signerAddr = await signer.getAddress();
+  // console.log(signerAddr);
+  // const provider = ethers.provider;
+  // console.log(ethers.formatEther(await provider.getBalance(signerAddr)));
+  // return;
 
-  const { state } = await deployHelper.deployState();
+  const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
+  const networkName = hre.network.name;
+
+  // ##################### State with StateCrossChainLib deploy #####################
+
+  const { state, oracleProofValidator } = await deployHelper.deployState();
 
   // ##################### Validator deploy #####################
 
@@ -143,7 +152,7 @@ async function main() {
         contract_address: await verifier.getAddress(),
         method_id: methodId,
         chain_id: chainId,
-        network: network,
+        network: networkName,
       },
       scope: [
         {
@@ -228,7 +237,7 @@ async function main() {
         contract_address: await verifier.getAddress(),
         method_id: methodId,
         chain_id: chainId,
-        network: network,
+        network: networkName,
       },
       scope: [
         {
@@ -303,7 +312,7 @@ async function main() {
         contract_address: await verifier.getAddress(),
         method_id: methodId,
         chain_id: chainId,
-        network: network,
+        network: networkName,
       },
       scope: [
         {
@@ -361,7 +370,7 @@ async function main() {
         contract_address: await verifier.getAddress(),
         method_id: methodId,
         chain_id: chainId,
-        network: network,
+        network: networkName,
       },
       scope: [
         {
@@ -449,7 +458,7 @@ async function main() {
         contract_address: await verifier.getAddress(),
         method_id: methodId,
         chain_id: chainId,
-        network: network,
+        network: networkName,
       },
       scope: [
         {
@@ -482,6 +491,22 @@ async function main() {
   console.log(JSON.stringify(invokeRequestMetadataKYCAgeCredential, null, "\t"));
 
   console.log(`Request ID: ${requestId_V3_KYCAgeCredential} is set`);
+
+  const outputJson = {
+    proxyAdminOwnerAddress: await signer.getAddress(),
+    universalVeriferOwnerAddress: await signer.getAddress(),
+    state: await state.getAddress(),
+    universalVerifier: await verifier.getAddress(),
+    oracleProofValidator: await oracleProofValidator.getAddress(),
+    validatorSig: await validatorSig.getAddress(),
+    validatorMTP: await validatorMTP.getAddress(),
+    validatorV3: await validatorV3.getAddress(),
+    network: networkName,
+    chainId,
+  };
+
+  const pathOutputJson = path.join(__dirname, `./deploy_universal_verifier_output_${chainId}_${networkName}.json`);
+  fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 }
 
 main()
