@@ -1,49 +1,28 @@
 import hre, { ethers } from "hardhat";
 import { packValidatorParams } from "../test/utils/validator-pack-utils";
-import { calculateQueryHashV2 } from "../test/utils/query-hash-utils";
+import { calculateQueryHashV2, calculateQueryHashV3 } from "../test/utils/query-hash-utils";
 import { Blockchain, DidMethod, NetworkId, DID } from "@iden3/js-iden3-core";
 import { buildVerifierId } from "./deployCrossChainVerifierWithRequests";
+import fs from "fs";
 
 async function main() {
+  const circuitName: string = "credentialAtomicQueryMTPV2OnChain"; // TODO put your circuit here;
+  const requestId = 26; // TODO put your request here;
+  const allowedIssuers = []; // TODO put your allowed issuers here
+
   const chainId = hre.network.config.chainId;
   const network = hre.network.name;
 
   const methodId = "ade09fcd";
 
-  const verifier = await ethers.getContractAt(
-    "UniversalVerifier",
-    "0x830377FF46bEfB4404767Dceba0914c071930Ef3", //TODO put correct universal verifier address here
+  const uvDeployment = JSON.parse(
+    fs.readFileSync(
+      `./scripts/deploy_universal_verifier_output_${chainId}_${network}.json`,
+      "utf-8",
+    ),
   );
 
-  const validator1 = "0x2389af3406e0a0127756ee62b83800196091e929"; // TODO put you values here
-  const validator2 = "0xce2e2f251c9a7e00d03a295ac04bf38aba836d86"; // TODO put you values here
-  const validator3 = "0xbdc75c0ead262f2dcf73ae0b5cddda83a3e69f00"; // TODO put you values here
-
-  const circuitName = "credentialAtomicQueryMTPV2OnChain";
-
-  const requestId = 20; // TODO put your request here;
-
-  let validatorAddress;
-
-  for (const address of [validator1, validator2, validator3]) {
-    const validator = await ethers.getContractAt("ICircuitValidator", address);
-    const circuitIds = await validator.getSupportedCircuitIds();
-    console.log(circuitIds[0]);
-    if (circuitIds[0] === circuitName) {
-      validatorAddress = address;
-      break;
-    }
-  }
-
-  // const requests = await verifier.getZKPRequests(0, 3);
-  // for (const request of requests) {
-  //   const validator = await ethers.getContractAt("ICircuitValidator", request.validator);
-  //   const circuitName = await validator.getSupportedCircuitIds();
-  //   if (circuitName.includes("credentialAtomicQueryMTPV2OnChain")) {
-  //     validatorAddress = request.validator;
-  //     break;
-  //   }
-  // }
+  const verifier = await ethers.getContractAt("UniversalVerifier", uvDeployment.universalVerifier);
 
   const verifierId = buildVerifierId(await verifier.getAddress(), {
     blockchain: Blockchain.Polygon,
@@ -69,26 +48,70 @@ async function main() {
   const schemaClaimPathKey =
     "20376033832371109177683048456014525905119173674985843915445634726167450989630";
 
-  const query: any = {
+  let query: any = {
     requestId: requestId,
     schema: schemaBigInt,
     claimPathKey: schemaClaimPathKey,
     operator: Operators.NE,
     slotIndex: 0,
+    queryHash: "",
     value: [20020101, ...new Array(63).fill(0)], // for operators 1-3 only first value matters
     circuitIds: [circuitName],
     skipClaimRevocationCheck: false,
     claimPathNotExists: 0,
   };
 
-  query.queryHash = calculateQueryHashV2(
-    query.value,
-    query.schema,
-    query.slotIndex,
-    query.operator,
-    query.claimPathKey,
-    query.claimPathNotExists,
-  ).toString();
+  let validatorAddress: string;
+  switch (circuitName) {
+    case "credentialAtomicQueryMTPV2OnChain":
+      validatorAddress = uvDeployment.validatorMTP;
+      query.queryHash = calculateQueryHashV2(
+        query.value,
+        query.schema,
+        query.slotIndex,
+        query.operator,
+        query.claimPathKey,
+        query.claimPathNotExists,
+      ).toString();
+      break;
+    case "credentialAtomicQuerySigV2OnChain":
+      validatorAddress = uvDeployment.validatorSig;
+      query.queryHash = calculateQueryHashV2(
+        query.value,
+        query.schema,
+        query.slotIndex,
+        query.operator,
+        query.claimPathKey,
+        query.claimPathNotExists,
+      ).toString();
+      break;
+    case "credentialAtomicQueryV3OnChain-beta.1":
+      validatorAddress = uvDeployment.validatorV3;
+      query = {
+        ...query,
+        allowedIssuers: allowedIssuers,
+        verifierID: verifierId.bigInt(),
+        nullifierSessionID: 11837215,
+        groupID: 0,
+        proofType: 0,
+      };
+
+      query.queryHash = calculateQueryHashV3(
+        query.value.map((i) => BigInt(i)),
+        query.schema,
+        query.slotIndex,
+        query.operator,
+        query.claimPathKey,
+        1, //queryV3KYCAgeCredential.value.length, // for operator NE, LT it should be 1 for value
+        1, // merklized
+        query.skipClaimRevocationCheck ? 0 : 1,
+        query.verifierID.toString(),
+        query.nullifierSessionID,
+      ).toString();
+      break;
+    default:
+      throw new Error(`Unsupported circuit name: ${circuitName}`);
+  }
 
   const invokeRequestMetadataKYCAgeCredential = {
     id: "7f38a193-0918-4a48-9fac-36adfdb8b543",
@@ -106,10 +129,10 @@ async function main() {
       },
       scope: [
         {
-          circuitId: circuitName,
           id: requestId,
+          circuitId: circuitName,
           query: {
-            allowedIssuers: ["*"],
+            allowedIssuers: !allowedIssuers.length ? ["*"] : allowedIssuers,
             context:
               "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
             credentialSubject: {
@@ -126,22 +149,22 @@ async function main() {
 
   const data = packValidatorParams(query);
 
-  await verifier.setZKPRequest(
+  const tx = await verifier.setZKPRequest(
     requestId,
     {
       metadata: JSON.stringify(invokeRequestMetadataKYCAgeCredential),
       validator: validatorAddress,
       data: data,
     },
-    // {
-    //   gasPrice: 50000000000,
-    //   initialBaseFeePerGas: 25000000000,
-    //   gasLimit: 10000000
-    // }
+    {
+      gasPrice: 50000000000,
+      initialBaseFeePerGas: 25000000000,
+      gasLimit: 10000000,
+    },
   );
   console.log(JSON.stringify(invokeRequestMetadataKYCAgeCredential, null, "\t"));
 
-  console.log(`Request ID: ${requestId} is set`);
+  console.log(`Request ID: ${requestId} is set in tx: ${tx.hash}`);
 }
 
 main()

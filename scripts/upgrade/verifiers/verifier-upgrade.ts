@@ -170,7 +170,7 @@ async function main() {
   await TestVerification(universalVerifierContract, validatorV3ContractAddress);
 }
 
-async function main2() {
+async function onlyTestVerification() {
   const { universalVerifierOwnerSigner } = await getSigners(impersonate);
   const universalVerifierContract = await ethers.getContractAt(
     universalVerifierArtifact.abi,
@@ -205,7 +205,8 @@ async function TestVerification(verifier: Contract, validatorV3Address: string) 
   });
 }
 
-main2()
+// onlyTestVerification() // Use this to only test verification after upgrade
+main() // Use this to upgrade and test verification
   .then(() => process.exit(0))
   .catch((error) => {
     console.error(error);
