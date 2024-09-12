@@ -34,7 +34,7 @@ import { packCrossChainProofs, packZKProof } from "../../../../test/utils/packDa
 
 const chainId = 80002;
 const rhsUrl = "https://rhs-staging.polygonid.me";
-const rpcUrl = "http://localhost:8545";
+const rpcUrl = process.env.AMOY_RPC_URL; // "http://localhost:8545";
 
 function createKYCAgeCredential(did: core.DID, birthday: number) {
   const credentialRequest: CredentialRequest = {
