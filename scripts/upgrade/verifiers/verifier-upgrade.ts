@@ -22,7 +22,7 @@ const validatorV3ContractAddress = "0xb53e2487ff38b59E183125E3cE79679005AbC7b2";
 const validatorSigContractName = "CredentialAtomicQuerySigV2Validator";
 const validatorMTPContractName = "CredentialAtomicQueryMTPV2Validator";
 const validatorV3ContractName = "CredentialAtomicQueryV3Validator";
-const impersonate = true;
+const impersonate = false;
 
 
 // AMOY documented contracts
@@ -170,6 +170,17 @@ async function main() {
   await TestVerification(universalVerifierContract, validatorV3ContractAddress);
 }
 
+async function main2() {
+  const { universalVerifierOwnerSigner } = await getSigners(impersonate);
+  const universalVerifierContract = await ethers.getContractAt(
+    universalVerifierArtifact.abi,
+    universalVerifierContractAddress,
+    universalVerifierOwnerSigner,
+  );
+  console.log("Testing verifiation with submitZKPResponseV2 after migration...");
+  await TestVerification(universalVerifierContract, validatorV3ContractAddress);
+}
+
 async function TestStateUpgrade(deployHelper: DeployHelper, signer: any) {
   const stateMigrationHelper = new StateContractMigrationHelper(deployHelper, signer);
 
@@ -194,7 +205,7 @@ async function TestVerification(verifier: Contract, validatorV3Address: string) 
   });
 }
 
-main()
+main2()
   .then(() => process.exit(0))
   .catch((error) => {
     console.error(error);
