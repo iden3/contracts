@@ -194,16 +194,9 @@ export async function submitZKPResponses_KYCAgeCredential(
     circuitStorage,
   );
 
-  const issuerProofService = await initProofService(
-    issuerIdentityWallet,
-    issuerCredentialWallet,
-    issuerDataStorage.states,
-    circuitStorage,
-  );
-
   console.log("=============== user did ===============");
   const { did: userDID } = await userIdentityWallet.createIdentity({
-    method: core.DidMethod.Iden3,
+    method: core.DidMethod.PolygonId,
     blockchain: core.Blockchain.Polygon,
     networkId: core.NetworkId.Amoy,
     revocationOpts: {
@@ -216,7 +209,7 @@ export async function submitZKPResponses_KYCAgeCredential(
 
   console.log("=============== issuer did ===============");
   const { did: issuerDID } = await issuerIdentityWallet.createIdentity({
-    method: core.DidMethod.Iden3,
+    method: core.DidMethod.PolygonId,
     blockchain: core.Blockchain.Polygon,
     networkId: core.NetworkId.Amoy,
     revocationOpts: {
@@ -242,7 +235,7 @@ export async function submitZKPResponses_KYCAgeCredential(
   const verifierId = buildVerifierId(opts.verifierContractAddress, {
     blockchain: Blockchain.Polygon,
     networkId: NetworkId.Amoy,
-    method: DidMethod.Iden3,
+    method: DidMethod.PolygonId,
   });
 
   const { proof: proofV3Sig, pub_signals: pub_signalsV3Sig } = await generateProof(
@@ -321,7 +314,7 @@ export async function setZKPRequest_KYCAgeCredential(
     const verifierId = buildVerifierId(await verifier.getAddress(), {
       blockchain: Blockchain.Polygon,
       networkId: NetworkId.Amoy,
-      method: DidMethod.Iden3,
+      method: DidMethod.PolygonId,
     });
 
     // you can run https://go.dev/play/p/oB_oOW7kBEw to get schema hash and claimPathKey using YOUR schema

@@ -74,8 +74,28 @@ const config: HardhatUserConfig = {
     //     url: `${process.env.RPC_URL}`,
     //   },
     // },
+    // hardhat: {
+    //   chainId: 80002,
+    //   forking: {
+    //     url: `${process.env.AMOY_RPC_URL}`,
+    //   },
+    //   chains: {
+    //     80002: {
+    //       hardforkHistory: {
+    //         london: 10000000,
+    //       },
+    //     },
+    //   },
+    //   accounts: [
+    //     {
+    //       privateKey: process.env.AMOY_PRIVATE_KEY as string,
+    //       balance: "1000000000000000000000000",
+    //     },
+    //   ],
+    // },
     localhost: {
       url: "http://127.0.0.1:8545",
+      timeout: 100000000,
       /* accounts: {
         mnemonic: DEFAULT_MNEMONIC,
         path: "m/44'/60'/0'/0",

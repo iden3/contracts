@@ -190,9 +190,20 @@ export class DeployHelper {
         StateCrossChainLib: await stateCrossChainLib.getAddress(),
       },
     });
-    const stateContract = await upgrades.upgradeProxy(stateAddress, StateFactory, {
-      unsafeAllowLinkedLibraries: true,
-    });
+
+    let stateContract: Contract;
+    try {
+      stateContract = await upgrades.upgradeProxy(stateAddress, StateFactory, {
+        unsafeAllowLinkedLibraries: true,
+      });
+    } catch (e) {
+      this.log("Error upgrading proxy. Forcing import...");
+      await upgrades.forceImport(stateAddress, StateFactory);
+      stateContract = await upgrades.upgradeProxy(stateAddress, StateFactory, {
+        unsafeAllowLinkedLibraries: true,
+        redeployImplementation: "always",
+      });
+    }
     await stateContract.waitForDeployment();
     this.log(
       `State contract upgraded at address ${await stateContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
@@ -513,6 +524,7 @@ export class DeployHelper {
       await upgrades.forceImport(verifierAddress, VerifierFactory);
       verifier = await upgrades.upgradeProxy(verifierAddress, VerifierFactory, {
         unsafeAllowLinkedLibraries: true,
+        redeployImplementation: "always",
       });
       await verifier.waitForDeployment();
     }

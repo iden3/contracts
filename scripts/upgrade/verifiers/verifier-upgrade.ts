@@ -125,6 +125,8 @@ async function main() {
     universalVerifierOwnerSigner,
   );
 
+  console.log("Id Type configured in state: ", await state.getDefaultIdType());
+
   const oracleProofValidatorAddress = await state.getOracleProofValidator();
   console.log("oracleProofValidatorAddress: ", oracleProofValidatorAddress);
 
