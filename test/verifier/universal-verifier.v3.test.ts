@@ -66,13 +66,6 @@ describe("Universal Verifier V3 validator", function () {
       await state.getAddress(),
       await verifierLib.getAddress(),
     );
-
-    const contracts = await deployHelper.deployValidatorContracts(
-      "VerifierV3Wrapper",
-      "CredentialAtomicQueryV3Validator",
-      await state.getAddress(),
-    );
-    v3 = contracts.validator;
     await verifier.addValidatorToWhitelist(await v3.getAddress());
     await verifier.connect();
   });

@@ -1,6 +1,13 @@
-import { ethers, ignition } from 'hardhat';
+import { ethers, ignition } from "hardhat";
 import { Contract } from "ethers";
-import { Poseidon1Module, Poseidon4Module, Poseidon5Module, Poseidon6Module, Poseidon2Module, Poseidon3Module } from '../ignition/modules/libraries';
+import {
+  Poseidon1Module,
+  Poseidon4Module,
+  Poseidon5Module,
+  Poseidon6Module,
+  Poseidon2Module,
+  Poseidon3Module,
+} from "../ignition/modules/libraries";
 
 export async function deploySpongePoseidon(poseidon6ContractAddress: string): Promise<Contract> {
   const SpongePoseidonFactory = await ethers.getContractFactory("SpongePoseidon", {
@@ -17,7 +24,7 @@ export async function deploySpongePoseidon(poseidon6ContractAddress: string): Pr
 
 export async function deployPoseidons(
   poseidonSizeParams: number[],
-  deployStrategy: 'basic' | 'create2' = 'basic'
+  deployStrategy: "basic" | "create2" = "basic",
 ): Promise<Contract[]> {
   poseidonSizeParams.forEach((size) => {
     if (![1, 2, 3, 4, 5, 6].includes(size)) {
@@ -29,7 +36,7 @@ export async function deployPoseidons(
 
   const deployPoseidon = async (params: number) => {
     let poseidonModule: any;
-    switch(params) {
+    switch (params) {
       case 1:
         poseidonModule = Poseidon1Module;
         break;
@@ -51,7 +58,7 @@ export async function deployPoseidons(
     }
 
     const poseidonDeploy = await ignition.deploy(poseidonModule, {
-      strategy: deployStrategy
+      strategy: deployStrategy,
     });
     const poseidonN = poseidonDeploy.poseidon;
     await poseidonN.waitForDeployment();
@@ -68,9 +75,7 @@ export async function deployPoseidons(
 }
 
 export async function deployPoseidonFacade(): Promise<any> {
-  const poseidonContracts = await deployPoseidons(
-    new Array(6).fill(6).map((_, i) => i + 1),
-  );
+  const poseidonContracts = await deployPoseidons(new Array(6).fill(6).map((_, i) => i + 1));
 
   const spongePoseidon = await deploySpongePoseidon(await poseidonContracts[5].getAddress());
 

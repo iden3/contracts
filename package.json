@@ -48,6 +48,8 @@
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "test:oracle:proof:validator": "npx hardhat test test/validators/oracleProofValidator.test.ts",
+    "test:verifiers": "npx hardhat test test/verifier/*.test.ts",
+    "test:identitytreestore": "npx hardhat test test/identitytreestore/*.test.ts",
     "test:state:cross:chain": "npx hardhat test test/state/stateCrossChain.test.ts",
     "test:submitzkpresponse:vw": "npx hardhat test test/verifier/universal-verifier-submit-v2.test.ts",
     "test:gas": "COINMARKETCAP_KEY=<put your key here> REPORT_GAS=true npx hardhat test",

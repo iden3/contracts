@@ -5,6 +5,7 @@ import { deployPoseidons, deploySpongePoseidon } from "./PoseidonDeployHelper";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain";
 import {
   StateModule,
+  StateCrossChainLibModule,
   StateLibModule,
   SmtLibModule,
   VerifierStateTransitionModule,
@@ -119,7 +120,7 @@ export class DeployHelper {
         },
       });
 
-      const state = await upgrades.deployProxy(
+      state = await upgrades.deployProxy(
         StateFactory,
         [
           await verifier.getAddress(),
@@ -134,7 +135,7 @@ export class DeployHelper {
 
       await state.waitForDeployment();
     } else {
-      const stateDeploy = await ignition.deploy(StateModule, {
+      state = await ignition.deploy(StateModule, {
         parameters: {
           StateProxyModule: {
             stateLibAddress: await stateLib.getAddress(),
@@ -145,7 +146,6 @@ export class DeployHelper {
         },
         strategy: deployStrategy,
       });
-      state = stateDeploy.state;
       await state.initialize(await verifier.getAddress(), defaultIdType, await owner.getAddress());
     }
     await state.waitForDeployment();
@@ -198,16 +198,13 @@ export class DeployHelper {
   }> {
     this.log("======== State: upgrade started ========");
 
-    let stateContract: Contract = await ethers.getContractAt("State", stateAddress);
-
     const proxyAdminOwner = this.signers[0];
     // const stateAdminOwner = this.signers[1];
 
     this.log("deploying poseidons...");
-    const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons(
-      proxyAdminOwner,
-      [1, 2, 3],
-    );
+    const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons([
+      1, 2, 3,
+    ]);
 
     this.log("deploying SmtLib...");
     const smtLib = await this.deploySmtLib(
@@ -344,11 +341,13 @@ export class DeployHelper {
     return stateLib;
   }
 
-  async deployStateCrossChainLib(StateCrossChainLibName = "StateCrossChainLib", deployStrategy: "basic" | "create2" = "basic"): Promise<Contract> {
-    const StateCrossChainLib = await ignition.deploy(StateCrossChainLibModule, {
+  async deployStateCrossChainLib(
+    StateCrossChainLibName = "StateCrossChainLib",
+    deployStrategy: "basic" | "create2" = "basic",
+  ): Promise<Contract> {
+    const { stateCrossChainLib } = await ignition.deploy(StateCrossChainLibModule, {
       strategy: deployStrategy,
     });
-    const stateCrossChainLib = await StateCrossChainLib.deploy();
     await stateCrossChainLib.waitForDeployment();
     this.enableLogging &&
       this.log(`StateCrossChainLib deployed to:  ${await stateCrossChainLib.getAddress()}`);
@@ -403,7 +402,7 @@ export class DeployHelper {
     const signer = this.signers[0];
 
     this.log(`deploying sponge Poseidon for ${contractName}...`);
-    const [poseidon6] = await deployPoseidons(signer, [6]);
+    const [poseidon6] = await deployPoseidons([6]);
     const spongePoseidon = await deploySpongePoseidon(await poseidon6.getAddress());
 
     const verifierLib = await ethers.deployContract(contractName, {
@@ -656,6 +655,7 @@ export class DeployHelper {
     console.log("GenesisUtilsWrapper deployed to:", await genesisUtilsWrapper.getAddress());
     return genesisUtilsWrapper;
   }
+
   async deployPrimitiveTypeUtilsWrapper(): Promise<PrimitiveTypeUtilsWrapper> {
     const PrimitiveTypeUtilsWrapper = await ethers.getContractFactory("PrimitiveTypeUtilsWrapper");
     const primitiveTypeUtilsWrapper = await PrimitiveTypeUtilsWrapper.deploy();
@@ -743,7 +743,8 @@ export class DeployHelper {
       poseidon3ElementsAddress = await poseidon3Elements.getAddress();
     }
 
-    if (deployStrategy === 'create2') {
+    let identityTreeStore;
+    if (deployStrategy === "create2") {
       const identityTreeStoreDeploy = await ignition.deploy(IdentityTreeStoreModule, {
         parameters: {
           IdentityTreeStoreProxyModule: {
@@ -754,7 +755,7 @@ export class DeployHelper {
         strategy: deployStrategy,
       });
 
-      const identityTreeStore = identityTreeStoreDeploy.identityTreeStore;
+      identityTreeStore = identityTreeStoreDeploy.identityTreeStore;
       await identityTreeStore.waitForDeployment();
       await identityTreeStore.initialize(stateContractAddress);
     } else {
@@ -765,7 +766,7 @@ export class DeployHelper {
         },
       });
 
-      const identityTreeStore = await upgrades.deployProxy(
+      identityTreeStore = await upgrades.deployProxy(
         IdentityTreeStore,
         [stateContractAddress],
         { unsafeAllow: ["external-library-linking"] },
