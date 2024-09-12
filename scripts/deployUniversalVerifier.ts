@@ -3,8 +3,6 @@ import path from "path";
 import { DeployHelper } from "../helpers/DeployHelper";
 import { ethers } from "hardhat";
 
-const pathOutputJson = path.join(__dirname, "./deploy_universal_verifier_output.json");
-
 async function main() {
   const deployHelper = await DeployHelper.initialize(null, true);
 
@@ -19,8 +17,10 @@ async function main() {
     undefined,
     stateAddress,
     await verifierLib.getAddress(),
+    'create2'
   );
 
+  const pathOutputJson = path.join(__dirname, "./deploy_universal_verifier_output.json");
   const outputJson = {
     universalVerifier: await universalVerifier.getAddress(),
     network: process.env.HARDHAT_NETWORK,

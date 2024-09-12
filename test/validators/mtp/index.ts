@@ -101,8 +101,7 @@ describe("Atomic MTP Validator", function () {
     state = stateContract;
 
     const contracts = await deployHelper.deployValidatorContracts(
-      "VerifierMTPWrapper",
-      "CredentialAtomicQueryMTPV2Validator",
+      "mtpV2",
       await state.getAddress(),
     );
     state = contracts.state;

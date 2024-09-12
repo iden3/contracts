@@ -7,8 +7,7 @@ describe("ReverseHashWrapper", function () {
   let reverseHashWrapper;
 
   beforeEach(async function () {
-    const [owner] = await ethers.getSigners();
-    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons(owner, [2, 3]);
+    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons([2, 3]);
 
     const ReverseHashWrapperFactory = await ethers.getContractFactory(
       "ReverseHashWrapper", {

@@ -6,31 +6,18 @@ const pathOutputJson = path.join(__dirname, "./deploy_validator_output.json");
 
 async function main() {
   const stateAddress = "0x134B1BE34911E39A8397ec6289782989729807a4";
-  const validators = [
-    {
-      verifierContractWrapperName: "VerifierMTPWrapper",
-      validatorContractName: "CredentialAtomicQueryMTPV2Validator",
-    },
-    {
-      verifierContractWrapperName: "VerifierSigWrapper",
-      validatorContractName: "CredentialAtomicQuerySigV2Validator",
-    },
-    {
-      verifierContractWrapperName: "VerifierV3Wrapper",
-      validatorContractName: "CredentialAtomicQueryV3Validator",
-    },
-  ];
+  const validators: ("mtpV2" | "sigV2" | "v3")[] = ["v3"];
   const deployHelper = await DeployHelper.initialize(null, true);
 
   const deployInfo: any = [];
   for (const v of validators) {
     const { validator, verifierWrapper } = await deployHelper.deployValidatorContracts(
-      v.verifierContractWrapperName,
-      v.validatorContractName,
+      v,
       stateAddress,
+      "create2",
     );
     deployInfo.push({
-      ...v,
+      validatorType: v,
       validator: await validator.getAddress(),
       verifier: await verifierWrapper.getAddress(),
     });

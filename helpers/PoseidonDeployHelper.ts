@@ -1,7 +1,6 @@
-import { ethers } from "hardhat";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { poseidonContract } from "circomlibjs";
+import { ethers, ignition } from 'hardhat';
 import { Contract } from "ethers";
+import { Poseidon1Module, Poseidon4Module, Poseidon5Module, Poseidon6Module, Poseidon2Module, Poseidon3Module } from '../ignition/modules/libraries';
 
 export async function deploySpongePoseidon(poseidon6ContractAddress: string): Promise<Contract> {
   const SpongePoseidonFactory = await ethers.getContractFactory("SpongePoseidon", {
@@ -17,8 +16,8 @@ export async function deploySpongePoseidon(poseidon6ContractAddress: string): Pr
 }
 
 export async function deployPoseidons(
-  deployer: SignerWithAddress,
   poseidonSizeParams: number[],
+  deployStrategy: 'basic' | 'create2' = 'basic'
 ): Promise<Contract[]> {
   poseidonSizeParams.forEach((size) => {
     if (![1, 2, 3, 4, 5, 6].includes(size)) {
@@ -29,13 +28,35 @@ export async function deployPoseidons(
   });
 
   const deployPoseidon = async (params: number) => {
-    const abi = poseidonContract.generateABI(params);
-    const code = poseidonContract.createCode(params);
-    const PoseidonElements = new ethers.ContractFactory(abi, code, deployer);
-    const poseidonElements = await PoseidonElements.deploy();
-    await poseidonElements.waitForDeployment();
-    console.log(`Poseidon${params}Elements deployed to:`, await poseidonElements.getAddress());
-    return poseidonElements;
+    let poseidonModule: any;
+    switch(params) {
+      case 1:
+        poseidonModule = Poseidon1Module;
+        break;
+      case 2:
+        poseidonModule = Poseidon2Module;
+        break;
+      case 3:
+        poseidonModule = Poseidon3Module;
+        break;
+      case 4:
+        poseidonModule = Poseidon4Module;
+        break;
+      case 5:
+        poseidonModule = Poseidon5Module;
+        break;
+      case 6:
+        poseidonModule = Poseidon6Module;
+        break;
+    }
+
+    const poseidonDeploy = await ignition.deploy(poseidonModule, {
+      strategy: deployStrategy
+    });
+    const poseidonN = poseidonDeploy.poseidon;
+    await poseidonN.waitForDeployment();
+    console.log(`Poseidon${params}Element deployed to: ${await poseidonN.getAddress()}`);
+    return poseidonN;
   };
 
   const result: any = [];
@@ -48,7 +69,6 @@ export async function deployPoseidons(
 
 export async function deployPoseidonFacade(): Promise<any> {
   const poseidonContracts = await deployPoseidons(
-    (await ethers.getSigners())[0],
     new Array(6).fill(6).map((_, i) => i + 1),
   );
 

@@ -56,10 +56,11 @@ describe("Universal Verifier V3 validator", function () {
 
     deployHelper = await DeployHelper.initialize(null, true);
 
-    deployHelper = await DeployHelper.initialize(null, true);
-    ({ state } = await deployHelper.deployState(["0x0112"]));
-
+    const { state: stateContract } = await deployHelper.deployState(["0x0112"]);
+    state = stateContract;
     const verifierLib = await deployHelper.deployVerifierLib();
+    const contracts = await deployHelper.deployValidatorContracts("v3", await state.getAddress());
+    v3 = contracts.validator;
     verifier = await deployHelper.deployUniversalVerifier(
       signer,
       await state.getAddress(),
