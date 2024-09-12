@@ -11,9 +11,9 @@ import {
   submitZKPResponses_KYCAgeCredential,
 } from "./helpers/testVerifier";
 
-// Amoy deployed contracts
+// Amoy deployed contracts (oracle Slack Chat)
 const proxyAdminOwnerAddress = "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb";
-const universalVerifierContractAddress = "0xB752Eec418f178ac8B48f15962B55c37F8D4748d";
+const universalVerifierContractAddress = "0xB7487dDa8f0c465730fC715785743C459747bcbC";
 const universalVerifierOwnerAddress = "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb";
 const stateContractAddress = "0xDFF190bC887B5Bbae80BCa8999E54ea7d084026f";
 const validatorSigContractAddress = "0x04dcEd2b96C72eD92f1F066592DBa2b7942d0f3B";
