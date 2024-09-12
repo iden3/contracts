@@ -68,6 +68,11 @@ const config: HardhatUserConfig = {
     //   url: `https://zkevm-rpc.com`,
     //   accounts: [`0x${process.env.ZKEVM_PRIVATE_KEY}`],
     // },
+    // "linea-sepolia": {
+    //   chainId: 59141,
+    //   url: `${process.env.LINEA_SEPOLIA_RPC_URL}`,
+    //   accounts: [`0x${process.env.LINEA_SEPOLIA_PRIVATE_KEY}`],
+    // },
     // hardhat: {
     //   chainId: 2442,
     //   forking: {
