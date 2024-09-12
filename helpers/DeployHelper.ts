@@ -103,7 +103,10 @@ export class DeployHelper {
     const stateLib = await this.deployStateLib(deployStrategy);
 
     this.log("deploying StateCrossChainLib...");
-    const stateCrossChainLib = await this.deployStateCrossChainLib();
+    const stateCrossChainLib = await this.deployStateCrossChainLib(
+      "StateCrossChainLib",
+      deployStrategy,
+    );
 
     this.log("deploying OracleProofValidator...");
     const oracleProofValidator = await this.deployOracleProofValidator();
@@ -135,18 +138,26 @@ export class DeployHelper {
 
       await state.waitForDeployment();
     } else {
-      state = await ignition.deploy(StateModule, {
-        parameters: {
-          StateProxyModule: {
-            stateLibAddress: await stateLib.getAddress(),
-            smtLibAddress: await smtLib.getAddress(),
-            poseidonUnit1LAddress: await poseidon1Elements.getAddress(),
-            oracleProofValidatorAddress: await oracleProofValidator.getAddress(),
+      state = (
+        await ignition.deploy(StateModule, {
+          parameters: {
+            StateProxyModule: {
+              stateLibAddress: await stateLib.getAddress(),
+              smtLibAddress: await smtLib.getAddress(),
+              poseidonUnit1LAddress: await poseidon1Elements.getAddress(),
+              stateCrossChainLibAddress: await stateCrossChainLib.getAddress(),
+            },
           },
-        },
-        strategy: deployStrategy,
-      });
-      await state.initialize(await verifier.getAddress(), defaultIdType, await owner.getAddress());
+          strategy: deployStrategy,
+        })
+      ).state;
+      await state.waitForDeployment();
+      await state.initialize(
+        await verifier.getAddress(),
+        defaultIdType,
+        await owner.getAddress(),
+        await oracleProofValidator.getAddress(),
+      );
     }
     await state.waitForDeployment();
     this.log(
@@ -766,11 +777,9 @@ export class DeployHelper {
         },
       });
 
-      identityTreeStore = await upgrades.deployProxy(
-        IdentityTreeStore,
-        [stateContractAddress],
-        { unsafeAllow: ["external-library-linking"] },
-      );
+      identityTreeStore = await upgrades.deployProxy(IdentityTreeStore, [stateContractAddress], {
+        unsafeAllow: ["external-library-linking"],
+      });
       await identityTreeStore.waitForDeployment();
     }
 
