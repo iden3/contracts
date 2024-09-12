@@ -5,9 +5,9 @@ import "solidity-coverage";
 import "@openzeppelin/hardhat-upgrades";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomicfoundation/hardhat-verify";
+import "@nomicfoundation/hardhat-ignition-ethers";
 
-const DEFAULT_MNEMONIC =
-  "test test test test test test test test test test test junk";
+const DEFAULT_MNEMONIC = "test test test test test test test test test test test junk";
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -58,6 +58,21 @@ const config: HardhatUserConfig = {
     //   chainId: 80002,
     //   url: `${process.env.AMOY_RPC_URL}`,
     //   accounts: [`0x${process.env.AMOY_PRIVATE_KEY}`],
+    // },
+    // 'linea-sepolia': {
+    //   chainId: 59141,
+    //   url: `${process.env.SEPOLIA_RPC_URL}`,
+    //   accounts: [`0x${process.env.SEPOLIA_PRIVATE_KEY}`],
+    // },
+    // 'privado-main': {
+    //   chainId: 21000,
+    //   url: `${process.env.PRIVADO_MAIN_RPC_URL}`,
+    //   accounts: [`0x${process.env.PRIVADO_MAIN_PRIVATE_KEY}`],
+    // },
+    // 'privado-test': {
+    //   chainId: 21001,
+    //   url: `${process.env.PRIVADO_TEST_RPC_URL}`,
+    //   accounts: [`0x${process.env.PRIVADO_TEST_PRIVATE_KEY}`],
     // },
     // hardhat: {
     //   forking: {
@@ -117,6 +132,18 @@ const config: HardhatUserConfig = {
     gasPriceApi: "https://api.polygonscan.com/api?module=proxy&action=eth_gasPrice", // MATIC
     // gasPriceAPI: "https://api.etherscan.io/api?module=proxy&action=eth_gasPrice", // ETH
   },
+
+  // etherscan: {
+  //     apiKey: "etherscan API key"
+  // },
+  ignition: {
+    strategyConfig: {
+      create2: {
+        salt: "< >", // 20 bytes: zero address; 1 byte: 00 - no cross chain protection, 11 bytes - random salt.
+      },
+    },
+  },
+
   etherscan: {
     apiKey: {
       amoy: process.env.POLYGON_API_KEY || "",

@@ -73,8 +73,7 @@ describe("Universal Verifier events", function () {
     const state = stateContract;
 
     const contracts = await deployHelper.deployValidatorContracts(
-      "VerifierSigWrapper",
-      "CredentialAtomicQuerySigV2Validator",
+      "sigV2",
       await state.getAddress(),
     );
     sig = contracts.validator;

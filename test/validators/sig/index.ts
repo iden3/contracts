@@ -100,8 +100,7 @@ describe("Atomic Sig Validator", function () {
     const { state: stateContract } = await deployHelper.deployState(["0x0100"]);
     state = stateContract;
     const contracts = await deployHelper.deployValidatorContracts(
-      "VerifierSigWrapper",
-      "CredentialAtomicQuerySigV2Validator",
+      "sigV2",
       await state.getAddress(),
     );
     sig = contracts.validator;
