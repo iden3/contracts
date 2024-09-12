@@ -796,10 +796,7 @@ export class DeployHelper {
   ): Promise<Contract> {
     const proxyAdminOwnerSigner = this.signers[0];
 
-    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons(
-      proxyAdminOwnerSigner,
-      [2, 3],
-    );
+    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons([2, 3]);
 
     const IdentityTreeStore = await ethers.getContractFactory("IdentityTreeStore", {
       libraries: {
