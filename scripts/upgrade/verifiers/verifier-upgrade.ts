@@ -11,23 +11,44 @@ import {
   submitZKPResponses_KYCAgeCredential,
 } from "./helpers/testVerifier";
 
-// Amoy
-const proxyAdminOwnerAddress = "0xE9D7fCDf32dF4772A7EF7C24c76aB40E4A42274a";
+// Amoy deployed contracts
+const proxyAdminOwnerAddress = "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb";
 const universalVerifierContractAddress = "0xB752Eec418f178ac8B48f15962B55c37F8D4748d";
-const universalVerifierOwnerAddress = "0x80203136fAe3111B810106bAa500231D4FD08FC6";
-const stateContractAddress = "0x58E6b2dd965B6f67eC3b3C6fB8832CB515C23531";
-const validatorSigContractAddress = "0x8c99F13dc5083b1E4c16f269735EaD4cFbc4970d";
-const validatorMTPContractAddress = "0xEEd5068AD8Fecf0b9a91aF730195Fef9faB00356";
-const validatorV3ContractAddress = "0x48a16180b004726cc12bF55C61A2167Da16CA0f3";
+const universalVerifierOwnerAddress = "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb";
+const stateContractAddress = "0xDFF190bC887B5Bbae80BCa8999E54ea7d084026f";
+const validatorSigContractAddress = "0x04dcEd2b96C72eD92f1F066592DBa2b7942d0f3B";
+const validatorMTPContractAddress = "0x435A97C4653b768Eb7F01F780E2Da72213fB78d6";
+const validatorV3ContractAddress = "0xb53e2487ff38b59E183125E3cE79679005AbC7b2";
 const validatorSigContractName = "CredentialAtomicQuerySigV2Validator";
 const validatorMTPContractName = "CredentialAtomicQueryMTPV2Validator";
 const validatorV3ContractName = "CredentialAtomicQueryV3Validator";
 const impersonate = true;
 
+
+// AMOY documented contracts
+// const proxyAdminOwnerAddress = "0xE9D7fCDf32dF4772A7EF7C24c76aB40E4A42274a";
+// const universalVerifierContractAddress = "0xB752Eec418f178ac8B48f15962B55c37F8D4748d";
+// const universalVerifierOwnerAddress = "0x80203136fAe3111B810106bAa500231D4FD08FC6";
+// const stateContractAddress = "0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124";
+// const validatorSigContractAddress = "0x8c99F13dc5083b1E4c16f269735EaD4cFbc4970d";
+// const validatorMTPContractAddress = "0xEEd5068AD8Fecf0b9a91aF730195Fef9faB00356";
+// const validatorV3ContractAddress = "0xa5f08979370AF7095cDeDb2B83425367316FAD0B";
+// const validatorSigContractName = "CredentialAtomicQuerySigV2Validator";
+// const validatorMTPContractName = "CredentialAtomicQueryMTPV2Validator";
+// const validatorV3ContractName = "CredentialAtomicQueryV3Validator";
+// const impersonate = false;
+
 // Hardhat localhost
 // const proxyAdminOwnerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 // const universalVerifierContractAddress = "0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f";
 // const universalVerifierOwnerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+// const stateContractAddress = "0x610178dA211FEF7D417bC0e6FeD39F05609AD788";
+// const validatorSigContractAddress = "0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1";
+// const validatorMTPContractAddress = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82";
+// const validatorV3ContractAddress = "0x3Aa5ebB10DC797CAC828524e59A333d0A371443c";
+// const validatorSigContractName = "CredentialAtomicQuerySigV2Validator";
+// const validatorMTPContractName = "CredentialAtomicQueryMTPV2Validator";
+// const validatorV3ContractName = "CredentialAtomicQueryV3Validator";
 // const impersonate = false;
 
 async function getSigners(useImpersonation: boolean): Promise<any> {
@@ -113,14 +134,14 @@ async function main() {
   console.log("Upgrading validators and adding them to whitelist...");
 
   const validators = [
-    // {
-    //   validatorContractAddress: validatorMTPContractAddress,
-    //   validatorContractName: validatorMTPContractName,
-    // },
-    // {
-    //   validatorContractAddress: validatorSigContractAddress,
-    //   validatorContractName: validatorSigContractName,
-    // },
+    {
+      validatorContractAddress: validatorMTPContractAddress,
+      validatorContractName: validatorMTPContractName,
+    },
+    {
+      validatorContractAddress: validatorSigContractAddress,
+      validatorContractName: validatorSigContractName,
+    },
     {
       validatorContractAddress: validatorV3ContractAddress,
       validatorContractName: validatorV3ContractName,
@@ -137,10 +158,10 @@ async function main() {
 
     // This is not the scope of upgrading but we could add the validators
     // to the whitelist here so future requests can be verified by them
-    /* const addToWhiteListTx = await universalVerifierContract.addValidatorToWhitelist(
-      v.validatorContractAddress,
-    );
-    await addToWhiteListTx.wait(); */
+    // const addToWhiteListTx = await universalVerifierContract.addValidatorToWhitelist(
+    //   v.validatorContractAddress,
+    // );
+    // await addToWhiteListTx.wait();
   }
 
   console.log("Testing verifiation with submitZKPResponseV2 after migration...");
