@@ -38,20 +38,17 @@ async function main() {
   // ##################### Validator deploy #####################
 
   const { validator: validatorMTP } = await deployHelper.deployValidatorContracts(
-    "VerifierMTPWrapper",
-    "CredentialAtomicQueryMTPV2Validator",
+    "mtpV2",
     await state.getAddress(),
   );
 
   const { validator: validatorSig } = await deployHelper.deployValidatorContracts(
-    "VerifierSigWrapper",
-    "CredentialAtomicQuerySigV2Validator",
+    "sigV2",
     await state.getAddress(),
   );
 
   const { validator: validatorV3 } = await deployHelper.deployValidatorContracts(
-    "VerifierV3Wrapper",
-    "CredentialAtomicQueryV3Validator",
+    "v3",
     await state.getAddress(),
   );
 
