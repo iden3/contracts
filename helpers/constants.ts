@@ -21,4 +21,5 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
   .set(11155111, { idType: "0x0223", networkType: "test", oracleSigningAddress: oracleSATest }) // ethereum sepolia
   .set(21000, { idType: "0x01A1", networkType: "main", oracleSigningAddress: oracleSAProd }) // privado-main
   .set(21001, { idType: "0x01A2", networkType: "test", oracleSigningAddress: oracleSATest }) // privado-test
+  .set(59144, { idType: "0x0149", networkType: "main", oracleSigningAddress: oracleSAProd }) // linea-main
   .set(59141, { idType: "0x0148", networkType: "test", oracleSigningAddress: oracleSATest }); // linea-sepolia
