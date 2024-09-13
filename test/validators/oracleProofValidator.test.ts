@@ -75,7 +75,6 @@ describe("Oracle Proof Validator", function () {
       "OracleProofValidator",
       domainName,
       signatureVersion,
-      oracleSigningAddress,
     );
   });
 

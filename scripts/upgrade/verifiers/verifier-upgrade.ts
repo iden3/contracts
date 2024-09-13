@@ -15,7 +15,7 @@ import fs from "fs";
 const validatorSigContractName = "CredentialAtomicQuerySigV2Validator";
 const validatorMTPContractName = "CredentialAtomicQueryMTPV2Validator";
 const validatorV3ContractName = "CredentialAtomicQueryV3Validator";
-const impersonate = false;
+const impersonate = true;
 
 // Amoy deployed contracts (oracle Slack Chat)
 // const proxyAdminOwnerAddress = "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb";
@@ -48,7 +48,7 @@ async function getSigners(useImpersonation: boolean): Promise<any> {
       uvUpgrade.proxyAdminOwnerAddress,
     );
     const universalVerifierOwnerSigner = await ethers.getImpersonatedSigner(
-      uvUpgrade.universalVerifierOwnerAddress,
+      uvUpgrade.universalVeriferOwnerAddress,
     );
     return { proxyAdminOwnerSigner, universalVerifierOwnerSigner };
   } else {

@@ -12,7 +12,6 @@ import fs from "fs";
 */
 
 async function main() {
-
   const testId = BigInt("0x0e2c0b248f9d0cd5e1ea6ba551f9ba76f4aa7276d1f89c109f8923063b1202");
   const testState = BigInt("0x304754b7b338d8cc4f2b3ddaf94ec608a1470702784c40132ec18b48a2ee37d9");
   const signers = await ethers.getSigners();
@@ -20,7 +19,9 @@ async function main() {
   const migrationSteps = new StateContractMigrationHelper(stateDeployHelper, signers[0]);
   const network = process.env.HARDHAT_NETWORK;
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const deployInfo = require(`../../test-migration/contracts/scripts/deploy_output_final.${network}.json`);
+  const deployInfo = require(
+    `../../test-migration/contracts/scripts/deploy_output_final.${network}.json`,
+  );
 
   console.log("stateAddress", deployInfo.state);
 
@@ -39,7 +40,7 @@ async function main() {
   const result1 = await migrationSteps.getDataFromContract(
     stateContractInstance,
     testId,
-    testState
+    testState,
   );
 
   fs.writeFileSync(`data-before-upgrade.${network}.json`, JSON.stringify(result1, null, 2));
@@ -48,7 +49,13 @@ async function main() {
   const verifierName = "Verifier";
   const stateContractMigrationName = "StateV2-intermediate-migration";
 
-  const { state: stateMigration, verifier } = await stateDeployHelper.upgradeState(await stateContractInstance.getAddress(), undefined, undefined, verifierName, stateContractMigrationName);
+  const { state: stateMigration } = await stateDeployHelper.upgradeState(
+    await stateContractInstance.getAddress(),
+    undefined,
+    undefined,
+    verifierName,
+    stateContractMigrationName,
+  );
   console.log("============= Finish: upgradeToStateV2_migration =============");
 
   const logHistory = await migrationSteps.readEventLogData(
@@ -56,7 +63,7 @@ async function main() {
     startBlock,
     1000,
     "StateUpdated",
-    `${network}.eventLog.json`
+    `${network}.eventLog.json`,
   );
 
   console.log("intermediateContractCheck");
@@ -64,13 +71,11 @@ async function main() {
   const intermediateContractCheck = await migrationSteps.getDataFromContract(
     stateMigration,
     testId,
-    testState
+    testState,
   );
   await migrationSteps.checkData(result1, intermediateContractCheck);
 
-  await migrationSteps.migrateData(
-    logHistory,
-    async (args) => {
+  await migrationSteps.migrateData(logHistory, async (args) => {
     /*
           MIGRATION DATA LOGIC MUST BE USE THIS CALLBACK
        */
@@ -80,7 +85,7 @@ async function main() {
   const intermediateContractCheck2 = await migrationSteps.getDataFromContract(
     stateMigration,
     testId,
-    testState
+    testState,
   );
 
   await migrationSteps.checkData(result1, intermediateContractCheck2);
