@@ -115,9 +115,9 @@ contract State is Ownable2StepUpgradeable, IState, IStateCrossChain {
         $._oracleProofValidator = validator;
     }
 
-    function processProof(bytes calldata proof) public {
+    function processCrossChainProof(bytes calldata proof) public {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
-        $.processProof(proof);
+        $.processCrossChainProof(proof);
     }
 
     /**

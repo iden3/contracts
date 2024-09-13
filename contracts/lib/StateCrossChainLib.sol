@@ -10,7 +10,10 @@ library StateCrossChainLib {
     uint256 constant MAX_TIMESTAMP_LAG = 1 hours;
     uint256 constant MAX_REPLACED_AT_AHEAD_OF_TIME = 5 minutes;
 
-    function processProof(State.StateCrossChainStorage storage self, bytes calldata proof) public {
+    function processCrossChainProof(
+        State.StateCrossChainStorage storage self,
+        bytes calldata proof
+    ) public {
         if (proof.length == 0) {
             return;
         }

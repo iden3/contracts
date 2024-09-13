@@ -33,5 +33,5 @@ interface IStateCrossChain is IStateWithTimestampGetters {
         bytes proof;
     }
 
-    function processProof(bytes calldata proof) external;
+    function processCrossChainProof(bytes calldata proof) external;
 }

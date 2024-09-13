@@ -38,7 +38,7 @@ async function processMessages(
   ]);
 
   try {
-    await stateCrossChain.processProof(crossChainProof);
+    await stateCrossChain.processCrossChainProof(crossChainProof);
   } catch (e: any) {
     return e.message;
   }

@@ -144,7 +144,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     ) public virtual {
         ZKPVerifierStorage storage $ = _getZKPVerifierStorage();
 
-        $._state.processProof(crossChainProof);
+        $._state.processCrossChainProof(crossChainProof);
 
         for (uint256 i = 0; i < responses.length; i++) {
             ZKPResponse memory response = responses[i];
