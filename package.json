@@ -64,6 +64,7 @@
     "deploy:validators:localhost": "npx hardhat run scripts/deployValidators.ts --network localhost",
     "deploy:verifier:upgrade:localhost": "npx hardhat run scripts/upgrade/verifiers/verifier-upgrade.ts --network localhost",
     "deploy:verifier:upgrade:amoy": "npx hardhat run scripts/upgrade/verifiers/verifier-upgrade.ts --network amoy",
+    "deploy:set:request:amoy": "npx hardhat run scripts/setProofRequest.ts --network amoy",
     "deploy:set:request:linea-sepolia": "npx hardhat run scripts/setProofRequest.ts --network linea-sepolia",
     "deploy:state:localhost": "npx hardhat run scripts/deployState.ts --network localhost",
     "deploy:state:ropsten": "npx hardhat run scripts/deployState.ts --network ropsten",

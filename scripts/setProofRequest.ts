@@ -6,8 +6,12 @@ import { buildVerifierId } from "./deployCrossChainVerifierWithRequests";
 import fs from "fs";
 
 async function main() {
-  const circuitName: string = "credentialAtomicQueryMTPV2OnChain"; // TODO put your circuit here;
-  const requestId = 26; // TODO put your request here;
+  const MTP_V2_CIRCUIT_NAME = "credentialAtomicQueryMTPV2OnChain";
+  const SIG_V2_CIRCUIT_NAME = "credentialAtomicQuerySigV2OnChain";
+  const V3_CIRCUIT_NAME = "credentialAtomicQueryV3OnChain-beta.1";
+
+  const circuitName: string = V3_CIRCUIT_NAME; // TODO put your circuit here;
+  const requestId = 117; // TODO put your request here;
   const allowedIssuers = []; // TODO put your allowed issuers here
 
   const chainId = hre.network.config.chainId;
@@ -63,7 +67,7 @@ async function main() {
 
   let validatorAddress: string;
   switch (circuitName) {
-    case "credentialAtomicQueryMTPV2OnChain":
+    case MTP_V2_CIRCUIT_NAME:
       validatorAddress = uvDeployment.validatorMTP;
       query.queryHash = calculateQueryHashV2(
         query.value,
@@ -74,7 +78,7 @@ async function main() {
         query.claimPathNotExists,
       ).toString();
       break;
-    case "credentialAtomicQuerySigV2OnChain":
+    case SIG_V2_CIRCUIT_NAME:
       validatorAddress = uvDeployment.validatorSig;
       query.queryHash = calculateQueryHashV2(
         query.value,
@@ -85,7 +89,7 @@ async function main() {
         query.claimPathNotExists,
       ).toString();
       break;
-    case "credentialAtomicQueryV3OnChain-beta.1":
+    case V3_CIRCUIT_NAME:
       validatorAddress = uvDeployment.validatorV3;
       query = {
         ...query,
@@ -161,11 +165,11 @@ async function main() {
       validator: validatorAddress,
       data: data,
     },
-    {
-      gasPrice: 50000000000,
-      initialBaseFeePerGas: 25000000000,
-      gasLimit: 10000000,
-    },
+    // {
+    //   gasPrice: 50000000000,
+    //   initialBaseFeePerGas: 25000000000,
+    //   gasLimit: 10000000,
+    // },
   );
 
   console.log(JSON.stringify(invokeRequestMetadataKYCAgeCredential, null, "\t"));
