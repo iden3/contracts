@@ -177,28 +177,23 @@ library PrimitiveTypeUtils {
         return abi.encodePacked(a);
     }
 
-    // TODO unpredicted function behaviour slicing by 31 but not 32 bytes due to the field size
-    // consider renaming or moving to other module
-    function bytesToUint256Array(bytes memory data) internal pure returns (uint256[] memory) {
+    function bytesSlicePer31BytesToUint256Array(bytes memory data) internal pure returns (uint256[] memory) {
         uint256 arrayLength = (data.length + 30) / 31; // Round up for 31-byte slices
         uint256[] memory result = new uint256[](arrayLength);
 
         for (uint256 i = 0; i < arrayLength; i++) {
             uint256 value;
             assembly {
-                // Load 31 bytes, starting from the current index in data
                 value := mload(add(data, add(32, mul(i, 31))))
-                // shift value 1 byte right
                 value := shr(8, value)
             }
 
             // If we're on the last chunk and the data length isn't a full 31 bytes,
             // we need to mask out the extra bytes from the right
-            // TODO fix it
-            //            if (i == arrayLength - 1 && data.length % 31 != 0) {
-            //                uint256 mask = (1 << (8 * (data.length % 31))) - 1;
-            //                value = value & ~mask;
-            //            }
+            if (i == arrayLength - 1 && data.length % 31 != 0) {
+                uint256 mask = (1 << (8 * (31 - data.length % 31))) - 1;
+                value = value & ~mask;
+            }
 
             result[i] = value;
         }

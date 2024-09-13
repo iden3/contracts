@@ -22,55 +22,40 @@ library StateCrossChainLib {
 
         for (uint256 i = 0; i < proofs.length; i++) {
             if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("globalStateProof"))) {
-                IStateCrossChain.GlobalStateUpdate memory globalStateUpd = abi.decode(
+                IStateCrossChain.GlobalStateUpdate memory gsu = abi.decode(
                     proofs[i].proof,
                     (IStateCrossChain.GlobalStateUpdate)
                 );
 
-                _setGistRootInfo(self, globalStateUpd.globalStateMsg, globalStateUpd.signature);
+                require(
+                    self._oracleProofValidator.verifyGlobalState(gsu.globalStateMsg, gsu.signature),
+                    "Global state proof is not valid"
+                );
+
+                self._rootToGistRootReplacedAt[gsu.globalStateMsg.idType][
+                    gsu.globalStateMsg.root
+                ] = _calcReplacedAt(
+                    gsu.globalStateMsg.timestamp,
+                    gsu.globalStateMsg.replacedAtTimestamp
+                );
             } else if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("stateProof"))) {
-                IStateCrossChain.IdentityStateUpdate memory idStateUpd = abi.decode(
+                IStateCrossChain.IdentityStateUpdate memory isu = abi.decode(
                     proofs[i].proof,
                     (IStateCrossChain.IdentityStateUpdate)
                 );
 
-                _setStateInfo(self, idStateUpd.idStateMsg, idStateUpd.signature);
+                require(
+                    self._oracleProofValidator.verifyIdentityState(isu.idStateMsg, isu.signature),
+                    "Identity state proof is not valid"
+                );
+
+                self._idToStateReplacedAt[isu.idStateMsg.id][
+                    isu.idStateMsg.state
+                ] = _calcReplacedAt(isu.idStateMsg.timestamp, isu.idStateMsg.replacedAtTimestamp);
             } else {
                 revert("Unknown proof type");
             }
         }
-    }
-
-    function _setStateInfo(
-        State.StateCrossChainStorage storage self,
-        IStateCrossChain.IdentityStateMessage memory message,
-        bytes memory signature
-    ) internal {
-        require(
-            self._oracleProofValidator.verifyIdentityState(message, signature),
-            "Identity state proof is not valid"
-        );
-
-        self._idToStateReplacedAt[message.id][message.state] = _calcReplacedAt(
-            message.timestamp,
-            message.replacedAtTimestamp
-        );
-    }
-
-    function _setGistRootInfo(
-        State.StateCrossChainStorage storage self,
-        IStateCrossChain.GlobalStateMessage memory message,
-        bytes memory signature
-    ) internal {
-        require(
-            self._oracleProofValidator.verifyGlobalState(message, signature),
-            "Global state proof is not valid"
-        );
-
-        self._rootToGistRootReplacedAt[message.idType][message.root] = _calcReplacedAt(
-            message.timestamp,
-            message.replacedAtTimestamp
-        );
     }
 
     function _calcReplacedAt(

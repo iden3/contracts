@@ -52,6 +52,8 @@
     "test:identitytreestore": "npx hardhat test test/identitytreestore/*.test.ts",
     "test:state:cross:chain": "npx hardhat test test/state/stateCrossChain.test.ts",
     "test:submitzkpresponse:vw": "npx hardhat test test/verifier/universal-verifier-submit-v2.test.ts",
+    "test:primitive:utils": "npx hardhat test test/primitiveUtils/primitiveUtils.test.ts",
+    "test:poseidon": "npx hardhat test test/poseidon/poseidon.test.ts",
     "test:gas": "COINMARKETCAP_KEY=<put your key here> REPORT_GAS=true npx hardhat test",
     "test:coverage": "npx hardhat coverage",
     "deploy:identitytreestore:localhost": "npx hardhat run scripts/deployIdentityTreeStore.ts --network localhost",

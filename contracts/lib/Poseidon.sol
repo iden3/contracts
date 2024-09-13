@@ -56,7 +56,7 @@ library SpongePoseidon {
     }
 
     function hashBytes(bytes memory data) public pure returns (uint256) {
-        return hash(PrimitiveTypeUtils.bytesToUint256Array(data));
+        return hash(PrimitiveTypeUtils.bytesSlicePer31BytesToUint256Array(data));
     }
 }
 
