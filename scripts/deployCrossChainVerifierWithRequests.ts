@@ -17,6 +17,8 @@ import { Merklizer } from "@iden3/js-jsonld-merklization";
 import path from "path";
 import fs from "fs";
 
+const removePreviousIgnitionFiles = true;
+
 async function main() {
   const deployHelper = await DeployHelper.initialize(null, true);
 
@@ -31,6 +33,10 @@ async function main() {
   const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
   const networkName = hre.network.name;
 
+  if (removePreviousIgnitionFiles && (networkName === "localhost" || networkName === "hardhat")) {
+    console.log("Removing previous ignition files for chain: ", chainId);
+    fs.rmSync(`./ignition/deployments/chain-${chainId}`, { recursive: true, force: true });
+  }
   // ##################### State with StateCrossChainLib deploy #####################
 
   const { state, oracleProofValidator } = await deployHelper.deployState();
@@ -502,7 +508,10 @@ async function main() {
     chainId,
   };
 
-  const pathOutputJson = path.join(__dirname, `./deploy_universal_verifier_output_${chainId}_${networkName}.json`);
+  const pathOutputJson = path.join(
+    __dirname,
+    `./deploy_universal_verifier_output_${chainId}_${networkName}.json`,
+  );
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 }
 

@@ -15,6 +15,7 @@ import fs from "fs";
 const validatorSigContractName = "CredentialAtomicQuerySigV2Validator";
 const validatorMTPContractName = "CredentialAtomicQueryMTPV2Validator";
 const validatorV3ContractName = "CredentialAtomicQueryV3Validator";
+const removePreviousIgnitionFiles = true;
 const impersonate = true;
 
 // Amoy deployed contracts (oracle Slack Chat)
@@ -72,6 +73,11 @@ async function main() {
     [proxyAdminOwnerSigner, universalVerifierOwnerSigner],
     true,
   );
+
+  if (removePreviousIgnitionFiles && (network === "localhost" || network === "hardhat")) {
+    console.log("Removing previous ignition files for chain: ", chainId);
+    fs.rmSync(`./ignition/deployments/chain-${chainId}`, { recursive: true, force: true });
+  }
 
   await TestStateUpgrade(deployerHelper, proxyAdminOwnerSigner);
 
