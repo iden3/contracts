@@ -149,6 +149,11 @@ async function main() {
 
   const data = packValidatorParams(query);
 
+  const requestIdExists = await verifier.requestIdExists(requestId);
+  if (requestIdExists) {
+    throw new Error(`Request ID: ${requestId} already exists`);
+  }
+
   const tx = await verifier.setZKPRequest(
     requestId,
     {
@@ -162,6 +167,7 @@ async function main() {
       gasLimit: 10000000,
     },
   );
+
   console.log(JSON.stringify(invokeRequestMetadataKYCAgeCredential, null, "\t"));
 
   console.log(`Request ID: ${requestId} is set in tx: ${tx.hash}`);
