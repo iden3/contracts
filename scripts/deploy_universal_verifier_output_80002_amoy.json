@@ -1,6 +1,6 @@
 {
  "proxyAdminOwnerAddress": "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb",
- "universalVeriferOwnerAddress": "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb",
+ "universalVerifierOwnerAddress": "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb",
  "state": "0xDFF190bC887B5Bbae80BCa8999E54ea7d084026f",
  "universalVerifier": "0xB7487dDa8f0c465730fC715785743C459747bcbC",
  "oracleProofValidator": "0xfef44b8eD40A9e55eF88fF262Ba17Dd18342c6Ed",

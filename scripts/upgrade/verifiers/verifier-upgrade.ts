@@ -48,7 +48,7 @@ async function getSigners(useImpersonation: boolean): Promise<any> {
       uvUpgrade.proxyAdminOwnerAddress,
     );
     const universalVerifierOwnerSigner = await ethers.getImpersonatedSigner(
-      uvUpgrade.universalVeriferOwnerAddress,
+      uvUpgrade.universalVerifierOwnerAddress,
     );
     return { proxyAdminOwnerSigner, universalVerifierOwnerSigner };
   } else {

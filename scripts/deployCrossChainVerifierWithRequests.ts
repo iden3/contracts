@@ -491,7 +491,7 @@ async function main() {
 
   const outputJson = {
     proxyAdminOwnerAddress: await signer.getAddress(),
-    universalVeriferOwnerAddress: await signer.getAddress(),
+    universalVerifierOwnerAddress: await signer.getAddress(),
     state: await state.getAddress(),
     universalVerifier: await verifier.getAddress(),
     oracleProofValidator: await oracleProofValidator.getAddress(),
