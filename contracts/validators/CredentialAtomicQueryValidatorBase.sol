@@ -109,7 +109,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256[2] memory c,
         bytes calldata data,
         address sender
-    ) public view override returns (ICircuitValidator.KeyToInputValue[] memory) {
+    ) public view override returns (ICircuitValidator.Signal[] memory) {
         CredentialAtomicQueryValidatorBaseStorage
             storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
 
@@ -121,7 +121,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         bytes calldata data,
         address sender,
         IStateWithTimestampGetters state
-    ) external view returns (ICircuitValidator.KeyToInputValue[] memory) {
+    ) external view returns (ICircuitValidator.Signal[] memory) {
         (
             uint256[] memory inputs,
             uint256[2] memory a,
@@ -140,7 +140,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         bytes calldata data,
         address sender,
         IStateWithTimestampGetters state
-    ) internal view virtual returns (ICircuitValidator.KeyToInputValue[] memory);
+    ) internal view virtual returns (ICircuitValidator.Signal[] memory);
 
     function getSupportedCircuitIds() external view virtual returns (string[] memory ids) {
         return _getCredentialAtomicQueryValidatorBaseStorage()._supportedCircuitIds;
@@ -176,12 +176,6 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256 _gistRoot,
         IStateWithTimestampGetters _stateWGetters
     ) internal view {
-        // for privado identity and 0 gist root we don't need to check for root info
-        if (_isPrivadoId(_id)) {
-            require(_gistRoot == 0, "Privado identity can't have gist root");
-            return;
-        }
-
         CredentialAtomicQueryValidatorBaseStorage
             storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
         bytes2 idType = GenesisUtils.getIdType(_id);
@@ -205,15 +199,6 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256 _claimNonRevState,
         IStateWithTimestampGetters _stateWGetters
     ) internal view {
-        // for privado identity and genesis state we don't need to check for expiration
-        if (_isPrivadoId(_id)) {
-            require(
-                GenesisUtils.isGenesisState(_id, _claimNonRevState),
-                "Privado identity is not genesis"
-            );
-            return;
-        }
-
         CredentialAtomicQueryValidatorBaseStorage
             storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
         uint256 replacedAt = _stateWGetters.getStateReplacedAt(_id, _claimNonRevState);
@@ -266,10 +251,5 @@ abstract contract CredentialAtomicQueryValidatorBase is
     function _setInputToIndex(string memory inputName, uint256 index) internal {
         // increment index to avoid 0
         _getCredentialAtomicQueryValidatorBaseStorage()._inputNameToIndex[inputName] = ++index;
-    }
-
-    function _isPrivadoId(uint256 _id) internal pure returns (bool) {
-        bytes2 idType = GenesisUtils.getIdType(_id);
-        return idType == 0x01a1 || idType == 0x01a2;
     }
 }

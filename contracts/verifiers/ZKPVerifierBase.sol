@@ -123,7 +123,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         ZKPVerifierStorage storage $ = _getZKPVerifierStorage();
 
         IZKPVerifier.ZKPRequest memory request = $._requests[requestId];
-        ICircuitValidator.KeyToInputValue[] memory pairs = request.validator.verify(
+        ICircuitValidator.Signal[] memory signals = request.validator.verify(
             inputs,
             a,
             b,
@@ -132,7 +132,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             sender
         );
 
-        $.writeProofResults(sender, requestId, pairs);
+        $.writeProofResults(sender, requestId, signals);
     }
 
     /// @notice Submits a ZKP response V2 and updates proof status
@@ -153,14 +153,14 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
 
             // TODO some internal method and storage location to save gas?
             IZKPVerifier.ZKPRequest memory request = getZKPRequest(response.requestId);
-            ICircuitValidator.KeyToInputValue[] memory pairs = request.validator.verifyV2(
+            ICircuitValidator.Signal[] memory signals = request.validator.verifyV2(
                 response.zkProof,
                 request.data,
                 sender,
                 $._state
             );
 
-            $.writeProofResults(sender, response.requestId, pairs);
+            $.writeProofResults(sender, response.requestId, signals);
 
             if (response.data.length > 0) {
                 $.writeMetadata(sender, response.data, response.requestId);
@@ -186,7 +186,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         public
         virtual
         checkRequestExistence(requestId, true)
-        returns (ICircuitValidator.KeyToInputValue[] memory)
+        returns (ICircuitValidator.Signal[] memory)
     {
         IZKPVerifier.ZKPRequest storage request = _getZKPVerifierStorage()._requests[requestId];
         return request.validator.verify(inputs, a, b, c, request.data, sender);

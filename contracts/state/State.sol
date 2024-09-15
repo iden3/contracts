@@ -457,11 +457,10 @@ contract State is Ownable2StepUpgradeable, IState, IStateCrossChain {
         }
 
         require(isIdTypeSupported(idType), "id type is not supported");
-        if (_gistData.rootExists(root)) {
-            replacedAt = _gistData.getRootInfo(root).replacedAtTimestamp;
-        } else {
+        if (!_gistData.rootExists(root)) {
             revert("Gist root entry not found");
         }
+        replacedAt = _gistData.getRootInfo(root).replacedAtTimestamp;
     }
 
     /**

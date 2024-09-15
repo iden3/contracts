@@ -4,9 +4,9 @@ pragma solidity 0.8.20;
 import {IStateWithTimestampGetters} from "./IStateWithTimestampGetters.sol";
 
 interface ICircuitValidator {
-    struct KeyToInputValue {
-        string key;
-        uint256 inputValue;
+    struct Signal {
+        string name;
+        uint256 value;
     }
 
     function version() external view returns (string memory);
@@ -18,14 +18,14 @@ interface ICircuitValidator {
         uint256[2] memory c,
         bytes calldata data,
         address sender
-    ) external returns (ICircuitValidator.KeyToInputValue[] memory);
+    ) external returns (ICircuitValidator.Signal[] memory);
 
     function verifyV2(
         bytes calldata zkProof,
         bytes calldata data,
         address sender,
         IStateWithTimestampGetters state
-    ) external returns (ICircuitValidator.KeyToInputValue[] memory);
+    ) external returns (ICircuitValidator.Signal[] memory);
 
     function getSupportedCircuitIds() external view returns (string[] memory ids);
 

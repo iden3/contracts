@@ -74,7 +74,7 @@ contract ValidatorWhitelist is ZKPVerifierBase {
         uint256[2][2] memory b,
         uint256[2] memory c,
         address sender
-    ) public virtual override returns (ICircuitValidator.KeyToInputValue[] memory) {
+    ) public virtual override returns (ICircuitValidator.Signal[] memory) {
         ICircuitValidator validator = getZKPRequest(requestId).validator;
         require(isWhitelistedValidator(validator), "Validator is not whitelisted");
         return super.verifyZKPResponse(requestId, inputs, a, b, c, sender);

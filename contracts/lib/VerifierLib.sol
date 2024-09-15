@@ -10,11 +10,11 @@ library VerifierLib {
         ZKPVerifierBase.ZKPVerifierStorage storage self,
         address sender,
         uint64 requestId,
-        ICircuitValidator.KeyToInputValue[] memory pairs
+        ICircuitValidator.Signal[] memory signals
     ) public {
         ZKPVerifierBase.Proof storage proof = self._proofs[sender][requestId];
-        for (uint256 i = 0; i < pairs.length; i++) {
-            proof.storageFields[pairs[i].key] = pairs[i].inputValue;
+        for (uint256 i = 0; i < signals.length; i++) {
+            proof.storageFields[signals[i].name] = signals[i].value;
         }
 
         proof.isVerified = true;

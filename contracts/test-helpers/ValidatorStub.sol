@@ -32,8 +32,8 @@ contract ValidatorStub is ICircuitValidator, ERC165 {
         uint256[2] calldata c,
         bytes calldata data,
         address sender
-    ) external pure override returns (ICircuitValidator.KeyToInputValue[] memory) {
-        ICircuitValidator.KeyToInputValue[] memory keypair;
+    ) external pure override returns (ICircuitValidator.Signal[] memory) {
+        ICircuitValidator.Signal[] memory keypair;
         return keypair;
     }
 
@@ -42,20 +42,20 @@ contract ValidatorStub is ICircuitValidator, ERC165 {
         bytes calldata data,
         address sender,
         IStateWithTimestampGetters state
-    ) external pure override returns (ICircuitValidator.KeyToInputValue[] memory) {
-        ICircuitValidator.KeyToInputValue[] memory pairs = new ICircuitValidator.KeyToInputValue[](
+    ) external pure override returns (ICircuitValidator.Signal[] memory) {
+        ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](
             2
         );
-        pairs[0] = ICircuitValidator.KeyToInputValue({
+        signals[0] = ICircuitValidator.Signal({
             key: "input1Name",
             inputValue: 4738709701797800586552075642459921104723261125214325001991063996931581119544
         });
-        pairs[1] = ICircuitValidator.KeyToInputValue({
+        signals[1] = ICircuitValidator.Signal({
             key: "input2Name",
             inputValue: 9035405010444332688195156022077093661354129858083944503594910647512497655475
         });
 
-        return pairs;
+        return signals;
     }
 
     function inputIndexOf(string memory /*name*/) external pure returns (uint256) {

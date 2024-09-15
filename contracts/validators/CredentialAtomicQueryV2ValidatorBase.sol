@@ -54,7 +54,7 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         bytes calldata data,
         address sender,
         IStateWithTimestampGetters state
-    ) internal view override returns (ICircuitValidator.KeyToInputValue[] memory) {
+    ) internal view override returns (ICircuitValidator.Signal[] memory) {
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
 
         require(credAtomicQuery.circuitIds.length == 1, "circuitIds length is not equal to 1");
@@ -92,9 +92,9 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         _checkClaimIssuanceState(signals.issuerID, signals.issuerState, state);
         _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState, state);
 
-        // get special input values
+        // get special signal values
         // selective disclosure is not supported for v2 onchain circuits
-        return _getSpecialInputPairs(signals);
+        return _getSpecialSignals(signals);
     }
 
     function _checkMerklized(uint256 merklized, uint256 queryClaimPathKey) internal pure {
@@ -116,17 +116,17 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         );
     }
 
-    function _getSpecialInputPairs(
+    function _getSpecialSignals(
         PubSignals memory signals
-    ) internal pure returns (ICircuitValidator.KeyToInputValue[] memory) {
-        ICircuitValidator.KeyToInputValue[] memory pairs = new ICircuitValidator.KeyToInputValue[](
+    ) internal pure returns (ICircuitValidator.Signal[] memory) {
+        ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](
             2
         );
-        pairs[0] = ICircuitValidator.KeyToInputValue({key: "userID", inputValue: signals.userID});
-        pairs[1] = ICircuitValidator.KeyToInputValue({
+        signals[0] = ICircuitValidator.Signal({key: "userID", inputValue: signals.userID});
+        signals[1] = ICircuitValidator.Signal({
             key: "timestamp",
             inputValue: signals.timestamp
         });
-        return pairs;
+        return signals;
     }
 }

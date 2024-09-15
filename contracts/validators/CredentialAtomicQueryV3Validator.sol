@@ -108,7 +108,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         bytes calldata data,
         address sender,
         IStateWithTimestampGetters state
-    ) internal view override returns (ICircuitValidator.KeyToInputValue[] memory) {
+    ) internal view override returns (ICircuitValidator.Signal[] memory) {
         CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
             data,
             (CredentialAtomicQueryV3)
@@ -185,30 +185,30 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
     function _getSpecialInputValues(
         PubSignals memory signals,
         bool hasSelectiveDisclosure
-    ) internal pure returns (ICircuitValidator.KeyToInputValue[] memory) {
-        uint256 numPairs = hasSelectiveDisclosure ? 5 : 4;
-        ICircuitValidator.KeyToInputValue[] memory pairs = new ICircuitValidator.KeyToInputValue[](
-            numPairs
+    ) internal pure returns (ICircuitValidator.Signal[] memory) {
+        uint256 numSignals = hasSelectiveDisclosure ? 5 : 4;
+        ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](
+            numSignals
         );
 
         uint i = 0;
-        pairs[i++] = ICircuitValidator.KeyToInputValue({key: "userID", inputValue: signals.userID});
-        pairs[i++] = ICircuitValidator.KeyToInputValue({key: "linkID", inputValue: signals.linkID});
-        pairs[i++] = ICircuitValidator.KeyToInputValue({
+        signals[i++] = ICircuitValidator.Signal({key: "userID", inputValue: signals.userID});
+        signals[i++] = ICircuitValidator.Signal({key: "linkID", inputValue: signals.linkID});
+        signals[i++] = ICircuitValidator.Signal({
             key: "nullifier",
             inputValue: signals.nullifier
         });
         if (hasSelectiveDisclosure) {
-            pairs[i++] = ICircuitValidator.KeyToInputValue({
+            signals[i++] = ICircuitValidator.Signal({
                 key: "operatorOutput",
                 inputValue: signals.operatorOutput
             });
         }
-        pairs[i++] = ICircuitValidator.KeyToInputValue({
+        signals[i++] = ICircuitValidator.Signal({
             key: "timestamp",
             inputValue: signals.timestamp
         });
 
-        return pairs;
+        return signals;
     }
 }
