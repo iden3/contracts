@@ -117,15 +117,15 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
     }
 
     function _getSpecialSignals(
-        PubSignals memory signals
+        PubSignals memory pubSignals
     ) internal pure returns (ICircuitValidator.Signal[] memory) {
         ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](
             2
         );
-        signals[0] = ICircuitValidator.Signal({key: "userID", inputValue: signals.userID});
+        signals[0] = ICircuitValidator.Signal({name: "userID", value: pubSignals.userID});
         signals[1] = ICircuitValidator.Signal({
-            key: "timestamp",
-            inputValue: signals.timestamp
+            name: "timestamp",
+            value: pubSignals.timestamp
         });
         return signals;
     }

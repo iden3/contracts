@@ -183,7 +183,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
     }
 
     function _getSpecialInputValues(
-        PubSignals memory signals,
+        PubSignals memory pubSignals,
         bool hasSelectiveDisclosure
     ) internal pure returns (ICircuitValidator.Signal[] memory) {
         uint256 numSignals = hasSelectiveDisclosure ? 5 : 4;
@@ -192,21 +192,21 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         );
 
         uint i = 0;
-        signals[i++] = ICircuitValidator.Signal({key: "userID", inputValue: signals.userID});
-        signals[i++] = ICircuitValidator.Signal({key: "linkID", inputValue: signals.linkID});
+        signals[i++] = ICircuitValidator.Signal({name: "userID", value: pubSignals.userID});
+        signals[i++] = ICircuitValidator.Signal({name: "linkID", value: pubSignals.linkID});
         signals[i++] = ICircuitValidator.Signal({
-            key: "nullifier",
-            inputValue: signals.nullifier
+            name: "nullifier",
+            value: pubSignals.nullifier
         });
         if (hasSelectiveDisclosure) {
             signals[i++] = ICircuitValidator.Signal({
-                key: "operatorOutput",
-                inputValue: signals.operatorOutput
+                name: "operatorOutput",
+                value: pubSignals.operatorOutput
             });
         }
         signals[i++] = ICircuitValidator.Signal({
-            key: "timestamp",
-            inputValue: signals.timestamp
+            name: "timestamp",
+            value: pubSignals.timestamp
         });
 
         return signals;
