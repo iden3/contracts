@@ -187,27 +187,19 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         bool hasSelectiveDisclosure
     ) internal pure returns (ICircuitValidator.Signal[] memory) {
         uint256 numSignals = hasSelectiveDisclosure ? 5 : 4;
-        ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](
-            numSignals
-        );
+        ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](numSignals);
 
         uint i = 0;
         signals[i++] = ICircuitValidator.Signal({name: "userID", value: pubSignals.userID});
         signals[i++] = ICircuitValidator.Signal({name: "linkID", value: pubSignals.linkID});
-        signals[i++] = ICircuitValidator.Signal({
-            name: "nullifier",
-            value: pubSignals.nullifier
-        });
+        signals[i++] = ICircuitValidator.Signal({name: "nullifier", value: pubSignals.nullifier});
         if (hasSelectiveDisclosure) {
             signals[i++] = ICircuitValidator.Signal({
                 name: "operatorOutput",
                 value: pubSignals.operatorOutput
             });
         }
-        signals[i++] = ICircuitValidator.Signal({
-            name: "timestamp",
-            value: pubSignals.timestamp
-        });
+        signals[i++] = ICircuitValidator.Signal({name: "timestamp", value: pubSignals.timestamp});
 
         return signals;
     }

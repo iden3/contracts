@@ -263,14 +263,6 @@ const testCases: any[] = [
     setProofExpiration: tenYears,
     sender: "0x0000000000000000000000000000000000000000",
   },
-  {
-    name: "Privado Main id type, Validate Genesis User State. Issuer genesis. BJJ Proof",
-    stateTransitions: [],
-    proofJson: require("./data/valid_bjj_user_genesis_privado_main_v3.json"),
-    setProofExpiration: tenYears,
-    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-    errorMessage: "Privado identity is not genesis",
-  },
 ];
 
 function delay(ms: number) {

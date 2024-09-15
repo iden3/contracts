@@ -43,9 +43,7 @@ contract ValidatorStub is ICircuitValidator, ERC165 {
         address sender,
         IStateWithTimestampGetters state
     ) external pure override returns (ICircuitValidator.Signal[] memory) {
-        ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](
-            2
-        );
+        ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](2);
         signals[0] = ICircuitValidator.Signal({
             name: "input1Name",
             value: 4738709701797800586552075642459921104723261125214325001991063996931581119544
