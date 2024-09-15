@@ -7,9 +7,8 @@ import { Block, Contract } from "ethers";
 import proofJson from "../validators/sig/data/valid_sig_user_genesis.json";
 import {
   packCrossChainProofs,
-  packGlobalStateUpdate,
-  packIdentityStateUpdate,
-  packMetadatas,
+  packGlobalStateUpdateWithSignature,
+  packIdentityStateUpdateWithSignature,
   packZKProof,
 } from "../utils/packData";
 
@@ -20,36 +19,26 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
   let deployHelper: DeployHelper;
   let stateCrossChainStub, oracleProofValidatorStub, validatorStub: Contract;
 
-  const oracleProofValidatorStubContract = "OracleProofValidator";
 
-  const globalStateUpdate = {
-    globalStateMsg: {
-      timestamp: BigInt(Math.floor(Date.now() / 1000)),
-      idType: "0x01A1",
-      root: 0n,
-      replacedAtTimestamp: 0n,
-    },
-    signature: "0x",
+  const globalStateMessage = {
+    timestamp: BigInt(Math.floor(Date.now() / 1000)),
+    idType: "0x01A1",
+    root: 0n,
+    replacedAtTimestamp: 0n,
   };
 
-  const identityStateUpdate1 = {
-    idStateMsg: {
-      timestamp: BigInt(Math.floor(Date.now() / 1000)),
-      id: 25530185136167283063987925153802803371825564143650291260157676786685420033n,
-      state: 4595702004868323299100310062178085028712435650290319955390778053863052230284n,
-      replacedAtTimestamp: 0n,
-    },
-    signature: "0x",
+  const identityStateMessage1 = {
+    timestamp: BigInt(Math.floor(Date.now() / 1000)),
+    id: 25530185136167283063987925153802803371825564143650291260157676786685420033n,
+    state: 4595702004868323299100310062178085028712435650290319955390778053863052230284n,
+    replacedAtTimestamp: 0n,
   };
 
   const identityStateUpdate2 = {
-    idStateMsg: {
-      timestamp: BigInt(Math.floor(Date.now() / 1000)),
-      id: 25530185136167283063987925153802803371825564143650291260157676786685420033n,
-      state: 16775015541053109108201708100382933592407720757224325883910784163897594100403n,
-      replacedAtTimestamp: 1724858009n,
-    },
-    signature: "0x",
+    timestamp: BigInt(Math.floor(Date.now() / 1000)),
+    id: 25530185136167283063987925153802803371825564143650291260157676786685420033n,
+    state: 16775015541053109108201708100382933592407720757224325883910784163897594100403n,
+    replacedAtTimestamp: 1724858009n,
   };
 
   const query = {
@@ -72,9 +61,7 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     signerAddress = await signer.getAddress();
 
     deployHelper = await DeployHelper.initialize(null, true);
-    oracleProofValidatorStub = await deployHelper.deployOracleProofValidator(
-      oracleProofValidatorStubContract,
-    );
+    oracleProofValidatorStub = await deployHelper.deployOracleProofValidator();
 
     const { state } = await deployHelper.deployState(["0x01A1", "0x0102"]);
     await state.setOracleProofValidator(oracleProofValidatorStub);
@@ -113,15 +100,15 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     const crossChainProofs = packCrossChainProofs([
       {
         proofType: "globalStateProof",
-        proof: packGlobalStateUpdate(globalStateUpdate),
+        proof: await packGlobalStateUpdateWithSignature(globalStateMessage, signer),
       },
       {
         proofType: "stateProof",
-        proof: packIdentityStateUpdate(identityStateUpdate1),
+        proof: await packIdentityStateUpdateWithSignature(identityStateMessage1, signer),
       },
       {
         proofType: "stateProof",
-        proof: packIdentityStateUpdate(identityStateUpdate2),
+        proof: await packIdentityStateUpdateWithSignature(identityStateUpdate2, signer),
       },
     ]);
 
@@ -191,15 +178,15 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     const crossChainProofs = packCrossChainProofs([
       {
         proofType: "globalStateProof",
-        proof: packGlobalStateUpdate(globalStateUpdate),
+        proof: await packGlobalStateUpdateWithSignature(globalStateMessage, signer),
       },
       {
         proofType: "stateProof",
-        proof: packIdentityStateUpdate(identityStateUpdate1),
+        proof: await packIdentityStateUpdateWithSignature(identityStateMessage1, signer),
       },
       {
         proofType: "stateProof",
-        proof: packIdentityStateUpdate(identityStateUpdate2),
+        proof: await packIdentityStateUpdateWithSignature(identityStateUpdate2, signer),
       },
     ]);
 

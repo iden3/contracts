@@ -1,79 +1,8 @@
-import {
-  GlobalStateMessage,
-  GlobalStateUpdate,
-  IdentityStateMessage,
-  packGlobalStateUpdate,
-  packIdentityStateUpdate,
-  StateUpdate,
-} from "../utils/packData";
+import { GlobalStateMessage, IdentityStateMessage, packGlobalStateUpdateWithSignature, packIdentityStateUpdateWithSignature, } from "../utils/packData";
 import { expect } from "chai";
 import { DeployHelper } from "../../helpers/DeployHelper";
-import { Contract, Signer } from "ethers";
+import { Contract } from "ethers";
 import { ethers } from "hardhat";
-
-const domainName = "StateInfo";
-const signatureVersion = "1";
-const chainId = 0;
-const verifyingContract = ethers.ZeroAddress;
-
-const domain = {
-  name: domainName,
-  version: signatureVersion,
-  chainId,
-  verifyingContract,
-};
-
-async function packGSU(
-  gsm: GlobalStateMessage,
-  signer: Signer,
-  tamperWithMessage: boolean = false,
-): Promise<string> {
-  const types = {
-    GlobalState: [
-      { name: "timestamp", type: "uint256" },
-      { name: "idType", type: "bytes2" },
-      { name: "root", type: "uint256" },
-      { name: "replacedAtTimestamp", type: "uint256" },
-    ],
-  };
-
-  const gsu: GlobalStateUpdate = {
-    globalStateMsg: gsm,
-    signature: await signer.signTypedData(domain, types, gsm),
-  };
-
-  if (tamperWithMessage) {
-    gsu.globalStateMsg.timestamp++;
-  }
-
-  return packGlobalStateUpdate(gsu);
-}
-
-async function packISU(
-  ism: IdentityStateMessage,
-  signer: Signer,
-  tamperWithMessage: boolean = false,
-): Promise<string> {
-  const types = {
-    IdentityState: [
-      { name: "timestamp", type: "uint256" },
-      { name: "id", type: "uint256" },
-      { name: "state", type: "uint256" },
-      { name: "replacedAtTimestamp", type: "uint256" },
-    ],
-  };
-
-  const isu: StateUpdate = {
-    idStateMsg: ism,
-    signature: await signer.signTypedData(domain, types, ism),
-  };
-
-  if (tamperWithMessage) {
-    isu.idStateMsg.timestamp++;
-  }
-
-  return packIdentityStateUpdate(isu);
-}
 
 describe("State Cross Chain", function () {
   let oracleProofValidator: Contract;
@@ -102,8 +31,8 @@ describe("State Cross Chain", function () {
       replacedAtTimestamp: 0n,
     };
 
-    const gsu = await packGSU(gsm, signer);
-    const isu = await packISU(ism, signer);
+    const gsu = await packGlobalStateUpdateWithSignature(gsm, signer);
+    const isu = await packIdentityStateUpdateWithSignature(ism, signer);
 
     const gspResult = await oracleProofValidator.processGlobalStateProof(gsu);
     const ispResult = await oracleProofValidator.processIdentityStateProof(isu);
@@ -130,8 +59,8 @@ describe("State Cross Chain", function () {
       replacedAtTimestamp: 100n,
     };
 
-    const gsu = await packGSU(gsm, signer);
-    const isu = await packISU(ism, signer);
+    const gsu = await packGlobalStateUpdateWithSignature(gsm, signer);
+    const isu = await packIdentityStateUpdateWithSignature(ism, signer);
 
     const gspResult = await oracleProofValidator.processGlobalStateProof(gsu);
     const ispResult = await oracleProofValidator.processIdentityStateProof(isu);
@@ -151,7 +80,7 @@ describe("State Cross Chain", function () {
       replacedAtTimestamp: 0n,
     };
 
-    const proof = await packISU(ism, signer);
+    const proof = await packIdentityStateUpdateWithSignature(ism, signer);
     await expect(oracleProofValidator.processIdentityStateProof(proof)).to.be.rejectedWith(
       "Oracle timestamp cannot be in the past",
     );
@@ -167,7 +96,7 @@ describe("State Cross Chain", function () {
       replacedAtTimestamp: currentTimestamp + 10n ** 6n,
     };
 
-    let proof = await packGSU(gsm, signer);
+    let proof = await packGlobalStateUpdateWithSignature(gsm, signer);
     await expect(oracleProofValidator.processGlobalStateProof(proof)).to.be.rejectedWith(
       "Oracle replacedAt or oracle timestamp cannot be in the future",
     );
@@ -179,7 +108,7 @@ describe("State Cross Chain", function () {
       replacedAtTimestamp: 0n,
     };
 
-    proof = await packISU(ism, signer);
+    proof = await packIdentityStateUpdateWithSignature(ism, signer);
     await expect(oracleProofValidator.processIdentityStateProof(proof)).to.be.rejectedWith(
       "Oracle replacedAt or oracle timestamp cannot be in the future",
     );
@@ -195,7 +124,7 @@ describe("State Cross Chain", function () {
       replacedAtTimestamp: currentTimestamp + 10n ** 6n,
     };
 
-    let proof = await packGSU(gsm, signer, true);
+    let proof = await packGlobalStateUpdateWithSignature(gsm, signer, true);
     await expect(oracleProofValidator.processGlobalStateProof(proof)).to.be.rejectedWith(
       "Global state proof is not valid",
     );
@@ -207,7 +136,7 @@ describe("State Cross Chain", function () {
       replacedAtTimestamp: 0n,
     };
 
-    proof = await packISU(ism, signer, true);
+    proof = await packIdentityStateUpdateWithSignature(ism, signer, true);
     await expect(oracleProofValidator.processIdentityStateProof(proof)).to.be.rejectedWith(
       "Identity state proof is not valid",
     );
