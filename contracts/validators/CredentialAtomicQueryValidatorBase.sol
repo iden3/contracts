@@ -10,7 +10,6 @@ import {IState} from "../interfaces/IState.sol";
 import {PoseidonFacade} from "../lib/Poseidon.sol";
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
 import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
-import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGetters.sol";
 
 abstract contract CredentialAtomicQueryValidatorBase is
     Ownable2StepUpgradeable,
@@ -22,7 +21,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
     struct CredentialAtomicQueryValidatorBaseStorage {
         mapping(string => IVerifier) _circuitIdToVerifier;
         string[] _supportedCircuitIds;
-        IStateWithTimestampGetters state;
+        IState state;
         uint256 revocationStateExpirationTimeout;
         uint256 proofExpirationTimeout;
         uint256 gistRootExpirationTimeout;
@@ -58,7 +57,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         s.gistRootExpirationTimeout = 1 hours;
         s._supportedCircuitIds = [circuitId];
         s._circuitIdToVerifier[circuitId] = IVerifier(_verifierContractAddr);
-        s.state = IStateWithTimestampGetters(_stateContractAddr);
+        s.state = IState(_stateContractAddr);
         __Ownable_init(_msgSender());
     }
 
@@ -93,9 +92,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function setStateAddress(address stateContractAddr) public virtual onlyOwner {
-        _getCredentialAtomicQueryValidatorBaseStorage().state = IStateWithTimestampGetters(
-            stateContractAddr
-        );
+        _getCredentialAtomicQueryValidatorBaseStorage().state = IState(stateContractAddr);
     }
 
     function getStateAddress() public view virtual returns (address) {
@@ -120,7 +117,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         bytes calldata zkProof,
         bytes calldata data,
         address sender,
-        IStateWithTimestampGetters state
+        IState stateContract
     ) external view returns (ICircuitValidator.Signal[] memory) {
         (
             uint256[] memory inputs,
@@ -129,7 +126,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
             uint256[2] memory c
         ) = abi.decode(zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
-        return _verify(inputs, a, b, c, data, sender, state);
+        return _verify(inputs, a, b, c, data, sender, stateContract);
     }
 
     function _verify(
@@ -139,7 +136,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256[2] memory c,
         bytes calldata data,
         address sender,
-        IStateWithTimestampGetters state
+        IState stateContract
     ) internal view virtual returns (ICircuitValidator.Signal[] memory);
 
     function getSupportedCircuitIds() external view virtual returns (string[] memory ids) {
@@ -152,7 +149,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         return _getCredentialAtomicQueryValidatorBaseStorage()._circuitIdToVerifier[circuitId];
     }
 
-    function _getState() internal view returns (IStateWithTimestampGetters) {
+    function _getState() internal view returns (IState) {
         return _getCredentialAtomicQueryValidatorBaseStorage().state;
     }
 
@@ -171,15 +168,11 @@ abstract contract CredentialAtomicQueryValidatorBase is
             super.supportsInterface(interfaceId);
     }
 
-    function _checkGistRoot(
-        uint256 _id,
-        uint256 _gistRoot,
-        IStateWithTimestampGetters _stateWGetters
-    ) internal view {
+    function _checkGistRoot(uint256 _id, uint256 _gistRoot, IState _stateContract) internal view {
         CredentialAtomicQueryValidatorBaseStorage
             storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
         bytes2 idType = GenesisUtils.getIdType(_id);
-        uint256 replacedAt = _stateWGetters.getGistRootReplacedAt(idType, _gistRoot);
+        uint256 replacedAt = _stateContract.getGistRootReplacedAt(idType, _gistRoot);
 
         if (replacedAt != 0 && block.timestamp > $.gistRootExpirationTimeout + replacedAt) {
             revert("Gist root is expired");
@@ -189,19 +182,19 @@ abstract contract CredentialAtomicQueryValidatorBase is
     function _checkClaimIssuanceState(
         uint256 _id,
         uint256 _state,
-        IStateWithTimestampGetters _stateWGetters
+        IState _stateContract
     ) internal view {
-        _stateWGetters.getStateReplacedAt(_id, _state);
+        _stateContract.getStateReplacedAt(_id, _state);
     }
 
     function _checkClaimNonRevState(
         uint256 _id,
         uint256 _claimNonRevState,
-        IStateWithTimestampGetters _stateWGetters
+        IState _stateContract
     ) internal view {
         CredentialAtomicQueryValidatorBaseStorage
             storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
-        uint256 replacedAt = _stateWGetters.getStateReplacedAt(_id, _claimNonRevState);
+        uint256 replacedAt = _stateContract.getStateReplacedAt(_id, _claimNonRevState);
 
         if (replacedAt != 0 && block.timestamp > $.revocationStateExpirationTimeout + replacedAt) {
             revert("Non-Revocation state of Issuer expired");

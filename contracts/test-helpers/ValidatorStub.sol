@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
-import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGetters.sol";
+import {IState} from "../interfaces/IState.sol";
 
 /**
  * @dev ValidatorStub validator
@@ -25,6 +25,7 @@ contract ValidatorStub is ICircuitValidator, ERC165 {
             super.supportsInterface(interfaceId);
     }
 
+    // solhint-disable no-unused-vars
     function verify(
         uint256[] calldata inputs,
         uint256[2] calldata a,
@@ -36,12 +37,13 @@ contract ValidatorStub is ICircuitValidator, ERC165 {
         ICircuitValidator.Signal[] memory keypair;
         return keypair;
     }
+    // solhint-enable no-unused-vars
 
     function verifyV2(
         bytes calldata zkProof,
         bytes calldata data,
         address sender,
-        IStateWithTimestampGetters state
+        IState state
     ) external pure override returns (ICircuitValidator.Signal[] memory) {
         ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](2);
         signals[0] = ICircuitValidator.Signal({

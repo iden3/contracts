@@ -4,7 +4,6 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils, EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
 import {IState} from "../interfaces/IState.sol";
-import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract OracleProofValidator is Ownable, EIP712, IOracleProofValidator {
@@ -27,8 +26,8 @@ contract OracleProofValidator is Ownable, EIP712, IOracleProofValidator {
 
     bytes32 public immutable DOMAIN_SEPARATOR;
 
-    uint256 constant MAX_TIMESTAMP_LAG = 1 hours;
-    uint256 constant MAX_REPLACED_AT_AHEAD_OF_TIME = 5 minutes;
+    uint256 public constant MAX_TIMESTAMP_LAG = 1 hours;
+    uint256 public constant MAX_REPLACED_AT_AHEAD_OF_TIME = 5 minutes;
 
     address private _oracleSigningAddress;
 
@@ -65,10 +64,10 @@ contract OracleProofValidator is Ownable, EIP712, IOracleProofValidator {
 
     function processGlobalStateProof(
         bytes calldata globalStateProof
-    ) external view returns (IStateCrossChain.GlobalStateProcessResult memory) {
-        IStateCrossChain.GlobalStateUpdate memory gsu = abi.decode(
+    ) external view returns (IState.GlobalStateProcessResult memory) {
+        IState.GlobalStateUpdate memory gsu = abi.decode(
             globalStateProof,
-            (IStateCrossChain.GlobalStateUpdate)
+            (IState.GlobalStateUpdate)
         );
 
         (bool isValid, address recovered) = _recoverGlobalStateSigner(
@@ -78,7 +77,7 @@ contract OracleProofValidator is Ownable, EIP712, IOracleProofValidator {
         require(isValid && recovered == _oracleSigningAddress, "Global state proof is not valid");
 
         return
-            IStateCrossChain.GlobalStateProcessResult(
+            IState.GlobalStateProcessResult(
                 gsu.globalStateMsg.idType,
                 gsu.globalStateMsg.root,
                 _calcReplacedAt(
@@ -90,10 +89,10 @@ contract OracleProofValidator is Ownable, EIP712, IOracleProofValidator {
 
     function processIdentityStateProof(
         bytes calldata identityStateProof
-    ) external view returns (IStateCrossChain.IdentityStateProcessResult memory) {
-        IStateCrossChain.IdentityStateUpdate memory isu = abi.decode(
+    ) external view returns (IState.IdentityStateProcessResult memory) {
+        IState.IdentityStateUpdate memory isu = abi.decode(
             identityStateProof,
-            (IStateCrossChain.IdentityStateUpdate)
+            (IState.IdentityStateUpdate)
         );
 
         (bool isValid, address recovered) = _recoverIdentityStateSigner(
@@ -103,7 +102,7 @@ contract OracleProofValidator is Ownable, EIP712, IOracleProofValidator {
         require(isValid && recovered == _oracleSigningAddress, "Identity state proof is not valid");
 
         return
-            IStateCrossChain.IdentityStateProcessResult(
+            IState.IdentityStateProcessResult(
                 isu.idStateMsg.id,
                 isu.idStateMsg.state,
                 _calcReplacedAt(isu.idStateMsg.timestamp, isu.idStateMsg.replacedAtTimestamp)
@@ -139,7 +138,7 @@ contract OracleProofValidator is Ownable, EIP712, IOracleProofValidator {
     }
 
     function _recoverIdentityStateSigner(
-        IStateCrossChain.IdentityStateMessage memory message,
+        IState.IdentityStateMessage memory message,
         bytes memory signature
     ) internal view virtual returns (bool, address) {
         bytes32 hashTypedData = _hashTypedDataV4(
@@ -160,7 +159,7 @@ contract OracleProofValidator is Ownable, EIP712, IOracleProofValidator {
     }
 
     function _recoverGlobalStateSigner(
-        IStateCrossChain.GlobalStateMessage memory message,
+        IState.GlobalStateMessage memory message,
         bytes memory signature
     ) internal view virtual returns (bool, address) {
         bytes32 hashTypedData = _hashTypedDataV4(

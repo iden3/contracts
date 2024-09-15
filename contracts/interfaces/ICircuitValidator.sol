@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.20;
 
-import {IStateWithTimestampGetters} from "./IStateWithTimestampGetters.sol";
+import {IState} from "./IState.sol";
 
 interface ICircuitValidator {
     struct Signal {
@@ -24,7 +24,7 @@ interface ICircuitValidator {
         bytes calldata zkProof,
         bytes calldata data,
         address sender,
-        IStateWithTimestampGetters state
+        IState state
     ) external returns (ICircuitValidator.Signal[] memory);
 
     function getSupportedCircuitIds() external view returns (string[] memory ids);

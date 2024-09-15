@@ -5,10 +5,7 @@ import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
-import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
-import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
-import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
-import {SpongePoseidon} from "../lib/Poseidon.sol";
+import {IState} from "../interfaces/IState.sol";
 import {VerifierLib} from "../lib/VerifierLib.sol";
 
 abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
@@ -38,7 +35,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         mapping(address user => mapping(uint64 requestId => Proof)) _proofs;
         mapping(uint64 requestId => IZKPVerifier.ZKPRequest) _requests;
         uint64[] _requestIds;
-        IStateCrossChain _state;
+        IState _state;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifier")) - 1)) & ~bytes32(uint256(0xff));
@@ -52,17 +49,17 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         }
     }
 
-    function _setState(IStateCrossChain state) internal {
+    function _setState(IState state) internal {
         _getZKPVerifierStorage()._state = state;
     }
 
     using VerifierLib for ZKPVerifierStorage;
 
-    function __ZKPVerifierBase_init(IStateCrossChain stateCrossChain) internal onlyInitializing {
+    function __ZKPVerifierBase_init(IState stateCrossChain) internal onlyInitializing {
         __ZKPVerifierBase_init_unchained(stateCrossChain);
     }
 
-    function __ZKPVerifierBase_init_unchained(IStateCrossChain state) internal onlyInitializing {
+    function __ZKPVerifierBase_init_unchained(IState state) internal onlyInitializing {
         ZKPVerifierStorage storage $ = _getZKPVerifierStorage();
         $._state = state;
     }

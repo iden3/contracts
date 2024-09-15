@@ -67,6 +67,47 @@ interface IState {
         uint256 auxValue;
     }
 
+    struct IdentityStateUpdate {
+        IdentityStateMessage idStateMsg;
+        bytes signature;
+    }
+
+    struct GlobalStateUpdate {
+        GlobalStateMessage globalStateMsg;
+        bytes signature;
+    }
+
+    struct IdentityStateMessage {
+        uint256 timestamp;
+        uint256 id;
+        uint256 state;
+        uint256 replacedAtTimestamp;
+    }
+
+    struct GlobalStateMessage {
+        uint256 timestamp;
+        bytes2 idType;
+        uint256 root;
+        uint256 replacedAtTimestamp;
+    }
+
+    struct CrossChainProof {
+        string proofType;
+        bytes proof;
+    }
+
+    struct GlobalStateProcessResult {
+        bytes2 idType;
+        uint256 root;
+        uint256 replacedAt;
+    }
+
+    struct IdentityStateProcessResult {
+        uint256 id;
+        uint256 state;
+        uint256 replacedAt;
+    }
+
     /**
      * @dev Retrieve last state information of specific id.
      * @param id An identity.
@@ -164,4 +205,16 @@ interface IState {
      * @return True if the state exists
      */
     function stateExists(uint256 id, uint256 state) external view returns (bool);
+
+    function getStateReplacedAt(
+        uint256 id,
+        uint256 state
+    ) external view returns (uint256 replacedAtTimestamp);
+
+    function getGistRootReplacedAt(
+        bytes2 idType,
+        uint256 root
+    ) external view returns (uint256 replacedAtTimestamps);
+
+    function processCrossChainProof(bytes calldata proof) external;
 }

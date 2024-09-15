@@ -9,12 +9,10 @@ import {PoseidonUnit1L} from "../lib/Poseidon.sol";
 import {StateLib} from "../lib/StateLib.sol";
 import {StateCrossChainLib} from "../lib/StateCrossChainLib.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
-import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGetters.sol";
-import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
 import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
 
 /// @title Set and get states for each identity
-contract State is Ownable2StepUpgradeable, IState, IStateCrossChain {
+contract State is Ownable2StepUpgradeable, IState {
     /**
      * @dev Version of contract
      */
@@ -65,7 +63,7 @@ contract State is Ownable2StepUpgradeable, IState, IStateCrossChain {
         mapping(uint256 id => mapping(uint256 state => uint256 replacedAt)) _idToStateReplacedAt;
         mapping(bytes2 idType => mapping(uint256 root => uint256 replacedAt)) _rootToGistRootReplacedAt;
         IOracleProofValidator _oracleProofValidator;
-        IStateWithTimestampGetters _state;
+        IState _state;
     }
 
     using SmtLib for SmtLib.Data;
@@ -564,9 +562,7 @@ contract State is Ownable2StepUpgradeable, IState, IStateCrossChain {
      * @param id Identity
      * trows if id type is not supported
      */
-    function getIdTypeIfSupported(
-        uint256 id
-    ) public view override(IState, IStateWithTimestampGetters) returns (bytes2) {
+    function getIdTypeIfSupported(uint256 id) public view returns (bytes2) {
         bytes2 idType = GenesisUtils.getIdType(id);
         require(_stateData.isIdTypeSupported[idType], "id type is not supported");
         return idType;

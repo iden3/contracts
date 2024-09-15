@@ -8,8 +8,7 @@ import {RequestOwnership} from "./RequestOwnership.sol";
 import {RequestDisableable} from "./RequestDisableable.sol";
 import {ValidatorWhitelist} from "./ValidatorWhitelist.sol";
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
-import {ArrayUtils} from "../lib/ArrayUtils.sol";
-import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
+import {IState} from "../interfaces/IState.sol";
 
 /// @title Universal Verifier Contract
 /// @notice A contract to manage ZKP (Zero-Knowledge Proof) requests and proofs.
@@ -47,7 +46,7 @@ contract UniversalVerifier is
     }
 
     /// @dev Initializes the contract
-    function initialize(IStateCrossChain stateCrossChain) public initializer {
+    function initialize(IState stateCrossChain) public initializer {
         __Ownable_init(_msgSender());
         __ZKPVerifierBase_init(stateCrossChain);
     }
@@ -124,7 +123,7 @@ contract UniversalVerifier is
         return super.verifyZKPResponse(requestId, inputs, a, b, c, sender);
     }
 
-    function setState(IStateCrossChain state) public onlyOwner {
+    function setState(IState state) public onlyOwner {
         _setState(state);
     }
 

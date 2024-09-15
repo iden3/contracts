@@ -2,8 +2,7 @@
 pragma solidity 0.8.20;
 
 import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
-import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGetters.sol";
-import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
+import {IState} from "../interfaces/IState.sol";
 import {State} from "../state/State.sol";
 
 library StateCrossChainLib {
@@ -15,19 +14,16 @@ library StateCrossChainLib {
             return;
         }
 
-        IStateCrossChain.CrossChainProof[] memory proofs = abi.decode(
-            proof,
-            (IStateCrossChain.CrossChainProof[])
-        );
+        IState.CrossChainProof[] memory proofs = abi.decode(proof, (IState.CrossChainProof[]));
 
         for (uint256 i = 0; i < proofs.length; i++) {
             if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("globalStateProof"))) {
-                IStateCrossChain.GlobalStateProcessResult memory gsp = self
+                IState.GlobalStateProcessResult memory gsp = self
                     ._oracleProofValidator
                     .processGlobalStateProof(proofs[i].proof);
                 self._rootToGistRootReplacedAt[gsp.idType][gsp.root] = gsp.replacedAt;
             } else if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("stateProof"))) {
-                IStateCrossChain.IdentityStateProcessResult memory isu = self
+                IState.IdentityStateProcessResult memory isu = self
                     ._oracleProofValidator
                     .processIdentityStateProof(proofs[i].proof);
                 self._idToStateReplacedAt[isu.id][isu.state] = isu.replacedAt;

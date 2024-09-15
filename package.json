@@ -48,6 +48,7 @@
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "test:verifiers": "npx hardhat test test/verifier/*.test.ts",
+    "test:validators": "npx hardhat test test/validators/**/*.ts",
     "test:identitytreestore": "npx hardhat test test/identitytreestore/*.test.ts",
     "test:oracle:proof:validator": "npx hardhat test test/cross-chain/oracle-proof-validator.test.ts",
     "test:submitzkpresponse:v2": "npx hardhat test test/verifier/universal-verifier-submit-v2.test.ts",

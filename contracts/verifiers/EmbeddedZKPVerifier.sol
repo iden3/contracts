@@ -7,7 +7,7 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
-import {IStateCrossChain} from "../interfaces/IStateCrossChain.sol";
+import {IState} from "../interfaces/IState.sol";
 
 abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
     /**
@@ -15,7 +15,7 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
      */
     function __EmbeddedZKPVerifier_init(
         address initialOwner,
-        IStateCrossChain stateCrossChain
+        IState stateCrossChain
     ) internal onlyInitializing {
         __Ownable_init(initialOwner);
         ___EmbeddedZKPVerifier_init_unchained(initialOwner);

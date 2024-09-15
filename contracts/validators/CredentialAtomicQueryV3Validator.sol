@@ -6,7 +6,6 @@ import {IVerifier} from "../interfaces/IVerifier.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IState} from "../interfaces/IState.sol";
-import {IStateWithTimestampGetters} from "../interfaces/IStateWithTimestampGetters.sol";
 
 /**
  * @dev CredentialAtomicQueryV3 validator
@@ -107,7 +106,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         uint256[2] memory c,
         bytes calldata data,
         address sender,
-        IStateWithTimestampGetters state
+        IState state
     ) internal view override returns (ICircuitValidator.Signal[] memory) {
         CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
             data,
