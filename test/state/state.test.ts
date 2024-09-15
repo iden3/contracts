@@ -385,9 +385,7 @@ describe("Set Verifier", () => {
     expect(verifierAddress).to.equal(await verifier.getAddress());
 
     const notOwner = (await ethers.getSigners())[1];
-    const newVerifierAddress = ethers.getAddress(
-      "0x8ba1f109551bd432803012645ac136ddd64dba72"
-    );
+    const newVerifierAddress = ethers.getAddress("0x8ba1f109551bd432803012645ac136ddd64dba72");
     await expect(state.connect(notOwner).setVerifier(newVerifierAddress)).to.be.rejectedWith(
       "OwnableUnauthorizedAccount",
     );
@@ -410,8 +408,6 @@ describe("Check timestamp expirations", () => {
     await expect(state.getGistRootReplacedAt("0x0102", 10)).to.be.rejectedWith(
       "Gist root entry not found",
     );
-    await expect(state.getStateReplacedAt(10, 20)).to.be.rejectedWith(
-      "State entry not found",
-    );
+    await expect(state.getStateReplacedAt(10, 20)).to.be.rejectedWith("State entry not found");
   });
 });

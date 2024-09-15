@@ -19,7 +19,6 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
   let deployHelper: DeployHelper;
   let stateCrossChainStub, oracleProofValidatorStub, validatorStub: Contract;
 
-
   const globalStateMessage = {
     timestamp: BigInt(Math.floor(Date.now() / 1000)),
     idType: "0x01A1",
