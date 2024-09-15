@@ -36,6 +36,18 @@ export type CrossChainProof = {
   proof: string;
 };
 
+export type GlobalStateProcessResult = {
+  idType: string;
+  root: bigint;
+  replacedAt: bigint;
+};
+
+export type IdentityStateProcessResult = {
+  id: bigint;
+  state: bigint;
+  replacedAt: bigint;
+};
+
 export function packCrossChainProofs(proofs: CrossChainProof[]): string {
   return abiCoder.encode(["tuple(" + "string proofType," + "bytes proof" + ")[]"], [proofs]);
 }

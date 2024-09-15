@@ -5,25 +5,11 @@ import {IState} from "./IState.sol";
 import {IStateCrossChain} from "./IStateCrossChain.sol";
 
 interface IOracleProofValidator {
-    /**
-     * @dev Verifies the signature of an identity state message.
-     * @param message The message with Identity State info
-     * @param signature The signature to verify
-     * @return true if the signature is valid, false otherwise
-     **/
-    function verifyIdentityState(
-        IStateCrossChain.IdentityStateMessage calldata message,
-        bytes calldata signature
-    ) external view returns (bool);
+    function processGlobalStateProof(
+        bytes calldata globalStateProof
+    ) external returns (IStateCrossChain.GlobalStateProcessResult memory);
 
-    /**
-     * @dev Verifies the signature of an identity state message.
-     * @param message The message with Global State info
-     * @param signature The signature to verify
-     * @return true if the signature is valid, false otherwise
-     **/
-    function verifyGlobalState(
-        IStateCrossChain.GlobalStateMessage calldata message,
-        bytes calldata signature
-    ) external view returns (bool);
+    function processIdentityStateProof(
+        bytes calldata identityStateProof
+    ) external returns (IStateCrossChain.IdentityStateProcessResult memory);
 }

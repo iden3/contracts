@@ -33,5 +33,17 @@ interface IStateCrossChain is IStateWithTimestampGetters {
         bytes proof;
     }
 
+    struct GlobalStateProcessResult {
+        bytes2 idType;
+        uint256 root;
+        uint256 replacedAt;
+    }
+
+    struct IdentityStateProcessResult {
+        uint256 id;
+        uint256 state;
+        uint256 replacedAt;
+    }
+
     function processCrossChainProof(bytes calldata proof) external;
 }

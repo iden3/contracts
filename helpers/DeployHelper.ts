@@ -180,7 +180,7 @@ export class DeployHelper {
       stateLib,
       smtLib,
       stateCrossChainLib,
-      oracleProofValidator: oracleProofValidator,
+      oracleProofValidator,
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,

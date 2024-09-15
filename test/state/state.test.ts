@@ -401,3 +401,17 @@ describe("Set Verifier", () => {
     await expect(publishState(state, stateTransitionsWithProofs[0])).to.be.reverted;
   });
 });
+
+describe("Check timestamp expirations", () => {
+  it("Should return zero from the State if requested for a non-existent data", async function () {
+    const deployHelper = await DeployHelper.initialize();
+    const { state } = await deployHelper.deployState(["0x0102"]);
+
+    await expect(state.getGistRootReplacedAt("0x0102", 10)).to.be.rejectedWith(
+      "Gist root entry not found",
+    );
+    await expect(state.getStateReplacedAt(10, 20)).to.be.rejectedWith(
+      "State entry not found",
+    );
+  });
+});

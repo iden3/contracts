@@ -27,6 +27,9 @@ contract OracleProofValidator is Ownable, EIP712, IOracleProofValidator {
 
     bytes32 public immutable DOMAIN_SEPARATOR;
 
+    uint256 constant MAX_TIMESTAMP_LAG = 1 hours;
+    uint256 constant MAX_REPLACED_AT_AHEAD_OF_TIME = 5 minutes;
+
     address private _oracleSigningAddress;
 
     constructor(
@@ -60,34 +63,51 @@ contract OracleProofValidator is Ownable, EIP712, IOracleProofValidator {
         _oracleSigningAddress = oracleSigningAddress;
     }
 
-    /**
-     * @dev Verifies the signature of an identity state message.
-     * @param message The message with Identity State info
-     * @param signature The signature to verify
-     * @return true if the signature is valid, false otherwise
-     **/
-    function verifyIdentityState(
-        IStateCrossChain.IdentityStateMessage memory message,
-        bytes memory signature
-    ) public view virtual returns (bool) {
-        (bool isValid, address recovered) = _recoverIdentityStateSigner(message, signature);
+    function processGlobalStateProof(
+        bytes calldata globalStateProof
+    ) external view returns (IStateCrossChain.GlobalStateProcessResult memory) {
+        IStateCrossChain.GlobalStateUpdate memory gsu = abi.decode(
+            globalStateProof,
+            (IStateCrossChain.GlobalStateUpdate)
+        );
 
-        return (isValid && recovered == _oracleSigningAddress);
+        (bool isValid, address recovered) = _recoverGlobalStateSigner(
+            gsu.globalStateMsg,
+            gsu.signature
+        );
+        require(isValid && recovered == _oracleSigningAddress, "Global state proof is not valid");
+
+        return
+            IStateCrossChain.GlobalStateProcessResult(
+                gsu.globalStateMsg.idType,
+                gsu.globalStateMsg.root,
+                _calcReplacedAt(
+                    gsu.globalStateMsg.timestamp,
+                    gsu.globalStateMsg.replacedAtTimestamp
+                )
+            );
     }
 
-    /**
-     * @dev Verifies the signature of an identity state message.
-     * @param message The message with Global State info
-     * @param signature The signature to verify
-     * @return true if the signature is valid, false otherwise
-     **/
-    function verifyGlobalState(
-        IStateCrossChain.GlobalStateMessage memory message,
-        bytes memory signature
-    ) public view virtual returns (bool) {
-        (bool isValid, address recovered) = _recoverGlobalStateSigner(message, signature);
+    function processIdentityStateProof(
+        bytes calldata identityStateProof
+    ) external view returns (IStateCrossChain.IdentityStateProcessResult memory) {
+        IStateCrossChain.IdentityStateUpdate memory isu = abi.decode(
+            identityStateProof,
+            (IStateCrossChain.IdentityStateUpdate)
+        );
 
-        return (isValid && recovered == _oracleSigningAddress);
+        (bool isValid, address recovered) = _recoverIdentityStateSigner(
+            isu.idStateMsg,
+            isu.signature
+        );
+        require(isValid && recovered == _oracleSigningAddress, "Identity state proof is not valid");
+
+        return
+            IStateCrossChain.IdentityStateProcessResult(
+                isu.idStateMsg.id,
+                isu.idStateMsg.state,
+                _calcReplacedAt(isu.idStateMsg.timestamp, isu.idStateMsg.replacedAtTimestamp)
+            );
     }
 
     /**
@@ -162,5 +182,23 @@ contract OracleProofValidator is Ownable, EIP712, IOracleProofValidator {
 
     function _hashTypedDataV4(bytes32 structHash) internal view override returns (bytes32) {
         return MessageHashUtils.toTypedDataHash(DOMAIN_SEPARATOR, structHash);
+    }
+
+    function _calcReplacedAt(
+        uint256 oracleTimestamp,
+        uint256 replacedAtTimestamp
+    ) internal view returns (uint256 replacedAt) {
+        if (oracleTimestamp < block.timestamp - MAX_TIMESTAMP_LAG) {
+            revert("Oracle timestamp cannot be in the past");
+        }
+
+        replacedAt = replacedAtTimestamp == 0 ? oracleTimestamp : replacedAtTimestamp;
+
+        if (replacedAt > block.timestamp + MAX_REPLACED_AT_AHEAD_OF_TIME) {
+            revert("Oracle replacedAt or oracle timestamp cannot be in the future");
+        }
+
+        // this should never happen as block.timestamp is always greater than 0
+        assert(replacedAt != 0);
     }
 }
