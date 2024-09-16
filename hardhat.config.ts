@@ -139,7 +139,7 @@ const config: HardhatUserConfig = {
   ignition: {
     strategyConfig: {
       create2: {
-        salt: "< >", // 20 bytes: zero address; 1 byte: 00 - no cross chain protection, 11 bytes - random salt.
+        salt: "0x0000000000000000000000000000000000000000000000000000000000000000", // 20 bytes: zero address; 1 byte: 00 - no cross chain protection, 11 bytes - random salt.
       },
     },
   },
