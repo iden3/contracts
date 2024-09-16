@@ -409,7 +409,7 @@ export class DeployHelper {
     return stateLibWrapper;
   }
 
-  async deployVerifierLib(deployStrategy: "basic" | "create2" = "basic",): Promise<Contract> {
+  async deployVerifierLib(deployStrategy: "basic" | "create2" = "basic"): Promise<Contract> {
     const contractName = "VerifierLib";
     const signer = this.signers[0];
 
