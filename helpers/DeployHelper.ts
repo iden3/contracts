@@ -1,7 +1,7 @@
 import { ethers, network, upgrades, ignition } from "hardhat";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { deployPoseidons, deploySpongePoseidon } from "./PoseidonDeployHelper";
+import { deployPoseidons } from "./PoseidonDeployHelper";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain";
 import {
   StateModule,
@@ -18,6 +18,7 @@ import {
   CredentialAtomicQueryMTPV2ValidatorModule,
   CredentialAtomicQuerySigV2ValidatorModule,
   CredentialAtomicQueryV3ValidatorModule,
+  VerifierLibModule,
 } from "../ignition";
 import { chainIdInfoMap } from "./constants";
 
@@ -408,15 +409,14 @@ export class DeployHelper {
     return stateLibWrapper;
   }
 
-  async deployVerifierLib(): Promise<Contract> {
+  async deployVerifierLib(deployStrategy: "basic" | "create2" = "basic"): Promise<Contract> {
     const contractName = "VerifierLib";
     const signer = this.signers[0];
+    const { verifierLib } = await ignition.deploy(VerifierLibModule, {
+      strategy: deployStrategy,
+    });
 
-    this.log(`deploying sponge Poseidon for ${contractName}...`);
-    const [poseidon6] = await deployPoseidons([6]);
-    const spongePoseidon = await deploySpongePoseidon(await poseidon6.getAddress());
-
-    const verifierLib = await ethers.deployContract(contractName);
+    await verifierLib.waitForDeployment();
 
     this.log(`${contractName} deployed to:  ${await verifierLib.getAddress()}`);
 
@@ -704,11 +704,16 @@ export class DeployHelper {
     let verifier;
     if (deployStrategy == "create2") {
       const verifierDeploy = await ignition.deploy(UniversalVerifierModule, {
+        parameters: {
+          UniversalVerifierProxyModule: {
+            verifierLibAddr: verifierLibAddr,
+          },
+        },
         strategy: deployStrategy,
       });
       verifier = verifierDeploy.universalVerifier;
 
-      await verifier.initialize();
+      await verifier.initialize(stateAddr);
       console.log("UniversalVerifier deployed to:", await verifier.getAddress());
     } else {
       const Verifier = await ethers.getContractFactory("UniversalVerifier", {

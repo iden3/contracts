@@ -9,27 +9,29 @@ const UniversalVerifierProxyModule = buildModule("UniversalVerifierProxyModule",
   // so it will be the only account that can upgrade the proxy when needed.
   const proxyAdminOwner = m.getAccount(0);
 
+  const verifierLibAddr = m.getParameter("verifierLibAddr");
+  const verifierLib = m.contractAt("VerifierLib", verifierLibAddr);
 
   // This is our contract that will be proxied.
   // We will upgrade this contract with a new version later.
-  const universalVerifier = m.contract("UniversalVerifier");
- 
+  const universalVerifier = m.contract("UniversalVerifier", [], {
+    libraries: {
+      VerifierLib: verifierLib,
+    },
+  });
+
   // The TransparentUpgradeableProxy contract creates the ProxyAdmin within its constructor.
   // To read more about how this proxy is implemented, you can view the source code and comments here:
   // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.0.1/contracts/proxy/transparent/TransparentUpgradeableProxy.sol
   const proxy = m.contract("TransparentUpgradeableProxy", [
     universalVerifier,
     proxyAdminOwner,
-    '0x',
+    "0x",
   ]);
 
   // We need to get the address of the ProxyAdmin contract that was created by the TransparentUpgradeableProxy
   // so that we can use it to upgrade the proxy later.
-  const proxyAdminAddress = m.readEventArgument(
-    proxy,
-    "AdminChanged",
-    "newAdmin"
-  );
+  const proxyAdminAddress = m.readEventArgument(proxy, "AdminChanged", "newAdmin");
 
   // Here we use m.contractAt(...) to create a contract instance for the ProxyAdmin that we can interact with later to upgrade the proxy.
   const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);

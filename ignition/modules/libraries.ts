@@ -122,3 +122,21 @@ export const SmtLibModule = buildModule("SmtLibModule", (m) => {
   });
   return { smtLib };
 });
+
+export const SpongePoseidonModule = buildModule("SpongePoseidonModule", (m) => {
+  const poseidon6ElementAddress = m.getParameter("poseidon6ContractAddress");
+
+  const poseidon6Element = m.contractAt("PoseidonUnit6L", poseidon6ElementAddress);
+
+  const spongePoseidon = m.contract("SpongePoseidon", [], {
+    libraries: {
+      PoseidonUnit6L: poseidon6Element,
+    },
+  });
+  return { spongePoseidon };
+});
+
+export const VerifierLibModule = buildModule("VerifierLibModule", (m) => {
+  const verifierLib = m.contract("VerifierLib");
+  return { verifierLib };
+});

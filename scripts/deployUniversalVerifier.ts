@@ -11,13 +11,14 @@ async function main() {
     throw new Error("Invalid state address");
   }
 
-  const verifierLib = await deployHelper.deployVerifierLib();
+  const deployStrategy: "basic" | "create2" = "create2";
+  const verifierLib = await deployHelper.deployVerifierLib(deployStrategy);
 
   const universalVerifier = await deployHelper.deployUniversalVerifier(
     undefined,
     stateAddress,
     await verifierLib.getAddress(),
-    'create2'
+    deployStrategy,
   );
 
   const pathOutputJson = path.join(__dirname, "./deploy_universal_verifier_output.json");
