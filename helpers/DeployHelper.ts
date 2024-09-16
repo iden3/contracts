@@ -8,13 +8,13 @@ import {
   StateCrossChainLibModule,
   StateLibModule,
   SmtLibModule,
-  VerifierStateTransitionModule,
-  VerifierStubModule,
+  Groth16VerifierStateTransitionModule,
+  Groth16VerifierStubModule,
   UniversalVerifierModule,
   IdentityTreeStoreModule,
-  VerifierMTPWrapperModule,
-  VerifierSigWrapperModule,
-  VerifierV3WrapperModule,
+  Groth16VerifierMTPWrapperModule,
+  Groth16VerifierSigWrapperModule,
+  Groth16VerifierV3WrapperModule,
   CredentialAtomicQueryMTPV2ValidatorModule,
   CredentialAtomicQuerySigV2ValidatorModule,
   CredentialAtomicQueryV3ValidatorModule,
@@ -45,11 +45,11 @@ export class DeployHelper {
 
   async deployState(
     supportedIdTypes: string[] = [],
-    verifierContractName: "VerifierStateTransition" | "VerifierStub" = "VerifierStateTransition",
+    g16VerifierContractName: "Groth16VerifierStateTransition" | "Groth16VerifierStub" = "Groth16VerifierStateTransition",
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<{
     state: Contract;
-    verifier: Contract;
+    groth16verifier: Contract;
     stateLib: Contract;
     smtLib: Contract;
     stateCrossChainLib: Contract;
@@ -67,25 +67,25 @@ export class DeployHelper {
 
     const owner = this.signers[0];
 
-    this.log("deploying verifier...");
+    this.log("deploying Groth16VerifierStateTransition...");
 
-    let verifier;
-    if (verifierContractName === "VerifierStateTransition") {
-      const verifierDeploy = await ignition.deploy(VerifierStateTransitionModule, {
+    let g16Verifier;
+    if (g16VerifierContractName === "Groth16VerifierStateTransition") {
+      const verifierDeploy = await ignition.deploy(Groth16VerifierStateTransitionModule, {
         strategy: deployStrategy,
       });
-      verifier = verifierDeploy.verifierStateTransition;
-    } else if (verifierContractName === "VerifierStub") {
-      const verifierDeploy = await ignition.deploy(VerifierStubModule, {
+      g16Verifier = verifierDeploy.groth16VerifierStateTransition;
+    } else if (g16VerifierContractName === "Groth16VerifierStub") {
+      const verifierDeploy = await ignition.deploy(Groth16VerifierStubModule, {
         strategy: deployStrategy,
       });
-      verifier = verifierDeploy.verifierStub;
+      g16Verifier = verifierDeploy.groth16VerifierStub;
     } else {
       throw new Error("invalid verifierContractName");
     }
-    await verifier.waitForDeployment();
+    await g16Verifier.waitForDeployment();
     this.log(
-      `${verifierContractName} contract deployed to address ${await verifier.getAddress()} from ${await owner.getAddress()}`,
+      `${g16VerifierContractName} contract deployed to address ${await g16Verifier.getAddress()} from ${await owner.getAddress()}`,
     );
 
     this.log("deploying poseidons...");
@@ -127,7 +127,7 @@ export class DeployHelper {
       state = await upgrades.deployProxy(
         StateFactory,
         [
-          await verifier.getAddress(),
+          await g16Verifier.getAddress(),
           defaultIdType,
           await owner.getAddress(),
           await oracleProofValidator.getAddress(),
@@ -154,7 +154,7 @@ export class DeployHelper {
       ).state;
       await state.waitForDeployment();
       await state.initialize(
-        await verifier.getAddress(),
+        await g16Verifier.getAddress(),
         defaultIdType,
         await owner.getAddress(),
         await oracleProofValidator.getAddress(),
@@ -177,7 +177,7 @@ export class DeployHelper {
 
     return {
       state,
-      verifier,
+      groth16verifier: g16Verifier,
       stateLib,
       smtLib,
       stateCrossChainLib,
@@ -194,7 +194,7 @@ export class DeployHelper {
     stateAddress: string,
     redeployVerifier = true,
     redeployOracleProofValidator = true,
-    verifierContractName = "VerifierStateTransition",
+    g16VerifierContractName = "Groth16VerifierStateTransition",
     stateContractName = "State",
     oracleProofValidatorContractName = "OracleProofValidator",
   ): Promise<{
@@ -268,21 +268,21 @@ export class DeployHelper {
       `State contract upgraded at address ${await stateContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
     );
 
-    this.log("deploying verifier...");
+    this.log("deploying Groth16 verifier...");
 
-    let verifierContract: Contract;
+    let g16VerifierContract: Contract;
     if (redeployVerifier) {
-      const verifierFactory = await ethers.getContractFactory(verifierContractName);
-      verifierContract = await verifierFactory.deploy();
-      await verifierContract.waitForDeployment();
+      const g16VerifierFactory = await ethers.getContractFactory(g16VerifierContractName);
+      g16VerifierContract = await g16VerifierFactory.deploy();
+      await g16VerifierContract.waitForDeployment();
       this.log(
-        `${verifierContractName} contract deployed to address ${await verifierContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
+        `${g16VerifierContractName} contract deployed to address ${await g16VerifierContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
       );
-      const tx = await stateContract.setVerifier(await verifierContract.getAddress());
+      const tx = await stateContract.setVerifier(await g16VerifierContract.getAddress());
       await tx.wait();
     } else {
-      verifierContract = await ethers.getContractAt(
-        verifierContractName,
+      g16VerifierContract = await ethers.getContractAt(
+        g16VerifierContractName,
         await stateContract.getVerifier(),
       );
     }
@@ -308,7 +308,7 @@ export class DeployHelper {
     this.log("======== State: upgrade completed ========");
     return {
       state: stateContract,
-      verifier: verifierContract,
+      verifier: g16VerifierContract,
       oracleProofValidator: opvContract,
       smtLib,
       stateLib,
@@ -470,27 +470,27 @@ export class DeployHelper {
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<{
     state: any;
-    verifierWrapper: any;
+    groth16VerifierWrapper: any;
     validator: any;
   }> {
     if (deployStrategy === "create2") {
-      let verifierContractWrapperModule, validatorContractModule;
+      let g16VerifierContractWrapperModule, validatorContractModule;
       switch (validatorType) {
         case "mtpV2":
-          verifierContractWrapperModule = VerifierMTPWrapperModule;
+          g16VerifierContractWrapperModule = Groth16VerifierMTPWrapperModule;
           validatorContractModule = CredentialAtomicQueryMTPV2ValidatorModule;
           break;
         case "sigV2":
-          verifierContractWrapperModule = VerifierSigWrapperModule;
+          g16VerifierContractWrapperModule = Groth16VerifierSigWrapperModule;
           validatorContractModule = CredentialAtomicQuerySigV2ValidatorModule;
           break;
         case "v3":
-          verifierContractWrapperModule = VerifierV3WrapperModule;
+          g16VerifierContractWrapperModule = Groth16VerifierV3WrapperModule;
           validatorContractModule = CredentialAtomicQueryV3ValidatorModule;
           break;
       }
 
-      const wrapperDeploy = await ignition.deploy(verifierContractWrapperModule, {
+      const wrapperDeploy = await ignition.deploy(g16VerifierContractWrapperModule, {
         strategy: deployStrategy,
       });
       const verifierWrapper = wrapperDeploy.wrapper;
@@ -509,41 +509,40 @@ export class DeployHelper {
       const state = await ethers.getContractAt("State", stateAddress);
       return {
         validator,
-        verifierWrapper,
+        groth16VerifierWrapper: verifierWrapper,
         state,
       };
     }
-    let verifierContractWrapperName, validatorContractName;
+    let g16VerifierContractWrapperName, validatorContractName;
     switch (validatorType) {
       case "mtpV2":
-        verifierContractWrapperName = "VerifierMTPWrapper";
+        g16VerifierContractWrapperName = "Groth16VerifierMTPWrapper";
         validatorContractName = "CredentialAtomicQueryMTPV2Validator";
         break;
       case "sigV2":
-        verifierContractWrapperName = "VerifierSigWrapper";
+        g16VerifierContractWrapperName = "Groth16VerifierSigWrapper";
         validatorContractName = "CredentialAtomicQuerySigV2Validator";
         break;
       case "v3":
-        verifierContractWrapperName = "VerifierV3Wrapper";
+        g16VerifierContractWrapperName = "Groth16VerifierV3Wrapper";
         validatorContractName = "CredentialAtomicQueryV3Validator";
         break;
     }
 
-    const ValidatorContractVerifierWrapper = await ethers.getContractFactory(
-      verifierContractWrapperName,
+    const g16ValidatorContractVerifierWrapper = await ethers.deployContract(
+      g16VerifierContractWrapperName,
     );
-    const validatorContractVerifierWrapper = await ValidatorContractVerifierWrapper.deploy();
 
-    await validatorContractVerifierWrapper.waitForDeployment();
+    await g16ValidatorContractVerifierWrapper.waitForDeployment();
     console.log(
-      "Validator Verifier Wrapper deployed to:",
-      await validatorContractVerifierWrapper.getAddress(),
+      "Validator Groth 16 Verifier Wrapper deployed to:",
+      await g16ValidatorContractVerifierWrapper.getAddress(),
     );
 
     const ValidatorContract = await ethers.getContractFactory(validatorContractName);
 
     const validatorContractProxy = await upgrades.deployProxy(ValidatorContract, [
-      await validatorContractVerifierWrapper.getAddress(),
+      await g16ValidatorContractVerifierWrapper.getAddress(),
       stateAddress,
     ]);
 
@@ -555,7 +554,7 @@ export class DeployHelper {
     const state = await ethers.getContractAt("State", stateAddress);
     return {
       validator: validatorContractProxy,
-      verifierWrapper: validatorContractVerifierWrapper,
+      groth16VerifierWrapper: g16ValidatorContractVerifierWrapper,
       state,
     };
   }

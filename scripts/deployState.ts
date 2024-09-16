@@ -9,8 +9,8 @@ async function main() {
 
   const deployHelper = await DeployHelper.initialize(null, true);
 
-  const { state, verifier, stateLib, smtLib, stateCrossChainLib, poseidon1, poseidon2, poseidon3 } =
-    await deployHelper.deployState([], "VerifierStateTransition", deployStrategy);
+  const { state, groth16verifier, stateLib, smtLib, stateCrossChainLib, poseidon1, poseidon2, poseidon3 } =
+    await deployHelper.deployState([], "Groth16VerifierStateTransition", deployStrategy);
 
   const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
   const networkName = hre.network.name;
@@ -21,7 +21,7 @@ async function main() {
   const outputJson = {
     proxyAdminOwnerAddress: await signer.getAddress(),
     state: await state.getAddress(),
-    verifier: await verifier.getAddress(),
+    verifier: await groth16verifier.getAddress(),
     stateLib: await stateLib.getAddress(),
     smtLib: await smtLib.getAddress(),
     stateCrossChainLib: await stateCrossChainLib.getAddress(),

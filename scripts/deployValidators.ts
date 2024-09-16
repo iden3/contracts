@@ -13,7 +13,7 @@ async function main() {
 
   const validatorsInfo: any = [];
   for (const v of validators) {
-    const { validator, verifierWrapper } = await deployHelper.deployValidatorContracts(
+    const { validator, groth16VerifierWrapper } = await deployHelper.deployValidatorContracts(
       v,
       stateAddress,
       deployStrategy,
@@ -21,7 +21,7 @@ async function main() {
     validatorsInfo.push({
       validatorType: v,
       validator: await validator.getAddress(),
-      groth16verifier: await verifierWrapper.getAddress(),
+      groth16verifier: await groth16VerifierWrapper.getAddress(),
     });
   }
 

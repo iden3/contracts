@@ -117,7 +117,7 @@ async function main() {
 
 
   // // **** Additional write-read tests (remove in real upgrade) ****
-  //       const verifierStubContractName = "VerifierStub";
+  //       const verifierStubContractName = "Groth16VerifierStub";
   //
   //       const verifierStub = await ethers.deployContract(verifierStubContractName);
   //       await stateContract.connect(stateOwnerSigner).setVerifier(await verifierStub.getAddress());
