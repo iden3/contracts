@@ -1,10 +1,11 @@
 import { DeployHelper } from "../helpers/DeployHelper";
-import hre, { network } from "hardhat";
+import hre, { ethers, network } from "hardhat";
 import path from "path";
 import fs from "fs";
 
 (async () => {
   const deployStrategy = "basic";
+  const [signer] = await ethers.getSigners();
 
   const deployHelper = await DeployHelper.initialize();
 
@@ -35,6 +36,7 @@ import fs from "fs";
     `./deploy_identity_tree_store_output_${chainId}_${networkName}.json`,
   );
   const outputJson = {
+    proxyAdminOwnerAddress: await signer.getAddress(),
     identityTreeStore: await identityTreeStore.getAddress(),
     poseidon2ContractAddress,
     poseidon3ContractAddress,

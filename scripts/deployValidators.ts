@@ -7,17 +7,18 @@ async function main() {
   const stateAddress = "0x134B1BE34911E39A8397ec6289782989729807a4";
   const validators: ("mtpV2" | "sigV2" | "v3")[] = ["mtpV2", "sigV2", "v3"];
   const deployStrategy = "basic";
+  const [signer] = await hre.ethers.getSigners();
 
   const deployHelper = await DeployHelper.initialize(null, true);
 
-  const deployInfo: any = [];
+  const validatorsInfo: any = [];
   for (const v of validators) {
     const { validator, verifierWrapper } = await deployHelper.deployValidatorContracts(
       v,
       stateAddress,
       deployStrategy,
     );
-    deployInfo.push({
+    validatorsInfo.push({
       validatorType: v,
       validator: await validator.getAddress(),
       groth16verifier: await verifierWrapper.getAddress(),
@@ -31,7 +32,8 @@ async function main() {
     `./deploy_validators_output_${chainId}_${networkName}.json`,
   );
   const outputJson = {
-    info: deployInfo,
+    proxyAdminOwnerAddress: await signer.getAddress(),
+    validatorsInfo,
     network: process.env.HARDHAT_NETWORK,
     chainId,
   };

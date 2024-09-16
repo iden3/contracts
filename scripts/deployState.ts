@@ -5,6 +5,7 @@ import hre, { network } from "hardhat";
 
 async function main() {
   const deployStrategy: "basic" | "create2" = "basic";
+  const [signer] = await hre.ethers.getSigners();
 
   const deployHelper = await DeployHelper.initialize(null, true);
 
@@ -18,6 +19,7 @@ async function main() {
     `./deploy_state_output_${chainId}_${networkName}.json`,
   );
   const outputJson = {
+    proxyAdminOwnerAddress: await signer.getAddress(),
     state: await state.getAddress(),
     verifier: await verifier.getAddress(),
     stateLib: await stateLib.getAddress(),
