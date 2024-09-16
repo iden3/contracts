@@ -7,16 +7,21 @@ import {
   Poseidon6Module,
   Poseidon2Module,
   Poseidon3Module,
+  SpongePoseidonModule,
 } from "../ignition/modules/libraries";
 
-export async function deploySpongePoseidon(poseidon6ContractAddress: string): Promise<Contract> {
-  const SpongePoseidonFactory = await ethers.getContractFactory("SpongePoseidon", {
-    libraries: {
-      PoseidonUnit6L: poseidon6ContractAddress,
+export async function deploySpongePoseidon(
+  poseidon6ContractAddress: string,
+  deployStrategy: "basic" | "create2" = "basic",
+): Promise<Contract> {
+  const { spongePoseidon } = await ignition.deploy(SpongePoseidonModule, {
+    parameters: {
+      SpongePoseidonModule: {
+        poseidon6ContractAddress,
+      },
     },
+    strategy: deployStrategy,
   });
-
-  const spongePoseidon = await SpongePoseidonFactory.deploy();
   await spongePoseidon.waitForDeployment();
   console.log("SpongePoseidon deployed to:", await spongePoseidon.getAddress());
   return spongePoseidon;
