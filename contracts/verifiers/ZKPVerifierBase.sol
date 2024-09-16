@@ -311,4 +311,10 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     ) public view checkRequestExistence(requestId, true) returns (uint256) {
         return _getZKPVerifierStorage()._proofs[user][requestId].storageFields[key];
     }
+
+    /// @dev Gets the address of the state contract linked to the verifier
+    /// @return address of the state contract
+    function getStateAddress() public view virtual returns (address) {
+        return address(_getZKPVerifierStorage()._state);
+    }
 }

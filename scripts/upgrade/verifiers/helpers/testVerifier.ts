@@ -32,9 +32,7 @@ import {
 import { ProofData } from "@iden3/js-jwz";
 import { packCrossChainProofs, packZKProof } from "../../../../test/utils/packData";
 
-const chainId = 80002;
 const rhsUrl = "https://rhs-staging.polygonid.me";
-const rpcUrl = process.env.AMOY_RPC_URL; // "http://localhost:8545";
 
 function createKYCAgeCredential(did: core.DID, birthday: number) {
   const credentialRequest: CredentialRequest = {
@@ -152,12 +150,53 @@ function prepareProof(proof: ProofData) {
   return { ...preparedProof };
 }
 
+function getParamsFromChainId(chainId: number) {
+  let rpcUrl: string;
+  let method: string;
+  let blockchain: string;
+  let networkId: string;
+
+  switch (chainId) {
+    case 80002:
+      rpcUrl = process.env.AMOY_RPC_URL as string;
+      method = DidMethod.PolygonId;
+      blockchain = Blockchain.Polygon;
+      networkId = NetworkId.Amoy;
+      break;
+    case 2442:
+      rpcUrl = process.env.CARDONA_RPC_URL as string;
+      method = DidMethod.PolygonId;
+      blockchain = Blockchain.Polygon;
+      networkId = NetworkId.Cardona;
+      break;
+    case 1101:
+      rpcUrl = process.env.ZKEVM_RPC_URL as string;
+      method = DidMethod.PolygonId;
+      blockchain = Blockchain.Polygon;
+      networkId = NetworkId.Zkevm;
+      break;
+    case 59141:
+      rpcUrl = process.env.LINEA_SEPOLIA_RPC_URL as string;
+      method = DidMethod.Iden3;
+      blockchain = Blockchain.Linea;
+      networkId = NetworkId.Sepolia;
+      break;
+    default:
+      throw new Error(`Unsupported chainId: ${chainId}`);
+  }
+
+  return { rpcUrl, method, blockchain, networkId };
+}
+
 export async function submitZKPResponses_KYCAgeCredential(
   requestId: number,
   verifier: Contract,
   opts: any,
 ) {
   console.log("================= submitZKPResponseV2 V3 SIG KYCAgeCredential ===================");
+  const chainId = hre.network.config.chainId || 80002;
+
+  const { rpcUrl, method, blockchain, networkId } = getParamsFromChainId(chainId);
 
   const [signer] = await hre.ethers.getSigners();
   console.log(signer.address);
@@ -196,9 +235,9 @@ export async function submitZKPResponses_KYCAgeCredential(
 
   console.log("=============== user did ===============");
   const { did: userDID } = await userIdentityWallet.createIdentity({
-    method: core.DidMethod.PolygonId,
-    blockchain: core.Blockchain.Polygon,
-    networkId: core.NetworkId.Amoy,
+    method: method,
+    blockchain: blockchain,
+    networkId: networkId,
     revocationOpts: {
       type: CredentialStatusType.Iden3ReverseSparseMerkleTreeProof,
       id: rhsUrl,
@@ -209,9 +248,9 @@ export async function submitZKPResponses_KYCAgeCredential(
 
   console.log("=============== issuer did ===============");
   const { did: issuerDID } = await issuerIdentityWallet.createIdentity({
-    method: core.DidMethod.PolygonId,
-    blockchain: core.Blockchain.Polygon,
-    networkId: core.NetworkId.Amoy,
+    method: method,
+    blockchain: blockchain,
+    networkId: networkId,
     revocationOpts: {
       type: CredentialStatusType.Iden3ReverseSparseMerkleTreeProof,
       id: rhsUrl,
@@ -233,9 +272,9 @@ export async function submitZKPResponses_KYCAgeCredential(
   console.log("================= generate V3 Sig proof ===================");
   // Verifier Id in the verifier network
   const verifierId = buildVerifierId(opts.verifierContractAddress, {
-    blockchain: Blockchain.Polygon,
-    networkId: NetworkId.Amoy,
-    method: DidMethod.PolygonId,
+    blockchain: blockchain,
+    networkId: networkId,
+    method: method,
   });
 
   const { proof: proofV3Sig, pub_signals: pub_signalsV3Sig } = await generateProof(
@@ -311,10 +350,16 @@ export async function setZKPRequest_KYCAgeCredential(
       SD: 16, // selective disclosure
     };
 
+    const chainId = hre.network.config.chainId || 80002;
+    const network = hre.network.name;
+    const methodId = "ade09fcd";
+
+    const { method, blockchain, networkId } = getParamsFromChainId(chainId);
+
     const verifierId = buildVerifierId(await verifier.getAddress(), {
-      blockchain: Blockchain.Polygon,
-      networkId: NetworkId.Amoy,
-      method: DidMethod.PolygonId,
+      blockchain: blockchain,
+      networkId: networkId,
+      method: method,
     });
 
     // you can run https://go.dev/play/p/oB_oOW7kBEw to get schema hash and claimPathKey using YOUR schema
@@ -355,10 +400,6 @@ export async function setZKPRequest_KYCAgeCredential(
     ).toString();
 
     const dataV3KYCAgeCredential = packV3ValidatorParams(queryV3KYCAgeCredential);
-
-    const chainId = hre.network.config.chainId;
-    const network = hre.network.name;
-    const methodId = "ade09fcd";
 
     const invokeRequestMetadataKYCAgeCredential = {
       id: "7f38a193-0918-4a48-9fac-36adfdb8b543",

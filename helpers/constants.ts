@@ -13,8 +13,8 @@ type ChainIdInfo = {
 
 export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
   .set(31337, { idType: "0x0212", networkType: "test", oracleSigningAddress: oracleSAHardhat }) // hardhat
-  .set(1101, { idType: "0x0231", networkType: "main", oracleSigningAddress: oracleSAProd }) // zkEVM
-  .set(2442, { idType: "0x0232", networkType: "test", oracleSigningAddress: oracleSATest }) // zkEVM testnet
+  .set(1101, { idType: "0x0214", networkType: "main", oracleSigningAddress: oracleSAProd }) // polygon zkevm
+  .set(2442, { idType: "0x0215", networkType: "test", oracleSigningAddress: oracleSATest }) // polygon cardona
   .set(137, { idType: "0x0211", networkType: "main", oracleSigningAddress: oracleSAProd }) // polygon main
   .set(80001, { idType: "0x0212", networkType: "test", oracleSigningAddress: oracleSATest }) // polygon mumbai
   .set(80002, { idType: "0x0213", networkType: "test", oracleSigningAddress: oracleSATest }) // polygon amoy

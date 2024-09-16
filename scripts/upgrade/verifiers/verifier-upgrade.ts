@@ -192,6 +192,19 @@ async function TestStateUpgrade(deployHelper: DeployHelper, signer: any) {
   await stateMigrationHelper.upgradeContract(stateContract, false, true); // first upgrade we need deploy oracle proof validator
   // ************************
 
+  switch (chainId) {
+    case 1101: // polygon zkevm
+      console.log("Setting default id type to 0x0214");
+      await stateContract.setDefaultIdType("0x0214");
+      break;
+    case 2442: // polygon cardona
+      console.log("Setting default id type to 0x0215");
+      await stateContract.setDefaultIdType("0x0215");
+      break;
+    default:
+      break;
+  }
+
   console.log("State Contract Upgrade Finished");
 }
 
