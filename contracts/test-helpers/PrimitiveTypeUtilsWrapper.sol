@@ -20,10 +20,4 @@ contract PrimitiveTypeUtilsWrapper {
     function uint256ToAddress(uint256 input) public pure returns (address) {
         return PrimitiveTypeUtils.uint256ToAddress(input);
     }
-
-    function bytesSlicePer31BytesToUint256Array(
-        bytes memory data
-    ) public pure returns (uint256[] memory) {
-        return PrimitiveTypeUtils.bytesSlicePer31BytesToUint256Array(data);
-    }
 }

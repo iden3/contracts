@@ -1,7 +1,7 @@
 import { ethers, network, upgrades, ignition } from "hardhat";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { deployPoseidons, deploySpongePoseidon } from "./PoseidonDeployHelper";
+import { deployPoseidons } from "./PoseidonDeployHelper";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain";
 import {
   StateModule,
@@ -412,17 +412,7 @@ export class DeployHelper {
   async deployVerifierLib(deployStrategy: "basic" | "create2" = "basic"): Promise<Contract> {
     const contractName = "VerifierLib";
     const signer = this.signers[0];
-
-    this.log(`deploying sponge Poseidon for ${contractName}...`);
-    const [poseidon6] = await deployPoseidons([6], deployStrategy);
-    const spongePoseidon = await deploySpongePoseidon(await poseidon6.getAddress(), deployStrategy);
-
     const { verifierLib } = await ignition.deploy(VerifierLibModule, {
-      parameters: {
-        VerifierLibModule: {
-          spongePoseidonContractAddress: await spongePoseidon.getAddress(),
-        },
-      },
       strategy: deployStrategy,
     });
 

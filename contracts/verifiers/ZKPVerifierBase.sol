@@ -60,8 +60,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     }
 
     function __ZKPVerifierBase_init_unchained(IState state) internal onlyInitializing {
-        ZKPVerifierStorage storage $ = _getZKPVerifierStorage();
-        $._state = state;
+        _setState(state);
     }
 
     /**
@@ -160,7 +159,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             $.writeProofResults(sender, response.requestId, signals);
 
             if (response.data.length > 0) {
-                $.writeMetadata(sender, response.data, response.requestId);
+                revert("Metadata not supported yet");
             }
         }
     }

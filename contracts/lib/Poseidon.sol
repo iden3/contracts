@@ -54,10 +54,6 @@ library SpongePoseidon {
         }
         return fullHash;
     }
-
-    function hashBytes(bytes memory data) public pure returns (uint256) {
-        return hash(PrimitiveTypeUtils.bytesSlicePer31BytesToUint256Array(data));
-    }
 }
 
 library PoseidonFacade {
@@ -87,9 +83,5 @@ library PoseidonFacade {
 
     function poseidonSponge(uint256[] calldata el) public pure returns (uint256) {
         return SpongePoseidon.hash(el);
-    }
-
-    function poseidonSpongeBytes(bytes calldata b) public pure returns (uint256) {
-        return SpongePoseidon.hashBytes(b);
     }
 }

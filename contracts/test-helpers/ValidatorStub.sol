@@ -34,8 +34,8 @@ contract ValidatorStub is ICircuitValidator, ERC165 {
         bytes calldata data,
         address sender
     ) external pure override returns (ICircuitValidator.Signal[] memory) {
-        ICircuitValidator.Signal[] memory keypair;
-        return keypair;
+        ICircuitValidator.Signal[] memory signals;
+        return signals;
     }
     // solhint-enable no-unused-vars
 
@@ -45,16 +45,7 @@ contract ValidatorStub is ICircuitValidator, ERC165 {
         address sender,
         IState state
     ) external pure override returns (ICircuitValidator.Signal[] memory) {
-        ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](2);
-        signals[0] = ICircuitValidator.Signal({
-            name: "input1Name",
-            value: 4738709701797800586552075642459921104723261125214325001991063996931581119544
-        });
-        signals[1] = ICircuitValidator.Signal({
-            name: "input2Name",
-            value: 9035405010444332688195156022077093661354129858083944503594910647512497655475
-        });
-
+        ICircuitValidator.Signal[] memory signals;
         return signals;
     }
 

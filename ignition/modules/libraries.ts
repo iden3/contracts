@@ -137,14 +137,6 @@ export const SpongePoseidonModule = buildModule("SpongePoseidonModule", (m) => {
 });
 
 export const VerifierLibModule = buildModule("VerifierLibModule", (m) => {
-  const spongePoseidonContractAddress = m.getParameter("spongePoseidonContractAddress");
-
-  const spongePoseidon = m.contractAt("SpongePoseidon", spongePoseidonContractAddress);
-
-  const verifierLib = m.contract("VerifierLib", [], {
-    libraries: {
-      SpongePoseidon: spongePoseidon,
-    },
-  });
+  const verifierLib = m.contract("VerifierLib");
   return { verifierLib };
 });
