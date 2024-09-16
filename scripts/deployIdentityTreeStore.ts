@@ -8,11 +8,11 @@ import { DeployHelper } from "../helpers/DeployHelper";
     throw new Error("STATE_CONTRACT_ADDRESS is not set");
   }
   const poseidon2ContractAddress = process.env.POSEIDON_2_CONTRACT_ADDRESS || "";
-  if (!poseidon2ContractAddress) { 
+  if (!poseidon2ContractAddress) {
     throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set");
   }
   const poseidon3ContractAddress = process.env.POSEIDON_3_CONTRACT_ADDRESS || "";
-  if (poseidon3ContractAddress) {
+  if (!poseidon3ContractAddress) {
     throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set");
   }
 
