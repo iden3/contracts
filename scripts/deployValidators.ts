@@ -5,7 +5,9 @@ import hre, { network } from "hardhat";
 
 async function main() {
   const stateAddress = "0x134B1BE34911E39A8397ec6289782989729807a4";
-  const validators: ("mtpV2" | "sigV2" | "v3")[] = ["v3"];
+  const validators: ("mtpV2" | "sigV2" | "v3")[] = ["mtpV2", "sigV2", "v3"];
+  const deployStrategy = "basic";
+
   const deployHelper = await DeployHelper.initialize(null, true);
 
   const deployInfo: any = [];
@@ -13,12 +15,12 @@ async function main() {
     const { validator, verifierWrapper } = await deployHelper.deployValidatorContracts(
       v,
       stateAddress,
-      "create2",
+      deployStrategy,
     );
     deployInfo.push({
       validatorType: v,
       validator: await validator.getAddress(),
-      verifier: await verifierWrapper.getAddress(),
+      groth16verifier: await verifierWrapper.getAddress(),
     });
   }
 
@@ -26,7 +28,7 @@ async function main() {
   const networkName = hre.network.name;
   const pathOutputJson = path.join(
     __dirname,
-    `./deploy_validator_output_${chainId}_${networkName}.json`,
+    `./deploy_validators_output_${chainId}_${networkName}.json`,
   );
   const outputJson = {
     info: deployInfo,

@@ -4,6 +4,8 @@ import path from "path";
 import fs from "fs";
 
 (async () => {
+  const deployStrategy = "basic";
+
   const deployHelper = await DeployHelper.initialize();
 
   const stateContractAddress = process.env.STATE_CONTRACT_ADDRESS || "";
@@ -23,7 +25,7 @@ import fs from "fs";
     stateContractAddress,
     poseidon2ContractAddress,
     poseidon3ContractAddress,
-    "basic",
+    deployStrategy,
   );
 
   const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
@@ -38,6 +40,7 @@ import fs from "fs";
     poseidon3ContractAddress,
     network: process.env.HARDHAT_NETWORK,
     chainId,
+    deployStrategy,
   };
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 })();

@@ -4,8 +4,9 @@ import { DeployHelper } from "../helpers/DeployHelper";
 import hre, { network } from "hardhat";
 
 async function main() {
+  const deployStrategy: "basic" | "create2" = "basic";
+
   const deployHelper = await DeployHelper.initialize(null, true);
-  const deployStrategy: "basic" | "create2" = "create2";
 
   const { state, verifier, stateLib, smtLib, stateCrossChainLib, poseidon1, poseidon2, poseidon3 } =
     await deployHelper.deployState([], "VerifierStateTransition", deployStrategy);
@@ -26,6 +27,8 @@ async function main() {
     poseidon2: await poseidon2.getAddress(),
     poseidon3: await poseidon3.getAddress(),
     network: process.env.HARDHAT_NETWORK,
+    chainId,
+    deployStrategy,
   };
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 }
