@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.26;
 
 // We import these here to force Hardhat to compile them.
 // This ensures that their artifacts are available for Hardhat Ignition to use.

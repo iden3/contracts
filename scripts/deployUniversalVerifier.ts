@@ -1,19 +1,19 @@
 import fs from "fs";
 import path from "path";
 import { DeployHelper } from "../helpers/DeployHelper";
-import { ethers } from "hardhat";
+import hre, { ethers, network } from "hardhat";
 
 async function main() {
-  const deployHelper = await DeployHelper.initialize(null, true);
-
-  const stateAddress = "<put the address here>";
-  if (ethers.isAddress(stateAddress) === false) {
+  const stateAddress = process.env.STATE_CONTRACT_ADDRESS || "";
+  if (!ethers.isAddress(stateAddress)) {
     throw new Error("Invalid state address");
   }
+  const deployStrategy: "basic" | "create2" = "basic";
+  const [signer] = await ethers.getSigners();
 
-  const deployStrategy: "basic" | "create2" = "create2";
+  const deployHelper = await DeployHelper.initialize(null, true);
+
   const verifierLib = await deployHelper.deployVerifierLib(deployStrategy);
-
   const universalVerifier = await deployHelper.deployUniversalVerifier(
     undefined,
     stateAddress,
@@ -21,10 +21,20 @@ async function main() {
     deployStrategy,
   );
 
-  const pathOutputJson = path.join(__dirname, "./deploy_universal_verifier_output.json");
+  const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
+  const networkName = hre.network.name;
+  const pathOutputJson = path.join(
+    __dirname,
+    `./deploy_universal_verifier_output_${chainId}_${networkName}.json`,
+  );
   const outputJson = {
+    proxyAdminOwnerAddress: await signer.getAddress(),
     universalVerifier: await universalVerifier.getAddress(),
+    verifierLib: await verifierLib.getAddress(),
+    state: stateAddress,
     network: process.env.HARDHAT_NETWORK,
+    chainId,
+    deployStrategy,
   };
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 }

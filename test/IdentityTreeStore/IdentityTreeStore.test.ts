@@ -4,7 +4,7 @@ import { DeployHelper } from "../../helpers/DeployHelper";
 import { Contract } from "ethers";
 import { publishStateWithStubProof } from "../utils/state-utils";
 
-const verifierStubName = "VerifierStub";
+const verifierStubName = "Groth16VerifierStub";
 
 describe("IdentityTreeStore", function () {
   let identityTreeStore, stateContract: Contract;

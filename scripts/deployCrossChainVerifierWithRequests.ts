@@ -510,7 +510,7 @@ async function main() {
 
   const pathOutputJson = path.join(
     __dirname,
-    `./deploy_universal_verifier_output_${chainId}_${networkName}.json`,
+    `./deploy_cross_chain_verification_with_requests_output_${chainId}_${networkName}.json`,
   );
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 }

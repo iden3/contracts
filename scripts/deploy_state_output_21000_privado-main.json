@@ -6,5 +6,6 @@
  "poseidon1": "0xC72D76D7271924a2AD54a19D216640FeA3d138d9",
  "poseidon2": "0x72F721D9D5f91353B505207C63B56cF3d9447edB",
  "poseidon3": "0x5Bc89782d5eBF62663Df7Ce5fb4bc7408926A240",
- "network": "privado-main"
+ "network": "privado-main",
+ "chainId": 21000
 }
