@@ -26,10 +26,10 @@ library VerifierLib {
     function writeMetadata(
         ZKPVerifierBase.ZKPVerifierStorage storage self,
         address sender,
-        bytes memory data,
+        bytes memory metadata,
         uint64 requestId
     ) public {
-        ZKPVerifierBase.Metadata[] memory meta = abi.decode(data, (ZKPVerifierBase.Metadata[]));
+        ZKPVerifierBase.Metadata[] memory meta = abi.decode(metadata, (ZKPVerifierBase.Metadata[]));
 
         ZKPVerifierBase.Proof storage proof = self._proofs[sender][requestId];
         for (uint256 j = 0; j < meta.length; j++) {
