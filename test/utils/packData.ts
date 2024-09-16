@@ -145,10 +145,6 @@ export async function packIdentityStateUpdateWithSignature(
   return packIdentityStateUpdate(isu);
 }
 
-export function packMetadatas(metas: Metadata[]): string {
-  return abiCoder.encode(["tuple(" + "string key," + "bytes value" + ")[]"], [metas]);
-}
-
 export function packZKProof(inputs: string[], a: string[], b: string[][], c: string[]): string {
   return abiCoder.encode(
     ["uint256[] inputs", "uint256[2]", "uint256[2][2]", "uint256[2]"],

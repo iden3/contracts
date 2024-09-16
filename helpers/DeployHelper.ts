@@ -416,11 +416,7 @@ export class DeployHelper {
     const [poseidon6] = await deployPoseidons([6]);
     const spongePoseidon = await deploySpongePoseidon(await poseidon6.getAddress());
 
-    const verifierLib = await ethers.deployContract(contractName, {
-      libraries: {
-        SpongePoseidon: await spongePoseidon.getAddress(),
-      },
-    });
+    const verifierLib = await ethers.deployContract(contractName);
 
     this.log(`${contractName} deployed to:  ${await verifierLib.getAddress()}`);
 

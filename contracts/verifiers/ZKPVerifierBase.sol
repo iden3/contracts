@@ -160,7 +160,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             $.writeProofResults(sender, response.requestId, signals);
 
             if (response.data.length > 0) {
-                $.writeMetadata(sender, response.data, response.requestId);
+                revert("Metadata not supported yet");
             }
         }
     }
