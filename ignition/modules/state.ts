@@ -1,4 +1,6 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+import { deterministicAddressAnchorInfo } from "../../helpers/constants";
+import { ethers } from "hardhat";
 
 const StateProxyModule = buildModule("StateProxyModule", (m) => {
   const proxyAdminOwner = m.getAccount(0);
@@ -22,17 +24,18 @@ const StateProxyModule = buildModule("StateProxyModule", (m) => {
     },
   });
 
-  // const proxy = m.contract("TransparentUpgradeableProxy", [state, proxyAdminOwner, "0x"]);
+  const argument = ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.State"));
+  const iface = new ethers.Interface(deterministicAddressAnchorInfo.abi);
+  const encodedCall = iface.encodeFunctionData("attach", [argument]);
+
   const proxy = m.contract("TransparentUpgradeableProxy", [
-    // state,
-    "0xd6EdDbf024188254C4382a705BA4aCf24639a014",
+    deterministicAddressAnchorInfo.address,
     proxyAdminOwner,
-    // "0x80203136fae3111b810106baa500231d4fd08fc6",
-    "0x",
+    encodedCall,
   ]);
   const proxyAdminAddress = m.readEventArgument(proxy, "AdminChanged", "newAdmin");
   const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
-  // m.call(proxyAdmin, "upgradeAndCall", [proxy, state, "0x"]);
+  m.call(proxyAdmin, "upgradeAndCall", [proxy, state, "0x"]); // TODO call initialize
   // m.call(proxyAdmin, "transferOwnership", [proxyAdminOwner]);
 
   return { proxyAdmin, proxy };
