@@ -4,13 +4,21 @@ import { DeployHelper } from "../helpers/DeployHelper";
 import hre, { network } from "hardhat";
 
 async function main() {
-  const deployStrategy: "basic" | "create2" = "basic";
+  const deployStrategy: "basic" | "create2" = "create2";
   const [signer] = await hre.ethers.getSigners();
 
   const deployHelper = await DeployHelper.initialize(null, true);
 
-  const { state, groth16verifier, stateLib, smtLib, stateCrossChainLib, poseidon1, poseidon2, poseidon3 } =
-    await deployHelper.deployState([], "Groth16VerifierStateTransition", deployStrategy);
+  const {
+    state,
+    groth16verifier,
+    stateLib,
+    smtLib,
+    stateCrossChainLib,
+    poseidon1,
+    poseidon2,
+    poseidon3,
+  } = await deployHelper.deployState([], "Groth16VerifierStateTransition", deployStrategy);
 
   const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
   const networkName = hre.network.name;
