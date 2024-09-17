@@ -65,7 +65,6 @@
     "deploy:stateCrossChainFullSet:zkevm": "npx hardhat run scripts/deployCrossChainVerifierWithRequests.ts --network zkevm",
     "deploy:stateCrossChainFullSet:linea-sepolia": "npx hardhat run scripts/deployCrossChainVerifierWithRequests.ts --network linea-sepolia",
     "deploy:validators:localhost": "npx hardhat run scripts/deployValidators.ts --network localhost",
-    "deploy:universalverifier:localhost": "npx hardhat run scripts/deployUniversalVerifier.ts --network localhost",
     "deploy:state:localhost": "npx hardhat run scripts/deployState.ts --network localhost",
     "deploy:state:ropsten": "npx hardhat run scripts/deployState.ts --network ropsten",
     "deploy:state:amoy": "npx hardhat run scripts/deployState.ts --network amoy",
