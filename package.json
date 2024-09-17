@@ -75,6 +75,7 @@
     "deploy:its:privado:main": "npx hardhat run scripts/deployIdentityTreeStore.ts --network  privado-main",
     "deploy:its:privado:test": "npx hardhat run scripts/deployIdentityTreeStore.ts --network  privado-test",
     "deploy:its:amoy": "npx hardhat run scripts/deployIdentityTreeStore.ts --network amoy",
+    "deploy:deterministic:address:anchor:localhost": "npx hardhat run scripts/deployDeterministicAddressAnchor.ts --network localhost",
     "deploy:set:request:amoy": "npx hardhat run scripts/setProofRequest.ts --network amoy",
     "deploy:set:request:linea-sepolia": "npx hardhat run scripts/setProofRequest.ts --network linea-sepolia",
     "deploy:vc-payment:amoy": "npx hardhat run scripts/deployVCPayment.ts --network amoy",
