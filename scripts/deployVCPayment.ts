@@ -2,7 +2,7 @@ import { ignition, run } from "hardhat";
 import { VCPaymentModule } from "../ignition/modules/VCPayment";
 
 async function main() {
-  const deployStrategy: "basic" | "create2" = "basic";
+  const deployStrategy: "basic" | "create2" = "create2";
 
   const vcPaymentDeploy = await ignition.deploy(VCPaymentModule, {
     strategy: deployStrategy,

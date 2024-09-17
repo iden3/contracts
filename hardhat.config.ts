@@ -34,6 +34,16 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
+    // "polygon-cardona": {
+    //   chainId: 2442,
+    //   url: `${process.env.CARDONA_RPC_URL}`,
+    //   accounts: [`0x${process.env.CARDONA_PRIVATE_KEY}`],
+    // },
+    // polygonZkEVM: {
+    //   chainId: 1101,
+    //   url: `${process.env.ZK_EVM_RPC_URL}`,
+    //   accounts: [`0x${process.env.ZK_EVM_PRIVATE_KEY}`],
+    // },
     // polygon: {
     //   chainId: 137,
     //   url: `${process.env.POLYGON_RPC_URL}`,
@@ -59,7 +69,12 @@ const config: HardhatUserConfig = {
     //   url: `${process.env.AMOY_RPC_URL}`,
     //   accounts: [`0x${process.env.AMOY_PRIVATE_KEY}`],
     // },
-    // 'linea-sepolia': {
+    // linea: {
+    //   chainId: 59144,
+    //   url: `${process.env.LINEA_RPC_URL}`,
+    //   accounts: [`0x${process.env.LINEA_PRIVATE_KEY}`],
+    // },
+    // "linea-sepolia": {
     //   chainId: 59141,
     //   url: `${process.env.SEPOLIA_RPC_URL}`,
     //   accounts: [`0x${process.env.SEPOLIA_PRIVATE_KEY}`],
@@ -150,6 +165,8 @@ const config: HardhatUserConfig = {
       polygon: process.env.POLYGON_API_KEY || "",
       linea: process.env.LINEA_API_KEY || "",
       "linea-sepolia": process.env.LINEA_API_KEY || "",
+      "polygon-cardona": process.env.CARDONA_API_KEY || "",
+      polygonZkEVM: process.env.ZK_EVM_API_KEY || "",
     },
     customChains: [
       {
@@ -161,11 +178,27 @@ const config: HardhatUserConfig = {
         },
       },
       {
+        network: "linea",
+        chainId: 59144,
+        urls: {
+          apiURL: "https://api.lineascan.build/api",
+          browserURL: "https://lineascan.build",
+        },
+      },
+      {
         network: "linea-sepolia",
         chainId: 59141,
         urls: {
           apiURL: "https://api-sepolia.lineascan.build/api",
           browserURL: "https://sepolia.lineascan.build",
+        },
+      },
+      {
+        network: "polygon-cardona",
+        chainId: 2442,
+        urls: {
+          apiURL: "https://api-cardona-zkevm.polygonscan.com/api",
+          browserURL: "https://cardona-zkevm.polygonscan.com/",
         },
       },
     ],

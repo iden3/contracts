@@ -1,0 +1,6 @@
+{
+  "VCPaymentProxyModule#VCPayment": "0x5Eb05C3d0797a8Ab77F971C34307B4921274f5d5",
+  "VCPaymentProxyModule#TransparentUpgradeableProxy": "0x3B8B5749DE7525B3a4CEBB56e869E81b736209a2",
+  "VCPaymentProxyModule#ProxyAdmin": "0x697360d0496FCBA12131e4bd09612D002aA71F41",
+  "VCPaymentModule#VCPayment": "0x3B8B5749DE7525B3a4CEBB56e869E81b736209a2"
+}
