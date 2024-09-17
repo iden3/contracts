@@ -291,6 +291,12 @@ export async function submitZKPResponses_KYCAgeCredential(
   );
   const preparedProofV3Sig = prepareProof(proofV3Sig);
 
+  // In forks in local increment time for avoiding "Proof generated in the future is not valid"
+  if (hre.network.name === "hardhat" || hre.network.name === "localhost") {
+    console.log("Increase time for 55 minutes in local network...");
+    await hre.network.provider.send("evm_increaseTime", [3300]);
+  }
+
   console.log("================= submitZKPResponse V3 Sig proof ===================");
   const txSubmitZKPResponse_V3Sig = await verifier
     .connect(signer)

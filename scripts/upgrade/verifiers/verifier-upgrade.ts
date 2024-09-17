@@ -203,19 +203,20 @@ async function upgradeState(deployHelper: DeployHelper, signer: any) {
   // **** Upgrade State ****
   await stateMigrationHelper.upgradeContract(stateContract, false, true); // first upgrade we need deploy oracle proof validator
   // ************************
-
+  // If testing with forked zkevm network wait for 1 confirmation, otherwise is waiting forever
+  const waitConfirmations = network === "localhost" || network === "hardhat" ? 1 : 5;
   switch (chainId) {
     case 1101: // polygon zkevm
       console.log("Setting default id type to 0x0214");
       const tx1 = await stateContract.setDefaultIdType("0x0214");
       // ignition needs 5 confirmations for deployment/upgrade transactions to work
-      await tx1.wait(5);
+      await tx1.wait(waitConfirmations);
       break;
     case 2442: // polygon cardona
       console.log("Setting default id type to 0x0215");
       const tx2 = await stateContract.setDefaultIdType("0x0215");
       // ignition needs 5 confirmations for deployment/upgrade transactions to work
-      await tx2.wait(5);
+      await tx2.wait(waitConfirmations);
       break;
     default:
       break;

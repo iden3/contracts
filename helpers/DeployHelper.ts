@@ -297,8 +297,10 @@ export class DeployHelper {
         `${oracleProofValidatorContractName} contract deployed to address ${await opvContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
       );
       const tx = await stateContract.setOracleProofValidator(await opvContract.getAddress());
+      // If testing with forked zkevm network wait for 1 confirmation, otherwise is waiting forever
+      const waitConfirmations = network.name === "localhost" || network.name === "hardhat" ? 1 : 5;
       // ignition needs 5 confirmations for deployment/upgrade transactions to work
-      await tx.wait(5);
+      await tx.wait(waitConfirmations);
     } else {
       opvContract = await ethers.getContractAt(
         oracleProofValidatorContractName,
