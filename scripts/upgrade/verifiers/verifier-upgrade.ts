@@ -1,5 +1,5 @@
 import { DeployHelper } from "../../../helpers/DeployHelper";
-import hre, { ethers, upgrades } from "hardhat";
+import hre, { ethers } from "hardhat";
 import { UniversalVerifierContractMigrationHelper } from "../../../helpers/UniversalVerifierContractMigrationHelper";
 import * as universalVerifierArtifact from "../../../artifacts/contracts/verifiers/UniversalVerifier.sol/UniversalVerifier.json";
 import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/State.json";
@@ -16,7 +16,7 @@ const validatorSigContractName = "CredentialAtomicQuerySigV2Validator";
 const validatorMTPContractName = "CredentialAtomicQueryMTPV2Validator";
 const validatorV3ContractName = "CredentialAtomicQueryV3Validator";
 const removePreviousIgnitionFiles = true;
-const impersonate = true;
+const impersonate = false;
 
 // Amoy deployed contracts (oracle Slack Chat)
 // const proxyAdminOwnerAddress = "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb";
@@ -72,6 +72,11 @@ async function main() {
   console.log("Starting Universal Verifier Contract Upgrade");
   const { proxyAdminOwnerSigner, universalVerifierOwnerSigner } = await getSigners(impersonate);
 
+  console.log("Proxy Admin Owner Address: ", await proxyAdminOwnerSigner.getAddress());
+  console.log(
+    "Universal Verifier Owner Address: ",
+    await universalVerifierOwnerSigner.getAddress(),
+  );
   const deployerHelper = await DeployHelper.initialize(
     [proxyAdminOwnerSigner, universalVerifierOwnerSigner],
     true,
@@ -202,11 +207,15 @@ async function upgradeState(deployHelper: DeployHelper, signer: any) {
   switch (chainId) {
     case 1101: // polygon zkevm
       console.log("Setting default id type to 0x0214");
-      await stateContract.setDefaultIdType("0x0214");
+      const tx1 = await stateContract.setDefaultIdType("0x0214");
+      // ignition needs 5 confirmations for deployment/upgrade transactions to work
+      await tx1.wait(5);
       break;
     case 2442: // polygon cardona
       console.log("Setting default id type to 0x0215");
-      await stateContract.setDefaultIdType("0x0215");
+      const tx2 = await stateContract.setDefaultIdType("0x0215");
+      // ignition needs 5 confirmations for deployment/upgrade transactions to work
+      await tx2.wait(5);
       break;
     default:
       break;

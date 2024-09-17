@@ -45,7 +45,9 @@ export class DeployHelper {
 
   async deployState(
     supportedIdTypes: string[] = [],
-    g16VerifierContractName: "Groth16VerifierStateTransition" | "Groth16VerifierStub" = "Groth16VerifierStateTransition",
+    g16VerifierContractName:
+      | "Groth16VerifierStateTransition"
+      | "Groth16VerifierStub" = "Groth16VerifierStateTransition",
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<{
     state: Contract;
@@ -268,10 +270,9 @@ export class DeployHelper {
       `State contract upgraded at address ${await stateContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
     );
 
-    this.log("deploying Groth16 verifier...");
-
     let g16VerifierContract: Contract;
     if (redeployVerifier) {
+      this.log("deploying Groth16 verifier...");
       const g16VerifierFactory = await ethers.getContractFactory(g16VerifierContractName);
       g16VerifierContract = await g16VerifierFactory.deploy();
       await g16VerifierContract.waitForDeployment();
@@ -292,12 +293,12 @@ export class DeployHelper {
     let opvContract: Contract;
     if (redeployOracleProofValidator) {
       opvContract = await this.deployOracleProofValidator(oracleProofValidatorContractName);
-      await opvContract.waitForDeployment();
       this.log(
         `${oracleProofValidatorContractName} contract deployed to address ${await opvContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
       );
-      const tx = await stateContract.setOracleProofValidator(opvContract);
-      await tx.wait();
+      const tx = await stateContract.setOracleProofValidator(await opvContract.getAddress());
+      // ignition needs 5 confirmations for deployment/upgrade transactions to work
+      await tx.wait(5);
     } else {
       opvContract = await ethers.getContractAt(
         oracleProofValidatorContractName,
@@ -411,7 +412,6 @@ export class DeployHelper {
 
   async deployVerifierLib(deployStrategy: "basic" | "create2" = "basic"): Promise<Contract> {
     const contractName = "VerifierLib";
-    const signer = this.signers[0];
     const { verifierLib } = await ignition.deploy(VerifierLibModule, {
       strategy: deployStrategy,
     });

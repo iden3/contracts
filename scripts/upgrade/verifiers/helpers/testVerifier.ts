@@ -324,6 +324,11 @@ export async function submitZKPResponses_KYCAgeCredential(
       },
     ],
     crossChainProofs,
+    {
+      gasPrice: 50000000000,
+      initialBaseFeePerGas: 25000000000,
+      gasLimit: 1000000,
+    },
   );
 
   const receiptV3Sig = await txSubmitZKPResponseV2_V3Sig.wait();
