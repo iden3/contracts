@@ -4,9 +4,10 @@ import { ethers } from "hardhat";
 import { packValidatorParams } from "../utils/validator-pack-utils";
 import { prepareInputs } from "../utils/state-utils";
 import { Block } from "ethers";
+import proofJson from "../validators/mtp/data/valid_mtp_user_genesis.json";
 
 describe("Universal Verifier MTP & SIG validators", function () {
-  let verifier: any, sig: any;
+  let verifier: any, sig: any, state: any;
   let signer, signer2, signer3;
   let signerAddress: string;
   let deployHelper: DeployHelper;
@@ -26,14 +27,12 @@ describe("Universal Verifier MTP & SIG validators", function () {
     claimPathNotExists: 0,
   };
 
-  const proofJson = require("../validators/sig/data/valid_sig_user_genesis.json");
-
   beforeEach(async () => {
     [signer, signer2, signer3] = await ethers.getSigners();
     signerAddress = await signer.getAddress();
 
     deployHelper = await DeployHelper.initialize(null, true);
-    const { state } = await deployHelper.deployState(["0x0112"]);
+    ({ state } = await deployHelper.deployState(["0x0112"]));
     const verifierLib = await deployHelper.deployVerifierLib();
 
     verifier = await deployHelper.deployUniversalVerifier(
@@ -47,6 +46,11 @@ describe("Universal Verifier MTP & SIG validators", function () {
     sig = stub;
     await verifier.addValidatorToWhitelist(await sig.getAddress());
     await verifier.connect();
+  });
+
+  it("Test get state address", async () => {
+    const stateAddr = await verifier.getStateAddress();
+    expect(stateAddr).to.be.equal(await state.getAddress());
   });
 
   it("Test add, get ZKPRequest, requestIdExists, getZKPRequestsCount", async () => {
