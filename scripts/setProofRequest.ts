@@ -21,7 +21,7 @@ async function main() {
 
   const uvDeployment = JSON.parse(
     fs.readFileSync(
-      `./scripts/deploy_universal_verifier_output_${chainId}_${network}.json`,
+      `./scripts/deploy_cross_chain_verification_with_requests_output_${chainId}_${network}.json`,
       "utf-8",
     ),
   );

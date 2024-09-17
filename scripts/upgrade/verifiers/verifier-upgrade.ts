@@ -40,7 +40,10 @@ const chainId = hre.network.config.chainId;
 const network = hre.network.name;
 
 const uvUpgrade = JSON.parse(
-  fs.readFileSync(`./scripts/deploy_universal_verifier_output_${chainId}_${network}.json`, "utf-8"),
+  fs.readFileSync(
+    `./scripts/deploy_cross_chain_verification_with_requests_output_${chainId}_${network}.json`,
+    "utf-8",
+  ),
 );
 
 async function getSigners(useImpersonation: boolean): Promise<any> {
@@ -191,6 +194,19 @@ async function TestStateUpgrade(deployHelper: DeployHelper, signer: any) {
   // **** Upgrade State ****
   await stateMigrationHelper.upgradeContract(stateContract, false, true); // first upgrade we need deploy oracle proof validator
   // ************************
+
+  switch (chainId) {
+    case 1101: // polygon zkevm
+      console.log("Setting default id type to 0x0214");
+      await stateContract.setDefaultIdType("0x0214");
+      break;
+    case 2442: // polygon cardona
+      console.log("Setting default id type to 0x0215");
+      await stateContract.setDefaultIdType("0x0215");
+      break;
+    default:
+      break;
+  }
 
   console.log("State Contract Upgrade Finished");
 }

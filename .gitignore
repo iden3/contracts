@@ -13,3 +13,4 @@ artifacts
 migration-result.json
 events-data.json
 scripts/upgrade/verifiers/helpers/circuits
+**localhost.json
