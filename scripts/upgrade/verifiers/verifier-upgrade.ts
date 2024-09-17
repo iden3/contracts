@@ -40,7 +40,10 @@ const chainId = hre.network.config.chainId;
 const network = hre.network.name;
 
 const uvUpgrade = JSON.parse(
-  fs.readFileSync(`./scripts/deploy_universal_verifier_output_${chainId}_${network}.json`, "utf-8"),
+  fs.readFileSync(
+    `./scripts/deploy_cross_chain_verification_with_requests_output_${chainId}_${network}.json`,
+    "utf-8",
+  ),
 );
 
 async function getSigners(useImpersonation: boolean): Promise<any> {
