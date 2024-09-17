@@ -82,7 +82,7 @@ async function main() {
     fs.rmSync(`./ignition/deployments/chain-${chainId}`, { recursive: true, force: true });
   }
 
-  await TestStateUpgrade(deployerHelper, proxyAdminOwnerSigner);
+  await upgradeState(deployerHelper, proxyAdminOwnerSigner);
 
   const universalVerifierMigrationHelper = new UniversalVerifierContractMigrationHelper(
     deployerHelper,
@@ -160,16 +160,20 @@ async function main() {
     await validator.waitForDeployment();
     console.log(`Validator ${v.validatorContractName} version:`, await validator.version());
 
-    // This is not the scope of upgrading but we could add the validators
-    // to the whitelist here so future requests can be verified by them
-    // const addToWhiteListTx = await universalVerifierContract.addValidatorToWhitelist(
-    //   v.validatorContractAddress,
-    // );
-    // await addToWhiteListTx.wait();
+    const isWhitelisted = await universalVerifierContract.isWhitelistedValidator(
+      v.validatorContractAddress,
+    );
+    if (!isWhitelisted) {
+      console.log(`Adding validator ${v.validatorContractName} to whitelist...`);
+      const addToWhiteListTx = await universalVerifierContract.addValidatorToWhitelist(
+        v.validatorContractAddress,
+      );
+      await addToWhiteListTx.wait();
+    }
   }
 
   console.log("Testing verifiation with submitZKPResponseV2 after migration...");
-  await TestVerification(universalVerifierContract, uvUpgrade.validatorV3);
+  await testVerification(universalVerifierContract, uvUpgrade.validatorV3);
 }
 
 async function onlyTestVerification() {
@@ -180,10 +184,10 @@ async function onlyTestVerification() {
     universalVerifierOwnerSigner,
   );
   console.log("Testing verifiation with submitZKPResponseV2 after migration...");
-  await TestVerification(universalVerifierContract, uvUpgrade.validatorV3);
+  await testVerification(universalVerifierContract, uvUpgrade.validatorV3);
 }
 
-async function TestStateUpgrade(deployHelper: DeployHelper, signer: any) {
+async function upgradeState(deployHelper: DeployHelper, signer: any) {
   const stateMigrationHelper = new StateContractMigrationHelper(deployHelper, signer);
 
   const stateContract = await stateMigrationHelper.getInitContract({
@@ -211,7 +215,7 @@ async function TestStateUpgrade(deployHelper: DeployHelper, signer: any) {
   console.log("State Contract Upgrade Finished");
 }
 
-async function TestVerification(verifier: Contract, validatorV3Address: string) {
+async function testVerification(verifier: Contract, validatorV3Address: string) {
   const requestId = 112233;
   await setZKPRequest_KYCAgeCredential(requestId, verifier, validatorV3Address);
   await submitZKPResponses_KYCAgeCredential(requestId, verifier, {
