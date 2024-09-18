@@ -27,9 +27,5 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
   .set(59141, { idType: "0x0148", networkType: "test", oracleSigningAddress: oracleSATest }); // linea-sepolia
 
 export const deterministicAddressAnchorInfo = {
-  address: "0xD4f02f7aFf1376b5C45D388615C27297BCAb06Ed",
-  attachFuncSelector: ethers.FunctionFragment.from("attach(bytes)").selector,
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  abi: require("../artifacts/contracts/DeterministicAddressAnchor.sol/DeterministicAddressAnchor.json")
-    .abi,
+  address: "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
 };
