@@ -26,6 +26,11 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
   .set(59144, { idType: "0x0149", networkType: "main", oracleSigningAddress: oracleSAProd }) // linea-main
   .set(59141, { idType: "0x0148", networkType: "test", oracleSigningAddress: oracleSATest }); // linea-sepolia
 
-export const deterministicAddressAnchorInfo = {
-  address: "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+export const create2AddressesInfo:{
+  anchorAddress: string;
+  contractsCalldataMap: Map<string, string>;
+} = {
+  anchorAddress: "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+  contractsCalldataMap: new Map()
+  .set("State", ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.State"))),
 };

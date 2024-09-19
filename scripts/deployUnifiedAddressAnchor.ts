@@ -1,17 +1,17 @@
 import { ethers, ignition } from "hardhat";
-import { DeterministicAddressAnchorModule } from "../ignition/modules/deterministicAddressAnchor";
+import { Create2AddressAnchorModule } from "../ignition/modules/crate2AddressAnchor";
 
 async function main() {
   const deployStrategy: "basic" | "create2" = "create2";
   const [signer] = await ethers.getSigners();
 
-  const { deterministicAddressAnchor } = await ignition.deploy(DeterministicAddressAnchorModule, {
+  const { create2AddressAnchor } = await ignition.deploy(Create2AddressAnchorModule, {
     strategy: deployStrategy,
     defaultSender: await signer.getAddress(),
   });
 
   console.log(
-    `DeterministicAddressAnchor deployed to: ${await deterministicAddressAnchor.getAddress()}`,
+    `Create2AddressAnchor deployed to: ${await create2AddressAnchor.getAddress()}`,
   );
 }
 

@@ -127,6 +127,7 @@ export class DeployHelper {
     if (deployStrategy === "create2") {
       this.log("deploying with CREATE2 strategy...");
 
+      // Deploying State contract to predictable address but with dummy implementation
       state = (
         await ignition.deploy(StateModule, {
           strategy: deployStrategy,
@@ -134,6 +135,8 @@ export class DeployHelper {
       ).state;
       await state.waitForDeployment();
 
+      // Upgrading State contract to the first real implementation
+      // and force network files import, so creation, as they do not exist at the moment
       const stateAddress = await state.getAddress();
       await upgrades.forceImport(stateAddress, StateFactory);
       state = await upgrades.upgradeProxy(stateAddress, StateFactory, {
