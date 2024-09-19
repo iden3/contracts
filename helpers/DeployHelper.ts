@@ -1,4 +1,4 @@
-import { ethers, network, upgrades, ignition } from "hardhat";
+import hre, { ethers, network, upgrades, ignition } from "hardhat";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
@@ -45,7 +45,9 @@ export class DeployHelper {
 
   async deployState(
     supportedIdTypes: string[] = [],
-    g16VerifierContractName: "Groth16VerifierStateTransition" | "Groth16VerifierStub" = "Groth16VerifierStateTransition",
+    g16VerifierContractName:
+      | "Groth16VerifierStateTransition"
+      | "Groth16VerifierStub" = "Groth16VerifierStateTransition",
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<{
     state: Contract;
@@ -150,7 +152,7 @@ export class DeployHelper {
             await owner.getAddress(),
             await oracleProofValidator.getAddress(),
           ],
-        }
+        },
       });
     } else {
       this.log("deploying with BASIC strategy...");
@@ -184,7 +186,7 @@ export class DeployHelper {
     }
     this.log("======== State: deploy completed ========");
 
-    console.log("defaultIdType", await state.getDefaultIdType());
+    // console.log("defaultIdType", await state.getDefaultIdType());
 
     return {
       state,
@@ -462,6 +464,14 @@ export class DeployHelper {
       oracleSigningAddress,
     ]);
     await oracleProofValidator.waitForDeployment();
+    // We need to wait at least 5 confirmation blocks with ignition
+    const confirmations =
+      hre.network.name === "localhost" || hre.network.name === "hardhat" ? 1 : 5;
+    const tx = await oracleProofValidator.deploymentTransaction();
+    if (tx) {
+      console.log("Waiting for 5 confirmations of the deployment transaction...");
+      await tx.wait(confirmations);
+    }
     console.log(`${contractName} deployed to:`, await oracleProofValidator.getAddress());
     return oracleProofValidator;
   }
