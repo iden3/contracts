@@ -1,4 +1,6 @@
 // HARDHAT network Oracle signing address
+import { ethers } from "hardhat";
+
 const oracleSAHardhat = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 // TEST networks Oracle signing address
 const oracleSATest = "0x3e1cFE1b83E7C1CdB0c9558236c1f6C7B203C34e";
@@ -23,3 +25,12 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
   .set(21001, { idType: "0x01A2", networkType: "test", oracleSigningAddress: oracleSATest }) // privado-test
   .set(59144, { idType: "0x0149", networkType: "main", oracleSigningAddress: oracleSAProd }) // linea-main
   .set(59141, { idType: "0x0148", networkType: "test", oracleSigningAddress: oracleSATest }); // linea-sepolia
+
+export const create2AddressesInfo:{
+  anchorAddress: string;
+  contractsCalldataMap: Map<string, string>;
+} = {
+  anchorAddress: "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+  contractsCalldataMap: new Map()
+  .set("State", ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.State"))),
+};

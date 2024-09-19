@@ -1,4 +1,4 @@
-import { ethers, network, upgrades, ignition } from "hardhat";
+import hre, { ethers, network, upgrades, ignition } from "hardhat";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
@@ -114,17 +114,48 @@ export class DeployHelper {
     this.log("deploying OracleProofValidator...");
     const oracleProofValidator = await this.deployOracleProofValidator();
 
-    this.log("deploying state...");
+    this.log("deploying State...");
+
+    const StateFactory = await ethers.getContractFactory("State", {
+      libraries: {
+        StateLib: await stateLib.getAddress(),
+        SmtLib: await smtLib.getAddress(),
+        PoseidonUnit1L: await poseidon1Elements.getAddress(),
+        StateCrossChainLib: await stateCrossChainLib.getAddress(),
+      },
+    });
+
     let state;
-    if (deployStrategy !== "create2") {
-      const StateFactory = await ethers.getContractFactory("State", {
-        libraries: {
-          StateLib: await stateLib.getAddress(),
-          SmtLib: await smtLib.getAddress(),
-          PoseidonUnit1L: await poseidon1Elements.getAddress(),
-          StateCrossChainLib: await stateCrossChainLib.getAddress(),
+    if (deployStrategy === "create2") {
+      this.log("deploying with CREATE2 strategy...");
+
+      // Deploying State contract to predictable address but with dummy implementation
+      state = (
+        await ignition.deploy(StateModule, {
+          strategy: deployStrategy,
+        })
+      ).state;
+      await state.waitForDeployment();
+
+      // Upgrading State contract to the first real implementation
+      // and force network files import, so creation, as they do not exist at the moment
+      const stateAddress = await state.getAddress();
+      await upgrades.forceImport(stateAddress, StateFactory);
+      state = await upgrades.upgradeProxy(stateAddress, StateFactory, {
+        unsafeAllow: ["external-library-linking"],
+        redeployImplementation: "always",
+        call: {
+          fn: "initialize",
+          args: [
+            await g16Verifier.getAddress(),
+            defaultIdType,
+            await owner.getAddress(),
+            await oracleProofValidator.getAddress(),
+          ],
         },
       });
+    } else {
+      this.log("deploying with BASIC strategy...");
 
       state = await upgrades.deployProxy(
         StateFactory,
@@ -135,33 +166,11 @@ export class DeployHelper {
           await oracleProofValidator.getAddress(),
         ],
         {
-          unsafeAllowLinkedLibraries: true,
+          unsafeAllow: ["external-library-linking"],
         },
       );
-
-      await state.waitForDeployment();
-    } else {
-      state = (
-        await ignition.deploy(StateModule, {
-          parameters: {
-            StateProxyModule: {
-              stateLibAddress: await stateLib.getAddress(),
-              smtLibAddress: await smtLib.getAddress(),
-              poseidonUnit1LAddress: await poseidon1Elements.getAddress(),
-              stateCrossChainLibAddress: await stateCrossChainLib.getAddress(),
-            },
-          },
-          strategy: deployStrategy,
-        })
-      ).state;
-      await state.waitForDeployment();
-      await state.initialize(
-        await g16Verifier.getAddress(),
-        defaultIdType,
-        await owner.getAddress(),
-        await oracleProofValidator.getAddress(),
-      );
     }
+
     await state.waitForDeployment();
     this.log(
       `State contract deployed to address ${await state.getAddress()} from ${await owner.getAddress()}`,
@@ -176,6 +185,8 @@ export class DeployHelper {
       }
     }
     this.log("======== State: deploy completed ========");
+
+    // console.log("defaultIdType", await state.getDefaultIdType());
 
     return {
       state,
@@ -201,7 +212,7 @@ export class DeployHelper {
     oracleProofValidatorContractName = "OracleProofValidator",
   ): Promise<{
     state: Contract;
-    verifier: Contract;
+    g16Verifier: Contract;
     oracleProofValidator: Contract;
     smtLib: Contract;
     stateLib: Contract;
@@ -235,13 +246,13 @@ export class DeployHelper {
     this.log("upgrading state...");
 
     /*
-
     // in case you need to redefine priority fee config for upgrade operation
 
     const feedata = await owner.provider!.getFeeData();
     feedata.maxPriorityFeePerGas = 100000000000n;
     owner.provider!.getFeeData = async () => (feedata);
    */
+
     const StateFactory = await ethers.getContractFactory(stateContractName, {
       signer: proxyAdminOwner,
       libraries: {
@@ -252,20 +263,11 @@ export class DeployHelper {
       },
     });
 
-    let stateContract: Contract;
-    try {
-      stateContract = await upgrades.upgradeProxy(stateAddress, StateFactory, {
-        unsafeAllowLinkedLibraries: true,
-      });
-    } catch (e) {
-      this.log("Error upgrading proxy. Forcing import...");
-      await upgrades.forceImport(stateAddress, StateFactory);
-      stateContract = await upgrades.upgradeProxy(stateAddress, StateFactory, {
-        unsafeAllowLinkedLibraries: true,
-        redeployImplementation: "always",
-      });
-    }
+    const stateContract = await upgrades.upgradeProxy(stateAddress, StateFactory, {
+      unsafeAllow: ["external-library-linking"],
+    });
     await stateContract.waitForDeployment();
+
     this.log(
       `State contract upgraded at address ${await stateContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
     );
@@ -311,7 +313,7 @@ export class DeployHelper {
     this.log("======== State: upgrade completed ========");
     return {
       state: stateContract,
-      verifier: g16VerifierContract,
+      g16Verifier: g16VerifierContract,
       oracleProofValidator: opvContract,
       smtLib,
       stateLib,
@@ -462,6 +464,14 @@ export class DeployHelper {
       oracleSigningAddress,
     ]);
     await oracleProofValidator.waitForDeployment();
+    // We need to wait at least 5 confirmation blocks with ignition
+    const confirmations =
+      hre.network.name === "localhost" || hre.network.name === "hardhat" ? 1 : 5;
+    const tx = await oracleProofValidator.deploymentTransaction();
+    if (tx) {
+      console.log("Waiting for 5 confirmations of the deployment transaction...");
+      await tx.wait(confirmations);
+    }
     console.log(`${contractName} deployed to:`, await oracleProofValidator.getAddress());
     return oracleProofValidator;
   }
