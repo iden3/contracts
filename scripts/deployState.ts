@@ -4,7 +4,7 @@ import { DeployHelper } from "../helpers/DeployHelper";
 import hre, { network } from "hardhat";
 
 async function main() {
-  const deployStrategy: "basic" | "create2" = "create2";
+  const deployStrategy: "basic" | "create2" = "basic";
   const [signer] = await hre.ethers.getSigners();
 
   const deployHelper = await DeployHelper.initialize(null, true);
