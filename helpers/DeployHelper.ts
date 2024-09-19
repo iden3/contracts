@@ -261,20 +261,11 @@ export class DeployHelper {
       },
     });
 
-    let stateContract: Contract;
-    try {
-      stateContract = await upgrades.upgradeProxy(stateAddress, StateFactory, {
-        unsafeAllowLinkedLibraries: true,
-      });
-    } catch (e) {
-      this.log("Error upgrading proxy. Forcing import...");
-      await upgrades.forceImport(stateAddress, StateFactory);
-      stateContract = await upgrades.upgradeProxy(stateAddress, StateFactory, {
-        unsafeAllow: ["external-library-linking"],
-        redeployImplementation: "always",
-      });
-    }
+    const stateContract = await upgrades.upgradeProxy(stateAddress, StateFactory, {
+      unsafeAllow: ["external-library-linking"],
+    });
     await stateContract.waitForDeployment();
+
     this.log(
       `State contract upgraded at address ${await stateContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
     );

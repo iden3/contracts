@@ -1,28 +1,24 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
-const contractName = "Create2AddressAnchor.sol";
+const contractName = "Create2AddressAnchor";
 
-export const Create2AddressAnchorModule = buildModule(
-  "Create2AddressAnchorModule",
-  (m) => {
+export const Create2AddressAnchorModule = buildModule("Create2AddressAnchorModule", (m) => {
+  // The bytecode, which is effectively deployed is 0x60006000F3 (last 5 bytes of the init bytecode),
+  // which is PUSH1 0x00, PUSH1 0x00, RETURN.
+  // That means that the contract will do nothing but accept any transaction without throwing an error.
+  // So, it can be used as a first "dummy" implementation of contracts such as TransparentUpgradeableProxy,
+  // which demand the first implementation address to have non-empty contract.
 
-    // The bytecode, which is effectively deployed is 0x60006000F3 (last 5 bytes of the init bytecode),
-    // which is PUSH1 0x00, PUSH1 0x00, RETURN.
-    // That means that the contract will do nothing but accept any transaction without throwing an error.
-    // So, it can be used as a first "dummy" implementation of contracts such as TransparentUpgradeableProxy,
-    // which demand the first implementation address to have non-empty contract.
+  const create2AddressAnchor = m.contract(contractName, {
+    abi: [],
+    contractName,
+    bytecode: "0x6005600C60003960056000F360006000F3",
+    sourceName: "",
+    linkReferences: {},
+  });
 
-    const create2AddressAnchor = m.contract(contractName, {
-      abi: [],
-      contractName,
-      bytecode: "0x6005600C60003960056000F360006000F3",
-      sourceName: "",
-      linkReferences: {},
-    });
-
-    return { create2AddressAnchor };
-  }
-);
+  return { create2AddressAnchor };
+});
 
 // THE CONTRACT DISASSEMBLER
 
