@@ -8,7 +8,8 @@ async function main() {
   if (!ethers.isAddress(stateAddress)) {
     throw new Error("Invalid state address");
   }
-  const deployStrategy: "basic" | "create2" = "basic";
+  const deployStrategy: "basic" | "create2" =
+    process.env.DEPLOY_STRATEGY == "create2" ? "create2" : "basic";
   const [signer] = await ethers.getSigners();
 
   const deployHelper = await DeployHelper.initialize(null, true);
