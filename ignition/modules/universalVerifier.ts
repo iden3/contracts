@@ -1,4 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+import { create2AddressesInfo } from "../../helpers/constants";
 
 /**
  * This is the first module that will be run. It deploys the proxy and the
@@ -9,24 +10,16 @@ const UniversalVerifierProxyModule = buildModule("UniversalVerifierProxyModule",
   // so it will be the only account that can upgrade the proxy when needed.
   const proxyAdminOwner = m.getAccount(0);
 
-  const verifierLibAddr = m.getParameter("verifierLibAddr");
-  const verifierLib = m.contractAt("VerifierLib", verifierLibAddr);
+  // This contract is supposed to be deployed to the same address across many networks,
+  // so the first implementation address is a dummy contract that does nothing but accepts any calldata.
+  // Therefore, it is a mechanism to deploy TransparentUpgradeableProxy contract
+  // with constant constructor arguments, so predictable init bytecode and predictable CREATE2 address.
+  // Subsequent upgrades are supposed to switch this proxy to the real implementation.
 
-  // This is our contract that will be proxied.
-  // We will upgrade this contract with a new version later.
-  const universalVerifier = m.contract("UniversalVerifier", [], {
-    libraries: {
-      VerifierLib: verifierLib,
-    },
-  });
-
-  // The TransparentUpgradeableProxy contract creates the ProxyAdmin within its constructor.
-  // To read more about how this proxy is implemented, you can view the source code and comments here:
-  // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.0.1/contracts/proxy/transparent/TransparentUpgradeableProxy.sol
   const proxy = m.contract("TransparentUpgradeableProxy", [
-    universalVerifier,
+    create2AddressesInfo.anchorAddress,
     proxyAdminOwner,
-    "0x",
+    create2AddressesInfo.contractsCalldataMap.get("UniversalVerifier") as string,
   ]);
 
   // We need to get the address of the ProxyAdmin contract that was created by the TransparentUpgradeableProxy

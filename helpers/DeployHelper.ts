@@ -485,46 +485,6 @@ export class DeployHelper {
     groth16VerifierWrapper: any;
     validator: any;
   }> {
-    if (deployStrategy === "create2") {
-      let g16VerifierContractWrapperModule, validatorContractModule;
-      switch (validatorType) {
-        case "mtpV2":
-          g16VerifierContractWrapperModule = Groth16VerifierMTPWrapperModule;
-          validatorContractModule = CredentialAtomicQueryMTPV2ValidatorModule;
-          break;
-        case "sigV2":
-          g16VerifierContractWrapperModule = Groth16VerifierSigWrapperModule;
-          validatorContractModule = CredentialAtomicQuerySigV2ValidatorModule;
-          break;
-        case "v3":
-          g16VerifierContractWrapperModule = Groth16VerifierV3WrapperModule;
-          validatorContractModule = CredentialAtomicQueryV3ValidatorModule;
-          break;
-      }
-
-      const wrapperDeploy = await ignition.deploy(g16VerifierContractWrapperModule, {
-        strategy: deployStrategy,
-      });
-      const verifierWrapper = wrapperDeploy.wrapper;
-      await verifierWrapper.waitForDeployment();
-      console.log(`${validatorType} Wrapper deployed to: ${await verifierWrapper.getAddress()}`);
-
-      const validatorDeploy = await ignition.deploy(validatorContractModule, {
-        strategy: deployStrategy,
-      });
-      const validator = validatorDeploy.validator;
-      await validator.waitForDeployment();
-      console.log(`${validatorType} Validator deployed to: ${await validator.getAddress()}`);
-      await validator.initialize(await verifierWrapper.getAddress(), stateAddress);
-      console.log("validator contract initialized");
-
-      const state = await ethers.getContractAt("State", stateAddress);
-      return {
-        validator,
-        groth16VerifierWrapper: verifierWrapper,
-        state,
-      };
-    }
     let g16VerifierContractWrapperName, validatorContractName;
     switch (validatorType) {
       case "mtpV2":
@@ -541,32 +501,88 @@ export class DeployHelper {
         break;
     }
 
-    const g16ValidatorContractVerifierWrapper = await ethers.deployContract(
-      g16VerifierContractWrapperName,
-    );
+    const ValidatorFactory = await ethers.getContractFactory(validatorContractName);
+    let groth16VerifierWrapper;
+    let validator;
+    if (deployStrategy === "create2") {
+      this.log("deploying with CREATE2 strategy...");
 
-    await g16ValidatorContractVerifierWrapper.waitForDeployment();
-    console.log(
-      "Validator Groth 16 Verifier Wrapper deployed to:",
-      await g16ValidatorContractVerifierWrapper.getAddress(),
-    );
+      let g16VerifierWrapperModule, validatorModule;
+      switch (validatorType) {
+        case "mtpV2":
+          g16VerifierWrapperModule = Groth16VerifierMTPWrapperModule;
+          validatorModule = CredentialAtomicQueryMTPV2ValidatorModule;
+          break;
+        case "sigV2":
+          g16VerifierWrapperModule = Groth16VerifierSigWrapperModule;
+          validatorModule = CredentialAtomicQuerySigV2ValidatorModule;
+          break;
+        case "v3":
+          g16VerifierWrapperModule = Groth16VerifierV3WrapperModule;
+          validatorModule = CredentialAtomicQueryV3ValidatorModule;
+          break;
+      }
 
-    const ValidatorContract = await ethers.getContractFactory(validatorContractName);
+      groth16VerifierWrapper = (
+        await ignition.deploy(g16VerifierWrapperModule, {
+          strategy: deployStrategy,
+        })
+      ).wrapper;
+      await groth16VerifierWrapper.waitForDeployment();
 
-    const validatorContractProxy = await upgrades.deployProxy(ValidatorContract, [
-      await g16ValidatorContractVerifierWrapper.getAddress(),
-      stateAddress,
-    ]);
+      const confirmations =
+        hre.network.name === "localhost" || hre.network.name === "hardhat" ? 1 : 5;
+      const tx = await groth16VerifierWrapper.deploymentTransaction();
+      if (tx) {
+        console.log("Waiting for 5 confirmations of the deployment transaction...");
+        await tx.wait(confirmations);
+      }
+      console.log(
+        `${validatorType} Wrapper deployed to: ${await groth16VerifierWrapper.getAddress()}`,
+      );
 
-    await validatorContractProxy.waitForDeployment();
-    console.log(
-      `${validatorContractName} deployed to: ${await validatorContractProxy.getAddress()}`,
-    );
+      // Deploying Validator contract to predictable address but with dummy implementation
+      validator = (
+        await ignition.deploy(validatorModule, {
+          strategy: deployStrategy,
+        })
+      ).validator;
+      await validator.waitForDeployment();
 
+      // Upgrading Validator contract to the first real implementation
+      // and force network files import, so creation, as they do not exist at the moment
+      const validatorAddress = await validator.getAddress();
+      await upgrades.forceImport(validatorAddress, ValidatorFactory);
+      validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory, {
+        unsafeAllow: ["external-library-linking"],
+        redeployImplementation: "always",
+        call: {
+          fn: "initialize",
+          args: [await groth16VerifierWrapper.getAddress(), stateAddress],
+        },
+      });
+    } else {
+      this.log("deploying with BASIC strategy...");
+      groth16VerifierWrapper = await ethers.deployContract(g16VerifierContractWrapperName);
+
+      await groth16VerifierWrapper.waitForDeployment();
+      console.log(
+        `${validatorType} Wrapper deployed to: ${await groth16VerifierWrapper.getAddress()}`,
+      );
+
+      validator = await upgrades.deployProxy(ValidatorFactory, [
+        await groth16VerifierWrapper.getAddress(),
+        stateAddress,
+      ]);
+    }
+
+    validator.waitForDeployment();
+
+    console.log(`${validatorContractName} deployed to: ${await validator.getAddress()}`);
     const state = await ethers.getContractAt("State", stateAddress);
     return {
-      validator: validatorContractProxy,
-      groth16VerifierWrapper: g16ValidatorContractVerifierWrapper,
+      validator,
+      groth16VerifierWrapper,
       state,
     };
   }
@@ -712,35 +728,53 @@ export class DeployHelper {
       owner = this.signers[0];
     }
 
-    let verifier;
-    if (deployStrategy == "create2") {
-      const verifierDeploy = await ignition.deploy(UniversalVerifierModule, {
-        parameters: {
-          UniversalVerifierProxyModule: {
-            verifierLibAddr: verifierLibAddr,
+    const UniversalVerifierFactory = await ethers.getContractFactory("UniversalVerifier", {
+      signer: owner,
+      libraries: {
+        VerifierLib: verifierLibAddr,
+      },
+    });
+
+    let universalVerifier;
+    if (deployStrategy === "create2") {
+      this.log("deploying with CREATE2 strategy...");
+
+      // Deploying UniversalVerifier contract to predictable address but with dummy implementation
+      universalVerifier = (
+        await ignition.deploy(UniversalVerifierModule, {
+          strategy: deployStrategy,
+        })
+      ).universalVerifier;
+      await universalVerifier.waitForDeployment();
+
+      // Upgrading UniversalVerifier contract to the first real implementation
+      // and force network files import, so creation, as they do not exist at the moment
+      const universalVerifierAddress = await universalVerifier.getAddress();
+      await upgrades.forceImport(universalVerifierAddress, UniversalVerifierFactory);
+      universalVerifier = await upgrades.upgradeProxy(
+        universalVerifierAddress,
+        UniversalVerifierFactory,
+        {
+          unsafeAllow: ["external-library-linking"],
+          redeployImplementation: "always",
+          call: {
+            fn: "initialize",
+            args: [stateAddr],
           },
         },
-        strategy: deployStrategy,
-      });
-      verifier = verifierDeploy.universalVerifier;
-
-      await verifier.initialize(stateAddr);
-      console.log("UniversalVerifier deployed to:", await verifier.getAddress());
+      );
     } else {
-      const Verifier = await ethers.getContractFactory("UniversalVerifier", {
-        signer: owner,
-        libraries: {
-          VerifierLib: verifierLibAddr,
-        },
+      this.log("deploying with BASIC strategy...");
+
+      universalVerifier = await upgrades.deployProxy(UniversalVerifierFactory, [stateAddr], {
+        unsafeAllow: ["external-library-linking"],
       });
-      verifier = await upgrades.deployProxy(Verifier, [stateAddr], {
-        unsafeAllowLinkedLibraries: true,
-      });
-      console.log("UniversalVerifier deployed to:", await verifier.getAddress());
     }
 
-    await verifier.waitForDeployment();
-    return verifier;
+    await universalVerifier.waitForDeployment();
+    console.log("UniversalVerifier deployed to:", await universalVerifier.getAddress());
+
+    return universalVerifier;
   }
 
   async getDefaultIdType(): Promise<{ defaultIdType: string; chainId: number }> {
@@ -766,35 +800,54 @@ export class DeployHelper {
       poseidon3ElementsAddress = await poseidon3Elements.getAddress();
     }
 
+    const IdentityTreeStoreFactory = await ethers.getContractFactory("IdentityTreeStore", {
+      libraries: {
+        PoseidonUnit2L: poseidon2ElementsAddress,
+        PoseidonUnit3L: poseidon3ElementsAddress,
+      },
+    });
+
     let identityTreeStore;
     if (deployStrategy === "create2") {
-      const identityTreeStoreDeploy = await ignition.deploy(IdentityTreeStoreModule, {
-        parameters: {
-          IdentityTreeStoreProxyModule: {
-            poseidonUnit2LAddress: poseidon2ElementsAddress,
-            poseidonUnit3LAddress: poseidon3ElementsAddress,
+      this.log("deploying with CREATE2 strategy...");
+
+      // Deploying IdentityTreeStore contract to predictable address but with dummy implementation
+      identityTreeStore = (
+        await ignition.deploy(IdentityTreeStoreModule, {
+          strategy: deployStrategy,
+        })
+      ).identityTreeStore;
+      await identityTreeStore.waitForDeployment();
+
+      // Upgrading IdentityTreeStore contract to the first real implementation
+      // and force network files import, so creation, as they do not exist at the moment
+      const identityTreeStoreAddress = await identityTreeStore.getAddress();
+      await upgrades.forceImport(identityTreeStoreAddress, IdentityTreeStoreFactory);
+      identityTreeStore = await upgrades.upgradeProxy(
+        identityTreeStoreAddress,
+        IdentityTreeStoreFactory,
+        {
+          unsafeAllow: ["external-library-linking"],
+          redeployImplementation: "always",
+          call: {
+            fn: "initialize",
+            args: [stateContractAddress],
           },
         },
-        strategy: deployStrategy,
-      });
-
-      identityTreeStore = identityTreeStoreDeploy.identityTreeStore;
-      await identityTreeStore.waitForDeployment();
-      await identityTreeStore.initialize(stateContractAddress);
+      );
     } else {
-      const IdentityTreeStore = await ethers.getContractFactory("IdentityTreeStore", {
-        libraries: {
-          PoseidonUnit2L: poseidon2ElementsAddress,
-          PoseidonUnit3L: poseidon3ElementsAddress,
-        },
-      });
+      this.log("deploying with BASIC strategy...");
 
-      identityTreeStore = await upgrades.deployProxy(IdentityTreeStore, [stateContractAddress], {
-        unsafeAllow: ["external-library-linking"],
-      });
-      await identityTreeStore.waitForDeployment();
+      identityTreeStore = await upgrades.deployProxy(
+        IdentityTreeStoreFactory,
+        [stateContractAddress],
+        {
+          unsafeAllow: ["external-library-linking"],
+        },
+      );
     }
 
+    await identityTreeStore.waitForDeployment();
     console.log("\nIdentityTreeStore deployed to:", await identityTreeStore.getAddress());
 
     return {

@@ -1,6 +1,5 @@
 import { ethers, ignition } from "hardhat";
 import { Create2AddressAnchorModule } from "../ignition/modules/crate2AddressAnchor";
-import { expect } from "chai";
 import { create2AddressesInfo } from "../helpers/constants";
 
 async function main() {
@@ -17,9 +16,7 @@ async function main() {
     throw `The contract was supposed to be deployed to ${create2AddressesInfo.anchorAddress}, but it was deployed to ${contractAddress}`;
   }
 
-  console.log(
-    `Create2AddressAnchor deployed to: ${contractAddress}`,
-  );
+  console.log(`Create2AddressAnchor deployed to: ${contractAddress}`);
 }
 
 main()

@@ -4,9 +4,9 @@ import { DeployHelper } from "../helpers/DeployHelper";
 import hre, { network } from "hardhat";
 
 async function main() {
-  const stateAddress = "0x134B1BE34911E39A8397ec6289782989729807a4";
+  const stateAddress = process.env.STATE_CONTRACT_ADDRESS || "";
   const validators: ("mtpV2" | "sigV2" | "v3")[] = ["mtpV2", "sigV2", "v3"];
-  const deployStrategy = "basic";
+  const deployStrategy: "basic" | "create2" = "basic";
   const [signer] = await hre.ethers.getSigners();
 
   const deployHelper = await DeployHelper.initialize(null, true);

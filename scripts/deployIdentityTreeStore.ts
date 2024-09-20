@@ -4,7 +4,7 @@ import path from "path";
 import fs from "fs";
 
 (async () => {
-  const deployStrategy = "basic";
+  const deployStrategy: "basic" | "create2" = "basic";
   const [signer] = await ethers.getSigners();
 
   const deployHelper = await DeployHelper.initialize();
