@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeployHelper";
 import { DeployHelper } from "../../helpers/DeployHelper";
+import { deployPoseidons } from "../../helpers/PoseidonDeployHelper";
 
 describe("Next tests reproduce identity life cycle", function () {
   this.timeout(10000);
@@ -12,17 +13,24 @@ describe("Next tests reproduce identity life cycle", function () {
 
   before(async function () {
     const stDeployHelper = await DeployHelper.initialize();
-    const deployHelper = await OnchainIdentityDeployHelper.initialize();
-    const stContracts = await stDeployHelper.deployState();
-    const contracts = await deployHelper.deployIdentity(
+    const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
+    const [poseidon1Elements, poseidon2Elements, poseidon3Elements, poseidon4Elements] =
+      await deployPoseidons([1, 2, 3, 4]);
+
+    const stContracts = await stDeployHelper.deployState(
+      [],
+      "Groth16VerifierStateTransition",
+      "basic",
+      [poseidon1Elements, poseidon2Elements, poseidon3Elements],
+    );
+    const contracts = await identityDeployHelper.deployIdentity(
       stContracts.state,
       stContracts.smtLib,
-      stContracts.poseidon1,
-      stContracts.poseidon2,
-      stContracts.poseidon3,
-      stContracts.poseidon4,
+      poseidon3Elements,
+      poseidon4Elements,
       stContracts.defaultIdType,
     );
+
     identity = contracts.identity;
     const guWrpr = await stDeployHelper.deployGenesisUtilsWrapper();
     identityId = await guWrpr.calcOnchainIdFromAddress(
@@ -175,7 +183,7 @@ describe("Next tests reproduce identity life cycle", function () {
 
       expect(afterTransitionRootOfRootsTreeRoot).to.be.not.equal(0);
       expect(afterTransitionRootOfRootsTreeRoot).to.be.not.equal(
-        beforeTransitionRootOfRootsTreeRoot
+        beforeTransitionRootOfRootsTreeRoot,
       );
       expect(latestSavedState).to.be.not.equal(afterTranstionLatestSavedState);
       latestSavedState = afterTranstionLatestSavedState;
@@ -274,15 +282,21 @@ describe("Claims tree proofs", () => {
 
   before(async function () {
     const stDeployHelper = await DeployHelper.initialize();
-    const deployHelper = await OnchainIdentityDeployHelper.initialize();
-    const stContracts = await stDeployHelper.deployState();
-    const contracts = await deployHelper.deployIdentity(
+    const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
+    const [poseidon1Elements, poseidon2Elements, poseidon3Elements, poseidon4Elements] =
+      await deployPoseidons([1, 2, 3, 4]);
+
+    const stContracts = await stDeployHelper.deployState(
+      [],
+      "Groth16VerifierStateTransition",
+      "basic",
+      [poseidon1Elements, poseidon2Elements, poseidon3Elements],
+    );
+    const contracts = await identityDeployHelper.deployIdentity(
       stContracts.state,
       stContracts.smtLib,
-      stContracts.poseidon1,
-      stContracts.poseidon2,
-      stContracts.poseidon3,
-      stContracts.poseidon4,
+      poseidon3Elements,
+      poseidon4Elements,
       stContracts.defaultIdType,
     );
     identity = contracts.identity;
@@ -331,15 +345,21 @@ describe("Revocation tree proofs", () => {
 
   before(async function () {
     const stDeployHelper = await DeployHelper.initialize();
-    const deployHelper = await OnchainIdentityDeployHelper.initialize();
-    const stContracts = await stDeployHelper.deployState();
-    const contracts = await deployHelper.deployIdentity(
+    const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
+    const [poseidon1Elements, poseidon2Elements, poseidon3Elements, poseidon4Elements] =
+      await deployPoseidons([1, 2, 3, 4]);
+
+    const stContracts = await stDeployHelper.deployState(
+      [],
+      "Groth16VerifierStateTransition",
+      "basic",
+      [poseidon1Elements, poseidon2Elements, poseidon3Elements],
+    );
+    const contracts = await identityDeployHelper.deployIdentity(
       stContracts.state,
       stContracts.smtLib,
-      stContracts.poseidon1,
-      stContracts.poseidon2,
-      stContracts.poseidon3,
-      stContracts.poseidon4,
+      poseidon3Elements,
+      poseidon4Elements,
       stContracts.defaultIdType,
     );
     identity = contracts.identity;
@@ -388,15 +408,21 @@ describe("Root of roots tree proofs", () => {
 
   before(async function () {
     const stDeployHelper = await DeployHelper.initialize();
-    const deployHelper = await OnchainIdentityDeployHelper.initialize();
-    const stContracts = await stDeployHelper.deployState();
-    const contracts = await deployHelper.deployIdentity(
+    const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
+    const [poseidon1Elements, poseidon2Elements, poseidon3Elements, poseidon4Elements] =
+      await deployPoseidons([1, 2, 3, 4]);
+
+    const stContracts = await stDeployHelper.deployState(
+      [],
+      "Groth16VerifierStateTransition",
+      "basic",
+      [poseidon1Elements, poseidon2Elements, poseidon3Elements],
+    );
+    const contracts = await identityDeployHelper.deployIdentity(
       stContracts.state,
       stContracts.smtLib,
-      stContracts.poseidon1,
-      stContracts.poseidon2,
-      stContracts.poseidon3,
-      stContracts.poseidon4,
+      poseidon3Elements,
+      poseidon4Elements,
       stContracts.defaultIdType,
     );
     identity = contracts.identity;
@@ -456,15 +482,21 @@ describe("Compare historical roots with latest roots from tree", () => {
 
   before(async function () {
     const stDeployHelper = await DeployHelper.initialize();
-    const deployHelper = await OnchainIdentityDeployHelper.initialize();
-    const stContracts = await stDeployHelper.deployState();
-    const contracts = await deployHelper.deployIdentity(
+    const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
+    const [poseidon1Elements, poseidon2Elements, poseidon3Elements, poseidon4Elements] =
+      await deployPoseidons([1, 2, 3, 4]);
+
+    const stContracts = await stDeployHelper.deployState(
+      [],
+      "Groth16VerifierStateTransition",
+      "basic",
+      [poseidon1Elements, poseidon2Elements, poseidon3Elements],
+    );
+    const contracts = await identityDeployHelper.deployIdentity(
       stContracts.state,
       stContracts.smtLib,
-      stContracts.poseidon1,
-      stContracts.poseidon2,
-      stContracts.poseidon3,
-      stContracts.poseidon4,
+      poseidon3Elements,
+      poseidon4Elements,
       stContracts.defaultIdType,
     );
     identity = contracts.identity;
@@ -509,15 +541,21 @@ describe("Compare historical roots with latest roots from tree", () => {
 
   before(async function () {
     const stDeployHelper = await DeployHelper.initialize();
-    const deployHelper = await OnchainIdentityDeployHelper.initialize();
-    const stContracts = await stDeployHelper.deployState();
-    const contracts = await deployHelper.deployIdentity(
+    const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
+    const [poseidon1Elements, poseidon2Elements, poseidon3Elements, poseidon4Elements] =
+      await deployPoseidons([1, 2, 3, 4]);
+
+    const stContracts = await stDeployHelper.deployState(
+      [],
+      "Groth16VerifierStateTransition",
+      "basic",
+      [poseidon1Elements, poseidon2Elements, poseidon3Elements],
+    );
+    const contracts = await identityDeployHelper.deployIdentity(
       stContracts.state,
       stContracts.smtLib,
-      stContracts.poseidon1,
-      stContracts.poseidon2,
-      stContracts.poseidon3,
-      stContracts.poseidon4,
+      poseidon3Elements,
+      poseidon4Elements,
       stContracts.defaultIdType,
     );
     identity = contracts.identity;
@@ -593,15 +631,21 @@ describe("Genesis state doens't have history of states", () => {
 
   before(async function () {
     const stDeployHelper = await DeployHelper.initialize();
-    const deployHelper = await OnchainIdentityDeployHelper.initialize();
-    const stContracts = await stDeployHelper.deployState();
-    const contracts = await deployHelper.deployIdentity(
+    const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
+    const [poseidon1Elements, poseidon2Elements, poseidon3Elements, poseidon4Elements] =
+      await deployPoseidons([1, 2, 3, 4]);
+
+    const stContracts = await stDeployHelper.deployState(
+      [],
+      "Groth16VerifierStateTransition",
+      "basic",
+      [poseidon1Elements, poseidon2Elements, poseidon3Elements],
+    );
+    const contracts = await identityDeployHelper.deployIdentity(
       stContracts.state,
       stContracts.smtLib,
-      stContracts.poseidon1,
-      stContracts.poseidon2,
-      stContracts.poseidon3,
-      stContracts.poseidon4,
+      poseidon3Elements,
+      poseidon4Elements,
       stContracts.defaultIdType,
     );
     identity = contracts.identity;

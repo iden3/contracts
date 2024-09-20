@@ -2,7 +2,7 @@ import hre, { ethers, network, upgrades, ignition } from "hardhat";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
-import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain";
+import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain-types";
 import {
   StateModule,
   StateCrossChainLibModule,
@@ -49,6 +49,7 @@ export class DeployHelper {
       | "Groth16VerifierStateTransition"
       | "Groth16VerifierStub" = "Groth16VerifierStateTransition",
     deployStrategy: "basic" | "create2" = "basic",
+    poseidonContracts: Contract[] = [],
   ): Promise<{
     state: Contract;
     groth16verifier: Contract;
@@ -59,7 +60,6 @@ export class DeployHelper {
     poseidon1: Contract;
     poseidon2: Contract;
     poseidon3: Contract;
-    poseidon4: Contract;
     defaultIdType;
   }> {
     this.log("======== State: deploy started ========");
@@ -90,9 +90,18 @@ export class DeployHelper {
       `${g16VerifierContractName} contract deployed to address ${await g16Verifier.getAddress()} from ${await owner.getAddress()}`,
     );
 
-    this.log("deploying poseidons...");
-    const [poseidon1Elements, poseidon2Elements, poseidon3Elements, poseidon4Elements] =
-      await deployPoseidons([1, 2, 3, 4], deployStrategy);
+    if (poseidonContracts.length === 0) {
+      this.log("deploying poseidons...");
+      const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons(
+        [1, 2, 3],
+        deployStrategy,
+      );
+      poseidonContracts.push(poseidon1Elements, poseidon2Elements, poseidon3Elements);
+    }
+
+    const poseidon1Elements = poseidonContracts[0];
+    const poseidon2Elements = poseidonContracts[1];
+    const poseidon3Elements = poseidonContracts[2];
 
     this.log("deploying SmtLib...");
     const smtLib = await this.deploySmtLib(
@@ -198,7 +207,6 @@ export class DeployHelper {
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
-      poseidon4: poseidon4Elements,
       defaultIdType,
     };
   }
