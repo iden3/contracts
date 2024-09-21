@@ -546,7 +546,7 @@ export class DeployHelper {
         await tx.wait(confirmations);
       }
       console.log(
-        `${validatorType} Wrapper deployed to: ${await groth16VerifierWrapper.getAddress()}`,
+        `${g16VerifierContractWrapperName} Wrapper deployed to: ${await groth16VerifierWrapper.getAddress()}`,
       );
 
       // Deploying Validator contract to predictable address but with dummy implementation
@@ -575,7 +575,7 @@ export class DeployHelper {
 
       await groth16VerifierWrapper.waitForDeployment();
       console.log(
-        `${validatorType} Wrapper deployed to: ${await groth16VerifierWrapper.getAddress()}`,
+        `${g16VerifierContractWrapperName} Wrapper deployed to: ${await groth16VerifierWrapper.getAddress()}`,
       );
 
       validator = await upgrades.deployProxy(ValidatorFactory, [
@@ -866,24 +866,33 @@ export class DeployHelper {
   async upgradeIdentityTreeStore(
     identityTreeStoreAddress: string,
     stateAddress: string,
+    poseidon2ElementsAddress: string = "",
+    poseidon3ElementsAddress: string = "",
+    deployStrategy: "basic" | "create2" = "basic",
   ): Promise<Contract> {
     const proxyAdminOwnerSigner = this.signers[0];
 
-    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons([2, 3]);
+    if (!poseidon2ElementsAddress || !poseidon3ElementsAddress) {
+      const [poseidon2Elements, poseidon3Elements] = await deployPoseidons([2, 3], deployStrategy);
+      poseidon2ElementsAddress = await poseidon2Elements.getAddress();
+      poseidon3ElementsAddress = await poseidon3Elements.getAddress();
+    }
 
-    const IdentityTreeStore = await ethers.getContractFactory("IdentityTreeStore", {
+    console.log("Upgrading IdentityTreeStore...");
+    const IdentityTreeStoreFactory = await ethers.getContractFactory("IdentityTreeStore", {
       libraries: {
-        PoseidonUnit2L: await poseidon2Elements.getAddress(),
-        PoseidonUnit3L: await poseidon3Elements.getAddress(),
+        PoseidonUnit2L: poseidon2ElementsAddress,
+        PoseidonUnit3L: poseidon3ElementsAddress,
       },
       signer: proxyAdminOwnerSigner,
     });
-
+    await upgrades.forceImport(identityTreeStoreAddress, IdentityTreeStoreFactory);
     const identityTreeStore = await upgrades.upgradeProxy(
       identityTreeStoreAddress,
-      IdentityTreeStore,
+      IdentityTreeStoreFactory,
       {
         unsafeAllow: ["external-library-linking"],
+        redeployImplementation: "always",
         call: {
           fn: "initialize",
           args: [stateAddress],
