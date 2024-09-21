@@ -30,7 +30,7 @@ export const create2AddressesInfo: {
   anchorAddress: string;
   contractsCalldataMap: Map<string, string>;
 } = {
-  anchorAddress: "0xb690dCED7a8f44849CdB103cE72E3Ea4CeA0A0D7",
+  anchorAddress: "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
   contractsCalldataMap: new Map()
     .set("State", ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.State")))
     .set("UniversalVerifier", ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier")))
