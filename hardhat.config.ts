@@ -65,12 +65,17 @@ const config: HardhatUserConfig = {
     //   url: `${process.env.SEPOLIA_RPC_URL}`,
     //   accounts: [`0x${process.env.SEPOLIA_PRIVATE_KEY}`],
     // },
-    // 'privado-main': {
+    // sepolia: {
+    //   chainId: 11155111,
+    //   url: `${process.env.SEPOLIA_RPC_URL}`,
+    //   accounts: [`0x${process.env.SEPOLIA_PRIVATE_KEY}`],
+    // },
+    // "privado-main": {
     //   chainId: 21000,
     //   url: `${process.env.PRIVADO_MAIN_RPC_URL}`,
     //   accounts: [`0x${process.env.PRIVADO_MAIN_PRIVATE_KEY}`],
     // },
-    // 'privado-test': {
+    // "privado-test": {
     //   chainId: 21001,
     //   url: `${process.env.PRIVADO_TEST_RPC_URL}`,
     //   accounts: [`0x${process.env.PRIVADO_TEST_PRIVATE_KEY}`],

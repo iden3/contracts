@@ -6,7 +6,7 @@ import hre, { ethers, network } from "hardhat";
 async function main() {
   const stateAddress = process.env.STATE_CONTRACT_ADDRESS || "";
   if (!ethers.isAddress(stateAddress)) {
-    throw new Error("Invalid state address");
+    throw new Error("STATE_CONTRACT_ADDRESS is not set");
   }
   const deployStrategy: "basic" | "create2" =
     process.env.DEPLOY_STRATEGY == "create2" ? "create2" : "basic";

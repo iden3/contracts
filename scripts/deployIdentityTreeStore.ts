@@ -8,7 +8,7 @@ import fs from "fs";
     process.env.DEPLOY_STRATEGY == "create2" ? "create2" : "basic";
   const [signer] = await ethers.getSigners();
 
-  const deployHelper = await DeployHelper.initialize();
+  const deployHelper = await DeployHelper.initialize(null, true);
 
   const stateContractAddress = process.env.STATE_CONTRACT_ADDRESS || "";
   if (!ethers.isAddress(stateContractAddress)) {
