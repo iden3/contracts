@@ -9,6 +9,8 @@ import "@nomicfoundation/hardhat-ignition-ethers";
 
 const DEFAULT_MNEMONIC =
   "test test test test test test test test test test test junk";
+const DEFAULT_PRIVATE_KEY =
+  "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -35,72 +37,56 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
-    // polygon: {
-    //   chainId: 137,
-    //   url: `${process.env.POLYGON_RPC_URL}`,
-    //   accounts: [`0x${process.env.POLYGON_PRIVATE_KEY}`],
-    // },
-    // mumbai: {
-    //   chainId: 80001,
-    //   url: `${process.env.MUMBAI_RPC_URL}`,
-    //   accounts: [`0x${process.env.MUMBAI_PRIVATE_KEY}`],
-    // },
-    // 'privado-main': {
-    //   chainId: 21000,
-    //   url: `${process.env.PRIVADO_MAIN_RPC_URL}`,
-    //   accounts: [`0x${process.env.PRIVADO_MAIN_PRIVATE_KEY}`],
-    // },
-    // 'privado-test': {
-    //   chainId: 21001,
-    //   url: `${process.env.PRIVADO_TEST_RPC_URL}`,
-    //   accounts: [`0x${process.env.PRIVADO_TEST_PRIVATE_KEY}`],
-    // },
-    // amoy: {
-    //   chainId: 80002,
-    //   url: `${process.env.AMOY_RPC_URL}`,
-    //   accounts: [`0x${process.env.AMOY_PRIVATE_KEY}`],
-    // },
-    // 'linea-sepolia': {
-    //   chainId: 59141,
-    //   url: `${process.env.SEPOLIA_RPC_URL}`,
-    //   accounts: [`0x${process.env.SEPOLIA_PRIVATE_KEY}`],
-    // },
-    // sepolia: {
-    //   chainId: 11155111,
-    //   url: `${process.env.SEPOLIA_RPC_URL}`,
-    //   accounts: [`0x${process.env.SEPOLIA_PRIVATE_KEY}`],
-    // },
-    // "privado-main": {
-    //   chainId: 21000,
-    //   url: `${process.env.PRIVADO_MAIN_RPC_URL}`,
-    //   accounts: [`0x${process.env.PRIVADO_MAIN_PRIVATE_KEY}`],
-    // },
-    // "privado-test": {
-    //   chainId: 21001,
-    //   url: `${process.env.PRIVADO_TEST_RPC_URL}`,
-    //   accounts: [`0x${process.env.PRIVADO_TEST_PRIVATE_KEY}`],
-    // },
-    // cardona: {
-    //   chainId: 2442,
-    //   url: `https://rpc.cardona.zkevm-rpc.com`,
-    //   accounts: [`0x${process.env.CARDONA_ZKEVM_PRIVATE_KEY}`],
-    // },
-    // zkevm: {
-    //   chainId: 1101,
-    //   url: `https://zkevm-rpc.com`,
-    //   accounts: [`0x${process.env.ZKEVM_PRIVATE_KEY}`],
-    // },
-    // "linea-sepolia": {
-    //   chainId: 59141,
-    //   url: `${process.env.LINEA_SEPOLIA_RPC_URL}`,
-    //   accounts: [`0x${process.env.LINEA_SEPOLIA_PRIVATE_KEY}`],
-    // },
-    // hardhat: {
-    //   chainId: 2442,
-    //   forking: {
-    //     url: `${process.env.RPC_URL}`,
-    //   },
-    // },
+    'privado-main': {
+      chainId: 21000,
+      url: `${process.env.PRIVADO_MAIN_RPC_URL}`,
+      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+    },
+    'privado-test': {
+      chainId: 21001,
+      url: `${process.env.PRIVADO_TEST_RPC_URL}`,
+      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+    },
+    'polygon-mainnet': {
+      chainId: 137,
+      url: `${process.env.POLYGON_MAINNET_RPC_URL}`,
+      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+    },
+    'polygon-amoy': {
+      chainId: 80002,
+      url: `${process.env.POLYGON_AMOY_RPC_URL}`,
+      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+    },
+    'ethereum-mainnet': {
+      chainId: 1,
+      url: `${process.env.ETHEREUM_MAINNET_RPC_URL}`,
+      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+    },
+    'ethereum-sepolia': {
+      chainId: 11155111,
+      url: `${process.env.ETHEREUM_SEPOLIA_RPC_URL}`,
+      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+    },
+    'zkevm-mainnet': {
+      chainId: 1101,
+      url: `${process.env.ZKEVM_MAINNET_RPC_URL}`,
+      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+    },
+    'zkevm-cardona': {
+      chainId: 2442,
+      url: `${process.env.ZKEVM_CARDONA_RPC_URL}`,
+      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+    },
+    "linea-mainnet": {
+      chainId: 59144,
+      url: `${process.env.LINEA_MAINNET_RPC_URL}`,
+      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+    },
+    "linea-sepolia": {
+      chainId: 59141,
+      url: `${process.env.LINEA_SEPOLIA_RPC_URL}`,
+      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+    },
     // hardhat: {
     //   chainId: 80002,
     //   forking: {
