@@ -835,7 +835,7 @@
               "slot": "0"
             }
           ],
-          "erc7201:iden3.storage.RequestOwnership.sol": [
+          "erc7201:iden3.storage.RequestOwnership": [
             {
               "contract": "RequestOwnership",
               "label": "_requestOwners",
