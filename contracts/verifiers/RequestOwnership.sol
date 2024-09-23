@@ -5,7 +5,7 @@ import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 
 abstract contract RequestOwnership is ZKPVerifierBase {
-    /// @custom:storage-location erc7201:iden3.storage.RequestOwnership.sol
+    /// @custom:storage-location erc7201:iden3.storage.RequestOwnership
     struct RequestOwnershipStorage {
         mapping(uint64 requestId => address requestOwner) _requestOwners;
     }
