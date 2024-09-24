@@ -5,14 +5,12 @@ import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IStateTransitionVerifier} from "../interfaces/IStateTransitionVerifier.sol";
 
 contract Groth16VerifierStub is IStateTransitionVerifier {
-    /* solhint-disable no-unused-vars */
     function verifyProof(
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        uint256[4] memory input
+        uint256[2] memory,
+        uint256[2][2] memory,
+        uint256[2] memory,
+        uint256[4] memory
     ) external pure returns (bool r) {
         return true;
     }
-    /* solhint-disable no-unused-vars */
 }

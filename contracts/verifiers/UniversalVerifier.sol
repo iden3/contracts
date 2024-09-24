@@ -118,7 +118,7 @@ contract UniversalVerifier is
     )
         public
         override(RequestDisableable, ValidatorWhitelist, ZKPVerifierBase)
-        returns (ICircuitValidator.Signal[] memory)
+        returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
         return super.verifyZKPResponse(requestId, inputs, a, b, c, sender);
     }

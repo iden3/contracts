@@ -107,38 +107,14 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256[2] memory c,
         bytes calldata data,
         address sender
-    ) public view override returns (ICircuitValidator.Signal[] memory) {
-        CredentialAtomicQueryValidatorBaseStorage
-            storage $ = _getCredentialAtomicQueryValidatorBaseStorage();
-
-        return _verify(inputs, a, b, c, data, sender, $.state);
-    }
+    ) external view virtual returns (ICircuitValidator.KeyToInputIndex[] memory);
 
     function verifyV2(
         bytes calldata zkProof,
         bytes calldata data,
         address sender,
         IState stateContract
-    ) external view returns (ICircuitValidator.Signal[] memory) {
-        (
-            uint256[] memory inputs,
-            uint256[2] memory a,
-            uint256[2][2] memory b,
-            uint256[2] memory c
-        ) = abi.decode(zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
-
-        return _verify(inputs, a, b, c, data, sender, stateContract);
-    }
-
-    function _verify(
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        bytes calldata data,
-        address sender,
-        IState stateContract
-    ) internal view virtual returns (ICircuitValidator.Signal[] memory);
+    ) external view virtual returns (ICircuitValidator.Signal[] memory);
 
     function getSupportedCircuitIds() external view virtual returns (string[] memory ids) {
         return _getCredentialAtomicQueryValidatorBaseStorage()._supportedCircuitIds;

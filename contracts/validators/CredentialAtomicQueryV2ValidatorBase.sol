@@ -45,7 +45,56 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         uint256[] memory inputs
     ) public pure virtual returns (PubSignals memory);
 
-    function _verify(
+    function verify(
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
+        bytes calldata data,
+        address sender
+    ) public view override returns (ICircuitValidator.KeyToInputIndex[] memory) {
+        ICircuitValidator.Signal[] memory specialSignals = _verifyMain(
+            inputs,
+            a,
+            b,
+            c,
+            data,
+            sender,
+            IState(getStateAddress())
+        );
+
+        ICircuitValidator.KeyToInputIndex[]
+            memory keyToInputIndexes = new ICircuitValidator.KeyToInputIndex[](
+                specialSignals.length
+            );
+
+        for (uint256 i = 0; i < specialSignals.length; i++) {
+            keyToInputIndexes[i] = ICircuitValidator.KeyToInputIndex({
+                key: specialSignals[i].name,
+                inputIndex: inputIndexOf(specialSignals[i].name)
+            });
+        }
+
+        return keyToInputIndexes;
+    }
+
+    function verifyV2(
+        bytes calldata zkProof,
+        bytes calldata data,
+        address sender,
+        IState stateContract
+    ) public view override returns (ICircuitValidator.Signal[] memory) {
+        (
+            uint256[] memory inputs,
+            uint256[2] memory a,
+            uint256[2][2] memory b,
+            uint256[2] memory c
+        ) = abi.decode(zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
+
+        return _verifyMain(inputs, a, b, c, data, sender, stateContract);
+    }
+
+    function _verifyMain(
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
@@ -53,7 +102,7 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         bytes calldata data,
         address sender,
         IState state
-    ) internal view override returns (ICircuitValidator.Signal[] memory) {
+    ) internal view returns (ICircuitValidator.Signal[] memory) {
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
 
         require(credAtomicQuery.circuitIds.length == 1, "circuitIds length is not equal to 1");
@@ -65,35 +114,33 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         // verify that zkp is valid
         require(verifier.verify(a, b, c, inputs), "Proof is not valid");
 
-        PubSignals memory signals = parsePubSignals(inputs);
+        PubSignals memory pubSignals = parsePubSignals(inputs);
 
         // check circuitQueryHash
         require(
-            signals.circuitQueryHash == credAtomicQuery.queryHash,
+            pubSignals.circuitQueryHash == credAtomicQuery.queryHash,
             "Query hash does not match the requested one"
         );
 
         // TODO: add support for query to specific userID and then verifying it
 
-        _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
-        _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
-        _checkProofExpiration(signals.timestamp);
+        _checkMerklized(pubSignals.merklized, credAtomicQuery.claimPathKey);
+        _checkAllowedIssuers(pubSignals.issuerID, credAtomicQuery.allowedIssuers);
+        _checkProofExpiration(pubSignals.timestamp);
         _checkIsRevocationChecked(
-            signals.isRevocationChecked,
+            pubSignals.isRevocationChecked,
             credAtomicQuery.skipClaimRevocationCheck
         );
 
         // Checking challenge to prevent replay attacks from other addresses
-        _checkChallenge(signals.challenge, sender);
+        _checkChallenge(pubSignals.challenge, sender);
 
         // GIST root and state checks
-        _checkGistRoot(signals.userID, signals.gistRoot, state);
-        _checkClaimIssuanceState(signals.issuerID, signals.issuerState, state);
-        _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState, state);
+        _checkGistRoot(pubSignals.userID, pubSignals.gistRoot, state);
+        _checkClaimIssuanceState(pubSignals.issuerID, pubSignals.issuerState, state);
+        _checkClaimNonRevState(pubSignals.issuerID, pubSignals.issuerClaimNonRevState, state);
 
-        // get special signal values
-        // selective disclosure is not supported for v2 onchain circuits
-        return _getSpecialSignals(signals);
+        return _getSpecialSignals(pubSignals);
     }
 
     function _checkMerklized(uint256 merklized, uint256 queryClaimPathKey) internal pure {

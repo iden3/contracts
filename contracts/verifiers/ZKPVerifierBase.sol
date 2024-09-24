@@ -119,7 +119,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         ZKPVerifierStorage storage $ = _getZKPVerifierStorage();
 
         IZKPVerifier.ZKPRequest memory request = $._requests[requestId];
-        ICircuitValidator.Signal[] memory signals = request.validator.verify(
+        ICircuitValidator.KeyToInputIndex[] memory keyToInpIdxs = request.validator.verify(
             inputs,
             a,
             b,
@@ -128,7 +128,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             sender
         );
 
-        $.writeProofResults(sender, requestId, signals);
+        $.writeProofResults(sender, requestId, keyToInpIdxs, inputs);
     }
 
     /// @notice Submits a ZKP response V2 and updates proof status
@@ -156,7 +156,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
                 $._state
             );
 
-            $.writeProofResults(sender, response.requestId, signals);
+            $.writeProofResultsV2(sender, response.requestId, signals);
 
             if (response.data.length > 0) {
                 revert("Metadata not supported yet");
@@ -182,7 +182,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         public
         virtual
         checkRequestExistence(requestId, true)
-        returns (ICircuitValidator.Signal[] memory)
+        returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
         IZKPVerifier.ZKPRequest storage request = _getZKPVerifierStorage()._requests[requestId];
         return request.validator.verify(inputs, a, b, c, request.data, sender);

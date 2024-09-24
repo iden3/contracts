@@ -4,6 +4,11 @@ pragma solidity 0.8.26;
 import {IState} from "./IState.sol";
 
 interface ICircuitValidator {
+    struct KeyToInputIndex {
+        string key;
+        uint256 inputIndex;
+    }
+
     struct Signal {
         string name;
         uint256 value;
@@ -18,7 +23,7 @@ interface ICircuitValidator {
         uint256[2] memory c,
         bytes calldata data,
         address sender
-    ) external returns (ICircuitValidator.Signal[] memory);
+    ) external returns (ICircuitValidator.KeyToInputIndex[] memory);
 
     function verifyV2(
         bytes calldata zkProof,
