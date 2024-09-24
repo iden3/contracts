@@ -36,6 +36,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         mapping(uint64 requestId => IZKPVerifier.ZKPRequest) _requests;
         uint64[] _requestIds;
         IState _state;
+        address _trustedForwarder; // TODO consider also settig it via intializer
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifier")) - 1)) & ~bytes32(uint256(0xff));
@@ -316,5 +317,28 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @return address of the state contract
     function getStateAddress() public view virtual returns (address) {
         return address(_getZKPVerifierStorage()._state);
+    }
+
+    function _msgSender() internal view override virtual returns (address) {
+        uint256 calldataLength = msg.data.length;
+        uint256 contextSuffixLength = 20;
+
+        if (isTrustedForwarder(msg.sender) && calldataLength >= contextSuffixLength) {
+            return address(bytes20(msg.data[calldataLength - contextSuffixLength:]));
+        } else {
+            return super._msgSender();
+        }
+    }
+
+    function isTrustedForwarder(address forwarder) public view virtual returns (bool) {
+        return forwarder == trustedForwarder();
+    }
+
+    function trustedForwarder() public view virtual returns (address) {
+        return _getZKPVerifierStorage()._trustedForwarder;
+    }
+
+    function setTrustedForwarder(address trustedForwarder_) public {
+        _getZKPVerifierStorage()._trustedForwarder = trustedForwarder_;
     }
 }

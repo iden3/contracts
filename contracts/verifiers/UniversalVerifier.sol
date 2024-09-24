@@ -9,6 +9,7 @@ import {RequestDisableable} from "./RequestDisableable.sol";
 import {ValidatorWhitelist} from "./ValidatorWhitelist.sol";
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 import {IState} from "../interfaces/IState.sol";
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 
 /// @title Universal Verifier Contract
 /// @notice A contract to manage ZKP (Zero-Knowledge Proof) requests and proofs.
@@ -159,5 +160,9 @@ contract UniversalVerifier is
     /// @param validator Validator address
     function removeValidatorFromWhitelist(ICircuitValidator validator) public onlyOwner {
         _removeValidatorFromWhitelist(validator);
+    }
+
+    function _msgSender() internal view override(ZKPVerifierBase, ContextUpgradeable) returns (address) {
+        return super._msgSender();
     }
 }

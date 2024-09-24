@@ -909,6 +909,20 @@ export class DeployHelper {
     return identityTreeStore;
   }
 
+  async deployForwarder(destination: string): Promise<Contract> {
+    const Forwarder = await ethers.getContractFactory("Forwarder");
+    const forwarder = await upgrades.deployProxy(Forwarder, [destination]);
+    await forwarder.waitForDeployment();
+    return forwarder;
+  }
+
+  async replaceWithForwarder(contract: Contract, contractName: string): Promise<Contract> {
+    // TODO the forwarder should be deployed via CREATE2 strategy in real deployment
+    const forwarder = await this.deployForwarder(await contract.getAddress());
+    await contract.setTrustedForwarder(await forwarder.getAddress());
+    return await ethers.getContractAt(contractName, await forwarder.getAddress());
+  }
+
   private log(...args): void {
     this.enableLogging && console.log(args);
   }

@@ -40,6 +40,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
       await state.getAddress(),
       await verifierLib.getAddress(),
     );
+    verifier = await deployHelper.replaceWithForwarder(verifier, "UniversalVerifier");
 
     const stub = await deployHelper.deployValidatorStub();
 

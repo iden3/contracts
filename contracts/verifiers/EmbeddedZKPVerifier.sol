@@ -8,6 +8,7 @@ import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 import {IState} from "../interfaces/IState.sol";
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 
 abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
     /**
@@ -72,4 +73,8 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
         uint256[] memory inputs,
         ICircuitValidator validator
     ) internal virtual {}
+
+    function _msgSender() internal view override(ContextUpgradeable, ZKPVerifierBase) returns (address) {
+        return super._msgSender();
+    }
 }
