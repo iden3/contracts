@@ -47,7 +47,8 @@ abstract contract CredentialAtomicQueryValidatorBase is
     function _initDefaultStateVariables(
         address _stateContractAddr,
         address _verifierContractAddr,
-        string memory circuitId
+        string memory circuitId,
+        address owner
     ) internal {
         CredentialAtomicQueryValidatorBaseStorage
             storage s = _getCredentialAtomicQueryValidatorBaseStorage();
@@ -58,7 +59,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         s._supportedCircuitIds = [circuitId];
         s._circuitIdToVerifier[circuitId] = IVerifier(_verifierContractAddr);
         s.state = IState(_stateContractAddr);
-        __Ownable_init(_msgSender());
+        __Ownable_init(owner);
     }
 
     function version() public pure virtual returns (string memory);

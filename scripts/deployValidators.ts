@@ -24,6 +24,13 @@ async function main() {
       validator: await validator.getAddress(),
       groth16verifier: await groth16VerifierWrapper.getAddress(),
     });
+    const blockNumberDeployed = await hre.ethers.provider.getBlockNumber();
+    let blockNumber = blockNumberDeployed;
+    console.log("Waiting some blocks to expect at least 5 confirmations for ignition...");
+    while (blockNumber < blockNumberDeployed + 10) {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      blockNumber = await hre.ethers.provider.getBlockNumber();
+    }
   }
 
   const chainId = parseInt(await network.provider.send("eth_chainId"), 16);

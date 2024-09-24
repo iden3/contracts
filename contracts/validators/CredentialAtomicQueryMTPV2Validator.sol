@@ -15,7 +15,8 @@ contract CredentialAtomicQueryMTPV2Validator is CredentialAtomicQueryV2Validator
 
     function initialize(
         address _verifierContractAddr,
-        address _stateContractAddr
+        address _stateContractAddr,
+        address owner
     ) public initializer {
         _setInputToIndex("merklized", 0);
         _setInputToIndex("userID", 1);
@@ -29,9 +30,7 @@ contract CredentialAtomicQueryMTPV2Validator is CredentialAtomicQueryV2Validator
         _setInputToIndex("issuerClaimNonRevState", 9);
         _setInputToIndex("timestamp", 10);
 
-        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID);
-
-        __Ownable_init(_msgSender());
+        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, owner);
     }
 
     function version() public pure override returns (string memory) {

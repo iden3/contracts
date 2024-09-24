@@ -12,10 +12,12 @@
   },
   "homepage": "https://github.com/iden3/contracts",
   "devDependencies": {
+    "dotenv": "^16.4.5",
+    "@0xpolygonid/js-sdk": "1.20.0",
     "@iden3/js-crypto": "^1.1.0",
     "@iden3/js-iden3-core": "1.4.1",
-    "@0xpolygonid/js-sdk": "1.20.0",
     "@iden3/js-jsonld-merklization": "1.4.1",
+    "@nomicfoundation/hardhat-ledger": "^1.0.3",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@openzeppelin/contracts": "^5.0.2",
     "@openzeppelin/contracts-upgradeable": "^5.0.2",
@@ -58,7 +60,6 @@
     "test:state:localhost": "npx hardhat test test/state/state.test.ts --network localhost",
     "test:gas": "COINMARKETCAP_KEY=<put your key here> REPORT_GAS=true npx hardhat test",
     "test:coverage": "npx hardhat coverage",
-
     "deploy:create2:address:anchor:localhost": "npx hardhat run scripts/deployCreate2AddressAnchor.ts --network localhost",
     "deploy:create2:address:anchor:polygon-amoy": "npx hardhat run scripts/deployCreate2AddressAnchor.ts --network polygon-amoy",
     "deploy:create2:address:anchor:zkevm-cardona": "npx hardhat run scripts/deployCreate2AddressAnchor.ts --network zkevm-cardona",
@@ -70,7 +71,6 @@
     "deploy:create2:address:anchor:linea-mainnet": "npx hardhat run scripts/deployCreate2AddressAnchor.ts --network linea-mainnet",
     "deploy:create2:address:anchor:ethereum-mainnet": "npx hardhat run scripts/deployCreate2AddressAnchor.ts --network ethereum-mainnet",
     "deploy:create2:address:anchor:privado-main": "npx hardhat run scripts/deployCreate2AddressAnchor.ts --network privado-main",
-
     "deploy:state:localhost": "npx hardhat run scripts/deployState.ts --network localhost",
     "deploy:state:polygon-amoy": "npx hardhat run scripts/deployState.ts --network polygon-amoy",
     "deploy:state:zkevm-cardona": "npx hardhat run scripts/deployState.ts --network zkevm-cardona",
@@ -82,7 +82,6 @@
     "deploy:state:linea-mainnet": "npx hardhat run scripts/deployState.ts --network linea-mainnet",
     "deploy:state:ethereum-mainnet": "npx hardhat run scripts/deployState.ts --network ethereum-mainnet",
     "deploy:state:privado-main": "npx hardhat run scripts/deployState.ts --network privado-main",
-
     "deploy:its:localhost": "npx hardhat run scripts/deployIdentityTreeStore.ts --network localhost",
     "deploy:its:polygon-amoy": "npx hardhat run scripts/deployIdentityTreeStore.ts --network polygon-amoy",
     "deploy:its:zkevm-cardona": "npx hardhat run scripts/deployIdentityTreeStore.ts --network zkevm-cardona",
@@ -94,7 +93,6 @@
     "deploy:its:linea-mainnet": "npx hardhat run scripts/deployIdentityTreeStore.ts --network linea-mainnet",
     "deploy:its:ethereum-mainnet": "npx hardhat run scripts/deployIdentityTreeStore.ts --network ethereum-mainnet",
     "deploy:its:privado-main": "npx hardhat run scripts/deployIdentityTreeStore.ts --network privado-main",
-
     "deploy:validators:localhost": "npx hardhat run scripts/deployValidators.ts --network localhost",
     "deploy:validators:polygon-amoy": "npx hardhat run scripts/deployValidators.ts --network polygon-amoy",
     "deploy:validators:zkevm-cardona": "npx hardhat run scripts/deployValidators.ts --network zkevm-cardona",
@@ -106,7 +104,6 @@
     "deploy:validators:linea-mainnet": "npx hardhat run scripts/deployValidators.ts --network linea-mainnet",
     "deploy:validators:ethereum-mainnet": "npx hardhat run scripts/deployValidators.ts --network ethereum-mainnet",
     "deploy:validators:privado-main": "npx hardhat run scripts/deployValidators.ts --network privado-main",
-
     "deploy:universalverifier:localhost": "npx hardhat run scripts/deployUniversalVerifier.ts --network localhost",
     "deploy:universalverifier:polygon-amoy": "npx hardhat run scripts/deployUniversalVerifier.ts --network polygon-amoy",
     "deploy:universalverifier:zkevm-cardona": "npx hardhat run scripts/deployUniversalVerifier.ts --network zkevm-cardona",
@@ -118,31 +115,26 @@
     "deploy:universalverifier:linea-mainnet": "npx hardhat run scripts/deployUniversalVerifier.ts --network linea-mainnet",
     "deploy:universalverifier:ethereum-mainnet": "npx hardhat run scripts/deployUniversalVerifier.ts --network ethereum-mainnet",
     "deploy:universalverifier:privado-main": "npx hardhat run scripts/deployUniversalVerifier.ts --network privado-main",
-    
     "deploy:stateCrossChainFullSet:localhost": "npx hardhat run scripts/deployCrossChainVerifierWithRequests.ts --network localhost",
     "deploy:stateCrossChainFullSet:polygon-amoy": "npx hardhat run scripts/deployCrossChainVerifierWithRequests.ts --network polygon-amoy",
     "deploy:stateCrossChainFullSet:zkevm-cardona": "npx hardhat run scripts/deployCrossChainVerifierWithRequests.ts --network zkevm-cardona",
     "deploy:stateCrossChainFullSet:zkevm-mainnet": "npx hardhat run scripts/deployCrossChainVerifierWithRequests.ts --network zkevm-mainnet",
     "deploy:stateCrossChainFullSet:linea-sepolia": "npx hardhat run scripts/deployCrossChainVerifierWithRequests.ts --network linea-sepolia",
-
     "deploy:set:request:polygon-amoy": "npx hardhat run scripts/setProofRequest.ts --network polygon-amoy",
     "deploy:set:request:linea-sepolia": "npx hardhat run scripts/setProofRequest.ts --network linea-sepolia",
     "deploy:vc-payment:polygon-amoy": "npx hardhat run scripts/deployVCPayment.ts --network polygon-amoy",
-    
     "upgrade:contracts:verifier:localhost": "npx hardhat run scripts/upgrade/verifiers/verifier-upgrade.ts --network localhost",
     "upgrade:contracts:verifier:polygon-amoy": "npx hardhat run scripts/upgrade/verifiers/verifier-upgrade.ts --network polygon-amoy",
     "upgrade:contracts:verifier:ethereum-sepolia": "npx hardhat run scripts/upgrade/verifiers/verifier-upgrade.ts --network ethereum-sepolia",
-
     "upgrade:contracts:its:polygon-amoy": "npx hardhat run scripts/upgrade/identitytreestore/identitytreestore-upgrade.ts --network polygon-amoy",
     "upgrade:contracts:its:polygon-mainnet": "npx hardhat run scripts/upgrade/identitytreestore/identitytreestore-upgrade.ts --network polygon-mainnet",
-    
     "upgrade:contracts:state:localhost": "npx hardhat run scripts/upgrade/state/state-upgrade.ts --network localhost",
     "upgrade:contracts:state:polygon-amoy": "npx hardhat run scripts/upgrade/state/state-upgrade.ts --network polygon-amoy",
     "upgrade:contracts:state:polygon-mainnet": "npx hardhat run scripts/upgrade/state/state-upgrade.ts --network polygon-mainnet",
-    
+    "add:validators:universal:verifier:localhost": "npx hardhat run scripts/addValidatorsToUniversalVerifier.ts --network localhost",
+    "add:validators:universal:verifier:polygon-amoy": "npx hardhat run scripts/addValidatorsToUniversalVerifier.ts --network polygon-amoy",
     "payment:set-payment-value:polygon-amoy": "npx hardhat run scripts/setPaymentValue.ts --network polygon-amoy",
     "verify:polygon-mainnet": "npx hardhat run scripts/verifyEtherescan.js --network polygon-mainnet",
-
     "lint:contracts": "npx solhint contracts/**/*.sol",
     "prettier:contracts": "prettier --write --plugin=prettier-plugin-solidity 'contracts/**/*.sol'",
     "slither": "slither ."

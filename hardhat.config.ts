@@ -6,6 +6,9 @@ import "@openzeppelin/hardhat-upgrades";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomicfoundation/hardhat-verify";
 import "@nomicfoundation/hardhat-ignition-ethers";
+import "@nomicfoundation/hardhat-ledger";
+import dotenv from "dotenv";
+dotenv.config();
 
 const DEFAULT_MNEMONIC = "test test test test test test test test test test test junk";
 const DEFAULT_PRIVATE_KEY = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
@@ -38,52 +41,62 @@ const config: HardhatUserConfig = {
     "privado-main": {
       chainId: 21000,
       url: `${process.env.PRIVADO_MAIN_RPC_URL}`,
-      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      // accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "privado-test": {
       chainId: 21001,
       url: `${process.env.PRIVADO_TEST_RPC_URL}`,
-      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      // accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "polygon-mainnet": {
       chainId: 137,
       url: `${process.env.POLYGON_MAINNET_RPC_URL}`,
-      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      // accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "polygon-amoy": {
       chainId: 80002,
       url: `${process.env.POLYGON_AMOY_RPC_URL}`,
-      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      // accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "ethereum-mainnet": {
       chainId: 1,
       url: `${process.env.ETHEREUM_MAINNET_RPC_URL}`,
-      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      // accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "ethereum-sepolia": {
       chainId: 11155111,
       url: `${process.env.ETHEREUM_SEPOLIA_RPC_URL}`,
-      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      // accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "zkevm-mainnet": {
       chainId: 1101,
       url: `${process.env.ZKEVM_MAINNET_RPC_URL}`,
-      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      // accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "zkevm-cardona": {
       chainId: 2442,
       url: `${process.env.ZKEVM_CARDONA_RPC_URL}`,
-      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      // accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "linea-mainnet": {
       chainId: 59144,
       url: `${process.env.LINEA_MAINNET_RPC_URL}`,
-      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      // accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "linea-sepolia": {
       chainId: 59141,
       url: `${process.env.LINEA_SEPOLIA_RPC_URL}`,
-      accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      // accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     // hardhat: {
     //   chainId: 80002,
