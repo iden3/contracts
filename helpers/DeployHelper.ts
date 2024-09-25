@@ -134,6 +134,8 @@ export class DeployHelper {
       },
     });
 
+    const Create2AddressAnchorFactory = await ethers.getContractFactory("Create2AddressAnchor");
+
     let state;
     if (deployStrategy === "create2") {
       this.log("deploying with CREATE2 strategy...");
@@ -149,7 +151,7 @@ export class DeployHelper {
       // Upgrading State contract to the first real implementation
       // and force network files import, so creation, as they do not exist at the moment
       const stateAddress = await state.getAddress();
-      await upgrades.forceImport(stateAddress, StateFactory);
+      await upgrades.forceImport(stateAddress, Create2AddressAnchorFactory);
       state = await upgrades.upgradeProxy(stateAddress, StateFactory, {
         unsafeAllow: ["external-library-linking"],
         redeployImplementation: "always",
@@ -493,6 +495,8 @@ export class DeployHelper {
     groth16VerifierWrapper: any;
     validator: any;
   }> {
+    const owner = this.signers[0];
+
     let g16VerifierContractWrapperName, validatorContractName;
     switch (validatorType) {
       case "mtpV2":
@@ -510,6 +514,8 @@ export class DeployHelper {
     }
 
     const ValidatorFactory = await ethers.getContractFactory(validatorContractName);
+    const Create2AddressAnchorFactory = await ethers.getContractFactory("Create2AddressAnchor");
+
     let groth16VerifierWrapper;
     let validator;
     if (deployStrategy === "create2") {
@@ -560,13 +566,13 @@ export class DeployHelper {
       // Upgrading Validator contract to the first real implementation
       // and force network files import, so creation, as they do not exist at the moment
       const validatorAddress = await validator.getAddress();
-      await upgrades.forceImport(validatorAddress, ValidatorFactory);
+      await upgrades.forceImport(validatorAddress, Create2AddressAnchorFactory);
       validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory, {
         unsafeAllow: ["external-library-linking"],
         redeployImplementation: "always",
         call: {
           fn: "initialize",
-          args: [await groth16VerifierWrapper.getAddress(), stateAddress],
+          args: [await groth16VerifierWrapper.getAddress(), stateAddress, await owner.getAddress()],
         },
       });
     } else {
@@ -581,6 +587,7 @@ export class DeployHelper {
       validator = await upgrades.deployProxy(ValidatorFactory, [
         await groth16VerifierWrapper.getAddress(),
         stateAddress,
+        await owner.getAddress(),
       ]);
     }
 
@@ -735,13 +742,13 @@ export class DeployHelper {
     if (!owner) {
       owner = this.signers[0];
     }
-
     const UniversalVerifierFactory = await ethers.getContractFactory("UniversalVerifier", {
       signer: owner,
       libraries: {
         VerifierLib: verifierLibAddr,
       },
     });
+    const Create2AddressAnchorFactory = await ethers.getContractFactory("Create2AddressAnchor");
 
     let universalVerifier;
     if (deployStrategy === "create2") {
@@ -758,7 +765,7 @@ export class DeployHelper {
       // Upgrading UniversalVerifier contract to the first real implementation
       // and force network files import, so creation, as they do not exist at the moment
       const universalVerifierAddress = await universalVerifier.getAddress();
-      await upgrades.forceImport(universalVerifierAddress, UniversalVerifierFactory);
+      await upgrades.forceImport(universalVerifierAddress, Create2AddressAnchorFactory);
       universalVerifier = await upgrades.upgradeProxy(
         universalVerifierAddress,
         UniversalVerifierFactory,
@@ -767,16 +774,20 @@ export class DeployHelper {
           redeployImplementation: "always",
           call: {
             fn: "initialize",
-            args: [stateAddr],
+            args: [stateAddr, await owner.getAddress()],
           },
         },
       );
     } else {
       this.log("deploying with BASIC strategy...");
 
-      universalVerifier = await upgrades.deployProxy(UniversalVerifierFactory, [stateAddr], {
-        unsafeAllow: ["external-library-linking"],
-      });
+      universalVerifier = await upgrades.deployProxy(
+        UniversalVerifierFactory,
+        [stateAddr, await owner.getAddress()],
+        {
+          unsafeAllow: ["external-library-linking"],
+        },
+      );
     }
 
     await universalVerifier.waitForDeployment();
@@ -815,6 +826,8 @@ export class DeployHelper {
       },
     });
 
+    const Create2AddressAnchorFactory = await ethers.getContractFactory("Create2AddressAnchor");
+
     let identityTreeStore;
     if (deployStrategy === "create2") {
       this.log("deploying with CREATE2 strategy...");
@@ -830,7 +843,7 @@ export class DeployHelper {
       // Upgrading IdentityTreeStore contract to the first real implementation
       // and force network files import, so creation, as they do not exist at the moment
       const identityTreeStoreAddress = await identityTreeStore.getAddress();
-      await upgrades.forceImport(identityTreeStoreAddress, IdentityTreeStoreFactory);
+      await upgrades.forceImport(identityTreeStoreAddress, Create2AddressAnchorFactory);
       identityTreeStore = await upgrades.upgradeProxy(
         identityTreeStoreAddress,
         IdentityTreeStoreFactory,

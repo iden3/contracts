@@ -53,7 +53,8 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
 
     function initialize(
         address _verifierContractAddr,
-        address _stateContractAddr
+        address _stateContractAddr,
+        address owner
     ) public initializer {
         _setInputToIndex("userID", 0);
         _setInputToIndex("circuitQueryHash", 1);
@@ -70,8 +71,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _setInputToIndex("timestamp", 12);
         _setInputToIndex("isBJJAuthEnabled", 13);
 
-        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID);
-        __Ownable_init(_msgSender());
+        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, owner);
     }
 
     function version() public pure override returns (string memory) {
