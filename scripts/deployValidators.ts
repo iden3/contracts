@@ -1,13 +1,19 @@
 import fs from "fs";
 import path from "path";
 import { DeployHelper } from "../helpers/DeployHelper";
-import hre, { network } from "hardhat";
+import hre, { ethers, network } from "hardhat";
+import { getConfig } from "../helpers/config";
 
 async function main() {
-  const stateAddress = process.env.STATE_CONTRACT_ADDRESS || "";
+  const config = getConfig();
+  const stateAddress = config.stateContractAddress;
+  if (!ethers.isAddress(stateAddress)) {
+    throw new Error("STATE_CONTRACT_ADDRESS is not set");
+  }
+
   const validators: ("mtpV2" | "sigV2" | "v3")[] = ["mtpV2", "sigV2", "v3"];
   const deployStrategy: "basic" | "create2" =
-    process.env.DEPLOY_STRATEGY == "create2" ? "create2" : "basic";
+    config.deployStrategy == "create2" ? "create2" : "basic";
   const [signer] = await hre.ethers.getSigners();
 
   const deployHelper = await DeployHelper.initialize(null, true);
@@ -42,7 +48,7 @@ async function main() {
   const outputJson = {
     proxyAdminOwnerAddress: await signer.getAddress(),
     validatorsInfo,
-    network: process.env.HARDHAT_NETWORK,
+    network: networkName,
     chainId,
   };
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));

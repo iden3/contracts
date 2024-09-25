@@ -1,4 +1,5 @@
 import hre, { ethers } from "hardhat";
+import { getConfig } from "../helpers/config";
 
 const validatorSigContractName = "CredentialAtomicQuerySigV2Validator";
 const validatorMTPContractName = "CredentialAtomicQueryMTPV2Validator";
@@ -8,24 +9,39 @@ async function main() {
   const [signer] = await hre.ethers.getSigners();
   console.log(signer.address);
 
+  const config = getConfig();
+
+  if (!ethers.isAddress(config.universalVerifierContractAddress)) {
+    throw new Error("UNIVERSAL_VERIFIER_CONTRACT_ADDRESS is not set");
+  }
+  if (!ethers.isAddress(config.validatorMTPContractAddress)) {
+    throw new Error("VALIDATOR_MTP_CONTRACT_ADDRESS is not set");
+  }
+  if (!ethers.isAddress(config.validatorSigContractAddress)) {
+    throw new Error("VALIDATOR_SIG_CONTRACT_ADDRESS is not set");
+  }
+  if (!ethers.isAddress(config.validatorV3ContractAddress)) {
+    throw new Error("VALIDATOR_V3_CONTRACT_ADDRESS is not set");
+  }
+
   const universalVerifier = await ethers.getContractAt(
     "UniversalVerifier",
-    process.env.UNIVERSAL_VERIFIER_CONTRACT_ADDRESS as string,
+    config.universalVerifierContractAddress,
   );
 
   console.log("Adding validators to Universal Verifier...");
 
   const validators = [
     {
-      validatorContractAddress: process.env.VALIDATOR_MTP_CONTRACT_ADDRESS,
+      validatorContractAddress: config.validatorMTPContractAddress,
       validatorContractName: validatorMTPContractName,
     },
     {
-      validatorContractAddress: process.env.VALIDATOR_SIG_CONTRACT_ADDRESS,
+      validatorContractAddress: config.validatorSigContractAddress,
       validatorContractName: validatorSigContractName,
     },
     {
-      validatorContractAddress: process.env.VALIDATOR_V3_CONTRACT_ADDRESS,
+      validatorContractAddress: config.validatorV3ContractAddress,
       validatorContractName: validatorV3ContractName,
     },
   ];

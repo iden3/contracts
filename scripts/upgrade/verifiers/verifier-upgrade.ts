@@ -11,6 +11,7 @@ import {
   submitZKPResponses_KYCAgeCredential,
 } from "./helpers/testVerifier";
 import fs from "fs";
+import { getConfig } from "../../../helpers/config";
 
 const validatorSigContractName = "CredentialAtomicQuerySigV2Validator";
 const validatorMTPContractName = "CredentialAtomicQueryMTPV2Validator";
@@ -18,48 +19,17 @@ const validatorV3ContractName = "CredentialAtomicQueryV3Validator";
 const removePreviousIgnitionFiles = true;
 const impersonate = false;
 
-// Amoy deployed contracts (oracle Slack Chat)
-// const proxyAdminOwnerAddress = "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb";
-// const universalVerifierContractAddress = "0xB7487dDa8f0c465730fC715785743C459747bcbC";
-// const universalVerifierOwnerAddress = "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb";
-// const stateContractAddress = "0xDFF190bC887B5Bbae80BCa8999E54ea7d084026f";
-// const validatorSigContractAddress = "0x04dcEd2b96C72eD92f1F066592DBa2b7942d0f3B";
-// const validatorMTPContractAddress = "0x435A97C4653b768Eb7F01F780E2Da72213fB78d6";
-// const validatorV3ContractAddress = "0xb53e2487ff38b59E183125E3cE79679005AbC7b2";
-
-// AMOY documented contracts
-// const proxyAdminOwnerAddress = "0xE9D7fCDf32dF4772A7EF7C24c76aB40E4A42274a";
-// const universalVerifierContractAddress = "0xB752Eec418f178ac8B48f15962B55c37F8D4748d";
-// const universalVerifierOwnerAddress = "0x80203136fAe3111B810106bAa500231D4FD08FC6";
-// const stateContractAddress = "0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124";
-// const validatorSigContractAddress = "0x8c99F13dc5083b1E4c16f269735EaD4cFbc4970d";
-// const validatorMTPContractAddress = "0xEEd5068AD8Fecf0b9a91aF730195Fef9faB00356";
-// const validatorV3ContractAddress = "0xa5f08979370AF7095cDeDb2B83425367316FAD0B";
+const config = getConfig();
 
 const chainId = hre.network.config.chainId;
 const network = hre.network.name;
 
-const uvUpgrade = JSON.parse(
-  fs.readFileSync(
-    `./scripts/deploy_cross_chain_verification_with_requests_output_${chainId}_${network}.json`,
-    "utf-8",
-  ),
-);
-
 async function getSigners(useImpersonation: boolean): Promise<any> {
   if (useImpersonation) {
-    const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(
-      uvUpgrade.proxyAdminOwnerAddress,
-    );
-    const universalVerifierOwnerSigner = await ethers.getImpersonatedSigner(
-      uvUpgrade.universalVerifierOwnerAddress,
-    );
+    const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(config.ledgerAccount);
+    const universalVerifierOwnerSigner = await ethers.getImpersonatedSigner(config.ledgerAccount);
     return { proxyAdminOwnerSigner, universalVerifierOwnerSigner };
   } else {
-    // const privateKey = process.env.PRIVATE_KEY as string;
-    // const proxyAdminOwnerSigner = new ethers.Wallet(privateKey, ethers.provider);
-    // const universalVerifierOwnerSigner = new ethers.Wallet(privateKey, ethers.provider);
-
     const [signer] = await ethers.getSigners();
     const proxyAdminOwnerSigner = signer;
     const universalVerifierOwnerSigner = signer;
@@ -70,6 +40,26 @@ async function getSigners(useImpersonation: boolean): Promise<any> {
 
 async function main() {
   console.log("Starting Universal Verifier Contract Upgrade");
+
+  if (!ethers.isAddress(config.ledgerAccount)) {
+    throw new Error("LEDGER_ACCOUNT is not set");
+  }
+  if (!ethers.isAddress(config.stateContractAddress)) {
+    throw new Error("STATE_CONTRACT_ADDRESS is not set");
+  }
+  if (!ethers.isAddress(config.universalVerifierContractAddress)) {
+    throw new Error("UNIVERSAL_VERIFIER_CONTRACT_ADDRESS is not set");
+  }
+  if (!ethers.isAddress(config.validatorMTPContractAddress)) {
+    throw new Error("VALIDATOR_MTP_CONTRACT_ADDRESS is not set");
+  }
+  if (!ethers.isAddress(config.validatorSigContractAddress)) {
+    throw new Error("VALIDATOR_SIG_CONTRACT_ADDRESS is not set");
+  }
+  if (!ethers.isAddress(config.validatorV3ContractAddress)) {
+    throw new Error("VALIDATOR_V3_CONTRACT_ADDRESS is not set");
+  }
+
   const { proxyAdminOwnerSigner, universalVerifierOwnerSigner } = await getSigners(impersonate);
 
   console.log("Proxy Admin Owner Address: ", await proxyAdminOwnerSigner.getAddress());
@@ -96,7 +86,7 @@ async function main() {
 
   const universalVerifierContract = await universalVerifierMigrationHelper.getInitContract({
     contractNameOrAbi: universalVerifierArtifact.abi,
-    address: uvUpgrade.universalVerifier,
+    address: config.universalVerifierContractAddress,
   });
 
   const universalVerifierOwnerAddressBefore = await universalVerifierContract.owner();
@@ -128,7 +118,7 @@ async function main() {
 
   const state = await ethers.getContractAt(
     stateArtifact.abi,
-    uvUpgrade.state,
+    config.stateContractAddress,
     universalVerifierOwnerSigner,
   );
 
@@ -144,22 +134,22 @@ async function main() {
 
   const validators = [
     {
-      validatorContractAddress: uvUpgrade.validatorMTP,
+      validatorContractAddress: config.validatorMTPContractAddress,
       validatorContractName: validatorMTPContractName,
     },
     {
-      validatorContractAddress: uvUpgrade.validatorSig,
+      validatorContractAddress: config.validatorSigContractAddress,
       validatorContractName: validatorSigContractName,
     },
     {
-      validatorContractAddress: uvUpgrade.validatorV3,
+      validatorContractAddress: config.validatorV3ContractAddress,
       validatorContractName: validatorV3ContractName,
     },
   ];
 
   for (const v of validators) {
     const { validator } = await deployerHelper.upgradeValidator(
-      v.validatorContractAddress,
+      v.validatorContractAddress as string,
       v.validatorContractName,
     );
     await validator.waitForDeployment();
@@ -178,18 +168,18 @@ async function main() {
   }
 
   console.log("Testing verifiation with submitZKPResponseV2 after migration...");
-  await testVerification(universalVerifierContract, uvUpgrade.validatorV3);
+  await testVerification(universalVerifierContract, config.validatorV3ContractAddress);
 }
 
 async function onlyTestVerification() {
   const { universalVerifierOwnerSigner } = await getSigners(impersonate);
   const universalVerifierContract = await ethers.getContractAt(
     universalVerifierArtifact.abi,
-    uvUpgrade.universalVerifier,
+    config.universalVerifierContractAddress,
     universalVerifierOwnerSigner,
   );
   console.log("Testing verifiation with submitZKPResponseV2 after migration...");
-  await testVerification(universalVerifierContract, uvUpgrade.validatorV3);
+  await testVerification(universalVerifierContract, config.validatorV3ContractAddress);
 }
 
 async function upgradeState(deployHelper: DeployHelper, signer: any) {
@@ -197,7 +187,7 @@ async function upgradeState(deployHelper: DeployHelper, signer: any) {
 
   const stateContract = await stateMigrationHelper.getInitContract({
     contractNameOrAbi: stateArtifact.abi,
-    address: uvUpgrade.state,
+    address: config.stateContractAddress,
   });
 
   // **** Upgrade State ****
@@ -229,8 +219,8 @@ async function testVerification(verifier: Contract, validatorV3Address: string) 
   const requestId = 112233;
   await setZKPRequest_KYCAgeCredential(requestId, verifier, validatorV3Address);
   await submitZKPResponses_KYCAgeCredential(requestId, verifier, {
-    stateContractAddress: uvUpgrade.state,
-    verifierContractAddress: uvUpgrade.universalVerifier,
+    stateContractAddress: config.stateContractAddress,
+    verifierContractAddress: config.universalVerifierContractAddress,
   });
 }
 

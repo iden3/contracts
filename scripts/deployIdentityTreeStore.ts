@@ -2,26 +2,29 @@ import { DeployHelper } from "../helpers/DeployHelper";
 import hre, { ethers, network } from "hardhat";
 import path from "path";
 import fs from "fs";
+import { getConfig } from "../helpers/config";
 
 (async () => {
-  const deployStrategy: "basic" | "create2" =
-    process.env.DEPLOY_STRATEGY == "create2" ? "create2" : "basic";
-  const [signer] = await ethers.getSigners();
+  const config = getConfig();
 
-  const deployHelper = await DeployHelper.initialize(null, true);
-
-  const stateContractAddress = process.env.STATE_CONTRACT_ADDRESS || "";
+  const stateContractAddress = config.stateContractAddress;
   if (!ethers.isAddress(stateContractAddress)) {
     throw new Error("STATE_CONTRACT_ADDRESS is not set");
   }
-  const poseidon2ContractAddress = process.env.POSEIDON_2_CONTRACT_ADDRESS || "";
+  const poseidon2ContractAddress = config.poseidon2ContractAddress;
   if (!ethers.isAddress(poseidon2ContractAddress)) {
     throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set");
   }
-  const poseidon3ContractAddress = process.env.POSEIDON_3_CONTRACT_ADDRESS || "";
+  const poseidon3ContractAddress = config.poseidon3ContractAddress;
   if (!ethers.isAddress(poseidon3ContractAddress)) {
     throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set");
   }
+
+  const deployStrategy: "basic" | "create2" =
+    config.deployStrategy == "create2" ? "create2" : "basic";
+  const [signer] = await ethers.getSigners();
+
+  const deployHelper = await DeployHelper.initialize(null, true);
 
   const { identityTreeStore } = await deployHelper.deployIdentityTreeStore(
     stateContractAddress,
@@ -41,7 +44,7 @@ import fs from "fs";
     identityTreeStore: await identityTreeStore.getAddress(),
     poseidon2ContractAddress,
     poseidon3ContractAddress,
-    network: process.env.HARDHAT_NETWORK,
+    network: networkName,
     chainId,
     deployStrategy,
   };

@@ -2,10 +2,12 @@ import fs from "fs";
 import path from "path";
 import { DeployHelper } from "../helpers/DeployHelper";
 import hre, { network } from "hardhat";
+import { getConfig } from "../helpers/config";
 
 async function main() {
+  const config = getConfig();
   const deployStrategy: "basic" | "create2" =
-    process.env.DEPLOY_STRATEGY == "create2" ? "create2" : "basic";
+    config.deployStrategy == "create2" ? "create2" : "basic";
   const [signer] = await hre.ethers.getSigners();
 
   const deployHelper = await DeployHelper.initialize(null, true);
@@ -39,7 +41,7 @@ async function main() {
     poseidon1: await poseidon1.getAddress(),
     poseidon2: await poseidon2.getAddress(),
     poseidon3: await poseidon3.getAddress(),
-    network: process.env.HARDHAT_NETWORK,
+    network: networkName,
     chainId,
     deployStrategy,
   };
