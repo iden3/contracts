@@ -113,9 +113,9 @@ contract State is Ownable2StepUpgradeable, IState {
         $._crossChainProofValidator = validator;
     }
 
-    function processCrossChainProof(bytes calldata proof) public {
+    function processCrossChainProofs(bytes calldata proofs) public {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
-        $.processCrossChainProof(proof);
+        $.processCrossChainProofs(proofs);
     }
 
     /**

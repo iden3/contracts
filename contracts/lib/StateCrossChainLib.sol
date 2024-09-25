@@ -6,22 +6,22 @@ import {IState} from "../interfaces/IState.sol";
 import {State} from "../state/State.sol";
 
 library StateCrossChainLib {
-    function processCrossChainProof(
+    function processCrossChainProofs(
         State.StateCrossChainStorage storage self,
-        bytes calldata proof
+        bytes calldata crossChainProofs
     ) public {
-        if (proof.length == 0) {
+        if (crossChainProofs.length == 0) {
             return;
         }
 
-        IState.CrossChainProof[] memory proofs = abi.decode(proof, (IState.CrossChainProof[]));
+        IState.CrossChainProof[] memory proofs = abi.decode(crossChainProofs, (IState.CrossChainProof[]));
 
         for (uint256 i = 0; i < proofs.length; i++) {
             if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("globalStateProof"))) {
                 IState.GlobalStateProcessResult memory gsp = self
                     ._crossChainProofValidator
                     .processGlobalStateProof(proofs[i].proof);
-                self._rootToGistRootReplacedAt[gsp.idType][gsp.root] = gsp.replacedAtTimestamps;
+                self._rootToGistRootReplacedAt[gsp.idType][gsp.root] = gsp.replacedAtTimestamp;
             } else if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("stateProof"))) {
                 IState.IdentityStateProcessResult memory isu = self
                     ._crossChainProofValidator

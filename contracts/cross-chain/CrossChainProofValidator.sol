@@ -80,7 +80,7 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
             IState.GlobalStateProcessResult({
                 idType: gsu.globalStateMsg.idType,
                 root: gsu.globalStateMsg.root,
-                replacedAtTimestamps: _calcReplacedAt(
+                replacedAtTimestamp: _calcReplacedAt(
                     gsu.globalStateMsg.timestamp,
                     gsu.globalStateMsg.replacedAtTimestamp
                 )

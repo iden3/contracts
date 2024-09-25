@@ -133,14 +133,14 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
 
     /// @notice Submits a ZKP response V2 and updates proof status
     /// @param responses The list of responses including ZKP request ID, ZK proof and metadata
-    /// @param crossChainProof The list of cross chain proofs from universal resolver (oracle)
+    /// @param crossChainProofs The list of cross chain proofs from universal resolver (oracle)
     function submitZKPResponseV2(
         ZKPResponse[] memory responses,
-        bytes memory crossChainProof
+        bytes memory crossChainProofs
     ) public virtual {
         ZKPVerifierStorage storage $ = _getZKPVerifierStorage();
 
-        $._state.processCrossChainProof(crossChainProof);
+        $._state.processCrossChainProofs(crossChainProofs);
 
         for (uint256 i = 0; i < responses.length; i++) {
             ZKPResponse memory response = responses[i];
