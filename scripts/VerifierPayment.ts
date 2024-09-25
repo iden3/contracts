@@ -8,13 +8,6 @@ async function main() {
   console.log("VerifierPayment deployed to:", await vp.getAddress());
 }
 
-getBalance()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
-
 async function signWithdrawal(issuer) {
   const value = {
     issuer,
@@ -89,3 +82,10 @@ async function getBalance() {
   vp.connect(verifier);
   console.log("Verifier balance:", ethers.formatEther(await vp.getBalance()));
 }
+
+getBalance()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
