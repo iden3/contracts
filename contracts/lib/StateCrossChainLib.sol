@@ -6,6 +6,10 @@ import {IState} from "../interfaces/IState.sol";
 import {State} from "../state/State.sol";
 
 library StateCrossChainLib {
+    bytes32 private constant GLOBAL_STATE_PROOF_TYPE = keccak256(bytes("globalStateProof"));
+
+    bytes32 private constant STATE_PROOF_TYPE = keccak256(bytes("stateProof"));
+
     function processCrossChainProofs(
         State.StateCrossChainStorage storage self,
         bytes calldata crossChainProofs
@@ -14,15 +18,18 @@ library StateCrossChainLib {
             return;
         }
 
-        IState.CrossChainProof[] memory proofs = abi.decode(crossChainProofs, (IState.CrossChainProof[]));
+        IState.CrossChainProof[] memory proofs = abi.decode(
+            crossChainProofs,
+            (IState.CrossChainProof[])
+        );
 
         for (uint256 i = 0; i < proofs.length; i++) {
-            if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("globalStateProof"))) {
+            if (keccak256(bytes(proofs[i].proofType)) == GLOBAL_STATE_PROOF_TYPE) {
                 IState.GlobalStateProcessResult memory gsp = self
                     ._crossChainProofValidator
                     .processGlobalStateProof(proofs[i].proof);
                 self._rootToGistRootReplacedAt[gsp.idType][gsp.root] = gsp.replacedAtTimestamp;
-            } else if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("stateProof"))) {
+            } else if (keccak256(bytes(proofs[i].proofType)) == STATE_PROOF_TYPE) {
                 IState.IdentityStateProcessResult memory isu = self
                     ._crossChainProofValidator
                     .processIdentityStateProof(proofs[i].proof);
