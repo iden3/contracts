@@ -9,7 +9,7 @@ import {PoseidonUnit1L} from "../lib/Poseidon.sol";
 import {StateLib} from "../lib/StateLib.sol";
 import {StateCrossChainLib} from "../lib/StateCrossChainLib.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
-import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
+import {ICrossChainProofValidator} from "../interfaces/ICrossChainProofValidator.sol";
 
 /// @title Set and get states for each identity
 contract State is Ownable2StepUpgradeable, IState {
@@ -62,7 +62,7 @@ contract State is Ownable2StepUpgradeable, IState {
     struct StateCrossChainStorage {
         mapping(uint256 id => mapping(uint256 state => uint256 replacedAt)) _idToStateReplacedAt;
         mapping(bytes2 idType => mapping(uint256 root => uint256 replacedAt)) _rootToGistRootReplacedAt;
-        IOracleProofValidator _oracleProofValidator;
+        ICrossChainProofValidator _crossChainProofValidator;
         IState _state;
     }
 
@@ -91,7 +91,7 @@ contract State is Ownable2StepUpgradeable, IState {
         IStateTransitionVerifier verifierContractAddr,
         bytes2 defaultIdType,
         address owner,
-        IOracleProofValidator validator
+        ICrossChainProofValidator validator
     ) public initializer {
         if (!_gistData.initialized) {
             _gistData.initialize(MAX_SMT_DEPTH);
@@ -105,17 +105,17 @@ contract State is Ownable2StepUpgradeable, IState {
         _setDefaultIdType(defaultIdType);
         __Ownable_init(owner);
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
-        $._oracleProofValidator = validator;
+        $._crossChainProofValidator = validator;
     }
 
-    function setOracleProofValidator(IOracleProofValidator validator) public onlyOwner {
+    function setCrossChainProofValidator(ICrossChainProofValidator validator) public onlyOwner {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
-        $._oracleProofValidator = validator;
+        $._crossChainProofValidator = validator;
     }
 
-    function processCrossChainProof(bytes calldata proof) public {
+    function processCrossChainProofs(bytes calldata proofs) public {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
-        $.processCrossChainProof(proof);
+        $.processCrossChainProofs(proofs);
     }
 
     /**
@@ -218,9 +218,9 @@ contract State is Ownable2StepUpgradeable, IState {
      * @dev Get cross chain proof validator contract address
      * @return verifier contract address
      */
-    function getOracleProofValidator() external view returns (address) {
+    function getCrossChainProofValidator() external view returns (address) {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
-        return address($._oracleProofValidator);
+        return address($._crossChainProofValidator);
     }
 
     /**

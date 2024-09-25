@@ -124,8 +124,8 @@ async function main() {
 
   console.log("Id Type configured in state: ", await state.getDefaultIdType());
 
-  const oracleProofValidatorAddress = await state.getOracleProofValidator();
-  console.log("oracleProofValidatorAddress: ", oracleProofValidatorAddress);
+  const crossChainProofValidatorAddress = await state.getCrossChainProofValidator();
+  console.log("crossChainProofValidatorAddress: ", crossChainProofValidatorAddress);
 
   const tx = await universalVerifierContract.setState(state);
   await tx.wait();

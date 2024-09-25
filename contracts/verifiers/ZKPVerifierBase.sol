@@ -55,8 +55,8 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
 
     using VerifierLib for ZKPVerifierStorage;
 
-    function __ZKPVerifierBase_init(IState stateCrossChain) internal onlyInitializing {
-        __ZKPVerifierBase_init_unchained(stateCrossChain);
+    function __ZKPVerifierBase_init(IState state) internal onlyInitializing {
+        __ZKPVerifierBase_init_unchained(state);
     }
 
     function __ZKPVerifierBase_init_unchained(IState state) internal onlyInitializing {
@@ -119,7 +119,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         ZKPVerifierStorage storage $ = _getZKPVerifierStorage();
 
         IZKPVerifier.ZKPRequest memory request = $._requests[requestId];
-        ICircuitValidator.Signal[] memory signals = request.validator.verify(
+        ICircuitValidator.KeyToInputIndex[] memory keyToInpIdxs = request.validator.verify(
             inputs,
             a,
             b,
@@ -128,19 +128,19 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             sender
         );
 
-        $.writeProofResults(sender, requestId, signals);
+        $.writeProofResults(sender, requestId, keyToInpIdxs, inputs);
     }
 
     /// @notice Submits a ZKP response V2 and updates proof status
     /// @param responses The list of responses including ZKP request ID, ZK proof and metadata
-    /// @param crossChainProof The list of cross chain proofs from universal resolver (oracle)
+    /// @param crossChainProofs The list of cross chain proofs from universal resolver (oracle)
     function submitZKPResponseV2(
         ZKPResponse[] memory responses,
-        bytes memory crossChainProof
+        bytes memory crossChainProofs
     ) public virtual {
         ZKPVerifierStorage storage $ = _getZKPVerifierStorage();
 
-        $._state.processCrossChainProof(crossChainProof);
+        $._state.processCrossChainProofs(crossChainProofs);
 
         for (uint256 i = 0; i < responses.length; i++) {
             ZKPResponse memory response = responses[i];
@@ -156,7 +156,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
                 $._state
             );
 
-            $.writeProofResults(sender, response.requestId, signals);
+            $.writeProofResultsV2(sender, response.requestId, signals);
 
             if (response.data.length > 0) {
                 revert("Metadata not supported yet");
@@ -182,7 +182,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         public
         virtual
         checkRequestExistence(requestId, true)
-        returns (ICircuitValidator.Signal[] memory)
+        returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
         IZKPVerifier.ZKPRequest storage request = _getZKPVerifierStorage()._requests[requestId];
         return request.validator.verify(inputs, a, b, c, request.data, sender);

@@ -25,25 +25,23 @@ contract ValidatorStub is ICircuitValidator, ERC165 {
             super.supportsInterface(interfaceId);
     }
 
-    // solhint-disable no-unused-vars
     function verify(
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
-        bytes calldata data,
-        address sender
-    ) external pure override returns (ICircuitValidator.Signal[] memory) {
-        ICircuitValidator.Signal[] memory signals;
-        return signals;
+        uint256[] calldata,
+        uint256[2] calldata,
+        uint256[2][2] calldata,
+        uint256[2] calldata,
+        bytes calldata,
+        address
+    ) external pure override returns (ICircuitValidator.KeyToInputIndex[] memory) {
+        ICircuitValidator.KeyToInputIndex[] memory keyToInputIndexes;
+        return keyToInputIndexes;
     }
-    // solhint-enable no-unused-vars
 
     function verifyV2(
-        bytes calldata zkProof,
-        bytes calldata data,
-        address sender,
-        IState state
+        bytes calldata,
+        bytes calldata,
+        address,
+        IState
     ) external pure override returns (ICircuitValidator.Signal[] memory) {
         ICircuitValidator.Signal[] memory signals;
         return signals;

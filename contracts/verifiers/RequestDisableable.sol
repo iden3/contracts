@@ -61,7 +61,7 @@ contract RequestDisableable is ZKPVerifierBase {
         virtual
         override
         onlyEnabledRequest(requestId)
-        returns (ICircuitValidator.Signal[] memory)
+        returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
         return super.verifyZKPResponse(requestId, inputs, a, b, c, sender);
     }

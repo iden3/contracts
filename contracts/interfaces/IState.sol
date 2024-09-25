@@ -99,13 +99,13 @@ interface IState {
     struct GlobalStateProcessResult {
         bytes2 idType;
         uint256 root;
-        uint256 replacedAt;
+        uint256 replacedAtTimestamp;
     }
 
     struct IdentityStateProcessResult {
         uint256 id;
         uint256 state;
-        uint256 replacedAt;
+        uint256 replacedAtTimestamp;
     }
 
     /**
@@ -216,5 +216,5 @@ interface IState {
         uint256 root
     ) external view returns (uint256 replacedAtTimestamps);
 
-    function processCrossChainProof(bytes calldata proof) external;
+    function processCrossChainProofs(bytes calldata proofs) external;
 }

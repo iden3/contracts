@@ -57,7 +57,7 @@ export class DeployHelper {
     stateLib: Contract;
     smtLib: Contract;
     stateCrossChainLib: Contract;
-    oracleProofValidator: Contract;
+    crossChainProofValidator: Contract;
     poseidon1: Contract;
     poseidon2: Contract;
     poseidon3: Contract;
@@ -121,8 +121,8 @@ export class DeployHelper {
       deployStrategy,
     );
 
-    this.log("deploying OracleProofValidator...");
-    const oracleProofValidator = await this.deployOracleProofValidator();
+    this.log("deploying CrossChainProofValidator...");
+    const crossChainProofValidator = await this.deployCrossChainProofValidator();
 
     this.log("deploying State...");
 
@@ -162,7 +162,7 @@ export class DeployHelper {
             await g16Verifier.getAddress(),
             defaultIdType,
             await owner.getAddress(),
-            await oracleProofValidator.getAddress(),
+            await crossChainProofValidator.getAddress(),
           ],
         },
       });
@@ -175,7 +175,7 @@ export class DeployHelper {
           await g16Verifier.getAddress(),
           defaultIdType,
           await owner.getAddress(),
-          await oracleProofValidator.getAddress(),
+          await crossChainProofValidator.getAddress(),
         ],
         {
           unsafeAllow: ["external-library-linking"],
@@ -206,7 +206,7 @@ export class DeployHelper {
       stateLib,
       smtLib,
       stateCrossChainLib,
-      oracleProofValidator,
+      crossChainProofValidator: crossChainProofValidator,
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
@@ -217,14 +217,14 @@ export class DeployHelper {
   async upgradeState(
     stateAddress: string,
     redeployVerifier = true,
-    redeployOracleProofValidator = true,
+    redeployCrossChainProofValidator = true,
     g16VerifierContractName = "Groth16VerifierStateTransition",
     stateContractName = "State",
-    oracleProofValidatorContractName = "OracleProofValidator",
+    crossChainProofValidatorContractName = "CrossChainProofValidator",
   ): Promise<{
     state: Contract;
     g16Verifier: Contract;
-    oracleProofValidator: Contract;
+    crossChainProofValidator: Contract;
     smtLib: Contract;
     stateLib: Contract;
     stateCrossChainLib: Contract;
@@ -301,23 +301,23 @@ export class DeployHelper {
       );
     }
 
-    this.log("deploying oracleProofValidator...");
+    this.log("deploying crossChainProofValidator...");
 
     let opvContract: Contract;
-    if (redeployOracleProofValidator) {
-      opvContract = await this.deployOracleProofValidator(oracleProofValidatorContractName);
+    if (redeployCrossChainProofValidator) {
+      opvContract = await this.deployCrossChainProofValidator(crossChainProofValidatorContractName);
       this.log(
-        `${oracleProofValidatorContractName} contract deployed to address ${await opvContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
+        `${crossChainProofValidatorContractName} contract deployed to address ${await opvContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
       );
-      const tx = await stateContract.setOracleProofValidator(await opvContract.getAddress());
+      const tx = await stateContract.setCrossChainProofValidator(await opvContract.getAddress());
       // If testing with forked zkevm network wait for 1 confirmation, otherwise is waiting forever
       const waitConfirmations = network.name === "localhost" || network.name === "hardhat" ? 1 : 5;
       // ignition needs 5 confirmations for deployment/upgrade transactions to work
       await tx.wait(waitConfirmations);
     } else {
       opvContract = await ethers.getContractAt(
-        oracleProofValidatorContractName,
-        await stateContract.getOracleProofValidator(),
+        crossChainProofValidatorContractName,
+        await stateContract.getCrossChainProofValidator(),
       );
     }
 
@@ -325,7 +325,7 @@ export class DeployHelper {
     return {
       state: stateContract,
       g16Verifier: g16VerifierContract,
-      oracleProofValidator: opvContract,
+      crossChainProofValidator: opvContract,
       smtLib,
       stateLib,
       stateCrossChainLib,
@@ -461,30 +461,30 @@ export class DeployHelper {
     return bsWrapper;
   }
 
-  async deployOracleProofValidator(
-    contractName = "OracleProofValidator",
+  async deployCrossChainProofValidator(
+    contractName = "CrossChainProofValidator",
     domainName = "StateInfo",
     signatureVersion = "1",
   ): Promise<Contract> {
     const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
     const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
 
-    const oracleProofValidator = await ethers.deployContract(contractName, [
+    const crossChainProofValidator = await ethers.deployContract(contractName, [
       domainName,
       signatureVersion,
       oracleSigningAddress,
     ]);
-    await oracleProofValidator.waitForDeployment();
+    await crossChainProofValidator.waitForDeployment();
     // We need to wait at least 5 confirmation blocks with ignition
     const confirmations =
       hre.network.name === "localhost" || hre.network.name === "hardhat" ? 1 : 5;
-    const tx = await oracleProofValidator.deploymentTransaction();
+    const tx = await crossChainProofValidator.deploymentTransaction();
     if (tx) {
       console.log("Waiting for 5 confirmations of the deployment transaction...");
       await tx.wait(confirmations);
     }
-    console.log(`${contractName} deployed to:`, await oracleProofValidator.getAddress());
-    return oracleProofValidator;
+    console.log(`${contractName} deployed to:`, await crossChainProofValidator.getAddress());
+    return crossChainProofValidator;
   }
 
   async deployValidatorContracts(

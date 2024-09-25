@@ -21,7 +21,7 @@ async function main() {
     poseidon1,
     poseidon2,
     poseidon3,
-    oracleProofValidator,
+    crossChainProofValidator,
   } = await deployHelper.deployState([], "Groth16VerifierStateTransition", deployStrategy);
 
   const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
@@ -37,7 +37,7 @@ async function main() {
     stateLib: await stateLib.getAddress(),
     smtLib: await smtLib.getAddress(),
     stateCrossChainLib: await stateCrossChainLib.getAddress(),
-    oracleProofValidator: await oracleProofValidator.getAddress(),
+    crossChainProofValidator: await crossChainProofValidator.getAddress(),
     poseidon1: await poseidon1.getAddress(),
     poseidon2: await poseidon2.getAddress(),
     poseidon3: await poseidon3.getAddress(),
