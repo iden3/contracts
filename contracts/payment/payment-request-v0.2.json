@@ -1,0 +1,45 @@
+{
+    "id": "36f9e851-d713-4b50-8f8d-8a9382f138ca",
+    "thid": "36f9e851-d713-4b50-8f8d-8a9382f138ca",
+    "typ": "application/iden3comm-plain-json",
+    "type": "https://iden3-communication.io/credentials/0.2/payment-request",
+    "body": {
+       "agent": "https://issuer.com",
+       "payments": [
+        {
+         "credentials": [
+          {
+           "type": "AML",
+           "context": "http://test.com"
+          }
+         ],
+         "type":"PaymentRequest",
+         "data":{
+             "type":"Iden3PaymentRailsRequestV1",
+             "id": "ox", // operation id (mandatory)
+             "scope": [
+                {
+                    "chainId": 137,
+                    "contractAddress": "0x",
+                    "issuerId": "issuer-id", // to track the issuer (withdrow info and more) on the contract
+                    "schemaHash": "credential schema hash", //(not required) credential schema hash 
+                    "amount": 0.002,
+                    "currency": "ETH",
+                    "expirationTime": 1231289371,
+                    "nonce": 25,
+                    "proof": {
+                        "type": "EIP712",
+                        "value": "0xsignature"
+                    }
+                }
+             ]
+         },
+         "expiration": "timestamp", // expiration time of payment-request
+         "description":"you can pass the verification on our KYC provider by following the next link",
+       }
+        ]
+    },
+    "to": "did:polygonid:polygon:mumbai:2qJUZDSCFtpR8QvHyBC4eFm6ab9sJo5rqPbcaeyGC4",
+    "from": "did:iden3:polygon:mumbai:x3HstHLj2rTp6HHXk2WczYP7w3rpCsRbwCMeaQ2H2"
+  }
+}
