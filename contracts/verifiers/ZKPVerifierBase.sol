@@ -55,8 +55,8 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
 
     using VerifierLib for ZKPVerifierStorage;
 
-    function __ZKPVerifierBase_init(IState stateCrossChain) internal onlyInitializing {
-        __ZKPVerifierBase_init_unchained(stateCrossChain);
+    function __ZKPVerifierBase_init(IState state) internal onlyInitializing {
+        __ZKPVerifierBase_init_unchained(state);
     }
 
     function __ZKPVerifierBase_init_unchained(IState state) internal onlyInitializing {

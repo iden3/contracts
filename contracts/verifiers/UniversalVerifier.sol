@@ -46,9 +46,9 @@ contract UniversalVerifier is
     }
 
     /// @dev Initializes the contract
-    function initialize(IState stateCrossChain, address owner) public initializer {
+    function initialize(IState state, address owner) public initializer {
         __Ownable_init(owner);
-        __ZKPVerifierBase_init(stateCrossChain);
+        __ZKPVerifierBase_init(state);
     }
 
     /// @dev Version of contract getter
