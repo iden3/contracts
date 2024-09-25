@@ -4,7 +4,7 @@ pragma solidity 0.8.26;
 import {IState} from "./IState.sol";
 import {IState} from "./IState.sol";
 
-interface IOracleProofValidator {
+interface ICrossChainProofValidator {
     function processGlobalStateProof(
         bytes calldata globalStateProof
     ) external returns (IState.GlobalStateProcessResult memory);

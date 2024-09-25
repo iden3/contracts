@@ -53,15 +53,7 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         bytes calldata data,
         address sender
     ) public view override returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        _verifyMain(
-            inputs,
-            a,
-            b,
-            c,
-            data,
-            sender,
-            IState(getStateAddress())
-        );
+        _verifyMain(inputs, a, b, c, data, sender, IState(getStateAddress()));
 
         return _getSpecialInputIndexes();
     }
@@ -160,12 +152,21 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         return signals;
     }
 
-    function _getSpecialInputIndexes() internal view returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        ICircuitValidator.KeyToInputIndex[] memory keyToInputIndexes = new ICircuitValidator.KeyToInputIndex[](
-            2
-        );
-        keyToInputIndexes[0] = ICircuitValidator.KeyToInputIndex({key: "userID", inputIndex: inputIndexOf("userID")});
-        keyToInputIndexes[1] = ICircuitValidator.KeyToInputIndex({key: "timestamp", inputIndex: inputIndexOf("timestamp")});
+    function _getSpecialInputIndexes()
+        internal
+        view
+        returns (ICircuitValidator.KeyToInputIndex[] memory)
+    {
+        ICircuitValidator.KeyToInputIndex[]
+            memory keyToInputIndexes = new ICircuitValidator.KeyToInputIndex[](2);
+        keyToInputIndexes[0] = ICircuitValidator.KeyToInputIndex({
+            key: "userID",
+            inputIndex: inputIndexOf("userID")
+        });
+        keyToInputIndexes[1] = ICircuitValidator.KeyToInputIndex({
+            key: "timestamp",
+            inputIndex: inputIndexOf("timestamp")
+        });
         return keyToInputIndexes;
     }
 }

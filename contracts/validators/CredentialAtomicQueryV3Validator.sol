@@ -107,15 +107,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         bytes calldata data,
         address sender
     ) public view override returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        (, bool hasSD ) = _verifyMain(
-            inputs,
-            a,
-            b,
-            c,
-            data,
-            sender,
-            IState(getStateAddress())
-        );
+        (, bool hasSD) = _verifyMain(inputs, a, b, c, data, sender, IState(getStateAddress()));
 
         return _getSpecialInputIndexes(hasSD);
     }
@@ -133,7 +125,15 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
             uint256[2] memory c
         ) = abi.decode(zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
-        (PubSignals memory pubSignals, bool hasSD ) = _verifyMain(inputs, a, b, c, data, sender, stateContract);
+        (PubSignals memory pubSignals, bool hasSD) = _verifyMain(
+            inputs,
+            a,
+            b,
+            c,
+            data,
+            sender,
+            stateContract
+        );
         return _getSpecialSignals(pubSignals, hasSD);
     }
 
@@ -255,9 +255,8 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         bool hasSelectiveDisclosure
     ) internal view returns (ICircuitValidator.KeyToInputIndex[] memory) {
         uint256 numSignals = hasSelectiveDisclosure ? 5 : 4;
-        ICircuitValidator.KeyToInputIndex[] memory keyToInputIndexes = new ICircuitValidator.KeyToInputIndex[](
-            numSignals
-        );
+        ICircuitValidator.KeyToInputIndex[]
+            memory keyToInputIndexes = new ICircuitValidator.KeyToInputIndex[](numSignals);
 
         uint i = 0;
         keyToInputIndexes[i++] = ICircuitValidator.KeyToInputIndex({

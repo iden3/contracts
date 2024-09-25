@@ -5,13 +5,13 @@ import { Contract } from "ethers";
 import { ethers } from "hardhat";
 
 describe("State Cross Chain", function () {
-  let oracleProofValidator: Contract;
+  let crossChainProofValidator: Contract;
   let signer;
 
   beforeEach(async function () {
     [signer] = await ethers.getSigners();
     const deployHelper = await DeployHelper.initialize(null, true);
-    oracleProofValidator = await deployHelper.deployOracleProofValidator();
+    crossChainProofValidator = await deployHelper.deployCrossChainProofValidator();
   });
 
   it("Should process the messages without replacedAtTimestamp", async function () {
@@ -34,8 +34,8 @@ describe("State Cross Chain", function () {
     const gsu = await packGlobalStateUpdateWithSignature(gsm, signer);
     const isu = await packIdentityStateUpdateWithSignature(ism, signer);
 
-    const gspResult = await oracleProofValidator.processGlobalStateProof(gsu);
-    const ispResult = await oracleProofValidator.processIdentityStateProof(isu);
+    const gspResult = await crossChainProofValidator.processGlobalStateProof(gsu);
+    const ispResult = await crossChainProofValidator.processIdentityStateProof(isu);
 
     // result should be equal to timestamp from oracle as far as replacedAtTimestamp is zero in the messages
     expect(gspResult.replacedAt).to.equal(gsm.timestamp);
@@ -62,8 +62,8 @@ describe("State Cross Chain", function () {
     const gsu = await packGlobalStateUpdateWithSignature(gsm, signer);
     const isu = await packIdentityStateUpdateWithSignature(ism, signer);
 
-    const gspResult = await oracleProofValidator.processGlobalStateProof(gsu);
-    const ispResult = await oracleProofValidator.processIdentityStateProof(isu);
+    const gspResult = await crossChainProofValidator.processGlobalStateProof(gsu);
+    const ispResult = await crossChainProofValidator.processIdentityStateProof(isu);
 
     // result should be equal replacedAtTimestamp in the messages
     expect(gspResult.replacedAt).to.equal(gsm.replacedAtTimestamp);
@@ -81,7 +81,7 @@ describe("State Cross Chain", function () {
     };
 
     const proof = await packIdentityStateUpdateWithSignature(ism, signer);
-    await expect(oracleProofValidator.processIdentityStateProof(proof)).to.be.rejectedWith(
+    await expect(crossChainProofValidator.processIdentityStateProof(proof)).to.be.rejectedWith(
       "Oracle timestamp cannot be in the past",
     );
   });
@@ -97,7 +97,7 @@ describe("State Cross Chain", function () {
     };
 
     let proof = await packGlobalStateUpdateWithSignature(gsm, signer);
-    await expect(oracleProofValidator.processGlobalStateProof(proof)).to.be.rejectedWith(
+    await expect(crossChainProofValidator.processGlobalStateProof(proof)).to.be.rejectedWith(
       "Oracle replacedAt or oracle timestamp cannot be in the future",
     );
 
@@ -109,7 +109,7 @@ describe("State Cross Chain", function () {
     };
 
     proof = await packIdentityStateUpdateWithSignature(ism, signer);
-    await expect(oracleProofValidator.processIdentityStateProof(proof)).to.be.rejectedWith(
+    await expect(crossChainProofValidator.processIdentityStateProof(proof)).to.be.rejectedWith(
       "Oracle replacedAt or oracle timestamp cannot be in the future",
     );
   });
@@ -125,7 +125,7 @@ describe("State Cross Chain", function () {
     };
 
     let proof = await packGlobalStateUpdateWithSignature(gsm, signer, true);
-    await expect(oracleProofValidator.processGlobalStateProof(proof)).to.be.rejectedWith(
+    await expect(crossChainProofValidator.processGlobalStateProof(proof)).to.be.rejectedWith(
       "Global state proof is not valid",
     );
 
@@ -137,7 +137,7 @@ describe("State Cross Chain", function () {
     };
 
     proof = await packIdentityStateUpdateWithSignature(ism, signer, true);
-    await expect(oracleProofValidator.processIdentityStateProof(proof)).to.be.rejectedWith(
+    await expect(crossChainProofValidator.processIdentityStateProof(proof)).to.be.rejectedWith(
       "Identity state proof is not valid",
     );
   });

@@ -39,7 +39,7 @@ async function main() {
   }
   // ##################### State with StateCrossChainLib deploy #####################
 
-  const { state, oracleProofValidator } = await deployHelper.deployState();
+  const { state, crossChainProofValidator } = await deployHelper.deployState();
 
   // ##################### Validator deploy #####################
 
@@ -500,7 +500,7 @@ async function main() {
     universalVerifierOwnerAddress: await signer.getAddress(),
     state: await state.getAddress(),
     universalVerifier: await verifier.getAddress(),
-    oracleProofValidator: await oracleProofValidator.getAddress(),
+    crossChainProofValidator: await crossChainProofValidator.getAddress(),
     validatorSig: await validatorSig.getAddress(),
     validatorMTP: await validatorMTP.getAddress(),
     validatorV3: await validatorV3.getAddress(),

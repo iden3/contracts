@@ -142,12 +142,12 @@ export class StateContractMigrationHelper extends ContractMigrationSteps {
   async upgradeContract(
     stateContract: Contract,
     redeployVerifier = true,
-    redeployOracleProofValidator = true,
+    redeployCrossChainProofValidator = true,
   ): Promise<any> {
     return await this._stateDeployHelper.upgradeState(
       await stateContract.getAddress(),
       redeployVerifier,
-      redeployOracleProofValidator,
+      redeployCrossChainProofValidator,
     );
   }
 

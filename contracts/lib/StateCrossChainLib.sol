@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.26;
 
-import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
+import {ICrossChainProofValidator} from "../interfaces/ICrossChainProofValidator.sol";
 import {IState} from "../interfaces/IState.sol";
 import {State} from "../state/State.sol";
 
@@ -19,12 +19,12 @@ library StateCrossChainLib {
         for (uint256 i = 0; i < proofs.length; i++) {
             if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("globalStateProof"))) {
                 IState.GlobalStateProcessResult memory gsp = self
-                    ._oracleProofValidator
+                    ._crossChainProofValidator
                     .processGlobalStateProof(proofs[i].proof);
                 self._rootToGistRootReplacedAt[gsp.idType][gsp.root] = gsp.replacedAt;
             } else if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("stateProof"))) {
                 IState.IdentityStateProcessResult memory isu = self
-                    ._oracleProofValidator
+                    ._crossChainProofValidator
                     .processIdentityStateProof(proofs[i].proof);
                 self._idToStateReplacedAt[isu.id][isu.state] = isu.replacedAt;
             } else {

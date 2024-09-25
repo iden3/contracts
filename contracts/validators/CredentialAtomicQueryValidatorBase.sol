@@ -9,7 +9,7 @@ import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
 import {PoseidonFacade} from "../lib/Poseidon.sol";
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
-import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
+import {ICrossChainProofValidator} from "../interfaces/ICrossChainProofValidator.sol";
 
 abstract contract CredentialAtomicQueryValidatorBase is
     Ownable2StepUpgradeable,

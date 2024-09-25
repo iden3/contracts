@@ -2,11 +2,11 @@
 pragma solidity 0.8.26;
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils, EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
-import {IOracleProofValidator} from "../interfaces/IOracleProofValidator.sol";
+import {ICrossChainProofValidator} from "../interfaces/ICrossChainProofValidator.sol";
 import {IState} from "../interfaces/IState.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract OracleProofValidator is Ownable, EIP712, IOracleProofValidator {
+contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator {
     using ECDSA for bytes32;
 
     bytes32 public constant TYPE_HASH =

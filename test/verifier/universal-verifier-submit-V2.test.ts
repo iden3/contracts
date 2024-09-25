@@ -17,7 +17,7 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
   let signer;
   let signerAddress: string;
   let deployHelper: DeployHelper;
-  let stateCrossChainStub, oracleProofValidatorStub, validatorStub: Contract;
+  let stateCrossChainStub, crossChainProofValidatorStub, validatorStub: Contract;
 
   const globalStateMessage = {
     timestamp: BigInt(Math.floor(Date.now() / 1000)),
@@ -60,10 +60,10 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     signerAddress = await signer.getAddress();
 
     deployHelper = await DeployHelper.initialize(null, true);
-    oracleProofValidatorStub = await deployHelper.deployOracleProofValidator();
+    crossChainProofValidatorStub = await deployHelper.deployCrossChainProofValidator();
 
     const { state } = await deployHelper.deployState(["0x01A1", "0x0102"]);
-    await state.setOracleProofValidator(oracleProofValidatorStub);
+    await state.setCrossChainProofValidator(crossChainProofValidatorStub);
     stateCrossChainStub = state;
 
     const verifierLib = await deployHelper.deployVerifierLib();
