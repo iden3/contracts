@@ -19,7 +19,9 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         );
 
     bytes32 public constant PAYMENT_DATA_TYPE_HASH =
-        keccak256("PaymentData(uint256 issuerId,uint256 schemaHash,uint256 value,uint256 expirationDate,uint256 nonce)");
+        keccak256(
+            "PaymentData(uint256 issuerId,uint256 schemaHash,uint256 value,uint256 expirationDate,uint256 nonce)"
+        );
 
     struct PaymentData {
         uint256 issuerId;
@@ -84,9 +86,9 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         verifySignature(paymentData, signature);
 
         MCPaymentStorage storage $ = _getMCPaymentStorage();
-        
+
         bytes32 paymentId = keccak256(abi.encode(paymentData.issuerId, paymentData.nonce));
-        
+
         if ($.isPaid[paymentId]) {
             revert PaymentError("MCPayment: payment already paid");
         }
@@ -105,10 +107,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         return $.isPaid[keccak256(abi.encode(issuerId, nonce))];
     }
 
-    function verifySignature(
-        PaymentData memory paymentData,
-        bytes memory signature
-    ) public view {
+    function verifySignature(PaymentData memory paymentData, bytes memory signature) public view {
         bytes32 structHash = keccak256(
             abi.encode(
                 PAYMENT_DATA_TYPE_HASH,
@@ -132,6 +131,5 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         if (recovered != info.issuerAddress) {
             revert InvalidSignature("MCPayment: invalid signature");
         }
-        
     }
 }
