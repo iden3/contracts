@@ -21,12 +21,12 @@ library StateCrossChainLib {
                 IState.GlobalStateProcessResult memory gsp = self
                     ._crossChainProofValidator
                     .processGlobalStateProof(proofs[i].proof);
-                self._rootToGistRootReplacedAt[gsp.idType][gsp.root] = gsp.replacedAt;
+                self._rootToGistRootReplacedAt[gsp.idType][gsp.root] = gsp.replacedAtTimestamps;
             } else if (keccak256(bytes(proofs[i].proofType)) == keccak256(bytes("stateProof"))) {
                 IState.IdentityStateProcessResult memory isu = self
                     ._crossChainProofValidator
                     .processIdentityStateProof(proofs[i].proof);
-                self._idToStateReplacedAt[isu.id][isu.state] = isu.replacedAt;
+                self._idToStateReplacedAt[isu.id][isu.state] = isu.replacedAtTimestamp;
             } else {
                 revert("Unknown proof type");
             }

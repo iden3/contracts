@@ -99,13 +99,13 @@ interface IState {
     struct GlobalStateProcessResult {
         bytes2 idType;
         uint256 root;
-        uint256 replacedAt;
+        uint256 replacedAtTimestamps;
     }
 
     struct IdentityStateProcessResult {
         uint256 id;
         uint256 state;
-        uint256 replacedAt;
+        uint256 replacedAtTimestamp;
     }
 
     /**

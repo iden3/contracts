@@ -77,14 +77,14 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
         require(isValid && recovered == _oracleSigningAddress, "Global state proof is not valid");
 
         return
-            IState.GlobalStateProcessResult(
-                gsu.globalStateMsg.idType,
-                gsu.globalStateMsg.root,
-                _calcReplacedAt(
+            IState.GlobalStateProcessResult({
+                idType: gsu.globalStateMsg.idType,
+                root: gsu.globalStateMsg.root,
+                replacedAtTimestamps: _calcReplacedAt(
                     gsu.globalStateMsg.timestamp,
                     gsu.globalStateMsg.replacedAtTimestamp
                 )
-            );
+            });
     }
 
     function processIdentityStateProof(
@@ -102,11 +102,14 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
         require(isValid && recovered == _oracleSigningAddress, "Identity state proof is not valid");
 
         return
-            IState.IdentityStateProcessResult(
-                isu.idStateMsg.id,
-                isu.idStateMsg.state,
-                _calcReplacedAt(isu.idStateMsg.timestamp, isu.idStateMsg.replacedAtTimestamp)
-            );
+            IState.IdentityStateProcessResult({
+                id: isu.idStateMsg.id,
+                state: isu.idStateMsg.state,
+                replacedAtTimestamp: _calcReplacedAt(
+                    isu.idStateMsg.timestamp,
+                    isu.idStateMsg.replacedAtTimestamp
+                )
+            });
     }
 
     /**
@@ -194,7 +197,7 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
         replacedAt = replacedAtTimestamp == 0 ? oracleTimestamp : replacedAtTimestamp;
 
         if (replacedAt > block.timestamp + MAX_REPLACED_AT_AHEAD_OF_TIME) {
-            revert("Oracle replacedAt or oracle timestamp cannot be in the future");
+            revert("Oracle replacedAtTimestamp or oracle timestamp cannot be in the future");
         }
 
         // this should never happen as block.timestamp is always greater than 0
