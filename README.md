@@ -45,7 +45,7 @@ The deployment is configured to be done with Ledger device for signing the trans
 You should configure your Ledger device for `blind signing` in your Ethereum app.
 If your device is not detected then review USB connection issues [here](https://support.ledger.com/article/115005165269-zd).
 
-Configure a `.env` file for deployments like this an fill the `LEDGER_ACCOUNT` with your Ledger account address and the desired networks rpc urls where you want to deploy.
+Configure a `.env` file for deployments like this and fill the `LEDGER_ACCOUNT` with your Ledger account address and the desired network rpc urls where you want to deploy.
 ```
 LEDGER_ACCOUNT="<your Ledger deployer address>"
 
@@ -76,11 +76,11 @@ LINEA_SEPOLIA_RPC_URL=<rpc url for linea sepolia>
 
 Then run the deployment scripts:
 
-1. Deploy create2AnchorAddress
+1. Deploy create2AnchorAddress that we use for unified addresses
    ```shell
    npx hardhat run scripts/deployCreate2AddressAnchor.ts --network <your-network>
    ```
-2. Deploy State
+2. Deploy State contract
    ```shell
    npx hardhat run scripts/deployState.ts --network <your-network>
    ```
@@ -91,22 +91,21 @@ Then run the deployment scripts:
    POSEIDON_3_CONTRACT_ADDRESS=
    ```
 
-3. Deploy Identity Tree Store
+3. Deploy Identity Tree Store contract
    ```
    npx hardhat run scripts/deployIdentityTreeStore.ts --network <your-network>
    ```
-4. Deploy Validators
+4. Deploy Validators contracts
    ```
    npx hardhat run scripts/deployValidators.ts --network <your-network>
    ```
    Once validators are deployed replace contract addresses with yours from the validators deployment in your `.env` file
    ```
-   UNIVERSAL_VERIFIER_CONTRACT_ADDRESS=
    VALIDATOR_MTP_CONTRACT_ADDRESS=
    VALIDATOR_SIG_CONTRACT_ADDRESS=
    VALIDATOR_V3_CONTRACT_ADDRESS=
    ```
-5. Deploy Universal Verifier
+5. Deploy Universal Verifier contract
    ```
    npx hardhat run scripts/deployUniversalVerifier.ts --network <your-network>
    ```
@@ -114,7 +113,7 @@ Then run the deployment scripts:
    ```
    UNIVERSAL_VERIFIER_CONTRACT_ADDRESS=
    ```
-6. Add validators to Universal Verifier
+6. Add validators to whitelisted validators in Universal Verifier
    ```
    npx hardhat run scripts/addValidatorsToUniversalVerifier.ts --network <your-network>
    ```

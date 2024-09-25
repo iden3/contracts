@@ -11,7 +11,6 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const DEFAULT_MNEMONIC = "test test test test test test test test test test test junk";
-const DEFAULT_PRIVATE_KEY = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -53,55 +52,111 @@ const config: HardhatUserConfig = {
     "polygon-mainnet": {
       chainId: 137,
       url: `${process.env.POLYGON_MAINNET_RPC_URL}`,
-      // accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      // accounts: process.env.PRIVATE_KEY
+      //   ? [`0x${process.env.PRIVATE_KEY}`]
+      //   : {
+      //       mnemonic: DEFAULT_MNEMONIC,
+      //       path: "m/44'/60'/0'/0",
+      //       initialIndex: 0,
+      //       count: 20,
+      //     },
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "polygon-amoy": {
       chainId: 80002,
       url: `${process.env.POLYGON_AMOY_RPC_URL}`,
-      // accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      // accounts: process.env.PRIVATE_KEY
+      //   ? [`0x${process.env.PRIVATE_KEY}`]
+      //   : {
+      //       mnemonic: DEFAULT_MNEMONIC,
+      //       path: "m/44'/60'/0'/0",
+      //       initialIndex: 0,
+      //       count: 20,
+      //     },
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "ethereum-mainnet": {
       chainId: 1,
       url: `${process.env.ETHEREUM_MAINNET_RPC_URL}`,
-      // accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      // accounts: process.env.PRIVATE_KEY
+      //   ? [`0x${process.env.PRIVATE_KEY}`]
+      //   : {
+      //       mnemonic: DEFAULT_MNEMONIC,
+      //       path: "m/44'/60'/0'/0",
+      //       initialIndex: 0,
+      //       count: 20,
+      //     },
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "ethereum-sepolia": {
       chainId: 11155111,
       url: `${process.env.ETHEREUM_SEPOLIA_RPC_URL}`,
-      // accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      // accounts: process.env.PRIVATE_KEY
+      //   ? [`0x${process.env.PRIVATE_KEY}`]
+      //   : {
+      //       mnemonic: DEFAULT_MNEMONIC,
+      //       path: "m/44'/60'/0'/0",
+      //       initialIndex: 0,
+      //       count: 20,
+      //     },
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "zkevm-mainnet": {
       chainId: 1101,
       url: `${process.env.ZKEVM_MAINNET_RPC_URL}`,
-      // accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      // accounts: process.env.PRIVATE_KEY
+      //   ? [`0x${process.env.PRIVATE_KEY}`]
+      //   : {
+      //       mnemonic: DEFAULT_MNEMONIC,
+      //       path: "m/44'/60'/0'/0",
+      //       initialIndex: 0,
+      //       count: 20,
+      //     },
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "zkevm-cardona": {
       chainId: 2442,
       url: `${process.env.ZKEVM_CARDONA_RPC_URL}`,
-      // accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      // accounts: process.env.PRIVATE_KEY
+      //   ? [`0x${process.env.PRIVATE_KEY}`]
+      //   : {
+      //       mnemonic: DEFAULT_MNEMONIC,
+      //       path: "m/44'/60'/0'/0",
+      //       initialIndex: 0,
+      //       count: 20,
+      //     },
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "linea-mainnet": {
       chainId: 59144,
       url: `${process.env.LINEA_MAINNET_RPC_URL}`,
-      // accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      // accounts: process.env.PRIVATE_KEY
+      //   ? [`0x${process.env.PRIVATE_KEY}`]
+      //   : {
+      //       mnemonic: DEFAULT_MNEMONIC,
+      //       path: "m/44'/60'/0'/0",
+      //       initialIndex: 0,
+      //       count: 20,
+      //     },
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "linea-sepolia": {
       chainId: 59141,
       url: `${process.env.LINEA_SEPOLIA_RPC_URL}`,
-      // accounts: [`0x${process.env.PRIVATE_KEY ?? DEFAULT_PRIVATE_KEY}`],
+      // accounts: process.env.PRIVATE_KEY
+      //   ? [`0x${process.env.PRIVATE_KEY}`]
+      //   : {
+      //       mnemonic: DEFAULT_MNEMONIC,
+      //       path: "m/44'/60'/0'/0",
+      //       initialIndex: 0,
+      //       count: 20,
+      //     },
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     // hardhat: {
     //   chainId: 80002,
     //   forking: {
-    //     url: `${process.env.AMOY_RPC_URL}`,
+    //     url: `${process.env.POLYGON_AMOY_RPC_URL}`,
     //   },
     //   chains: {
     //     80002: {
@@ -112,7 +167,7 @@ const config: HardhatUserConfig = {
     //   },
     //   accounts: [
     //     {
-    //       privateKey: process.env.AMOY_PRIVATE_KEY as string,
+    //       privateKey: process.env.PRIVATE_KEY as string,
     //       balance: "1000000000000000000000000",
     //     },
     //   ],
