@@ -53,7 +53,7 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         bytes calldata data,
         address sender
     ) public view override returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        ICircuitValidator.Signal[] memory specialSignals = _verifyMain(
+        _verifyMain(
             inputs,
             a,
             b,
@@ -63,19 +63,7 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
             IState(getStateAddress())
         );
 
-        ICircuitValidator.KeyToInputIndex[]
-            memory keyToInputIndexes = new ICircuitValidator.KeyToInputIndex[](
-                specialSignals.length
-            );
-
-        for (uint256 i = 0; i < specialSignals.length; i++) {
-            keyToInputIndexes[i] = ICircuitValidator.KeyToInputIndex({
-                key: specialSignals[i].name,
-                inputIndex: inputIndexOf(specialSignals[i].name)
-            });
-        }
-
-        return keyToInputIndexes;
+        return _getSpecialInputIndexes();
     }
 
     function verifyV2(
@@ -91,7 +79,8 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
             uint256[2] memory c
         ) = abi.decode(zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
-        return _verifyMain(inputs, a, b, c, data, sender, stateContract);
+        PubSignals memory pubSignals = _verifyMain(inputs, a, b, c, data, sender, stateContract);
+        return _getSpecialSignals(pubSignals);
     }
 
     function _verifyMain(
@@ -102,7 +91,7 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         bytes calldata data,
         address sender,
         IState state
-    ) internal view returns (ICircuitValidator.Signal[] memory) {
+    ) internal view returns (PubSignals memory) {
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
 
         require(credAtomicQuery.circuitIds.length == 1, "circuitIds length is not equal to 1");
@@ -140,7 +129,7 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         _checkClaimIssuanceState(pubSignals.issuerID, pubSignals.issuerState, state);
         _checkClaimNonRevState(pubSignals.issuerID, pubSignals.issuerClaimNonRevState, state);
 
-        return _getSpecialSignals(pubSignals);
+        return pubSignals;
     }
 
     function _checkMerklized(uint256 merklized, uint256 queryClaimPathKey) internal pure {
@@ -169,5 +158,14 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         signals[0] = ICircuitValidator.Signal({name: "userID", value: pubSignals.userID});
         signals[1] = ICircuitValidator.Signal({name: "timestamp", value: pubSignals.timestamp});
         return signals;
+    }
+
+    function _getSpecialInputIndexes() internal view returns (ICircuitValidator.KeyToInputIndex[] memory) {
+        ICircuitValidator.KeyToInputIndex[] memory keyToInputIndexes = new ICircuitValidator.KeyToInputIndex[](
+            2
+        );
+        keyToInputIndexes[0] = ICircuitValidator.KeyToInputIndex({key: "userID", inputIndex: inputIndexOf("userID")});
+        keyToInputIndexes[1] = ICircuitValidator.KeyToInputIndex({key: "timestamp", inputIndex: inputIndexOf("timestamp")});
+        return keyToInputIndexes;
     }
 }

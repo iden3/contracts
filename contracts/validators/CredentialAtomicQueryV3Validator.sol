@@ -107,7 +107,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         bytes calldata data,
         address sender
     ) public view override returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        ICircuitValidator.Signal[] memory specialSignals = _verifyMain(
+        (, bool hasSD ) = _verifyMain(
             inputs,
             a,
             b,
@@ -116,17 +116,8 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
             sender,
             IState(getStateAddress())
         );
-        ICircuitValidator.KeyToInputIndex[]
-            memory keyToInputIndexes = new ICircuitValidator.KeyToInputIndex[](
-                specialSignals.length
-            );
-        for (uint256 i = 0; i < specialSignals.length; i++) {
-            keyToInputIndexes[i] = ICircuitValidator.KeyToInputIndex({
-                key: specialSignals[i].name,
-                inputIndex: inputIndexOf(specialSignals[i].name)
-            });
-        }
-        return keyToInputIndexes;
+
+        return _getSpecialInputIndexes(hasSD);
     }
 
     function verifyV2(
@@ -142,7 +133,8 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
             uint256[2] memory c
         ) = abi.decode(zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
-        return _verifyMain(inputs, a, b, c, data, sender, stateContract);
+        (PubSignals memory pubSignals, bool hasSD ) = _verifyMain(inputs, a, b, c, data, sender, stateContract);
+        return _getSpecialSignals(pubSignals, hasSD);
     }
 
     function _verifyMain(
@@ -153,19 +145,13 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         bytes calldata data,
         address sender,
         IState state
-    ) internal view returns (ICircuitValidator.Signal[] memory) {
+    ) internal view returns (PubSignals memory, bool) {
         CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
             data,
             (CredentialAtomicQueryV3)
         );
 
-        require(credAtomicQuery.circuitIds.length == 1, "circuitIds length is not equal to 1");
-
-        IVerifier verifier = getVerifierByCircuitId(credAtomicQuery.circuitIds[0]);
-        require(verifier != IVerifier(address(0)), "Verifier address should not be zero");
-
-        // verify that zkp is valid
-        require(verifier.verify(a, b, c, inputs), "Proof is not valid");
+        _verifyZKP(inputs, a, b, c, credAtomicQuery);
 
         PubSignals memory pubSignals = parsePubSignals(inputs);
 
@@ -195,7 +181,23 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _checkChallenge(pubSignals.challenge, sender);
 
         // if operator == 16 then we have selective disclosure
-        return _getSpecialSignals(pubSignals, credAtomicQuery.operator == 16);
+        return (pubSignals, credAtomicQuery.operator == 16);
+    }
+
+    function _verifyZKP(
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
+        CredentialAtomicQueryV3 memory credAtomicQuery
+    ) internal view {
+        require(credAtomicQuery.circuitIds.length == 1, "circuitIds length is not equal to 1");
+
+        IVerifier verifier = getVerifierByCircuitId(credAtomicQuery.circuitIds[0]);
+        require(verifier != IVerifier(address(0)), "Verifier address should not be zero");
+
+        // verify that zkp is valid
+        require(verifier.verify(a, b, c, inputs), "Proof is not valid");
     }
 
     function _checkLinkID(uint256 groupID, uint256 linkID) internal pure {
@@ -247,5 +249,40 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         signals[i++] = ICircuitValidator.Signal({name: "timestamp", value: pubSignals.timestamp});
 
         return signals;
+    }
+
+    function _getSpecialInputIndexes(
+        bool hasSelectiveDisclosure
+    ) internal view returns (ICircuitValidator.KeyToInputIndex[] memory) {
+        uint256 numSignals = hasSelectiveDisclosure ? 5 : 4;
+        ICircuitValidator.KeyToInputIndex[] memory keyToInputIndexes = new ICircuitValidator.KeyToInputIndex[](
+            numSignals
+        );
+
+        uint i = 0;
+        keyToInputIndexes[i++] = ICircuitValidator.KeyToInputIndex({
+            key: "userID",
+            inputIndex: inputIndexOf("userID")
+        });
+        keyToInputIndexes[i++] = ICircuitValidator.KeyToInputIndex({
+            key: "linkID",
+            inputIndex: inputIndexOf("linkID")
+        });
+        keyToInputIndexes[i++] = ICircuitValidator.KeyToInputIndex({
+            key: "nullifier",
+            inputIndex: inputIndexOf("nullifier")
+        });
+        if (hasSelectiveDisclosure) {
+            keyToInputIndexes[i++] = ICircuitValidator.KeyToInputIndex({
+                key: "operatorOutput",
+                inputIndex: inputIndexOf("operatorOutput")
+            });
+        }
+        keyToInputIndexes[i++] = ICircuitValidator.KeyToInputIndex({
+            key: "timestamp",
+            inputIndex: inputIndexOf("timestamp")
+        });
+
+        return keyToInputIndexes;
     }
 }
