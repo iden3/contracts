@@ -46,8 +46,6 @@ export const create2AddressesInfo: {
       "CredentialAtomicQueryV3Validator",
       ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3Validator")),
     )
-    .set(
-      "IdentityTreeStore",
-      ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.IdentityTreeStore")),
-    ),
+    .set("IdentityTreeStore", ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.IdentityTreeStore")))
+    .set("VCPayment", ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.VCPayment"))),
 };

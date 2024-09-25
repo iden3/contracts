@@ -1,15 +1,19 @@
-import { ethers, run, upgrades } from "hardhat";
-import { VCPayment, VCPayment__factory } from "../typechain-types";
+import { run } from "hardhat";
+import { getConfig } from "../helpers/config";
+import { DeployHelper } from "../helpers/DeployHelper";
 
 async function main() {
-  const [owner] = await ethers.getSigners();
-  const proxy = (await upgrades.deployProxy(new VCPayment__factory(owner))) as unknown as VCPayment;
-  await proxy.waitForDeployment();
+  const config = getConfig();
+  const deployStrategy: "basic" | "create2" =
+    config.deployStrategy == "create2" ? "create2" : "basic";
 
-  console.log(VCPayment__factory.name, " deployed to:", await proxy.getAddress());
+  const deployHelper = await DeployHelper.initialize(null, true);
+
+  const { vcPayment } = await deployHelper.deployVCPayment(deployStrategy);
+
   try {
     await run("verify:verify", {
-      address: await proxy.getAddress(),
+      address: await vcPayment.getAddress(),
       constructorArguments: [],
     });
   } catch (error) {

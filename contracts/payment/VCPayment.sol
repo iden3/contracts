@@ -101,8 +101,8 @@ contract VCPayment is Ownable2StepUpgradeable {
     /**
      * @dev Initialize the contract
      */
-    function initialize() public initializer {
-        __Ownable_init(_msgSender());
+    function initialize(address owner) public initializer {
+        __Ownable_init(owner);
     }
 
     function setPaymentValue(

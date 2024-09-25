@@ -19,6 +19,7 @@ import {
   CredentialAtomicQuerySigV2ValidatorModule,
   CredentialAtomicQueryV3ValidatorModule,
   VerifierLibModule,
+  VCPaymentModule,
 } from "../ignition";
 import { chainIdInfoMap } from "./constants";
 
@@ -873,6 +874,50 @@ export class DeployHelper {
 
     return {
       identityTreeStore,
+    };
+  }
+
+  async deployVCPayment(deployStrategy: "basic" | "create2" = "basic"): Promise<{
+    vcPayment: Contract;
+  }> {
+    const owner = this.signers[0];
+    const VCPaymentFactory = await ethers.getContractFactory("VCPayment");
+    const Create2AddressAnchorFactory = await ethers.getContractFactory("Create2AddressAnchor");
+
+    let vcPayment;
+    if (deployStrategy === "create2") {
+      this.log("deploying with CREATE2 strategy...");
+
+      // Deploying VCPayment contract to predictable address but with dummy implementation
+      vcPayment = (
+        await ignition.deploy(VCPaymentModule, {
+          strategy: deployStrategy,
+        })
+      ).vcPayment;
+      await vcPayment.waitForDeployment();
+
+      // Upgrading VCPayment contract to the first real implementation
+      // and force network files import, so creation, as they do not exist at the moment
+      const vcPaymentAddress = await vcPayment.getAddress();
+      await upgrades.forceImport(vcPaymentAddress, Create2AddressAnchorFactory);
+      vcPayment = await upgrades.upgradeProxy(vcPaymentAddress, VCPaymentFactory, {
+        redeployImplementation: "always",
+        call: {
+          fn: "initialize",
+          args: [await owner.getAddress()],
+        },
+      });
+    } else {
+      this.log("deploying with BASIC strategy...");
+
+      vcPayment = await upgrades.deployProxy(VCPaymentFactory, [await owner.getAddress()]);
+    }
+
+    await vcPayment.waitForDeployment();
+    console.log("\nVCPayment deployed to:", await vcPayment.getAddress());
+
+    return {
+      vcPayment,
     };
   }
 
