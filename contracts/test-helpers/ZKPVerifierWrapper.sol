@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.26;
+pragma solidity 0.8.27;
 
 import {EmbeddedZKPVerifier} from "../verifiers/EmbeddedZKPVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
