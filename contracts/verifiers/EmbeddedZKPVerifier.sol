@@ -2,11 +2,9 @@
 pragma solidity 0.8.26;
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
-import {ArrayUtils} from "../lib/ArrayUtils.sol";
 import {IState} from "../interfaces/IState.sol";
 
 abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {

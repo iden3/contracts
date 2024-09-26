@@ -3,7 +3,6 @@ pragma solidity 0.8.26;
 
 import {IIdentifiable} from "../interfaces/IIdentifiable.sol";
 import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredentialStatusResolver.sol";
-import {IState} from "../interfaces/IState.sol";
 import {IdentityLib} from "../lib/IdentityLib.sol";
 import {SmtLib} from "../lib/SmtLib.sol";
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";

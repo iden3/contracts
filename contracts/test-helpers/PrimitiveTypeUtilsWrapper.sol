@@ -2,7 +2,6 @@
 pragma solidity 0.8.26;
 
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
-import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
 contract PrimitiveTypeUtilsWrapper {
     function addressToUint256LE(address _addr) public pure returns (uint256) {

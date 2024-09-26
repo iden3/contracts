@@ -2,7 +2,6 @@
 pragma solidity 0.8.26;
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import {IState} from "../interfaces/IState.sol";
 import {ClaimBuilder} from "../lib/ClaimBuilder.sol";
 import {IdentityLib} from "../lib/IdentityLib.sol";
 import {IdentityBase} from "../lib/IdentityBase.sol";

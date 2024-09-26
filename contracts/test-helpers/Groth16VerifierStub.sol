@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.26;
 
-import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IStateTransitionVerifier} from "../interfaces/IStateTransitionVerifier.sol";
 
 contract Groth16VerifierStub is IStateTransitionVerifier {

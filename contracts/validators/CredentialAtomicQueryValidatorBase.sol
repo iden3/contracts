@@ -7,9 +7,7 @@ import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
-import {PoseidonFacade} from "../lib/Poseidon.sol";
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
-import {ICrossChainProofValidator} from "../interfaces/ICrossChainProofValidator.sol";
 
 abstract contract CredentialAtomicQueryValidatorBase is
     Ownable2StepUpgradeable,

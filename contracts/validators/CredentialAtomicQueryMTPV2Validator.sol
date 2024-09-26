@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.26;
 
-import {IVerifier} from "../interfaces/IVerifier.sol";
-import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {CredentialAtomicQueryV2ValidatorBase} from "./CredentialAtomicQueryV2ValidatorBase.sol";
 
 contract CredentialAtomicQueryMTPV2Validator is CredentialAtomicQueryV2ValidatorBase {

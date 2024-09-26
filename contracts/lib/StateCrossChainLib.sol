@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.26;
 
-import {ICrossChainProofValidator} from "../interfaces/ICrossChainProofValidator.sol";
 import {IState} from "../interfaces/IState.sol";
 import {State} from "../state/State.sol";
 
