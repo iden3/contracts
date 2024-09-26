@@ -20,15 +20,19 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
 
     bytes32 public constant PAYMENT_DATA_TYPE_HASH =
         keccak256(
-            "PaymentData(uint256 issuerId,uint256 schemaHash,uint256 value,uint256 expirationDate,uint256 nonce)"
+            "PaymentData(uint256 issuerId,uint256 value,uint256 expirationDate,uint256 nonce,bytes metadata)"
         );
 
     struct PaymentData {
         uint256 issuerId;
-        uint256 schemaHash;
         uint256 value;
         uint256 expirationDate;
         uint256 nonce;
+        bytes metadata;
+    }
+
+    struct PaymentMetadata {
+        uint256 schemaHash;
     }
 
     struct IssuerInfo {
@@ -112,12 +116,20 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
             abi.encode(
                 PAYMENT_DATA_TYPE_HASH,
                 paymentData.issuerId,
-                paymentData.schemaHash,
                 paymentData.value,
                 paymentData.expirationDate,
-                paymentData.nonce
+                paymentData.nonce,
+                keccak256(paymentData.metadata)
             )
         );
+
+        PaymentMetadata memory metadata = abi.decode(
+            paymentData.metadata,
+            (PaymentMetadata)
+        );
+
+        console.log('metadata.schemaHash', metadata.schemaHash);
+
         bytes32 hashTypedData = _hashTypedDataV4(structHash);
         (address recovered, ECDSA.RecoverError err, ) = hashTypedData.tryRecover(signature);
 

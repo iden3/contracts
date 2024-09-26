@@ -14,10 +14,10 @@ describe.only("VC Payment Contract", () => {
   const types = {
     PaymentData: [
       { name: "issuerId", type: "uint256" },
-      { name: "schemaHash", type: "uint256" },
       { name: "value", type: "uint256" },
       { name: "expirationDate", type: "uint256" },
       { name: "nonce", type: "uint256" },
+      { name: "metadata", type: "bytes" },
     ],
   };
 
@@ -44,10 +44,10 @@ describe.only("VC Payment Contract", () => {
   it("Check signature verification:", async () => {
     const paymentData = {
       issuerId: issuerId1.bigInt(),
-      schemaHash: 0,
       value: 100,
       expirationDate: 10000000,
       nonce: 25,
+      metadata: packPaymentMetaData("123"),
     };
     const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
     console.log("signer address", issuer1Signer.address);
@@ -57,10 +57,10 @@ describe.only("VC Payment Contract", () => {
   it.only("Check payment:", async () => {
     const paymentData = {
       issuerId: issuerId1.bigInt(),
-      schemaHash: 0,
       value: 100,
       expirationDate: 10000000,
       nonce: 25,
+      metadata: packPaymentMetaData("3333"),
     };
     const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
     console.log("signer address", issuer1Signer.address);
@@ -73,3 +73,14 @@ describe.only("VC Payment Contract", () => {
     expect(isPaymentDone).to.be.true;
   });
 });
+
+function packPaymentMetaData(schemaHash: string): string {
+  return new ethers.AbiCoder().encode(
+    ["tuple(uint256 schemaHash)"],
+    [
+      {
+        schemaHash: schemaHash,
+      },
+    ],
+  );
+}
