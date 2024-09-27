@@ -1,0 +1,61 @@
+diff --git a/node_modules/@nomicfoundation/hardhat-ledger/dist/src/provider.js b/node_modules/@nomicfoundation/hardhat-ledger/dist/src/provider.js
+index caf192d..24ea7bd 100644
+--- a/node_modules/@nomicfoundation/hardhat-ledger/dist/src/provider.js
++++ b/node_modules/@nomicfoundation/hardhat-ledger/dist/src/provider.js
+@@ -42,6 +42,7 @@ const cache = __importStar(require("./internal/cache"));
+ const utils_1 = require("./internal/utils");
+ const wrap_transport_1 = require("./internal/wrap-transport");
+ const errors_2 = require("./errors");
++const { textChangeRangeIsUnchanged } = require("typescript");
+ class LedgerProvider extends chainId_1.ProviderWrapperWithChainId {
+     static async create(options, wrappedProvider) {
+         const provider = new LedgerProvider(options, wrappedProvider);
+@@ -102,7 +103,8 @@ class LedgerProvider extends chainId_1.ProviderWrapperWithChainId {
+             return this._setOutputEnabled(params);
+         }
+         if (args.method === "eth_accounts") {
+-            const accounts = (await this._wrappedProvider.request(args));
++            const chainId = await this._getChainId();
++            const accounts = chainId == 2442 || chainId == 1101 ? [] : (await this._wrappedProvider.request(args));
+             return [...accounts, ...this.options.accounts];
+         }
+         if (this._methodRequiresSignature(args.method)) {
+@@ -117,6 +119,7 @@ class LedgerProvider extends chainId_1.ProviderWrapperWithChainId {
+                     return await this._ethSignTypedDataV4(params);
+                 }
+                 if (args.method === "eth_sendTransaction" && params.length > 0) {
++                    
+                     return await this._ethSendTransaction(params);
+                 }
+             }
+@@ -226,6 +229,7 @@ class LedgerProvider extends chainId_1.ProviderWrapperWithChainId {
+             txRequest.nonce = await this._getNonce(txRequest.from);
+         }
+         const chainId = await this._getChainId();  
++        
+         const baseTx = {
+             chainId,
+             gasLimit: txRequest.gas,
+@@ -241,7 +245,11 @@ class LedgerProvider extends chainId_1.ProviderWrapperWithChainId {
+         if (txRequest.data !== undefined) {
+             baseTx.data = (0, utils_1.toHex)(txRequest.data);
+         }
++        if (chainId == 2442 || chainId == 1101) {
++            baseTx.type = 0;
++        }
+         const txToSign = ethers_1.ethers.Transaction.from(baseTx).unsignedSerialized.substring(2);
++
+         const resolution = await hw_app_eth_1.ledgerService.resolveTransaction(txToSign, {}, {});
+         const signature = await this._withConfirmation(() => this.eth.signTransaction(path, txToSign, resolution));
+         const rawTransaction = ethers_1.ethers.Transaction.from({
+@@ -252,6 +260,10 @@ class LedgerProvider extends chainId_1.ProviderWrapperWithChainId {
+                 s: (0, utils_1.toHex)(signature.s),
+             },
+         }).serialized;
++        /* console.log({
++            method: "eth_sendRawTransaction",
++            params: [rawTransaction],
++        }) */
+         return this._wrappedProvider.request({
+             method: "eth_sendRawTransaction",
+             params: [rawTransaction],
