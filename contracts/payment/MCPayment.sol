@@ -60,8 +60,8 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
      * @dev Initialize the contract
      */
     function initialize(uint8 ownerPercentage) public initializer {
-         MCPaymentStorage storage $ = _getMCPaymentStorage();
-         $.ownerPercentage = ownerPercentage;
+        MCPaymentStorage storage $ = _getMCPaymentStorage();
+        $.ownerPercentage = ownerPercentage;
         __EIP712_init("MCPayment", VERSION);
         __Ownable_init(_msgSender());
     }
@@ -71,7 +71,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         $.ownerPercentage = ownerPercentage;
     }
 
-    function pay(PaymentData memory paymentData, bytes memory signature) external payable { // 30-40k gas
+    function pay(PaymentData memory paymentData, bytes memory signature) external payable {
         verifySignature(paymentData, signature);
         bytes32 paymentId = keccak256(abi.encode(paymentData.recipient, paymentData.nonce));
         MCPaymentStorage storage $ = _getMCPaymentStorage();
