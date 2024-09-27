@@ -20,25 +20,15 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
 
     bytes32 public constant PAYMENT_DATA_TYPE_HASH =
         keccak256(
-            "PaymentData(uint256 issuerId,uint256 value,uint256 expirationDate,uint256 nonce,bytes metadata)"
+            "PaymentData(address recipient,uint256 value,uint256 expirationDate,uint256 nonce,bytes metadata)"
         );
 
     struct PaymentData {
-        uint256 issuerId;
+        address recipient;
         uint256 value;
         uint256 expirationDate;
         uint256 nonce;
         bytes metadata;
-    }
-
-    struct PaymentMetadata {
-        uint256 schemaHash;
-    }
-
-    struct IssuerInfo {
-        address issuerAddress;
-        uint256 balance;
-        uint8 ownerPercentage;
     }
 
     /**
@@ -46,11 +36,9 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
      */
     /// @custom:storage-location erc7201:iden3.storage.MCPayment
     struct MCPaymentStorage {
-        /**
-         * @dev mapping of paymentDataId - keccak256(abi.encode(issuerId, nonce)) => bool to check if nonce it paid
-         */
         mapping(bytes32 paymentDataId => bool isPaid) isPaid;
-        mapping(uint256 issuerId => IssuerInfo info) issuerAddressInfo;
+        mapping(address recipient => uint256 balance) balance;
+        uint8 ownerPercentage;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.MultichainPayment")) - 1)) &
@@ -64,45 +52,44 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         }
     }
 
-    event Payment(uint256 indexed issuerId, uint256 schemaHash, uint256 nonce);
+    event Payment(address indexed recipient, uint256 indexed nonce);
     error InvalidSignature(string message);
     error PaymentError(string message);
 
     /**
      * @dev Initialize the contract
      */
-    function initialize() public initializer {
+    function initialize(uint8 ownerPercentage) public initializer {
+         MCPaymentStorage storage $ = _getMCPaymentStorage();
+         $.ownerPercentage = ownerPercentage;
         __EIP712_init("MCPayment", VERSION);
         __Ownable_init(_msgSender());
     }
 
-    function setIssuer(
-        uint256 issuerId,
-        address issuerAddress,
-        uint8 ownerPercentage
-    ) external onlyOwner {
-        IssuerInfo memory issuerInfo = IssuerInfo(issuerAddress, 0, ownerPercentage);
+    function updateOwnerPercentage(uint8 ownerPercentage) external onlyOwner {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
-        $.issuerAddressInfo[issuerId] = issuerInfo;
+        $.ownerPercentage = ownerPercentage;
     }
 
-    function pay(PaymentData memory paymentData, bytes memory signature) external payable {
+    function pay(PaymentData memory paymentData, bytes memory signature) external payable { // 30-40k gas
         verifySignature(paymentData, signature);
-
+        bytes32 paymentId = keccak256(abi.encode(paymentData.recipient, paymentData.nonce));
         MCPaymentStorage storage $ = _getMCPaymentStorage();
-
-        bytes32 paymentId = keccak256(abi.encode(paymentData.issuerId, paymentData.nonce));
-
         if ($.isPaid[paymentId]) {
             revert PaymentError("MCPayment: payment already paid");
         }
         if (paymentData.value != msg.value) {
             revert PaymentError("MCPayment: invalid payment value");
         }
+        if (paymentData.expirationDate < block.timestamp) {
+            revert PaymentError("MCPayment: payment expired");
+        }
 
-        IssuerInfo memory info = $.issuerAddressInfo[paymentData.issuerId];
-        info.balance += msg.value;
+        uint256 ownerPart = (msg.value * $.ownerPercentage) / 100;
+        uint256 issuerPart = msg.value - ownerPart;
 
+        $.balance[paymentData.recipient] += issuerPart;
+        emit Payment(paymentData.recipient, paymentData.nonce);
         $.isPaid[paymentId] = true;
     }
 
@@ -115,32 +102,17 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         bytes32 structHash = keccak256(
             abi.encode(
                 PAYMENT_DATA_TYPE_HASH,
-                paymentData.issuerId,
+                paymentData.recipient,
                 paymentData.value,
                 paymentData.expirationDate,
                 paymentData.nonce,
                 keccak256(paymentData.metadata)
             )
         );
-
-        PaymentMetadata memory metadata = abi.decode(
-            paymentData.metadata,
-            (PaymentMetadata)
-        );
-
-        console.log('metadata.schemaHash', metadata.schemaHash);
-
         bytes32 hashTypedData = _hashTypedDataV4(structHash);
         (address recovered, ECDSA.RecoverError err, ) = hashTypedData.tryRecover(signature);
 
-        console.log("recovered signer", recovered);
-        require(err == ECDSA.RecoverError.NoError, "MCPayment: invalid signature");
-
-        MCPaymentStorage storage $ = _getMCPaymentStorage();
-        IssuerInfo memory info = $.issuerAddressInfo[paymentData.issuerId];
-        console.log("withdraw address", info.issuerAddress);
-
-        if (recovered != info.issuerAddress) {
+        if (err != ECDSA.RecoverError.NoError || recovered != paymentData.recipient) {
             revert InvalidSignature("MCPayment: invalid signature");
         }
     }

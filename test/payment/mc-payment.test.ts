@@ -1,7 +1,7 @@
 import { DID } from "@iden3/js-iden3-core";
 import { ethers, upgrades } from "hardhat";
 import { MCPayment, MCPayment__factory } from "../../typechain-types";
-import { Signer } from "ethers";
+import { Contract, Signer } from "ethers";
 import { expect } from "chai";
 
 describe.only("VC Payment Contract", () => {
@@ -10,10 +10,10 @@ describe.only("VC Payment Contract", () => {
     DID.parse("did:polygonid:polygon:amoy:2qQ68JkRcf3ymy9wtzKyY3Dajst9c6cHCDZyx7NrTz"),
   );
   let issuer1Signer, issuer2Signer, owner, userSigner: Signer, domainData;
-
+  const ownerPercentage = 10;
   const types = {
     PaymentData: [
-      { name: "issuerId", type: "uint256" },
+      { name: "recipient", type: "address" },
       { name: "value", type: "uint256" },
       { name: "expirationDate", type: "uint256" },
       { name: "nonce", type: "uint256" },
@@ -22,16 +22,17 @@ describe.only("VC Payment Contract", () => {
   };
 
   beforeEach(async () => {
-    const ownerPercentage = 5;
     const signers = await ethers.getSigners();
     issuer1Signer = signers[1];
     issuer2Signer = signers[2];
     userSigner = signers[5];
     owner = signers[0];
 
-    payment = (await upgrades.deployProxy(new MCPayment__factory(owner))) as unknown as MCPayment;
+    payment = (await upgrades.deployProxy(new MCPayment__factory(owner), [
+      ownerPercentage,
+    ])) as unknown as MCPayment;
     await payment.waitForDeployment();
-    await payment.setIssuer(issuerId1.bigInt(), issuer1Signer.address, ownerPercentage);
+    // await payment.setIssuer(issuerId1.bigInt(), issuer1Signer.address, ownerPercentage);
 
     domainData = {
       name: "MCPayment",
@@ -41,46 +42,43 @@ describe.only("VC Payment Contract", () => {
     };
   });
 
-  it("Check signature verification:", async () => {
+  it.only("Check signature verification:", async () => {
     const paymentData = {
-      issuerId: issuerId1.bigInt(),
+      recipient: issuer1Signer.address,
       value: 100,
-      expirationDate: 10000000,
-      nonce: 25,
-      metadata: packPaymentMetaData("123"),
+      expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60, // 1 hour
+      nonce: 22,
+      metadata: "0x",
     };
     const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
-    console.log("signer address", issuer1Signer.address);
+    const verifyGas = await payment
+      .connect(userSigner)
+      .verifySignature.estimateGas(paymentData, signature);
+    console.log("Verification Gas: " + verifyGas);
     await payment.connect(userSigner).verifySignature(paymentData, signature);
   });
 
   it.only("Check payment:", async () => {
     const paymentData = {
-      issuerId: issuerId1.bigInt(),
+      recipient: issuer1Signer.address,
       value: 100,
-      expirationDate: 10000000,
+      expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60, // 1 hour
       nonce: 25,
-      metadata: packPaymentMetaData("3333"),
+      metadata: "0x",
     };
     const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
-    console.log("signer address", issuer1Signer.address);
+
+    const gas = await payment.connect(userSigner).pay.estimateGas(paymentData, signature, {
+      value: 100,
+    });
+    console.log("Payment Gas: " + gas);
 
     await payment.connect(userSigner).pay(paymentData, signature, {
       value: 100,
     });
 
-    const isPaymentDone = await payment.isPaymentDone(issuerId1.bigInt(), 25);
+    const isPaymentDone = await payment.isPaymentDone(issuer1Signer.address, 25);
     expect(isPaymentDone).to.be.true;
   });
 });
 
-function packPaymentMetaData(schemaHash: string): string {
-  return new ethers.AbiCoder().encode(
-    ["tuple(uint256 schemaHash)"],
-    [
-      {
-        schemaHash: schemaHash,
-      },
-    ],
-  );
-}
