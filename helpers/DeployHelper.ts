@@ -328,6 +328,7 @@ export class DeployHelper {
     contractName = "SmtLib",
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<Contract> {
+    this.log(`deploying with ${deployStrategy === "create2" ? "CREATE2" : "BASIC"} strategy...`);
     const smtLibDeploy = await ignition.deploy(SmtLibModule, {
       parameters: {
         SmtLibModule: {
