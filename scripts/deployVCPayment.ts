@@ -1,6 +1,6 @@
 import { run } from "hardhat";
-import { getConfig } from "../helpers/config";
 import { DeployHelper } from "../helpers/DeployHelper";
+import { getConfig } from "../helpers/helperUtils";
 
 async function main() {
   const config = getConfig();

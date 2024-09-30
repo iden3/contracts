@@ -11,7 +11,7 @@ import {
   submitZKPResponses_KYCAgeCredential,
 } from "./helpers/testVerifier";
 import fs from "fs";
-import { getConfig } from "../../../helpers/config";
+import { getConfig } from "../../../helpers/helperUtils";
 
 const validatorSigContractName = "CredentialAtomicQuerySigV2Validator";
 const validatorMTPContractName = "CredentialAtomicQueryMTPV2Validator";

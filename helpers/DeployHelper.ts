@@ -1,5 +1,5 @@
-import hre, { ethers, network, upgrades, ignition } from "hardhat";
-import { Contract } from "ethers";
+import { ethers, network, upgrades, ignition } from "hardhat";
+import { Contract, ContractTransactionResponse } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain-types";
@@ -18,6 +18,7 @@ import {
   StateProxyModule,
 } from "../ignition";
 import { chainIdInfoMap } from "./constants";
+import { waitNotToInterfereWithHardhatIgnition } from "./helperUtils";
 
 const SMT_MAX_DEPTH = 64;
 
@@ -81,11 +82,12 @@ export class DeployHelper {
       `${g16VerifierContractName} contract deployed to address ${await g16Verifier.getAddress()} from ${await owner.getAddress()}`,
     );
 
-    const tx = await g16Verifier.deploymentTransaction();
-    await tx.wait(5);
-
     if (poseidonContracts.length === 0) {
       this.log("deploying poseidons...");
+
+      const tx = await g16Verifier.deploymentTransaction();
+      await waitNotToInterfereWithHardhatIgnition(tx);
+
       const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons(
         [1, 2, 3],
         deployStrategy,
@@ -132,6 +134,9 @@ export class DeployHelper {
       this.log("deploying with CREATE2 strategy...");
 
       // Deploying State contract to predictable address but with dummy implementation
+      const tx = await crossChainProofValidator.deploymentTransaction();
+      await waitNotToInterfereWithHardhatIgnition(tx as ContractTransactionResponse);
+
       state = (
         await ignition.deploy(StateProxyModule, {
           strategy: deployStrategy,
@@ -299,11 +304,9 @@ export class DeployHelper {
       this.log(
         `${crossChainProofValidatorContractName} contract deployed to address ${await opvContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
       );
+      // TODO not sure we need to wait confirmation here
       const tx = await stateContract.setCrossChainProofValidator(await opvContract.getAddress());
-      // If testing with forked zkevm network wait for 1 confirmation, otherwise is waiting forever
-      const waitConfirmations = network.name === "localhost" || network.name === "hardhat" ? 1 : 5;
-      // ignition needs 5 confirmations for deployment/upgrade transactions to work
-      await tx.wait(waitConfirmations);
+      await waitNotToInterfereWithHardhatIgnition(tx);
     } else {
       opvContract = await ethers.getContractAt(
         crossChainProofValidatorContractName,
@@ -458,14 +461,6 @@ export class DeployHelper {
       oracleSigningAddress,
     ]);
     await crossChainProofValidator.waitForDeployment();
-    // We need to wait at least 5 confirmation blocks with ignition
-    const confirmations =
-      hre.network.name === "localhost" || hre.network.name === "hardhat" ? 1 : 5;
-    const tx = await crossChainProofValidator.deploymentTransaction();
-    if (tx) {
-      console.log("Waiting for 5 confirmations of the deployment transaction...");
-      await tx.wait(confirmations);
-    }
     console.log(`${contractName} deployed to:`, await crossChainProofValidator.getAddress());
     return crossChainProofValidator;
   }
@@ -528,18 +523,14 @@ export class DeployHelper {
       ).wrapper;
       await groth16VerifierWrapper.waitForDeployment();
 
-      const confirmations =
-        hre.network.name === "localhost" || hre.network.name === "hardhat" ? 1 : 5;
-      const tx = await groth16VerifierWrapper.deploymentTransaction();
-      if (tx) {
-        console.log("Waiting for 5 confirmations of the deployment transaction...");
-        await tx.wait(confirmations);
-      }
       console.log(
         `${g16VerifierContractWrapperName} Wrapper deployed to: ${await groth16VerifierWrapper.getAddress()}`,
       );
 
       // Deploying Validator contract to predictable address but with dummy implementation
+      const tx = await groth16VerifierWrapper.deploymentTransaction();
+      await waitNotToInterfereWithHardhatIgnition(tx);
+
       validator = (
         await ignition.deploy(validatorModule, {
           strategy: deployStrategy,

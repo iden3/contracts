@@ -2,7 +2,7 @@ import { DeployHelper } from "../helpers/DeployHelper";
 import hre, { ethers, network } from "hardhat";
 import path from "path";
 import fs from "fs";
-import { getConfig } from "../helpers/config";
+import { getConfig } from "../helpers/helperUtils";
 
 (async () => {
   const config = getConfig();

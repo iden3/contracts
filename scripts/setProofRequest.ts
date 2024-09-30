@@ -3,8 +3,7 @@ import { packValidatorParams } from "../test/utils/validator-pack-utils";
 import { calculateQueryHashV2, calculateQueryHashV3 } from "../test/utils/query-hash-utils";
 import { Blockchain, DidMethod, NetworkId, DID } from "@iden3/js-iden3-core";
 import { buildVerifierId } from "./deployCrossChainVerifierWithRequests";
-import fs from "fs";
-import { getConfig } from "../helpers/config";
+import { getConfig } from "../helpers/helperUtils";
 
 async function main() {
   const MTP_V2_CIRCUIT_NAME = "credentialAtomicQueryMTPV2OnChain";

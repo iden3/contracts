@@ -1,5 +1,5 @@
 import hre, { ethers } from "hardhat";
-import { getConfig } from "../helpers/config";
+import { getConfig } from "../helpers/helperUtils";
 
 const validatorSigContractName = "CredentialAtomicQuerySigV2Validator";
 const validatorMTPContractName = "CredentialAtomicQueryMTPV2Validator";
