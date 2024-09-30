@@ -4,7 +4,6 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain-types";
 import {
-  StateModule,
   UniversalVerifierModule,
   IdentityTreeStoreModule,
   Groth16VerifierMTPWrapperModule,
@@ -15,6 +14,7 @@ import {
   CredentialAtomicQueryV3ValidatorModule,
   VerifierLibModule,
   VCPaymentModule,
+  StateProxyModule,
 } from "../ignition";
 import { chainIdInfoMap } from "./constants";
 
@@ -128,10 +128,10 @@ export class DeployHelper {
 
       // Deploying State contract to predictable address but with dummy implementation
       state = (
-        await ignition.deploy(StateModule, {
+        await ignition.deploy(StateProxyModule, {
           strategy: deployStrategy,
         })
-      ).state;
+      ).proxy;
       await state.waitForDeployment();
 
       // Upgrading State contract to the first real implementation

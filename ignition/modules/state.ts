@@ -1,7 +1,7 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { create2AddressesInfo } from "../../helpers/constants";
 
-const StateProxyModule = buildModule("StateProxyModule", (m) => {
+export const StateProxyModule = buildModule("StateProxyModule", (m) => {
   const proxyAdminOwner = m.getAccount(0);
 
   // This contract is supposed to be deployed to the same address across many networks,
@@ -19,10 +19,4 @@ const StateProxyModule = buildModule("StateProxyModule", (m) => {
   const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
 
   return { proxyAdmin, proxy };
-});
-
-export const StateModule = buildModule("StateModule", (m) => {
-  const { proxy, proxyAdmin } = m.useModule(StateProxyModule);
-  const state = m.contractAt("State", proxy);
-  return { state, proxy, proxyAdmin };
 });
