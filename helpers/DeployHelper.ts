@@ -8,8 +8,6 @@ import {
   StateCrossChainLibModule,
   StateLibModule,
   SmtLibModule,
-  Groth16VerifierStateTransitionModule,
-  Groth16VerifierStubModule,
   UniversalVerifierModule,
   IdentityTreeStoreModule,
   Groth16VerifierMTPWrapperModule,
@@ -73,16 +71,10 @@ export class DeployHelper {
     this.log("deploying Groth16VerifierStateTransition...");
 
     let g16Verifier;
-    if (g16VerifierContractName === "Groth16VerifierStateTransition") {
-      const verifierDeploy = await ignition.deploy(Groth16VerifierStateTransitionModule, {
-        strategy: deployStrategy,
-      });
-      g16Verifier = verifierDeploy.groth16VerifierStateTransition;
-    } else if (g16VerifierContractName === "Groth16VerifierStub") {
-      const verifierDeploy = await ignition.deploy(Groth16VerifierStubModule, {
-        strategy: deployStrategy,
-      });
-      g16Verifier = verifierDeploy.groth16VerifierStub;
+    if (
+      ["Groth16VerifierStateTransition", "Groth16VerifierStub"].includes(g16VerifierContractName)
+    ) {
+      g16Verifier = await ethers.deployContract(g16VerifierContractName);
     } else {
       throw new Error("invalid verifierContractName");
     }

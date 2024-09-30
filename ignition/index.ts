@@ -6,5 +6,4 @@ export * from "./modules/state";
 export * from "./modules/identityTreeStore";
 export * from "./modules/libraries";
 export * from "./modules/universalVerifier";
-export * from "./modules/groth16Verifiers";
 export * from "./modules/vcPayment";
