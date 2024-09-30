@@ -4,6 +4,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain-types";
 import {
+  SmtLibModule,
   UniversalVerifierModule,
   IdentityTreeStoreModule,
   Groth16VerifierMTPWrapperModule,
@@ -98,6 +99,7 @@ export class DeployHelper {
       await poseidon2Elements.getAddress(),
       await poseidon3Elements.getAddress(),
       "SmtLib",
+      deployStrategy,
     );
 
     this.log("deploying StateLib...");
@@ -324,14 +326,19 @@ export class DeployHelper {
     poseidon2Address: string,
     poseidon3Address: string,
     contractName = "SmtLib",
+    deployStrategy: "basic" | "create2" = "basic",
   ): Promise<Contract> {
-    const smtLib = await ethers.deployContract(contractName, {
-      libraries: {
-        PoseidonUnit2L: poseidon2Address,
-        PoseidonUnit3L: poseidon3Address,
+    const smtLibDeploy = await ignition.deploy(SmtLibModule, {
+      parameters: {
+        SmtLibModule: {
+          poseidon2ElementAddress: poseidon2Address,
+          poseidon3ElementAddress: poseidon3Address,
+        },
       },
+      strategy: deployStrategy,
     });
 
+    const smtLib = smtLibDeploy.smtLib;
     await smtLib.waitForDeployment();
     this.enableLogging && this.log(`${contractName} deployed to:  ${await smtLib.getAddress()}`);
 
