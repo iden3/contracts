@@ -97,11 +97,6 @@ export const Poseidon6Module = buildModule("Poseidon6Module", (m) => {
   return { poseidon };
 });
 
-export const StateLibModule = buildModule("StateLibModule", (m) => {
-  const stateLib = m.contract("StateLib");
-  return { stateLib };
-});
-
 export const SmtLibModule = buildModule("SmtLibModule", (m) => {
   const poseidon2ElementAddress = m.getParameter("poseidon2ElementAddress");
   const poseidon3ElementAddress = m.getParameter("poseidon3ElementAddress");

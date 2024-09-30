@@ -5,7 +5,6 @@ import { deployPoseidons } from "./PoseidonDeployHelper";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain-types";
 import {
   StateModule,
-  StateLibModule,
   SmtLibModule,
   UniversalVerifierModule,
   IdentityTreeStoreModule,
@@ -104,7 +103,7 @@ export class DeployHelper {
     );
 
     this.log("deploying StateLib...");
-    const stateLib = await this.deployStateLib(deployStrategy);
+    const stateLib = await this.deployStateLib();
 
     this.log("deploying StateCrossChainLib...");
     const stateCrossChainLib = await this.deployStateCrossChainLib("StateCrossChainLib");
@@ -346,11 +345,8 @@ export class DeployHelper {
     return smtLib;
   }
 
-  async deployStateLib(deployStrategy: "basic" | "create2" = "basic"): Promise<Contract> {
-    const stateLibDeploy = await ignition.deploy(StateLibModule, {
-      strategy: deployStrategy,
-    });
-    const stateLib = stateLibDeploy.stateLib;
+  async deployStateLib(): Promise<Contract> {
+    const stateLib = await ethers.deployContract("StateLib");
     await stateLib.waitForDeployment();
     this.enableLogging && this.log(`StateLib deployed to:  ${await stateLib.getAddress()}`);
 
