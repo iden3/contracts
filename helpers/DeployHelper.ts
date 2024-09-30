@@ -81,6 +81,9 @@ export class DeployHelper {
       `${g16VerifierContractName} contract deployed to address ${await g16Verifier.getAddress()} from ${await owner.getAddress()}`,
     );
 
+    const tx = await g16Verifier.deploymentTransaction();
+    await tx.wait(5);
+
     if (poseidonContracts.length === 0) {
       this.log("deploying poseidons...");
       const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons(
