@@ -102,11 +102,6 @@ export const StateLibModule = buildModule("StateLibModule", (m) => {
   return { stateLib };
 });
 
-export const StateCrossChainLibModule = buildModule("StateCrossChainLibModule", (m) => {
-  const stateCrossChainLib = m.contract("StateCrossChainLib");
-  return { stateCrossChainLib };
-});
-
 export const SmtLibModule = buildModule("SmtLibModule", (m) => {
   const poseidon2ElementAddress = m.getParameter("poseidon2ElementAddress");
   const poseidon3ElementAddress = m.getParameter("poseidon3ElementAddress");

@@ -5,7 +5,6 @@ import { deployPoseidons } from "./PoseidonDeployHelper";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain-types";
 import {
   StateModule,
-  StateCrossChainLibModule,
   StateLibModule,
   SmtLibModule,
   UniversalVerifierModule,
@@ -108,10 +107,7 @@ export class DeployHelper {
     const stateLib = await this.deployStateLib(deployStrategy);
 
     this.log("deploying StateCrossChainLib...");
-    const stateCrossChainLib = await this.deployStateCrossChainLib(
-      "StateCrossChainLib",
-      deployStrategy,
-    );
+    const stateCrossChainLib = await this.deployStateCrossChainLib("StateCrossChainLib");
 
     this.log("deploying CrossChainProofValidator...");
     const crossChainProofValidator = await this.deployCrossChainProofValidator();
@@ -361,13 +357,8 @@ export class DeployHelper {
     return stateLib;
   }
 
-  async deployStateCrossChainLib(
-    StateCrossChainLibName = "StateCrossChainLib",
-    deployStrategy: "basic" | "create2" = "basic",
-  ): Promise<Contract> {
-    const { stateCrossChainLib } = await ignition.deploy(StateCrossChainLibModule, {
-      strategy: deployStrategy,
-    });
+  async deployStateCrossChainLib(StateCrossChainLibName = "StateCrossChainLib"): Promise<Contract> {
+    const stateCrossChainLib = await ethers.deployContract(StateCrossChainLibName);
     await stateCrossChainLib.waitForDeployment();
     this.enableLogging &&
       this.log(`StateCrossChainLib deployed to:  ${await stateCrossChainLib.getAddress()}`);
