@@ -52,6 +52,7 @@ LEDGER_ACCOUNT="<your Ledger deployer address>"
 DEPLOY_STRATEGY=create2
 
 STATE_CONTRACT_ADDRESS=
+SMT_LIB_ADDRESS=
 POSEIDON_2_CONTRACT_ADDRESS=
 POSEIDON_3_CONTRACT_ADDRESS=
 
@@ -87,6 +88,7 @@ Then run the deployment scripts:
    Once state is deployed replace contract addresses with yours from the state deployment in your `.env` file
    ```
    STATE_CONTRACT_ADDRESS=
+   SMT_LIB_ADDRESS=
    POSEIDON_2_CONTRACT_ADDRESS=
    POSEIDON_3_CONTRACT_ADDRESS=
    ```
