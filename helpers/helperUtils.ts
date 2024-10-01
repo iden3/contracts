@@ -17,12 +17,12 @@ export function getConfig() {
 }
 
 export async function waitNotToInterfereWithHardhatIgnition(
-  tx: ContractTransactionResponse | undefined,
+  tx: ContractTransactionResponse | null | undefined,
 ): Promise<void> {
   const isLocalNetwork = ["localhost", "hardhat"].includes(network.name);
   const confirmationsNeeded = isLocalNetwork
     ? 1
-    : hre.config.ignition?.requiredConfirmations ?? 1;
+    : (hre.config.ignition?.requiredConfirmations ?? 1);
 
   if (tx) {
     console.log(

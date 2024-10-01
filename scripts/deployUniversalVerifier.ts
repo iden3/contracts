@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { DeployHelper } from "../helpers/DeployHelper";
 import hre, { ethers, network } from "hardhat";
-import { getConfig } from "../helpers/helperUtils";
+import { getConfig, waitNotToInterfereWithHardhatIgnition } from "../helpers/helperUtils";
 
 async function main() {
   const config = getConfig();
@@ -17,6 +17,9 @@ async function main() {
   const deployHelper = await DeployHelper.initialize(null, true);
 
   const verifierLib = await deployHelper.deployVerifierLib();
+  const tx = await verifierLib.deploymentTransaction();
+  await waitNotToInterfereWithHardhatIgnition(tx);
+
   const universalVerifier = await deployHelper.deployUniversalVerifier(
     undefined,
     stateAddress,
