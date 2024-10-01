@@ -5,17 +5,16 @@ import { deployPoseidons } from "./PoseidonDeployHelper";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain-types";
 import {
   SmtLibModule,
-  UniversalVerifierModule,
   Groth16VerifierMTPWrapperModule,
   Groth16VerifierSigWrapperModule,
   Groth16VerifierV3WrapperModule,
-  VerifierLibModule,
   VCPaymentModule,
   StateProxyModule,
   IdentityTreeStoreProxyModule,
   CredentialAtomicQueryMTPV2ValidatorProxyModule,
   CredentialAtomicQuerySigV2ValidatorProxyModule,
   CredentialAtomicQueryV3ValidatorProxyModule,
+  UniversalVerifierProxyModule,
 } from "../ignition";
 import { chainIdInfoMap } from "./constants";
 import { waitNotToInterfereWithHardhatIgnition } from "./helperUtils";
@@ -730,10 +729,10 @@ export class DeployHelper {
 
       // Deploying UniversalVerifier contract to predictable address but with dummy implementation
       universalVerifier = (
-        await ignition.deploy(UniversalVerifierModule, {
+        await ignition.deploy(UniversalVerifierProxyModule, {
           strategy: deployStrategy,
         })
-      ).universalVerifier;
+      ).proxy;
       await universalVerifier.waitForDeployment();
 
       // Upgrading UniversalVerifier contract to the first real implementation
