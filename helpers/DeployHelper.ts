@@ -6,7 +6,6 @@ import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain-typ
 import {
   SmtLibModule,
   UniversalVerifierModule,
-  IdentityTreeStoreModule,
   Groth16VerifierMTPWrapperModule,
   Groth16VerifierSigWrapperModule,
   Groth16VerifierV3WrapperModule,
@@ -16,6 +15,7 @@ import {
   VerifierLibModule,
   VCPaymentModule,
   StateProxyModule,
+  IdentityTreeStoreProxyModule,
 } from "../ignition";
 import { chainIdInfoMap } from "./constants";
 import { waitNotToInterfereWithHardhatIgnition } from "./helperUtils";
@@ -809,10 +809,10 @@ export class DeployHelper {
 
       // Deploying IdentityTreeStore contract to predictable address but with dummy implementation
       identityTreeStore = (
-        await ignition.deploy(IdentityTreeStoreModule, {
+        await ignition.deploy(IdentityTreeStoreProxyModule, {
           strategy: deployStrategy,
         })
-      ).identityTreeStore;
+      ).proxy;
       await identityTreeStore.waitForDeployment();
 
       // Upgrading IdentityTreeStore contract to the first real implementation
