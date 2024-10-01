@@ -6,16 +6,16 @@ import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain-typ
 import {
   SmtLibModule,
   UniversalVerifierModule,
-  IdentityTreeStoreModule,
   Groth16VerifierMTPWrapperModule,
   Groth16VerifierSigWrapperModule,
   Groth16VerifierV3WrapperModule,
-  CredentialAtomicQueryMTPV2ValidatorModule,
-  CredentialAtomicQuerySigV2ValidatorModule,
-  CredentialAtomicQueryV3ValidatorModule,
   VerifierLibModule,
   VCPaymentModule,
   StateProxyModule,
+  IdentityTreeStoreProxyModule,
+  CredentialAtomicQueryMTPV2ValidatorProxyModule,
+  CredentialAtomicQuerySigV2ValidatorProxyModule,
+  CredentialAtomicQueryV3ValidatorProxyModule,
 } from "../ignition";
 import { chainIdInfoMap } from "./constants";
 import { waitNotToInterfereWithHardhatIgnition } from "./helperUtils";
@@ -504,17 +504,19 @@ export class DeployHelper {
       switch (validatorType) {
         case "mtpV2":
           g16VerifierWrapperModule = Groth16VerifierMTPWrapperModule;
-          validatorModule = CredentialAtomicQueryMTPV2ValidatorModule;
+          validatorModule = CredentialAtomicQueryMTPV2ValidatorProxyModule;
           break;
         case "sigV2":
           g16VerifierWrapperModule = Groth16VerifierSigWrapperModule;
-          validatorModule = CredentialAtomicQuerySigV2ValidatorModule;
+          validatorModule = CredentialAtomicQuerySigV2ValidatorProxyModule;
           break;
         case "v3":
           g16VerifierWrapperModule = Groth16VerifierV3WrapperModule;
-          validatorModule = CredentialAtomicQueryV3ValidatorModule;
+          validatorModule = CredentialAtomicQueryV3ValidatorProxyModule;
           break;
       }
+
+      await waitNotToInterfereWithHardhatIgnition(undefined);
 
       groth16VerifierWrapper = (
         await ignition.deploy(g16VerifierWrapperModule, {
@@ -527,15 +529,14 @@ export class DeployHelper {
         `${g16VerifierContractWrapperName} Wrapper deployed to: ${await groth16VerifierWrapper.getAddress()}`,
       );
 
-      // Deploying Validator contract to predictable address but with dummy implementation
-      const tx = await groth16VerifierWrapper.deploymentTransaction();
-      await waitNotToInterfereWithHardhatIgnition(tx);
+      await waitNotToInterfereWithHardhatIgnition(await groth16VerifierWrapper.deploymentTransaction());
 
+      // Deploying Validator contract to predictable address but with dummy implementation
       validator = (
         await ignition.deploy(validatorModule, {
           strategy: deployStrategy,
         })
-      ).validator;
+      ).proxy;
       await validator.waitForDeployment();
 
       // Upgrading Validator contract to the first real implementation
@@ -809,10 +810,10 @@ export class DeployHelper {
 
       // Deploying IdentityTreeStore contract to predictable address but with dummy implementation
       identityTreeStore = (
-        await ignition.deploy(IdentityTreeStoreModule, {
+        await ignition.deploy(IdentityTreeStoreProxyModule, {
           strategy: deployStrategy,
         })
-      ).identityTreeStore;
+      ).proxy;
       await identityTreeStore.waitForDeployment();
 
       // Upgrading IdentityTreeStore contract to the first real implementation
