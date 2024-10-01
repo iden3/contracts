@@ -411,12 +411,10 @@ export class DeployHelper {
     return stateLibWrapper;
   }
 
-  async deployVerifierLib(deployStrategy: "basic" | "create2" = "basic"): Promise<Contract> {
+  async deployVerifierLib(): Promise<Contract> {
     const contractName = "VerifierLib";
-    const { verifierLib } = await ignition.deploy(VerifierLibModule, {
-      strategy: deployStrategy,
-    });
 
+    const verifierLib = await ethers.deployContract(contractName);
     await verifierLib.waitForDeployment();
 
     this.log(`${contractName} deployed to:  ${await verifierLib.getAddress()}`);
