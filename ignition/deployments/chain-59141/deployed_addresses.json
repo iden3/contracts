@@ -18,5 +18,7 @@
   "CredentialAtomicQuerySigV2ValidatorProxyModule#ProxyAdmin": "0xc5b4A6c4Ec91D660f020c5388253e42Cb76adB09",
   "Groth16VerifierV3WrapperModule#Groth16VerifierV3Wrapper": "0x1aA2B5AEAd506D269164958d36Cae04f95F79282",
   "CredentialAtomicQueryV3ValidatorProxyModule#TransparentUpgradeableProxy": "0xd179f29d00Cd0E8978eb6eB847CaCF9E2A956336",
-  "CredentialAtomicQueryV3ValidatorProxyModule#ProxyAdmin": "0x759413E6Bc96eCd646EA9B23086E85De4b0CF070"
+  "CredentialAtomicQueryV3ValidatorProxyModule#ProxyAdmin": "0x759413E6Bc96eCd646EA9B23086E85De4b0CF070",
+  "UniversalVerifierProxyModule#TransparentUpgradeableProxy": "0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c",
+  "UniversalVerifierProxyModule#ProxyAdmin": "0xcCbEd68Fc1C38f5357bff08eCa414b7CD24026Af"
 }
