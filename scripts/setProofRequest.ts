@@ -1,5 +1,5 @@
 import hre, { ethers } from "hardhat";
-import { packValidatorParams } from "../test/utils/validator-pack-utils";
+import { packV3ValidatorParams, packValidatorParams } from "../test/utils/validator-pack-utils";
 import { calculateQueryHashV2, calculateQueryHashV3 } from "../test/utils/query-hash-utils";
 import { Blockchain, DidMethod, NetworkId, DID } from "@iden3/js-iden3-core";
 import { buildVerifierId } from "./deployCrossChainVerifierWithRequests";
@@ -67,6 +67,7 @@ async function main() {
   };
 
   let validatorAddress: string;
+  let data: string;
   switch (circuitName) {
     case MTP_V2_CIRCUIT_NAME:
       if (!ethers.isAddress(config.validatorMTPContractAddress)) {
@@ -81,6 +82,8 @@ async function main() {
         query.claimPathKey,
         query.claimPathNotExists,
       ).toString();
+      data = packValidatorParams(query);
+
       break;
     case SIG_V2_CIRCUIT_NAME:
       if (!ethers.isAddress(config.validatorSigContractAddress)) {
@@ -95,6 +98,7 @@ async function main() {
         query.claimPathKey,
         query.claimPathNotExists,
       ).toString();
+      data = packValidatorParams(query);
       break;
     case V3_CIRCUIT_NAME:
       if (!ethers.isAddress(config.validatorV3ContractAddress)) {
@@ -122,6 +126,8 @@ async function main() {
         query.verifierID.toString(),
         query.nullifierSessionID,
       ).toString();
+      data = packV3ValidatorParams(query);
+
       break;
     default:
       throw new Error(`Unsupported circuit name: ${circuitName}`);
@@ -160,8 +166,6 @@ async function main() {
       ],
     },
   };
-
-  const data = packValidatorParams(query);
 
   const requestIdExists = await verifier.requestIdExists(requestId);
   if (requestIdExists) {
