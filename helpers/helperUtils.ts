@@ -1,5 +1,6 @@
 import { ContractTransactionResponse } from "ethers";
 import hre, { network } from "hardhat";
+import { boolean } from "hardhat/internal/core/params/argumentTypes";
 
 export function getConfig() {
   return {
@@ -16,14 +17,32 @@ export function getConfig() {
 }
 
 export async function waitNotToInterfereWithHardhatIgnition(
-  tx: ContractTransactionResponse,
+  tx: ContractTransactionResponse | undefined,
 ): Promise<void> {
-  const confirmationsNeeded = hre.config.ignition?.requiredConfirmations ?? 1;
-  const waitConfirmations = ["localhost", "hardhat"].includes(network.name)
+  const isLocalNetwork = ["localhost", "hardhat"].includes(network.name);
+  const confirmationsNeeded = isLocalNetwork
     ? 1
-    : confirmationsNeeded;
-  console.log(
-    `Waiting for ${waitConfirmations} confirmations to not interfere with Hardhat Ignition`,
-  );
-  await tx.wait(waitConfirmations);
+    : hre.config.ignition?.requiredConfirmations ?? 1;
+
+  if (tx) {
+    console.log(
+      `Waiting for ${confirmationsNeeded} confirmations to not interfere with Hardhat Ignition`,
+    );
+    await tx.wait(confirmationsNeeded);
+  } else if (isLocalNetwork) {
+    console.log(
+      `Mining ${confirmationsNeeded} blocks not to interfere with Hardhat Ignition`,
+    );
+    for (const _ of Array.from({ length: confirmationsNeeded })) {
+      await hre.ethers.provider.send("evm_mine");
+    }
+  } else {
+    const blockNumberDeployed = await hre.ethers.provider.getBlockNumber();
+    let blockNumber = blockNumberDeployed;
+    console.log("Waiting some blocks to expect at least 5 confirmations for ignition...");
+    while (blockNumber < blockNumberDeployed + 10) {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      blockNumber = await hre.ethers.provider.getBlockNumber();
+    }
+  }
 }
