@@ -11,8 +11,10 @@ export function getConfig() {
     validatorSigContractAddress: process.env.VALIDATOR_SIG_CONTRACT_ADDRESS || "",
     validatorMTPContractAddress: process.env.VALIDATOR_MTP_CONTRACT_ADDRESS || "",
     validatorV3ContractAddress: process.env.VALIDATOR_V3_CONTRACT_ADDRESS || "",
+    poseidon1ContractAddress: process.env.POSEIDON_1_CONTRACT_ADDRESS || "",
     poseidon2ContractAddress: process.env.POSEIDON_2_CONTRACT_ADDRESS || "",
     poseidon3ContractAddress: process.env.POSEIDON_3_CONTRACT_ADDRESS || "",
+    smtLibContractAddress: process.env.SMT_LIB_ADDRESS || "",
   };
 }
 

@@ -22,11 +22,11 @@ export class OnchainIdentityDeployHelper {
   }
 
   async deployIdentity(
-    state: Contract,
-    smtLib: Contract,
-    poseidon3: Contract,
-    poseidon4: Contract,
-    idType: Uint8Array,
+    stateAddr: string,
+    smtLibAddr: string,
+    poseidon3Addr: string,
+    poseidon4Addr: string,
+    idType: string,
   ): Promise<{
     identity: Contract;
   }> {
@@ -35,11 +35,7 @@ export class OnchainIdentityDeployHelper {
     this.log("======== Identity: deploy started ========");
 
     const cb = await this.deployClaimBuilder();
-    const il = await this.deployIdentityLib(
-      await smtLib.getAddress(),
-      await poseidon3.getAddress(),
-      await poseidon4.getAddress(),
-    );
+    const il = await this.deployIdentityLib(smtLibAddr, poseidon3Addr, poseidon4Addr);
 
     this.log("deploying Identity...");
     const IdentityFactory = await ethers.getContractFactory("IdentityExample", {
@@ -48,13 +44,9 @@ export class OnchainIdentityDeployHelper {
         IdentityLib: await il.getAddress(),
       },
     });
-    const Identity = await upgrades.deployProxy(
-      IdentityFactory,
-      [await state.getAddress(), idType],
-      {
-        unsafeAllowLinkedLibraries: true,
-      },
-    );
+    const Identity = await upgrades.deployProxy(IdentityFactory, [stateAddr, idType], {
+      unsafeAllowLinkedLibraries: true,
+    });
     await Identity.waitForDeployment();
     this.log(
       `Identity contract deployed to address ${await Identity.getAddress()} from ${await owner.getAddress()}`,
