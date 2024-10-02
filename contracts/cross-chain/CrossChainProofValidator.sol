@@ -74,7 +74,11 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
             gsu.globalStateMsg,
             gsu.signature
         );
-        require(isValid && recovered == _oracleSigningAddress, "Global state proof is not valid");
+        require(isValid, "Global state proof is not valid");
+        require(
+            recovered == _oracleSigningAddress,
+            "Global state proof signing address is not valid"
+        );
 
         return
             IState.GlobalStateProcessResult({
@@ -99,7 +103,11 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
             isu.idStateMsg,
             isu.signature
         );
-        require(isValid && recovered == _oracleSigningAddress, "Identity state proof is not valid");
+        require(isValid, "Identity state proof is not valid");
+        require(
+            recovered == _oracleSigningAddress,
+            "Identity state proof signing address is not valid"
+        );
 
         return
             IState.IdentityStateProcessResult({

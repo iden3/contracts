@@ -6,7 +6,7 @@ const domain = {
   name: "StateInfo",
   version: "1",
   chainId: 0,
-  verifyingContract: ethers.ZeroAddress
+  verifyingContract: ethers.ZeroAddress,
 };
 
 export type IdentityStateMessage = {
@@ -85,6 +85,7 @@ export async function packGlobalStateUpdateWithSignature(
   gsm: GlobalStateMessage,
   signer: Signer,
   tamperWithMessage: boolean = false,
+  invalidSignature: boolean = false,
 ): Promise<string> {
   const types = {
     GlobalState: [
@@ -103,7 +104,9 @@ export async function packGlobalStateUpdateWithSignature(
   if (tamperWithMessage) {
     gsu.globalStateMsg.timestamp++;
   }
-
+  if (invalidSignature) {
+    gsu.signature = gsu.signature.slice(0, -5) + "00000";
+  }
   return packGlobalStateUpdate(gsu);
 }
 
@@ -111,6 +114,7 @@ export async function packIdentityStateUpdateWithSignature(
   ism: IdentityStateMessage,
   signer: Signer,
   tamperWithMessage: boolean = false,
+  invalidSignature: boolean = false,
 ): Promise<string> {
   const types = {
     IdentityState: [
@@ -129,7 +133,9 @@ export async function packIdentityStateUpdateWithSignature(
   if (tamperWithMessage) {
     isu.idStateMsg.timestamp++;
   }
-
+  if (invalidSignature) {
+    isu.signature = isu.signature.slice(0, -5) + "00000";
+  }
   return packIdentityStateUpdate(isu);
 }
 

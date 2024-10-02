@@ -1,4 +1,9 @@
-import { GlobalStateMessage, IdentityStateMessage, packGlobalStateUpdateWithSignature, packIdentityStateUpdateWithSignature, } from "../utils/packData";
+import {
+  GlobalStateMessage,
+  IdentityStateMessage,
+  packGlobalStateUpdateWithSignature,
+  packIdentityStateUpdateWithSignature,
+} from "../utils/packData";
 import { expect } from "chai";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { Contract } from "ethers";
@@ -126,7 +131,7 @@ describe("State Cross Chain", function () {
 
     let proof = await packGlobalStateUpdateWithSignature(gsm, signer, true);
     await expect(crossChainProofValidator.processGlobalStateProof(proof)).to.be.rejectedWith(
-      "Global state proof is not valid",
+      "Global state proof signing address is not valid",
     );
 
     const ism: IdentityStateMessage = {
@@ -137,6 +142,34 @@ describe("State Cross Chain", function () {
     };
 
     proof = await packIdentityStateUpdateWithSignature(ism, signer, true);
+    await expect(crossChainProofValidator.processIdentityStateProof(proof)).to.be.rejectedWith(
+      "Identity state proof signing address is not valid",
+    );
+  });
+
+  it("Should fail to verify a message which signature is invalid", async function () {
+    const currentTimestamp = BigInt(Math.floor(Date.now() / 1000));
+
+    const gsm: GlobalStateMessage = {
+      timestamp: currentTimestamp,
+      idType: "0x01A1",
+      root: 0n,
+      replacedAtTimestamp: currentTimestamp + 10n ** 6n,
+    };
+
+    let proof = await packGlobalStateUpdateWithSignature(gsm, signer, false, true);
+    await expect(crossChainProofValidator.processGlobalStateProof(proof)).to.be.rejectedWith(
+      "Global state proof is not valid",
+    );
+
+    const ism: IdentityStateMessage = {
+      timestamp: currentTimestamp,
+      id: 25061242388220042378440625585145526395156084635704446088069097186261377537n,
+      state: 289901420135126415231045754640573166676181332861318949204015443942679340619n,
+      replacedAtTimestamp: 0n,
+    };
+
+    proof = await packIdentityStateUpdateWithSignature(ism, signer, false, true);
     await expect(crossChainProofValidator.processIdentityStateProof(proof)).to.be.rejectedWith(
       "Identity state proof is not valid",
     );
