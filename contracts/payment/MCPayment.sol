@@ -4,7 +4,6 @@ pragma solidity 0.8.20;
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
-import "hardhat/console.sol";
 
 contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     using ECDSA for bytes32;
@@ -15,7 +14,11 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
 
     bytes32 public constant PAYMENT_DATA_TYPE_HASH =
         keccak256(
-            "Iden3PaymentRailsRequestV1(address recipient,uint256 value,uint256 expirationDate,uint256 nonce,bytes metadata)"
+            "Iden3PaymentRailsRequestV1(address recipient," +
+                "uint256 value," +
+                "uint256 expirationDate," +
+                "uint256 nonce," +
+                "bytes metadata)"
         );
 
     struct Iden3PaymentRailsRequestV1 {
@@ -66,7 +69,10 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         $.ownerPercentage = ownerPercentage;
     }
 
-    function pay(Iden3PaymentRailsRequestV1 memory paymentData, bytes memory signature) external payable {
+    function pay(
+        Iden3PaymentRailsRequestV1 memory paymentData,
+        bytes memory signature
+    ) external payable {
         verifySignature(paymentData, signature);
         bytes32 paymentId = keccak256(abi.encode(paymentData.recipient, paymentData.nonce)); // 23k gas
         MCPaymentStorage storage $ = _getMCPaymentStorage();
@@ -93,7 +99,10 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         return $.isPaid[keccak256(abi.encode(issuerId, nonce))];
     }
 
-    function verifySignature(Iden3PaymentRailsRequestV1 memory paymentData, bytes memory signature) public view {
+    function verifySignature(
+        Iden3PaymentRailsRequestV1 memory paymentData,
+        bytes memory signature
+    ) public view {
         bytes32 structHash = keccak256(
             abi.encode(
                 PAYMENT_DATA_TYPE_HASH,
