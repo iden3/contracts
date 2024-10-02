@@ -526,7 +526,9 @@ export class DeployHelper {
         `${g16VerifierContractWrapperName} Wrapper deployed to: ${await groth16VerifierWrapper.getAddress()}`,
       );
 
-      await waitNotToInterfereWithHardhatIgnition(await groth16VerifierWrapper.deploymentTransaction());
+      await waitNotToInterfereWithHardhatIgnition(
+        await groth16VerifierWrapper.deploymentTransaction(),
+      );
 
       // Deploying Validator contract to predictable address but with dummy implementation
       validator = (

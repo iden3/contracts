@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { DeployHelper } from "../helpers/DeployHelper";
 import hre, { ethers, network } from "hardhat";
-import { getConfig, waitNotToInterfereWithHardhatIgnition } from "../helpers/helperUtils";
+import { getConfig } from "../helpers/helperUtils";
 
 async function main() {
   const config = getConfig();

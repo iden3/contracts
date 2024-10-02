@@ -32,9 +32,7 @@ export async function waitNotToInterfereWithHardhatIgnition(
     );
     await tx.wait(confirmationsNeeded);
   } else if (isLocalNetwork) {
-    console.log(
-      `Mining ${confirmationsNeeded} blocks not to interfere with Hardhat Ignition`,
-    );
+    console.log(`Mining ${confirmationsNeeded} blocks not to interfere with Hardhat Ignition`);
     for (const _ of Array.from({ length: confirmationsNeeded })) {
       await hre.ethers.provider.send("evm_mine");
     }
