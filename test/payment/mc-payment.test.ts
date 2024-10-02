@@ -78,5 +78,37 @@ describe.only("VC Payment Contract", () => {
 
     const isPaymentDone = await payment.isPaymentDone(issuer1Signer.address, 25);
     expect(isPaymentDone).to.be.true;
+
+    // issuer withdraw
+    const issuerBalanceBeforeWithdraw = await ethers.provider.getBalance(issuer1Signer.address);
+    const issuer1BalanceInContract = await payment.connect(issuer1Signer).getMyBalance();
+    expect(issuer1BalanceInContract).to.be.eq(90);
+    const issuerWithdrawTx = await payment.connect(issuer1Signer).issuerWithdraw();
+    // issuer 1 balance should be 0
+    const issuer1BalanceAfterWithdrow = await payment.connect(issuer1Signer).getMyBalance();
+    expect(issuer1BalanceAfterWithdrow).to.be.eq(0);
+
+    const receipt = await issuerWithdrawTx.wait();
+    const gasSpent = receipt!.gasUsed * receipt!.gasPrice;
+
+    expect(await ethers.provider.getBalance(issuer1Signer.address)).to.be.eq(
+      issuerBalanceBeforeWithdraw + issuer1BalanceInContract - gasSpent,
+    );
+
+    // owner withdraw
+    const ownerBalanceBeforeWithdraw = await ethers.provider.getBalance(owner.address);
+    const ownerBalanceInContract = await payment.connect(owner).getOwnerBalance();
+    expect(ownerBalanceInContract).to.be.eq(10);
+    const ownerWithdrawTx = await payment.connect(owner).ownerWithdraw();
+    // owner balance should be 0
+    const ownerBalanceAfterWithdrow = await payment.connect(owner).getOwnerBalance();
+    expect(ownerBalanceAfterWithdrow).to.be.eq(0);
+
+    const ownerReceipt = await ownerWithdrawTx.wait();
+    const ownerGasSpent = ownerReceipt!.gasUsed * ownerReceipt!.gasPrice;
+
+    expect(await ethers.provider.getBalance(owner.address)).to.be.eq(
+      ownerBalanceBeforeWithdraw + ownerBalanceInContract - ownerGasSpent,
+    );
   });
 });

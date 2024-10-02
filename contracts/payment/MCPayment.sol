@@ -14,11 +14,8 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
 
     bytes32 public constant PAYMENT_DATA_TYPE_HASH =
         keccak256(
-            "Iden3PaymentRailsRequestV1(address recipient," +
-                "uint256 value," +
-                "uint256 expirationDate," +
-                "uint256 nonce," +
-                "bytes metadata)"
+            // solhint-disable-next-line max-line-length
+            "Iden3PaymentRailsRequestV1(address recipient,uint256 value,uint256 expirationDate,uint256 nonce,bytes metadata)"
         );
 
     struct Iden3PaymentRailsRequestV1 {
@@ -37,6 +34,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         mapping(bytes32 paymentDataId => bool isPaid) isPaid;
         mapping(address recipient => uint256 balance) balance;
         uint8 ownerPercentage;
+        uint256 ownerBalance;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.MultichainPayment")) - 1)) &
@@ -53,6 +51,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     event Payment(address indexed recipient, uint256 indexed nonce);
     error InvalidSignature(string message);
     error PaymentError(string message);
+    error WithdrawError(string message);
 
     /**
      * @dev Initialize the contract
@@ -90,6 +89,8 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         uint256 issuerPart = msg.value - ownerPart;
 
         $.balance[paymentData.recipient] += issuerPart;
+        $.ownerBalance += ownerPart;
+
         emit Payment(paymentData.recipient, paymentData.nonce);
         $.isPaid[paymentId] = true;
     }
@@ -124,5 +125,48 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     function getMyBalance() public view returns (uint256) {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         return $.balance[_msgSender()];
+    }
+
+    function getOwnerBalance() public view onlyOwner returns (uint256) {
+        MCPaymentStorage storage $ = _getMCPaymentStorage();
+        return $.ownerBalance;
+    }
+
+    function issuerWithdraw() public {
+        _withdrawToIssuer(_msgSender());
+    }
+
+    function ownerWithdraw() public onlyOwner {
+        MCPaymentStorage storage $ = _getMCPaymentStorage();
+        if ($.ownerBalance == 0) {
+            revert WithdrawError("There is no balance to withdraw");
+        }
+        uint256 amount = $.ownerBalance;
+        $.ownerBalance = 0;
+        _withdraw(amount, owner());
+    }
+
+    function _withdrawToIssuer(address issuer) internal {
+        MCPaymentStorage storage $ = _getMCPaymentStorage();
+        uint256 amount = $.balance[issuer];
+        if (amount == 0) {
+            revert WithdrawError("There is no balance to withdraw");
+        }
+        $.balance[issuer] = 0;
+        _withdraw(amount, issuer);
+    }
+
+    function _withdraw(uint amount, address to) internal {
+        if (amount == 0) {
+            revert WithdrawError("There is no balance to withdraw");
+        }
+        if (to == address(0)) {
+            revert WithdrawError("Invalid withdraw address");
+        }
+
+        (bool sent, ) = to.call{value: amount}("");
+        if (!sent) {
+            revert WithdrawError("Failed to withdraw");
+        }
     }
 }
