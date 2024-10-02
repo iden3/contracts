@@ -4,6 +4,7 @@ import { calculateQueryHashV2, calculateQueryHashV3 } from "../test/utils/query-
 import { Blockchain, DidMethod, NetworkId, DID } from "@iden3/js-iden3-core";
 import { buildVerifierId } from "./deployCrossChainVerifierWithRequests";
 import { getConfig } from "../helpers/helperUtils";
+import { Operators } from "@0xpolygonid/js-sdk";
 
 async function main() {
   const MTP_V2_CIRCUIT_NAME = "credentialAtomicQueryMTPV2OnChain";
@@ -34,17 +35,6 @@ async function main() {
     networkId: NetworkId.Amoy,
     method: DidMethod.Iden3,
   });
-
-  const Operators = {
-    NOOP: 0, // No operation, skip query verification in circuit
-    EQ: 1, // equal
-    LT: 2, // less than
-    GT: 3, // greater than
-    IN: 4, // in
-    NIN: 5, // not in
-    NE: 6, // not equal
-    SD: 16, // selective disclosure
-  };
 
   // you can run https://go.dev/play/p/oB_oOW7kBEw to get schema hash and claimPathKey using YOUR schema
   const schemaBigInt = "74977327600848231385663280181476307657";

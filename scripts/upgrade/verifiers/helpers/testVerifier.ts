@@ -24,6 +24,7 @@ import {
   CredentialRequest,
   CredentialStatusType,
   hexToBytes,
+  Operators,
   ProofGenerationOptions,
   ProofService,
   ProofType,
@@ -350,17 +351,6 @@ export async function setZKPRequest_KYCAgeCredential(
 
   const requestIdExists = await verifier.requestIdExists(requestId);
   if (!requestIdExists) {
-    const Operators = {
-      NOOP: 0, // No operation, skip query verification in circuit
-      EQ: 1, // equal
-      LT: 2, // less than
-      GT: 3, // greater than
-      IN: 4, // in
-      NIN: 5, // not in
-      NE: 6, // not equal
-      SD: 16, // selective disclosure
-    };
-
     const chainId = hre.network.config.chainId || 80002;
     const network = hre.network.name;
     const methodId = "ade09fcd";

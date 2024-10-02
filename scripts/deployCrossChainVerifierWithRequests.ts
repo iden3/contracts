@@ -16,6 +16,7 @@ import { Hex } from "@iden3/js-crypto";
 import { Merklizer } from "@iden3/js-jsonld-merklization";
 import path from "path";
 import fs from "fs";
+import { Operators } from "@0xpolygonid/js-sdk";
 
 const removePreviousIgnitionFiles = true;
 
@@ -76,17 +77,6 @@ async function main() {
   await addToWhiteList3.wait();
 
   // ##################### SetZKPRequest #####################
-
-  const Operators = {
-    NOOP: 0, // No operation, skip query verification in circuit
-    EQ: 1, // equal
-    LT: 2, // less than
-    GT: 3, // greater than
-    IN: 4, // in
-    NIN: 5, // not in
-    NE: 6, // not equal
-    SD: 16, // selective disclosure
-  };
 
   const methodId = "ade09fcd";
 
