@@ -13,17 +13,12 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
      */
     string public constant VERSION = "1.0.0";
 
-    bytes32 public constant TYPE_HASH =
-        keccak256(
-            "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-        );
-
     bytes32 public constant PAYMENT_DATA_TYPE_HASH =
         keccak256(
-            "PaymentData(address recipient,uint256 value,uint256 expirationDate,uint256 nonce,bytes metadata)"
+            "Iden3PaymentRailsRequestV1(address recipient,uint256 value,uint256 expirationDate,uint256 nonce,bytes metadata)"
         );
 
-    struct PaymentData {
+    struct Iden3PaymentRailsRequestV1 {
         address recipient;
         uint256 value;
         uint256 expirationDate;
@@ -71,9 +66,9 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         $.ownerPercentage = ownerPercentage;
     }
 
-    function pay(PaymentData memory paymentData, bytes memory signature) external payable {
+    function pay(Iden3PaymentRailsRequestV1 memory paymentData, bytes memory signature) external payable {
         verifySignature(paymentData, signature);
-        bytes32 paymentId = keccak256(abi.encode(paymentData.recipient, paymentData.nonce));
+        bytes32 paymentId = keccak256(abi.encode(paymentData.recipient, paymentData.nonce)); // 23k gas
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         if ($.isPaid[paymentId]) {
             revert PaymentError("MCPayment: payment already paid");
@@ -98,7 +93,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         return $.isPaid[keccak256(abi.encode(issuerId, nonce))];
     }
 
-    function verifySignature(PaymentData memory paymentData, bytes memory signature) public view {
+    function verifySignature(Iden3PaymentRailsRequestV1 memory paymentData, bytes memory signature) public view {
         bytes32 structHash = keccak256(
             abi.encode(
                 PAYMENT_DATA_TYPE_HASH,
@@ -115,5 +110,10 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         if (err != ECDSA.RecoverError.NoError || recovered != paymentData.recipient) {
             revert InvalidSignature("MCPayment: invalid signature");
         }
+    }
+
+    function getMyBalance() public view returns (uint256) {
+        MCPaymentStorage storage $ = _getMCPaymentStorage();
+        return $.balance[_msgSender()];
     }
 }
