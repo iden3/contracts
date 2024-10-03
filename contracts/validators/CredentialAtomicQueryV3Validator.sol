@@ -155,12 +155,6 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
 
         PubSignals memory pubSignals = parsePubSignals(inputs);
 
-        // check circuitQueryHash
-        require(
-            pubSignals.circuitQueryHash == credAtomicQuery.queryHash,
-            "Query hash does not match the requested one"
-        );
-
         _checkAllowedIssuers(pubSignals.issuerID, credAtomicQuery.allowedIssuers);
         _checkProofExpiration(pubSignals.timestamp);
 
@@ -179,6 +173,12 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
 
         // Checking challenge to prevent replay attacks from other addresses
         _checkChallenge(pubSignals.challenge, sender);
+
+        // check circuitQueryHash
+        require(
+            pubSignals.circuitQueryHash == credAtomicQuery.queryHash,
+            "Query hash does not match the requested one"
+        );
 
         // if operator == 16 then we have selective disclosure
         return (pubSignals, credAtomicQuery.operator == 16);

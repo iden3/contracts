@@ -113,7 +113,9 @@ const testCases: any[] = [
   // MTP Proofs
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain. MTP Proof.",
-    stateTransitions: [require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json")],
+    stateTransitions: [
+      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
+    ],
     proofJson: require("./data/valid_mtp_user_genesis_v3.json"),
     setProofExpiration: tenYears,
     isMtpProof: true,
@@ -121,7 +123,9 @@ const testCases: any[] = [
   },
   {
     name: "Validation of MTP proof failed",
-    stateTransitions: [require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json")],
+    stateTransitions: [
+      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
+    ],
     proofJson: require("./data/invalid_mtp_user_genesis_v3.json"),
     errorMessage: "Proof is not valid",
     setProofExpiration: tenYears,
@@ -203,7 +207,7 @@ const testCases: any[] = [
     proofJson: require("./data/valid_mtp_user_genesis_v3.json"),
     setProofExpiration: tenYears,
     allowedIssuers: [123n],
-    errorMessage: 'Issuer is not on the Allowed Issuers list',
+    errorMessage: "Issuer is not on the Allowed Issuers list",
     isMtpProof: true,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
@@ -263,6 +267,58 @@ const testCases: any[] = [
     setProofExpiration: tenYears,
     sender: "0x0000000000000000000000000000000000000000",
   },
+  // Invalid Link ID pub signal
+  {
+    name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (Invalid Link ID pub signal)",
+    stateTransitions: [
+      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
+    ],
+    proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3.json"),
+    setProofExpiration: tenYears,
+    ethereumBasedUser: true,
+    errorMessage: "Invalid Link ID pub signal",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    groupID: 0,
+  },
+  // Proof type should match the requested one in query
+  {
+    name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (Proof type should match the requested one in query)",
+    stateTransitions: [
+      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
+    ],
+    proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3.json"),
+    setProofExpiration: tenYears,
+    ethereumBasedUser: true,
+    errorMessage: "Proof type should match the requested one in query",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    isMtpProof: true,
+  },
+  // Invalid nullify pub signal
+  {
+    name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (Invalid nullify pub signal)",
+    stateTransitions: [
+      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
+    ],
+    proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3.json"),
+    setProofExpiration: tenYears,
+    ethereumBasedUser: true,
+    errorMessage: "Invalid nullify pub signal",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    nullifierSessionId: "2",
+  },
+  // Query hash does not match the requested one
+  {
+    name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (Query hash does not match the requested one)",
+    stateTransitions: [
+      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
+    ],
+    proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3.json"),
+    setProofExpiration: tenYears,
+    ethereumBasedUser: true,
+    errorMessage: "Query hash does not match the requested one",
+    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    queryHash: BigInt(0),
+  },
 ];
 
 function delay(ms: number) {
@@ -278,10 +334,7 @@ describe("Atomic V3 Validator", function () {
     const { state: stateContract } = await deployHelper.deployState(["0x0112"]);
     state = stateContract;
 
-    const contracts = await deployHelper.deployValidatorContracts(
-      "v3",
-      await state.getAddress(),
-    );
+    const contracts = await deployHelper.deployValidatorContracts("v3", await state.getAddress());
     v3validator = contracts.validator;
   });
 
@@ -308,7 +361,8 @@ describe("Atomic V3 Validator", function () {
         "20376033832371109177683048456014525905119173674985843915445634726167450989630";
       const valueArrSize = 1;
       const nullifierSessionId = test.ethereumBasedUser ? "0" : "1234569";
-      const verifierId = "21929109382993718606847853573861987353620810345503358891473103689157378049"
+      const verifierId =
+        "21929109382993718606847853573861987353620810345503358891473103689157378049";
       const queryHash = calculateQueryHashV3(
         value,
         schema,
@@ -320,7 +374,7 @@ describe("Atomic V3 Validator", function () {
         1,
         verifierId,
         nullifierSessionId,
-      )
+      );
 
       const query = {
         schema,
@@ -330,9 +384,10 @@ describe("Atomic V3 Validator", function () {
         value,
         circuitIds: ["credentialAtomicQueryV3OnChain-beta.1"],
         skipClaimRevocationCheck: false,
-        queryHash: queryHash,
-        groupID: 1,
-        nullifierSessionID: nullifierSessionId,
+        queryHash: test.queryHash == undefined ? queryHash : test.queryHash,
+        groupID: test.groupID == undefined ? 1 : test.groupID,
+        nullifierSessionID:
+          test.nullifierSessionId == undefined ? nullifierSessionId : test.nullifierSessionId,
         proofType: test.isMtpProof ? 2 : 1,
         verifierID: verifierId,
       };
@@ -352,35 +407,13 @@ describe("Atomic V3 Validator", function () {
 
       if (test.errorMessage) {
         await expect(
-          v3validator.verify(
-            inputs,
-            pi_a,
-            pi_b,
-            pi_c,
-            packedParams,
-            test.sender
-          )
+          v3validator.verify(inputs, pi_a, pi_b, pi_c, packedParams, test.sender),
         ).to.be.rejectedWith(test.errorMessage);
       } else if (test.errorMessage === "") {
-        await expect(
-          v3validator.verify(
-            inputs,
-            pi_a,
-            pi_b,
-            pi_c,
-            packedParams,
-            test.sender
-          )
-        ).to.be.reverted;
+        await expect(v3validator.verify(inputs, pi_a, pi_b, pi_c, packedParams, test.sender)).to.be
+          .reverted;
       } else {
-        await v3validator.verify(
-          inputs,
-          pi_a,
-          pi_b,
-          pi_c,
-          packedParams,
-          test.sender
-        );
+        await v3validator.verify(inputs, pi_a, pi_b, pi_c, packedParams, test.sender);
       }
     });
   }

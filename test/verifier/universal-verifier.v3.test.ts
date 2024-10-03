@@ -51,9 +51,11 @@ describe("Universal Verifier V3 validator", function () {
   const proofJson = require("../validators/v3/data/valid_bjj_user_genesis_auth_disabled_v3.json");
   const stateTransition1 = require("../validators/common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json");
 
-  beforeEach(async () => {
-    [signer, signer2] = await ethers.getSigners();
+  const stateTransition11 = require("../validators/common-data/issuer_from_genesis_state_to_first_transition_v3.json");
+  const stateTransition12 = require("../validators/common-data/user_from_genesis_state_to_first_transition_v3.json");
+  const stateTransition13 = require("../validators/common-data/issuer_from_first_state_to_second_transition_v3.json");
 
+  const initializeState = async () => {
     deployHelper = await DeployHelper.initialize(null, true);
 
     const { state: stateContract } = await deployHelper.deployState(["0x0112"]);
@@ -68,6 +70,12 @@ describe("Universal Verifier V3 validator", function () {
     );
     await verifier.addValidatorToWhitelist(await v3.getAddress());
     await verifier.connect();
+  };
+
+  before(async () => {
+    [signer, signer2] = await ethers.getSigners();
+
+    await initializeState();
   });
 
   it("Test submit response", async () => {
@@ -92,10 +100,125 @@ describe("Universal Verifier V3 validator", function () {
     );
 
     await expect(verifier.submitZKPResponse(32, inputs, pi_a, pi_b, pi_c)).not.to.be.rejected;
+  });
+
+  it("Test submit response fails with UserID does not correspond to the sender", async () => {
+    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+
     await expect(
       verifier.connect(signer2).submitZKPResponse(32, inputs, pi_a, pi_b, pi_c),
     ).to.be.rejectedWith("UserID does not correspond to the sender");
+  });
 
-    // TODO make some test with correct UserID but with wrong challenge
+  it("Test submit response fails with Issuer is not on the Allowed Issuers list", async () => {
+    const data = packV3ValidatorParams(query, ["1"]);
+    await verifier.setZKPRequest(33, {
+      metadata: "metadata",
+      validator: await v3.getAddress(),
+      data: data,
+    });
+
+    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+
+    await expect(
+      verifier.connect(signer).submitZKPResponse(33, inputs, pi_a, pi_b, pi_c),
+    ).to.be.rejectedWith("Issuer is not on the Allowed Issuers list");
+  });
+
+  it("Test submit response fails with Invalid Link ID pub signal", async () => {
+    const query2 = {
+      ...query,
+    };
+    query2.groupID = 0;
+    const data = packV3ValidatorParams(query2);
+    await verifier.setZKPRequest(34, {
+      metadata: "metadata",
+      validator: await v3.getAddress(),
+      data: data,
+    });
+
+    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+
+    await expect(
+      verifier.connect(signer).submitZKPResponse(34, inputs, pi_a, pi_b, pi_c),
+    ).to.be.rejectedWith("Invalid Link ID pub signal");
+  });
+
+  it("Test submit response fails with Proof type should match the requested one in query", async () => {
+    const query2 = {
+      ...query,
+    };
+    query2.proofType = 2;
+    const data = packV3ValidatorParams(query2);
+    await verifier.setZKPRequest(35, {
+      metadata: "metadata",
+      validator: await v3.getAddress(),
+      data: data,
+    });
+
+    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+
+    await expect(
+      verifier.connect(signer).submitZKPResponse(35, inputs, pi_a, pi_b, pi_c),
+    ).to.be.rejectedWith("Proof type should match the requested one in query");
+  });
+
+  it("Test submit response fails with Invalid nullify pub signal", async () => {
+    const query2 = {
+      ...query,
+    };
+    query2.nullifierSessionID = "2";
+    const data = packV3ValidatorParams(query2);
+    await verifier.setZKPRequest(36, {
+      metadata: "metadata",
+      validator: await v3.getAddress(),
+      data: data,
+    });
+
+    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+
+    await expect(
+      verifier.connect(signer).submitZKPResponse(36, inputs, pi_a, pi_b, pi_c),
+    ).to.be.rejectedWith("Invalid nullify pub signal");
+  });
+
+  it("Test submit response fails with Query hash does not match the requested one", async () => {
+    const query2 = {
+      ...query,
+    };
+    query2.queryHash = BigInt(0);
+    const data = packV3ValidatorParams(query2);
+    await verifier.setZKPRequest(37, {
+      metadata: "metadata",
+      validator: await v3.getAddress(),
+      data: data,
+    });
+
+    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+
+    await expect(
+      verifier.connect(signer).submitZKPResponse(37, inputs, pi_a, pi_b, pi_c),
+    ).to.be.rejectedWith("Query hash does not match the requested one");
+  });
+
+  it("Test submit response fails with Generated proof is outdated", async () => {
+    await initializeState();
+
+    await publishState(state, stateTransition11);
+    await publishState(state, stateTransition12);
+    await publishState(state, stateTransition13);
+
+    const data = packV3ValidatorParams(query);
+    await verifier.setZKPRequest(37, {
+      metadata: "metadata",
+      validator: await v3.getAddress(),
+      data: data,
+    });
+
+    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+
+    await expect(
+      verifier.connect(signer).submitZKPResponse(37, inputs, pi_a, pi_b, pi_c),
+    ).to.be.rejectedWith("Generated proof is outdated");
   });
 });
