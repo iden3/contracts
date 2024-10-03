@@ -212,6 +212,9 @@ export class DeployHelper {
     stateAddress: string,
     redeployVerifier = true,
     redeployCrossChainProofValidator = true,
+    deployStrategy: "basic" | "create2" = "basic",
+    poseidonContracts: string[] = [],
+    smtLibAddress: string,
     g16VerifierContractName = "Groth16VerifierStateTransition",
     stateContractName = "State",
     crossChainProofValidatorContractName = "CrossChainProofValidator",
@@ -219,28 +222,46 @@ export class DeployHelper {
     state: Contract;
     g16Verifier: Contract;
     crossChainProofValidator: Contract;
-    smtLib: Contract;
+    smtLib: string;
     stateLib: Contract;
     stateCrossChainLib: Contract;
-    poseidon1: Contract;
-    poseidon2: Contract;
-    poseidon3: Contract;
+    poseidon1: string;
+    poseidon2: string;
+    poseidon3: string;
   }> {
     this.log("======== State: upgrade started ========");
 
     const proxyAdminOwner = this.signers[0];
     // const stateAdminOwner = this.signers[1];
 
-    this.log("deploying poseidons...");
-    const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons([
-      1, 2, 3,
-    ]);
+    if (poseidonContracts.length === 0) {
+      this.log("deploying poseidons...");
 
-    this.log("deploying SmtLib...");
-    const smtLib = await this.deploySmtLib(
-      await poseidon2Elements.getAddress(),
-      await poseidon3Elements.getAddress(),
-    );
+      const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons(
+        [1, 2, 3],
+        deployStrategy,
+      );
+      poseidonContracts.push(
+        await poseidon1Elements.getAddress(),
+        await poseidon2Elements.getAddress(),
+        await poseidon3Elements.getAddress(),
+      );
+    }
+
+    const poseidon1ElementsAddress = poseidonContracts[0];
+    const poseidon2ElementsAddress = poseidonContracts[1];
+    const poseidon3ElementsAddress = poseidonContracts[2];
+
+    if (!smtLibAddress) {
+      this.log("deploying SmtLib...");
+      const smtLib = await this.deploySmtLib(
+        poseidon2ElementsAddress,
+        poseidon3ElementsAddress,
+        "SmtLib",
+        deployStrategy,
+      );
+      smtLibAddress = await smtLib.getAddress();
+    }
 
     this.log("deploying StateLib...");
     const stateLib = await this.deployStateLib();
@@ -262,8 +283,8 @@ export class DeployHelper {
       signer: proxyAdminOwner,
       libraries: {
         StateLib: await stateLib.getAddress(),
-        SmtLib: await smtLib.getAddress(),
-        PoseidonUnit1L: await poseidon1Elements.getAddress(),
+        SmtLib: smtLibAddress,
+        PoseidonUnit1L: poseidon1ElementsAddress,
         StateCrossChainLib: await stateCrossChainLib.getAddress(),
       },
     });
@@ -318,12 +339,12 @@ export class DeployHelper {
       state: stateContract,
       g16Verifier: g16VerifierContract,
       crossChainProofValidator: opvContract,
-      smtLib,
+      smtLib: smtLibAddress,
       stateLib,
       stateCrossChainLib,
-      poseidon1: poseidon1Elements,
-      poseidon2: poseidon2Elements,
-      poseidon3: poseidon3Elements,
+      poseidon1: poseidon1ElementsAddress,
+      poseidon2: poseidon2ElementsAddress,
+      poseidon3: poseidon3ElementsAddress,
     };
   }
 
@@ -925,10 +946,6 @@ export class DeployHelper {
       {
         unsafeAllow: ["external-library-linking"],
         redeployImplementation: "always",
-        call: {
-          fn: "initialize",
-          args: [stateAddress],
-        },
       },
     );
 

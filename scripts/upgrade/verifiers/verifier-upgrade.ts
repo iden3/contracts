@@ -10,13 +10,13 @@ import {
   setZKPRequest_KYCAgeCredential,
   submitZKPResponses_KYCAgeCredential,
 } from "./helpers/testVerifier";
-import fs from "fs";
-import { getConfig } from "../../../helpers/helperUtils";
+import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
 
 const validatorSigContractName = "CredentialAtomicQuerySigV2Validator";
 const validatorMTPContractName = "CredentialAtomicQueryMTPV2Validator";
 const validatorV3ContractName = "CredentialAtomicQueryV3Validator";
 const removePreviousIgnitionFiles = true;
+const upgradeStateContract = false;
 const impersonate = false;
 
 const config = getConfig();
@@ -72,12 +72,13 @@ async function main() {
     true,
   );
 
-  if (removePreviousIgnitionFiles && (network === "localhost" || network === "hardhat")) {
-    console.log("Removing previous ignition files for chain: ", chainId);
-    fs.rmSync(`./ignition/deployments/chain-${chainId}`, { recursive: true, force: true });
+  if (removePreviousIgnitionFiles) {
+    removeLocalhostNetworkIgnitionFiles(network, chainId);
   }
 
-  await upgradeState(deployerHelper, proxyAdminOwnerSigner);
+  if (upgradeStateContract) {
+    await upgradeState(deployerHelper, proxyAdminOwnerSigner);
+  }
 
   const universalVerifierMigrationHelper = new UniversalVerifierContractMigrationHelper(
     deployerHelper,

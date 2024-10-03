@@ -1,60 +1,23 @@
 import { DeployHelper } from "../../../helpers/DeployHelper";
-import { ethers } from "hardhat";
-import { StateContractMigrationHelper } from "../../../helpers/StateContractMigrationHelper";
+import hre, { ethers } from "hardhat";
 import { expect } from "chai"; // abi of contract that will be upgraded
-
 import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/State.json";
+import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
 
-// Privado test
+const config = getConfig();
 
-// const proxyAdminOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
-// const stateContractAddress = "0x975556428F077dB5877Ea2474D783D6C69233742";
-// const stateOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
-// // const id = "0x000b9921a67e1b1492902d04d9b5c521bee1288f530b14b10a6a8c94ca741201";
-// // const stateValue = "0x2c68da47bf4c9acb3320076513905f7b63d8070ed8276ad16ca5402b267a7c26";
-// const impersonate = false;
+const chainId = hre.network.config.chainId;
+const network = hre.network.name;
 
-
-// Privado main
-
-// const proxyAdminOwnerAddress = "0x80203136fAe3111B810106bAa500231D4FD08FC6";
-// const stateContractAddress = "0x975556428F077dB5877Ea2474D783D6C69233742";
-// const stateOwnerAddress = "0x80203136fAe3111B810106bAa500231D4FD08FC6";
-// // const id = "0x000b9921a67e1b1492902d04d9b5c521bee1288f530b14b10a6a8c94ca741201";
-// // const stateValue = "0x2c68da47bf4c9acb3320076513905f7b63d8070ed8276ad16ca5402b267a7c26";
-// const impersonate = false;
-
-
-// Polygon PoS mainnet
-
-// const proxyAdminOwnerAddress = "0x80203136fAe3111B810106bAa500231D4FD08FC6";
-// const stateContractAddress = "0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D";
-// const stateOwnerAddress = "0x80203136fAe3111B810106bAa500231D4FD08FC6";
-// const id = "27400734408475525514287944072871082260891789330025154387098461662248702210";
-// const stateValue = "1406871096418685973996308927175869145223551926097850896167027746851817634897";
-// const impersonate = true;
-
-
-// Local
-
-const proxyAdminOwnerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-const stateContractAddress = "0x4caE67C03292AD7A465197C8688f7E8EbCB1db82";
-const stateOwnerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-// const id = "27400734408475525514287944072871082260891789330025154387098461662248702210";
-// const stateValue = "1406871096418685973996308927175869145223551926097850896167027746851817634897";
+const removePreviousIgnitionFiles = true;
 const impersonate = false;
-
 
 async function getSigners(useImpersonation: boolean): Promise<any> {
   if (useImpersonation) {
-    const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(proxyAdminOwnerAddress);
-    const stateOwnerSigner = await ethers.getImpersonatedSigner(stateOwnerAddress);
+    const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(config.ledgerAccount);
+    const stateOwnerSigner = await ethers.getImpersonatedSigner(config.ledgerAccount);
     return { proxyAdminOwnerSigner, stateOwnerSigner };
   } else {
-    // const privateKey = process.env.PRIVATE_KEY as string;
-    // const proxyAdminOwnerSigner = new ethers.Wallet(privateKey, ethers.provider);
-    // const stateOwnerSigner = new ethers.Wallet(privateKey, ethers.provider);
-
     const [signer] = await ethers.getSigners();
     const proxyAdminOwnerSigner = signer;
     const stateOwnerSigner = signer;
@@ -64,26 +27,65 @@ async function getSigners(useImpersonation: boolean): Promise<any> {
 }
 
 async function main() {
+  const deployStrategy: "basic" | "create2" =
+    config.deployStrategy == "create2" ? "create2" : "basic";
+
+  if (!ethers.isAddress(config.ledgerAccount)) {
+    throw new Error("LEDGER_ACCOUNT is not set");
+  }
+  if (!ethers.isAddress(config.stateContractAddress)) {
+    throw new Error("STATE_CONTRACT_ADDRESS is not set");
+  }
+  const poseidon1ContractAddress = config.poseidon1ContractAddress;
+  if (!ethers.isAddress(poseidon1ContractAddress)) {
+    throw new Error("POSEIDON_1_CONTRACT_ADDRESS is not set");
+  }
+  const poseidon2ContractAddress = config.poseidon2ContractAddress;
+  if (!ethers.isAddress(poseidon2ContractAddress)) {
+    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set");
+  }
+  const poseidon3ContractAddress = config.poseidon3ContractAddress;
+  if (!ethers.isAddress(poseidon3ContractAddress)) {
+    throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set");
+  }
+  const smtLibContractAddress = config.smtLibContractAddress;
+  if (!ethers.isAddress(smtLibContractAddress)) {
+    throw new Error("SMT_LIB_CONTRACT_ADDRESS is not set");
+  }
   const { proxyAdminOwnerSigner, stateOwnerSigner } = await getSigners(impersonate);
 
   const stateDeployHelper = await DeployHelper.initialize(
     [proxyAdminOwnerSigner, stateOwnerSigner],
-    true
+    true,
   );
 
-  const stateContract = await ethers.getContractAt(
-    stateArtifact.abi,
-    stateContractAddress
-  );
+  console.log("Proxy Admin Owner Address: ", await proxyAdminOwnerSigner.getAddress());
+  console.log("State Owner Address: ", await stateOwnerSigner.getAddress());
+  if (removePreviousIgnitionFiles) {
+    removeLocalhostNetworkIgnitionFiles(network, chainId);
+  }
+
+  const stateContract = await ethers.getContractAt(stateArtifact.abi, config.stateContractAddress);
+  console.log("Version before: ", await stateContract.VERSION());
 
   const defaultIdTypeBefore = await stateContract.getDefaultIdType();
   const stateOwnerAddressBefore = await stateContract.owner();
 
+  const poseidonContracts = [
+    config.poseidon1ContractAddress,
+    config.poseidon2ContractAddress,
+    config.poseidon3ContractAddress,
+  ];
   await stateDeployHelper.upgradeState(
     await stateContract.getAddress(),
     true,
     true,
-  )
+    deployStrategy,
+    poseidonContracts,
+    config.smtLibContractAddress,
+  );
+
+  console.log("Version after: ", await stateContract.VERSION());
 
   const defaultIdTypeAfter = await stateContract.getDefaultIdType();
   const stateOwnerAddressAfter = await stateContract.owner();
@@ -92,7 +94,6 @@ async function main() {
   expect(stateOwnerAddressAfter).to.equal(stateOwnerAddressBefore);
 
   console.log("Contract Upgrade Finished");
-
 
   // // **** Additional write-read tests (remove in real upgrade) ****
   //       const verifierStubContractName = "Groth16VerifierStub";
@@ -124,7 +125,6 @@ async function main() {
   //       const stateHistoryLengthAfter = await stateContract.getStateInfoHistoryLengthById(id);
   //       expect(stateHistoryLengthAfter).to.equal(stateHistoryLengthBefore.add(1));
   // **********************************
-
 }
 
 main()

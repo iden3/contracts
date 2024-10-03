@@ -15,15 +15,18 @@ export class UniversalVerifierContractMigrationHelper extends ContractMigrationS
   @log
   async getDataFromContract(contract: Contract, ...args: any[]): Promise<any> {
     const countRequests = await contract.getZKPRequestsCount();
-    const requests = await contract.getZKPRequests(0, countRequests);
 
     const validators: string[] = [];
     const requestsObj: any[] = [];
-    for (const request of requests) {
-      if (!validators.includes(request[1])) {
-        validators.push(request[1]);
+
+    if (countRequests > 0) {
+      const requests = await contract.getZKPRequests(0, countRequests);
+      for (const request of requests) {
+        if (!validators.includes(request[1])) {
+          validators.push(request[1]);
+        }
+        requestsObj.push(JSON.parse(request[0]));
       }
-      requestsObj.push(JSON.parse(request[0]));
     }
 
     const result = { requests: requestsObj, validators };
