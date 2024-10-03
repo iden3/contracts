@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {CredentialAtomicQueryValidatorBase} from "./CredentialAtomicQueryValidatorBase.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {IState} from "../interfaces/IState.sol";
 
 abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryValidatorBase {
     /**
@@ -41,17 +42,48 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
     function version() public pure virtual override returns (string memory);
 
     function parsePubSignals(
-        uint256[] calldata inputs
+        uint256[] memory inputs
     ) public pure virtual returns (PubSignals memory);
 
     function verify(
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
         bytes calldata data,
         address sender
-    ) external view override returns (ICircuitValidator.KeyToInputIndex[] memory) {
+    ) public view override returns (ICircuitValidator.KeyToInputIndex[] memory) {
+        _verifyMain(inputs, a, b, c, data, sender, IState(getStateAddress()));
+
+        return _getSpecialInputIndexes();
+    }
+
+    function verifyV2(
+        bytes calldata zkProof,
+        bytes calldata data,
+        address sender,
+        IState stateContract
+    ) public view override returns (ICircuitValidator.Signal[] memory) {
+        (
+            uint256[] memory inputs,
+            uint256[2] memory a,
+            uint256[2][2] memory b,
+            uint256[2] memory c
+        ) = abi.decode(zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
+
+        PubSignals memory pubSignals = _verifyMain(inputs, a, b, c, data, sender, stateContract);
+        return _getSpecialSignals(pubSignals);
+    }
+
+    function _verifyMain(
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
+        bytes calldata data,
+        address sender,
+        IState state
+    ) internal view returns (PubSignals memory) {
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
 
         require(credAtomicQuery.circuitIds.length == 1, "circuitIds length is not equal to 1");
@@ -63,32 +95,33 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         // verify that zkp is valid
         require(verifier.verify(a, b, c, inputs), "Proof is not valid");
 
-        PubSignals memory signals = parsePubSignals(inputs);
+        PubSignals memory pubSignals = parsePubSignals(inputs);
 
         // check circuitQueryHash
         require(
-            signals.circuitQueryHash == credAtomicQuery.queryHash,
+            pubSignals.circuitQueryHash == credAtomicQuery.queryHash,
             "Query hash does not match the requested one"
         );
 
         // TODO: add support for query to specific userID and then verifying it
 
-        _checkMerklized(signals.merklized, credAtomicQuery.claimPathKey);
-        _checkGistRoot(signals.userID, signals.gistRoot);
-        _checkAllowedIssuers(signals.issuerID, credAtomicQuery.allowedIssuers);
-        _checkClaimIssuanceState(signals.issuerID, signals.issuerState);
-        _checkClaimNonRevState(signals.issuerID, signals.issuerClaimNonRevState);
-        _checkProofExpiration(signals.timestamp);
+        _checkMerklized(pubSignals.merklized, credAtomicQuery.claimPathKey);
+        _checkAllowedIssuers(pubSignals.issuerID, credAtomicQuery.allowedIssuers);
+        _checkProofExpiration(pubSignals.timestamp);
         _checkIsRevocationChecked(
-            signals.isRevocationChecked,
+            pubSignals.isRevocationChecked,
             credAtomicQuery.skipClaimRevocationCheck
         );
 
         // Checking challenge to prevent replay attacks from other addresses
-        _checkChallenge(signals.challenge, sender);
+        _checkChallenge(pubSignals.challenge, sender);
 
-        // selective disclosure is not supported for v2 onchain circuits
-        return _getSpecialInputPairs();
+        // GIST root and state checks
+        _checkGistRoot(pubSignals.userID, pubSignals.gistRoot, state);
+        _checkClaimIssuanceState(pubSignals.issuerID, pubSignals.issuerState, state);
+        _checkClaimNonRevState(pubSignals.issuerID, pubSignals.issuerClaimNonRevState, state);
+
+        return pubSignals;
     }
 
     function _checkMerklized(uint256 merklized, uint256 queryClaimPathKey) internal pure {
@@ -110,16 +143,30 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         );
     }
 
-    function _getSpecialInputPairs()
+    function _getSpecialSignals(
+        PubSignals memory pubSignals
+    ) internal pure returns (ICircuitValidator.Signal[] memory) {
+        ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](2);
+        signals[0] = ICircuitValidator.Signal({name: "userID", value: pubSignals.userID});
+        signals[1] = ICircuitValidator.Signal({name: "timestamp", value: pubSignals.timestamp});
+        return signals;
+    }
+
+    function _getSpecialInputIndexes()
         internal
-        pure
+        view
         returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
-        ICircuitValidator.KeyToInputIndex[] memory pairs = new ICircuitValidator.KeyToInputIndex[](
-            2
-        );
-        pairs[0] = ICircuitValidator.KeyToInputIndex({key: "userID", inputIndex: 1});
-        pairs[1] = ICircuitValidator.KeyToInputIndex({key: "timestamp", inputIndex: 10});
-        return pairs;
+        ICircuitValidator.KeyToInputIndex[]
+            memory keyToInputIndexes = new ICircuitValidator.KeyToInputIndex[](2);
+        keyToInputIndexes[0] = ICircuitValidator.KeyToInputIndex({
+            key: "userID",
+            inputIndex: inputIndexOf("userID")
+        });
+        keyToInputIndexes[1] = ICircuitValidator.KeyToInputIndex({
+            key: "timestamp",
+            inputIndex: inputIndexOf("timestamp")
+        });
+        return keyToInputIndexes;
     }
 }

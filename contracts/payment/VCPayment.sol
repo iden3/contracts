@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 
 contract VCPayment is Ownable2StepUpgradeable {
@@ -101,8 +101,8 @@ contract VCPayment is Ownable2StepUpgradeable {
     /**
      * @dev Initialize the contract
      */
-    function initialize() public initializer {
-        __Ownable_init(_msgSender());
+    function initialize(address owner) public initializer {
+        __Ownable_init(owner);
     }
 
     function setPaymentValue(

@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 
 abstract contract RequestOwnership is ZKPVerifierBase {
-    /// @custom:storage-location erc7201:iden3.storage.RequestOwnership.sol
+    /// @custom:storage-location erc7201:iden3.storage.RequestOwnership
     struct RequestOwnershipStorage {
-        mapping(uint64 requestID => address requestOwner) _requestOwners;
+        mapping(uint64 requestId => address requestOwner) _requestOwners;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.RequestOwnership")) - 1)) & ~bytes32(uint256(0xff));

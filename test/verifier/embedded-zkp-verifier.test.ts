@@ -12,16 +12,13 @@ describe("Embedded ZKP Verifier", function () {
   const query = {
     schema: BigInt("180410020913331409885634153623124536270"),
     claimPathKey: BigInt(
-      "8566939875427719562376598811066985304309117528846759529734201066483458512800"
+      "8566939875427719562376598811066985304309117528846759529734201066483458512800",
     ),
     operator: 1n,
     slotIndex: 0n,
-    value: [
-      1420070400000000000n,
-      ...new Array(63).fill("0").map((x) => BigInt(x)),
-    ],
+    value: [1420070400000000000n, ...new Array(63).fill("0").map((x) => BigInt(x))],
     queryHash: BigInt(
-      "1496222740463292783938163206931059379817846775593932664024082849882751356658"
+      "1496222740463292783938163206931059379817846775593932664024082849882751356658",
     ),
     circuitIds: ["credentialAtomicQuerySigV2OnChain"],
     claimPathNotExists: 0,
@@ -32,7 +29,16 @@ describe("Embedded ZKP Verifier", function () {
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize(null, true);
     [owner] = await ethers.getSigners();
-    verifier = await deployHelper.deployZKPVerifier(owner);
+
+    const { state } = await deployHelper.deployState(["0x0112"]);
+
+    const verifierLib = await deployHelper.deployVerifierLib();
+
+    verifier = await deployHelper.deployEmbeddedZKPVerifier(
+      owner,
+      await state.getAddress(),
+      await verifierLib.getAddress(),
+    );
 
     const stub = await deployHelper.deployValidatorStub();
     sig = stub;

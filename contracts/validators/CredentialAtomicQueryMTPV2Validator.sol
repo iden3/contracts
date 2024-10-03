@@ -1,21 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
-import {IVerifier} from "../interfaces/IVerifier.sol";
-import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {CredentialAtomicQueryV2ValidatorBase} from "./CredentialAtomicQueryV2ValidatorBase.sol";
 
 contract CredentialAtomicQueryMTPV2Validator is CredentialAtomicQueryV2ValidatorBase {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.0.6";
+    string public constant VERSION = "2.1.0";
 
     string internal constant CIRCUIT_ID = "credentialAtomicQueryMTPV2OnChain";
 
     function initialize(
         address _verifierContractAddr,
-        address _stateContractAddr
+        address _stateContractAddr,
+        address owner
     ) public initializer {
         _setInputToIndex("merklized", 0);
         _setInputToIndex("userID", 1);
@@ -29,9 +28,7 @@ contract CredentialAtomicQueryMTPV2Validator is CredentialAtomicQueryV2Validator
         _setInputToIndex("issuerClaimNonRevState", 9);
         _setInputToIndex("timestamp", 10);
 
-        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID);
-
-        __Ownable_init(_msgSender());
+        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, owner);
     }
 
     function version() public pure override returns (string memory) {
@@ -39,7 +36,7 @@ contract CredentialAtomicQueryMTPV2Validator is CredentialAtomicQueryV2Validator
     }
 
     function parsePubSignals(
-        uint256[] calldata inputs
+        uint256[] memory inputs
     ) public pure override returns (PubSignals memory) {
         PubSignals memory params = PubSignals({
             merklized: inputs[0],

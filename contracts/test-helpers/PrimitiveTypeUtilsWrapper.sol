@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
-import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
 contract PrimitiveTypeUtilsWrapper {
     function addressToUint256LE(address _addr) public pure returns (uint256) {

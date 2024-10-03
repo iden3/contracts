@@ -1,0 +1,12 @@
+{
+ "proxyAdminOwnerAddress": "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE",
+ "universalVerifierOwnerAddress": "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE",
+ "state": "0x6B8e8E3806379f90e7a7dcA2Cfb3dbd6325F9a25",
+ "universalVerifier": "0xcfe3f46048cb9dAa40c90fd574F6E1deB534b9e7",
+ "crossChainProofValidator": "0x882E5d4f85b178d43500415C5c2A7099f3fDC1E6",
+ "validatorSig": "0x932B85726B72050561bDd083816c97A667477800",
+ "validatorMTP": "0x0bD2cEBA76FE52c03C780cd8f560A1190E4eB807",
+ "validatorV3": "0x66575B6c2Ff0272fdba85fb741713eEc8a4eC1E8",
+ "network": "linea-sepolia",
+ "chainId": 59141
+}

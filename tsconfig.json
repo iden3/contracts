@@ -10,6 +10,6 @@
     "experimentalDecorators": true,
     "resolveJsonModule": true
   },
-  "include": ["./scripts", "./test", "./typechain"],
-  "files": ["hardhat.config.ts"]
+  "include": ["./scripts", "./test", "./typechain", "./typechain-types", "./helpers", "./ignition"],
+  "files": ["hardhat.config.ts", "packDemo.ts"]
 }

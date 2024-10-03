@@ -1,24 +1,23 @@
 import { ethers, network, upgrades, ignition } from "hardhat";
-import { Contract } from "ethers";
+import { Contract, ContractTransactionResponse } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
-import { chainIdDefaultIdTypeMap } from "./ChainIdDefTypeMap";
-import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain";
+import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain-types";
 import {
-  StateModule,
-  StateLibModule,
   SmtLibModule,
-  VerifierStateTransitionModule,
-  VerifierStubModule,
-  UniversalVerifierModule,
-  IdentityTreeStoreModule,
-  VerifierMTPWrapperModule,
-  VerifierSigWrapperModule,
-  VerifierV3WrapperModule,
-  CredentialAtomicQueryMTPV2ValidatorModule,
-  CredentialAtomicQuerySigV2ValidatorModule,
-  CredentialAtomicQueryV3ValidatorModule,
+  Groth16VerifierMTPWrapperModule,
+  Groth16VerifierSigWrapperModule,
+  Groth16VerifierV3WrapperModule,
+  VCPaymentModule,
+  StateProxyModule,
+  IdentityTreeStoreProxyModule,
+  CredentialAtomicQueryMTPV2ValidatorProxyModule,
+  CredentialAtomicQuerySigV2ValidatorProxyModule,
+  CredentialAtomicQueryV3ValidatorProxyModule,
+  UniversalVerifierProxyModule,
 } from "../ignition";
+import { chainIdInfoMap } from "./constants";
+import { waitNotToInterfereWithHardhatIgnition } from "./helperUtils";
 
 const SMT_MAX_DEPTH = 64;
 
@@ -40,19 +39,24 @@ export class DeployHelper {
     }
     return new DeployHelper(sgrs, enableLogging);
   }
+
   async deployState(
     supportedIdTypes: string[] = [],
-    verifierContractName: "VerifierStateTransition" | "VerifierStub" = "VerifierStateTransition",
+    g16VerifierContractName:
+      | "Groth16VerifierStateTransition"
+      | "Groth16VerifierStub" = "Groth16VerifierStateTransition",
     deployStrategy: "basic" | "create2" = "basic",
+    poseidonContracts: Contract[] = [],
   ): Promise<{
     state: Contract;
-    verifier: Contract;
+    groth16verifier: Contract;
     stateLib: Contract;
     smtLib: Contract;
+    stateCrossChainLib: Contract;
+    crossChainProofValidator: Contract;
     poseidon1: Contract;
     poseidon2: Contract;
     poseidon3: Contract;
-    poseidon4: Contract;
     defaultIdType;
   }> {
     this.log("======== State: deploy started ========");
@@ -62,30 +66,37 @@ export class DeployHelper {
 
     const owner = this.signers[0];
 
-    this.log("deploying verifier...");
+    this.log("deploying Groth16VerifierStateTransition...");
 
-    let verifier;
-    if (verifierContractName === "VerifierStateTransition") {
-      const verifierDeploy = await ignition.deploy(VerifierStateTransitionModule, {
-        strategy: deployStrategy,
-      });
-      verifier = verifierDeploy.verifierStateTransition;
-    } else if (verifierContractName === "VerifierStub") {
-      const verifierDeploy = await ignition.deploy(VerifierStubModule, {
-        strategy: deployStrategy,
-      });
-      verifier = verifierDeploy.verifierStub;
+    let g16Verifier;
+    if (
+      ["Groth16VerifierStateTransition", "Groth16VerifierStub"].includes(g16VerifierContractName)
+    ) {
+      g16Verifier = await ethers.deployContract(g16VerifierContractName);
     } else {
       throw new Error("invalid verifierContractName");
     }
-    await verifier.waitForDeployment();
+    await g16Verifier.waitForDeployment();
     this.log(
-      `${verifierContractName} contract deployed to address ${await verifier.getAddress()} from ${await owner.getAddress()}`,
+      `${g16VerifierContractName} contract deployed to address ${await g16Verifier.getAddress()} from ${await owner.getAddress()}`,
     );
 
-    this.log("deploying poseidons...");
-    const [poseidon1Elements, poseidon2Elements, poseidon3Elements, poseidon4Elements] =
-      await deployPoseidons([1, 2, 3, 4], deployStrategy);
+    if (poseidonContracts.length === 0) {
+      this.log("deploying poseidons...");
+
+      const tx = await g16Verifier.deploymentTransaction();
+      await waitNotToInterfereWithHardhatIgnition(tx);
+
+      const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons(
+        [1, 2, 3],
+        deployStrategy,
+      );
+      poseidonContracts.push(poseidon1Elements, poseidon2Elements, poseidon3Elements);
+    }
+
+    const poseidon1Elements = poseidonContracts[0];
+    const poseidon2Elements = poseidonContracts[1];
+    const poseidon3Elements = poseidonContracts[2];
 
     this.log("deploying SmtLib...");
     const smtLib = await this.deploySmtLib(
@@ -96,40 +107,76 @@ export class DeployHelper {
     );
 
     this.log("deploying StateLib...");
-    const stateLib = await this.deployStateLib(deployStrategy);
+    const stateLib = await this.deployStateLib();
 
-    this.log("deploying state...");
+    this.log("deploying StateCrossChainLib...");
+    const stateCrossChainLib = await this.deployStateCrossChainLib("StateCrossChainLib");
+
+    this.log("deploying CrossChainProofValidator...");
+    const crossChainProofValidator = await this.deployCrossChainProofValidator();
+
+    this.log("deploying State...");
+
+    const StateFactory = await ethers.getContractFactory("State", {
+      libraries: {
+        StateLib: await stateLib.getAddress(),
+        SmtLib: await smtLib.getAddress(),
+        PoseidonUnit1L: await poseidon1Elements.getAddress(),
+        StateCrossChainLib: await stateCrossChainLib.getAddress(),
+      },
+    });
+
+    const Create2AddressAnchorFactory = await ethers.getContractFactory("Create2AddressAnchor");
+
     let state;
-    if (deployStrategy !== "create2") {
-      const StateFactory = await ethers.getContractFactory("State", {
-        libraries: {
-          StateLib: await stateLib.getAddress(),
-          SmtLib: await smtLib.getAddress(),
-          PoseidonUnit1L: await poseidon1Elements.getAddress(),
+    if (deployStrategy === "create2") {
+      this.log("deploying with CREATE2 strategy...");
+
+      // Deploying State contract to predictable address but with dummy implementation
+      const tx = await crossChainProofValidator.deploymentTransaction();
+      await waitNotToInterfereWithHardhatIgnition(tx as ContractTransactionResponse);
+
+      state = (
+        await ignition.deploy(StateProxyModule, {
+          strategy: deployStrategy,
+        })
+      ).proxy;
+      await state.waitForDeployment();
+
+      // Upgrading State contract to the first real implementation
+      // and force network files import, so creation, as they do not exist at the moment
+      const stateAddress = await state.getAddress();
+      await upgrades.forceImport(stateAddress, Create2AddressAnchorFactory);
+      state = await upgrades.upgradeProxy(stateAddress, StateFactory, {
+        unsafeAllow: ["external-library-linking"],
+        redeployImplementation: "always",
+        call: {
+          fn: "initialize",
+          args: [
+            await g16Verifier.getAddress(),
+            defaultIdType,
+            await owner.getAddress(),
+            await crossChainProofValidator.getAddress(),
+          ],
         },
       });
+    } else {
+      this.log("deploying with BASIC strategy...");
+
       state = await upgrades.deployProxy(
         StateFactory,
-        [await verifier.getAddress(), defaultIdType, await owner.getAddress()],
+        [
+          await g16Verifier.getAddress(),
+          defaultIdType,
+          await owner.getAddress(),
+          await crossChainProofValidator.getAddress(),
+        ],
         {
-          unsafeAllowLinkedLibraries: true,
+          unsafeAllow: ["external-library-linking"],
         },
       );
-      await state.waitForDeployment();
-    } else {
-      const stateDeploy = await ignition.deploy(StateModule, {
-        parameters: {
-          StateProxyModule: {
-            stateLibAddress: await stateLib.getAddress(),
-            smtLibAddress: await smtLib.getAddress(),
-            poseidonUnit1LAddress: await poseidon1Elements.getAddress(),
-          },
-        },
-        strategy: deployStrategy,
-      });
-      state = stateDeploy.state;
-      await state.initialize(await verifier.getAddress(), defaultIdType, await owner.getAddress());
     }
+
     await state.waitForDeployment();
     this.log(
       `State contract deployed to address ${await state.getAddress()} from ${await owner.getAddress()}`,
@@ -145,15 +192,18 @@ export class DeployHelper {
     }
     this.log("======== State: deploy completed ========");
 
+    // console.log("defaultIdType", await state.getDefaultIdType());
+
     return {
       state,
-      verifier,
+      groth16verifier: g16Verifier,
       stateLib,
       smtLib,
+      stateCrossChainLib,
+      crossChainProofValidator: crossChainProofValidator,
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
-      poseidon4: poseidon4Elements,
       defaultIdType,
     };
   }
@@ -161,40 +211,25 @@ export class DeployHelper {
   async upgradeState(
     stateAddress: string,
     redeployVerifier = true,
-    verifierContractName = "VerifierStateTransition",
+    redeployCrossChainProofValidator = true,
+    g16VerifierContractName = "Groth16VerifierStateTransition",
     stateContractName = "State",
+    crossChainProofValidatorContractName = "CrossChainProofValidator",
   ): Promise<{
     state: Contract;
-    verifier: Contract;
+    g16Verifier: Contract;
+    crossChainProofValidator: Contract;
     smtLib: Contract;
     stateLib: Contract;
+    stateCrossChainLib: Contract;
     poseidon1: Contract;
     poseidon2: Contract;
     poseidon3: Contract;
   }> {
     this.log("======== State: upgrade started ========");
 
-    let stateContract: Contract = await ethers.getContractAt("State", stateAddress);
-
     const proxyAdminOwner = this.signers[0];
-    const stateAdminOwner = this.signers[1];
-
-    this.log("deploying verifier...");
-
-    let verifierContract: Contract;
-    if (redeployVerifier) {
-      const verifierFactory = await ethers.getContractFactory(verifierContractName);
-      verifierContract = await verifierFactory.deploy();
-      await verifierContract.waitForDeployment();
-      this.log(
-        `${verifierContractName} contract deployed to address ${await verifierContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
-      );
-    } else {
-      verifierContract = await ethers.getContractAt(
-        "VerifierStateTransition",
-        await stateContract.getVerifier(),
-      );
-    }
+    // const stateAdminOwner = this.signers[1];
 
     this.log("deploying poseidons...");
     const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons([
@@ -210,38 +245,82 @@ export class DeployHelper {
     this.log("deploying StateLib...");
     const stateLib = await this.deployStateLib();
 
+    this.log("deploying StateCrossChainLib...");
+    const stateCrossChainLib = await this.deployStateCrossChainLib();
+
     this.log("upgrading state...");
 
     /*
-
     // in case you need to redefine priority fee config for upgrade operation
 
     const feedata = await owner.provider!.getFeeData();
     feedata.maxPriorityFeePerGas = 100000000000n;
     owner.provider!.getFeeData = async () => (feedata);
    */
+
     const StateFactory = await ethers.getContractFactory(stateContractName, {
       signer: proxyAdminOwner,
       libraries: {
         StateLib: await stateLib.getAddress(),
         SmtLib: await smtLib.getAddress(),
         PoseidonUnit1L: await poseidon1Elements.getAddress(),
+        StateCrossChainLib: await stateCrossChainLib.getAddress(),
       },
     });
-    stateContract = await upgrades.upgradeProxy(stateAddress, StateFactory, {
-      unsafeAllowLinkedLibraries: true,
+
+    const stateContract = await upgrades.upgradeProxy(stateAddress, StateFactory, {
+      unsafeAllow: ["external-library-linking"],
     });
     await stateContract.waitForDeployment();
+
     this.log(
       `State contract upgraded at address ${await stateContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
     );
 
+    let g16VerifierContract: Contract;
+    if (redeployVerifier) {
+      this.log("deploying Groth16 verifier...");
+      const g16VerifierFactory = await ethers.getContractFactory(g16VerifierContractName);
+      g16VerifierContract = await g16VerifierFactory.deploy();
+      await g16VerifierContract.waitForDeployment();
+      this.log(
+        `${g16VerifierContractName} contract deployed to address ${await g16VerifierContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
+      );
+      const tx = await stateContract.setVerifier(await g16VerifierContract.getAddress());
+      await tx.wait();
+    } else {
+      g16VerifierContract = await ethers.getContractAt(
+        g16VerifierContractName,
+        await stateContract.getVerifier(),
+      );
+    }
+
+    this.log("deploying crossChainProofValidator...");
+
+    let opvContract: Contract;
+    if (redeployCrossChainProofValidator) {
+      opvContract = await this.deployCrossChainProofValidator(crossChainProofValidatorContractName);
+      this.log(
+        `${crossChainProofValidatorContractName} contract deployed to address ${await opvContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
+      );
+      // TODO not sure we need to wait confirmation here
+      const tx = await stateContract.setCrossChainProofValidator(await opvContract.getAddress());
+      await waitNotToInterfereWithHardhatIgnition(tx);
+    } else {
+      opvContract = await ethers.getContractAt(
+        crossChainProofValidatorContractName,
+        await stateContract.getCrossChainProofValidator(),
+      );
+    }
+
     this.log("======== State: upgrade completed ========");
     return {
       state: stateContract,
-      verifier: verifierContract,
+      g16Verifier: g16VerifierContract,
+      crossChainProofValidator: opvContract,
       smtLib,
       stateLib,
+      stateCrossChainLib,
       poseidon1: poseidon1Elements,
       poseidon2: poseidon2Elements,
       poseidon3: poseidon3Elements,
@@ -254,6 +333,7 @@ export class DeployHelper {
     contractName = "SmtLib",
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<Contract> {
+    this.log(`deploying with ${deployStrategy === "create2" ? "CREATE2" : "BASIC"} strategy...`);
     const smtLibDeploy = await ignition.deploy(SmtLibModule, {
       parameters: {
         SmtLibModule: {
@@ -271,15 +351,21 @@ export class DeployHelper {
     return smtLib;
   }
 
-  async deployStateLib(deployStrategy: "basic" | "create2" = "basic"): Promise<Contract> {
-    const stateLibDeploy = await ignition.deploy(StateLibModule, {
-      strategy: deployStrategy,
-    });
-    const stateLib = stateLibDeploy.stateLib;
+  async deployStateLib(): Promise<Contract> {
+    const stateLib = await ethers.deployContract("StateLib");
     await stateLib.waitForDeployment();
     this.enableLogging && this.log(`StateLib deployed to:  ${await stateLib.getAddress()}`);
 
     return stateLib;
+  }
+
+  async deployStateCrossChainLib(StateCrossChainLibName = "StateCrossChainLib"): Promise<Contract> {
+    const stateCrossChainLib = await ethers.deployContract(StateCrossChainLibName);
+    await stateCrossChainLib.waitForDeployment();
+    this.enableLogging &&
+      this.log(`StateCrossChainLib deployed to:  ${await stateCrossChainLib.getAddress()}`);
+
+    return stateCrossChainLib;
   }
 
   async deploySmtLibTestWrapper(maxDepth: number = SMT_MAX_DEPTH): Promise<Contract> {
@@ -324,6 +410,17 @@ export class DeployHelper {
     return stateLibWrapper;
   }
 
+  async deployVerifierLib(): Promise<Contract> {
+    const contractName = "VerifierLib";
+
+    const verifierLib = await ethers.deployContract(contractName);
+    await verifierLib.waitForDeployment();
+
+    this.log(`${contractName} deployed to:  ${await verifierLib.getAddress()}`);
+
+    return verifierLib;
+  }
+
   async deployBinarySearchTestWrapper(): Promise<Contract> {
     this.log("deploying poseidons...");
     const [poseidon2Elements, poseidon3Elements] = await deployPoseidons([2, 3]);
@@ -347,98 +444,135 @@ export class DeployHelper {
     return bsWrapper;
   }
 
+  async deployCrossChainProofValidator(
+    contractName = "CrossChainProofValidator",
+    domainName = "StateInfo",
+    signatureVersion = "1",
+  ): Promise<Contract> {
+    const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+
+    const crossChainProofValidator = await ethers.deployContract(contractName, [
+      domainName,
+      signatureVersion,
+      oracleSigningAddress,
+    ]);
+    await crossChainProofValidator.waitForDeployment();
+    console.log(`${contractName} deployed to:`, await crossChainProofValidator.getAddress());
+    return crossChainProofValidator;
+  }
+
   async deployValidatorContracts(
     validatorType: "mtpV2" | "sigV2" | "v3",
     stateAddress: string,
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<{
     state: any;
-    verifierWrapper: any;
+    groth16VerifierWrapper: any;
     validator: any;
   }> {
-    if (deployStrategy === "create2") {
-      let verifierContractWrapperModule, validatorContractModule;
-      switch (validatorType) {
-        case "mtpV2":
-          verifierContractWrapperModule = VerifierMTPWrapperModule;
-          validatorContractModule = CredentialAtomicQueryMTPV2ValidatorModule;
-          break;
-        case "sigV2":
-          verifierContractWrapperModule = VerifierSigWrapperModule;
-          validatorContractModule = CredentialAtomicQuerySigV2ValidatorModule;
-          break;
-        case "v3":
-          verifierContractWrapperModule = VerifierV3WrapperModule;
-          validatorContractModule = CredentialAtomicQueryV3ValidatorModule;
-          break;
-      }
+    const owner = this.signers[0];
 
-      const wrapperDeploy = await ignition.deploy(verifierContractWrapperModule, {
-        strategy: deployStrategy,
-      });
-      const verifierWrapper = wrapperDeploy.wrapper;
-      await verifierWrapper.waitForDeployment();
-      console.log(`${validatorType} Wrapper deployed to: ${await verifierWrapper.getAddress()}`);
-
-      const validatorDeploy = await ignition.deploy(validatorContractModule, {
-        strategy: deployStrategy,
-      });
-      const validator = validatorDeploy.validator;
-      await validator.waitForDeployment();
-      console.log(`${validatorType} Validator deployed to: ${await validator.getAddress()}`);
-      await validator.initialize(await verifierWrapper.getAddress(), stateAddress);
-      console.log("validator contract initialized");
-
-      const state = await ethers.getContractAt("State", stateAddress);
-      return {
-        validator,
-        verifierWrapper,
-        state,
-      };
-    }
-    let verifierContractWrapperName, validatorContractName;
+    let g16VerifierContractWrapperName, validatorContractName;
     switch (validatorType) {
       case "mtpV2":
-        verifierContractWrapperName = "VerifierMTPWrapper";
+        g16VerifierContractWrapperName = "Groth16VerifierMTPWrapper";
         validatorContractName = "CredentialAtomicQueryMTPV2Validator";
         break;
       case "sigV2":
-        verifierContractWrapperName = "VerifierSigWrapper";
+        g16VerifierContractWrapperName = "Groth16VerifierSigWrapper";
         validatorContractName = "CredentialAtomicQuerySigV2Validator";
         break;
       case "v3":
-        verifierContractWrapperName = "VerifierV3Wrapper";
+        g16VerifierContractWrapperName = "Groth16VerifierV3Wrapper";
         validatorContractName = "CredentialAtomicQueryV3Validator";
         break;
     }
 
-    const ValidatorContractVerifierWrapper = await ethers.getContractFactory(
-      verifierContractWrapperName,
-    );
-    const validatorContractVerifierWrapper = await ValidatorContractVerifierWrapper.deploy();
+    const ValidatorFactory = await ethers.getContractFactory(validatorContractName);
+    const Create2AddressAnchorFactory = await ethers.getContractFactory("Create2AddressAnchor");
 
-    await validatorContractVerifierWrapper.waitForDeployment();
-    console.log(
-      "Validator Verifier Wrapper deployed to:",
-      await validatorContractVerifierWrapper.getAddress(),
-    );
+    let groth16VerifierWrapper;
+    let validator;
+    if (deployStrategy === "create2") {
+      this.log("deploying with CREATE2 strategy...");
 
-    const ValidatorContract = await ethers.getContractFactory(validatorContractName);
+      let g16VerifierWrapperModule, validatorModule;
+      switch (validatorType) {
+        case "mtpV2":
+          g16VerifierWrapperModule = Groth16VerifierMTPWrapperModule;
+          validatorModule = CredentialAtomicQueryMTPV2ValidatorProxyModule;
+          break;
+        case "sigV2":
+          g16VerifierWrapperModule = Groth16VerifierSigWrapperModule;
+          validatorModule = CredentialAtomicQuerySigV2ValidatorProxyModule;
+          break;
+        case "v3":
+          g16VerifierWrapperModule = Groth16VerifierV3WrapperModule;
+          validatorModule = CredentialAtomicQueryV3ValidatorProxyModule;
+          break;
+      }
 
-    const validatorContractProxy = await upgrades.deployProxy(ValidatorContract, [
-      await validatorContractVerifierWrapper.getAddress(),
-      stateAddress,
-    ]);
+      await waitNotToInterfereWithHardhatIgnition(undefined);
 
-    await validatorContractProxy.waitForDeployment();
-    console.log(
-      `${validatorContractName} deployed to: ${await validatorContractProxy.getAddress()}`,
-    );
+      groth16VerifierWrapper = (
+        await ignition.deploy(g16VerifierWrapperModule, {
+          strategy: deployStrategy,
+        })
+      ).wrapper;
+      await groth16VerifierWrapper.waitForDeployment();
 
+      console.log(
+        `${g16VerifierContractWrapperName} Wrapper deployed to: ${await groth16VerifierWrapper.getAddress()}`,
+      );
+
+      await waitNotToInterfereWithHardhatIgnition(
+        await groth16VerifierWrapper.deploymentTransaction(),
+      );
+
+      // Deploying Validator contract to predictable address but with dummy implementation
+      validator = (
+        await ignition.deploy(validatorModule, {
+          strategy: deployStrategy,
+        })
+      ).proxy;
+      await validator.waitForDeployment();
+
+      // Upgrading Validator contract to the first real implementation
+      // and force network files import, so creation, as they do not exist at the moment
+      const validatorAddress = await validator.getAddress();
+      await upgrades.forceImport(validatorAddress, Create2AddressAnchorFactory);
+      validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory, {
+        unsafeAllow: ["external-library-linking"],
+        redeployImplementation: "always",
+        call: {
+          fn: "initialize",
+          args: [await groth16VerifierWrapper.getAddress(), stateAddress, await owner.getAddress()],
+        },
+      });
+    } else {
+      this.log("deploying with BASIC strategy...");
+      groth16VerifierWrapper = await ethers.deployContract(g16VerifierContractWrapperName);
+
+      await groth16VerifierWrapper.waitForDeployment();
+      console.log(
+        `${g16VerifierContractWrapperName} Wrapper deployed to: ${await groth16VerifierWrapper.getAddress()}`,
+      );
+
+      validator = await upgrades.deployProxy(ValidatorFactory, [
+        await groth16VerifierWrapper.getAddress(),
+        stateAddress,
+        await owner.getAddress(),
+      ]);
+    }
+
+    validator.waitForDeployment();
+
+    console.log(`${validatorContractName} deployed to: ${await validator.getAddress()}`);
     const state = await ethers.getContractAt("State", stateAddress);
     return {
-      validator: validatorContractProxy,
-      verifierWrapper: validatorContractVerifierWrapper,
+      validator,
+      groth16VerifierWrapper,
       state,
     };
   }
@@ -448,7 +582,7 @@ export class DeployHelper {
     const stubInstance = await stub.deploy();
     await stubInstance.waitForDeployment();
 
-    console.log("Validator stub  deployed to:", await stubInstance.getAddress());
+    console.log("Validator stub deployed to:", await stubInstance.getAddress());
 
     return stubInstance;
   }
@@ -464,9 +598,23 @@ export class DeployHelper {
     const owner = this.signers[0];
 
     this.log("upgrading validator...");
-    const ValidatorFactory = await ethers.getContractFactory(validatorContractName);
-    const validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory);
-    await validator.waitForDeployment();
+    const ValidatorFactory = await ethers.getContractFactory(validatorContractName, {
+      signer: owner,
+    });
+    let validator: Contract;
+    try {
+      validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory, {
+        redeployImplementation: "always",
+      });
+      await validator.waitForDeployment();
+    } catch (e) {
+      this.log("Error upgrading proxy. Forcing import...");
+      await upgrades.forceImport(validatorAddress, ValidatorFactory);
+      validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory, {
+        redeployImplementation: "always",
+      });
+      await validator.waitForDeployment();
+    }
     this.log(
       `Validator ${validatorContractName} upgraded at address ${await validator.getAddress()} from ${await owner.getAddress()}`,
     );
@@ -477,12 +625,61 @@ export class DeployHelper {
     };
   }
 
+  async upgradeUniversalVerifier(
+    verifierAddress: string,
+    verifierContractName = "UniversalVerifier",
+  ): Promise<{
+    verifier: Contract;
+    verifierLib: Contract;
+  }> {
+    this.log("======== Verifier: upgrade started ========");
+
+    this.log("deploying verifierLib...");
+    const verifierLib = await this.deployVerifierLib();
+
+    const proxyAdminOwner = this.signers[0];
+    this.log("upgrading verifier...");
+    const VerifierFactory = await ethers.getContractFactory(verifierContractName, {
+      signer: proxyAdminOwner,
+      libraries: {
+        VerifierLib: await verifierLib.getAddress(),
+      },
+    });
+
+    this.log("upgrading proxy...");
+    let verifier: Contract;
+    try {
+      verifier = await upgrades.upgradeProxy(verifierAddress, VerifierFactory, {
+        unsafeAllowLinkedLibraries: true,
+      });
+      await verifier.waitForDeployment();
+    } catch (e) {
+      this.log("Error upgrading proxy. Forcing import...");
+      await upgrades.forceImport(verifierAddress, VerifierFactory);
+      verifier = await upgrades.upgradeProxy(verifierAddress, VerifierFactory, {
+        unsafeAllowLinkedLibraries: true,
+        redeployImplementation: "always",
+      });
+      await verifier.waitForDeployment();
+    }
+    this.log(
+      `Verifier ${verifierContractName} upgraded at address ${await verifier.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
+    );
+
+    this.log("======== Verifier: upgrade completed ========");
+    return {
+      verifier: verifier,
+      verifierLib: verifierLib,
+    };
+  }
+
   async deployGenesisUtilsWrapper(): Promise<GenesisUtilsWrapper> {
     const GenesisUtilsWrapper = await ethers.getContractFactory("GenesisUtilsWrapper");
     const genesisUtilsWrapper = await GenesisUtilsWrapper.deploy();
     console.log("GenesisUtilsWrapper deployed to:", await genesisUtilsWrapper.getAddress());
     return genesisUtilsWrapper;
   }
+
   async deployPrimitiveTypeUtilsWrapper(): Promise<PrimitiveTypeUtilsWrapper> {
     const PrimitiveTypeUtilsWrapper = await ethers.getContractFactory("PrimitiveTypeUtilsWrapper");
     const primitiveTypeUtilsWrapper = await PrimitiveTypeUtilsWrapper.deploy();
@@ -490,10 +687,22 @@ export class DeployHelper {
     return primitiveTypeUtilsWrapper;
   }
 
-  async deployZKPVerifier(owner: SignerWithAddress): Promise<Contract> {
-    const Verifier = await ethers.getContractFactory("ZKPVerifierWrapper");
+  async deployEmbeddedZKPVerifier(
+    owner: SignerWithAddress | undefined,
+    stateCrossChainAddr: string,
+    verifierLibAddr: string,
+  ): Promise<Contract> {
+    const Verifier = await ethers.getContractFactory("ZKPVerifierWrapper", {
+      libraries: {
+        VerifierLib: verifierLibAddr,
+      },
+    });
     // const zkpVerifier = await ZKPVerifier.deploy(await owner.getAddress());
-    const verifier = await upgrades.deployProxy(Verifier, [await owner.getAddress()]);
+    const verifier = await upgrades.deployProxy(
+      Verifier,
+      [await owner.getAddress(), stateCrossChainAddr],
+      { unsafeAllow: ["external-library-linking"] },
+    );
     await verifier.waitForDeployment();
     console.log("ZKPVerifierWrapper deployed to:", await verifier.getAddress());
     return verifier;
@@ -501,24 +710,70 @@ export class DeployHelper {
 
   async deployUniversalVerifier(
     owner: SignerWithAddress | undefined,
+    stateAddr: string,
+    verifierLibAddr: string,
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<Contract> {
     if (!owner) {
       owner = this.signers[0];
     }
-    const verifierDeploy = await ignition.deploy(UniversalVerifierModule, {
-      strategy: deployStrategy,
+    const UniversalVerifierFactory = await ethers.getContractFactory("UniversalVerifier", {
+      signer: owner,
+      libraries: {
+        VerifierLib: verifierLibAddr,
+      },
     });
-    const verifier = verifierDeploy.universalVerifier;
-    await verifier.waitForDeployment();
-    await verifier.initialize();
-    console.log("UniversalVerifier deployed to:", await verifier.getAddress());
-    return verifier;
+    const Create2AddressAnchorFactory = await ethers.getContractFactory("Create2AddressAnchor");
+
+    let universalVerifier;
+    if (deployStrategy === "create2") {
+      this.log("deploying with CREATE2 strategy...");
+
+      // Deploying UniversalVerifier contract to predictable address but with dummy implementation
+      universalVerifier = (
+        await ignition.deploy(UniversalVerifierProxyModule, {
+          strategy: deployStrategy,
+        })
+      ).proxy;
+      await universalVerifier.waitForDeployment();
+
+      // Upgrading UniversalVerifier contract to the first real implementation
+      // and force network files import, so creation, as they do not exist at the moment
+      const universalVerifierAddress = await universalVerifier.getAddress();
+      await upgrades.forceImport(universalVerifierAddress, Create2AddressAnchorFactory);
+      universalVerifier = await upgrades.upgradeProxy(
+        universalVerifierAddress,
+        UniversalVerifierFactory,
+        {
+          unsafeAllow: ["external-library-linking"],
+          redeployImplementation: "always",
+          call: {
+            fn: "initialize",
+            args: [stateAddr, await owner.getAddress()],
+          },
+        },
+      );
+    } else {
+      this.log("deploying with BASIC strategy...");
+
+      universalVerifier = await upgrades.deployProxy(
+        UniversalVerifierFactory,
+        [stateAddr, await owner.getAddress()],
+        {
+          unsafeAllow: ["external-library-linking"],
+        },
+      );
+    }
+
+    await universalVerifier.waitForDeployment();
+    console.log("UniversalVerifier deployed to:", await universalVerifier.getAddress());
+
+    return universalVerifier;
   }
 
-  async getDefaultIdType(): Promise<{ defaultIdType: number; chainId: number }> {
+  async getDefaultIdType(): Promise<{ defaultIdType: string; chainId: number }> {
     const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
-    const defaultIdType = chainIdDefaultIdTypeMap.get(chainId);
+    const defaultIdType = chainIdInfoMap.get(chainId)?.idType;
     if (!defaultIdType) {
       throw new Error(`Failed to find defaultIdType in Map for chainId ${chainId}`);
     }
@@ -539,66 +794,137 @@ export class DeployHelper {
       poseidon3ElementsAddress = await poseidon3Elements.getAddress();
     }
 
-    if (deployStrategy === 'create2') {
-      const identityTreeStoreDeploy = await ignition.deploy(IdentityTreeStoreModule, {
-        parameters: {
-          IdentityTreeStoreProxyModule: {
-            poseidonUnit2LAddress: poseidon2ElementsAddress,
-            poseidonUnit3LAddress: poseidon3ElementsAddress,
+    const IdentityTreeStoreFactory = await ethers.getContractFactory("IdentityTreeStore", {
+      libraries: {
+        PoseidonUnit2L: poseidon2ElementsAddress,
+        PoseidonUnit3L: poseidon3ElementsAddress,
+      },
+    });
+
+    const Create2AddressAnchorFactory = await ethers.getContractFactory("Create2AddressAnchor");
+
+    let identityTreeStore;
+    if (deployStrategy === "create2") {
+      this.log("deploying with CREATE2 strategy...");
+
+      // Deploying IdentityTreeStore contract to predictable address but with dummy implementation
+      identityTreeStore = (
+        await ignition.deploy(IdentityTreeStoreProxyModule, {
+          strategy: deployStrategy,
+        })
+      ).proxy;
+      await identityTreeStore.waitForDeployment();
+
+      // Upgrading IdentityTreeStore contract to the first real implementation
+      // and force network files import, so creation, as they do not exist at the moment
+      const identityTreeStoreAddress = await identityTreeStore.getAddress();
+      await upgrades.forceImport(identityTreeStoreAddress, Create2AddressAnchorFactory);
+      identityTreeStore = await upgrades.upgradeProxy(
+        identityTreeStoreAddress,
+        IdentityTreeStoreFactory,
+        {
+          unsafeAllow: ["external-library-linking"],
+          redeployImplementation: "always",
+          call: {
+            fn: "initialize",
+            args: [stateContractAddress],
           },
         },
-        strategy: deployStrategy,
-      });
-
-      const identityTreeStore = identityTreeStoreDeploy.identityTreeStore;
-      await identityTreeStore.waitForDeployment();
-      await identityTreeStore.initialize(stateContractAddress);
-      console.log("\nIdentityTreeStore deployed to:", await identityTreeStore.getAddress());
-      return {
-        identityTreeStore,
-      };
+      );
     } else {
-      const IdentityTreeStore = await ethers.getContractFactory("IdentityTreeStore", {
-        libraries: {
-          PoseidonUnit2L: poseidon2ElementsAddress,
-          PoseidonUnit3L: poseidon3ElementsAddress,
+      this.log("deploying with BASIC strategy...");
+
+      identityTreeStore = await upgrades.deployProxy(
+        IdentityTreeStoreFactory,
+        [stateContractAddress],
+        {
+          unsafeAllow: ["external-library-linking"],
+        },
+      );
+    }
+
+    await identityTreeStore.waitForDeployment();
+    console.log("\nIdentityTreeStore deployed to:", await identityTreeStore.getAddress());
+
+    return {
+      identityTreeStore,
+    };
+  }
+
+  async deployVCPayment(deployStrategy: "basic" | "create2" = "basic"): Promise<{
+    vcPayment: Contract;
+  }> {
+    const owner = this.signers[0];
+    const VCPaymentFactory = await ethers.getContractFactory("VCPayment");
+    const Create2AddressAnchorFactory = await ethers.getContractFactory("Create2AddressAnchor");
+
+    let vcPayment;
+    if (deployStrategy === "create2") {
+      this.log("deploying with CREATE2 strategy...");
+
+      // Deploying VCPayment contract to predictable address but with dummy implementation
+      vcPayment = (
+        await ignition.deploy(VCPaymentModule, {
+          strategy: deployStrategy,
+        })
+      ).vcPayment;
+      await vcPayment.waitForDeployment();
+
+      // Upgrading VCPayment contract to the first real implementation
+      // and force network files import, so creation, as they do not exist at the moment
+      const vcPaymentAddress = await vcPayment.getAddress();
+      await upgrades.forceImport(vcPaymentAddress, Create2AddressAnchorFactory);
+      vcPayment = await upgrades.upgradeProxy(vcPaymentAddress, VCPaymentFactory, {
+        redeployImplementation: "always",
+        call: {
+          fn: "initialize",
+          args: [await owner.getAddress()],
         },
       });
+    } else {
+      this.log("deploying with BASIC strategy...");
 
-      const identityTreeStore = await upgrades.deployProxy(
-        IdentityTreeStore,
-        [stateContractAddress],
-        { unsafeAllow: ["external-library-linking"] },
-      );
-      await identityTreeStore.waitForDeployment();
-      console.log(await identityTreeStore.getAddress());
-      return {
-        identityTreeStore,
-      };
+      vcPayment = await upgrades.deployProxy(VCPaymentFactory, [await owner.getAddress()]);
     }
+
+    await vcPayment.waitForDeployment();
+    console.log("\nVCPayment deployed to:", await vcPayment.getAddress());
+
+    return {
+      vcPayment,
+    };
   }
 
   async upgradeIdentityTreeStore(
     identityTreeStoreAddress: string,
     stateAddress: string,
+    poseidon2ElementsAddress: string = "",
+    poseidon3ElementsAddress: string = "",
+    deployStrategy: "basic" | "create2" = "basic",
   ): Promise<Contract> {
     const proxyAdminOwnerSigner = this.signers[0];
 
-    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons([2, 3]);
+    if (!poseidon2ElementsAddress || !poseidon3ElementsAddress) {
+      const [poseidon2Elements, poseidon3Elements] = await deployPoseidons([2, 3], deployStrategy);
+      poseidon2ElementsAddress = await poseidon2Elements.getAddress();
+      poseidon3ElementsAddress = await poseidon3Elements.getAddress();
+    }
 
-    const IdentityTreeStore = await ethers.getContractFactory("IdentityTreeStore", {
+    console.log("Upgrading IdentityTreeStore...");
+    const IdentityTreeStoreFactory = await ethers.getContractFactory("IdentityTreeStore", {
       libraries: {
-        PoseidonUnit2L: await poseidon2Elements.getAddress(),
-        PoseidonUnit3L: await poseidon3Elements.getAddress(),
+        PoseidonUnit2L: poseidon2ElementsAddress,
+        PoseidonUnit3L: poseidon3ElementsAddress,
       },
       signer: proxyAdminOwnerSigner,
     });
-
+    await upgrades.forceImport(identityTreeStoreAddress, IdentityTreeStoreFactory);
     const identityTreeStore = await upgrades.upgradeProxy(
       identityTreeStoreAddress,
-      IdentityTreeStore,
+      IdentityTreeStoreFactory,
       {
         unsafeAllow: ["external-library-linking"],
+        redeployImplementation: "always",
         call: {
           fn: "initialize",
           args: [stateAddress],

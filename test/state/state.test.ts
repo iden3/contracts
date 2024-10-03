@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { publishState, publishStateWithStubProof } from "../utils/state-utils";
 import { DeployHelper } from "../../helpers/DeployHelper";
 
-const verifierStubName = "VerifierStub";
+const g16VerifierStubName = "Groth16VerifierStub";
 
 const stateTransitionsWithProofs = [
   require("./data/user_state_genesis_transition.json"),
@@ -25,7 +25,7 @@ const stateTransitionsWithNoProofs = [
   },
 ];
 
-describe("State transition with real verifier", () => {
+describe("State transition with real groth16 verifier", () => {
   let state;
 
   before(async function () {
@@ -115,7 +115,7 @@ describe("State transition negative cases", () => {
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployState(["0x0281", "0x0000"], verifierStubName);
+    const contracts = await deployHelper.deployState(["0x0281", "0x0000"], g16VerifierStubName);
     state = contracts.state;
   });
 
@@ -191,7 +191,7 @@ describe("StateInfo history", function () {
 
   before(async () => {
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployState(["0x0281"], verifierStubName);
+    const contracts = await deployHelper.deployState(["0x0281"], g16VerifierStubName);
     state = contracts.state;
 
     publishedStates = [];
@@ -227,7 +227,7 @@ describe("GIST proofs", () => {
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployState(["0x0281"], verifierStubName);
+    const contracts = await deployHelper.deployState(["0x0281"], g16VerifierStubName);
     state = contracts.state;
   });
 
@@ -300,7 +300,7 @@ describe("GIST root history", () => {
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployState(["0x0281"], verifierStubName);
+    const contracts = await deployHelper.deployState(["0x0281"], g16VerifierStubName);
     state = contracts.state;
   });
 
@@ -364,12 +364,12 @@ describe("GIST root history", () => {
 });
 
 describe("Set Verifier", () => {
-  it("Should set verifier", async () => {
+  it("Should set groth16 verifier", async () => {
     const deployHelper = await DeployHelper.initialize();
-    const { state, verifier } = await deployHelper.deployState();
+    const { state, groth16verifier } = await deployHelper.deployState();
 
     const verifierAddress = await state.getVerifier();
-    expect(verifierAddress).to.equal(await verifier.getAddress());
+    expect(verifierAddress).to.equal(await groth16verifier.getAddress());
 
     const newVerifierAddress = ethers.getAddress("0x8ba1f109551bd432803012645ac136ddd64dba72");
     await state.setVerifier(newVerifierAddress);
@@ -377,27 +377,37 @@ describe("Set Verifier", () => {
     expect(verifierAddress2).to.equal(newVerifierAddress);
   });
 
-  it("Should not set verifier if not owner", async () => {
+  it("Should not set groth16 verifier if not owner", async () => {
     const deployHelper = await DeployHelper.initialize();
-    const { state, verifier } = await deployHelper.deployState();
+    const { state, groth16verifier } = await deployHelper.deployState();
 
     const verifierAddress = await state.getVerifier();
-    expect(verifierAddress).to.equal(await verifier.getAddress());
+    expect(verifierAddress).to.equal(await groth16verifier.getAddress());
 
     const notOwner = (await ethers.getSigners())[1];
-    const newVerifierAddress = ethers.getAddress(
-      "0x8ba1f109551bd432803012645ac136ddd64dba72"
-    );
+    const newVerifierAddress = ethers.getAddress("0x8ba1f109551bd432803012645ac136ddd64dba72");
     await expect(state.connect(notOwner).setVerifier(newVerifierAddress)).to.be.rejectedWith(
       "OwnableUnauthorizedAccount",
     );
   });
 
-  it("Should allow verifier zero address to block any state transition", async () => {
+  it("Should allow groth16 verifier zero address to block any state transition", async () => {
     const deployHelper = await DeployHelper.initialize();
     const { state } = await deployHelper.deployState();
 
     await state.setVerifier(ethers.ZeroAddress);
     await expect(publishState(state, stateTransitionsWithProofs[0])).to.be.reverted;
+  });
+});
+
+describe("Check timestamp expirations", () => {
+  it("Should return zero from the State if requested for a non-existent data", async function () {
+    const deployHelper = await DeployHelper.initialize();
+    const { state } = await deployHelper.deployState(["0x0102"]);
+
+    await expect(state.getGistRootReplacedAt("0x0102", 10)).to.be.rejectedWith(
+      "Gist root entry not found",
+    );
+    await expect(state.getStateReplacedAt(10, 20)).to.be.rejectedWith("State entry not found");
   });
 });

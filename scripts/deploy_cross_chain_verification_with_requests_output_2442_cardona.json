@@ -1,0 +1,12 @@
+{
+ "proxyAdminOwnerAddress": "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE",
+ "universalVerifierOwnerAddress": "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE",
+ "state": "0xD13BF1853346a97Fc62a7F7decE8dd83e444d66D",
+ "universalVerifier": "0xF908a57c94353171B51e78654F09cd7bCF66B0C8",
+ "crossChainProofValidator": "0xcDE0E51125B268320A951397454461F8F849e1C0",
+ "validatorSig": "0xa5f08979370af7095cdedb2b83425367316fad0b",
+ "validatorMTP": "0xeed5068ad8fecf0b9a91af730195fef9fab00356",
+ "validatorV3": "0x7856f2cfefd1027bedec09dd70001d4e7f916f6d",
+ "network": "cardona",
+ "chainId": 2442
+}

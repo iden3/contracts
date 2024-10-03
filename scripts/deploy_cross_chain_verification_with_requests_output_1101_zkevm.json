@@ -1,0 +1,12 @@
+{
+ "proxyAdminOwnerAddress": "0x80203136fAe3111B810106bAa500231D4FD08FC6",
+ "universalVerifierOwnerAddress": "0x80203136fAe3111B810106bAa500231D4FD08FC6",
+ "state": "0xcFee2acB66671067f73191f6691A3b8E43D10137",
+ "universalVerifier": "0xCBd1abaB16B0CFe829e8ea1DdF15c2a491A9DE45",
+ "crossChainProofValidator": "0xD26D43bBf3FdcFc441dcA1dAAaB80bCdb1E050d6",
+ "validatorSig": "0x9db901f3afdaaa73f5b2123b186f566fa3ed1551",
+ "validatorMTP": "0x4be489fd4bd13c6b48dd70f1523d8275b4aa69be",
+ "validatorV3": "0xea0c8dc57f61494338d4efc75b933357f972be97",
+ "network": "zkevm",
+ "chainId": 1101
+}

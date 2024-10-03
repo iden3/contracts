@@ -5,16 +5,6 @@ import { expect } from "chai"; // abi of contract that will be upgraded
 
 import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/State.json";
 
-// Polygon Mumbai
-
-// const proxyAdminOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
-// const stateContractAddress = "0x134B1BE34911E39A8397ec6289782989729807a4";
-// const stateOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
-// const id = "0x000b9921a67e1b1492902d04d9b5c521bee1288f530b14b10a6a8c94ca741201";
-// const stateValue = "0x2c68da47bf4c9acb3320076513905f7b63d8070ed8276ad16ca5402b267a7c26";
-// const impersonate = false;
-
-
 // Privado test
 
 // const proxyAdminOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
@@ -25,16 +15,14 @@ import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/Sta
 // const impersonate = false;
 
 
-
-
 // Privado main
 
-const proxyAdminOwnerAddress = "0x80203136fAe3111B810106bAa500231D4FD08FC6";
-const stateContractAddress = "0x975556428F077dB5877Ea2474D783D6C69233742";
-const stateOwnerAddress = "0x80203136fAe3111B810106bAa500231D4FD08FC6";
-// const id = "0x000b9921a67e1b1492902d04d9b5c521bee1288f530b14b10a6a8c94ca741201";
-// const stateValue = "0x2c68da47bf4c9acb3320076513905f7b63d8070ed8276ad16ca5402b267a7c26";
-const impersonate = false;
+// const proxyAdminOwnerAddress = "0x80203136fAe3111B810106bAa500231D4FD08FC6";
+// const stateContractAddress = "0x975556428F077dB5877Ea2474D783D6C69233742";
+// const stateOwnerAddress = "0x80203136fAe3111B810106bAa500231D4FD08FC6";
+// // const id = "0x000b9921a67e1b1492902d04d9b5c521bee1288f530b14b10a6a8c94ca741201";
+// // const stateValue = "0x2c68da47bf4c9acb3320076513905f7b63d8070ed8276ad16ca5402b267a7c26";
+// const impersonate = false;
 
 
 // Polygon PoS mainnet
@@ -45,6 +33,16 @@ const impersonate = false;
 // const id = "27400734408475525514287944072871082260891789330025154387098461662248702210";
 // const stateValue = "1406871096418685973996308927175869145223551926097850896167027746851817634897";
 // const impersonate = true;
+
+
+// Local
+
+const proxyAdminOwnerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+const stateContractAddress = "0x4caE67C03292AD7A465197C8688f7E8EbCB1db82";
+const stateOwnerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+// const id = "27400734408475525514287944072871082260891789330025154387098461662248702210";
+// const stateValue = "1406871096418685973996308927175869145223551926097850896167027746851817634897";
+const impersonate = false;
 
 
 async function getSigners(useImpersonation: boolean): Promise<any> {
@@ -73,51 +71,31 @@ async function main() {
     true
   );
 
-  const stateMigrationHelper = new StateContractMigrationHelper(
-    stateDeployHelper,
-    proxyAdminOwnerSigner
+  const stateContract = await ethers.getContractAt(
+    stateArtifact.abi,
+    stateContractAddress
   );
 
-  const stateContract = await stateMigrationHelper.getInitContract({
-    contractNameOrAbi: stateArtifact.abi,
-    address: stateContractAddress,
-  });
-  //
-  // const dataBeforeUpgrade = await stateMigrationHelper.getDataFromContract(
-  //   stateContract,
-  //   id,
-  //   stateValue
-  // );
-  //
-  // const defaultIdTypeBefore = await stateContract.getDefaultIdType();
-  // const stateOwnerAddressBefore = await stateContract.owner();
-  //
-  // expect(stateOwnerAddressBefore).to.equal(stateOwnerAddress);
-  //
-  // const verifierBefore = await stateContract.getVerifier();
-  //
+  const defaultIdTypeBefore = await stateContract.getDefaultIdType();
+  const stateOwnerAddressBefore = await stateContract.owner();
 
-  // **** Upgrade State ****
-  await stateMigrationHelper.upgradeContract(stateContract, false);
-  // ************************
+  await stateDeployHelper.upgradeState(
+    await stateContract.getAddress(),
+    true,
+    true,
+  )
 
-  //
-  // const dataAfterUpgrade = await stateMigrationHelper.getDataFromContract(stateContract, id, stateValue);
-  // stateMigrationHelper.checkData(dataBeforeUpgrade, dataAfterUpgrade);
-  //
-  // const defaultIdTypeAfter = await stateContract.getDefaultIdType();
-  // const stateOwnerAddressAfter = await stateContract.owner();
-  // const verifierAfter = await stateContract.getVerifier();
-  // expect(defaultIdTypeAfter).to.equal(defaultIdTypeBefore);
-  // expect(stateOwnerAddressAfter).to.equal(stateOwnerAddressBefore);
-  // expect(verifierAfter).to.equal(verifierBefore);
-  // expect(stateContract.isIdTypeSupported(defaultIdTypeBefore)).to.be.true;
+  const defaultIdTypeAfter = await stateContract.getDefaultIdType();
+  const stateOwnerAddressAfter = await stateContract.owner();
+
+  expect(defaultIdTypeAfter).to.equal(defaultIdTypeBefore);
+  expect(stateOwnerAddressAfter).to.equal(stateOwnerAddressBefore);
 
   console.log("Contract Upgrade Finished");
 
 
   // // **** Additional write-read tests (remove in real upgrade) ****
-  //       const verifierStubContractName = "VerifierStub";
+  //       const verifierStubContractName = "Groth16VerifierStub";
   //
   //       const verifierStub = await ethers.deployContract(verifierStubContractName);
   //       await stateContract.connect(stateOwnerSigner).setVerifier(await verifierStub.getAddress());

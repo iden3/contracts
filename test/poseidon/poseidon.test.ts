@@ -6,7 +6,7 @@ describe("poseidon", () => {
   let poseidonFacade: Contract;
 
   before(async () => {
-    let poseidonContracts = await deployPoseidonFacade();
+    const poseidonContracts = await deployPoseidonFacade();
     poseidonFacade = poseidonContracts.PoseidonFacade;
   });
 

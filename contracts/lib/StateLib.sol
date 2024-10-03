@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 
@@ -100,11 +100,7 @@ library StateLib {
      * @param id Identity
      * @param state State
      */
-    modifier onlyExistingState(
-        Data storage self,
-        uint256 id,
-        uint256 state
-    ) {
+    modifier onlyExistingState(Data storage self, uint256 id, uint256 state) {
         require(stateExists(self, id, state), "State does not exist");
         _;
     }

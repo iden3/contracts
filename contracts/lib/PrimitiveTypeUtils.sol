@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {BytesLib} from "solidity-bytes-utils/contracts/BytesLib.sol";
 

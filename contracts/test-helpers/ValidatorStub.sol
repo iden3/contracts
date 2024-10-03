@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {IState} from "../interfaces/IState.sol";
 
 /**
  * @dev ValidatorStub validator
@@ -25,15 +26,25 @@ contract ValidatorStub is ICircuitValidator, ERC165 {
     }
 
     function verify(
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
-        bytes calldata data,
-        address sender
+        uint256[] calldata,
+        uint256[2] calldata,
+        uint256[2][2] calldata,
+        uint256[2] calldata,
+        bytes calldata,
+        address
     ) external pure override returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        ICircuitValidator.KeyToInputIndex[] memory keypair;
-        return keypair;
+        ICircuitValidator.KeyToInputIndex[] memory keyToInputIndexes;
+        return keyToInputIndexes;
+    }
+
+    function verifyV2(
+        bytes calldata,
+        bytes calldata,
+        address,
+        IState
+    ) external pure override returns (ICircuitValidator.Signal[] memory) {
+        ICircuitValidator.Signal[] memory signals;
+        return signals;
     }
 
     function inputIndexOf(string memory /*name*/) external pure returns (uint256) {
