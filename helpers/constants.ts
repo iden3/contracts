@@ -26,26 +26,42 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
   .set(59144, { idType: "0x0149", networkType: "main", oracleSigningAddress: oracleSAProd }) // linea-main
   .set(59141, { idType: "0x0148", networkType: "test", oracleSigningAddress: oracleSATest }); // linea-sepolia
 
+export const contractNames = {
+  universalVerifier: "UniversalVerifier",
+  state: "State",
+  validatorSig: "CredentialAtomicQuerySigV2Validator",
+  validatorMTP: "CredentialAtomicQueryMTPV2Validator",
+  validatorV3: "CredentialAtomicQueryV3Validator",
+  identityTreeStore: "IdentityTreeStore",
+  vcPayment: "VCPayment",
+};
+
 export const create2AddressesInfo: {
   anchorAddress: string;
   contractsCalldataMap: Map<string, string>;
 } = {
   anchorAddress: "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
   contractsCalldataMap: new Map()
-    .set("State", ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.State")))
-    .set("UniversalVerifier", ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier")))
+    .set(contractNames.state, ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.State")))
     .set(
-      "CredentialAtomicQuerySigV2Validator",
+      contractNames.universalVerifier,
+      ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier")),
+    )
+    .set(
+      contractNames.validatorSig,
       ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQuerySigV2Validator")),
     )
     .set(
-      "CredentialAtomicQueryMTPV2Validator",
+      contractNames.validatorMTP,
       ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryMTPV2Validator")),
     )
     .set(
-      "CredentialAtomicQueryV3Validator",
+      contractNames.validatorV3,
       ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3Validator")),
     )
-    .set("IdentityTreeStore", ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.IdentityTreeStore")))
-    .set("VCPayment", ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.VCPayment"))),
+    .set(
+      contractNames.identityTreeStore,
+      ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.IdentityTreeStore")),
+    )
+    .set(contractNames.vcPayment, ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.VCPayment"))),
 };

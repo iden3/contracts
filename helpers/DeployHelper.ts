@@ -16,7 +16,7 @@ import {
   CredentialAtomicQueryV3ValidatorProxyModule,
   UniversalVerifierProxyModule,
 } from "../ignition";
-import { chainIdInfoMap } from "./constants";
+import { chainIdInfoMap, contractNames } from "./constants";
 import { waitNotToInterfereWithHardhatIgnition } from "./helperUtils";
 
 const SMT_MAX_DEPTH = 64;
@@ -81,7 +81,7 @@ export class DeployHelper {
       `${g16VerifierContractName} contract deployed to address ${await g16Verifier.getAddress()} from ${await owner.getAddress()}`,
     );
 
-    if (poseidonContracts.length === 0) {
+    if (poseidonContracts.length === 0 || poseidonContracts.length !== 3) {
       this.log("deploying poseidons...");
 
       const tx = await g16Verifier.deploymentTransaction();
@@ -117,7 +117,7 @@ export class DeployHelper {
 
     this.log("deploying State...");
 
-    const StateFactory = await ethers.getContractFactory("State", {
+    const StateFactory = await ethers.getContractFactory(contractNames.state, {
       libraries: {
         StateLib: await stateLib.getAddress(),
         SmtLib: await smtLib.getAddress(),
@@ -216,7 +216,7 @@ export class DeployHelper {
     poseidonContracts: string[] = [],
     smtLibAddress: string,
     g16VerifierContractName = "Groth16VerifierStateTransition",
-    stateContractName = "State",
+    stateContractName = contractNames.state,
     crossChainProofValidatorContractName = "CrossChainProofValidator",
   ): Promise<{
     state: Contract;
@@ -234,7 +234,7 @@ export class DeployHelper {
     const proxyAdminOwner = this.signers[0];
     // const stateAdminOwner = this.signers[1];
 
-    if (poseidonContracts.length === 0) {
+    if (poseidonContracts.length === 0 || poseidonContracts.length !== 3) {
       this.log("deploying poseidons...");
 
       const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons(
@@ -279,7 +279,7 @@ export class DeployHelper {
     owner.provider!.getFeeData = async () => (feedata);
    */
 
-    const StateFactory = await ethers.getContractFactory(stateContractName, {
+    const StateFactory = await ethers.getContractFactory(contractNames.state, {
       signer: proxyAdminOwner,
       libraries: {
         StateLib: await stateLib.getAddress(),
@@ -648,7 +648,7 @@ export class DeployHelper {
 
   async upgradeUniversalVerifier(
     verifierAddress: string,
-    verifierContractName = "UniversalVerifier",
+    verifierContractName = contractNames.universalVerifier,
   ): Promise<{
     verifier: Contract;
     verifierLib: Contract;
@@ -738,12 +738,15 @@ export class DeployHelper {
     if (!owner) {
       owner = this.signers[0];
     }
-    const UniversalVerifierFactory = await ethers.getContractFactory("UniversalVerifier", {
-      signer: owner,
-      libraries: {
-        VerifierLib: verifierLibAddr,
+    const UniversalVerifierFactory = await ethers.getContractFactory(
+      contractNames.universalVerifier,
+      {
+        signer: owner,
+        libraries: {
+          VerifierLib: verifierLibAddr,
+        },
       },
-    });
+    );
     const Create2AddressAnchorFactory = await ethers.getContractFactory("Create2AddressAnchor");
 
     let universalVerifier;

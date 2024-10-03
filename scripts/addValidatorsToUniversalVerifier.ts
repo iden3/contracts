@@ -1,9 +1,6 @@
 import hre, { ethers } from "hardhat";
 import { getConfig } from "../helpers/helperUtils";
-
-const validatorSigContractName = "CredentialAtomicQuerySigV2Validator";
-const validatorMTPContractName = "CredentialAtomicQueryMTPV2Validator";
-const validatorV3ContractName = "CredentialAtomicQueryV3Validator";
+import { contractNames } from "../helpers/constants";
 
 async function main() {
   const [signer] = await hre.ethers.getSigners();
@@ -25,7 +22,7 @@ async function main() {
   }
 
   const universalVerifier = await ethers.getContractAt(
-    "UniversalVerifier",
+    contractNames.universalVerifier,
     config.universalVerifierContractAddress,
   );
 
@@ -34,15 +31,15 @@ async function main() {
   const validators = [
     {
       validatorContractAddress: config.validatorMTPContractAddress,
-      validatorContractName: validatorMTPContractName,
+      validatorContractName: contractNames.validatorMTP,
     },
     {
       validatorContractAddress: config.validatorSigContractAddress,
-      validatorContractName: validatorSigContractName,
+      validatorContractName: contractNames.validatorSig,
     },
     {
       validatorContractAddress: config.validatorV3ContractAddress,
-      validatorContractName: validatorV3ContractName,
+      validatorContractName: contractNames.validatorV3,
     },
   ];
 

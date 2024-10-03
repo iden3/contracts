@@ -11,10 +11,8 @@ import {
   submitZKPResponses_KYCAgeCredential,
 } from "./helpers/testVerifier";
 import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
+import { contractNames } from "../../../helpers/constants";
 
-const validatorSigContractName = "CredentialAtomicQuerySigV2Validator";
-const validatorMTPContractName = "CredentialAtomicQueryMTPV2Validator";
-const validatorV3ContractName = "CredentialAtomicQueryV3Validator";
 const removePreviousIgnitionFiles = true;
 const upgradeStateContract = false;
 const impersonate = false;
@@ -136,15 +134,15 @@ async function main() {
   const validators = [
     {
       validatorContractAddress: config.validatorMTPContractAddress,
-      validatorContractName: validatorMTPContractName,
+      validatorContractName: contractNames.validatorMTP,
     },
     {
       validatorContractAddress: config.validatorSigContractAddress,
-      validatorContractName: validatorSigContractName,
+      validatorContractName: contractNames.validatorSig,
     },
     {
       validatorContractAddress: config.validatorV3ContractAddress,
-      validatorContractName: validatorV3ContractName,
+      validatorContractName: contractNames.validatorV3,
     },
   ];
 
