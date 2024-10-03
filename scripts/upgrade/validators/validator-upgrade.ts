@@ -1,7 +1,9 @@
 import { DeployHelper } from "../../../helpers/DeployHelper";
 import hre, { ethers } from "hardhat";
 import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
-import { contractNames } from "../../../helpers/constants";
+import { contractNames, validatorTypes } from "../../../helpers/constants";
+import fs from "fs";
+import path from "path";
 
 const removePreviousIgnitionFiles = true;
 const impersonate = false;
@@ -49,27 +51,53 @@ async function main() {
     {
       validatorContractAddress: config.validatorMTPContractAddress,
       validatorContractName: contractNames.validatorMTP,
+      validatorType: validatorTypes.mtpV2,
     },
     {
       validatorContractAddress: config.validatorSigContractAddress,
       validatorContractName: contractNames.validatorSig,
+      validatorType: validatorTypes.sigV2,
     },
     {
       validatorContractAddress: config.validatorV3ContractAddress,
       validatorContractName: contractNames.validatorV3,
+      validatorType: validatorTypes.v3,
     },
   ];
 
+  const validatorsInfo: any = [];
   for (const v of validators) {
     const { validator } = await deployHelper.upgradeValidator(
       v.validatorContractAddress as string,
       v.validatorContractName,
     );
     await validator.waitForDeployment();
+
+    const groth16VerifierWrapperAddress = await validator.getVerifierByCircuitId(
+      (await validator.getSupportedCircuitIds())[0],
+    );
+
     console.log(`Validator ${v.validatorContractName} version:`, await validator.version());
+    validatorsInfo.push({
+      validatorType: v.validatorType,
+      validator: await validator.getAddress(),
+      groth16verifier: groth16VerifierWrapperAddress,
+    });
   }
 
   console.log("Validators Contract Upgrade Finished");
+
+  const pathOutputJson = path.join(
+    __dirname,
+    `../../deploy_validators_output_${chainId}_${network}.json`,
+  );
+  const outputJson = {
+    proxyAdminOwnerAddress: await proxyAdminOwnerSigner.getAddress(),
+    validatorsInfo,
+    network: network,
+    chainId,
+  };
+  fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 }
 
 main()

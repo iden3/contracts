@@ -141,13 +141,27 @@ export class StateContractMigrationHelper extends ContractMigrationSteps {
   @log
   async upgradeContract(
     stateContract: Contract,
-    redeployVerifier = true,
-    redeployCrossChainProofValidator = true,
+    opts: {
+      redeployVerifier: boolean;
+      redeployCrossChainProofValidator: boolean;
+      deployStrategy: "basic" | "create2";
+      poseidonContracts: string[];
+      smtLibAddress: string | undefined;
+    } = {
+      redeployVerifier: true,
+      redeployCrossChainProofValidator: true,
+      deployStrategy: "basic",
+      poseidonContracts: [],
+      smtLibAddress: undefined,
+    },
   ): Promise<any> {
     return await this._stateDeployHelper.upgradeState(
       await stateContract.getAddress(),
-      redeployVerifier,
-      redeployCrossChainProofValidator,
+      opts.redeployVerifier,
+      opts.redeployCrossChainProofValidator,
+      opts.deployStrategy,
+      opts.poseidonContracts,
+      opts.smtLibAddress,
     );
   }
 

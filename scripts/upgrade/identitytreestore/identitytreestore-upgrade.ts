@@ -1,12 +1,10 @@
 import hre, { ethers } from "hardhat";
 import { DeployHelper } from "../../../helpers/DeployHelper";
-import { poseidon } from "@iden3/js-crypto";
-import { expect } from "chai";
 import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
+import path from "path";
+import fs from "fs";
+import { contractNames } from "../../../helpers/constants";
 
-// Polygon Mumbai
-
-const id = "0x000b9921a67e1b1492902d04d9b5c521bee1288f530b14b10a6a8c94ca741201";
 const removePreviousIgnitionFiles = true;
 const impersonate = false;
 
@@ -57,27 +55,8 @@ async function main() {
   }
 
   const identityTreeStore = await ethers.getContractAt(
-    "IdentityTreeStore",
+    contractNames.identityTreeStore,
     identityTreeStoreContractAddress,
-  );
-
-  // **** Write data before upgrade (to be deleted in real upgrade) ****
-  let nonce = 1n;
-  let revRoot = poseidon.hash([nonce, 0n, 1n]);
-  let preimages = [
-    [1n, revRoot, 3n],
-    [nonce, 0n, 1n],
-  ];
-  let state = poseidon.hash(preimages[0]);
-
-  await identityTreeStore.saveNodes(preimages);
-
-  // **********************************
-
-  const revStatusByStateBefore = await identityTreeStore.getRevocationStatusByIdAndState(
-    id,
-    state,
-    nonce,
   );
 
   console.log("Version before:", await identityTreeStore.VERSION());
@@ -96,40 +75,20 @@ async function main() {
   // **********************************
   console.log("Version after:", await identityTreeStore.VERSION());
 
-  const revStatusByStateAfter = await identityTreeStore.getRevocationStatusByIdAndState(
-    id,
-    state,
-    nonce,
+  const pathOutputJson = path.join(
+    __dirname,
+    `../../deploy_identity_tree_store_output_${chainId}_${network}.json`,
   );
-
-  expect(revStatusByStateBefore).to.deep.equal(revStatusByStateAfter);
-
-  // **** Additional read-write checks (to be deleted before real upgrade) ****
-
-  nonce = 2n;
-  revRoot = poseidon.hash([nonce, 0n, 1n]);
-  preimages = [
-    [1n, revRoot, 3n],
-    [nonce, 0n, 1n],
-  ];
-  state = poseidon.hash(preimages[0]);
-
-  await identityTreeStore.saveNodes(preimages);
-
-  const revStatusByState = await identityTreeStore.getRevocationStatusByIdAndState(
-    id,
-    state,
-    nonce,
-  );
-
-  expect(revStatusByState.issuer.state).to.equal(state);
-  expect(revStatusByState.issuer.claimsTreeRoot).to.equal(1n);
-  expect(revStatusByState.issuer.revocationTreeRoot).to.equal(revRoot);
-  expect(revStatusByState.issuer.rootOfRoots).to.equal(3n);
-  expect(revStatusByState.mtp.root).to.equal(revRoot);
-  expect(revStatusByState.mtp.existence).to.equal(true);
-
-  // **************************************
+  const outputJson = {
+    proxyAdminOwnerAddress: await proxyAdminOwnerSigner.getAddress(),
+    identityTreeStore: await identityTreeStore.getAddress(),
+    poseidon2ContractAddress,
+    poseidon3ContractAddress,
+    network: network,
+    chainId,
+    deployStrategy,
+  };
+  fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 }
 
 main()

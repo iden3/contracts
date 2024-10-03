@@ -36,6 +36,12 @@ export const contractNames = {
   vcPayment: "VCPayment",
 };
 
+export const validatorTypes = {
+  mtpV2: "mtpV2",
+  sigV2: "sigV2",
+  v3: "v3",
+};
+
 export const create2AddressesInfo: {
   anchorAddress: string;
   contractsCalldataMap: Map<string, string>;

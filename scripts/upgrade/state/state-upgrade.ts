@@ -3,6 +3,8 @@ import hre, { ethers } from "hardhat";
 import { expect } from "chai"; // abi of contract that will be upgraded
 import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/State.json";
 import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
+import fs from "fs";
+import path from "path";
 
 const config = getConfig();
 
@@ -76,19 +78,21 @@ async function main() {
     config.poseidon2ContractAddress,
     config.poseidon3ContractAddress,
   ];
-  await stateDeployHelper.upgradeState(
-    await stateContract.getAddress(),
-    true,
-    true,
-    deployStrategy,
-    poseidonContracts,
-    config.smtLibContractAddress,
-  );
 
-  console.log("Version after: ", await stateContract.VERSION());
+  const { state, g16Verifier, stateLib, stateCrossChainLib, crossChainProofValidator } =
+    await stateDeployHelper.upgradeState(
+      await stateContract.getAddress(),
+      true,
+      true,
+      deployStrategy,
+      poseidonContracts,
+      smtLibContractAddress,
+    );
 
-  const defaultIdTypeAfter = await stateContract.getDefaultIdType();
-  const stateOwnerAddressAfter = await stateContract.owner();
+  console.log("Version after: ", await state.VERSION());
+
+  const defaultIdTypeAfter = await state.getDefaultIdType();
+  const stateOwnerAddressAfter = await state.owner();
 
   expect(defaultIdTypeAfter).to.equal(defaultIdTypeBefore);
   expect(stateOwnerAddressAfter).to.equal(stateOwnerAddressBefore);
@@ -125,6 +129,27 @@ async function main() {
   //       const stateHistoryLengthAfter = await stateContract.getStateInfoHistoryLengthById(id);
   //       expect(stateHistoryLengthAfter).to.equal(stateHistoryLengthBefore.add(1));
   // **********************************
+
+  const pathOutputJson = path.join(
+    __dirname,
+    `../../deploy_state_output_${chainId}_${network}.json`,
+  );
+  const outputJson = {
+    proxyAdminOwnerAddress: await proxyAdminOwnerSigner.getAddress(),
+    state: await state.getAddress(),
+    verifier: await g16Verifier.getAddress(),
+    stateLib: await stateLib.getAddress(),
+    smtLib: smtLibContractAddress,
+    stateCrossChainLib: await stateCrossChainLib.getAddress(),
+    crossChainProofValidator: await crossChainProofValidator.getAddress(),
+    poseidon1: poseidon1ContractAddress,
+    poseidon2: poseidon2ContractAddress,
+    poseidon3: poseidon3ContractAddress,
+    network: network,
+    chainId,
+    deployStrategy,
+  };
+  fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 }
 
 main()

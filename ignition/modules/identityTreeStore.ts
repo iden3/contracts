@@ -1,5 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { create2AddressesInfo } from "../../helpers/constants";
+import { contractNames, create2AddressesInfo } from "../../helpers/constants";
 
 export const IdentityTreeStoreProxyModule = buildModule("IdentityTreeStoreProxyModule", (m) => {
   const proxyAdminOwner = m.getAccount(0);
@@ -13,7 +13,7 @@ export const IdentityTreeStoreProxyModule = buildModule("IdentityTreeStoreProxyM
   const proxy = m.contract("TransparentUpgradeableProxy", [
     create2AddressesInfo.anchorAddress,
     proxyAdminOwner,
-    create2AddressesInfo.contractsCalldataMap.get("IdentityTreeStore") as string,
+    create2AddressesInfo.contractsCalldataMap.get(contractNames.identityTreeStore) as string,
   ]);
   const proxyAdminAddress = m.readEventArgument(proxy, "AdminChanged", "newAdmin");
   const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);

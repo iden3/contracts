@@ -10,8 +10,14 @@ import {
   setZKPRequest_KYCAgeCredential,
   submitZKPResponses_KYCAgeCredential,
 } from "./helpers/testVerifier";
-import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
+import {
+  getConfig,
+  removeLocalhostNetworkIgnitionFiles,
+  waitNotToInterfereWithHardhatIgnition,
+} from "../../../helpers/helperUtils";
 import { contractNames } from "../../../helpers/constants";
+import fs from "fs";
+import path from "path";
 
 const removePreviousIgnitionFiles = true;
 const upgradeStateContract = false;
@@ -37,6 +43,9 @@ async function getSigners(useImpersonation: boolean): Promise<any> {
 }
 
 async function main() {
+  const deployStrategy: "basic" | "create2" =
+    config.deployStrategy == "create2" ? "create2" : "basic";
+
   console.log("Starting Universal Verifier Contract Upgrade");
 
   if (!ethers.isAddress(config.ledgerAccount)) {
@@ -75,7 +84,7 @@ async function main() {
   }
 
   if (upgradeStateContract) {
-    await upgradeState(deployerHelper, proxyAdminOwnerSigner);
+    await upgradeState(deployerHelper, proxyAdminOwnerSigner, deployStrategy);
   }
 
   const universalVerifierMigrationHelper = new UniversalVerifierContractMigrationHelper(
@@ -98,8 +107,15 @@ async function main() {
   for (const validator of whitelistedValidators) {
     expect(await universalVerifierContract.isWhitelistedValidator(validator)).to.equal(true);
   }
+
+  const verifierLib = await deployerHelper.deployVerifierLib();
+  const txVerifLib = await verifierLib.deploymentTransaction();
+  await waitNotToInterfereWithHardhatIgnition(txVerifLib);
+
   // **** Upgrade Universal Verifier ****
-  await universalVerifierMigrationHelper.upgradeContract(universalVerifierContract);
+  await universalVerifierMigrationHelper.upgradeContract(universalVerifierContract, {
+    verifierLibAddress: await verifierLib.getAddress(),
+  });
   // ************************
   console.log("Checking data after upgrade");
 
@@ -166,6 +182,21 @@ async function main() {
     }
   }
 
+  const pathOutputJson = path.join(
+    __dirname,
+    `../../deploy_universal_verifier_output_${chainId}_${network}.json`,
+  );
+  const outputJson = {
+    proxyAdminOwnerAddress: await proxyAdminOwnerSigner.getAddress(),
+    universalVerifier: await universalVerifierContract.getAddress(),
+    verifierLib: await verifierLib.getAddress(),
+    state: config.stateContractAddress,
+    network: network,
+    chainId,
+    deployStrategy,
+  };
+  fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
+
   console.log("Testing verifiation with submitZKPResponseV2 after migration...");
   await testVerification(universalVerifierContract, config.validatorV3ContractAddress);
 }
@@ -181,7 +212,28 @@ async function onlyTestVerification() {
   await testVerification(universalVerifierContract, config.validatorV3ContractAddress);
 }
 
-async function upgradeState(deployHelper: DeployHelper, signer: any) {
+async function upgradeState(
+  deployHelper: DeployHelper,
+  signer: any,
+  deployStrategy: "basic" | "create2",
+) {
+  const poseidon1ContractAddress = config.poseidon1ContractAddress;
+  if (!ethers.isAddress(poseidon1ContractAddress)) {
+    throw new Error("POSEIDON_1_CONTRACT_ADDRESS is not set");
+  }
+  const poseidon2ContractAddress = config.poseidon2ContractAddress;
+  if (!ethers.isAddress(poseidon2ContractAddress)) {
+    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set");
+  }
+  const poseidon3ContractAddress = config.poseidon3ContractAddress;
+  if (!ethers.isAddress(poseidon3ContractAddress)) {
+    throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set");
+  }
+  const smtLibContractAddress = config.smtLibContractAddress;
+  if (!ethers.isAddress(smtLibContractAddress)) {
+    throw new Error("SMT_LIB_CONTRACT_ADDRESS is not set");
+  }
+
   const stateMigrationHelper = new StateContractMigrationHelper(deployHelper, signer);
 
   const stateContract = await stateMigrationHelper.getInitContract({
@@ -189,8 +241,20 @@ async function upgradeState(deployHelper: DeployHelper, signer: any) {
     address: config.stateContractAddress,
   });
 
+  const poseidonContracts = [
+    config.poseidon1ContractAddress,
+    config.poseidon2ContractAddress,
+    config.poseidon3ContractAddress,
+  ];
+
   // **** Upgrade State ****
-  await stateMigrationHelper.upgradeContract(stateContract, false, true); // first upgrade we need deploy oracle proof validator
+  await stateMigrationHelper.upgradeContract(stateContract, {
+    redeployVerifier: false,
+    redeployCrossChainProofValidator: true,
+    deployStrategy,
+    poseidonContracts,
+    smtLibAddress: smtLibContractAddress,
+  }); // first upgrade we need deploy oracle proof validator
   // ************************
   // If testing with forked zkevm network wait for 1 confirmation, otherwise is waiting forever
   const waitConfirmations = network === "localhost" || network === "hardhat" ? 1 : 5;
