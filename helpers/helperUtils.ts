@@ -1,6 +1,6 @@
 import { ContractTransactionResponse } from "ethers";
 import hre, { network } from "hardhat";
-import { boolean } from "hardhat/internal/core/params/argumentTypes";
+import fs from "fs";
 
 export function getConfig() {
   return {
@@ -14,7 +14,8 @@ export function getConfig() {
     poseidon1ContractAddress: process.env.POSEIDON_1_CONTRACT_ADDRESS || "",
     poseidon2ContractAddress: process.env.POSEIDON_2_CONTRACT_ADDRESS || "",
     poseidon3ContractAddress: process.env.POSEIDON_3_CONTRACT_ADDRESS || "",
-    smtLibContractAddress: process.env.SMT_LIB_ADDRESS || "",
+    smtLibContractAddress: process.env.SMT_LIB_CONTRACT_ADDRESS || "",
+    identityTreeStoreContractAddress: process.env.IDENTITY_TREE_STORE_CONTRACT_ADDRESS || "",
   };
 }
 
@@ -44,5 +45,12 @@ export async function waitNotToInterfereWithHardhatIgnition(
       await new Promise((resolve) => setTimeout(resolve, 5000));
       blockNumber = await hre.ethers.provider.getBlockNumber();
     }
+  }
+}
+
+export function removeLocalhostNetworkIgnitionFiles(network: string, chainId: number | undefined) {
+  if (network === "localhost" || network === "hardhat") {
+    console.log("Removing previous ignition files for chain: ", chainId);
+    fs.rmSync(`./ignition/deployments/chain-${chainId}`, { recursive: true, force: true });
   }
 }
