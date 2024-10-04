@@ -1,5 +1,6 @@
 import { getConfig } from "../helpers/helperUtils";
 import { ethers, upgrades } from "hardhat";
+import { expect } from "chai";
 
 const config = getConfig();
 
@@ -18,7 +19,7 @@ async function main() {
   });
   const contract = await ethers.getContractAt(contractName, contractAddress);
 
-  // await expect(contract.getDefaultIdType()).to.be.revertedWith("The contract is disabled");
+  await expect(contract.getDefaultIdType()).to.be.revertedWith("The contract is disabled");
 }
 
 main()
