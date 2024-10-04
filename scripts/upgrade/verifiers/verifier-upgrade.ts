@@ -15,7 +15,7 @@ import {
   removeLocalhostNetworkIgnitionFiles,
   waitNotToInterfereWithHardhatIgnition,
 } from "../../../helpers/helperUtils";
-import { contractNames } from "../../../helpers/constants";
+import { CONTRACT_NAMES } from "../../../helpers/constants";
 import fs from "fs";
 import path from "path";
 
@@ -150,15 +150,15 @@ async function main() {
   const validators = [
     {
       validatorContractAddress: config.validatorMTPContractAddress,
-      validatorContractName: contractNames.validatorMTP,
+      validatorContractName: CONTRACT_NAMES.VALIDATOR_MTP,
     },
     {
       validatorContractAddress: config.validatorSigContractAddress,
-      validatorContractName: contractNames.validatorSig,
+      validatorContractName: CONTRACT_NAMES.VALIDATOR_SIG,
     },
     {
       validatorContractAddress: config.validatorV3ContractAddress,
-      validatorContractName: contractNames.validatorV3,
+      validatorContractName: CONTRACT_NAMES.VALIDATOR_V3,
     },
   ];
 
@@ -249,7 +249,7 @@ async function upgradeState(
 
   // **** Upgrade State ****
   await stateMigrationHelper.upgradeContract(stateContract, {
-    redeployVerifier: false,
+    redeployGroth16Verifier: false,
     redeployCrossChainProofValidator: true,
     deployStrategy,
     poseidonContracts,

@@ -3,7 +3,7 @@ import { DeployHelper } from "../../../helpers/DeployHelper";
 import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
 import path from "path";
 import fs from "fs";
-import { contractNames } from "../../../helpers/constants";
+import { CONTRACT_NAMES } from "../../../helpers/constants";
 
 const removePreviousIgnitionFiles = true;
 const impersonate = false;
@@ -55,7 +55,7 @@ async function main() {
   }
 
   const identityTreeStore = await ethers.getContractAt(
-    contractNames.identityTreeStore,
+    CONTRACT_NAMES.IDENTITY_TREE_STORE,
     identityTreeStoreContractAddress,
   );
 

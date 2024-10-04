@@ -5,7 +5,7 @@ import { Blockchain, DidMethod, NetworkId, DID } from "@iden3/js-iden3-core";
 import { buildVerifierId } from "./deployCrossChainVerifierWithRequests";
 import { getConfig } from "../helpers/helperUtils";
 import { Operators } from "@0xpolygonid/js-sdk";
-import { contractNames } from "../helpers/constants";
+import { CONTRACT_NAMES } from "../helpers/constants";
 
 async function main() {
   const MTP_V2_CIRCUIT_NAME = "credentialAtomicQueryMTPV2OnChain";
@@ -27,7 +27,7 @@ async function main() {
   }
 
   const verifier = await ethers.getContractAt(
-    contractNames.universalVerifier,
+    CONTRACT_NAMES.UNIVERSAL_VERIFIER,
     config.universalVerifierContractAddress,
   );
 

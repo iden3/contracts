@@ -1,7 +1,7 @@
 import { DeployHelper } from "../../../helpers/DeployHelper";
 import hre, { ethers } from "hardhat";
 import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
-import { contractNames, validatorTypes } from "../../../helpers/constants";
+import { CONTRACT_NAMES, VALIDATOR_TYPES } from "../../../helpers/constants";
 import fs from "fs";
 import path from "path";
 
@@ -50,18 +50,18 @@ async function main() {
   const validators = [
     {
       validatorContractAddress: config.validatorMTPContractAddress,
-      validatorContractName: contractNames.validatorMTP,
-      validatorType: validatorTypes.mtpV2,
+      validatorContractName: CONTRACT_NAMES.VALIDATOR_MTP,
+      validatorType: VALIDATOR_TYPES.MTP_V2,
     },
     {
       validatorContractAddress: config.validatorSigContractAddress,
-      validatorContractName: contractNames.validatorSig,
-      validatorType: validatorTypes.sigV2,
+      validatorContractName: CONTRACT_NAMES.VALIDATOR_SIG,
+      validatorType: VALIDATOR_TYPES.SIG_V2,
     },
     {
       validatorContractAddress: config.validatorV3ContractAddress,
-      validatorContractName: contractNames.validatorV3,
-      validatorType: validatorTypes.v3,
+      validatorContractName: CONTRACT_NAMES.VALIDATOR_V3,
+      validatorType: VALIDATOR_TYPES.V3,
     },
   ];
 

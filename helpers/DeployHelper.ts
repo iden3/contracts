@@ -16,7 +16,7 @@ import {
   CredentialAtomicQueryV3ValidatorProxyModule,
   UniversalVerifierProxyModule,
 } from "../ignition";
-import { chainIdInfoMap, contractNames } from "./constants";
+import { chainIdInfoMap, CONTRACT_NAMES } from "./constants";
 import { waitNotToInterfereWithHardhatIgnition } from "./helperUtils";
 
 const SMT_MAX_DEPTH = 64;
@@ -117,7 +117,7 @@ export class DeployHelper {
 
     this.log("deploying State...");
 
-    const StateFactory = await ethers.getContractFactory(contractNames.state, {
+    const StateFactory = await ethers.getContractFactory(CONTRACT_NAMES.STATE, {
       libraries: {
         StateLib: await stateLib.getAddress(),
         SmtLib: await smtLib.getAddress(),
@@ -210,13 +210,13 @@ export class DeployHelper {
 
   async upgradeState(
     stateAddress: string,
-    redeployVerifier = true,
+    redeployGroth16Verifier = true,
     redeployCrossChainProofValidator = true,
     deployStrategy: "basic" | "create2" = "basic",
     poseidonContracts: string[] = [],
     smtLibAddress: string | undefined = undefined,
     g16VerifierContractName = "Groth16VerifierStateTransition",
-    stateContractName = contractNames.state,
+    stateContractName = CONTRACT_NAMES.STATE,
     crossChainProofValidatorContractName = "CrossChainProofValidator",
   ): Promise<{
     state: Contract;
@@ -299,7 +299,7 @@ export class DeployHelper {
     );
 
     let g16VerifierContract: Contract;
-    if (redeployVerifier) {
+    if (redeployGroth16Verifier) {
       this.log("deploying Groth16 verifier...");
       const g16VerifierFactory = await ethers.getContractFactory(g16VerifierContractName);
       g16VerifierContract = await g16VerifierFactory.deploy();
@@ -649,7 +649,7 @@ export class DeployHelper {
   async upgradeUniversalVerifier(
     verifierAddress: string,
     verifierLibAddr: string,
-    verifierContractName = contractNames.universalVerifier,
+    verifierContractName = CONTRACT_NAMES.UNIVERSAL_VERIFIER,
   ): Promise<Contract> {
     this.log("======== Verifier: upgrade started ========");
 
@@ -731,7 +731,7 @@ export class DeployHelper {
       owner = this.signers[0];
     }
     const UniversalVerifierFactory = await ethers.getContractFactory(
-      contractNames.universalVerifier,
+      CONTRACT_NAMES.UNIVERSAL_VERIFIER,
       {
         signer: owner,
         libraries: {
@@ -811,7 +811,7 @@ export class DeployHelper {
     }
 
     const IdentityTreeStoreFactory = await ethers.getContractFactory(
-      contractNames.identityTreeStore,
+      CONTRACT_NAMES.IDENTITY_TREE_STORE,
       {
         libraries: {
           PoseidonUnit2L: poseidon2ElementsAddress,
@@ -931,7 +931,7 @@ export class DeployHelper {
 
     console.log("Upgrading IdentityTreeStore...");
     const IdentityTreeStoreFactory = await ethers.getContractFactory(
-      contractNames.identityTreeStore,
+      CONTRACT_NAMES.IDENTITY_TREE_STORE,
       {
         libraries: {
           PoseidonUnit2L: poseidon2ElementsAddress,
