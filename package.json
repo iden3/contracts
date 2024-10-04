@@ -132,6 +132,7 @@
     "upgrade:contracts:state:localhost": "npx hardhat run scripts/upgrade/state/state-upgrade.ts --network localhost",
     "upgrade:contracts:state:polygon-amoy": "npx hardhat run scripts/upgrade/state/state-upgrade.ts --network polygon-amoy",
     "upgrade:contracts:state:polygon-mainnet": "npx hardhat run scripts/upgrade/state/state-upgrade.ts --network polygon-mainnet",
+    "disable:proxy:contract:localhost": "npx hardhat run scripts/disableProxyContract.ts --network localhost",
     "add:validators:universal:verifier:localhost": "npx hardhat run scripts/addValidatorsToUniversalVerifier.ts --network localhost",
     "add:validators:universal:verifier:polygon-amoy": "npx hardhat run scripts/addValidatorsToUniversalVerifier.ts --network polygon-amoy",
     "payment:set-payment-value:polygon-amoy": "npx hardhat run scripts/setPaymentValue.ts --network polygon-amoy",

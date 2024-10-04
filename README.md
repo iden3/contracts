@@ -57,6 +57,8 @@ POSEIDON_1_CONTRACT_ADDRESS=
 POSEIDON_2_CONTRACT_ADDRESS=
 POSEIDON_3_CONTRACT_ADDRESS=
 
+IDENTITY_TREE_STORE_CONTRACT_ADDRESS=
+
 UNIVERSAL_VERIFIER_CONTRACT_ADDRESS=
 GROTH16_VERIFIER_MTP_CONTRACT_ADDRESS=
 GROTH16_VERIFIER_SIG_CONTRACT_ADDRESS=
@@ -101,6 +103,10 @@ Then run the deployment scripts:
 3. Deploy Identity Tree Store contract
    ```
    npx hardhat run scripts/deployIdentityTreeStore.ts --network <your-network>
+   ```
+   Once identity tree store is deployed replace contract address with yours from the identity tree store deployment in your `.env` file
+   ```
+   IDENTITY_TREE_STORE_CONTRACT_ADDRESS=
    ```
 4. Deploy Validators contracts
    ```
