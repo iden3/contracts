@@ -1,0 +1,15 @@
+{
+ "proxyAdminOwnerAddress": "0x80203136fAe3111B810106bAa500231D4FD08FC6",
+ "state": "0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D",
+ "verifier": "0x3C3a54aa960d69A253f1D8F9c2D50bE0f15D0b20",
+ "stateLib": "0xAD1b5aD70C0C3615E86F4b1Bf172cfBA9E7f7344",
+ "smtLib": "0x682364078e26C1626abD2B95109D2019E241F0F6",
+ "stateCrossChainLib": "0xD17753720722204d450E5FFc402BcAF20BfB1D9A",
+ "crossChainProofValidator": "0xbb2c1DC60af6fB8D65B03dAc1638C990a2074Ec5",
+ "poseidon1": "0xC72D76D7271924a2AD54a19D216640FeA3d138d9",
+ "poseidon2": "0x72F721D9D5f91353B505207C63B56cF3d9447edB",
+ "poseidon3": "0x5Bc89782d5eBF62663Df7Ce5fb4bc7408926A240",
+ "network": "polygon-mainnet",
+ "chainId": 137,
+ "deployStrategy": "create2"
+}
