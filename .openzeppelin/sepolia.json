@@ -16,6 +16,18 @@
     {
       "address": "0x224c73e447be6a1b70f2c175F0328B8019F71Dbd",
       "kind": "transparent"
+    },
+    {
+      "address": "0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x27bDFFCeC5478a648f89764E22fE415486A42Ede",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x59B347f0D3dd4B98cc2E056Ee6C53ABF14F8581b",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -1160,6 +1172,18 @@
           ]
         }
       }
+    },
+    "ac0db523ddc3e330f735df7b3b0b24460531c71290a891170e840f8f67d5ff6b": {
+      "address": "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+      "layout": {
+        "solcVersion": "0.8.27",
+        "storage": [],
+        "types": {},
+        "namespaces": {}
+      },
+      "allAddresses": [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e"
+      ]
     }
   }
 }
