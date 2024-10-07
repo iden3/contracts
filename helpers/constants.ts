@@ -34,6 +34,7 @@ export const CONTRACT_NAMES = Object.freeze({
   VALIDATOR_V3: "CredentialAtomicQueryV3Validator",
   IDENTITY_TREE_STORE: "IdentityTreeStore",
   VC_PAYMENT: "VCPayment",
+  CROSS_CHAIN_PROOF_VALIDATOR: "CrossChainProofValidator",
 });
 
 export const VALIDATOR_TYPES = Object.freeze({
