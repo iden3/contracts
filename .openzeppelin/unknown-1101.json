@@ -3841,6 +3841,16 @@
           ]
         }
       }
+    },
+    "43cfeb496e30b51daa2016c675185b46bc19cc02caa85fe9b34dcbaeff1faa19": {
+      "address": "0x4972EECCAeB4C7a1437D92456F1B87cD0107E82e",
+      "txHash": "0x778ac2aeb04798dcdf515c3ebe067e7daf593cf65f7febafe94a47236efdefbd",
+      "layout": {
+        "solcVersion": "0.8.27",
+        "storage": [],
+        "types": {},
+        "namespaces": {}
+      }
     }
   }
 }
