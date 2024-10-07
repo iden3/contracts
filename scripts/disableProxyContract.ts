@@ -1,8 +1,11 @@
 import hre, { ethers, upgrades } from "hardhat";
 import { expect } from "chai";
+import { getConfig } from "../helpers/helperUtils";
+import { CONTRACT_NAMES } from "../helpers/constants";
 
 // Get proper contract address and name
 const contractAddress = "<put-your-contract-address>";
+// const contractAddress = getConfig().stateContractAddress;
 
 if (!ethers.isAddress(contractAddress)) {
   throw new Error("Proxy contract address is not set");
@@ -11,6 +14,7 @@ if (!ethers.isAddress(contractAddress)) {
 async function main() {
   // Put proper contract name here
   const contractName = "<put-your-contract-name>";
+  // const contractName = CONTRACT_NAMES.STATE;
   const contract = await ethers.getContractAt(contractName, contractAddress);
 
   const alwaysRevertFactory = await ethers.getContractFactory("AlwaysRevert");
