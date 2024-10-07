@@ -1,9 +1,9 @@
 import { ethers } from "hardhat";
 import { getConfig } from "../helpers/helperUtils";
-import { CONTRACT_NAMES, ORACLE_SA_PROD } from "../helpers/constants";
+import { CONTRACT_NAMES, ORACLE_SIGNING_ADDRESS_PRODUCTION } from "../helpers/constants";
 
 async function main() {
-  const oracleSigningAddress = ORACLE_SA_PROD; // production signing address
+  const oracleSigningAddress = ORACLE_SIGNING_ADDRESS_PRODUCTION; // production signing address
 
   const config = getConfig();
   if (!ethers.isAddress(config.stateContractAddress)) {
