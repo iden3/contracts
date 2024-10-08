@@ -1,6 +1,6 @@
 import { DeployHelper } from "../../../helpers/DeployHelper";
 import hre, { ethers } from "hardhat";
-import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
+import { getConfig, isContract, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
 import { CONTRACT_NAMES, VALIDATOR_TYPES } from "../../../helpers/constants";
 import fs from "fs";
 import path from "path";
@@ -28,14 +28,14 @@ async function main() {
   if (!ethers.isAddress(config.ledgerAccount)) {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
-  if (!ethers.isAddress(config.validatorMTPContractAddress)) {
-    throw new Error("VALIDATOR_MTP_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(config.validatorMTPContractAddress))) {
+    throw new Error("VALIDATOR_MTP_CONTRACT_ADDRESS is not set or invalid");
   }
-  if (!ethers.isAddress(config.validatorSigContractAddress)) {
-    throw new Error("VALIDATOR_SIG_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(config.validatorSigContractAddress))) {
+    throw new Error("VALIDATOR_SIG_CONTRACT_ADDRESS is not set or invalid");
   }
-  if (!ethers.isAddress(config.validatorV3ContractAddress)) {
-    throw new Error("VALIDATOR_V3_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(config.validatorV3ContractAddress))) {
+    throw new Error("VALIDATOR_V3_CONTRACT_ADDRESS is not set or invalid");
   }
 
   const { proxyAdminOwnerSigner } = await getSigners(impersonate);
@@ -89,7 +89,7 @@ async function main() {
 
   const pathOutputJson = path.join(
     __dirname,
-    `../../deploy_validators_output_${chainId}_${network}.json`,
+    `../../deployments_output/deploy_validators_output_${chainId}_${network}.json`,
   );
   const outputJson = {
     proxyAdminOwnerAddress: await proxyAdminOwnerSigner.getAddress(),

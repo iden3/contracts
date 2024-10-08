@@ -1,7 +1,7 @@
 import hre, { ethers, network } from "hardhat";
-import { packV3ValidatorParams, packValidatorParams } from "../test/utils/validator-pack-utils";
-import { DeployHelper } from "../helpers/DeployHelper";
-import { calculateQueryHashV2, calculateQueryHashV3 } from "../test/utils/query-hash-utils";
+import { packV3ValidatorParams, packValidatorParams } from "../../test/utils/validator-pack-utils";
+import { DeployHelper } from "../../helpers/DeployHelper";
+import { calculateQueryHashV2, calculateQueryHashV3 } from "../../test/utils/query-hash-utils";
 import {
   buildDIDType,
   genesisFromEthAddress,
@@ -500,7 +500,7 @@ async function main() {
 
   const pathOutputJson = path.join(
     __dirname,
-    `./deploy_cross_chain_verification_with_requests_output_${chainId}_${networkName}.json`,
+    `../deployments_output/deploy_cross_chain_verification_with_requests_output_${chainId}_${networkName}.json`,
   );
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 }

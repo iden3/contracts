@@ -54,3 +54,14 @@ export function removeLocalhostNetworkIgnitionFiles(network: string, chainId: nu
     fs.rmSync(`./ignition/deployments/chain-${chainId}`, { recursive: true, force: true });
   }
 }
+
+export async function isContract(value: any): Promise<boolean> {
+  if (!hre.ethers.isAddress(value)) {
+    return false;
+  }
+  const result = await hre.ethers.provider.getCode(value);
+  if (result === "0x") {
+    return false;
+  }
+  return true;
+}

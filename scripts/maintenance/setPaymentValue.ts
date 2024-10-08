@@ -2,7 +2,7 @@ import { DID } from "@iden3/js-iden3-core";
 import { ethers } from "hardhat";
 import { byteEncoder, calculateCoreSchemaHash } from "@0xpolygonid/js-sdk";
 import { Path } from "@iden3/js-jsonld-merklization";
-import { VCPayment, VCPayment__factory } from "../typechain-types";
+import { VCPayment, VCPayment__factory } from "../../typechain-types";
 
 const ldContextJSONAnimaProofOfUniqueness = `{
   "@context": [
