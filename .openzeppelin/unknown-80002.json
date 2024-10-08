@@ -11891,6 +11891,16 @@
           ]
         }
       }
+    },
+    "43cfeb496e30b51daa2016c675185b46bc19cc02caa85fe9b34dcbaeff1faa19": {
+      "address": "0xf7f5E77dd8Eeb5200652295B8aC02f75dedF1b69",
+      "txHash": "0x50f41ad943dc873a1468c61e9819dbea147ed7d06f5d5960fb3dc4cb0e3c48a3",
+      "layout": {
+        "solcVersion": "0.8.27",
+        "storage": [],
+        "types": {},
+        "namespaces": {}
+      }
     }
   }
 }
