@@ -184,7 +184,7 @@ async function main() {
 
   const pathOutputJson = path.join(
     __dirname,
-    `../../deploy_universal_verifier_output_${chainId}_${network}.json`,
+    `../../deployments_output/deploy_universal_verifier_output_${chainId}_${network}.json`,
   );
   const outputJson = {
     proxyAdminOwnerAddress: await proxyAdminOwnerSigner.getAddress(),

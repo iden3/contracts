@@ -37,7 +37,7 @@ import { getConfig } from "../helpers/helperUtils";
   const networkName = hre.network.name;
   const pathOutputJson = path.join(
     __dirname,
-    `./deploy_identity_tree_store_output_${chainId}_${networkName}.json`,
+    `../deployments_output/deploy_identity_tree_store_output_${chainId}_${networkName}.json`,
   );
   const outputJson = {
     proxyAdminOwnerAddress: await signer.getAddress(),

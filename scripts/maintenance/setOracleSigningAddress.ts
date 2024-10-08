@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
-import { getConfig } from "../helpers/helperUtils";
-import { CONTRACT_NAMES, ORACLE_SIGNING_ADDRESS_PRODUCTION } from "../helpers/constants";
+import { getConfig } from "../../helpers/helperUtils";
+import { CONTRACT_NAMES, ORACLE_SIGNING_ADDRESS_PRODUCTION } from "../../helpers/constants";
 
 async function main() {
   const oracleSigningAddress = ORACLE_SIGNING_ADDRESS_PRODUCTION; // production signing address

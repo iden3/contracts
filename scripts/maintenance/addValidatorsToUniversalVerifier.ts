@@ -1,6 +1,6 @@
 import hre, { ethers } from "hardhat";
-import { getConfig } from "../helpers/helperUtils";
-import { CONTRACT_NAMES } from "../helpers/constants";
+import { getConfig } from "../../helpers/helperUtils";
+import { CONTRACT_NAMES } from "../../helpers/constants";
 
 async function main() {
   const [signer] = await hre.ethers.getSigners();

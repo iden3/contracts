@@ -28,7 +28,7 @@ async function main() {
   const networkName = hre.network.name;
   const pathOutputJson = path.join(
     __dirname,
-    `./deploy_state_output_${chainId}_${networkName}.json`,
+    `../deployments_output/deploy_state_output_${chainId}_${networkName}.json`,
   );
   const outputJson = {
     proxyAdminOwnerAddress: await signer.getAddress(),

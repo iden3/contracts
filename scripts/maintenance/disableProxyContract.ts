@@ -1,7 +1,7 @@
 import hre, { ethers, upgrades } from "hardhat";
 import { expect } from "chai";
-import { getConfig } from "../helpers/helperUtils";
-import { CONTRACT_NAMES } from "../helpers/constants";
+// import { getConfig } from "../../helpers/helperUtils";
+// import { CONTRACT_NAMES } from "../../helpers/constants";
 
 // Get proper contract address and name
 const contractAddress = "<put-your-contract-address>";

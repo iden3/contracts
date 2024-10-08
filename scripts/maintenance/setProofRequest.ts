@@ -1,11 +1,11 @@
 import hre, { ethers } from "hardhat";
-import { packV3ValidatorParams, packValidatorParams } from "../test/utils/validator-pack-utils";
-import { calculateQueryHashV2, calculateQueryHashV3 } from "../test/utils/query-hash-utils";
+import { packV3ValidatorParams, packValidatorParams } from "../../test/utils/validator-pack-utils";
+import { calculateQueryHashV2, calculateQueryHashV3 } from "../../test/utils/query-hash-utils";
 import { Blockchain, DidMethod, NetworkId, DID } from "@iden3/js-iden3-core";
 import { buildVerifierId } from "./deployCrossChainVerifierWithRequests";
-import { getConfig } from "../helpers/helperUtils";
+import { getConfig } from "../../helpers/helperUtils";
 import { Operators } from "@0xpolygonid/js-sdk";
-import { CONTRACT_NAMES } from "../helpers/constants";
+import { CONTRACT_NAMES } from "../../helpers/constants";
 
 async function main() {
   const MTP_V2_CIRCUIT_NAME = "credentialAtomicQueryMTPV2OnChain";
