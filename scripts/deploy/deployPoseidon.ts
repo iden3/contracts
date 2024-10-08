@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { deployPoseidonFacade } from "../helpers/PoseidonDeployHelper";
+import { deployPoseidonFacade } from "../../helpers/PoseidonDeployHelper";
 
 async function main() {
   const deployInfo: any = [];

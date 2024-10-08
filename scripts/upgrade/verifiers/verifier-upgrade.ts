@@ -12,6 +12,7 @@ import {
 } from "./helpers/testVerifier";
 import {
   getConfig,
+  isContract,
   removeLocalhostNetworkIgnitionFiles,
   waitNotToInterfereWithHardhatIgnition,
 } from "../../../helpers/helperUtils";
@@ -51,20 +52,20 @@ async function main() {
   if (!ethers.isAddress(config.ledgerAccount)) {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
-  if (!ethers.isAddress(config.stateContractAddress)) {
-    throw new Error("STATE_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(config.stateContractAddress))) {
+    throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
   }
-  if (!ethers.isAddress(config.universalVerifierContractAddress)) {
-    throw new Error("UNIVERSAL_VERIFIER_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(config.universalVerifierContractAddress))) {
+    throw new Error("UNIVERSAL_VERIFIER_CONTRACT_ADDRESS is not set or invalid");
   }
-  if (!ethers.isAddress(config.validatorMTPContractAddress)) {
-    throw new Error("VALIDATOR_MTP_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(config.validatorMTPContractAddress))) {
+    throw new Error("VALIDATOR_MTP_CONTRACT_ADDRESS is not set or invalid");
   }
-  if (!ethers.isAddress(config.validatorSigContractAddress)) {
-    throw new Error("VALIDATOR_SIG_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(config.validatorSigContractAddress))) {
+    throw new Error("VALIDATOR_SIG_CONTRACT_ADDRESS is not set or invalid");
   }
-  if (!ethers.isAddress(config.validatorV3ContractAddress)) {
-    throw new Error("VALIDATOR_V3_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(config.validatorV3ContractAddress))) {
+    throw new Error("VALIDATOR_V3_CONTRACT_ADDRESS is not set or invalid");
   }
 
   const { proxyAdminOwnerSigner, universalVerifierOwnerSigner } = await getSigners(impersonate);
@@ -218,20 +219,20 @@ async function upgradeState(
   deployStrategy: "basic" | "create2",
 ) {
   const poseidon1ContractAddress = config.poseidon1ContractAddress;
-  if (!ethers.isAddress(poseidon1ContractAddress)) {
-    throw new Error("POSEIDON_1_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(poseidon1ContractAddress))) {
+    throw new Error("POSEIDON_1_CONTRACT_ADDRESS is not set or invalid");
   }
   const poseidon2ContractAddress = config.poseidon2ContractAddress;
-  if (!ethers.isAddress(poseidon2ContractAddress)) {
-    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(poseidon2ContractAddress))) {
+    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set or invalid");
   }
   const poseidon3ContractAddress = config.poseidon3ContractAddress;
-  if (!ethers.isAddress(poseidon3ContractAddress)) {
-    throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(poseidon3ContractAddress))) {
+    throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set or invalid");
   }
   const smtLibContractAddress = config.smtLibContractAddress;
-  if (!ethers.isAddress(smtLibContractAddress)) {
-    throw new Error("SMT_LIB_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(smtLibContractAddress))) {
+    throw new Error("SMT_LIB_CONTRACT_ADDRESS is not set or invalid");
   }
 
   const stateMigrationHelper = new StateContractMigrationHelper(deployHelper, signer);

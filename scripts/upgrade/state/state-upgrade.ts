@@ -2,7 +2,7 @@ import { DeployHelper } from "../../../helpers/DeployHelper";
 import hre, { ethers } from "hardhat";
 import { expect } from "chai"; // abi of contract that will be upgraded
 import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/State.json";
-import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
+import { getConfig, isContract, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
 import fs from "fs";
 import path from "path";
 
@@ -35,24 +35,24 @@ async function main() {
   if (!ethers.isAddress(config.ledgerAccount)) {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
-  if (!ethers.isAddress(config.stateContractAddress)) {
-    throw new Error("STATE_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(config.stateContractAddress))) {
+    throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
   }
   const poseidon1ContractAddress = config.poseidon1ContractAddress;
-  if (!ethers.isAddress(poseidon1ContractAddress)) {
-    throw new Error("POSEIDON_1_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(poseidon1ContractAddress))) {
+    throw new Error("POSEIDON_1_CONTRACT_ADDRESS is not set or invalid");
   }
   const poseidon2ContractAddress = config.poseidon2ContractAddress;
-  if (!ethers.isAddress(poseidon2ContractAddress)) {
-    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(poseidon2ContractAddress))) {
+    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set or invalid");
   }
   const poseidon3ContractAddress = config.poseidon3ContractAddress;
-  if (!ethers.isAddress(poseidon3ContractAddress)) {
-    throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(poseidon3ContractAddress))) {
+    throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set or invalid");
   }
   const smtLibContractAddress = config.smtLibContractAddress;
-  if (!ethers.isAddress(smtLibContractAddress)) {
-    throw new Error("SMT_LIB_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(smtLibContractAddress))) {
+    throw new Error("SMT_LIB_CONTRACT_ADDRESS is not set or invalid");
   }
   const { proxyAdminOwnerSigner, stateOwnerSigner } = await getSigners(impersonate);
 

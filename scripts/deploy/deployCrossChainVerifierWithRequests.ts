@@ -1,7 +1,7 @@
 import hre, { ethers, network } from "hardhat";
-import { packV3ValidatorParams, packValidatorParams } from "../test/utils/validator-pack-utils";
-import { DeployHelper } from "../helpers/DeployHelper";
-import { calculateQueryHashV2, calculateQueryHashV3 } from "../test/utils/query-hash-utils";
+import { packV3ValidatorParams, packValidatorParams } from "../../test/utils/validator-pack-utils";
+import { DeployHelper } from "../../helpers/DeployHelper";
+import { calculateQueryHashV2, calculateQueryHashV3 } from "../../test/utils/query-hash-utils";
 import {
   buildDIDType,
   genesisFromEthAddress,

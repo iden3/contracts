@@ -1,8 +1,8 @@
 import fs from "fs";
 import path from "path";
-import { DeployHelper } from "../helpers/DeployHelper";
+import { DeployHelper } from "../../helpers/DeployHelper";
 import hre, { network } from "hardhat";
-import { getConfig } from "../helpers/helperUtils";
+import { getConfig } from "../../helpers/helperUtils";
 
 async function main() {
   const config = getConfig();

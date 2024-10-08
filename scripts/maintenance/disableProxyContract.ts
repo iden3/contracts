@@ -7,10 +7,6 @@ import { expect } from "chai";
 const contractAddress = "<put-your-contract-address>";
 // const contractAddress = getConfig().stateContractAddress;
 
-if (!ethers.isAddress(contractAddress)) {
-  throw new Error("Proxy contract address is not set");
-}
-
 async function main() {
   // Put proper contract name here
   const contractName = "<put-your-contract-name>";
