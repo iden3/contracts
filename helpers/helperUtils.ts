@@ -1,4 +1,4 @@
-import { ContractTransactionResponse } from "ethers";
+import { ContractTransactionResponse, JsonRpcProvider } from "ethers";
 import hre, { network } from "hardhat";
 import fs from "fs";
 
@@ -55,11 +55,16 @@ export function removeLocalhostNetworkIgnitionFiles(network: string, chainId: nu
   }
 }
 
-export async function isContract(value: any): Promise<boolean> {
+export async function isContract(value: any, provider?: JsonRpcProvider): Promise<boolean> {
   if (!hre.ethers.isAddress(value)) {
     return false;
   }
-  const result = await hre.ethers.provider.getCode(value);
+  let result;
+  if (provider) {
+    result = await provider.getCode(value);
+  } else {
+    result = await hre.ethers.provider.getCode(value);
+  }
   if (result === "0x") {
     return false;
   }
