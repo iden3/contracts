@@ -70,3 +70,18 @@ export async function isContract(value: any, provider?: JsonRpcProvider): Promis
   }
   return true;
 }
+
+export function getProviders() {
+  return [
+    { network: "Privado Testnet", rpcUrl: process.env.PRIVADO_TEST_RPC_URL as string },
+    { network: "Privado Main", rpcUrl: process.env.PRIVADO_MAIN_RPC_URL as string },
+    { network: "Polygon Amoy", rpcUrl: process.env.POLYGON_AMOY_RPC_URL as string },
+    { network: "Polygon Mainnet", rpcUrl: process.env.POLYGON_MAINNET_RPC_URL as string },
+    { network: "Ethereum Sepolia", rpcUrl: process.env.ETHEREUM_SEPOLIA_RPC_URL as string },
+    { network: "Ethereum Mainnet", rpcUrl: process.env.ETHEREUM_MAINNET_RPC_URL as string },
+    { network: "Zkevm Cardona", rpcUrl: process.env.ZKEVM_CARDONA_RPC_URL as string },
+    { network: "Zkevm Mainnet", rpcUrl: process.env.ZKEVM_MAINNET_RPC_URL as string },
+    { network: "Linea Sepolia", rpcUrl: process.env.LINEA_SEPOLIA_RPC_URL as string },
+    { network: "Linea Mainnet", rpcUrl: process.env.LINEA_MAINNET_RPC_URL as string },
+  ];
+}
