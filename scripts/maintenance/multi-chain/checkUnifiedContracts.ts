@@ -23,10 +23,10 @@ async function main() {
     }
     if (contractsNotDeployed.length > 0) {
       console.log(
-        `\x1b[31m  𐄂 \x1b[0m${provider.network}: ${contractsNotDeployed.length} contracts are not deployed: ${contractsNotDeployed.map((property) => CONTRACT_NAMES[property]).join(", ")}`,
+        `\x1b[31m  [𐄂] \x1b[0m${provider.network}: ${contractsNotDeployed.length} contracts are not deployed: ${contractsNotDeployed.map((property) => CONTRACT_NAMES[property]).join(", ")}`,
       );
     } else {
-      console.log(`\x1b[32m  ✓ \x1b[0m${provider.network}: All contracts are deployed`);
+      console.log(`\x1b[32m  [✓] \x1b[0m${provider.network}: All contracts are deployed`);
     }
   }
 }

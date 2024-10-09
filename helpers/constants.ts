@@ -85,6 +85,19 @@ export const CONTRACT_NAMES = Object.freeze({
   POSEIDON_3: "PoseidonUnit3L",
 });
 
+export const NETWORK_NAMES = Object.freeze({
+  PRIVADO_TEST: "Privado Test",
+  PRIVADO_MAIN: "Privado Main",
+  POLYGON_AMOY: "Polygon Amoy",
+  POLYGON_MAINNET: "Polygon Mainnet",
+  ETHEREUM_SEPOLIA: "Ethereum Sepolia",
+  ETHEREUM_MAINNET: "Ethereum Mainnet",
+  ZKEVM_CARDONA: "Zkevm Cardona",
+  ZKEVM_MAINNET: "Zkevm Mainnet",
+  LINEA_SEPOLIA: "Linea Sepolia",
+  LINEA_MAINNET: "Linea Mainnet",
+});
+
 export const STATE_ADDRESS_POLYGON_AMOY = "0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124";
 export const STATE_ADDRESS_POLYGON_MAINNET = "0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D";
 
