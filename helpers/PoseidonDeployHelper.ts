@@ -79,10 +79,18 @@ export async function deployPoseidons(
   return result;
 }
 
-export async function deployPoseidonFacade(): Promise<any> {
-  const poseidonContracts = await deployPoseidons(new Array(6).fill(6).map((_, i) => i + 1));
+export async function deployPoseidonFacade(
+  deployStrategy: "basic" | "create2" = "basic",
+): Promise<any> {
+  const poseidonContracts = await deployPoseidons(
+    new Array(6).fill(6).map((_, i) => i + 1),
+    deployStrategy,
+  );
 
-  const spongePoseidon = await deploySpongePoseidon(await poseidonContracts[5].getAddress());
+  const spongePoseidon = await deploySpongePoseidon(
+    await poseidonContracts[5].getAddress(),
+    deployStrategy,
+  );
 
   const PoseidonFacade = await ethers.getContractFactory("PoseidonFacade", {
     libraries: {

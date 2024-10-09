@@ -1,10 +1,16 @@
 import fs from "fs";
 import path from "path";
 import { deployPoseidonFacade } from "../../helpers/PoseidonDeployHelper";
+import { getConfig } from "../../helpers/helperUtils";
+import hre from "hardhat";
 
 async function main() {
+  const config = getConfig();
+  const deployStrategy: "basic" | "create2" =
+    config.deployStrategy == "create2" ? "create2" : "basic";
+
   const deployInfo: any = [];
-  const contracts = await deployPoseidonFacade();
+  const contracts = await deployPoseidonFacade(deployStrategy);
   deployInfo.push({
     PoseidonFacade: await contracts.PoseidonFacade.getAddress(),
     PoseidonUnit1L: await contracts.PoseidonUnit1L.getAddress(),
@@ -15,13 +21,17 @@ async function main() {
     PoseidonUnit6L: await contracts.PoseidonUnit6L.getAddress(),
     SpongePoseidon: await contracts.SpongePoseidon.getAddress(),
   });
+  const chainId = parseInt(await hre.network.provider.send("eth_chainId"), 16);
+  const networkName = hre.network.name;
   const outputJson = {
     info: deployInfo,
-    network: process.env.HARDHAT_NETWORK,
+    network: networkName,
+    chainId,
+    deployStrategy,
   };
   const pathOutputJson = path.join(
     __dirname,
-    "./deploy_poseidon_" + process.env.HARDHAT_NETWORK + ".json",
+    `../deployments_output/deploy_poseidon_output_${chainId}_${networkName}.json`,
   );
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 }

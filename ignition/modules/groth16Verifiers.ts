@@ -20,3 +20,11 @@ export const Groth16VerifierV3WrapperModule = buildModule("Groth16VerifierV3Wrap
   const g16VerifierV3Wrapper = m.contract("Groth16VerifierV3Wrapper");
   return { wrapper: g16VerifierV3Wrapper };
 });
+
+export const Groth16VerifierStateTransitionModule = buildModule(
+  "Groth16VerifierStateTransitionModule",
+  (m) => {
+    const g16VerifierStateTransition = m.contract("Groth16VerifierStateTransition");
+    return { verifier: g16VerifierStateTransition };
+  },
+);

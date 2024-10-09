@@ -16,6 +16,8 @@ export function getConfig() {
     poseidon3ContractAddress: process.env.POSEIDON_3_CONTRACT_ADDRESS || "",
     smtLibContractAddress: process.env.SMT_LIB_CONTRACT_ADDRESS || "",
     identityTreeStoreContractAddress: process.env.IDENTITY_TREE_STORE_CONTRACT_ADDRESS || "",
+    groth16VerifierStateTransitionContractAddress:
+      process.env.GROTH16_VERIFIER_STATE_TRANSITION_CONTRACT_ADDRESS || "",
   };
 }
 

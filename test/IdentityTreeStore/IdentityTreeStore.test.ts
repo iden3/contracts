@@ -11,7 +11,7 @@ describe("IdentityTreeStore", function () {
 
   beforeEach(async function () {
     const deployHelper = await DeployHelper.initialize();
-    ({ state: stateContract } = await deployHelper.deployState(["0x0100"], verifierStubName));
+    ({ state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0100"], verifierStubName));
     ({ identityTreeStore } = await deployHelper.deployIdentityTreeStore(
       await stateContract.getAddress(),
     ));

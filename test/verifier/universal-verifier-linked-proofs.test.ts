@@ -16,7 +16,7 @@ describe("Universal Verifier Linked proofs", function () {
     signerAddress = await signer.getAddress();
 
     deployHelper = await DeployHelper.initialize(null, true);
-    ({ state } = await deployHelper.deployState(["0x0112"]));
+    ({ state } = await deployHelper.deployStateWithLibraries(["0x0112"]));
 
     const verifierLib = await deployHelper.deployVerifierLib();
 

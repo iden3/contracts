@@ -15,6 +15,7 @@ import {
   CredentialAtomicQuerySigV2ValidatorProxyModule,
   CredentialAtomicQueryV3ValidatorProxyModule,
   UniversalVerifierProxyModule,
+  Groth16VerifierStateTransitionModule,
 } from "../ignition";
 import { chainIdInfoMap, CONTRACT_NAMES } from "./constants";
 import { waitNotToInterfereWithHardhatIgnition } from "./helperUtils";
@@ -40,23 +41,75 @@ export class DeployHelper {
     return new DeployHelper(sgrs, enableLogging);
   }
 
-  async deployState(
+  async deployStateWithLibraries(
     supportedIdTypes: string[] = [],
     g16VerifierContractName:
       | "Groth16VerifierStateTransition"
       | "Groth16VerifierStub" = "Groth16VerifierStateTransition",
     deployStrategy: "basic" | "create2" = "basic",
-    poseidonContracts: Contract[] = [],
   ): Promise<{
     state: Contract;
-    groth16verifier: Contract;
     stateLib: Contract;
-    smtLib: Contract;
     stateCrossChainLib: Contract;
     crossChainProofValidator: Contract;
+    smtLib: Contract;
     poseidon1: Contract;
     poseidon2: Contract;
     poseidon3: Contract;
+    groth16verifier: Contract;
+    defaultIdType;
+  }> {
+    const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons(
+      [1, 2, 3],
+      deployStrategy,
+    );
+
+    const smtLib = await this.deploySmtLib(
+      await poseidon2Elements.getAddress(),
+      await poseidon3Elements.getAddress(),
+      "SmtLib",
+      deployStrategy,
+    );
+
+    const groth16VerifierStateTransition = await this.deployGroth16VerifierStateTransition(
+      g16VerifierContractName,
+      deployStrategy,
+    );
+
+    const { state, stateLib, stateCrossChainLib, crossChainProofValidator, defaultIdType } =
+      await this.deployState(
+        supportedIdTypes,
+        deployStrategy,
+        await smtLib.getAddress(),
+        await poseidon1Elements.getAddress(),
+        await groth16VerifierStateTransition.getAddress(),
+      );
+
+    return {
+      state,
+      stateLib,
+      stateCrossChainLib,
+      crossChainProofValidator,
+      defaultIdType,
+      smtLib,
+      poseidon1: poseidon1Elements,
+      poseidon2: poseidon2Elements,
+      poseidon3: poseidon3Elements,
+      groth16verifier: groth16VerifierStateTransition,
+    };
+  }
+
+  async deployState(
+    supportedIdTypes: string[] = [],
+    deployStrategy: "basic" | "create2" = "basic",
+    smtLibAddress: string,
+    poseidon1Address: string,
+    groth16verifierAddress: string,
+  ): Promise<{
+    state: Contract;
+    stateLib: Contract;
+    stateCrossChainLib: Contract;
+    crossChainProofValidator: Contract;
     defaultIdType;
   }> {
     this.log("======== State: deploy started ========");
@@ -65,46 +118,6 @@ export class DeployHelper {
     this.log(`found defaultIdType ${defaultIdType} for chainId ${chainId}`);
 
     const owner = this.signers[0];
-
-    this.log("deploying Groth16VerifierStateTransition...");
-
-    let g16Verifier;
-    if (
-      ["Groth16VerifierStateTransition", "Groth16VerifierStub"].includes(g16VerifierContractName)
-    ) {
-      g16Verifier = await ethers.deployContract(g16VerifierContractName);
-    } else {
-      throw new Error("invalid verifierContractName");
-    }
-    await g16Verifier.waitForDeployment();
-    this.log(
-      `${g16VerifierContractName} contract deployed to address ${await g16Verifier.getAddress()} from ${await owner.getAddress()}`,
-    );
-
-    if (poseidonContracts.length === 0 || poseidonContracts.length !== 3) {
-      this.log("deploying poseidons...");
-
-      const tx = await g16Verifier.deploymentTransaction();
-      await waitNotToInterfereWithHardhatIgnition(tx);
-
-      const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons(
-        [1, 2, 3],
-        deployStrategy,
-      );
-      poseidonContracts.push(poseidon1Elements, poseidon2Elements, poseidon3Elements);
-    }
-
-    const poseidon1Elements = poseidonContracts[0];
-    const poseidon2Elements = poseidonContracts[1];
-    const poseidon3Elements = poseidonContracts[2];
-
-    this.log("deploying SmtLib...");
-    const smtLib = await this.deploySmtLib(
-      await poseidon2Elements.getAddress(),
-      await poseidon3Elements.getAddress(),
-      "SmtLib",
-      deployStrategy,
-    );
 
     this.log("deploying StateLib...");
     const stateLib = await this.deployStateLib();
@@ -120,8 +133,8 @@ export class DeployHelper {
     const StateFactory = await ethers.getContractFactory(CONTRACT_NAMES.STATE, {
       libraries: {
         StateLib: await stateLib.getAddress(),
-        SmtLib: await smtLib.getAddress(),
-        PoseidonUnit1L: await poseidon1Elements.getAddress(),
+        SmtLib: smtLibAddress,
+        PoseidonUnit1L: poseidon1Address,
         StateCrossChainLib: await stateCrossChainLib.getAddress(),
       },
     });
@@ -153,7 +166,7 @@ export class DeployHelper {
         call: {
           fn: "initialize",
           args: [
-            await g16Verifier.getAddress(),
+            groth16verifierAddress,
             defaultIdType,
             await owner.getAddress(),
             await crossChainProofValidator.getAddress(),
@@ -166,7 +179,7 @@ export class DeployHelper {
       state = await upgrades.deployProxy(
         StateFactory,
         [
-          await g16Verifier.getAddress(),
+          groth16verifierAddress,
           defaultIdType,
           await owner.getAddress(),
           await crossChainProofValidator.getAddress(),
@@ -196,14 +209,9 @@ export class DeployHelper {
 
     return {
       state,
-      groth16verifier: g16Verifier,
       stateLib,
-      smtLib,
       stateCrossChainLib,
       crossChainProofValidator: crossChainProofValidator,
-      poseidon1: poseidon1Elements,
-      poseidon2: poseidon2Elements,
-      poseidon3: poseidon3Elements,
       defaultIdType,
     };
   }
@@ -481,6 +489,42 @@ export class DeployHelper {
     await crossChainProofValidator.waitForDeployment();
     console.log(`${contractName} deployed to:`, await crossChainProofValidator.getAddress());
     return crossChainProofValidator;
+  }
+
+  async deployGroth16VerifierStateTransition(
+    g16VerifierContractName:
+      | "Groth16VerifierStateTransition"
+      | "Groth16VerifierStub" = "Groth16VerifierStateTransition",
+    deployStrategy: "basic" | "create2" = "basic",
+  ): Promise<Contract> {
+    const owner = this.signers[0];
+
+    let g16Verifier;
+    if (deployStrategy === "create2") {
+      this.log("deploying with CREATE2 strategy...");
+      g16Verifier = (
+        await ignition.deploy(Groth16VerifierStateTransitionModule, {
+          strategy: deployStrategy,
+        })
+      ).verifier;
+    } else {
+      this.log("deploying Groth16VerifierStateTransition...");
+
+      if (
+        ["Groth16VerifierStateTransition", "Groth16VerifierStub"].includes(g16VerifierContractName)
+      ) {
+        g16Verifier = await ethers.deployContract(g16VerifierContractName);
+      } else {
+        throw new Error("invalid verifierContractName");
+      }
+    }
+
+    await g16Verifier.waitForDeployment();
+    this.log(
+      `${g16VerifierContractName} contract deployed to address ${await g16Verifier.getAddress()} from ${await owner.getAddress()}`,
+    );
+
+    return g16Verifier;
   }
 
   async deployValidatorContracts(

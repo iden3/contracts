@@ -40,7 +40,7 @@ async function main() {
   }
   // ##################### State with StateCrossChainLib deploy #####################
 
-  const { state, crossChainProofValidator } = await deployHelper.deployState();
+  const { state, crossChainProofValidator } = await deployHelper.deployStateWithLibraries();
 
   // ##################### Validator deploy #####################
 

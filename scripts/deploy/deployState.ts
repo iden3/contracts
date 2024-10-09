@@ -1,8 +1,8 @@
 import fs from "fs";
 import path from "path";
 import { DeployHelper } from "../../helpers/DeployHelper";
-import hre, { network } from "hardhat";
-import { getConfig } from "../../helpers/helperUtils";
+import hre from "hardhat";
+import { getConfig, isContract } from "../../helpers/helperUtils";
 
 async function main() {
   const config = getConfig();
@@ -10,21 +10,39 @@ async function main() {
     config.deployStrategy == "create2" ? "create2" : "basic";
   const [signer] = await hre.ethers.getSigners();
 
+  const poseidon1ContractAddress = config.poseidon1ContractAddress;
+  if (!(await isContract(poseidon1ContractAddress))) {
+    throw new Error("POSEIDON_1_CONTRACT_ADDRESS is not set or invalid");
+  }
+  const poseidon2ContractAddress = config.poseidon2ContractAddress;
+  if (!(await isContract(poseidon2ContractAddress))) {
+    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set or invalid");
+  }
+  const poseidon3ContractAddress = config.poseidon3ContractAddress;
+  if (!(await isContract(poseidon3ContractAddress))) {
+    throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set or invalid");
+  }
+  const smtLibContractAddress = config.smtLibContractAddress;
+  if (!(await isContract(smtLibContractAddress))) {
+    throw new Error("SMT_LIB_CONTRACT_ADDRESS is not set or invalid");
+  }
+  const groth16VerifierStateTransitionContractAddress =
+    config.groth16VerifierStateTransitionContractAddress;
+  if (!(await isContract(groth16VerifierStateTransitionContractAddress))) {
+    throw new Error("GROTH16_VERIFIER_STATE_TRANSITION_CONTRACT_ADDRESS is not set or invalid");
+  }
   const deployHelper = await DeployHelper.initialize(null, true);
 
-  const {
-    state,
-    groth16verifier,
-    stateLib,
-    smtLib,
-    stateCrossChainLib,
-    poseidon1,
-    poseidon2,
-    poseidon3,
-    crossChainProofValidator,
-  } = await deployHelper.deployState([], "Groth16VerifierStateTransition", deployStrategy);
+  const { state, stateLib, stateCrossChainLib, crossChainProofValidator } =
+    await deployHelper.deployState(
+      [],
+      deployStrategy,
+      smtLibContractAddress,
+      poseidon1ContractAddress,
+      groth16VerifierStateTransitionContractAddress,
+    );
 
-  const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
+  const chainId = parseInt(await hre.network.provider.send("eth_chainId"), 16);
   const networkName = hre.network.name;
   const pathOutputJson = path.join(
     __dirname,
@@ -33,14 +51,9 @@ async function main() {
   const outputJson = {
     proxyAdminOwnerAddress: await signer.getAddress(),
     state: await state.getAddress(),
-    verifier: await groth16verifier.getAddress(),
     stateLib: await stateLib.getAddress(),
-    smtLib: await smtLib.getAddress(),
     stateCrossChainLib: await stateCrossChainLib.getAddress(),
     crossChainProofValidator: await crossChainProofValidator.getAddress(),
-    poseidon1: await poseidon1.getAddress(),
-    poseidon2: await poseidon2.getAddress(),
-    poseidon3: await poseidon3.getAddress(),
     network: networkName,
     chainId,
     deployStrategy,

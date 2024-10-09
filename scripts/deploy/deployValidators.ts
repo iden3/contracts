@@ -44,6 +44,7 @@ async function main() {
     validatorsInfo,
     network: networkName,
     chainId,
+    deployStrategy,
   };
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 }

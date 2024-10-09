@@ -97,7 +97,7 @@ describe("Atomic MTP Validator", function () {
     senderAddress = "0x3930000000000000000000000000000000000000"; // because challenge is 12345 in proofs.
     const deployHelper = await DeployHelper.initialize(null, true);
 
-    const { state: stateContract } = await deployHelper.deployState(["0x0100"]);
+    const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0100"]);
     state = stateContract;
 
     const contracts = await deployHelper.deployValidatorContracts(
