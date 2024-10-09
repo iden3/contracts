@@ -10,10 +10,6 @@
       "kind": "transparent"
     },
     {
-      "address": "0x27bDFFCeC5478a648f89764E22fE415486A42Ede",
-      "kind": "transparent"
-    },
-    {
       "address": "0xd179f29d00Cd0E8978eb6eB847CaCF9E2A956336",
       "kind": "transparent"
     },
@@ -23,6 +19,10 @@
     },
     {
       "address": "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x27bDFFCeC5478a648f89764E22fE415486A42Ede",
       "kind": "transparent"
     }
   ],
@@ -36,7 +36,8 @@
         "namespaces": {}
       },
       "allAddresses": [
-        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e"
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xF94b063aA082b2Ab98F93e2033AB975E7E0F50A8"
       ]
     },
     "d47d1c7e2dfc149180b3240cc36325ab2999927994859b0bf648b1ed96d54a51": {
@@ -603,7 +604,12 @@
             }
           ]
         }
-      }
+      },
+      "allAddresses": [
+        "0xF94b063aA082b2Ab98F93e2033AB975E7E0F50A8",
+        "0x56D40411C2721b3C96791Ddf919118fd2af7adb5",
+        "0xeB9fEe616EAA3Bf74EB2bC8fa1D40d19315bbd8d"
+      ]
     },
     "a597e543a706fbdd69aefd39aa4c66b15cb092ac1857fc0f3fcbf699c9355c8f": {
       "address": "0x0116196353793b61F78CF4FB5c075c73405A6E15",
