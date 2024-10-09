@@ -73,20 +73,12 @@ async function main() {
   const defaultIdTypeBefore = await stateContract.getDefaultIdType();
   const stateOwnerAddressBefore = await stateContract.owner();
 
-  const poseidonContracts = [
-    config.poseidon1ContractAddress,
-    config.poseidon2ContractAddress,
-    config.poseidon3ContractAddress,
-  ];
-
-  const { state, g16Verifier, stateLib, stateCrossChainLib, crossChainProofValidator } =
+  const { state, stateLib, stateCrossChainLib, crossChainProofValidator } =
     await stateDeployHelper.upgradeState(
       await stateContract.getAddress(),
       true,
-      true,
-      deployStrategy,
-      poseidonContracts,
       smtLibContractAddress,
+      config.poseidon1ContractAddress,
     );
 
   console.log("Version after: ", await state.VERSION());

@@ -213,11 +213,7 @@ async function onlyTestVerification() {
   await testVerification(universalVerifierContract, config.validatorV3ContractAddress);
 }
 
-async function upgradeState(
-  deployHelper: DeployHelper,
-  signer: any,
-  deployStrategy: "basic" | "create2",
-) {
+async function upgradeState(deployHelper: DeployHelper, signer: any) {
   const poseidon1ContractAddress = config.poseidon1ContractAddress;
   if (!(await isContract(poseidon1ContractAddress))) {
     throw new Error("POSEIDON_1_CONTRACT_ADDRESS is not set or invalid");
@@ -242,19 +238,11 @@ async function upgradeState(
     address: config.stateContractAddress,
   });
 
-  const poseidonContracts = [
-    config.poseidon1ContractAddress,
-    config.poseidon2ContractAddress,
-    config.poseidon3ContractAddress,
-  ];
-
   // **** Upgrade State ****
   await stateMigrationHelper.upgradeContract(stateContract, {
-    redeployGroth16Verifier: false,
     redeployCrossChainProofValidator: true,
-    deployStrategy,
-    poseidonContracts,
     smtLibAddress: smtLibContractAddress,
+    poseidon1Address: config.poseidon1ContractAddress,
   }); // first upgrade we need deploy oracle proof validator
   // ************************
   // If testing with forked zkevm network wait for 1 confirmation, otherwise is waiting forever

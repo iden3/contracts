@@ -218,58 +218,21 @@ export class DeployHelper {
 
   async upgradeState(
     stateAddress: string,
-    redeployGroth16Verifier = true,
     redeployCrossChainProofValidator = true,
-    deployStrategy: "basic" | "create2" = "basic",
-    poseidonContracts: string[] = [],
-    smtLibAddress: string | undefined = undefined,
-    g16VerifierContractName = "Groth16VerifierStateTransition",
+    smtLibAddress: string,
+    poseidon1Address: string,
     stateContractName = CONTRACT_NAMES.STATE,
     crossChainProofValidatorContractName = "CrossChainProofValidator",
   ): Promise<{
     state: Contract;
-    g16Verifier: Contract;
-    crossChainProofValidator: Contract;
-    smtLib: string;
     stateLib: Contract;
     stateCrossChainLib: Contract;
-    poseidon1: string;
-    poseidon2: string;
-    poseidon3: string;
+    crossChainProofValidator: Contract;
   }> {
     this.log("======== State: upgrade started ========");
 
     const proxyAdminOwner = this.signers[0];
     // const stateAdminOwner = this.signers[1];
-
-    if (poseidonContracts.length === 0 || poseidonContracts.length !== 3) {
-      this.log("deploying poseidons...");
-
-      const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons(
-        [1, 2, 3],
-        deployStrategy,
-      );
-      poseidonContracts.push(
-        await poseidon1Elements.getAddress(),
-        await poseidon2Elements.getAddress(),
-        await poseidon3Elements.getAddress(),
-      );
-    }
-
-    const poseidon1ElementsAddress = poseidonContracts[0];
-    const poseidon2ElementsAddress = poseidonContracts[1];
-    const poseidon3ElementsAddress = poseidonContracts[2];
-
-    if (!smtLibAddress) {
-      this.log("deploying SmtLib...");
-      const smtLib = await this.deploySmtLib(
-        poseidon2ElementsAddress,
-        poseidon3ElementsAddress,
-        "SmtLib",
-        deployStrategy,
-      );
-      smtLibAddress = await smtLib.getAddress();
-    }
 
     this.log("deploying StateLib...");
     const stateLib = await this.deployStateLib();
@@ -292,7 +255,7 @@ export class DeployHelper {
       libraries: {
         StateLib: await stateLib.getAddress(),
         SmtLib: smtLibAddress,
-        PoseidonUnit1L: poseidon1ElementsAddress,
+        PoseidonUnit1L: poseidon1Address,
         StateCrossChainLib: await stateCrossChainLib.getAddress(),
       },
     });
@@ -305,24 +268,6 @@ export class DeployHelper {
     this.log(
       `State contract upgraded at address ${await stateContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
     );
-
-    let g16VerifierContract: Contract;
-    if (redeployGroth16Verifier) {
-      this.log("deploying Groth16 verifier...");
-      const g16VerifierFactory = await ethers.getContractFactory(g16VerifierContractName);
-      g16VerifierContract = await g16VerifierFactory.deploy();
-      await g16VerifierContract.waitForDeployment();
-      this.log(
-        `${g16VerifierContractName} contract deployed to address ${await g16VerifierContract.getAddress()} from ${await proxyAdminOwner.getAddress()}`,
-      );
-      const tx = await stateContract.setVerifier(await g16VerifierContract.getAddress());
-      await tx.wait();
-    } else {
-      g16VerifierContract = await ethers.getContractAt(
-        g16VerifierContractName,
-        await stateContract.getVerifier(),
-      );
-    }
 
     this.log("deploying crossChainProofValidator...");
 
@@ -345,14 +290,9 @@ export class DeployHelper {
     this.log("======== State: upgrade completed ========");
     return {
       state: stateContract,
-      g16Verifier: g16VerifierContract,
       crossChainProofValidator: opvContract,
-      smtLib: smtLibAddress,
       stateLib,
       stateCrossChainLib,
-      poseidon1: poseidon1ElementsAddress,
-      poseidon2: poseidon2ElementsAddress,
-      poseidon3: poseidon3ElementsAddress,
     };
   }
 
