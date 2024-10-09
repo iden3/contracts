@@ -137,9 +137,6 @@ const config: HardhatUserConfig = {
     // gasPriceAPI: "https://api.etherscan.io/api?module=proxy&action=eth_gasPrice", // ETH
   },
 
-  // etherscan: {
-  //     apiKey: "etherscan API key"
-  // },
   ignition: {
     strategyConfig: {
       create2: {
@@ -153,6 +150,8 @@ const config: HardhatUserConfig = {
     apiKey: {
       amoy: process.env.POLYGON_API_KEY || "",
       polygon: process.env.POLYGON_API_KEY || "",
+      sepolia: process.env.ETHEREUM_API_KEY || "",
+      ethereum: process.env.ETHEREUM_API_KEY || "",
       linea: process.env.LINEA_API_KEY || "",
       "linea-sepolia": process.env.LINEA_API_KEY || "",
     },

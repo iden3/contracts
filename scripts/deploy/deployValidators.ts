@@ -12,7 +12,11 @@ async function main() {
     throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
   }
 
-  const validators: ("mtpV2" | "sigV2" | "v3")[] = ["mtpV2", "sigV2", "v3"];
+  const validators: ("mtpV2" | "sigV2" | "v3")[] = [
+    "mtpV2",
+    "sigV2",
+    "v3"
+  ];
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
   const [signer] = await hre.ethers.getSigners();
