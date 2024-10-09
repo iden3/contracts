@@ -99,6 +99,9 @@ Then run the deployment scripts:
    POSEIDON_1_CONTRACT_ADDRESS=
    POSEIDON_2_CONTRACT_ADDRESS=
    POSEIDON_3_CONTRACT_ADDRESS=
+   GROTH16_VERIFIER_MTP_CONTRACT_ADDRESS=
+   GROTH16_VERIFIER_SIG_CONTRACT_ADDRESS=
+   GROTH16_VERIFIER_V3_CONTRACT_ADDRESS=
    ```
 3. Deploy State contract
    ```shell
@@ -123,9 +126,6 @@ Then run the deployment scripts:
    ```
    Once validators are deployed replace contract addresses with yours from the validators deployment in your `.env` file
    ```
-   GROTH16_VERIFIER_MTP_CONTRACT_ADDRESS=
-   GROTH16_VERIFIER_SIG_CONTRACT_ADDRESS=
-   GROTH16_VERIFIER_V3_CONTRACT_ADDRESS=
    VALIDATOR_MTP_CONTRACT_ADDRESS=
    VALIDATOR_SIG_CONTRACT_ADDRESS=
    VALIDATOR_V3_CONTRACT_ADDRESS=

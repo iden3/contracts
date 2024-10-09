@@ -527,54 +527,37 @@ export class DeployHelper {
     return g16Verifier;
   }
 
-  async deployValidatorContracts(
-    validatorType: "mtpV2" | "sigV2" | "v3",
-    stateAddress: string,
+  async deployGroth16VerifierWrapper(
+    verifierType: "mtpV2" | "sigV2" | "v3",
     deployStrategy: "basic" | "create2" = "basic",
-  ): Promise<{
-    state: any;
-    groth16VerifierWrapper: any;
-    validator: any;
-  }> {
-    const owner = this.signers[0];
-
-    let g16VerifierContractWrapperName, validatorContractName;
-    switch (validatorType) {
+  ): Promise<Contract> {
+    let g16VerifierContractWrapperName;
+    switch (verifierType) {
       case "mtpV2":
         g16VerifierContractWrapperName = "Groth16VerifierMTPWrapper";
-        validatorContractName = "CredentialAtomicQueryMTPV2Validator";
         break;
       case "sigV2":
         g16VerifierContractWrapperName = "Groth16VerifierSigWrapper";
-        validatorContractName = "CredentialAtomicQuerySigV2Validator";
         break;
       case "v3":
         g16VerifierContractWrapperName = "Groth16VerifierV3Wrapper";
-        validatorContractName = "CredentialAtomicQueryV3Validator";
         break;
     }
 
-    const ValidatorFactory = await ethers.getContractFactory(validatorContractName);
-    const Create2AddressAnchorFactory = await ethers.getContractFactory("Create2AddressAnchor");
-
     let groth16VerifierWrapper;
-    let validator;
     if (deployStrategy === "create2") {
       this.log("deploying with CREATE2 strategy...");
 
-      let g16VerifierWrapperModule, validatorModule;
-      switch (validatorType) {
+      let g16VerifierWrapperModule;
+      switch (verifierType) {
         case "mtpV2":
           g16VerifierWrapperModule = Groth16VerifierMTPWrapperModule;
-          validatorModule = CredentialAtomicQueryMTPV2ValidatorProxyModule;
           break;
         case "sigV2":
           g16VerifierWrapperModule = Groth16VerifierSigWrapperModule;
-          validatorModule = CredentialAtomicQuerySigV2ValidatorProxyModule;
           break;
         case "v3":
           g16VerifierWrapperModule = Groth16VerifierV3WrapperModule;
-          validatorModule = CredentialAtomicQueryV3ValidatorProxyModule;
           break;
       }
 
@@ -585,15 +568,91 @@ export class DeployHelper {
           strategy: deployStrategy,
         })
       ).wrapper;
-      await groth16VerifierWrapper.waitForDeployment();
+    } else {
+      this.log("deploying with BASIC strategy...");
+      groth16VerifierWrapper = await ethers.deployContract(g16VerifierContractWrapperName);
+    }
+    await groth16VerifierWrapper.waitForDeployment();
+    this.log(
+      `${g16VerifierContractWrapperName} Wrapper deployed to: ${await groth16VerifierWrapper.getAddress()}`,
+    );
 
-      console.log(
-        `${g16VerifierContractWrapperName} Wrapper deployed to: ${await groth16VerifierWrapper.getAddress()}`,
-      );
+    return groth16VerifierWrapper;
+  }
 
-      await waitNotToInterfereWithHardhatIgnition(
-        await groth16VerifierWrapper.deploymentTransaction(),
-      );
+  async deployValidatorContractsWithVerifiers(
+    validatorType: "mtpV2" | "sigV2" | "v3",
+    stateAddress: string,
+    deployStrategy: "basic" | "create2" = "basic",
+  ): Promise<{
+    state: any;
+    groth16VerifierWrapper: any;
+    validator: any;
+  }> {
+    const groth16VerifierWrapper = await this.deployGroth16VerifierWrapper(
+      validatorType,
+      deployStrategy,
+    );
+
+    const contracts = await this.deployValidatorContracts(
+      validatorType,
+      stateAddress,
+      await groth16VerifierWrapper.getAddress(),
+    );
+
+    const state = await ethers.getContractAt("State", stateAddress);
+    return {
+      validator: contracts.validator,
+      groth16VerifierWrapper,
+      state,
+    };
+  }
+
+  async deployValidatorContracts(
+    validatorType: "mtpV2" | "sigV2" | "v3",
+    stateAddress: string,
+    groth16VerifierWrapperAddress: string,
+    deployStrategy: "basic" | "create2" = "basic",
+  ): Promise<{
+    state: any;
+    validator: any;
+  }> {
+    const owner = this.signers[0];
+
+    let validatorContractName;
+    switch (validatorType) {
+      case "mtpV2":
+        validatorContractName = "CredentialAtomicQueryMTPV2Validator";
+        break;
+      case "sigV2":
+        validatorContractName = "CredentialAtomicQuerySigV2Validator";
+        break;
+      case "v3":
+        validatorContractName = "CredentialAtomicQueryV3Validator";
+        break;
+    }
+
+    const ValidatorFactory = await ethers.getContractFactory(validatorContractName);
+    const Create2AddressAnchorFactory = await ethers.getContractFactory("Create2AddressAnchor");
+
+    let validator;
+    if (deployStrategy === "create2") {
+      this.log("deploying with CREATE2 strategy...");
+
+      let validatorModule;
+      switch (validatorType) {
+        case "mtpV2":
+          validatorModule = CredentialAtomicQueryMTPV2ValidatorProxyModule;
+          break;
+        case "sigV2":
+          validatorModule = CredentialAtomicQuerySigV2ValidatorProxyModule;
+          break;
+        case "v3":
+          validatorModule = CredentialAtomicQueryV3ValidatorProxyModule;
+          break;
+      }
+
+      await waitNotToInterfereWithHardhatIgnition(undefined);
 
       // Deploying Validator contract to predictable address but with dummy implementation
       validator = (
@@ -612,20 +671,14 @@ export class DeployHelper {
         redeployImplementation: "always",
         call: {
           fn: "initialize",
-          args: [await groth16VerifierWrapper.getAddress(), stateAddress, await owner.getAddress()],
+          args: [groth16VerifierWrapperAddress, stateAddress, await owner.getAddress()],
         },
       });
     } else {
       this.log("deploying with BASIC strategy...");
-      groth16VerifierWrapper = await ethers.deployContract(g16VerifierContractWrapperName);
-
-      await groth16VerifierWrapper.waitForDeployment();
-      console.log(
-        `${g16VerifierContractWrapperName} Wrapper deployed to: ${await groth16VerifierWrapper.getAddress()}`,
-      );
 
       validator = await upgrades.deployProxy(ValidatorFactory, [
-        await groth16VerifierWrapper.getAddress(),
+        groth16VerifierWrapperAddress,
         stateAddress,
         await owner.getAddress(),
       ]);
@@ -637,7 +690,6 @@ export class DeployHelper {
     const state = await ethers.getContractAt("State", stateAddress);
     return {
       validator,
-      groth16VerifierWrapper,
       state,
     };
   }

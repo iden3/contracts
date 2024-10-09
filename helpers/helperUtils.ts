@@ -18,6 +18,9 @@ export function getConfig() {
     identityTreeStoreContractAddress: process.env.IDENTITY_TREE_STORE_CONTRACT_ADDRESS || "",
     groth16VerifierStateTransitionContractAddress:
       process.env.GROTH16_VERIFIER_STATE_TRANSITION_CONTRACT_ADDRESS || "",
+    groth16VerifierMtpContractAddress: process.env.GROTH16_VERIFIER_MTP_CONTRACT_ADDRESS || "",
+    groth16VerifierSigContractAddress: process.env.GROTH16_VERIFIER_SIG_CONTRACT_ADDRESS || "",
+    groth16VerifierV3ContractAddress: process.env.GROTH16_VERIFIER_V3_CONTRACT_ADDRESS || "",
   };
 }
 

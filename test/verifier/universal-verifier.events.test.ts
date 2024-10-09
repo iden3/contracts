@@ -67,7 +67,7 @@ describe("Universal Verifier events", function () {
       await verifierLib.getAddress(),
     );
 
-    const contracts = await deployHelper.deployValidatorContracts(
+    const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
       "sigV2",
       await state.getAddress(),
     );

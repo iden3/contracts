@@ -4,7 +4,6 @@ import { CONTRACT_NAMES } from "../../helpers/constants";
 
 async function main() {
   const [signer] = await hre.ethers.getSigners();
-  console.log(signer.address);
 
   const config = getConfig();
 

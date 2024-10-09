@@ -100,7 +100,7 @@ describe("Atomic MTP Validator", function () {
     const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0100"]);
     state = stateContract;
 
-    const contracts = await deployHelper.deployValidatorContracts(
+    const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
       "mtpV2",
       await state.getAddress(),
     );

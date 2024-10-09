@@ -26,7 +26,7 @@ describe("Universal Verifier Linked proofs", function () {
       await verifierLib.getAddress(),
     );
 
-    const contracts = await deployHelper.deployValidatorContracts(
+    const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
       "v3",
       await state.getAddress(),
     );
