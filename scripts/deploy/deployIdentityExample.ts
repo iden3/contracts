@@ -1,10 +1,10 @@
 import fs from "fs";
 import path from "path";
-import hre, { ethers, network } from "hardhat";
-import { OnchainIdentityDeployHelper } from "../helpers/OnchainIdentityDeployHelper";
-import { deployPoseidons } from "../helpers/PoseidonDeployHelper";
-import { getConfig } from "../helpers/helperUtils";
-import { DeployHelper } from "../helpers/DeployHelper";
+import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeployHelper";
+import { deployPoseidons } from "../../helpers/PoseidonDeployHelper";
+import { getConfig } from "../../helpers/helperUtils";
+import { DeployHelper } from "../../helpers/DeployHelper";
+import { isContract } from "../../helpers/helperUtils";
 const pathOutputJson = path.join(__dirname, "./deploy_identity_example_output.json");
 
 async function main() {
@@ -13,24 +13,24 @@ async function main() {
   const { defaultIdType } = await stDeployHelper.getDefaultIdType();
 
   const stateContractAddress = config.stateContractAddress;
-  if (!ethers.isAddress(stateContractAddress)) {
-    throw new Error("STATE_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(stateContractAddress))) {
+    throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
   }
   const smtLibContractAddress = config.smtLibContractAddress;
-  if (!ethers.isAddress(smtLibContractAddress)) {
-    throw new Error("SMT_LIB_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(smtLibContractAddress))) {
+    throw new Error("SMT_LIB_CONTRACT_ADDRESS is not set or invalid");
   }
   const poseidon1ContractAddress = config.poseidon1ContractAddress;
-  if (!ethers.isAddress(poseidon1ContractAddress)) {
-    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(poseidon1ContractAddress))) {
+    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set or invalid");
   }
   const poseidon2ContractAddress = config.poseidon2ContractAddress;
-  if (!ethers.isAddress(poseidon2ContractAddress)) {
-    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(poseidon2ContractAddress))) {
+    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set or invalid");
   }
   const poseidon3ContractAddress = config.poseidon3ContractAddress;
-  if (!ethers.isAddress(poseidon3ContractAddress)) {
-    throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(poseidon3ContractAddress))) {
+    throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set or invalid");
   }
 
   const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();

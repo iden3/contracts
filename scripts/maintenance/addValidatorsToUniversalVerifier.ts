@@ -1,6 +1,6 @@
 import hre, { ethers } from "hardhat";
-import { getConfig } from "../helpers/helperUtils";
-import { CONTRACT_NAMES } from "../helpers/constants";
+import { getConfig, isContract } from "../../helpers/helperUtils";
+import { CONTRACT_NAMES } from "../../helpers/constants";
 
 async function main() {
   const [signer] = await hre.ethers.getSigners();
@@ -8,17 +8,17 @@ async function main() {
 
   const config = getConfig();
 
-  if (!ethers.isAddress(config.universalVerifierContractAddress)) {
-    throw new Error("UNIVERSAL_VERIFIER_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(config.universalVerifierContractAddress))) {
+    throw new Error("UNIVERSAL_VERIFIER_CONTRACT_ADDRESS is not set or invalid");
   }
-  if (!ethers.isAddress(config.validatorMTPContractAddress)) {
-    throw new Error("VALIDATOR_MTP_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(config.validatorMTPContractAddress))) {
+    throw new Error("VALIDATOR_MTP_CONTRACT_ADDRESS is not set or invalid");
   }
-  if (!ethers.isAddress(config.validatorSigContractAddress)) {
-    throw new Error("VALIDATOR_SIG_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(config.validatorSigContractAddress))) {
+    throw new Error("VALIDATOR_SIG_CONTRACT_ADDRESS is not set or invalid");
   }
-  if (!ethers.isAddress(config.validatorV3ContractAddress)) {
-    throw new Error("VALIDATOR_V3_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(config.validatorV3ContractAddress))) {
+    throw new Error("VALIDATOR_V3_CONTRACT_ADDRESS is not set or invalid");
   }
 
   const universalVerifier = await ethers.getContractAt(

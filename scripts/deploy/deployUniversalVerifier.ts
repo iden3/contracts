@@ -1,14 +1,15 @@
 import fs from "fs";
 import path from "path";
-import { DeployHelper } from "../helpers/DeployHelper";
+import { DeployHelper } from "../../helpers/DeployHelper";
 import hre, { ethers, network } from "hardhat";
-import { getConfig, waitNotToInterfereWithHardhatIgnition } from "../helpers/helperUtils";
+import { getConfig, waitNotToInterfereWithHardhatIgnition } from "../../helpers/helperUtils";
+import { isContract } from "../../helpers/helperUtils";
 
 async function main() {
   const config = getConfig();
   const stateAddress = config.stateContractAddress;
-  if (!ethers.isAddress(stateAddress)) {
-    throw new Error("STATE_CONTRACT_ADDRESS is not set");
+  if (!(await isContract(stateAddress))) {
+    throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
   }
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
@@ -31,7 +32,7 @@ async function main() {
   const networkName = hre.network.name;
   const pathOutputJson = path.join(
     __dirname,
-    `./deploy_universal_verifier_output_${chainId}_${networkName}.json`,
+    `../deployments_output/deploy_universal_verifier_output_${chainId}_${networkName}.json`,
   );
   const outputJson = {
     proxyAdminOwnerAddress: await signer.getAddress(),

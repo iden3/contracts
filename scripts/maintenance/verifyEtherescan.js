@@ -3,7 +3,9 @@ const hre = require("hardhat");
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-const openzeppelinUpgrade = require(`../.openzeppelin/polygon-${process.env.HARDHAT_NETWORK}.json`);
+const openzeppelinUpgrade = require(
+  `../../.openzeppelin/polygon-${process.env.HARDHAT_NETWORK}.json`,
+);
 
 async function main() {
   // verify verifier
@@ -22,9 +24,9 @@ async function main() {
   for (const property in openzeppelinUpgrade.impls) {
     const address = openzeppelinUpgrade.impls[property].address;
     try {
-      await hre.run("verify:verify",{address});
+      await hre.run("verify:verify", { address });
     } catch (error) {
-      console.log(error.message)
+      console.log(error.message);
       //expect(error.message.toLowerCase().includes("already verified")).to.be.equal(true);
     }
   }
@@ -36,4 +38,3 @@ main()
     console.error(error);
     process.exit(1);
   });
-

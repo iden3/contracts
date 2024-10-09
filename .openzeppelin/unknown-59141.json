@@ -7999,6 +7999,16 @@
           ]
         }
       }
+    },
+    "43cfeb496e30b51daa2016c675185b46bc19cc02caa85fe9b34dcbaeff1faa19": {
+      "address": "0x5A5b72931e0EF832C633102B78e77E532Fc1F0d0",
+      "txHash": "0x060deb2682a7326dccb530289576f628d4b5e738f9deba07148134ac2a74f4a7",
+      "layout": {
+        "solcVersion": "0.8.27",
+        "storage": [],
+        "types": {},
+        "namespaces": {}
+      }
     }
   }
 }

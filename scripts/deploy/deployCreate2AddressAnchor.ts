@@ -1,6 +1,6 @@
 import { ethers, ignition } from "hardhat";
-import { Create2AddressAnchorModule } from "../ignition/modules/crate2AddressAnchor";
-import { create2AddressesInfo } from "../helpers/constants";
+import { Create2AddressAnchorModule } from "../../ignition/modules/crate2AddressAnchor";
+import { create2AddressesInfo } from "../../helpers/constants";
 
 async function main() {
   const deployStrategy: "basic" | "create2" = "create2";
