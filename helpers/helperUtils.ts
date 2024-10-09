@@ -1,6 +1,7 @@
-import { ContractTransactionResponse } from "ethers";
+import { ContractTransactionResponse, JsonRpcProvider } from "ethers";
 import hre, { network } from "hardhat";
 import fs from "fs";
+import { NETWORK_NAMES } from "./constants";
 
 export function getConfig() {
   return {
@@ -55,13 +56,42 @@ export function removeLocalhostNetworkIgnitionFiles(network: string, chainId: nu
   }
 }
 
-export async function isContract(value: any): Promise<boolean> {
+export async function isContract(value: any, provider?: JsonRpcProvider): Promise<boolean> {
   if (!hre.ethers.isAddress(value)) {
     return false;
   }
-  const result = await hre.ethers.provider.getCode(value);
+  let result;
+  if (provider) {
+    result = await provider.getCode(value);
+  } else {
+    result = await hre.ethers.provider.getCode(value);
+  }
   if (result === "0x") {
     return false;
   }
   return true;
+}
+
+export function getProviders() {
+  return [
+    { network: NETWORK_NAMES.PRIVADO_TEST, rpcUrl: process.env.PRIVADO_TEST_RPC_URL as string },
+    { network: NETWORK_NAMES.PRIVADO_MAIN, rpcUrl: process.env.PRIVADO_MAIN_RPC_URL as string },
+    { network: NETWORK_NAMES.POLYGON_AMOY, rpcUrl: process.env.POLYGON_AMOY_RPC_URL as string },
+    {
+      network: NETWORK_NAMES.POLYGON_MAINNET,
+      rpcUrl: process.env.POLYGON_MAINNET_RPC_URL as string,
+    },
+    {
+      network: NETWORK_NAMES.ETHEREUM_SEPOLIA,
+      rpcUrl: process.env.ETHEREUM_SEPOLIA_RPC_URL as string,
+    },
+    {
+      network: NETWORK_NAMES.ETHEREUM_MAINNET,
+      rpcUrl: process.env.ETHEREUM_MAINNET_RPC_URL as string,
+    },
+    { network: NETWORK_NAMES.ZKEVM_CARDONA, rpcUrl: process.env.ZKEVM_CARDONA_RPC_URL as string },
+    { network: NETWORK_NAMES.ZKEVM_MAINNET, rpcUrl: process.env.ZKEVM_MAINNET_RPC_URL as string },
+    { network: NETWORK_NAMES.LINEA_SEPOLIA, rpcUrl: process.env.LINEA_SEPOLIA_RPC_URL as string },
+    { network: NETWORK_NAMES.LINEA_MAINNET, rpcUrl: process.env.LINEA_MAINNET_RPC_URL as string },
+  ];
 }
