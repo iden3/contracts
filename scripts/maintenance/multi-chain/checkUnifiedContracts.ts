@@ -1,4 +1,4 @@
-import { getProviders, isContract } from "../../../helpers/helperUtils";
+import { getProviders, isContract, Logger } from "../../../helpers/helperUtils";
 import { CONTRACT_NAMES, UNIFIED_CONTRACT_ADDRESSES } from "../../../helpers/constants";
 import { ethers } from "hardhat";
 
@@ -22,11 +22,11 @@ async function main() {
       }
     }
     if (contractsNotDeployed.length > 0) {
-      console.log(
-        `\x1b[31m  [𐄂] \x1b[0m${provider.network}: ${contractsNotDeployed.length} contracts are not deployed: ${contractsNotDeployed.map((property) => CONTRACT_NAMES[property]).join(", ")}`,
+      Logger.error(
+        `${provider.network}: ${contractsNotDeployed.length} contracts are not deployed: ${contractsNotDeployed.map((property) => CONTRACT_NAMES[property]).join(", ")}`,
       );
     } else {
-      console.log(`\x1b[32m  [✓] \x1b[0m${provider.network}: All contracts are deployed`);
+      Logger.success(`${provider.network}: All contracts are deployed`);
     }
   }
 }

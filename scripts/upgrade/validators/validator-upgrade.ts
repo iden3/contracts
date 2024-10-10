@@ -1,7 +1,7 @@
 import { DeployHelper } from "../../../helpers/DeployHelper";
 import hre, { ethers } from "hardhat";
 import { getConfig, isContract, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
-import { CONTRACT_NAMES, VALIDATOR_TYPES } from "../../../helpers/constants";
+import { CONTRACT_NAMES, UNIFIED_CONTRACT_ADDRESSES, VALIDATOR_TYPES } from "../../../helpers/constants";
 import fs from "fs";
 import path from "path";
 
@@ -28,15 +28,6 @@ async function main() {
   if (!ethers.isAddress(config.ledgerAccount)) {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
-  if (!(await isContract(config.validatorMTPContractAddress))) {
-    throw new Error("VALIDATOR_MTP_CONTRACT_ADDRESS is not set or invalid");
-  }
-  if (!(await isContract(config.validatorSigContractAddress))) {
-    throw new Error("VALIDATOR_SIG_CONTRACT_ADDRESS is not set or invalid");
-  }
-  if (!(await isContract(config.validatorV3ContractAddress))) {
-    throw new Error("VALIDATOR_V3_CONTRACT_ADDRESS is not set or invalid");
-  }
 
   const { proxyAdminOwnerSigner } = await getSigners(impersonate);
   console.log("Proxy Admin Owner Address: ", await proxyAdminOwnerSigner.getAddress());
@@ -49,17 +40,17 @@ async function main() {
   // You can select the list of validators you want to upgrade here
   const validators = [
     {
-      validatorContractAddress: config.validatorMTPContractAddress,
+      validatorContractAddress: UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_MTP,
       validatorContractName: CONTRACT_NAMES.VALIDATOR_MTP,
       validatorType: VALIDATOR_TYPES.MTP_V2,
     },
     {
-      validatorContractAddress: config.validatorSigContractAddress,
+      validatorContractAddress: UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_SIG,
       validatorContractName: CONTRACT_NAMES.VALIDATOR_SIG,
       validatorType: VALIDATOR_TYPES.SIG_V2,
     },
     {
-      validatorContractAddress: config.validatorV3ContractAddress,
+      validatorContractAddress: UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_V3,
       validatorContractName: CONTRACT_NAMES.VALIDATOR_V3,
       validatorType: VALIDATOR_TYPES.V3,
     },

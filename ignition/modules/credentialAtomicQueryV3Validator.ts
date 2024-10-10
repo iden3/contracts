@@ -1,5 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { create2AddressesInfo } from "../../helpers/constants";
+import { CONTRACT_NAMES, create2AddressesInfo } from "../../helpers/constants";
 
 export const CredentialAtomicQueryV3ValidatorProxyModule = buildModule(
   "CredentialAtomicQueryV3ValidatorProxyModule",
@@ -15,7 +15,7 @@ export const CredentialAtomicQueryV3ValidatorProxyModule = buildModule(
     const proxy = m.contract("TransparentUpgradeableProxy", [
       create2AddressesInfo.anchorAddress,
       proxyAdminOwner,
-      create2AddressesInfo.contractsCalldataMap.get("CredentialAtomicQueryV3Validator") as string,
+      create2AddressesInfo.contractsCalldataMap.get(CONTRACT_NAMES.VALIDATOR_V3) as string,
     ]);
 
     const proxyAdminAddress = m.readEventArgument(proxy, "AdminChanged", "newAdmin");

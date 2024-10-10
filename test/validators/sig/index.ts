@@ -81,12 +81,12 @@ const testCases: any[] = [
     proofJson: require("./data/valid_sig_user_genesis.json"),
     setProofExpiration: tenYears,
     allowedIssuers: [123n],
-    errorMessage: 'Issuer is not on the Allowed Issuers list'
+    errorMessage: "Issuer is not on the Allowed Issuers list",
   },
 ];
 
 function delay(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 describe("Atomic Sig Validator", function () {
@@ -94,12 +94,12 @@ describe("Atomic Sig Validator", function () {
   let senderAddress: string;
 
   beforeEach(async () => {
-    senderAddress = '0x3930000000000000000000000000000000000000'; // because challenge is 12345 in proofs.
+    senderAddress = "0x3930000000000000000000000000000000000000"; // because challenge is 12345 in proofs.
     const deployHelper = await DeployHelper.initialize(null, true);
 
-    const { state: stateContract } = await deployHelper.deployState(["0x0100"]);
+    const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0100"]);
     state = stateContract;
-    const contracts = await deployHelper.deployValidatorContracts(
+    const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
       "sigV2",
       await state.getAddress(),
     );
@@ -111,7 +111,10 @@ describe("Atomic Sig Validator", function () {
       this.timeout(50000);
       for (let i = 0; i < test.stateTransitions.length; i++) {
         if (test.stateTransitionDelayMs) {
-          await Promise.all([publishState(state, test.stateTransitions[i]), delay(test.stateTransitionDelayMs)]);
+          await Promise.all([
+            publishState(state, test.stateTransitions[i]),
+            delay(test.stateTransitionDelayMs),
+          ]);
         } else {
           await publishState(state, test.stateTransitions[i]);
         }
@@ -120,16 +123,13 @@ describe("Atomic Sig Validator", function () {
       const query = {
         schema: BigInt("180410020913331409885634153623124536270"),
         claimPathKey: BigInt(
-          "8566939875427719562376598811066985304309117528846759529734201066483458512800"
+          "8566939875427719562376598811066985304309117528846759529734201066483458512800",
         ),
         operator: 1n,
         slotIndex: 0n,
-        value: [
-          1420070400000000000n,
-          ...new Array(63).fill("0").map((x) => BigInt(x)),
-        ],
+        value: [1420070400000000000n, ...new Array(63).fill("0").map((x) => BigInt(x))],
         queryHash: BigInt(
-          "1496222740463292783938163206931059379817846775593932664024082849882751356658"
+          "1496222740463292783938163206931059379817846775593932664024082849882751356658",
         ),
         circuitIds: ["credentialAtomicQuerySigV2OnChain"],
         skipClaimRevocationCheck: false,
@@ -147,19 +147,42 @@ describe("Atomic Sig Validator", function () {
         await sig.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
       }
       if (test.errorMessage) {
-        await expect(sig.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers), senderAddress)).to.be.rejectedWith(
-          test.errorMessage
-        );
+        await expect(
+          sig.verify(
+            inputs,
+            pi_a,
+            pi_b,
+            pi_c,
+            packValidatorParams(query, test.allowedIssuers),
+            senderAddress,
+          ),
+        ).to.be.rejectedWith(test.errorMessage);
       } else if (test.errorMessage === "") {
-        await expect(sig.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers), senderAddress)).to.be.reverted;
+        await expect(
+          sig.verify(
+            inputs,
+            pi_a,
+            pi_b,
+            pi_c,
+            packValidatorParams(query, test.allowedIssuers),
+            senderAddress,
+          ),
+        ).to.be.reverted;
       } else {
-        await sig.verify(inputs, pi_a, pi_b, pi_c, packValidatorParams(query, test.allowedIssuers), senderAddress);
+        await sig.verify(
+          inputs,
+          pi_a,
+          pi_b,
+          pi_c,
+          packValidatorParams(query, test.allowedIssuers),
+          senderAddress,
+        );
       }
     });
   }
 
-  it ('check inputIndexOf', async () => {
-    const challengeIndx = await sig.inputIndexOf('challenge');
+  it("check inputIndexOf", async () => {
+    const challengeIndx = await sig.inputIndexOf("challenge");
     expect(challengeIndx).to.be.equal(5);
   });
 });

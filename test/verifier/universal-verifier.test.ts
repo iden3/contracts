@@ -32,7 +32,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     signerAddress = await signer.getAddress();
 
     deployHelper = await DeployHelper.initialize(null, true);
-    ({ state } = await deployHelper.deployState(["0x0112"]));
+    ({ state } = await deployHelper.deployStateWithLibraries(["0x0112"]));
     const verifierLib = await deployHelper.deployVerifierLib();
 
     verifier = await deployHelper.deployUniversalVerifier(
@@ -257,8 +257,8 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const someAddress = signer2;
     const requestId = 1;
     const otherRequestId = 2;
-    const { state } = await deployHelper.deployState();
-    const { validator: mtp } = await deployHelper.deployValidatorContracts(
+    const { state } = await deployHelper.deployStateWithLibraries();
+    const { validator: mtp } = await deployHelper.deployValidatorContractsWithVerifiers(
       "mtpV2",
       await state.getAddress(),
     );

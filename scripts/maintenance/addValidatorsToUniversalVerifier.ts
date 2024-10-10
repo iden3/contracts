@@ -1,44 +1,28 @@
 import hre, { ethers } from "hardhat";
-import { getConfig, isContract } from "../../helpers/helperUtils";
-import { CONTRACT_NAMES } from "../../helpers/constants";
+import { Logger } from "../../helpers/helperUtils";
+import { CONTRACT_NAMES, UNIFIED_CONTRACT_ADDRESSES } from "../../helpers/constants";
 
 async function main() {
   const [signer] = await hre.ethers.getSigners();
-  console.log(signer.address);
-
-  const config = getConfig();
-
-  if (!(await isContract(config.universalVerifierContractAddress))) {
-    throw new Error("UNIVERSAL_VERIFIER_CONTRACT_ADDRESS is not set or invalid");
-  }
-  if (!(await isContract(config.validatorMTPContractAddress))) {
-    throw new Error("VALIDATOR_MTP_CONTRACT_ADDRESS is not set or invalid");
-  }
-  if (!(await isContract(config.validatorSigContractAddress))) {
-    throw new Error("VALIDATOR_SIG_CONTRACT_ADDRESS is not set or invalid");
-  }
-  if (!(await isContract(config.validatorV3ContractAddress))) {
-    throw new Error("VALIDATOR_V3_CONTRACT_ADDRESS is not set or invalid");
-  }
 
   const universalVerifier = await ethers.getContractAt(
     CONTRACT_NAMES.UNIVERSAL_VERIFIER,
-    config.universalVerifierContractAddress,
+    UNIFIED_CONTRACT_ADDRESSES.UNIVERSAL_VERIFIER,
   );
 
   console.log("Adding validators to Universal Verifier...");
 
   const validators = [
     {
-      validatorContractAddress: config.validatorMTPContractAddress,
+      validatorContractAddress: UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_MTP,
       validatorContractName: CONTRACT_NAMES.VALIDATOR_MTP,
     },
     {
-      validatorContractAddress: config.validatorSigContractAddress,
+      validatorContractAddress: UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_SIG,
       validatorContractName: CONTRACT_NAMES.VALIDATOR_SIG,
     },
     {
-      validatorContractAddress: config.validatorV3ContractAddress,
+      validatorContractAddress: UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_V3,
       validatorContractName: CONTRACT_NAMES.VALIDATOR_V3,
     },
   ];
@@ -55,6 +39,13 @@ async function main() {
         .connect(signer)
         .addValidatorToWhitelist(v.validatorContractAddress);
       await addToWhiteListTx.wait();
+      Logger.success(
+        `Validator ${v.validatorContractName} (${v.validatorContractAddress}) whitelisted`,
+      );
+    } else {
+      Logger.warning(
+        `Validator ${v.validatorContractName} (${v.validatorContractAddress}) is already whitelisted`,
+      );
     }
   }
 }
