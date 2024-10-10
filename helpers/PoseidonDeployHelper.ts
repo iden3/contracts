@@ -9,6 +9,7 @@ import {
   Poseidon3Module,
   SpongePoseidonModule,
 } from "../ignition/modules/libraries";
+import {getConfig} from "./helperUtils";
 
 export async function deploySpongePoseidon(
   poseidon6ContractAddress: string,
@@ -62,12 +63,28 @@ export async function deployPoseidons(
         break;
     }
 
-    const poseidonDeploy = await ignition.deploy(poseidonModule, {
-      strategy: deployStrategy,
-    });
-    const poseidonN = poseidonDeploy.poseidon;
-    await poseidonN.waitForDeployment();
-    console.log(`Poseidon${params}Element deployed to: ${await poseidonN.getAddress()}`);
+    let poseidonN;
+    try {
+      const poseidonDeploy = await ignition.deploy(poseidonModule, {
+        strategy: deployStrategy,
+      });
+      poseidonN = poseidonDeploy.poseidon;
+      await poseidonN.waitForDeployment();
+      console.log(`Poseidon${params}Element deployed to: ${await poseidonN.getAddress()}`);
+    } catch (e: any) {
+      if (deployStrategy === "create2" && (
+          e.message.includes("Reverted with custom error FailedContractCreation") ||
+          e.message.includes("neither timeouts or failures"))
+      ) {
+        const config = getConfig();
+
+        console.log("Trying to get the deployed contract address from the config...");
+        console.log(`Poseidon${params}Element should be deployed to: ${config[`poseidon${params}ContractAddress`]}`);
+
+        return await ethers.getContractAt(poseidonModule.results.poseidon.artifact.abi, config[`poseidon${params}ContractAddress`]);
+      }
+      throw e;
+    }
     return poseidonN;
   };
 

@@ -17,7 +17,7 @@ import {
   UniversalVerifierProxyModule,
 } from "../ignition";
 import { chainIdInfoMap, CONTRACT_NAMES } from "./constants";
-import { waitNotToInterfereWithHardhatIgnition } from "./helperUtils";
+import {getConfig, waitNotToInterfereWithHardhatIgnition} from "./helperUtils";
 
 const SMT_MAX_DEPTH = 64;
 
@@ -69,23 +69,9 @@ export class DeployHelper {
     this.log("deploying Groth16VerifierStateTransition...");
 
     let g16Verifier;
-    if (
-      ["Groth16VerifierStateTransition", "Groth16VerifierStub"].includes(g16VerifierContractName)
-    ) {
-      g16Verifier = await ethers.deployContract(g16VerifierContractName);
-    } else {
-      throw new Error("invalid verifierContractName");
-    }
-    await g16Verifier.waitForDeployment();
-    this.log(
-      `${g16VerifierContractName} contract deployed to address ${await g16Verifier.getAddress()} from ${await owner.getAddress()}`,
-    );
 
     if (poseidonContracts.length === 0 || poseidonContracts.length !== 3) {
       this.log("deploying poseidons...");
-
-      const tx = await g16Verifier.deploymentTransaction();
-      await waitNotToInterfereWithHardhatIgnition(tx);
 
       const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons(
         [1, 2, 3],
@@ -127,6 +113,21 @@ export class DeployHelper {
     });
 
     const Create2AddressAnchorFactory = await ethers.getContractFactory("Create2AddressAnchor");
+
+    if (
+        ["Groth16VerifierStateTransition", "Groth16VerifierStub"].includes(g16VerifierContractName)
+    ) {
+      g16Verifier = await ethers.deployContract(g16VerifierContractName);
+    } else {
+      throw new Error("invalid verifierContractName");
+    }
+    await g16Verifier.waitForDeployment();
+    this.log(
+        `${g16VerifierContractName} contract deployed to address ${await g16Verifier.getAddress()} from ${await owner.getAddress()}`,
+    );
+
+    const tx1 = await g16Verifier.deploymentTransaction();
+    await waitNotToInterfereWithHardhatIgnition(tx1);
 
     let state;
     if (deployStrategy === "create2") {
@@ -355,18 +356,35 @@ export class DeployHelper {
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<Contract> {
     this.log(`deploying with ${deployStrategy === "create2" ? "CREATE2" : "BASIC"} strategy...`);
-    const smtLibDeploy = await ignition.deploy(SmtLibModule, {
-      parameters: {
-        SmtLibModule: {
-          poseidon2ElementAddress: poseidon2Address,
-          poseidon3ElementAddress: poseidon3Address,
+    let smtLib;
+    try {
+      const smtLibDeploy = await ignition.deploy(SmtLibModule, {
+        parameters: {
+          SmtLibModule: {
+            poseidon2ElementAddress: poseidon2Address,
+            poseidon3ElementAddress: poseidon3Address,
+          },
         },
-      },
-      strategy: deployStrategy,
-    });
+        strategy: deployStrategy,
+      });
 
-    const smtLib = smtLibDeploy.smtLib;
-    await smtLib.waitForDeployment();
+      smtLib = smtLibDeploy.smtLib;
+      await smtLib.waitForDeployment();
+    } catch (e: any) {
+      if (deployStrategy === "create2" && (
+          e.message.includes("Reverted with custom error FailedContractCreation") ||
+          e.message.includes("neither timeouts or failures"))
+      ) {
+        const config = getConfig();
+
+        console.log("Trying to get the deployed contract address from the config...");
+        console.log(`SmtLib should be deployed to: ${config.smtLibContractAddress}`);
+
+        return await ethers.getContractAt(contractName, config.smtLibContractAddress);
+      }
+      throw e;
+
+    }
     this.enableLogging && this.log(`${contractName} deployed to:  ${await smtLib.getAddress()}`);
 
     return smtLib;

@@ -41,8 +41,8 @@ export async function waitNotToInterfereWithHardhatIgnition(
     const blockNumberDeployed = await hre.ethers.provider.getBlockNumber();
     let blockNumber = blockNumberDeployed;
     console.log("Waiting some blocks to expect at least 5 confirmations for Hardhat Ignition...");
-    while (blockNumber < blockNumberDeployed + 5) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    while (blockNumber < blockNumberDeployed + 10) {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
       blockNumber = await hre.ethers.provider.getBlockNumber();
     }
   }
