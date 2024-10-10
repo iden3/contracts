@@ -4,6 +4,7 @@ import { DeployHelper } from "../../helpers/DeployHelper";
 import hre, { network } from "hardhat";
 import { getConfig } from "../../helpers/helperUtils";
 import { isContract } from "../../helpers/helperUtils";
+import { UNIFIED_CONTRACT_ADDRESSES } from "../../helpers/constants";
 
 async function main() {
   const config = getConfig();
@@ -11,29 +12,20 @@ async function main() {
   if (!(await isContract(stateAddress))) {
     throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
   }
-  if (!(await isContract(config.groth16VerifierMtpContractAddress))) {
-    throw new Error("GROTH16_VERIFIER_MTP_CONTRACT_ADDRESS is not set or invalid");
-  }
-  if (!(await isContract(config.groth16VerifierSigContractAddress))) {
-    throw new Error("GROTH16_VERIFIER_SIG_CONTRACT_ADDRESS is not set or invalid");
-  }
-  if (!(await isContract(config.groth16VerifierV3ContractAddress))) {
-    throw new Error("GROTH16_VERIFIER_V3_CONTRACT_ADDRESS is not set or invalid");
-  }
 
   const validators: ("mtpV2" | "sigV2" | "v3")[] = ["mtpV2", "sigV2", "v3"];
   const groth16VerifierWrappers = [
     {
       validator: "mtpV2",
-      verifierWrapper: config.groth16VerifierMtpContractAddress as string,
+      verifierWrapper: UNIFIED_CONTRACT_ADDRESSES.GROTH16_VERIFIER_MTP,
     },
     {
       validator: "sigV2",
-      verifierWrapper: config.groth16VerifierSigContractAddress as string,
+      verifierWrapper: UNIFIED_CONTRACT_ADDRESSES.GROTH16_VERIFIER_SIG,
     },
     {
       validator: "v3",
-      verifierWrapper: config.groth16VerifierV3ContractAddress as string,
+      verifierWrapper: UNIFIED_CONTRACT_ADDRESSES.GROTH16_VERIFIER_V3,
     },
   ];
   const deployStrategy: "basic" | "create2" =

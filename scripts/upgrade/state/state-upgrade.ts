@@ -5,6 +5,7 @@ import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/Sta
 import { getConfig, isContract, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
 import fs from "fs";
 import path from "path";
+import { UNIFIED_CONTRACT_ADDRESSES } from "../../../helpers/constants";
 
 const config = getConfig();
 
@@ -38,22 +39,6 @@ async function main() {
   if (!(await isContract(config.stateContractAddress))) {
     throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
   }
-  const poseidon1ContractAddress = config.poseidon1ContractAddress;
-  if (!(await isContract(poseidon1ContractAddress))) {
-    throw new Error("POSEIDON_1_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const poseidon2ContractAddress = config.poseidon2ContractAddress;
-  if (!(await isContract(poseidon2ContractAddress))) {
-    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const poseidon3ContractAddress = config.poseidon3ContractAddress;
-  if (!(await isContract(poseidon3ContractAddress))) {
-    throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const smtLibContractAddress = config.smtLibContractAddress;
-  if (!(await isContract(smtLibContractAddress))) {
-    throw new Error("SMT_LIB_CONTRACT_ADDRESS is not set or invalid");
-  }
   const { proxyAdminOwnerSigner, stateOwnerSigner } = await getSigners(impersonate);
 
   const stateDeployHelper = await DeployHelper.initialize(
@@ -77,8 +62,8 @@ async function main() {
     await stateDeployHelper.upgradeState(
       await stateContract.getAddress(),
       true,
-      smtLibContractAddress,
-      config.poseidon1ContractAddress,
+      UNIFIED_CONTRACT_ADDRESSES.SMT_LIB,
+      UNIFIED_CONTRACT_ADDRESSES.POSEIDON_1,
     );
 
   console.log("Version after: ", await state.VERSION());
@@ -129,14 +114,14 @@ async function main() {
   const outputJson = {
     proxyAdminOwnerAddress: await proxyAdminOwnerSigner.getAddress(),
     state: await state.getAddress(),
-    verifier: await g16Verifier.getAddress(),
+    verifier: UNIFIED_CONTRACT_ADDRESSES.GROTH16_VERIFIER_STATE_TRANSITION,
     stateLib: await stateLib.getAddress(),
-    smtLib: smtLibContractAddress,
+    smtLib: UNIFIED_CONTRACT_ADDRESSES.SMT_LIB,
     stateCrossChainLib: await stateCrossChainLib.getAddress(),
     crossChainProofValidator: await crossChainProofValidator.getAddress(),
-    poseidon1: poseidon1ContractAddress,
-    poseidon2: poseidon2ContractAddress,
-    poseidon3: poseidon3ContractAddress,
+    poseidon1: UNIFIED_CONTRACT_ADDRESSES.POSEIDON_1,
+    poseidon2: UNIFIED_CONTRACT_ADDRESSES.POSEIDON_2,
+    poseidon3: UNIFIED_CONTRACT_ADDRESSES.POSEIDON_3,
     network: network,
     chainId,
     deployStrategy,

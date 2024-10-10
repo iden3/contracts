@@ -9,20 +9,6 @@ export function getConfig() {
     deployStrategy: process.env.DEPLOY_STRATEGY || "",
     ledgerAccount: process.env.LEDGER_ACCOUNT || "",
     stateContractAddress: process.env.STATE_CONTRACT_ADDRESS || "",
-    universalVerifierContractAddress: process.env.UNIVERSAL_VERIFIER_CONTRACT_ADDRESS || "",
-    validatorSigContractAddress: process.env.VALIDATOR_SIG_CONTRACT_ADDRESS || "",
-    validatorMTPContractAddress: process.env.VALIDATOR_MTP_CONTRACT_ADDRESS || "",
-    validatorV3ContractAddress: process.env.VALIDATOR_V3_CONTRACT_ADDRESS || "",
-    poseidon1ContractAddress: process.env.POSEIDON_1_CONTRACT_ADDRESS || "",
-    poseidon2ContractAddress: process.env.POSEIDON_2_CONTRACT_ADDRESS || "",
-    poseidon3ContractAddress: process.env.POSEIDON_3_CONTRACT_ADDRESS || "",
-    smtLibContractAddress: process.env.SMT_LIB_CONTRACT_ADDRESS || "",
-    identityTreeStoreContractAddress: process.env.IDENTITY_TREE_STORE_CONTRACT_ADDRESS || "",
-    groth16VerifierStateTransitionContractAddress:
-      process.env.GROTH16_VERIFIER_STATE_TRANSITION_CONTRACT_ADDRESS || "",
-    groth16VerifierMtpContractAddress: process.env.GROTH16_VERIFIER_MTP_CONTRACT_ADDRESS || "",
-    groth16VerifierSigContractAddress: process.env.GROTH16_VERIFIER_SIG_CONTRACT_ADDRESS || "",
-    groth16VerifierV3ContractAddress: process.env.GROTH16_VERIFIER_V3_CONTRACT_ADDRESS || "",
   };
 }
 

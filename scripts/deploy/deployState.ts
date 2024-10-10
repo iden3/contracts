@@ -2,7 +2,8 @@ import fs from "fs";
 import path from "path";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import hre from "hardhat";
-import { getConfig, isContract } from "../../helpers/helperUtils";
+import { getConfig } from "../../helpers/helperUtils";
+import { UNIFIED_CONTRACT_ADDRESSES } from "../../helpers/constants";
 
 async function main() {
   const config = getConfig();
@@ -10,36 +11,15 @@ async function main() {
     config.deployStrategy == "create2" ? "create2" : "basic";
   const [signer] = await hre.ethers.getSigners();
 
-  const poseidon1ContractAddress = config.poseidon1ContractAddress;
-  if (!(await isContract(poseidon1ContractAddress))) {
-    throw new Error("POSEIDON_1_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const poseidon2ContractAddress = config.poseidon2ContractAddress;
-  if (!(await isContract(poseidon2ContractAddress))) {
-    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const poseidon3ContractAddress = config.poseidon3ContractAddress;
-  if (!(await isContract(poseidon3ContractAddress))) {
-    throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const smtLibContractAddress = config.smtLibContractAddress;
-  if (!(await isContract(smtLibContractAddress))) {
-    throw new Error("SMT_LIB_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const groth16VerifierStateTransitionContractAddress =
-    config.groth16VerifierStateTransitionContractAddress;
-  if (!(await isContract(groth16VerifierStateTransitionContractAddress))) {
-    throw new Error("GROTH16_VERIFIER_STATE_TRANSITION_CONTRACT_ADDRESS is not set or invalid");
-  }
   const deployHelper = await DeployHelper.initialize(null, true);
 
   const { state, stateLib, stateCrossChainLib, crossChainProofValidator } =
     await deployHelper.deployState(
       [],
       deployStrategy,
-      smtLibContractAddress,
-      poseidon1ContractAddress,
-      groth16VerifierStateTransitionContractAddress,
+      UNIFIED_CONTRACT_ADDRESSES.SMT_LIB,
+      UNIFIED_CONTRACT_ADDRESSES.POSEIDON_1,
+      UNIFIED_CONTRACT_ADDRESSES.GROTH16_VERIFIER_STATE_TRANSITION,
     );
 
   const chainId = parseInt(await hre.network.provider.send("eth_chainId"), 16);

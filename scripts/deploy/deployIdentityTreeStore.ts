@@ -3,6 +3,7 @@ import hre, { ethers, network } from "hardhat";
 import path from "path";
 import fs from "fs";
 import { getConfig, isContract } from "../../helpers/helperUtils";
+import { UNIFIED_CONTRACT_ADDRESSES } from "../../helpers/constants";
 
 (async () => {
   const config = getConfig();
@@ -10,14 +11,6 @@ import { getConfig, isContract } from "../../helpers/helperUtils";
   const stateContractAddress = config.stateContractAddress;
   if (!(await isContract(stateContractAddress))) {
     throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const poseidon2ContractAddress = config.poseidon2ContractAddress;
-  if (!(await isContract(poseidon2ContractAddress))) {
-    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const poseidon3ContractAddress = config.poseidon3ContractAddress;
-  if (!(await isContract(poseidon3ContractAddress))) {
-    throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set or invalid");
   }
 
   const deployStrategy: "basic" | "create2" =
@@ -28,8 +21,8 @@ import { getConfig, isContract } from "../../helpers/helperUtils";
 
   const { identityTreeStore } = await deployHelper.deployIdentityTreeStore(
     stateContractAddress,
-    poseidon2ContractAddress,
-    poseidon3ContractAddress,
+    UNIFIED_CONTRACT_ADDRESSES.POSEIDON_2,
+    UNIFIED_CONTRACT_ADDRESSES.POSEIDON_3,
     deployStrategy,
   );
 
@@ -42,8 +35,8 @@ import { getConfig, isContract } from "../../helpers/helperUtils";
   const outputJson = {
     proxyAdminOwnerAddress: await signer.getAddress(),
     identityTreeStore: await identityTreeStore.getAddress(),
-    poseidon2ContractAddress,
-    poseidon3ContractAddress,
+    poseidon2ContractAddress: UNIFIED_CONTRACT_ADDRESSES.POSEIDON_2,
+    poseidon3ContractAddress: UNIFIED_CONTRACT_ADDRESSES.POSEIDON_3,
     network: networkName,
     chainId,
     deployStrategy,

@@ -16,7 +16,7 @@ import {
   removeLocalhostNetworkIgnitionFiles,
   waitNotToInterfereWithHardhatIgnition,
 } from "../../../helpers/helperUtils";
-import { CONTRACT_NAMES } from "../../../helpers/constants";
+import { CONTRACT_NAMES, UNIFIED_CONTRACT_ADDRESSES } from "../../../helpers/constants";
 import fs from "fs";
 import path from "path";
 
@@ -55,18 +55,6 @@ async function main() {
   if (!(await isContract(config.stateContractAddress))) {
     throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
   }
-  if (!(await isContract(config.universalVerifierContractAddress))) {
-    throw new Error("UNIVERSAL_VERIFIER_CONTRACT_ADDRESS is not set or invalid");
-  }
-  if (!(await isContract(config.validatorMTPContractAddress))) {
-    throw new Error("VALIDATOR_MTP_CONTRACT_ADDRESS is not set or invalid");
-  }
-  if (!(await isContract(config.validatorSigContractAddress))) {
-    throw new Error("VALIDATOR_SIG_CONTRACT_ADDRESS is not set or invalid");
-  }
-  if (!(await isContract(config.validatorV3ContractAddress))) {
-    throw new Error("VALIDATOR_V3_CONTRACT_ADDRESS is not set or invalid");
-  }
 
   const { proxyAdminOwnerSigner, universalVerifierOwnerSigner } = await getSigners(impersonate);
 
@@ -85,7 +73,7 @@ async function main() {
   }
 
   if (upgradeStateContract) {
-    await upgradeState(deployerHelper, proxyAdminOwnerSigner, deployStrategy);
+    await upgradeState(deployerHelper, proxyAdminOwnerSigner);
   }
 
   const universalVerifierMigrationHelper = new UniversalVerifierContractMigrationHelper(
@@ -95,7 +83,7 @@ async function main() {
 
   const universalVerifierContract = await universalVerifierMigrationHelper.getInitContract({
     contractNameOrAbi: universalVerifierArtifact.abi,
-    address: config.universalVerifierContractAddress,
+    address: UNIFIED_CONTRACT_ADDRESSES.UNIVERSAL_VERIFIER,
   });
 
   const universalVerifierOwnerAddressBefore = await universalVerifierContract.owner();
@@ -150,15 +138,15 @@ async function main() {
 
   const validators = [
     {
-      validatorContractAddress: config.validatorMTPContractAddress,
+      validatorContractAddress: UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_MTP,
       validatorContractName: CONTRACT_NAMES.VALIDATOR_MTP,
     },
     {
-      validatorContractAddress: config.validatorSigContractAddress,
+      validatorContractAddress: UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_SIG,
       validatorContractName: CONTRACT_NAMES.VALIDATOR_SIG,
     },
     {
-      validatorContractAddress: config.validatorV3ContractAddress,
+      validatorContractAddress: UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_V3,
       validatorContractName: CONTRACT_NAMES.VALIDATOR_V3,
     },
   ];
@@ -199,38 +187,21 @@ async function main() {
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 
   console.log("Testing verifiation with submitZKPResponseV2 after migration...");
-  await testVerification(universalVerifierContract, config.validatorV3ContractAddress);
+  await testVerification(universalVerifierContract, UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_V3);
 }
 
 async function onlyTestVerification() {
   const { universalVerifierOwnerSigner } = await getSigners(impersonate);
   const universalVerifierContract = await ethers.getContractAt(
     universalVerifierArtifact.abi,
-    config.universalVerifierContractAddress,
+    UNIFIED_CONTRACT_ADDRESSES.UNIVERSAL_VERIFIER,
     universalVerifierOwnerSigner,
   );
   console.log("Testing verifiation with submitZKPResponseV2 after migration...");
-  await testVerification(universalVerifierContract, config.validatorV3ContractAddress);
+  await testVerification(universalVerifierContract, UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_V3);
 }
 
 async function upgradeState(deployHelper: DeployHelper, signer: any) {
-  const poseidon1ContractAddress = config.poseidon1ContractAddress;
-  if (!(await isContract(poseidon1ContractAddress))) {
-    throw new Error("POSEIDON_1_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const poseidon2ContractAddress = config.poseidon2ContractAddress;
-  if (!(await isContract(poseidon2ContractAddress))) {
-    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const poseidon3ContractAddress = config.poseidon3ContractAddress;
-  if (!(await isContract(poseidon3ContractAddress))) {
-    throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const smtLibContractAddress = config.smtLibContractAddress;
-  if (!(await isContract(smtLibContractAddress))) {
-    throw new Error("SMT_LIB_CONTRACT_ADDRESS is not set or invalid");
-  }
-
   const stateMigrationHelper = new StateContractMigrationHelper(deployHelper, signer);
 
   const stateContract = await stateMigrationHelper.getInitContract({
@@ -241,8 +212,8 @@ async function upgradeState(deployHelper: DeployHelper, signer: any) {
   // **** Upgrade State ****
   await stateMigrationHelper.upgradeContract(stateContract, {
     redeployCrossChainProofValidator: true,
-    smtLibAddress: smtLibContractAddress,
-    poseidon1Address: config.poseidon1ContractAddress,
+    smtLibAddress: UNIFIED_CONTRACT_ADDRESSES.SMT_LIB,
+    poseidon1Address: UNIFIED_CONTRACT_ADDRESSES.POSEIDON_1,
   }); // first upgrade we need deploy oracle proof validator
   // ************************
   // If testing with forked zkevm network wait for 1 confirmation, otherwise is waiting forever
@@ -272,7 +243,7 @@ async function testVerification(verifier: Contract, validatorV3Address: string) 
   await setZKPRequest_KYCAgeCredential(requestId, verifier, validatorV3Address);
   await submitZKPResponses_KYCAgeCredential(requestId, verifier, {
     stateContractAddress: config.stateContractAddress,
-    verifierContractAddress: config.universalVerifierContractAddress,
+    verifierContractAddress: UNIFIED_CONTRACT_ADDRESSES.UNIVERSAL_VERIFIER,
   });
 }
 

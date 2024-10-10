@@ -52,21 +52,6 @@ LEDGER_ACCOUNT="<your Ledger deployer address>"
 DEPLOY_STRATEGY=create2
 
 STATE_CONTRACT_ADDRESS=
-SMT_LIB_CONTRACT_ADDRESS=
-GROTH16_VERIFIER_STATE_TRANSITION_CONTRACT_ADDRESS=
-POSEIDON_1_CONTRACT_ADDRESS=
-POSEIDON_2_CONTRACT_ADDRESS=
-POSEIDON_3_CONTRACT_ADDRESS=
-
-IDENTITY_TREE_STORE_CONTRACT_ADDRESS=
-
-UNIVERSAL_VERIFIER_CONTRACT_ADDRESS=
-GROTH16_VERIFIER_MTP_CONTRACT_ADDRESS=
-GROTH16_VERIFIER_SIG_CONTRACT_ADDRESS=
-GROTH16_VERIFIER_V3_CONTRACT_ADDRESS=
-VALIDATOR_MTP_CONTRACT_ADDRESS=
-VALIDATOR_SIG_CONTRACT_ADDRESS=
-VALIDATOR_V3_CONTRACT_ADDRESS=
 
 PRIVADO_MAIN_RPC_URL=<rpc url for privado main>
 PRIVADO_TEST_RPC_URL=<rpc url for privado test>
@@ -92,17 +77,6 @@ Then run the deployment scripts:
    ```shell
    npx hardhat run scripts/deploy/deployLibraries.ts --network <your-network>
    ```
-   Once libraries are deployed replace contract addressess in your `.env`
-   ```
-   SMT_LIB_CONTRACT_ADDRESS=
-   GROTH16_VERIFIER_STATE_TRANSITION_CONTRACT_ADDRESS=
-   POSEIDON_1_CONTRACT_ADDRESS=
-   POSEIDON_2_CONTRACT_ADDRESS=
-   POSEIDON_3_CONTRACT_ADDRESS=
-   GROTH16_VERIFIER_MTP_CONTRACT_ADDRESS=
-   GROTH16_VERIFIER_SIG_CONTRACT_ADDRESS=
-   GROTH16_VERIFIER_V3_CONTRACT_ADDRESS=
-   ```
 3. Deploy State contract
    ```shell
    npx hardhat run scripts/deploy/deployState.ts --network <your-network>
@@ -116,27 +90,13 @@ Then run the deployment scripts:
    ```
    npx hardhat run scripts/deploy/deployIdentityTreeStore.ts --network <your-network>
    ```
-   Once identity tree store is deployed replace contract address with yours from the identity tree store deployment in your `.env` file
-   ```
-   IDENTITY_TREE_STORE_CONTRACT_ADDRESS=
-   ```
 5. Deploy Validators contracts
    ```
    npx hardhat run scripts/deploy/deployValidators.ts --network <your-network>
    ```
-   Once validators are deployed replace contract addresses with yours from the validators deployment in your `.env` file
-   ```
-   VALIDATOR_MTP_CONTRACT_ADDRESS=
-   VALIDATOR_SIG_CONTRACT_ADDRESS=
-   VALIDATOR_V3_CONTRACT_ADDRESS=
-   ```
 6. Deploy Universal Verifier contract
    ```
    npx hardhat run scripts/deploy/deployUniversalVerifier.ts --network <your-network>
-   ```
-   Once the universal verifier is deployd replace the address in your `.env` file
-   ```
-   UNIVERSAL_VERIFIER_CONTRACT_ADDRESS=
    ```
 7. Add validators to whitelisted validators in Universal Verifier
    ```
