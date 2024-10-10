@@ -71,6 +71,7 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
   }); // linea-sepolia
 
 export const CONTRACT_NAMES = Object.freeze({
+  CREATE2_ADDRESS_ANCHOR: "Create2AddressAnchor",
   UNIVERSAL_VERIFIER: "UniversalVerifier",
   STATE: "State",
   VALIDATOR_SIG: "CredentialAtomicQuerySigV2Validator",
@@ -83,6 +84,13 @@ export const CONTRACT_NAMES = Object.freeze({
   POSEIDON_1: "PoseidonUnit1L",
   POSEIDON_2: "PoseidonUnit2L",
   POSEIDON_3: "PoseidonUnit3L",
+  GROTH16_VERIFIER_STATE_TRANSITION: "Groth16VerifierStateTransition",
+  GROTH16_VERIFIER_MTP: "Groth16VerifierMTPWrapper",
+  GROTH16_VERIFIER_SIG: "Groth16VerifierSigWrapper",
+  GROTH16_VERIFIER_V3: "Groth16VerifierV3Wrapper",
+  STATE_LIB: "StateLib",
+  STATE_CROSS_CHAIN_LIB: "StateCrossChainLib",
+  VERIFIER_LIB: "VerifierLib",
 });
 
 export const NETWORK_NAMES = Object.freeze({
@@ -112,6 +120,10 @@ export const UNIFIED_CONTRACT_ADDRESSES = Object.freeze({
   VALIDATOR_V3: "0xd179f29d00Cd0E8978eb6eB847CaCF9E2A956336",
   UNIVERSAL_VERIFIER: "0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c",
   IDENTITY_TREE_STORE: "0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81",
+  GROTH16_VERIFIER_STATE_TRANSITION: "0xAE950A9B8F48bC4519820728E210515a07F7cB71",
+  GROTH16_VERIFIER_MTP: "0x1205B90121cAbB2B7e6f1828005AC00D8927796F",
+  GROTH16_VERIFIER_SIG: "0x0ce200c9557BB64ee9E82452646b084e77Aaeb51",
+  GROTH16_VERIFIER_V3: "0x1aA2B5AEAd506D269164958d36Cae04f95F79282",
 });
 
 export const VALIDATOR_TYPES = Object.freeze({

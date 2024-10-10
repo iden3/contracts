@@ -31,7 +31,7 @@ async function main() {
   };
   const pathOutputJson = path.join(
     __dirname,
-    `../deployments_output/deploy_poseidon_output_${chainId}_${networkName}.json`,
+    `../deployments_output/deploy_poseidon_facade_output_${chainId}_${networkName}.json`,
   );
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 }

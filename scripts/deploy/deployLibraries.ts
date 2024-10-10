@@ -29,20 +29,20 @@ async function main() {
     deployStrategy,
   );
 
-  const verifiers: ("mtpV2" | "sigV2" | "v3")[] = ["mtpV2", "sigV2", "v3"];
-  const verifiersInfo: any = [];
-  for (const v of verifiers) {
+  const groth16Verifiers: ("mtpV2" | "sigV2" | "v3")[] = ["mtpV2", "sigV2", "v3"];
+  const groth16verifiersInfo: any = [];
+  for (const v of groth16Verifiers) {
     const groth16VerifierWrapper = await deployHelper.deployGroth16VerifierWrapper(
       v,
       deployStrategy,
     );
-    verifiersInfo.push({
+    groth16verifiersInfo.push({
       verifierType: v,
       groth16verifier: await groth16VerifierWrapper.getAddress(),
     });
   }
 
-  verifiersInfo.push({
+  groth16verifiersInfo.push({
     validatorType: "stateTransition",
     groth16verifier: await groth16VerifierStateTransition.getAddress(),
   });
@@ -54,7 +54,7 @@ async function main() {
     poseidon2: await poseidon2Elements.getAddress(),
     poseidon3: await poseidon3Elements.getAddress(),
     smtLib: await smtLib.getAddress(),
-    verifiersInfo,
+    groth16verifiersInfo,
     network: networkName,
     chainId,
     deployStrategy,

@@ -2,8 +2,14 @@ import fs from "fs";
 import path from "path";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import hre, { ethers, network } from "hardhat";
-import { getConfig, waitNotToInterfereWithHardhatIgnition } from "../../helpers/helperUtils";
+import {
+  getConfig,
+  Logger,
+  TempContractDeployments,
+  waitNotToInterfereWithHardhatIgnition,
+} from "../../helpers/helperUtils";
 import { isContract } from "../../helpers/helperUtils";
+import { CONTRACT_NAMES } from "../../helpers/constants";
 
 async function main() {
   const config = getConfig();
@@ -17,9 +23,21 @@ async function main() {
 
   const deployHelper = await DeployHelper.initialize(null, true);
 
-  const verifierLib = await deployHelper.deployVerifierLib();
-  const tx = await verifierLib.deploymentTransaction();
-  await waitNotToInterfereWithHardhatIgnition(tx);
+  const tmpContractDeployments = new TempContractDeployments(
+    "./scripts/deployments_output/temp_deployments_output.json",
+  );
+
+  let verifierLib = await tmpContractDeployments.getContract(CONTRACT_NAMES.VERIFIER_LIB);
+  if (verifierLib) {
+    Logger.warning(
+      `${CONTRACT_NAMES.VERIFIER_LIB} found already deployed to:  ${await verifierLib?.getAddress()}`,
+    );
+  } else {
+    verifierLib = await deployHelper.deployVerifierLib();
+    const tx = await verifierLib.deploymentTransaction();
+    await waitNotToInterfereWithHardhatIgnition(tx);
+    tmpContractDeployments.addContract(CONTRACT_NAMES.VERIFIER_LIB, await verifierLib.getAddress());
+  }
 
   const universalVerifier = await deployHelper.deployUniversalVerifier(
     undefined,
@@ -27,7 +45,7 @@ async function main() {
     await verifierLib.getAddress(),
     deployStrategy,
   );
-
+  tmpContractDeployments.remove();
   const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
   const networkName = hre.network.name;
   const pathOutputJson = path.join(

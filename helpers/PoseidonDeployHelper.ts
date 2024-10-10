@@ -9,6 +9,7 @@ import {
   Poseidon3Module,
   SpongePoseidonModule,
 } from "../ignition/modules/libraries";
+import { getUnifiedContract, Logger } from "./helperUtils";
 
 export async function deploySpongePoseidon(
   poseidon6ContractAddress: string,
@@ -67,13 +68,27 @@ export async function deployPoseidons(
     });
     const poseidonN = poseidonDeploy.poseidon;
     await poseidonN.waitForDeployment();
-    console.log(`Poseidon${params}Element deployed to: ${await poseidonN.getAddress()}`);
+    Logger.success(`Poseidon${params}Element deployed to: ${await poseidonN.getAddress()}`);
     return poseidonN;
   };
 
   const result: any = [];
   for (const size of poseidonSizeParams) {
-    result.push(await deployPoseidon(size));
+    let poseidonN: Contract | null;
+    if (deployStrategy === "create2") {
+      // Check that poseidonN exists and skip deployment in this case
+      poseidonN = await getUnifiedContract(`PoseidonUnit${size}L`);
+      if (poseidonN) {
+        Logger.warning(
+          `Poseidon${size}Element found already deployed to: ${await poseidonN?.getAddress()}`,
+        );
+        result.push(poseidonN);
+        continue;
+      }
+    }
+    poseidonN = await deployPoseidon(size);
+
+    result.push(poseidonN);
   }
 
   return result;

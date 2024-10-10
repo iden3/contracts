@@ -1,4 +1,4 @@
-import { getProviders, isContract } from "../../../helpers/helperUtils";
+import { getProviders, isContract, Logger } from "../../../helpers/helperUtils";
 import {
   CONTRACT_NAMES,
   NETWORK_NAMES,
@@ -45,9 +45,9 @@ async function main() {
     }
 
     if (!oracleSigningAddressIsValid) {
-      console.log(`\x1b[31m  [𐄂] \x1b[0m${provider.network}: Oracle signing address is not valid`);
+      Logger.error(`${provider.network}: Oracle signing address is not valid`);
     } else {
-      console.log(`\x1b[32m  [✓] \x1b[0m${provider.network}: Oracle signing address is valid`);
+      Logger.success(`${provider.network}: Oracle signing address is valid`);
     }
   }
 }

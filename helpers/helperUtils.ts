@@ -1,7 +1,8 @@
-import { ContractTransactionResponse, JsonRpcProvider } from "ethers";
-import hre, { network } from "hardhat";
+import { Contract, ContractTransactionResponse, JsonRpcProvider } from "ethers";
+import hre, { ethers, network } from "hardhat";
 import fs from "fs";
-import { NETWORK_NAMES } from "./constants";
+import { CONTRACT_NAMES, NETWORK_NAMES, UNIFIED_CONTRACT_ADDRESSES } from "./constants";
+import { poseidonContract } from "circomlibjs";
 
 export function getConfig() {
   return {
@@ -47,7 +48,7 @@ export async function waitNotToInterfereWithHardhatIgnition(
     const blockNumberDeployed = await hre.ethers.provider.getBlockNumber();
     let blockNumber = blockNumberDeployed;
     console.log("Waiting some blocks to expect at least 5 confirmations for Hardhat Ignition...");
-    while (blockNumber < blockNumberDeployed + 5) {
+    while (blockNumber < blockNumberDeployed + 10) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       blockNumber = await hre.ethers.provider.getBlockNumber();
     }
@@ -61,15 +62,18 @@ export function removeLocalhostNetworkIgnitionFiles(network: string, chainId: nu
   }
 }
 
-export async function isContract(value: any, provider?: JsonRpcProvider): Promise<boolean> {
-  if (!hre.ethers.isAddress(value)) {
+export async function isContract(
+  contractAddress: any,
+  provider?: JsonRpcProvider,
+): Promise<boolean> {
+  if (!hre.ethers.isAddress(contractAddress)) {
     return false;
   }
   let result;
   if (provider) {
-    result = await provider.getCode(value);
+    result = await provider.getCode(contractAddress);
   } else {
-    result = await hre.ethers.provider.getCode(value);
+    result = await hre.ethers.provider.getCode(contractAddress);
   }
   if (result === "0x") {
     return false;
@@ -99,4 +103,94 @@ export function getProviders() {
     { network: NETWORK_NAMES.LINEA_SEPOLIA, rpcUrl: process.env.LINEA_SEPOLIA_RPC_URL as string },
     { network: NETWORK_NAMES.LINEA_MAINNET, rpcUrl: process.env.LINEA_MAINNET_RPC_URL as string },
   ];
+}
+
+function getUnifiedContractAddress(contractName: string): string {
+  let contractProperty;
+  for (const property in CONTRACT_NAMES) {
+    if (CONTRACT_NAMES[property] === contractName) {
+      contractProperty = property;
+      break;
+    }
+  }
+  return UNIFIED_CONTRACT_ADDRESSES[contractProperty];
+}
+
+export async function getPoseidonN(nInputs: number): Promise<Contract | null> {
+  const abi = poseidonContract.generateABI(nInputs);
+  const contractAddress = getUnifiedContractAddress(`PoseidonUnit${nInputs}L`);
+
+  if (!(await isContract(contractAddress))) {
+    return null;
+  }
+  const poseidon = new ethers.Contract(contractAddress, abi);
+
+  return poseidon;
+}
+
+export async function getUnifiedContract(contractName: string): Promise<Contract | null> {
+  if (contractName.includes("PoseidonUnit")) {
+    const nInputs = parseInt(contractName.substring(12, 13));
+    return getPoseidonN(nInputs);
+  } else {
+    const contractAddress = getUnifiedContractAddress(contractName);
+    if (!(await isContract(contractAddress))) {
+      return null;
+    }
+    return ethers.getContractAt(contractName, contractAddress);
+  }
+}
+
+export class Logger {
+  static error(message: string) {
+    console.log(`\x1b[31m[𐄂] \x1b[0m${message}`);
+  }
+
+  static success(message: string) {
+    console.log(`\x1b[32m[✓] \x1b[0m${message}`);
+  }
+
+  static warning(message: string) {
+    console.log(`\x1b[33m[⚠] \x1b[0m${message}`);
+  }
+}
+
+export class TempContractDeployments {
+  contracts: Map<string, string>;
+  filePath: string;
+
+  constructor(filePath: string) {
+    this.contracts = new Map<string, string>();
+    this.filePath = filePath;
+    this.load();
+  }
+
+  addContract(contractName: string, contractAddress: string) {
+    this.contracts.set(contractName, contractAddress);
+    this.save();
+  }
+
+  async getContract(contractName: string): Promise<Contract | null> {
+    if (!this.contracts.has(contractName)) {
+      return null;
+    }
+    const contractAddress = this.contracts.get(contractName) as string;
+
+    return ethers.getContractAt(contractName, contractAddress);
+  }
+
+  save() {
+    fs.writeFileSync(this.filePath, JSON.stringify(Array.from(this.contracts.entries()), null, 1));
+  }
+
+  load() {
+    if (fs.existsSync(this.filePath)) {
+      const data = fs.readFileSync(this.filePath, "utf8");
+      this.contracts = new Map(JSON.parse(data));
+    }
+  }
+
+  remove() {
+    fs.rmSync(this.filePath);
+  }
 }

@@ -1,5 +1,5 @@
 import hre, { ethers } from "hardhat";
-import { getConfig, isContract } from "../../helpers/helperUtils";
+import { getConfig, isContract, Logger } from "../../helpers/helperUtils";
 import { CONTRACT_NAMES } from "../../helpers/constants";
 
 async function main() {
@@ -54,6 +54,13 @@ async function main() {
         .connect(signer)
         .addValidatorToWhitelist(v.validatorContractAddress);
       await addToWhiteListTx.wait();
+      Logger.success(
+        `Validator ${v.validatorContractName} (${v.validatorContractAddress}) whitelisted`,
+      );
+    } else {
+      Logger.warning(
+        `Validator ${v.validatorContractName} (${v.validatorContractAddress}) is already whitelisted`,
+      );
     }
   }
 }
