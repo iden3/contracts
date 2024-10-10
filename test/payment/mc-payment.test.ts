@@ -4,7 +4,7 @@ import { MCPayment, MCPayment__factory } from "../../typechain-types";
 import { Signer } from "ethers";
 import { expect } from "chai";
 
-describe.only("VC Payment Contract", () => {
+describe("VC Payment Contract", () => {
   let payment: MCPayment;
   const issuerId1 = DID.idFromDID(
     DID.parse("did:polygonid:polygon:amoy:2qQ68JkRcf3ymy9wtzKyY3Dajst9c6cHCDZyx7NrTz"),
