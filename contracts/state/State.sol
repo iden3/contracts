@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {IState, MAX_SMT_DEPTH} from "../interfaces/IState.sol";
@@ -7,14 +7,16 @@ import {IStateTransitionVerifier} from "../interfaces/IStateTransitionVerifier.s
 import {SmtLib} from "../lib/SmtLib.sol";
 import {PoseidonUnit1L} from "../lib/Poseidon.sol";
 import {StateLib} from "../lib/StateLib.sol";
+import {StateCrossChainLib} from "../lib/StateCrossChainLib.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
+import {ICrossChainProofValidator} from "../interfaces/ICrossChainProofValidator.sol";
 
 /// @title Set and get states for each identity
 contract State is Ownable2StepUpgradeable, IState {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.5.0";
+    string public constant VERSION = "2.6.0";
 
     // This empty reserved space is put in place to allow future versions
     // of the State contract to inherit from other contracts without a risk of
@@ -51,12 +53,32 @@ contract State is Ownable2StepUpgradeable, IState {
      */
     bool internal _defaultIdTypeInitialized;
 
+    // keccak256(abi.encode(uint256(keccak256("iden3.storage.StateCrossChain")) - 1))
+    //  & ~bytes32(uint256(0xff));
+    bytes32 private constant StateCrossChainStorageLocation =
+        0xfe6de916382846695d2555237dc6c0ef6555f4c949d4ba263e03532600778100;
+
+    /// @custom:storage-location erc7201:iden3.storage.StateCrossChain
+    struct StateCrossChainStorage {
+        mapping(uint256 id => mapping(uint256 state => uint256 replacedAt)) _idToStateReplacedAt;
+        mapping(bytes2 idType => mapping(uint256 root => uint256 replacedAt)) _rootToGistRootReplacedAt;
+        ICrossChainProofValidator _crossChainProofValidator;
+        IState _state;
+    }
+
     using SmtLib for SmtLib.Data;
     using StateLib for StateLib.Data;
+    using StateCrossChainLib for StateCrossChainStorage;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
+    }
+
+    function _getStateCrossChainStorage() private pure returns (StateCrossChainStorage storage $) {
+        assembly {
+            $.slot := StateCrossChainStorageLocation
+        }
     }
 
     /**
@@ -68,7 +90,8 @@ contract State is Ownable2StepUpgradeable, IState {
     function initialize(
         IStateTransitionVerifier verifierContractAddr,
         bytes2 defaultIdType,
-        address owner
+        address owner,
+        ICrossChainProofValidator validator
     ) public initializer {
         if (!_gistData.initialized) {
             _gistData.initialize(MAX_SMT_DEPTH);
@@ -81,6 +104,18 @@ contract State is Ownable2StepUpgradeable, IState {
         verifier = verifierContractAddr;
         _setDefaultIdType(defaultIdType);
         __Ownable_init(owner);
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+        $._crossChainProofValidator = validator;
+    }
+
+    function setCrossChainProofValidator(ICrossChainProofValidator validator) public onlyOwner {
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+        $._crossChainProofValidator = validator;
+    }
+
+    function processCrossChainProofs(bytes calldata proofs) public {
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+        $.processCrossChainProofs(proofs);
     }
 
     /**
@@ -177,6 +212,15 @@ contract State is Ownable2StepUpgradeable, IState {
      */
     function getVerifier() external view returns (address) {
         return address(verifier);
+    }
+
+    /**
+     * @dev Get cross chain proof validator contract address
+     * @return verifier contract address
+     */
+    function getCrossChainProofValidator() external view returns (address) {
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+        return address($._crossChainProofValidator);
     }
 
     /**
@@ -377,6 +421,44 @@ contract State is Ownable2StepUpgradeable, IState {
      */
     function stateExists(uint256 id, uint256 state) public view returns (bool) {
         return _stateData.stateExists(id, state);
+    }
+
+    function getStateReplacedAt(
+        uint256 id,
+        uint256 state
+    ) external view returns (uint256 replacedAt) {
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+        replacedAt = $._idToStateReplacedAt[id][state];
+        if (replacedAt != 0) {
+            return replacedAt;
+        }
+
+        if (_stateData.stateExists(id, state)) {
+            replacedAt = _stateData.getStateInfoByIdAndState(id, state).replacedAtTimestamp;
+        } else {
+            if (GenesisUtils.isGenesisState(id, state)) {
+                replacedAt = 0;
+            } else {
+                revert("State entry not found");
+            }
+        }
+    }
+
+    function getGistRootReplacedAt(
+        bytes2 idType,
+        uint256 root
+    ) external view returns (uint256 replacedAt) {
+        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+        replacedAt = $._rootToGistRootReplacedAt[idType][root];
+        if (replacedAt != 0) {
+            return replacedAt;
+        }
+
+        require(isIdTypeSupported(idType), "id type is not supported");
+        if (!_gistData.rootExists(root)) {
+            revert("Gist root entry not found");
+        }
+        replacedAt = _gistData.getRootInfo(root).replacedAtTimestamp;
     }
 
     /**

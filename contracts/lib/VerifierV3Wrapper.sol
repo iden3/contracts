@@ -11,32 +11,12 @@
 //
 //
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
-import "./VerifierV3.sol";
-import "../interfaces/IVerifier.sol";
+import "./groth16-verifiers/Groth16VerifierV3Wrapper.sol";
 
-contract VerifierV3Wrapper is VerifierV3, IVerifier {
-    /**
-     * @dev Number of public signals for atomic V3 circuit
-     */
-    uint constant PUBSIGNALS_LENGTH = 14;
-
-    /// @return r  bool true if proof is valid
-    function verify(
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
-        uint256[] calldata input
-    ) public view returns (bool r) {
-        // slither-disable-next-line uninitialized-local
-        uint[PUBSIGNALS_LENGTH] memory pubSignals;
-
-        require(input.length == PUBSIGNALS_LENGTH, "expected array length is 18");
-
-        for (uint256 i = 0; i < PUBSIGNALS_LENGTH; i++) {
-            pubSignals[i] = input[i];
-        }
-        return this.verifyProof(a, b, c, pubSignals);
-    }
-}
+/**
+ * @dev The VerifierV3Wrapper is deprecated and will be removed in the future major versions
+ * Please use Groth16VerifierV3Wrapper instead
+ */
+contract VerifierV3Wrapper is Groth16VerifierV3Wrapper {}

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 library PoseidonUnit1L {
     function poseidon(uint256[1] calldata) public pure returns (uint256) {}
@@ -28,7 +28,7 @@ library PoseidonUnit6L {
 library SpongePoseidon {
     uint32 internal constant BATCH_SIZE = 6;
 
-    function hash(uint256[] calldata values) public pure returns (uint256) {
+    function hash(uint256[] memory values) public pure returns (uint256) {
         uint256[BATCH_SIZE] memory frame = [uint256(0), 0, 0, 0, 0, 0];
         bool dirty = false;
         uint256 fullHash = 0;

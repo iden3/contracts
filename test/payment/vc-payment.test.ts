@@ -27,7 +27,9 @@ describe("VC Payment Contract", () => {
     userSigner = signers[5];
     owner = signers[0];
 
-    payment = (await upgrades.deployProxy(new VCPayment__factory(owner))) as unknown as VCPayment;
+    payment = (await upgrades.deployProxy(new VCPayment__factory(owner), [
+      await owner.getAddress(),
+    ])) as unknown as VCPayment;
     await payment.waitForDeployment();
 
     await payment.setPaymentValue(

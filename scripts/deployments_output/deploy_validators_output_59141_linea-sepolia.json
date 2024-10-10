@@ -1,0 +1,12 @@
+{
+ "proxyAdminOwnerAddress": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74",
+ "validatorsInfo": [
+  {
+   "validatorType": "sigV2",
+   "validator": "0x59B347f0D3dd4B98cc2E056Ee6C53ABF14F8581b",
+   "groth16verifier": "0x0ce200c9557BB64ee9E82452646b084e77Aaeb51"
+  }
+ ],
+ "network": "linea-sepolia",
+ "chainId": 59141
+}

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
@@ -7,7 +7,7 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 contract RequestDisableable is ZKPVerifierBase {
     /// @custom:storage-location erc7201:iden3.storage.RequestDisableable
     struct RequestDisableStorage {
-        mapping(uint64 requestID => bool isDisabled) _requestDisabling;
+        mapping(uint64 requestId => bool isDisabled) _requestDisabling;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.RequestDisableable")) - 1)) & ~bytes32(uint256(0xff));
@@ -34,10 +34,10 @@ contract RequestDisableable is ZKPVerifierBase {
     /// @param c The third component of the proof
     function submitZKPResponse(
         uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c
     ) public virtual override onlyEnabledRequest(requestId) {
         super.submitZKPResponse(requestId, inputs, a, b, c);
     }
@@ -51,14 +51,13 @@ contract RequestDisableable is ZKPVerifierBase {
     /// @param sender The sender on behalf of which the proof is done
     function verifyZKPResponse(
         uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
         address sender
     )
         public
-        view
         virtual
         override
         onlyEnabledRequest(requestId)

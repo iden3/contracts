@@ -1,20 +1,23 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
-import {ArrayUtils} from "../lib/ArrayUtils.sol";
+import {IState} from "../interfaces/IState.sol";
 
 abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
     /**
      * @dev Sets the value for Owner
      */
-    function __EmbeddedZKPVerifier_init(address initialOwner) internal onlyInitializing {
+    function __EmbeddedZKPVerifier_init(
+        address initialOwner,
+        IState state
+    ) internal onlyInitializing {
         __Ownable_init(initialOwner);
         ___EmbeddedZKPVerifier_init_unchained(initialOwner);
+        __ZKPVerifierBase_init(state);
     }
 
     function ___EmbeddedZKPVerifier_init_unchained(
@@ -39,10 +42,10 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
     /// @param c The third component of the proof
     function submitZKPResponse(
         uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c
     ) public virtual override {
         IZKPVerifier.ZKPRequest memory request = getZKPRequest(requestId);
         _beforeProofSubmit(requestId, inputs, request.validator);

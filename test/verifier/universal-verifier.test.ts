@@ -4,9 +4,10 @@ import { ethers } from "hardhat";
 import { packValidatorParams } from "../utils/validator-pack-utils";
 import { prepareInputs } from "../utils/state-utils";
 import { Block } from "ethers";
+import proofJson from "../validators/mtp/data/valid_mtp_user_genesis.json";
 
 describe("Universal Verifier MTP & SIG validators", function () {
-  let verifier: any, sig: any;
+  let verifier: any, sig: any, state: any;
   let signer, signer2, signer3;
   let signerAddress: string;
   let deployHelper: DeployHelper;
@@ -14,35 +15,42 @@ describe("Universal Verifier MTP & SIG validators", function () {
   const query = {
     schema: BigInt("180410020913331409885634153623124536270"),
     claimPathKey: BigInt(
-      "8566939875427719562376598811066985304309117528846759529734201066483458512800"
+      "8566939875427719562376598811066985304309117528846759529734201066483458512800",
     ),
     operator: 1n,
     slotIndex: 0n,
-    value: [
-      1420070400000000000n,
-      ...new Array(63).fill("0").map((x) => BigInt(x)),
-    ],
+    value: [1420070400000000000n, ...new Array(63).fill("0").map((x) => BigInt(x))],
     queryHash: BigInt(
-      "1496222740463292783938163206931059379817846775593932664024082849882751356658"
+      "1496222740463292783938163206931059379817846775593932664024082849882751356658",
     ),
     circuitIds: ["credentialAtomicQuerySigV2OnChain"],
     claimPathNotExists: 0,
   };
-
-  const proofJson = require("../validators/sig/data/valid_sig_user_genesis.json");
 
   beforeEach(async () => {
     [signer, signer2, signer3] = await ethers.getSigners();
     signerAddress = await signer.getAddress();
 
     deployHelper = await DeployHelper.initialize(null, true);
-    verifier = await deployHelper.deployUniversalVerifier(signer);
+    ({ state } = await deployHelper.deployState(["0x0112"]));
+    const verifierLib = await deployHelper.deployVerifierLib();
+
+    verifier = await deployHelper.deployUniversalVerifier(
+      signer,
+      await state.getAddress(),
+      await verifierLib.getAddress(),
+    );
 
     const stub = await deployHelper.deployValidatorStub();
 
     sig = stub;
     await verifier.addValidatorToWhitelist(await sig.getAddress());
     await verifier.connect();
+  });
+
+  it("Test get state address", async () => {
+    const stateAddr = await verifier.getStateAddress();
+    expect(stateAddr).to.be.equal(await state.getAddress());
   });
 
   it("Test add, get ZKPRequest, requestIdExists, getZKPRequestsCount", async () => {
@@ -55,7 +63,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
           metadata: "metadataN" + i,
           validator: validatorAddr,
           data: "0x0" + i,
-        })
+        }),
       )
         .to.emit(verifier, "ZKPRequestSet")
         .withArgs(i, signerAddress, "metadataN" + i, validatorAddr, "0x0" + i);
@@ -97,7 +105,9 @@ describe("Universal Verifier MTP & SIG validators", function () {
     expect(events[0].args.requestId).to.be.equal(0);
     expect(events[0].args.caller).to.be.equal(signerAddress);
 
-    const { timestamp: txResTimestamp } = await ethers.provider.getBlock(txRes.blockNumber) as Block;
+    const { timestamp: txResTimestamp } = (await ethers.provider.getBlock(
+      txRes.blockNumber,
+    )) as Block;
 
     await expect(
       verifier.verifyZKPResponse(
@@ -260,7 +270,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
         metadata: "metadata",
         validator: mtpValAddr,
         data: "0x00",
-      })
+      }),
     ).to.be.rejectedWith("Validator is not whitelisted");
 
     await expect(verifier.connect(someAddress).addValidatorToWhitelist(mtpValAddr))
@@ -276,7 +286,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
         metadata: "metadata",
         validator: mtpValAddr,
         data: "0x00",
-      })
+      }),
     ).not.to.be.rejected;
 
     // can't whitelist validator, which does not support ICircuitValidator interface
@@ -287,7 +297,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
         metadata: "metadata",
         validator: someAddress,
         data: "0x00",
-      })
+      }),
     ).to.be.rejectedWith("Validator is not whitelisted");
 
     await verifier.removeValidatorFromWhitelist(mtpValAddr);

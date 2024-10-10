@@ -1,118 +1,94 @@
-import { ethers } from "hardhat";
+import hre, { ethers } from "hardhat";
 import { DeployHelper } from "../../../helpers/DeployHelper";
-import { poseidon } from "@iden3/js-crypto";
-import { expect } from "chai";
+import { getConfig, isContract, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
+import path from "path";
+import fs from "fs";
+import { CONTRACT_NAMES } from "../../../helpers/constants";
 
-// Polygon Mumbai
-
-const proxyAdminOwnerAddress = "0x0ef20f468D50289ed0394Ab34d54Da89DBc131DE";
-const stateContractAddress = "0x134B1BE34911E39A8397ec6289782989729807a4";
-const identityTreeStoreContractAddress = "0x16A1ae4c460C0a42f0a87e69c526c61599B28BC9";
-const id = "0x000b9921a67e1b1492902d04d9b5c521bee1288f530b14b10a6a8c94ca741201";
+const removePreviousIgnitionFiles = true;
 const impersonate = false;
 
-// Polygon PoS mainnet
-
-// const proxyAdminOwnerAddress = "0x80203136fAe3111B810106bAa500231D4FD08FC6";
-// const stateContractAddress = "0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D";
-// const identityTreeStoreContractAddress = "0xbEeB6bB53504E8C872023451fd0D23BeF01d320B";
-// const id = "27400734408475525514287944072871082260891789330025154387098461662248702210";
-// const impersonate = true;
-
+const config = getConfig();
+const chainId = hre.network.config.chainId;
+const network = hre.network.name;
 
 async function getSigners(useImpersonation: boolean): Promise<any> {
   if (useImpersonation) {
-    const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(proxyAdminOwnerAddress);
+    const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(config.ledgerAccount);
     return { proxyAdminOwnerSigner };
   } else {
-    // const privateKey = process.env.PRIVATE_KEY as string;
-    // const proxyAdminOwnerSigner = new ethers.Wallet(privateKey, ethers.provider);
-
     const [signer] = await ethers.getSigners();
     const proxyAdminOwnerSigner = signer;
-
     return { proxyAdminOwnerSigner };
   }
 }
 
 async function main() {
+  const deployStrategy: "basic" | "create2" =
+    config.deployStrategy == "create2" ? "create2" : "basic";
+
+  if (!ethers.isAddress(config.ledgerAccount)) {
+    throw new Error("LEDGER_ACCOUNT is not set");
+  }
+  const stateContractAddress = config.stateContractAddress;
+  if (!(await isContract(stateContractAddress))) {
+    throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
+  }
+  const identityTreeStoreContractAddress = config.identityTreeStoreContractAddress;
+  if (!(await isContract(identityTreeStoreContractAddress))) {
+    throw new Error("IDENTITY_TREE_STORE_CONTRACT_ADDRESS is not set or invalid");
+  }
+  const poseidon2ContractAddress = config.poseidon2ContractAddress;
+  if (!(await isContract(poseidon2ContractAddress))) {
+    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set or invalid");
+  }
+  const poseidon3ContractAddress = config.poseidon3ContractAddress;
+  if (!(await isContract(poseidon3ContractAddress))) {
+    throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set or invalid");
+  }
+
   const { proxyAdminOwnerSigner } = await getSigners(impersonate);
 
+  console.log("Proxy Admin Owner Address: ", await proxyAdminOwnerSigner.getAddress());
+  if (removePreviousIgnitionFiles) {
+    removeLocalhostNetworkIgnitionFiles(network, chainId);
+  }
+
   const identityTreeStore = await ethers.getContractAt(
-    "IdentityTreeStore",
-    identityTreeStoreContractAddress
+    CONTRACT_NAMES.IDENTITY_TREE_STORE,
+    identityTreeStoreContractAddress,
   );
 
-
-  // **** Write data before upgrade (to be deleted in real upgrade) ****
-        let nonce = 1n;
-        let revRoot = poseidon.hash([nonce, 0n, 1n]);
-        let preimages = [
-          [1n, revRoot, 3n],
-          [nonce, 0n, 1n],
-        ];
-        let state = poseidon.hash(preimages[0]);
-
-        await identityTreeStore.saveNodes(preimages);
-
-  // **********************************
-
-
-  const revStatusByStateBefore = await identityTreeStore.getRevocationStatusByIdAndState(
-    id,
-    state,
-    nonce
-  );
-
+  console.log("Version before:", await identityTreeStore.VERSION());
   // **** Upgrade IdentityTreeStore ****
 
-  const stateDeployHelper = await DeployHelper.initialize(
-    [proxyAdminOwnerSigner],
-    true
-  );
+  const stateDeployHelper = await DeployHelper.initialize([proxyAdminOwnerSigner], true);
 
   await stateDeployHelper.upgradeIdentityTreeStore(
     identityTreeStoreContractAddress,
-    stateContractAddress
+    stateContractAddress,
+    poseidon2ContractAddress,
+    poseidon3ContractAddress,
+    deployStrategy,
   );
 
   // **********************************
+  console.log("Version after:", await identityTreeStore.VERSION());
 
-  const revStatusByStateAfter = await identityTreeStore.getRevocationStatusByIdAndState(
-    id,
-    state,
-    nonce
+  const pathOutputJson = path.join(
+    __dirname,
+    `../../deployments_output/deploy_identity_tree_store_output_${chainId}_${network}.json`,
   );
-
-  expect(revStatusByStateBefore).to.deep.equal(revStatusByStateAfter);
-
-
-  // **** Additional read-write checks (to be deleted before real upgrade) ****
-
-        nonce = 2n;
-        revRoot = poseidon.hash([nonce, 0n, 1n]);
-        preimages = [
-          [1n, revRoot, 3n],
-          [nonce, 0n, 1n],
-        ];
-        state = poseidon.hash(preimages[0]);
-
-        await identityTreeStore.saveNodes(preimages);
-
-        const revStatusByState = await identityTreeStore.getRevocationStatusByIdAndState(
-          id,
-          state,
-          nonce
-        );
-
-        expect(revStatusByState.issuer.state).to.equal(state);
-        expect(revStatusByState.issuer.claimsTreeRoot).to.equal(1n);
-        expect(revStatusByState.issuer.revocationTreeRoot).to.equal(revRoot);
-        expect(revStatusByState.issuer.rootOfRoots).to.equal(3n);
-        expect(revStatusByState.mtp.root).to.equal(revRoot);
-        expect(revStatusByState.mtp.existence).to.equal(true);
-
-  // **************************************
+  const outputJson = {
+    proxyAdminOwnerAddress: await proxyAdminOwnerSigner.getAddress(),
+    identityTreeStore: await identityTreeStore.getAddress(),
+    poseidon2ContractAddress,
+    poseidon3ContractAddress,
+    network: network,
+    chainId,
+    deployStrategy,
+  };
+  fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 }
 
 main()

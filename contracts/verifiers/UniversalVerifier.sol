@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
@@ -8,7 +8,7 @@ import {RequestOwnership} from "./RequestOwnership.sol";
 import {RequestDisableable} from "./RequestDisableable.sol";
 import {ValidatorWhitelist} from "./ValidatorWhitelist.sol";
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
-import {ArrayUtils} from "../lib/ArrayUtils.sol";
+import {IState} from "../interfaces/IState.sol";
 
 /// @title Universal Verifier Contract
 /// @notice A contract to manage ZKP (Zero-Knowledge Proof) requests and proofs.
@@ -21,7 +21,7 @@ contract UniversalVerifier is
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.0.2";
+    string public constant VERSION = "1.1.0";
 
     /// @dev Event emitted upon submitting a ZKP request
     event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);
@@ -46,8 +46,9 @@ contract UniversalVerifier is
     }
 
     /// @dev Initializes the contract
-    function initialize() public initializer {
-        __Ownable_init(_msgSender());
+    function initialize(IState state, address owner) public initializer {
+        __Ownable_init(owner);
+        __ZKPVerifierBase_init(state);
     }
 
     /// @dev Version of contract getter
@@ -81,13 +82,23 @@ contract UniversalVerifier is
     /// @param c The third component of the proof
     function submitZKPResponse(
         uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c
     ) public override(RequestDisableable, ValidatorWhitelist, ZKPVerifierBase) {
         super.submitZKPResponse(requestId, inputs, a, b, c);
         emit ZKPResponseSubmitted(requestId, _msgSender());
+    }
+
+    function submitZKPResponseV2(
+        ZKPResponse[] memory responses,
+        bytes memory crossChainProof
+    ) public override {
+        super.submitZKPResponseV2(responses, crossChainProof);
+        for (uint256 i = 0; i < responses.length; i++) {
+            emit ZKPResponseSubmitted(responses[i].requestId, _msgSender());
+        }
     }
 
     /// @dev Verifies a ZKP response without updating any proof status
@@ -99,18 +110,21 @@ contract UniversalVerifier is
     /// @param sender The sender on behalf of which the proof is done
     function verifyZKPResponse(
         uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
         address sender
     )
         public
-        view
         override(RequestDisableable, ValidatorWhitelist, ZKPVerifierBase)
         returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
         return super.verifyZKPResponse(requestId, inputs, a, b, c, sender);
+    }
+
+    function setState(IState state) public onlyOwner {
+        _setState(state);
     }
 
     /// @dev Sets ZKP Request Owner address

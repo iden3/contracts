@@ -1,5 +1,6 @@
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
+import { ethers } from "hardhat";
 
 let utilsWrapper;
 
@@ -40,7 +41,7 @@ describe("uint conversions", function () {
     const address = "0x3930000000000000000000000000000000000000";
     const uint256 = "5010846606798320903600395684540411235907858077292797642081699116";
     await expect(utilsWrapper.uint256LEToAddress(uint256)).to.be.rejectedWith(
-      "given uint256 is not a representation of an address, 12 most significant bytes should be zero"
+      "given uint256 is not a representation of an address, 12 most significant bytes should be zero",
     );
   });
 

@@ -15,7 +15,7 @@ export function log(target: any, key: string, descriptor: PropertyDescriptor) {
     const end = Date.now();
     const time = (end - start) / 1000;
     console.log(
-      `========= Finished executing function ${key}, duration: ${time} seconds =========`
+      `========= Finished executing function ${key}, duration: ${time} seconds =========`,
     );
     return result;
   };
@@ -73,13 +73,13 @@ export interface IContractMigrationSteps {
     firstEventBlock: number,
     eventsChunkSize: number,
     eventName?: string,
-    fileName?: string
+    fileName?: string,
   ): Promise<EventLogEntry[]>;
 
   migrateData(
     data: EventLogEntry[],
     populateDataFn: (...args) => Promise<any>,
-    fileName?: string
+    fileName?: string,
   ): Promise<MigrationResult>;
 
   upgradeContract(contract: Contract): Promise<any>;
@@ -93,9 +93,9 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
   abstract populateData(contract: Contract, stateTransitionPayload: any[]): Promise<void>;
 
   abstract upgradeContract(
-    stateContract: Contract,
-    redeployVerifier?: boolean,
-    afterUpgrade?: () => Promise<void>
+    contract: Contract,
+    opts?: any,
+    afterUpgrade?: () => Promise<void>,
   ): Promise<any>;
 
   abstract checkData(...args: any[]): Promise<any>;
@@ -113,7 +113,7 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
       return ethers.getContractAt(
         contractMeta.contractNameOrAbi,
         contractMeta.address,
-        this._signer
+        this._signer,
       );
     }
 
@@ -126,10 +126,10 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
     firstEventBlock: number,
     eventsChunkSize: number,
     eventName: string,
-    fileName = "events-data.json"
+    fileName = "events-data.json",
   ): Promise<any[]> {
     const filter = contract.filters[eventName](null, null, null, null);
-    const latestBlock = await ethers.provider.getBlock("latest") as Block;
+    const latestBlock = (await ethers.provider.getBlock("latest")) as Block;
     console.log("startBlock", firstEventBlock, "latestBlock Number", latestBlock.number);
 
     let logHistory: unknown[] = [];
@@ -146,7 +146,7 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
         console.error(error);
       }
       console.log(
-        `state transition history length: ${pagedHistory.length}, current block number: ${index}, latest block number: ${latestBlock.number}`
+        `state transition history length: ${pagedHistory.length}, current block number: ${index}, latest block number: ${latestBlock.number}`,
       );
       logHistory = [...logHistory, ...pagedHistory];
     }
@@ -163,7 +163,7 @@ export abstract class ContractMigrationSteps implements IContractMigrationSteps 
   async migrateData(
     data: EventLogEntry[],
     populateDataFn: (...args) => Promise<any>,
-    fileName = "migration-result.json"
+    fileName = "migration-result.json",
   ): Promise<MigrationResult> {
     const result: MigrationResult = {
       migratedData: [],

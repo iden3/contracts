@@ -1,0 +1,12 @@
+{
+ "proxyAdminOwnerAddress": "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb",
+ "universalVerifierOwnerAddress": "0xFc8F850286C06ac5823687B88a21Cc99ec0128cb",
+ "state": "0xDFF190bC887B5Bbae80BCa8999E54ea7d084026f",
+ "universalVerifier": "0xB7487dDa8f0c465730fC715785743C459747bcbC",
+ "crossChainProofValidator": "0xf8003ca05aE05177e8E3BeD7812F25F57A35A4FB",
+ "validatorSig": "0x04dcEd2b96C72eD92f1F066592DBa2b7942d0f3B",
+ "validatorMTP": "0x435A97C4653b768Eb7F01F780E2Da72213fB78d6",
+ "validatorV3": "0xb53e2487ff38b59E183125E3cE79679005AbC7b2",
+ "network": "amoy",
+ "chainId": 80002
+}

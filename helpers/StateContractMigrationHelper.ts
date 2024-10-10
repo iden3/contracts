@@ -8,7 +8,7 @@ import { ethers } from "hardhat";
 export class StateContractMigrationHelper extends ContractMigrationSteps {
   constructor(
     private readonly _stateDeployHelper: DeployHelper,
-    protected readonly _signer: SignerWithAddress | Wallet
+    protected readonly _signer: SignerWithAddress | Wallet,
   ) {
     super(_signer);
   }
@@ -70,23 +70,23 @@ export class StateContractMigrationHelper extends ContractMigrationSteps {
 
     console.assert(
       stateInfoHistoryLengthByIdV2.toString() === stateInfoHistoryLengthByIdV1.toString(),
-      "length not equal"
+      "length not equal",
     );
     console.assert(
       latestStateInfoByIdV2.id.toString() === latestStateInfoByIdV1.id.toString(),
-      "latestStateInfoById id not equal"
+      "latestStateInfoById id not equal",
     );
     console.assert(
       latestStateInfoByIdV2.state.toString() === latestStateInfoByIdV1.state.toString(),
-      " latestStateInfoByIdV2 state not equal"
+      " latestStateInfoByIdV2 state not equal",
     );
     console.assert(
       stateInfoByIdAndStateV2.id.toString() === stateInfoByIdAndStateV1.id.toString(),
-      "stateInfoByIdAndStateV2 id not equal"
+      "stateInfoByIdAndStateV2 id not equal",
     );
     console.assert(
       stateInfoByIdAndStateV2.state.toString() === stateInfoByIdAndStateV1.state.toString(),
-      "stateInfoByIdAndStateV2 state not equal"
+      "stateInfoByIdAndStateV2 state not equal",
     );
     // console.assert(
     //   stateInfoHistoryV2.length === stateInfoHistoryV1.length && stateInfoHistoryV2.length !== 0,
@@ -95,17 +95,17 @@ export class StateContractMigrationHelper extends ContractMigrationSteps {
 
     console.assert(
       rootInfoV1.root.toString() === rootInfoV2.root.toString(),
-      "rootInfo root before upgrade is  not equal to rootInfo root after upgrade"
+      "rootInfo root before upgrade is  not equal to rootInfo root after upgrade",
     );
 
     console.assert(
       JSON.stringify(gistProofV1) === JSON.stringify(gistProofV2),
-      "gistProof before upgrade is  not equal to gistProof after upgrade"
+      "gistProof before upgrade is  not equal to gistProof after upgrade",
     );
 
     console.assert(
       JSON.stringify(gistProofByRootV1) === JSON.stringify(gistProofByRootV2),
-      "gistProofByRoot before upgrade is  not equal to gistProofByRoot after upgrade"
+      "gistProofByRoot before upgrade is  not equal to gistProofByRoot after upgrade",
     );
   }
 
@@ -139,16 +139,35 @@ export class StateContractMigrationHelper extends ContractMigrationSteps {
   }
 
   @log
-  async upgradeContract(stateContract: Contract, redeployVerifier = true): Promise<any> {
+  async upgradeContract(
+    stateContract: Contract,
+    opts: {
+      redeployGroth16Verifier: boolean;
+      redeployCrossChainProofValidator: boolean;
+      deployStrategy: "basic" | "create2";
+      poseidonContracts: string[];
+      smtLibAddress: string | undefined;
+    } = {
+      redeployGroth16Verifier: true,
+      redeployCrossChainProofValidator: true,
+      deployStrategy: "basic",
+      poseidonContracts: [],
+      smtLibAddress: undefined,
+    },
+  ): Promise<any> {
     return await this._stateDeployHelper.upgradeState(
       await stateContract.getAddress(),
-      redeployVerifier,
+      opts.redeployGroth16Verifier,
+      opts.redeployCrossChainProofValidator,
+      opts.deployStrategy,
+      opts.poseidonContracts,
+      opts.smtLibAddress,
     );
   }
 
   private async publishState(
     state: Contract,
-    json: { [key: string]: string }
+    json: { [key: string]: string },
   ): Promise<{
     oldState: string;
     newState: string;
@@ -170,7 +189,7 @@ export class StateContractMigrationHelper extends ContractMigrationSteps {
       isOldStateGenesis === "1",
       pi_a,
       pi_b,
-      pi_c
+      pi_c,
     );
 
     const { blockNumber } = await transitStateTx.wait();

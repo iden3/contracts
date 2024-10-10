@@ -1,0 +1,15 @@
+{
+ "proxyAdminOwnerAddress": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74",
+ "state": "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
+ "verifier": "0xBEba000A99c4d00706f46AC99aF06223BeF26d9a",
+ "stateLib": "0x946d3D28f19702904CAb34c1391AEd9609D86C57",
+ "smtLib": "0x682364078e26C1626abD2B95109D2019E241F0F6",
+ "stateCrossChainLib": "0xE2fEc1e232fd7D12404080824dccE800056FDD9b",
+ "crossChainProofValidator": "0x71e7c0835737d8AB3BEc5a04d9a0be6D0a48622e",
+ "poseidon1": "0xC72D76D7271924a2AD54a19D216640FeA3d138d9",
+ "poseidon2": "0x72F721D9D5f91353B505207C63B56cF3d9447edB",
+ "poseidon3": "0x5Bc89782d5eBF62663Df7Ce5fb4bc7408926A240",
+ "network": "linea-sepolia",
+ "chainId": 59141,
+ "deployStrategy": "create2"
+}

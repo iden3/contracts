@@ -5,12 +5,12 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 export class OnchainIdentityDeployHelper {
   constructor(
     private signers: SignerWithAddress[],
-    private readonly enableLogging: boolean = false
+    private readonly enableLogging: boolean = false,
   ) {}
 
   static async initialize(
     signers: SignerWithAddress[] | null = null,
-    enableLogging = false
+    enableLogging = false,
   ): Promise<OnchainIdentityDeployHelper> {
     let sgrs;
     if (signers === null) {
@@ -22,13 +22,11 @@ export class OnchainIdentityDeployHelper {
   }
 
   async deployIdentity(
-    state: Contract,
-    smtLib: Contract,
-    poseidon1: Contract,
-    poseidon2: Contract,
-    poseidon3: Contract,
-    poseidon4: Contract,
-    idType: Uint8Array,
+    stateAddr: string,
+    smtLibAddr: string,
+    poseidon3Addr: string,
+    poseidon4Addr: string,
+    idType: string,
   ): Promise<{
     identity: Contract;
   }> {
@@ -37,11 +35,7 @@ export class OnchainIdentityDeployHelper {
     this.log("======== Identity: deploy started ========");
 
     const cb = await this.deployClaimBuilder();
-    const il = await this.deployIdentityLib(
-      await smtLib.getAddress(),
-      await poseidon3.getAddress(),
-      await poseidon4.getAddress(),
-    );
+    const il = await this.deployIdentityLib(smtLibAddr, poseidon3Addr, poseidon4Addr);
 
     this.log("deploying Identity...");
     const IdentityFactory = await ethers.getContractFactory("IdentityExample", {
@@ -50,11 +44,8 @@ export class OnchainIdentityDeployHelper {
         IdentityLib: await il.getAddress(),
       },
     });
-    const Identity = await upgrades.deployProxy(
-      IdentityFactory,
-      [await state.getAddress(), idType],
-      {
-        unsafeAllowLinkedLibraries: true,
+    const Identity = await upgrades.deployProxy(IdentityFactory, [stateAddr, idType], {
+      unsafeAllowLinkedLibraries: true,
     });
     await Identity.waitForDeployment();
     this.log(
@@ -82,11 +73,13 @@ export class OnchainIdentityDeployHelper {
     poseidonUtil3lAddress: string,
     poseidonUtil4lAddress: string,
   ): Promise<Contract> {
-    const Identity = await ethers.getContractFactory("IdentityLib", { libraries: {
+    const Identity = await ethers.getContractFactory("IdentityLib", {
+      libraries: {
         SmtLib: smtpAddress,
         PoseidonUnit3L: poseidonUtil3lAddress,
         PoseidonUnit4L: poseidonUtil4lAddress,
-    }});
+      },
+    });
     const il = await Identity.deploy();
     await il.waitForDeployment();
     this.enableLogging && this.log(`ClaimBuilder deployed to: ${await il.getAddress()}`);
@@ -100,7 +93,7 @@ export class OnchainIdentityDeployHelper {
     const ClaimBuilderWrapper = await ethers.getContractFactory("ClaimBuilderWrapper", {
       libraries: {
         ClaimBuilder: await cb.getAddress(),
-      }
+      },
     });
     const claimBuilderWrapper = await ClaimBuilderWrapper.deploy();
     console.log("ClaimBuilderWrapper deployed to:", await claimBuilderWrapper.getAddress());

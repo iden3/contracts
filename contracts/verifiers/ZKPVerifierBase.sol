@@ -1,26 +1,41 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
+import {IState} from "../interfaces/IState.sol";
+import {VerifierLib} from "../lib/VerifierLib.sol";
 
 abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @dev Struct to store ZKP proof and associated data
     struct Proof {
         bool isVerified;
-        mapping(string key => uint256 inputIndex) storageFields;
+        mapping(string key => uint256 inputValue) storageFields;
         string validatorVersion;
         uint256 blockNumber;
         uint256 blockTimestamp;
+        mapping(string key => bytes) metadata;
+    }
+
+    struct ZKPResponse {
+        uint64 requestId;
+        bytes zkProof;
+        bytes data;
+    }
+
+    struct Metadata {
+        string key;
+        bytes value;
     }
 
     /// @custom:storage-location erc7201:iden3.storage.ZKPVerifier
     struct ZKPVerifierStorage {
-        mapping(address user => mapping(uint64 requestID => Proof)) _proofs;
-        mapping(uint64 requestID => IZKPVerifier.ZKPRequest) _requests;
+        mapping(address user => mapping(uint64 requestId => Proof)) _proofs;
+        mapping(uint64 requestId => IZKPVerifier.ZKPRequest) _requests;
         uint64[] _requestIds;
+        IState _state;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifier")) - 1)) & ~bytes32(uint256(0xff));
@@ -32,6 +47,20 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         assembly {
             $.slot := ZKPVerifierStorageLocation
         }
+    }
+
+    function _setState(IState state) internal {
+        _getZKPVerifierStorage()._state = state;
+    }
+
+    using VerifierLib for ZKPVerifierStorage;
+
+    function __ZKPVerifierBase_init(IState state) internal onlyInitializing {
+        __ZKPVerifierBase_init_unchained(state);
+    }
+
+    function __ZKPVerifierBase_init_unchained(IState state) internal onlyInitializing {
+        _setState(state);
     }
 
     /**
@@ -81,30 +110,58 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @param c The third component of the proof
     function submitZKPResponse(
         uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c
     ) public virtual checkRequestExistence(requestId, true) {
         address sender = _msgSender();
-        ICircuitValidator.KeyToInputIndex[] memory pairs = _verifyZKPResponse(
-            requestId,
+        ZKPVerifierStorage storage $ = _getZKPVerifierStorage();
+
+        IZKPVerifier.ZKPRequest memory request = $._requests[requestId];
+        ICircuitValidator.KeyToInputIndex[] memory keyToInpIdxs = request.validator.verify(
             inputs,
             a,
             b,
             c,
+            request.data,
             sender
         );
 
-        Proof storage proof = _getZKPVerifierStorage()._proofs[sender][requestId];
-        for (uint256 i = 0; i < pairs.length; i++) {
-            proof.storageFields[pairs[i].key] = inputs[pairs[i].inputIndex];
-        }
+        $.writeProofResults(sender, requestId, keyToInpIdxs, inputs);
+    }
 
-        proof.isVerified = true;
-        proof.validatorVersion = _getZKPVerifierStorage()._requests[requestId].validator.version();
-        proof.blockNumber = block.number;
-        proof.blockTimestamp = block.timestamp;
+    /// @notice Submits a ZKP response V2 and updates proof status
+    /// @param responses The list of responses including ZKP request ID, ZK proof and metadata
+    /// @param crossChainProofs The list of cross chain proofs from universal resolver (oracle)
+    function submitZKPResponseV2(
+        ZKPResponse[] memory responses,
+        bytes memory crossChainProofs
+    ) public virtual {
+        ZKPVerifierStorage storage $ = _getZKPVerifierStorage();
+
+        $._state.processCrossChainProofs(crossChainProofs);
+
+        for (uint256 i = 0; i < responses.length; i++) {
+            ZKPResponse memory response = responses[i];
+
+            address sender = _msgSender();
+
+            // TODO some internal method and storage location to save gas?
+            IZKPVerifier.ZKPRequest memory request = getZKPRequest(response.requestId);
+            ICircuitValidator.Signal[] memory signals = request.validator.verifyV2(
+                response.zkProof,
+                request.data,
+                sender,
+                $._state
+            );
+
+            $.writeProofResultsV2(sender, response.requestId, signals);
+
+            if (response.data.length > 0) {
+                revert("Metadata not supported yet");
+            }
+        }
     }
 
     /// @dev Verifies a ZKP response without updating any proof status
@@ -116,19 +173,19 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @param sender The sender on behalf of which the proof is done
     function verifyZKPResponse(
         uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
         address sender
     )
         public
-        view
         virtual
         checkRequestExistence(requestId, true)
         returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
-        return _verifyZKPResponse(requestId, inputs, a, b, c, sender);
+        IZKPVerifier.ZKPRequest storage request = _getZKPVerifierStorage()._requests[requestId];
+        return request.validator.verify(inputs, a, b, c, request.data, sender);
     }
 
     /// @dev Gets the list of request IDs and verifies the proofs are linked
@@ -255,23 +312,9 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         return _getZKPVerifierStorage()._proofs[user][requestId].storageFields[key];
     }
 
-    function _verifyZKPResponse(
-        uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c,
-        address sender
-    ) private view returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        IZKPVerifier.ZKPRequest memory request = _getZKPVerifierStorage()._requests[requestId];
-        ICircuitValidator.KeyToInputIndex[] memory pairs = request.validator.verify(
-            inputs,
-            a,
-            b,
-            c,
-            request.data,
-            sender
-        );
-        return pairs;
+    /// @dev Gets the address of the state contract linked to the verifier
+    /// @return address of the state contract
+    function getStateAddress() public view virtual returns (address) {
+        return address(_getZKPVerifierStorage()._state);
     }
 }
