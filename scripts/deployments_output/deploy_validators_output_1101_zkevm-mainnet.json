@@ -1,0 +1,12 @@
+{
+ "proxyAdminOwnerAddress": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74",
+ "validatorsInfo": [
+  {
+   "validatorType": "v3",
+   "validator": "0xd179f29d00Cd0E8978eb6eB847CaCF9E2A956336",
+   "groth16verifier": "0x1aA2B5AEAd506D269164958d36Cae04f95F79282"
+  }
+ ],
+ "network": "zkevm-mainnet",
+ "chainId": 1101
+}

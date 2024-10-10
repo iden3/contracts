@@ -1,0 +1,9 @@
+{
+ "proxyAdminOwnerAddress": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74",
+ "identityTreeStore": "0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81",
+ "poseidon2ContractAddress": "0x72F721D9D5f91353B505207C63B56cF3d9447edB",
+ "poseidon3ContractAddress": "0x5Bc89782d5eBF62663Df7Ce5fb4bc7408926A240",
+ "network": "zkevm-mainnet",
+ "chainId": 1101,
+ "deployStrategy": "create2"
+}
