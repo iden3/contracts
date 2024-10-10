@@ -41,7 +41,7 @@ describe.only("VC Payment Contract", () => {
     };
   });
 
-  it.only("Check signature verification:", async () => {
+  it("Check signature verification:", async () => {
     const paymentData = {
       recipient: issuer1Signer.address,
       value: 100,
@@ -57,7 +57,7 @@ describe.only("VC Payment Contract", () => {
     await payment.connect(userSigner).verifySignature(paymentData, signature);
   });
 
-  it.only("Check payment:", async () => {
+  it("Check payment:", async () => {
     const paymentData = {
       recipient: issuer1Signer.address,
       value: 100,

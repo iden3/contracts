@@ -73,7 +73,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         bytes memory signature
     ) external payable {
         verifySignature(paymentData, signature);
-        bytes32 paymentId = keccak256(abi.encode(paymentData.recipient, paymentData.nonce)); // 23k gas
+        bytes32 paymentId = keccak256(abi.encode(paymentData.recipient, paymentData.nonce));
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         if ($.isPaid[paymentId]) {
             revert PaymentError("MCPayment: payment already paid");
@@ -95,9 +95,9 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         $.isPaid[paymentId] = true;
     }
 
-    function isPaymentDone(uint256 issuerId, uint256 nonce) external view returns (bool) {
+    function isPaymentDone(uint256 recipient, uint256 nonce) external view returns (bool) {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
-        return $.isPaid[keccak256(abi.encode(issuerId, nonce))];
+        return $.isPaid[keccak256(abi.encode(recipient, nonce))];
     }
 
     function verifySignature(
