@@ -95,7 +95,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         $.isPaid[paymentId] = true;
     }
 
-    function isPaymentDone(uint256 recipient, uint256 nonce) external view returns (bool) {
+    function isPaymentDone(address recipient, uint256 nonce) external view returns (bool) {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         return $.isPaid[keccak256(abi.encode(recipient, nonce))];
     }
