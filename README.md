@@ -51,8 +51,6 @@ LEDGER_ACCOUNT="<your Ledger deployer address>"
 
 DEPLOY_STRATEGY=create2
 
-STATE_CONTRACT_ADDRESS=
-
 PRIVADO_MAIN_RPC_URL=<rpc url for privado main>
 PRIVADO_TEST_RPC_URL=<rpc url for privado test>
 POLYGON_MAINNET_RPC_URL=<rpc url for polygon mainnet>

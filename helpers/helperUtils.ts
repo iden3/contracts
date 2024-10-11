@@ -8,7 +8,6 @@ export function getConfig() {
   return {
     deployStrategy: process.env.DEPLOY_STRATEGY || "",
     ledgerAccount: process.env.LEDGER_ACCOUNT || "",
-    stateContractAddress: process.env.STATE_CONTRACT_ADDRESS || "",
   };
 }
 
