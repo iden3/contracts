@@ -51,8 +51,6 @@ LEDGER_ACCOUNT="<your Ledger deployer address>"
 
 DEPLOY_STRATEGY=create2
 
-STATE_CONTRACT_ADDRESS=
-
 PRIVADO_MAIN_RPC_URL=<rpc url for privado main>
 PRIVADO_TEST_RPC_URL=<rpc url for privado test>
 POLYGON_MAINNET_RPC_URL=<rpc url for polygon mainnet>
@@ -81,11 +79,6 @@ Then run the deployment scripts:
    ```shell
    npx hardhat run scripts/deploy/deployState.ts --network <your-network>
    ```
-   Once state is deployed replace contract address with yours from the state deployment in your `.env` file
-   ```
-   STATE_CONTRACT_ADDRESS=
-   ```
-
 4. Deploy Identity Tree Store contract
    ```
    npx hardhat run scripts/deploy/deployIdentityTreeStore.ts --network <your-network>
