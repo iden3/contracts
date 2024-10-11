@@ -1,5 +1,5 @@
 import { ethers, run, upgrades } from "hardhat";
-import { MCPayment, MCPayment__factory } from "../typechain-types";
+import { MCPayment, MCPayment__factory } from "../../typechain-types";
 
 async function main() {
   const [owner] = await ethers.getSigners();
