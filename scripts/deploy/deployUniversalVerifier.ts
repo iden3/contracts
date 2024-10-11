@@ -9,22 +9,21 @@ import {
   waitNotToInterfereWithHardhatIgnition,
 } from "../../helpers/helperUtils";
 import {
-  CHAIN_IDS,
-  CONTRACT_NAMES,
+  networks,
+  contractsInfo,
   STATE_ADDRESS_POLYGON_AMOY,
   STATE_ADDRESS_POLYGON_MAINNET,
-  UNIFIED_CONTRACT_ADDRESSES,
 } from "../../helpers/constants";
 
 async function main() {
   const config = getConfig();
   const chainId = hre.network.config.chainId;
 
-  let stateContractAddress = UNIFIED_CONTRACT_ADDRESSES.STATE as string;
-  if (chainId === CHAIN_IDS.POLYGON_AMOY) {
+  let stateContractAddress = contractsInfo.STATE.unifiedAddress;
+  if (chainId === networks.POLYGON_AMOY.chainId) {
     stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
   }
-  if (chainId === CHAIN_IDS.POLYGON_MAINNET) {
+  if (chainId === networks.POLYGON_MAINNET.chainId) {
     stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
   }
   const deployStrategy: "basic" | "create2" =
@@ -37,16 +36,19 @@ async function main() {
     "./scripts/deployments_output/temp_deployments_output.json",
   );
 
-  let verifierLib = await tmpContractDeployments.getContract(CONTRACT_NAMES.VERIFIER_LIB);
+  let verifierLib = await tmpContractDeployments.getContract(contractsInfo.VERIFIER_LIB.name);
   if (verifierLib) {
     Logger.warning(
-      `${CONTRACT_NAMES.VERIFIER_LIB} found already deployed to:  ${await verifierLib?.getAddress()}`,
+      `${contractsInfo.VERIFIER_LIB.name} found already deployed to:  ${await verifierLib?.getAddress()}`,
     );
   } else {
     verifierLib = await deployHelper.deployVerifierLib();
     const tx = await verifierLib.deploymentTransaction();
     await waitNotToInterfereWithHardhatIgnition(tx);
-    tmpContractDeployments.addContract(CONTRACT_NAMES.VERIFIER_LIB, await verifierLib.getAddress());
+    tmpContractDeployments.addContract(
+      contractsInfo.VERIFIER_LIB.name,
+      await verifierLib.getAddress(),
+    );
   }
 
   const universalVerifier = await deployHelper.deployUniversalVerifier(

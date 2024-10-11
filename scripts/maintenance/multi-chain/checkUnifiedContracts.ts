@@ -1,5 +1,5 @@
 import { getProviders, isContract, Logger } from "../../../helpers/helperUtils";
-import { CONTRACT_NAMES, UNIFIED_CONTRACT_ADDRESSES } from "../../../helpers/constants";
+import { contractsInfo } from "../../../helpers/constants";
 import { ethers } from "hardhat";
 
 async function main() {
@@ -9,21 +9,23 @@ async function main() {
     const jsonRpcProvider = new ethers.JsonRpcProvider(provider.rpcUrl);
 
     const contractsNotDeployed: string[] = [];
-    for (const property in UNIFIED_CONTRACT_ADDRESSES) {
-      if (await isContract(UNIFIED_CONTRACT_ADDRESSES[property], jsonRpcProvider)) {
-        /* console.log(
-          `\x1b[32m  ✓ \x1b[0m${CONTRACT_NAMES[property]} is deployed at ${UNIFIED_CONTRACT_ADDRESSES[property]}`,
+    for (const property in contractsInfo) {
+      if (contractsInfo[property].unifiedAddress !== "") {
+        if (await isContract(contractsInfo[property].unifiedAddress, jsonRpcProvider)) {
+          /* console.log(
+          `\x1b[32m  ✓ \x1b[0m${contractsInfo[property].name} is deployed at ${contractsInfo[property].unifiedAddress}`,
         ); */
-      } else {
-        /* console.log(
-          `\x1b[31m  𐄂 \x1b[0m${CONTRACT_NAMES[property]} is not deployed at ${UNIFIED_CONTRACT_ADDRESSES[property]}`,
+        } else {
+          /* console.log(
+          `\x1b[31m  𐄂 \x1b[0m${contractsInfo[property].name} is not deployed at ${contractsInfo[property].unifiedAddress}`,
         ); */
-        contractsNotDeployed.push(property);
+          contractsNotDeployed.push(property);
+        }
       }
     }
     if (contractsNotDeployed.length > 0) {
       Logger.error(
-        `${provider.network}: ${contractsNotDeployed.length} contracts are not deployed: ${contractsNotDeployed.map((property) => CONTRACT_NAMES[property]).join(", ")}`,
+        `${provider.network}: ${contractsNotDeployed.length} contracts are not deployed: ${contractsNotDeployed.map((property) => contractsInfo[property].name).join(", ")}`,
       );
     } else {
       Logger.success(`${provider.network}: All contracts are deployed`);

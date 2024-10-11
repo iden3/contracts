@@ -4,36 +4,36 @@ import { DeployHelper } from "../../helpers/DeployHelper";
 import hre from "hardhat";
 import { getConfig } from "../../helpers/helperUtils";
 import {
-  CHAIN_IDS,
+  networks,
   STATE_ADDRESS_POLYGON_AMOY,
   STATE_ADDRESS_POLYGON_MAINNET,
-  UNIFIED_CONTRACT_ADDRESSES,
+  contractsInfo,
 } from "../../helpers/constants";
 
 async function main() {
   const config = getConfig();
   const chainId = hre.network.config.chainId;
 
-  let stateContractAddress = UNIFIED_CONTRACT_ADDRESSES.STATE as string;
-  if (chainId === CHAIN_IDS.POLYGON_AMOY) {
+  let stateContractAddress = contractsInfo.STATE.unifiedAddress;
+  if (chainId === networks.POLYGON_AMOY.chainId) {
     stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
   }
-  if (chainId === CHAIN_IDS.POLYGON_MAINNET) {
+  if (chainId === networks.POLYGON_MAINNET.chainId) {
     stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
   }
   const validators: ("mtpV2" | "sigV2" | "v3")[] = ["mtpV2", "sigV2", "v3"];
   const groth16VerifierWrappers = [
     {
       validator: "mtpV2",
-      verifierWrapper: UNIFIED_CONTRACT_ADDRESSES.GROTH16_VERIFIER_MTP,
+      verifierWrapper: contractsInfo.GROTH16_VERIFIER_MTP.unifiedAddress,
     },
     {
       validator: "sigV2",
-      verifierWrapper: UNIFIED_CONTRACT_ADDRESSES.GROTH16_VERIFIER_SIG,
+      verifierWrapper: contractsInfo.GROTH16_VERIFIER_SIG.unifiedAddress,
     },
     {
       validator: "v3",
-      verifierWrapper: UNIFIED_CONTRACT_ADDRESSES.GROTH16_VERIFIER_V3,
+      verifierWrapper: contractsInfo.GROTH16_VERIFIER_V3.unifiedAddress,
     },
   ];
   const deployStrategy: "basic" | "create2" =

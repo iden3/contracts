@@ -1,11 +1,10 @@
 import { ethers } from "hardhat";
 import {
-  CHAIN_IDS,
-  CONTRACT_NAMES,
+  networks,
+  contractsInfo,
   ORACLE_SIGNING_ADDRESS_PRODUCTION,
   STATE_ADDRESS_POLYGON_AMOY,
   STATE_ADDRESS_POLYGON_MAINNET,
-  UNIFIED_CONTRACT_ADDRESSES,
 } from "../../helpers/constants";
 import hre from "hardhat";
 
@@ -14,19 +13,19 @@ async function main() {
 
   const chainId = hre.network.config.chainId;
 
-  let stateContractAddress = UNIFIED_CONTRACT_ADDRESSES.STATE as string;
-  if (chainId === CHAIN_IDS.POLYGON_AMOY) {
+  let stateContractAddress = contractsInfo.STATE.unifiedAddress as string;
+  if (chainId === networks.POLYGON_AMOY.chainId) {
     stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
   }
-  if (chainId === CHAIN_IDS.POLYGON_MAINNET) {
+  if (chainId === networks.POLYGON_MAINNET.chainId) {
     stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
   }
-  const state = await ethers.getContractAt(CONTRACT_NAMES.STATE, stateContractAddress);
+  const state = await ethers.getContractAt(contractsInfo.STATE.name, stateContractAddress);
   const crossChainProofValidatorAddress = await state.getCrossChainProofValidator();
   console.log(`CrossChainProofValidator address: ${crossChainProofValidatorAddress}`);
 
   const crossChainProofValidator = await ethers.getContractAt(
-    CONTRACT_NAMES.CROSS_CHAIN_PROOF_VALIDATOR,
+    contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.name,
     crossChainProofValidatorAddress,
   );
   const tx = await crossChainProofValidator.setOracleSigningAddress(oracleSigningAddress);

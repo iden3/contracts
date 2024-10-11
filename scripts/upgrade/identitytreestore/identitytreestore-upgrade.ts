@@ -4,11 +4,10 @@ import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers
 import path from "path";
 import fs from "fs";
 import {
-  CHAIN_IDS,
-  CONTRACT_NAMES,
+  networks,
+  contractsInfo,
   STATE_ADDRESS_POLYGON_AMOY,
   STATE_ADDRESS_POLYGON_MAINNET,
-  UNIFIED_CONTRACT_ADDRESSES,
 } from "../../../helpers/constants";
 
 const removePreviousIgnitionFiles = true;
@@ -37,11 +36,11 @@ async function main() {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
 
-  let stateContractAddress = UNIFIED_CONTRACT_ADDRESSES.STATE as string;
-  if (chainId === CHAIN_IDS.POLYGON_AMOY) {
+  let stateContractAddress = contractsInfo.STATE.unifiedAddress;
+  if (chainId === networks.POLYGON_AMOY.chainId) {
     stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
   }
-  if (chainId === CHAIN_IDS.POLYGON_MAINNET) {
+  if (chainId === networks.POLYGON_MAINNET.chainId) {
     stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
   }
 
@@ -53,8 +52,8 @@ async function main() {
   }
 
   const identityTreeStore = await ethers.getContractAt(
-    CONTRACT_NAMES.IDENTITY_TREE_STORE,
-    UNIFIED_CONTRACT_ADDRESSES.IDENTITY_TREE_STORE,
+    contractsInfo.IDENTITY_TREE_STORE.name,
+    contractsInfo.IDENTITY_TREE_STORE.unifiedAddress,
   );
 
   console.log("Version before:", await identityTreeStore.VERSION());
@@ -63,10 +62,10 @@ async function main() {
   const stateDeployHelper = await DeployHelper.initialize([proxyAdminOwnerSigner], true);
 
   await stateDeployHelper.upgradeIdentityTreeStore(
-    UNIFIED_CONTRACT_ADDRESSES.IDENTITY_TREE_STORE,
+    contractsInfo.IDENTITY_TREE_STORE.unifiedAddress,
     stateContractAddress,
-    UNIFIED_CONTRACT_ADDRESSES.POSEIDON_2,
-    UNIFIED_CONTRACT_ADDRESSES.POSEIDON_3,
+    contractsInfo.POSEIDON_2.unifiedAddress,
+    contractsInfo.POSEIDON_3.unifiedAddress,
     deployStrategy,
   );
 
@@ -80,8 +79,8 @@ async function main() {
   const outputJson = {
     proxyAdminOwnerAddress: await proxyAdminOwnerSigner.getAddress(),
     identityTreeStore: await identityTreeStore.getAddress(),
-    poseidon2ContractAddress: UNIFIED_CONTRACT_ADDRESSES.POSEIDON_2,
-    poseidon3ContractAddress: UNIFIED_CONTRACT_ADDRESSES.POSEIDON_3,
+    poseidon2ContractAddress: contractsInfo.POSEIDON_2.unifiedAddress,
+    poseidon3ContractAddress: contractsInfo.POSEIDON_3.unifiedAddress,
     network: network,
     chainId,
     deployStrategy,

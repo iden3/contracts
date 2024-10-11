@@ -6,10 +6,10 @@ import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers
 import fs from "fs";
 import path from "path";
 import {
-  CHAIN_IDS,
+  networks,
   STATE_ADDRESS_POLYGON_AMOY,
   STATE_ADDRESS_POLYGON_MAINNET,
-  UNIFIED_CONTRACT_ADDRESSES,
+  contractsInfo,
 } from "../../../helpers/constants";
 
 const config = getConfig();
@@ -42,11 +42,11 @@ async function main() {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
 
-  let stateContractAddress = UNIFIED_CONTRACT_ADDRESSES.STATE as string;
-  if (chainId === CHAIN_IDS.POLYGON_AMOY) {
+  let stateContractAddress = contractsInfo.STATE.unifiedAddress;
+  if (chainId === networks.POLYGON_AMOY.chainId) {
     stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
   }
-  if (chainId === CHAIN_IDS.POLYGON_MAINNET) {
+  if (chainId === networks.POLYGON_MAINNET.chainId) {
     stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
   }
   const { proxyAdminOwnerSigner, stateOwnerSigner } = await getSigners(impersonate);
@@ -72,8 +72,8 @@ async function main() {
     await stateDeployHelper.upgradeState(
       await stateContract.getAddress(),
       true,
-      UNIFIED_CONTRACT_ADDRESSES.SMT_LIB,
-      UNIFIED_CONTRACT_ADDRESSES.POSEIDON_1,
+      contractsInfo.SMT_LIB.unifiedAddress,
+      contractsInfo.POSEIDON_1.unifiedAddress,
     );
 
   console.log("Version after: ", await state.VERSION());
@@ -124,14 +124,14 @@ async function main() {
   const outputJson = {
     proxyAdminOwnerAddress: await proxyAdminOwnerSigner.getAddress(),
     state: await state.getAddress(),
-    verifier: UNIFIED_CONTRACT_ADDRESSES.GROTH16_VERIFIER_STATE_TRANSITION,
+    verifier: contractsInfo.GROTH16_VERIFIER_STATE_TRANSITION.unifiedAddress,
     stateLib: await stateLib.getAddress(),
-    smtLib: UNIFIED_CONTRACT_ADDRESSES.SMT_LIB,
+    smtLib: contractsInfo.SMT_LIB.unifiedAddress,
     stateCrossChainLib: await stateCrossChainLib.getAddress(),
     crossChainProofValidator: await crossChainProofValidator.getAddress(),
-    poseidon1: UNIFIED_CONTRACT_ADDRESSES.POSEIDON_1,
-    poseidon2: UNIFIED_CONTRACT_ADDRESSES.POSEIDON_2,
-    poseidon3: UNIFIED_CONTRACT_ADDRESSES.POSEIDON_3,
+    poseidon1: contractsInfo.POSEIDON_1.unifiedAddress,
+    poseidon2: contractsInfo.POSEIDON_2.unifiedAddress,
+    poseidon3: contractsInfo.POSEIDON_3.unifiedAddress,
     network: network,
     chainId,
     deployStrategy,

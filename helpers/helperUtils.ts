@@ -1,7 +1,7 @@
 import { Contract, ContractTransactionResponse, JsonRpcProvider } from "ethers";
 import hre, { ethers, network } from "hardhat";
 import fs from "fs";
-import { CONTRACT_NAMES, NETWORK_NAMES, UNIFIED_CONTRACT_ADDRESSES } from "./constants";
+import { contractsInfo, networks } from "./constants";
 import { poseidonContract } from "circomlibjs";
 
 export function getConfig() {
@@ -69,37 +69,37 @@ export async function isContract(
 
 export function getProviders() {
   return [
-    { network: NETWORK_NAMES.PRIVADO_TEST, rpcUrl: process.env.PRIVADO_TEST_RPC_URL as string },
-    { network: NETWORK_NAMES.PRIVADO_MAIN, rpcUrl: process.env.PRIVADO_MAIN_RPC_URL as string },
-    { network: NETWORK_NAMES.POLYGON_AMOY, rpcUrl: process.env.POLYGON_AMOY_RPC_URL as string },
+    { network: networks.PRIVADO_TEST.name, rpcUrl: process.env.PRIVADO_TEST_RPC_URL as string },
+    { network: networks.PRIVADO_MAIN.name, rpcUrl: process.env.PRIVADO_MAIN_RPC_URL as string },
+    { network: networks.POLYGON_AMOY.name, rpcUrl: process.env.POLYGON_AMOY_RPC_URL as string },
     {
-      network: NETWORK_NAMES.POLYGON_MAINNET,
+      network: networks.POLYGON_MAINNET.name,
       rpcUrl: process.env.POLYGON_MAINNET_RPC_URL as string,
     },
     {
-      network: NETWORK_NAMES.ETHEREUM_SEPOLIA,
+      network: networks.ETHEREUM_SEPOLIA.name,
       rpcUrl: process.env.ETHEREUM_SEPOLIA_RPC_URL as string,
     },
     {
-      network: NETWORK_NAMES.ETHEREUM_MAINNET,
+      network: networks.ETHEREUM_MAINNET.name,
       rpcUrl: process.env.ETHEREUM_MAINNET_RPC_URL as string,
     },
-    { network: NETWORK_NAMES.ZKEVM_CARDONA, rpcUrl: process.env.ZKEVM_CARDONA_RPC_URL as string },
-    { network: NETWORK_NAMES.ZKEVM_MAINNET, rpcUrl: process.env.ZKEVM_MAINNET_RPC_URL as string },
-    { network: NETWORK_NAMES.LINEA_SEPOLIA, rpcUrl: process.env.LINEA_SEPOLIA_RPC_URL as string },
-    { network: NETWORK_NAMES.LINEA_MAINNET, rpcUrl: process.env.LINEA_MAINNET_RPC_URL as string },
+    { network: networks.ZKEVM_CARDONA.name, rpcUrl: process.env.ZKEVM_CARDONA_RPC_URL as string },
+    { network: networks.ZKEVM_MAINNET.name, rpcUrl: process.env.ZKEVM_MAINNET_RPC_URL as string },
+    { network: networks.LINEA_SEPOLIA.name, rpcUrl: process.env.LINEA_SEPOLIA_RPC_URL as string },
+    { network: networks.LINEA_MAINNET.name, rpcUrl: process.env.LINEA_MAINNET_RPC_URL as string },
   ];
 }
 
 function getUnifiedContractAddress(contractName: string): string {
   let contractProperty;
-  for (const property in CONTRACT_NAMES) {
-    if (CONTRACT_NAMES[property] === contractName) {
+  for (const property in contractsInfo) {
+    if (contractsInfo[property].name === contractName) {
       contractProperty = property;
       break;
     }
   }
-  return UNIFIED_CONTRACT_ADDRESSES[contractProperty];
+  return contractsInfo[contractProperty].unifiedAddress;
 }
 
 export async function getPoseidonN(nInputs: number): Promise<Contract | null> {

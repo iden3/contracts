@@ -1,6 +1,6 @@
 import { ethers, ignition } from "hardhat";
 import { Create2AddressAnchorModule } from "../../ignition/modules/crate2AddressAnchor";
-import { create2AddressesInfo } from "../../helpers/constants";
+import { contractsInfo } from "../../helpers/constants";
 
 async function main() {
   const deployStrategy: "basic" | "create2" = "create2";
@@ -12,8 +12,11 @@ async function main() {
   });
 
   const contractAddress = await create2AddressAnchor.getAddress();
-  if (deployStrategy === "create2" && contractAddress !== create2AddressesInfo.anchorAddress) {
-    throw `The contract was supposed to be deployed to ${create2AddressesInfo.anchorAddress}, but it was deployed to ${contractAddress}`;
+  if (
+    deployStrategy === "create2" &&
+    contractAddress !== contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress
+  ) {
+    throw `The contract was supposed to be deployed to ${contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress}, but it was deployed to ${contractAddress}`;
   }
 
   console.log(`Create2AddressAnchor deployed to: ${contractAddress}`);

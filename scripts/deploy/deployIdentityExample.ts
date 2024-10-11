@@ -4,10 +4,10 @@ import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeploy
 import { deployPoseidons } from "../../helpers/PoseidonDeployHelper";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import {
-  CHAIN_IDS,
+  networks,
   STATE_ADDRESS_POLYGON_AMOY,
   STATE_ADDRESS_POLYGON_MAINNET,
-  UNIFIED_CONTRACT_ADDRESSES,
+  contractsInfo,
 } from "../../helpers/constants";
 const pathOutputJson = path.join(__dirname, "./deploy_identity_example_output.json");
 import hre from "hardhat";
@@ -18,11 +18,11 @@ async function main() {
 
   const chainId = hre.network.config.chainId;
 
-  let stateContractAddress = UNIFIED_CONTRACT_ADDRESSES.STATE as string;
-  if (chainId === CHAIN_IDS.POLYGON_AMOY) {
+  let stateContractAddress = contractsInfo.STATE.unifiedAddress;
+  if (chainId === networks.POLYGON_AMOY.chainId) {
     stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
   }
-  if (chainId === CHAIN_IDS.POLYGON_MAINNET) {
+  if (chainId === networks.POLYGON_MAINNET.chainId) {
     stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
   }
 
@@ -31,8 +31,8 @@ async function main() {
 
   const contracts = await identityDeployHelper.deployIdentity(
     stateContractAddress,
-    UNIFIED_CONTRACT_ADDRESSES.SMT_LIB,
-    UNIFIED_CONTRACT_ADDRESSES.POSEIDON_3,
+    contractsInfo.SMT_LIB.unifiedAddress,
+    contractsInfo.POSEIDON_3.unifiedAddress,
     await poseidon4Elements.getAddress(),
     defaultIdType,
   );
@@ -41,11 +41,11 @@ async function main() {
 
   const outputJson = {
     state: stateContractAddress,
-    smtLib: UNIFIED_CONTRACT_ADDRESSES.SMT_LIB,
+    smtLib: contractsInfo.SMT_LIB.unifiedAddress,
     identity: await identity.getAddress(),
-    poseidon1: UNIFIED_CONTRACT_ADDRESSES.POSEIDON_1,
-    poseidon2: UNIFIED_CONTRACT_ADDRESSES.POSEIDON_2,
-    poseidon3: UNIFIED_CONTRACT_ADDRESSES.POSEIDON_3,
+    poseidon1: contractsInfo.POSEIDON_1.unifiedAddress,
+    poseidon2: contractsInfo.POSEIDON_2.unifiedAddress,
+    poseidon3: contractsInfo.POSEIDON_3.unifiedAddress,
     poseidon4: poseidon4Elements.getAddress(),
     network: process.env.HARDHAT_NETWORK,
   };

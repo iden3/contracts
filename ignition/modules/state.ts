@@ -1,5 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { CONTRACT_NAMES, create2AddressesInfo } from "../../helpers/constants";
+import { contractsInfo } from "../../helpers/constants";
 
 export const StateProxyModule = buildModule("StateProxyModule", (m) => {
   const proxyAdminOwner = m.getAccount(0);
@@ -11,9 +11,9 @@ export const StateProxyModule = buildModule("StateProxyModule", (m) => {
   // Subsequent upgrades are supposed to switch this proxy to the real implementation.
 
   const proxy = m.contract("TransparentUpgradeableProxy", [
-    create2AddressesInfo.anchorAddress,
+    contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress,
     proxyAdminOwner,
-    create2AddressesInfo.contractsCalldataMap.get(CONTRACT_NAMES.STATE) as string,
+    contractsInfo.STATE.create2Calldata,
   ]);
   const proxyAdminAddress = m.readEventArgument(proxy, "AdminChanged", "newAdmin");
   const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);

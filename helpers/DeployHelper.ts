@@ -17,7 +17,7 @@ import {
   UniversalVerifierProxyModule,
   Groth16VerifierStateTransitionModule,
 } from "../ignition";
-import { chainIdInfoMap, CONTRACT_NAMES } from "./constants";
+import { chainIdInfoMap, contractsInfo } from "./constants";
 import {
   getUnifiedContract,
   Logger,
@@ -129,54 +129,54 @@ export class DeployHelper {
     const owner = this.signers[0];
 
     let stateLib;
-    stateLib = await tmpContractDeployments.getContract(CONTRACT_NAMES.STATE_LIB);
+    stateLib = await tmpContractDeployments.getContract(contractsInfo.STATE_LIB.name);
     if (stateLib) {
       Logger.warning(
-        `${CONTRACT_NAMES.STATE_LIB} found already deployed to:  ${await stateLib?.getAddress()}`,
+        `${contractsInfo.STATE_LIB.name} found already deployed to:  ${await stateLib?.getAddress()}`,
       );
     } else {
       this.log("deploying StateLib...");
       stateLib = await this.deployStateLib();
-      tmpContractDeployments.addContract(CONTRACT_NAMES.STATE_LIB, await stateLib.getAddress());
+      tmpContractDeployments.addContract(contractsInfo.STATE_LIB.name, await stateLib.getAddress());
     }
 
     let stateCrossChainLib;
     stateCrossChainLib = await tmpContractDeployments.getContract(
-      CONTRACT_NAMES.STATE_CROSS_CHAIN_LIB,
+      contractsInfo.STATE_CROSS_CHAIN_LIB.name,
     );
     if (stateCrossChainLib) {
       Logger.warning(
-        `${CONTRACT_NAMES.STATE_CROSS_CHAIN_LIB} found already deployed to:  ${await stateCrossChainLib?.getAddress()}`,
+        `${contractsInfo.STATE_CROSS_CHAIN_LIB.name} found already deployed to:  ${await stateCrossChainLib?.getAddress()}`,
       );
     } else {
       this.log("deploying StateCrossChainLib...");
       stateCrossChainLib = await this.deployStateCrossChainLib("StateCrossChainLib");
       tmpContractDeployments.addContract(
-        CONTRACT_NAMES.STATE_CROSS_CHAIN_LIB,
+        contractsInfo.STATE_CROSS_CHAIN_LIB.name,
         await stateCrossChainLib.getAddress(),
       );
     }
 
     let crossChainProofValidator;
     crossChainProofValidator = await tmpContractDeployments.getContract(
-      CONTRACT_NAMES.CROSS_CHAIN_PROOF_VALIDATOR,
+      contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.name,
     );
     if (crossChainProofValidator) {
       Logger.warning(
-        `${CONTRACT_NAMES.CROSS_CHAIN_PROOF_VALIDATOR} found already deployed to:  ${await crossChainProofValidator?.getAddress}`,
+        `${contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.name} found already deployed to:  ${await crossChainProofValidator?.getAddress}`,
       );
     } else {
       this.log("deploying CrossChainProofValidator...");
       crossChainProofValidator = await this.deployCrossChainProofValidator();
       tmpContractDeployments.addContract(
-        CONTRACT_NAMES.CROSS_CHAIN_PROOF_VALIDATOR,
+        contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.name,
         await crossChainProofValidator.getAddress(),
       );
     }
 
     this.log("deploying State...");
 
-    const StateFactory = await ethers.getContractFactory(CONTRACT_NAMES.STATE, {
+    const StateFactory = await ethers.getContractFactory(contractsInfo.STATE.name, {
       libraries: {
         StateLib: await stateLib.getAddress(),
         SmtLib: smtLibAddress,
@@ -186,7 +186,7 @@ export class DeployHelper {
     });
 
     const Create2AddressAnchorFactory = await ethers.getContractFactory(
-      CONTRACT_NAMES.CREATE2_ADDRESS_ANCHOR,
+      contractsInfo.CREATE2_ADDRESS_ANCHOR.name,
     );
 
     let state;
@@ -197,11 +197,11 @@ export class DeployHelper {
       const tx = await crossChainProofValidator.deploymentTransaction();
       await waitNotToInterfereWithHardhatIgnition(tx as ContractTransactionResponse);
 
-      state = await getUnifiedContract(CONTRACT_NAMES.STATE);
+      state = await getUnifiedContract(contractsInfo.STATE.name);
       if (state) {
         tmpContractDeployments.remove();
         Logger.warning(
-          `${CONTRACT_NAMES.STATE} found already deployed to:  ${await state?.getAddress()}`,
+          `${contractsInfo.STATE.name} found already deployed to:  ${await state?.getAddress()}`,
         );
         return {
           state,
@@ -254,7 +254,7 @@ export class DeployHelper {
 
     await state.waitForDeployment();
     Logger.success(
-      `${CONTRACT_NAMES.STATE} contract deployed to address ${await state.getAddress()} from ${await owner.getAddress()}`,
+      `${contractsInfo.STATE.name} contract deployed to address ${await state.getAddress()} from ${await owner.getAddress()}`,
     );
 
     if (supportedIdTypes.length) {
@@ -284,8 +284,8 @@ export class DeployHelper {
     redeployCrossChainProofValidator = true,
     smtLibAddress: string,
     poseidon1Address: string,
-    stateContractName = CONTRACT_NAMES.STATE,
-    crossChainProofValidatorContractName = CONTRACT_NAMES.CROSS_CHAIN_PROOF_VALIDATOR,
+    stateContractName = contractsInfo.STATE.name,
+    crossChainProofValidatorContractName = contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.name,
   ): Promise<{
     state: Contract;
     stateLib: Contract;
@@ -362,7 +362,7 @@ export class DeployHelper {
   async deploySmtLib(
     poseidon2Address: string,
     poseidon3Address: string,
-    contractName = CONTRACT_NAMES.SMT_LIB,
+    contractName = contractsInfo.SMT_LIB.name,
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<Contract> {
     this.log(`deploying with ${deployStrategy === "create2" ? "CREATE2" : "BASIC"} strategy...`);
@@ -394,7 +394,7 @@ export class DeployHelper {
   }
 
   async deployStateLib(): Promise<Contract> {
-    const stateLib = await ethers.deployContract(CONTRACT_NAMES.STATE_LIB);
+    const stateLib = await ethers.deployContract(contractsInfo.STATE_LIB.name);
     await stateLib.waitForDeployment();
     Logger.success(`StateLib deployed to:  ${await stateLib.getAddress()}`);
 
@@ -660,7 +660,7 @@ export class DeployHelper {
 
     const ValidatorFactory = await ethers.getContractFactory(validatorContractName);
     const Create2AddressAnchorFactory = await ethers.getContractFactory(
-      CONTRACT_NAMES.CREATE2_ADDRESS_ANCHOR,
+      contractsInfo.CREATE2_ADDRESS_ANCHOR.name,
     );
 
     let validator;
@@ -783,7 +783,7 @@ export class DeployHelper {
   async upgradeUniversalVerifier(
     verifierAddress: string,
     verifierLibAddr: string,
-    verifierContractName = CONTRACT_NAMES.UNIVERSAL_VERIFIER,
+    verifierContractName = contractsInfo.UNIVERSAL_VERIFIER.name,
   ): Promise<Contract> {
     this.log("======== Verifier: upgrade started ========");
 
@@ -865,7 +865,7 @@ export class DeployHelper {
       owner = this.signers[0];
     }
     const UniversalVerifierFactory = await ethers.getContractFactory(
-      CONTRACT_NAMES.UNIVERSAL_VERIFIER,
+      contractsInfo.UNIVERSAL_VERIFIER.name,
       {
         signer: owner,
         libraries: {
@@ -874,17 +874,17 @@ export class DeployHelper {
       },
     );
     const Create2AddressAnchorFactory = await ethers.getContractFactory(
-      CONTRACT_NAMES.CREATE2_ADDRESS_ANCHOR,
+      contractsInfo.CREATE2_ADDRESS_ANCHOR.name,
     );
 
     let universalVerifier;
     if (deployStrategy === "create2") {
       this.log("deploying with CREATE2 strategy...");
 
-      universalVerifier = await getUnifiedContract(CONTRACT_NAMES.UNIVERSAL_VERIFIER);
+      universalVerifier = await getUnifiedContract(contractsInfo.UNIVERSAL_VERIFIER.name);
       if (universalVerifier) {
         Logger.warning(
-          `${CONTRACT_NAMES.UNIVERSAL_VERIFIER} found already deployed to:  ${await universalVerifier?.getAddress()}`,
+          `${contractsInfo.UNIVERSAL_VERIFIER.name} found already deployed to:  ${await universalVerifier?.getAddress()}`,
         );
         return universalVerifier;
       }
@@ -926,7 +926,7 @@ export class DeployHelper {
 
     await universalVerifier.waitForDeployment();
     Logger.success(
-      `${CONTRACT_NAMES.UNIVERSAL_VERIFIER} deployed to: ${await universalVerifier.getAddress()}`,
+      `${contractsInfo.UNIVERSAL_VERIFIER.name} deployed to: ${await universalVerifier.getAddress()}`,
     );
 
     return universalVerifier;
@@ -956,7 +956,7 @@ export class DeployHelper {
     }
 
     const IdentityTreeStoreFactory = await ethers.getContractFactory(
-      CONTRACT_NAMES.IDENTITY_TREE_STORE,
+      contractsInfo.IDENTITY_TREE_STORE.name,
       {
         libraries: {
           PoseidonUnit2L: poseidon2ElementsAddress,
@@ -966,17 +966,17 @@ export class DeployHelper {
     );
 
     const Create2AddressAnchorFactory = await ethers.getContractFactory(
-      CONTRACT_NAMES.CREATE2_ADDRESS_ANCHOR,
+      contractsInfo.CREATE2_ADDRESS_ANCHOR.name,
     );
 
     let identityTreeStore;
     if (deployStrategy === "create2") {
       this.log("deploying with CREATE2 strategy...");
 
-      identityTreeStore = await getUnifiedContract(CONTRACT_NAMES.IDENTITY_TREE_STORE);
+      identityTreeStore = await getUnifiedContract(contractsInfo.IDENTITY_TREE_STORE.name);
       if (identityTreeStore) {
         Logger.warning(
-          `${CONTRACT_NAMES.IDENTITY_TREE_STORE} found already deployed to:  ${await identityTreeStore?.getAddress()}`,
+          `${contractsInfo.IDENTITY_TREE_STORE.name} found already deployed to:  ${await identityTreeStore?.getAddress()}`,
         );
         return {
           identityTreeStore,
@@ -1030,24 +1030,26 @@ export class DeployHelper {
     vcPayment: Contract;
   }> {
     const owner = this.signers[0];
-    const VCPaymentFactory = await ethers.getContractFactory(CONTRACT_NAMES.VC_PAYMENT);
+    const VCPaymentFactory = await ethers.getContractFactory(contractsInfo.VC_PAYMENT.name);
     const Create2AddressAnchorFactory = await ethers.getContractFactory(
-      CONTRACT_NAMES.CREATE2_ADDRESS_ANCHOR,
+      contractsInfo.CREATE2_ADDRESS_ANCHOR.name,
     );
 
     let vcPayment;
     if (deployStrategy === "create2") {
       this.log("deploying with CREATE2 strategy...");
 
-      vcPayment = await getUnifiedContract(CONTRACT_NAMES.VC_PAYMENT);
+      // TODO: uncomment when VC_PAYMENT contract is ready with unified addresses
+      /* vcPayment = await getUnifiedContract(contractsInfo.VC_PAYMENT.name);
       if (vcPayment) {
         Logger.warning(
-          `${CONTRACT_NAMES.VC_PAYMENT} found already deployed to:  ${await vcPayment?.getAddress()}`,
+          `${contractsInfo.VC_PAYMENT.name} found already deployed to:  ${await vcPayment?.getAddress()}`,
         );
         return {
           vcPayment,
         };
-      }
+      }*/
+
       // Deploying VCPayment contract to predictable address but with dummy implementation
       vcPayment = (
         await ignition.deploy(VCPaymentModule, {
@@ -1074,7 +1076,9 @@ export class DeployHelper {
     }
 
     await vcPayment.waitForDeployment();
-    Logger.success(`\n${CONTRACT_NAMES.VC_PAYMENT} deployed to: ${await vcPayment.getAddress()}`);
+    Logger.success(
+      `\n${contractsInfo.VC_PAYMENT.name} deployed to: ${await vcPayment.getAddress()}`,
+    );
 
     return {
       vcPayment,
@@ -1098,7 +1102,7 @@ export class DeployHelper {
 
     console.log("Upgrading IdentityTreeStore...");
     const IdentityTreeStoreFactory = await ethers.getContractFactory(
-      CONTRACT_NAMES.IDENTITY_TREE_STORE,
+      contractsInfo.IDENTITY_TREE_STORE.name,
       {
         libraries: {
           PoseidonUnit2L: poseidon2ElementsAddress,

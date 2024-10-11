@@ -1,29 +1,29 @@
 import hre, { ethers } from "hardhat";
 import { Logger } from "../../helpers/helperUtils";
-import { CONTRACT_NAMES, UNIFIED_CONTRACT_ADDRESSES } from "../../helpers/constants";
+import { contractsInfo } from "../../helpers/constants";
 
 async function main() {
   const [signer] = await hre.ethers.getSigners();
 
   const universalVerifier = await ethers.getContractAt(
-    CONTRACT_NAMES.UNIVERSAL_VERIFIER,
-    UNIFIED_CONTRACT_ADDRESSES.UNIVERSAL_VERIFIER,
+    contractsInfo.UNIVERSAL_VERIFIER.name,
+    contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
   );
 
   console.log("Adding validators to Universal Verifier...");
 
   const validators = [
     {
-      validatorContractAddress: UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_MTP,
-      validatorContractName: CONTRACT_NAMES.VALIDATOR_MTP,
+      validatorContractAddress: contractsInfo.VALIDATOR_MTP.unifiedAddress,
+      validatorContractName: contractsInfo.VALIDATOR_MTP.name,
     },
     {
-      validatorContractAddress: UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_SIG,
-      validatorContractName: CONTRACT_NAMES.VALIDATOR_SIG,
+      validatorContractAddress: contractsInfo.VALIDATOR_SIG.unifiedAddress,
+      validatorContractName: contractsInfo.VALIDATOR_SIG.name,
     },
     {
-      validatorContractAddress: UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_V3,
-      validatorContractName: CONTRACT_NAMES.VALIDATOR_V3,
+      validatorContractAddress: contractsInfo.VALIDATOR_V3.unifiedAddress,
+      validatorContractName: contractsInfo.VALIDATOR_V3.name,
     },
   ];
 

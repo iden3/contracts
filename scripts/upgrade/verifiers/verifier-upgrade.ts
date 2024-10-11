@@ -16,11 +16,10 @@ import {
   waitNotToInterfereWithHardhatIgnition,
 } from "../../../helpers/helperUtils";
 import {
-  CHAIN_IDS,
-  CONTRACT_NAMES,
+  networks,
+  contractsInfo,
   STATE_ADDRESS_POLYGON_AMOY,
   STATE_ADDRESS_POLYGON_MAINNET,
-  UNIFIED_CONTRACT_ADDRESSES,
 } from "../../../helpers/constants";
 import fs from "fs";
 import path from "path";
@@ -33,7 +32,7 @@ const config = getConfig();
 
 const chainId = hre.network.config.chainId;
 const network = hre.network.name;
-let stateContractAddress = UNIFIED_CONTRACT_ADDRESSES.STATE as string;
+let stateContractAddress = contractsInfo.STATE.unifiedAddress;
 
 async function getSigners(useImpersonation: boolean): Promise<any> {
   if (useImpersonation) {
@@ -58,10 +57,10 @@ async function main() {
   if (!ethers.isAddress(config.ledgerAccount)) {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
-  if (chainId === CHAIN_IDS.POLYGON_AMOY) {
+  if (chainId === networks.POLYGON_AMOY.chainId) {
     stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
   }
-  if (chainId === CHAIN_IDS.POLYGON_MAINNET) {
+  if (chainId === networks.POLYGON_MAINNET.chainId) {
     stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
   }
 
@@ -92,7 +91,7 @@ async function main() {
 
   const universalVerifierContract = await universalVerifierMigrationHelper.getInitContract({
     contractNameOrAbi: universalVerifierArtifact.abi,
-    address: UNIFIED_CONTRACT_ADDRESSES.UNIVERSAL_VERIFIER,
+    address: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
   });
 
   const universalVerifierOwnerAddressBefore = await universalVerifierContract.owner();
@@ -147,16 +146,16 @@ async function main() {
 
   const validators = [
     {
-      validatorContractAddress: UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_MTP,
-      validatorContractName: CONTRACT_NAMES.VALIDATOR_MTP,
+      validatorContractAddress: contractsInfo.VALIDATOR_MTP.unifiedAddress,
+      validatorContractName: contractsInfo.VALIDATOR_MTP.name,
     },
     {
-      validatorContractAddress: UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_SIG,
-      validatorContractName: CONTRACT_NAMES.VALIDATOR_SIG,
+      validatorContractAddress: contractsInfo.VALIDATOR_SIG.unifiedAddress,
+      validatorContractName: contractsInfo.VALIDATOR_SIG.name,
     },
     {
-      validatorContractAddress: UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_V3,
-      validatorContractName: CONTRACT_NAMES.VALIDATOR_V3,
+      validatorContractAddress: contractsInfo.VALIDATOR_V3.unifiedAddress,
+      validatorContractName: contractsInfo.VALIDATOR_V3.name,
     },
   ];
 
@@ -196,18 +195,18 @@ async function main() {
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 
   console.log("Testing verifiation with submitZKPResponseV2 after migration...");
-  await testVerification(universalVerifierContract, UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_V3);
+  await testVerification(universalVerifierContract, contractsInfo.VALIDATOR_V3.unifiedAddress);
 }
 
 async function onlyTestVerification() {
   const { universalVerifierOwnerSigner } = await getSigners(impersonate);
   const universalVerifierContract = await ethers.getContractAt(
     universalVerifierArtifact.abi,
-    UNIFIED_CONTRACT_ADDRESSES.UNIVERSAL_VERIFIER,
+    contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
     universalVerifierOwnerSigner,
   );
   console.log("Testing verifiation with submitZKPResponseV2 after migration...");
-  await testVerification(universalVerifierContract, UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_V3);
+  await testVerification(universalVerifierContract, contractsInfo.VALIDATOR_V3.unifiedAddress);
 }
 
 async function upgradeState(deployHelper: DeployHelper, signer: any) {
@@ -221,8 +220,8 @@ async function upgradeState(deployHelper: DeployHelper, signer: any) {
   // **** Upgrade State ****
   await stateMigrationHelper.upgradeContract(stateContract, {
     redeployCrossChainProofValidator: true,
-    smtLibAddress: UNIFIED_CONTRACT_ADDRESSES.SMT_LIB,
-    poseidon1Address: UNIFIED_CONTRACT_ADDRESSES.POSEIDON_1,
+    smtLibAddress: contractsInfo.SMT_LIB.unifiedAddress,
+    poseidon1Address: contractsInfo.POSEIDON_1.unifiedAddress,
   }); // first upgrade we need deploy oracle proof validator
   // ************************
   // If testing with forked zkevm network wait for 1 confirmation, otherwise is waiting forever
@@ -252,7 +251,7 @@ async function testVerification(verifier: Contract, validatorV3Address: string) 
   await setZKPRequest_KYCAgeCredential(requestId, verifier, validatorV3Address);
   await submitZKPResponses_KYCAgeCredential(requestId, verifier, {
     stateContractAddress: stateContractAddress,
-    verifierContractAddress: UNIFIED_CONTRACT_ADDRESSES.UNIVERSAL_VERIFIER,
+    verifierContractAddress: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
   });
 }
 

@@ -1,5 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { CONTRACT_NAMES, create2AddressesInfo } from "../../helpers/constants";
+import { contractsInfo } from "../../helpers/constants";
 
 /**
  * This is the first module that will be run. It deploys the proxy and the
@@ -17,9 +17,9 @@ const VCPaymentProxyModule = buildModule("VCPaymentProxyModule", (m) => {
   // Subsequent upgrades are supposed to switch this proxy to the real implementation.
 
   const proxy = m.contract("TransparentUpgradeableProxy", [
-    create2AddressesInfo.anchorAddress,
+    contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress,
     proxyAdminOwner,
-    create2AddressesInfo.contractsCalldataMap.get(CONTRACT_NAMES.VC_PAYMENT) as string,
+    contractsInfo.VC_PAYMENT.create2Calldata,
   ]);
   const proxyAdminAddress = m.readEventArgument(proxy, "AdminChanged", "newAdmin");
   const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
@@ -39,7 +39,7 @@ export const VCPaymentModule = buildModule("VCPaymentModule", (m) => {
   // While we're still using it to create a contract instance, we're now telling Hardhat Ignition
   // to treat the contract at the proxy address as an instance of the Demo contract.
   // This allows us to interact with the underlying Demo contract via the proxy from within tests and scripts.
-  const vcPayment = m.contractAt(CONTRACT_NAMES.VC_PAYMENT, proxy);
+  const vcPayment = m.contractAt(contractsInfo.VC_PAYMENT.name, proxy);
 
   // Return the contract instance, along with the original proxy and proxyAdmin contracts
   // so that they can be used by other modules, or in tests and scripts.

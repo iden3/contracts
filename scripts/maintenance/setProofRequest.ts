@@ -4,7 +4,7 @@ import { calculateQueryHashV2, calculateQueryHashV3 } from "../../test/utils/que
 import { Blockchain, DidMethod, NetworkId, DID } from "@iden3/js-iden3-core";
 import { buildVerifierId } from "../deploy/deployCrossChainVerifierWithRequests";
 import { Operators } from "@0xpolygonid/js-sdk";
-import { CONTRACT_NAMES, UNIFIED_CONTRACT_ADDRESSES } from "../../helpers/constants";
+import { contractsInfo } from "../../helpers/constants";
 
 async function main() {
   const MTP_V2_CIRCUIT_NAME = "credentialAtomicQueryMTPV2OnChain";
@@ -21,8 +21,8 @@ async function main() {
   const methodId = "ade09fcd";
 
   const verifier = await ethers.getContractAt(
-    CONTRACT_NAMES.UNIVERSAL_VERIFIER,
-    UNIFIED_CONTRACT_ADDRESSES.UNIVERSAL_VERIFIER,
+    contractsInfo.UNIVERSAL_VERIFIER.name,
+    contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
   );
 
   const verifierId = buildVerifierId(await verifier.getAddress(), {
@@ -55,7 +55,7 @@ async function main() {
   let data: string;
   switch (circuitName) {
     case MTP_V2_CIRCUIT_NAME:
-      validatorAddress = UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_MTP;
+      validatorAddress = contractsInfo.VALIDATOR_MTP.unifiedAddress;
       query.queryHash = calculateQueryHashV2(
         query.value,
         query.schema,
@@ -68,7 +68,7 @@ async function main() {
 
       break;
     case SIG_V2_CIRCUIT_NAME:
-      validatorAddress = UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_SIG;
+      validatorAddress = contractsInfo.VALIDATOR_SIG.unifiedAddress;
       query.queryHash = calculateQueryHashV2(
         query.value,
         query.schema,
@@ -80,7 +80,7 @@ async function main() {
       data = packValidatorParams(query);
       break;
     case V3_CIRCUIT_NAME:
-      validatorAddress = UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_V3;
+      validatorAddress = contractsInfo.VALIDATOR_V3.unifiedAddress;
       query = {
         ...query,
         allowedIssuers: allowedIssuers,

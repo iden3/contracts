@@ -1,7 +1,7 @@
 import { DeployHelper } from "../../../helpers/DeployHelper";
 import hre, { ethers } from "hardhat";
-import { getConfig, isContract, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
-import { CONTRACT_NAMES, UNIFIED_CONTRACT_ADDRESSES, VALIDATOR_TYPES } from "../../../helpers/constants";
+import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
+import { contractsInfo, VALIDATOR_TYPES } from "../../../helpers/constants";
 import fs from "fs";
 import path from "path";
 
@@ -40,18 +40,18 @@ async function main() {
   // You can select the list of validators you want to upgrade here
   const validators = [
     {
-      validatorContractAddress: UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_MTP,
-      validatorContractName: CONTRACT_NAMES.VALIDATOR_MTP,
+      validatorContractAddress: contractsInfo.VALIDATOR_MTP.unifiedAddress,
+      validatorContractName: contractsInfo.VALIDATOR_MTP.name,
       validatorType: VALIDATOR_TYPES.MTP_V2,
     },
     {
-      validatorContractAddress: UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_SIG,
-      validatorContractName: CONTRACT_NAMES.VALIDATOR_SIG,
+      validatorContractAddress: contractsInfo.VALIDATOR_SIG.unifiedAddress,
+      validatorContractName: contractsInfo.VALIDATOR_SIG.name,
       validatorType: VALIDATOR_TYPES.SIG_V2,
     },
     {
-      validatorContractAddress: UNIFIED_CONTRACT_ADDRESSES.VALIDATOR_V3,
-      validatorContractName: CONTRACT_NAMES.VALIDATOR_V3,
+      validatorContractAddress: contractsInfo.VALIDATOR_V3.unifiedAddress,
+      validatorContractName: contractsInfo.VALIDATOR_V3.name,
       validatorType: VALIDATOR_TYPES.V3,
     },
   ];

@@ -1,7 +1,7 @@
 import hre, { ethers, upgrades } from "hardhat";
 import { expect } from "chai";
 // import { getConfig } from "../../helpers/helperUtils";
-// import { CONTRACT_NAMES } from "../../helpers/constants";
+// import { contractsInfo } from "../../helpers/constants";
 
 // Get proper contract address and name
 const contractAddress = "<put-your-contract-address>";
@@ -10,7 +10,7 @@ const contractAddress = "<put-your-contract-address>";
 async function main() {
   // Put proper contract name here
   const contractName = "<put-your-contract-name>";
-  // const contractName = CONTRACT_NAMES.STATE;
+  // const contractName = contractsInfo.STATE.name;
   const contract = await ethers.getContractAt(contractName, contractAddress);
 
   const alwaysRevertFactory = await ethers.getContractFactory("AlwaysRevert");

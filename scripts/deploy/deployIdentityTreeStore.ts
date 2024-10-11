@@ -4,10 +4,10 @@ import path from "path";
 import fs from "fs";
 import { getConfig, isContract } from "../../helpers/helperUtils";
 import {
-  CHAIN_IDS,
+  networks,
   STATE_ADDRESS_POLYGON_AMOY,
   STATE_ADDRESS_POLYGON_MAINNET,
-  UNIFIED_CONTRACT_ADDRESSES,
+  contractsInfo,
 } from "../../helpers/constants";
 
 (async () => {
@@ -15,11 +15,11 @@ import {
 
   const chainId = hre.network.config.chainId;
 
-  let stateContractAddress = UNIFIED_CONTRACT_ADDRESSES.STATE as string;
-  if (chainId === CHAIN_IDS.POLYGON_AMOY) {
+  let stateContractAddress = contractsInfo.STATE.unifiedAddress;
+  if (chainId === networks.POLYGON_AMOY.chainId) {
     stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
   }
-  if (chainId === CHAIN_IDS.POLYGON_MAINNET) {
+  if (chainId === networks.POLYGON_MAINNET.chainId) {
     stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
   }
 
@@ -31,8 +31,8 @@ import {
 
   const { identityTreeStore } = await deployHelper.deployIdentityTreeStore(
     stateContractAddress,
-    UNIFIED_CONTRACT_ADDRESSES.POSEIDON_2,
-    UNIFIED_CONTRACT_ADDRESSES.POSEIDON_3,
+    contractsInfo.POSEIDON_2.unifiedAddress,
+    contractsInfo.POSEIDON_3.unifiedAddress,
     deployStrategy,
   );
 
@@ -44,8 +44,8 @@ import {
   const outputJson = {
     proxyAdminOwnerAddress: await signer.getAddress(),
     identityTreeStore: await identityTreeStore.getAddress(),
-    poseidon2ContractAddress: UNIFIED_CONTRACT_ADDRESSES.POSEIDON_2,
-    poseidon3ContractAddress: UNIFIED_CONTRACT_ADDRESSES.POSEIDON_3,
+    poseidon2ContractAddress: contractsInfo.POSEIDON_2.unifiedAddress,
+    poseidon3ContractAddress: contractsInfo.POSEIDON_3.unifiedAddress,
     network: networkName,
     chainId,
     deployStrategy,

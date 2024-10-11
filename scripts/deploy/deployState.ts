@@ -3,7 +3,7 @@ import path from "path";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import hre from "hardhat";
 import { getConfig } from "../../helpers/helperUtils";
-import { UNIFIED_CONTRACT_ADDRESSES } from "../../helpers/constants";
+import { contractsInfo } from "../../helpers/constants";
 
 async function main() {
   const config = getConfig();
@@ -17,9 +17,9 @@ async function main() {
     await deployHelper.deployState(
       [],
       deployStrategy,
-      UNIFIED_CONTRACT_ADDRESSES.SMT_LIB,
-      UNIFIED_CONTRACT_ADDRESSES.POSEIDON_1,
-      UNIFIED_CONTRACT_ADDRESSES.GROTH16_VERIFIER_STATE_TRANSITION,
+      contractsInfo.SMT_LIB.unifiedAddress,
+      contractsInfo.POSEIDON_1.unifiedAddress,
+      contractsInfo.GROTH16_VERIFIER_STATE_TRANSITION.unifiedAddress,
     );
 
   const chainId = parseInt(await hre.network.provider.send("eth_chainId"), 16);
