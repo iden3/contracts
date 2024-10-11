@@ -81,11 +81,6 @@ Then run the deployment scripts:
    ```shell
    npx hardhat run scripts/deploy/deployState.ts --network <your-network>
    ```
-   Once state is deployed replace contract address with yours from the state deployment in your `.env` file
-   ```
-   STATE_CONTRACT_ADDRESS=
-   ```
-
 4. Deploy Identity Tree Store contract
    ```
    npx hardhat run scripts/deploy/deployIdentityTreeStore.ts --network <your-network>
