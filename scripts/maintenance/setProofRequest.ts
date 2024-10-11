@@ -92,7 +92,7 @@ async function main() {
       data = packValidatorParams(query);
       break;
     case V3_CIRCUIT_NAME:
-      if (!!(await isContract(config.validatorV3ContractAddress))) {
+      if (!(await isContract(config.validatorV3ContractAddress))) {
         throw new Error("VALIDATOR_V3_CONTRACT_ADDRESS is not set or invalid");
       }
       validatorAddress = config.validatorV3ContractAddress;
