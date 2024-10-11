@@ -78,6 +78,7 @@ export const CONTRACT_NAMES = Object.freeze({
   VALIDATOR_V3: "CredentialAtomicQueryV3Validator",
   IDENTITY_TREE_STORE: "IdentityTreeStore",
   VC_PAYMENT: "VCPayment",
+  MC_PAYMENT: "MCPayment",
   CROSS_CHAIN_PROOF_VALIDATOR: "CrossChainProofValidator",
   SMT_LIB: "SmtLib",
   POSEIDON_1: "PoseidonUnit1L",
@@ -147,5 +148,6 @@ export const create2AddressesInfo: {
       CONTRACT_NAMES.IDENTITY_TREE_STORE,
       ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.IdentityTreeStore")),
     )
-    .set(CONTRACT_NAMES.VC_PAYMENT, ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.VCPayment"))),
+    .set(CONTRACT_NAMES.VC_PAYMENT, ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.VCPayment")))
+    .set(CONTRACT_NAMES.MC_PAYMENT, ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.MCPayment"))),
 };

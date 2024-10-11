@@ -18,6 +18,7 @@ import {
 } from "../ignition";
 import { chainIdInfoMap, CONTRACT_NAMES } from "./constants";
 import { waitNotToInterfereWithHardhatIgnition } from "./helperUtils";
+import { MCPaymentModule } from "../ignition/modules/mcPayment";
 
 const SMT_MAX_DEPTH = 64;
 
@@ -911,6 +912,59 @@ export class DeployHelper {
 
     return {
       vcPayment,
+    };
+  }
+
+  async deployMCPayment(
+    ownerPercentage: number,
+    deployStrategy: "basic" | "create2" = "basic",
+  ): Promise<{
+    mcPayment: Contract;
+  }> {
+    if (ownerPercentage < 0 || ownerPercentage > 100) {
+      throw new Error("Owner percentage should be between 0 and 100");
+    }
+    const owner = this.signers[0];
+    const MCPaymentFactory = await ethers.getContractFactory("MCPayment");
+    const Create2AddressAnchorFactory = await ethers.getContractFactory("Create2AddressAnchor");
+
+    let mcPayment;
+    if (deployStrategy === "create2") {
+      this.log("deploying with CREATE2 strategy...");
+
+      // Deploying VCPayment contract to predictable address but with dummy implementation
+      mcPayment = (
+        await ignition.deploy(MCPaymentModule, {
+          strategy: deployStrategy,
+        })
+      ).mcPayment;
+      await mcPayment.waitForDeployment();
+
+      // Upgrading MCPayment contract to the first real implementation
+      // and force network files import, so creation, as they do not exist at the moment
+      const mcPaymentAddress = await mcPayment.getAddress();
+      await upgrades.forceImport(mcPaymentAddress, Create2AddressAnchorFactory);
+      mcPayment = await upgrades.upgradeProxy(mcPaymentAddress, MCPaymentFactory, {
+        redeployImplementation: "always",
+        call: {
+          fn: "initialize",
+          args: [await owner.getAddress(), ownerPercentage],
+        },
+      });
+    } else {
+      this.log("deploying with BASIC strategy...");
+
+      mcPayment = await upgrades.deployProxy(MCPaymentFactory, [
+        await owner.getAddress(),
+        ownerPercentage,
+      ]);
+    }
+
+    await mcPayment.waitForDeployment();
+    console.log("\nMCPayment deployed to:", await mcPayment.getAddress());
+
+    return {
+      mcPayment,
     };
   }
 

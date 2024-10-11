@@ -1,18 +1,19 @@
-import { ethers, run, upgrades } from "hardhat";
-import { MCPayment, MCPayment__factory } from "../../typechain-types";
+import { run } from "hardhat";
+import { DeployHelper } from "../../helpers/DeployHelper";
+import { getConfig } from "../../helpers/helperUtils";
 
 async function main() {
-  const [owner] = await ethers.getSigners();
-  const ownerPartPercentage = 10;
-  const proxy = (await upgrades.deployProxy(new MCPayment__factory(owner), [
-    ownerPartPercentage,
-  ])) as unknown as MCPayment;
-  await proxy.waitForDeployment();
+  const config = getConfig();
+  const deployStrategy: "basic" | "create2" =
+    config.deployStrategy == "create2" ? "create2" : "basic";
 
-  console.log(MCPayment__factory.name, " deployed to:", await proxy.getAddress());
+  const deployHelper = await DeployHelper.initialize(null, true);
+
+  const { mcPayment } = await deployHelper.deployMCPayment(10, deployStrategy);
+
   try {
     await run("verify:verify", {
-      address: await proxy.getAddress(),
+      address: await mcPayment.getAddress(),
       constructorArguments: [],
     });
   } catch (error) {

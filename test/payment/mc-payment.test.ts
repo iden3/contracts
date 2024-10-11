@@ -29,6 +29,7 @@ describe("VC Payment Contract", () => {
     owner = signers[0];
 
     payment = (await upgrades.deployProxy(new MCPayment__factory(owner), [
+      await owner.getAddress(),
       ownerPercentage,
     ])) as unknown as MCPayment;
     await payment.waitForDeployment();
