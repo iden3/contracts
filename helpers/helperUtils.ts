@@ -161,7 +161,9 @@ export class TempContractDeployments {
       return null;
     }
     const contractAddress = this.contracts.get(contractName) as string;
-
+    if (!(await isContract(contractAddress))) {
+      return null;
+    }
     return ethers.getContractAt(contractName, contractAddress);
   }
 
