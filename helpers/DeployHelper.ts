@@ -932,7 +932,7 @@ export class DeployHelper {
     if (deployStrategy === "create2") {
       this.log("deploying with CREATE2 strategy...");
 
-      // Deploying VCPayment contract to predictable address but with dummy implementation
+      // Deploying MCPayment contract to predictable address but with dummy implementation
       mcPayment = (
         await ignition.deploy(MCPaymentModule, {
           strategy: deployStrategy,
