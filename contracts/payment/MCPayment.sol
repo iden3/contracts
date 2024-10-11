@@ -15,12 +15,12 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     bytes32 public constant PAYMENT_DATA_TYPE_HASH =
         keccak256(
             // solhint-disable-next-line max-line-length
-            "Iden3PaymentRailsRequestV1(address recipient,uint256 value,uint256 expirationDate,uint256 nonce,bytes metadata)"
+            "Iden3PaymentRailsRequestV1(address recipient,uint256 amount,uint256 expirationDate,uint256 nonce,bytes metadata)"
         );
 
     struct Iden3PaymentRailsRequestV1 {
         address recipient;
-        uint256 value;
+        uint256 amount;
         uint256 expirationDate;
         uint256 nonce;
         bytes metadata;
@@ -78,7 +78,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         if ($.isPaid[paymentId]) {
             revert PaymentError("MCPayment: payment already paid");
         }
-        if (paymentData.value != msg.value) {
+        if (paymentData.amount != msg.value) {
             revert PaymentError("MCPayment: invalid payment value");
         }
         if (paymentData.expirationDate < block.timestamp) {
@@ -108,7 +108,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
             abi.encode(
                 PAYMENT_DATA_TYPE_HASH,
                 paymentData.recipient,
-                paymentData.value,
+                paymentData.amount,
                 paymentData.expirationDate,
                 paymentData.nonce,
                 keccak256(paymentData.metadata)

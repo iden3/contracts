@@ -14,7 +14,7 @@ describe("VC Payment Contract", () => {
   const types = {
     Iden3PaymentRailsRequestV1: [
       { name: "recipient", type: "address" },
-      { name: "value", type: "uint256" },
+      { name: "amount", type: "uint256" },
       { name: "expirationDate", type: "uint256" },
       { name: "nonce", type: "uint256" },
       { name: "metadata", type: "bytes" },
@@ -45,7 +45,7 @@ describe("VC Payment Contract", () => {
   it("Check signature verification:", async () => {
     const paymentData = {
       recipient: issuer1Signer.address,
-      value: 100,
+      amount: 100,
       expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60,
       nonce: 22,
       metadata: "0x",
@@ -61,7 +61,7 @@ describe("VC Payment Contract", () => {
   it("Check payment:", async () => {
     const paymentData = {
       recipient: issuer1Signer.address,
-      value: 100,
+      amount: 100,
       expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60, // 1 hour
       nonce: 25,
       metadata: "0x",
