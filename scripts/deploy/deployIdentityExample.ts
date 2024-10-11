@@ -2,35 +2,28 @@ import fs from "fs";
 import path from "path";
 import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeployHelper";
 import { deployPoseidons } from "../../helpers/PoseidonDeployHelper";
-import { getConfig } from "../../helpers/helperUtils";
 import { DeployHelper } from "../../helpers/DeployHelper";
-import { isContract } from "../../helpers/helperUtils";
+import {
+  networks,
+  STATE_ADDRESS_POLYGON_AMOY,
+  STATE_ADDRESS_POLYGON_MAINNET,
+  contractsInfo,
+} from "../../helpers/constants";
 const pathOutputJson = path.join(__dirname, "./deploy_identity_example_output.json");
+import hre from "hardhat";
 
 async function main() {
-  const config = getConfig();
   const stDeployHelper = await DeployHelper.initialize();
   const { defaultIdType } = await stDeployHelper.getDefaultIdType();
 
-  const stateContractAddress = config.stateContractAddress;
-  if (!(await isContract(stateContractAddress))) {
-    throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
+  const chainId = hre.network.config.chainId;
+
+  let stateContractAddress = contractsInfo.STATE.unifiedAddress;
+  if (chainId === networks.POLYGON_AMOY.chainId) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
   }
-  const smtLibContractAddress = config.smtLibContractAddress;
-  if (!(await isContract(smtLibContractAddress))) {
-    throw new Error("SMT_LIB_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const poseidon1ContractAddress = config.poseidon1ContractAddress;
-  if (!(await isContract(poseidon1ContractAddress))) {
-    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const poseidon2ContractAddress = config.poseidon2ContractAddress;
-  if (!(await isContract(poseidon2ContractAddress))) {
-    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const poseidon3ContractAddress = config.poseidon3ContractAddress;
-  if (!(await isContract(poseidon3ContractAddress))) {
-    throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set or invalid");
+  if (chainId === networks.POLYGON_MAINNET.chainId) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
   }
 
   const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
@@ -38,8 +31,8 @@ async function main() {
 
   const contracts = await identityDeployHelper.deployIdentity(
     stateContractAddress,
-    smtLibContractAddress,
-    poseidon3ContractAddress,
+    contractsInfo.SMT_LIB.unifiedAddress,
+    contractsInfo.POSEIDON_3.unifiedAddress,
     await poseidon4Elements.getAddress(),
     defaultIdType,
   );
@@ -48,11 +41,11 @@ async function main() {
 
   const outputJson = {
     state: stateContractAddress,
-    smtLib: smtLibContractAddress,
+    smtLib: contractsInfo.SMT_LIB.unifiedAddress,
     identity: await identity.getAddress(),
-    poseidon1: poseidon1ContractAddress,
-    poseidon2: poseidon2ContractAddress,
-    poseidon3: poseidon3ContractAddress,
+    poseidon1: contractsInfo.POSEIDON_1.unifiedAddress,
+    poseidon2: contractsInfo.POSEIDON_2.unifiedAddress,
+    poseidon3: contractsInfo.POSEIDON_3.unifiedAddress,
     poseidon4: poseidon4Elements.getAddress(),
     network: process.env.HARDHAT_NETWORK,
   };

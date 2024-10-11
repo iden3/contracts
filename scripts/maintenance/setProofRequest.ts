@@ -3,9 +3,8 @@ import { packV3ValidatorParams, packValidatorParams } from "../../test/utils/val
 import { calculateQueryHashV2, calculateQueryHashV3 } from "../../test/utils/query-hash-utils";
 import { Blockchain, DidMethod, NetworkId, DID } from "@iden3/js-iden3-core";
 import { buildVerifierId } from "../deploy/deployCrossChainVerifierWithRequests";
-import { getConfig, isContract } from "../../helpers/helperUtils";
 import { Operators } from "@0xpolygonid/js-sdk";
-import { CONTRACT_NAMES } from "../../helpers/constants";
+import { contractsInfo } from "../../helpers/constants";
 
 async function main() {
   const MTP_V2_CIRCUIT_NAME = "credentialAtomicQueryMTPV2OnChain";
@@ -21,14 +20,9 @@ async function main() {
 
   const methodId = "ade09fcd";
 
-  const config = getConfig();
-  if (!(await isContract(config.universalVerifierContractAddress))) {
-    throw new Error("UNIVERSAL_VERIFIER_CONTRACT_ADDRESS is not set or invalid");
-  }
-
   const verifier = await ethers.getContractAt(
-    CONTRACT_NAMES.UNIVERSAL_VERIFIER,
-    config.universalVerifierContractAddress,
+    contractsInfo.UNIVERSAL_VERIFIER.name,
+    contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
   );
 
   const verifierId = buildVerifierId(await verifier.getAddress(), {
@@ -61,10 +55,7 @@ async function main() {
   let data: string;
   switch (circuitName) {
     case MTP_V2_CIRCUIT_NAME:
-      if (!(await isContract(config.validatorMTPContractAddress))) {
-        throw new Error("VALIDATOR_MTP_CONTRACT_ADDRESS is not set or invalid");
-      }
-      validatorAddress = config.validatorMTPContractAddress;
+      validatorAddress = contractsInfo.VALIDATOR_MTP.unifiedAddress;
       query.queryHash = calculateQueryHashV2(
         query.value,
         query.schema,
@@ -77,10 +68,7 @@ async function main() {
 
       break;
     case SIG_V2_CIRCUIT_NAME:
-      if (!(await isContract(config.validatorSigContractAddress))) {
-        throw new Error("VALIDATOR_SIG_CONTRACT_ADDRESS is not set or invalid");
-      }
-      validatorAddress = config.validatorSigContractAddress;
+      validatorAddress = contractsInfo.VALIDATOR_SIG.unifiedAddress;
       query.queryHash = calculateQueryHashV2(
         query.value,
         query.schema,
@@ -92,10 +80,7 @@ async function main() {
       data = packValidatorParams(query);
       break;
     case V3_CIRCUIT_NAME:
-      if (!(await isContract(config.validatorV3ContractAddress))) {
-        throw new Error("VALIDATOR_V3_CONTRACT_ADDRESS is not set or invalid");
-      }
-      validatorAddress = config.validatorV3ContractAddress;
+      validatorAddress = contractsInfo.VALIDATOR_V3.unifiedAddress;
       query = {
         ...query,
         allowedIssuers: allowedIssuers,

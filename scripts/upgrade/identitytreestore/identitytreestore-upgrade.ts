@@ -1,9 +1,14 @@
 import hre, { ethers } from "hardhat";
 import { DeployHelper } from "../../../helpers/DeployHelper";
-import { getConfig, isContract, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
+import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
 import path from "path";
 import fs from "fs";
-import { CONTRACT_NAMES } from "../../../helpers/constants";
+import {
+  networks,
+  contractsInfo,
+  STATE_ADDRESS_POLYGON_AMOY,
+  STATE_ADDRESS_POLYGON_MAINNET,
+} from "../../../helpers/constants";
 
 const removePreviousIgnitionFiles = true;
 const impersonate = false;
@@ -30,21 +35,13 @@ async function main() {
   if (!ethers.isAddress(config.ledgerAccount)) {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
-  const stateContractAddress = config.stateContractAddress;
-  if (!(await isContract(stateContractAddress))) {
-    throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
+
+  let stateContractAddress = contractsInfo.STATE.unifiedAddress;
+  if (chainId === networks.POLYGON_AMOY.chainId) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
   }
-  const identityTreeStoreContractAddress = config.identityTreeStoreContractAddress;
-  if (!(await isContract(identityTreeStoreContractAddress))) {
-    throw new Error("IDENTITY_TREE_STORE_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const poseidon2ContractAddress = config.poseidon2ContractAddress;
-  if (!(await isContract(poseidon2ContractAddress))) {
-    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const poseidon3ContractAddress = config.poseidon3ContractAddress;
-  if (!(await isContract(poseidon3ContractAddress))) {
-    throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set or invalid");
+  if (chainId === networks.POLYGON_MAINNET.chainId) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
   }
 
   const { proxyAdminOwnerSigner } = await getSigners(impersonate);
@@ -55,8 +52,8 @@ async function main() {
   }
 
   const identityTreeStore = await ethers.getContractAt(
-    CONTRACT_NAMES.IDENTITY_TREE_STORE,
-    identityTreeStoreContractAddress,
+    contractsInfo.IDENTITY_TREE_STORE.name,
+    contractsInfo.IDENTITY_TREE_STORE.unifiedAddress,
   );
 
   console.log("Version before:", await identityTreeStore.VERSION());
@@ -65,10 +62,10 @@ async function main() {
   const stateDeployHelper = await DeployHelper.initialize([proxyAdminOwnerSigner], true);
 
   await stateDeployHelper.upgradeIdentityTreeStore(
-    identityTreeStoreContractAddress,
+    contractsInfo.IDENTITY_TREE_STORE.unifiedAddress,
     stateContractAddress,
-    poseidon2ContractAddress,
-    poseidon3ContractAddress,
+    contractsInfo.POSEIDON_2.unifiedAddress,
+    contractsInfo.POSEIDON_3.unifiedAddress,
     deployStrategy,
   );
 
@@ -82,8 +79,8 @@ async function main() {
   const outputJson = {
     proxyAdminOwnerAddress: await proxyAdminOwnerSigner.getAddress(),
     identityTreeStore: await identityTreeStore.getAddress(),
-    poseidon2ContractAddress,
-    poseidon3ContractAddress,
+    poseidon2ContractAddress: contractsInfo.POSEIDON_2.unifiedAddress,
+    poseidon3ContractAddress: contractsInfo.POSEIDON_3.unifiedAddress,
     network: network,
     chainId,
     deployStrategy,

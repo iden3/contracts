@@ -1,13 +1,12 @@
-import { getProviders, isContract } from "../../../helpers/helperUtils";
+import { getProviders, isContract, Logger } from "../../../helpers/helperUtils";
 import {
-  CONTRACT_NAMES,
-  NETWORK_NAMES,
+  contractsInfo,
+  networks,
   ORACLE_SIGNING_ADDRESS_PRODUCTION,
   STATE_ADDRESS_POLYGON_AMOY,
   STATE_ADDRESS_POLYGON_MAINNET,
-  UNIFIED_CONTRACT_ADDRESSES,
 } from "../../../helpers/constants";
-import { ethers } from "hardhat";
+import hre, { ethers } from "hardhat";
 
 async function main() {
   const providers = getProviders();
@@ -15,26 +14,32 @@ async function main() {
   for (const provider of providers) {
     const jsonRpcProvider = new ethers.JsonRpcProvider(provider.rpcUrl);
 
-    let stateAddress = UNIFIED_CONTRACT_ADDRESSES.STATE as string;
-    if (provider.network === NETWORK_NAMES.POLYGON_AMOY) {
-      stateAddress = STATE_ADDRESS_POLYGON_AMOY;
+    const chainId = hre.network.config.chainId;
+
+    let stateContractAddress = contractsInfo.STATE.unifiedAddress;
+    if (chainId === networks.POLYGON_AMOY.chainId) {
+      stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
     }
-    if (provider.network === NETWORK_NAMES.POLYGON_MAINNET) {
-      stateAddress = STATE_ADDRESS_POLYGON_MAINNET;
+    if (chainId === networks.POLYGON_MAINNET.chainId) {
+      stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
     }
 
     let oracleSigningAddressIsValid = true;
     const defaultOracleSigningAddress = ORACLE_SIGNING_ADDRESS_PRODUCTION; // production signing address
 
-    if (!(await isContract(stateAddress, jsonRpcProvider))) {
+    if (!(await isContract(stateContractAddress, jsonRpcProvider))) {
       oracleSigningAddressIsValid = false;
     } else {
       const wallet = new ethers.Wallet(process.env.PRIVATE_KEY as string, jsonRpcProvider);
-      const state = await ethers.getContractAt(CONTRACT_NAMES.STATE, stateAddress, wallet);
+      const state = await ethers.getContractAt(
+        contractsInfo.STATE.name,
+        stateContractAddress,
+        wallet,
+      );
       const crossChainProofValidatorAddress = await state.getCrossChainProofValidator();
 
       const crossChainProofValidator = await ethers.getContractAt(
-        CONTRACT_NAMES.CROSS_CHAIN_PROOF_VALIDATOR,
+        contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.name,
         crossChainProofValidatorAddress,
         wallet,
       );
@@ -45,9 +50,9 @@ async function main() {
     }
 
     if (!oracleSigningAddressIsValid) {
-      console.log(`\x1b[31m  [𐄂] \x1b[0m${provider.network}: Oracle signing address is not valid`);
+      Logger.error(`${provider.network}: Oracle signing address is not valid`);
     } else {
-      console.log(`\x1b[32m  [✓] \x1b[0m${provider.network}: Oracle signing address is valid`);
+      Logger.success(`${provider.network}: Oracle signing address is valid`);
     }
   }
 }

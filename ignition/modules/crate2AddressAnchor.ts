@@ -1,6 +1,7 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+import { contractsInfo } from "../../helpers/constants";
 
-const contractName = "Create2AddressAnchor";
+const contractName = contractsInfo.CREATE2_ADDRESS_ANCHOR.name;
 
 export const Create2AddressAnchorModule = buildModule("Create2AddressAnchorModule", (m) => {
   // The bytecode, which is effectively deployed is 0x60006000F3 (last 5 bytes of the init bytecode),

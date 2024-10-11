@@ -1,22 +1,14 @@
-import { ContractTransactionResponse, JsonRpcProvider } from "ethers";
-import hre, { network } from "hardhat";
+import { Contract, ContractTransactionResponse, JsonRpcProvider } from "ethers";
+import hre, { ethers, network } from "hardhat";
 import fs from "fs";
-import { NETWORK_NAMES } from "./constants";
+import { contractsInfo, networks } from "./constants";
+import { poseidonContract } from "circomlibjs";
 
 export function getConfig() {
   return {
     deployStrategy: process.env.DEPLOY_STRATEGY || "",
     ledgerAccount: process.env.LEDGER_ACCOUNT || "",
     stateContractAddress: process.env.STATE_CONTRACT_ADDRESS || "",
-    universalVerifierContractAddress: process.env.UNIVERSAL_VERIFIER_CONTRACT_ADDRESS || "",
-    validatorSigContractAddress: process.env.VALIDATOR_SIG_CONTRACT_ADDRESS || "",
-    validatorMTPContractAddress: process.env.VALIDATOR_MTP_CONTRACT_ADDRESS || "",
-    validatorV3ContractAddress: process.env.VALIDATOR_V3_CONTRACT_ADDRESS || "",
-    poseidon1ContractAddress: process.env.POSEIDON_1_CONTRACT_ADDRESS || "",
-    poseidon2ContractAddress: process.env.POSEIDON_2_CONTRACT_ADDRESS || "",
-    poseidon3ContractAddress: process.env.POSEIDON_3_CONTRACT_ADDRESS || "",
-    smtLibContractAddress: process.env.SMT_LIB_CONTRACT_ADDRESS || "",
-    identityTreeStoreContractAddress: process.env.IDENTITY_TREE_STORE_CONTRACT_ADDRESS || "",
   };
 }
 
@@ -42,7 +34,7 @@ export async function waitNotToInterfereWithHardhatIgnition(
     const blockNumberDeployed = await hre.ethers.provider.getBlockNumber();
     let blockNumber = blockNumberDeployed;
     console.log("Waiting some blocks to expect at least 5 confirmations for Hardhat Ignition...");
-    while (blockNumber < blockNumberDeployed + 5) {
+    while (blockNumber < blockNumberDeployed + 10) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       blockNumber = await hre.ethers.provider.getBlockNumber();
     }
@@ -56,15 +48,18 @@ export function removeLocalhostNetworkIgnitionFiles(network: string, chainId: nu
   }
 }
 
-export async function isContract(value: any, provider?: JsonRpcProvider): Promise<boolean> {
-  if (!hre.ethers.isAddress(value)) {
+export async function isContract(
+  contractAddress: any,
+  provider?: JsonRpcProvider,
+): Promise<boolean> {
+  if (!hre.ethers.isAddress(contractAddress)) {
     return false;
   }
   let result;
   if (provider) {
-    result = await provider.getCode(value);
+    result = await provider.getCode(contractAddress);
   } else {
-    result = await hre.ethers.provider.getCode(value);
+    result = await hre.ethers.provider.getCode(contractAddress);
   }
   if (result === "0x") {
     return false;
@@ -74,24 +69,116 @@ export async function isContract(value: any, provider?: JsonRpcProvider): Promis
 
 export function getProviders() {
   return [
-    { network: NETWORK_NAMES.PRIVADO_TEST, rpcUrl: process.env.PRIVADO_TEST_RPC_URL as string },
-    { network: NETWORK_NAMES.PRIVADO_MAIN, rpcUrl: process.env.PRIVADO_MAIN_RPC_URL as string },
-    { network: NETWORK_NAMES.POLYGON_AMOY, rpcUrl: process.env.POLYGON_AMOY_RPC_URL as string },
+    { network: networks.PRIVADO_TEST.name, rpcUrl: process.env.PRIVADO_TEST_RPC_URL as string },
+    { network: networks.PRIVADO_MAIN.name, rpcUrl: process.env.PRIVADO_MAIN_RPC_URL as string },
+    { network: networks.POLYGON_AMOY.name, rpcUrl: process.env.POLYGON_AMOY_RPC_URL as string },
     {
-      network: NETWORK_NAMES.POLYGON_MAINNET,
+      network: networks.POLYGON_MAINNET.name,
       rpcUrl: process.env.POLYGON_MAINNET_RPC_URL as string,
     },
     {
-      network: NETWORK_NAMES.ETHEREUM_SEPOLIA,
+      network: networks.ETHEREUM_SEPOLIA.name,
       rpcUrl: process.env.ETHEREUM_SEPOLIA_RPC_URL as string,
     },
     {
-      network: NETWORK_NAMES.ETHEREUM_MAINNET,
+      network: networks.ETHEREUM_MAINNET.name,
       rpcUrl: process.env.ETHEREUM_MAINNET_RPC_URL as string,
     },
-    { network: NETWORK_NAMES.ZKEVM_CARDONA, rpcUrl: process.env.ZKEVM_CARDONA_RPC_URL as string },
-    { network: NETWORK_NAMES.ZKEVM_MAINNET, rpcUrl: process.env.ZKEVM_MAINNET_RPC_URL as string },
-    { network: NETWORK_NAMES.LINEA_SEPOLIA, rpcUrl: process.env.LINEA_SEPOLIA_RPC_URL as string },
-    { network: NETWORK_NAMES.LINEA_MAINNET, rpcUrl: process.env.LINEA_MAINNET_RPC_URL as string },
+    { network: networks.ZKEVM_CARDONA.name, rpcUrl: process.env.ZKEVM_CARDONA_RPC_URL as string },
+    { network: networks.ZKEVM_MAINNET.name, rpcUrl: process.env.ZKEVM_MAINNET_RPC_URL as string },
+    { network: networks.LINEA_SEPOLIA.name, rpcUrl: process.env.LINEA_SEPOLIA_RPC_URL as string },
+    { network: networks.LINEA_MAINNET.name, rpcUrl: process.env.LINEA_MAINNET_RPC_URL as string },
   ];
+}
+
+function getUnifiedContractAddress(contractName: string): string {
+  let contractProperty;
+  for (const property in contractsInfo) {
+    if (contractsInfo[property].name === contractName) {
+      contractProperty = property;
+      break;
+    }
+  }
+  return contractsInfo[contractProperty].unifiedAddress;
+}
+
+export async function getPoseidonN(nInputs: number): Promise<Contract | null> {
+  const abi = poseidonContract.generateABI(nInputs);
+  const contractAddress = getUnifiedContractAddress(`PoseidonUnit${nInputs}L`);
+
+  if (!(await isContract(contractAddress))) {
+    return null;
+  }
+  const poseidon = new ethers.Contract(contractAddress, abi);
+
+  return poseidon;
+}
+
+export async function getUnifiedContract(contractName: string): Promise<Contract | null> {
+  if (contractName.includes("PoseidonUnit")) {
+    const nInputs = parseInt(contractName.substring(12, 13));
+    return getPoseidonN(nInputs);
+  } else {
+    const contractAddress = getUnifiedContractAddress(contractName);
+    if (!(await isContract(contractAddress))) {
+      return null;
+    }
+    return ethers.getContractAt(contractName, contractAddress);
+  }
+}
+
+export class Logger {
+  static error(message: string) {
+    console.log(`\x1b[31m[𐄂] \x1b[0m${message}`);
+  }
+
+  static success(message: string) {
+    console.log(`\x1b[32m[✓] \x1b[0m${message}`);
+  }
+
+  static warning(message: string) {
+    console.log(`\x1b[33m[⚠] \x1b[0m${message}`);
+  }
+}
+
+export class TempContractDeployments {
+  contracts: Map<string, string>;
+  filePath: string;
+
+  constructor(filePath: string) {
+    this.contracts = new Map<string, string>();
+    this.filePath = filePath;
+    this.load();
+  }
+
+  addContract(contractName: string, contractAddress: string) {
+    this.contracts.set(contractName, contractAddress);
+    this.save();
+  }
+
+  async getContract(contractName: string): Promise<Contract | null> {
+    if (!this.contracts.has(contractName)) {
+      return null;
+    }
+    const contractAddress = this.contracts.get(contractName) as string;
+    if (!(await isContract(contractAddress))) {
+      return null;
+    }
+    return ethers.getContractAt(contractName, contractAddress);
+  }
+
+  save() {
+    fs.writeFileSync(this.filePath, JSON.stringify(Array.from(this.contracts.entries()), null, 1));
+  }
+
+  load() {
+    if (fs.existsSync(this.filePath)) {
+      const data = fs.readFileSync(this.filePath, "utf8");
+      this.contracts = new Map(JSON.parse(data));
+    }
+  }
+
+  remove() {
+    fs.rmSync(this.filePath);
+  }
 }

@@ -1,8 +1,9 @@
 import fs from "fs";
 import path from "path";
 import { DeployHelper } from "../../helpers/DeployHelper";
-import hre, { network } from "hardhat";
+import hre from "hardhat";
 import { getConfig } from "../../helpers/helperUtils";
+import { contractsInfo } from "../../helpers/constants";
 
 async function main() {
   const config = getConfig();
@@ -12,19 +13,16 @@ async function main() {
 
   const deployHelper = await DeployHelper.initialize(null, true);
 
-  const {
-    state,
-    groth16verifier,
-    stateLib,
-    smtLib,
-    stateCrossChainLib,
-    poseidon1,
-    poseidon2,
-    poseidon3,
-    crossChainProofValidator,
-  } = await deployHelper.deployState([], "Groth16VerifierStateTransition", deployStrategy);
+  const { state, stateLib, stateCrossChainLib, crossChainProofValidator } =
+    await deployHelper.deployState(
+      [],
+      deployStrategy,
+      contractsInfo.SMT_LIB.unifiedAddress,
+      contractsInfo.POSEIDON_1.unifiedAddress,
+      contractsInfo.GROTH16_VERIFIER_STATE_TRANSITION.unifiedAddress,
+    );
 
-  const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
+  const chainId = parseInt(await hre.network.provider.send("eth_chainId"), 16);
   const networkName = hre.network.name;
   const pathOutputJson = path.join(
     __dirname,
@@ -33,14 +31,9 @@ async function main() {
   const outputJson = {
     proxyAdminOwnerAddress: await signer.getAddress(),
     state: await state.getAddress(),
-    verifier: await groth16verifier.getAddress(),
     stateLib: await stateLib.getAddress(),
-    smtLib: await smtLib.getAddress(),
     stateCrossChainLib: await stateCrossChainLib.getAddress(),
     crossChainProofValidator: await crossChainProofValidator.getAddress(),
-    poseidon1: await poseidon1.getAddress(),
-    poseidon2: await poseidon2.getAddress(),
-    poseidon3: await poseidon3.getAddress(),
     network: networkName,
     chainId,
     deployStrategy,

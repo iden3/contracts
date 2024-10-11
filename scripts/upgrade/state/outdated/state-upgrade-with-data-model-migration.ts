@@ -52,7 +52,6 @@ async function main() {
   const { state: stateMigration } = await stateDeployHelper.upgradeState(
     await stateContractInstance.getAddress(),
     undefined,
-    undefined,
     verifierName,
     stateContractMigrationName,
   );

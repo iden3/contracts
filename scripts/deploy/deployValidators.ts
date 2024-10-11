@@ -1,21 +1,40 @@
 import fs from "fs";
 import path from "path";
 import { DeployHelper } from "../../helpers/DeployHelper";
-import hre, { network } from "hardhat";
+import hre from "hardhat";
 import { getConfig } from "../../helpers/helperUtils";
-import { isContract } from "../../helpers/helperUtils";
+import {
+  networks,
+  STATE_ADDRESS_POLYGON_AMOY,
+  STATE_ADDRESS_POLYGON_MAINNET,
+  contractsInfo,
+} from "../../helpers/constants";
 
 async function main() {
   const config = getConfig();
-  const stateAddress = config.stateContractAddress;
-  if (!(await isContract(stateAddress))) {
-    throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
-  }
+  const chainId = hre.network.config.chainId;
 
-  const validators: ("mtpV2" | "sigV2" | "v3")[] = [
-    "mtpV2",
-    "sigV2",
-    "v3"
+  let stateContractAddress = contractsInfo.STATE.unifiedAddress;
+  if (chainId === networks.POLYGON_AMOY.chainId) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
+  }
+  if (chainId === networks.POLYGON_MAINNET.chainId) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
+  }
+  const validators: ("mtpV2" | "sigV2" | "v3")[] = ["mtpV2", "sigV2", "v3"];
+  const groth16VerifierWrappers = [
+    {
+      validator: "mtpV2",
+      verifierWrapper: contractsInfo.GROTH16_VERIFIER_MTP.unifiedAddress,
+    },
+    {
+      validator: "sigV2",
+      verifierWrapper: contractsInfo.GROTH16_VERIFIER_SIG.unifiedAddress,
+    },
+    {
+      validator: "v3",
+      verifierWrapper: contractsInfo.GROTH16_VERIFIER_V3.unifiedAddress,
+    },
   ];
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
@@ -25,19 +44,20 @@ async function main() {
 
   const validatorsInfo: any = [];
   for (const v of validators) {
-    const { validator, groth16VerifierWrapper } = await deployHelper.deployValidatorContracts(
+    const groth16VerifierWrapper = groth16VerifierWrappers.find((g) => g.validator === v);
+    const { validator } = await deployHelper.deployValidatorContracts(
       v,
-      stateAddress,
+      stateContractAddress,
+      groth16VerifierWrapper?.verifierWrapper as string,
       deployStrategy,
     );
     validatorsInfo.push({
       validatorType: v,
       validator: await validator.getAddress(),
-      groth16verifier: await groth16VerifierWrapper.getAddress(),
+      groth16verifier: groth16VerifierWrapper?.verifierWrapper as string,
     });
   }
 
-  const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
   const networkName = hre.network.name;
   const pathOutputJson = path.join(
     __dirname,
@@ -48,6 +68,7 @@ async function main() {
     validatorsInfo,
     network: networkName,
     chainId,
+    deployStrategy,
   };
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 }
