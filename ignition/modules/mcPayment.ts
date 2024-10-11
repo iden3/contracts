@@ -19,7 +19,7 @@ const MCPaymentProxyModule = buildModule("MCPaymentProxyModule", (m) => {
   const proxy = m.contract("TransparentUpgradeableProxy", [
     contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress,
     proxyAdminOwner,
-    contractsInfo.VC_PAYMENT.create2Calldata,
+    contractsInfo.MC_PAYMENT.create2Calldata,
   ]);
   const proxyAdminAddress = m.readEventArgument(proxy, "AdminChanged", "newAdmin");
   const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
