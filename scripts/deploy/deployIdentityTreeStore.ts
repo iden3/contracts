@@ -3,21 +3,24 @@ import hre, { ethers, network } from "hardhat";
 import path from "path";
 import fs from "fs";
 import { getConfig, isContract } from "../../helpers/helperUtils";
+import {
+  networks,
+  STATE_ADDRESS_POLYGON_AMOY,
+  STATE_ADDRESS_POLYGON_MAINNET,
+  contractsInfo,
+} from "../../helpers/constants";
 
 (async () => {
   const config = getConfig();
 
-  const stateContractAddress = config.stateContractAddress;
-  if (!(await isContract(stateContractAddress))) {
-    throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
+  const chainId = hre.network.config.chainId;
+
+  let stateContractAddress = contractsInfo.STATE.unifiedAddress;
+  if (chainId === networks.POLYGON_AMOY.chainId) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
   }
-  const poseidon2ContractAddress = config.poseidon2ContractAddress;
-  if (!(await isContract(poseidon2ContractAddress))) {
-    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const poseidon3ContractAddress = config.poseidon3ContractAddress;
-  if (!(await isContract(poseidon3ContractAddress))) {
-    throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set or invalid");
+  if (chainId === networks.POLYGON_MAINNET.chainId) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
   }
 
   const deployStrategy: "basic" | "create2" =
@@ -28,12 +31,11 @@ import { getConfig, isContract } from "../../helpers/helperUtils";
 
   const { identityTreeStore } = await deployHelper.deployIdentityTreeStore(
     stateContractAddress,
-    poseidon2ContractAddress,
-    poseidon3ContractAddress,
+    contractsInfo.POSEIDON_2.unifiedAddress,
+    contractsInfo.POSEIDON_3.unifiedAddress,
     deployStrategy,
   );
 
-  const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
   const networkName = hre.network.name;
   const pathOutputJson = path.join(
     __dirname,
@@ -42,8 +44,8 @@ import { getConfig, isContract } from "../../helpers/helperUtils";
   const outputJson = {
     proxyAdminOwnerAddress: await signer.getAddress(),
     identityTreeStore: await identityTreeStore.getAddress(),
-    poseidon2ContractAddress,
-    poseidon3ContractAddress,
+    poseidon2ContractAddress: contractsInfo.POSEIDON_2.unifiedAddress,
+    poseidon3ContractAddress: contractsInfo.POSEIDON_3.unifiedAddress,
     network: networkName,
     chainId,
     deployStrategy,

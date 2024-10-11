@@ -58,7 +58,7 @@ describe("Universal Verifier events", function () {
     [signer] = await ethers.getSigners();
 
     const deployHelper = await DeployHelper.initialize(null, true);
-    const { state } = await deployHelper.deployState(["0x0112"]);
+    const { state } = await deployHelper.deployStateWithLibraries(["0x0112"]);
 
     const verifierLib = await deployHelper.deployVerifierLib();
     verifier = await deployHelper.deployUniversalVerifier(
@@ -67,7 +67,7 @@ describe("Universal Verifier events", function () {
       await verifierLib.getAddress(),
     );
 
-    const contracts = await deployHelper.deployValidatorContracts(
+    const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
       "sigV2",
       await state.getAddress(),
     );

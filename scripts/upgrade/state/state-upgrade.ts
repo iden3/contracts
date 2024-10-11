@@ -2,9 +2,15 @@ import { DeployHelper } from "../../../helpers/DeployHelper";
 import hre, { ethers } from "hardhat";
 import { expect } from "chai"; // abi of contract that will be upgraded
 import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/State.json";
-import { getConfig, isContract, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
+import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
 import fs from "fs";
 import path from "path";
+import {
+  networks,
+  STATE_ADDRESS_POLYGON_AMOY,
+  STATE_ADDRESS_POLYGON_MAINNET,
+  contractsInfo,
+} from "../../../helpers/constants";
 
 const config = getConfig();
 
@@ -35,24 +41,13 @@ async function main() {
   if (!ethers.isAddress(config.ledgerAccount)) {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
-  if (!(await isContract(config.stateContractAddress))) {
-    throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
+
+  let stateContractAddress = contractsInfo.STATE.unifiedAddress;
+  if (chainId === networks.POLYGON_AMOY.chainId) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
   }
-  const poseidon1ContractAddress = config.poseidon1ContractAddress;
-  if (!(await isContract(poseidon1ContractAddress))) {
-    throw new Error("POSEIDON_1_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const poseidon2ContractAddress = config.poseidon2ContractAddress;
-  if (!(await isContract(poseidon2ContractAddress))) {
-    throw new Error("POSEIDON_2_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const poseidon3ContractAddress = config.poseidon3ContractAddress;
-  if (!(await isContract(poseidon3ContractAddress))) {
-    throw new Error("POSEIDON_3_CONTRACT_ADDRESS is not set or invalid");
-  }
-  const smtLibContractAddress = config.smtLibContractAddress;
-  if (!(await isContract(smtLibContractAddress))) {
-    throw new Error("SMT_LIB_CONTRACT_ADDRESS is not set or invalid");
+  if (chainId === networks.POLYGON_MAINNET.chainId) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
   }
   const { proxyAdminOwnerSigner, stateOwnerSigner } = await getSigners(impersonate);
 
@@ -67,26 +62,18 @@ async function main() {
     removeLocalhostNetworkIgnitionFiles(network, chainId);
   }
 
-  const stateContract = await ethers.getContractAt(stateArtifact.abi, config.stateContractAddress);
+  const stateContract = await ethers.getContractAt(stateArtifact.abi, stateContractAddress);
   console.log("Version before: ", await stateContract.VERSION());
 
   const defaultIdTypeBefore = await stateContract.getDefaultIdType();
   const stateOwnerAddressBefore = await stateContract.owner();
 
-  const poseidonContracts = [
-    config.poseidon1ContractAddress,
-    config.poseidon2ContractAddress,
-    config.poseidon3ContractAddress,
-  ];
-
-  const { state, g16Verifier, stateLib, stateCrossChainLib, crossChainProofValidator } =
+  const { state, stateLib, stateCrossChainLib, crossChainProofValidator } =
     await stateDeployHelper.upgradeState(
       await stateContract.getAddress(),
       true,
-      true,
-      deployStrategy,
-      poseidonContracts,
-      smtLibContractAddress,
+      contractsInfo.SMT_LIB.unifiedAddress,
+      contractsInfo.POSEIDON_1.unifiedAddress,
     );
 
   console.log("Version after: ", await state.VERSION());
@@ -137,14 +124,14 @@ async function main() {
   const outputJson = {
     proxyAdminOwnerAddress: await proxyAdminOwnerSigner.getAddress(),
     state: await state.getAddress(),
-    verifier: await g16Verifier.getAddress(),
+    verifier: contractsInfo.GROTH16_VERIFIER_STATE_TRANSITION.unifiedAddress,
     stateLib: await stateLib.getAddress(),
-    smtLib: smtLibContractAddress,
+    smtLib: contractsInfo.SMT_LIB.unifiedAddress,
     stateCrossChainLib: await stateCrossChainLib.getAddress(),
     crossChainProofValidator: await crossChainProofValidator.getAddress(),
-    poseidon1: poseidon1ContractAddress,
-    poseidon2: poseidon2ContractAddress,
-    poseidon3: poseidon3ContractAddress,
+    poseidon1: contractsInfo.POSEIDON_1.unifiedAddress,
+    poseidon2: contractsInfo.POSEIDON_2.unifiedAddress,
+    poseidon3: contractsInfo.POSEIDON_3.unifiedAddress,
     network: network,
     chainId,
     deployStrategy,

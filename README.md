@@ -52,20 +52,6 @@ LEDGER_ACCOUNT="<your Ledger deployer address>"
 DEPLOY_STRATEGY=create2
 
 STATE_CONTRACT_ADDRESS=
-SMT_LIB_CONTRACT_ADDRESS=
-POSEIDON_1_CONTRACT_ADDRESS=
-POSEIDON_2_CONTRACT_ADDRESS=
-POSEIDON_3_CONTRACT_ADDRESS=
-
-IDENTITY_TREE_STORE_CONTRACT_ADDRESS=
-
-UNIVERSAL_VERIFIER_CONTRACT_ADDRESS=
-GROTH16_VERIFIER_MTP_CONTRACT_ADDRESS=
-GROTH16_VERIFIER_SIG_CONTRACT_ADDRESS=
-GROTH16_VERIFIER_V3_CONTRACT_ADDRESS=
-VALIDATOR_MTP_CONTRACT_ADDRESS=
-VALIDATOR_SIG_CONTRACT_ADDRESS=
-VALIDATOR_V3_CONTRACT_ADDRESS=
 
 PRIVADO_MAIN_RPC_URL=<rpc url for privado main>
 PRIVADO_TEST_RPC_URL=<rpc url for privado test>
@@ -85,53 +71,36 @@ Then run the deployment scripts:
 
 1. Deploy create2AnchorAddress that we use for unified addresses
    ```shell
-   npx hardhat run scripts/deployCreate2AddressAnchor.ts --network <your-network>
+   npx hardhat run scripts/deploy/deployCreate2AddressAnchor.ts --network <your-network>
    ```
-2. Deploy State contract
+2. Deploy libraries contracts
    ```shell
-   npx hardhat run scripts/deployState.ts --network <your-network>
+   npx hardhat run scripts/deploy/deployLibraries.ts --network <your-network>
    ```
-   Once state is deployed replace contract addresses with yours from the state deployment in your `.env` file
+3. Deploy State contract
+   ```shell
+   npx hardhat run scripts/deploy/deployState.ts --network <your-network>
+   ```
+   Once state is deployed replace contract address with yours from the state deployment in your `.env` file
    ```
    STATE_CONTRACT_ADDRESS=
-   SMT_LIB_CONTRACT_ADDRESS=
-   POSEIDON_1_CONTRACT_ADDRESS=
-   POSEIDON_2_CONTRACT_ADDRESS=
-   POSEIDON_3_CONTRACT_ADDRESS=
    ```
 
-3. Deploy Identity Tree Store contract
+4. Deploy Identity Tree Store contract
    ```
-   npx hardhat run scripts/deployIdentityTreeStore.ts --network <your-network>
+   npx hardhat run scripts/deploy/deployIdentityTreeStore.ts --network <your-network>
    ```
-   Once identity tree store is deployed replace contract address with yours from the identity tree store deployment in your `.env` file
+5. Deploy Validators contracts
    ```
-   IDENTITY_TREE_STORE_CONTRACT_ADDRESS=
+   npx hardhat run scripts/deploy/deployValidators.ts --network <your-network>
    ```
-4. Deploy Validators contracts
+6. Deploy Universal Verifier contract
    ```
-   npx hardhat run scripts/deployValidators.ts --network <your-network>
+   npx hardhat run scripts/deploy/deployUniversalVerifier.ts --network <your-network>
    ```
-   Once validators are deployed replace contract addresses with yours from the validators deployment in your `.env` file
+7. Add validators to whitelisted validators in Universal Verifier
    ```
-   GROTH16_VERIFIER_MTP_CONTRACT_ADDRESS=
-   GROTH16_VERIFIER_SIG_CONTRACT_ADDRESS=
-   GROTH16_VERIFIER_V3_CONTRACT_ADDRESS=
-   VALIDATOR_MTP_CONTRACT_ADDRESS=
-   VALIDATOR_SIG_CONTRACT_ADDRESS=
-   VALIDATOR_V3_CONTRACT_ADDRESS=
-   ```
-5. Deploy Universal Verifier contract
-   ```
-   npx hardhat run scripts/deployUniversalVerifier.ts --network <your-network>
-   ```
-   Once the universal verifier is deployd replace the address in your `.env` file
-   ```
-   UNIVERSAL_VERIFIER_CONTRACT_ADDRESS=
-   ```
-6. Add validators to whitelisted validators in Universal Verifier
-   ```
-   npx hardhat run scripts/addValidatorsToUniversalVerifier.ts --network <your-network>
+   npx hardhat run scripts/maintenance/addValidatorsToUniversalVerifier.ts --network <your-network>
    ```
 
 ## Run tests

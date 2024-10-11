@@ -1,5 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { CONTRACT_NAMES, create2AddressesInfo } from "../../helpers/constants";
+import { contractsInfo } from "../../helpers/constants";
 
 export const UniversalVerifierProxyModule = buildModule("UniversalVerifierProxyModule", (m) => {
   const proxyAdminOwner = m.getAccount(0);
@@ -11,9 +11,9 @@ export const UniversalVerifierProxyModule = buildModule("UniversalVerifierProxyM
   // Subsequent upgrades are supposed to switch this proxy to the real implementation.
 
   const proxy = m.contract("TransparentUpgradeableProxy", [
-    create2AddressesInfo.anchorAddress,
+    contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress,
     proxyAdminOwner,
-    create2AddressesInfo.contractsCalldataMap.get(CONTRACT_NAMES.UNIVERSAL_VERIFIER) as string,
+    contractsInfo.UNIVERSAL_VERIFIER.create2Calldata,
   ]);
 
   const proxyAdminAddress = m.readEventArgument(proxy, "AdminChanged", "newAdmin");

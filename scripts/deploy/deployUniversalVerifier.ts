@@ -1,15 +1,30 @@
 import fs from "fs";
 import path from "path";
 import { DeployHelper } from "../../helpers/DeployHelper";
-import hre, { ethers, network } from "hardhat";
-import { getConfig, waitNotToInterfereWithHardhatIgnition } from "../../helpers/helperUtils";
-import { isContract } from "../../helpers/helperUtils";
+import hre, { ethers } from "hardhat";
+import {
+  getConfig,
+  Logger,
+  TempContractDeployments,
+  waitNotToInterfereWithHardhatIgnition,
+} from "../../helpers/helperUtils";
+import {
+  networks,
+  contractsInfo,
+  STATE_ADDRESS_POLYGON_AMOY,
+  STATE_ADDRESS_POLYGON_MAINNET,
+} from "../../helpers/constants";
 
 async function main() {
   const config = getConfig();
-  const stateAddress = config.stateContractAddress;
-  if (!(await isContract(stateAddress))) {
-    throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
+  const chainId = hre.network.config.chainId;
+
+  let stateContractAddress = contractsInfo.STATE.unifiedAddress;
+  if (chainId === networks.POLYGON_AMOY.chainId) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
+  }
+  if (chainId === networks.POLYGON_MAINNET.chainId) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
   }
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
@@ -17,18 +32,32 @@ async function main() {
 
   const deployHelper = await DeployHelper.initialize(null, true);
 
-  const verifierLib = await deployHelper.deployVerifierLib();
-  const tx = await verifierLib.deploymentTransaction();
-  await waitNotToInterfereWithHardhatIgnition(tx);
+  const tmpContractDeployments = new TempContractDeployments(
+    "./scripts/deployments_output/temp_deployments_output.json",
+  );
+
+  let verifierLib = await tmpContractDeployments.getContract(contractsInfo.VERIFIER_LIB.name);
+  if (verifierLib) {
+    Logger.warning(
+      `${contractsInfo.VERIFIER_LIB.name} found already deployed to:  ${await verifierLib?.getAddress()}`,
+    );
+  } else {
+    verifierLib = await deployHelper.deployVerifierLib();
+    const tx = await verifierLib.deploymentTransaction();
+    await waitNotToInterfereWithHardhatIgnition(tx);
+    tmpContractDeployments.addContract(
+      contractsInfo.VERIFIER_LIB.name,
+      await verifierLib.getAddress(),
+    );
+  }
 
   const universalVerifier = await deployHelper.deployUniversalVerifier(
     undefined,
-    stateAddress,
+    stateContractAddress,
     await verifierLib.getAddress(),
     deployStrategy,
   );
-
-  const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
+  tmpContractDeployments.remove();
   const networkName = hre.network.name;
   const pathOutputJson = path.join(
     __dirname,
@@ -38,7 +67,7 @@ async function main() {
     proxyAdminOwnerAddress: await signer.getAddress(),
     universalVerifier: await universalVerifier.getAddress(),
     verifierLib: await verifierLib.getAddress(),
-    state: stateAddress,
+    state: stateContractAddress,
     network: networkName,
     chainId,
     deployStrategy,

@@ -70,50 +70,21 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }); // linea-sepolia
 
-export const CONTRACT_NAMES = Object.freeze({
-  UNIVERSAL_VERIFIER: "UniversalVerifier",
-  STATE: "State",
-  VALIDATOR_SIG: "CredentialAtomicQuerySigV2Validator",
-  VALIDATOR_MTP: "CredentialAtomicQueryMTPV2Validator",
-  VALIDATOR_V3: "CredentialAtomicQueryV3Validator",
-  IDENTITY_TREE_STORE: "IdentityTreeStore",
-  VC_PAYMENT: "VCPayment",
-  MC_PAYMENT: "MCPayment",
-  CROSS_CHAIN_PROOF_VALIDATOR: "CrossChainProofValidator",
-  SMT_LIB: "SmtLib",
-  POSEIDON_1: "PoseidonUnit1L",
-  POSEIDON_2: "PoseidonUnit2L",
-  POSEIDON_3: "PoseidonUnit3L",
-});
-
-export const NETWORK_NAMES = Object.freeze({
-  PRIVADO_TEST: "Privado Test",
-  PRIVADO_MAIN: "Privado Main",
-  POLYGON_AMOY: "Polygon Amoy",
-  POLYGON_MAINNET: "Polygon Mainnet",
-  ETHEREUM_SEPOLIA: "Ethereum Sepolia",
-  ETHEREUM_MAINNET: "Ethereum Mainnet",
-  ZKEVM_CARDONA: "Zkevm Cardona",
-  ZKEVM_MAINNET: "Zkevm Mainnet",
-  LINEA_SEPOLIA: "Linea Sepolia",
-  LINEA_MAINNET: "Linea Mainnet",
+export const networks = Object.freeze({
+  PRIVADO_TEST: { name: "Privado Test", chainId: 21001 },
+  PRIVADO_MAIN: { name: "Privado Main", chainId: 21000 },
+  POLYGON_AMOY: { name: "Polygon Amoy", chainId: 80002 },
+  POLYGON_MAINNET: { name: "Polygon Mainnet", chainId: 137 },
+  ETHEREUM_SEPOLIA: { name: "Ethereum Sepolia", chainId: 11155111 },
+  ETHEREUM_MAINNET: { name: "Ethereum Mainnet", chainId: 1 },
+  ZKEVM_CARDONA: { name: "Zkevm Cardona", chainId: 2442 },
+  ZKEVM_MAINNET: { name: "Zkevm Mainnet", chainId: 1101 },
+  LINEA_SEPOLIA: { name: "Linea Sepolia", chainId: 59141 },
+  LINEA_MAINNET: { name: "Linea Mainnet", chainId: 59144 },
 });
 
 export const STATE_ADDRESS_POLYGON_AMOY = "0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124";
 export const STATE_ADDRESS_POLYGON_MAINNET = "0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D";
-
-export const UNIFIED_CONTRACT_ADDRESSES = Object.freeze({
-  STATE: "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
-  SMT_LIB: "0x682364078e26C1626abD2B95109D2019E241F0F6",
-  POSEIDON_1: "0xC72D76D7271924a2AD54a19D216640FeA3d138d9",
-  POSEIDON_2: "0x72F721D9D5f91353B505207C63B56cF3d9447edB",
-  POSEIDON_3: "0x5Bc89782d5eBF62663Df7Ce5fb4bc7408926A240",
-  VALIDATOR_MTP: "0x27bDFFCeC5478a648f89764E22fE415486A42Ede",
-  VALIDATOR_SIG: "0x59B347f0D3dd4B98cc2E056Ee6C53ABF14F8581b",
-  VALIDATOR_V3: "0xd179f29d00Cd0E8978eb6eB847CaCF9E2A956336",
-  UNIVERSAL_VERIFIER: "0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c",
-  IDENTITY_TREE_STORE: "0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81",
-});
 
 export const VALIDATOR_TYPES = Object.freeze({
   MTP_V2: "mtpV2",
@@ -121,33 +92,99 @@ export const VALIDATOR_TYPES = Object.freeze({
   V3: "v3",
 });
 
-export const create2AddressesInfo: {
-  anchorAddress: string;
-  contractsCalldataMap: Map<string, string>;
-} = {
-  anchorAddress: "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
-  contractsCalldataMap: new Map()
-    .set(CONTRACT_NAMES.STATE, ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.State")))
-    .set(
-      CONTRACT_NAMES.UNIVERSAL_VERIFIER,
-      ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier")),
-    )
-    .set(
-      CONTRACT_NAMES.VALIDATOR_SIG,
-      ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQuerySigV2Validator")),
-    )
-    .set(
-      CONTRACT_NAMES.VALIDATOR_MTP,
-      ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryMTPV2Validator")),
-    )
-    .set(
-      CONTRACT_NAMES.VALIDATOR_V3,
-      ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3Validator")),
-    )
-    .set(
-      CONTRACT_NAMES.IDENTITY_TREE_STORE,
-      ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.IdentityTreeStore")),
-    )
-    .set(CONTRACT_NAMES.VC_PAYMENT, ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.VCPayment")))
-    .set(CONTRACT_NAMES.MC_PAYMENT, ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.MCPayment"))),
-};
+export const contractsInfo = Object.freeze({
+  CREATE2_ADDRESS_ANCHOR: {
+    name: "Create2AddressAnchor",
+    unifiedAddress: "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+    create2Calldata: "",
+  },
+  UNIVERSAL_VERIFIER: {
+    name: "UniversalVerifier",
+    unifiedAddress: "0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c",
+    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier")),
+  },
+  STATE: {
+    name: "State",
+    unifiedAddress: "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
+    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.State")),
+  },
+  VALIDATOR_SIG: {
+    name: "CredentialAtomicQuerySigV2Validator",
+    unifiedAddress: "0x59B347f0D3dd4B98cc2E056Ee6C53ABF14F8581b",
+    create2Calldata: ethers.hexlify(
+      ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQuerySigV2Validator"),
+    ),
+  },
+  VALIDATOR_MTP: {
+    name: "CredentialAtomicQueryMTPV2Validator",
+    unifiedAddress: "0x27bDFFCeC5478a648f89764E22fE415486A42Ede",
+    create2Calldata: ethers.hexlify(
+      ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryMTPV2Validator"),
+    ),
+  },
+  VALIDATOR_V3: {
+    name: "CredentialAtomicQueryV3Validator",
+    unifiedAddress: "0xd179f29d00Cd0E8978eb6eB847CaCF9E2A956336",
+    create2Calldata: ethers.hexlify(
+      ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3Validator"),
+    ),
+  },
+  IDENTITY_TREE_STORE: {
+    name: "IdentityTreeStore",
+    unifiedAddress: "0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81",
+    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.IdentityTreeStore")),
+  },
+  VC_PAYMENT: {
+    name: "VCPayment",
+    unifiedAddress: "",
+    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.VCPayment")),
+  },
+  CROSS_CHAIN_PROOF_VALIDATOR: {
+    name: "CrossChainProofValidator",
+    unifiedAddress: "",
+    create2Calldata: "",
+  },
+  SMT_LIB: {
+    name: "SmtLib",
+    unifiedAddress: "0x682364078e26C1626abD2B95109D2019E241F0F6",
+    create2Calldata: "",
+  },
+  POSEIDON_1: {
+    name: "PoseidonUnit1L",
+    unifiedAddress: "0xC72D76D7271924a2AD54a19D216640FeA3d138d9",
+    create2Calldata: "",
+  },
+  POSEIDON_2: {
+    name: "PoseidonUnit2L",
+    unifiedAddress: "0x72F721D9D5f91353B505207C63B56cF3d9447edB",
+    create2Calldata: "",
+  },
+  POSEIDON_3: {
+    name: "PoseidonUnit3L",
+    unifiedAddress: "0x5Bc89782d5eBF62663Df7Ce5fb4bc7408926A240",
+    create2Calldata: "",
+  },
+  GROTH16_VERIFIER_STATE_TRANSITION: {
+    name: "Groth16VerifierStateTransition",
+    unifiedAddress: "0xAE950A9B8F48bC4519820728E210515a07F7cB71",
+    create2Calldata: "",
+  },
+  GROTH16_VERIFIER_MTP: {
+    name: "Groth16VerifierMTPWrapper",
+    unifiedAddress: "0x1205B90121cAbB2B7e6f1828005AC00D8927796F",
+    create2Calldata: "",
+  },
+  GROTH16_VERIFIER_SIG: {
+    name: "Groth16VerifierSigWrapper",
+    unifiedAddress: "0x0ce200c9557BB64ee9E82452646b084e77Aaeb51",
+    create2Calldata: "",
+  },
+  GROTH16_VERIFIER_V3: {
+    name: "Groth16VerifierV3Wrapper",
+    unifiedAddress: "0x1aA2B5AEAd506D269164958d36Cae04f95F79282",
+    create2Calldata: "",
+  },
+  STATE_LIB: { name: "StateLib", unifiedAddress: "", create2Address: "" },
+  STATE_CROSS_CHAIN_LIB: { name: "StateCrossChainLib", unifiedAddress: "", create2Address: "" },
+  VERIFIER_LIB: { name: "VerifierLib", unifiedAddress: "", create2Address: "" },
+});
