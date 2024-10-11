@@ -24,6 +24,7 @@ import {
   TempContractDeployments,
   waitNotToInterfereWithHardhatIgnition,
 } from "./helperUtils";
+import { MCPaymentModule } from "../ignition/modules/mcPayment";
 
 const SMT_MAX_DEPTH = 64;
 

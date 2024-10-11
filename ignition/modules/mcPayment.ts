@@ -1,5 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { create2AddressesInfo } from "../../helpers/constants";
+import { contractsInfo } from "../../helpers/constants";
 
 /**
  * This is the first module that will be run. It deploys the proxy and the
@@ -17,9 +17,9 @@ const MCPaymentProxyModule = buildModule("MCPaymentProxyModule", (m) => {
   // Subsequent upgrades are supposed to switch this proxy to the real implementation.
 
   const proxy = m.contract("TransparentUpgradeableProxy", [
-    create2AddressesInfo.anchorAddress,
+    contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress,
     proxyAdminOwner,
-    create2AddressesInfo.contractsCalldataMap.get("MCPayment") as string,
+    contractsInfo.VC_PAYMENT.create2Calldata,
   ]);
   const proxyAdminAddress = m.readEventArgument(proxy, "AdminChanged", "newAdmin");
   const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
