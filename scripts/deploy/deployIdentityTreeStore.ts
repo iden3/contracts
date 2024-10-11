@@ -3,14 +3,24 @@ import hre, { ethers, network } from "hardhat";
 import path from "path";
 import fs from "fs";
 import { getConfig, isContract } from "../../helpers/helperUtils";
-import { UNIFIED_CONTRACT_ADDRESSES } from "../../helpers/constants";
+import {
+  CHAIN_IDS,
+  STATE_ADDRESS_POLYGON_AMOY,
+  STATE_ADDRESS_POLYGON_MAINNET,
+  UNIFIED_CONTRACT_ADDRESSES,
+} from "../../helpers/constants";
 
 (async () => {
   const config = getConfig();
 
-  const stateContractAddress = config.stateContractAddress;
-  if (!(await isContract(stateContractAddress))) {
-    throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
+  const chainId = hre.network.config.chainId;
+
+  let stateContractAddress = UNIFIED_CONTRACT_ADDRESSES.STATE as string;
+  if (chainId === CHAIN_IDS.POLYGON_AMOY) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
+  }
+  if (chainId === CHAIN_IDS.POLYGON_MAINNET) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
   }
 
   const deployStrategy: "basic" | "create2" =
@@ -26,7 +36,6 @@ import { UNIFIED_CONTRACT_ADDRESSES } from "../../helpers/constants";
     deployStrategy,
   );
 
-  const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
   const networkName = hre.network.name;
   const pathOutputJson = path.join(
     __dirname,

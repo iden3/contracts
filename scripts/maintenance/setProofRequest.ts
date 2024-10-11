@@ -3,7 +3,6 @@ import { packV3ValidatorParams, packValidatorParams } from "../../test/utils/val
 import { calculateQueryHashV2, calculateQueryHashV3 } from "../../test/utils/query-hash-utils";
 import { Blockchain, DidMethod, NetworkId, DID } from "@iden3/js-iden3-core";
 import { buildVerifierId } from "../deploy/deployCrossChainVerifierWithRequests";
-import { getConfig, isContract } from "../../helpers/helperUtils";
 import { Operators } from "@0xpolygonid/js-sdk";
 import { CONTRACT_NAMES, UNIFIED_CONTRACT_ADDRESSES } from "../../helpers/constants";
 
@@ -20,8 +19,6 @@ async function main() {
   const network = hre.network.name;
 
   const methodId = "ade09fcd";
-
-  const config = getConfig();
 
   const verifier = await ethers.getContractAt(
     CONTRACT_NAMES.UNIVERSAL_VERIFIER,

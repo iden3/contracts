@@ -1,9 +1,15 @@
 import hre, { ethers } from "hardhat";
 import { DeployHelper } from "../../../helpers/DeployHelper";
-import { getConfig, isContract, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
+import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
 import path from "path";
 import fs from "fs";
-import { CONTRACT_NAMES, UNIFIED_CONTRACT_ADDRESSES } from "../../../helpers/constants";
+import {
+  CHAIN_IDS,
+  CONTRACT_NAMES,
+  STATE_ADDRESS_POLYGON_AMOY,
+  STATE_ADDRESS_POLYGON_MAINNET,
+  UNIFIED_CONTRACT_ADDRESSES,
+} from "../../../helpers/constants";
 
 const removePreviousIgnitionFiles = true;
 const impersonate = false;
@@ -30,9 +36,13 @@ async function main() {
   if (!ethers.isAddress(config.ledgerAccount)) {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
-  const stateContractAddress = config.stateContractAddress;
-  if (!(await isContract(stateContractAddress))) {
-    throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
+
+  let stateContractAddress = UNIFIED_CONTRACT_ADDRESSES.STATE as string;
+  if (chainId === CHAIN_IDS.POLYGON_AMOY) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
+  }
+  if (chainId === CHAIN_IDS.POLYGON_MAINNET) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
   }
 
   const { proxyAdminOwnerSigner } = await getSigners(impersonate);

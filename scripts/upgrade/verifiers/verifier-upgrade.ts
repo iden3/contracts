@@ -12,11 +12,16 @@ import {
 } from "./helpers/testVerifier";
 import {
   getConfig,
-  isContract,
   removeLocalhostNetworkIgnitionFiles,
   waitNotToInterfereWithHardhatIgnition,
 } from "../../../helpers/helperUtils";
-import { CONTRACT_NAMES, UNIFIED_CONTRACT_ADDRESSES } from "../../../helpers/constants";
+import {
+  CHAIN_IDS,
+  CONTRACT_NAMES,
+  STATE_ADDRESS_POLYGON_AMOY,
+  STATE_ADDRESS_POLYGON_MAINNET,
+  UNIFIED_CONTRACT_ADDRESSES,
+} from "../../../helpers/constants";
 import fs from "fs";
 import path from "path";
 
@@ -28,6 +33,7 @@ const config = getConfig();
 
 const chainId = hre.network.config.chainId;
 const network = hre.network.name;
+let stateContractAddress = UNIFIED_CONTRACT_ADDRESSES.STATE as string;
 
 async function getSigners(useImpersonation: boolean): Promise<any> {
   if (useImpersonation) {
@@ -52,8 +58,11 @@ async function main() {
   if (!ethers.isAddress(config.ledgerAccount)) {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
-  if (!(await isContract(config.stateContractAddress))) {
-    throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
+  if (chainId === CHAIN_IDS.POLYGON_AMOY) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
+  }
+  if (chainId === CHAIN_IDS.POLYGON_MAINNET) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
   }
 
   const { proxyAdminOwnerSigner, universalVerifierOwnerSigner } = await getSigners(impersonate);
@@ -122,7 +131,7 @@ async function main() {
 
   const state = await ethers.getContractAt(
     stateArtifact.abi,
-    config.stateContractAddress,
+    stateContractAddress,
     universalVerifierOwnerSigner,
   );
 
@@ -179,7 +188,7 @@ async function main() {
     proxyAdminOwnerAddress: await proxyAdminOwnerSigner.getAddress(),
     universalVerifier: await universalVerifierContract.getAddress(),
     verifierLib: await verifierLib.getAddress(),
-    state: config.stateContractAddress,
+    state: stateContractAddress,
     network: network,
     chainId,
     deployStrategy,
@@ -206,7 +215,7 @@ async function upgradeState(deployHelper: DeployHelper, signer: any) {
 
   const stateContract = await stateMigrationHelper.getInitContract({
     contractNameOrAbi: stateArtifact.abi,
-    address: config.stateContractAddress,
+    address: stateContractAddress,
   });
 
   // **** Upgrade State ****
@@ -242,7 +251,7 @@ async function testVerification(verifier: Contract, validatorV3Address: string) 
   const requestId = 112233;
   await setZKPRequest_KYCAgeCredential(requestId, verifier, validatorV3Address);
   await submitZKPResponses_KYCAgeCredential(requestId, verifier, {
-    stateContractAddress: config.stateContractAddress,
+    stateContractAddress: stateContractAddress,
     verifierContractAddress: UNIFIED_CONTRACT_ADDRESSES.UNIVERSAL_VERIFIER,
   });
 }

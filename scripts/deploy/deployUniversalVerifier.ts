@@ -1,21 +1,31 @@
 import fs from "fs";
 import path from "path";
 import { DeployHelper } from "../../helpers/DeployHelper";
-import hre, { ethers, network } from "hardhat";
+import hre, { ethers } from "hardhat";
 import {
   getConfig,
   Logger,
   TempContractDeployments,
   waitNotToInterfereWithHardhatIgnition,
 } from "../../helpers/helperUtils";
-import { isContract } from "../../helpers/helperUtils";
-import { CONTRACT_NAMES } from "../../helpers/constants";
+import {
+  CHAIN_IDS,
+  CONTRACT_NAMES,
+  STATE_ADDRESS_POLYGON_AMOY,
+  STATE_ADDRESS_POLYGON_MAINNET,
+  UNIFIED_CONTRACT_ADDRESSES,
+} from "../../helpers/constants";
 
 async function main() {
   const config = getConfig();
-  const stateAddress = config.stateContractAddress;
-  if (!(await isContract(stateAddress))) {
-    throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
+  const chainId = hre.network.config.chainId;
+
+  let stateContractAddress = UNIFIED_CONTRACT_ADDRESSES.STATE as string;
+  if (chainId === CHAIN_IDS.POLYGON_AMOY) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
+  }
+  if (chainId === CHAIN_IDS.POLYGON_MAINNET) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
   }
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
@@ -41,12 +51,11 @@ async function main() {
 
   const universalVerifier = await deployHelper.deployUniversalVerifier(
     undefined,
-    stateAddress,
+    stateContractAddress,
     await verifierLib.getAddress(),
     deployStrategy,
   );
   tmpContractDeployments.remove();
-  const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
   const networkName = hre.network.name;
   const pathOutputJson = path.join(
     __dirname,
@@ -56,7 +65,7 @@ async function main() {
     proxyAdminOwnerAddress: await signer.getAddress(),
     universalVerifier: await universalVerifier.getAddress(),
     verifierLib: await verifierLib.getAddress(),
-    state: stateAddress,
+    state: stateContractAddress,
     network: networkName,
     chainId,
     deployStrategy,

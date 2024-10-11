@@ -1,18 +1,26 @@
 import fs from "fs";
 import path from "path";
 import { DeployHelper } from "../../helpers/DeployHelper";
-import hre, { network } from "hardhat";
+import hre from "hardhat";
 import { getConfig } from "../../helpers/helperUtils";
-import { isContract } from "../../helpers/helperUtils";
-import { UNIFIED_CONTRACT_ADDRESSES } from "../../helpers/constants";
+import {
+  CHAIN_IDS,
+  STATE_ADDRESS_POLYGON_AMOY,
+  STATE_ADDRESS_POLYGON_MAINNET,
+  UNIFIED_CONTRACT_ADDRESSES,
+} from "../../helpers/constants";
 
 async function main() {
   const config = getConfig();
-  const stateAddress = config.stateContractAddress;
-  if (!(await isContract(stateAddress))) {
-    throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
-  }
+  const chainId = hre.network.config.chainId;
 
+  let stateContractAddress = UNIFIED_CONTRACT_ADDRESSES.STATE as string;
+  if (chainId === CHAIN_IDS.POLYGON_AMOY) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
+  }
+  if (chainId === CHAIN_IDS.POLYGON_MAINNET) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
+  }
   const validators: ("mtpV2" | "sigV2" | "v3")[] = ["mtpV2", "sigV2", "v3"];
   const groth16VerifierWrappers = [
     {
@@ -39,7 +47,7 @@ async function main() {
     const groth16VerifierWrapper = groth16VerifierWrappers.find((g) => g.validator === v);
     const { validator } = await deployHelper.deployValidatorContracts(
       v,
-      stateAddress,
+      stateContractAddress,
       groth16VerifierWrapper?.verifierWrapper as string,
       deployStrategy,
     );
@@ -50,7 +58,6 @@ async function main() {
     });
   }
 
-  const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
   const networkName = hre.network.name;
   const pathOutputJson = path.join(
     __dirname,

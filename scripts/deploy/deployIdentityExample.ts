@@ -2,20 +2,28 @@ import fs from "fs";
 import path from "path";
 import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeployHelper";
 import { deployPoseidons } from "../../helpers/PoseidonDeployHelper";
-import { getConfig } from "../../helpers/helperUtils";
 import { DeployHelper } from "../../helpers/DeployHelper";
-import { isContract } from "../../helpers/helperUtils";
-import { UNIFIED_CONTRACT_ADDRESSES } from "../../helpers/constants";
+import {
+  CHAIN_IDS,
+  STATE_ADDRESS_POLYGON_AMOY,
+  STATE_ADDRESS_POLYGON_MAINNET,
+  UNIFIED_CONTRACT_ADDRESSES,
+} from "../../helpers/constants";
 const pathOutputJson = path.join(__dirname, "./deploy_identity_example_output.json");
+import hre from "hardhat";
 
 async function main() {
-  const config = getConfig();
   const stDeployHelper = await DeployHelper.initialize();
   const { defaultIdType } = await stDeployHelper.getDefaultIdType();
 
-  const stateContractAddress = config.stateContractAddress;
-  if (!(await isContract(stateContractAddress))) {
-    throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
+  const chainId = hre.network.config.chainId;
+
+  let stateContractAddress = UNIFIED_CONTRACT_ADDRESSES.STATE as string;
+  if (chainId === CHAIN_IDS.POLYGON_AMOY) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
+  }
+  if (chainId === CHAIN_IDS.POLYGON_MAINNET) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
   }
 
   const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();

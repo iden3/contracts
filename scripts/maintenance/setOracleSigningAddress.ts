@@ -1,16 +1,27 @@
 import { ethers } from "hardhat";
-import { getConfig, isContract } from "../../helpers/helperUtils";
-import { CONTRACT_NAMES, ORACLE_SIGNING_ADDRESS_PRODUCTION } from "../../helpers/constants";
+import {
+  CHAIN_IDS,
+  CONTRACT_NAMES,
+  ORACLE_SIGNING_ADDRESS_PRODUCTION,
+  STATE_ADDRESS_POLYGON_AMOY,
+  STATE_ADDRESS_POLYGON_MAINNET,
+  UNIFIED_CONTRACT_ADDRESSES,
+} from "../../helpers/constants";
+import hre from "hardhat";
 
 async function main() {
   const oracleSigningAddress = ORACLE_SIGNING_ADDRESS_PRODUCTION; // production signing address
 
-  const config = getConfig();
-  if (!(await isContract(config.stateContractAddress))) {
-    throw new Error("STATE_CONTRACT_ADDRESS is not set or invalid");
-  }
+  const chainId = hre.network.config.chainId;
 
-  const state = await ethers.getContractAt(CONTRACT_NAMES.STATE, config.stateContractAddress);
+  let stateContractAddress = UNIFIED_CONTRACT_ADDRESSES.STATE as string;
+  if (chainId === CHAIN_IDS.POLYGON_AMOY) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
+  }
+  if (chainId === CHAIN_IDS.POLYGON_MAINNET) {
+    stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
+  }
+  const state = await ethers.getContractAt(CONTRACT_NAMES.STATE, stateContractAddress);
   const crossChainProofValidatorAddress = await state.getCrossChainProofValidator();
   console.log(`CrossChainProofValidator address: ${crossChainProofValidatorAddress}`);
 
