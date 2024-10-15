@@ -1,27 +1,16 @@
 import { DeployHelper } from "../../helpers/DeployHelper";
-import hre, { ethers, network } from "hardhat";
+import hre, { ethers } from "hardhat";
 import path from "path";
 import fs from "fs";
-import { getConfig, isContract } from "../../helpers/helperUtils";
-import {
-  networks,
-  STATE_ADDRESS_POLYGON_AMOY,
-  STATE_ADDRESS_POLYGON_MAINNET,
-  contractsInfo,
-} from "../../helpers/constants";
+import { getConfig, getStateContractAddress } from "../../helpers/helperUtils";
+import { contractsInfo } from "../../helpers/constants";
 
 (async () => {
   const config = getConfig();
 
   const chainId = hre.network.config.chainId;
 
-  let stateContractAddress = contractsInfo.STATE.unifiedAddress;
-  if (chainId === networks.POLYGON_AMOY.chainId) {
-    stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
-  }
-  if (chainId === networks.POLYGON_MAINNET.chainId) {
-    stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
-  }
+  const stateContractAddress = await getStateContractAddress();
 
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";

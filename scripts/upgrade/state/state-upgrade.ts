@@ -2,15 +2,14 @@ import { DeployHelper } from "../../../helpers/DeployHelper";
 import hre, { ethers } from "hardhat";
 import { expect } from "chai"; // abi of contract that will be upgraded
 import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/State.json";
-import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
+import {
+  getConfig,
+  getStateContractAddress,
+  removeLocalhostNetworkIgnitionFiles,
+} from "../../../helpers/helperUtils";
 import fs from "fs";
 import path from "path";
-import {
-  networks,
-  STATE_ADDRESS_POLYGON_AMOY,
-  STATE_ADDRESS_POLYGON_MAINNET,
-  contractsInfo,
-} from "../../../helpers/constants";
+import { contractsInfo } from "../../../helpers/constants";
 
 const config = getConfig();
 
@@ -42,13 +41,7 @@ async function main() {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
 
-  let stateContractAddress = contractsInfo.STATE.unifiedAddress;
-  if (chainId === networks.POLYGON_AMOY.chainId) {
-    stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
-  }
-  if (chainId === networks.POLYGON_MAINNET.chainId) {
-    stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
-  }
+  const stateContractAddress = await getStateContractAddress();
   const { proxyAdminOwnerSigner, stateOwnerSigner } = await getSigners(impersonate);
 
   const stateDeployHelper = await DeployHelper.initialize(
