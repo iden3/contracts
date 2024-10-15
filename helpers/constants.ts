@@ -188,3 +188,7 @@ export const contractsInfo = Object.freeze({
   STATE_CROSS_CHAIN_LIB: { name: "StateCrossChainLib", unifiedAddress: "", create2Address: "" },
   VERIFIER_LIB: { name: "VerifierLib", unifiedAddress: "", create2Address: "" },
 });
+
+export const CREATE_X_FACTORY_ADDRESS = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed";
+export const LEDGER_ACCOUNT = "0xAe15d2023A76174a940cbb2b7F44012C728B9d74";
+export const CREATE2_SALT = "0x000000000000000000000000000000000000000000f4179bc3e4988a1a06f8d1";

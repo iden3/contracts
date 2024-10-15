@@ -1,7 +1,7 @@
 import { Contract, ContractTransactionResponse, JsonRpcProvider } from "ethers";
 import hre, { ethers, network } from "hardhat";
 import fs from "fs";
-import { contractsInfo, networks } from "./constants";
+import { contractsInfo, CREATE_X_FACTORY_ADDRESS, networks } from "./constants";
 import { poseidonContract } from "circomlibjs";
 
 export function getConfig() {
@@ -124,6 +124,15 @@ export async function getUnifiedContract(contractName: string): Promise<Contract
     }
     return ethers.getContractAt(contractName, contractAddress);
   }
+}
+
+export async function computeCreate2Address(initCode: string, salt: string): Promise<string> {
+  const guardedSalt = ethers.keccak256(salt);
+  const initCodeHash = ethers.keccak256(initCode);
+  const preimage =
+    "0xff" + CREATE_X_FACTORY_ADDRESS.slice(2) + guardedSalt.slice(2) + initCodeHash.slice(2);
+
+  return "0x" + ethers.keccak256(preimage).slice(2 + 2 * 12); // 12 bytes for the address
 }
 
 export class Logger {
