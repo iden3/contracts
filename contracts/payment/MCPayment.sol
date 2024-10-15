@@ -37,10 +37,10 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         uint256 ownerBalance;
     }
 
-    // keccak256(abi.encode(uint256(keccak256("iden3.storage.MultichainPayment")) - 1)) &
+    // keccak256(abi.encode(uint256(keccak256("iden3.storage.MCPayment")) - 1)) &
     //    ~bytes32(uint256(0xff));
     bytes32 private constant MCPaymentStorageLocation =
-        0x25ac2e2c2ecdf79c91790c4758139e69366cf5275c692edcaeae282ffcaa2200;
+        0x843c93f996398391e581389b674681e6ea27a4f9a96390a9d8ecb41cf0226300;
 
     function _getMCPaymentStorage() private pure returns (MCPaymentStorage storage $) {
         assembly {
@@ -52,18 +52,39 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     error InvalidSignature(string message);
     error PaymentError(string message);
     error WithdrawError(string message);
+    error InvalidOwnerPercentage(string message);
+
+    /**
+     * @dev Valid percent value modifier
+     */
+    modifier validPercentValue(uint256 percent) {
+        if (percent < 0 || percent > 100) {
+            revert InvalidOwnerPercentage("Invalid owner percentage");
+        }
+        _;
+    }
 
     /**
      * @dev Initialize the contract
      */
-    function initialize(address owner, uint8 ownerPercentage) public initializer {
+    function initialize(
+        address owner,
+        uint8 ownerPercentage
+    ) public initializer validPercentValue(ownerPercentage) {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         $.ownerPercentage = ownerPercentage;
         __EIP712_init("MCPayment", VERSION);
         __Ownable_init(owner);
     }
 
-    function updateOwnerPercentage(uint8 ownerPercentage) external onlyOwner {
+    function getOwnerPercentage() external view returns (uint8) {
+        MCPaymentStorage storage $ = _getMCPaymentStorage();
+        return $.ownerPercentage;
+    }
+
+    function updateOwnerPercentage(
+        uint8 ownerPercentage
+    ) external onlyOwner validPercentValue(ownerPercentage) {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         $.ownerPercentage = ownerPercentage;
     }
@@ -122,9 +143,9 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         }
     }
 
-    function getMyBalance() public view returns (uint256) {
+    function getBalance(address recipient) public view returns (uint256) {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
-        return $.balance[_msgSender()];
+        return $.balance[recipient];
     }
 
     function getOwnerBalance() public view onlyOwner returns (uint256) {
@@ -157,9 +178,6 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     }
 
     function _withdraw(uint amount, address to) internal {
-        if (amount == 0) {
-            revert WithdrawError("There is no balance to withdraw");
-        }
         if (to == address(0)) {
             revert WithdrawError("Invalid withdraw address");
         }

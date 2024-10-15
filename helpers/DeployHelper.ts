@@ -24,7 +24,7 @@ import {
   TempContractDeployments,
   waitNotToInterfereWithHardhatIgnition,
 } from "./helperUtils";
-import { MCPaymentModule } from "../ignition/modules/mcPayment";
+import { MCPaymentProxyModule } from "../ignition/modules/mcPayment";
 
 const SMT_MAX_DEPTH = 64;
 
@@ -1105,10 +1105,10 @@ export class DeployHelper {
 
       // Deploying MCPayment contract to predictable address but with dummy implementation
       mcPayment = (
-        await ignition.deploy(MCPaymentModule, {
+        await ignition.deploy(MCPaymentProxyModule, {
           strategy: deployStrategy,
         })
-      ).mcPayment;
+      ).proxy;
       await mcPayment.waitForDeployment();
 
       // Upgrading MCPayment contract to the first real implementation
