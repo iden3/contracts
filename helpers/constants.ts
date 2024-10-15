@@ -164,6 +164,11 @@ export const contractsInfo = Object.freeze({
     unifiedAddress: "0x5Bc89782d5eBF62663Df7Ce5fb4bc7408926A240",
     create2Calldata: "",
   },
+  POSEIDON_4: {
+    name: "PoseidonUnit4L",
+    unifiedAddress: "0x0695cF2c6dfc438a4E40508741888198A6ccacC2",
+    create2Calldata: "",
+  },
   GROTH16_VERIFIER_STATE_TRANSITION: {
     name: "Groth16VerifierStateTransition",
     unifiedAddress: "0xAE950A9B8F48bC4519820728E210515a07F7cB71",

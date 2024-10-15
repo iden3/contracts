@@ -1,14 +1,13 @@
 import hre, { ethers } from "hardhat";
 import { DeployHelper } from "../../../helpers/DeployHelper";
-import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
+import {
+  getConfig,
+  getStateContractAddress,
+  removeLocalhostNetworkIgnitionFiles,
+} from "../../../helpers/helperUtils";
 import path from "path";
 import fs from "fs";
-import {
-  networks,
-  contractsInfo,
-  STATE_ADDRESS_POLYGON_AMOY,
-  STATE_ADDRESS_POLYGON_MAINNET,
-} from "../../../helpers/constants";
+import { contractsInfo } from "../../../helpers/constants";
 
 const removePreviousIgnitionFiles = true;
 const impersonate = false;
@@ -36,13 +35,7 @@ async function main() {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
 
-  let stateContractAddress = contractsInfo.STATE.unifiedAddress;
-  if (chainId === networks.POLYGON_AMOY.chainId) {
-    stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
-  }
-  if (chainId === networks.POLYGON_MAINNET.chainId) {
-    stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
-  }
+  const stateContractAddress = await getStateContractAddress();
 
   const { proxyAdminOwnerSigner } = await getSigners(impersonate);
 
