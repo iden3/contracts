@@ -12,15 +12,11 @@ import {
 } from "./helpers/testVerifier";
 import {
   getConfig,
+  getStateContractAddress,
   removeLocalhostNetworkIgnitionFiles,
   waitNotToInterfereWithHardhatIgnition,
 } from "../../../helpers/helperUtils";
-import {
-  networks,
-  contractsInfo,
-  STATE_ADDRESS_POLYGON_AMOY,
-  STATE_ADDRESS_POLYGON_MAINNET,
-} from "../../../helpers/constants";
+import { contractsInfo } from "../../../helpers/constants";
 import fs from "fs";
 import path from "path";
 
@@ -57,12 +53,7 @@ async function main() {
   if (!ethers.isAddress(config.ledgerAccount)) {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
-  if (chainId === networks.POLYGON_AMOY.chainId) {
-    stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
-  }
-  if (chainId === networks.POLYGON_MAINNET.chainId) {
-    stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
-  }
+  stateContractAddress = await getStateContractAddress();
 
   const { proxyAdminOwnerSigner, universalVerifierOwnerSigner } = await getSigners(impersonate);
 

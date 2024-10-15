@@ -1,30 +1,16 @@
 import fs from "fs";
 import path from "path";
 import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeployHelper";
-import { deployPoseidons } from "../../helpers/PoseidonDeployHelper";
 import { DeployHelper } from "../../helpers/DeployHelper";
-import {
-  networks,
-  STATE_ADDRESS_POLYGON_AMOY,
-  STATE_ADDRESS_POLYGON_MAINNET,
-  contractsInfo,
-} from "../../helpers/constants";
+import { contractsInfo } from "../../helpers/constants";
 const pathOutputJson = path.join(__dirname, "./deploy_identity_example_output.json");
-import hre from "hardhat";
+import { getStateContractAddress } from "../../helpers/helperUtils";
 
 async function main() {
   const stDeployHelper = await DeployHelper.initialize();
   const { defaultIdType } = await stDeployHelper.getDefaultIdType();
 
-  const chainId = hre.network.config.chainId;
-
-  let stateContractAddress = contractsInfo.STATE.unifiedAddress;
-  if (chainId === networks.POLYGON_AMOY.chainId) {
-    stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
-  }
-  if (chainId === networks.POLYGON_MAINNET.chainId) {
-    stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
-  }
+  const stateContractAddress = await getStateContractAddress();
 
   const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
 

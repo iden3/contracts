@@ -1,12 +1,11 @@
-import { getProviders, isContract, Logger } from "../../../helpers/helperUtils";
 import {
-  contractsInfo,
-  networks,
-  ORACLE_SIGNING_ADDRESS_PRODUCTION,
-  STATE_ADDRESS_POLYGON_AMOY,
-  STATE_ADDRESS_POLYGON_MAINNET,
-} from "../../../helpers/constants";
-import hre, { ethers } from "hardhat";
+  getProviders,
+  getStateContractAddress,
+  isContract,
+  Logger,
+} from "../../../helpers/helperUtils";
+import { contractsInfo, ORACLE_SIGNING_ADDRESS_PRODUCTION } from "../../../helpers/constants";
+import { ethers } from "hardhat";
 
 async function main() {
   const providers = getProviders();
@@ -14,15 +13,7 @@ async function main() {
   for (const provider of providers) {
     const jsonRpcProvider = new ethers.JsonRpcProvider(provider.rpcUrl);
 
-    const chainId = hre.network.config.chainId;
-
-    let stateContractAddress = contractsInfo.STATE.unifiedAddress;
-    if (chainId === networks.POLYGON_AMOY.chainId) {
-      stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
-    }
-    if (chainId === networks.POLYGON_MAINNET.chainId) {
-      stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
-    }
+    const stateContractAddress = await getStateContractAddress();
 
     let oracleSigningAddressIsValid = true;
     const defaultOracleSigningAddress = ORACLE_SIGNING_ADDRESS_PRODUCTION; // production signing address

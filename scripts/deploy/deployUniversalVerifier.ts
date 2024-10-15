@@ -4,28 +4,18 @@ import { DeployHelper } from "../../helpers/DeployHelper";
 import hre, { ethers } from "hardhat";
 import {
   getConfig,
+  getStateContractAddress,
   Logger,
   TempContractDeployments,
   waitNotToInterfereWithHardhatIgnition,
 } from "../../helpers/helperUtils";
-import {
-  networks,
-  contractsInfo,
-  STATE_ADDRESS_POLYGON_AMOY,
-  STATE_ADDRESS_POLYGON_MAINNET,
-} from "../../helpers/constants";
+import { contractsInfo } from "../../helpers/constants";
 
 async function main() {
   const config = getConfig();
   const chainId = hre.network.config.chainId;
 
-  let stateContractAddress = contractsInfo.STATE.unifiedAddress;
-  if (chainId === networks.POLYGON_AMOY.chainId) {
-    stateContractAddress = STATE_ADDRESS_POLYGON_AMOY;
-  }
-  if (chainId === networks.POLYGON_MAINNET.chainId) {
-    stateContractAddress = STATE_ADDRESS_POLYGON_MAINNET;
-  }
+  const stateContractAddress = await getStateContractAddress();
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
   const [signer] = await ethers.getSigners();
