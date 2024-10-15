@@ -27,13 +27,12 @@ async function main() {
   }
 
   const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
-  const [poseidon4Elements] = await deployPoseidons([4]);
 
   const contracts = await identityDeployHelper.deployIdentity(
     stateContractAddress,
     contractsInfo.SMT_LIB.unifiedAddress,
     contractsInfo.POSEIDON_3.unifiedAddress,
-    await poseidon4Elements.getAddress(),
+    contractsInfo.POSEIDON_4.unifiedAddress,
     defaultIdType,
   );
 
@@ -46,7 +45,7 @@ async function main() {
     poseidon1: contractsInfo.POSEIDON_1.unifiedAddress,
     poseidon2: contractsInfo.POSEIDON_2.unifiedAddress,
     poseidon3: contractsInfo.POSEIDON_3.unifiedAddress,
-    poseidon4: poseidon4Elements.getAddress(),
+    poseidon4: contractsInfo.POSEIDON_4.unifiedAddress,
     network: process.env.HARDHAT_NETWORK,
   };
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));

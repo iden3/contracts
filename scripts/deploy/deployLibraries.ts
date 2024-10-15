@@ -12,10 +12,8 @@ async function main() {
 
   const deployHelper = await DeployHelper.initialize(null, true);
 
-  const [poseidon1Elements, poseidon2Elements, poseidon3Elements] = await deployPoseidons(
-    [1, 2, 3],
-    deployStrategy,
-  );
+  const [poseidon1Elements, poseidon2Elements, poseidon3Elements, poseidon4Elements] =
+    await deployPoseidons([1, 2, 3, 4], deployStrategy);
 
   const smtLib = await deployHelper.deploySmtLib(
     await poseidon2Elements.getAddress(),
@@ -53,6 +51,7 @@ async function main() {
     poseidon1: await poseidon1Elements.getAddress(),
     poseidon2: await poseidon2Elements.getAddress(),
     poseidon3: await poseidon3Elements.getAddress(),
+    poseidon4: await poseidon4Elements.getAddress(),
     smtLib: await smtLib.getAddress(),
     groth16verifiersInfo,
     network: networkName,
