@@ -163,7 +163,7 @@ export class DeployHelper {
     );
     if (crossChainProofValidator) {
       Logger.warning(
-        `${contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.name} found already deployed to:  ${await crossChainProofValidator?.getAddress}`,
+        `${contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.name} found already deployed to:  ${await crossChainProofValidator?.getAddress()}`,
       );
     } else {
       this.log("deploying CrossChainProofValidator...");
@@ -190,6 +190,7 @@ export class DeployHelper {
     );
 
     let state;
+    let create2AlreadyDeployed = false;
     if (deployStrategy === "create2") {
       this.log("deploying with CREATE2 strategy...");
 
@@ -198,25 +199,41 @@ export class DeployHelper {
       await waitNotToInterfereWithHardhatIgnition(tx as ContractTransactionResponse);
 
       state = await getUnifiedContract(contractsInfo.STATE.name);
+
       if (state) {
-        tmpContractDeployments.remove();
-        Logger.warning(
-          `${contractsInfo.STATE.name} found already deployed to:  ${await state?.getAddress()}`,
-        );
-        return {
-          state,
-          stateLib,
-          stateCrossChainLib,
-          crossChainProofValidator,
-          defaultIdType,
-        };
+        let version;
+        try {
+          version = await state.VERSION();
+        } catch (e) {
+          create2AlreadyDeployed = true;
+          Logger.warning(
+            `Create2AnchorAddress implementation already deployed to TransparentUpgradeableProxy of ${contractsInfo.STATE.name}.`,
+          );
+        }
+
+        if (version) {
+          tmpContractDeployments.remove();
+          Logger.warning(
+            `${contractsInfo.STATE.name} found already deployed to:  ${await state?.getAddress()}`,
+          );
+          return {
+            state,
+            stateLib,
+            stateCrossChainLib,
+            crossChainProofValidator,
+            defaultIdType,
+          };
+        }
       }
-      state = (
-        await ignition.deploy(StateProxyModule, {
-          strategy: deployStrategy,
-        })
-      ).proxy;
-      await state.waitForDeployment();
+
+      if (!create2AlreadyDeployed) {
+        state = (
+          await ignition.deploy(StateProxyModule, {
+            strategy: deployStrategy,
+          })
+        ).proxy;
+        await state.waitForDeployment();
+      }
 
       // Upgrading State contract to the first real implementation
       // and force network files import, so creation, as they do not exist at the moment
@@ -664,6 +681,8 @@ export class DeployHelper {
     );
 
     let validator;
+    let create2AlreadyDeployed = false;
+
     if (deployStrategy === "create2") {
       this.log("deploying with CREATE2 strategy...");
 
@@ -684,22 +703,36 @@ export class DeployHelper {
 
       validator = await getUnifiedContract(validatorContractName);
       if (validator) {
-        Logger.warning(
-          `${validatorContractName} found already deployed to:  ${await validator?.getAddress()}`,
-        );
-        return {
-          validator,
-          state: await ethers.getContractAt("State", stateAddress),
-        };
-      }
-      // Deploying Validator contract to predictable address but with dummy implementation
-      validator = (
-        await ignition.deploy(validatorModule, {
-          strategy: deployStrategy,
-        })
-      ).proxy;
-      await validator.waitForDeployment();
+        let version;
+        try {
+          version = await validator.VERSION();
+        } catch (e) {
+          create2AlreadyDeployed = true;
+          Logger.warning(
+            `Create2AnchorAddress implementation already deployed to TransparentUpgradeableProxy of ${validatorContractName}.`,
+          );
+        }
 
+        if (version) {
+          Logger.warning(
+            `${validatorContractName} found already deployed to:  ${await validator?.getAddress()}`,
+          );
+          return {
+            validator,
+            state: await ethers.getContractAt("State", stateAddress),
+          };
+        }
+      }
+
+      if (!create2AlreadyDeployed) {
+        // Deploying Validator contract to predictable address but with dummy implementation
+        validator = (
+          await ignition.deploy(validatorModule, {
+            strategy: deployStrategy,
+          })
+        ).proxy;
+        await validator.waitForDeployment();
+      }
       // Upgrading Validator contract to the first real implementation
       // and force network files import, so creation, as they do not exist at the moment
       const validatorAddress = await validator.getAddress();
@@ -878,24 +911,40 @@ export class DeployHelper {
     );
 
     let universalVerifier;
+    let create2AlreadyDeployed = false;
+
     if (deployStrategy === "create2") {
       this.log("deploying with CREATE2 strategy...");
 
       universalVerifier = await getUnifiedContract(contractsInfo.UNIVERSAL_VERIFIER.name);
       if (universalVerifier) {
-        Logger.warning(
-          `${contractsInfo.UNIVERSAL_VERIFIER.name} found already deployed to:  ${await universalVerifier?.getAddress()}`,
-        );
-        return universalVerifier;
-      }
-      // Deploying UniversalVerifier contract to predictable address but with dummy implementation
-      universalVerifier = (
-        await ignition.deploy(UniversalVerifierProxyModule, {
-          strategy: deployStrategy,
-        })
-      ).proxy;
-      await universalVerifier.waitForDeployment();
+        let version;
+        try {
+          version = await universalVerifier.VERSION();
+        } catch (e) {
+          create2AlreadyDeployed = true;
+          Logger.warning(
+            `Create2AnchorAddress implementation already deployed to TransparentUpgradeableProxy of ${contractsInfo.UNIVERSAL_VERIFIER.name}.`,
+          );
+        }
 
+        if (version) {
+          Logger.warning(
+            `${contractsInfo.UNIVERSAL_VERIFIER.name} found already deployed to:  ${await universalVerifier?.getAddress()}`,
+          );
+          return universalVerifier;
+        }
+      }
+
+      if (!create2AlreadyDeployed) {
+        // Deploying UniversalVerifier contract to predictable address but with dummy implementation
+        universalVerifier = (
+          await ignition.deploy(UniversalVerifierProxyModule, {
+            strategy: deployStrategy,
+          })
+        ).proxy;
+        await universalVerifier.waitForDeployment();
+      }
       // Upgrading UniversalVerifier contract to the first real implementation
       // and force network files import, so creation, as they do not exist at the moment
       const universalVerifierAddress = await universalVerifier.getAddress();
@@ -970,26 +1019,42 @@ export class DeployHelper {
     );
 
     let identityTreeStore;
+    let create2AlreadyDeployed = false;
+
     if (deployStrategy === "create2") {
       this.log("deploying with CREATE2 strategy...");
 
       identityTreeStore = await getUnifiedContract(contractsInfo.IDENTITY_TREE_STORE.name);
       if (identityTreeStore) {
-        Logger.warning(
-          `${contractsInfo.IDENTITY_TREE_STORE.name} found already deployed to:  ${await identityTreeStore?.getAddress()}`,
-        );
-        return {
-          identityTreeStore,
-        };
-      }
-      // Deploying IdentityTreeStore contract to predictable address but with dummy implementation
-      identityTreeStore = (
-        await ignition.deploy(IdentityTreeStoreProxyModule, {
-          strategy: deployStrategy,
-        })
-      ).proxy;
-      await identityTreeStore.waitForDeployment();
+        let version;
+        try {
+          version = await identityTreeStore.VERSION();
+        } catch (e) {
+          create2AlreadyDeployed = true;
+          Logger.warning(
+            `Create2AnchorAddress implementation already deployed to TransparentUpgradeableProxy of ${contractsInfo.IDENTITY_TREE_STORE.name}.`,
+          );
+        }
 
+        if (version) {
+          Logger.warning(
+            `${contractsInfo.IDENTITY_TREE_STORE.name} found already deployed to:  ${await identityTreeStore?.getAddress()}`,
+          );
+          return {
+            identityTreeStore,
+          };
+        }
+      }
+
+      if (!create2AlreadyDeployed) {
+        // Deploying IdentityTreeStore contract to predictable address but with dummy implementation
+        identityTreeStore = (
+          await ignition.deploy(IdentityTreeStoreProxyModule, {
+            strategy: deployStrategy,
+          })
+        ).proxy;
+        await identityTreeStore.waitForDeployment();
+      }
       // Upgrading IdentityTreeStore contract to the first real implementation
       // and force network files import, so creation, as they do not exist at the moment
       const identityTreeStoreAddress = await identityTreeStore.getAddress();
