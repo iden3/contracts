@@ -85,8 +85,8 @@ describe("VC Payment Contract", () => {
     expect(issuer1BalanceInContract).to.be.eq(47500);
     const issuerWithdrawTx = await payment.connect(issuer1Signer).issuerWithdraw();
     // issuer 1 balance should be 0
-    const issuer1BalanceAfterWithdrow = await payment.connect(issuer1Signer).getMyBalance();
-    expect(issuer1BalanceAfterWithdrow).to.be.eq(0);
+    const issuer1BalanceAfterWithdraw = await payment.connect(issuer1Signer).getMyBalance();
+    expect(issuer1BalanceAfterWithdraw).to.be.eq(0);
 
     // gas spend by issuer 1
     const receipt = await issuerWithdrawTx.wait();
@@ -139,11 +139,11 @@ describe("VC Payment Contract", () => {
     await payment.connect(owner).withdrawToAllIssuers();
 
     // issuers balance should be 0
-    const issuer1BalanceAfterWithdrow = await payment.connect(issuer1Signer).getMyBalance();
-    expect(issuer1BalanceAfterWithdrow).to.be.eq(0);
+    const issuer1BalanceAfterWithdraw = await payment.connect(issuer1Signer).getMyBalance();
+    expect(issuer1BalanceAfterWithdraw).to.be.eq(0);
 
-    const issuer2BalanceAfterWithdrow = await payment.connect(issuer1Signer).getMyBalance();
-    expect(issuer2BalanceAfterWithdrow).to.be.eq(0);
+    const issuer2BalanceAfterWithdraw = await payment.connect(issuer1Signer).getMyBalance();
+    expect(issuer2BalanceAfterWithdraw).to.be.eq(0);
 
     expect(await ethers.provider.getBalance(issuer1Signer.address)).to.be.eq(
       issuer1BalanceBeforeWithdraw + issuer1BalanceInContract,

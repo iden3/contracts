@@ -139,6 +139,11 @@ export const contractsInfo = Object.freeze({
     unifiedAddress: "",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.VCPayment")),
   },
+  MC_PAYMENT: {
+    name: "MCPayment",
+    unifiedAddress: "",
+    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.MCPayment")),
+  },
   CROSS_CHAIN_PROOF_VALIDATOR: {
     name: "CrossChainProofValidator",
     unifiedAddress: "",
