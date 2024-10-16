@@ -15,37 +15,37 @@ type ChainIdInfo = {
 
 export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
   .set(31337, {
-    idType: "0x0212",
+    idType: "0x0112",
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_HARDHAT,
   }) // hardhat
   .set(1101, {
-    idType: "0x0214",
+    idType: "0x0114",
     networkType: "main",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // polygon zkevm
   .set(2442, {
-    idType: "0x0215",
+    idType: "0x0115",
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // polygon cardona
   .set(137, {
-    idType: "0x0211",
+    idType: "0x0111",
     networkType: "main",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // polygon main
   .set(80001, {
-    idType: "0x0212",
+    idType: "0x0112",
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // polygon mumbai
   .set(80002, {
-    idType: "0x0213",
+    idType: "0x0113",
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // polygon amoy
   .set(11155111, {
-    idType: "0x0223",
+    idType: "0x0123",
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // ethereum sepolia
