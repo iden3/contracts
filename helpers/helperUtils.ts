@@ -1,5 +1,5 @@
 import { Contract, ContractTransactionResponse, JsonRpcProvider } from "ethers";
-import hre, { ethers, network } from "hardhat";
+import hre, { ethers, network, run } from "hardhat";
 import fs from "fs";
 import {
   contractsInfo,
@@ -69,6 +69,30 @@ export async function isContract(
     return false;
   }
   return true;
+}
+
+export async function verifyContract(
+  contractAddress: any,
+  opts: {
+    contract?: string;
+    constructorArgs: any[];
+    libraries: any;
+  },
+): Promise<boolean> {
+  try {
+    await run("verify:verify", {
+      address: contractAddress,
+      contract: opts.contract,
+      constructorArguments: opts.constructorArgs,
+      libraries: opts.libraries,
+    });
+    Logger.success(`Verification successful for ${contractAddress}\n`);
+    return true;
+  } catch (error) {
+    Logger.error(`Error verifying ${contractAddress}: ${error}\n`);
+  }
+
+  return false;
 }
 
 export function getProviders() {

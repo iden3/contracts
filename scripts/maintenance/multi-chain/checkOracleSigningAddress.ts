@@ -27,14 +27,17 @@ async function main() {
         stateContractAddress,
         wallet,
       );
-      const crossChainProofValidatorAddress = await state.getCrossChainProofValidator();
+      let oracleSigningAddress;
+      try {
+        const crossChainProofValidatorAddress = await state.getCrossChainProofValidator();
 
-      const crossChainProofValidator = await ethers.getContractAt(
-        contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.name,
-        crossChainProofValidatorAddress,
-        wallet,
-      );
-      const oracleSigningAddress = await crossChainProofValidator.getOracleSigningAddress();
+        const crossChainProofValidator = await ethers.getContractAt(
+          contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.name,
+          crossChainProofValidatorAddress,
+          wallet,
+        );
+        oracleSigningAddress = await crossChainProofValidator.getOracleSigningAddress();
+      } catch (error) {}
       if (oracleSigningAddress !== defaultOracleSigningAddress) {
         oracleSigningAddressIsValid = false;
       }

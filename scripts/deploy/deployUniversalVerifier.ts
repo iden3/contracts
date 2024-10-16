@@ -7,6 +7,7 @@ import {
   getStateContractAddress,
   Logger,
   TempContractDeployments,
+  verifyContract,
   waitNotToInterfereWithHardhatIgnition,
 } from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
@@ -39,6 +40,10 @@ async function main() {
       contractsInfo.VERIFIER_LIB.name,
       await verifierLib.getAddress(),
     );
+    await verifyContract(
+      await verifierLib.getAddress(),
+      contractsInfo.VERIFIER_LIB.verificationOpts,
+    );
   }
 
   const universalVerifier = await deployHelper.deployUniversalVerifier(
@@ -48,6 +53,12 @@ async function main() {
     deployStrategy,
   );
   tmpContractDeployments.remove();
+
+  await verifyContract(
+    await universalVerifier.getAddress(),
+    contractsInfo.UNIVERSAL_VERIFIER.verificationOpts,
+  );
+
   const networkName = hre.network.name;
   const pathOutputJson = path.join(
     __dirname,
