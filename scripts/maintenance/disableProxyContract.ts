@@ -1,16 +1,14 @@
 import hre, { ethers, upgrades } from "hardhat";
 import { expect } from "chai";
-// import { getConfig } from "../../helpers/helperUtils";
-// import { contractsInfo } from "../../helpers/constants";
+import { contractsInfo } from "../../helpers/constants";
 
-// Get proper contract address and name
+// !!!!! Get proper contract address and name, e.g. contractsInfo.STATE.unifiedAddress !!!!!
 const contractAddress = "<put-your-contract-address>";
-// const contractAddress = getConfig().stateContractAddress;
 
 async function main() {
-  // Put proper contract name here
+  // Put proper contract name here, e.g. contractsInfo.STATE.name
   const contractName = "<put-your-contract-name>";
-  // const contractName = contractsInfo.STATE.name;
+
   const contract = await ethers.getContractAt(contractName, contractAddress);
 
   const alwaysRevertFactory = await ethers.getContractFactory("AlwaysRevert");
@@ -19,7 +17,8 @@ async function main() {
   });
   await c.waitForDeployment();
 
-  await expect(contract.someFunction()).to.be.revertedWith("The contract is disabled");
+  // !!!!! Put proper function name here to make some check, e.g. getDefaultIdType() for State contract !!!!!
+  await expect(contract.getDefaultIdType()).to.be.revertedWith("The contract is disabled");
 
   const network = hre.network.name;
   console.log(
