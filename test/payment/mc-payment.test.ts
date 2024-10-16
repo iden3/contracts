@@ -90,8 +90,8 @@ describe("MC Payment Contract", () => {
       "WithdrawError",
     );
 
-    const issuer1BalanceAfterWithdrow = await payment.getBalance(issuer1Signer.address);
-    expect(issuer1BalanceAfterWithdrow).to.be.eq(0);
+    const issuer1BalanceAfterWithdraw = await payment.getBalance(issuer1Signer.address);
+    expect(issuer1BalanceAfterWithdraw).to.be.eq(0);
 
     // owner withdraw
     const ownerBalanceInContract = await payment.connect(owner).getOwnerBalance();
@@ -99,8 +99,8 @@ describe("MC Payment Contract", () => {
 
     await expect(() => payment.connect(owner).ownerWithdraw()).to.changeEtherBalance(owner, 10);
     // owner balance should be 0
-    const ownerBalanceAfterWithdrow = await payment.connect(owner).getOwnerBalance();
-    expect(ownerBalanceAfterWithdrow).to.be.eq(0);
+    const ownerBalanceAfterWithdraw = await payment.connect(owner).getOwnerBalance();
+    expect(ownerBalanceAfterWithdraw).to.be.eq(0);
 
     // second owner withdraw
     await expect(payment.connect(owner).ownerWithdraw()).to.be.revertedWithCustomError(
