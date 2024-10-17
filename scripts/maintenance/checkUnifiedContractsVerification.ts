@@ -1,4 +1,4 @@
-import { Logger, verifyContract } from "../../helpers/helperUtils";
+import { getStateContractAddress, Logger, verifyContract } from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
 
 async function main() {
@@ -6,12 +6,11 @@ async function main() {
   const contractsVerified: string[] = [];
   for (const property in contractsInfo) {
     if (contractsInfo[property].unifiedAddress !== "" && contractsInfo[property].verificationOpts) {
-      if (
-        await verifyContract(
-          contractsInfo[property].unifiedAddress,
-          contractsInfo[property].verificationOpts,
-        )
-      ) {
+      let contractAddress = contractsInfo[property].unifiedAddress;
+      if (property === "STATE") {
+        contractAddress = getStateContractAddress();
+      }
+      if (await verifyContract(contractAddress, contractsInfo[property].verificationOpts)) {
         contractsVerified.push(property);
       } else {
         contractsNotVerified.push(property);

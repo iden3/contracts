@@ -16,7 +16,7 @@ async function main() {
   const config = getConfig();
   const chainId = hre.network.config.chainId;
 
-  const stateContractAddress = await getStateContractAddress();
+  const stateContractAddress = getStateContractAddress();
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
   const [signer] = await ethers.getSigners();

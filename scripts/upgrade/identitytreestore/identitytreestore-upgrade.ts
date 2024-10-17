@@ -36,7 +36,7 @@ async function main() {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
 
-  const stateContractAddress = await getStateContractAddress();
+  const stateContractAddress = getStateContractAddress();
 
   const { proxyAdminOwnerSigner } = await getSigners(impersonate);
 

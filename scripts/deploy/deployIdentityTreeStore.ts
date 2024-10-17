@@ -10,7 +10,7 @@ import { contractsInfo } from "../../helpers/constants";
 
   const chainId = hre.network.config.chainId;
 
-  const stateContractAddress = await getStateContractAddress();
+  const stateContractAddress = getStateContractAddress();
 
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";

@@ -54,7 +54,7 @@ async function main() {
   if (!ethers.isAddress(config.ledgerAccount)) {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
-  stateContractAddress = await getStateContractAddress();
+  stateContractAddress = getStateContractAddress();
 
   const { proxyAdminOwnerSigner, universalVerifierOwnerSigner } = await getSigners(impersonate);
 

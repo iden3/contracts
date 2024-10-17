@@ -181,7 +181,7 @@ export async function getUnifiedContract(contractName: string): Promise<Contract
   }
 }
 
-export async function getStateContractAddress(): Promise<string> {
+export function getStateContractAddress(): string {
   const chainId = hre.network.config.chainId;
 
   let stateContractAddress = contractsInfo.STATE.unifiedAddress;
