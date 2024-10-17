@@ -103,7 +103,13 @@ export const contractsInfo = Object.freeze({
     unifiedAddress: "0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier")),
     verificationOpts: {
-      constructorArgs: [],
+      // For some reason some explorers require constructorArgs to be empty and others require them to be filled
+      //constructorArgs: [],
+      constructorArgs: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+      ],
       libraries: {},
     },
   },
@@ -112,7 +118,12 @@ export const contractsInfo = Object.freeze({
     unifiedAddress: "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.State")),
     verificationOpts: {
-      constructorArgs: [],
+      //constructorArgs: [],
+      constructorArgs: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+      ],
       libraries: {},
     },
   },
@@ -123,7 +134,12 @@ export const contractsInfo = Object.freeze({
       ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQuerySigV2Validator"),
     ),
     verificationOpts: {
-      constructorArgs: [],
+      //constructorArgs: [],
+      constructorArgs: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+      ],
       libraries: {},
     },
   },
@@ -134,7 +150,12 @@ export const contractsInfo = Object.freeze({
       ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryMTPV2Validator"),
     ),
     verificationOpts: {
-      constructorArgs: [],
+      //constructorArgs: [],
+      constructorArgs: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+      ],
       libraries: {},
     },
   },
@@ -145,7 +166,12 @@ export const contractsInfo = Object.freeze({
       ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3Validator"),
     ),
     verificationOpts: {
-      constructorArgs: [],
+      //constructorArgs: [],
+      constructorArgs: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+      ],
       libraries: {},
     },
   },
@@ -154,7 +180,12 @@ export const contractsInfo = Object.freeze({
     unifiedAddress: "0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.IdentityTreeStore")),
     verificationOpts: {
-      constructorArgs: [],
+      //constructorArgs: [],
+      constructorArgs: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+      ],
       libraries: {},
     },
   },
@@ -230,6 +261,8 @@ export const contractsInfo = Object.freeze({
     unifiedAddress: "0x1205B90121cAbB2B7e6f1828005AC00D8927796F",
     create2Calldata: "",
     verificationOpts: {
+      contract:
+        "contracts/lib/groth16-verifiers/Groth16VerifierMTPWrapper.sol:Groth16VerifierMTPWrapper",
       constructorArgs: [],
       libraries: {},
     },
@@ -239,6 +272,8 @@ export const contractsInfo = Object.freeze({
     unifiedAddress: "0x0ce200c9557BB64ee9E82452646b084e77Aaeb51",
     create2Calldata: "",
     verificationOpts: {
+      contract:
+        "contracts/lib/groth16-verifiers/Groth16VerifierSigWrapper.sol:Groth16VerifierSigWrapper",
       constructorArgs: [],
       libraries: {},
     },
@@ -248,6 +283,8 @@ export const contractsInfo = Object.freeze({
     unifiedAddress: "0x1aA2B5AEAd506D269164958d36Cae04f95F79282",
     create2Calldata: "",
     verificationOpts: {
+      contract:
+        "contracts/lib/groth16-verifiers/Groth16VerifierV3Wrapper.sol:Groth16VerifierV3Wrapper",
       constructorArgs: [],
       libraries: {},
     },
