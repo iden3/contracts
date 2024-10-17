@@ -1,0 +1,28 @@
+{
+ "poseidon1": "0xC72D76D7271924a2AD54a19D216640FeA3d138d9",
+ "poseidon2": "0x72F721D9D5f91353B505207C63B56cF3d9447edB",
+ "poseidon3": "0x5Bc89782d5eBF62663Df7Ce5fb4bc7408926A240",
+ "poseidon4": "0x0695cF2c6dfc438a4E40508741888198A6ccacC2",
+ "smtLib": "0x682364078e26C1626abD2B95109D2019E241F0F6",
+ "groth16verifiersInfo": [
+  {
+   "verifierType": "mtpV2",
+   "groth16verifier": "0x1205B90121cAbB2B7e6f1828005AC00D8927796F"
+  },
+  {
+   "verifierType": "sigV2",
+   "groth16verifier": "0x0ce200c9557BB64ee9E82452646b084e77Aaeb51"
+  },
+  {
+   "verifierType": "v3",
+   "groth16verifier": "0x1aA2B5AEAd506D269164958d36Cae04f95F79282"
+  },
+  {
+   "validatorType": "stateTransition",
+   "groth16verifier": "0xAE950A9B8F48bC4519820728E210515a07F7cB71"
+  }
+ ],
+ "network": "ethereum-sepolia",
+ "chainId": 11155111,
+ "deployStrategy": "create2"
+}

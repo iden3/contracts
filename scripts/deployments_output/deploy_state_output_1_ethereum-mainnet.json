@@ -1,0 +1,10 @@
+{
+ "proxyAdminOwnerAddress": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74",
+ "state": "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
+ "stateLib": "0x456Ae9a1cCE31e0b89927910Ee209c707726eC73",
+ "stateCrossChainLib": "0xc504E928C513caDF8bDa93BF012cBFD61eFCA4ae",
+ "crossChainProofValidator": "0x241A2c2Bd2EBCC478B50e28ECA4e500A5a4b8736",
+ "network": "ethereum-mainnet",
+ "chainId": 1,
+ "deployStrategy": "create2"
+}

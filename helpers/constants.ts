@@ -44,6 +44,11 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // polygon amoy
+  .set(1, {
+    idType: "0x0121",
+    networkType: "main",
+    oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
+  }) // ethereum mainnet
   .set(11155111, {
     idType: "0x0123",
     networkType: "test",

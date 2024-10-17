@@ -1,0 +1,10 @@
+{
+ "proxyAdminOwnerAddress": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74",
+ "state": "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
+ "stateLib": "0x241A2c2Bd2EBCC478B50e28ECA4e500A5a4b8736",
+ "stateCrossChainLib": "0x2473FC4139B6b157267c2b7098cd1727aa63C327",
+ "crossChainProofValidator": "0x56479d71c8c7F4042b49F228b393879D339bB368",
+ "network": "privado-main",
+ "chainId": 21000,
+ "deployStrategy": "create2"
+}
