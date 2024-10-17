@@ -1,5 +1,5 @@
-import { Logger, verifyContract } from "../../../helpers/helperUtils";
-import { contractsInfo } from "../../../helpers/constants";
+import { Logger, verifyContract } from "../../helpers/helperUtils";
+import { contractsInfo } from "../../helpers/constants";
 
 async function main() {
   const contractsNotVerified: string[] = [];
@@ -12,14 +12,8 @@ async function main() {
           contractsInfo[property].verificationOpts,
         )
       ) {
-        /*console.log(
-          `\x1b[32m  ✓ \x1b[0m${contractsInfo[property].name} is verified at ${contractsInfo[property].unifiedAddress}`,
-        );*/
         contractsVerified.push(property);
       } else {
-        /*console.log(
-          `\x1b[31m  𐄂 \x1b[0m${contractsInfo[property].name} is not verified at ${contractsInfo[property].unifiedAddress}`,
-        );*/
         contractsNotVerified.push(property);
       }
     }
