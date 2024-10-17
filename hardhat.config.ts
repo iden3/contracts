@@ -148,14 +148,14 @@ const config: HardhatUserConfig = {
 
   etherscan: {
     apiKey: {
-      "polygon-amoy": process.env.POLYGON_API_KEY || "",
-      polygon: process.env.POLYGON_API_KEY || "",
-      sepolia: process.env.ETHEREUM_API_KEY || "",
-      mainnet: process.env.ETHEREUM_API_KEY || "",
-      "linea-mainnet": process.env.LINEA_API_KEY || "",
-      "linea-sepolia": process.env.LINEA_API_KEY || "",
-      "zkevm-cardona": process.env.ZKEVM_API_KEY || "",
-      "zkevm-mainnet": process.env.ZKEVM_API_KEY || "",
+      "polygon-amoy": process.env.POLYGON_EXPLORER_API_KEY || "",
+      polygon: process.env.POLYGON_EXPLORER_API_KEY || "",
+      sepolia: process.env.ETHEREUM_EXPLORER_API_KEY || "",
+      mainnet: process.env.ETHEREUM_EXPLORER_API_KEY || "",
+      "linea-mainnet": process.env.LINEA_EXPLORER_API_KEY || "",
+      "linea-sepolia": process.env.LINEA_EXPLORER_API_KEY || "",
+      "zkevm-cardona": process.env.ZKEVM_EXPLORER_API_KEY || "",
+      "zkevm-mainnet": process.env.ZKEVM_EXPLORER_API_KEY || "",
     },
     customChains: [
       {
