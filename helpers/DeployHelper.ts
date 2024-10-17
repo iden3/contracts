@@ -581,7 +581,9 @@ export class DeployHelper {
 
   getGroth16VerifierWrapperVerification(verifierType: "mtpV2" | "sigV2" | "v3"): {
     contract: string;
-    constructorArgs: any[];
+    constructorArgsImplementation: any[];
+    constructorArgsProxy?: any[];
+    constructorArgsProxyAdmin?: any[];
     libraries: any;
   } {
     let verification;
@@ -601,7 +603,9 @@ export class DeployHelper {
 
   getValidatorVerification(verifierType: "mtpV2" | "sigV2" | "v3"): {
     contract: string;
-    constructorArgs: any[];
+    constructorArgsImplementation: any[];
+    constructorArgsProxy?: any[];
+    constructorArgsProxyAdmin?: any[];
     libraries: any;
   } {
     let verification;

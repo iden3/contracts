@@ -75,15 +75,41 @@ export async function verifyContract(
   contractAddress: any,
   opts: {
     contract?: string;
-    constructorArgs: any[];
+    constructorArgsProxy?: any[];
+    constructorArgsProxyAdmin?: any[];
+    constructorArgsImplementation: any[];
     libraries: any;
   },
 ): Promise<boolean> {
+  // When verifying if the proxy contract is not verified yet we need to pass the arguments
+  // for the proxy contract first, then for proxy admin and finally for the implementation contract
+  if (opts.constructorArgsProxy) {
+    try {
+      await run("verify:verify", {
+        address: contractAddress,
+        contract: opts.contract,
+        constructorArguments: opts.constructorArgsProxy,
+        libraries: opts.libraries,
+      });
+    } catch (error) {}
+  }
+
+  if (opts.constructorArgsProxyAdmin) {
+    try {
+      await run("verify:verify", {
+        address: contractAddress,
+        contract: opts.contract,
+        constructorArguments: opts.constructorArgsProxyAdmin,
+        libraries: opts.libraries,
+      });
+    } catch (error) {}
+  }
+
   try {
     await run("verify:verify", {
       address: contractAddress,
       contract: opts.contract,
-      constructorArguments: opts.constructorArgs,
+      constructorArguments: opts.constructorArgsImplementation,
       libraries: opts.libraries,
     });
     Logger.success(`Verification successful for ${contractAddress}\n`);
