@@ -4,6 +4,7 @@ import {
   getConfig,
   getStateContractAddress,
   removeLocalhostNetworkIgnitionFiles,
+  verifyContract,
 } from "../../../helpers/helperUtils";
 import path from "path";
 import fs from "fs";
@@ -64,6 +65,11 @@ async function main() {
 
   // **********************************
   console.log("Version after:", await identityTreeStore.VERSION());
+
+  await verifyContract(
+    await identityTreeStore.getAddress(),
+    contractsInfo.IDENTITY_TREE_STORE.verificationOpts,
+  );
 
   const pathOutputJson = path.join(
     __dirname,

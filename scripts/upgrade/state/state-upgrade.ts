@@ -6,6 +6,7 @@ import {
   getConfig,
   getStateContractAddress,
   removeLocalhostNetworkIgnitionFiles,
+  verifyContract,
 } from "../../../helpers/helperUtils";
 import fs from "fs";
 import path from "path";
@@ -70,6 +71,17 @@ async function main() {
     );
 
   console.log("Version after: ", await state.VERSION());
+
+  await verifyContract(await state.getAddress(), contractsInfo.STATE.verificationOpts);
+  await verifyContract(await stateLib.getAddress(), contractsInfo.STATE_LIB.verificationOpts);
+  await verifyContract(
+    await stateCrossChainLib.getAddress(),
+    contractsInfo.STATE_CROSS_CHAIN_LIB.verificationOpts,
+  );
+  await verifyContract(
+    await crossChainProofValidator.getAddress(),
+    contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.verificationOpts,
+  );
 
   const defaultIdTypeAfter = await state.getDefaultIdType();
   const stateOwnerAddressAfter = await state.owner();

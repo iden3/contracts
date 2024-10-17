@@ -14,6 +14,7 @@ import {
   getConfig,
   getStateContractAddress,
   removeLocalhostNetworkIgnitionFiles,
+  verifyContract,
   waitNotToInterfereWithHardhatIgnition,
 } from "../../../helpers/helperUtils";
 import { contractsInfo } from "../../../helpers/constants";
@@ -100,12 +101,19 @@ async function main() {
   const txVerifLib = await verifierLib.deploymentTransaction();
   await waitNotToInterfereWithHardhatIgnition(txVerifLib);
 
+  await verifyContract(await verifierLib.getAddress(), contractsInfo.VERIFIER_LIB.verificationOpts);
+
   // **** Upgrade Universal Verifier ****
   await universalVerifierMigrationHelper.upgradeContract(universalVerifierContract, {
     verifierLibAddress: await verifierLib.getAddress(),
   });
   // ************************
   console.log("Checking data after upgrade");
+
+  await verifyContract(
+    await universalVerifierContract.getAddress(),
+    contractsInfo.UNIVERSAL_VERIFIER.verificationOpts,
+  );
 
   const dataAfterUpgrade =
     await universalVerifierMigrationHelper.getDataFromContract(universalVerifierContract);
@@ -139,14 +147,17 @@ async function main() {
     {
       validatorContractAddress: contractsInfo.VALIDATOR_MTP.unifiedAddress,
       validatorContractName: contractsInfo.VALIDATOR_MTP.name,
+      validatorVerification: contractsInfo.VALIDATOR_MTP.verificationOpts,
     },
     {
       validatorContractAddress: contractsInfo.VALIDATOR_SIG.unifiedAddress,
       validatorContractName: contractsInfo.VALIDATOR_SIG.name,
+      validatorVerification: contractsInfo.VALIDATOR_SIG.verificationOpts,
     },
     {
       validatorContractAddress: contractsInfo.VALIDATOR_V3.unifiedAddress,
       validatorContractName: contractsInfo.VALIDATOR_V3.name,
+      validatorVerification: contractsInfo.VALIDATOR_V3.verificationOpts,
     },
   ];
 
@@ -157,6 +168,8 @@ async function main() {
     );
     await validator.waitForDeployment();
     console.log(`Validator ${v.validatorContractName} version:`, await validator.version());
+
+    await verifyContract(await validator.getAddress(), v.validatorVerification);
 
     const isWhitelisted = await universalVerifierContract.isWhitelistedValidator(
       v.validatorContractAddress,
@@ -234,6 +247,7 @@ async function upgradeState(deployHelper: DeployHelper, signer: any) {
       break;
   }
 
+  await verifyContract(await stateContract.getAddress(), contractsInfo.STATE.verificationOpts);
   console.log("State Contract Upgrade Finished");
 }
 
