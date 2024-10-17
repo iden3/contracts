@@ -1,6 +1,10 @@
 import { DeployHelper } from "../../../helpers/DeployHelper";
 import hre, { ethers } from "hardhat";
-import { getConfig, removeLocalhostNetworkIgnitionFiles } from "../../../helpers/helperUtils";
+import {
+  getConfig,
+  removeLocalhostNetworkIgnitionFiles,
+  verifyContract,
+} from "../../../helpers/helperUtils";
 import { contractsInfo, VALIDATOR_TYPES } from "../../../helpers/constants";
 import fs from "fs";
 import path from "path";
@@ -43,16 +47,19 @@ async function main() {
       validatorContractAddress: contractsInfo.VALIDATOR_MTP.unifiedAddress,
       validatorContractName: contractsInfo.VALIDATOR_MTP.name,
       validatorType: VALIDATOR_TYPES.MTP_V2,
+      validatorVerification: contractsInfo.VALIDATOR_MTP.verificationOpts,
     },
     {
       validatorContractAddress: contractsInfo.VALIDATOR_SIG.unifiedAddress,
       validatorContractName: contractsInfo.VALIDATOR_SIG.name,
       validatorType: VALIDATOR_TYPES.SIG_V2,
+      validatorVerification: contractsInfo.VALIDATOR_SIG.verificationOpts,
     },
     {
       validatorContractAddress: contractsInfo.VALIDATOR_V3.unifiedAddress,
       validatorContractName: contractsInfo.VALIDATOR_V3.name,
       validatorType: VALIDATOR_TYPES.V3,
+      validatorVerification: contractsInfo.VALIDATOR_V3.verificationOpts,
     },
   ];
 
@@ -63,6 +70,8 @@ async function main() {
       v.validatorContractName,
     );
     await validator.waitForDeployment();
+
+    await verifyContract(await validator.getAddress(), v.validatorVerification);
 
     const groth16VerifierWrapperAddress = await validator.getVerifierByCircuitId(
       (await validator.getSupportedCircuitIds())[0],

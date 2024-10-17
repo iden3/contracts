@@ -2,14 +2,14 @@ import fs from "fs";
 import path from "path";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import hre from "hardhat";
-import { getConfig, getStateContractAddress } from "../../helpers/helperUtils";
+import { getConfig, getStateContractAddress, verifyContract } from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
 
 async function main() {
   const config = getConfig();
   const chainId = hre.network.config.chainId;
 
-  const stateContractAddress = await getStateContractAddress();
+  const stateContractAddress = getStateContractAddress();
   const validators: ("mtpV2" | "sigV2" | "v3")[] = ["mtpV2", "sigV2", "v3"];
   const groth16VerifierWrappers = [
     {
@@ -45,6 +45,7 @@ async function main() {
       validator: await validator.getAddress(),
       groth16verifier: groth16VerifierWrapper?.verifierWrapper as string,
     });
+    await verifyContract(await validator.getAddress(), deployHelper.getValidatorVerification(v));
   }
 
   const networkName = hre.network.name;

@@ -1,5 +1,5 @@
 import { Contract, ContractTransactionResponse, JsonRpcProvider } from "ethers";
-import hre, { ethers, network } from "hardhat";
+import hre, { ethers, network, run } from "hardhat";
 import fs from "fs";
 import {
   contractsInfo,
@@ -71,6 +71,56 @@ export async function isContract(
   return true;
 }
 
+export async function verifyContract(
+  contractAddress: any,
+  opts: {
+    contract?: string;
+    constructorArgsProxy?: any[];
+    constructorArgsProxyAdmin?: any[];
+    constructorArgsImplementation: any[];
+    libraries: any;
+  },
+): Promise<boolean> {
+  // When verifying if the proxy contract is not verified yet we need to pass the arguments
+  // for the proxy contract first, then for proxy admin and finally for the implementation contract
+  if (opts.constructorArgsProxy) {
+    try {
+      await run("verify:verify", {
+        address: contractAddress,
+        contract: opts.contract,
+        constructorArguments: opts.constructorArgsProxy,
+        libraries: opts.libraries,
+      });
+    } catch (error) {}
+  }
+
+  if (opts.constructorArgsProxyAdmin) {
+    try {
+      await run("verify:verify", {
+        address: contractAddress,
+        contract: opts.contract,
+        constructorArguments: opts.constructorArgsProxyAdmin,
+        libraries: opts.libraries,
+      });
+    } catch (error) {}
+  }
+
+  try {
+    await run("verify:verify", {
+      address: contractAddress,
+      contract: opts.contract,
+      constructorArguments: opts.constructorArgsImplementation,
+      libraries: opts.libraries,
+    });
+    Logger.success(`Verification successful for ${contractAddress}\n`);
+    return true;
+  } catch (error) {
+    Logger.error(`Error verifying ${contractAddress}: ${error}\n`);
+  }
+
+  return false;
+}
+
 export function getProviders() {
   return [
     { network: networks.PRIVADO_TEST.name, rpcUrl: process.env.PRIVADO_TEST_RPC_URL as string },
@@ -131,7 +181,7 @@ export async function getUnifiedContract(contractName: string): Promise<Contract
   }
 }
 
-export async function getStateContractAddress(): Promise<string> {
+export function getStateContractAddress(): string {
   const chainId = hre.network.config.chainId;
 
   let stateContractAddress = contractsInfo.STATE.unifiedAddress;

@@ -10,7 +10,7 @@ async function main() {
   const stDeployHelper = await DeployHelper.initialize();
   const { defaultIdType } = await stDeployHelper.getDefaultIdType();
 
-  const stateContractAddress = await getStateContractAddress();
+  const stateContractAddress = getStateContractAddress();
 
   const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
 
