@@ -932,7 +932,7 @@ export class DeployHelper {
       unsafeAllow: ["external-library-linking"],
     });
     await verifier.waitForDeployment();
-    console.log("EmbeddedZKPVerifierWrapper.sol deployed to:", await verifier.getAddress());
+    console.log("EmbeddedZKPVerifierWrapper deployed to:", await verifier.getAddress());
     return verifier;
   }
 
