@@ -1,4 +1,4 @@
-import { Contract } from "ethers";
+import { Contract, JsonRpcProvider } from "ethers";
 import { calculateQueryHashV3 } from "../../../../test/utils/query-hash-utils";
 import { packV3ValidatorParams } from "../../../../test/utils/validator-pack-utils";
 import {
@@ -159,19 +159,37 @@ function getParamsFromChainId(chainId: number) {
 
   switch (chainId) {
     case 80002:
-      rpcUrl = process.env.AMOY_RPC_URL as string;
-      method = DidMethod.PolygonId;
+      rpcUrl = process.env.POLYGON_AMOY_RPC_URL as string;
+      method = DidMethod.Iden3;
       blockchain = Blockchain.Polygon;
       networkId = NetworkId.Amoy;
       break;
+    case 137:
+      rpcUrl = process.env.POLYGON_MAINNET_RPC_URL as string;
+      method = DidMethod.Iden3;
+      blockchain = Blockchain.Polygon;
+      networkId = NetworkId.Main;
+      break;
+    case 1:
+      rpcUrl = process.env.ETHEREUM_MAINNET_RPC_URL as string;
+      method = DidMethod.Iden3;
+      blockchain = Blockchain.Ethereum;
+      networkId = NetworkId.Main;
+      break;
+    case 11155111:
+      rpcUrl = process.env.ETHEREUM_SEPOLIA_RPC_URL as string;
+      method = DidMethod.PolygonId;
+      blockchain = Blockchain.Ethereum;
+      networkId = NetworkId.Sepolia;
+      break;
     case 2442:
-      rpcUrl = process.env.CARDONA_RPC_URL as string;
+      rpcUrl = process.env.ZKEVM_CARDONA_RPC_URL as string;
       method = DidMethod.PolygonId;
       blockchain = Blockchain.Polygon;
       networkId = NetworkId.Cardona;
       break;
     case 1101:
-      rpcUrl = process.env.ZKEVM_RPC_URL as string;
+      rpcUrl = process.env.ZKEVM_MAINNET_RPC_URL as string;
       method = DidMethod.PolygonId;
       blockchain = Blockchain.Polygon;
       networkId = NetworkId.Zkevm;
@@ -181,6 +199,24 @@ function getParamsFromChainId(chainId: number) {
       method = DidMethod.Iden3;
       blockchain = Blockchain.Linea;
       networkId = NetworkId.Sepolia;
+      break;
+    case 59144:
+      rpcUrl = process.env.LINEA_MAINNET_RPC_URL as string;
+      method = DidMethod.Iden3;
+      blockchain = Blockchain.Linea;
+      networkId = NetworkId.Main;
+      break;
+    case 21000:
+      rpcUrl = process.env.PRIVADO_MAIN_RPC_URL as string;
+      method = DidMethod.Iden3;
+      blockchain = Blockchain.Privado;
+      networkId = NetworkId.Main;
+      break;
+    case 21001:
+      rpcUrl = process.env.PRIVADO_TEST_RPC_URL as string;
+      method = DidMethod.Iden3;
+      blockchain = Blockchain.Privado;
+      networkId = NetworkId.Test;
       break;
     default:
       throw new Error(`Unsupported chainId: ${chainId}`);
@@ -195,24 +231,41 @@ export async function submitZKPResponses_KYCAgeCredential(
   opts: any,
 ) {
   console.log("================= submitZKPResponseV2 V3 SIG KYCAgeCredential ===================");
-  const chainId = hre.network.config.chainId || 80002;
+  let chainId: number;
+  let networkName: string;
+  if (opts.provider) {
+    chainId = Number((await opts.provider.getNetwork()).chainId);
+    networkName = (await opts.provider.getNetwork()).name;
+  } else {
+    chainId = hre.network.config.chainId || 80002;
+    networkName = hre.network.name;
+  }
 
   const { rpcUrl, method, blockchain, networkId } = getParamsFromChainId(chainId);
 
-  const [signer] = await hre.ethers.getSigners();
-  console.log(signer.address);
+  let signer: any;
 
-  const {
-    dataStorage: issuerDataStorage,
-    credentialWallet: issuerCredentialWallet,
-    identityWallet: issuerIdentityWallet,
-  } = await initInMemoryDataStorageAndWallets([
-    {
-      rpcUrl: rpcUrl,
-      contractAddress: opts.stateContractAddress,
-      chainId: chainId,
-    },
-  ]);
+  if (opts.signer) {
+    signer = opts.signer;
+  } else {
+    const [signerHre] = await hre.ethers.getSigners();
+    signer = signerHre;
+  }
+
+  console.log("Signer: ", signer.address);
+
+  if (!opts.stateContractAddress) {
+    throw new Error("stateContractAddress is not set");
+  }
+
+  const { dataStorage: issuerDataStorage, identityWallet: issuerIdentityWallet } =
+    await initInMemoryDataStorageAndWallets([
+      {
+        rpcUrl: rpcUrl,
+        contractAddress: opts.stateContractAddress,
+        chainId: chainId,
+      },
+    ]);
 
   const {
     dataStorage: userDataStorage,
@@ -293,7 +346,7 @@ export async function submitZKPResponses_KYCAgeCredential(
   const preparedProofV3Sig = prepareProof(proofV3Sig);
 
   // In forks in local increment time for avoiding "Proof generated in the future is not valid"
-  if (hre.network.name === "hardhat" || hre.network.name === "localhost") {
+  if (networkName === "hardhat" || networkName === "localhost") {
     console.log("Increase time for 55 minutes in local network...");
     await hre.network.provider.send("evm_increaseTime", [3300]);
   }
@@ -308,6 +361,7 @@ export async function submitZKPResponses_KYCAgeCredential(
       preparedProofV3Sig.pi_b,
       preparedProofV3Sig.pi_c,
     );
+  console.log(`Waiting for submitZKPResponse tx: `, txSubmitZKPResponse_V3Sig.hash);
   const receiptV3Sig_old = await txSubmitZKPResponse_V3Sig.wait();
   console.log(`txSubmitZKPResponse V3 Sig Proof gas consumed: `, receiptV3Sig_old.gasUsed);
 
@@ -337,6 +391,7 @@ export async function submitZKPResponses_KYCAgeCredential(
       gasLimit: 1000000,
     },
   );
+  console.log(`Waiting for submitZKPResponseV2 tx: `, txSubmitZKPResponseV2_V3Sig.hash);
 
   const receiptV3Sig = await txSubmitZKPResponseV2_V3Sig.wait();
   console.log(`txSubmitZKPResponseV2 V3 Sig Proof gas consumed: `, receiptV3Sig.gasUsed);
@@ -346,13 +401,23 @@ export async function setZKPRequest_KYCAgeCredential(
   requestId: number,
   verifier: Contract,
   validatorV3Address: string,
+  provider?: JsonRpcProvider,
 ) {
   console.log("================= setZKPRequest V3 SIG KYCAgeCredential ===================");
 
   const requestIdExists = await verifier.requestIdExists(requestId);
   if (!requestIdExists) {
-    const chainId = hre.network.config.chainId || 80002;
-    const network = hre.network.name;
+    let chainId: number;
+    let network: string;
+
+    if (provider) {
+      chainId = Number((await provider.getNetwork()).chainId);
+      network = (await provider.getNetwork()).name;
+    } else {
+      chainId = hre.network.config.chainId || 80002;
+      network = hre.network.name;
+    }
+
     const methodId = "ade09fcd";
 
     const { method, blockchain, networkId } = getParamsFromChainId(chainId);
@@ -438,13 +503,14 @@ export async function setZKPRequest_KYCAgeCredential(
       },
     };
 
-    await verifier.setZKPRequest(requestId, {
+    const tx = await verifier.setZKPRequest(requestId, {
       metadata: JSON.stringify(invokeRequestMetadataKYCAgeCredential),
       validator: validatorV3Address,
       data: dataV3KYCAgeCredential,
     });
 
-    console.log(`Request ID: ${requestId} is set`);
+    console.log(`Request ID: ${requestId} is set in tx ${tx.hash}`);
+    await tx.wait();
   } else {
     console.log(`Request ID: ${requestId} already exists`);
   }
