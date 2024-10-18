@@ -17,6 +17,9 @@ async function main() {
   });
   await c.waitForDeployment();
 
+  console.log("Waiting 20 seconds after contract deployment and before sanity check...");
+  await new Promise((resolve) => setTimeout(resolve, 20000));
+
   // !!!!! Put proper function name here to make some check, e.g. getDefaultIdType() for State contract !!!!!
   await expect(contract.getDefaultIdType()).to.be.revertedWith("The contract is disabled");
 
