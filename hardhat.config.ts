@@ -148,16 +148,18 @@ const config: HardhatUserConfig = {
 
   etherscan: {
     apiKey: {
-      amoy: process.env.POLYGON_API_KEY || "",
-      polygon: process.env.POLYGON_API_KEY || "",
-      sepolia: process.env.ETHEREUM_API_KEY || "",
-      ethereum: process.env.ETHEREUM_API_KEY || "",
-      linea: process.env.LINEA_API_KEY || "",
-      "linea-sepolia": process.env.LINEA_API_KEY || "",
+      "polygon-amoy": process.env.POLYGON_EXPLORER_API_KEY || "",
+      polygon: process.env.POLYGON_EXPLORER_API_KEY || "",
+      sepolia: process.env.ETHEREUM_EXPLORER_API_KEY || "",
+      mainnet: process.env.ETHEREUM_EXPLORER_API_KEY || "",
+      "linea-mainnet": process.env.LINEA_EXPLORER_API_KEY || "",
+      "linea-sepolia": process.env.LINEA_EXPLORER_API_KEY || "",
+      "zkevm-cardona": process.env.ZKEVM_EXPLORER_API_KEY || "",
+      "zkevm-mainnet": process.env.ZKEVM_EXPLORER_API_KEY || "",
     },
     customChains: [
       {
-        network: "amoy",
+        network: "polygon-amoy",
         chainId: 80002,
         urls: {
           apiURL: "https://api-amoy.polygonscan.com/api",
@@ -169,7 +171,31 @@ const config: HardhatUserConfig = {
         chainId: 59141,
         urls: {
           apiURL: "https://api-sepolia.lineascan.build/api",
-          browserURL: "https://sepolia.lineascan.build",
+          browserURL: "https://docs.lineascan.build/sepolia-lineascan",
+        },
+      },
+      {
+        network: "linea-mainnet",
+        chainId: 59144,
+        urls: {
+          apiURL: "https://api.lineascan.build/api",
+          browserURL: "https://docs.lineascan.build",
+        },
+      },
+      {
+        network: "zkevm-cardona",
+        chainId: 2442,
+        urls: {
+          apiURL: "https://api-cardona-zkevm.polygonscan.com/api",
+          browserURL: "https://docs.polygonscan.com/cardona-polygon-zkevm",
+        },
+      },
+      {
+        network: "zkevm-mainnet",
+        chainId: 1101,
+        urls: {
+          apiURL: "https://api-zkevm.polygonscan.com/api",
+          browserURL: "https://docs.polygonscan.com/polygon-zkevm",
         },
       },
     ],

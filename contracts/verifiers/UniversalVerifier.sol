@@ -91,6 +91,11 @@ contract UniversalVerifier is
         emit ZKPResponseSubmitted(requestId, _msgSender());
     }
 
+    /**
+     * @dev Submits a ZKP response V2 and updates proof status
+     * @param responses the array of ZKP responses
+     * @param crossChainProof the cross chain proof that includes state for the issuer and global state for the user
+     */
     function submitZKPResponseV2(
         IZKPVerifier.ZKPResponse[] memory responses,
         bytes memory crossChainProof

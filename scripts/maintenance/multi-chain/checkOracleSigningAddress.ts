@@ -13,7 +13,7 @@ async function main() {
   for (const provider of providers) {
     const jsonRpcProvider = new ethers.JsonRpcProvider(provider.rpcUrl);
 
-    const stateContractAddress = await getStateContractAddress();
+    const stateContractAddress = getStateContractAddress();
 
     let oracleSigningAddressIsValid = true;
     const defaultOracleSigningAddress = ORACLE_SIGNING_ADDRESS_PRODUCTION; // production signing address
@@ -27,14 +27,17 @@ async function main() {
         stateContractAddress,
         wallet,
       );
-      const crossChainProofValidatorAddress = await state.getCrossChainProofValidator();
+      let oracleSigningAddress;
+      try {
+        const crossChainProofValidatorAddress = await state.getCrossChainProofValidator();
 
-      const crossChainProofValidator = await ethers.getContractAt(
-        contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.name,
-        crossChainProofValidatorAddress,
-        wallet,
-      );
-      const oracleSigningAddress = await crossChainProofValidator.getOracleSigningAddress();
+        const crossChainProofValidator = await ethers.getContractAt(
+          contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.name,
+          crossChainProofValidatorAddress,
+          wallet,
+        );
+        oracleSigningAddress = await crossChainProofValidator.getOracleSigningAddress();
+      } catch (error) {}
       if (oracleSigningAddress !== defaultOracleSigningAddress) {
         oracleSigningAddressIsValid = false;
       }

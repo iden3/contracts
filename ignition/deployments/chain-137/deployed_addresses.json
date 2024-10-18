@@ -1,0 +1,20 @@
+{
+  "Poseidon4Module#Poseidon4Element": "0x0695cF2c6dfc438a4E40508741888198A6ccacC2",
+  "Groth16VerifierStateTransitionModule#Groth16VerifierStateTransition": "0xAE950A9B8F48bC4519820728E210515a07F7cB71",
+  "Groth16VerifierMTPWrapperModule#Groth16VerifierMTPWrapper": "0x1205B90121cAbB2B7e6f1828005AC00D8927796F",
+  "Groth16VerifierSigWrapperModule#Groth16VerifierSigWrapper": "0x0ce200c9557BB64ee9E82452646b084e77Aaeb51",
+  "Groth16VerifierV3WrapperModule#Groth16VerifierV3Wrapper": "0x1aA2B5AEAd506D269164958d36Cae04f95F79282",
+  "Create2AddressAnchorModule#Create2AddressAnchor": "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+  "StateProxyModule#TransparentUpgradeableProxy": "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
+  "StateProxyModule#ProxyAdmin": "0x3F570C4fE07c532cd274dF2d1dB26D74cc5F8F9A",
+  "CredentialAtomicQueryMTPV2ValidatorProxyModule#TransparentUpgradeableProxy": "0x27bDFFCeC5478a648f89764E22fE415486A42Ede",
+  "CredentialAtomicQueryMTPV2ValidatorProxyModule#ProxyAdmin": "0xbcC403558F4875894eb092d718863F74e879D343",
+  "CredentialAtomicQuerySigV2ValidatorProxyModule#TransparentUpgradeableProxy": "0x59B347f0D3dd4B98cc2E056Ee6C53ABF14F8581b",
+  "CredentialAtomicQuerySigV2ValidatorProxyModule#ProxyAdmin": "0xc5b4A6c4Ec91D660f020c5388253e42Cb76adB09",
+  "CredentialAtomicQueryV3ValidatorProxyModule#TransparentUpgradeableProxy": "0xd179f29d00Cd0E8978eb6eB847CaCF9E2A956336",
+  "CredentialAtomicQueryV3ValidatorProxyModule#ProxyAdmin": "0x759413E6Bc96eCd646EA9B23086E85De4b0CF070",
+  "UniversalVerifierProxyModule#TransparentUpgradeableProxy": "0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c",
+  "UniversalVerifierProxyModule#ProxyAdmin": "0xcCbEd68Fc1C38f5357bff08eCa414b7CD24026Af",
+  "IdentityTreeStoreProxyModule#TransparentUpgradeableProxy": "0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81",
+  "IdentityTreeStoreProxyModule#ProxyAdmin": "0x23F9ae5A19435347b8Ba10c69ad93128464f7A22"
+}

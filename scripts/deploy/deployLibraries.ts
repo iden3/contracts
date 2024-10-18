@@ -1,9 +1,10 @@
 import fs from "fs";
 import path from "path";
-import { getConfig } from "../../helpers/helperUtils";
+import { getConfig, verifyContract } from "../../helpers/helperUtils";
 import { deployPoseidons } from "../../helpers/PoseidonDeployHelper";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import hre from "hardhat";
+import { contractsInfo } from "../../helpers/constants";
 
 async function main() {
   const config = getConfig();
@@ -18,13 +19,20 @@ async function main() {
   const smtLib = await deployHelper.deploySmtLib(
     await poseidon2Elements.getAddress(),
     await poseidon3Elements.getAddress(),
-    "SmtLib",
+    contractsInfo.SMT_LIB.name,
     deployStrategy,
   );
+
+  await verifyContract(await smtLib.getAddress(), contractsInfo.SMT_LIB.verificationOpts);
 
   const groth16VerifierStateTransition = await deployHelper.deployGroth16VerifierStateTransition(
     "Groth16VerifierStateTransition",
     deployStrategy,
+  );
+
+  await verifyContract(
+    await groth16VerifierStateTransition.getAddress(),
+    contractsInfo.GROTH16_VERIFIER_STATE_TRANSITION.verificationOpts,
   );
 
   const groth16Verifiers: ("mtpV2" | "sigV2" | "v3")[] = ["mtpV2", "sigV2", "v3"];
@@ -38,6 +46,11 @@ async function main() {
       verifierType: v,
       groth16verifier: await groth16VerifierWrapper.getAddress(),
     });
+
+    await verifyContract(
+      await groth16VerifierWrapper.getAddress(),
+      deployHelper.getGroth16VerifierWrapperVerification(v),
+    );
   }
 
   groth16verifiersInfo.push({

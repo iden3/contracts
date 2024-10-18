@@ -2,7 +2,7 @@ import { DeployHelper } from "../../helpers/DeployHelper";
 import hre, { ethers } from "hardhat";
 import path from "path";
 import fs from "fs";
-import { getConfig, getStateContractAddress } from "../../helpers/helperUtils";
+import { getConfig, getStateContractAddress, verifyContract } from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
 
 (async () => {
@@ -10,7 +10,7 @@ import { contractsInfo } from "../../helpers/constants";
 
   const chainId = hre.network.config.chainId;
 
-  const stateContractAddress = await getStateContractAddress();
+  const stateContractAddress = getStateContractAddress();
 
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
@@ -23,6 +23,11 @@ import { contractsInfo } from "../../helpers/constants";
     contractsInfo.POSEIDON_2.unifiedAddress,
     contractsInfo.POSEIDON_3.unifiedAddress,
     deployStrategy,
+  );
+
+  await verifyContract(
+    await identityTreeStore.getAddress(),
+    contractsInfo.IDENTITY_TREE_STORE.verificationOpts,
   );
 
   const networkName = hre.network.name;

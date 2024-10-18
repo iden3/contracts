@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import hre from "hardhat";
-import { getConfig } from "../../helpers/helperUtils";
+import { getConfig, verifyContract } from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
 
 async function main() {
@@ -21,6 +21,17 @@ async function main() {
       contractsInfo.POSEIDON_1.unifiedAddress,
       contractsInfo.GROTH16_VERIFIER_STATE_TRANSITION.unifiedAddress,
     );
+
+  await verifyContract(await state.getAddress(), contractsInfo.STATE.verificationOpts);
+  await verifyContract(await stateLib.getAddress(), contractsInfo.STATE_LIB.verificationOpts);
+  await verifyContract(
+    await stateCrossChainLib.getAddress(),
+    contractsInfo.STATE_CROSS_CHAIN_LIB.verificationOpts,
+  );
+  await verifyContract(
+    await crossChainProofValidator.getAddress(),
+    contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.verificationOpts,
+  );
 
   const chainId = parseInt(await hre.network.provider.send("eth_chainId"), 16);
   const networkName = hre.network.name;
