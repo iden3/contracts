@@ -361,6 +361,7 @@ export async function submitZKPResponses_KYCAgeCredential(
       preparedProofV3Sig.pi_b,
       preparedProofV3Sig.pi_c,
     );
+  console.log(`Waiting for submitZKPResponse tx: `, txSubmitZKPResponse_V3Sig.hash);
   const receiptV3Sig_old = await txSubmitZKPResponse_V3Sig.wait();
   console.log(`txSubmitZKPResponse V3 Sig Proof gas consumed: `, receiptV3Sig_old.gasUsed);
 
@@ -390,6 +391,7 @@ export async function submitZKPResponses_KYCAgeCredential(
       gasLimit: 1000000,
     },
   );
+  console.log(`Waiting for submitZKPResponseV2 tx: `, txSubmitZKPResponseV2_V3Sig.hash);
 
   const receiptV3Sig = await txSubmitZKPResponseV2_V3Sig.wait();
   console.log(`txSubmitZKPResponseV2 V3 Sig Proof gas consumed: `, receiptV3Sig.gasUsed);
