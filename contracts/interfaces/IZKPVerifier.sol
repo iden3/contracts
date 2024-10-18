@@ -18,12 +18,23 @@ interface IZKPVerifier {
         uint256 blockTimestamp;
     }
 
+    struct ZKPResponse {
+        uint64 requestId;
+        bytes zkProof;
+        bytes data;
+    }
+
     function submitZKPResponse(
         uint64 requestId,
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
+    ) external;
+
+    function submitZKPResponseV2(
+        ZKPResponse[] memory responses,
+        bytes memory crossChainProofs
     ) external;
 
     function setZKPRequest(uint64 requestId, ZKPRequest calldata request) external;
