@@ -34,7 +34,7 @@ describe("Embedded ZKP Verifier", function () {
 
     const verifierLib = await deployHelper.deployVerifierLib();
 
-    verifier = await deployHelper.deployEmbeddedZKPVerifier(
+    verifier = await deployHelper.deployEmbeddedZKPVerifierWrapper(
       owner,
       await state.getAddress(),
       await verifierLib.getAddress(),
