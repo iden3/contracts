@@ -62,10 +62,12 @@ async function main() {
           isDefaultIdTypeSupported
             ? `${defaultIdType} is supported`
             : `${defaultIdType} is not supported`
-        }, ${
-          isIdTypeToCheckSupported
-            ? `${supportedIdTypeToCheck} is supported`
-            : `${supportedIdTypeToCheck} is not supported`
+        }${
+          defaultIdType !== supportedIdTypeToCheck
+            ? isIdTypeToCheckSupported
+              ? `, ${supportedIdTypeToCheck} is supported`
+              : `, ${supportedIdTypeToCheck} is not supported`
+            : ""
         }\n`,
       );
     } else {
