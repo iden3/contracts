@@ -181,8 +181,10 @@ export async function getUnifiedContract(contractName: string): Promise<Contract
   }
 }
 
-export function getStateContractAddress(): string {
-  const chainId = hre.network.config.chainId;
+export function getStateContractAddress(chainId?: number): string {
+  if (!chainId) {
+    chainId = hre.network.config.chainId;
+  }
 
   let stateContractAddress = contractsInfo.STATE.unifiedAddress;
   if (chainId === networks.POLYGON_AMOY.chainId) {
