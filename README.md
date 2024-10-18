@@ -1,35 +1,56 @@
 # IDEN3 Smart Contracts [![Test](https://github.com/iden3/contracts/workflows/Tests/badge.svg)](https://github.com/iden3/contracts/actions?query=workflow%3ATests)
 
-- State - State contract, where identity states are published
-- Smt - library to manage Sparse Merkle Trees onchain
+All the contracts are deployed using [**CreateX**](https://createx.rocks/) contract factories via [deployCreate2(salt,initCode)](https://github.com/pcaversaccio/createx/blob/main/src/CreateX.sol#L332)  function, so reside on the same addresses across all networks deployed.
 
-## State Contract
+The contracts were deployed via [TransparentUpgradeableProxy](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/proxy/transparent/TransparentUpgradeableProxy.sol) pattern, so they can be upgraded by our team in the future if needed.
 
-|        Network             |     Address                                |
-|:--------------------------:|:------------------------------------------:|
-| **Polygon Mainnet**        | 0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D |
-| **Polygon Amoy testnet**   | 0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124 |
-| **Privado Main**           | 0x975556428F077dB5877Ea2474D783D6C69233742 |
-| **Privado testnet**        | 0x975556428F077dB5877Ea2474D783D6C69233742 |
-| Polygon Mumbai testnet     | 0x134B1BE34911E39A8397ec6289782989729807a4 |
+## Smart contracts with unified addresses
 
-## IdentityTreeStore contract (On-chain RHS)
-
-|        Network             |     Address                                |
-|:--------------------------:|:------------------------------------------:|
-| **Polygon Mainnet**        | 0xbEeB6bB53504E8C872023451fd0D23BeF01d320B |
-| **Polygon Amoy testnet**   | 0x3d3763eC0a50CE1AdF83d0b5D99FBE0e3fEB43fb |
-| **Privado Main**           | 0x58485809CfAc875B7E6F54E3fCb5f24614f202e9 |
-| **Privado testnet**        | 0x58485809CfAc875B7E6F54E3fCb5f24614f202e9 |
-| Polygon Mumbai testnet     | 0x16A1ae4c460C0a42f0a87e69c526c61599B28BC9 |
+|     Smart contract      |     Address                                |
+|:-----------------------:|:------------------------------------------:|
+|       **State***        | 0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896 |
+|    **Validator MTP**    | 0x27bDFFCeC5478a648f89764E22fE415486A42Ede |
+|    **Validator SIG**    | 0x59B347f0D3dd4B98cc2E056Ee6C53ABF14F8581b |
+|    **Validator V3**     | 0xd179f29d00Cd0E8978eb6eB847CaCF9E2A956336 |
+| **Universal Verifier**  | 0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c |
+| **Identity Tree Store** | 0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81 |
 
 
-## Universal Verifier contract
+*The only exception are the State contracts for **Polygon Mainnet** and **Polygon Amoy testnet**, which where deployed before the unified address methodology was implemented.
 
-|        Network             |     Address                                |
-|:--------------------------:|:------------------------------------------:|
-| **Polygon Mainnet**        | 0x394d1dad46907bd54d15926A1ab4535EF2BF47b1 |
-| **Polygon Amoy testnet**   | 0x1B20320042b29AE5c1a3ADc1674cb6bF8760530f |
+- Polygon Amoy testnet State Contract: **0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124**
+- Polygon PoS mainnet State Contract : **0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D**
+
+## Libraries on unified addresses
+There are a few libraries, which does not tend to evolve much but can be re-used in many other contracts, e.g. custom onchain-identity. They reside on the same addresses across all networks deployed and serve both project needs and as a public good. Obviously, they are not upgradable.
+
+|      Library       |     Address                                |
+|:------------------:|:------------------------------------------:|
+|    **SmtLib***     | 0x682364078e26C1626abD2B95109D2019E241F0F6 |
+| **PoseidonUnit1L** | 0xC72D76D7271924a2AD54a19D216640FeA3d138d9 |
+| **PoseidonUnit2L** | 0x72F721D9D5f91353B505207C63B56cF3d9447edB |
+| **PoseidonUnit3L** | 0x5Bc89782d5eBF62663Df7Ce5fb4bc7408926A240 |
+| **PoseidonUnit4L** | 0x0695cF2c6dfc438a4E40508741888198A6ccacC2 |
+
+## Networks
+We have deployed contracts across the following mainnets and testnets so far (**State** contract links below):
+
+**Mainnets**:
+
+- [Ethereum](https://etherscan.io/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
+- [Polygon POS](https://polygonscan.com/address/0x624ce98d2d27b20b8f8d521723df8fc4db71d79d)
+- [Polygon zkEVM](https://zkevm.polygonscan.com/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
+- [Linea](https://lineascan.build/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
+- Privado Mainnet
+
+**Testnets**:
+
+- [Ethereum Sepolia](https://sepolia.etherscan.io/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
+- [Polygon Amoy](https://amoy.polygonscan.com/address/0x1a4cc30f2aa0377b0c3bc9848766d90cb4404124)
+- [Polygon zkEVM Cardona](https://cardona-zkevm.polygonscan.com/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
+- [Linea-Sepolia](https://sepolia.lineascan.build/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
+- Privado Testnet
+
 
 ## Security Audits
 
@@ -39,7 +60,9 @@
 2. [Nethermind](https://nethermind.io/smart-contracts-audits/) has performed a second security audit of our core smart contracts (State, IdentityBase, GenesisUtils, OnChainIdentity) and compiled a report on Sep 13, 2023:
    [NM0113-FINAL-POLYGONID.pdf](https://iden3-circuits-bucket.s3.eu-west-1.amazonaws.com/audit_reports/NM0113-FINAL-POLYGONID.pdf)
 
-## Deployment
+## Deployment methodology with CREATE2 and ledger
+
+Note, that this methodology is not what expected to be used by the repository users as its purpose is mainly for our team to deploy and maintain the contracts across many networks in a unified way. However, it can be used as a reference for the deployment process.
 
 The deployment is configured to be done with Ledger device for signing the transactions.
 You should configure your Ledger device for `blind signing` in your Ethereum app.
@@ -61,9 +84,7 @@ ZKEVM_MAINNET_RPC_URL=<rpc url for zkevm mainnet>
 ZKEVM_CARDONA_RPC_URL=<rpc url for zkevm cardona>
 LINEA_MAINNET_RPC_URL=<rpc url for linea mainnet>
 LINEA_SEPOLIA_RPC_URL=<rpc url for linea sepolia>
-
 ```
-
 
 Then run the deployment scripts:
 

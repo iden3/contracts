@@ -24,6 +24,12 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
         address initialOwner
     ) internal onlyInitializing {}
 
+    /// @dev Sets the state contract linked to this verifier
+    /// @param state The state contract address
+    function setState(IState state) public onlyOwner {
+        _setState(state);
+    }
+
     /// @dev Sets a ZKP request
     /// @param requestId The ID of the ZKP request
     /// @param request The ZKP request data

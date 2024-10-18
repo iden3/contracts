@@ -917,24 +917,22 @@ export class DeployHelper {
     return primitiveTypeUtilsWrapper;
   }
 
-  async deployEmbeddedZKPVerifier(
+  async deployEmbeddedZKPVerifierWrapper(
     owner: SignerWithAddress | undefined,
-    stateCrossChainAddr: string,
+    stateAddr: string,
     verifierLibAddr: string,
   ): Promise<Contract> {
-    const Verifier = await ethers.getContractFactory("ZKPVerifierWrapper", {
+    const Verifier = await ethers.getContractFactory("EmbeddedZKPVerifierWrapper", {
       libraries: {
         VerifierLib: verifierLibAddr,
       },
     });
     // const zkpVerifier = await ZKPVerifier.deploy(await owner.getAddress());
-    const verifier = await upgrades.deployProxy(
-      Verifier,
-      [await owner.getAddress(), stateCrossChainAddr],
-      { unsafeAllow: ["external-library-linking"] },
-    );
+    const verifier = await upgrades.deployProxy(Verifier, [await owner.getAddress(), stateAddr], {
+      unsafeAllow: ["external-library-linking"],
+    });
     await verifier.waitForDeployment();
-    console.log("ZKPVerifierWrapper deployed to:", await verifier.getAddress());
+    console.log("EmbeddedZKPVerifierWrapper deployed to:", await verifier.getAddress());
     return verifier;
   }
 

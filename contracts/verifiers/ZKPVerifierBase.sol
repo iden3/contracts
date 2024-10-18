@@ -19,12 +19,6 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         mapping(string key => bytes) metadata;
     }
 
-    struct ZKPResponse {
-        uint64 requestId;
-        bytes zkProof;
-        bytes data;
-    }
-
     struct Metadata {
         string key;
         bytes value;
@@ -135,7 +129,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @param responses The list of responses including ZKP request ID, ZK proof and metadata
     /// @param crossChainProofs The list of cross chain proofs from universal resolver (oracle)
     function submitZKPResponseV2(
-        ZKPResponse[] memory responses,
+        IZKPVerifier.ZKPResponse[] memory responses,
         bytes memory crossChainProofs
     ) public virtual {
         ZKPVerifierStorage storage $ = _getZKPVerifierStorage();
@@ -143,7 +137,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         $._state.processCrossChainProofs(crossChainProofs);
 
         for (uint256 i = 0; i < responses.length; i++) {
-            ZKPResponse memory response = responses[i];
+            IZKPVerifier.ZKPResponse memory response = responses[i];
 
             address sender = _msgSender();
 
