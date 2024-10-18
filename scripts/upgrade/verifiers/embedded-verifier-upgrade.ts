@@ -26,7 +26,7 @@ async function main() {
   // In real upgrade, you should use THE NAME as THE ADDRESS
   // of your custom contract, which inherits EmbeddedZKPVerifer
   let verifierContract = await ethers.getContractAt(
-    "<verifier contract name>",
+    "<verifier contract name>",  // ZKPVerifierWrapper
     "<verifier contract address>",
   );
 
@@ -50,12 +50,17 @@ async function main() {
   const verifierLib = await deployerHelper.deployVerifierLib();
 
   // **** Upgrade Embedded Verifier ****
-  const verifierFactory = await ethers.getContractFactory("ZKPVerifierWrapper");
+  const verifierFactory = await ethers.getContractFactory("ZKPVerifierWrapper", {
+    libraries: {
+      VerifierLib: await verifierLib.getAddress(),
+    },
+  });
 
   verifierContract = await upgrades.upgradeProxy(
     await verifierContract.getAddress(),
     verifierFactory,
     {
+      unsafeAllow: ["external-library-linking"],
       call: {
         fn: "setState",
         args: [stateContractAddress],
