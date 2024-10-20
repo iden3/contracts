@@ -85,6 +85,14 @@ contract Groth16VerifierMTP {
 
     uint16 constant pLastMem = 896;
 
+    /**
+     * @dev Verify the circuit with the groth16 proof π=([πa]1,[πb]2,[πc]1).
+     * @param _pA πa element of the groth16 proof.
+     * @param _pB πb element of the groth16 proof.
+     * @param _pC πc element of the groth16 proof.
+     * @param _pubSignals Public signals of the circuit.
+     * @return true if the proof is verified.
+     */
     function verifyProof(
         uint[2] calldata _pA,
         uint[2][2] calldata _pB,

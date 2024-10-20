@@ -3,6 +3,9 @@ pragma solidity 0.8.27;
 
 import {CredentialAtomicQueryV2ValidatorBase} from "./CredentialAtomicQueryV2ValidatorBase.sol";
 
+/**
+ * @dev CredentialAtomicQueryMTPV2Validator. Validator contract for credential atomic query MTP v2 circuit
+ */
 contract CredentialAtomicQueryMTPV2Validator is CredentialAtomicQueryV2ValidatorBase {
     /**
      * @dev Version of contract
@@ -11,6 +14,12 @@ contract CredentialAtomicQueryMTPV2Validator is CredentialAtomicQueryV2Validator
 
     string internal constant CIRCUIT_ID = "credentialAtomicQueryMTPV2OnChain";
 
+    /**
+     * @dev Initialize the contract
+     * @param _verifierContractAddr Address of the verifier contract
+     * @param _stateContractAddr Address of the state contract
+     * @param owner Owner of the contract
+     */
     function initialize(
         address _verifierContractAddr,
         address _stateContractAddr,
@@ -31,10 +40,19 @@ contract CredentialAtomicQueryMTPV2Validator is CredentialAtomicQueryV2Validator
         _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, owner);
     }
 
+    /**
+     * @dev Get the version of the contract
+     * @return Version of the contract
+     */
     function version() public pure override returns (string memory) {
         return VERSION;
     }
 
+    /**
+     * @dev Parse the public signals
+     * @param inputs Array of public inputs
+     * @return Parsed public signals
+     */
     function parsePubSignals(
         uint256[] memory inputs
     ) public pure override returns (PubSignals memory) {

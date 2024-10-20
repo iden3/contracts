@@ -6,6 +6,10 @@ import {ICrossChainProofValidator} from "../interfaces/ICrossChainProofValidator
 import {IState} from "../interfaces/IState.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
+/**
+ * @dev Contract which provides proof validation from identity state 
+ * and global state proofs from trusted oracle with signature from any network.
+ */
 contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator {
     using ECDSA for bytes32;
 
@@ -62,6 +66,11 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
         _oracleSigningAddress = oracleSigningAddress;
     }
 
+    /**
+     * @dev Verifies global state proof and signer
+     * @param globalStateProof The global state proof
+     * @return The result of the global state proof verification
+     */
     function processGlobalStateProof(
         bytes calldata globalStateProof
     ) external view returns (IState.GlobalStateProcessResult memory) {
@@ -91,6 +100,11 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
             });
     }
 
+    /**
+     * @dev Verifies identity state proof and signer
+     * @param identityStateProof The identity state proof
+     * @return The result of the identity state proof verification
+     */
     function processIdentityStateProof(
         bytes calldata identityStateProof
     ) external view returns (IState.IdentityStateProcessResult memory) {

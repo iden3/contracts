@@ -108,11 +108,19 @@ contract State is Ownable2StepUpgradeable, IState {
         $._crossChainProofValidator = validator;
     }
 
+    /**
+     * @dev Set cross chain proof validator contract address
+     * @param validator Cross chain proof validator contract address
+     */
     function setCrossChainProofValidator(ICrossChainProofValidator validator) public onlyOwner {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
         $._crossChainProofValidator = validator;
     }
 
+    /**
+     * @dev Process cross chain proofs with identity and global state proofs
+     * @param proofs Cross chain proofs to be processed
+     */
     function processCrossChainProofs(bytes calldata proofs) public {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
         $.processCrossChainProofs(proofs);
@@ -444,6 +452,12 @@ contract State is Ownable2StepUpgradeable, IState {
         }
     }
 
+    /**
+     * @dev Retrieve the timestamp when the GIST root was replaced by another root.
+     * @param idType Id type
+     * @param root GIST root
+     * @return replacedAt The timestamp when the GIST root was replaced by another root
+     */
     function getGistRootReplacedAt(
         bytes2 idType,
         uint256 root

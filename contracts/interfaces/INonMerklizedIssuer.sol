@@ -23,7 +23,7 @@ interface INonMerklizedIssuer {
     }
 
     /**
-     * @dev CredentialInformation. Information about the credential
+     * @dev CredentialData. Information about the credential
      */
     struct CredentialData {
         uint256 id;

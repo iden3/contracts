@@ -6,6 +6,9 @@ import {IVerifier} from "../interfaces/IVerifier.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IState} from "../interfaces/IState.sol";
 
+/**
+ * @dev Base contract for credential atomic query v2 validators circuits.
+ */
 abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryValidatorBase {
     /**
      * @dev Version of contract
@@ -39,12 +42,31 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         uint256 timestamp;
     }
 
+    /**
+     * @dev Get the version of the contract
+     * @return Version of the contract
+     */
     function version() public pure virtual override returns (string memory);
 
+    /**
+     * @dev Parse the public signals
+     * @param inputs Array of public inputs
+     * @return Parsed public signals
+     */
     function parsePubSignals(
         uint256[] memory inputs
     ) public pure virtual returns (PubSignals memory);
 
+    /**
+     * @dev Verify the groth16 proof and check the request query data
+     * @param inputs Public inputs of the circuit.
+     * @param a πa element of the groth16 proof.
+     * @param b πb element of the groth16 proof.
+     * @param c πc element of the groth16 proof.
+     * @param data Request query data of the credential to verify.
+     * @param sender Sender of the proof.
+     * @return Array of key to public input index as result.
+     */
     function verify(
         uint256[] memory inputs,
         uint256[2] memory a,
@@ -58,6 +80,14 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         return _getSpecialInputIndexes();
     }
 
+    /**
+     * @dev Verify the groth16 proof and check the request query data
+     * @param zkProof Proof packed as bytes to verify.
+     * @param data Request query data of the credential to verify.
+     * @param sender Sender of the proof.
+     * @param stateContract State contract to get identities and gist states to check.
+     * @return Array of public signals as result.
+     */
     function verifyV2(
         bytes calldata zkProof,
         bytes calldata data,
@@ -75,6 +105,16 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         return _getSpecialSignals(pubSignals);
     }
 
+    /**
+     * @dev Verify the groth16 proof and check the request query data
+     * @param inputs Public inputs of the circuit.
+     * @param a πa element of the groth16 proof.
+     * @param b πb element of the groth16 proof.
+     * @param c πc element of the groth16 proof.
+     * @param data Request query data of the credential to verify.
+     * @param sender Sender of the proof.
+     * @param state State contract to get identities and gist states to check.
+     */
     function _verifyMain(
         uint256[] memory inputs,
         uint256[2] memory a,
