@@ -1,6 +1,8 @@
 // HARDHAT network Oracle signing address
 import { ethers } from "hardhat";
 
+export const DEFAULT_MNEMONIC = "test test test test test test test test test test test junk";
+
 const ORACLE_SIGNING_ADDRESS_HARDHAT = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 // TEST networks Oracle signing address (For now we will use in testnets the same production signing address)
 export const ORACLE_SIGNING_ADDRESS_TEST = "0x3e1cFE1b83E7C1CdB0c9558236c1f6C7B203C34e";
