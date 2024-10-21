@@ -31,6 +31,7 @@ const config = getConfig();
 const chainId = hre.network.config.chainId;
 const network = hre.network.name;
 let stateContractAddress = contractsInfo.STATE.unifiedAddress;
+const universalVerifierAddress = contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress; // replace with your address if needed
 
 async function getSigners(useImpersonation: boolean): Promise<any> {
   if (useImpersonation) {
@@ -84,7 +85,7 @@ async function main() {
 
   const universalVerifierContract = await universalVerifierMigrationHelper.getInitContract({
     contractNameOrAbi: universalVerifierArtifact.abi,
-    address: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
+    address: universalVerifierAddress,
   });
 
   const universalVerifierOwnerAddressBefore = await universalVerifierContract.owner();
@@ -142,8 +143,6 @@ async function main() {
   const tx = await universalVerifierContract.setState(state);
   await tx.wait();
 
-  console.log("Upgrading validators and adding them to whitelist...");
-
   const validators = [
     {
       validatorContractAddress: contractsInfo.VALIDATOR_MTP.unifiedAddress,
@@ -164,6 +163,7 @@ async function main() {
 
   for (const v of validators) {
     if (upgradeValidators) {
+      console.log(`Upgrading validator ${v.validatorContractName}...`);
       const { validator } = await deployerHelper.upgradeValidator(
         v.validatorContractAddress as string,
         v.validatorContractName,
@@ -209,7 +209,7 @@ async function onlyTestVerification() {
   const { universalVerifierOwnerSigner } = await getSigners(impersonate);
   const universalVerifierContract = await ethers.getContractAt(
     universalVerifierArtifact.abi,
-    contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
+    universalVerifierAddress,
     universalVerifierOwnerSigner,
   );
   console.log("Testing verifiation with submitZKPResponseV2 after migration...");
@@ -259,7 +259,7 @@ async function testVerification(verifier: Contract, validatorV3Address: string) 
   await setZKPRequest_KYCAgeCredential(requestId, verifier, validatorV3Address, "v3");
   await submitZKPResponses_KYCAgeCredential(requestId, verifier, "v3", {
     stateContractAddress: stateContractAddress,
-    verifierContractAddress: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
+    verifierContractAddress: universalVerifierAddress,
     checkSubmitZKResponseV2: true,
   });
 }
