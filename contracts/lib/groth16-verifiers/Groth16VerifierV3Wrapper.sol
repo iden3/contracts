@@ -22,7 +22,7 @@ contract Groth16VerifierV3Wrapper is Groth16VerifierV3, IVerifier {
      */
     uint constant PUBSIGNALS_LENGTH = 14;
 
-     /**
+    /**
      * @dev Verify the circuit with the groth16 proof π=([πa]1,[πb]2,[πc]1).
      * @param a πa element of the groth16 proof.
      * @param b πb element of the groth16 proof.

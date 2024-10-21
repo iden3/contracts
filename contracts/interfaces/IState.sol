@@ -126,7 +126,7 @@ interface IState {
      * @param idType Id type of the chain.
      * @param root Root of the global state.
      * @param replacedAtTimestamp Timestamp when the global state was replaced by next global state.
-     */   
+     */
     struct GlobalStateProcessResult {
         bytes2 idType;
         uint256 root;
@@ -137,7 +137,7 @@ interface IState {
      * @param id Id of the identity.
      * @param state State of the identity.
      * @param replacedAtTimestamp Timestamp when the identity state was replaced by next identity state.
-     */   
+     */
     struct IdentityStateProcessResult {
         uint256 id;
         uint256 state;
@@ -252,7 +252,7 @@ interface IState {
         uint256 id,
         uint256 state
     ) external view returns (uint256 replacedAtTimestamp);
-    
+
     /**
      * @dev Get timestamp when the global state was replaced.
      * @param idType Id type of the chain
@@ -264,9 +264,9 @@ interface IState {
         uint256 root
     ) external view returns (uint256 replacedAtTimestamp);
 
-   /**
-    * @dev Process the cross chain proofs with the identities and global states.
-    * @param proofs Proofs with the identities and global states
-    */
-   function processCrossChainProofs(bytes calldata proofs) external;
+    /**
+     * @dev Process the cross chain proofs with the identities and global states.
+     * @param proofs Proofs with the identities and global states
+     */
+    function processCrossChainProofs(bytes calldata proofs) external;
 }

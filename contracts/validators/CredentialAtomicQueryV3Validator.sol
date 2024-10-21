@@ -123,7 +123,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
      * @param data Request query data of the credential to verify.
      * @param sender Sender of the proof.
      * @return Array of key to public input index as result.
-     */    
+     */
     function verify(
         uint256[] memory inputs,
         uint256[2] memory a,

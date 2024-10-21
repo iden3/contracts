@@ -9,7 +9,7 @@ import {IRHSStorage} from "../interfaces/IRHSStorage.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 /**
- * @dev Contract which provides onchain Reverse Hash Service (RHS) 
+ * @dev Contract which provides onchain Reverse Hash Service (RHS)
  * for checking revocation status of claims.
  */
 contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, IRHSStorage {

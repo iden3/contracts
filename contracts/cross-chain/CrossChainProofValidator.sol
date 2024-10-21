@@ -7,7 +7,7 @@ import {IState} from "../interfaces/IState.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @dev Contract which provides proof validation from identity state 
+ * @dev Contract which provides proof validation from identity state
  * and global state proofs from trusted oracle with signature from any network.
  */
 contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator {
