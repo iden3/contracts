@@ -51,7 +51,7 @@ async function main() {
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
 
-  console.log("Starting Universal Verifier Contract Upgrade");
+  console.log(`Starting Universal Verifier Contract Upgrade for ${universalVerifierAddress}`);
 
   if (!ethers.isAddress(config.ledgerAccount)) {
     throw new Error("LEDGER_ACCOUNT is not set");
