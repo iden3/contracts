@@ -1,19 +1,12 @@
 import { DeployHelper } from "../../../helpers/DeployHelper";
 import hre, { ethers, upgrades } from "hardhat";
-import { verifierContractMigrationHelper } from "../../../helpers/verifierContractMigrationHelper";
-import * as universalVerifierArtifact from "../../../artifacts/contracts/verifiers/UniversalVerifier.sol/UniversalVerifier.json";
-import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/State.json";
 import { expect } from "chai";
 import { Contract } from "ethers";
-import { StateContractMigrationHelper } from "../../../helpers/StateContractMigrationHelper";
 import {
   setZKPRequest_KYCAgeCredential,
   submitZKPResponses_KYCAgeCredential,
 } from "./helpers/testVerifier";
-import {
-  getStateContractAddress,
-  waitNotToInterfereWithHardhatIgnition,
-} from "../../../helpers/helperUtils";
+import { getStateContractAddress } from "../../../helpers/helperUtils";
 import { contractsInfo } from "../../../helpers/constants";
 import fs from "fs";
 import path from "path";
@@ -26,7 +19,7 @@ async function main() {
   // In real upgrade, you should use THE NAME as THE ADDRESS
   // of your custom contract, which inherits EmbeddedZKPVerifer
   let verifierContract = await ethers.getContractAt(
-    "<verifier contract name>",  // ZKPVerifierWrapper
+    "<verifier contract name>", // ZKPVerifierWrapper
     "<verifier contract address>",
   );
 
@@ -109,10 +102,11 @@ async function testVerification(
   stateContractAddress: string,
 ) {
   const requestId = 112233;
-  await setZKPRequest_KYCAgeCredential(requestId, verifier, validatorV3Address);
-  await submitZKPResponses_KYCAgeCredential(requestId, verifier, {
+  await setZKPRequest_KYCAgeCredential(requestId, verifier, validatorV3Address, "v3");
+  await submitZKPResponses_KYCAgeCredential(requestId, verifier, "v3", {
     stateContractAddress: stateContractAddress,
     verifierContractAddress: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
+    checkSubmitZKResponseV2: true,
   });
 }
 

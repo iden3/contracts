@@ -253,10 +253,11 @@ async function upgradeState(deployHelper: DeployHelper, signer: any) {
 
 async function testVerification(verifier: Contract, validatorV3Address: string) {
   const requestId = 112233;
-  await setZKPRequest_KYCAgeCredential(requestId, verifier, validatorV3Address);
-  await submitZKPResponses_KYCAgeCredential(requestId, verifier, {
+  await setZKPRequest_KYCAgeCredential(requestId, verifier, validatorV3Address, "v3");
+  await submitZKPResponses_KYCAgeCredential(requestId, verifier, "v3", {
     stateContractAddress: stateContractAddress,
     verifierContractAddress: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
+    checkSubmitZKResponseV2: true,
   });
 }
 

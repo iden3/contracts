@@ -14,12 +14,12 @@ async function testVerification(
   wallet: Wallet,
 ) {
   const requestId = 7254189;
-  await setZKPRequest_KYCAgeCredential(requestId, verifier, validatorV3Address, provider);
-  await submitZKPResponses_KYCAgeCredential(requestId, verifier, {
+  await setZKPRequest_KYCAgeCredential(requestId, verifier, validatorV3Address, "v3", provider);
+  await submitZKPResponses_KYCAgeCredential(requestId, verifier, "v3", {
     stateContractAddress: getStateContractAddress(Number((await provider.getNetwork()).chainId)),
-    verifierContractAddress: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
     provider,
     signer: wallet,
+    checkSubmitZKResponseV2: true,
   });
 }
 
