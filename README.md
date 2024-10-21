@@ -140,7 +140,8 @@ For some of the scripts you need to download the zk circuits for generation and 
 Download the zk circuits into `./scripts/upgrade/verifiers/helpers/circuits` by running `./scripts/upgrade/verifiers/helpers/dl_circuits.sh`. This will download the latest files from `https://iden3-circuits-bucket.s3.eu-west-1.amazonaws.com/latest.zip`
 
     ```bash
-    ./scripts/upgrade/verifiers/helpers/dl_circuits.sh
+    cd ./scripts/upgrade/verifiers/helpers 
+    ./dl_circuits.sh
     ```
 
 ## Other Hardhat commands

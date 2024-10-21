@@ -23,6 +23,7 @@ import path from "path";
 
 const removePreviousIgnitionFiles = true;
 const upgradeStateContract = false;
+const upgradeValidators = false;
 const impersonate = false;
 
 const config = getConfig();
@@ -162,14 +163,16 @@ async function main() {
   ];
 
   for (const v of validators) {
-    const { validator } = await deployerHelper.upgradeValidator(
-      v.validatorContractAddress as string,
-      v.validatorContractName,
-    );
-    await validator.waitForDeployment();
-    console.log(`Validator ${v.validatorContractName} version:`, await validator.version());
+    if (upgradeValidators) {
+      const { validator } = await deployerHelper.upgradeValidator(
+        v.validatorContractAddress as string,
+        v.validatorContractName,
+      );
+      await validator.waitForDeployment();
+      console.log(`Validator ${v.validatorContractName} version:`, await validator.version());
 
-    await verifyContract(await validator.getAddress(), v.validatorVerification);
+      await verifyContract(await validator.getAddress(), v.validatorVerification);
+    }
 
     const isWhitelisted = await universalVerifierContract.isWhitelistedValidator(
       v.validatorContractAddress,
@@ -198,7 +201,7 @@ async function main() {
   };
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 
-  console.log("Testing verifiation with submitZKPResponseV2 after migration...");
+  console.log("Testing verification with submitZKPResponseV2 after migration...");
   await testVerification(universalVerifierContract, contractsInfo.VALIDATOR_V3.unifiedAddress);
 }
 
