@@ -20,7 +20,7 @@ async function main() {
     iden3DefaultIdType = defaultIdType;
   } else {
     iden3DefaultIdType = defaultIdType.replace("0x02", "0x01");
-    const tx = await state.setDefaultIdType(defaultIdType);
+    const tx = await state.setDefaultIdType(iden3DefaultIdType);
     await tx.wait();
   }
 
@@ -55,6 +55,7 @@ async function main() {
     }
   }
 
+  expect(await state.getDefaultIdType()).to.be.equal(iden3DefaultIdType);
   expect(await state.isIdTypeSupported(iden3DefaultIdType)).to.be.true;
   if ([networks.POLYGON_AMOY.chainId, networks.POLYGON_MAINNET.chainId].includes(chainId)) {
     expect(await state.isIdTypeSupported(polygonIdType)).to.be.true;
