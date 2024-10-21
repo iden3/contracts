@@ -8,6 +8,10 @@ import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredential
 import {IRHSStorage} from "../interfaces/IRHSStorage.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
+/**
+ * @dev Contract which provides onchain Reverse Hash Service (RHS)
+ * for checking revocation status of claims.
+ */
 contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, IRHSStorage {
     /**
      * @dev Enum for node types
@@ -65,6 +69,10 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
         }
     }
 
+    /**
+     * @dev Function to call first time for initialization of the proxy.
+     * @param state The state contract address to be used to check state of the identities
+     **/
     function initialize(address state) public initializer {
         IdentityTreeStoreMainStorage storage $its = _getIdentityTreeStoreMainStorage();
         ReverseHashLib.Data storage $rhl = _getReverseHashLibDataStorage();

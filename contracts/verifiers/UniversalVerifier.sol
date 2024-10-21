@@ -92,9 +92,10 @@ contract UniversalVerifier is
     }
 
     /**
-     * @dev Submits a ZKP response V2 and updates proof status
-     * @param responses the array of ZKP responses
-     * @param crossChainProof the cross chain proof that includes state for the issuer and global state for the user
+     * @dev Submits an array of ZKP responses and updates proofs status
+     * @param responses The list of responses including ZKP request ID, ZK proof and metadata
+     * @param crossChainProof The list of cross chain proofs from universal resolver (oracle). This
+     * includes identities and global states.
      */
     function submitZKPResponseV2(
         IZKPVerifier.ZKPResponse[] memory responses,
@@ -128,6 +129,9 @@ contract UniversalVerifier is
         return super.verifyZKPResponse(requestId, inputs, a, b, c, sender);
     }
 
+    /**
+     * @dev Sets the state contract address
+     */
     function setState(IState state) public onlyOwner {
         _setState(state);
     }

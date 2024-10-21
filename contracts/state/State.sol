@@ -86,6 +86,7 @@ contract State is Ownable2StepUpgradeable, IState {
      * @param verifierContractAddr Verifier address
      * @param defaultIdType default id type for Ethereum-based IDs calculation
      * @param owner Owner of the contract with administrative functions
+     * @param validator Cross chain proof validator contract address
      */
     function initialize(
         IStateTransitionVerifier verifierContractAddr,
@@ -108,11 +109,19 @@ contract State is Ownable2StepUpgradeable, IState {
         $._crossChainProofValidator = validator;
     }
 
+    /**
+     * @dev Set cross chain proof validator contract address
+     * @param validator Cross chain proof validator contract address
+     */
     function setCrossChainProofValidator(ICrossChainProofValidator validator) public onlyOwner {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
         $._crossChainProofValidator = validator;
     }
 
+    /**
+     * @dev Process cross chain proofs with identity and global state proofs
+     * @param proofs Cross chain proofs to be processed
+     */
     function processCrossChainProofs(bytes calldata proofs) public {
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
         $.processCrossChainProofs(proofs);
@@ -225,7 +234,8 @@ contract State is Ownable2StepUpgradeable, IState {
 
     /**
      * @dev Check if id type supported
-     * @return bool
+     * @param idType id type to check
+     * @return True if the id type is supported
      */
     function isIdTypeSupported(bytes2 idType) public view returns (bool) {
         return _stateData.isIdTypeSupported[idType];
@@ -234,7 +244,7 @@ contract State is Ownable2StepUpgradeable, IState {
     /**
      * @dev Retrieve the last state info for a given identity
      * @param id identity
-     * @return state info of the last committed state
+     * @return State info of the last committed state
      */
     function getStateInfoById(uint256 id) external view returns (IState.StateInfo memory) {
         return _stateEntryInfoAdapter(_stateData.getStateInfoById(id));
@@ -243,7 +253,7 @@ contract State is Ownable2StepUpgradeable, IState {
     /**
      * @dev Retrieve states quantity for a given identity
      * @param id identity
-     * @return states quantity
+     * @return States quantity
      */
     function getStateInfoHistoryLengthById(uint256 id) external view returns (uint256) {
         return _stateData.getStateInfoHistoryLengthById(id);
@@ -423,6 +433,12 @@ contract State is Ownable2StepUpgradeable, IState {
         return _stateData.stateExists(id, state);
     }
 
+    /**
+     * @dev Retrieve the timestamp when the state was replaced by another state.
+     * @param id Identity id
+     * @param state State of the identity
+     * @return replacedAt The timestamp when the state of the identity was replaced by another state
+     */
     function getStateReplacedAt(
         uint256 id,
         uint256 state
@@ -444,6 +460,12 @@ contract State is Ownable2StepUpgradeable, IState {
         }
     }
 
+    /**
+     * @dev Retrieve the timestamp when the GIST root was replaced by another root.
+     * @param idType Id type
+     * @param root GIST root
+     * @return replacedAt The timestamp when the GIST root was replaced by another root
+     */
     function getGistRootReplacedAt(
         bytes2 idType,
         uint256 root
