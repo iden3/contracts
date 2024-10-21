@@ -265,14 +265,17 @@ export async function submitZKPResponses_KYCAgeCredential(
     throw new Error("stateContractAddress is not set");
   }
 
-  const { dataStorage: issuerDataStorage, identityWallet: issuerIdentityWallet } =
-    await initInMemoryDataStorageAndWallets([
-      {
-        rpcUrl: rpcUrl,
-        contractAddress: opts.stateContractAddress,
-        chainId: chainId,
-      },
-    ]);
+  const {
+    dataStorage: issuerDataStorage,
+    credentialWallet: issuerCredentialWallet,
+    identityWallet: issuerIdentityWallet,
+  } = await initInMemoryDataStorageAndWallets([
+    {
+      rpcUrl: rpcUrl,
+      contractAddress: opts.stateContractAddress,
+      chainId: chainId,
+    },
+  ]);
 
   const {
     dataStorage: userDataStorage,
@@ -291,6 +294,13 @@ export async function submitZKPResponses_KYCAgeCredential(
     userIdentityWallet,
     userCredentialWallet,
     userDataStorage.states,
+    circuitStorage,
+  );
+
+  const issuerProofService = await initProofService(
+    issuerIdentityWallet,
+    issuerCredentialWallet,
+    issuerDataStorage.states,
     circuitStorage,
   );
 
@@ -336,6 +346,38 @@ export async function submitZKPResponses_KYCAgeCredential(
 
   switch (verifierType) {
     case "mtpV2":
+      const res = await issuerIdentityWallet.addCredentialsToMerkleTree([credential], issuerDID);
+      console.log("================= push states to rhs ===================");
+
+      await issuerIdentityWallet.publishRevocationInfoByCredentialStatusType(
+        issuerDID,
+        CredentialStatusType.Iden3ReverseSparseMerkleTreeProof,
+        { rhsUrl },
+      );
+
+      console.log("================= publish to blockchain ================");
+
+      const txId = await issuerProofService.transitState(
+        issuerDID,
+        res.oldTreeState,
+        true,
+        issuerDataStorage.states,
+        signer,
+      );
+      console.log(txId);
+
+      console.log("================= generate credentialAtomicMTPV2 ===================");
+      const credsWithIden3MTPProof = await issuerIdentityWallet.generateIden3SparseMerkleTreeProof(
+        issuerDID,
+        res.credentials,
+        txId,
+      );
+
+      // console.log(credsWithIden3MTPProof);
+      await issuerCredentialWallet.saveAll(credsWithIden3MTPProof);
+      // We need to save the credential to the user wallet
+      await userCredentialWallet.saveAll(credsWithIden3MTPProof);
+
       ({ proof, pub_signals } = await generateProof(
         CircuitId.AtomicQueryMTPV2OnChain,
         credentialRequest,

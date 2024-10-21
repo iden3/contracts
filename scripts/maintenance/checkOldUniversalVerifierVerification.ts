@@ -29,7 +29,7 @@ async function testVerification(verifier: Contract) {
 
   const requestId_MTPV2 = 7254191;
   await setZKPRequest_KYCAgeCredential(requestId_MTPV2, verifier, validatorMTPV2Address, "mtpV2");
-  await submitZKPResponses_KYCAgeCredential(requestId_SigV2, verifier, "mtpV2", {
+  await submitZKPResponses_KYCAgeCredential(requestId_MTPV2, verifier, "mtpV2", {
     stateContractAddress: getStateContractAddress(),
     verifierContractAddress: await verifier.getAddress(),
   });
