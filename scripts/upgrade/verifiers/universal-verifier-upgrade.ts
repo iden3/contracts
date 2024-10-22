@@ -108,7 +108,6 @@ async function main() {
   // **** Upgrade Universal Verifier ****
   await universalVerifierMigrationHelper.upgradeContract(universalVerifierContract, {
     verifierLibAddress: await verifierLib.getAddress(),
-    stateContractAddress,
   });
   // ************************
   console.log("Checking data after upgrade");
@@ -140,6 +139,9 @@ async function main() {
 
   const crossChainProofValidatorAddress = await state.getCrossChainProofValidator();
   console.log("crossChainProofValidatorAddress: ", crossChainProofValidatorAddress);
+
+  const tx = await universalVerifierContract.connect(universalVerifierOwnerSigner).setState(state);
+  await tx.wait();
 
   const validators = [
     {
