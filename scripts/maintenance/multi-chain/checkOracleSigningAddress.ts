@@ -19,7 +19,9 @@ async function main() {
   for (const provider of providers) {
     const jsonRpcProvider = new ethers.JsonRpcProvider(provider.rpcUrl);
 
-    const stateContractAddress = getStateContractAddress();
+    const stateContractAddress = getStateContractAddress(
+      Number((await jsonRpcProvider.getNetwork()).chainId),
+    );
 
     let oracleSigningAddressIsValid = true;
     const defaultOracleSigningAddress = ORACLE_SIGNING_ADDRESS_PRODUCTION; // production signing address
