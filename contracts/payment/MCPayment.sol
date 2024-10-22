@@ -19,8 +19,23 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
             // solhint-disable-next-line max-line-length
             "Iden3PaymentRailsRequestV1(address recipient,uint256 amount,uint256 expirationDate,uint256 nonce,bytes metadata)"
         );
+    
+    bytes32 public constant ERC_20_PAYMENT_DATA_TYPE_HASH =
+        keccak256(
+            // solhint-disable-next-line max-line-length
+            "Iden3PaymentRailsERC20RequestV1(address tokenAddress,address recipient,uint256 amount,uint256 expirationDate,uint256 nonce,bytes metadata)"
+        );
 
     struct Iden3PaymentRailsRequestV1 {
+        address recipient;
+        uint256 amount;
+        uint256 expirationDate;
+        uint256 nonce;
+        bytes metadata;
+    }
+
+    struct Iden3PaymentRailsERC20RequestV1 {
+        address tokenAddress;
         address recipient;
         uint256 amount;
         uint256 expirationDate;
@@ -242,6 +257,32 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         }
     }
 
+    //  Function to transfer ERC-20 tokens
+    function erc20Payment(
+        Iden3PaymentRailsERC20RequestV1 memory paymentData,
+        bytes memory paymentDataSignature
+    ) external {
+        verifyERC20Signature(paymentData, paymentDataSignature);
+
+        MCPaymentStorage storage $ = _getMCPaymentStorage();
+        IERC20 token = IERC20(paymentData.tokenAddress);
+       
+        if (token.transferFrom(msg.sender, address(this), paymentData.amount)) {
+            uint256 ownerPart = (paymentData.amount * $.ownerPercentage) / 100;
+            uint256 issuerPart = paymentData.amount - ownerPart;
+            token.transfer(paymentData.recipient, issuerPart);
+            emit Payment(paymentData.recipient, paymentData.nonce);
+            bytes32 paymentId = keccak256(abi.encode(paymentData.recipient, paymentData.nonce));
+            $.isPaid[paymentId] = true;
+        } else {
+            emit ERC20PaymentFailed(
+                paymentData.recipient,
+                paymentData.nonce,
+                "MCPayment: ERC20 transfer failed"
+            );
+        }
+    }
+
     function isPaymentDone(address recipient, uint256 nonce) external view returns (bool) {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         return $.isPaid[keccak256(abi.encode(recipient, nonce))];
@@ -254,6 +295,29 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         bytes32 structHash = keccak256(
             abi.encode(
                 PAYMENT_DATA_TYPE_HASH,
+                paymentData.recipient,
+                paymentData.amount,
+                paymentData.expirationDate,
+                paymentData.nonce,
+                keccak256(paymentData.metadata)
+            )
+        );
+        bytes32 hashTypedData = _hashTypedDataV4(structHash);
+        (address recovered, ECDSA.RecoverError err, ) = hashTypedData.tryRecover(signature);
+
+        if (err != ECDSA.RecoverError.NoError || recovered != paymentData.recipient) {
+            revert InvalidSignature("MCPayment: invalid signature");
+        }
+    }
+
+    function verifyERC20Signature(
+        Iden3PaymentRailsERC20RequestV1 memory paymentData,
+        bytes memory signature
+    ) public view {
+        bytes32 structHash = keccak256(
+            abi.encode(
+                ERC_20_PAYMENT_DATA_TYPE_HASH,
+                paymentData.tokenAddress,
                 paymentData.recipient,
                 paymentData.amount,
                 paymentData.expirationDate,

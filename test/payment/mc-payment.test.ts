@@ -16,6 +16,17 @@ describe("MC Payment Contract", () => {
     ],
   };
 
+  const erc20types = {
+    Iden3PaymentRailsERC20RequestV1: [
+      { name: "tokenAddress", type: "address" },
+      { name: "recipient", type: "address" },
+      { name: "amount", type: "uint256" },
+      { name: "expirationDate", type: "uint256" },
+      { name: "nonce", type: "uint256" },
+      { name: "metadata", type: "bytes" },
+    ],
+  };
+
   beforeEach(async () => {
     const signers = await ethers.getSigners();
     issuer1Signer = signers[1];
@@ -279,7 +290,7 @@ describe("MC Payment Contract", () => {
     expect(await token.balanceOf(await payment.getAddress())).to.be.eq(6);
   });
 
-  it.only("ERC20Permit transfer payment:", async () => {
+  it("ERC20Permit transfer payment:", async () => {
     // transfer some tokens to user
     const permitTokenContract = await ethers.getContractFactory("ERC20PermitToken", owner);
     const token = (await permitTokenContract.attach(
@@ -313,6 +324,38 @@ describe("MC Payment Contract", () => {
     await payment
       .connect(userSigner)
       .tokenPermitAndTransferPayment(paymentData, issuerSignature, permitSig);
+    console.log("payment done");
+
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(90);
+    // 10 - 10% owner fee = 9
+    expect(await token.balanceOf(await issuer1Signer.getAddress())).to.be.eq(9);
+    expect(await token.balanceOf(await payment.getAddress())).to.be.eq(1);
+
+    expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
+  });
+
+  it.only("ERC20 payment - 2 tx (approve & transferFrom):", async () => {
+    // transfer some tokens to user
+    const tokenFactory = await ethers.getContractFactory("ERC20Token", owner);
+    const token = await tokenFactory.deploy(1_000);
+
+    await token.connect(owner).transfer(await userSigner.getAddress(), 100);
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
+
+    await token.connect(userSigner).approve(await payment.getAddress(), 10);
+
+    const paymentData = {
+      tokenAddress: await token.getAddress(),
+      recipient: issuer1Signer.address,
+      amount: 10,
+      expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60, // 1 hour
+      nonce: 35,
+      metadata: "0x",
+    };
+
+    const issuerSignature = issuer1Signer.signTypedData(domainData, erc20types, paymentData);
+
+    await payment.connect(userSigner).erc20Payment(paymentData, issuerSignature);
     console.log("payment done");
 
     expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(90);
