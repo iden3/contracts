@@ -24,6 +24,11 @@ async function testVerification(
 }
 
 async function main() {
+  if (!ethers.isAddress(process.env.PRIVATE_KEY)) {
+    throw new Error(
+      "PRIVATE_KEY is not set. You need to config it in .env file to be able to check the verification in all the networks automatically.\nIf you need only to check it in one network then use 'npx hardhat run scripts/maintenance/checkUniversalVerifierSingleNetwork.ts --network <network>'.",
+    );
+  }
   const providers = getProviders();
 
   const networksVerificationOK: string[] = [];
