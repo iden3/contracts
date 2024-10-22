@@ -866,6 +866,7 @@ export class DeployHelper {
   async upgradeUniversalVerifier(
     verifierAddress: string,
     verifierLibAddr: string,
+    stateContractAddress: string,
     verifierContractName = contractsInfo.UNIVERSAL_VERIFIER.name,
   ): Promise<Contract> {
     this.log("======== Verifier: upgrade started ========");
@@ -883,7 +884,11 @@ export class DeployHelper {
     let verifier: Contract;
     try {
       verifier = await upgrades.upgradeProxy(verifierAddress, VerifierFactory, {
-        unsafeAllowLinkedLibraries: true,
+        unsafeAllow: ["external-library-linking"],
+        call: {
+          fn: "setState",
+          args: [stateContractAddress],
+        },
       });
       await verifier.waitForDeployment();
     } catch (e) {
