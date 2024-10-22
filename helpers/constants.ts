@@ -329,4 +329,9 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
+  EMBEDDED_ZKP_VERIFIER_WRAPPER: {
+    name: "EmbeddedZKPVerifierWrapper",
+    unifiedAddress: "",
+    create2Calldata: "",
+  },
 });

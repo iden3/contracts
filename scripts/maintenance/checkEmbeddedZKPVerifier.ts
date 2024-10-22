@@ -8,10 +8,10 @@ import {
 import { Contract } from "ethers";
 
 // Replace these addresses with the ones you want to test
-const universalVerifierAddress = contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress;
-const validatorSigV2Address = contractsInfo.VALIDATOR_SIG.unifiedAddress;
-const validatorMTPV2Address = contractsInfo.VALIDATOR_MTP.unifiedAddress;
-const validatorV3Address = contractsInfo.VALIDATOR_V3.unifiedAddress;
+const embeddedZKPVerifierAddress = "<put the embedded ZKP verifier address here>";
+const validatorSigV2Address = "<put the validator sig v2 address here>";
+const validatorMTPV2Address = "<put the validator mtp v2 address here>";
+const validatorV3Address = "<put the validator v3 address here>";
 
 async function testVerification(verifier: Contract) {
   const requestId_V3 = 7254189;
@@ -41,23 +41,23 @@ async function testVerification(verifier: Contract) {
 
 async function main() {
   console.log(
-    `\nChecking UniversalVerifier verification on ${hre.network.name} with address ${universalVerifierAddress}...`,
+    `\nChecking EmbeddedZKPVerifier verification on ${hre.network.name} with address ${embeddedZKPVerifierAddress}...`,
   );
 
-  const universalVerifier = await ethers.getContractAt(
-    contractsInfo.UNIVERSAL_VERIFIER.name,
-    universalVerifierAddress,
+  const embeddedZKPVerifier = await ethers.getContractAt(
+    contractsInfo.EMBEDDED_ZKP_VERIFIER_WRAPPER.name,
+    embeddedZKPVerifierAddress,
   );
 
   try {
-    await testVerification(universalVerifier);
+    await testVerification(embeddedZKPVerifier);
     Logger.success(
-      `${hre.network.name} Universal Verifier onchain ${universalVerifierAddress} verified`,
+      `${hre.network.name} embedded ZKP Verifier onchain ${embeddedZKPVerifierAddress} verified`,
     );
   } catch (error) {
     console.error(error);
     Logger.error(
-      `${hre.network.name} Universal Verifier onchain ${universalVerifierAddress} not verified`,
+      `${hre.network.name} embedded ZKP Verifier onchain ${embeddedZKPVerifierAddress} not verified`,
     );
   }
 }
