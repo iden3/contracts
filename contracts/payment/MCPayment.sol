@@ -4,6 +4,8 @@ pragma solidity 0.8.27;
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 
 contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     using ECDSA for bytes32;
@@ -26,6 +28,11 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         bytes metadata;
     }
 
+    struct Iden3PaymentRailsMetadata {
+        address sender;
+        address erc20TokenAddress;
+    }
+
     /**
      * @dev Main storage structure for the contract
      */
@@ -35,6 +42,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         mapping(address recipient => uint256 balance) balance;
         uint8 ownerPercentage;
         uint256 ownerBalance;
+        address usdcTokenAddress;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.MCPayment")) - 1)) &
@@ -49,10 +57,13 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     }
 
     event Payment(address indexed recipient, uint256 indexed nonce);
+    event ERC20PaymentFailed(address indexed recipient, uint256 indexed nonce, string message);
     error InvalidSignature(string message);
     error PaymentError(string message);
     error WithdrawError(string message);
     error InvalidOwnerPercentage(string message);
+    error InvalidTokenAddress(string message);
+    error ECDSAInvalidSignatureLength(string message);
 
     /**
      * @dev Valid percent value modifier
@@ -69,12 +80,30 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
      */
     function initialize(
         address owner,
-        uint8 ownerPercentage
+        uint8 ownerPercentage,
+        address usdcTokenAddress
     ) public initializer validPercentValue(ownerPercentage) {
+        if (usdcTokenAddress == address(0)) {
+            revert InvalidTokenAddress("Invalid token address");
+        }
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         $.ownerPercentage = ownerPercentage;
+        $.usdcTokenAddress = usdcTokenAddress; // or support any with `metadata`
         __EIP712_init("MCPayment", VERSION);
         __Ownable_init(owner);
+    }
+
+    function setUsdcTokenAddress(address usdcTokenAddress) external onlyOwner {
+        if (usdcTokenAddress == address(0)) {
+            revert InvalidTokenAddress("Invalid token address");
+        }
+        MCPaymentStorage storage $ = _getMCPaymentStorage();
+        $.usdcTokenAddress = usdcTokenAddress;
+    }
+
+    function getUsdcTokenAddress() external view returns (address) {
+        MCPaymentStorage storage $ = _getMCPaymentStorage();
+        return $.usdcTokenAddress;
     }
 
     function getOwnerPercentage() external view returns (uint8) {
@@ -114,6 +143,103 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
 
         emit Payment(paymentData.recipient, paymentData.nonce);
         $.isPaid[paymentId] = true;
+    }
+
+    // Function to transfer ERC-20 tokens from multiple users (who already approved the contract)
+    function erc20BulkTransferFrom(
+        Iden3PaymentRailsRequestV1[] memory paymentsData,
+        bytes[] memory signatures
+    ) external {
+        // only issuer can call this function
+        require(paymentsData.length == signatures.length, "Arrays must be the same length");
+        MCPaymentStorage storage $ = _getMCPaymentStorage();
+        for (uint i = 0; i < paymentsData.length; i++) {
+            verifySignature(paymentsData[i], signatures[i]);
+            if (paymentsData[i].expirationDate < block.timestamp) {
+                emit ERC20PaymentFailed(
+                    paymentsData[i].recipient,
+                    paymentsData[i].nonce,
+                    "MCPayment: payment expired"
+                );
+                continue;
+            }
+            Iden3PaymentRailsMetadata memory metadata = abi.decode(
+                paymentsData[i].metadata,
+                (Iden3PaymentRailsMetadata)
+            );
+            IERC20 token = IERC20(metadata.erc20TokenAddress); // Interface instance for the token contract
+            // Transfer tokens from each address to the recipient
+            if (token.transferFrom(metadata.sender, address(this), paymentsData[i].amount)) {
+                // If the transfer is successful, transfer tokens to recipient
+                uint256 ownerPart = (paymentsData[i].amount * $.ownerPercentage) / 100;
+                uint256 issuerPart = paymentsData[i].amount - ownerPart;
+                token.transfer(paymentsData[i].recipient, issuerPart);
+                emit Payment(paymentsData[i].recipient, paymentsData[i].nonce);
+                bytes32 paymentId = keccak256(
+                    abi.encode(paymentsData[i].recipient, paymentsData[i].nonce)
+                );
+                $.isPaid[paymentId] = true;
+            } else {
+                emit ERC20PaymentFailed(
+                    paymentsData[i].recipient,
+                    paymentsData[i].nonce,
+                    "MCPayment: ERC20 transfer failed"
+                );
+            }
+        }
+    }
+
+    //  Function to transfer ERC-20 tokens via EIP-2612 permit
+    function tokenPermitAndTransferPayment(
+        Iden3PaymentRailsRequestV1 memory paymentData,
+        bytes memory paymentDataSignature,
+        bytes memory permitSignature
+    ) external {
+        verifySignature(paymentData, paymentDataSignature);
+
+        MCPaymentStorage storage $ = _getMCPaymentStorage();
+        ERC20Permit token = ERC20Permit($.usdcTokenAddress);
+
+        if (permitSignature.length != 65) {
+            revert ECDSAInvalidSignatureLength("MCPayment: invalid signature length");
+        }
+
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        // ecrecover takes the signature parameters, and the only way to get them
+        // currently is to use assembly.
+        /// @solidity memory-safe-assembly
+        assembly {
+            r := mload(add(permitSignature, 0x20))
+            s := mload(add(permitSignature, 0x40))
+            v := byte(0, mload(add(permitSignature, 0x60)))
+        }
+
+        // Call permit function to allow the transfer
+        token.permit(
+            msg.sender,
+            address(this),
+            paymentData.amount,
+            paymentData.expirationDate,
+            v,
+            r,
+            s
+        );
+        if (token.transferFrom(msg.sender, address(this), paymentData.amount)) {
+            uint256 ownerPart = (paymentData.amount * $.ownerPercentage) / 100;
+            uint256 issuerPart = paymentData.amount - ownerPart;
+            token.transfer(paymentData.recipient, issuerPart);
+            emit Payment(paymentData.recipient, paymentData.nonce);
+            bytes32 paymentId = keccak256(abi.encode(paymentData.recipient, paymentData.nonce));
+            $.isPaid[paymentId] = true;
+        } else {
+            emit ERC20PaymentFailed(
+                paymentData.recipient,
+                paymentData.nonce,
+                "MCPayment: ERC20 transfer failed"
+            );
+        }
     }
 
     function isPaymentDone(address recipient, uint256 nonce) external view returns (bool) {
