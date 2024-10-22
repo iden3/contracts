@@ -7,10 +7,11 @@ import {
 } from "../upgrade/verifiers/helpers/testVerifier";
 import { Contract } from "ethers";
 
-const universalVerifierAddress = "<put-your-universal-verifier-address>";
-const validatorSigV2Address = "<put-your-validator-sigv2-address>";
-const validatorMTPV2Address = "<put-your-validator-mtpv2-address>";
-const validatorV3Address = "<put-your-validator-v3-address>";
+// Replace these addresses with the ones you want to test
+const universalVerifierAddress = contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress;
+const validatorSigV2Address = contractsInfo.VALIDATOR_SIG.unifiedAddress;
+const validatorMTPV2Address = contractsInfo.VALIDATOR_MTP.unifiedAddress;
+const validatorV3Address = contractsInfo.VALIDATOR_V3.unifiedAddress;
 
 async function testVerification(verifier: Contract) {
   const requestId_V3 = 7254189;
