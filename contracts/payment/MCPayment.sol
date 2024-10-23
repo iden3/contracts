@@ -42,11 +42,6 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         bytes metadata;
     }
 
-    struct Iden3PaymentRailsMetadata {
-        address sender;
-        address erc20TokenAddress;
-    }
-
     /**
      * @dev Main storage structure for the contract
      */
