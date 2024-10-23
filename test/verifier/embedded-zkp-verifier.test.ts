@@ -57,8 +57,42 @@ describe("Embedded ZKP Verifier", function () {
     });
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+
     const tx = await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
     const txRes = await tx.wait();
+    const receipt = await ethers.provider.getTransactionReceipt(txRes.hash);
+
+    // 2 events are emitted
+    expect(receipt?.logs.length).to.equal(2);
+
+    const dataEvent1 = receipt?.logs[0].data;
+    const topicsEvent1 = receipt?.logs[0].topics;
+    const dataEvent2 = receipt?.logs[1].data;
+    const topicsEvent2 = receipt?.logs[1].topics;
+
+    const interfaceEventBeforeProofSubmit = new ethers.Interface([
+      "event BeforeProofSubmit(uint64 requestId, uint256[] inputs, address validator)",
+    ]);
+    const eventBeforeProofSubmit = interfaceEventBeforeProofSubmit.decodeEventLog(
+      "BeforeProofSubmit",
+      dataEvent1!,
+      topicsEvent1,
+    );
+    expect(eventBeforeProofSubmit[0]).to.equal(0);
+    expect(eventBeforeProofSubmit[1]).to.deep.equal(inputs.map((x) => BigInt(x)));
+    expect(eventBeforeProofSubmit[2]).to.equal(await sig.getAddress());
+
+    const interfaceEventAfterProofSubmit = new ethers.Interface([
+      "event AfterProofSubmit(uint64 requestId, uint256[] inputs, address validator)",
+    ]);
+    const eventAfterProofSubmit = interfaceEventAfterProofSubmit.decodeEventLog(
+      "AfterProofSubmit",
+      dataEvent2!,
+      topicsEvent2,
+    );
+    expect(eventAfterProofSubmit[0]).to.equal(0);
+    expect(eventAfterProofSubmit[1]).to.deep.equal(inputs.map((x) => BigInt(x)));
+    expect(eventAfterProofSubmit[2]).to.equal(await sig.getAddress());
 
     const ownerAddress = await owner.getAddress();
     const requestID = 0;
@@ -136,6 +170,40 @@ describe("Embedded ZKP Verifier", function () {
     );
 
     const txRes = await tx.wait();
+
+    const receipt = await ethers.provider.getTransactionReceipt(txRes.hash);
+
+    // 2 events are emitted
+    expect(receipt?.logs.length).to.equal(2);
+
+    const dataEvent1 = receipt?.logs[0].data;
+    const topicsEvent1 = receipt?.logs[0].topics;
+    const dataEvent2 = receipt?.logs[1].data;
+    const topicsEvent2 = receipt?.logs[1].topics;
+
+    const interfaceEventBeforeProofSubmitV2 = new ethers.Interface([
+      "event BeforeProofSubmitV2(tuple(uint64 requestId,bytes zkProof,bytes data)[])",
+    ]);
+    const eventBeforeProofSubmitV2 = interfaceEventBeforeProofSubmitV2.decodeEventLog(
+      "BeforeProofSubmitV2",
+      dataEvent1!,
+      topicsEvent1,
+    );
+    expect(eventBeforeProofSubmitV2[0][0][0]).to.equal(0);
+    expect(eventBeforeProofSubmitV2[0][0][1]).to.deep.equal(zkProof);
+    expect(eventBeforeProofSubmitV2[0][0][2]).to.equal(metadatas);
+
+    const interfaceEventAfterProofSubmitV2 = new ethers.Interface([
+      "event AfterProofSubmitV2(tuple(uint64 requestId,bytes zkProof,bytes data)[])",
+    ]);
+    const eventAfterProofSubmitV2 = interfaceEventAfterProofSubmitV2.decodeEventLog(
+      "AfterProofSubmitV2",
+      dataEvent2!,
+      topicsEvent2,
+    );
+    expect(eventAfterProofSubmitV2[0][0][0]).to.equal(0);
+    expect(eventAfterProofSubmitV2[0][0][1]).to.deep.equal(zkProof);
+    expect(eventAfterProofSubmitV2[0][0][2]).to.equal(metadatas);
 
     const ownerAddress = await owner.getAddress();
     const requestID = 0;

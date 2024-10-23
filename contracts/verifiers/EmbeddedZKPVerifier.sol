@@ -9,18 +9,6 @@ import {IState} from "../interfaces/IState.sol";
 
 abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBase {
     /**
-     * @dev RequestInfo. Structure with info about requests.
-     * @param requestId Identifier of the request.
-     * @param inputs Inputs of the circuit for this request.
-     * @param validator Validator circuit.
-     */
-    struct RequestInfo {
-        uint64 requestId;
-        uint256[] inputs;
-        ICircuitValidator validator;
-    }
-
-    /**
      * @dev Sets the value for Owner
      */
     function __EmbeddedZKPVerifier_init(
@@ -81,23 +69,9 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
         IZKPVerifier.ZKPResponse[] memory responses,
         bytes memory crossChainProof
     ) public override {
-        RequestInfo[] memory requestInfo = new RequestInfo[](responses.length);
-        for (uint256 i = 0; i < responses.length; i++) {
-            IZKPVerifier.ZKPResponse memory response = responses[i];
-            IZKPVerifier.ZKPRequest memory request = getZKPRequest(response.requestId);
-            (
-                uint256[] memory inputs,
-                uint256[2] memory a,
-                uint256[2][2] memory b,
-                uint256[2] memory c
-            ) = abi.decode(response.zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
-
-            requestInfo[i] = RequestInfo(response.requestId, inputs, request.validator);
-        }
-
-        _beforeProofSubmitV2(requestInfo);
+        _beforeProofSubmitV2(responses);
         super.submitZKPResponseV2(responses, crossChainProof);
-        _afterProofSubmitV2(requestInfo);
+        _afterProofSubmitV2(responses);
     }
 
     /**
@@ -120,11 +94,13 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
 
     /**
      * @dev Hook that is called before any proof response submit V2
+     * @param responses The list of responses including ZKP request ID, ZK proof and metadata
      */
-    function _beforeProofSubmitV2(RequestInfo[] memory requests) internal virtual {}
+    function _beforeProofSubmitV2(IZKPVerifier.ZKPResponse[] memory responses) internal virtual {}
 
     /**
      * @dev Hook that is called after any proof response submit V2
+     * @param responses The list of responses including ZKP request ID, ZK proof and metadata
      */
-    function _afterProofSubmitV2(RequestInfo[] memory requests) internal virtual {}
+    function _afterProofSubmitV2(IZKPVerifier.ZKPResponse[] memory responses) internal virtual {}
 }
