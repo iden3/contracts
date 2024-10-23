@@ -1,10 +1,11 @@
 import { ethers, upgrades } from "hardhat";
 import { MCPayment, MCPayment__factory } from "../../typechain-types";
 import { expect } from "chai";
+import { Signer } from "ethers";
 
 describe("MC Payment Contract", () => {
   let payment: MCPayment;
-  let issuer1Signer, owner, userSigner, domainData;
+  let issuer1Signer, owner, userSigner: Signer, domainData;
   const ownerPercentage = 10;
   const types = {
     Iden3PaymentRailsRequestV1: [
@@ -213,13 +214,15 @@ describe("MC Payment Contract", () => {
   });
 
   it("ERC20 payment:", async () => {
-    // transfer some tokens to user
     const tokenFactory = await ethers.getContractFactory("ERC20Token", owner);
     const token = await tokenFactory.deploy(1_000);
-
     await token.connect(owner).transfer(await userSigner.getAddress(), 100);
     expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
 
+    const approveGas = await token
+      .connect(userSigner)
+      .approve.estimateGas(await payment.getAddress(), 10);
+    console.log("Approve token Gas: " + approveGas);
     await token.connect(userSigner).approve(await payment.getAddress(), 10);
 
     const paymentData = {
@@ -232,6 +235,11 @@ describe("MC Payment Contract", () => {
     };
 
     const signature = await issuer1Signer.signTypedData(domainData, erc20types, paymentData);
+    const erc20PaymentGas = await payment
+      .connect(userSigner)
+      .erc20Payment.estimateGas(paymentData, signature);
+    console.log("ERC-20 Payment Gas: " + erc20PaymentGas);
+
     await payment.connect(userSigner).erc20Payment(paymentData, signature);
 
     expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(90);
@@ -243,10 +251,8 @@ describe("MC Payment Contract", () => {
   });
 
   it("ERC20 payment - invalid signature", async () => {
-    // transfer some tokens to user
     const tokenFactory = await ethers.getContractFactory("ERC20Token", owner);
     const token = await tokenFactory.deploy(1_000);
-
     await token.connect(owner).transfer(await userSigner.getAddress(), 100);
     expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
 
@@ -276,10 +282,8 @@ describe("MC Payment Contract", () => {
   });
 
   it("ERC20 payment - call erc20Payment without approval", async () => {
-    // transfer some tokens to user
     const tokenFactory = await ethers.getContractFactory("ERC20Token", owner);
     const token = await tokenFactory.deploy(1_000);
-
     await token.connect(owner).transfer(await userSigner.getAddress(), 100);
     expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
 
