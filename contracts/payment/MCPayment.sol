@@ -150,9 +150,9 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         bytes memory paymentDataSignature
     ) external {
         verifyERC20Signature(paymentData, paymentDataSignature);
-        MCPaymentStorage storage $ = _getMCPaymentStorage();
         IERC20 token = IERC20(paymentData.tokenAddress);
         if (token.transferFrom(msg.sender, address(this), paymentData.amount)) {
+            MCPaymentStorage storage $ = _getMCPaymentStorage();
             uint256 ownerPart = (paymentData.amount * $.ownerPercentage) / 100;
             uint256 issuerPart = paymentData.amount - ownerPart;
             token.transfer(paymentData.recipient, issuerPart);
