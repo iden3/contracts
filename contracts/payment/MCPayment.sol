@@ -18,7 +18,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
             // solhint-disable-next-line max-line-length
             "Iden3PaymentRailsRequestV1(address recipient,uint256 amount,uint256 expirationDate,uint256 nonce,bytes metadata)"
         );
-    
+
     bytes32 public constant ERC_20_PAYMENT_DATA_TYPE_HASH =
         keccak256(
             // solhint-disable-next-line max-line-length
@@ -70,7 +70,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     }
 
     event Payment(address indexed recipient, uint256 indexed nonce);
-    
+
     error InvalidSignature(string message);
     error PaymentError(address recipient, uint256 nonce, string message);
     error WithdrawError(string message);
@@ -120,13 +120,25 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         bytes32 paymentId = keccak256(abi.encode(paymentData.recipient, paymentData.nonce));
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         if ($.isPaid[paymentId]) {
-            revert PaymentError(paymentData.recipient, paymentData.nonce, "MCPayment: payment already paid");
+            revert PaymentError(
+                paymentData.recipient,
+                paymentData.nonce,
+                "MCPayment: payment already paid"
+            );
         }
         if (paymentData.amount != msg.value) {
-            revert PaymentError(paymentData.recipient, paymentData.nonce, "MCPayment: invalid payment value");
+            revert PaymentError(
+                paymentData.recipient,
+                paymentData.nonce,
+                "MCPayment: invalid payment value"
+            );
         }
         if (paymentData.expirationDate < block.timestamp) {
-            revert PaymentError(paymentData.recipient, paymentData.nonce, "MCPayment: payment expired");
+            revert PaymentError(
+                paymentData.recipient,
+                paymentData.nonce,
+                "MCPayment: payment expired"
+            );
         }
 
         uint256 ownerPart = (msg.value * $.ownerPercentage) / 100;
