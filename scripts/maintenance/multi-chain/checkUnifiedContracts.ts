@@ -12,13 +12,7 @@ async function main() {
     for (const property in contractsInfo) {
       if (contractsInfo[property].unifiedAddress !== "") {
         if (await isContract(contractsInfo[property].unifiedAddress, jsonRpcProvider)) {
-          /* console.log(
-          `\x1b[32m  ✓ \x1b[0m${contractsInfo[property].name} is deployed at ${contractsInfo[property].unifiedAddress}`,
-        ); */
         } else {
-          /* console.log(
-          `\x1b[31m  𐄂 \x1b[0m${contractsInfo[property].name} is not deployed at ${contractsInfo[property].unifiedAddress}`,
-        ); */
           contractsNotDeployed.push(property);
         }
       }

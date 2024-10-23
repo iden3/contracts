@@ -9,6 +9,9 @@ import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
 
+/**
+ * @dev Base contract for credential atomic query validators circuits.
+ */
 abstract contract CredentialAtomicQueryValidatorBase is
     Ownable2StepUpgradeable,
     ICircuitValidator,
@@ -60,8 +63,16 @@ abstract contract CredentialAtomicQueryValidatorBase is
         __Ownable_init(owner);
     }
 
+    /**
+     * @dev Returns the version of the contract
+     * @return The version of the contract
+     */
     function version() public pure virtual returns (string memory);
 
+    /**
+     * @dev Set the expiration timeout for the revocation state
+     * @param expirationTimeout The expiration timeout for the revocation state
+     */
     function setRevocationStateExpirationTimeout(
         uint256 expirationTimeout
     ) public virtual onlyOwner {
@@ -69,35 +80,73 @@ abstract contract CredentialAtomicQueryValidatorBase is
             .revocationStateExpirationTimeout = expirationTimeout;
     }
 
+    /**
+     * @dev Get the expiration timeout for the revocation state
+     * @return The expiration timeout for the revocation state
+     */
     function getRevocationStateExpirationTimeout() public view virtual returns (uint256) {
         return _getCredentialAtomicQueryValidatorBaseStorage().revocationStateExpirationTimeout;
     }
 
+    /**
+     * @dev Set the expiration timeout for the proof
+     * @param expirationTimeout The expiration timeout for the proof
+     */
     function setProofExpirationTimeout(uint256 expirationTimeout) public virtual onlyOwner {
         _getCredentialAtomicQueryValidatorBaseStorage().proofExpirationTimeout = expirationTimeout;
     }
 
+    /**
+     * @dev Get the expiration timeout for the proof
+     * @return The expiration timeout for the proof
+     */
     function getProofExpirationTimeout() public view virtual returns (uint256) {
         return _getCredentialAtomicQueryValidatorBaseStorage().proofExpirationTimeout;
     }
 
+    /**
+     * @dev Set the expiration timeout for the gist root
+     * @param expirationTimeout The expiration timeout for the gist root
+     */
     function setGISTRootExpirationTimeout(uint256 expirationTimeout) public virtual onlyOwner {
         _getCredentialAtomicQueryValidatorBaseStorage()
             .gistRootExpirationTimeout = expirationTimeout;
     }
 
+    /**
+     * @dev Get the expiration timeout for the gist root
+     * @return The expiration timeout for the gist root
+     */
     function getGISTRootExpirationTimeout() public view virtual returns (uint256) {
         return _getCredentialAtomicQueryValidatorBaseStorage().gistRootExpirationTimeout;
     }
 
+    /**
+     * @dev Set the state contract address
+     * @param stateContractAddr The state contract address
+     */
     function setStateAddress(address stateContractAddr) public virtual onlyOwner {
         _getCredentialAtomicQueryValidatorBaseStorage().state = IState(stateContractAddr);
     }
 
+    /**
+     * @dev Get the state contract address
+     * @return The state contract address
+     */
     function getStateAddress() public view virtual returns (address) {
         return address(_getCredentialAtomicQueryValidatorBaseStorage().state);
     }
 
+    /**
+     * @dev Verify the groth16 proof and check the request query data
+     * @param inputs Public inputs of the circuit.
+     * @param a πa element of the groth16 proof.
+     * @param b πb element of the groth16 proof.
+     * @param c πc element of the groth16 proof.
+     * @param data Request query data of the credential to verify.
+     * @param sender Sender of the proof.
+     * @return Array of key to public input index as result.
+     */
     function verify(
         uint256[] memory inputs,
         uint256[2] memory a,
@@ -107,6 +156,14 @@ abstract contract CredentialAtomicQueryValidatorBase is
         address sender
     ) external view virtual returns (ICircuitValidator.KeyToInputIndex[] memory);
 
+    /**
+     * @dev Verify the groth16 proof and check the request query data
+     * @param zkProof Proof packed as bytes to verify.
+     * @param data Request query data of the credential to verify.
+     * @param sender Sender of the proof.
+     * @param stateContract State contract to get identities and gist states to check.
+     * @return Array of public signals as result.
+     */
     function verifyV2(
         bytes calldata zkProof,
         bytes calldata data,
@@ -114,10 +171,19 @@ abstract contract CredentialAtomicQueryValidatorBase is
         IState stateContract
     ) external view virtual returns (ICircuitValidator.Signal[] memory);
 
+    /**
+     * @dev Get supported circuit ids
+     * @return ids Array of circuit ids supported
+     */
     function getSupportedCircuitIds() external view virtual returns (string[] memory ids) {
         return _getCredentialAtomicQueryValidatorBaseStorage()._supportedCircuitIds;
     }
 
+    /**
+     * @dev Get the verifier by circuit id
+     * @param circuitId Circuit id
+     * @return The verifier
+     */
     function getVerifierByCircuitId(
         string memory circuitId
     ) public view virtual returns (IVerifier) {
@@ -128,6 +194,11 @@ abstract contract CredentialAtomicQueryValidatorBase is
         return _getCredentialAtomicQueryValidatorBaseStorage().state;
     }
 
+    /**
+     * @dev Get the index of the public input of the circuit by name
+     * @param name Name of the public input
+     * @return Index of the public input
+     */
     function inputIndexOf(string memory name) public view virtual returns (uint256) {
         uint256 index = _getCredentialAtomicQueryValidatorBaseStorage()._inputNameToIndex[name];
         require(index != 0, "Input name not found");

@@ -1,0 +1,9 @@
+{
+ "proxyAdminOwnerAddress": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74",
+ "universalVerifier": "0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c",
+ "verifierLib": "0xF94b063aA082b2Ab98F93e2033AB975E7E0F50A8",
+ "state": "0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D",
+ "network": "polygon-mainnet",
+ "chainId": 137,
+ "deployStrategy": "create2"
+}

@@ -4,7 +4,19 @@ pragma solidity 0.8.27;
 import {ZKPVerifierBase} from "../verifiers/ZKPVerifierBase.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 
+/**
+ * @title VerifierLib
+ * @dev A library for writing proof results.
+ */
 library VerifierLib {
+    /**
+     * @dev Writes proof results.
+     * @param self The ZKPVerifierStorage storage pointer
+     * @param sender The sender of the proof
+     * @param requestId The request ID
+     * @param keyToInpIdxs The array of key to public inputs index mapping
+     * @param inputs The array of public inputs
+     */
     function writeProofResults(
         ZKPVerifierBase.ZKPVerifierStorage storage self,
         address sender,
@@ -23,6 +35,13 @@ library VerifierLib {
         proof.blockTimestamp = block.timestamp;
     }
 
+    /**
+     * @dev Writes proof results.
+     * @param self The ZKPVerifierStorage storage pointer
+     * @param sender The sender of the proof
+     * @param requestId The request ID of the proof
+     * @param signals The array of public signals of the proof
+     */
     function writeProofResultsV2(
         ZKPVerifierBase.ZKPVerifierStorage storage self,
         address sender,

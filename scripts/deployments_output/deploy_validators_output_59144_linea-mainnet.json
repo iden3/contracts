@@ -1,0 +1,23 @@
+{
+ "proxyAdminOwnerAddress": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74",
+ "validatorsInfo": [
+  {
+   "validatorType": "mtpV2",
+   "validator": "0x27bDFFCeC5478a648f89764E22fE415486A42Ede",
+   "groth16verifier": "0x1205B90121cAbB2B7e6f1828005AC00D8927796F"
+  },
+  {
+   "validatorType": "sigV2",
+   "validator": "0x59B347f0D3dd4B98cc2E056Ee6C53ABF14F8581b",
+   "groth16verifier": "0x0ce200c9557BB64ee9E82452646b084e77Aaeb51"
+  },
+  {
+   "validatorType": "v3",
+   "validator": "0xd179f29d00Cd0E8978eb6eB847CaCF9E2A956336",
+   "groth16verifier": "0x1aA2B5AEAd506D269164958d36Cae04f95F79282"
+  }
+ ],
+ "network": "linea-mainnet",
+ "chainId": 59144,
+ "deployStrategy": "create2"
+}

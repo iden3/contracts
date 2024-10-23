@@ -22,7 +22,14 @@ contract Groth16VerifierMTPWrapper is Groth16VerifierMTP, IVerifier {
      */
     uint constant PUBSIGNALS_LENGTH = 11;
 
-    /// @return r  bool true if proof is valid
+    /**
+     * @dev Verify the circuit with the groth16 proof π=([πa]1,[πb]2,[πc]1).
+     * @param a πa element of the groth16 proof.
+     * @param b πb element of the groth16 proof.
+     * @param c πc element of the groth16 proof.
+     * @param input Public inputs of the circuit.
+     * @return r true if the proof is valid.
+     */
     function verify(
         uint256[2] calldata a,
         uint256[2][2] calldata b,

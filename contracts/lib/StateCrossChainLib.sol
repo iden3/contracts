@@ -4,11 +4,20 @@ pragma solidity 0.8.27;
 import {IState} from "../interfaces/IState.sol";
 import {State} from "../state/State.sol";
 
+/**
+ * @title StateCrossChainLib
+ * @dev The library provides functions to process cross chain proofs.
+ */
 library StateCrossChainLib {
     bytes32 private constant GLOBAL_STATE_PROOF_TYPE = keccak256(bytes("globalStateProof"));
 
     bytes32 private constant STATE_PROOF_TYPE = keccak256(bytes("stateProof"));
 
+    /**
+     * @dev Processes cross chain proofs.
+     * @param self The StateCrossChainStorage storage pointer.
+     * @param crossChainProofs The cross chain proofs.
+     */
     function processCrossChainProofs(
         State.StateCrossChainStorage storage self,
         bytes calldata crossChainProofs

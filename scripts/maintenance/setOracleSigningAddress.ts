@@ -5,7 +5,7 @@ import { getStateContractAddress } from "../../helpers/helperUtils";
 async function main() {
   const oracleSigningAddress = ORACLE_SIGNING_ADDRESS_PRODUCTION; // production signing address
 
-  const stateContractAddress = await getStateContractAddress();
+  const stateContractAddress = getStateContractAddress();
   const state = await ethers.getContractAt(contractsInfo.STATE.name, stateContractAddress);
   const crossChainProofValidatorAddress = await state.getCrossChainProofValidator();
   console.log(`CrossChainProofValidator address: ${crossChainProofValidatorAddress}`);

@@ -501,7 +501,7 @@ export class DeployHelper {
   }
 
   async deployCrossChainProofValidator(
-    contractName = "CrossChainProofValidator",
+    contractName = contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.name,
     domainName = "StateInfo",
     signatureVersion = "1",
   ): Promise<Contract> {
@@ -563,10 +563,7 @@ export class DeployHelper {
     return g16Verifier;
   }
 
-  async deployGroth16VerifierWrapper(
-    verifierType: "mtpV2" | "sigV2" | "v3",
-    deployStrategy: "basic" | "create2" = "basic",
-  ): Promise<Contract> {
+  getGroth16VerifierWrapperName(verifierType: "mtpV2" | "sigV2" | "v3"): string {
     let g16VerifierContractWrapperName;
     switch (verifierType) {
       case "mtpV2":
@@ -579,6 +576,58 @@ export class DeployHelper {
         g16VerifierContractWrapperName = "Groth16VerifierV3Wrapper";
         break;
     }
+    return g16VerifierContractWrapperName;
+  }
+
+  getGroth16VerifierWrapperVerification(verifierType: "mtpV2" | "sigV2" | "v3"): {
+    contract: string;
+    constructorArgsImplementation: any[];
+    constructorArgsProxy?: any[];
+    constructorArgsProxyAdmin?: any[];
+    libraries: any;
+  } {
+    let verification;
+    switch (verifierType) {
+      case "mtpV2":
+        verification = contractsInfo.GROTH16_VERIFIER_MTP.verificationOpts;
+        break;
+      case "sigV2":
+        verification = contractsInfo.GROTH16_VERIFIER_SIG.verificationOpts;
+        break;
+      case "v3":
+        verification = contractsInfo.GROTH16_VERIFIER_V3.verificationOpts;
+        break;
+    }
+    return verification;
+  }
+
+  getValidatorVerification(verifierType: "mtpV2" | "sigV2" | "v3"): {
+    contract: string;
+    constructorArgsImplementation: any[];
+    constructorArgsProxy?: any[];
+    constructorArgsProxyAdmin?: any[];
+    libraries: any;
+  } {
+    let verification;
+    switch (verifierType) {
+      case "mtpV2":
+        verification = contractsInfo.VALIDATOR_MTP.verificationOpts;
+        break;
+      case "sigV2":
+        verification = contractsInfo.VALIDATOR_SIG.verificationOpts;
+        break;
+      case "v3":
+        verification = contractsInfo.VALIDATOR_V3.verificationOpts;
+        break;
+    }
+    return verification;
+  }
+
+  async deployGroth16VerifierWrapper(
+    verifierType: "mtpV2" | "sigV2" | "v3",
+    deployStrategy: "basic" | "create2" = "basic",
+  ): Promise<Contract> {
+    const g16VerifierContractWrapperName = this.getGroth16VerifierWrapperName(verifierType);
 
     let groth16VerifierWrapper;
     if (deployStrategy === "create2") {
@@ -868,24 +917,22 @@ export class DeployHelper {
     return primitiveTypeUtilsWrapper;
   }
 
-  async deployEmbeddedZKPVerifier(
+  async deployEmbeddedZKPVerifierWrapper(
     owner: SignerWithAddress | undefined,
-    stateCrossChainAddr: string,
+    stateAddr: string,
     verifierLibAddr: string,
   ): Promise<Contract> {
-    const Verifier = await ethers.getContractFactory("ZKPVerifierWrapper", {
+    const Verifier = await ethers.getContractFactory("EmbeddedZKPVerifierWrapper", {
       libraries: {
         VerifierLib: verifierLibAddr,
       },
     });
     // const zkpVerifier = await ZKPVerifier.deploy(await owner.getAddress());
-    const verifier = await upgrades.deployProxy(
-      Verifier,
-      [await owner.getAddress(), stateCrossChainAddr],
-      { unsafeAllow: ["external-library-linking"] },
-    );
+    const verifier = await upgrades.deployProxy(Verifier, [await owner.getAddress(), stateAddr], {
+      unsafeAllow: ["external-library-linking"],
+    });
     await verifier.waitForDeployment();
-    console.log("ZKPVerifierWrapper deployed to:", await verifier.getAddress());
+    console.log("EmbeddedZKPVerifierWrapper deployed to:", await verifier.getAddress());
     return verifier;
   }
 

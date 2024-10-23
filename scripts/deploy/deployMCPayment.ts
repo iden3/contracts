@@ -1,6 +1,6 @@
-import { run } from "hardhat";
 import { DeployHelper } from "../../helpers/DeployHelper";
-import { getConfig } from "../../helpers/helperUtils";
+import { getConfig, verifyContract } from "../../helpers/helperUtils";
+import { contractsInfo } from "../../helpers/constants";
 
 async function main() {
   const config = getConfig();
@@ -11,14 +11,7 @@ async function main() {
 
   const { mcPayment } = await deployHelper.deployMCPayment(10, deployStrategy);
 
-  try {
-    await run("verify:verify", {
-      address: await mcPayment.getAddress(),
-      constructorArguments: [],
-    });
-  } catch (error) {
-    console.error("Error verifying contract:", error);
-  }
+  await verifyContract(await mcPayment.getAddress(), contractsInfo.MC_PAYMENT.verificationOpts);
 }
 
 main()

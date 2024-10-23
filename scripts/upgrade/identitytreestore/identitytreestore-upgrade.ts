@@ -4,6 +4,7 @@ import {
   getConfig,
   getStateContractAddress,
   removeLocalhostNetworkIgnitionFiles,
+  verifyContract,
 } from "../../../helpers/helperUtils";
 import path from "path";
 import fs from "fs";
@@ -35,7 +36,7 @@ async function main() {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
 
-  const stateContractAddress = await getStateContractAddress();
+  const stateContractAddress = getStateContractAddress();
 
   const { proxyAdminOwnerSigner } = await getSigners(impersonate);
 
@@ -64,6 +65,11 @@ async function main() {
 
   // **********************************
   console.log("Version after:", await identityTreeStore.VERSION());
+
+  await verifyContract(
+    await identityTreeStore.getAddress(),
+    contractsInfo.IDENTITY_TREE_STORE.verificationOpts,
+  );
 
   const pathOutputJson = path.join(
     __dirname,

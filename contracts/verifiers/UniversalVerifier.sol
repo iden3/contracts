@@ -21,7 +21,7 @@ contract UniversalVerifier is
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.1.0";
+    string public constant VERSION = "1.1.1";
 
     /// @dev Event emitted upon submitting a ZKP request
     event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);
@@ -91,8 +91,14 @@ contract UniversalVerifier is
         emit ZKPResponseSubmitted(requestId, _msgSender());
     }
 
+    /**
+     * @dev Submits an array of ZKP responses and updates proofs status
+     * @param responses The list of responses including ZKP request ID, ZK proof and metadata
+     * @param crossChainProof The list of cross chain proofs from universal resolver (oracle). This
+     * includes identities and global states.
+     */
     function submitZKPResponseV2(
-        ZKPResponse[] memory responses,
+        IZKPVerifier.ZKPResponse[] memory responses,
         bytes memory crossChainProof
     ) public override {
         super.submitZKPResponseV2(responses, crossChainProof);
@@ -123,6 +129,9 @@ contract UniversalVerifier is
         return super.verifyZKPResponse(requestId, inputs, a, b, c, sender);
     }
 
+    /**
+     * @dev Sets the state contract address
+     */
     function setState(IState state) public onlyOwner {
         _setState(state);
     }
