@@ -825,6 +825,16 @@ export class DeployHelper {
     return stubInstance;
   }
 
+  async deployGroth16VerifierValidatorStub(): Promise<Contract> {
+    const stub = await ethers.getContractFactory("Groth16VerifierValidatorStub");
+    const stubInstance = await stub.deploy();
+    await stubInstance.waitForDeployment();
+
+    console.log("Groth16 Verifier Validator stub deployed to:", await stubInstance.getAddress());
+
+    return stubInstance;
+  }
+
   async upgradeValidator(
     validatorAddress: string,
     validatorContractName: string,

@@ -2,11 +2,18 @@ import { expect } from "chai";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { ethers } from "hardhat";
 import { packValidatorParams } from "../utils/validator-pack-utils";
-import { prepareInputs, publishState } from "../utils/state-utils";
+import { prepareInputs } from "../utils/state-utils";
 import { Block, Signer } from "ethers";
+import {
+  packCrossChainProofs,
+  packGlobalStateUpdateWithSignature,
+  packIdentityStateUpdateWithSignature,
+  packZKProof,
+} from "../utils/packData";
+import proofJson from "../validators/sig/data/valid_sig_user_genesis.json";
 
 describe("Embedded ZKP Verifier", function () {
-  let verifier: any, sig: any, state: any;
+  let verifier: any, sig: any;
   let owner: Signer;
 
   const query = {
@@ -23,8 +30,6 @@ describe("Embedded ZKP Verifier", function () {
     circuitIds: ["credentialAtomicQuerySigV2OnChain"],
     claimPathNotExists: 0,
   };
-
-  const proofJson = require("../validators/sig/data/valid_sig_user_genesis.json");
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize(null, true);
@@ -53,6 +58,83 @@ describe("Embedded ZKP Verifier", function () {
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
     const tx = await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
+    const txRes = await tx.wait();
+
+    const ownerAddress = await owner.getAddress();
+    const requestID = 0;
+    const { timestamp: txResTimestamp } = (await ethers.provider.getBlock(
+      txRes.blockNumber,
+    )) as Block;
+
+    const isProofVerified = await verifier.isProofVerified(ownerAddress, requestID);
+    expect(isProofVerified).to.be.equal(true);
+    const proofStatus = await verifier.getProofStatus(ownerAddress, requestID);
+    expect(proofStatus.isVerified).to.be.equal(true);
+    expect(proofStatus.validatorVersion).to.be.equal("2.0.1-mock");
+    expect(proofStatus.blockNumber).to.be.equal(txRes.blockNumber);
+    expect(proofStatus.blockTimestamp).to.be.equal(txResTimestamp);
+  });
+
+  it("test submit response v2", async () => {
+    const globalStateMessage = {
+      timestamp: BigInt(Math.floor(Date.now() / 1000)),
+      idType: "0x01A1",
+      root: 0n,
+      replacedAtTimestamp: 0n,
+    };
+
+    const identityStateMessage1 = {
+      timestamp: BigInt(Math.floor(Date.now() / 1000)),
+      id: 25530185136167283063987925153802803371825564143650291260157676786685420033n,
+      state: 4595702004868323299100310062178085028712435650290319955390778053863052230284n,
+      replacedAtTimestamp: 0n,
+    };
+
+    const identityStateUpdate2 = {
+      timestamp: BigInt(Math.floor(Date.now() / 1000)),
+      id: 25530185136167283063987925153802803371825564143650291260157676786685420033n,
+      state: 16775015541053109108201708100382933592407720757224325883910784163897594100403n,
+      replacedAtTimestamp: 1724858009n,
+    };
+
+    await verifier.setZKPRequest(0, {
+      metadata: "metadata",
+      validator: await sig.getAddress(),
+      data: packValidatorParams(query),
+    });
+
+    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+
+    const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
+    const [signer] = await ethers.getSigners();
+    const crossChainProofs = packCrossChainProofs([
+      {
+        proofType: "globalStateProof",
+        proof: await packGlobalStateUpdateWithSignature(globalStateMessage, signer),
+      },
+      {
+        proofType: "stateProof",
+        proof: await packIdentityStateUpdateWithSignature(identityStateMessage1, signer),
+      },
+      {
+        proofType: "stateProof",
+        proof: await packIdentityStateUpdateWithSignature(identityStateUpdate2, signer),
+      },
+    ]);
+
+    const metadatas = "0x";
+
+    const tx = await verifier.submitZKPResponseV2(
+      [
+        {
+          requestId: 0,
+          zkProof: zkProof,
+          data: metadatas,
+        },
+      ],
+      crossChainProofs,
+    );
+
     const txRes = await tx.wait();
 
     const ownerAddress = await owner.getAddress();
