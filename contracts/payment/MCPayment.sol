@@ -147,9 +147,9 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
 
     function erc20Payment(
         Iden3PaymentRailsERC20RequestV1 memory paymentData,
-        bytes memory paymentDataSignature
+        bytes memory signature
     ) external {
-        verifyERC20Signature(paymentData, paymentDataSignature);
+        verifyERC20Signature(paymentData, signature);
         IERC20 token = IERC20(paymentData.tokenAddress);
         if (token.transferFrom(msg.sender, address(this), paymentData.amount)) {
             MCPaymentStorage storage $ = _getMCPaymentStorage();
