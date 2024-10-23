@@ -158,8 +158,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
             uint256 issuerPart = paymentData.amount - ownerPart;
             token.transfer(paymentData.recipient, issuerPart);
             emit Payment(paymentData.recipient, paymentData.nonce);
-            bytes32 paymentId = keccak256(abi.encode(paymentData.recipient, paymentData.nonce));
-            $.isPaid[paymentId] = true;
+            $.isPaid[keccak256(abi.encode(paymentData.recipient, paymentData.nonce))] = true;
         } else {
             revert ERC20PaymentFailed(
                 paymentData.recipient,
