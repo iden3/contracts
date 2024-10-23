@@ -5,12 +5,7 @@ import { packValidatorParams } from "../utils/validator-pack-utils";
 import { prepareInputs } from "../utils/state-utils";
 import { Block, Contract } from "ethers";
 import proofJson from "../validators/sig/data/valid_sig_user_genesis.json";
-import {
-  packCrossChainProofs,
-  packGlobalStateUpdateWithSignature,
-  packIdentityStateUpdateWithSignature,
-  packZKProof,
-} from "../utils/packData";
+import { buildCrossChainProofs, packCrossChainProofs, packZKProof } from "../utils/packData";
 
 describe("Universal Verifier V2 MTP & SIG validators", function () {
   let verifier: any, sig: any;
@@ -96,20 +91,12 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
 
     const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
 
-    const crossChainProofs = packCrossChainProofs([
-      {
-        proofType: "globalStateProof",
-        proof: await packGlobalStateUpdateWithSignature(globalStateMessage, signer),
-      },
-      {
-        proofType: "stateProof",
-        proof: await packIdentityStateUpdateWithSignature(identityStateMessage1, signer),
-      },
-      {
-        proofType: "stateProof",
-        proof: await packIdentityStateUpdateWithSignature(identityStateUpdate2, signer),
-      },
-    ]);
+    const crossChainProofs = packCrossChainProofs(
+      await buildCrossChainProofs(
+        [globalStateMessage, identityStateMessage1, identityStateUpdate2],
+        signer,
+      ),
+    );
 
     const metadatas = "0x";
 
@@ -164,20 +151,12 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
 
     const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
 
-    const crossChainProofs = packCrossChainProofs([
-      {
-        proofType: "globalStateProof",
-        proof: await packGlobalStateUpdateWithSignature(globalStateMessage, signer),
-      },
-      {
-        proofType: "stateProof",
-        proof: await packIdentityStateUpdateWithSignature(identityStateMessage1, signer),
-      },
-      {
-        proofType: "stateProof",
-        proof: await packIdentityStateUpdateWithSignature(identityStateUpdate2, signer),
-      },
-    ]);
+    const crossChainProofs = packCrossChainProofs(
+      await buildCrossChainProofs(
+        [globalStateMessage, identityStateMessage1, identityStateUpdate2],
+        signer,
+      ),
+    );
 
     const metadatas = "0x";
 

@@ -4,12 +4,7 @@ import { ethers } from "hardhat";
 import { packValidatorParams } from "../utils/validator-pack-utils";
 import { prepareInputs } from "../utils/state-utils";
 import { Block, Signer } from "ethers";
-import {
-  packCrossChainProofs,
-  packGlobalStateUpdateWithSignature,
-  packIdentityStateUpdateWithSignature,
-  packZKProof,
-} from "../utils/packData";
+import { buildCrossChainProofs, packCrossChainProofs, packZKProof } from "../utils/packData";
 import proofJson from "../validators/sig/data/valid_sig_user_genesis.json";
 
 describe("Embedded ZKP Verifier", function () {
@@ -141,20 +136,13 @@ describe("Embedded ZKP Verifier", function () {
 
     const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
     const [signer] = await ethers.getSigners();
-    const crossChainProofs = packCrossChainProofs([
-      {
-        proofType: "globalStateProof",
-        proof: await packGlobalStateUpdateWithSignature(globalStateMessage, signer),
-      },
-      {
-        proofType: "stateProof",
-        proof: await packIdentityStateUpdateWithSignature(identityStateMessage1, signer),
-      },
-      {
-        proofType: "stateProof",
-        proof: await packIdentityStateUpdateWithSignature(identityStateUpdate2, signer),
-      },
-    ]);
+
+    const crossChainProofs = packCrossChainProofs(
+      await buildCrossChainProofs(
+        [globalStateMessage, identityStateMessage1, identityStateUpdate2],
+        signer,
+      ),
+    );
 
     const metadatas = "0x";
 
