@@ -70,7 +70,6 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     error PaymentError(address recipient, uint256 nonce, string message);
     error WithdrawError(string message);
     error InvalidOwnerPercentage(string message);
-    error ERC20PaymentFailed(address recipient, uint256 nonce, string message);
 
     /**
      * @dev Valid percent value modifier
@@ -160,7 +159,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
             emit Payment(paymentData.recipient, paymentData.nonce);
             $.isPaid[keccak256(abi.encode(paymentData.recipient, paymentData.nonce))] = true;
         } else {
-            revert ERC20PaymentFailed(
+            revert PaymentError(
                 paymentData.recipient,
                 paymentData.nonce,
                 "MCPayment: ERC-20 transfer failed"
