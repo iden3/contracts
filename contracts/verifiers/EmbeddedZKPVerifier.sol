@@ -60,6 +60,21 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
     }
 
     /**
+     * @dev Submits an array of ZKP responses and updates proofs status
+     * @param responses The list of responses including ZKP request ID, ZK proof and metadata
+     * @param crossChainProof The list of cross chain proofs from universal resolver (oracle). This
+     * includes identities and global states.
+     */
+    function submitZKPResponseV2(
+        IZKPVerifier.ZKPResponse[] memory responses,
+        bytes memory crossChainProof
+    ) public override {
+        _beforeProofSubmitV2(responses);
+        super.submitZKPResponseV2(responses, crossChainProof);
+        _afterProofSubmitV2(responses);
+    }
+
+    /**
      * @dev Hook that is called before any proof response submit
      */
     function _beforeProofSubmit(
@@ -76,4 +91,16 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
         uint256[] memory inputs,
         ICircuitValidator validator
     ) internal virtual {}
+
+    /**
+     * @dev Hook that is called before any proof response submit V2
+     * @param responses The list of responses including ZKP request ID, ZK proof and metadata
+     */
+    function _beforeProofSubmitV2(IZKPVerifier.ZKPResponse[] memory responses) internal virtual {}
+
+    /**
+     * @dev Hook that is called after any proof response submit V2
+     * @param responses The list of responses including ZKP request ID, ZK proof and metadata
+     */
+    function _afterProofSubmitV2(IZKPVerifier.ZKPResponse[] memory responses) internal virtual {}
 }

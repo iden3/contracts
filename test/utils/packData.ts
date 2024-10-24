@@ -145,3 +145,23 @@ export function packZKProof(inputs: string[], a: string[], b: string[][], c: str
     [inputs, a, b, c],
   );
 }
+
+export async function buildCrossChainProofs(
+  crossChainProofsMessages: any[],
+  signer: any,
+): Promise<any[]> {
+  const map = await Promise.all(
+    crossChainProofsMessages.map(async (crossChainProofMessage) => {
+      return crossChainProofMessage.idType
+        ? {
+            proofType: "globalStateProof",
+            proof: await packGlobalStateUpdateWithSignature(crossChainProofMessage, signer),
+          }
+        : {
+            proofType: "stateProof",
+            proof: await packIdentityStateUpdateWithSignature(crossChainProofMessage, signer),
+          };
+    }),
+  );
+  return map;
+}
