@@ -442,20 +442,24 @@ contract State is Ownable2StepUpgradeable, IState {
     function getStateReplacedAt(
         uint256 id,
         uint256 state
-    ) external view returns (uint256 replacedAt) {
-        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
-        replacedAt = $._idToStateReplacedAt[id][state];
-        if (replacedAt != 0) {
-            return replacedAt;
-        }
-
-        if (_stateData.stateExists(id, state)) {
-            replacedAt = _stateData.getStateInfoByIdAndState(id, state).replacedAtTimestamp;
-        } else {
-            if (GenesisUtils.isGenesisState(id, state)) {
-                replacedAt = 0;
+    ) external view returns (uint256) {
+        if (isIdTypeSupported(GenesisUtils.getIdType(id))) {
+            if (_stateData.stateExists(id, state)) {
+                return _stateData.getStateInfoByIdAndState(id, state).replacedAtTimestamp;
             } else {
-                revert("State entry not found");
+                if (GenesisUtils.isGenesisState(id, state)) {
+                    return 0;
+                } else {
+                    revert("State entry not found");
+                }
+            }
+        } else {
+            StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+            uint256 replacedAt = $._idToStateReplacedAt[id][state];
+            if (replacedAt != 0) {
+                return replacedAt;
+            } else {
+                revert("Cross-chain state not found");
             }
         }
     }
@@ -469,18 +473,22 @@ contract State is Ownable2StepUpgradeable, IState {
     function getGistRootReplacedAt(
         bytes2 idType,
         uint256 root
-    ) external view returns (uint256 replacedAt) {
-        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
-        replacedAt = $._rootToGistRootReplacedAt[idType][root];
-        if (replacedAt != 0) {
-            return replacedAt;
+    ) external view returns (uint256) {
+        if (isIdTypeSupported(idType)) {
+            if (_gistData.rootExists(root)) {
+                return _gistData.getRootInfo(root).replacedAtTimestamp;
+            } else {
+                revert("GIST root entry not found");
+            }
+        } else {
+            StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+            uint256 replacedAt = $._rootToGistRootReplacedAt[idType][root];
+            if (replacedAt != 0) {
+                return replacedAt;
+            } else {
+                revert("Cross-chain GIST root not found");
+            }
         }
-
-        require(isIdTypeSupported(idType), "id type is not supported");
-        if (!_gistData.rootExists(root)) {
-            revert("Gist root entry not found");
-        }
-        replacedAt = _gistData.getRootInfo(root).replacedAtTimestamp;
     }
 
     /**

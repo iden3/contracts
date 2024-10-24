@@ -115,7 +115,10 @@ describe("State transition negative cases", () => {
 
   beforeEach(async () => {
     const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployStateWithLibraries(["0x0281", "0x0000"], g16VerifierStubName);
+    const contracts = await deployHelper.deployStateWithLibraries(
+      ["0x0281", "0x0000"],
+      g16VerifierStubName,
+    );
     state = contracts.state;
   });
 
@@ -400,14 +403,41 @@ describe("Set Verifier", () => {
   });
 });
 
-describe("Check timestamp expirations", () => {
-  it("Should return zero from the State if requested for a non-existent data", async function () {
+describe("Check replacedAt timestamp expirations", () => {
+  it("Should throw for non-existent state and GIST roots", async function () {
     const deployHelper = await DeployHelper.initialize();
-    const { state } = await deployHelper.deployStateWithLibraries(["0x0102"]);
+    // default type should be 0x0112
+    const { state } = await deployHelper.deployStateWithLibraries([]);
 
-    await expect(state.getGistRootReplacedAt("0x0102", 10)).to.be.rejectedWith(
-      "Gist root entry not found",
+    expect(await state.getGistRootReplacedAt("0x0112", 0)).to.be.equal(0);
+
+    await expect(state.getGistRootReplacedAt("0x0112", 10)).to.be.rejectedWith(
+      "GIST root entry not found",
     );
-    await expect(state.getStateReplacedAt(10, 20)).to.be.rejectedWith("State entry not found");
+
+    await expect(state.getGistRootReplacedAt("0x0212", 10)).to.be.rejectedWith(
+      "Cross-chain GIST root not found",
+    );
+
+    expect(
+      await state.getStateReplacedAt(
+        BigInt("0xD9C10A0BFB514F30B64E115D7EEB3D547C240C104E03D4548375669FE1201"),
+        BigInt("0x10A0BFB514F30B64E115D7EEB3D547C240C104E03D4548375669FE5E5717281A"),
+      ),
+    ).to.be.equal(0);
+
+    await expect(
+      state.getStateReplacedAt(
+        BigInt("0xD9C10A0BFB514F30B64E115D7EEB3D547C240C104E03D4548375669FE1201"),
+        0,
+      ),
+    ).to.be.rejectedWith("State entry not found");
+
+    await expect(
+      state.getStateReplacedAt(
+        BigInt("0xD9C10A0BFB514F30B64E115D7EEB3D547C240C104E03D4548375669FE1202"),
+        0,
+      ),
+    ).to.be.rejectedWith("Cross-chain state not found");
   });
 });
