@@ -4,8 +4,14 @@ import {
   isContract,
   Logger,
 } from "../../../helpers/helperUtils";
-import { contractsInfo, ORACLE_SIGNING_ADDRESS_PRODUCTION } from "../../../helpers/constants";
+import {
+  contractsInfo,
+  DEFAULT_MNEMONIC,
+  ORACLE_SIGNING_ADDRESS_PRODUCTION,
+} from "../../../helpers/constants";
 import { ethers } from "hardhat";
+
+const mnemonicWallet = ethers.Wallet.fromPhrase(DEFAULT_MNEMONIC);
 
 async function main() {
   const providers = getProviders();
@@ -13,7 +19,9 @@ async function main() {
   for (const provider of providers) {
     const jsonRpcProvider = new ethers.JsonRpcProvider(provider.rpcUrl);
 
-    const stateContractAddress = getStateContractAddress();
+    const stateContractAddress = getStateContractAddress(
+      Number((await jsonRpcProvider.getNetwork()).chainId),
+    );
 
     let oracleSigningAddressIsValid = true;
     const defaultOracleSigningAddress = ORACLE_SIGNING_ADDRESS_PRODUCTION; // production signing address
@@ -21,7 +29,7 @@ async function main() {
     if (!(await isContract(stateContractAddress, jsonRpcProvider))) {
       oracleSigningAddressIsValid = false;
     } else {
-      const wallet = new ethers.Wallet(process.env.PRIVATE_KEY as string, jsonRpcProvider);
+      const wallet = new ethers.Wallet(mnemonicWallet.privateKey, jsonRpcProvider);
       const state = await ethers.getContractAt(
         contractsInfo.STATE.name,
         stateContractAddress,

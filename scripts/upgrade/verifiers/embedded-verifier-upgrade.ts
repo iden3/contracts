@@ -1,32 +1,26 @@
 import { DeployHelper } from "../../../helpers/DeployHelper";
 import hre, { ethers, upgrades } from "hardhat";
-import { verifierContractMigrationHelper } from "../../../helpers/verifierContractMigrationHelper";
-import * as universalVerifierArtifact from "../../../artifacts/contracts/verifiers/UniversalVerifier.sol/UniversalVerifier.json";
-import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/State.json";
 import { expect } from "chai";
 import { Contract } from "ethers";
-import { StateContractMigrationHelper } from "../../../helpers/StateContractMigrationHelper";
 import {
   setZKPRequest_KYCAgeCredential,
   submitZKPResponses_KYCAgeCredential,
 } from "./helpers/testVerifier";
-import {
-  getStateContractAddress,
-  waitNotToInterfereWithHardhatIgnition,
-} from "../../../helpers/helperUtils";
+import { getStateContractAddress } from "../../../helpers/helperUtils";
 import { contractsInfo } from "../../../helpers/constants";
 import fs from "fs";
 import path from "path";
 
 const chainId = hre.network.config.chainId;
 const network = hre.network.name;
+const forceImport = false;
 
 async function main() {
   // EmbeddedZKPVerifer is abstract contract
   // In real upgrade, you should use THE NAME as THE ADDRESS
   // of your custom contract, which inherits EmbeddedZKPVerifer
   let verifierContract = await ethers.getContractAt(
-    "<verifier contract name>",  // ZKPVerifierWrapper
+    "<verifier contract name>", // EmbeddedZKPVerifierWrapper
     "<verifier contract address>",
   );
 
@@ -50,25 +44,40 @@ async function main() {
   const verifierLib = await deployerHelper.deployVerifierLib();
 
   // **** Upgrade Embedded Verifier ****
-  const verifierFactory = await ethers.getContractFactory("ZKPVerifierWrapper", {
+  const verifierFactory = await ethers.getContractFactory("EmbeddedZKPVerifierWrapper", {
     libraries: {
       VerifierLib: await verifierLib.getAddress(),
     },
   });
 
-  verifierContract = await upgrades.upgradeProxy(
-    await verifierContract.getAddress(),
-    verifierFactory,
-    {
-      unsafeAllow: ["external-library-linking"],
-      call: {
-        fn: "setState",
-        args: [stateContractAddress],
+  try {
+    verifierContract = await upgrades.upgradeProxy(
+      await verifierContract.getAddress(),
+      verifierFactory,
+      {
+        unsafeAllow: ["external-library-linking"],
       },
-    },
-  );
+    );
+  } catch (e) {
+    if (forceImport) {
+      console.log("Error upgrading proxy. Forcing import...");
+      await upgrades.forceImport(await verifierContract.getAddress(), verifierFactory);
+      verifierContract = await upgrades.upgradeProxy(
+        await verifierContract.getAddress(),
+        verifierFactory,
+        {
+          unsafeAllow: ["external-library-linking"],
+        },
+      );
+    } else {
+      throw e;
+    }
+  }
 
   await verifierContract.waitForDeployment();
+
+  const tx = await verifierContract.connect(verifierOwnerSigner).setState(stateContractAddress);
+  await tx.wait();
   // ************************
 
   console.log("Checking data after upgrade");
@@ -109,10 +118,11 @@ async function testVerification(
   stateContractAddress: string,
 ) {
   const requestId = 112233;
-  await setZKPRequest_KYCAgeCredential(requestId, verifier, validatorV3Address);
-  await submitZKPResponses_KYCAgeCredential(requestId, verifier, {
+  await setZKPRequest_KYCAgeCredential(requestId, verifier, validatorV3Address, "v3");
+  await submitZKPResponses_KYCAgeCredential(requestId, verifier, "v3", {
     stateContractAddress: stateContractAddress,
     verifierContractAddress: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
+    checkSubmitZKResponseV2: true,
   });
 }
 

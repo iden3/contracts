@@ -23,6 +23,7 @@ import path from "path";
 
 const removePreviousIgnitionFiles = true;
 const upgradeStateContract = false;
+const upgradeValidators = false;
 const impersonate = false;
 
 const config = getConfig();
@@ -30,6 +31,7 @@ const config = getConfig();
 const chainId = hre.network.config.chainId;
 const network = hre.network.name;
 let stateContractAddress = contractsInfo.STATE.unifiedAddress;
+const universalVerifierAddress = contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress; // replace with your address if needed
 
 async function getSigners(useImpersonation: boolean): Promise<any> {
   if (useImpersonation) {
@@ -49,7 +51,7 @@ async function main() {
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
 
-  console.log("Starting Universal Verifier Contract Upgrade");
+  console.log(`Starting Universal Verifier Contract Upgrade for ${universalVerifierAddress}`);
 
   if (!ethers.isAddress(config.ledgerAccount)) {
     throw new Error("LEDGER_ACCOUNT is not set");
@@ -83,7 +85,7 @@ async function main() {
 
   const universalVerifierContract = await universalVerifierMigrationHelper.getInitContract({
     contractNameOrAbi: universalVerifierArtifact.abi,
-    address: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
+    address: universalVerifierAddress,
   });
 
   const universalVerifierOwnerAddressBefore = await universalVerifierContract.owner();
@@ -138,10 +140,8 @@ async function main() {
   const crossChainProofValidatorAddress = await state.getCrossChainProofValidator();
   console.log("crossChainProofValidatorAddress: ", crossChainProofValidatorAddress);
 
-  const tx = await universalVerifierContract.setState(state);
+  const tx = await universalVerifierContract.connect(universalVerifierOwnerSigner).setState(state);
   await tx.wait();
-
-  console.log("Upgrading validators and adding them to whitelist...");
 
   const validators = [
     {
@@ -162,14 +162,17 @@ async function main() {
   ];
 
   for (const v of validators) {
-    const { validator } = await deployerHelper.upgradeValidator(
-      v.validatorContractAddress as string,
-      v.validatorContractName,
-    );
-    await validator.waitForDeployment();
-    console.log(`Validator ${v.validatorContractName} version:`, await validator.version());
+    if (upgradeValidators) {
+      console.log(`Upgrading validator ${v.validatorContractName}...`);
+      const { validator } = await deployerHelper.upgradeValidator(
+        v.validatorContractAddress as string,
+        v.validatorContractName,
+      );
+      await validator.waitForDeployment();
+      console.log(`Validator ${v.validatorContractName} version:`, await validator.version());
 
-    await verifyContract(await validator.getAddress(), v.validatorVerification);
+      await verifyContract(await validator.getAddress(), v.validatorVerification);
+    }
 
     const isWhitelisted = await universalVerifierContract.isWhitelistedValidator(
       v.validatorContractAddress,
@@ -198,7 +201,7 @@ async function main() {
   };
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 
-  console.log("Testing verifiation with submitZKPResponseV2 after migration...");
+  console.log("Testing verification with submitZKPResponseV2 after migration...");
   await testVerification(universalVerifierContract, contractsInfo.VALIDATOR_V3.unifiedAddress);
 }
 
@@ -206,7 +209,7 @@ async function onlyTestVerification() {
   const { universalVerifierOwnerSigner } = await getSigners(impersonate);
   const universalVerifierContract = await ethers.getContractAt(
     universalVerifierArtifact.abi,
-    contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
+    universalVerifierAddress,
     universalVerifierOwnerSigner,
   );
   console.log("Testing verifiation with submitZKPResponseV2 after migration...");
@@ -253,10 +256,11 @@ async function upgradeState(deployHelper: DeployHelper, signer: any) {
 
 async function testVerification(verifier: Contract, validatorV3Address: string) {
   const requestId = 112233;
-  await setZKPRequest_KYCAgeCredential(requestId, verifier, validatorV3Address);
-  await submitZKPResponses_KYCAgeCredential(requestId, verifier, {
+  await setZKPRequest_KYCAgeCredential(requestId, verifier, validatorV3Address, "v3");
+  await submitZKPResponses_KYCAgeCredential(requestId, verifier, "v3", {
     stateContractAddress: stateContractAddress,
-    verifierContractAddress: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
+    verifierContractAddress: universalVerifierAddress,
+    checkSubmitZKResponseV2: true,
   });
 }
 

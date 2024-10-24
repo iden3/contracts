@@ -4,14 +4,15 @@ import { calculateQueryHashV2, calculateQueryHashV3 } from "../../test/utils/que
 import { Blockchain, DidMethod, NetworkId, DID } from "@iden3/js-iden3-core";
 import { buildVerifierId } from "../deploy/deployCrossChainVerifierWithRequests";
 import { Operators } from "@0xpolygonid/js-sdk";
-import { contractsInfo } from "../../helpers/constants";
+import {
+  contractsInfo,
+  CIRCUIT_ID_MTP_V2,
+  CIRCUIT_ID_SIG_V2,
+  CIRCUIT_ID_V3,
+} from "../../helpers/constants";
 
 async function main() {
-  const MTP_V2_CIRCUIT_NAME = "credentialAtomicQueryMTPV2OnChain";
-  const SIG_V2_CIRCUIT_NAME = "credentialAtomicQuerySigV2OnChain";
-  const V3_CIRCUIT_NAME = "credentialAtomicQueryV3OnChain-beta.1";
-
-  const circuitName: string = V3_CIRCUIT_NAME; // TODO put your circuit here;
+  const circuitName: string = CIRCUIT_ID_V3; // TODO put your circuit here;
   const requestId = 117; // TODO put your request here;
   const allowedIssuers = []; // TODO put your allowed issuers here
 
@@ -54,7 +55,7 @@ async function main() {
   let validatorAddress: string;
   let data: string;
   switch (circuitName) {
-    case MTP_V2_CIRCUIT_NAME:
+    case CIRCUIT_ID_MTP_V2:
       validatorAddress = contractsInfo.VALIDATOR_MTP.unifiedAddress;
       query.queryHash = calculateQueryHashV2(
         query.value,
@@ -67,7 +68,7 @@ async function main() {
       data = packValidatorParams(query);
 
       break;
-    case SIG_V2_CIRCUIT_NAME:
+    case CIRCUIT_ID_SIG_V2:
       validatorAddress = contractsInfo.VALIDATOR_SIG.unifiedAddress;
       query.queryHash = calculateQueryHashV2(
         query.value,
@@ -79,7 +80,7 @@ async function main() {
       ).toString();
       data = packValidatorParams(query);
       break;
-    case V3_CIRCUIT_NAME:
+    case CIRCUIT_ID_V3:
       validatorAddress = contractsInfo.VALIDATOR_V3.unifiedAddress;
       query = {
         ...query,

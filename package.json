@@ -147,6 +147,8 @@
     "add:validators:universal:verifier:localhost": "npx hardhat run scripts/maintenance/addValidatorsToUniversalVerifier.ts --network localhost",
     "add:validators:universal:verifier:polygon-amoy": "npx hardhat run scripts/maintenance/addValidatorsToUniversalVerifier.ts --network polygon-amoy",
     "payment:set-payment-value:polygon-amoy": "npx hardhat run scripts/maintenance/setPaymentValue.ts --network polygon-amoy",
+    "set:oracle:signing:address:polygon-amoy": "npx hardhat run scripts/maintenance/setOracleSigningAddress.ts --network polygon-amoy",    
+    "set:oracle:signing:address:polygon-mainnet": "npx hardhat run scripts/maintenance/setOracleSigningAddress.ts --network polygon-mainnet",    
     "verify:polygon-mainnet": "npx hardhat run scripts/maintenance/verifyEtherescan.js --network polygon-mainnet",
     "lint:contracts": "npx solhint contracts/**/*.sol",
     "prettier:contracts": "prettier --write --plugin=prettier-plugin-solidity 'contracts/**/*.sol'",

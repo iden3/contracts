@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { prepareInputs, publishState } from "../../utils/state-utils";
 import { DeployHelper } from "../../../helpers/DeployHelper";
 import { packValidatorParams } from "../../utils/validator-pack-utils";
+import { CIRCUIT_ID_MTP_V2 } from "../../../helpers/constants";
 
 const tenYears = 315360000;
 const testCases: any[] = [
@@ -133,7 +134,7 @@ describe("Atomic MTP Validator", function () {
         queryHash: BigInt(
           "1496222740463292783938163206931059379817846775593932664024082849882751356658",
         ),
-        circuitIds: ["credentialAtomicQueryMTPV2OnChain"],
+        circuitIds: [CIRCUIT_ID_MTP_V2],
         skipClaimRevocationCheck: false,
         claimPathNotExists: 0,
       };

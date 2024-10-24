@@ -81,6 +81,9 @@ export async function verifyContract(
     libraries: any;
   },
 ): Promise<boolean> {
+  if (hre.network.name === "localhost") {
+    return true;
+  }
   // When verifying if the proxy contract is not verified yet we need to pass the arguments
   // for the proxy contract first, then for proxy admin and finally for the implementation contract
   if (opts.constructorArgsProxy) {
