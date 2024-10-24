@@ -61,18 +61,13 @@ describe("Embedded ZKP Verifier", function () {
     // 2 events are emitted
     expect(receipt?.logs.length).to.equal(2);
 
-    const dataEvent1 = receipt?.logs[0].data;
-    const topicsEvent1 = receipt?.logs[0].topics;
-    const dataEvent2 = receipt?.logs[1].data;
-    const topicsEvent2 = receipt?.logs[1].topics;
-
     const interfaceEventBeforeProofSubmit = new ethers.Interface([
       "event BeforeProofSubmit(uint64 requestId, uint256[] inputs, address validator)",
     ]);
     const eventBeforeProofSubmit = interfaceEventBeforeProofSubmit.decodeEventLog(
       "BeforeProofSubmit",
-      dataEvent1!,
-      topicsEvent1,
+      receipt?.logs[0].data || "",
+      receipt?.logs[0].topics,
     );
     expect(eventBeforeProofSubmit[0]).to.equal(0);
     expect(eventBeforeProofSubmit[1]).to.deep.equal(inputs.map((x) => BigInt(x)));
@@ -83,8 +78,8 @@ describe("Embedded ZKP Verifier", function () {
     ]);
     const eventAfterProofSubmit = interfaceEventAfterProofSubmit.decodeEventLog(
       "AfterProofSubmit",
-      dataEvent2!,
-      topicsEvent2,
+      receipt?.logs[1].data || "",
+      receipt?.logs[1].topics,
     );
     expect(eventAfterProofSubmit[0]).to.equal(0);
     expect(eventAfterProofSubmit[1]).to.deep.equal(inputs.map((x) => BigInt(x)));
@@ -165,18 +160,13 @@ describe("Embedded ZKP Verifier", function () {
     // 2 events are emitted
     expect(receipt?.logs.length).to.equal(2);
 
-    const dataEvent1 = receipt?.logs[0].data;
-    const topicsEvent1 = receipt?.logs[0].topics;
-    const dataEvent2 = receipt?.logs[1].data;
-    const topicsEvent2 = receipt?.logs[1].topics;
-
     const interfaceEventBeforeProofSubmitV2 = new ethers.Interface([
       "event BeforeProofSubmitV2(tuple(uint64 requestId,bytes zkProof,bytes data)[])",
     ]);
     const eventBeforeProofSubmitV2 = interfaceEventBeforeProofSubmitV2.decodeEventLog(
       "BeforeProofSubmitV2",
-      dataEvent1!,
-      topicsEvent1,
+      receipt?.logs[0].data || "",
+      receipt?.logs[0].topics,
     );
     expect(eventBeforeProofSubmitV2[0][0][0]).to.equal(0);
     expect(eventBeforeProofSubmitV2[0][0][1]).to.deep.equal(zkProof);
@@ -187,8 +177,8 @@ describe("Embedded ZKP Verifier", function () {
     ]);
     const eventAfterProofSubmitV2 = interfaceEventAfterProofSubmitV2.decodeEventLog(
       "AfterProofSubmitV2",
-      dataEvent2!,
-      topicsEvent2,
+      receipt?.logs[1].data || "",
+      receipt?.logs[1].topics,
     );
     expect(eventAfterProofSubmitV2[0][0][0]).to.equal(0);
     expect(eventAfterProofSubmitV2[0][0][1]).to.deep.equal(zkProof);

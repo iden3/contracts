@@ -152,16 +152,15 @@ export async function buildCrossChainProofs(
 ): Promise<any[]> {
   const map = await Promise.all(
     crossChainProofsMessages.map(async (crossChainProofMessage) => {
-      if (crossChainProofMessage.idType) {
-        return {
-          proofType: "globalStateProof",
-          proof: await packGlobalStateUpdateWithSignature(crossChainProofMessage, signer),
-        };
-      }
-      return {
-        proofType: "stateProof",
-        proof: await packIdentityStateUpdateWithSignature(crossChainProofMessage, signer),
-      };
+      return crossChainProofMessage.idType
+        ? {
+            proofType: "globalStateProof",
+            proof: await packGlobalStateUpdateWithSignature(crossChainProofMessage, signer),
+          }
+        : {
+            proofType: "stateProof",
+            proof: await packIdentityStateUpdateWithSignature(crossChainProofMessage, signer),
+          };
     }),
   );
   return map;
