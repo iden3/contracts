@@ -1,7 +1,7 @@
 import { ethers, upgrades } from "hardhat";
 import { MCPayment, MCPayment__factory } from "../../typechain-types";
-import { Signer } from "ethers";
 import { expect } from "chai";
+import { Signer } from "ethers";
 
 describe("MC Payment Contract", () => {
   let payment: MCPayment;
@@ -9,6 +9,17 @@ describe("MC Payment Contract", () => {
   const ownerPercentage = 10;
   const types = {
     Iden3PaymentRailsRequestV1: [
+      { name: "recipient", type: "address" },
+      { name: "amount", type: "uint256" },
+      { name: "expirationDate", type: "uint256" },
+      { name: "nonce", type: "uint256" },
+      { name: "metadata", type: "bytes" },
+    ],
+  };
+
+  const erc20types = {
+    Iden3PaymentRailsERC20RequestV1: [
+      { name: "tokenAddress", type: "address" },
       { name: "recipient", type: "address" },
       { name: "amount", type: "uint256" },
       { name: "expirationDate", type: "uint256" },
@@ -200,5 +211,99 @@ describe("MC Payment Contract", () => {
         value: 100,
       }),
     ).to.be.revertedWithCustomError(payment, "PaymentError");
+  });
+
+  it("ERC20 payment:", async () => {
+    const tokenFactory = await ethers.getContractFactory("ERC20Token", owner);
+    const token = await tokenFactory.deploy(1_000);
+    await token.connect(owner).transfer(await userSigner.getAddress(), 100);
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
+
+    const approveGas = await token
+      .connect(userSigner)
+      .approve.estimateGas(await payment.getAddress(), 10);
+    console.log("Approve token Gas: " + approveGas);
+    await token.connect(userSigner).approve(await payment.getAddress(), 10);
+
+    const paymentData = {
+      tokenAddress: await token.getAddress(),
+      recipient: issuer1Signer.address,
+      amount: 10,
+      expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60, // 1 hour
+      nonce: 35,
+      metadata: "0x",
+    };
+
+    const signature = await issuer1Signer.signTypedData(domainData, erc20types, paymentData);
+    const erc20PaymentGas = await payment
+      .connect(userSigner)
+      .erc20Payment.estimateGas(paymentData, signature);
+    console.log("ERC-20 Payment Gas: " + erc20PaymentGas);
+
+    await payment.connect(userSigner).erc20Payment(paymentData, signature);
+
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(90);
+    // 10 - 10% owner fee = 9
+    expect(await token.balanceOf(await issuer1Signer.getAddress())).to.be.eq(9);
+    expect(await token.balanceOf(await payment.getAddress())).to.be.eq(1);
+
+    expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
+  });
+
+  it("ERC20 payment - invalid signature", async () => {
+    const tokenFactory = await ethers.getContractFactory("ERC20Token", owner);
+    const token = await tokenFactory.deploy(1_000);
+    await token.connect(owner).transfer(await userSigner.getAddress(), 100);
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
+
+    await token.connect(userSigner).approve(await payment.getAddress(), 10);
+
+    const paymentData = {
+      tokenAddress: await token.getAddress(),
+      recipient: issuer1Signer.address,
+      amount: 10,
+      expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60, // 1 hour
+      nonce: 35,
+      metadata: "0x",
+    };
+
+    let signature = await issuer1Signer.signTypedData(domainData, erc20types, paymentData);
+    // break signature
+    signature = signature.slice(0, -1).concat("0");
+    await expect(
+      payment.connect(userSigner).erc20Payment(paymentData, signature),
+    ).to.be.revertedWithCustomError(payment, "InvalidSignature");
+
+    // no changes in balance and payment status not done
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
+    expect(await token.balanceOf(await issuer1Signer.getAddress())).to.be.eq(0);
+    expect(await token.balanceOf(await payment.getAddress())).to.be.eq(0);
+    expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.false;
+  });
+
+  it("ERC20 payment - call erc20Payment without approval", async () => {
+    const tokenFactory = await ethers.getContractFactory("ERC20Token", owner);
+    const token = await tokenFactory.deploy(1_000);
+    await token.connect(owner).transfer(await userSigner.getAddress(), 100);
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
+
+    const paymentData = {
+      tokenAddress: await token.getAddress(),
+      recipient: issuer1Signer.address,
+      amount: 10,
+      expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60, // 1 hour
+      nonce: 35,
+      metadata: "0x",
+    };
+
+    const signature = await issuer1Signer.signTypedData(domainData, erc20types, paymentData);
+    await expect(
+      payment.connect(userSigner).erc20Payment(paymentData, signature),
+    ).to.be.revertedWithCustomError(token, "ERC20InsufficientAllowance");
+
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
+    expect(await token.balanceOf(await issuer1Signer.getAddress())).to.be.eq(0);
+    expect(await token.balanceOf(await payment.getAddress())).to.be.eq(0);
+    expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.false;
   });
 });
