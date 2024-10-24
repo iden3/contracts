@@ -7,7 +7,7 @@ export function calculateQueryHashV2(
   slotIndex: string | number,
   operator: string | number,
   claimPathKey: string | number,
-  claimPathNotExists: string | number
+  claimPathNotExists: string | number,
 ): bigint {
   const expValue = prepareCircuitArrayValues(values, 64);
   const valueHash = poseidon.spongeHashX(expValue, 6);
@@ -32,12 +32,11 @@ export function calculateQueryHashV3(
   merklized: string | number,
   isRevocationChecked: string | number,
   verifierID: string | number,
-  nullifierSessionID: string | number
+  nullifierSessionID: string | number,
 ): bigint {
   const expValue = prepareCircuitArrayValues(values, 64);
   const valueHash = poseidon.spongeHashX(expValue, 6);
   const schemaHash = coreSchemaFromStr(schema);
-
 
   const firstPartQueryHash = poseidon.hash([
     schemaHash.bigInt(),

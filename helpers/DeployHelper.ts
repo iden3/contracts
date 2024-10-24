@@ -883,14 +883,14 @@ export class DeployHelper {
     let verifier: Contract;
     try {
       verifier = await upgrades.upgradeProxy(verifierAddress, VerifierFactory, {
-        unsafeAllowLinkedLibraries: true,
+        unsafeAllow: ["external-library-linking"],
       });
       await verifier.waitForDeployment();
     } catch (e) {
       this.log("Error upgrading proxy. Forcing import...");
       await upgrades.forceImport(verifierAddress, VerifierFactory);
       verifier = await upgrades.upgradeProxy(verifierAddress, VerifierFactory, {
-        unsafeAllowLinkedLibraries: true,
+        unsafeAllow: ["external-library-linking"],
         redeployImplementation: "always",
       });
       await verifier.waitForDeployment();

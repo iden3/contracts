@@ -11,6 +11,7 @@ import {
   packIdentityStateUpdateWithSignature,
   packZKProof,
 } from "../utils/packData";
+import { CIRCUIT_ID_SIG_V2 } from "../../helpers/constants";
 
 describe("Universal Verifier V2 MTP & SIG validators", function () {
   let verifier: any, sig: any;
@@ -51,7 +52,7 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     queryHash: BigInt(
       "1496222740463292783938163206931059379817846775593932664024082849882751356658",
     ),
-    circuitIds: ["credentialAtomicQuerySigV2OnChain"],
+    circuitIds: [CIRCUIT_ID_SIG_V2],
     claimPathNotExists: 0,
   };
 

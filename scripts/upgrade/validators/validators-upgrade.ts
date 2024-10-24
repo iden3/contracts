@@ -77,7 +77,10 @@ async function main() {
       (await validator.getSupportedCircuitIds())[0],
     );
 
-    console.log(`Validator ${v.validatorContractName} version:`, await validator.version());
+    console.log(
+      `Validator upgraded ${v.validatorContractName} - ${v.validatorContractAddress} version:`,
+      await validator.version(),
+    );
     validatorsInfo.push({
       validatorType: v.validatorType,
       validator: await validator.getAddress(),

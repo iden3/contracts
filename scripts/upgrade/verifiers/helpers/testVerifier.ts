@@ -1,6 +1,12 @@
 import { Contract, JsonRpcProvider } from "ethers";
-import { calculateQueryHashV3 } from "../../../../test/utils/query-hash-utils";
-import { packV3ValidatorParams } from "../../../../test/utils/validator-pack-utils";
+import {
+  calculateQueryHashV2,
+  calculateQueryHashV3,
+} from "../../../../test/utils/query-hash-utils";
+import {
+  packV3ValidatorParams,
+  packValidatorParams,
+} from "../../../../test/utils/validator-pack-utils";
 import {
   Blockchain,
   buildDIDType,
@@ -32,6 +38,7 @@ import {
 } from "@0xpolygonid/js-sdk";
 import { ProofData } from "@iden3/js-jwz";
 import { packCrossChainProofs, packZKProof } from "../../../../test/utils/packData";
+import { CIRCUIT_ID_MTP_V2, CIRCUIT_ID_SIG_V2, CIRCUIT_ID_V3 } from "../../../../helpers/constants";
 
 const rhsUrl = "https://rhs-staging.polygonid.me";
 
@@ -228,9 +235,10 @@ function getParamsFromChainId(chainId: number) {
 export async function submitZKPResponses_KYCAgeCredential(
   requestId: number,
   verifier: Contract,
+  verifierType: "mtpV2" | "sigV2" | "v3",
   opts: any,
 ) {
-  console.log("================= submitZKPResponseV2 V3 SIG KYCAgeCredential ===================");
+  console.log(`================= ${verifierType} KYCAgeCredential ===================`);
   let chainId: number;
   let networkName: string;
   if (opts.provider) {
@@ -258,14 +266,17 @@ export async function submitZKPResponses_KYCAgeCredential(
     throw new Error("stateContractAddress is not set");
   }
 
-  const { dataStorage: issuerDataStorage, identityWallet: issuerIdentityWallet } =
-    await initInMemoryDataStorageAndWallets([
-      {
-        rpcUrl: rpcUrl,
-        contractAddress: opts.stateContractAddress,
-        chainId: chainId,
-      },
-    ]);
+  const {
+    dataStorage: issuerDataStorage,
+    credentialWallet: issuerCredentialWallet,
+    identityWallet: issuerIdentityWallet,
+  } = await initInMemoryDataStorageAndWallets([
+    {
+      rpcUrl: rpcUrl,
+      contractAddress: opts.stateContractAddress,
+      chainId: chainId,
+    },
+  ]);
 
   const {
     dataStorage: userDataStorage,
@@ -284,6 +295,13 @@ export async function submitZKPResponses_KYCAgeCredential(
     userIdentityWallet,
     userCredentialWallet,
     userDataStorage.states,
+    circuitStorage,
+  );
+
+  const issuerProofService = await initProofService(
+    issuerIdentityWallet,
+    issuerCredentialWallet,
+    issuerDataStorage.states,
     circuitStorage,
   );
 
@@ -323,27 +341,92 @@ export async function submitZKPResponses_KYCAgeCredential(
 
   const challenge = BytesHelper.bytesToInt(hexToBytes(await signer.getAddress()));
 
-  console.log("================= generate V3 Sig proof ===================");
-  // Verifier Id in the verifier network
-  const verifierId = buildVerifierId(opts.verifierContractAddress, {
-    blockchain: blockchain,
-    networkId: networkId,
-    method: method,
-  });
+  console.log(`================= generate ${verifierType} proof ===================`);
+  let proof: any;
+  let pub_signals: string[] = [];
 
-  const { proof: proofV3Sig, pub_signals: pub_signalsV3Sig } = await generateProof(
-    CircuitId.AtomicQueryV3OnChain,
-    credentialRequest,
-    profileDID,
-    requestId,
-    userProofService,
-    {
-      verifierDid: DID.parseFromId(verifierId),
-      challenge: BigInt(challenge),
-      skipRevocation: false,
-    },
-  );
-  const preparedProofV3Sig = prepareProof(proofV3Sig);
+  switch (verifierType) {
+    case "mtpV2":
+      const res = await issuerIdentityWallet.addCredentialsToMerkleTree([credential], issuerDID);
+      console.log("================= push states to rhs ===================");
+
+      await issuerIdentityWallet.publishRevocationInfoByCredentialStatusType(
+        issuerDID,
+        CredentialStatusType.Iden3ReverseSparseMerkleTreeProof,
+        { rhsUrl },
+      );
+
+      console.log("================= publish to blockchain ================");
+
+      const txId = await issuerProofService.transitState(
+        issuerDID,
+        res.oldTreeState,
+        true,
+        issuerDataStorage.states,
+        signer,
+      );
+      console.log(txId);
+
+      console.log("================= generate credentialAtomicMTPV2 ===================");
+      const credsWithIden3MTPProof = await issuerIdentityWallet.generateIden3SparseMerkleTreeProof(
+        issuerDID,
+        res.credentials,
+        txId,
+      );
+
+      // console.log(credsWithIden3MTPProof);
+      await issuerCredentialWallet.saveAll(credsWithIden3MTPProof);
+      // We need to save the credential to the user wallet
+      await userCredentialWallet.saveAll(credsWithIden3MTPProof);
+
+      ({ proof, pub_signals } = await generateProof(
+        CircuitId.AtomicQueryMTPV2OnChain,
+        credentialRequest,
+        profileDID,
+        requestId,
+        userProofService,
+        {
+          challenge: BigInt(challenge),
+          skipRevocation: false,
+        },
+      ));
+      break;
+    case "sigV2":
+      ({ proof, pub_signals } = await generateProof(
+        CircuitId.AtomicQuerySigV2OnChain,
+        credentialRequest,
+        profileDID,
+        requestId,
+        userProofService,
+        {
+          challenge: BigInt(challenge),
+          skipRevocation: false,
+        },
+      ));
+      break;
+    case "v3":
+      // Verifier Id in the verifier network
+      const verifierId = buildVerifierId(await verifier.getAddress(), {
+        blockchain: blockchain,
+        networkId: networkId,
+        method: method,
+      });
+      ({ proof, pub_signals } = await generateProof(
+        CircuitId.AtomicQueryV3OnChain,
+        credentialRequest,
+        profileDID,
+        requestId,
+        userProofService,
+        {
+          verifierDid: DID.parseFromId(verifierId),
+          challenge: BigInt(challenge),
+          skipRevocation: false,
+        },
+      ));
+      break;
+  }
+
+  const preparedProof = prepareProof(proof);
 
   // In forks in local increment time for avoiding "Proof generated in the future is not valid"
   if (networkName === "hardhat" || networkName === "localhost") {
@@ -351,59 +434,66 @@ export async function submitZKPResponses_KYCAgeCredential(
     await hre.network.provider.send("evm_increaseTime", [3300]);
   }
 
-  console.log("================= submitZKPResponse V3 Sig proof ===================");
-  const txSubmitZKPResponse_V3Sig = await verifier
+  console.log(`================= submitZKPResponse ${verifierType} proof ===================`);
+  const txSubmitZKPResponse = await verifier
     .connect(signer)
     .submitZKPResponse(
       requestId,
-      pub_signalsV3Sig,
-      preparedProofV3Sig.pi_a,
-      preparedProofV3Sig.pi_b,
-      preparedProofV3Sig.pi_c,
+      pub_signals,
+      preparedProof.pi_a,
+      preparedProof.pi_b,
+      preparedProof.pi_c,
     );
-  console.log(`Waiting for submitZKPResponse tx: `, txSubmitZKPResponse_V3Sig.hash);
-  const receiptV3Sig_old = await txSubmitZKPResponse_V3Sig.wait();
-  console.log(`txSubmitZKPResponse V3 Sig Proof gas consumed: `, receiptV3Sig_old.gasUsed);
+  console.log(`Waiting for submitZKPResponse tx: `, txSubmitZKPResponse.hash);
+  const receipt_old = await txSubmitZKPResponse.wait();
+  console.log(`txSubmitZKPResponse ${verifierType} Proof gas consumed: `, receipt_old.gasUsed);
 
-  console.log("================= submitZKPResponseV2 V3 Sig proof ===================");
-  const crossChainProofs = packCrossChainProofs([]);
-  const metadatas = "0x";
+  const checkSubmitZKResponseV2 = opts.checkSubmitZKResponseV2 ?? false;
 
-  const zkProofV3Sig = packZKProof(
-    pub_signalsV3Sig,
-    preparedProofV3Sig.pi_a,
-    preparedProofV3Sig.pi_b,
-    preparedProofV3Sig.pi_c,
-  );
+  if (checkSubmitZKResponseV2) {
+    console.log(`================= submitZKPResponseV2 ${verifierType} proof ===================`);
+    const crossChainProofs = packCrossChainProofs([]);
+    const metadatas = "0x";
 
-  const txSubmitZKPResponseV2_V3Sig = await verifier.connect(signer).submitZKPResponseV2(
-    [
+    const zkProof = packZKProof(
+      pub_signals,
+      preparedProof.pi_a,
+      preparedProof.pi_b,
+      preparedProof.pi_c,
+    );
+
+    const txSubmitZKPResponseV2 = await verifier.connect(signer).submitZKPResponseV2(
+      [
+        {
+          requestId,
+          zkProof: zkProof,
+          data: metadatas,
+        },
+      ],
+      crossChainProofs,
       {
-        requestId,
-        zkProof: zkProofV3Sig,
-        data: metadatas,
+        gasPrice: 50000000000,
+        initialBaseFeePerGas: 25000000000,
+        gasLimit: 1000000,
       },
-    ],
-    crossChainProofs,
-    {
-      gasPrice: 50000000000,
-      initialBaseFeePerGas: 25000000000,
-      gasLimit: 1000000,
-    },
-  );
-  console.log(`Waiting for submitZKPResponseV2 tx: `, txSubmitZKPResponseV2_V3Sig.hash);
+    );
+    console.log(`Waiting for submitZKPResponseV2 tx: `, txSubmitZKPResponseV2.hash);
 
-  const receiptV3Sig = await txSubmitZKPResponseV2_V3Sig.wait();
-  console.log(`txSubmitZKPResponseV2 V3 Sig Proof gas consumed: `, receiptV3Sig.gasUsed);
+    const receipt = await txSubmitZKPResponseV2.wait();
+    console.log(`txSubmitZKPResponseV2 ${verifierType} Proof gas consumed: `, receipt.gasUsed);
+  }
 }
 
 export async function setZKPRequest_KYCAgeCredential(
   requestId: number,
   verifier: Contract,
-  validatorV3Address: string,
+  validatorAddress: string,
+  verifierType: "mtpV2" | "sigV2" | "v3",
   provider?: JsonRpcProvider,
 ) {
-  console.log("================= setZKPRequest V3 SIG KYCAgeCredential ===================");
+  console.log(
+    `================= setZKPRequest ${verifierType} KYCAgeCredential ===================`,
+  );
 
   const requestIdExists = await verifier.requestIdExists(requestId);
   if (!requestIdExists) {
@@ -435,7 +525,22 @@ export async function setZKPRequest_KYCAgeCredential(
     const schemaClaimPathKey =
       "20376033832371109177683048456014525905119173674985843915445634726167450989630";
 
-    const queryV3KYCAgeCredential = {
+    let circuitId: string;
+    switch (verifierType) {
+      case "mtpV2":
+        circuitId = CIRCUIT_ID_MTP_V2;
+        break;
+      case "sigV2":
+        circuitId = CIRCUIT_ID_SIG_V2;
+        break;
+      case "v3":
+        circuitId = CIRCUIT_ID_V3;
+        break;
+    }
+
+    let dataKYCAgeCredential: string;
+
+    let queryKYCAgeCredential: any = {
       requestId: requestId,
       schema: schemaBigInt,
       claimPathKey: schemaClaimPathKey,
@@ -443,29 +548,55 @@ export async function setZKPRequest_KYCAgeCredential(
       value: [20020101, ...new Array(63).fill(0)], // for operators 1-3 only first value matters
       slotIndex: 0,
       queryHash: "",
-      circuitIds: ["credentialAtomicQueryV3OnChain-beta.1"],
-      allowedIssuers: [],
+      circuitIds: [circuitId],
       skipClaimRevocationCheck: false,
-      verifierID: verifierId.bigInt(),
-      nullifierSessionID: 11837215,
-      groupID: 0,
-      proofType: 0,
+      claimPathNotExists: 0,
     };
 
-    queryV3KYCAgeCredential.queryHash = calculateQueryHashV3(
-      queryV3KYCAgeCredential.value.map((i) => BigInt(i)),
-      queryV3KYCAgeCredential.schema,
-      queryV3KYCAgeCredential.slotIndex,
-      queryV3KYCAgeCredential.operator,
-      queryV3KYCAgeCredential.claimPathKey,
-      1, //queryV3KYCAgeCredential.value.length, // for operator LT it should be 1 for value
-      1, // merklized
-      queryV3KYCAgeCredential.skipClaimRevocationCheck ? 0 : 1,
-      queryV3KYCAgeCredential.verifierID.toString(),
-      queryV3KYCAgeCredential.nullifierSessionID,
-    ).toString();
+    if (verifierType === "v3") {
+      queryKYCAgeCredential = {
+        requestId: requestId,
+        schema: schemaBigInt,
+        claimPathKey: schemaClaimPathKey,
+        operator: Operators.LT,
+        value: [20020101, ...new Array(63).fill(0)], // for operators 1-3 only first value matters
+        slotIndex: 0,
+        queryHash: "",
+        circuitIds: [CIRCUIT_ID_V3],
+        allowedIssuers: [],
+        skipClaimRevocationCheck: false,
+        verifierID: verifierId.bigInt(),
+        nullifierSessionID: 11837215,
+        groupID: 0,
+        proofType: 0,
+      };
 
-    const dataV3KYCAgeCredential = packV3ValidatorParams(queryV3KYCAgeCredential);
+      queryKYCAgeCredential.queryHash = calculateQueryHashV3(
+        queryKYCAgeCredential.value.map((i) => BigInt(i)),
+        queryKYCAgeCredential.schema,
+        queryKYCAgeCredential.slotIndex,
+        queryKYCAgeCredential.operator,
+        queryKYCAgeCredential.claimPathKey,
+        1, //queryKYCAgeCredential.value.length, // for operator LT it should be 1 for value
+        1, // merklized
+        queryKYCAgeCredential.skipClaimRevocationCheck ? 0 : 1,
+        queryKYCAgeCredential.verifierID.toString(),
+        queryKYCAgeCredential.nullifierSessionID,
+      ).toString();
+
+      dataKYCAgeCredential = packV3ValidatorParams(queryKYCAgeCredential);
+    } else {
+      queryKYCAgeCredential.queryHash = calculateQueryHashV2(
+        queryKYCAgeCredential.value.map((i) => BigInt(i)),
+        queryKYCAgeCredential.schema,
+        queryKYCAgeCredential.slotIndex,
+        queryKYCAgeCredential.operator,
+        queryKYCAgeCredential.claimPathKey,
+        queryKYCAgeCredential.claimPathNotExists,
+      ).toString();
+
+      dataKYCAgeCredential = packValidatorParams(queryKYCAgeCredential);
+    }
 
     const invokeRequestMetadataKYCAgeCredential = {
       id: "7f38a193-0918-4a48-9fac-36adfdb8b543",
@@ -474,7 +605,7 @@ export async function setZKPRequest_KYCAgeCredential(
       thid: "7f38a193-0918-4a48-9fac-36adfdb8b543",
       from: DID.parseFromId(verifierId).string(),
       body: {
-        reason: "for testing submitZKPResponseV2",
+        reason: "for testing submitZKPResponse",
         transaction_data: {
           contract_address: await verifier.getAddress(),
           method_id: methodId,
@@ -483,12 +614,14 @@ export async function setZKPRequest_KYCAgeCredential(
         },
         scope: [
           {
-            id: queryV3KYCAgeCredential.requestId,
-            circuitId: queryV3KYCAgeCredential.circuitIds[0],
+            id: queryKYCAgeCredential.requestId,
+            circuitId: queryKYCAgeCredential.circuitIds[0],
             query: {
-              allowedIssuers: !queryV3KYCAgeCredential.allowedIssuers.length
-                ? ["*"]
-                : queryV3KYCAgeCredential.allowedIssuers,
+              allowedIssuers:
+                !queryKYCAgeCredential.allowedIssuers ||
+                !queryKYCAgeCredential.allowedIssuers.length
+                  ? ["*"]
+                  : queryKYCAgeCredential.allowedIssuers,
               context:
                 "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
               credentialSubject: {
@@ -505,8 +638,8 @@ export async function setZKPRequest_KYCAgeCredential(
 
     const tx = await verifier.setZKPRequest(requestId, {
       metadata: JSON.stringify(invokeRequestMetadataKYCAgeCredential),
-      validator: validatorV3Address,
-      data: dataV3KYCAgeCredential,
+      validator: validatorAddress,
+      data: dataKYCAgeCredential,
     });
 
     console.log(`Request ID: ${requestId} is set in tx ${tx.hash}`);

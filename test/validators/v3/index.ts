@@ -3,6 +3,7 @@ import { prepareInputs, publishState } from "../../utils/state-utils";
 import { DeployHelper } from "../../../helpers/DeployHelper";
 import { packV3ValidatorParams } from "../../utils/validator-pack-utils";
 import { calculateQueryHashV3 } from "../../utils/query-hash-utils";
+import { CIRCUIT_ID_V3 } from "../../../helpers/constants";
 
 const tenYears = 315360000;
 const testCases: any[] = [
@@ -385,7 +386,7 @@ describe("Atomic V3 Validator", function () {
         operator,
         slotIndex,
         value,
-        circuitIds: ["credentialAtomicQueryV3OnChain-beta.1"],
+        circuitIds: [CIRCUIT_ID_V3],
         skipClaimRevocationCheck: false,
         queryHash: test.queryHash == undefined ? queryHash : test.queryHash,
         groupID: test.groupID == undefined ? 1 : test.groupID,
