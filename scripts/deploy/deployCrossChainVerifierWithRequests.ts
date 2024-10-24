@@ -17,6 +17,7 @@ import { Merklizer } from "@iden3/js-jsonld-merklization";
 import path from "path";
 import fs from "fs";
 import { Operators } from "@0xpolygonid/js-sdk";
+import { CIRCUIT_ID_MTP_V2, CIRCUIT_ID_SIG_V2, CIRCUIT_ID_V3 } from "../../helpers/constants";
 
 const removePreviousIgnitionFiles = true;
 
@@ -109,7 +110,7 @@ async function main() {
     value: [await Merklizer.hashValue("http://www.w3.org/2001/XMLSchema#boolean", true)],
     slotIndex: 0,
     queryHash: "",
-    circuitIds: ["credentialAtomicQueryV3OnChain-beta.1"],
+    circuitIds: [CIRCUIT_ID_V3],
     allowedIssuers: [],
     skipClaimRevocationCheck: false,
     verifierID: verifierId.bigInt(),
@@ -194,7 +195,7 @@ async function main() {
     value: [],
     slotIndex: 0,
     queryHash: "",
-    circuitIds: ["credentialAtomicQueryV3OnChain-beta.1"],
+    circuitIds: [CIRCUIT_ID_V3],
     allowedIssuers: [],
     skipClaimRevocationCheck: false,
     verifierID: verifierId.bigInt(),
@@ -279,7 +280,7 @@ async function main() {
     operator: Operators.LT,
     slotIndex: 0,
     value: [20020101, ...new Array(63).fill(0)], // for operators 1-3 only first value matters
-    circuitIds: ["credentialAtomicQuerySigV2OnChain"],
+    circuitIds: [CIRCUIT_ID_SIG_V2],
     skipClaimRevocationCheck: false,
     claimPathNotExists: 0,
   };
@@ -309,7 +310,7 @@ async function main() {
       },
       scope: [
         {
-          circuitId: "credentialAtomicQuerySigV2OnChain",
+          circuitId: CIRCUIT_ID_SIG_V2,
           id: requestId_Sig,
           query: {
             allowedIssuers: ["*"],
@@ -347,7 +348,7 @@ async function main() {
 
   console.log("================= setZKPRequest MTP V2 ===================");
 
-  query.circuitIds = ["credentialAtomicQueryMTPV2OnChain"];
+  query.circuitIds = [CIRCUIT_ID_MTP_V2];
   data = packValidatorParams(query);
   const requestId_Mtp = 2;
 
@@ -367,7 +368,7 @@ async function main() {
       },
       scope: [
         {
-          circuitId: "credentialAtomicQuerySigV2OnChain",
+          circuitId: CIRCUIT_ID_SIG_V2,
           id: requestId_Mtp,
           query: {
             allowedIssuers: ["*"],
@@ -415,7 +416,7 @@ async function main() {
     value: [20020101, ...new Array(63).fill(0)], // for operators 1-3 only first value matters
     slotIndex: 0,
     queryHash: "",
-    circuitIds: ["credentialAtomicQueryV3OnChain-beta.1"],
+    circuitIds: [CIRCUIT_ID_V3],
     allowedIssuers: [],
     skipClaimRevocationCheck: false,
     verifierID: verifierId.bigInt(),

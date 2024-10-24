@@ -3,6 +3,7 @@ import { DeployHelper } from "../../helpers/DeployHelper";
 import { ethers } from "hardhat";
 import { packValidatorParams } from "../utils/validator-pack-utils";
 import { AbiCoder } from "ethers";
+import { CIRCUIT_ID_SIG_V2 } from "../../helpers/constants";
 
 describe("Universal Verifier events", function () {
   let verifier: any, sig: any;
@@ -18,7 +19,7 @@ describe("Universal Verifier events", function () {
       queryHash: BigInt(
         "1496222740463292783938163206931059379817846775593932664024082849882751356658",
       ),
-      circuitIds: ["credentialAtomicQuerySigV2OnChain"],
+      circuitIds: [CIRCUIT_ID_SIG_V2],
       skipClaimRevocationCheck: false,
       claimPathNotExists: 0n,
     },
@@ -33,7 +34,7 @@ describe("Universal Verifier events", function () {
       queryHash: BigInt(
         "1496222740463292783938163206931059379817846775593932664024082849882751356658",
       ),
-      circuitIds: ["credentialAtomicQuerySigV2OnChain"],
+      circuitIds: [CIRCUIT_ID_SIG_V2],
       skipClaimRevocationCheck: true,
       claimPathNotExists: 0n,
     },
@@ -48,7 +49,7 @@ describe("Universal Verifier events", function () {
       queryHash: BigInt(
         "1496222740463292783938163206931059379817846775593932664024082849882751356658",
       ),
-      circuitIds: ["credentialAtomicQuerySigV2OnChain"],
+      circuitIds: [CIRCUIT_ID_SIG_V2],
       skipClaimRevocationCheck: false,
       claimPathNotExists: 0n,
     },

@@ -5,7 +5,13 @@ import {
   removeLocalhostNetworkIgnitionFiles,
   verifyContract,
 } from "../../../helpers/helperUtils";
-import { contractsInfo, VALIDATOR_TYPES } from "../../../helpers/constants";
+import {
+  contractsInfo,
+  CIRCUIT_ID_MTP_V2,
+  CIRCUIT_ID_SIG_V2,
+  CIRCUIT_ID_V3,
+  VALIDATOR_TYPES,
+} from "../../../helpers/constants";
 import fs from "fs";
 import path from "path";
 
@@ -68,25 +74,28 @@ async function main() {
         let validatorVerification;
         let validatorContractName;
         let validatorType;
-        switch (JSON.parse(request[0]).body.scope[0].circuitId) {
-          case "credentialAtomicQuerySigV2OnChain":
+        const validator = await ethers.getContractAt("ICircuitValidator", request[1]);
+
+        const circuitId = (await validator.getSupportedCircuitIds())[0];
+        switch (circuitId) {
+          case CIRCUIT_ID_SIG_V2:
             validatorVerification = contractsInfo.VALIDATOR_SIG.verificationOpts;
             validatorContractName = "CredentialAtomicQuerySigV2Validator";
             validatorType = VALIDATOR_TYPES.SIG_V2;
             break;
-          case "credentialAtomicQueryMTPV2OnChain":
+          case CIRCUIT_ID_MTP_V2:
             validatorVerification = contractsInfo.VALIDATOR_MTP.verificationOpts;
             validatorContractName = "CredentialAtomicQueryMTPV2Validator";
             validatorType = VALIDATOR_TYPES.MTP_V2;
             break;
-          case "credentialAtomicQueryV3OnChain-beta.1":
+          case CIRCUIT_ID_V3:
             validatorVerification = contractsInfo.VALIDATOR_V3.verificationOpts;
             validatorContractName = "CredentialAtomicQueryV3Validator";
             validatorType = VALIDATOR_TYPES.V3;
             break;
         }
         validators.push({
-          circuitId: JSON.parse(request[0]).body.scope[0].circuitId,
+          circuitId,
           validatorContractName,
           validatorContractAddress: request[1],
           validatorVerification,

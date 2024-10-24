@@ -38,6 +38,7 @@ import {
 } from "@0xpolygonid/js-sdk";
 import { ProofData } from "@iden3/js-jwz";
 import { packCrossChainProofs, packZKProof } from "../../../../test/utils/packData";
+import { CIRCUIT_ID_MTP_V2, CIRCUIT_ID_SIG_V2, CIRCUIT_ID_V3 } from "../../../../helpers/constants";
 
 const rhsUrl = "https://rhs-staging.polygonid.me";
 
@@ -527,13 +528,13 @@ export async function setZKPRequest_KYCAgeCredential(
     let circuitId: string;
     switch (verifierType) {
       case "mtpV2":
-        circuitId = "credentialAtomicQueryMTPV2OnChain";
+        circuitId = CIRCUIT_ID_MTP_V2;
         break;
       case "sigV2":
-        circuitId = "credentialAtomicQuerySigV2OnChain";
+        circuitId = CIRCUIT_ID_SIG_V2;
         break;
       case "v3":
-        circuitId = "credentialAtomicQueryV3OnChain-beta.1";
+        circuitId = CIRCUIT_ID_V3;
         break;
     }
 
@@ -561,7 +562,7 @@ export async function setZKPRequest_KYCAgeCredential(
         value: [20020101, ...new Array(63).fill(0)], // for operators 1-3 only first value matters
         slotIndex: 0,
         queryHash: "",
-        circuitIds: ["credentialAtomicQueryV3OnChain-beta.1"],
+        circuitIds: [CIRCUIT_ID_V3],
         allowedIssuers: [],
         skipClaimRevocationCheck: false,
         verifierID: verifierId.bigInt(),

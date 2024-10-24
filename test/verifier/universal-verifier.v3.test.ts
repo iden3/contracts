@@ -4,6 +4,7 @@ import { packV3ValidatorParams } from "../utils/validator-pack-utils";
 import { prepareInputs, publishState } from "../utils/state-utils";
 import { calculateQueryHashV3 } from "../utils/query-hash-utils";
 import { expect } from "chai";
+import { CIRCUIT_ID_V3 } from "../../helpers/constants";
 
 describe("Universal Verifier V3 validator", function () {
   let verifier: any, v3: any, state: any;
@@ -39,7 +40,7 @@ describe("Universal Verifier V3 validator", function () {
     operator,
     slotIndex,
     value,
-    circuitIds: ["credentialAtomicQueryV3OnChain-beta.1"],
+    circuitIds: [CIRCUIT_ID_V3],
     skipClaimRevocationCheck: false,
     queryHash,
     groupID: 1,
