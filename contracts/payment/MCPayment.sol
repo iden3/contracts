@@ -106,11 +106,11 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         $.ownerPercentage = ownerPercentage;
     }
 
-    function payNativeCurrency(
+    function pay(
         Iden3PaymentRailsRequestV1 memory paymentData,
         bytes memory signature
     ) external payable {
-        verifyNativeCurrencySignature(paymentData, signature);
+        verifyIden3PaymentRailsRequestV1Signature(paymentData, signature);
         bytes32 paymentId = keccak256(abi.encode(paymentData.recipient, paymentData.nonce));
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         if ($.isPaid[paymentId]) {
@@ -145,11 +145,11 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         $.isPaid[paymentId] = true;
     }
 
-    function payERC20Token(
+    function payERC20(
         Iden3PaymentRailsERC20RequestV1 memory paymentData,
         bytes memory signature
     ) external {
-        verifyERC20Signature(paymentData, signature);
+        verifyIden3PaymentRailsERC20RequestV1Signature(paymentData, signature);
         IERC20 token = IERC20(paymentData.tokenAddress);
         if (token.transferFrom(msg.sender, address(this), paymentData.amount)) {
             MCPaymentStorage storage $ = _getMCPaymentStorage();
@@ -172,7 +172,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         return $.isPaid[keccak256(abi.encode(recipient, nonce))];
     }
 
-    function verifyNativeCurrencySignature(
+    function verifyIden3PaymentRailsRequestV1Signature(
         Iden3PaymentRailsRequestV1 memory paymentData,
         bytes memory signature
     ) public view {
@@ -191,7 +191,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         }
     }
 
-    function verifyERC20Signature(
+    function verifyIden3PaymentRailsERC20RequestV1Signature(
         Iden3PaymentRailsERC20RequestV1 memory paymentData,
         bytes memory signature
     ) public view {

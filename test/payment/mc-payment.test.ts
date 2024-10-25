@@ -59,9 +59,11 @@ describe("MC Payment Contract", () => {
     const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
     const verifyGas = await payment
       .connect(userSigner)
-      .verifyNativeCurrencySignature.estimateGas(paymentData, signature);
+      .verifyIden3PaymentRailsRequestV1Signature.estimateGas(paymentData, signature);
     console.log("Verification Gas: " + verifyGas);
-    await payment.connect(userSigner).verifyNativeCurrencySignature(paymentData, signature);
+    await payment
+      .connect(userSigner)
+      .verifyIden3PaymentRailsRequestV1Signature(paymentData, signature);
   });
 
   it("Check payment:", async () => {
@@ -74,14 +76,12 @@ describe("MC Payment Contract", () => {
     };
     const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
 
-    const gas = await payment
-      .connect(userSigner)
-      .payNativeCurrency.estimateGas(paymentData, signature, {
-        value: 100,
-      });
+    const gas = await payment.connect(userSigner).pay.estimateGas(paymentData, signature, {
+      value: 100,
+    });
     console.log("Payment Gas: " + gas);
 
-    await payment.connect(userSigner).payNativeCurrency(paymentData, signature, {
+    await payment.connect(userSigner).pay(paymentData, signature, {
       value: 100,
     });
 
@@ -156,7 +156,7 @@ describe("MC Payment Contract", () => {
     // break signature
     signature = signature.slice(0, -1).concat("0");
     await expect(
-      payment.connect(userSigner).payNativeCurrency(paymentData, signature, {
+      payment.connect(userSigner).pay(paymentData, signature, {
         value: 100,
       }),
     ).to.be.revertedWithCustomError(payment, "InvalidSignature");
@@ -172,7 +172,7 @@ describe("MC Payment Contract", () => {
     };
     const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
     await expect(
-      payment.connect(userSigner).payNativeCurrency(paymentData, signature, {
+      payment.connect(userSigner).pay(paymentData, signature, {
         value: 50,
       }),
     ).to.be.revertedWithCustomError(payment, "PaymentError");
@@ -188,12 +188,12 @@ describe("MC Payment Contract", () => {
     };
     const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
 
-    await payment.connect(userSigner).payNativeCurrency(paymentData, signature, {
+    await payment.connect(userSigner).pay(paymentData, signature, {
       value: 100,
     });
 
     await expect(
-      payment.connect(userSigner).payNativeCurrency(paymentData, signature, {
+      payment.connect(userSigner).pay(paymentData, signature, {
         value: 100,
       }),
     ).to.be.revertedWithCustomError(payment, "PaymentError");
@@ -209,7 +209,7 @@ describe("MC Payment Contract", () => {
     };
     const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
     await expect(
-      payment.connect(userSigner).payNativeCurrency(paymentData, signature, {
+      payment.connect(userSigner).pay(paymentData, signature, {
         value: 100,
       }),
     ).to.be.revertedWithCustomError(payment, "PaymentError");
@@ -239,10 +239,10 @@ describe("MC Payment Contract", () => {
     const signature = await issuer1Signer.signTypedData(domainData, erc20types, paymentData);
     const erc20PaymentGas = await payment
       .connect(userSigner)
-      .payERC20Token.estimateGas(paymentData, signature);
+      .payERC20.estimateGas(paymentData, signature);
     console.log("ERC-20 Payment Gas: " + erc20PaymentGas);
 
-    await payment.connect(userSigner).payERC20Token(paymentData, signature);
+    await payment.connect(userSigner).payERC20(paymentData, signature);
 
     expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(90);
     // 10 - 10% owner fee = 9
@@ -273,7 +273,7 @@ describe("MC Payment Contract", () => {
     // break signature
     signature = signature.slice(0, -1).concat("0");
     await expect(
-      payment.connect(userSigner).payERC20Token(paymentData, signature),
+      payment.connect(userSigner).payERC20(paymentData, signature),
     ).to.be.revertedWithCustomError(payment, "InvalidSignature");
 
     // no changes in balance and payment status not done
@@ -300,7 +300,7 @@ describe("MC Payment Contract", () => {
 
     const signature = await issuer1Signer.signTypedData(domainData, erc20types, paymentData);
     await expect(
-      payment.connect(userSigner).payERC20Token(paymentData, signature),
+      payment.connect(userSigner).payERC20(paymentData, signature),
     ).to.be.revertedWithCustomError(token, "ERC20InsufficientAllowance");
 
     expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
