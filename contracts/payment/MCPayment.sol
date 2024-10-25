@@ -106,7 +106,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         $.ownerPercentage = ownerPercentage;
     }
 
-    function nativeCurrencyPayment(
+    function payNativeCurrency(
         Iden3PaymentRailsRequestV1 memory paymentData,
         bytes memory signature
     ) external payable {
@@ -145,7 +145,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         $.isPaid[paymentId] = true;
     }
 
-    function erc20Payment(
+    function payERC20Token(
         Iden3PaymentRailsERC20RequestV1 memory paymentData,
         bytes memory signature
     ) external {
@@ -186,7 +186,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
                 keccak256(paymentData.metadata)
             )
         );
-        if (!isSignatureValid(structHash, signature, paymentData.recipient)) {
+        if (!_isSignatureValid(structHash, signature, paymentData.recipient)) {
             revert InvalidSignature("MCPayment: invalid signature for Iden3PaymentRailsRequestV1");
         }
     }
@@ -207,14 +207,14 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
             )
         );
 
-        if (!isSignatureValid(structHash, signature, paymentData.recipient)) {
+        if (!_isSignatureValid(structHash, signature, paymentData.recipient)) {
             revert InvalidSignature(
                 "MCPayment: invalid signature for Iden3PaymentRailsERC20RequestV1"
             );
         }
     }
 
-    function isSignatureValid(
+    function _isSignatureValid(
         bytes32 structHash,
         bytes memory signature,
         address recipient
