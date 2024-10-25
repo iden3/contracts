@@ -106,11 +106,11 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         $.ownerPercentage = ownerPercentage;
     }
 
-    function pay(
+    function nativeCurrencyPayment(
         Iden3PaymentRailsRequestV1 memory paymentData,
         bytes memory signature
     ) external payable {
-        verifySignature(paymentData, signature);
+        verifyNativeCurrencySignature(paymentData, signature);
         bytes32 paymentId = keccak256(abi.encode(paymentData.recipient, paymentData.nonce));
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         if ($.isPaid[paymentId]) {
@@ -172,7 +172,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         return $.isPaid[keccak256(abi.encode(recipient, nonce))];
     }
 
-    function verifySignature(
+    function verifyNativeCurrencySignature(
         Iden3PaymentRailsRequestV1 memory paymentData,
         bytes memory signature
     ) public view {
@@ -186,11 +186,8 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
                 keccak256(paymentData.metadata)
             )
         );
-        bytes32 hashTypedData = _hashTypedDataV4(structHash);
-        (address recovered, ECDSA.RecoverError err, ) = hashTypedData.tryRecover(signature);
-
-        if (err != ECDSA.RecoverError.NoError || recovered != paymentData.recipient) {
-            revert InvalidSignature("MCPayment: invalid signature");
+        if (!isSignatureValid(structHash, signature, paymentData.recipient)) {
+            revert InvalidSignature("MCPayment: invalid signature for Iden3PaymentRailsRequestV1");
         }
     }
 
@@ -209,12 +206,27 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
                 keccak256(paymentData.metadata)
             )
         );
+
+        if (!isSignatureValid(structHash, signature, paymentData.recipient)) {
+            revert InvalidSignature(
+                "MCPayment: invalid signature for Iden3PaymentRailsERC20RequestV1"
+            );
+        }
+    }
+
+    function isSignatureValid(
+        bytes32 structHash,
+        bytes memory signature,
+        address recipient
+    ) internal view returns (bool) {
         bytes32 hashTypedData = _hashTypedDataV4(structHash);
         (address recovered, ECDSA.RecoverError err, ) = hashTypedData.tryRecover(signature);
 
-        if (err != ECDSA.RecoverError.NoError || recovered != paymentData.recipient) {
-            revert InvalidSignature("MCPayment: invalid signature");
+        if (err != ECDSA.RecoverError.NoError || recovered != recipient) {
+            return false;
         }
+
+        return true;
     }
 
     function getBalance(address recipient) public view returns (uint256) {

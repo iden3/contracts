@@ -59,9 +59,9 @@ describe("MC Payment Contract", () => {
     const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
     const verifyGas = await payment
       .connect(userSigner)
-      .verifySignature.estimateGas(paymentData, signature);
+      .verifyNativeCurrencySignature.estimateGas(paymentData, signature);
     console.log("Verification Gas: " + verifyGas);
-    await payment.connect(userSigner).verifySignature(paymentData, signature);
+    await payment.connect(userSigner).verifyNativeCurrencySignature(paymentData, signature);
   });
 
   it("Check payment:", async () => {
@@ -74,12 +74,14 @@ describe("MC Payment Contract", () => {
     };
     const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
 
-    const gas = await payment.connect(userSigner).pay.estimateGas(paymentData, signature, {
-      value: 100,
-    });
+    const gas = await payment
+      .connect(userSigner)
+      .nativeCurrencyPayment.estimateGas(paymentData, signature, {
+        value: 100,
+      });
     console.log("Payment Gas: " + gas);
 
-    await payment.connect(userSigner).pay(paymentData, signature, {
+    await payment.connect(userSigner).nativeCurrencyPayment(paymentData, signature, {
       value: 100,
     });
 
@@ -154,7 +156,7 @@ describe("MC Payment Contract", () => {
     // break signature
     signature = signature.slice(0, -1).concat("0");
     await expect(
-      payment.connect(userSigner).pay(paymentData, signature, {
+      payment.connect(userSigner).nativeCurrencyPayment(paymentData, signature, {
         value: 100,
       }),
     ).to.be.revertedWithCustomError(payment, "InvalidSignature");
@@ -170,7 +172,7 @@ describe("MC Payment Contract", () => {
     };
     const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
     await expect(
-      payment.connect(userSigner).pay(paymentData, signature, {
+      payment.connect(userSigner).nativeCurrencyPayment(paymentData, signature, {
         value: 50,
       }),
     ).to.be.revertedWithCustomError(payment, "PaymentError");
@@ -186,12 +188,12 @@ describe("MC Payment Contract", () => {
     };
     const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
 
-    await payment.connect(userSigner).pay(paymentData, signature, {
+    await payment.connect(userSigner).nativeCurrencyPayment(paymentData, signature, {
       value: 100,
     });
 
     await expect(
-      payment.connect(userSigner).pay(paymentData, signature, {
+      payment.connect(userSigner).nativeCurrencyPayment(paymentData, signature, {
         value: 100,
       }),
     ).to.be.revertedWithCustomError(payment, "PaymentError");
@@ -207,7 +209,7 @@ describe("MC Payment Contract", () => {
     };
     const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
     await expect(
-      payment.connect(userSigner).pay(paymentData, signature, {
+      payment.connect(userSigner).nativeCurrencyPayment(paymentData, signature, {
         value: 100,
       }),
     ).to.be.revertedWithCustomError(payment, "PaymentError");
