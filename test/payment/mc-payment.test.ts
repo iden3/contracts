@@ -28,6 +28,18 @@ describe("MC Payment Contract", () => {
     ],
   };
 
+  const eip2612types = {
+    Iden3PaymentRailsEIP2612RequestV1: [
+      { name: "permitSignature", type: "bytes" },
+      { name: "tokenAddress", type: "address" },
+      { name: "recipient", type: "address" },
+      { name: "amount", type: "uint256" },
+      { name: "expirationDate", type: "uint256" },
+      { name: "nonce", type: "uint256" },
+      { name: "metadata", type: "bytes" },
+    ],
+  };
+
   beforeEach(async () => {
     const signers = await ethers.getSigners();
     issuer1Signer = signers[1];
@@ -308,4 +320,160 @@ describe("MC Payment Contract", () => {
     expect(await token.balanceOf(await payment.getAddress())).to.be.eq(0);
     expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.false;
   });
+
+  it("EIP-2612 payment:", async () => {
+    const tokenFactory = await ethers.getContractFactory("ERC20PermitToken", owner);
+    const token = await tokenFactory.deploy(1_000);
+    await token.connect(owner).transfer(await userSigner.getAddress(), 100);
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
+
+    const paymentAmount = 10n;
+    const permitSignature = await getPermitSignature(
+      userSigner,
+      await token.getAddress(),
+      await payment.getAddress(),
+      paymentAmount,
+      0n,
+      Math.round(new Date().getTime() / 1000) + 60 * 60,
+    );
+
+    const paymentData = {
+      permitSignature,
+      tokenAddress: await token.getAddress(),
+      recipient: issuer1Signer.address,
+      amount: paymentAmount,
+      expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60, // 1 hour
+      nonce: 35,
+      metadata: "0x",
+    };
+
+    const signature = await issuer1Signer.signTypedData(domainData, eip2612types, paymentData);
+    const eip2612PaymentGas = await payment
+      .connect(userSigner)
+      .payEIP2612.estimateGas(paymentData, signature);
+    console.log("EIP-2612 Payment Gas: " + eip2612PaymentGas);
+
+    await payment.connect(userSigner).payEIP2612(paymentData, signature);
+
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(90);
+    // 10 - 10% owner fee = 9
+    expect(await token.balanceOf(await issuer1Signer.getAddress())).to.be.eq(9);
+    expect(await token.balanceOf(await payment.getAddress())).to.be.eq(1);
+
+    expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
+  });
+
+  it("EIP-2612 payment - invalid permit signature length:", async () => {
+    const tokenFactory = await ethers.getContractFactory("ERC20PermitToken", owner);
+    const token = await tokenFactory.deploy(1_000);
+    await token.connect(owner).transfer(await userSigner.getAddress(), 100);
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
+
+    const paymentAmount = 10n;
+    let permitSignature = await getPermitSignature(
+      userSigner,
+      await token.getAddress(),
+      await payment.getAddress(),
+      paymentAmount,
+      0n,
+      Math.round(new Date().getTime() / 1000) + 60 * 60,
+    );
+
+    permitSignature += "00"; // add 1 byte to the signature
+    const paymentData = {
+      permitSignature,
+      tokenAddress: await token.getAddress(),
+      recipient: issuer1Signer.address,
+      amount: paymentAmount,
+      expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60, // 1 hour
+      nonce: 35,
+      metadata: "0x",
+    };
+
+    const signature = await issuer1Signer.signTypedData(domainData, eip2612types, paymentData);
+
+    await expect(
+      payment.connect(userSigner).payEIP2612(paymentData, signature),
+    ).to.be.revertedWithCustomError(payment, "ECDSAInvalidSignatureLength");
+
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
+    expect(await token.balanceOf(await issuer1Signer.getAddress())).to.be.eq(0);
+    expect(await token.balanceOf(await payment.getAddress())).to.be.eq(0);
+    expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.false;
+  });
+
+  it("EIP-2612 payment - invalid signature:", async () => {
+    const tokenFactory = await ethers.getContractFactory("ERC20PermitToken", owner);
+    const token = await tokenFactory.deploy(1_000);
+    await token.connect(owner).transfer(await userSigner.getAddress(), 100);
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
+
+    const paymentAmount = 10n;
+    const permitSignature = await getPermitSignature(
+      userSigner,
+      await token.getAddress(),
+      await payment.getAddress(),
+      paymentAmount,
+      0n,
+      Math.round(new Date().getTime() / 1000) + 60 * 60,
+    );
+
+    const paymentData = {
+      permitSignature,
+      tokenAddress: await token.getAddress(),
+      recipient: issuer1Signer.address,
+      amount: paymentAmount,
+      expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60, // 1 hour
+      nonce: 35,
+      metadata: "0x",
+    };
+
+    let signature = await issuer1Signer.signTypedData(domainData, eip2612types, paymentData);
+    signature += "00"; // add 1 byte to the signature
+
+    await expect(
+      payment.connect(userSigner).payEIP2612(paymentData, signature),
+    ).to.be.revertedWithCustomError(payment, "InvalidSignature");
+
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
+    expect(await token.balanceOf(await issuer1Signer.getAddress())).to.be.eq(0);
+    expect(await token.balanceOf(await payment.getAddress())).to.be.eq(0);
+    expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.false;
+  });
 });
+
+async function getPermitSignature(
+  signer: Signer, // User who owns the tokens
+  tokenAddress: string, // EIP-2612 contract address
+  spender: string, // The contract address that will spend tokens
+  value: bigint, // Amount of tokens to approve
+  nonce: bigint, // Nonce (can be retrieved from EIP-2612 contract)
+  deadline: number, // Timestamp when the permit expires
+) {
+  const domain = {
+    name: "TEST",
+    version: "1",
+    chainId: 31337,
+    verifyingContract: tokenAddress,
+  };
+
+  const types = {
+    Permit: [
+      { name: "owner", type: "address" },
+      { name: "spender", type: "address" },
+      { name: "value", type: "uint256" },
+      { name: "nonce", type: "uint256" },
+      { name: "deadline", type: "uint256" },
+    ],
+  };
+
+  const message = {
+    owner: await signer.getAddress(),
+    spender: spender,
+    value: value,
+    nonce: nonce,
+    deadline: deadline,
+  };
+
+  return signer.signTypedData(domain, types, message);
+}

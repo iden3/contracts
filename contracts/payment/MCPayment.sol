@@ -5,6 +5,7 @@ import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/acces
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 
 contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     using ECDSA for bytes32;
@@ -25,6 +26,12 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
             "Iden3PaymentRailsERC20RequestV1(address tokenAddress,address recipient,uint256 amount,uint256 expirationDate,uint256 nonce,bytes metadata)"
         );
 
+    bytes32 public constant EIP_2612_PAYMENT_DATA_TYPE_HASH =
+        keccak256(
+            // solhint-disable-next-line max-line-length
+            "Iden3PaymentRailsEIP2612RequestV1(bytes permitSignature,address tokenAddress,address recipient,uint256 amount,uint256 expirationDate,uint256 nonce,bytes metadata)"
+        );
+
     struct Iden3PaymentRailsRequestV1 {
         address recipient;
         uint256 amount;
@@ -34,6 +41,16 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     }
 
     struct Iden3PaymentRailsERC20RequestV1 {
+        address tokenAddress;
+        address recipient;
+        uint256 amount;
+        uint256 expirationDate;
+        uint256 nonce;
+        bytes metadata;
+    }
+
+    struct Iden3PaymentRailsEIP2612RequestV1 {
+        bytes permitSignature;
         address tokenAddress;
         address recipient;
         uint256 amount;
@@ -70,6 +87,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     error PaymentError(address recipient, uint256 nonce, string message);
     error WithdrawError(string message);
     error InvalidOwnerPercentage(string message);
+    error ECDSAInvalidSignatureLength(string message);
 
     /**
      * @dev Valid percent value modifier
@@ -167,6 +185,55 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         }
     }
 
+    function payEIP2612(
+        Iden3PaymentRailsEIP2612RequestV1 memory paymentData,
+        bytes memory signature
+    ) external {
+        verifyIden3PaymentRailsEIP2612RequestV1Signature(paymentData, signature);
+        ERC20Permit token = ERC20Permit(paymentData.tokenAddress);
+        bytes memory permitSignature = paymentData.permitSignature;
+        if (permitSignature.length != 65) {
+            revert ECDSAInvalidSignatureLength("MCPayment: invalid permit signature length");
+        }
+
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        // ecrecover takes the signature parameters, and the only way to get them
+        // currently is to use assembly.
+        /// @solidity memory-safe-assembly
+        assembly {
+            r := mload(add(permitSignature, 0x20))
+            s := mload(add(permitSignature, 0x40))
+            v := byte(0, mload(add(permitSignature, 0x60)))
+        }
+
+        token.permit(
+            msg.sender,
+            address(this),
+            paymentData.amount,
+            paymentData.expirationDate,
+            v,
+            r,
+            s
+        );
+
+        if (token.transferFrom(msg.sender, address(this), paymentData.amount)) {
+            MCPaymentStorage storage $ = _getMCPaymentStorage();
+            uint256 ownerPart = (paymentData.amount * $.ownerPercentage) / 100;
+            uint256 issuerPart = paymentData.amount - ownerPart;
+            token.transfer(paymentData.recipient, issuerPart);
+            emit Payment(paymentData.recipient, paymentData.nonce);
+            $.isPaid[keccak256(abi.encode(paymentData.recipient, paymentData.nonce))] = true;
+        } else {
+            revert PaymentError(
+                paymentData.recipient,
+                paymentData.nonce,
+                "MCPayment: EIP-2612 transfer failed"
+            );
+        }
+    }
+
     function isPaymentDone(address recipient, uint256 nonce) external view returns (bool) {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         return $.isPaid[keccak256(abi.encode(recipient, nonce))];
@@ -210,6 +277,30 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         if (!_isSignatureValid(structHash, signature, paymentData.recipient)) {
             revert InvalidSignature(
                 "MCPayment: invalid signature for Iden3PaymentRailsERC20RequestV1"
+            );
+        }
+    }
+
+    function verifyIden3PaymentRailsEIP2612RequestV1Signature(
+        Iden3PaymentRailsEIP2612RequestV1 memory paymentData,
+        bytes memory signature
+    ) public view {
+        bytes32 structHash = keccak256(
+            abi.encode(
+                EIP_2612_PAYMENT_DATA_TYPE_HASH,
+                keccak256(paymentData.permitSignature),
+                paymentData.tokenAddress,
+                paymentData.recipient,
+                paymentData.amount,
+                paymentData.expirationDate,
+                paymentData.nonce,
+                keccak256(paymentData.metadata)
+            )
+        );
+
+        if (!_isSignatureValid(structHash, signature, paymentData.recipient)) {
+            revert InvalidSignature(
+                "MCPayment: invalid signature for Iden3PaymentRailsEIP2612RequestV1"
             );
         }
     }
