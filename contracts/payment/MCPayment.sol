@@ -29,7 +29,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     bytes32 public constant EIP_2612_PAYMENT_DATA_TYPE_HASH =
         keccak256(
             // solhint-disable-next-line max-line-length
-            "Iden3PaymentRailsEIP2612RequestV1(bytes permitSignature,address tokenAddress,address recipient,uint256 amount,uint256 expirationDate,uint256 nonce,bytes metadata)"
+            "Iden3PaymentRailsERC20PermitRequestV1(bytes permitSignature,address tokenAddress,address recipient,uint256 amount,uint256 expirationDate,uint256 nonce,bytes metadata)"
         );
 
     struct Iden3PaymentRailsRequestV1 {
@@ -49,7 +49,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         bytes metadata;
     }
 
-    struct Iden3PaymentRailsEIP2612RequestV1 {
+    struct Iden3PaymentRailsERC20PermitRequestV1 {
         bytes permitSignature;
         address tokenAddress;
         address recipient;
@@ -185,11 +185,11 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         }
     }
 
-    function payEIP2612(
-        Iden3PaymentRailsEIP2612RequestV1 memory paymentData,
+    function payERC20Permit(
+        Iden3PaymentRailsERC20PermitRequestV1 memory paymentData,
         bytes memory signature
     ) external {
-        verifyIden3PaymentRailsEIP2612RequestV1Signature(paymentData, signature);
+        verifyIden3PaymentRailsERC20PermitRequestV1Signature(paymentData, signature);
         ERC20Permit token = ERC20Permit(paymentData.tokenAddress);
         bytes memory permitSignature = paymentData.permitSignature;
         if (permitSignature.length != 65) {
@@ -281,8 +281,8 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         }
     }
 
-    function verifyIden3PaymentRailsEIP2612RequestV1Signature(
-        Iden3PaymentRailsEIP2612RequestV1 memory paymentData,
+    function verifyIden3PaymentRailsERC20PermitRequestV1Signature(
+        Iden3PaymentRailsERC20PermitRequestV1 memory paymentData,
         bytes memory signature
     ) public view {
         bytes32 structHash = keccak256(
@@ -300,7 +300,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
 
         if (!_isSignatureValid(structHash, signature, paymentData.recipient)) {
             revert InvalidSignature(
-                "MCPayment: invalid signature for Iden3PaymentRailsEIP2612RequestV1"
+                "MCPayment: invalid signature for Iden3PaymentRailsERC20PermitRequestV1"
             );
         }
     }

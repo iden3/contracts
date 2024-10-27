@@ -28,8 +28,8 @@ describe("MC Payment Contract", () => {
     ],
   };
 
-  const eip2612types = {
-    Iden3PaymentRailsEIP2612RequestV1: [
+  const erc20PermitTypes = {
+    Iden3PaymentRailsERC20PermitRequestV1: [
       { name: "permitSignature", type: "bytes" },
       { name: "tokenAddress", type: "address" },
       { name: "recipient", type: "address" },
@@ -227,7 +227,7 @@ describe("MC Payment Contract", () => {
     ).to.be.revertedWithCustomError(payment, "PaymentError");
   });
 
-  it("ERC20 payment:", async () => {
+  it("ERC-20 payment:", async () => {
     const tokenFactory = await ethers.getContractFactory("ERC20Token", owner);
     const token = await tokenFactory.deploy(1_000);
     await token.connect(owner).transfer(await userSigner.getAddress(), 100);
@@ -264,7 +264,7 @@ describe("MC Payment Contract", () => {
     expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
   });
 
-  it("ERC20 payment - invalid signature", async () => {
+  it("ERC-20 payment - invalid signature", async () => {
     const tokenFactory = await ethers.getContractFactory("ERC20Token", owner);
     const token = await tokenFactory.deploy(1_000);
     await token.connect(owner).transfer(await userSigner.getAddress(), 100);
@@ -295,7 +295,7 @@ describe("MC Payment Contract", () => {
     expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.false;
   });
 
-  it("ERC20 payment - call erc20Payment without approval", async () => {
+  it("ERC-20 payment - call erc20Payment without approval", async () => {
     const tokenFactory = await ethers.getContractFactory("ERC20Token", owner);
     const token = await tokenFactory.deploy(1_000);
     await token.connect(owner).transfer(await userSigner.getAddress(), 100);
@@ -321,7 +321,7 @@ describe("MC Payment Contract", () => {
     expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.false;
   });
 
-  it("EIP-2612 payment:", async () => {
+  it("ERC-20 Permit (EIP-2612) payment:", async () => {
     const tokenFactory = await ethers.getContractFactory("ERC20PermitToken", owner);
     const token = await tokenFactory.deploy(1_000);
     await token.connect(owner).transfer(await userSigner.getAddress(), 100);
@@ -347,13 +347,13 @@ describe("MC Payment Contract", () => {
       metadata: "0x",
     };
 
-    const signature = await issuer1Signer.signTypedData(domainData, eip2612types, paymentData);
+    const signature = await issuer1Signer.signTypedData(domainData, erc20PermitTypes, paymentData);
     const eip2612PaymentGas = await payment
       .connect(userSigner)
-      .payEIP2612.estimateGas(paymentData, signature);
+      .payERC20Permit.estimateGas(paymentData, signature);
     console.log("EIP-2612 Payment Gas: " + eip2612PaymentGas);
 
-    await payment.connect(userSigner).payEIP2612(paymentData, signature);
+    await payment.connect(userSigner).payERC20Permit(paymentData, signature);
 
     expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(90);
     // 10 - 10% owner fee = 9
@@ -363,7 +363,7 @@ describe("MC Payment Contract", () => {
     expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
   });
 
-  it("EIP-2612 payment - invalid permit signature length:", async () => {
+  it("ERC-20 Permit (EIP-2612) payment - invalid permit signature length:", async () => {
     const tokenFactory = await ethers.getContractFactory("ERC20PermitToken", owner);
     const token = await tokenFactory.deploy(1_000);
     await token.connect(owner).transfer(await userSigner.getAddress(), 100);
@@ -390,10 +390,10 @@ describe("MC Payment Contract", () => {
       metadata: "0x",
     };
 
-    const signature = await issuer1Signer.signTypedData(domainData, eip2612types, paymentData);
+    const signature = await issuer1Signer.signTypedData(domainData, erc20PermitTypes, paymentData);
 
     await expect(
-      payment.connect(userSigner).payEIP2612(paymentData, signature),
+      payment.connect(userSigner).payERC20Permit(paymentData, signature),
     ).to.be.revertedWithCustomError(payment, "ECDSAInvalidSignatureLength");
 
     expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
@@ -402,7 +402,7 @@ describe("MC Payment Contract", () => {
     expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.false;
   });
 
-  it("EIP-2612 payment - invalid signature:", async () => {
+  it("ERC-20 Permit (EIP-2612) payment - invalid signature:", async () => {
     const tokenFactory = await ethers.getContractFactory("ERC20PermitToken", owner);
     const token = await tokenFactory.deploy(1_000);
     await token.connect(owner).transfer(await userSigner.getAddress(), 100);
@@ -428,11 +428,11 @@ describe("MC Payment Contract", () => {
       metadata: "0x",
     };
 
-    let signature = await issuer1Signer.signTypedData(domainData, eip2612types, paymentData);
+    let signature = await issuer1Signer.signTypedData(domainData, erc20PermitTypes, paymentData);
     signature += "00"; // add 1 byte to the signature
 
     await expect(
-      payment.connect(userSigner).payEIP2612(paymentData, signature),
+      payment.connect(userSigner).payERC20Permit(paymentData, signature),
     ).to.be.revertedWithCustomError(payment, "InvalidSignature");
 
     expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
