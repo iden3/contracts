@@ -28,18 +28,6 @@ describe("MC Payment Contract", () => {
     ],
   };
 
-  const erc20PermitTypes = {
-    Iden3PaymentRailsERC20PermitRequestV1: [
-      { name: "permitSignature", type: "bytes" },
-      { name: "tokenAddress", type: "address" },
-      { name: "recipient", type: "address" },
-      { name: "amount", type: "uint256" },
-      { name: "expirationDate", type: "uint256" },
-      { name: "nonce", type: "uint256" },
-      { name: "metadata", type: "bytes" },
-    ],
-  };
-
   beforeEach(async () => {
     const signers = await ethers.getSigners();
     issuer1Signer = signers[1];
@@ -338,7 +326,6 @@ describe("MC Payment Contract", () => {
     );
 
     const paymentData = {
-      permitSignature,
       tokenAddress: await token.getAddress(),
       recipient: issuer1Signer.address,
       amount: paymentAmount,
@@ -347,13 +334,13 @@ describe("MC Payment Contract", () => {
       metadata: "0x",
     };
 
-    const signature = await issuer1Signer.signTypedData(domainData, erc20PermitTypes, paymentData);
+    const signature = await issuer1Signer.signTypedData(domainData, erc20types, paymentData);
     const eip2612PaymentGas = await payment
       .connect(userSigner)
-      .payERC20Permit.estimateGas(paymentData, signature);
+      .payERC20Permit.estimateGas(permitSignature, paymentData, signature);
     console.log("EIP-2612 Payment Gas: " + eip2612PaymentGas);
 
-    await payment.connect(userSigner).payERC20Permit(paymentData, signature);
+    await payment.connect(userSigner).payERC20Permit(permitSignature, paymentData, signature);
 
     expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(90);
     // 10 - 10% owner fee = 9
@@ -381,7 +368,6 @@ describe("MC Payment Contract", () => {
 
     permitSignature += "00"; // add 1 byte to the signature
     const paymentData = {
-      permitSignature,
       tokenAddress: await token.getAddress(),
       recipient: issuer1Signer.address,
       amount: paymentAmount,
@@ -390,10 +376,10 @@ describe("MC Payment Contract", () => {
       metadata: "0x",
     };
 
-    const signature = await issuer1Signer.signTypedData(domainData, erc20PermitTypes, paymentData);
+    const signature = await issuer1Signer.signTypedData(domainData, erc20types, paymentData);
 
     await expect(
-      payment.connect(userSigner).payERC20Permit(paymentData, signature),
+      payment.connect(userSigner).payERC20Permit(permitSignature, paymentData, signature),
     ).to.be.revertedWithCustomError(payment, "ECDSAInvalidSignatureLength");
 
     expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
@@ -419,7 +405,6 @@ describe("MC Payment Contract", () => {
     );
 
     const paymentData = {
-      permitSignature,
       tokenAddress: await token.getAddress(),
       recipient: issuer1Signer.address,
       amount: paymentAmount,
@@ -428,11 +413,11 @@ describe("MC Payment Contract", () => {
       metadata: "0x",
     };
 
-    let signature = await issuer1Signer.signTypedData(domainData, erc20PermitTypes, paymentData);
+    let signature = await issuer1Signer.signTypedData(domainData, erc20types, paymentData);
     signature += "00"; // add 1 byte to the signature
 
     await expect(
-      payment.connect(userSigner).payERC20Permit(paymentData, signature),
+      payment.connect(userSigner).payERC20Permit(permitSignature, paymentData, signature),
     ).to.be.revertedWithCustomError(payment, "InvalidSignature");
 
     expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
