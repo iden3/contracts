@@ -152,14 +152,22 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         bytes memory signature
     ) external {
         verifyIden3PaymentRailsERC20RequestV1Signature(paymentData, signature);
+        bytes32 paymentId = keccak256(abi.encode(paymentData.recipient, paymentData.nonce));
+        MCPaymentStorage storage $ = _getMCPaymentStorage();
+        if ($.isPaid[paymentId]) {
+            revert PaymentError(
+                paymentData.recipient,
+                paymentData.nonce,
+                "MCPayment: payment already paid"
+            );
+        }
         IERC20 token = IERC20(paymentData.tokenAddress);
         if (token.transferFrom(msg.sender, address(this), paymentData.amount)) {
-            MCPaymentStorage storage $ = _getMCPaymentStorage();
             uint256 ownerPart = (paymentData.amount * $.ownerPercentage) / 100;
             uint256 issuerPart = paymentData.amount - ownerPart;
             token.transfer(paymentData.recipient, issuerPart);
             emit Payment(paymentData.recipient, paymentData.nonce);
-            $.isPaid[keccak256(abi.encode(paymentData.recipient, paymentData.nonce))] = true;
+            $.isPaid[paymentId] = true;
         } else {
             revert PaymentError(
                 paymentData.recipient,
@@ -175,6 +183,15 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         bytes memory signature
     ) external {
         verifyIden3PaymentRailsERC20RequestV1Signature(paymentData, signature);
+        bytes32 paymentId = keccak256(abi.encode(paymentData.recipient, paymentData.nonce));
+        MCPaymentStorage storage $ = _getMCPaymentStorage();
+        if ($.isPaid[paymentId]) {
+            revert PaymentError(
+                paymentData.recipient,
+                paymentData.nonce,
+                "MCPayment: payment already paid"
+            );
+        }
         ERC20Permit token = ERC20Permit(paymentData.tokenAddress);
         if (permitSignature.length != 65) {
             revert ECDSAInvalidSignatureLength("MCPayment: invalid permit signature length");
@@ -203,12 +220,11 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         );
 
         if (token.transferFrom(msg.sender, address(this), paymentData.amount)) {
-            MCPaymentStorage storage $ = _getMCPaymentStorage();
             uint256 ownerPart = (paymentData.amount * $.ownerPercentage) / 100;
             uint256 issuerPart = paymentData.amount - ownerPart;
             token.transfer(paymentData.recipient, issuerPart);
             emit Payment(paymentData.recipient, paymentData.nonce);
-            $.isPaid[keccak256(abi.encode(paymentData.recipient, paymentData.nonce))] = true;
+            $.isPaid[paymentId] = true;
         } else {
             revert PaymentError(
                 paymentData.recipient,
