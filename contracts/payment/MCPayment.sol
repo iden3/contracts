@@ -213,7 +213,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
             revert PaymentError(
                 paymentData.recipient,
                 paymentData.nonce,
-                "MCPayment: EIP-2612 transfer failed"
+                "MCPayment: ERC-20 Permit transfer failed"
             );
         }
     }
