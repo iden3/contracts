@@ -439,10 +439,7 @@ contract State is Ownable2StepUpgradeable, IState {
      * @param state State of the identity
      * @return replacedAt The timestamp when the state of the identity was replaced by another state
      */
-    function getStateReplacedAt(
-        uint256 id,
-        uint256 state
-    ) external view returns (uint256) {
+    function getStateReplacedAt(uint256 id, uint256 state) external view returns (uint256) {
         if (isIdTypeSupported(GenesisUtils.getIdType(id))) {
             if (_stateData.stateExists(id, state)) {
                 return _stateData.getStateInfoByIdAndState(id, state).replacedAtTimestamp;
@@ -470,10 +467,7 @@ contract State is Ownable2StepUpgradeable, IState {
      * @param root GIST root
      * @return replacedAt The timestamp when the GIST root was replaced by another root
      */
-    function getGistRootReplacedAt(
-        bytes2 idType,
-        uint256 root
-    ) external view returns (uint256) {
+    function getGistRootReplacedAt(bytes2 idType, uint256 root) external view returns (uint256) {
         if (isIdTypeSupported(idType)) {
             if (_gistData.rootExists(root)) {
                 return _gistData.getRootInfo(root).replacedAtTimestamp;
