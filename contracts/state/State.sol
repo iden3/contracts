@@ -443,21 +443,17 @@ contract State is Ownable2StepUpgradeable, IState {
         if (isIdTypeSupported(GenesisUtils.getIdType(id))) {
             if (_stateData.stateExists(id, state)) {
                 return _stateData.getStateInfoByIdAndState(id, state).replacedAtTimestamp;
-            } else {
-                if (GenesisUtils.isGenesisState(id, state)) {
-                    return 0;
-                } else {
-                    revert("State entry not found");
-                }
+            } else if (GenesisUtils.isGenesisState(id, state)) {
+                return 0;
             }
+            revert("State entry not found");
         } else {
             StateCrossChainStorage storage $ = _getStateCrossChainStorage();
             uint256 replacedAt = $._idToStateReplacedAt[id][state];
             if (replacedAt != 0) {
                 return replacedAt;
-            } else {
-                revert("Cross-chain state not found");
             }
+            revert("Cross-chain state not found");
         }
     }
 
@@ -471,17 +467,15 @@ contract State is Ownable2StepUpgradeable, IState {
         if (isIdTypeSupported(idType)) {
             if (_gistData.rootExists(root)) {
                 return _gistData.getRootInfo(root).replacedAtTimestamp;
-            } else {
-                revert("GIST root entry not found");
             }
+            revert("GIST root entry not found");
         } else {
             StateCrossChainStorage storage $ = _getStateCrossChainStorage();
             uint256 replacedAt = $._rootToGistRootReplacedAt[idType][root];
             if (replacedAt != 0) {
                 return replacedAt;
-            } else {
-                revert("Cross-chain GIST root not found");
             }
+            revert("Cross-chain GIST root not found");
         }
     }
 
