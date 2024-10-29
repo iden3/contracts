@@ -16,6 +16,8 @@ import {
   CredentialAtomicQueryV3ValidatorProxyModule,
   UniversalVerifierProxyModule,
   Groth16VerifierStateTransitionModule,
+  AuthV2ValidatorProxyModule,
+  Groth16VerifierAuthV2Module,
 } from "../ignition";
 import { chainIdInfoMap, contractsInfo } from "./constants";
 import {
@@ -563,7 +565,7 @@ export class DeployHelper {
     return g16Verifier;
   }
 
-  getGroth16VerifierWrapperName(verifierType: "mtpV2" | "sigV2" | "v3"): string {
+  getGroth16VerifierWrapperName(verifierType: "mtpV2" | "sigV2" | "v3" | "authV2"): string {
     let g16VerifierContractWrapperName;
     switch (verifierType) {
       case "mtpV2":
@@ -574,12 +576,14 @@ export class DeployHelper {
         break;
       case "v3":
         g16VerifierContractWrapperName = "Groth16VerifierV3Wrapper";
+      case "authV2":
+        g16VerifierContractWrapperName = "Groth16VerifierAuthV2Wrapper";
         break;
     }
     return g16VerifierContractWrapperName;
   }
 
-  getGroth16VerifierWrapperVerification(verifierType: "mtpV2" | "sigV2" | "v3"): {
+  getGroth16VerifierWrapperVerification(verifierType: "mtpV2" | "sigV2" | "v3" | "authV2"): {
     contract: string;
     constructorArgsImplementation: any[];
     constructorArgsProxy?: any[];
@@ -596,12 +600,14 @@ export class DeployHelper {
         break;
       case "v3":
         verification = contractsInfo.GROTH16_VERIFIER_V3.verificationOpts;
+      case "authV2":
+        verification = contractsInfo.GROTH16_VERIFIER_AUTH_V2.verificationOpts;
         break;
     }
     return verification;
   }
 
-  getValidatorVerification(verifierType: "mtpV2" | "sigV2" | "v3"): {
+  getValidatorVerification(verifierType: "mtpV2" | "sigV2" | "v3" | "authV2"): {
     contract: string;
     constructorArgsImplementation: any[];
     constructorArgsProxy?: any[];
@@ -618,13 +624,15 @@ export class DeployHelper {
         break;
       case "v3":
         verification = contractsInfo.VALIDATOR_V3.verificationOpts;
+      case "authV2":
+        verification = contractsInfo.VALIDATOR_AUTH_V2.verificationOpts;
         break;
     }
     return verification;
   }
 
   async deployGroth16VerifierWrapper(
-    verifierType: "mtpV2" | "sigV2" | "v3",
+    verifierType: "mtpV2" | "sigV2" | "v3" | "authV2",
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<Contract> {
     const g16VerifierContractWrapperName = this.getGroth16VerifierWrapperName(verifierType);
@@ -643,6 +651,8 @@ export class DeployHelper {
           break;
         case "v3":
           g16VerifierWrapperModule = Groth16VerifierV3WrapperModule;
+        case "authV2":
+          g16VerifierWrapperModule = Groth16VerifierAuthV2Module;
           break;
       }
 
@@ -674,7 +684,7 @@ export class DeployHelper {
   }
 
   async deployValidatorContractsWithVerifiers(
-    validatorType: "mtpV2" | "sigV2" | "v3",
+    validatorType: "mtpV2" | "sigV2" | "v3" | "authV2",
     stateAddress: string,
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<{
@@ -702,7 +712,7 @@ export class DeployHelper {
   }
 
   async deployValidatorContracts(
-    validatorType: "mtpV2" | "sigV2" | "v3",
+    validatorType: "mtpV2" | "sigV2" | "v3" | "authV2",
     stateAddress: string,
     groth16VerifierWrapperAddress: string,
     deployStrategy: "basic" | "create2" = "basic",
@@ -722,6 +732,9 @@ export class DeployHelper {
         break;
       case "v3":
         validatorContractName = "CredentialAtomicQueryV3Validator";
+        break;
+      case "authV2":
+        validatorContractName = "AuthV2Validator";
         break;
     }
 
@@ -746,6 +759,9 @@ export class DeployHelper {
           break;
         case "v3":
           validatorModule = CredentialAtomicQueryV3ValidatorProxyModule;
+          break;
+        case "authV2":
+          validatorModule = AuthV2ValidatorProxyModule;
           break;
       }
 

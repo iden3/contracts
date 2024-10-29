@@ -10,7 +10,8 @@ async function main() {
   const chainId = hre.network.config.chainId;
 
   const stateContractAddress = getStateContractAddress();
-  const validators: ("mtpV2" | "sigV2" | "v3")[] = ["mtpV2", "sigV2", "v3"];
+  const validators: ("mtpV2" | "sigV2" | "v3" | "authV2")[] = [
+    "authV2"];
   const groth16VerifierWrappers = [
     {
       validator: "mtpV2",
@@ -23,6 +24,10 @@ async function main() {
     {
       validator: "v3",
       verifierWrapper: contractsInfo.GROTH16_VERIFIER_V3.unifiedAddress,
+    },
+    {
+      validator: "authV2",
+      verifierWrapper: contractsInfo.GROTH16_VERIFIER_AUTH_V2.unifiedAddress,
     },
   ];
   const deployStrategy: "basic" | "create2" =

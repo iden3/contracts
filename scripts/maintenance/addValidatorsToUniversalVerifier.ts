@@ -25,6 +25,10 @@ async function main() {
       validatorContractAddress: contractsInfo.VALIDATOR_V3.unifiedAddress,
       validatorContractName: contractsInfo.VALIDATOR_V3.name,
     },
+    {
+      validatorContractAddress: contractsInfo.VALIDATOR_AUTH_V2.unifiedAddress,
+      validatorContractName: contractsInfo.VALIDATOR_AUTH_V2.name,
+    },
   ];
 
   for (const v of validators) {
