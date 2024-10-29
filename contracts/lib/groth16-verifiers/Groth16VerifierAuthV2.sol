@@ -18,7 +18,7 @@
     along with snarkJS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity >=0.7.0 <0.9.0;
+pragma solidity >=0.8.4 <0.9.0;
 contract Groth16VerifierAuthV2 {
     // Scalar field size
     uint256 constant r =
