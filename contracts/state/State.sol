@@ -16,7 +16,7 @@ contract State is Ownable2StepUpgradeable, IState {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.6.0";
+    string public constant VERSION = "2.6.1";
 
     // This empty reserved space is put in place to allow future versions
     // of the State contract to inherit from other contracts without a risk of
@@ -439,24 +439,21 @@ contract State is Ownable2StepUpgradeable, IState {
      * @param state State of the identity
      * @return replacedAt The timestamp when the state of the identity was replaced by another state
      */
-    function getStateReplacedAt(
-        uint256 id,
-        uint256 state
-    ) external view returns (uint256 replacedAt) {
-        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
-        replacedAt = $._idToStateReplacedAt[id][state];
-        if (replacedAt != 0) {
-            return replacedAt;
-        }
-
-        if (_stateData.stateExists(id, state)) {
-            replacedAt = _stateData.getStateInfoByIdAndState(id, state).replacedAtTimestamp;
-        } else {
-            if (GenesisUtils.isGenesisState(id, state)) {
-                replacedAt = 0;
-            } else {
-                revert("State entry not found");
+    function getStateReplacedAt(uint256 id, uint256 state) external view returns (uint256) {
+        if (isIdTypeSupported(GenesisUtils.getIdType(id))) {
+            if (_stateData.stateExists(id, state)) {
+                return _stateData.getStateInfoByIdAndState(id, state).replacedAtTimestamp;
+            } else if (GenesisUtils.isGenesisState(id, state)) {
+                return 0;
             }
+            revert("State entry not found");
+        } else {
+            StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+            uint256 replacedAt = $._idToStateReplacedAt[id][state];
+            if (replacedAt != 0) {
+                return replacedAt;
+            }
+            revert("Cross-chain state not found");
         }
     }
 
@@ -466,21 +463,20 @@ contract State is Ownable2StepUpgradeable, IState {
      * @param root GIST root
      * @return replacedAt The timestamp when the GIST root was replaced by another root
      */
-    function getGistRootReplacedAt(
-        bytes2 idType,
-        uint256 root
-    ) external view returns (uint256 replacedAt) {
-        StateCrossChainStorage storage $ = _getStateCrossChainStorage();
-        replacedAt = $._rootToGistRootReplacedAt[idType][root];
-        if (replacedAt != 0) {
-            return replacedAt;
+    function getGistRootReplacedAt(bytes2 idType, uint256 root) external view returns (uint256) {
+        if (isIdTypeSupported(idType)) {
+            if (_gistData.rootExists(root)) {
+                return _gistData.getRootInfo(root).replacedAtTimestamp;
+            }
+            revert("GIST root entry not found");
+        } else {
+            StateCrossChainStorage storage $ = _getStateCrossChainStorage();
+            uint256 replacedAt = $._rootToGistRootReplacedAt[idType][root];
+            if (replacedAt != 0) {
+                return replacedAt;
+            }
+            revert("Cross-chain GIST root not found");
         }
-
-        require(isIdTypeSupported(idType), "id type is not supported");
-        if (!_gistData.rootExists(root)) {
-            revert("Gist root entry not found");
-        }
-        replacedAt = _gistData.getRootInfo(root).replacedAtTimestamp;
     }
 
     /**

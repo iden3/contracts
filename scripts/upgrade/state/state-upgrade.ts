@@ -3,6 +3,7 @@ import hre, { ethers } from "hardhat";
 import { expect } from "chai"; // abi of contract that will be upgraded
 import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/State.json";
 import {
+  checkContractVersion,
   getConfig,
   getStateContractAddress,
   removeLocalhostNetworkIgnitionFiles,
@@ -49,6 +50,21 @@ async function main() {
     [proxyAdminOwnerSigner, stateOwnerSigner],
     true,
   );
+
+  const { upgraded, currentVersion } = await checkContractVersion(
+    contractsInfo.STATE.name,
+    stateContractAddress,
+    contractsInfo.STATE.version,
+  );
+
+  if (upgraded) {
+    console.log(`Contract is already upgraded to version ${contractsInfo.STATE.version}`);
+    return;
+  } else {
+    console.log(
+      `Contract is not upgraded and will upgrade version ${currentVersion} to ${contractsInfo.STATE.version}`,
+    );
+  }
 
   console.log("Proxy Admin Owner Address: ", await proxyAdminOwnerSigner.getAddress());
   console.log("State Owner Address: ", await stateOwnerSigner.getAddress());
