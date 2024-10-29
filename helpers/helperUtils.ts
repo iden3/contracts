@@ -71,6 +71,18 @@ export async function isContract(
   return true;
 }
 
+export async function checkContractVersion(
+  contractName: string,
+  contractAddress: string,
+  contractVersion: string,
+  signer?: any,
+): Promise<{ upgraded: boolean; currentVersion: string }> {
+  const contract = await ethers.getContractAt(contractName, contractAddress, signer);
+  const version = await contract.VERSION();
+
+  return { upgraded: contractVersion === version, currentVersion: version };
+}
+
 export async function verifyContract(
   contractAddress: any,
   opts: {

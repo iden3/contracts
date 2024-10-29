@@ -1,6 +1,7 @@
 import { DeployHelper } from "../../../helpers/DeployHelper";
 import hre, { ethers } from "hardhat";
 import {
+  checkContractVersion,
   getConfig,
   removeLocalhostNetworkIgnitionFiles,
   verifyContract,
@@ -48,23 +49,41 @@ async function main() {
       validatorContractName: contractsInfo.VALIDATOR_MTP.name,
       validatorType: VALIDATOR_TYPES.MTP_V2,
       validatorVerification: contractsInfo.VALIDATOR_MTP.verificationOpts,
+      version: contractsInfo.VALIDATOR_MTP.version,
     },
     {
       validatorContractAddress: contractsInfo.VALIDATOR_SIG.unifiedAddress,
       validatorContractName: contractsInfo.VALIDATOR_SIG.name,
       validatorType: VALIDATOR_TYPES.SIG_V2,
       validatorVerification: contractsInfo.VALIDATOR_SIG.verificationOpts,
+      version: contractsInfo.VALIDATOR_SIG.version,
     },
     {
       validatorContractAddress: contractsInfo.VALIDATOR_V3.unifiedAddress,
       validatorContractName: contractsInfo.VALIDATOR_V3.name,
       validatorType: VALIDATOR_TYPES.V3,
       validatorVerification: contractsInfo.VALIDATOR_V3.verificationOpts,
+      version: contractsInfo.VALIDATOR_V3.version,
     },
   ];
 
   const validatorsInfo: any = [];
   for (const v of validators) {
+    const { upgraded, currentVersion } = await checkContractVersion(
+      v.validatorContractName,
+      v.validatorContractAddress,
+      v.version,
+    );
+
+    if (upgraded) {
+      console.log(`Contract is already upgraded to version ${v.version}`);
+      continue;
+    } else {
+      console.log(
+        `Contract is not upgraded and will upgrade version ${currentVersion} to ${v.version}`,
+      );
+    }
+
     const { validator } = await deployHelper.upgradeValidator(
       v.validatorContractAddress as string,
       v.validatorContractName,
