@@ -140,7 +140,6 @@ contract Groth16VerifierAuthV2 {
 
                 g1_mulAccC(_pVk, IC3x, IC3y, calldataload(add(pubSignals, 64)))
 
-
                 // -A
                 mstore(_pPairing, calldataload(pA))
                 mstore(add(_pPairing, 32), mod(sub(q, calldataload(add(pA, 32))), q))

@@ -14,7 +14,7 @@
 pragma solidity 0.8.27;
 
 import {Groth16VerifierAuthV2} from "./Groth16VerifierAuthV2.sol";
-import {IVerifier} from  "../../interfaces/IVerifier.sol";
+import {IVerifier} from "../../interfaces/IVerifier.sol";
 
 contract Groth16VerifierAuthV2Wrapper is Groth16VerifierAuthV2, IVerifier {
     /**
@@ -47,5 +47,3 @@ contract Groth16VerifierAuthV2Wrapper is Groth16VerifierAuthV2, IVerifier {
         return this.verifyProof(a, b, c, pubSignals);
     }
 }
-
-

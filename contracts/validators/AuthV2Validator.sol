@@ -120,7 +120,6 @@ contract AuthV2Validator is CredentialAtomicQueryValidatorBase {
         address sender,
         IState stateContract
     ) public view override returns (ICircuitValidator.Signal[] memory) {
-
         if (zkProof.length == 0) {
             uint256 userId = GenesisUtils.calcIdFromEthAddress(
                 _getState().getDefaultIdType(),
