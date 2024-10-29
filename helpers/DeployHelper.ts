@@ -576,6 +576,7 @@ export class DeployHelper {
         break;
       case "v3":
         g16VerifierContractWrapperName = "Groth16VerifierV3Wrapper";
+        break;
       case "authV2":
         g16VerifierContractWrapperName = "Groth16VerifierAuthV2Wrapper";
         break;
