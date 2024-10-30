@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { getConfig, verifyContract } from "../../helpers/helperUtils";
 import { deployPoseidons } from "../../helpers/PoseidonDeployHelper";
-import { DeployHelper } from "../../helpers/DeployHelper";
+import { DeployHelper, VerifierType } from "../../helpers/DeployHelper";
 import hre from "hardhat";
 import { contractsInfo } from "../../helpers/constants";
 
@@ -35,7 +35,7 @@ async function main() {
     contractsInfo.GROTH16_VERIFIER_STATE_TRANSITION.verificationOpts,
   );
 
-  const groth16Verifiers: ("mtpV2" | "sigV2" | "v3")[] = ["mtpV2", "sigV2", "v3"];
+  const groth16Verifiers: VerifierType[] = ["mtpV2", "sigV2", "v3", "authV2"];
   const groth16verifiersInfo: any = [];
   for (const v of groth16Verifiers) {
     const groth16VerifierWrapper = await deployHelper.deployGroth16VerifierWrapper(
