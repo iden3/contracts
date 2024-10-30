@@ -93,11 +93,6 @@ export const networks = Object.freeze({
 export const STATE_ADDRESS_POLYGON_AMOY = "0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124";
 export const STATE_ADDRESS_POLYGON_MAINNET = "0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D";
 
-export const CIRCUIT_ID_MTP_V2 = "credentialAtomicQueryMTPV2OnChain";
-export const CIRCUIT_ID_SIG_V2 = "credentialAtomicQuerySigV2OnChain";
-export const CIRCUIT_ID_V3 = "credentialAtomicQueryV3OnChain-beta.1";
-export const CIRCUIT_ID_AUTH_V2 = "authV2";
-
 export const VALIDATOR_TYPES = Object.freeze({
   MTP_V2: "mtpV2",
   SIG_V2: "sigV2",

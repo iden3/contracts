@@ -5,15 +5,10 @@ import {
   removeLocalhostNetworkIgnitionFiles,
   verifyContract,
 } from "../../../helpers/helperUtils";
-import {
-  contractsInfo,
-  CIRCUIT_ID_MTP_V2,
-  CIRCUIT_ID_SIG_V2,
-  CIRCUIT_ID_V3,
-  VALIDATOR_TYPES,
-} from "../../../helpers/constants";
+import { contractsInfo, VALIDATOR_TYPES } from "../../../helpers/constants";
 import fs from "fs";
 import path from "path";
+import { CircuitId } from "@0xpolygonid/js-sdk";
 
 // In real upgrade, you should use THE NAME and THE ADDRESS
 // of your custom verifier contract
@@ -78,20 +73,25 @@ async function main() {
 
         const circuitId = (await validator.getSupportedCircuitIds())[0];
         switch (circuitId) {
-          case CIRCUIT_ID_SIG_V2:
+          case CircuitId.AtomicQuerySigV2OnChain:
             validatorVerification = contractsInfo.VALIDATOR_SIG.verificationOpts;
-            validatorContractName = "CredentialAtomicQuerySigV2Validator";
+            validatorContractName = contractsInfo.VALIDATOR_SIG.name;
             validatorType = VALIDATOR_TYPES.SIG_V2;
             break;
-          case CIRCUIT_ID_MTP_V2:
+          case CircuitId.AtomicQueryMTPV2OnChain:
             validatorVerification = contractsInfo.VALIDATOR_MTP.verificationOpts;
-            validatorContractName = "CredentialAtomicQueryMTPV2Validator";
+            validatorContractName = contractsInfo.VALIDATOR_MTP.name;
             validatorType = VALIDATOR_TYPES.MTP_V2;
             break;
-          case CIRCUIT_ID_V3:
+          case CircuitId.AtomicQueryV3OnChain:
             validatorVerification = contractsInfo.VALIDATOR_V3.verificationOpts;
-            validatorContractName = "CredentialAtomicQueryV3Validator";
+            validatorContractName = contractsInfo.VALIDATOR_V3.name;
             validatorType = VALIDATOR_TYPES.V3;
+            break;
+          case CircuitId.AuthV2:
+            validatorVerification = contractsInfo.VALIDATOR_AUTH_V2.verificationOpts;
+            validatorContractName = contractsInfo.VALIDATOR_AUTH_V2.name;
+            validatorType = VALIDATOR_TYPES.AUTH_V2;
             break;
         }
         validators.push({
