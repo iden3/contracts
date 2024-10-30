@@ -10,8 +10,7 @@ async function main() {
   const chainId = hre.network.config.chainId;
 
   const stateContractAddress = getStateContractAddress();
-  const validators: ("mtpV2" | "sigV2" | "v3" | "authV2")[] = [
-    "authV2"];
+  const validators: ("mtpV2" | "sigV2" | "v3" | "authV2")[] = ["mtpV2", "sigV2", "v3", "authV2"];
   const groth16VerifierWrappers = [
     {
       validator: "mtpV2",
