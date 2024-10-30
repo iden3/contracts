@@ -113,6 +113,7 @@ export const contractsInfo = Object.freeze({
   },
   UNIVERSAL_VERIFIER: {
     name: "UniversalVerifier",
+    version: "1.1.1",
     unifiedAddress: "0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier")),
     verificationOpts: {
@@ -129,6 +130,7 @@ export const contractsInfo = Object.freeze({
   },
   STATE: {
     name: "State",
+    version: "2.6.1",
     unifiedAddress: "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.State")),
     verificationOpts: {
@@ -144,6 +146,7 @@ export const contractsInfo = Object.freeze({
   },
   VALIDATOR_SIG: {
     name: "CredentialAtomicQuerySigV2Validator",
+    version: "2.1.0",
     unifiedAddress: "0x59B347f0D3dd4B98cc2E056Ee6C53ABF14F8581b",
     create2Calldata: ethers.hexlify(
       ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQuerySigV2Validator"),
@@ -161,6 +164,7 @@ export const contractsInfo = Object.freeze({
   },
   VALIDATOR_MTP: {
     name: "CredentialAtomicQueryMTPV2Validator",
+    version: "2.1.0",
     unifiedAddress: "0x27bDFFCeC5478a648f89764E22fE415486A42Ede",
     create2Calldata: ethers.hexlify(
       ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryMTPV2Validator"),
@@ -178,6 +182,7 @@ export const contractsInfo = Object.freeze({
   },
   VALIDATOR_V3: {
     name: "CredentialAtomicQueryV3Validator",
+    version: "2.1.0-beta.1",
     unifiedAddress: "0xd179f29d00Cd0E8978eb6eB847CaCF9E2A956336",
     create2Calldata: ethers.hexlify(
       ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3Validator"),
@@ -210,6 +215,7 @@ export const contractsInfo = Object.freeze({
   },
   IDENTITY_TREE_STORE: {
     name: "IdentityTreeStore",
+    version: "1.1.0",
     unifiedAddress: "0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.IdentityTreeStore")),
     verificationOpts: {
@@ -225,6 +231,7 @@ export const contractsInfo = Object.freeze({
   },
   VC_PAYMENT: {
     name: "VCPayment",
+    version: "1.0.0",
     unifiedAddress: "",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.VCPayment")),
     verificationOpts: {
@@ -234,6 +241,7 @@ export const contractsInfo = Object.freeze({
   },
   MC_PAYMENT: {
     name: "MCPayment",
+    version: "1.0.0",
     unifiedAddress: "",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.MCPayment")),
     verificationOpts: {

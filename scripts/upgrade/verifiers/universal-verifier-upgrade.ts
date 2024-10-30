@@ -11,6 +11,7 @@ import {
   submitZKPResponses_KYCAgeCredential,
 } from "./helpers/testVerifier";
 import {
+  checkContractVersion,
   getConfig,
   getStateContractAddress,
   removeLocalhostNetworkIgnitionFiles,
@@ -52,6 +53,23 @@ async function main() {
     config.deployStrategy == "create2" ? "create2" : "basic";
 
   console.log(`Starting Universal Verifier Contract Upgrade for ${universalVerifierAddress}`);
+
+  const { upgraded, currentVersion } = await checkContractVersion(
+    contractsInfo.UNIVERSAL_VERIFIER.name,
+    contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
+    contractsInfo.UNIVERSAL_VERIFIER.version,
+  );
+
+  if (upgraded) {
+    console.log(
+      `Contract is already upgraded to version ${contractsInfo.UNIVERSAL_VERIFIER.version}`,
+    );
+    return;
+  } else {
+    console.log(
+      `Contract is not upgraded and will upgrade version ${currentVersion} to ${contractsInfo.UNIVERSAL_VERIFIER.version}`,
+    );
+  }
 
   if (!ethers.isAddress(config.ledgerAccount)) {
     throw new Error("LEDGER_ACCOUNT is not set");
