@@ -48,7 +48,7 @@ contract Groth16VerifierAuthV2Wrapper is Groth16VerifierAuthV2, IVerifier {
     ) public view returns (bool r) {
         uint[PUBSIGNALS_LENGTH] memory pubSignals;
 
-        require(input.length == PUBSIGNALS_LENGTH, "expected array length is 11");
+        require(input.length == PUBSIGNALS_LENGTH, "expected array length is 3");
 
         for (uint256 i = 0; i < PUBSIGNALS_LENGTH; i++) {
             pubSignals[i] = input[i];

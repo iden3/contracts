@@ -200,6 +200,7 @@ export const contractsInfo = Object.freeze({
   },
   VALIDATOR_AUTH_V2: {
     name: "AuthV2Validator",
+    version: "1.0.0",
     unifiedAddress: "0x6B847C4b53368a290bdce4aE4e46343Ee8946bE0",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.AuthV2Validator")),
     verificationOpts: {

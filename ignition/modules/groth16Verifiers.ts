@@ -32,7 +32,10 @@ export const Groth16VerifierStateTransitionModule = buildModule(
   },
 );
 
-export const Groth16VerifierAuthV2Module = buildModule("Groth16VerifierAuthV2Module", (m) => {
-  const verifier = m.contract(contractsInfo.GROTH16_VERIFIER_AUTH_V2.name);
-  return { verifier };
-});
+export const Groth16VerifierAuthV2WrapperModule = buildModule(
+  "Groth16VerifierAuthV2WrapperModule",
+  (m) => {
+    const wrapper = m.contract(contractsInfo.GROTH16_VERIFIER_AUTH_V2.name);
+    return { wrapper };
+  },
+);

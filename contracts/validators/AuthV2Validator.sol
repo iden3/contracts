@@ -76,34 +76,20 @@ contract AuthV2Validator is CredentialAtomicQueryValidatorBase {
      * @return Array of key to public input index as result.
      */
     function verify(
+        // solhint-disable-next-line no-unused-vars
         uint256[] memory inputs,
+        // solhint-disable-next-line no-unused-vars
         uint256[2] memory a,
+        // solhint-disable-next-line no-unused-vars
         uint256[2][2] memory b,
+        // solhint-disable-next-line no-unused-vars
         uint256[2] memory c,
+        // solhint-disable-next-line no-unused-vars
         bytes calldata data,
+        // solhint-disable-next-line no-unused-vars
         address sender
     ) public view override returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        ICircuitValidator.KeyToInputIndex[]
-            memory keyToInputIndex = new ICircuitValidator.KeyToInputIndex[](1);
-        if (inputs.length == 0) {
-            uint256 userId = GenesisUtils.calcIdFromEthAddress(
-                _getState().getDefaultIdType(),
-                sender
-            );
-
-            keyToInputIndex[0] = ICircuitValidator.KeyToInputIndex({
-                key: "userID",
-                inputIndex: userId
-            });
-            return keyToInputIndex;
-        }
-
-        _verifyMain(inputs, a, b, c, data, sender, IState(getStateAddress()));
-        keyToInputIndex[0] = ICircuitValidator.KeyToInputIndex({
-            key: "userID",
-            inputIndex: inputs[0]
-        });
-        return keyToInputIndex;
+        revert("fuction not supported in this contract");
     }
 
     /**
@@ -116,20 +102,11 @@ contract AuthV2Validator is CredentialAtomicQueryValidatorBase {
      */
     function verifyV2(
         bytes calldata zkProof,
+        // solhint-disable-next-line no-unused-vars
         bytes calldata data,
         address sender,
         IState stateContract
     ) public view override returns (ICircuitValidator.Signal[] memory) {
-        if (zkProof.length == 0) {
-            uint256 userId = GenesisUtils.calcIdFromEthAddress(
-                _getState().getDefaultIdType(),
-                sender
-            );
-            ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](1);
-            signals[0] = ICircuitValidator.Signal({name: "userID", value: userId});
-            return signals;
-        }
-
         (
             uint256[] memory inputs,
             uint256[2] memory a,
@@ -137,7 +114,13 @@ contract AuthV2Validator is CredentialAtomicQueryValidatorBase {
             uint256[2] memory c
         ) = abi.decode(zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
-        return _verifyMain(inputs, a, b, c, data, sender, stateContract);
+        PubSignals memory pubSignals = parsePubSignals(inputs);
+        _checkGistRoot(pubSignals.userID, pubSignals.gistRoot, stateContract);
+        _checkChallenge(pubSignals.challenge, sender);
+        _verifyZKP(inputs, a, b, c);
+        ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](1);
+        signals[0] = ICircuitValidator.Signal({name: "userID", value: pubSignals.userID});
+        return signals;
     }
 
     function _verifyZKP(
@@ -151,23 +134,5 @@ contract AuthV2Validator is CredentialAtomicQueryValidatorBase {
 
         // verify that zkp is valid
         require(verifier.verify(a, b, c, inputs), "Proof is not valid");
-    }
-
-    function _verifyMain(
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        bytes calldata data,
-        address sender,
-        IState state
-    ) internal view returns (ICircuitValidator.Signal[] memory) {
-        PubSignals memory pubSignals = parsePubSignals(inputs);
-        _checkGistRoot(pubSignals.userID, pubSignals.gistRoot, state);
-        _checkChallenge(pubSignals.challenge, sender);
-        _verifyZKP(inputs, a, b, c);
-        ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](1);
-        signals[0] = ICircuitValidator.Signal({name: "userID", value: pubSignals.userID});
-        return signals;
     }
 }

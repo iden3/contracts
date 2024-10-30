@@ -17,7 +17,7 @@ import {
   UniversalVerifierProxyModule,
   Groth16VerifierStateTransitionModule,
   AuthV2ValidatorProxyModule,
-  Groth16VerifierAuthV2Module,
+  Groth16VerifierAuthV2WrapperModule,
 } from "../ignition";
 import { chainIdInfoMap, contractsInfo } from "./constants";
 import {
@@ -29,6 +29,8 @@ import {
 import { MCPaymentProxyModule } from "../ignition/modules/mcPayment";
 
 const SMT_MAX_DEPTH = 64;
+
+export type VerifierType = "mtpV2" | "sigV2" | "v3" | "authV2";
 
 export class DeployHelper {
   constructor(
@@ -565,26 +567,26 @@ export class DeployHelper {
     return g16Verifier;
   }
 
-  getGroth16VerifierWrapperName(verifierType: "mtpV2" | "sigV2" | "v3" | "authV2"): string {
+  getGroth16VerifierWrapperName(verifierType: VerifierType): string {
     let g16VerifierContractWrapperName;
     switch (verifierType) {
       case "mtpV2":
-        g16VerifierContractWrapperName = "Groth16VerifierMTPWrapper";
+        g16VerifierContractWrapperName = contractsInfo.GROTH16_VERIFIER_MTP.name;
         break;
       case "sigV2":
-        g16VerifierContractWrapperName = "Groth16VerifierSigWrapper";
+        g16VerifierContractWrapperName = contractsInfo.GROTH16_VERIFIER_SIG.name;
         break;
       case "v3":
-        g16VerifierContractWrapperName = "Groth16VerifierV3Wrapper";
+        g16VerifierContractWrapperName = contractsInfo.GROTH16_VERIFIER_V3.name;
         break;
       case "authV2":
-        g16VerifierContractWrapperName = "Groth16VerifierAuthV2Wrapper";
+        g16VerifierContractWrapperName = contractsInfo.GROTH16_VERIFIER_AUTH_V2.name;
         break;
     }
     return g16VerifierContractWrapperName;
   }
 
-  getGroth16VerifierWrapperVerification(verifierType: "mtpV2" | "sigV2" | "v3" | "authV2"): {
+  getGroth16VerifierWrapperVerification(verifierType: VerifierType): {
     contract: string;
     constructorArgsImplementation: any[];
     constructorArgsProxy?: any[];
@@ -608,7 +610,7 @@ export class DeployHelper {
     return verification;
   }
 
-  getValidatorVerification(verifierType: "mtpV2" | "sigV2" | "v3" | "authV2"): {
+  getValidatorVerification(verifierType: VerifierType): {
     contract: string;
     constructorArgsImplementation: any[];
     constructorArgsProxy?: any[];
@@ -633,7 +635,7 @@ export class DeployHelper {
   }
 
   async deployGroth16VerifierWrapper(
-    verifierType: "mtpV2" | "sigV2" | "v3" | "authV2",
+    verifierType: VerifierType,
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<Contract> {
     const g16VerifierContractWrapperName = this.getGroth16VerifierWrapperName(verifierType);
@@ -653,7 +655,7 @@ export class DeployHelper {
         case "v3":
           g16VerifierWrapperModule = Groth16VerifierV3WrapperModule;
         case "authV2":
-          g16VerifierWrapperModule = Groth16VerifierAuthV2Module;
+          g16VerifierWrapperModule = Groth16VerifierAuthV2WrapperModule;
           break;
       }
 
@@ -685,7 +687,7 @@ export class DeployHelper {
   }
 
   async deployValidatorContractsWithVerifiers(
-    validatorType: "mtpV2" | "sigV2" | "v3" | "authV2",
+    validatorType: VerifierType,
     stateAddress: string,
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<{
@@ -713,7 +715,7 @@ export class DeployHelper {
   }
 
   async deployValidatorContracts(
-    validatorType: "mtpV2" | "sigV2" | "v3" | "authV2",
+    validatorType: VerifierType,
     stateAddress: string,
     groth16VerifierWrapperAddress: string,
     deployStrategy: "basic" | "create2" = "basic",
