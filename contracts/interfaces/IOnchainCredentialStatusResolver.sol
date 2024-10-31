@@ -13,7 +13,7 @@ interface IOnchainCredentialStatusResolver {
      * @param auxIndex An index of the auxiliary leaf in the SMT.
      * @param auxValue A value of the auxiliary leaf in the SMT.
      */
-    struct Proof {
+    struct MerkleTreeProof {
         uint256 root;
         bool existence;
         uint256[] siblings;
@@ -45,7 +45,7 @@ interface IOnchainCredentialStatusResolver {
      */
     struct CredentialStatus {
         IdentityStateRoots issuer;
-        Proof mtp;
+        MerkleTreeProof mtp;
     }
 
     /**

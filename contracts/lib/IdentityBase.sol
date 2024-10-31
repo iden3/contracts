@@ -277,7 +277,7 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
             nonce,
             historicalStates.revocationsRoot
         );
-        Proof memory mtp = Proof({
+        MerkleTreeProof memory mtp = MerkleTreeProof({
             root: p.root,
             existence: p.existence,
             siblings: p.siblings,
