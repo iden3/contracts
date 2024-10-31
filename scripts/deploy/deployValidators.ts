@@ -24,31 +24,39 @@ async function main() {
       stateContractAddress,
       deployStrategy,
     );
-    validatorsInfo.push({
-      validatorType: v,
-      validator: await validator.getAddress(),
-      groth16verifier: await groth16VerifierWrapper.getAddress(),
-    });
+
     await verifyContract(await validator.getAddress(), deployHelper.getValidatorVerification(v));
-    await verifyContract(
-      await groth16VerifierWrapper.getAddress(),
-      deployHelper.getGroth16VerifierWrapperVerification(v),
-    );
+
+    // only add validators info if groth16VerifierWrapper is deployed
+    if (groth16VerifierWrapper) {
+      validatorsInfo.push({
+        validatorType: v,
+        validator: await validator.getAddress(),
+        groth16verifier: await groth16VerifierWrapper?.getAddress(),
+      });
+      await verifyContract(
+        await groth16VerifierWrapper.getAddress(),
+        deployHelper.getGroth16VerifierWrapperVerification(v),
+      );
+    }
   }
 
-  const networkName = hre.network.name;
-  const pathOutputJson = path.join(
-    __dirname,
-    `../deployments_output/deploy_validators_output_${chainId}_${networkName}.json`,
-  );
-  const outputJson = {
-    proxyAdminOwnerAddress: await signer.getAddress(),
-    validatorsInfo,
-    network: networkName,
-    chainId,
-    deployStrategy,
-  };
-  fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
+  // only save the output if there are validators deployed
+  if (validatorsInfo.length > 0) {
+    const networkName = hre.network.name;
+    const pathOutputJson = path.join(
+      __dirname,
+      `../deployments_output/deploy_validators_output_${chainId}_${networkName}.json`,
+    );
+    const outputJson = {
+      proxyAdminOwnerAddress: await signer.getAddress(),
+      validatorsInfo,
+      network: networkName,
+      chainId,
+      deployStrategy,
+    };
+    fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
+  }
 }
 
 main()

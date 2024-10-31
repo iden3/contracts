@@ -630,7 +630,7 @@ export class DeployHelper {
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<{
     state: any;
-    groth16VerifierWrapperInfo: any;
+    groth16VerifierWrapper: any;
     validator: any;
   }> {
     const contracts = await this.deployValidatorContracts(
@@ -642,7 +642,7 @@ export class DeployHelper {
     const state = await ethers.getContractAt("State", stateAddress);
     return {
       validator: contracts.validator,
-      groth16VerifierWrapperInfo: contracts.groth16VerifierWrapperInfo,
+      groth16VerifierWrapper: contracts.groth16VerifierWrapper,
       state,
     };
   }
@@ -654,7 +654,7 @@ export class DeployHelper {
   ): Promise<{
     state: any;
     validator: any;
-    groth16VerifierWrapper: any;
+    groth16VerifierWrapper: Contract | null;
   }> {
     const owner = this.signers[0];
 
@@ -671,19 +671,10 @@ export class DeployHelper {
         break;
     }
 
-    const groth16VerifierWrapper = await this.deployGroth16VerifierWrapper(validatorType);
-
-    const ValidatorFactory = await ethers.getContractFactory(validatorContractName);
-    const Create2AddressAnchorFactory = await ethers.getContractFactory(
-      contractsInfo.CREATE2_ADDRESS_ANCHOR.name,
-    );
-
     let validator;
     let create2AlreadyDeployed = false;
 
     if (deployStrategy === "create2") {
-      this.log("deploying with CREATE2 strategy...");
-
       let validatorModule;
       switch (validatorType) {
         case "mtpV2":
@@ -718,10 +709,23 @@ export class DeployHelper {
           return {
             validator,
             state: await ethers.getContractAt("State", stateAddress),
-            groth16VerifierWrapper,
+            groth16VerifierWrapper: null,
           };
         }
       }
+    }
+
+    const groth16VerifierWrapper = await this.deployGroth16VerifierWrapper(validatorType);
+
+    const ValidatorFactory = await ethers.getContractFactory(validatorContractName);
+    const Create2AddressAnchorFactory = await ethers.getContractFactory(
+      contractsInfo.CREATE2_ADDRESS_ANCHOR.name,
+    );
+
+    if (deployStrategy === "create2") {
+      this.log("deploying with CREATE2 strategy...");
+
+      await waitNotToInterfereWithHardhatIgnition(undefined);
 
       if (!create2AlreadyDeployed) {
         // Deploying Validator contract to predictable address but with dummy implementation
