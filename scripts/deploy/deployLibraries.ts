@@ -25,39 +25,6 @@ async function main() {
 
   await verifyContract(await smtLib.getAddress(), contractsInfo.SMT_LIB.verificationOpts);
 
-  const groth16VerifierStateTransition = await deployHelper.deployGroth16VerifierStateTransition(
-    "Groth16VerifierStateTransition",
-    deployStrategy,
-  );
-
-  await verifyContract(
-    await groth16VerifierStateTransition.getAddress(),
-    contractsInfo.GROTH16_VERIFIER_STATE_TRANSITION.verificationOpts,
-  );
-
-  const groth16Verifiers: ("mtpV2" | "sigV2" | "v3")[] = ["mtpV2", "sigV2", "v3"];
-  const groth16verifiersInfo: any = [];
-  for (const v of groth16Verifiers) {
-    const groth16VerifierWrapper = await deployHelper.deployGroth16VerifierWrapper(
-      v,
-      deployStrategy,
-    );
-    groth16verifiersInfo.push({
-      verifierType: v,
-      groth16verifier: await groth16VerifierWrapper.getAddress(),
-    });
-
-    await verifyContract(
-      await groth16VerifierWrapper.getAddress(),
-      deployHelper.getGroth16VerifierWrapperVerification(v),
-    );
-  }
-
-  groth16verifiersInfo.push({
-    validatorType: "stateTransition",
-    groth16verifier: await groth16VerifierStateTransition.getAddress(),
-  });
-
   const chainId = parseInt(await hre.network.provider.send("eth_chainId"), 16);
   const networkName = hre.network.name;
   const outputJson = {
@@ -66,7 +33,6 @@ async function main() {
     poseidon3: await poseidon3Elements.getAddress(),
     poseidon4: await poseidon4Elements.getAddress(),
     smtLib: await smtLib.getAddress(),
-    groth16verifiersInfo,
     network: networkName,
     chainId,
     deployStrategy,
