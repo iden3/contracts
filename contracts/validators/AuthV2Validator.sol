@@ -89,7 +89,7 @@ contract AuthV2Validator is CredentialAtomicQueryValidatorBase {
         // solhint-disable-next-line no-unused-vars
         address sender
     ) public view override returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        revert("fuction not supported in this contract");
+        revert("function not supported in this contract");
     }
 
     /**
