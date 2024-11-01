@@ -607,7 +607,7 @@ export class DeployHelper {
     libraries: any;
   } {
     let verification;
-    switch (validatorType) {
+    switch (verifierType) {
       case "mtpV2":
         verification = contractsInfo.VALIDATOR_MTP.verificationOpts;
         break;
@@ -689,8 +689,8 @@ export class DeployHelper {
     let validator;
     let create2AlreadyDeployed = false;
 
+    let validatorModule;
     if (deployStrategy === "create2") {
-      let validatorModule;
       switch (validatorType) {
         case "mtpV2":
           validatorModule = CredentialAtomicQueryMTPV2ValidatorProxyModule;

@@ -196,7 +196,7 @@ export const contractsInfo = Object.freeze({
   VALIDATOR_AUTH_V2: {
     name: "AuthV2Validator",
     version: "1.0.0",
-    unifiedAddress: "0x6B847C4b53368a290bdce4aE4e46343Ee8946bE0",
+    unifiedAddress: "0x49ebdC163fa014F310CeDBc8e4a0b15C738D8073",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.AuthV2Validator")),
     verificationOpts: {
       constructorArgsImplementation: [],
@@ -329,8 +329,7 @@ export const contractsInfo = Object.freeze({
   },
   GROTH16_VERIFIER_AUTH_V2: {
     name: "Groth16VerifierAuthV2Wrapper",
-    // TODO: Update unified address
-    unifiedAddress: "0x1aA2B5AEAd506D269164958d36Cae04f95F79282",
+    unifiedAddress: "",
     create2Calldata: "",
     verificationOpts: {
       contract:
