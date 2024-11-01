@@ -9,7 +9,6 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
  * @dev A library for writing proof results.
  */
 library VerifierLib {
-
     /// @dev Struct to store ZKP proof and associated data
     struct Proof {
         bool isVerified;

@@ -9,7 +9,6 @@ import {IState} from "../interfaces/IState.sol";
 import {VerifierLib} from "../lib/VerifierLib.sol";
 
 abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
-
     struct Metadata {
         string key;
         bytes value;
