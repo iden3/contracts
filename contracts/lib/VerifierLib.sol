@@ -24,7 +24,7 @@ library VerifierLib {
         ICircuitValidator.KeyToInputIndex[] memory keyToInpIdxs,
         uint256[] memory inputs
     ) public {
-        ZKPVerifierBase.Proof storage proof = self._proofs[sender][requestId];
+        ZKPVerifierBase.ProofStorage storage proof = self._proofs[sender][requestId];
         for (uint256 i = 0; i < keyToInpIdxs.length; i++) {
             proof.storageFields[keyToInpIdxs[i].key] = inputs[keyToInpIdxs[i].inputIndex];
         }
@@ -48,7 +48,7 @@ library VerifierLib {
         uint64 requestId,
         ICircuitValidator.Signal[] memory signals
     ) public {
-        ZKPVerifierBase.Proof storage proof = self._proofs[sender][requestId];
+        ZKPVerifierBase.ProofStorage storage proof = self._proofs[sender][requestId];
         for (uint256 i = 0; i < signals.length; i++) {
             proof.storageFields[signals[i].name] = signals[i].value;
         }

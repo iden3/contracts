@@ -149,14 +149,14 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
         return status;
     }
 
-    function _getProof(uint256 root, uint256 index) internal view returns (MerkleTreeProof memory) {
+    function _getProof(uint256 root, uint256 index) internal view returns (Proof memory) {
         uint256[] memory siblings = new uint256[](MAX_SMT_DEPTH);
         // Solidity does not guarantee that memory vars are zeroed out
         for (uint256 i = 0; i < MAX_SMT_DEPTH; i++) {
             siblings[i] = 0;
         }
 
-        MerkleTreeProof memory proof = MerkleTreeProof({
+        Proof memory proof = Proof({
             root: root,
             existence: false,
             siblings: siblings,
