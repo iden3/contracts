@@ -623,10 +623,7 @@ export class DeployHelper {
     return verification;
   }
 
-  async deployGroth16VerifierWrapper(
-    verifierType: VerifierType,
-    deployStrategy: "basic" | "create2" = "basic",
-  ): Promise<Contract> {
+  async deployGroth16VerifierWrapper(verifierType: VerifierType): Promise<Contract> {
     const g16VerifierContractWrapperName = this.getGroth16VerifierWrapperName(verifierType);
 
     const groth16VerifierWrapper = await ethers.deployContract(g16VerifierContractWrapperName);
