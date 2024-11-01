@@ -285,7 +285,7 @@ export const contractsInfo = Object.freeze({
   },
   GROTH16_VERIFIER_STATE_TRANSITION: {
     name: "Groth16VerifierStateTransition",
-    unifiedAddress: "0xAE950A9B8F48bC4519820728E210515a07F7cB71",
+    unifiedAddress: "",
     create2Calldata: "",
     verificationOpts: {
       contract:
@@ -296,7 +296,7 @@ export const contractsInfo = Object.freeze({
   },
   GROTH16_VERIFIER_MTP: {
     name: "Groth16VerifierMTPWrapper",
-    unifiedAddress: "0x1205B90121cAbB2B7e6f1828005AC00D8927796F",
+    unifiedAddress: "",
     create2Calldata: "",
     verificationOpts: {
       contract:
@@ -307,7 +307,7 @@ export const contractsInfo = Object.freeze({
   },
   GROTH16_VERIFIER_SIG: {
     name: "Groth16VerifierSigWrapper",
-    unifiedAddress: "0x0ce200c9557BB64ee9E82452646b084e77Aaeb51",
+    unifiedAddress: "",
     create2Calldata: "",
     verificationOpts: {
       contract:
@@ -318,7 +318,7 @@ export const contractsInfo = Object.freeze({
   },
   GROTH16_VERIFIER_V3: {
     name: "Groth16VerifierV3Wrapper",
-    unifiedAddress: "0x1aA2B5AEAd506D269164958d36Cae04f95F79282",
+    unifiedAddress: "",
     create2Calldata: "",
     verificationOpts: {
       contract:

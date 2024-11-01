@@ -27,7 +27,6 @@ async function main() {
 
   const groth16VerifierStateTransition = await deployHelper.deployGroth16VerifierStateTransition(
     "Groth16VerifierStateTransition",
-    deployStrategy,
   );
 
   await verifyContract(
@@ -66,7 +65,6 @@ async function main() {
     poseidon3: await poseidon3Elements.getAddress(),
     poseidon4: await poseidon4Elements.getAddress(),
     smtLib: await smtLib.getAddress(),
-    groth16verifiersInfo,
     network: networkName,
     chainId,
     deployStrategy,
