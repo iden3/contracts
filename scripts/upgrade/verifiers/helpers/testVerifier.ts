@@ -38,7 +38,7 @@ import {
 } from "@0xpolygonid/js-sdk";
 import { ProofData } from "@iden3/js-jwz";
 import { packCrossChainProofs, packZKProof } from "../../../../test/utils/packData";
-import { VerifierType } from "../../../../helpers/DeployHelper";
+import { Groth16VerifierType } from "../../../../helpers/DeployHelper";
 
 const rhsUrl = "https://rhs-staging.polygonid.me";
 
@@ -488,7 +488,7 @@ export async function setZKPRequest_KYCAgeCredential(
   requestId: number,
   verifier: Contract,
   validatorAddress: string,
-  verifierType: VerifierType,
+  verifierType: Groth16VerifierType,
   provider?: JsonRpcProvider,
 ) {
   console.log(

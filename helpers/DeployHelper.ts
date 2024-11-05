@@ -25,7 +25,7 @@ import { MCPaymentProxyModule } from "../ignition/modules/mcPayment";
 
 const SMT_MAX_DEPTH = 64;
 
-export type VerifierType = "mtpV2" | "sigV2" | "v3" | "authV2";
+export type Groth16VerifierType = "mtpV2" | "sigV2" | "v3" | "authV2";
 export type ValidatorType = "mtpV2" | "sigV2" | "v3" | "authV2";
 
 export class DeployHelper {
@@ -555,7 +555,7 @@ export class DeployHelper {
     return g16Verifier;
   }
 
-  getGroth16VerifierWrapperName(verifierType: VerifierType): string {
+  getGroth16VerifierWrapperName(verifierType: Groth16VerifierType): string {
     let g16VerifierContractWrapperName;
     switch (verifierType) {
       case "mtpV2":
@@ -574,7 +574,7 @@ export class DeployHelper {
     return g16VerifierContractWrapperName;
   }
 
-  getGroth16VerifierWrapperVerification(verifierType: VerifierType): {
+  getGroth16VerifierWrapperVerification(verifierType: Groth16VerifierType): {
     contract: string;
     constructorArgsImplementation: any[];
     constructorArgsProxy?: any[];
@@ -622,7 +622,7 @@ export class DeployHelper {
     return verification;
   }
 
-  async deployGroth16VerifierWrapper(verifierType: VerifierType): Promise<Contract> {
+  async deployGroth16VerifierWrapper(verifierType: Groth16VerifierType): Promise<Contract> {
     const g16VerifierContractWrapperName = this.getGroth16VerifierWrapperName(verifierType);
 
     const groth16VerifierWrapper = await ethers.deployContract(g16VerifierContractWrapperName);
