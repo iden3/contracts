@@ -555,9 +555,9 @@ export class DeployHelper {
     return g16Verifier;
   }
 
-  getGroth16VerifierWrapperName(verifierType: Groth16VerifierType): string {
+  getGroth16VerifierWrapperName(groth16VerifierType: Groth16VerifierType): string {
     let g16VerifierContractWrapperName;
-    switch (verifierType) {
+    switch (groth16VerifierType) {
       case "mtpV2":
         g16VerifierContractWrapperName = contractsInfo.GROTH16_VERIFIER_MTP.name;
         break;
@@ -574,7 +574,7 @@ export class DeployHelper {
     return g16VerifierContractWrapperName;
   }
 
-  getGroth16VerifierWrapperVerification(verifierType: Groth16VerifierType): {
+  getGroth16VerifierWrapperVerification(groth16VerifierType: Groth16VerifierType): {
     contract: string;
     constructorArgsImplementation: any[];
     constructorArgsProxy?: any[];
@@ -582,7 +582,7 @@ export class DeployHelper {
     libraries: any;
   } {
     let verification;
-    switch (verifierType) {
+    switch (groth16VerifierType) {
       case "mtpV2":
         verification = contractsInfo.GROTH16_VERIFIER_MTP.verificationOpts;
         break;
@@ -622,8 +622,8 @@ export class DeployHelper {
     return verification;
   }
 
-  async deployGroth16VerifierWrapper(verifierType: Groth16VerifierType): Promise<Contract> {
-    const g16VerifierContractWrapperName = this.getGroth16VerifierWrapperName(verifierType);
+  async deployGroth16VerifierWrapper(groth16VerifierType: Groth16VerifierType): Promise<Contract> {
+    const g16VerifierContractWrapperName = this.getGroth16VerifierWrapperName(groth16VerifierType);
 
     const groth16VerifierWrapper = await ethers.deployContract(g16VerifierContractWrapperName);
 

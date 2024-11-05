@@ -488,11 +488,11 @@ export async function setZKPRequest_KYCAgeCredential(
   requestId: number,
   verifier: Contract,
   validatorAddress: string,
-  verifierType: Groth16VerifierType,
+  groth16VerifierType: Groth16VerifierType,
   provider?: JsonRpcProvider,
 ) {
   console.log(
-    `================= setZKPRequest ${verifierType} KYCAgeCredential ===================`,
+    `================= setZKPRequest ${groth16VerifierType} KYCAgeCredential ===================`,
   );
 
   const requestIdExists = await verifier.requestIdExists(requestId);
@@ -526,7 +526,7 @@ export async function setZKPRequest_KYCAgeCredential(
       "20376033832371109177683048456014525905119173674985843915445634726167450989630";
 
     let circuitId: string;
-    switch (verifierType) {
+    switch (groth16VerifierType) {
       case "mtpV2":
         circuitId = CircuitId.AtomicQueryMTPV2OnChain;
         break;
@@ -556,7 +556,7 @@ export async function setZKPRequest_KYCAgeCredential(
       claimPathNotExists: 0,
     };
 
-    if (verifierType === "v3") {
+    if (groth16VerifierType === "v3") {
       queryKYCAgeCredential = {
         requestId: requestId,
         schema: schemaBigInt,
