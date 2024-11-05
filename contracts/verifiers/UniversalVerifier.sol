@@ -74,6 +74,13 @@ contract UniversalVerifier is
         );
     }
 
+    function updateZKPRequest(
+        uint64 requestId,
+        IZKPVerifier.ZKPRequest calldata request
+    ) public override onlyOwnerOrRequestOwner(requestId) {
+        super.updateZKPRequest(requestId, request);
+    }
+
     /// @dev Submits a ZKP response and updates proof status
     /// @param requestId The ID of the ZKP request
     /// @param inputs The input data for the proof
