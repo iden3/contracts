@@ -26,10 +26,120 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
 
     /// @custom:storage-location erc7201:iden3.storage.ZKPVerifier
     struct ZKPVerifierStorage {
-        mapping(address user => mapping(uint64 requestId => Proof)) _proofs;
-        mapping(uint64 requestId => IZKPVerifier.ZKPRequest) _requests;
-        uint64[] _requestIds;
+        // This group of field is gor RequestType=0 processing
+        mapping(address user => mapping(uint256 requestId => Proof)) _proofs;
+        // TODO research if changing from uint64 to uint256 would not break storage location
+        mapping(uint256 requestId => IZKPVerifier.ZKPRequest) _requests;
+        // TODO not forget to migrate from uint64[] to uint256[] in the contract upgrade tx
+        uint256[] _requestIds;
         IState _state;
+    }
+
+    /// @custom:storage-location erc7201:iden3.storage.ZKPVerifier.ProofType1
+    struct ZKPVerifierStorageProofType1 {
+        // This group of field is gor RequestType=1 processing
+        // RequestType=1 has a feature of issuer filtering
+        mapping(address user => mapping(uint256 requestId => ProofReqType1[])) _proofs;
+        // We should increase the index by 1 when writing to the mapping
+        // This is to avoid unimbiguous with 0 proof position in the _proof array
+        mapping(address user => mapping(uint256 requestId => mapping(uint256 issuerId => uint256 _indexInProofs))) _proofsByIssuers;
+    }
+
+    struct ProofReqType1 {
+        bool isVerified;
+        mapping(string key => uint256 inputValue) storageFields;
+        string validatorVersion;
+        uint256 blockTimestamp;
+        mapping(string key => bytes) metadata;
+    }
+
+    // 32 bytes (in Big Endian): 31-0x00(not used), 30-0x01(requestType), 29..8-0x00(not used), 7..0 requestId
+    function setZKPRequestV3(
+        uint256 requestId,
+        IZKPVerifier.ZKPRequest calldata request
+    ) public virtual checkRequestExistence(requestId, false) {
+        // TODO create the isEligibleRequestType method
+        require(hasEligibleRequestType(requestId), "RequestType not supported");
+
+        ZKPVerifierStorage storage s = _getZKPVerifierStorage();
+        s._requests[requestId] = request;
+        s._requestIds.push(requestId);
+    }
+
+    function getProofStatusV3(
+        address sender,
+        uint256 requestId,
+        bytes filterData,
+    ) public view checkRequestExistence(requestId, true) returns (IZKPVerifier.ProofStatus memory) {
+        uint8 requestType = _getRequestType(requestId);
+
+        if (requestType == 0) {
+            require(filterData.length == 0, "FilterData not supported for RequestType=0");
+            Proof storage proof = _getZKPVerifierStorage()._proofs[sender][requestId];
+            return
+                IZKPVerifier.ProofStatus(
+                    proof.isVerified,
+                    proof.validatorVersion,
+                    proof.blockNumber,
+                    proof.blockTimestamp
+                );
+        } else if (requestType == 1) {
+            uint256 issuerId = abi.decode(filterData, (uint256));
+            require(issuerId != 0, "Issuer ID parameter required for RequestType=1");
+
+            // TODO complete by getting the the index first and then getting the proof from the mapping (incapsulate something maybe)
+            ProofReqType1 storage proof = _getZKPVerifierStorageProofType1()._proofs[sender][requestId][issuerId];
+
+            return
+                IZKPVerifier.ProofStatus(
+                    proof.isVerified,
+                    proof.validatorVersion,
+                    0,
+                    proof.blockTimestamp
+                );
+        } else {
+            revert("RequestType not supported");
+        }
+    }
+
+    function submitZKPResponseV3(
+        IZKPVerifier.ZKPResponseV3[] memory responses,
+        bytes memory crossChainProofs
+    ) {
+        for (uint256 i = 0; i < responses.length; i++) {
+            IZKPVerifier.ZKPResponseV3 memory response = responses[i];
+
+            address sender = _msgSender();
+
+            uint8 requestType = _getRequestType(response.requestId);
+            IZKPVerifier.ZKPRequest memory request = _getZKPVerifierStorage()._requests[response.requestId];
+
+            if (requestType == 0) {
+                ICircuitValidator.Signal[] memory signals = request.validator.verifyV2(
+                    response.zkProof,
+                    request.data,
+                    sender,
+                    _getZKPVerifierStorage()._state
+                );
+
+                _getZKPVerifierStorage().writeProofResultsV2(sender, response.requestId, signals);
+            } else if (requestType == 1) {
+                ICircuitValidator.Signal[] memory signals = request.validator.verifyV2(
+                    response.zkProof,
+                    request.data,
+                    sender,
+                    _getZKPVerifierStorage()._state
+                );
+
+                _getZKPVerifierStorageProofType1().writeProofResults(sender, response.requestId, signals);
+            } else {
+                revert("RequestType not supported");
+            }
+
+            if (response.data.length > 0) {
+                revert("Metadata not supported yet");
+            }
+        }
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifier")) - 1)) & ~bytes32(uint256(0xff));
@@ -48,6 +158,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     }
 
     using VerifierLib for ZKPVerifierStorage;
+    using VerifierLibReqType1 for ZKPVerifierStorageProofType1;
 
     function __ZKPVerifierBase_init(IState state) internal onlyInitializing {
         __ZKPVerifierBase_init_unchained(state);

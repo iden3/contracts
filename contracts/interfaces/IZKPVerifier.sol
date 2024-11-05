@@ -45,6 +45,12 @@ interface IZKPVerifier {
         bytes data;
     }
 
+    struct ZKPResponseV3 {
+        uint256 requestId;
+        bytes zkProof;
+        bytes data;
+    }
+
     /**
      * @dev Submit the groth16 proof π=([πa]1,[πb]2,[πc]1) for the ZKP request requestId.
      * @param requestId Request id of the ZKP request.

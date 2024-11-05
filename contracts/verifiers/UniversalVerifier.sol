@@ -25,6 +25,7 @@ contract UniversalVerifier is
 
     /// @dev Event emitted upon submitting a ZKP request
     event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);
+    event ZKPResponseSubmittedReqType1(uint256 indexed requestId, address indexed caller, uint256 indexed issuerID);
 
     /// @dev Event emitted upon adding a ZKP request
     event ZKPRequestSet(
@@ -65,6 +66,9 @@ contract UniversalVerifier is
     ) public override(RequestOwnership, ValidatorWhitelist, ZKPVerifierBase) {
         super.setZKPRequest(requestId, request);
 
+        //TODO should we define a separate event for RequestType1?
+        //or we can just decode issuer offchain?
+        //at least we need to upgrade requestId param in the event uint64 -> uint256
         emit ZKPRequestSet(
             requestId,
             _msgSender(),
@@ -102,6 +106,7 @@ contract UniversalVerifier is
         bytes memory crossChainProof
     ) public override {
         super.submitZKPResponseV2(responses, crossChainProof);
+        // TODO emit specific event depending the RequestType
         for (uint256 i = 0; i < responses.length; i++) {
             emit ZKPResponseSubmitted(responses[i].requestId, _msgSender());
         }
