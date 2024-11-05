@@ -12,9 +12,7 @@ import {
   CredentialAtomicQuerySigV2ValidatorProxyModule,
   CredentialAtomicQueryV3ValidatorProxyModule,
   UniversalVerifierProxyModule,
-  Groth16VerifierStateTransitionModule,
   AuthV2ValidatorProxyModule,
-  Groth16VerifierAuthV2WrapperModule,
 } from "../ignition";
 import { chainIdInfoMap, contractsInfo } from "./constants";
 import {
@@ -28,6 +26,7 @@ import { MCPaymentProxyModule } from "../ignition/modules/mcPayment";
 const SMT_MAX_DEPTH = 64;
 
 export type VerifierType = "mtpV2" | "sigV2" | "v3" | "authV2";
+export type ValidatorType = "mtpV2" | "sigV2" | "v3" | "authV2";
 
 export class DeployHelper {
   constructor(
@@ -599,7 +598,7 @@ export class DeployHelper {
     return verification;
   }
 
-  getValidatorVerification(verifierType: VerifierType): {
+  getValidatorVerification(validatorType: ValidatorType): {
     contract: string;
     constructorArgsImplementation: any[];
     constructorArgsProxy?: any[];
@@ -607,7 +606,7 @@ export class DeployHelper {
     libraries: any;
   } {
     let verification;
-    switch (verifierType) {
+    switch (validatorType) {
       case "mtpV2":
         verification = contractsInfo.VALIDATOR_MTP.verificationOpts;
         break;
@@ -637,7 +636,7 @@ export class DeployHelper {
   }
 
   async deployValidatorContractsWithVerifiers(
-    validatorType: VerifierType,
+    validatorType: ValidatorType,
     stateAddress: string,
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<{
@@ -660,7 +659,7 @@ export class DeployHelper {
   }
 
   async deployValidatorContracts(
-    validatorType: VerifierType,
+    validatorType: ValidatorType,
     stateAddress: string,
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<{
