@@ -21,7 +21,7 @@ contract UniversalVerifier is
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.1.1";
+    string public constant VERSION = "2.0.0";
 
     /// @dev Event emitted upon submitting a ZKP request
     event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);

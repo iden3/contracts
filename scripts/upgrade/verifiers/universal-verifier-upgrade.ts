@@ -2,6 +2,7 @@ import { DeployHelper } from "../../../helpers/DeployHelper";
 import hre, { ethers } from "hardhat";
 import { UniversalVerifierContractMigrationHelper } from "../../../helpers/UniversalVerifierContractMigrationHelper";
 import * as universalVerifierArtifact from "../../../artifacts/contracts/verifiers/UniversalVerifier.sol/UniversalVerifier.json";
+import * as previousUniversalVerifierArtifact from "./beforeUpgradeABI/UniversalVerifier.json";
 import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/State.json";
 import { expect } from "chai";
 import { Contract } from "ethers";
@@ -102,7 +103,7 @@ async function main() {
   );
 
   const universalVerifierContract = await universalVerifierMigrationHelper.getInitContract({
-    contractNameOrAbi: universalVerifierArtifact.abi,
+    contractNameOrAbi: previousUniversalVerifierArtifact.abi,
     address: universalVerifierAddress,
   });
 
@@ -118,6 +119,7 @@ async function main() {
   }
 
   const verifierLib = await deployerHelper.deployVerifierLib();
+  const verifierLibReqType1 = await deployerHelper.deployVerifierLibReqType1();
   const txVerifLib = await verifierLib.deploymentTransaction();
   await waitNotToInterfereWithHardhatIgnition(txVerifLib);
 
@@ -126,6 +128,7 @@ async function main() {
   // **** Upgrade Universal Verifier ****
   await universalVerifierMigrationHelper.upgradeContract(universalVerifierContract, {
     verifierLibAddress: await verifierLib.getAddress(),
+    verifierLibReqType1Address: await verifierLibReqType1.getAddress(),
   });
   // ************************
   console.log("Checking data after upgrade");

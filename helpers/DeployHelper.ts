@@ -485,6 +485,17 @@ export class DeployHelper {
     return verifierLib;
   }
 
+  async deployVerifierLibReqType1(): Promise<Contract> {
+    const contractName = "VerifierLibReqType1";
+
+    const VerifierLibReqType1 = await ethers.deployContract(contractName);
+    await VerifierLibReqType1.waitForDeployment();
+
+    Logger.success(`${contractName} deployed to:  ${await VerifierLibReqType1.getAddress()}`);
+
+    return VerifierLibReqType1;
+  }
+
   async deployBinarySearchTestWrapper(): Promise<Contract> {
     this.log("deploying poseidons...");
     const [poseidon2Elements, poseidon3Elements] = await deployPoseidons([2, 3]);
@@ -830,6 +841,7 @@ export class DeployHelper {
   async upgradeUniversalVerifier(
     verifierAddress: string,
     verifierLibAddr: string,
+    verifierLibReqType1Addr: string,
     verifierContractName = contractsInfo.UNIVERSAL_VERIFIER.name,
   ): Promise<Contract> {
     this.log("======== Verifier: upgrade started ========");
@@ -840,6 +852,7 @@ export class DeployHelper {
       signer: proxyAdminOwner,
       libraries: {
         VerifierLib: verifierLibAddr,
+        VerifierLibReqType1: verifierLibReqType1Addr,
       },
     });
 

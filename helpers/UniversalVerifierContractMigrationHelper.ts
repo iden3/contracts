@@ -15,17 +15,23 @@ export class UniversalVerifierContractMigrationHelper extends ContractMigrationS
   @log
   async getDataFromContract(contract: Contract, ...args: any[]): Promise<any> {
     const countRequests = await contract.getZKPRequestsCount();
-
+    console.log(`countRequests: ${countRequests}`);
     const validators: string[] = [];
     const requestsObj: any[] = [];
 
     if (countRequests > 0) {
+      console.log("Getting requests...");
       const requests = await contract.getZKPRequests(0, countRequests);
+      console.log(`Got ${requests.length} requests`);
       for (const request of requests) {
         if (!validators.includes(request[1])) {
           validators.push(request[1]);
         }
-        requestsObj.push(JSON.parse(request[0]));
+        let jsonRequest;
+        try {
+          jsonRequest = JSON.parse(request[0]);
+        } catch (error) {}
+        requestsObj.push(jsonRequest);
       }
     }
 
@@ -76,11 +82,12 @@ export class UniversalVerifierContractMigrationHelper extends ContractMigrationS
   @log
   async upgradeContract(
     universalVerifierContract: Contract,
-    opts: { verifierLibAddress: string },
+    opts: { verifierLibAddress: string; verifierLibReqType1Address: string },
   ): Promise<any> {
     return await this._universalVerifierDeployHelper.upgradeUniversalVerifier(
       await universalVerifierContract.getAddress(),
       opts.verifierLibAddress,
+      opts.verifierLibReqType1Address,
     );
   }
 }
