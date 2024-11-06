@@ -67,7 +67,10 @@ async function main() {
   }[] = [];
 
   if (countRequests > 0) {
-    const requests = await verifierContract.getZKPRequests(0, countRequests);
+    const requests: any = [];
+    for (let i = 0; i < countRequests; i++) {
+      requests.push(await verifierContract.getZKPRequest(i));
+    }
     console.log("Requests found: ", requests.length);
     for (const request of requests) {
       if (!validators.find((v) => v.validatorContractAddress === request[1])) {

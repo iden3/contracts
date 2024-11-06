@@ -21,13 +21,22 @@ contract UniversalVerifier is
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.1.1";
+    string public constant VERSION = "1.1.2";
 
     /// @dev Event emitted upon submitting a ZKP request
     event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);
 
     /// @dev Event emitted upon adding a ZKP request
     event ZKPRequestSet(
+        uint64 indexed requestId,
+        address indexed requestOwner,
+        string metadata,
+        address validator,
+        bytes data
+    );
+
+    /// @dev Event emitted upon updating a ZKP request
+    event ZKPRequestUpdate(
         uint64 indexed requestId,
         address indexed requestOwner,
         string metadata,
@@ -65,20 +74,28 @@ contract UniversalVerifier is
     ) public override(RequestOwnership, ValidatorWhitelist, ZKPVerifierBase) {
         super.setZKPRequest(requestId, request);
 
-        // emit ZKPRequestSet(
-        //     requestId,
-        //     _msgSender(),
-        //     request.metadata,
-        //     address(request.validator),
-        //     request.data
-        // );
+        emit ZKPRequestSet(
+            requestId,
+            _msgSender(),
+            request.metadata,
+            address(request.validator),
+            request.data
+        );
     }
 
     function updateZKPRequest(
         uint64 requestId,
         IZKPVerifier.ZKPRequest calldata request
-    ) public override onlyOwnerOrRequestOwner(requestId) {
+    ) public override onlyOwner {
         super.updateZKPRequest(requestId, request);
+
+        emit ZKPRequestUpdate(
+            requestId,
+            _msgSender(),
+            request.metadata,
+            address(request.validator),
+            request.data
+        );
     }
 
     /// @dev Submits a ZKP response and updates proof status
