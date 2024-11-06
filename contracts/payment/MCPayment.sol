@@ -152,7 +152,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         bytes memory signature
     ) external {
         _checkERC20Payment(paymentData, signature);
-        _transferERC20(paymentData, signature);
+        _transferERC20(paymentData);
     }
 
     function payERC20Permit(
@@ -187,7 +187,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
             r,
             s
         );
-        _transferERC20(paymentData, signature);
+        _transferERC20(paymentData);
     }
 
     function isPaymentDone(address recipient, uint256 nonce) external view returns (bool) {
@@ -209,7 +209,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
                 keccak256(paymentData.metadata)
             )
         );
-        if (!_isSignatureValid(structHash, signature, paymentData.recipient)) {
+        if (!_isSignatureValid(structHash, signature)) {
             revert InvalidSignature("MCPayment: invalid signature for Iden3PaymentRailsRequestV1");
         }
     }
@@ -230,7 +230,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
             )
         );
 
-        if (!_isSignatureValid(structHash, signature, paymentData.recipient)) {
+        if (!_isSignatureValid(structHash, signature)) {
             revert InvalidSignature(
                 "MCPayment: invalid signature for Iden3PaymentRailsERC20RequestV1"
             );
@@ -253,10 +253,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         }
     }
 
-    function _transferERC20(
-        Iden3PaymentRailsERC20RequestV1 memory paymentData,
-        bytes memory signature
-    ) internal {
+    function _transferERC20(Iden3PaymentRailsERC20RequestV1 memory paymentData) internal {
         IERC20 token = IERC20(paymentData.tokenAddress);
         if (token.transferFrom(msg.sender, address(this), paymentData.amount)) {
             MCPaymentStorage storage $ = _getMCPaymentStorage();
@@ -277,13 +274,12 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
 
     function _isSignatureValid(
         bytes32 structHash,
-        bytes memory signature,
-        address recipient
+        bytes memory signature
     ) internal view returns (bool) {
         bytes32 hashTypedData = _hashTypedDataV4(structHash);
-        (address recovered, ECDSA.RecoverError err, ) = hashTypedData.tryRecover(signature);
+        (, ECDSA.RecoverError err, ) = hashTypedData.tryRecover(signature);
 
-        if (err != ECDSA.RecoverError.NoError || recovered != recipient) {
+        if (err != ECDSA.RecoverError.NoError) {
             return false;
         }
 
