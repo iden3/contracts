@@ -65,13 +65,13 @@ contract UniversalVerifier is
     ) public override(RequestOwnership, ValidatorWhitelist, ZKPVerifierBase) {
         super.setZKPRequest(requestId, request);
 
-        emit ZKPRequestSet(
-            requestId,
-            _msgSender(),
-            request.metadata,
-            address(request.validator),
-            request.data
-        );
+        // emit ZKPRequestSet(
+        //     requestId,
+        //     _msgSender(),
+        //     request.metadata,
+        //     address(request.validator),
+        //     request.data
+        // );
     }
 
     function updateZKPRequest(
