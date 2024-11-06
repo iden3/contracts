@@ -38,7 +38,7 @@ import {
 } from "@0xpolygonid/js-sdk";
 import { ProofData } from "@iden3/js-jwz";
 import { packCrossChainProofs, packZKProof } from "../../../../test/utils/packData";
-import { CIRCUIT_ID_MTP_V2, CIRCUIT_ID_SIG_V2, CIRCUIT_ID_V3 } from "../../../../helpers/constants";
+import { Groth16VerifierType } from "../../../../helpers/DeployHelper";
 
 const rhsUrl = "https://rhs-staging.polygonid.me";
 
@@ -488,11 +488,11 @@ export async function setZKPRequest_KYCAgeCredential(
   requestId: number,
   verifier: Contract,
   validatorAddress: string,
-  verifierType: "mtpV2" | "sigV2" | "v3",
+  groth16VerifierType: Groth16VerifierType,
   provider?: JsonRpcProvider,
 ) {
   console.log(
-    `================= setZKPRequest ${verifierType} KYCAgeCredential ===================`,
+    `================= setZKPRequest ${groth16VerifierType} KYCAgeCredential ===================`,
   );
 
   const requestIdExists = await verifier.requestIdExists(requestId);
@@ -526,15 +526,18 @@ export async function setZKPRequest_KYCAgeCredential(
       "20376033832371109177683048456014525905119173674985843915445634726167450989630";
 
     let circuitId: string;
-    switch (verifierType) {
+    switch (groth16VerifierType) {
       case "mtpV2":
-        circuitId = CIRCUIT_ID_MTP_V2;
+        circuitId = CircuitId.AtomicQueryMTPV2OnChain;
         break;
       case "sigV2":
-        circuitId = CIRCUIT_ID_SIG_V2;
+        circuitId = CircuitId.AtomicQuerySigV2OnChain;
         break;
       case "v3":
-        circuitId = CIRCUIT_ID_V3;
+        circuitId = CircuitId.AtomicQueryV3OnChain;
+        break;
+      case "authV2":
+        circuitId = CircuitId.AuthV2;
         break;
     }
 
@@ -553,7 +556,7 @@ export async function setZKPRequest_KYCAgeCredential(
       claimPathNotExists: 0,
     };
 
-    if (verifierType === "v3") {
+    if (groth16VerifierType === "v3") {
       queryKYCAgeCredential = {
         requestId: requestId,
         schema: schemaBigInt,
@@ -562,7 +565,7 @@ export async function setZKPRequest_KYCAgeCredential(
         value: [20020101, ...new Array(63).fill(0)], // for operators 1-3 only first value matters
         slotIndex: 0,
         queryHash: "",
-        circuitIds: [CIRCUIT_ID_V3],
+        circuitIds: [CircuitId.AtomicQueryV3OnChain],
         allowedIssuers: [],
         skipClaimRevocationCheck: false,
         verifierID: verifierId.bigInt(),

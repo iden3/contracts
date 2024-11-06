@@ -5,7 +5,7 @@ import { packValidatorParams } from "../utils/validator-pack-utils";
 import { prepareInputs } from "../utils/state-utils";
 import { Block } from "ethers";
 import proofJson from "../validators/mtp/data/valid_mtp_user_genesis.json";
-import { CIRCUIT_ID_SIG_V2 } from "../../helpers/constants";
+import { CircuitId } from "@0xpolygonid/js-sdk";
 
 describe("Universal Verifier MTP & SIG validators", function () {
   let verifier: any, sig: any, state: any;
@@ -24,7 +24,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     queryHash: BigInt(
       "1496222740463292783938163206931059379817846775593932664024082849882751356658",
     ),
-    circuitIds: [CIRCUIT_ID_SIG_V2],
+    circuitIds: [CircuitId.AtomicQuerySigV2OnChain],
     claimPathNotExists: 0,
   };
 

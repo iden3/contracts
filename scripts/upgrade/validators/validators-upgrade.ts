@@ -65,6 +65,12 @@ async function main() {
       validatorVerification: contractsInfo.VALIDATOR_V3.verificationOpts,
       version: contractsInfo.VALIDATOR_V3.version,
     },
+    {
+      validatorContractAddress: contractsInfo.VALIDATOR_AUTH_V2.unifiedAddress,
+      validatorContractName: contractsInfo.VALIDATOR_AUTH_V2.name,
+      validatorType: VALIDATOR_TYPES.V3,
+      validatorVerification: contractsInfo.VALIDATOR_AUTH_V2.verificationOpts,
+    },
   ];
 
   const validatorsInfo: any = [];

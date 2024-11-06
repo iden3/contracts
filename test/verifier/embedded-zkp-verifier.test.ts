@@ -6,7 +6,7 @@ import { prepareInputs } from "../utils/state-utils";
 import { Block, Signer } from "ethers";
 import { buildCrossChainProofs, packCrossChainProofs, packZKProof } from "../utils/packData";
 import proofJson from "../validators/sig/data/valid_sig_user_genesis.json";
-import { CIRCUIT_ID_SIG_V2 } from "../../helpers/constants";
+import { CircuitId } from "@0xpolygonid/js-sdk";
 
 describe("Embedded ZKP Verifier", function () {
   let verifier: any, sig: any;
@@ -23,7 +23,7 @@ describe("Embedded ZKP Verifier", function () {
     queryHash: BigInt(
       "1496222740463292783938163206931059379817846775593932664024082849882751356658",
     ),
-    circuitIds: [CIRCUIT_ID_SIG_V2],
+    circuitIds: [CircuitId.AtomicQuerySigV2OnChain],
     claimPathNotExists: 0,
   };
 

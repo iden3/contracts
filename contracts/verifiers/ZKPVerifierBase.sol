@@ -9,16 +9,6 @@ import {IState} from "../interfaces/IState.sol";
 import {VerifierLib} from "../lib/VerifierLib.sol";
 
 abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
-    /// @dev Struct to store ZKP proof and associated data
-    struct Proof {
-        bool isVerified;
-        mapping(string key => uint256 inputValue) storageFields;
-        string validatorVersion;
-        uint256 blockNumber;
-        uint256 blockTimestamp;
-        mapping(string key => bytes) metadata;
-    }
-
     struct Metadata {
         string key;
         bytes value;
@@ -26,7 +16,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
 
     /// @custom:storage-location erc7201:iden3.storage.ZKPVerifier
     struct ZKPVerifierStorage {
-        mapping(address user => mapping(uint64 requestId => Proof)) _proofs;
+        mapping(address user => mapping(uint64 requestId => VerifierLib.Proof)) _proofs;
         mapping(uint64 requestId => IZKPVerifier.ZKPRequest) _requests;
         uint64[] _requestIds;
         IState _state;
@@ -266,7 +256,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         address sender,
         uint64 requestId
     ) public view checkRequestExistence(requestId, true) returns (IZKPVerifier.ProofStatus memory) {
-        Proof storage proof = _getZKPVerifierStorage()._proofs[sender][requestId];
+        VerifierLib.Proof storage proof = _getZKPVerifierStorage()._proofs[sender][requestId];
 
         return
             IZKPVerifier.ProofStatus(

@@ -93,14 +93,11 @@ export const networks = Object.freeze({
 export const STATE_ADDRESS_POLYGON_AMOY = "0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124";
 export const STATE_ADDRESS_POLYGON_MAINNET = "0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D";
 
-export const CIRCUIT_ID_MTP_V2 = "credentialAtomicQueryMTPV2OnChain";
-export const CIRCUIT_ID_SIG_V2 = "credentialAtomicQuerySigV2OnChain";
-export const CIRCUIT_ID_V3 = "credentialAtomicQueryV3OnChain-beta.1";
-
 export const VALIDATOR_TYPES = Object.freeze({
   MTP_V2: "mtpV2",
   SIG_V2: "sigV2",
   V3: "v3",
+  AUTH_V2: "authV2",
 });
 
 export const contractsInfo = Object.freeze({
@@ -185,6 +182,22 @@ export const contractsInfo = Object.freeze({
     create2Calldata: ethers.hexlify(
       ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3Validator"),
     ),
+    verificationOpts: {
+      constructorArgsImplementation: [],
+      constructorArgsProxy: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+      ],
+      constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
+      libraries: {},
+    },
+  },
+  VALIDATOR_AUTH_V2: {
+    name: "AuthV2Validator",
+    version: "1.0.0",
+    unifiedAddress: "0x49ebdC163fa014F310CeDBc8e4a0b15C738D8073",
+    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.AuthV2Validator")),
     verificationOpts: {
       constructorArgsImplementation: [],
       constructorArgsProxy: [
@@ -310,6 +323,17 @@ export const contractsInfo = Object.freeze({
     verificationOpts: {
       contract:
         "contracts/lib/groth16-verifiers/Groth16VerifierV3Wrapper.sol:Groth16VerifierV3Wrapper",
+      constructorArgsImplementation: [],
+      libraries: {},
+    },
+  },
+  GROTH16_VERIFIER_AUTH_V2: {
+    name: "Groth16VerifierAuthV2Wrapper",
+    unifiedAddress: "",
+    create2Calldata: "",
+    verificationOpts: {
+      contract:
+        "contracts/lib/groth16-verifiers/Groth16VerifierAuthV2Wrapper.sol:Groth16VerifierAuthV2Wrapper",
       constructorArgsImplementation: [],
       libraries: {},
     },
