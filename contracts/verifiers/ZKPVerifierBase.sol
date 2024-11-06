@@ -7,6 +7,7 @@ import {ArrayUtils} from "../lib/ArrayUtils.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import {IState} from "../interfaces/IState.sol";
 import {VerifierLib} from "../lib/VerifierLib.sol";
+import {VerifierLibReqType1} from "../lib/VerifierLibReqType1.sol";
 
 abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @dev Struct to store ZKP proof and associated data
@@ -35,6 +36,10 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         IState _state;
     }
 
+    // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifier")) - 1)) & ~bytes32(uint256(0xff));
+    bytes32 internal constant ZKPVerifierStorageLocation =
+        0x512d18c55869273fec77e70d8a8586e3fb133e90f1db24c6bcf4ff3506ef6a00;
+
     /// @custom:storage-location erc7201:iden3.storage.ZKPVerifier.ProofType1
     struct ZKPVerifierStorageProofType1 {
         // This group of field is gor RequestType=1 processing
@@ -44,6 +49,10 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         // This is to avoid unimbiguous with 0 proof position in the _proof array
         mapping(address user => mapping(uint256 requestId => mapping(uint256 issuerId => uint256 _indexInProofs))) _proofsByIssuers;
     }
+
+    // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifier.ProofType1")) - 1)) & ~bytes32(uint256(0xff));
+    bytes32 internal constant ZKPVerifierStorageProofType1Location =
+        0xdeb1d72f2ab774583282b8f40288333dedad4ef6f08f6ef2bf26ed145a8f0900;
 
     struct ProofReqType1 {
         bool isVerified;
@@ -69,7 +78,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     function getProofStatusV3(
         address sender,
         uint256 requestId,
-        bytes filterData,
+        bytes calldata filterData
     ) public view checkRequestExistence(requestId, true) returns (IZKPVerifier.ProofStatus memory) {
         uint8 requestType = _getRequestType(requestId);
 
@@ -88,7 +97,9 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             require(issuerId != 0, "Issuer ID parameter required for RequestType=1");
 
             // TODO complete by getting the the index first and then getting the proof from the mapping (incapsulate something maybe)
-            ProofReqType1 storage proof = _getZKPVerifierStorageProofType1()._proofs[sender][requestId][issuerId];
+            ProofReqType1 storage proof = _getZKPVerifierStorageProofType1()._proofs[sender][
+                requestId
+            ][issuerId];
 
             return
                 IZKPVerifier.ProofStatus(
@@ -102,52 +113,27 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         }
     }
 
-    function submitZKPResponseV3(
-        IZKPVerifier.ZKPResponseV3[] memory responses,
-        bytes memory crossChainProofs
-    ) {
-        for (uint256 i = 0; i < responses.length; i++) {
-            IZKPVerifier.ZKPResponseV3 memory response = responses[i];
+    function _getRequestType(uint256 requestId) internal pure returns (uint8) {
+        return uint8(requestId >> 248);
+    }
 
-            address sender = _msgSender();
-
-            uint8 requestType = _getRequestType(response.requestId);
-            IZKPVerifier.ZKPRequest memory request = _getZKPVerifierStorage()._requests[response.requestId];
-
-            if (requestType == 0) {
-                ICircuitValidator.Signal[] memory signals = request.validator.verifyV2(
-                    response.zkProof,
-                    request.data,
-                    sender,
-                    _getZKPVerifierStorage()._state
-                );
-
-                _getZKPVerifierStorage().writeProofResultsV2(sender, response.requestId, signals);
-            } else if (requestType == 1) {
-                ICircuitValidator.Signal[] memory signals = request.validator.verifyV2(
-                    response.zkProof,
-                    request.data,
-                    sender,
-                    _getZKPVerifierStorage()._state
-                );
-
-                _getZKPVerifierStorageProofType1().writeProofResults(sender, response.requestId, signals);
-            } else {
-                revert("RequestType not supported");
-            }
-
-            if (response.data.length > 0) {
-                revert("Metadata not supported yet");
-            }
+    function hasEligibleRequestType(uint256 requestId) internal pure returns (bool) {
+        return _getRequestType(requestId) < 2; // 0x00 old (uint64 requestId) and 0x01 (uint256 requestId) are supported
+    }
+        
+    /// @dev Get the main storage using assembly to ensure specific storage location
+    function _getZKPVerifierStorage() private pure returns (ZKPVerifierStorage storage $) {
+        assembly {
+            $.slot := ZKPVerifierStorageLocation
         }
     }
 
-    // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifier")) - 1)) & ~bytes32(uint256(0xff));
-    bytes32 internal constant ZKPVerifierStorageLocation =
-        0x512d18c55869273fec77e70d8a8586e3fb133e90f1db24c6bcf4ff3506ef6a00;
-
     /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getZKPVerifierStorage() private pure returns (ZKPVerifierStorage storage $) {
+    function _getZKPVerifierStorageProofType1()
+        private
+        pure
+        returns (ZKPVerifierStorageProofType1 storage $)
+    {
         assembly {
             $.slot := ZKPVerifierStorageLocation
         }
@@ -186,7 +172,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     );
 
     /// @dev Modifier to check if the validator is set for the request
-    modifier checkRequestExistence(uint64 requestId, bool existence) {
+    modifier checkRequestExistence(uint256 requestId, bool existence) {
         if (existence) {
             require(requestIdExists(requestId), "request id doesn't exist");
         } else {
@@ -269,6 +255,61 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         }
     }
 
+    function submitZKPResponseV3(
+        IZKPVerifier.ZKPResponseV3[] memory responses,
+        bytes memory crossChainProofs
+    ) public virtual {
+        _getZKPVerifierStorage()._state.processCrossChainProofs(crossChainProofs);
+
+        for (uint256 i = 0; i < responses.length; i++) {
+            IZKPVerifier.ZKPResponseV3 memory response = responses[i];
+
+            address sender = _msgSender();
+
+            uint8 requestType = _getRequestType(response.requestId);
+            IZKPVerifier.ZKPRequest memory request = _getZKPVerifierStorage()._requests[
+                response.requestId
+            ];
+
+            if (requestType == 0) {
+                ICircuitValidator.Signal[] memory signals = request.validator.verifyV2(
+                    response.zkProof,
+                    request.data,
+                    sender,
+                    _getZKPVerifierStorage()._state
+                );
+
+                _getZKPVerifierStorage().writeProofResultsV2(sender, response.requestId, signals);
+            } else if (requestType == 1) {
+                ICircuitValidator.Signal[] memory signals = request.validator.verifyV2(
+                    response.zkProof,
+                    request.data,
+                    sender,
+                    _getZKPVerifierStorage()._state
+                );
+
+                _getZKPVerifierStorageProofType1().writeProofResults(
+                    sender,
+                    response.requestId,
+                    signals,
+                    request
+                );
+            } else {
+                revert("RequestType not supported");
+            }
+
+            if (response.data.length > 0) {
+                revert("Metadata not supported yet");
+            }
+        }
+    }
+
+    function getLastIssuerIdFromProofs(
+        address sender,
+        uint256 requestId) public view returns (uint256) {
+        return _getZKPVerifierStorageProofType1().getLastIssuerIdFromProofs(sender, requestId);
+    }
+
     /// @dev Verifies a ZKP response without updating any proof status
     /// @param requestId The ID of the ZKP request
     /// @param inputs The public inputs for the proof
@@ -344,7 +385,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @dev Checks if a ZKP request ID exists
     /// @param requestId The ID of the ZKP request
     /// @return Whether the request ID exists
-    function requestIdExists(uint64 requestId) public view override returns (bool) {
+    function requestIdExists(uint256 requestId) public view override returns (bool) {
         return
             _getZKPVerifierStorage()._requests[requestId].validator !=
             ICircuitValidator(address(0));

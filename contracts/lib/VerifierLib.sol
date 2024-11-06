@@ -45,7 +45,7 @@ library VerifierLib {
     function writeProofResultsV2(
         ZKPVerifierBase.ZKPVerifierStorage storage self,
         address sender,
-        uint64 requestId,
+        uint256 requestId,
         ICircuitValidator.Signal[] memory signals
     ) public {
         ZKPVerifierBase.Proof storage proof = self._proofs[sender][requestId];

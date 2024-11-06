@@ -112,6 +112,24 @@ contract UniversalVerifier is
         }
     }
 
+    /**
+     * @dev Submits an array of ZKP responses and updates proofs status
+     * @param responses The list of responses including ZKP request ID, ZK proof and metadata
+     * @param crossChainProof The list of cross chain proofs from universal resolver (oracle). This
+     * includes identities and global states.
+     */
+    function submitZKPResponseV3(
+        IZKPVerifier.ZKPResponseV3[] memory responses,
+        bytes memory crossChainProof
+    ) public override {
+        super.submitZKPResponseV3(responses, crossChainProof);
+        // TODO emit specific event depending the RequestType
+        for (uint256 i = 0; i < responses.length; i++) {
+            uint256 issuerId = super.getLastIssuerIdFromProofs(_msgSender(), responses[i].requestId);
+            emit ZKPResponseSubmittedReqType1(responses[i].requestId, _msgSender(), issuerId);
+        }
+    }
+
     /// @dev Verifies a ZKP response without updating any proof status
     /// @param requestId The ID of the ZKP request
     /// @param inputs The public inputs for the proof

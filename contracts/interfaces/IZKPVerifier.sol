@@ -78,6 +78,16 @@ interface IZKPVerifier {
     ) external;
 
     /**
+     * @dev Submit the groth16 proof π=([πa]1,[πb]2,[πc]1) for the ZKP request requestId.
+     * @param responses The list of responses including ZKP request ID, ZK proof and metadata.
+     * @param crossChainProofs The list of cross chain proofs from universal resolver (oracle).
+     */
+    function submitZKPResponseV3(
+        ZKPResponseV3[] memory responses,
+        bytes memory crossChainProofs
+    ) external;
+
+    /**
      * @dev Set the ZKP request for the requestId.
      * @param requestId Request id of the ZKP request.
      * @param request ZKP request to set.
@@ -102,7 +112,7 @@ interface IZKPVerifier {
      * @param requestId Request id of the ZKP request.
      * @return True if the requestId exists.
      */
-    function requestIdExists(uint64 requestId) external view returns (bool);
+    function requestIdExists(uint256 requestId) external view returns (bool);
 
     /**
      * @dev Get the ZKP requests.
