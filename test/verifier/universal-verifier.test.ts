@@ -296,4 +296,51 @@ describe("Universal Verifier MTP & SIG validators", function () {
       ),
     ).to.be.rejectedWith("Validator is not whitelisted");
   });
+
+  it("Check updateZKPRequest", async () => {
+    const owner = signer;
+    const requestOwner = signer2;
+    const requestId = 0;
+    const data = packValidatorParams(query);
+
+    await verifier.connect(requestOwner).setZKPRequest(requestId, {
+      metadata: "metadata",
+      validator: await sig.getAddress(),
+      data: data,
+    });
+
+    let request = await verifier.getZKPRequest(requestId);
+    expect(request.metadata).to.be.equal("metadata");
+
+    await expect(
+      verifier.connect(requestOwner).updateZKPRequest(requestId, {
+        metadata: "metadata",
+        validator: await sig.getAddress(),
+        data: data,
+      }),
+    ).to.be.revertedWithCustomError(verifier, "OwnableUnauthorizedAccount");
+
+    await verifier.connect(owner).updateZKPRequest(requestId, {
+      metadata: "metadata2",
+      validator: await sig.getAddress(),
+      data: data,
+    });
+
+    request = await verifier.getZKPRequest(requestId);
+    expect(request.metadata).to.be.equal("metadata2");
+  });
+
+  it("updateZKPRequest - not existed request", async () => {
+    const owner = signer;
+    const requestId = 0;
+    const data = packValidatorParams(query);
+
+    await expect(
+      verifier.connect(owner).updateZKPRequest(requestId, {
+        metadata: "metadata",
+        validator: await sig.getAddress(),
+        data: data,
+      }),
+    ).to.be.rejectedWith("equest id doesn't exis");
+  });
 });
