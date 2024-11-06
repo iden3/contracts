@@ -4,7 +4,7 @@ import { packV3ValidatorParams } from "../utils/validator-pack-utils";
 import { prepareInputs, publishState } from "../utils/state-utils";
 import { calculateQueryHashV3 } from "../utils/query-hash-utils";
 import { expect } from "chai";
-import { CIRCUIT_ID_V3 } from "../../helpers/constants";
+import { CircuitId } from "@0xpolygonid/js-sdk";
 
 describe("Universal Verifier V3 validator", function () {
   let verifier: any, v3: any, state: any;
@@ -40,7 +40,7 @@ describe("Universal Verifier V3 validator", function () {
     operator,
     slotIndex,
     value,
-    circuitIds: [CIRCUIT_ID_V3],
+    circuitIds: [CircuitId.AtomicQueryV3OnChain],
     skipClaimRevocationCheck: false,
     queryHash,
     groupID: 1,

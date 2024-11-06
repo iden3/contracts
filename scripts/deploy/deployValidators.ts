@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { DeployHelper } from "../../helpers/DeployHelper";
+import { DeployHelper, ValidatorType } from "../../helpers/DeployHelper";
 import hre from "hardhat";
 import { getConfig, getStateContractAddress, verifyContract } from "../../helpers/helperUtils";
 
@@ -9,7 +9,7 @@ async function main() {
   const chainId = hre.network.config.chainId;
 
   const stateContractAddress = getStateContractAddress();
-  const validators: ("mtpV2" | "sigV2" | "v3")[] = ["mtpV2", "sigV2", "v3"];
+  const validators: ValidatorType[] = ["mtpV2", "sigV2", "v3", "authV2"];
 
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
