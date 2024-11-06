@@ -9,6 +9,16 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
  * @dev A library for writing proof results.
  */
 library VerifierLib {
+    /// @dev Struct to store ZKP proof and associated data
+    struct Proof {
+        bool isVerified;
+        mapping(string key => uint256 inputValue) storageFields;
+        string validatorVersion;
+        uint256 blockNumber;
+        uint256 blockTimestamp;
+        mapping(string key => bytes) metadata;
+    }
+
     /**
      * @dev Writes proof results.
      * @param self The ZKPVerifierStorage storage pointer
@@ -24,7 +34,7 @@ library VerifierLib {
         ICircuitValidator.KeyToInputIndex[] memory keyToInpIdxs,
         uint256[] memory inputs
     ) public {
-        ZKPVerifierBase.Proof storage proof = self._proofs[sender][requestId];
+        Proof storage proof = self._proofs[sender][requestId];
         for (uint256 i = 0; i < keyToInpIdxs.length; i++) {
             proof.storageFields[keyToInpIdxs[i].key] = inputs[keyToInpIdxs[i].inputIndex];
         }
@@ -48,7 +58,7 @@ library VerifierLib {
         uint64 requestId,
         ICircuitValidator.Signal[] memory signals
     ) public {
-        ZKPVerifierBase.Proof storage proof = self._proofs[sender][requestId];
+        Proof storage proof = self._proofs[sender][requestId];
         for (uint256 i = 0; i < signals.length; i++) {
             proof.storageFields[signals[i].name] = signals[i].value;
         }

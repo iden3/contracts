@@ -3,17 +3,20 @@ import { packV3ValidatorParams, packValidatorParams } from "../../test/utils/val
 import { calculateQueryHashV2, calculateQueryHashV3 } from "../../test/utils/query-hash-utils";
 import { Blockchain, DidMethod, NetworkId, DID } from "@iden3/js-iden3-core";
 import { buildVerifierId } from "../deploy/deployCrossChainVerifierWithRequests";
-import { Operators } from "@0xpolygonid/js-sdk";
-import {
-  contractsInfo,
-  CIRCUIT_ID_MTP_V2,
-  CIRCUIT_ID_SIG_V2,
-  CIRCUIT_ID_V3,
-} from "../../helpers/constants";
+import { byteEncoder, CircuitId, Operators } from "@0xpolygonid/js-sdk";
+import { contractsInfo } from "../../helpers/constants";
+import { Hex } from "@iden3/js-crypto";
+
+export function getAuthV2RequestId(): number {
+  const circuitHash = ethers.keccak256(byteEncoder.encode(CircuitId.AuthV2));
+  const dataView = new DataView(Hex.decodeString(circuitHash.replace("0x", "")).buffer);
+  const id = dataView.getUint32(0);
+  return id;
+}
 
 async function main() {
-  const circuitName: string = CIRCUIT_ID_V3; // TODO put your circuit here;
-  const requestId = 117; // TODO put your request here;
+  const circuitName: CircuitId = CircuitId.AuthV2; // TODO put your circuit here;
+  let requestId = 117; // TODO put your request here;
   const allowedIssuers = []; // TODO put your allowed issuers here
 
   const chainId = hre.network.config.chainId;
@@ -55,7 +58,7 @@ async function main() {
   let validatorAddress: string;
   let data: string;
   switch (circuitName) {
-    case CIRCUIT_ID_MTP_V2:
+    case CircuitId.AtomicQueryMTPV2OnChain:
       validatorAddress = contractsInfo.VALIDATOR_MTP.unifiedAddress;
       query.queryHash = calculateQueryHashV2(
         query.value,
@@ -68,7 +71,7 @@ async function main() {
       data = packValidatorParams(query);
 
       break;
-    case CIRCUIT_ID_SIG_V2:
+    case CircuitId.AtomicQuerySigV2OnChain:
       validatorAddress = contractsInfo.VALIDATOR_SIG.unifiedAddress;
       query.queryHash = calculateQueryHashV2(
         query.value,
@@ -80,7 +83,7 @@ async function main() {
       ).toString();
       data = packValidatorParams(query);
       break;
-    case CIRCUIT_ID_V3:
+    case CircuitId.AtomicQueryV3OnChain:
       validatorAddress = contractsInfo.VALIDATOR_V3.unifiedAddress;
       query = {
         ...query,
@@ -105,6 +108,12 @@ async function main() {
       ).toString();
       data = packV3ValidatorParams(query);
 
+      break;
+
+    case CircuitId.AuthV2:
+      validatorAddress = contractsInfo.VALIDATOR_AUTH_V2.unifiedAddress;
+      data = "0x";
+      requestId = getAuthV2RequestId();
       break;
     default:
       throw new Error(`Unsupported circuit name: ${circuitName}`);
@@ -152,9 +161,12 @@ async function main() {
   const tx = await verifier.setZKPRequest(
     requestId,
     {
-      metadata: JSON.stringify(invokeRequestMetadataKYCAgeCredential),
+      metadata:
+        circuitName === CircuitId.AuthV2
+          ? "0x"
+          : JSON.stringify(invokeRequestMetadataKYCAgeCredential),
       validator: validatorAddress,
-      data: data,
+      data,
     },
     // {
     //   gasPrice: 50000000000,
