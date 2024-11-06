@@ -154,5 +154,10 @@
     "prettier:contracts": "prettier --write --plugin=prettier-plugin-solidity 'contracts/**/*.sol'",
     "slither": "slither .",
     "postinstall": "patch-package"
+  },
+  "overrides": {
+    "ws": "^8.17.1",
+    "elliptic": "^6.6.0",
+    "cookie": "^1.0.1"
   }
 }
