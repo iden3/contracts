@@ -237,6 +237,17 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             ICircuitValidator(address(0));
     }
 
+    /// @dev Gets multiple ZKP requests within a range
+    /// @param startIndex The starting index of the range
+    /// @param length The length of the range
+    /// @return An array of ZKP requests within the specified range
+    function getZKPRequests(
+        uint256 startIndex,
+        uint256 length
+    ) public view returns (IZKPVerifier.ZKPRequest[] memory) {
+        revert("Not implemented in this version");
+    }
+
     /// @dev Checks if proof submitted for a given sender and request ID
     /// @param sender The sender's address
     /// @param requestId The ID of the ZKP request

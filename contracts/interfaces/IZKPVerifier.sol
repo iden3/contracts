@@ -99,6 +99,17 @@ interface IZKPVerifier {
     function requestIdExists(uint64 requestId) external view returns (bool);
 
     /**
+     * @dev Get the ZKP requests.
+     * @param startIndex Start index of the ZKP requests.
+     * @param length Length of the ZKP requests.
+     * @return Array of the ZKP requests.
+     */
+    function getZKPRequests(
+        uint256 startIndex,
+        uint256 length
+    ) external view returns (ZKPRequest[] memory);
+
+    /**
      * @dev Get if proof is verified for the sender and ZKP request with requestId.
      * @param sender Sender of the proof.
      * @param requestId Request id of the ZKP Request to verify.
