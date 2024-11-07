@@ -159,6 +159,13 @@ contract UniversalVerifier is
         _setState(state);
     }
 
+    /**
+     * @dev Initializes the ZKP requests from previous format
+     */
+    function initializeRequests() public onlyOwner {
+        __ZKPVerifierBase_init_requests();
+    }
+
     /// @dev Sets ZKP Request Owner address
     /// @param requestId The ID of the ZKP request
     /// @param requestOwner ZKP Request Owner address

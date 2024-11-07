@@ -48,6 +48,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         // We should increase the index by 1 when writing to the mapping
         // This is to avoid unimbiguous with 0 proof position in the _proof array
         mapping(address user => mapping(uint256 requestId => mapping(uint256 issuerId => uint256 _indexInProofs))) _proofsByIssuers;
+        bool _initializedRequests;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifier.ProofType1")) - 1)) & ~bytes32(uint256(0xff));
@@ -60,6 +61,14 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         string validatorVersion;
         uint256 blockTimestamp;
         mapping(string key => bytes) metadata;
+    }
+
+    /**
+     * @dev Modifier to protect an initialization of requests function so that it can only be invoked if not initialized
+     */
+    modifier onlyNotInitializedRequests() {
+        require(!_getZKPVerifierStorageProofType1()._initializedRequests, "Requests already initialized");
+        _;
     }
 
     // 32 bytes (in Big Endian): 31-0x00(not used), 30-0x01(requestType), 29..8-0x00(not used), 7..0 requestId
@@ -135,7 +144,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         returns (ZKPVerifierStorageProofType1 storage $)
     {
         assembly {
-            $.slot := ZKPVerifierStorageLocation
+            $.slot := ZKPVerifierStorageProofType1Location
         }
     }
 
@@ -152,6 +161,65 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
 
     function __ZKPVerifierBase_init_unchained(IState state) internal onlyInitializing {
         _setState(state);
+    }
+
+    function _initializeRequests() internal onlyNotInitializedRequests {
+        ZKPVerifierStorage storage s = _getZKPVerifierStorage();
+        uint256[] storage requestIds = s._requestIds;
+
+        uint256 slot;
+        uint256 len;
+        assembly {
+            slot := requestIds.slot
+            len := sload(requestIds.slot)
+        }
+        uint256 lenSlots = 0;
+        if (len > 0) {
+            lenSlots = (len / 4) + 1; // 4 uint64 in 1 slot
+        }
+        bytes32 location = keccak256(abi.encode(slot));
+
+        // Copy all the requestIds to a new array copyRequestIds 
+        // accessing the storage directly in assembly because of the dynamic array uint64 in previous version
+        uint256[] memory copyRequestIds = new uint256[](len);
+        uint256 index = 0;
+
+        for (uint256 currentSlot = 0; currentSlot < lenSlots; currentSlot++) {
+            uint256 v0; uint256 v1; uint256 v2; uint256 v3;
+
+            assembly{
+                let valueSlot := sload(add(location, currentSlot)) // all the slot 256 bits
+                v0 := and(0xffffffff, valueSlot)
+                v1 := and(0xffffffff, shr(64, valueSlot))
+                v2 := and(0xffffffff, shr(128, valueSlot))
+                v3 := and(0xffffffff, shr(192, valueSlot))
+            }
+
+            copyRequestIds[index] = v0;
+            index++;
+            if ((currentSlot < lenSlots - 1) || (currentSlot + 1)*4 % len < 3) {
+                copyRequestIds[index] = v1;
+                index++;
+            }
+            if ((currentSlot < lenSlots - 1) || (currentSlot + 1)*4 % len < 2) {
+                copyRequestIds[index] = v2;
+                index++;
+            }
+            if ((currentSlot < lenSlots - 1) || (currentSlot + 1)*4 % len == 0) {
+                copyRequestIds[index] = v3;
+                index++;
+            }
+        }       
+
+
+        for (uint256 i = 0; i < copyRequestIds.length; i++) {
+            s._requestIds[i] = copyRequestIds[i];
+        }
+    }
+
+    function __ZKPVerifierBase_init_requests() internal onlyNotInitializedRequests {
+        _initializeRequests();
+        _getZKPVerifierStorageProofType1()._initializedRequests = true;
     }
 
     /**

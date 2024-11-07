@@ -102,7 +102,8 @@ async function main() {
     proxyAdminOwnerSigner,
   );
 
-  const universalVerifierContract = await universalVerifierMigrationHelper.getInitContract({
+  // Get contract with previous ABI
+  let universalVerifierContract = await universalVerifierMigrationHelper.getInitContract({
     contractNameOrAbi: previousUniversalVerifierArtifact.abi,
     address: universalVerifierAddress,
   });
@@ -125,11 +126,15 @@ async function main() {
 
   await verifyContract(await verifierLib.getAddress(), contractsInfo.VERIFIER_LIB.verificationOpts);
 
+  // Upgrade and get upgraded contract with new ABI
   // **** Upgrade Universal Verifier ****
-  await universalVerifierMigrationHelper.upgradeContract(universalVerifierContract, {
-    verifierLibAddress: await verifierLib.getAddress(),
-    verifierLibReqType1Address: await verifierLibReqType1.getAddress(),
-  });
+  universalVerifierContract = await universalVerifierMigrationHelper.upgradeContract(
+    universalVerifierContract,
+    {
+      verifierLibAddress: await verifierLib.getAddress(),
+      verifierLibReqType1Address: await verifierLibReqType1.getAddress(),
+    },
+  );
   // ************************
   console.log("Checking data after upgrade");
 
@@ -137,6 +142,12 @@ async function main() {
     await universalVerifierContract.getAddress(),
     contractsInfo.UNIVERSAL_VERIFIER.verificationOpts,
   );
+
+  // Initialize requests in ZKPVerifierStorage after upgrade uint64[] _requestIds -> uint256[] _requestIds;
+  const txRequestsUpgrade = await universalVerifierContract
+    .connect(universalVerifierOwnerSigner)
+    .initializeRequests();
+  await txRequestsUpgrade.wait();
 
   const dataAfterUpgrade =
     await universalVerifierMigrationHelper.getDataFromContract(universalVerifierContract);
