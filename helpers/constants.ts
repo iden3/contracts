@@ -341,6 +341,15 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
+  VERIFIER_LIB_REQUEST_TYPE1: {
+    name: "VerifierLibReqType1",
+    unifiedAddress: "",
+    create2Address: "",
+    verificationOpts: {
+      constructorArgsImplementation: [],
+      libraries: {},
+    },
+  },
   EMBEDDED_ZKP_VERIFIER_WRAPPER: {
     name: "EmbeddedZKPVerifierWrapper",
     unifiedAddress: "",

@@ -35,11 +35,13 @@ describe("Universal Verifier MTP & SIG validators", function () {
     deployHelper = await DeployHelper.initialize(null, true);
     ({ state } = await deployHelper.deployStateWithLibraries(["0x0112"]));
     const verifierLib = await deployHelper.deployVerifierLib();
+    const verifierLibReqType1 = await deployHelper.deployVerifierLibReqType1();
 
     verifier = await deployHelper.deployUniversalVerifier(
       signer,
       await state.getAddress(),
       await verifierLib.getAddress(),
+      await verifierLibReqType1.getAddress(),
     );
 
     const stub = await deployHelper.deployValidatorStub();

@@ -63,11 +63,13 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     stateCrossChainStub = state;
 
     const verifierLib = await deployHelper.deployVerifierLib();
+    const verifierLibReqType1 = await deployHelper.deployVerifierLibReqType1();
 
     verifier = await deployHelper.deployUniversalVerifier(
       signer,
       await stateCrossChainStub.getAddress(),
       await verifierLib.getAddress(),
+      await verifierLibReqType1.getAddress(),
     );
 
     validatorStub = await deployHelper.deployValidatorStub();

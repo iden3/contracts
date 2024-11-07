@@ -34,11 +34,13 @@ describe("Embedded ZKP Verifier", function () {
     const { state } = await deployHelper.deployStateWithLibraries(["0x0112"]);
 
     const verifierLib = await deployHelper.deployVerifierLib();
+    const verifierLibReqType1 = await deployHelper.deployVerifierLibReqType1();
 
     verifier = await deployHelper.deployEmbeddedZKPVerifierWrapper(
       owner,
       await state.getAddress(),
       await verifierLib.getAddress(),
+      await verifierLibReqType1.getAddress(),
     );
 
     const stub = await deployHelper.deployValidatorStub();

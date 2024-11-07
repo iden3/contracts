@@ -475,7 +475,7 @@ export class DeployHelper {
   }
 
   async deployVerifierLib(): Promise<Contract> {
-    const contractName = "VerifierLib";
+    const contractName = contractsInfo.VERIFIER_LIB.name;
 
     const verifierLib = await ethers.deployContract(contractName);
     await verifierLib.waitForDeployment();
@@ -486,7 +486,7 @@ export class DeployHelper {
   }
 
   async deployVerifierLibReqType1(): Promise<Contract> {
-    const contractName = "VerifierLibReqType1";
+    const contractName = contractsInfo.VERIFIER_LIB_REQUEST_TYPE1.name;
 
     const VerifierLibReqType1 = await ethers.deployContract(contractName);
     await VerifierLibReqType1.waitForDeployment();
@@ -898,10 +898,12 @@ export class DeployHelper {
     owner: SignerWithAddress | undefined,
     stateAddr: string,
     verifierLibAddr: string,
+    verifierLibReqType1Addr: string,
   ): Promise<Contract> {
     const Verifier = await ethers.getContractFactory("EmbeddedZKPVerifierWrapper", {
       libraries: {
         VerifierLib: verifierLibAddr,
+        VerifierLibReqType1: verifierLibReqType1Addr,
       },
     });
     // const zkpVerifier = await ZKPVerifier.deploy(await owner.getAddress());
@@ -917,6 +919,7 @@ export class DeployHelper {
     owner: SignerWithAddress | undefined,
     stateAddr: string,
     verifierLibAddr: string,
+    verifierLibReqType1Addr: string,
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<Contract> {
     if (!owner) {
@@ -928,6 +931,7 @@ export class DeployHelper {
         signer: owner,
         libraries: {
           VerifierLib: verifierLibAddr,
+          VerifierLibReqType1: verifierLibReqType1Addr,
         },
       },
     );

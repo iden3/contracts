@@ -34,6 +34,7 @@ async function main() {
     );
   } else {
     verifierLib = await deployHelper.deployVerifierLib();
+
     const tx = await verifierLib.deploymentTransaction();
     await waitNotToInterfereWithHardhatIgnition(tx);
     tmpContractDeployments.addContract(
@@ -46,10 +47,33 @@ async function main() {
     );
   }
 
+  let verifierLibReqType1 = await tmpContractDeployments.getContract(
+    contractsInfo.VERIFIER_LIB_REQUEST_TYPE1.name,
+  );
+  if (verifierLibReqType1) {
+    Logger.warning(
+      `${contractsInfo.VERIFIER_LIB_REQUEST_TYPE1.name} found already deployed to:  ${await verifierLibReqType1?.getAddress()}`,
+    );
+  } else {
+    verifierLibReqType1 = await deployHelper.deployVerifierLibReqType1();
+
+    const tx = await verifierLibReqType1.deploymentTransaction();
+    await waitNotToInterfereWithHardhatIgnition(tx);
+    tmpContractDeployments.addContract(
+      contractsInfo.VERIFIER_LIB_REQUEST_TYPE1.name,
+      await verifierLibReqType1.getAddress(),
+    );
+    await verifyContract(
+      await verifierLibReqType1.getAddress(),
+      contractsInfo.VERIFIER_LIB_REQUEST_TYPE1.verificationOpts,
+    );
+  }
+
   const universalVerifier = await deployHelper.deployUniversalVerifier(
     undefined,
     stateContractAddress,
     await verifierLib.getAddress(),
+    await verifierLibReqType1.getAddress(),
     deployStrategy,
   );
   tmpContractDeployments.remove();
