@@ -47,6 +47,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         mapping(address user => mapping(uint256 requestId => ProofReqType1[])) _proofs;
         // We should increase the index by 1 when writing to the mapping
         // This is to avoid unimbiguous with 0 proof position in the _proof array
+        // solhint-disable-next-line
         mapping(address user => mapping(uint256 requestId => mapping(uint256 issuerId => uint256 _indexInProofs))) _proofsByIssuers;
         bool _initializedRequests;
     }
@@ -64,24 +65,15 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     }
 
     /**
-     * @dev Modifier to protect an initialization of requests function so that it can only be invoked if not initialized
+     * @dev Modifier to protect an initialization of requests function so that it can only
+     * be invoked if not initialized
      */
     modifier onlyNotInitializedRequests() {
-        require(!_getZKPVerifierStorageProofType1()._initializedRequests, "Requests already initialized");
+        require(
+            !_getZKPVerifierStorageProofType1()._initializedRequests,
+            "Requests already initialized"
+        );
         _;
-    }
-
-    // 32 bytes (in Big Endian): 31-0x00(not used), 30-0x01(requestType), 29..8-0x00(not used), 7..0 requestId
-    function setZKPRequestV3(
-        uint256 requestId,
-        IZKPVerifier.ZKPRequest calldata request
-    ) public virtual checkRequestExistence(requestId, false) {
-        // TODO create the isEligibleRequestType method
-        require(hasEligibleRequestType(requestId), "RequestType not supported");
-
-        ZKPVerifierStorage storage s = _getZKPVerifierStorage();
-        s._requests[requestId] = request;
-        s._requestIds.push(requestId);
     }
 
     function getProofStatusV3(
@@ -105,7 +97,8 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             uint256 issuerId = abi.decode(filterData, (uint256));
             require(issuerId != 0, "Issuer ID parameter required for RequestType=1");
 
-            // TODO complete by getting the the index first and then getting the proof from the mapping (incapsulate something maybe)
+            // TODO complete by getting the the index first and then getting the proof from
+            // the mapping (incapsulate something maybe)
             ProofReqType1 storage proof = _getZKPVerifierStorageProofType1()._proofs[sender][
                 requestId
             ][issuerId];
@@ -129,7 +122,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     function hasEligibleRequestType(uint256 requestId) internal pure returns (bool) {
         return _getRequestType(requestId) < 2; // 0x00 old (uint64 requestId) and 0x01 (uint256 requestId) are supported
     }
-        
+
     /// @dev Get the main storage using assembly to ensure specific storage location
     function _getZKPVerifierStorage() private pure returns (ZKPVerifierStorage storage $) {
         assembly {
@@ -179,15 +172,18 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         }
         bytes32 location = keccak256(abi.encode(slot));
 
-        // Copy all the requestIds to a new array copyRequestIds 
+        // Copy all the requestIds to a new array copyRequestIds
         // accessing the storage directly in assembly because of the dynamic array uint64 in previous version
         uint256[] memory copyRequestIds = new uint256[](len);
         uint256 index = 0;
 
         for (uint256 currentSlot = 0; currentSlot < lenSlots; currentSlot++) {
-            uint256 v0; uint256 v1; uint256 v2; uint256 v3;
+            uint256 v0;
+            uint256 v1;
+            uint256 v2;
+            uint256 v3;
 
-            assembly{
+            assembly {
                 let valueSlot := sload(add(location, currentSlot)) // all the slot 256 bits
                 v0 := and(0xffffffff, valueSlot)
                 v1 := and(0xffffffff, shr(64, valueSlot))
@@ -197,20 +193,19 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
 
             copyRequestIds[index] = v0;
             index++;
-            if ((currentSlot < lenSlots - 1) || (currentSlot + 1)*4 % len < 3) {
+            if ((currentSlot < lenSlots - 1) || ((currentSlot + 1) * 4) % len < 3) {
                 copyRequestIds[index] = v1;
                 index++;
             }
-            if ((currentSlot < lenSlots - 1) || (currentSlot + 1)*4 % len < 2) {
+            if ((currentSlot < lenSlots - 1) || ((currentSlot + 1) * 4) % len < 2) {
                 copyRequestIds[index] = v2;
                 index++;
             }
-            if ((currentSlot < lenSlots - 1) || (currentSlot + 1)*4 % len == 0) {
+            if ((currentSlot < lenSlots - 1) || ((currentSlot + 1) * 4) % len == 0) {
                 copyRequestIds[index] = v3;
                 index++;
             }
-        }       
-
+        }
 
         for (uint256 i = 0; i < copyRequestIds.length; i++) {
             s._requestIds[i] = copyRequestIds[i];
@@ -256,6 +251,23 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         uint64 requestId,
         IZKPVerifier.ZKPRequest calldata request
     ) public virtual checkRequestExistence(requestId, false) {
+        ZKPVerifierStorage storage s = _getZKPVerifierStorage();
+        s._requests[requestId] = request;
+        s._requestIds.push(requestId);
+    }
+
+    // 32 bytes (in Big Endian): 31-0x00(not used), 30-0x01(requestType), 29..8-0x00(not used),
+    // 7..0 requestId
+    /// @dev Sets a ZKP request
+    /// @param requestId The ID of the ZKP request
+    /// @param request The ZKP request data
+    function setZKPRequestV3(
+        uint256 requestId,
+        IZKPVerifier.ZKPRequest calldata request
+    ) public virtual checkRequestExistence(requestId, false) {
+        // TODO create the isEligibleRequestType method
+        require(hasEligibleRequestType(requestId), "RequestType not supported");
+
         ZKPVerifierStorage storage s = _getZKPVerifierStorage();
         s._requests[requestId] = request;
         s._requestIds.push(requestId);
@@ -374,7 +386,8 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
 
     function getLastIssuerIdFromProofs(
         address sender,
-        uint256 requestId) public view returns (uint256) {
+        uint256 requestId
+    ) public view returns (uint256) {
         return _getZKPVerifierStorageProofType1().getLastIssuerIdFromProofs(sender, requestId);
     }
 

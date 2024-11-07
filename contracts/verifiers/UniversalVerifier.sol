@@ -25,7 +25,11 @@ contract UniversalVerifier is
 
     /// @dev Event emitted upon submitting a ZKP request
     event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);
-    event ZKPResponseSubmittedReqType1(uint256 indexed requestId, address indexed caller, uint256 indexed issuerID);
+    event ZKPResponseSubmittedReqType1(
+        uint256 indexed requestId,
+        address indexed caller,
+        uint256 indexed issuerID
+    );
 
     /// @dev Event emitted upon adding a ZKP request
     event ZKPRequestSet(
@@ -125,7 +129,10 @@ contract UniversalVerifier is
         super.submitZKPResponseV3(responses, crossChainProof);
         // TODO emit specific event depending the RequestType
         for (uint256 i = 0; i < responses.length; i++) {
-            uint256 issuerId = super.getLastIssuerIdFromProofs(_msgSender(), responses[i].requestId);
+            uint256 issuerId = super.getLastIssuerIdFromProofs(
+                _msgSender(),
+                responses[i].requestId
+            );
             emit ZKPResponseSubmittedReqType1(responses[i].requestId, _msgSender(), issuerId);
         }
     }
