@@ -209,7 +209,11 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
                 keccak256(paymentData.metadata)
             )
         );
-        return _tryRecover(structHash, signature);
+        (bool isValid, address recovered) = _tryRecover(structHash, signature);
+        if (!isValid) {
+            revert InvalidSignature("MCPayment: invalid signature for Iden3PaymentRailsRequestV1");
+        }
+        return recovered;
     }
 
     function recoverIden3PaymentRailsERC20RequestV1Signature(
@@ -228,7 +232,13 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
             )
         );
 
-        return _tryRecover(structHash, signature);
+        (bool isValid, address recovered) = _tryRecover(structHash, signature);
+        if (!isValid) {
+            revert InvalidSignature(
+                "MCPayment: invalid signature for Iden3PaymentRailsERC20RequestV1"
+            );
+        }
+        return recovered;
     }
 
     function _recoverERC20PaymentSignature(
@@ -273,15 +283,10 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     function _tryRecover(
         bytes32 structHash,
         bytes memory signature
-    ) internal view returns (address) {
+    ) internal view returns (bool, address) {
         bytes32 hashTypedData = _hashTypedDataV4(structHash);
         (address recovered, ECDSA.RecoverError err, ) = hashTypedData.tryRecover(signature);
-
-        if (err != ECDSA.RecoverError.NoError) {
-            revert InvalidSignature("MCPayment: invalid signature");
-        }
-
-        return recovered;
+        return (err == ECDSA.RecoverError.NoError, recovered);
     }
 
     function getBalance(address recipient) public view returns (uint256) {
