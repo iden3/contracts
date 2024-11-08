@@ -64,6 +64,19 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         mapping(string key => bytes) metadata;
     }
 
+    // 32 bytes (in Big Endian): 31-0x00(not used), 30-0x01(requestType), 29..8-0x00(not used), 7..0 requestId
+    function setZKPRequestV3(
+        uint256 requestId,
+        IZKPVerifier.ZKPRequest calldata request,
+        bytes calldata authData
+    ) public virtual checkRequestExistence(requestId, false) {
+        // TODO create the isEligibleRequestType method
+        require(hasEligibleRequestType(requestId), "RequestType not supported");
+
+        ZKPVerifierStorage storage s = _getZKPVerifierStorage();
+        s._requests[requestId] = request;
+        s._requestIds.push(requestId);
+
     /**
      * @dev Modifier to protect an initialization of requests function so that it can only
      * be invoked if not initialized
@@ -302,6 +315,14 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         $.writeProofResults(sender, requestId, keyToInpIdxs, inputs);
     }
 
+    // requestId5 is AuthValidator
+    struct InvokeRequest {
+        uint256 id; // TODO the generation logic
+        string scopeCondition; // (requestId1 or requestId2) and (requestId3 or requestId4)
+        string authCondition; // requestId5 or requestId6 or requestId7
+        string authIntersectionLogic; // UserID ?????
+    }
+
     /// @notice Submits a ZKP response V2 and updates proof status
     /// @param responses The list of responses including ZKP request ID, ZK proof and metadata
     /// @param crossChainProofs The list of cross chain proofs from universal resolver (oracle)
@@ -336,8 +357,10 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     }
 
     function submitZKPResponseV3(
+        invokeID,
         IZKPVerifier.ZKPResponseV3[] memory responses,
-        bytes memory crossChainProofs
+        bytes memory crossChainProofs,
+        bytes memory authData // what's the structure of the data ???
     ) public virtual {
         _getZKPVerifierStorage()._state.processCrossChainProofs(crossChainProofs);
 
@@ -382,6 +405,9 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
                 revert("Metadata not supported yet");
             }
         }
+
+        // Some logic, which intersects UserID between auth and scope requests
+        // TODO Check if UserID is the same for each storageField ???
     }
 
     function getLastIssuerIdFromProofs(

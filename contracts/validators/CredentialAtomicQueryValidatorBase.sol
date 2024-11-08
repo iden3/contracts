@@ -165,7 +165,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
      * @return Array of public signals as result.
      */
     function verifyV2(
-        bytes calldata zkProof,
+        bytes calldata proof,
         bytes calldata data,
         address sender,
         IState stateContract

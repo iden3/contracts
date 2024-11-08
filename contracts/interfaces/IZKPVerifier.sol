@@ -14,7 +14,7 @@ interface IZKPVerifier {
      * @param validator Validator circuit.
      * @param data Data of the request.
      */
-    struct ZKPRequest {
+    struct Request {
         string metadata;
         ICircuitValidator validator;
         bytes data;
