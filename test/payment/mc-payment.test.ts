@@ -5,7 +5,7 @@ import { Signer } from "ethers";
 
 describe("MC Payment Contract", () => {
   let payment: MCPayment;
-  let issuer1Signer, owner, userSigner: Signer, domainData;
+  let issuer1Signer, recipient, owner, userSigner: Signer, domainData;
   const ownerPercentage = 10;
   const types = {
     Iden3PaymentRailsRequestV1: [
@@ -33,6 +33,7 @@ describe("MC Payment Contract", () => {
     issuer1Signer = signers[1];
     userSigner = signers[5];
     owner = signers[0];
+    recipient = signers[6];
 
     payment = (await upgrades.deployProxy(new MCPayment__factory(owner), [
       await owner.getAddress(),
@@ -59,11 +60,12 @@ describe("MC Payment Contract", () => {
     const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
     const verifyGas = await payment
       .connect(userSigner)
-      .verifyIden3PaymentRailsRequestV1Signature.estimateGas(paymentData, signature);
+      .recoverIden3PaymentRailsRequestV1Signature.estimateGas(paymentData, signature);
     console.log("Verification Gas: " + verifyGas);
-    await payment
+    const recovered = await payment
       .connect(userSigner)
-      .verifyIden3PaymentRailsRequestV1Signature(paymentData, signature);
+      .recoverIden3PaymentRailsRequestV1Signature(paymentData, signature);
+    expect(recovered).to.be.eq(issuer1Signer.address);
   });
 
   it("Check payment:", async () => {
@@ -490,6 +492,105 @@ describe("MC Payment Contract", () => {
     expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(90);
     expect(await token.balanceOf(await issuer1Signer.getAddress())).to.be.eq(9);
     expect(await token.balanceOf(await payment.getAddress())).to.be.eq(1);
+    expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
+  });
+
+  it("Check payment - different signer and recipient:", async () => {
+    const paymentData = {
+      recipient: recipient.address,
+      amount: 100,
+      expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60,
+      nonce: 25,
+      metadata: "0x",
+    };
+    const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
+
+    await payment.connect(userSigner).pay(paymentData, signature, {
+      value: 100,
+    });
+
+    const isPaymentDoneRecipient = await payment.isPaymentDone(recipient.address, 25);
+    expect(isPaymentDoneRecipient).to.be.false;
+
+    const isPaymentDoneSigner = await payment.isPaymentDone(issuer1Signer.address, 25);
+    expect(isPaymentDoneSigner).to.be.true;
+
+    // withdraw
+    const recipientBalanceInContract = await payment.getBalance(recipient.address);
+    expect(recipientBalanceInContract).to.be.eq(90);
+
+    await expect(() => payment.connect(recipient).issuerWithdraw()).to.changeEtherBalance(
+      recipient,
+      90,
+    );
+
+    const recipinetBalanceAfterWithdraw = await payment.getBalance(recipient.address);
+    expect(recipinetBalanceAfterWithdraw).to.be.eq(0);
+  });
+
+  it("ERC-20 payment - different signer and recipient:", async () => {
+    const tokenFactory = await ethers.getContractFactory("ERC20Token", owner);
+    const token = await tokenFactory.deploy(1_000);
+    await token.connect(owner).transfer(await userSigner.getAddress(), 100);
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
+
+    await token.connect(userSigner).approve(await payment.getAddress(), 10);
+
+    const paymentData = {
+      tokenAddress: await token.getAddress(),
+      recipient: recipient.address,
+      amount: 10,
+      expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60,
+      nonce: 35,
+      metadata: "0x",
+    };
+
+    const signature = await issuer1Signer.signTypedData(domainData, erc20types, paymentData);
+    await payment.connect(userSigner).payERC20(paymentData, signature);
+
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(90);
+    // 10 - 10% owner fee = 9
+    expect(await token.balanceOf(await recipient.getAddress())).to.be.eq(9);
+    expect(await token.balanceOf(await payment.getAddress())).to.be.eq(1);
+
+    expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
+    expect(await payment.isPaymentDone(recipient.address, 35)).to.be.false;
+  });
+
+  it("ERC-20 Permit (EIP-2612) payment - different signer and recipient:", async () => {
+    const tokenFactory = await ethers.getContractFactory("ERC20PermitToken", owner);
+    const token = await tokenFactory.deploy(1_000);
+    await token.connect(owner).transfer(await userSigner.getAddress(), 100);
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
+
+    const paymentAmount = 10n;
+    const permitSignature = await getPermitSignature(
+      userSigner,
+      await token.getAddress(),
+      await payment.getAddress(),
+      paymentAmount,
+      0n,
+      Math.round(new Date().getTime() / 1000) + 60 * 60,
+    );
+
+    const paymentData = {
+      tokenAddress: await token.getAddress(),
+      recipient: recipient.address,
+      amount: paymentAmount,
+      expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60,
+      nonce: 35,
+      metadata: "0x",
+    };
+
+    const signature = await issuer1Signer.signTypedData(domainData, erc20types, paymentData);
+    await payment.connect(userSigner).payERC20Permit(permitSignature, paymentData, signature);
+
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(90);
+    // 10 - 10% owner fee = 9
+    expect(await token.balanceOf(await recipient.getAddress())).to.be.eq(9);
+    expect(await token.balanceOf(await payment.getAddress())).to.be.eq(1);
+
+    expect(await payment.isPaymentDone(recipient.address, 35)).to.be.false;
     expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
   });
 });

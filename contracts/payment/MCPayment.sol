@@ -112,8 +112,8 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         Iden3PaymentRailsRequestV1 memory paymentData,
         bytes memory signature
     ) external payable {
-        verifyIden3PaymentRailsRequestV1Signature(paymentData, signature);
-        bytes32 paymentId = keccak256(abi.encode(paymentData.recipient, paymentData.nonce));
+        address recoverd = recoverIden3PaymentRailsRequestV1Signature(paymentData, signature);
+        bytes32 paymentId = keccak256(abi.encode(recoverd, paymentData.nonce));
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         if ($.isPaid[paymentId]) {
             revert PaymentError(
@@ -151,8 +151,8 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         Iden3PaymentRailsERC20RequestV1 memory paymentData,
         bytes memory signature
     ) external {
-        _checkERC20Payment(paymentData, signature);
-        _transferERC20(paymentData);
+        address recovered = _recoverERC20PaymentSignature(paymentData, signature);
+        _transferERC20(paymentData, recovered);
     }
 
     function payERC20Permit(
@@ -160,7 +160,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         Iden3PaymentRailsERC20RequestV1 memory paymentData,
         bytes memory signature
     ) external {
-        _checkERC20Payment(paymentData, signature);
+        address recovered = _recoverERC20PaymentSignature(paymentData, signature);
         ERC20Permit token = ERC20Permit(paymentData.tokenAddress);
         if (permitSignature.length != 65) {
             revert ECDSAInvalidSignatureLength("MCPayment: invalid permit signature length");
@@ -187,18 +187,18 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
             r,
             s
         );
-        _transferERC20(paymentData);
+        _transferERC20(paymentData, recovered);
     }
 
-    function isPaymentDone(address recipient, uint256 nonce) external view returns (bool) {
+    function isPaymentDone(address signer, uint256 nonce) external view returns (bool) {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
-        return $.isPaid[keccak256(abi.encode(recipient, nonce))];
+        return $.isPaid[keccak256(abi.encode(signer, nonce))];
     }
 
-    function verifyIden3PaymentRailsRequestV1Signature(
+    function recoverIden3PaymentRailsRequestV1Signature(
         Iden3PaymentRailsRequestV1 memory paymentData,
         bytes memory signature
-    ) public view {
+    ) public view returns (address) {
         bytes32 structHash = keccak256(
             abi.encode(
                 PAYMENT_DATA_TYPE_HASH,
@@ -209,15 +209,13 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
                 keccak256(paymentData.metadata)
             )
         );
-        if (!_isSignatureValid(structHash, signature)) {
-            revert InvalidSignature("MCPayment: invalid signature for Iden3PaymentRailsRequestV1");
-        }
+        return _tryRecover(structHash, signature);
     }
 
-    function verifyIden3PaymentRailsERC20RequestV1Signature(
+    function recoverIden3PaymentRailsERC20RequestV1Signature(
         Iden3PaymentRailsERC20RequestV1 memory paymentData,
         bytes memory signature
-    ) public view {
+    ) public view returns (address) {
         bytes32 structHash = keccak256(
             abi.encode(
                 ERC_20_PAYMENT_DATA_TYPE_HASH,
@@ -230,19 +228,15 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
             )
         );
 
-        if (!_isSignatureValid(structHash, signature)) {
-            revert InvalidSignature(
-                "MCPayment: invalid signature for Iden3PaymentRailsERC20RequestV1"
-            );
-        }
+        return _tryRecover(structHash, signature);
     }
 
-    function _checkERC20Payment(
+    function _recoverERC20PaymentSignature(
         Iden3PaymentRailsERC20RequestV1 memory paymentData,
         bytes memory signature
-    ) internal view {
-        verifyIden3PaymentRailsERC20RequestV1Signature(paymentData, signature);
-        bytes32 paymentId = keccak256(abi.encode(paymentData.recipient, paymentData.nonce));
+    ) internal view returns (address) {
+        address recovered = recoverIden3PaymentRailsERC20RequestV1Signature(paymentData, signature);
+        bytes32 paymentId = keccak256(abi.encode(recovered, paymentData.nonce));
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         if ($.isPaid[paymentId]) {
             revert PaymentError(
@@ -251,9 +245,13 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
                 "MCPayment: payment already paid"
             );
         }
+        return recovered;
     }
 
-    function _transferERC20(Iden3PaymentRailsERC20RequestV1 memory paymentData) internal {
+    function _transferERC20(
+        Iden3PaymentRailsERC20RequestV1 memory paymentData,
+        address recovered
+    ) internal {
         IERC20 token = IERC20(paymentData.tokenAddress);
         if (token.transferFrom(msg.sender, address(this), paymentData.amount)) {
             MCPaymentStorage storage $ = _getMCPaymentStorage();
@@ -261,7 +259,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
             uint256 issuerPart = paymentData.amount - ownerPart;
             token.transfer(paymentData.recipient, issuerPart);
             emit Payment(paymentData.recipient, paymentData.nonce);
-            bytes32 paymentId = keccak256(abi.encode(paymentData.recipient, paymentData.nonce));
+            bytes32 paymentId = keccak256(abi.encode(recovered, paymentData.nonce));
             $.isPaid[paymentId] = true;
         } else {
             revert PaymentError(
@@ -272,18 +270,18 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         }
     }
 
-    function _isSignatureValid(
+    function _tryRecover(
         bytes32 structHash,
         bytes memory signature
-    ) internal view returns (bool) {
+    ) internal view returns (address) {
         bytes32 hashTypedData = _hashTypedDataV4(structHash);
-        (, ECDSA.RecoverError err, ) = hashTypedData.tryRecover(signature);
+        (address recovered, ECDSA.RecoverError err, ) = hashTypedData.tryRecover(signature);
 
         if (err != ECDSA.RecoverError.NoError) {
-            return false;
+            revert InvalidSignature("MCPayment: invalid signature");
         }
 
-        return true;
+        return recovered;
     }
 
     function getBalance(address recipient) public view returns (uint256) {
