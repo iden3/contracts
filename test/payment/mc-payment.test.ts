@@ -58,14 +58,10 @@ describe("MC Payment Contract", () => {
       metadata: "0x",
     };
     const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
-    const verifyGas = await payment
-      .connect(userSigner)
-      .recoverIden3PaymentRailsRequestV1Signature.estimateGas(paymentData, signature);
-    console.log("Verification Gas: " + verifyGas);
-    const recovered = await payment
+    const signer = await payment
       .connect(userSigner)
       .recoverIden3PaymentRailsRequestV1Signature(paymentData, signature);
-    expect(recovered).to.be.eq(issuer1Signer.address);
+    expect(signer).to.be.eq(issuer1Signer.address);
   });
 
   it("Check payment:", async () => {
@@ -77,11 +73,6 @@ describe("MC Payment Contract", () => {
       metadata: "0x",
     };
     const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
-
-    const gas = await payment.connect(userSigner).pay.estimateGas(paymentData, signature, {
-      value: 100,
-    });
-    console.log("Payment Gas: " + gas);
 
     await payment.connect(userSigner).pay(paymentData, signature, {
       value: 100,
@@ -223,10 +214,6 @@ describe("MC Payment Contract", () => {
     await token.connect(owner).transfer(await userSigner.getAddress(), 100);
     expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
 
-    const approveGas = await token
-      .connect(userSigner)
-      .approve.estimateGas(await payment.getAddress(), 10);
-    console.log("Approve token Gas: " + approveGas);
     await token.connect(userSigner).approve(await payment.getAddress(), 10);
 
     const paymentData = {
