@@ -7,6 +7,7 @@ import { Block, Contract } from "ethers";
 import proofJson from "../validators/sig/data/valid_sig_user_genesis.json";
 import { buildCrossChainProofs, packCrossChainProofs, packZKProof } from "../utils/packData";
 import { CircuitId } from "@0xpolygonid/js-sdk";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 describe("Universal Verifier V2 MTP & SIG validators", function () {
   let verifier: any, sig: any;
@@ -51,7 +52,7 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     claimPathNotExists: 0,
   };
 
-  beforeEach(async () => {
+  async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
     signerAddress = await signer.getAddress();
 
@@ -75,6 +76,10 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     sig = validatorStub;
     await verifier.addValidatorToWhitelist(await sig.getAddress());
     await verifier.connect();
+  }
+
+  beforeEach(async () => {
+    await loadFixture(deployContractsFixture);
   });
 
   it("Test submit response V2", async () => {

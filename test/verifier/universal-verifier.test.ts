@@ -6,9 +6,10 @@ import { prepareInputs } from "../utils/state-utils";
 import { Block } from "ethers";
 import proofJson from "../validators/mtp/data/valid_mtp_user_genesis.json";
 import { CircuitId } from "@0xpolygonid/js-sdk";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 describe("Universal Verifier MTP & SIG validators", function () {
-  let verifier: any, sig: any, state: any;
+  let verifier: any, sigValidator: any, state: any;
   let signer, signer2, signer3;
   let signerAddress: string;
   let deployHelper: DeployHelper;
@@ -28,25 +29,38 @@ describe("Universal Verifier MTP & SIG validators", function () {
     claimPathNotExists: 0,
   };
 
-  beforeEach(async () => {
-    [signer, signer2, signer3] = await ethers.getSigners();
-    signerAddress = await signer.getAddress();
+  async function deployContractsFixture() {
+    const [ethSigner, ethSigner2, ethSigner3] = await ethers.getSigners();
 
     deployHelper = await DeployHelper.initialize(null, true);
-    ({ state } = await deployHelper.deployStateWithLibraries(["0x0112"]));
+    const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0112"]);
     const verifierLib = await deployHelper.deployVerifierLib();
 
-    verifier = await deployHelper.deployUniversalVerifier(
-      signer,
-      await state.getAddress(),
+    const universalVerifier: any = await deployHelper.deployUniversalVerifier(
+      ethSigner,
+      await stateContract.getAddress(),
       await verifierLib.getAddress(),
     );
 
     const stub = await deployHelper.deployValidatorStub();
 
-    sig = stub;
-    await verifier.addValidatorToWhitelist(await sig.getAddress());
-    await verifier.connect();
+    const validator = stub;
+    await universalVerifier.addValidatorToWhitelist(await validator.getAddress());
+    await universalVerifier.connect();
+
+    return { ethSigner, ethSigner2, ethSigner3, stateContract, universalVerifier, validator };
+  }
+
+  beforeEach(async () => {
+    ({
+      ethSigner: signer,
+      ethSigner2: signer2,
+      ethSigner3: signer3,
+      stateContract: state,
+      universalVerifier: verifier,
+      validator: sigValidator,
+    } = await loadFixture(deployContractsFixture));
+    signerAddress = await signer.getAddress();
   });
 
   it("Test get state address", async () => {
@@ -56,7 +70,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
   it("Test add, get ZKPRequest, requestIdExists, getZKPRequestsCount", async () => {
     const requestsCount = 3;
-    const validatorAddr = await sig.getAddress();
+    const validatorAddr = await sigValidator.getAddress();
 
     for (let i = 0; i < requestsCount; i++) {
       await expect(
@@ -92,7 +106,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
     await verifier.setZKPRequest(0, {
       metadata: "metadata",
-      validator: await sig.getAddress(),
+      validator: await sigValidator.getAddress(),
       data: data,
     });
 
@@ -146,7 +160,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     );
     await verifier.connect(requestOwner).setZKPRequest(requestId, {
       metadata: "metadata",
-      validator: await sig.getAddress(),
+      validator: await sigValidator.getAddress(),
       data: packValidatorParams(query),
     });
 
@@ -185,7 +199,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
     await verifier.connect(requestOwner).setZKPRequest(requestId, {
       metadata: "metadata",
-      validator: await sig.getAddress(),
+      validator: await sigValidator.getAddress(),
       data: packValidatorParams(query),
     });
     expect(await verifier.isZKPRequestEnabled(requestId)).to.be.true;
@@ -238,7 +252,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const someAddress = signer2;
     const requestId = 1;
     const otherRequestId = 2;
-    const { state } = await deployHelper.deployStateWithLibraries();
     const { validator: mtp } = await deployHelper.deployValidatorContractsWithVerifiers(
       "mtpV2",
       await state.getAddress(),

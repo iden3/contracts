@@ -4,6 +4,7 @@ import { packV3ValidatorParams } from "../utils/validator-pack-utils";
 import { prepareInputs, publishState } from "../utils/state-utils";
 import { expect } from "chai";
 import testData from "./linked-proofs-data.json";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 describe("Universal Verifier Linked proofs", function () {
   let verifier: any, v3: any, state: any;
@@ -11,7 +12,7 @@ describe("Universal Verifier Linked proofs", function () {
   let signerAddress: string;
   let deployHelper: DeployHelper;
 
-  beforeEach(async () => {
+  async function deployContractsFixture() {
     [signer, signer2] = await ethers.getSigners();
     signerAddress = await signer.getAddress();
 
@@ -48,6 +49,10 @@ describe("Universal Verifier Linked proofs", function () {
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(testData.queryData.zkpResponses[i]);
       await verifier.submitZKPResponse(100 + i, inputs, pi_a, pi_b, pi_c);
     }
+  }
+
+  beforeEach(async () => {
+    await loadFixture(deployContractsFixture);
   });
 
   it("should linked proof validation pass", async () => {

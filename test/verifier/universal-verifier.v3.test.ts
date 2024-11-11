@@ -5,9 +5,15 @@ import { prepareInputs, publishState } from "../utils/state-utils";
 import { calculateQueryHashV3 } from "../utils/query-hash-utils";
 import { expect } from "chai";
 import { CircuitId } from "@0xpolygonid/js-sdk";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import proofJson from "../validators/v3/data/valid_bjj_user_genesis_auth_disabled_v3.json";
+import stateTransition1 from "../validators/common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json";
+import stateTransition11 from "../validators/common-data/issuer_from_genesis_state_to_first_transition_v3.json";
+import stateTransition12 from "../validators/common-data/user_from_genesis_state_to_first_transition_v3.json";
+import stateTransition13 from "../validators/common-data/issuer_from_first_state_to_second_transition_v3.json";
 
 describe("Universal Verifier V3 validator", function () {
-  let verifier: any, v3: any, state: any;
+  let verifier: any, v3Validator: any, state: any;
   let signer, signer2;
   let deployHelper: DeployHelper;
 
@@ -49,48 +55,52 @@ describe("Universal Verifier V3 validator", function () {
     verifierID: verifierId,
   };
 
-  const proofJson = require("../validators/v3/data/valid_bjj_user_genesis_auth_disabled_v3.json");
-  const stateTransition1 = require("../validators/common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json");
-
-  const stateTransition11 = require("../validators/common-data/issuer_from_genesis_state_to_first_transition_v3.json");
-  const stateTransition12 = require("../validators/common-data/user_from_genesis_state_to_first_transition_v3.json");
-  const stateTransition13 = require("../validators/common-data/issuer_from_first_state_to_second_transition_v3.json");
-
   const initializeState = async () => {
     deployHelper = await DeployHelper.initialize(null, true);
 
     const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0212"]);
-    state = stateContract;
     const verifierLib = await deployHelper.deployVerifierLib();
     const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
       "v3",
-      await state.getAddress(),
+      await stateContract.getAddress(),
     );
-    v3 = contracts.validator;
-    verifier = await deployHelper.deployUniversalVerifier(
+    const validator = contracts.validator;
+    const universalVerifier: any = await deployHelper.deployUniversalVerifier(
       signer,
-      await state.getAddress(),
+      await stateContract.getAddress(),
       await verifierLib.getAddress(),
     );
-    await verifier.addValidatorToWhitelist(await v3.getAddress());
-    await verifier.connect();
+    await universalVerifier.addValidatorToWhitelist(await validator.getAddress());
+    await universalVerifier.connect();
+
+    return { stateContract, validator, universalVerifier };
   };
 
-  before(async () => {
-    [signer, signer2] = await ethers.getSigners();
+  async function deployContractsFixture() {
+    const [ethSigner, ethSigner2] = await ethers.getSigners();
+    const { stateContract, validator, universalVerifier } = await initializeState();
+    return { ethSigner, ethSigner2, stateContract, universalVerifier, validator };
+  }
 
-    await initializeState();
+  before(async () => {
+    ({
+      ethSigner: signer,
+      ethSigner2: signer2,
+      stateContract: state,
+      validator: v3Validator,
+      universalVerifier: verifier,
+    } = await loadFixture(deployContractsFixture));
   });
 
   it("Test submit response", async () => {
-    await publishState(state, stateTransition1);
+    await publishState(state, stateTransition1 as any);
     const data = packV3ValidatorParams(query);
     await verifier.setZKPRequest(32, {
       metadata: "metadata",
-      validator: await v3.getAddress(),
+      validator: await v3Validator.getAddress(),
       data: data,
     });
-    await v3.setProofExpirationTimeout(315360000);
+    await v3Validator.setProofExpirationTimeout(315360000);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
 
@@ -118,7 +128,7 @@ describe("Universal Verifier V3 validator", function () {
     const data = packV3ValidatorParams(query, ["1"]);
     await verifier.setZKPRequest(33, {
       metadata: "metadata",
-      validator: await v3.getAddress(),
+      validator: await v3Validator.getAddress(),
       data: data,
     });
 
@@ -137,7 +147,7 @@ describe("Universal Verifier V3 validator", function () {
     const data = packV3ValidatorParams(query2);
     await verifier.setZKPRequest(34, {
       metadata: "metadata",
-      validator: await v3.getAddress(),
+      validator: await v3Validator.getAddress(),
       data: data,
     });
 
@@ -156,7 +166,7 @@ describe("Universal Verifier V3 validator", function () {
     const data = packV3ValidatorParams(query2);
     await verifier.setZKPRequest(35, {
       metadata: "metadata",
-      validator: await v3.getAddress(),
+      validator: await v3Validator.getAddress(),
       data: data,
     });
 
@@ -175,7 +185,7 @@ describe("Universal Verifier V3 validator", function () {
     const data = packV3ValidatorParams(query2);
     await verifier.setZKPRequest(36, {
       metadata: "metadata",
-      validator: await v3.getAddress(),
+      validator: await v3Validator.getAddress(),
       data: data,
     });
 
@@ -194,7 +204,7 @@ describe("Universal Verifier V3 validator", function () {
     const data = packV3ValidatorParams(query2);
     await verifier.setZKPRequest(37, {
       metadata: "metadata",
-      validator: await v3.getAddress(),
+      validator: await v3Validator.getAddress(),
       data: data,
     });
 
@@ -206,16 +216,22 @@ describe("Universal Verifier V3 validator", function () {
   });
 
   it("Test submit response fails with Generated proof is outdated", async () => {
-    await initializeState();
+    ({
+      ethSigner: signer,
+      ethSigner2: signer2,
+      stateContract: state,
+      validator: v3Validator,
+      universalVerifier: verifier,
+    } = await loadFixture(deployContractsFixture));
 
-    await publishState(state, stateTransition11);
-    await publishState(state, stateTransition12);
-    await publishState(state, stateTransition13);
+    await publishState(state, stateTransition11 as any);
+    await publishState(state, stateTransition12 as any);
+    await publishState(state, stateTransition13 as any);
 
     const data = packV3ValidatorParams(query);
     await verifier.setZKPRequest(37, {
       metadata: "metadata",
-      validator: await v3.getAddress(),
+      validator: await v3Validator.getAddress(),
       data: data,
     });
 

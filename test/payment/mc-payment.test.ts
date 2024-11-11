@@ -2,6 +2,7 @@ import { ethers, upgrades } from "hardhat";
 import { MCPayment, MCPayment__factory } from "../../typechain-types";
 import { expect } from "chai";
 import { Signer } from "ethers";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 describe("MC Payment Contract", () => {
   let payment: MCPayment;
@@ -28,7 +29,7 @@ describe("MC Payment Contract", () => {
     ],
   };
 
-  beforeEach(async () => {
+  async function deployContractsFixture() {
     const signers = await ethers.getSigners();
     issuer1Signer = signers[1];
     userSigner = signers[5];
@@ -39,6 +40,10 @@ describe("MC Payment Contract", () => {
       ownerPercentage,
     ])) as unknown as MCPayment;
     await payment.waitForDeployment();
+  }
+
+  beforeEach(async () => {
+    await loadFixture(deployContractsFixture);
 
     domainData = {
       name: "MCPayment",
