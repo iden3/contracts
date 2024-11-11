@@ -160,6 +160,17 @@ contract UniversalVerifier is
         _setState(state);
     }
 
+    /// @dev Gets multiple ZKP requests within a range (disabled in this contract)
+    /// @param startIndex The starting index of the range
+    /// @param length The length of the range
+    /// @return An array of ZKP requests within the specified range
+    function getZKPRequests(
+        uint256 startIndex,
+        uint256 length
+    ) public view override returns (IZKPVerifier.ZKPRequest[] memory) {
+        revert("Not implemented in this version");
+    }
+
     /// @dev Sets ZKP Request Owner address
     /// @param requestId The ID of the ZKP request
     /// @param requestOwner ZKP Request Owner address

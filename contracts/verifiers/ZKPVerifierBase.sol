@@ -244,8 +244,22 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     function getZKPRequests(
         uint256 startIndex,
         uint256 length
-    ) public view returns (IZKPVerifier.ZKPRequest[] memory) {
-        revert("Not implemented in this version");
+    ) public view virtual returns (IZKPVerifier.ZKPRequest[] memory) {
+        ZKPVerifierStorage storage s = _getZKPVerifierStorage();
+        (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
+            s._requestIds.length,
+            startIndex,
+            length,
+            REQUESTS_RETURN_LIMIT
+        );
+
+        IZKPVerifier.ZKPRequest[] memory result = new IZKPVerifier.ZKPRequest[](end - start);
+
+        for (uint256 i = start; i < end; i++) {
+            result[i - start] = s._requests[s._requestIds[i]];
+        }
+
+        return result;
     }
 
     /// @dev Checks if proof submitted for a given sender and request ID
