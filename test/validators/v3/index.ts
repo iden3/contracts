@@ -357,13 +357,9 @@ describe("Atomic V3 Validator", function () {
       this.timeout(50000);
       for (let i = 0; i < test.stateTransitions.length; i++) {
         if (test.stateTransitionDelayMs) {
-          await Promise.all([
-            publishState(state, test.stateTransitions[i]),
-            time.increase(test.stateTransitionDelayMs),
-          ]);
-        } else {
-          await publishState(state, test.stateTransitions[i]);
+          await time.increase(test.stateTransitionDelayMs);
         }
+        await publishState(state, test.stateTransitions[i]);
       }
 
       const value = ["20010101", ...new Array(63).fill("0")];
