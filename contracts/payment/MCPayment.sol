@@ -301,9 +301,9 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     }
 
     /**
-     * @dev Get balance of signer
-     * @param issuer Issuer address
-     * @return balance of signer
+     * @dev Get balance of issuer
+     * @param issuer address
+     * @return balance of issuer
      */
     function getBalance(address issuer) public view returns (uint256) {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
