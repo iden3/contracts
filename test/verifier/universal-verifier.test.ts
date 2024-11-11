@@ -318,7 +318,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
     await verifier.connect(requestOwner).setZKPRequest(requestId, {
       metadata: "metadata",
-      validator: await sig.getAddress(),
+      validator: await sigValidator.getAddress(),
       data: data,
     });
 
@@ -328,14 +328,14 @@ describe("Universal Verifier MTP & SIG validators", function () {
     await expect(
       verifier.connect(requestOwner).updateZKPRequest(requestId, {
         metadata: "metadata",
-        validator: await sig.getAddress(),
+        validator: await sigValidator.getAddress(),
         data: data,
       }),
     ).to.be.revertedWithCustomError(verifier, "OwnableUnauthorizedAccount");
 
     await verifier.connect(owner).updateZKPRequest(requestId, {
       metadata: "metadata2",
-      validator: await sig.getAddress(),
+      validator: await sigValidator.getAddress(),
       data: data,
     });
 
@@ -351,7 +351,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     await expect(
       verifier.connect(owner).updateZKPRequest(requestId, {
         metadata: "metadata",
-        validator: await sig.getAddress(),
+        validator: await sigValidator.getAddress(),
         data: data,
       }),
     ).to.be.rejectedWith("equest id doesn't exis");

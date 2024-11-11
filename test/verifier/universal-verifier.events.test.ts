@@ -116,7 +116,7 @@ describe("Universal Verifier events", function () {
 
     const coder = AbiCoder.defaultAbiCoder();
     logs.map((log, index) => {
-      const [decodedData] = coder.decode(abi as any, log.args.data);
+      const [decodedData] = coder.decode(encodedDataAbi as any, log.args.data);
       expect(decodedData.schema).to.equal(queries[index].schema);
       expect(decodedData.claimPathKey).to.equal(queries[index].claimPathKey);
       expect(decodedData.operator).to.equal(queries[index].operator);
@@ -156,8 +156,7 @@ describe("Universal Verifier events", function () {
 
     const coder = AbiCoder.defaultAbiCoder();
     logs.map((log) => {
-      // @ts-ignore
-      const [decodedData] = coder.decode(encodedDataAbi, log.args.data);
+      const [decodedData] = coder.decode(encodedDataAbi as any, log.args.data);
       expect(decodedData.schema).to.equal(queries[1].schema);
       expect(decodedData.claimPathKey).to.equal(queries[1].claimPathKey);
       expect(decodedData.operator).to.equal(queries[1].operator);
