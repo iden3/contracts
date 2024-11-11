@@ -9,7 +9,7 @@ import {ICircuitValidator} from "./ICircuitValidator.sol";
  */
 interface IZKPVerifier {
     /**
-     * @dev ZKPRequest. Structure for ZKP request.
+     * @dev Request. Structure for ZKP request.
      * @param metadata Metadata of the request.
      * @param validator Validator circuit.
      * @param data Data of the request.
@@ -79,27 +79,31 @@ interface IZKPVerifier {
 
     /**
      * @dev Submit the groth16 proof π=([πa]1,[πb]2,[πc]1) for the ZKP request requestId.
+     * @param invokeID The ID of the invoke.
      * @param responses The list of responses including ZKP request ID, ZK proof and metadata.
      * @param crossChainProofs The list of cross chain proofs from universal resolver (oracle).
+     * @param authData The auth data.
      */
     function submitZKPResponseV3(
-        ZKPResponseV3[] memory responses,
-        bytes memory crossChainProofs
+        uint256 invokeID,
+        IZKPVerifier.ZKPResponseV3[] memory responses,
+        bytes memory crossChainProofs,
+        bytes memory authData // what's the structure of the data ???
     ) external;
 
     /**
-     * @dev Set the ZKP request for the requestId.
-     * @param requestId Request id of the ZKP request.
-     * @param request ZKP request to set.
+     * @dev Set the request for the requestId.
+     * @param requestId Request id of the request.
+     * @param request Request to set.
      */
-    function setZKPRequest(uint64 requestId, ZKPRequest calldata request) external;
+    function setZKPRequest(uint64 requestId, Request calldata request) external;
 
     /**
-     * @dev Get the ZKP request for the requestId.
+     * @dev Get the request for the requestId.
      * @param requestId Request id of the ZKP request.
-     * @return ZKP request.
+     * @return Request.
      */
-    function getZKPRequest(uint64 requestId) external view returns (ZKPRequest memory);
+    function getZKPRequest(uint64 requestId) external view returns (Request memory);
 
     /**
      * @dev Get the ZKP request count.
@@ -123,7 +127,7 @@ interface IZKPVerifier {
     function getZKPRequests(
         uint256 startIndex,
         uint256 length
-    ) external view returns (ZKPRequest[] memory);
+    ) external view returns (Request[] memory);
 
     /**
      * @dev Get if proof is verified for the sender and ZKP request with requestId.

@@ -37,7 +37,7 @@ contract ValidatorWhitelist is ZKPVerifierBase {
     /// @param request The ZKP request data
     function setZKPRequest(
         uint64 requestId,
-        IZKPVerifier.ZKPRequest calldata request
+        IZKPVerifier.Request calldata request
     ) public virtual override onlyWhitelistedValidator(request.validator) {
         super.setZKPRequest(requestId, request);
     }

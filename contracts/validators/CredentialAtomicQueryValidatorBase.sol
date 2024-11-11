@@ -158,7 +158,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
 
     /**
      * @dev Verify the groth16 proof and check the request query data
-     * @param zkProof Proof packed as bytes to verify.
+     * @param proof Proof packed as bytes to verify.
      * @param data Request query data of the credential to verify.
      * @param sender Sender of the proof.
      * @param stateContract State contract to get identities and gist states to check.

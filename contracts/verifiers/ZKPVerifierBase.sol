@@ -30,7 +30,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         // This group of field is gor RequestType=0 processing
         mapping(address user => mapping(uint256 requestId => Proof)) _proofs;
         // TODO research if changing from uint64 to uint256 would not break storage location
-        mapping(uint256 requestId => IZKPVerifier.ZKPRequest) _requests;
+        mapping(uint256 requestId => IZKPVerifier.Request) _requests;
         // TODO not forget to migrate from uint64[] to uint256[] in the contract upgrade tx
         uint256[] _requestIds;
         IState _state;
@@ -64,18 +64,6 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         mapping(string key => bytes) metadata;
     }
 
-    // 32 bytes (in Big Endian): 31-0x00(not used), 30-0x01(requestType), 29..8-0x00(not used), 7..0 requestId
-    function setZKPRequestV3(
-        uint256 requestId,
-        IZKPVerifier.ZKPRequest calldata request,
-        bytes calldata authData
-    ) public virtual checkRequestExistence(requestId, false) {
-        // TODO create the isEligibleRequestType method
-        require(hasEligibleRequestType(requestId), "RequestType not supported");
-
-        ZKPVerifierStorage storage s = _getZKPVerifierStorage();
-        s._requests[requestId] = request;
-        s._requestIds.push(requestId);
 
     /**
      * @dev Modifier to protect an initialization of requests function so that it can only
@@ -262,7 +250,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @param request The ZKP request data
     function setZKPRequest(
         uint64 requestId,
-        IZKPVerifier.ZKPRequest calldata request
+        IZKPVerifier.Request calldata request
     ) public virtual checkRequestExistence(requestId, false) {
         ZKPVerifierStorage storage s = _getZKPVerifierStorage();
         s._requests[requestId] = request;
@@ -276,7 +264,8 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     /// @param request The ZKP request data
     function setZKPRequestV3(
         uint256 requestId,
-        IZKPVerifier.ZKPRequest calldata request
+        IZKPVerifier.Request calldata request,
+        bytes calldata authData
     ) public virtual checkRequestExistence(requestId, false) {
         // TODO create the isEligibleRequestType method
         require(hasEligibleRequestType(requestId), "RequestType not supported");
@@ -302,7 +291,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         address sender = _msgSender();
         ZKPVerifierStorage storage $ = _getZKPVerifierStorage();
 
-        IZKPVerifier.ZKPRequest memory request = $._requests[requestId];
+        IZKPVerifier.Request memory request = $._requests[requestId];
         ICircuitValidator.KeyToInputIndex[] memory keyToInpIdxs = request.validator.verify(
             inputs,
             a,
@@ -340,7 +329,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             address sender = _msgSender();
 
             // TODO some internal method and storage location to save gas?
-            IZKPVerifier.ZKPRequest memory request = getZKPRequest(response.requestId);
+            IZKPVerifier.Request memory request = getZKPRequest(response.requestId);
             ICircuitValidator.Signal[] memory signals = request.validator.verifyV2(
                 response.zkProof,
                 request.data,
@@ -357,7 +346,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     }
 
     function submitZKPResponseV3(
-        invokeID,
+        uint256 invokeID,
         IZKPVerifier.ZKPResponseV3[] memory responses,
         bytes memory crossChainProofs,
         bytes memory authData // what's the structure of the data ???
@@ -370,7 +359,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             address sender = _msgSender();
 
             uint8 requestType = _getRequestType(response.requestId);
-            IZKPVerifier.ZKPRequest memory request = _getZKPVerifierStorage()._requests[
+            IZKPVerifier.Request memory request = _getZKPVerifierStorage()._requests[
                 response.requestId
             ];
 
@@ -437,7 +426,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         checkRequestExistence(requestId, true)
         returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
-        IZKPVerifier.ZKPRequest storage request = _getZKPVerifierStorage()._requests[requestId];
+        IZKPVerifier.Request storage request = _getZKPVerifierStorage()._requests[requestId];
         return request.validator.verify(inputs, a, b, c, request.data, sender);
     }
 
@@ -478,7 +467,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         public
         view
         checkRequestExistence(requestId, true)
-        returns (IZKPVerifier.ZKPRequest memory zkpRequest)
+        returns (IZKPVerifier.Request memory zkpRequest)
     {
         return _getZKPVerifierStorage()._requests[requestId];
     }
@@ -505,7 +494,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     function getZKPRequests(
         uint256 startIndex,
         uint256 length
-    ) public view returns (IZKPVerifier.ZKPRequest[] memory) {
+    ) public view returns (IZKPVerifier.Request[] memory) {
         ZKPVerifierStorage storage s = _getZKPVerifierStorage();
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
             s._requestIds.length,
@@ -514,7 +503,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
             REQUESTS_RETURN_LIMIT
         );
 
-        IZKPVerifier.ZKPRequest[] memory result = new IZKPVerifier.ZKPRequest[](end - start);
+        IZKPVerifier.Request[] memory result = new IZKPVerifier.Request[](end - start);
 
         for (uint256 i = start; i < end; i++) {
             result[i - start] = s._requests[s._requestIds[i]];

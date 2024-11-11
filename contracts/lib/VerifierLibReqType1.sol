@@ -15,7 +15,7 @@ library VerifierLibReqType1 {
         address sender,
         uint256 requestId,
         ICircuitValidator.Signal[] memory signals,
-        IZKPVerifier.ZKPRequest memory request
+        IZKPVerifier.Request memory request
     ) public {
         ZKPVerifierBase.ProofReqType1[] storage proofs = self._proofs[sender][requestId];
 

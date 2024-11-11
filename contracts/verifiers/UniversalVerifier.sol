@@ -66,7 +66,7 @@ contract UniversalVerifier is
     /// @param request The ZKP request data
     function setZKPRequest(
         uint64 requestId,
-        IZKPVerifier.ZKPRequest calldata request
+        IZKPVerifier.Request calldata request
     ) public override(RequestOwnership, ValidatorWhitelist, ZKPVerifierBase) {
         super.setZKPRequest(requestId, request);
 
@@ -118,15 +118,19 @@ contract UniversalVerifier is
 
     /**
      * @dev Submits an array of ZKP responses and updates proofs status
+     * @param invokeID The ID of the invoke
      * @param responses The list of responses including ZKP request ID, ZK proof and metadata
-     * @param crossChainProof The list of cross chain proofs from universal resolver (oracle). This
+     * @param crossChainProofs The list of cross chain proofs from universal resolver (oracle). This
+     * @param authData The auth data
      * includes identities and global states.
      */
     function submitZKPResponseV3(
+        uint256 invokeID,
         IZKPVerifier.ZKPResponseV3[] memory responses,
-        bytes memory crossChainProof
+        bytes memory crossChainProofs,
+        bytes memory authData // what's the structure of the data ???
     ) public override {
-        super.submitZKPResponseV3(responses, crossChainProof);
+        super.submitZKPResponseV3(invokeID, responses, crossChainProofs, authData);
         // TODO emit specific event depending the RequestType
         for (uint256 i = 0; i < responses.length; i++) {
             uint256 issuerId = super.getLastIssuerIdFromProofs(

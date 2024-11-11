@@ -35,7 +35,7 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
     /// @param request The ZKP request data
     function setZKPRequest(
         uint64 requestId,
-        IZKPVerifier.ZKPRequest calldata request
+        IZKPVerifier.Request calldata request
     ) public virtual override onlyOwner {
         super.setZKPRequest(requestId, request);
     }
@@ -53,7 +53,7 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
         uint256[2][2] memory b,
         uint256[2] memory c
     ) public virtual override {
-        IZKPVerifier.ZKPRequest memory request = getZKPRequest(requestId);
+        IZKPVerifier.Request memory request = getZKPRequest(requestId);
         _beforeProofSubmit(requestId, inputs, request.validator);
         super.submitZKPResponse(requestId, inputs, a, b, c);
         _afterProofSubmit(requestId, inputs, request.validator);
