@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { publishState, publishStateWithStubProof } from "../utils/state-utils";
 import { DeployHelper } from "../../helpers/DeployHelper";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 const g16VerifierStubName = "Groth16VerifierStub";
 
@@ -28,11 +29,15 @@ const stateTransitionsWithNoProofs = [
 describe("State transition with real groth16 verifier", () => {
   let state;
 
-  before(async function () {
-    this.timeout(5000);
+  async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize();
     const contracts = await deployHelper.deployStateWithLibraries(["0x0100"]);
     state = contracts.state;
+  }
+
+  before(async function () {
+    this.timeout(5000);
+    await loadFixture(deployContractsFixture);
   });
 
   it("Zero-knowledge proof of state transition is not valid", async () => {
@@ -113,13 +118,16 @@ describe("State transition with real groth16 verifier", () => {
 describe("State transition negative cases", () => {
   let state;
 
-  beforeEach(async () => {
+  async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize();
     const contracts = await deployHelper.deployStateWithLibraries(
       ["0x0281", "0x0000"],
       g16VerifierStubName,
     );
     state = contracts.state;
+  }
+  beforeEach(async () => {
+    await loadFixture(deployContractsFixture);
   });
 
   it("Old state does not match the latest state", async () => {
@@ -192,7 +200,7 @@ describe("StateInfo history", function () {
   let state;
   let publishedStates: { [key: string]: string | number }[] = [];
 
-  before(async () => {
+  async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize();
     const contracts = await deployHelper.deployStateWithLibraries(["0x0281"], g16VerifierStubName);
     state = contracts.state;
@@ -201,6 +209,10 @@ describe("StateInfo history", function () {
     for (const stateTransition of stateTransitionsWithNoProofs) {
       publishedStates.push(await publishStateWithStubProof(state, stateTransition));
     }
+  }
+
+  before(async () => {
+    await loadFixture(deployContractsFixture);
   });
 
   it("should return state history", async () => {
@@ -228,10 +240,14 @@ describe("StateInfo history", function () {
 describe("GIST proofs", () => {
   let state: any;
 
-  beforeEach(async () => {
+  async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize();
     const contracts = await deployHelper.deployStateWithLibraries(["0x0281"], g16VerifierStubName);
     state = contracts.state;
+  }
+
+  beforeEach(async () => {
+    await loadFixture(deployContractsFixture);
   });
 
   it("Should be correct historical proof by root and the latest root", async function () {
@@ -301,10 +317,14 @@ describe("GIST proofs", () => {
 describe("GIST root history", () => {
   let state: any;
 
-  beforeEach(async () => {
+  async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize();
     const contracts = await deployHelper.deployStateWithLibraries(["0x0281"], g16VerifierStubName);
     state = contracts.state;
+  }
+
+  beforeEach(async () => {
+    await loadFixture(deployContractsFixture);
   });
 
   it("Should search by block and by time return same root", async function () {
@@ -367,10 +387,18 @@ describe("GIST root history", () => {
 });
 
 describe("Set Verifier", () => {
-  it("Should set groth16 verifier", async () => {
-    const deployHelper = await DeployHelper.initialize();
-    const { state, groth16verifier } = await deployHelper.deployStateWithLibraries();
+  let state: any, groth16verifier: any;
 
+  async function deployContractsFixture() {
+    const deployHelper = await DeployHelper.initialize();
+    ({ state, groth16verifier } = await deployHelper.deployStateWithLibraries());
+  }
+
+  beforeEach(async () => {
+    await loadFixture(deployContractsFixture);
+  });
+
+  it("Should set groth16 verifier", async () => {
     const verifierAddress = await state.getVerifier();
     expect(verifierAddress).to.equal(await groth16verifier.getAddress());
 
@@ -381,9 +409,6 @@ describe("Set Verifier", () => {
   });
 
   it("Should not set groth16 verifier if not owner", async () => {
-    const deployHelper = await DeployHelper.initialize();
-    const { state, groth16verifier } = await deployHelper.deployStateWithLibraries();
-
     const verifierAddress = await state.getVerifier();
     expect(verifierAddress).to.equal(await groth16verifier.getAddress());
 
@@ -395,9 +420,6 @@ describe("Set Verifier", () => {
   });
 
   it("Should allow groth16 verifier zero address to block any state transition", async () => {
-    const deployHelper = await DeployHelper.initialize();
-    const { state } = await deployHelper.deployStateWithLibraries();
-
     await state.setVerifier(ethers.ZeroAddress);
     await expect(publishState(state, stateTransitionsWithProofs[0])).to.be.reverted;
   });

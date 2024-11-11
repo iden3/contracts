@@ -3,6 +3,7 @@ import { prepareInputs, publishState } from "../../utils/state-utils";
 import { DeployHelper } from "../../../helpers/DeployHelper";
 import { packValidatorParams } from "../../utils/validator-pack-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 const tenYears = 315360000;
 const testCases: any[] = [
@@ -91,20 +92,33 @@ function delay(ms: number) {
 }
 
 describe("Atomic Sig Validator", function () {
-  let state: any, sig: any;
+  let state: any, sigValidator: any;
   let senderAddress: string;
 
-  beforeEach(async () => {
+  async function deployContractsFixture() {
     senderAddress = "0x3930000000000000000000000000000000000000"; // because challenge is 12345 in proofs.
     const deployHelper = await DeployHelper.initialize(null, true);
 
     const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0100"]);
-    state = stateContract;
     const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
       "sigV2",
-      await state.getAddress(),
+      await stateContract.getAddress(),
     );
-    sig = contracts.validator;
+    const validator = contracts.validator;
+
+    return {
+      stateContract,
+      validator,
+      senderAddress,
+    };
+  }
+
+  beforeEach(async () => {
+    ({
+      stateContract: state,
+      validator: sigValidator,
+      senderAddress,
+    } = await loadFixture(deployContractsFixture));
   });
 
   for (const test of testCases) {
@@ -139,17 +153,17 @@ describe("Atomic Sig Validator", function () {
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
       if (test.setProofExpiration) {
-        await sig.setProofExpirationTimeout(test.setProofExpiration);
+        await sigValidator.setProofExpirationTimeout(test.setProofExpiration);
       }
       if (test.setRevStateExpiration) {
-        await sig.setRevocationStateExpirationTimeout(test.setRevStateExpiration);
+        await sigValidator.setRevocationStateExpirationTimeout(test.setRevStateExpiration);
       }
       if (test.setGISTRootExpiration) {
-        await sig.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
+        await sigValidator.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
       }
       if (test.errorMessage) {
         await expect(
-          sig.verify(
+          sigValidator.verify(
             inputs,
             pi_a,
             pi_b,
@@ -160,7 +174,7 @@ describe("Atomic Sig Validator", function () {
         ).to.be.rejectedWith(test.errorMessage);
       } else if (test.errorMessage === "") {
         await expect(
-          sig.verify(
+          sigValidator.verify(
             inputs,
             pi_a,
             pi_b,
@@ -170,7 +184,7 @@ describe("Atomic Sig Validator", function () {
           ),
         ).to.be.reverted;
       } else {
-        await sig.verify(
+        await sigValidator.verify(
           inputs,
           pi_a,
           pi_b,
@@ -183,7 +197,7 @@ describe("Atomic Sig Validator", function () {
   }
 
   it("check inputIndexOf", async () => {
-    const challengeIndx = await sig.inputIndexOf("challenge");
+    const challengeIndx = await sigValidator.inputIndexOf("challenge");
     expect(challengeIndx).to.be.equal(5);
   });
 });

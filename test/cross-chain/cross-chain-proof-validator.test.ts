@@ -8,15 +8,20 @@ import { expect } from "chai";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { Contract } from "ethers";
 import { ethers } from "hardhat";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 describe("State Cross Chain", function () {
   let crossChainProofValidator: Contract;
   let signer;
 
-  beforeEach(async function () {
+  async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
     const deployHelper = await DeployHelper.initialize(null, true);
     crossChainProofValidator = await deployHelper.deployCrossChainProofValidator();
+  }
+
+  beforeEach(async function () {
+    await loadFixture(deployContractsFixture);
   });
 
   it("Should process the messages without replacedAtTimestamp", async function () {

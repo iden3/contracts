@@ -4,6 +4,7 @@ import { DeployHelper } from "../../../helpers/DeployHelper";
 import { packV3ValidatorParams } from "../../utils/validator-pack-utils";
 import { calculateQueryHashV3 } from "../../utils/query-hash-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 const tenYears = 315360000;
 const testCases: any[] = [
@@ -329,17 +330,25 @@ function delay(ms: number) {
 describe("Atomic V3 Validator", function () {
   let state: any, v3validator;
 
-  beforeEach(async () => {
+  async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize(null, true);
 
     const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0212"]);
-    state = stateContract;
 
     const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
       "v3",
-      await state.getAddress(),
+      await stateContract.getAddress(),
     );
-    v3validator = contracts.validator;
+    const validator = contracts.validator;
+
+    return {
+      stateContract,
+      validator,
+    };
+  }
+
+  beforeEach(async () => {
+    ({ stateContract: state, validator: v3validator } = await loadFixture(deployContractsFixture));
   });
 
   for (const test of testCases) {

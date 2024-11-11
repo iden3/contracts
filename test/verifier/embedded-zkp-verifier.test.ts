@@ -7,6 +7,7 @@ import { Block, Signer } from "ethers";
 import { buildCrossChainProofs, packCrossChainProofs, packZKProof } from "../utils/packData";
 import proofJson from "../validators/sig/data/valid_sig_user_genesis.json";
 import { CircuitId } from "@0xpolygonid/js-sdk";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 describe("Embedded ZKP Verifier", function () {
   let verifier: any, sig: any;
@@ -27,7 +28,7 @@ describe("Embedded ZKP Verifier", function () {
     claimPathNotExists: 0,
   };
 
-  beforeEach(async () => {
+  async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize(null, true);
     [owner] = await ethers.getSigners();
 
@@ -43,6 +44,10 @@ describe("Embedded ZKP Verifier", function () {
 
     const stub = await deployHelper.deployValidatorStub();
     sig = stub;
+  }
+
+  beforeEach(async () => {
+    await loadFixture(deployContractsFixture);
   });
 
   it("test submit response", async () => {
