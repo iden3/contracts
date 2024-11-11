@@ -4,6 +4,7 @@ import { DeployHelper } from "../../../helpers/DeployHelper";
 import { packValidatorParams } from "../../utils/validator-pack-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { time } from "@nomicfoundation/hardhat-network-helpers";
 
 const tenYears = 315360000;
 const testCases: any[] = [
@@ -128,7 +129,7 @@ describe("Atomic MTP Validator", function () {
         if (test.stateTransitionDelayMs) {
           await Promise.all([
             publishState(state, test.stateTransitions[i]),
-            delay(test.stateTransitionDelayMs),
+            time.increase(test.stateTransitionDelayMs),
           ]);
         } else {
           await publishState(state, test.stateTransitions[i]);
