@@ -4,6 +4,7 @@ import { ethers, upgrades } from "hardhat";
 import { VCPayment, VCPayment__factory } from "../../typechain-types";
 import { expect } from "chai";
 import { Signer } from "ethers";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 describe("VC Payment Contract", () => {
   let payment: VCPayment;
@@ -19,13 +20,8 @@ describe("VC Payment Contract", () => {
 
   let issuer1Signer, issuer2Signer, owner, userSigner: Signer;
 
-  beforeEach(async () => {
+  async function deployContractsFixture() {
     const ownerPercentage = 5;
-    const signers = await ethers.getSigners();
-    issuer1Signer = signers[1];
-    issuer2Signer = signers[2];
-    userSigner = signers[5];
-    owner = signers[0];
 
     payment = (await upgrades.deployProxy(new VCPayment__factory(owner), [
       await owner.getAddress(),
@@ -53,6 +49,16 @@ describe("VC Payment Contract", () => {
       ownerPercentage,
       issuer2Signer.address,
     );
+  }
+
+  beforeEach(async () => {
+    const signers = await ethers.getSigners();
+    issuer1Signer = signers[1];
+    issuer2Signer = signers[2];
+    userSigner = signers[5];
+    owner = signers[0];
+
+    await loadFixture(deployContractsFixture);
   });
 
   it("Payment and issuer withdraw:", async () => {

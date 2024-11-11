@@ -4,6 +4,7 @@ import hre from "hardhat";
 import { addLeaf, FixedArray, genMaxBinaryNumber, MtpProof } from "../utils/state-utils";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { Contract } from "ethers";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 type ParamsProofByHistoricalRoot = {
   index: number | bigint | string;
@@ -45,9 +46,13 @@ type TestCaseRootHistory = {
 describe("Merkle tree proofs of SMT", () => {
   let smt;
 
-  beforeEach(async () => {
+  async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize();
     smt = await deployHelper.deploySmtLibTestWrapper();
+  }
+
+  beforeEach(async () => {
+    await loadFixture(deployContractsFixture);
   });
 
   describe("SMT existence proof", () => {
@@ -1065,7 +1070,7 @@ describe("Root history requests", function () {
 
   it("should revert if out of bounds", async () => {
     await expect(smt.getRootHistory(historyLength, 100)).to.be.rejectedWith(
-      "Start index out of bounds"
+      "Start index out of bounds",
     );
   });
 
@@ -1080,9 +1085,13 @@ describe("Root history requests", function () {
 describe("Root history duplicates", function () {
   let smt;
 
-  beforeEach(async () => {
+  async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize();
     smt = await deployHelper.deploySmtLibTestWrapper();
+  }
+
+  beforeEach(async () => {
+    await loadFixture(deployContractsFixture);
   });
 
   it("comprehensive check", async () => {
@@ -1117,7 +1126,7 @@ describe("Root history duplicates", function () {
     const riDoubleRoot = await smt.getRootInfoListByRoot(doubleRoot, 0, 100);
     const riTripleRoot = await smt.getRootInfoListByRoot(tripleRoot, 0, 100);
     await expect(smt.getRootInfoListByRoot(nonExistingRoot, 0, 100)).to.be.rejectedWith(
-      "Root does not exist"
+      "Root does not exist",
     );
 
     expect(riSingleRoot.length).to.be.equal(1);
@@ -1149,7 +1158,7 @@ describe("Root history duplicates", function () {
     await smt.add(1, 1);
     const root = await smt.getRoot();
     await expect(smt.getRootInfoListByRoot(root, 0, 0)).to.be.rejectedWith(
-      "Length should be greater than 0"
+      "Length should be greater than 0",
     );
   });
 
@@ -1157,7 +1166,7 @@ describe("Root history duplicates", function () {
     await smt.add(1, 1);
     const root = await smt.getRoot();
     await expect(smt.getRootInfoListByRoot(root, 0, 10 ** 6)).to.be.rejectedWith(
-      "Length limit exceeded"
+      "Length limit exceeded",
     );
   });
 
@@ -1167,7 +1176,7 @@ describe("Root history duplicates", function () {
     await smt.add(1, 1);
     const root = await smt.getRoot();
     await expect(smt.getRootInfoListByRoot(root, 3, 100)).to.be.rejectedWith(
-      "Start index out of bounds"
+      "Start index out of bounds",
     );
   });
 
@@ -1216,10 +1225,13 @@ describe("Binary search in SMT root history", () => {
     expect(riByBlock.root).to.equal(tc.expectedRoot);
   }
 
-  beforeEach(async () => {
+  async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize();
     binarySearch = await deployHelper.deployBinarySearchTestWrapper();
+  }
 
+  beforeEach(async () => {
+    await loadFixture(deployContractsFixture);
     const { number: latestBlockNumber } = await hre.ethers.provider.getBlock("latest");
     let blocksToMine = 15 - latestBlockNumber;
 
@@ -1629,9 +1641,13 @@ describe("Binary search in SMT root history", () => {
 describe("Binary search in SMT proofs", () => {
   let smt;
 
-  beforeEach(async () => {
+  async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize();
     smt = await deployHelper.deploySmtLibTestWrapper();
+  }
+
+  beforeEach(async () => {
+    await loadFixture(deployContractsFixture);
   });
 
   describe("Zero root proofs", () => {
@@ -1740,9 +1756,13 @@ describe("Binary search in SMT proofs", () => {
 describe("Edge cases with exceptions", () => {
   let smt;
 
-  beforeEach(async () => {
+  async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize();
     smt = await deployHelper.deploySmtLibTestWrapper();
+  }
+
+  beforeEach(async () => {
+    await loadFixture(deployContractsFixture);
   });
 
   it("getRootInfo() should throw when root does not exist", async () => {
@@ -1821,21 +1841,21 @@ async function checkTestCaseMTPProof(smt: Contract, testCase: TestCaseMTPProof) 
   if (isProofByHistoricalRoot(testCase.paramsToGetProof)) {
     proof = await smt.getProofByRoot(
       testCase.paramsToGetProof.index,
-      testCase.paramsToGetProof.historicalRoot
+      testCase.paramsToGetProof.historicalRoot,
     );
   }
 
   if (isProofByTime(testCase.paramsToGetProof)) {
     proof = await smt.getProofByTime(
       testCase.paramsToGetProof.index,
-      testCase.paramsToGetProof.timestamp
+      testCase.paramsToGetProof.timestamp,
     );
   }
 
   if (isProofByBlock(testCase.paramsToGetProof)) {
     proof = await smt.getProofByBlock(
       testCase.paramsToGetProof.index,
-      testCase.paramsToGetProof.blockNumber
+      testCase.paramsToGetProof.blockNumber,
     );
   }
 

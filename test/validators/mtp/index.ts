@@ -3,6 +3,8 @@ import { prepareInputs, publishState } from "../../utils/state-utils";
 import { DeployHelper } from "../../../helpers/DeployHelper";
 import { packValidatorParams } from "../../utils/validator-pack-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { time } from "@nomicfoundation/hardhat-network-helpers";
 
 const tenYears = 315360000;
 const testCases: any[] = [
@@ -94,19 +96,30 @@ describe("Atomic MTP Validator", function () {
   let state: any, mtpValidator: any;
   let senderAddress: string;
 
-  beforeEach(async () => {
+  async function deployContractsFixture() {
     senderAddress = "0x3930000000000000000000000000000000000000"; // because challenge is 12345 in proofs.
     const deployHelper = await DeployHelper.initialize(null, true);
 
     const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0100"]);
-    state = stateContract;
-
     const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
       "mtpV2",
-      await state.getAddress(),
+      await stateContract.getAddress(),
     );
-    state = contracts.state;
-    mtpValidator = contracts.validator;
+    const validator = contracts.validator;
+
+    return {
+      stateContract,
+      validator,
+      senderAddress,
+    };
+  }
+
+  beforeEach(async () => {
+    ({
+      stateContract: state,
+      validator: mtpValidator,
+      senderAddress,
+    } = await loadFixture(deployContractsFixture));
   });
 
   for (const test of testCases) {
@@ -114,13 +127,9 @@ describe("Atomic MTP Validator", function () {
       this.timeout(50000);
       for (let i = 0; i < test.stateTransitions.length; i++) {
         if (test.stateTransitionDelayMs) {
-          await Promise.all([
-            publishState(state, test.stateTransitions[i]),
-            delay(test.stateTransitionDelayMs),
-          ]);
-        } else {
-          await publishState(state, test.stateTransitions[i]);
+          await time.increase(test.stateTransitionDelayMs);
         }
+        await publishState(state, test.stateTransitions[i]);
       }
 
       const query = {

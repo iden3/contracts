@@ -3,18 +3,26 @@ import { poseidon } from "@iden3/js-crypto";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { Contract } from "ethers";
 import { publishStateWithStubProof } from "../utils/state-utils";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 const verifierStubName = "Groth16VerifierStub";
 
 describe("IdentityTreeStore", function () {
   let identityTreeStore, stateContract: Contract;
 
-  beforeEach(async function () {
+  async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize();
-    ({ state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0100"], verifierStubName));
+    ({ state: stateContract } = await deployHelper.deployStateWithLibraries(
+      ["0x0100"],
+      verifierStubName,
+    ));
     ({ identityTreeStore } = await deployHelper.deployIdentityTreeStore(
       await stateContract.getAddress(),
     ));
+  }
+
+  beforeEach(async function () {
+    await loadFixture(deployContractsFixture);
   });
 
   it("Should return the revocation status single leaf", async function () {
@@ -31,7 +39,7 @@ describe("IdentityTreeStore", function () {
     const revStatusByState = await identityTreeStore.getRevocationStatusByIdAndState(
       id,
       state,
-      nonce
+      nonce,
     );
 
     const stateTransitionArgs = {
@@ -196,7 +204,7 @@ describe("IdentityTreeStore", function () {
       const revStatusByState = await identityTreeStore.getRevocationStatusByIdAndState(
         id,
         state,
-        nonce
+        nonce,
       );
 
       const stateTransitionArgs = {
@@ -286,7 +294,7 @@ describe("IdentityTreeStore", function () {
     await publishStateWithStubProof(stateContract, stateTransitionArgs);
 
     await expect(
-      identityTreeStore.getRevocationStatusByIdAndState(id, state, nonce)
+      identityTreeStore.getRevocationStatusByIdAndState(id, state, nonce),
     ).to.be.rejectedWith("Invalid state node");
 
     await expect(identityTreeStore.getRevocationStatus(id, nonce)).to.be.rejectedWith(

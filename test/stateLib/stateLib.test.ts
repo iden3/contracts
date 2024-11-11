@@ -1,6 +1,7 @@
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
 import { addStateToStateLib } from "../utils/state-utils";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 const id1Inputs = [
   { id: 1, state: 10 },
@@ -10,20 +11,24 @@ const id1Inputs = [
 describe("Negative tests", function () {
   let stateLibWrpr;
 
-  before(async () => {
+  async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize();
     stateLibWrpr = await deployHelper.deployStateLibTestWrapper();
 
     for (const { id, state } of id1Inputs) {
       await addStateToStateLib(stateLibWrpr, id, state);
     }
+  }
+
+  before(async () => {
+    await loadFixture(deployContractsFixture);
   });
 
   it("getStateInfoByID: should be reverted if identity does not exist", async () => {
     const missingID = 777;
 
     await expect(stateLibWrpr.getStateInfoById(missingID)).to.be.revertedWith(
-      "Identity does not exist"
+      "Identity does not exist",
     );
   });
 
@@ -31,7 +36,7 @@ describe("Negative tests", function () {
     const missingID = 777;
 
     await expect(stateLibWrpr.getStateInfoHistoryById(missingID, 0, 1)).to.be.revertedWith(
-      "Identity does not exist"
+      "Identity does not exist",
     );
   });
 
@@ -39,7 +44,7 @@ describe("Negative tests", function () {
     const missingID = 777;
 
     await expect(stateLibWrpr.getStateInfoHistoryLengthById(missingID)).to.be.revertedWith(
-      "Identity does not exist"
+      "Identity does not exist",
     );
   });
 
@@ -48,19 +53,19 @@ describe("Negative tests", function () {
     const missingState = 888;
 
     await expect(stateLibWrpr.getStateInfoByIdAndState(id, missingState)).to.be.revertedWith(
-      "State does not exist"
+      "State does not exist",
     );
   });
 
   it("Zero timestamp and block should be only in the first identity state", async () => {
     await expect(stateLibWrpr.addGenesisState(2, 20)).to.be.not.reverted;
     await expect(stateLibWrpr.addGenesisState(2, 20)).to.be.revertedWith(
-      "Zero timestamp and block should be only in the first identity state"
+      "Zero timestamp and block should be only in the first identity state",
     );
 
     await expect(stateLibWrpr.addState(3, 30)).to.be.not.reverted;
     await expect(stateLibWrpr.addGenesisState(3, 30)).to.be.revertedWith(
-      "Zero timestamp and block should be only in the first identity state"
+      "Zero timestamp and block should be only in the first identity state",
     );
   });
 });
@@ -69,7 +74,7 @@ describe("StateInfo history", function () {
   let stateLibWrpr, id1, id1HistoryLength;
   let addStateResults: { [key: string]: any }[] = [];
 
-  before(async () => {
+  async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize();
     stateLibWrpr = await deployHelper.deployStateLibTestWrapper();
 
@@ -80,6 +85,10 @@ describe("StateInfo history", function () {
     id1 = id1Inputs[0].id;
 
     id1HistoryLength = await stateLibWrpr.getStateInfoHistoryLengthById(id1);
+  }
+
+  beforeEach(async () => {
+    await loadFixture(deployContractsFixture);
   });
 
   it("should return state history", async () => {
@@ -109,19 +118,19 @@ describe("StateInfo history", function () {
 
   it("should be reverted if length is zero", async () => {
     await expect(stateLibWrpr.getStateInfoHistoryById(id1, 0, 0)).to.be.revertedWith(
-      "Length should be greater than 0"
+      "Length should be greater than 0",
     );
   });
 
   it("should be reverted if length limit exceeded", async () => {
     await expect(stateLibWrpr.getStateInfoHistoryById(id1, 0, 10 ** 6)).to.be.revertedWith(
-      "Length limit exceeded"
+      "Length limit exceeded",
     );
   });
 
   it("should be reverted if startIndex is out of bounds", async () => {
     await expect(
-      stateLibWrpr.getStateInfoHistoryById(id1, id1HistoryLength, 100)
+      stateLibWrpr.getStateInfoHistoryById(id1, id1HistoryLength, 100),
     ).to.be.revertedWith("Start index out of bounds");
   });
 
@@ -136,9 +145,13 @@ describe("StateInfo history", function () {
 describe("State history duplicates", function () {
   let stateLibWrpr;
 
-  beforeEach(async () => {
+  async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize();
     stateLibWrpr = await deployHelper.deployStateLibTestWrapper();
+  }
+
+  beforeEach(async () => {
+    await loadFixture(deployContractsFixture);
   });
 
   it("comprehensive check", async () => {
@@ -172,10 +185,10 @@ describe("State history duplicates", function () {
       3n,
     );
     expect(
-      await stateLibWrpr.getStateInfoListLengthByIdAndState(...nonExistingIdAndState1)
+      await stateLibWrpr.getStateInfoListLengthByIdAndState(...nonExistingIdAndState1),
     ).to.be.equal(0n);
     expect(
-      await stateLibWrpr.getStateInfoListLengthByIdAndState(...nonExistingIdAndState2)
+      await stateLibWrpr.getStateInfoListLengthByIdAndState(...nonExistingIdAndState2),
     ).to.be.equal(0);
 
     const siSingleIdAndState = await stateLibWrpr.getStateInfoListByIdAndState(
@@ -212,7 +225,7 @@ describe("State history duplicates", function () {
       expect(si.replacedByState).to.be.equal(siExpNext.stateInfoByIdAndState.state ?? 0);
       expect(si.createdAtTimestamp).to.be.equal(siExp.stateInfoByIdAndState.createdAtTimestamp);
       expect(si.replacedAtTimestamp).to.be.equal(
-        siExpNext.stateInfoByIdAndState.createdAtTimestamp ?? 0
+        siExpNext.stateInfoByIdAndState.createdAtTimestamp ?? 0,
       );
       expect(si.createdAtBlock).to.be.equal(siExp.stateInfoByIdAndState.createdAtBlock);
       expect(si.replacedAtBlock).to.be.equal(siExpNext.stateInfoByIdAndState.createdAtBlock ?? 0);
@@ -248,7 +261,7 @@ describe("State history duplicates", function () {
     const state = 1;
     await stateLibWrpr.addState(id, state);
     await expect(
-      stateLibWrpr.getStateInfoListByIdAndState(id, state, 0, 10 ** 6)
+      stateLibWrpr.getStateInfoListByIdAndState(id, state, 0, 10 ** 6),
     ).to.be.revertedWith("Length limit exceeded");
   });
 
