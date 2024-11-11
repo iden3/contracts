@@ -86,6 +86,9 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         s._requestIds.push(requestId);
     }
 
+    /// @dev Update a ZKP request
+    /// @param requestId The ID of the ZKP request
+    /// @param request The ZKP request data
     function updateZKPRequest(
         uint64 requestId,
         IZKPVerifier.ZKPRequest calldata request
