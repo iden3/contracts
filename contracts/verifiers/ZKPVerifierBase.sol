@@ -86,6 +86,17 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         s._requestIds.push(requestId);
     }
 
+    /// @dev Update a ZKP request
+    /// @param requestId The ID of the ZKP request
+    /// @param request The ZKP request data
+    function updateZKPRequest(
+        uint64 requestId,
+        IZKPVerifier.ZKPRequest calldata request
+    ) public virtual checkRequestExistence(requestId, true) {
+        ZKPVerifierStorage storage s = _getZKPVerifierStorage();
+        s._requests[requestId] = request;
+    }
+
     /// @notice Submits a ZKP response and updates proof status
     /// @param requestId The ID of the ZKP request
     /// @param inputs The input data for the proof
@@ -236,7 +247,7 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     function getZKPRequests(
         uint256 startIndex,
         uint256 length
-    ) public view returns (IZKPVerifier.ZKPRequest[] memory) {
+    ) public view virtual returns (IZKPVerifier.ZKPRequest[] memory) {
         ZKPVerifierStorage storage s = _getZKPVerifierStorage();
         (uint256 start, uint256 end) = ArrayUtils.calculateBounds(
             s._requestIds.length,

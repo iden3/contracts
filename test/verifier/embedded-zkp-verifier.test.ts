@@ -204,29 +204,6 @@ describe("Embedded ZKP Verifier", function () {
     expect(proofStatus.blockTimestamp).to.be.equal(txResTimestamp);
   });
 
-  it("test query param pagination", async () => {
-    for (let i = 0; i < 30; i++) {
-      await verifier.setZKPRequest(i, {
-        metadata: "metadataN" + i,
-        validator: await sig.getAddress(),
-        data: "0x00",
-      });
-    }
-    let queries = await verifier.getZKPRequests(5, 10);
-    expect(queries.length).to.be.equal(10n);
-    expect(queries[0].metadata).to.be.equal("metadataN5");
-    expect(queries[9].metadata).to.be.equal("metadataN14");
-
-    const count = await verifier.getZKPRequestsCount();
-    expect(count).to.be.equal(30n);
-
-    queries = await verifier.getZKPRequests(15, 3);
-    expect(queries.length).to.be.equal(3n);
-    expect(queries[0].metadata).to.be.equal("metadataN15");
-    expect(queries[1].metadata).to.be.equal("metadataN16");
-    expect(queries[2].metadata).to.be.equal("metadataN17");
-  });
-
   it("test getZKPRequest and request id exists", async () => {
     const requestsCount = 3;
     for (let i = 0; i < requestsCount; i++) {

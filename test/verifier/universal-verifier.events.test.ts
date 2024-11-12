@@ -55,6 +55,25 @@ describe("Universal Verifier events", function () {
     },
   ];
 
+  const encodedDataAbi = [
+    {
+      components: [
+        { name: "schema", type: "uint256" },
+        { name: "claimPathKey", type: "uint256" },
+        { name: "operator", type: "uint256" },
+        { name: "slotIndex", type: "uint256" },
+        { name: "value", type: "uint256[]" },
+        { name: "queryHash", type: "uint256" },
+        { name: "allowedIssuers", type: "uint256[]" },
+        { name: "circuitIds", type: "string[]" },
+        { name: "skipClaimRevocationCheck", type: "bool" },
+        { name: "claimPathNotExists", type: "uint256" },
+      ],
+      name: "",
+      type: "tuple",
+    },
+  ];
+
   beforeEach(async () => {
     [signer] = await ethers.getSigners();
 
@@ -92,32 +111,12 @@ describe("Universal Verifier events", function () {
         data: data[i],
       });
     }
-
-    const abi = [
-      {
-        components: [
-          { name: "schema", type: "uint256" },
-          { name: "claimPathKey", type: "uint256" },
-          { name: "operator", type: "uint256" },
-          { name: "slotIndex", type: "uint256" },
-          { name: "value", type: "uint256[]" },
-          { name: "queryHash", type: "uint256" },
-          { name: "allowedIssuers", type: "uint256[]" },
-          { name: "circuitIds", type: "string[]" },
-          { name: "skipClaimRevocationCheck", type: "bool" },
-          { name: "claimPathNotExists", type: "uint256" },
-        ],
-        name: "",
-        type: "tuple",
-      },
-    ];
-
     const filter = verifier.filters.ZKPRequestSet(null, null);
     const logs = await verifier.queryFilter(filter, 0, "latest");
 
     const coder = AbiCoder.defaultAbiCoder();
     logs.map((log, index) => {
-      const [decodedData] = coder.decode(abi as any, log.args.data);
+      const [decodedData] = coder.decode(encodedDataAbi as any, log.args.data);
       expect(decodedData.schema).to.equal(queries[index].schema);
       expect(decodedData.claimPathKey).to.equal(queries[index].claimPathKey);
       expect(decodedData.operator).to.equal(queries[index].operator);
@@ -133,6 +132,44 @@ describe("Universal Verifier events", function () {
         queries[index].skipClaimRevocationCheck,
       );
       expect(decodedData.claimPathNotExists).to.equal(queries[index].claimPathNotExists);
+    });
+  });
+
+  it("Check ZKPRequestUpdate event", async () => {
+    const originalRequestData = packValidatorParams(queries[0]);
+    const updatedRequestData = packValidatorParams(queries[1]);
+
+    await verifier.setZKPRequest(0, {
+      metadata: "metadataN0",
+      validator: await sig.getAddress(),
+      data: originalRequestData,
+    });
+
+    await verifier.updateZKPRequest(0, {
+      metadata: "metadataN1",
+      validator: await sig.getAddress(),
+      data: updatedRequestData,
+    });
+
+    const filter = verifier.filters.ZKPRequestUpdate(null, null);
+    const logs = await verifier.queryFilter(filter, 0, "latest");
+
+    const coder = AbiCoder.defaultAbiCoder();
+    logs.map((log) => {
+      const [decodedData] = coder.decode(encodedDataAbi as any, log.args.data);
+      expect(decodedData.schema).to.equal(queries[1].schema);
+      expect(decodedData.claimPathKey).to.equal(queries[1].claimPathKey);
+      expect(decodedData.operator).to.equal(queries[1].operator);
+      expect(decodedData.slotIndex).to.equal(queries[1].slotIndex);
+      decodedData.value.forEach((v, i) => {
+        expect(v).to.equal(queries[1].value[i]);
+      });
+      expect(decodedData.queryHash).to.equal(queries[1].queryHash);
+      decodedData.circuitIds.forEach((circuitId, i) => {
+        expect(circuitId).to.equal(queries[1].circuitIds[i]);
+      });
+      expect(decodedData.skipClaimRevocationCheck).to.equal(queries[1].skipClaimRevocationCheck);
+      expect(decodedData.claimPathNotExists).to.equal(queries[1].claimPathNotExists);
     });
   });
 });

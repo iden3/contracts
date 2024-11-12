@@ -16,20 +16,16 @@ export class UniversalVerifierContractMigrationHelper extends ContractMigrationS
   async getDataFromContract(contract: Contract, ...args: any[]): Promise<any> {
     const countRequests = await contract.getZKPRequestsCount();
 
-    const validators: string[] = [];
-    const requestsObj: any[] = [];
+    let validator: string = "";
+    let request: any = {};
 
     if (countRequests > 0) {
-      const requests = await contract.getZKPRequests(0, countRequests);
-      for (const request of requests) {
-        if (!validators.includes(request[1])) {
-          validators.push(request[1]);
-        }
-        requestsObj.push(JSON.parse(request[0]));
-      }
+      const firstRequestInfo: any = await contract.getZKPRequest(0);
+      validator = firstRequestInfo[1];
+      request = JSON.parse(firstRequestInfo[0]);
     }
 
-    const result = { requests: requestsObj, validators };
+    const result = { request, validator, countRequests };
     return result;
   }
 
@@ -38,15 +34,11 @@ export class UniversalVerifierContractMigrationHelper extends ContractMigrationS
     const result1 = args[0];
     const result2 = args[1];
 
-    const { requests: requestsV1 } = result1;
-    const { requests: requestsV2 } = result2;
-    console.assert(requestsV1.length === requestsV2.length, "lenght of requests not equal");
-    for (let i = 0; i < requestsV1.length; i++) {
-      console.assert(
-        JSON.stringify(requestsV1[i]) === JSON.stringify(requestsV2[i]),
-        "requests not equal",
-      );
-    }
+    const { request: requestV1, countRequests: countRequestsV1, validator: validatorV1 } = result1;
+    const { request: requestV2, countRequests: countRequestsV2, validator: validatorV2 } = result2;
+    console.assert(countRequestsV1 === countRequestsV2, "lenght of requests not equal");
+    console.assert(JSON.stringify(requestV1) === JSON.stringify(requestV2), "requests not equal");
+    console.assert(validatorV1 === validatorV2, "validator not equal");
   }
 
   @log

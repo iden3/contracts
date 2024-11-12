@@ -21,13 +21,22 @@ contract UniversalVerifier is
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.1.1";
+    string public constant VERSION = "1.1.2";
 
     /// @dev Event emitted upon submitting a ZKP request
     event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);
 
     /// @dev Event emitted upon adding a ZKP request
     event ZKPRequestSet(
+        uint64 indexed requestId,
+        address indexed requestOwner,
+        string metadata,
+        address validator,
+        bytes data
+    );
+
+    /// @dev Event emitted upon updating a ZKP request
+    event ZKPRequestUpdate(
         uint64 indexed requestId,
         address indexed requestOwner,
         string metadata,
@@ -66,6 +75,24 @@ contract UniversalVerifier is
         super.setZKPRequest(requestId, request);
 
         emit ZKPRequestSet(
+            requestId,
+            _msgSender(),
+            request.metadata,
+            address(request.validator),
+            request.data
+        );
+    }
+
+    /// @dev Update a ZKP request
+    /// @param requestId The ID of the ZKP request
+    /// @param request The ZKP request data
+    function updateZKPRequest(
+        uint64 requestId,
+        IZKPVerifier.ZKPRequest calldata request
+    ) public override onlyOwner {
+        super.updateZKPRequest(requestId, request);
+
+        emit ZKPRequestUpdate(
             requestId,
             _msgSender(),
             request.metadata,
@@ -134,6 +161,17 @@ contract UniversalVerifier is
      */
     function setState(IState state) public onlyOwner {
         _setState(state);
+    }
+
+    /// @dev Gets multiple ZKP requests within a range (disabled in this contract)
+    /// @param startIndex The starting index of the range
+    /// @param length The length of the range
+    /// @return An array of ZKP requests within the specified range
+    function getZKPRequests(
+        uint256 startIndex,
+        uint256 length
+    ) public view override returns (IZKPVerifier.ZKPRequest[] memory) {
+        revert("Not implemented in this version");
     }
 
     /// @dev Sets ZKP Request Owner address

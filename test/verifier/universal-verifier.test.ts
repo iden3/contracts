@@ -146,26 +146,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
     );
   });
 
-  it("Test getZKPRequests pagination", async () => {
-    for (let i = 0; i < 30; i++) {
-      await verifier.setZKPRequest(i, {
-        metadata: "metadataN" + i,
-        validator: await sigValidator.getAddress(),
-        data: "0x00",
-      });
-    }
-    let queries = await verifier.getZKPRequests(5, 10);
-    expect(queries.length).to.be.equal(10);
-    expect(queries[0].metadata).to.be.equal("metadataN5");
-    expect(queries[9].metadata).to.be.equal("metadataN14");
-
-    queries = await verifier.getZKPRequests(15, 3);
-    expect(queries.length).to.be.equal(3);
-    expect(queries[0].metadata).to.be.equal("metadataN15");
-    expect(queries[1].metadata).to.be.equal("metadataN16");
-    expect(queries[2].metadata).to.be.equal("metadataN17");
-  });
-
   it("Check access control", async () => {
     const owner = signer;
     const requestOwner = signer2;
@@ -328,5 +308,52 @@ describe("Universal Verifier MTP & SIG validators", function () {
         [0, 0],
       ),
     ).to.be.rejectedWith("Validator is not whitelisted");
+  });
+
+  it("Check updateZKPRequest", async () => {
+    const owner = signer;
+    const requestOwner = signer2;
+    const requestId = 0;
+    const data = packValidatorParams(query);
+
+    await verifier.connect(requestOwner).setZKPRequest(requestId, {
+      metadata: "metadata",
+      validator: await sigValidator.getAddress(),
+      data: data,
+    });
+
+    let request = await verifier.getZKPRequest(requestId);
+    expect(request.metadata).to.be.equal("metadata");
+
+    await expect(
+      verifier.connect(requestOwner).updateZKPRequest(requestId, {
+        metadata: "metadata",
+        validator: await sigValidator.getAddress(),
+        data: data,
+      }),
+    ).to.be.revertedWithCustomError(verifier, "OwnableUnauthorizedAccount");
+
+    await verifier.connect(owner).updateZKPRequest(requestId, {
+      metadata: "metadata2",
+      validator: await sigValidator.getAddress(),
+      data: data,
+    });
+
+    request = await verifier.getZKPRequest(requestId);
+    expect(request.metadata).to.be.equal("metadata2");
+  });
+
+  it("updateZKPRequest - not existed request", async () => {
+    const owner = signer;
+    const requestId = 0;
+    const data = packValidatorParams(query);
+
+    await expect(
+      verifier.connect(owner).updateZKPRequest(requestId, {
+        metadata: "metadata",
+        validator: await sigValidator.getAddress(),
+        data: data,
+      }),
+    ).to.be.rejectedWith("equest id doesn't exis");
   });
 });
