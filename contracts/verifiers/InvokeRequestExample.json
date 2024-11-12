@@ -1,0 +1,82 @@
+{
+  "id": "f8aee09d-f592-4fcc-8d2a-8938aa26676c",
+  "typ": "application/iden3comm-plain-json",
+  "type": "https://iden3-communication.io/proofs/1.0/contract-invoke-request",
+  "thid": "f8aee09d-f592-4fcc-8d2a-8938aa26676c",
+  "from": "did:polygonid:polygon:mumbai:2qFroxB5kwgCxgVrNGUM6EW3khJgCdHHnKTr3VnTcp",
+  "body": {
+    "scope": [
+      {
+        "id": 1,
+        "circuitId": "credentialAtomicQuerySigV2",
+        "query": {
+          "allowedIssuers": [
+            "*"
+          ],
+          "context": "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
+          "type": "KYCAgeCredential",
+          "credentialSubject": {
+            "birthday": {
+              "$lt": 2000101
+            }
+          }
+        }
+      }, // output userID, linkID, somePubSignal1
+      {
+        "id": 2,
+        "circuitId": "credentialAtomicQuerySigV2",
+        "query": {
+          "allowedIssuers": [
+            "*"
+          ],
+          "context": "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
+          "type": "KYCAgeCredential",
+          "credentialSubject": {
+            "birthday": {
+              "$lt": 2000101
+            }
+          }
+        }
+      }, // output userID, linkID, somePubSignal2
+      {
+        "id": 3,
+        "circuitId": "credentialAtomicQuerySigV2",
+        "query": {
+          "allowedIssuers": [
+            "*"
+          ],
+          "context": "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
+          "type": "KYCAgeCredential",
+          "credentialSubject": {
+            "birthday": {
+              "$lt": 2000101
+            }
+          }
+        }
+      } // LinkedMultiQuery: output linkID, >= 18 years old AND not from North Korea
+    ],
+    "transaction_data": {
+      "contract_address": "0xe826f870852d7eeeb79b2c030298f9b5daa8c8a3",
+      "method_id": "b68967e2",
+      "chain_id": 80001,
+      "network": "polygon-mumbai"
+    },
+    "condition": "(1 or 2) and 3",
+    "linkedSignalNames": ???
+    "linkedRequestIds": ???,
+    "disclosures": [
+      {
+        "feature-type": "accept",
+        "accept": [
+          // requestId = 100,
+          "iden3comm/v1;env=application/iden3-zkp-json;circuitId=authV2,authV3;alg=groth16,plonk",
+          // requestId = 101
+          "iden3comm/v1;env=application/iden3-zkp-json;circuitId=authV4;alg=plonk",
+          // requestId = 102
+          "iden3comm/v1;env=application/iden3comm-signed-json;alg=ES256K-R"
+        ],
+        "condition": "1 and 2"
+      }
+    ]
+  }
+}
