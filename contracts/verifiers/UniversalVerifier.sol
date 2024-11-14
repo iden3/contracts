@@ -21,7 +21,7 @@ contract UniversalVerifier is
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.1.2";
+    string public constant VERSION = "1.1.3";
 
     /// @dev Event emitted upon submitting a ZKP request
     event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);
@@ -89,8 +89,8 @@ contract UniversalVerifier is
     function updateZKPRequest(
         uint64 requestId,
         IZKPVerifier.ZKPRequest calldata request
-    ) public override onlyOwner {
-        super.updateZKPRequest(requestId, request);
+    ) public onlyOwner {
+        super._updateZKPRequest(requestId, request);
 
         emit ZKPRequestUpdate(
             requestId,

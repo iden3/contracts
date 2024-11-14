@@ -1,7 +1,7 @@
 {
   "name": "@iden3/contracts",
   "description": "Smart Contract library for Solidity",
-  "version": "2.5.2",
+  "version": "2.5.3",
   "files": [
     "**/*.sol",
     "/build/contracts/*.json",
