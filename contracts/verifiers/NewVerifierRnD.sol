@@ -3,14 +3,37 @@ pragma solidity ^0.8.10;
 
 contract NewVerifierRnD {
 
-    function setInvokeRequest(
-        uint256 invokeRequestId, //   "id": "f8aee09d-f592-4fcc-8d2a-8938aa26676c",
-        string conditionString, // (1 || 2) && 3 && (100 || 101 || 102)
-        string[] memory linkedSignalNames,  // ["linkID", "userID"]
-        uint256[][] memory linkedRequestIds // [[1,2,3], [1,2,100,101,102]] // is AND logic only flexible enough?
-    ) public {
-
+    struct SignalRequestTuple {
+        uint256 requestId;
+        string signalName;
     }
+
+    // Condition:
+        // we have 6 requests in total:
+        // Requests 1 and 2 are from different issuers but the same schema
+        // Request 3 is LinkedMultiQuery
+        // One of requests 4, 5, and 6 is mandatory as these are user auth requests
+
+    function setMultiRequest(
+        uint256 multiRequestID, //   "id": "f8aee09d-f592-4fcc-8d2a-8938aa26676c",
+        string conditionString, // (1 || 2 || 10 || 11) && 3 && (100 || 101 || 102)
+        SignalRequestTuple[][] memory linkedRequestIds
+        // [
+        //      [{userID, 1}, {userID, 2}, {userID, 3}, {identity, 100}, {id, 101}, {user, 102}],
+        //      [{linkID, 1}, {linkID, 2}, {linkID, 3}]
+        // ]
+        // is this logic flexible enough? Though it might not be a problem for the first version
+        // Maybe, operatorOutput = "something" is what we need as well???
+    ) public {}
+
+    function getMultiRequestStatus(uint256 multiRequestID) public view returns (bool) {
+        // return status by condition
+        return false;
+    }
+
+    // Intersect by the latest from the _proofs array should be OK
+    // mapping(address user => mapping(uint64 requestId => Proof[])) _proofs;  // Pay attention, it is an array here now!!!
+    // mapping(uint64 requestId => IZKPVerifier.ZKPRequest) _requests;
 
     struct Request {
         string metadata;
