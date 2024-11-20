@@ -276,7 +276,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         PubSignals memory pubSignals,
         bool hasSelectiveDisclosure
     ) internal pure returns (ICircuitValidator.Signal[] memory) {
-        uint256 numSignals = hasSelectiveDisclosure ? 5 : 4;
+        uint256 numSignals = hasSelectiveDisclosure ? 6 : 5;
         ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](numSignals);
 
         uint i = 0;
@@ -290,6 +290,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
             });
         }
         signals[i++] = ICircuitValidator.Signal({name: "timestamp", value: pubSignals.timestamp});
+        signals[i++] = ICircuitValidator.Signal({name: "issuerID", value: pubSignals.issuerID});
 
         return signals;
     }
@@ -297,7 +298,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
     function _getSpecialInputIndexes(
         bool hasSelectiveDisclosure
     ) internal view returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        uint256 numSignals = hasSelectiveDisclosure ? 5 : 4;
+        uint256 numSignals = hasSelectiveDisclosure ? 6 : 5;
         ICircuitValidator.KeyToInputIndex[]
             memory keyToInputIndexes = new ICircuitValidator.KeyToInputIndex[](numSignals);
 
@@ -323,6 +324,10 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         keyToInputIndexes[i++] = ICircuitValidator.KeyToInputIndex({
             key: "timestamp",
             inputIndex: inputIndexOf("timestamp")
+        });
+        keyToInputIndexes[i++] = ICircuitValidator.KeyToInputIndex({
+            key: "issuerID",
+            inputIndex: inputIndexOf("issuerID")
         });
 
         return keyToInputIndexes;
