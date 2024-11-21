@@ -3,6 +3,7 @@ pragma solidity 0.8.27;
 
 import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
 
 contract RequestDisableable is ZKPVerifierBase {
     /// @custom:storage-location erc7201:iden3.storage.RequestDisableable
@@ -24,22 +25,6 @@ contract RequestDisableable is ZKPVerifierBase {
     modifier onlyEnabledRequest(uint64 requestId) {
         require(isZKPRequestEnabled(requestId), "Request is disabled");
         _;
-    }
-
-    /// @dev Submits a ZKP response and updates proof status
-    /// @param requestId The ID of the ZKP request
-    /// @param inputs The input data for the proof
-    /// @param a The first component of the proof
-    /// @param b The second component of the proof
-    /// @param c The third component of the proof
-    function submitZKPResponse(
-        uint64 requestId,
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c
-    ) public virtual override onlyEnabledRequest(requestId) {
-        super.submitZKPResponse(requestId, inputs, a, b, c);
     }
 
     /// @dev Verifies a ZKP response without updating any proof status
@@ -81,5 +66,18 @@ contract RequestDisableable is ZKPVerifierBase {
 
     function _enableZKPRequest(uint64 requestId) internal checkRequestExistence(requestId, true) {
         _getRequestDisableStorage()._requestDisabling[requestId] = false;
+    }
+
+    function _getRequestIfCanBeVerified(
+        uint64 requestId
+    )
+        internal
+        view
+        virtual
+        override
+        onlyEnabledRequest(requestId)
+        returns (IZKPVerifier.ZKPRequest storage)
+    {
+        return super._getRequestIfCanBeVerified(requestId);
     }
 }

@@ -42,24 +42,6 @@ contract ValidatorWhitelist is ZKPVerifierBase {
         super.setZKPRequest(requestId, request);
     }
 
-    /// @dev Submits a ZKP response and updates proof status
-    /// @param requestId The ID of the ZKP request
-    /// @param inputs The input data for the proof
-    /// @param a The first component of the proof
-    /// @param b The second component of the proof
-    /// @param c The third component of the proof
-    function submitZKPResponse(
-        uint64 requestId,
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c
-    ) public virtual override {
-        ICircuitValidator validator = getZKPRequest(requestId).validator;
-        require(isWhitelistedValidator(validator), "Validator is not whitelisted");
-        super.submitZKPResponse(requestId, inputs, a, b, c);
-    }
-
     /// @dev Verifies a ZKP response without updating any proof status
     /// @param requestId The ID of the ZKP request
     /// @param inputs The public inputs for the proof
@@ -100,5 +82,18 @@ contract ValidatorWhitelist is ZKPVerifierBase {
 
     function _removeValidatorFromWhitelist(ICircuitValidator validator) internal {
         _getValidatorWhitelistStorage()._validatorWhitelist[validator] = false;
+    }
+
+    function _getRequestIfCanBeVerified(
+        uint64 requestId
+    )
+        internal
+        view
+        virtual
+        override
+        onlyWhitelistedValidator(getZKPRequest(requestId).validator)
+        returns (IZKPVerifier.ZKPRequest storage)
+    {
+        return super._getRequestIfCanBeVerified(requestId);
     }
 }
