@@ -6,8 +6,10 @@ import { calculateQueryHashV3 } from "../../utils/query-hash-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
+import { TEN_YEARS } from "../../../helpers/constants";
+import { packZKProof } from "../../utils/packData";
 
-const tenYears = 315360000;
+const tenYears = TEN_YEARS;
 const testCases: any[] = [
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in published onchain. Revocation State is published onchain. BJJ Proof",
@@ -324,10 +326,6 @@ const testCases: any[] = [
   },
 ];
 
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 describe("Atomic V3 Validator", function () {
   let state: any, v3validator;
 
@@ -346,6 +344,42 @@ describe("Atomic V3 Validator", function () {
       stateContract,
       validator,
     };
+  }
+
+  function checkSignals(signals: any) {
+    expect(signals.length).to.be.equal(5);
+
+    let isUserIDSignal = false;
+    let isLinkIDSignal = false;
+    let isNullifierSignal = false;
+    let isTimestampSignal = false;
+    let isIssuerIDSignal = false;
+
+    for (let i = 0; i < signals.length; i++) {
+      switch (signals[i][0]) {
+        case "userID":
+          isUserIDSignal = true;
+          break;
+        case "linkID":
+          isLinkIDSignal = true;
+          break;
+        case "nullifier":
+          isNullifierSignal = true;
+          break;
+        case "timestamp":
+          isTimestampSignal = true;
+          break;
+        case "issuerID":
+          isIssuerIDSignal = true;
+          break;
+      }
+    }
+
+    expect(isUserIDSignal).to.be.true;
+    expect(isLinkIDSignal).to.be.true;
+    expect(isNullifierSignal).to.be.true;
+    expect(isTimestampSignal).to.be.true;
+    expect(isIssuerIDSignal).to.be.true;
   }
 
   beforeEach(async () => {
@@ -413,17 +447,41 @@ describe("Atomic V3 Validator", function () {
         await v3validator.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
       }
 
-      const packedParams = packV3ValidatorParams(query, test.allowedIssuers);
+      const data = packV3ValidatorParams(query, test.allowedIssuers);
 
+      // Check verify function
       if (test.errorMessage) {
         await expect(
-          v3validator.verify(inputs, pi_a, pi_b, pi_c, packedParams, test.sender),
+          v3validator.verify(inputs, pi_a, pi_b, pi_c, data, test.sender),
         ).to.be.rejectedWith(test.errorMessage);
       } else if (test.errorMessage === "") {
-        await expect(v3validator.verify(inputs, pi_a, pi_b, pi_c, packedParams, test.sender)).to.be
+        await expect(v3validator.verify(inputs, pi_a, pi_b, pi_c, data, test.sender)).to.be
           .reverted;
       } else {
-        await v3validator.verify(inputs, pi_a, pi_b, pi_c, packedParams, test.sender);
+        const signals = await v3validator.verify(inputs, pi_a, pi_b, pi_c, data, test.sender);
+
+        // Check if the number signals are correct. "operatorOutput" for selective disclosure is optional
+        checkSignals(signals);
+      }
+
+      // Check verifyV2 function
+      const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
+      if (test.errorMessage) {
+        await expect(
+          v3validator.verifyV2(zkProof, data, test.sender, await state.getAddress()),
+        ).to.be.rejectedWith(test.errorMessage);
+      } else if (test.errorMessage === "") {
+        await expect(v3validator.verifyV2(zkProof, data, test.sender, await state.getAddress())).to
+          .be.reverted;
+      } else {
+        const signals = await v3validator.verifyV2(
+          zkProof,
+          data,
+          test.sender,
+          await state.getAddress(),
+        );
+
+        checkSignals(signals);
       }
     });
   }

@@ -371,3 +371,5 @@ export const contractsInfo = Object.freeze({
     create2Calldata: "",
   },
 });
+
+export const TEN_YEARS = 315360000;

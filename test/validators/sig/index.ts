@@ -5,8 +5,10 @@ import { packValidatorParams } from "../../utils/validator-pack-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
+import { TEN_YEARS } from "../../../helpers/constants";
+import { packZKProof } from "../../utils/packData";
 
-const tenYears = 315360000;
+const tenYears = TEN_YEARS;
 const testCases: any[] = [
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain",
@@ -88,10 +90,6 @@ const testCases: any[] = [
   },
 ];
 
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 describe("Atomic Sig Validator", function () {
   let state: any, sigValidator: any;
   let senderAddress: string;
@@ -112,6 +110,32 @@ describe("Atomic Sig Validator", function () {
       validator,
       senderAddress,
     };
+  }
+
+  function checkSignals(signals: any) {
+    expect(signals.length).to.be.equal(3);
+
+    let isUserIDSignal = false;
+    let isTimestampSignal = false;
+    let isIssuerIDSignal = false;
+
+    for (let i = 0; i < signals.length; i++) {
+      switch (signals[i][0]) {
+        case "userID":
+          isUserIDSignal = true;
+          break;
+        case "timestamp":
+          isTimestampSignal = true;
+          break;
+        case "issuerID":
+          isIssuerIDSignal = true;
+          break;
+      }
+    }
+
+    expect(isUserIDSignal).to.be.true;
+    expect(isTimestampSignal).to.be.true;
+    expect(isIssuerIDSignal).to.be.true;
   }
 
   beforeEach(async () => {
@@ -158,37 +182,39 @@ describe("Atomic Sig Validator", function () {
       if (test.setGISTRootExpiration) {
         await sigValidator.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
       }
+
+      const data = packValidatorParams(query, test.allowedIssuers);
+
+      // Check verify function
       if (test.errorMessage) {
         await expect(
-          sigValidator.verify(
-            inputs,
-            pi_a,
-            pi_b,
-            pi_c,
-            packValidatorParams(query, test.allowedIssuers),
-            senderAddress,
-          ),
+          sigValidator.verify(inputs, pi_a, pi_b, pi_c, data, senderAddress),
         ).to.be.rejectedWith(test.errorMessage);
       } else if (test.errorMessage === "") {
-        await expect(
-          sigValidator.verify(
-            inputs,
-            pi_a,
-            pi_b,
-            pi_c,
-            packValidatorParams(query, test.allowedIssuers),
-            senderAddress,
-          ),
-        ).to.be.reverted;
+        await expect(sigValidator.verify(inputs, pi_a, pi_b, pi_c, data, senderAddress)).to.be
+          .reverted;
       } else {
-        await sigValidator.verify(
-          inputs,
-          pi_a,
-          pi_b,
-          pi_c,
-          packValidatorParams(query, test.allowedIssuers),
+        const signals = await sigValidator.verify(inputs, pi_a, pi_b, pi_c, data, senderAddress);
+        checkSignals(signals);
+      }
+
+      // Check verifyV2 function
+      const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
+      if (test.errorMessage) {
+        await expect(
+          sigValidator.verifyV2(zkProof, data, senderAddress, await state.getAddress()),
+        ).to.be.rejectedWith(test.errorMessage);
+      } else if (test.errorMessage === "") {
+        await expect(sigValidator.verifyV2(zkProof, data, senderAddress, await state.getAddress()))
+          .to.be.reverted;
+      } else {
+        const signals = await sigValidator.verifyV2(
+          zkProof,
+          data,
           senderAddress,
+          await state.getAddress(),
         );
+        checkSignals(signals);
       }
     });
   }

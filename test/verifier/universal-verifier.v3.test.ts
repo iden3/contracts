@@ -12,6 +12,7 @@ import stateTransition11 from "../validators/common-data/issuer_from_genesis_sta
 import stateTransition12 from "../validators/common-data/user_from_genesis_state_to_first_transition_v3.json";
 import stateTransition13 from "../validators/common-data/issuer_from_first_state_to_second_transition_v3.json";
 import { packZKProof } from "../utils/packData";
+import { TEN_YEARS } from "../../helpers/constants";
 
 describe("Universal Verifier V3 validator", function () {
   let verifier: any, v3Validator: any, state: any;
@@ -91,7 +92,7 @@ describe("Universal Verifier V3 validator", function () {
       validator: v3Validator,
       universalVerifier: verifier,
     } = await loadFixture(deployContractsFixture));
-    await v3Validator.setProofExpirationTimeout(315360000);
+    await v3Validator.setProofExpirationTimeout(TEN_YEARS);
   });
 
   it("Test submit response", async () => {
@@ -103,7 +104,7 @@ describe("Universal Verifier V3 validator", function () {
       validator: await v3Validator.getAddress(),
       data: data,
     });
-    await v3Validator.setProofExpirationTimeout(315360000);
+    await v3Validator.setProofExpirationTimeout(TEN_YEARS);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
 
