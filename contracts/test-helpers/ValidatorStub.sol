@@ -33,7 +33,11 @@ contract ValidatorStub is ICircuitValidator, ERC165 {
         bytes calldata,
         address
     ) external pure override returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        ICircuitValidator.KeyToInputIndex[] memory keyToInputIndexes;
+        ICircuitValidator.KeyToInputIndex[] memory keyToInputIndexes = new ICircuitValidator.KeyToInputIndex[](2);
+        keyToInputIndexes[0].key = "userID";
+        keyToInputIndexes[0].inputIndex = 1;        
+        keyToInputIndexes[1].key = "issuerID";
+        keyToInputIndexes[1].inputIndex = 2;
         return keyToInputIndexes;
     }
 
@@ -43,7 +47,11 @@ contract ValidatorStub is ICircuitValidator, ERC165 {
         address,
         IState
     ) external pure override returns (ICircuitValidator.Signal[] memory) {
-        ICircuitValidator.Signal[] memory signals;
+        ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](2);
+        signals[0].name = "userID";
+        signals[0].value = 1;
+        signals[1].name = "issuerID";
+        signals[1].value = 2;
         return signals;
     }
 

@@ -51,6 +51,18 @@ describe("Universal Verifier MTP & SIG validators", function () {
     return { ethSigner, ethSigner2, ethSigner3, stateContract, universalVerifier, validator };
   }
 
+  async function checkStorageFields(verifier: any, requestId: number) {
+    const fieldsToCheck = ["userID", "issuerID"];
+    for (const field of fieldsToCheck) {
+      const value = await verifier.getProofStorageField(
+        await signer.getAddress(),
+        requestId,
+        field,
+      );
+      expect(value).to.be.greaterThan(0n);
+    }
+  }
+
   beforeEach(async () => {
     ({
       ethSigner: signer,
@@ -113,6 +125,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
     const tx = await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
     const txRes = await tx.wait();
+    await checkStorageFields(verifier, requestId);
     const filter = verifier.filters.ZKPResponseSubmitted;
 
     const events = await verifier.queryFilter(filter, -1);

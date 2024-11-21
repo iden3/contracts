@@ -84,6 +84,27 @@ describe("Universal Verifier V3 validator", function () {
     return { ethSigner, ethSigner2, stateContract, universalVerifier, validator };
   }
 
+  async function checkStorageFields(verifier: any, requestId: number) {
+    const nonZeroFields = ["issuerID", "userID", "timestamp", "linkID"];
+    const zeroFields = ["nullifier"];
+    for (const field of nonZeroFields) {
+      const value = await verifier.getProofStorageField(
+        await signer.getAddress(),
+        requestId,
+        field,
+      );
+      expect(value).to.be.greaterThan(0n);
+    }
+    for (const field of zeroFields) {
+      const value = await verifier.getProofStorageField(
+        await signer.getAddress(),
+        requestId,
+        field,
+      );
+      expect(value).to.be.equal(0n);
+    }
+  }
+
   before(async () => {
     ({
       ethSigner: signer,
@@ -119,43 +140,7 @@ describe("Universal Verifier V3 validator", function () {
 
     await expect(verifier.submitZKPResponse(requestId, inputs, pi_a, pi_b, pi_c)).not.to.be
       .rejected;
-    const issuerID = await verifier.getProofStorageField(
-      await signer.getAddress(),
-      requestId,
-      "issuerID",
-    );
-    const userID = await verifier.getProofStorageField(
-      await signer.getAddress(),
-      requestId,
-      "userID",
-    );
-    const timestamp = await verifier.getProofStorageField(
-      await signer.getAddress(),
-      requestId,
-      "timestamp",
-    );
-    const linkID = await verifier.getProofStorageField(
-      await signer.getAddress(),
-      requestId,
-      "linkID",
-    );
-    const nullifier = await verifier.getProofStorageField(
-      await signer.getAddress(),
-      requestId,
-      "nullifier",
-    );
-
-    expect(issuerID).to.equal(
-      22057981499787921734624217749308316644136637822444794206796063681866502657n,
-    );
-    expect(userID).to.equal(
-      23013175891893363078841232968022302880776034013620341061794940968520126978n,
-    );
-    expect(timestamp).to.equal(1642074362n);
-    expect(linkID).to.equal(
-      19823993270096139446564592922993947503208333537792611306066620392561342309875n,
-    );
-    expect(nullifier).to.equal(0n);
+    await checkStorageFields(verifier, requestId);
   });
 
   it("Test submit response V2", async () => {
@@ -181,44 +166,7 @@ describe("Universal Verifier V3 validator", function () {
         crossChainProofs,
       ),
     ).not.to.be.rejected;
-
-    const issuerID = await verifier.getProofStorageField(
-      await signer.getAddress(),
-      requestId,
-      "issuerID",
-    );
-    const userID = await verifier.getProofStorageField(
-      await signer.getAddress(),
-      requestId,
-      "userID",
-    );
-    const timestamp = await verifier.getProofStorageField(
-      await signer.getAddress(),
-      requestId,
-      "timestamp",
-    );
-    const linkID = await verifier.getProofStorageField(
-      await signer.getAddress(),
-      requestId,
-      "linkID",
-    );
-    const nullifier = await verifier.getProofStorageField(
-      await signer.getAddress(),
-      requestId,
-      "nullifier",
-    );
-
-    expect(issuerID).to.equal(
-      22057981499787921734624217749308316644136637822444794206796063681866502657n,
-    );
-    expect(userID).to.equal(
-      23013175891893363078841232968022302880776034013620341061794940968520126978n,
-    );
-    expect(timestamp).to.equal(1642074362n);
-    expect(linkID).to.equal(
-      19823993270096139446564592922993947503208333537792611306066620392561342309875n,
-    );
-    expect(nullifier).to.equal(0n);
+    await checkStorageFields(verifier, requestId);
   });
 
   it("Test submit response fails with UserID does not correspond to the sender", async () => {

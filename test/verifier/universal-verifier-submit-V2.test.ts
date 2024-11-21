@@ -78,6 +78,18 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     await verifier.connect();
   }
 
+  async function checkStorageFields(verifier: any, requestId: number) {
+    const fieldsToCheck = ["userID", "issuerID"];
+    for (const field of fieldsToCheck) {
+      const value = await verifier.getProofStorageField(
+        await signer.getAddress(),
+        requestId,
+        field,
+      );
+      expect(value).to.be.greaterThan(0n);
+    }
+  }
+
   beforeEach(async () => {
     await loadFixture(deployContractsFixture);
   });
@@ -118,6 +130,7 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     );
 
     const txRes = await tx.wait();
+    await checkStorageFields(verifier, requestId);
     const filter = verifier.filters.ZKPResponseSubmitted;
 
     const events = await verifier.queryFilter(filter, -1);
@@ -193,6 +206,7 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
       expect(status.validatorVersion).to.be.equal("2.0.1-mock");
       expect(status.blockNumber).to.be.equal(txRes.blockNumber);
       expect(status.blockTimestamp).to.be.equal(txResTimestamp);
+      await checkStorageFields(verifier, requestId);
     }
 
     await expect(verifier.getProofStatus(signerAddress, nonExistingRequestId)).to.be.rejectedWith(
