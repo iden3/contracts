@@ -9,7 +9,7 @@ import {IState} from "../interfaces/IState.sol";
  * @dev ValidatorStub validator
  */
 contract ValidatorStub is ICircuitValidator, ERC165 {
-    string public constant VERSION = "2.0.1-mock";
+    string public constant VERSION = "2.0.2-mock";
 
     string internal constant CIRCUIT_ID = "mock-stub";
 
