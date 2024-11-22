@@ -150,7 +150,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
     const status = await verifier.getProofStatus(signerAddress, requestId);
     expect(status.isVerified).to.be.true;
-    expect(status.validatorVersion).to.be.equal("2.0.1-mock");
+    expect(status.validatorVersion).to.be.equal("2.0.2-mock");
     expect(status.blockNumber).to.be.equal(txRes.blockNumber);
     expect(status.blockTimestamp).to.be.equal(txResTimestamp);
 
