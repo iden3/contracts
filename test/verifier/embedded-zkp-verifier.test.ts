@@ -46,6 +46,14 @@ describe("Embedded ZKP Verifier", function () {
     sig = stub;
   }
 
+  async function checkStorageFields(verifier: any, requestId: number) {
+    const fieldsToCheck = ["userID", "issuerID"];
+    for (const field of fieldsToCheck) {
+      const value = await verifier.getProofStorageField(await owner.getAddress(), requestId, field);
+      expect(value).to.be.greaterThan(0n);
+    }
+  }
+
   beforeEach(async () => {
     await loadFixture(deployContractsFixture);
   });
@@ -61,6 +69,7 @@ describe("Embedded ZKP Verifier", function () {
 
     const tx = await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
     const txRes = await tx.wait();
+    await checkStorageFields(verifier, 0);
     const receipt = await ethers.provider.getTransactionReceipt(txRes.hash);
 
     // 2 events are emitted
@@ -100,7 +109,7 @@ describe("Embedded ZKP Verifier", function () {
     expect(isProofVerified).to.be.equal(true);
     const proofStatus = await verifier.getProofStatus(ownerAddress, requestID);
     expect(proofStatus.isVerified).to.be.equal(true);
-    expect(proofStatus.validatorVersion).to.be.equal("2.0.1-mock");
+    expect(proofStatus.validatorVersion).to.be.equal("2.0.2-mock");
     expect(proofStatus.blockNumber).to.be.equal(txRes.blockNumber);
     expect(proofStatus.blockTimestamp).to.be.equal(txResTimestamp);
   });
@@ -159,6 +168,7 @@ describe("Embedded ZKP Verifier", function () {
     );
 
     const txRes = await tx.wait();
+    await checkStorageFields(verifier, 0);
 
     const receipt = await ethers.provider.getTransactionReceipt(txRes.hash);
 
@@ -199,7 +209,7 @@ describe("Embedded ZKP Verifier", function () {
     expect(isProofVerified).to.be.equal(true);
     const proofStatus = await verifier.getProofStatus(ownerAddress, requestID);
     expect(proofStatus.isVerified).to.be.equal(true);
-    expect(proofStatus.validatorVersion).to.be.equal("2.0.1-mock");
+    expect(proofStatus.validatorVersion).to.be.equal("2.0.2-mock");
     expect(proofStatus.blockNumber).to.be.equal(txRes.blockNumber);
     expect(proofStatus.blockTimestamp).to.be.equal(txResTimestamp);
   });
