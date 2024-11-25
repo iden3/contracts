@@ -5,6 +5,7 @@ import { prepareInputs, publishState } from "../utils/state-utils";
 import { expect } from "chai";
 import testData from "./linked-proofs-data.json";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { TEN_YEARS } from "../../helpers/constants";
 
 describe("Universal Verifier Linked proofs", function () {
   let verifier: any, v3: any, state: any;
@@ -36,7 +37,7 @@ describe("Universal Verifier Linked proofs", function () {
     await verifier.connect();
 
     await publishState(state, testData.state as unknown as { [key: string]: string });
-    await v3.setProofExpirationTimeout(315360000);
+    await v3.setProofExpirationTimeout(TEN_YEARS);
     for (let i = 0; i < testData.queryData.zkpRequests.length; i++) {
       await verifier.setZKPRequest(100 + i, {
         metadata: "linkedProofN" + i,

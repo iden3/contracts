@@ -186,9 +186,10 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
     function _getSpecialSignals(
         PubSignals memory pubSignals
     ) internal pure returns (ICircuitValidator.Signal[] memory) {
-        ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](2);
+        ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](3);
         signals[0] = ICircuitValidator.Signal({name: "userID", value: pubSignals.userID});
         signals[1] = ICircuitValidator.Signal({name: "timestamp", value: pubSignals.timestamp});
+        signals[2] = ICircuitValidator.Signal({name: "issuerID", value: pubSignals.issuerID});
         return signals;
     }
 
@@ -198,7 +199,7 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         returns (ICircuitValidator.KeyToInputIndex[] memory)
     {
         ICircuitValidator.KeyToInputIndex[]
-            memory keyToInputIndexes = new ICircuitValidator.KeyToInputIndex[](2);
+            memory keyToInputIndexes = new ICircuitValidator.KeyToInputIndex[](3);
         keyToInputIndexes[0] = ICircuitValidator.KeyToInputIndex({
             key: "userID",
             inputIndex: inputIndexOf("userID")
@@ -206,6 +207,10 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         keyToInputIndexes[1] = ICircuitValidator.KeyToInputIndex({
             key: "timestamp",
             inputIndex: inputIndexOf("timestamp")
+        });
+        keyToInputIndexes[2] = ICircuitValidator.KeyToInputIndex({
+            key: "issuerID",
+            inputIndex: inputIndexOf("issuerID")
         });
         return keyToInputIndexes;
     }

@@ -141,7 +141,7 @@ export const contractsInfo = Object.freeze({
   },
   VALIDATOR_SIG: {
     name: "CredentialAtomicQuerySigV2Validator",
-    version: "2.1.0",
+    version: "2.1.1",
     unifiedAddress: "0x59B347f0D3dd4B98cc2E056Ee6C53ABF14F8581b",
     create2Calldata: ethers.hexlify(
       ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQuerySigV2Validator"),
@@ -159,7 +159,7 @@ export const contractsInfo = Object.freeze({
   },
   VALIDATOR_MTP: {
     name: "CredentialAtomicQueryMTPV2Validator",
-    version: "2.1.0",
+    version: "2.1.1",
     unifiedAddress: "0x27bDFFCeC5478a648f89764E22fE415486A42Ede",
     create2Calldata: ethers.hexlify(
       ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryMTPV2Validator"),
@@ -177,7 +177,7 @@ export const contractsInfo = Object.freeze({
   },
   VALIDATOR_V3: {
     name: "CredentialAtomicQueryV3Validator",
-    version: "2.1.0-beta.1",
+    version: "2.1.1-beta.1",
     unifiedAddress: "0xd179f29d00Cd0E8978eb6eB847CaCF9E2A956336",
     create2Calldata: ethers.hexlify(
       ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3Validator"),
@@ -371,3 +371,5 @@ export const contractsInfo = Object.freeze({
     create2Calldata: "",
   },
 });
+
+export const TEN_YEARS = 315360000;

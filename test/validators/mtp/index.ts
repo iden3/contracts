@@ -5,14 +5,27 @@ import { packValidatorParams } from "../../utils/validator-pack-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
+import { TEN_YEARS } from "../../../helpers/constants";
+import { packZKProof } from "../../utils/packData";
 
-const tenYears = 315360000;
+const tenYears = TEN_YEARS;
 const testCases: any[] = [
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain",
     stateTransitions: [require("../common-data/issuer_genesis_state.json")],
     proofJson: require("./data/valid_mtp_user_genesis.json"),
     setProofExpiration: tenYears,
+    signalValues: [
+      {
+        name: "userID",
+        value: 23148936466334350744548790012294489365207440754509988986684797708370051073n,
+      },
+      { name: "timestamp", value: 1642074362n },
+      {
+        name: "issuerID",
+        value: 21933750065545691586450392143787330185992517860945727248803138245838110721n,
+      },
+    ],
   },
   {
     name: "Validation of proof failed",
@@ -29,6 +42,17 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_mtp_user_non_genesis.json"),
     setProofExpiration: tenYears,
+    signalValues: [
+      {
+        name: "userID",
+        value: 23148936466334350744548790012294489365207440754509988986684797708370051073n,
+      },
+      { name: "timestamp", value: 1642074362n },
+      {
+        name: "issuerID",
+        value: 21933750065545691586450392143787330185992517860945727248803138245838110721n,
+      },
+    ],
   },
   {
     name: "The non-revocation issuer state is not expired",
@@ -39,6 +63,17 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_mtp_user_non_genesis.json"),
     setProofExpiration: tenYears,
+    signalValues: [
+      {
+        name: "userID",
+        value: 23148936466334350744548790012294489365207440754509988986684797708370051073n,
+      },
+      { name: "timestamp", value: 1642074362n },
+      {
+        name: "issuerID",
+        value: 21933750065545691586450392143787330185992517860945727248803138245838110721n,
+      },
+    ],
   },
   {
     name: "The non-revocation issuer state is expired",
@@ -114,6 +149,15 @@ describe("Atomic MTP Validator", function () {
     };
   }
 
+  function checkSignals(signals: any, signalValues: any[]) {
+    expect(signals.length).to.be.equal(3);
+
+    for (let i = 0; i < signals.length; i++) {
+      const signalValue = signalValues.find((signalValue) => signalValue.name === signals[i][0]);
+      expect(signalValue.value).to.be.equal(signals[i][1]);
+    }
+  }
+
   beforeEach(async () => {
     ({
       stateContract: state,
@@ -158,37 +202,44 @@ describe("Atomic MTP Validator", function () {
       if (test.setGISTRootExpiration) {
         await mtpValidator.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
       }
+
+      const data = packValidatorParams(query, test.allowedIssuers);
+
+      // Check verify function
       if (test.errorMessage) {
         await expect(
-          mtpValidator.verify(
-            inputs,
-            pi_a,
-            pi_b,
-            pi_c,
-            packValidatorParams(query, test.allowedIssuers),
-            senderAddress,
-          ),
+          mtpValidator.verify(inputs, pi_a, pi_b, pi_c, data, senderAddress),
         ).to.be.rejectedWith(test.errorMessage);
       } else if (test.errorMessage === "") {
-        await expect(
-          mtpValidator.verify(
-            inputs,
-            pi_a,
-            pi_b,
-            pi_c,
-            packValidatorParams(query, test.allowedIssuers),
-            senderAddress,
-          ),
-        ).to.be.reverted;
+        await expect(mtpValidator.verify(inputs, pi_a, pi_b, pi_c, data, senderAddress)).to.be
+          .reverted;
       } else {
-        await mtpValidator.verify(
-          inputs,
-          pi_a,
-          pi_b,
-          pi_c,
-          packValidatorParams(query, test.allowedIssuers),
+        const signals = await mtpValidator.verify(inputs, pi_a, pi_b, pi_c, data, senderAddress);
+        const signalValues: any[] = [];
+        // Replace index with value to check instead of signal index
+        for (let i = 0; i < signals.length; i++) {
+          signalValues.push([signals[i][0], inputs[signals[i][1]]]);
+        }
+        checkSignals(signalValues, test.signalValues);
+      }
+
+      // Check verifyV2 function
+      const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
+      if (test.errorMessage) {
+        await expect(
+          mtpValidator.verifyV2(zkProof, data, senderAddress, await state.getAddress()),
+        ).to.be.rejectedWith(test.errorMessage);
+      } else if (test.errorMessage === "") {
+        await expect(mtpValidator.verifyV2(zkProof, data, senderAddress, await state.getAddress()))
+          .to.be.reverted;
+      } else {
+        const signals = await mtpValidator.verifyV2(
+          zkProof,
+          data,
           senderAddress,
+          await state.getAddress(),
         );
+        checkSignals(signals, test.signalValues);
       }
     });
   }
