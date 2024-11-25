@@ -115,17 +115,16 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
         data: data,
       });
     }
+  }
 
+  beforeEach(async () => {
+    await loadFixture(deployContractsFixture);
     crossChainProofs = packCrossChainProofs(
       await buildCrossChainProofs(
         [globalStateMessage, identityStateMessage1, identityStateUpdate2],
         signer,
       ),
     );
-  }
-
-  beforeEach(async () => {
-    await loadFixture(deployContractsFixture);
   });
 
   it("Test submit response V2", async () => {
