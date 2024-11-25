@@ -16,11 +16,14 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
 
     /// @custom:storage-location erc7201:iden3.storage.ZKPVerifier
     struct ZKPVerifierStorage {
-        mapping(address user => mapping(uint64 requestId => VerifierLib.Proof)) _proofs;
+        mapping(uint256 userID => mapping(uint64 requestId => VerifierLib.Proof)) _proofs;
         mapping(uint64 requestId => IZKPVerifier.ZKPRequest) _requests;
         uint64[] _requestIds;
         IState _state;
     }
+
+    mapping(address userAddress => uint256 userID) _user_to_id;
+    mapping(uint256 userID => address userAddress) _id_to_user;
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.ZKPVerifier")) - 1)) & ~bytes32(uint256(0xff));
     bytes32 internal constant ZKPVerifierStorageLocation =

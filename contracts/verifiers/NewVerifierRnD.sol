@@ -89,4 +89,4 @@ contract NewVerifierRnD {
 }
 
 
-// TODO check if signal is not too specific
+// TODO check if signal is not too specific name
