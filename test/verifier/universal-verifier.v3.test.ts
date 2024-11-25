@@ -14,6 +14,23 @@ import stateTransition13 from "../validators/common-data/issuer_from_first_state
 import { packZKProof } from "../utils/packData";
 import { TEN_YEARS } from "../../helpers/constants";
 
+const storageFields = [
+  {
+    name: "issuerID",
+    value: 22057981499787921734624217749308316644136637822444794206796063681866502657n,
+  },
+  {
+    name: "userID",
+    value: 23013175891893363078841232968022302880776034013620341061794940968520126978n,
+  },
+  { name: "timestamp", value: 1642074362n },
+  {
+    name: "linkID",
+    value: 19823993270096139446564592922993947503208333537792611306066620392561342309875n,
+  },
+  { name: "nullifier", value: 0 },
+];
+
 describe("Universal Verifier V3 validator", function () {
   let verifier: any, v3Validator: any, state: any;
   let signer, signer2;
@@ -84,24 +101,14 @@ describe("Universal Verifier V3 validator", function () {
     return { ethSigner, ethSigner2, stateContract, universalVerifier, validator };
   }
 
-  async function checkStorageFields(verifier: any, requestId: number) {
-    const nonZeroFields = ["issuerID", "userID", "timestamp", "linkID"];
-    const zeroFields = ["nullifier"];
-    for (const field of nonZeroFields) {
+  async function checkStorageFields(verifier: any, requestId: number, storageFields: any[]) {
+    for (const field of storageFields) {
       const value = await verifier.getProofStorageField(
         await signer.getAddress(),
         requestId,
-        field,
+        field.name,
       );
-      expect(value).to.be.greaterThan(0n);
-    }
-    for (const field of zeroFields) {
-      const value = await verifier.getProofStorageField(
-        await signer.getAddress(),
-        requestId,
-        field,
-      );
-      expect(value).to.be.equal(0n);
+      expect(value).to.be.equal(field.value);
     }
   }
 
@@ -140,7 +147,8 @@ describe("Universal Verifier V3 validator", function () {
 
     await expect(verifier.submitZKPResponse(requestId, inputs, pi_a, pi_b, pi_c)).not.to.be
       .rejected;
-    await checkStorageFields(verifier, requestId);
+
+    await checkStorageFields(verifier, requestId, storageFields);
   });
 
   it("Test submit response V2", async () => {
@@ -166,7 +174,8 @@ describe("Universal Verifier V3 validator", function () {
         crossChainProofs,
       ),
     ).not.to.be.rejected;
-    await checkStorageFields(verifier, requestId);
+
+    await checkStorageFields(verifier, requestId, storageFields);
   });
 
   it("Test submit response fails with UserID does not correspond to the sender", async () => {

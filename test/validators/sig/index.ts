@@ -15,6 +15,17 @@ const testCases: any[] = [
     stateTransitions: [require("../common-data/issuer_genesis_state.json")],
     proofJson: require("./data/valid_sig_user_genesis.json"),
     setProofExpiration: tenYears,
+    signalValues: [
+      {
+        name: "userID",
+        value: 23148936466334350744548790012294489365207440754509988986684797708370051073n,
+      },
+      { name: "timestamp", value: 1642074362n },
+      {
+        name: "issuerID",
+        value: 21933750065545691586450392143787330185992517860945727248803138245838110721n,
+      },
+    ],
   },
   {
     name: "Validation of proof failed",
@@ -31,6 +42,17 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_sig_user_non_genesis.json"),
     setProofExpiration: tenYears,
+    signalValues: [
+      {
+        name: "userID",
+        value: 23148936466334350744548790012294489365207440754509988986684797708370051073n,
+      },
+      { name: "timestamp", value: 1642074362n },
+      {
+        name: "issuerID",
+        value: 21933750065545691586450392143787330185992517860945727248803138245838110721n,
+      },
+    ],
   },
   {
     name: "The non-revocation issuer state is not expired",
@@ -41,6 +63,17 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_sig_user_non_genesis.json"),
     setProofExpiration: tenYears,
+    signalValues: [
+      {
+        name: "userID",
+        value: 23148936466334350744548790012294489365207440754509988986684797708370051073n,
+      },
+      { name: "timestamp", value: 1642074362n },
+      {
+        name: "issuerID",
+        value: 21933750065545691586450392143787330185992517860945727248803138245838110721n,
+      },
+    ],
   },
   {
     name: "The non-revocation issuer state is expired",
@@ -112,30 +145,13 @@ describe("Atomic Sig Validator", function () {
     };
   }
 
-  function checkSignals(signals: any) {
+  function checkSignals(signals: any, signalValues: any[]) {
     expect(signals.length).to.be.equal(3);
 
-    let isUserIDSignal = false;
-    let isTimestampSignal = false;
-    let isIssuerIDSignal = false;
-
     for (let i = 0; i < signals.length; i++) {
-      switch (signals[i][0]) {
-        case "userID":
-          isUserIDSignal = true;
-          break;
-        case "timestamp":
-          isTimestampSignal = true;
-          break;
-        case "issuerID":
-          isIssuerIDSignal = true;
-          break;
-      }
+      const signalValue = signalValues.find((signalValue) => signalValue.name === signals[i][0]);
+      expect(signalValue.value).to.be.equal(signals[i][1]);
     }
-
-    expect(isUserIDSignal).to.be.true;
-    expect(isTimestampSignal).to.be.true;
-    expect(isIssuerIDSignal).to.be.true;
   }
 
   beforeEach(async () => {
@@ -195,7 +211,12 @@ describe("Atomic Sig Validator", function () {
           .reverted;
       } else {
         const signals = await sigValidator.verify(inputs, pi_a, pi_b, pi_c, data, senderAddress);
-        checkSignals(signals);
+        const signalValues: any[] = [];
+        // Replace index with value to check instead of signal index
+        for (let i = 0; i < signals.length; i++) {
+          signalValues.push([signals[i][0], inputs[signals[i][1]]]);
+        }
+        checkSignals(signalValues, test.signalValues);
       }
 
       // Check verifyV2 function
@@ -214,7 +235,7 @@ describe("Atomic Sig Validator", function () {
           senderAddress,
           await state.getAddress(),
         );
-        checkSignals(signals);
+        checkSignals(signals, test.signalValues);
       }
     });
   }

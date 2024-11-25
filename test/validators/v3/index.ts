@@ -19,6 +19,25 @@ const testCases: any[] = [
     proofJson: require("./data/valid_bjj_user_genesis_v3.json"),
     setProofExpiration: tenYears,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    signalValues: [
+      {
+        name: "userID",
+        value: 23273167900576580892722615617815475823351560716009055944677723144398443009n,
+      },
+      {
+        name: "linkID",
+        value: 21264956840473518295367401759082248638554058714792654964349049745455799782226n,
+      },
+      {
+        name: "nullifier",
+        value: 21540438192236855564075143333896114176485819065040531615519987653057866936972n,
+      },
+      { name: "timestamp", value: 1642074362n },
+      {
+        name: "issuerID",
+        value: 22057981499787921734624217749308316644136637822444794206796063681866502657n,
+      },
+    ],
   },
   {
     name: "Validation of Sig proof failed",
@@ -40,6 +59,25 @@ const testCases: any[] = [
     proofJson: require("./data/valid_bjj_user_first_v3.json"),
     setProofExpiration: tenYears,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    signalValues: [
+      {
+        name: "userID",
+        value: 23273167900576580892722615617815475823351560716009055944677723144398443009n,
+      },
+      {
+        name: "linkID",
+        value: 21264956840473518295367401759082248638554058714792654964349049745455799782226n,
+      },
+      {
+        name: "nullifier",
+        value: 21540438192236855564075143333896114176485819065040531615519987653057866936972n,
+      },
+      { name: "timestamp", value: 1642074362n },
+      {
+        name: "issuerID",
+        value: 22057981499787921734624217749308316644136637822444794206796063681866502657n,
+      },
+    ],
   },
   {
     name: "The non-revocation issuer state is latest",
@@ -51,6 +89,25 @@ const testCases: any[] = [
     proofJson: require("./data/valid_bjj_user_first_issuer_second_v3"),
     setProofExpiration: tenYears,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    signalValues: [
+      {
+        name: "userID",
+        value: 23273167900576580892722615617815475823351560716009055944677723144398443009n,
+      },
+      {
+        name: "linkID",
+        value: 21264956840473518295367401759082248638554058714792654964349049745455799782226n,
+      },
+      {
+        name: "nullifier",
+        value: 21540438192236855564075143333896114176485819065040531615519987653057866936972n,
+      },
+      { name: "timestamp", value: 1642074362n },
+      {
+        name: "issuerID",
+        value: 22057981499787921734624217749308316644136637822444794206796063681866502657n,
+      },
+    ],
   },
   {
     name: "The non-revocation issuer state is expired",
@@ -114,6 +171,25 @@ const testCases: any[] = [
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    signalValues: [
+      {
+        name: "userID",
+        value: 23013175891893363078841232968022302880776034013620341061794940968520126978n,
+      },
+      {
+        name: "linkID",
+        value: 19823993270096139446564592922993947503208333537792611306066620392561342309875n,
+      },
+      {
+        name: "nullifier",
+        value: 0n,
+      },
+      { name: "timestamp", value: 1642074362n },
+      {
+        name: "issuerID",
+        value: 22057981499787921734624217749308316644136637822444794206796063681866502657n,
+      },
+    ],
   },
   // MTP Proofs
   {
@@ -125,6 +201,25 @@ const testCases: any[] = [
     setProofExpiration: tenYears,
     isMtpProof: true,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    signalValues: [
+      {
+        name: "userID",
+        value: 23273167900576580892722615617815475823351560716009055944677723144398443009n,
+      },
+      {
+        name: "linkID",
+        value: 21264956840473518295367401759082248638554058714792654964349049745455799782226n,
+      },
+      {
+        name: "nullifier",
+        value: 21540438192236855564075143333896114176485819065040531615519987653057866936972n,
+      },
+      { name: "timestamp", value: 1642074362n },
+      {
+        name: "issuerID",
+        value: 22057981499787921734624217749308316644136637822444794206796063681866502657n,
+      },
+    ],
   },
   {
     name: "Validation of MTP proof failed",
@@ -147,6 +242,25 @@ const testCases: any[] = [
     setProofExpiration: tenYears,
     isMtpProof: true,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    signalValues: [
+      {
+        name: "userID",
+        value: 23273167900576580892722615617815475823351560716009055944677723144398443009n,
+      },
+      {
+        name: "linkID",
+        value: 21264956840473518295367401759082248638554058714792654964349049745455799782226n,
+      },
+      {
+        name: "nullifier",
+        value: 21540438192236855564075143333896114176485819065040531615519987653057866936972n,
+      },
+      { name: "timestamp", value: 1642074362n },
+      {
+        name: "issuerID",
+        value: 22057981499787921734624217749308316644136637822444794206796063681866502657n,
+      },
+    ],
   },
   {
     name: "The non-revocation issuer state is not expired. MTP Proof.",
@@ -159,6 +273,25 @@ const testCases: any[] = [
     setProofExpiration: tenYears,
     isMtpProof: true,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    signalValues: [
+      {
+        name: "userID",
+        value: 23273167900576580892722615617815475823351560716009055944677723144398443009n,
+      },
+      {
+        name: "linkID",
+        value: 21264956840473518295367401759082248638554058714792654964349049745455799782226n,
+      },
+      {
+        name: "nullifier",
+        value: 21540438192236855564075143333896114176485819065040531615519987653057866936972n,
+      },
+      { name: "timestamp", value: 1642074362n },
+      {
+        name: "issuerID",
+        value: 22057981499787921734624217749308316644136637822444794206796063681866502657n,
+      },
+    ],
   },
   {
     name: "The non-revocation issuer state is expired. MTP Proof.",
@@ -226,6 +359,25 @@ const testCases: any[] = [
     ethereumBasedUser: true,
     isMtpProof: true,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    signalValues: [
+      {
+        name: "userID",
+        value: 23013175891893363078841232968022302880776034013620341061794940968520126978n,
+      },
+      {
+        name: "linkID",
+        value: 19823993270096139446564592922993947503208333537792611306066620392561342309875n,
+      },
+      {
+        name: "nullifier",
+        value: 0n,
+      },
+      { name: "timestamp", value: 1642074362n },
+      {
+        name: "issuerID",
+        value: 22057981499787921734624217749308316644136637822444794206796063681866502657n,
+      },
+    ],
   },
   // Auth Disabled. UserID does NOT correspond to the sender
   {
@@ -260,6 +412,25 @@ const testCases: any[] = [
     proofJson: require("./data/valid_bjj_user_first_issuer_genesis_v3.json"),
     setProofExpiration: tenYears,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    signalValues: [
+      {
+        name: "userID",
+        value: 23273167900576580892722615617815475823351560716009055944677723144398443009n,
+      },
+      {
+        name: "linkID",
+        value: 21264956840473518295367401759082248638554058714792654964349049745455799782226n,
+      },
+      {
+        name: "nullifier",
+        value: 21540438192236855564075143333896114176485819065040531615519987653057866936972n,
+      },
+      { name: "timestamp", value: 1642074362n },
+      {
+        name: "issuerID",
+        value: 22057981499787921734624217749308316644136637822444794206796063681866502657n,
+      },
+    ],
   },
   // Wrong challenge
   {
@@ -346,40 +517,13 @@ describe("Atomic V3 Validator", function () {
     };
   }
 
-  function checkSignals(signals: any) {
+  function checkSignals(signals: any, signalValues: any[]) {
     expect(signals.length).to.be.equal(5);
 
-    let isUserIDSignal = false;
-    let isLinkIDSignal = false;
-    let isNullifierSignal = false;
-    let isTimestampSignal = false;
-    let isIssuerIDSignal = false;
-
     for (let i = 0; i < signals.length; i++) {
-      switch (signals[i][0]) {
-        case "userID":
-          isUserIDSignal = true;
-          break;
-        case "linkID":
-          isLinkIDSignal = true;
-          break;
-        case "nullifier":
-          isNullifierSignal = true;
-          break;
-        case "timestamp":
-          isTimestampSignal = true;
-          break;
-        case "issuerID":
-          isIssuerIDSignal = true;
-          break;
-      }
+      const signalValue = signalValues.find((signalValue) => signalValue.name === signals[i][0]);
+      expect(signalValue.value).to.be.equal(signals[i][1]);
     }
-
-    expect(isUserIDSignal).to.be.true;
-    expect(isLinkIDSignal).to.be.true;
-    expect(isNullifierSignal).to.be.true;
-    expect(isTimestampSignal).to.be.true;
-    expect(isIssuerIDSignal).to.be.true;
   }
 
   beforeEach(async () => {
@@ -460,8 +604,14 @@ describe("Atomic V3 Validator", function () {
       } else {
         const signals = await v3validator.verify(inputs, pi_a, pi_b, pi_c, data, test.sender);
 
+        const signalValues: any[] = [];
+        // Replace index with value to check instead of signal index
+        for (let i = 0; i < signals.length; i++) {
+          signalValues.push([signals[i][0], inputs[signals[i][1]]]);
+        }
+
         // Check if the number signals are correct. "operatorOutput" for selective disclosure is optional
-        checkSignals(signals);
+        checkSignals(signalValues, test.signalValues);
       }
 
       // Check verifyV2 function
@@ -481,7 +631,7 @@ describe("Atomic V3 Validator", function () {
           await state.getAddress(),
         );
 
-        checkSignals(signals);
+        checkSignals(signals, test.signalValues);
       }
     });
   }
