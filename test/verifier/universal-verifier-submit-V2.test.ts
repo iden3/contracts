@@ -140,6 +140,84 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     );
   });
 
+  it("Test submit response V2 with disable/enable functionality", async () => {
+    const requestId = 0;
+    const data = packValidatorParams(query);
+
+    await verifier.setZKPRequest(0, {
+      metadata: "metadata",
+      validator: await sig.getAddress(),
+      data: data,
+    });
+
+    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+
+    const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
+
+    const crossChainProofs = packCrossChainProofs(
+      await buildCrossChainProofs(
+        [globalStateMessage, identityStateMessage1, identityStateUpdate2],
+        signer,
+      ),
+    );
+
+    const metadatas = "0x";
+
+    await verifier.disableZKPRequest(requestId);
+
+    await expect(
+      verifier.submitZKPResponseV2(
+        [
+          {
+            requestId,
+            zkProof: zkProof,
+            data: metadatas,
+          },
+        ],
+        crossChainProofs,
+      ),
+    ).to.be.rejectedWith("Request is disabled");
+  });
+
+  it("Test submit response V2 check whitelisted functionality", async () => {
+    const requestId = 0;
+    const data = packValidatorParams(query);
+
+    await verifier.setZKPRequest(0, {
+      metadata: "metadata",
+      validator: await sig.getAddress(),
+      data: data,
+    });
+
+    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+
+    const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
+
+    const crossChainProofs = packCrossChainProofs(
+      await buildCrossChainProofs(
+        [globalStateMessage, identityStateMessage1, identityStateUpdate2],
+        signer,
+      ),
+    );
+
+    const metadatas = "0x";
+
+    await verifier.removeValidatorFromWhitelist(await sig.getAddress());
+
+    await expect(
+      verifier.submitZKPResponseV2(
+        [
+          {
+            requestId,
+            zkProof: zkProof,
+            data: metadatas,
+          },
+        ],
+        crossChainProofs,
+      ),
+    ).to.be.rejectedWith("Validator is not whitelisted");
+  });
+
   it("Test submit response V2 multi-request", async () => {
     const requestIds = [0, 1, 2];
     const nonExistingRequestId = 3;
@@ -198,5 +276,83 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     await expect(verifier.getProofStatus(signerAddress, nonExistingRequestId)).to.be.rejectedWith(
       "request id doesn't exist",
     );
+  });
+
+  it("Test submit response V2 multi-request with disable/enable functionality", async () => {
+    const requestIds = [0, 1, 2];
+    const data = packValidatorParams(query);
+
+    for (const requestId of requestIds) {
+      await verifier.setZKPRequest(requestId, {
+        metadata: "metadata",
+        validator: await sig.getAddress(),
+        data: data,
+      });
+    }
+
+    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+
+    const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
+
+    const crossChainProofs = packCrossChainProofs(
+      await buildCrossChainProofs(
+        [globalStateMessage, identityStateMessage1, identityStateUpdate2],
+        signer,
+      ),
+    );
+
+    const metadatas = "0x";
+
+    await verifier.disableZKPRequest(1);
+
+    await expect(
+      verifier.submitZKPResponseV2(
+        requestIds.map((requestId) => ({
+          requestId,
+          zkProof: zkProof,
+          data: metadatas,
+        })),
+        crossChainProofs,
+      ),
+    ).to.be.rejectedWith("Request is disabled");
+  });
+
+  it("Test submit response V2 multi-request check whitelisted functionality", async () => {
+    const requestIds = [0, 1, 2];
+    const data = packValidatorParams(query);
+
+    for (const requestId of requestIds) {
+      await verifier.setZKPRequest(requestId, {
+        metadata: "metadata",
+        validator: await sig.getAddress(),
+        data: data,
+      });
+    }
+
+    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+
+    const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
+
+    const crossChainProofs = packCrossChainProofs(
+      await buildCrossChainProofs(
+        [globalStateMessage, identityStateMessage1, identityStateUpdate2],
+        signer,
+      ),
+    );
+
+    const metadatas = "0x";
+
+    await verifier.removeValidatorFromWhitelist(await sig.getAddress());
+
+    await expect(
+      verifier.submitZKPResponseV2(
+        requestIds.map((requestId) => ({
+          requestId,
+          zkProof: zkProof,
+          data: metadatas,
+        })),
+        crossChainProofs,
+      ),
+    ).to.be.rejectedWith("Validator is not whitelisted");
   });
 });
