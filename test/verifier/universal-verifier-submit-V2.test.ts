@@ -9,7 +9,7 @@ import { buildCrossChainProofs, packCrossChainProofs, packZKProof } from "../uti
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
-describe("Universal Verifier V2 MTP & SIG validators", function () {
+describe("Universal Verifier submitZKPResponseV2 SigV2 validators", function () {
   let verifier: any, sig: any;
   let signer;
   let signerAddress: string;
@@ -117,15 +117,25 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     }
   }
 
-  async function checkStorageFields(verifier: any, requestId: number) {
-    const fieldsToCheck = ["userID", "issuerID"];
-    for (const field of fieldsToCheck) {
+  const storageFields = [
+    {
+      name: "userID",
+      value: 1n,
+    },
+    {
+      name: "issuerID",
+      value: 2n,
+    },
+  ];
+
+  async function checkStorageFields(verifier: any, requestId: number, storageFields: any[]) {
+    for (const field of storageFields) {
       const value = await verifier.getProofStorageField(
         await signer.getAddress(),
         requestId,
-        field,
+        field.name,
       );
-      expect(value).to.be.greaterThan(0n);
+      expect(value).to.be.equal(field.value);
     }
   }
 
@@ -144,7 +154,7 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     const tx = await verifier.submitZKPResponseV2(singleProof, crossChainProofs);
 
     const txRes = await tx.wait();
-    await checkStorageFields(verifier, requestId);
+    await checkStorageFields(verifier, requestId, storageFields);
     const filter = verifier.filters.ZKPResponseSubmitted;
 
     const events = await verifier.queryFilter(filter, -1);
@@ -186,7 +196,7 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
       expect(status.validatorVersion).to.be.equal("2.0.2-mock");
       expect(status.blockNumber).to.be.equal(txResMulti.blockNumber);
       expect(status.blockTimestamp).to.be.equal(txResTimestampMuti);
-      await checkStorageFields(verifier, requestId);
+      await checkStorageFields(verifier, requestId, storageFields);
     }
   });
 

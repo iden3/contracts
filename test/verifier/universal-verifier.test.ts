@@ -9,7 +9,7 @@ import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 describe("Universal Verifier MTP & SIG validators", function () {
-  let verifier: any, sigValidator: any, state: any;
+  let verifier: any, validator: any, state: any;
   let signer, signer2, signer3;
   let signerAddress: string;
   let deployHelper: DeployHelper;
@@ -36,30 +36,27 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0112"]);
     const verifierLib = await deployHelper.deployVerifierLib();
 
-    const universalVerifier: any = await deployHelper.deployUniversalVerifier(
+    const verifier: any = await deployHelper.deployUniversalVerifier(
       ethSigner,
       await stateContract.getAddress(),
       await verifierLib.getAddress(),
     );
 
-    const stub = await deployHelper.deployValidatorStub();
+    const validator = await deployHelper.deployValidatorStub();
+    await verifier.addValidatorToWhitelist(await validator.getAddress());
+    await verifier.connect();
 
-    const validator = stub;
-    await universalVerifier.addValidatorToWhitelist(await validator.getAddress());
-    await universalVerifier.connect();
-
-    return { ethSigner, ethSigner2, ethSigner3, stateContract, universalVerifier, validator };
+    return { ethSigner, ethSigner2, ethSigner3, stateContract, verifier, validator };
   }
 
-  async function checkStorageFields(verifier: any, requestId: number) {
-    const fieldsToCheck = ["userID", "issuerID"];
-    for (const field of fieldsToCheck) {
+  async function checkStorageFields(verifier: any, requestId: number, storageFields: any[]) {
+    for (const field of storageFields) {
       const value = await verifier.getProofStorageField(
         await signer.getAddress(),
         requestId,
-        field,
+        field.name,
       );
-      expect(value).to.be.greaterThan(0n);
+      expect(value).to.be.equal(field.value);
     }
   }
 
@@ -69,8 +66,8 @@ describe("Universal Verifier MTP & SIG validators", function () {
       ethSigner2: signer2,
       ethSigner3: signer3,
       stateContract: state,
-      universalVerifier: verifier,
-      validator: sigValidator,
+      verifier,
+      validator,
     } = await loadFixture(deployContractsFixture));
     signerAddress = await signer.getAddress();
   });
@@ -82,7 +79,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
   it("Test add, get ZKPRequest, requestIdExists, getZKPRequestsCount", async () => {
     const requestsCount = 3;
-    const validatorAddr = await sigValidator.getAddress();
+    const validatorAddr = await validator.getAddress();
 
     for (let i = 0; i < requestsCount; i++) {
       await expect(
@@ -118,14 +115,24 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
     await verifier.setZKPRequest(0, {
       metadata: "metadata",
-      validator: await sigValidator.getAddress(),
+      validator: await validator.getAddress(),
       data: data,
     });
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
     const tx = await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
     const txRes = await tx.wait();
-    await checkStorageFields(verifier, requestId);
+    const storageFields = [
+      {
+        name: "userID",
+        value: inputs[1],
+      },
+      {
+        name: "issuerID",
+        value: inputs[2],
+      },
+    ];
+    await checkStorageFields(verifier, requestId, storageFields);
     const filter = verifier.filters.ZKPResponseSubmitted;
 
     const events = await verifier.queryFilter(filter, -1);
@@ -173,7 +180,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     );
     await verifier.connect(requestOwner).setZKPRequest(requestId, {
       metadata: "metadata",
-      validator: await sigValidator.getAddress(),
+      validator: await validator.getAddress(),
       data: packValidatorParams(query),
     });
 
@@ -212,7 +219,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
     await verifier.connect(requestOwner).setZKPRequest(requestId, {
       metadata: "metadata",
-      validator: await sigValidator.getAddress(),
+      validator: await validator.getAddress(),
       data: packValidatorParams(query),
     });
     expect(await verifier.isZKPRequestEnabled(requestId)).to.be.true;
@@ -331,7 +338,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
     await verifier.connect(requestOwner).setZKPRequest(requestId, {
       metadata: "metadata",
-      validator: await sigValidator.getAddress(),
+      validator: await validator.getAddress(),
       data: data,
     });
 
@@ -341,14 +348,14 @@ describe("Universal Verifier MTP & SIG validators", function () {
     await expect(
       verifier.connect(requestOwner).updateZKPRequest(requestId, {
         metadata: "metadata",
-        validator: await sigValidator.getAddress(),
+        validator: await validator.getAddress(),
         data: data,
       }),
     ).to.be.revertedWithCustomError(verifier, "OwnableUnauthorizedAccount");
 
     await verifier.connect(owner).updateZKPRequest(requestId, {
       metadata: "metadata2",
-      validator: await sigValidator.getAddress(),
+      validator: await validator.getAddress(),
       data: data,
     });
 
@@ -364,7 +371,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     await expect(
       verifier.connect(owner).updateZKPRequest(requestId, {
         metadata: "metadata",
-        validator: await sigValidator.getAddress(),
+        validator: await validator.getAddress(),
         data: data,
       }),
     ).to.be.rejectedWith("equest id doesn't exis");
