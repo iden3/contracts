@@ -21,7 +21,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     struct Request {
         string metadata;
         IRequestValidator validator;
-        bytes data;
+        bytes params;
     }
 
     /**
@@ -33,8 +33,36 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     struct MultiQuery {
         uint256 multiQueryId;
         uint256[] requestIds;
-        string[] linkedOutputParamsNames; // is Output params names linked between requests
+        string[] linkedResponseFields; // is Output params names linked between requests
     }
+
+    //TODO ___start___
+
+//    [1, 2]
+//    ["linkID","linkID"]
+//
+//    [1, 3, 4]
+//    ["issuerID","issuerID","issuerID"]
+//
+//    struct SignalRequestTuple {
+//        uint256 requestId;
+//        string signalName;
+//    }
+//
+//    function setMultiRequest(
+//        uint256 multiRequestID, //   "id": "f8aee09d-f592-4fcc-8d2a-8938aa26676c",
+//        string conditionString, // (1 || 2) && 3 && (100 || 101 || 102) // TODO consider replacing with structure
+//        SignalRequestTuple[][] memory linkedSignals // is Signal name too specific and should be replaced by Property or something
+//    //  [
+//    //      [{userID, 1}, {userID, 2}, {userID, 3}, {identity, 100}, {id, 101}, {user, 102}],
+//    //      [{linkID, 1}, {linkID, 2}, {linkID, 3}]
+//    //  ]
+//    // is this logic flexible enough? Though it might not be a problem for the first version
+//    // Maybe, operatorOutput = "something" is what we need as well???
+//    ) public {}
+
+    //TODO ___end___
+
 
     /// @custom:storage-location erc7201:iden3.storage.UniversalVerifierMultiQuery
     struct UniversalVerifierMultiQueryStorage {
