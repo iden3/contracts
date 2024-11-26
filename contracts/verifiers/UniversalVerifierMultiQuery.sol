@@ -86,6 +86,10 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         // Information linked between users and their addresses
         mapping(address userAddress => uint256 userID) _user_address_to_id;
         mapping(uint256 userID => address userAddress) _id_to_user_address; // check address[] to allow multiple addresses for the same userID?
+    
+        // Information about auth validators
+        mapping(uint256 authID => address authValidator) _auth_validators;
+        uint256[] _authIds;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.UniversalVerifierMultiQuery")) - 1)) & ~bytes32(uint256(0xff));
@@ -281,5 +285,25 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         proof.validatorVersion = $._requests[requestId].validator.version();
         proof.blockNumber = block.number;
         proof.blockTimestamp = block.timestamp;
+    }
+
+    /**
+     * @dev Adds an auth validator
+     * @param authID The Id of the auth validator
+     * @param authValidator The auth validator address
+     */
+    function addAuthValidator(uint256 authID, address authValidator) public onlyOwner {
+        UniversalVerifierMultiQueryStorage storage $ = _getUniversalVerifierMultiQueryStorage();
+        $._auth_validators[authID] = authValidator;
+        $._authIds.push(authID);
+    }
+
+    /**
+     * @dev Gets an auth validator
+     * @param authID The Id of the auth validator
+     * @return The auth validator address
+     */
+    function getAuthValidator(uint256 authID) public view returns (address) {
+        return _getUniversalVerifierMultiQueryStorage()._auth_validators[authID];
     }
 }
