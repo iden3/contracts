@@ -8,11 +8,11 @@ import {IState} from "./IState.sol";
  */
 interface IRequestValidator {
     /**
-     * @dev OutputParam. Information about output params from verification. Used in verify function.
-     * @param name Name of the output param
-     * @param value Value of the output param
+     * @dev ResponseField. Information about response fields from verification. Used in verify function.
+     * @param name Name of the response field
+     * @param value Value of the response field
      */
-    struct OutputParam {
+    struct ResponseField {
         string name;
         uint256 value;
     }
@@ -29,12 +29,12 @@ interface IRequestValidator {
      * @param data Request query data of the credential to verify.
      * @param sender Sender of the proof.
      * @param state State contract to get identities and gist states to check.
-     * @return Array of output params as result.
+     * @return Array of response fields as result.
      */
     function verify(
         bytes calldata proof,
         bytes calldata data,
         address sender,
         IState state
-    ) external returns (IRequestValidator.OutputParam[] memory);
+    ) external returns (IRequestValidator.ResponseField[] memory);
 }
