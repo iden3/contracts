@@ -98,11 +98,11 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
-    ) public virtual checkRequestExistence(requestId, true) {
+    ) public virtual {
         address sender = _msgSender();
         ZKPVerifierStorage storage $ = _getZKPVerifierStorage();
 
-        IZKPVerifier.ZKPRequest memory request = $._requests[requestId];
+        IZKPVerifier.ZKPRequest storage request = _getRequestIfCanBeVerified(requestId);
         ICircuitValidator.KeyToInputIndex[] memory keyToInpIdxs = request.validator.verify(
             inputs,
             a,
@@ -131,8 +131,9 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
 
             address sender = _msgSender();
 
-            // TODO some internal method and storage location to save gas?
-            IZKPVerifier.ZKPRequest memory request = getZKPRequest(response.requestId);
+            IZKPVerifier.ZKPRequest storage request = _getRequestIfCanBeVerified(
+                response.requestId
+            );
             ICircuitValidator.Signal[] memory signals = request.validator.verifyV2(
                 response.zkProof,
                 request.data,
@@ -311,5 +312,17 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
     ) internal checkRequestExistence(requestId, true) {
         ZKPVerifierStorage storage s = _getZKPVerifierStorage();
         s._requests[requestId] = request;
+    }
+
+    function _getRequestIfCanBeVerified(
+        uint64 requestId
+    )
+        internal
+        view
+        virtual
+        checkRequestExistence(requestId, true)
+        returns (IZKPVerifier.ZKPRequest storage)
+    {
+        return _getZKPVerifierStorage()._requests[requestId];
     }
 }

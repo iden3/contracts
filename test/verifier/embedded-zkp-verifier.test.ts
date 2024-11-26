@@ -10,7 +10,7 @@ import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 describe("Embedded ZKP Verifier", function () {
-  let verifier: any, sig: any;
+  let verifier: any, validator: any;
   let owner: Signer;
 
   const query = {
@@ -28,6 +28,9 @@ describe("Embedded ZKP Verifier", function () {
     claimPathNotExists: 0,
   };
 
+  const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+  const metadatas = "0x";
+
   async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize(null, true);
     [owner] = await ethers.getSigners();
@@ -42,15 +45,17 @@ describe("Embedded ZKP Verifier", function () {
       await verifierLib.getAddress(),
     );
 
-    const stub = await deployHelper.deployValidatorStub();
-    sig = stub;
+    validator = await deployHelper.deployValidatorStub();
   }
 
-  async function checkStorageFields(verifier: any, requestId: number) {
-    const fieldsToCheck = ["userID", "issuerID"];
-    for (const field of fieldsToCheck) {
-      const value = await verifier.getProofStorageField(await owner.getAddress(), requestId, field);
-      expect(value).to.be.greaterThan(0n);
+  async function checkStorageFields(verifier: any, requestId: number, storageFields: any[]) {
+    for (const field of storageFields) {
+      const value = await verifier.getProofStorageField(
+        await owner.getAddress(),
+        requestId,
+        field.name,
+      );
+      expect(value).to.be.equal(field.value);
     }
   }
 
@@ -61,15 +66,24 @@ describe("Embedded ZKP Verifier", function () {
   it("test submit response", async () => {
     await verifier.setZKPRequest(0, {
       metadata: "metadata",
-      validator: await sig.getAddress(),
+      validator: await validator.getAddress(),
       data: packValidatorParams(query),
     });
 
-    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
-
     const tx = await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
     const txRes = await tx.wait();
-    await checkStorageFields(verifier, 0);
+    const storageFields = [
+      {
+        name: "userID",
+        value: inputs[1],
+      },
+      {
+        name: "issuerID",
+        value: inputs[2],
+      },
+    ];
+
+    await checkStorageFields(verifier, 0, storageFields);
     const receipt = await ethers.provider.getTransactionReceipt(txRes.hash);
 
     // 2 events are emitted
@@ -85,7 +99,7 @@ describe("Embedded ZKP Verifier", function () {
     );
     expect(eventBeforeProofSubmit[0]).to.equal(0);
     expect(eventBeforeProofSubmit[1]).to.deep.equal(inputs.map((x) => BigInt(x)));
-    expect(eventBeforeProofSubmit[2]).to.equal(await sig.getAddress());
+    expect(eventBeforeProofSubmit[2]).to.equal(await validator.getAddress());
 
     const interfaceEventAfterProofSubmit = new ethers.Interface([
       "event AfterProofSubmit(uint64 requestId, uint256[] inputs, address validator)",
@@ -97,7 +111,7 @@ describe("Embedded ZKP Verifier", function () {
     );
     expect(eventAfterProofSubmit[0]).to.equal(0);
     expect(eventAfterProofSubmit[1]).to.deep.equal(inputs.map((x) => BigInt(x)));
-    expect(eventAfterProofSubmit[2]).to.equal(await sig.getAddress());
+    expect(eventAfterProofSubmit[2]).to.equal(await validator.getAddress());
 
     const ownerAddress = await owner.getAddress();
     const requestID = 0;
@@ -138,11 +152,9 @@ describe("Embedded ZKP Verifier", function () {
 
     await verifier.setZKPRequest(0, {
       metadata: "metadata",
-      validator: await sig.getAddress(),
+      validator: await validator.getAddress(),
       data: packValidatorParams(query),
     });
-
-    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
 
     const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
     const [signer] = await ethers.getSigners();
@@ -153,8 +165,6 @@ describe("Embedded ZKP Verifier", function () {
         signer,
       ),
     );
-
-    const metadatas = "0x";
 
     const tx = await verifier.submitZKPResponseV2(
       [
@@ -168,7 +178,18 @@ describe("Embedded ZKP Verifier", function () {
     );
 
     const txRes = await tx.wait();
-    await checkStorageFields(verifier, 0);
+
+    const storageFields = [
+      {
+        name: "userID",
+        value: 1n,
+      },
+      {
+        name: "issuerID",
+        value: 2n,
+      },
+    ];
+    await checkStorageFields(verifier, 0, storageFields);
 
     const receipt = await ethers.provider.getTransactionReceipt(txRes.hash);
 
@@ -219,7 +240,7 @@ describe("Embedded ZKP Verifier", function () {
     for (let i = 0; i < requestsCount; i++) {
       await verifier.setZKPRequest(i, {
         metadata: "metadataN" + i,
-        validator: await sig.getAddress(),
+        validator: await validator.getAddress(),
         data: "0x00",
       });
       const reqeustIdExists = await verifier.requestIdExists(i);

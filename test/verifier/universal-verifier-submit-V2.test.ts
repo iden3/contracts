@@ -9,7 +9,7 @@ import { buildCrossChainProofs, packCrossChainProofs, packZKProof } from "../uti
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
-describe("Universal Verifier V2 MTP & SIG validators", function () {
+describe("Universal Verifier submitZKPResponseV2 SigV2 validators", function () {
   let verifier: any, sig: any;
   let signer;
   let signerAddress: string;
@@ -52,6 +52,37 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     claimPathNotExists: 0,
   };
 
+  const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+  const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
+  const metadatas = "0x";
+  const data = packValidatorParams(query);
+
+  const requestIds = [0, 1, 2];
+  const nonExistingRequestId = 3;
+
+  const singleProof = [
+    {
+      requestId: 0,
+      zkProof: zkProof,
+      data: metadatas,
+    },
+  ];
+
+  const multiProof = [
+    {
+      requestId: 1,
+      zkProof: zkProof,
+      data: metadatas,
+    },
+    {
+      requestId: 2,
+      zkProof: zkProof,
+      data: metadatas,
+    },
+  ];
+
+  let crossChainProofs;
+
   async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
     signerAddress = await signer.getAddress();
@@ -76,61 +107,54 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     sig = validatorStub;
     await verifier.addValidatorToWhitelist(await sig.getAddress());
     await verifier.connect();
+
+    for (const requestId of requestIds) {
+      await verifier.setZKPRequest(requestId, {
+        metadata: "metadata",
+        validator: await sig.getAddress(),
+        data: data,
+      });
+    }
   }
 
-  async function checkStorageFields(verifier: any, requestId: number) {
-    const fieldsToCheck = ["userID", "issuerID"];
-    for (const field of fieldsToCheck) {
+  const storageFields = [
+    {
+      name: "userID",
+      value: 1n,
+    },
+    {
+      name: "issuerID",
+      value: 2n,
+    },
+  ];
+
+  async function checkStorageFields(verifier: any, requestId: number, storageFields: any[]) {
+    for (const field of storageFields) {
       const value = await verifier.getProofStorageField(
         await signer.getAddress(),
         requestId,
-        field,
+        field.name,
       );
-      expect(value).to.be.greaterThan(0n);
+      expect(value).to.be.equal(field.value);
     }
   }
 
   beforeEach(async () => {
     await loadFixture(deployContractsFixture);
-  });
-
-  it("Test submit response V2", async () => {
-    const requestId = 0;
-    const nonExistingRequestId = 1;
-    const data = packValidatorParams(query);
-
-    await verifier.setZKPRequest(0, {
-      metadata: "metadata",
-      validator: await sig.getAddress(),
-      data: data,
-    });
-
-    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
-
-    const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
-
-    const crossChainProofs = packCrossChainProofs(
+    crossChainProofs = packCrossChainProofs(
       await buildCrossChainProofs(
         [globalStateMessage, identityStateMessage1, identityStateUpdate2],
         signer,
       ),
     );
+  });
 
-    const metadatas = "0x";
-
-    const tx = await verifier.submitZKPResponseV2(
-      [
-        {
-          requestId,
-          zkProof: zkProof,
-          data: metadatas,
-        },
-      ],
-      crossChainProofs,
-    );
+  it("Test submit response V2", async () => {
+    const requestId = 0;
+    const tx = await verifier.submitZKPResponseV2(singleProof, crossChainProofs);
 
     const txRes = await tx.wait();
-    await checkStorageFields(verifier, requestId);
+    await checkStorageFields(verifier, requestId, storageFields);
     const filter = verifier.filters.ZKPResponseSubmitted;
 
     const events = await verifier.queryFilter(filter, -1);
@@ -151,66 +175,60 @@ describe("Universal Verifier V2 MTP & SIG validators", function () {
     await expect(verifier.getProofStatus(signerAddress, nonExistingRequestId)).to.be.rejectedWith(
       "request id doesn't exist",
     );
-  });
 
-  it("Test submit response V2 multi-request", async () => {
-    const requestIds = [0, 1, 2];
-    const nonExistingRequestId = 3;
-    const data = packValidatorParams(query);
+    const requestIdsMulti = requestIds.slice(1, 3);
+    const txMulti = await verifier.submitZKPResponseV2(multiProof, crossChainProofs);
 
-    for (const requestId of requestIds) {
-      await verifier.setZKPRequest(requestId, {
-        metadata: "metadata",
-        validator: await sig.getAddress(),
-        data: data,
-      });
-    }
+    const txResMulti = await txMulti.wait();
 
-    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+    const eventsMulti = await verifier.queryFilter(filter, txRes.blockNumber + 1);
+    expect(eventsMulti[0].eventName).to.be.equal("ZKPResponseSubmitted");
+    expect(eventsMulti[0].args.requestId).to.be.equal(1);
+    expect(eventsMulti[0].args.caller).to.be.equal(signerAddress);
 
-    const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
-
-    const crossChainProofs = packCrossChainProofs(
-      await buildCrossChainProofs(
-        [globalStateMessage, identityStateMessage1, identityStateUpdate2],
-        signer,
-      ),
-    );
-
-    const metadatas = "0x";
-
-    const tx = await verifier.submitZKPResponseV2(
-      requestIds.map((requestId) => ({
-        requestId,
-        zkProof: zkProof,
-        data: metadatas,
-      })),
-      crossChainProofs,
-    );
-
-    const txRes = await tx.wait();
-    const filter = verifier.filters.ZKPResponseSubmitted;
-
-    const events = await verifier.queryFilter(filter, -1);
-    expect(events[0].eventName).to.be.equal("ZKPResponseSubmitted");
-    expect(events[0].args.requestId).to.be.equal(0);
-    expect(events[0].args.caller).to.be.equal(signerAddress);
-
-    const { timestamp: txResTimestamp } = (await ethers.provider.getBlock(
-      txRes.blockNumber,
+    const { timestamp: txResTimestampMuti } = (await ethers.provider.getBlock(
+      txResMulti.blockNumber,
     )) as Block;
 
-    for (const requestId of requestIds) {
+    for (const requestId of requestIdsMulti) {
       const status = await verifier.getProofStatus(signerAddress, requestId);
       expect(status.isVerified).to.be.true;
       expect(status.validatorVersion).to.be.equal("2.0.2-mock");
-      expect(status.blockNumber).to.be.equal(txRes.blockNumber);
-      expect(status.blockTimestamp).to.be.equal(txResTimestamp);
-      await checkStorageFields(verifier, requestId);
+      expect(status.blockNumber).to.be.equal(txResMulti.blockNumber);
+      expect(status.blockTimestamp).to.be.equal(txResTimestampMuti);
+      await checkStorageFields(verifier, requestId, storageFields);
     }
+  });
 
-    await expect(verifier.getProofStatus(signerAddress, nonExistingRequestId)).to.be.rejectedWith(
-      "request id doesn't exist",
+  it("Test submit response V2 with disable/enable functionality", async () => {
+    await verifier.disableZKPRequest(0);
+    await expect(verifier.submitZKPResponseV2(singleProof, crossChainProofs)).to.be.rejectedWith(
+      "Request is disabled",
     );
+
+    await verifier.disableZKPRequest(1);
+    await expect(verifier.submitZKPResponseV2(multiProof, crossChainProofs)).to.be.rejectedWith(
+      "Request is disabled",
+    );
+
+    await verifier.enableZKPRequest(0);
+    await expect(verifier.submitZKPResponseV2(singleProof, crossChainProofs)).not.to.be.rejected;
+
+    await verifier.enableZKPRequest(1);
+    await expect(verifier.submitZKPResponseV2(multiProof, crossChainProofs)).not.to.be.rejected;
+  });
+
+  it("Test submit response V2 check whitelisted functionality", async () => {
+    await verifier.removeValidatorFromWhitelist(await sig.getAddress());
+    await expect(verifier.submitZKPResponseV2(singleProof, crossChainProofs)).to.be.rejectedWith(
+      "Validator is not whitelisted",
+    );
+    await expect(verifier.submitZKPResponseV2(multiProof, crossChainProofs)).to.be.rejectedWith(
+      "Validator is not whitelisted",
+    );
+
+    await verifier.addValidatorToWhitelist(await sig.getAddress());
+    await expect(verifier.submitZKPResponseV2(singleProof, crossChainProofs)).not.to.be.rejected;
+    await expect(verifier.submitZKPResponseV2(multiProof, crossChainProofs)).not.to.be.rejected;
   });
 });

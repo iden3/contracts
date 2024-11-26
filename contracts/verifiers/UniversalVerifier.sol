@@ -21,7 +21,7 @@ contract UniversalVerifier is
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.1.3";
+    string public constant VERSION = "1.1.4";
 
     /// @dev Event emitted upon submitting a ZKP request
     event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);
@@ -113,7 +113,7 @@ contract UniversalVerifier is
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
-    ) public override(RequestDisableable, ValidatorWhitelist, ZKPVerifierBase) {
+    ) public override {
         super.submitZKPResponse(requestId, inputs, a, b, c);
         emit ZKPResponseSubmitted(requestId, _msgSender());
     }
@@ -206,5 +206,17 @@ contract UniversalVerifier is
     /// @param validator Validator address
     function removeValidatorFromWhitelist(ICircuitValidator validator) public onlyOwner {
         _removeValidatorFromWhitelist(validator);
+    }
+
+    function _getRequestIfCanBeVerified(
+        uint64 requestId
+    )
+        internal
+        view
+        override(RequestDisableable, ValidatorWhitelist, ZKPVerifierBase)
+        onlyEnabledRequest(requestId)
+        returns (IZKPVerifier.ZKPRequest storage)
+    {
+        return super._getRequestIfCanBeVerified(requestId);
     }
 }
