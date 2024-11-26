@@ -37,10 +37,4 @@ interface IRequestValidator {
         address sender,
         IState state
     ) external returns (IRequestValidator.OutputParam[] memory);
-
-    /**
-     * @dev Get supported methods ids.
-     * @return ids Array of methods ids supported.
-     */
-    function getSupportedMethodsIds() external view returns (string[] memory ids);
 }
