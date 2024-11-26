@@ -23,7 +23,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         bytes params;
     }
     /**
-     * @dev Struct to store ZKP proof and associated data
+     * @dev Struct to store proof and associated data
      */
     struct Proof {
         bool isVerified;
@@ -166,9 +166,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     }
 
     /**
-     * @dev Sets a ZKP request
-     * @param requestId The ID of the ZKP request
-     * @param request The ZKP request data
+     * @dev Sets a request
+     * @param requestId The ID of the request
+     * @param request The request data
      */
     function setRequest(
         uint256 requestId,
@@ -211,12 +211,21 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     }
 
     /**
+     * @dev Gets a specific multi query by ID
+     * @param multiQueryId The ID of the multi query
+     * @return multiQuery The multi query data
+     */
+    function getMultiQuery(uint256 multiQueryId) public view returns (MultiQuery memory) {
+        //TODO;
+    }
+
+    /**
      * @dev Submits an array of responses and updates proofs status
      * @param responses The list of responses including request ID, proof and metadata
      * @param crossChainProofs The list of cross chain proofs from universal resolver (oracle). This
      * includes identities and global states.
      */
-    function submitZKPResponse(Response[] memory responses, bytes memory crossChainProofs) public {
+    function submitResponse(Response[] memory responses, bytes memory crossChainProofs) public {
         UniversalVerifierMultiQueryStorage storage $ = _getUniversalVerifierMultiQueryStorage();
 
         $._state.processCrossChainProofs(crossChainProofs);
