@@ -56,22 +56,36 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         string responseFieldName;
     }
 
+    // submitMultiQueryResponse ???
+    // submitResponse
+    // getMultiQueryResult
+
+    // MultiQuery1          -> request 1
+    //                      -> request 2
+    //                      -> request 3
+
+    // MultiQuery2          -> request 4
+    //                      -> request 5
+    //                      -> request 2
+
+
     /**
      * @dev MultiQuery. Structure for request.
      * @param multiQueryId Multi query id.
      * @param requestIds Request ids for this multi query.
      * @param linkedOutputParamsNames Output params to link from every request proof.
      */
-    struct MultiQuery {
+    struct Query {
         uint256 multiQueryId;
-        uint256[] requestIds;
+        uint256[1, 2, 3, 4, 5] requestIds;
         ResponseFieldFromRequest[][] linkedResponseFields; // is response fields linked between requests
     }
     // Example of linkedResponseFields:
-    //  [
-    //      [{linkID, 1}, {linkID, 2}, {linkID, 3}]
-    //      [{userID, 1}, {userID, 2}, {userID, 3}],
-    //  ]
+    //      [
+    //          [{linkID, 1}, {linkID, 2}]
+    //          [{linkID, 2}, {linkID, 3}],
+    //          [{issuerID, 2}, {issuer, 3}],
+    //      ]
 
     /// @custom:storage-location erc7201:iden3.storage.UniversalVerifierMultiQuery
     struct UniversalVerifierMultiQueryStorage {
@@ -84,10 +98,12 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         mapping(uint256 multiQueryId => MultiQuery) _multiQueries;
         uint256[] _multiQueryIds;
         // Information linked between users and their addresses
+        // TODO think about arrays for these two mappings
         mapping(address userAddress => uint256 userID) _user_address_to_id;
         mapping(uint256 userID => address userAddress) _id_to_user_address; // check address[] to allow multiple addresses for the same userID?
-    
+
         // Information about auth validators
+        // TODO remove this mapping and reuse _proofs;
         mapping(uint256 authID => address authValidator) _auth_validators;
         uint256[] _authIds;
     }
