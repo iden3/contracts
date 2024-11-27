@@ -16,9 +16,18 @@ export class UniversalVerifierContractMigrationHelper extends ContractMigrationS
   @log
   async getDataFromContract(contract: Contract, ...args: any[]): Promise<any> {
     const countRequests = await contract.getZKPRequestsCount();
+    const stateAddress = await contract.getStateAddress();
 
+    const result = { countRequests, stateAddress };
+    return result;
+  }
+
+  @log
+  async getDataFirstRequestFromContract(contract: Contract): Promise<any> {
     let validator: string = "";
     let request: any = {};
+
+    const countRequests = await contract.getZKPRequestsCount();
 
     if (countRequests > 0) {
       const filter = contract.filters.ZKPRequestSet;
@@ -64,11 +73,10 @@ export class UniversalVerifierContractMigrationHelper extends ContractMigrationS
     const result1 = args[0];
     const result2 = args[1];
 
-    const { request: requestV1, countRequests: countRequestsV1, validator: validatorV1 } = result1;
-    const { request: requestV2, countRequests: countRequestsV2, validator: validatorV2 } = result2;
+    const { countRequests: countRequestsV1, stateAddress: stateAddress1 } = result1;
+    const { countRequests: countRequestsV2, stateAddress: stateAddress2 } = result2;
     console.assert(countRequestsV1 === countRequestsV2, "lenght of requests not equal");
-    console.assert(JSON.stringify(requestV1) === JSON.stringify(requestV2), "requests not equal");
-    console.assert(validatorV1 === validatorV2, "validator not equal");
+    console.assert(stateAddress1 === stateAddress2, "state address not equal");
   }
 
   @log
