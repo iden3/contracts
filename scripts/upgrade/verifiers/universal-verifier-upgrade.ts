@@ -111,7 +111,11 @@ async function main() {
   const dataBeforeUpgrade =
     await universalVerifierMigrationHelper.getDataFromContract(universalVerifierContract);
 
-  const whitelistedValidators = dataBeforeUpgrade.validators;
+  const whitelistedValidators = [
+    contractsInfo.VALIDATOR_MTP.unifiedAddress,
+    contractsInfo.VALIDATOR_SIG.unifiedAddress,
+    contractsInfo.VALIDATOR_V3.unifiedAddress,
+  ];
 
   for (const validator of whitelistedValidators) {
     expect(await universalVerifierContract.isWhitelistedValidator(validator)).to.equal(true);

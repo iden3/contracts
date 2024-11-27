@@ -1,8 +1,9 @@
 import { DeployHelper } from "./DeployHelper";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Contract, Wallet } from "ethers";
+import { Contract, Wallet, Block } from "ethers";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ContractMigrationSteps, EventLogEntry, log } from "./ContractMigrationSteps";
+import { ethers } from "hardhat";
 
 export class UniversalVerifierContractMigrationHelper extends ContractMigrationSteps {
   constructor(
@@ -15,12 +16,50 @@ export class UniversalVerifierContractMigrationHelper extends ContractMigrationS
   @log
   async getDataFromContract(contract: Contract, ...args: any[]): Promise<any> {
     const countRequests = await contract.getZKPRequestsCount();
+    const stateAddress = await contract.getStateAddress();
 
+    const result = { countRequests, stateAddress };
+    return result;
+  }
+
+  @log
+  async getDataFirstRequestFromContract(contract: Contract): Promise<any> {
     let validator: string = "";
     let request: any = {};
 
+    const countRequests = await contract.getZKPRequestsCount();
+
     if (countRequests > 0) {
-      const firstRequestInfo: any = await contract.getZKPRequest(0);
+      const filter = contract.filters.ZKPRequestSet;
+      let allEvents: any[];
+
+      try {
+        allEvents = (await contract.queryFilter(filter, 0, "latest")) as any;
+      } catch (error) {
+        // In case of large number of events some nodes protect with limit, we can use the following code to get events in chunks
+        const startBlock = 0;
+        const endBlock = ((await ethers.provider.getBlock("latest")) as Block).number;
+        allEvents = [];
+
+        console.log(
+          `Getting events ZKPRequestSet from block ${endBlock} to ${startBlock} for first ZKPRequestSet`,
+        );
+        for (let i = endBlock; i > startBlock; i -= 5000) {
+          const _startBlock = Math.max(0, i - 4999);
+          const _endBlock = i;
+          const events = await contract.queryFilter(filter, _startBlock, _endBlock);
+          console.log(`Got ${events.length} events from block ${_startBlock} to ${_endBlock}`);
+          if (events.length > 0) {
+            allEvents.push(...events);
+            // we need only 1 event
+            break;
+          }
+        }
+      }
+
+      console.log(`Got ${allEvents.length} events in total`);
+
+      const firstRequestInfo: any = await contract.getZKPRequest(allEvents[0].args.requestId);
       validator = firstRequestInfo[1];
       request = JSON.parse(firstRequestInfo[0]);
     }
@@ -34,11 +73,10 @@ export class UniversalVerifierContractMigrationHelper extends ContractMigrationS
     const result1 = args[0];
     const result2 = args[1];
 
-    const { request: requestV1, countRequests: countRequestsV1, validator: validatorV1 } = result1;
-    const { request: requestV2, countRequests: countRequestsV2, validator: validatorV2 } = result2;
+    const { countRequests: countRequestsV1, stateAddress: stateAddress1 } = result1;
+    const { countRequests: countRequestsV2, stateAddress: stateAddress2 } = result2;
     console.assert(countRequestsV1 === countRequestsV2, "lenght of requests not equal");
-    console.assert(JSON.stringify(requestV1) === JSON.stringify(requestV2), "requests not equal");
-    console.assert(validatorV1 === validatorV2, "validator not equal");
+    console.assert(stateAddress1 === stateAddress2, "state address not equal");
   }
 
   @log
