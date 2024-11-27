@@ -1,8 +1,9 @@
 import { DeployHelper } from "./DeployHelper";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Contract, Wallet } from "ethers";
+import { Contract, Wallet, Block } from "ethers";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ContractMigrationSteps, EventLogEntry, log } from "./ContractMigrationSteps";
+import { ethers } from "hardhat";
 
 export class UniversalVerifierContractMigrationHelper extends ContractMigrationSteps {
   constructor(
@@ -20,7 +21,36 @@ export class UniversalVerifierContractMigrationHelper extends ContractMigrationS
     let request: any = {};
 
     if (countRequests > 0) {
-      const firstRequestInfo: any = await contract.getZKPRequest(0);
+      const filter = contract.filters.ZKPRequestSet;
+      let allEvents: any[];
+
+      try {
+        allEvents = (await contract.queryFilter(filter, 0, "latest")) as any;
+      } catch (error) {
+        // In case of large number of events some nodes protect with limit, we can use the following code to get events in chunks
+        const startBlock = 0;
+        const endBlock = ((await ethers.provider.getBlock("latest")) as Block).number;
+        allEvents = [];
+
+        console.log(
+          `Getting events ZKPRequestSet from block ${endBlock} to ${startBlock} for first ZKPRequestSet`,
+        );
+        for (let i = endBlock; i > startBlock; i -= 5000) {
+          const _startBlock = Math.max(0, i - 4999);
+          const _endBlock = i;
+          const events = await contract.queryFilter(filter, _startBlock, _endBlock);
+          console.log(`Got ${events.length} events from block ${_startBlock} to ${_endBlock}`);
+          if (events.length > 0) {
+            allEvents.push(...events);
+            // we need only 1 event
+            break;
+          }
+        }
+      }
+
+      console.log(`Got ${allEvents.length} events in total`);
+
+      const firstRequestInfo: any = await contract.getZKPRequest(allEvents[0].args.requestId);
       validator = firstRequestInfo[1];
       request = JSON.parse(firstRequestInfo[0]);
     }
