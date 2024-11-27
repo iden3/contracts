@@ -68,7 +68,7 @@ async function main() {
     // {
     //   validatorContractAddress: contractsInfo.VALIDATOR_AUTH_V2.unifiedAddress,
     //   validatorContractName: contractsInfo.VALIDATOR_AUTH_V2.name,
-    //   validatorType: VALIDATOR_TYPES.V3,
+    //   validatorType: VALIDATOR_TYPES.AUTH_V2,
     //   validatorVerification: contractsInfo.VALIDATOR_AUTH_V2.verificationOpts,
     // },
   ];
