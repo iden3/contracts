@@ -173,8 +173,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
             );
         } else {
             require(
-                !(requestIdExists(requestId) &&
-                    _getRequestType(requestId) == AUTH_REQUEST_TYPE),
+                !(requestIdExists(requestId) && _getRequestType(requestId) == AUTH_REQUEST_TYPE),
                 "auth request id already exists"
             );
         }
@@ -308,17 +307,37 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
         // 1. Check for auth responses (throw if not provided exactly 1)
         //      and remember the userID from the response
-        uint256 userIDFromResponses = checkAuthResponses(responses);
+        //TODO: return requestId of the auth response and execute verification for this response
+        // in order to get "userID" from the output response field
+        uint256 authRequestId = checkAuthResponses(responses);
 
         // 2. Process crossChainProofs
         $._state.processCrossChainProofs(crossChainProofs);
 
-       // 3. Verify regular responses, write proof results (under the userID key from the step 1),
+        // Verify for the auth request
+        // authRequest.validator.verify(...) -> userIDFromAuth
+        // write results for the auth request
+        // emit 
+        uint256 userIDFromAuth = 0;
+        
+        address sender = _msgSender();
+
+        //TODO: Check all the mappings
+        $._user_address_to_id[sender] = userIDFromAuth;
+        $._id_to_user_address[userIDFromAuth] = sender;
+        $._user_id_and_address_auth[userIDFromAuth][sender] = true;
+
+
+         // 3. Verify regular responses, write proof results (under the userID key from the step 1),
         //      emit events (existing logic)
         for (uint256 i = 0; i < responses.length; i++) {
-            Response memory response = responses[i];
+            emit ResponseSubmitted(responses[i].requestId, _msgSender());
 
-            address sender = _msgSender();
+            if (_getRequestType(responses[i].requestId) == AUTH_REQUEST_TYPE) {
+                continue;
+            }
+
+            Response memory response = responses[i];
 
             // TODO some internal method and storage location to save gas?
             Request memory request = getRequest(response.requestId);
@@ -330,19 +349,12 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
                 $._state
             );
 
-            //TODO: Find the userID of the sender? or the userID is in the request?
-            uint256 userID = $._user_address_to_id[sender];
-            require(userID == userIDFromResponses, "User ID mismatch");
-
-            writeProofResults(userID, response.requestId, signals);
+            writeProofResults(userIDFromAuth, response.requestId, signals);
 
             if (response.metadata.length > 0) {
                 revert("Metadata not supported yet");
             }
-        }
 
-        for (uint256 i = 0; i < responses.length; i++) {
-            emit ResponseSubmitted(responses[i].requestId, _msgSender());
         }
     }
 
@@ -378,8 +390,11 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         uint256 requestId,
         Request calldata request
     ) public checkAuthRequestExistence(requestId, false) onlyOwner {
+        if (_getRequestType(requestId) != AUTH_REQUEST_TYPE) {
+            revert("Request ID is not an auth request");
+        }
+
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
-        //TODO: Calculate the requestId for auth request
         s._requests[requestId] = request;
         s._requestIds.push(requestId);
 
@@ -401,12 +416,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      */
     function getAuthRequest(
         uint256 requestId
-    )
-        public
-        view
-        checkAuthRequestExistence(requestId, true)
-        returns (Request memory authRequest)
-    {
+    ) public view checkAuthRequestExistence(requestId, true) returns (Request memory authRequest) {
         return _getUniversalVerifierMultiQueryStorage()._requests[requestId];
     }
 

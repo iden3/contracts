@@ -67,9 +67,6 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IRequestValidator, ERC
         EthIdentityValidatorBaseStorage
             storage s = _getEthIdentityValidatorBaseStorage();
 
-        s.revocationStateExpirationTimeout = 1 hours;
-        s.proofExpirationTimeout = 1 hours;
-        s.gistRootExpirationTimeout = 1 hours;
         s.state = IState(_stateContractAddr);
         __Ownable_init(owner);
     }
