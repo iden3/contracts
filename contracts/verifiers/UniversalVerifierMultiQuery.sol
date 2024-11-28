@@ -12,6 +12,11 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     string public constant VERSION = "1.0.0";
 
     /**
+     * @dev Auth request type
+     */
+    uint256 constant AUTH_REQUEST_TYPE = 1;
+
+    /**
      * @dev Request. Structure for request.
      * @param metadata Metadata of the request.
      * @param validator Validator circuit.
@@ -47,65 +52,33 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     }
 
     /**
-     * @dev ResponseFieldFromRequest. Structure for response field from request to be linked.
-     * @param requestId Request id.
-     * @param responseFieldName Response field name.
-     */
-    struct ResponseFieldFromRequest {
-        uint256 requestId;
-        string responseFieldName;
-    }
-
-    // submitMultiQueryResponse ???
-    // submitResponse
-    // getMultiQueryResult
-
-    // MultiQuery1          -> request 1
-    //                      -> request 2
-    //                      -> request 3
-
-    // MultiQuery2          -> request 4
-    //                      -> request 5
-    //                      -> request 2
-
-
-    /**
-     * @dev MultiQuery. Structure for request.
-     * @param multiQueryId Multi query id.
+     * @dev Query. Structure for query.
+     * @param queryId Query id.
      * @param requestIds Request ids for this multi query.
-     * @param linkedOutputParamsNames Output params to link from every request proof.
+     * @param metadata Metadata for the query. Empty in first version.
      */
     struct Query {
-        uint256 multiQueryId;
-        uint256[1, 2, 3, 4, 5] requestIds;
-        ResponseFieldFromRequest[][] linkedResponseFields; // is response fields linked between requests
+        uint256 queryId;
+        uint256[] requestIds;
+        bytes metadata;
     }
-    // Example of linkedResponseFields:
-    //      [
-    //          [{linkID, 1}, {linkID, 2}]
-    //          [{linkID, 2}, {linkID, 3}],
-    //          [{issuerID, 2}, {issuer, 3}],
-    //      ]
 
     /// @custom:storage-location erc7201:iden3.storage.UniversalVerifierMultiQuery
     struct UniversalVerifierMultiQueryStorage {
         // Information about requests
-        mapping(uint256 userID => mapping(uint256 requestId => Proof)) _proofs;
+        mapping(uint256 requestId => mapping(uint256 userID => Proof)) _proofs;
         mapping(uint256 requestId => Request) _requests;
         uint256[] _requestIds;
         IState _state;
-        // Information about multi-queries
-        mapping(uint256 multiQueryId => MultiQuery) _multiQueries;
-        uint256[] _multiQueryIds;
+        // Information about queries
+        mapping(uint256 queryId => Query) _queries;
+        uint256[] _queryIds;
         // Information linked between users and their addresses
         // TODO think about arrays for these two mappings
         mapping(address userAddress => uint256 userID) _user_address_to_id;
         mapping(uint256 userID => address userAddress) _id_to_user_address; // check address[] to allow multiple addresses for the same userID?
-
-        // Information about auth validators
-        // TODO remove this mapping and reuse _proofs;
-        mapping(uint256 authID => address authValidator) _auth_validators;
-        uint256[] _authIds;
+        mapping(uint256 userID => mapping(address userAddress => bool hasAuth)) _user_id_and_address_auth;
+        uint256[] _authRequestIds; // reuses the same _requests mapping to store the auth requests
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.UniversalVerifierMultiQuery")) - 1)) & ~bytes32(uint256(0xff));
@@ -129,6 +102,17 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     );
 
     /**
+     * @dev Event emitted upon adding an auth request by the owner
+     */
+    event AuthRequestSet(
+        uint256 indexed requestId,
+        address indexed requestOwner,
+        string metadata,
+        address validator,
+        bytes params
+    );
+
+    /**
      * @dev Event emitted upon updating a request
      */
     event RequestUpdate(
@@ -140,17 +124,17 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     );
 
     /**
-     * @dev Event emitted upon adding a multi query
+     * @dev Event emitted upon adding a query
      */
-    event MultiQuerySet(uint256 indexed multiQueryId, uint256[] requestIds);
+    event QuerySet(uint256 indexed queryId, uint256[] requestIds);
 
     /**
-     * @dev Event emitted upon updating a multi query
+     * @dev Event emitted upon updating a query
      */
-    event MultiQueryUpdate(uint256 indexed multiQueryId, uint256[] requestIds);
+    event QueryUpdate(uint256 indexed queryId, uint256[] requestIds);
 
     /**
-     * @dev Modifier to check if the validator is set for the request
+     * @dev Modifier to check if the request exists
      */
     modifier checkRequestExistence(uint256 requestId, bool existence) {
         if (existence) {
@@ -162,6 +146,48 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     }
 
     /**
+     * @dev Modifier to check if the query exists
+     */
+    modifier checkQueryExistence(uint256 queryId, bool existence) {
+        if (existence) {
+            require(queryIdExists(queryId), "query id doesn't exist");
+        } else {
+            require(!queryIdExists(queryId), "query id already exists");
+        }
+        _;
+    }
+
+    /**
+     * @dev Modifier to check if the auth request exists
+     */
+    modifier checkAuthRequestExistence(uint256 authRequestId, bool existence) {
+        if (existence) {
+            require(
+                requestIdExists(authRequestId) && typeOfRequest(authRequestId) == AUTH_REQUEST_TYPE,
+                "auth request id doesn't exist"
+            );
+        } else {
+            require(
+                !(requestIdExists(authRequestId) &&
+                    typeOfRequest(authRequestId) == AUTH_REQUEST_TYPE),
+                "auth request id already exists"
+            );
+        }
+        _;
+    }
+
+    /**
+     * @dev Checks if a request ID exists
+     * @param requestId The ID of the request
+     * @return requestType Type of the request
+     */
+    function typeOfRequest(uint256 requestId) public pure returns (uint256 requestType) {
+        //TODO: analyze first byte of the request and return its type
+        uint256 typeOfTheRequest = 0;
+        return typeOfTheRequest = 0;
+    }
+
+    /**
      * @dev Checks if a request ID exists
      * @param requestId The ID of the request
      * @return Whether the request ID exists
@@ -170,6 +196,15 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         return
             _getUniversalVerifierMultiQueryStorage()._requests[requestId].validator !=
             IRequestValidator(address(0));
+    }
+
+    /**
+     * @dev Checks if a query ID exists
+     * @param queryId The ID of the query
+     * @return Whether the query ID exists
+     */
+    function queryIdExists(uint256 queryId) public view returns (bool) {
+        return _getUniversalVerifierMultiQueryStorage()._queries[queryId].requestIds.length > 0;
     }
 
     /**
@@ -219,24 +254,28 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     }
 
     /**
-     * @dev Sets a multi query
-     * @param multiQueryId The ID of the multi query
-     * @param linkedResponseFields The params for linking response fields between requests
+     * @dev Sets a query
+     * @param queryId The ID of the query
+     * @param query The query data
      */
-    function setMultiQuery(
-        uint256 multiQueryId,
-        ResponseFieldFromRequest[][] memory linkedResponseFields
-    ) public {
-        //TODO;
+    function setQuery(
+        uint256 queryId,
+        Query calldata query
+    ) public checkQueryExistence(queryId, false) {
+        UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
+        s._queries[queryId] = query;
+        s._queryIds.push(queryId);
+
+        emit QuerySet(queryId, query.requestIds);
     }
 
     /**
      * @dev Gets a specific multi query by ID
-     * @param multiQueryId The ID of the multi query
-     * @return multiQuery The multi query data
+     * @param queryId The ID of the multi query
+     * @return query The query data
      */
-    function getMultiQuery(uint256 multiQueryId) public view returns (MultiQuery memory) {
-        //TODO;
+    function getQuery(uint256 queryId) public view returns (Query memory query) {
+        return _getUniversalVerifierMultiQueryStorage()._queries[queryId];
     }
 
     /**
@@ -304,22 +343,42 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     }
 
     /**
-     * @dev Adds an auth validator
-     * @param authID The Id of the auth validator
-     * @param authValidator The auth validator address
+     * @dev Adds an auth request
+     * @param requestId The Id of the auth request to add
      */
-    function addAuthValidator(uint256 authID, address authValidator) public onlyOwner {
-        UniversalVerifierMultiQueryStorage storage $ = _getUniversalVerifierMultiQueryStorage();
-        $._auth_validators[authID] = authValidator;
-        $._authIds.push(authID);
+    function setAuthRequest(
+        uint256 requestId,
+        Request calldata request
+    ) public checkAuthRequestExistence(requestId, false) onlyOwner {
+        UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
+        //TODO: Calculate the requestId for auth request
+        s._requests[requestId] = request;
+        s._requestIds.push(requestId);
+
+        s._authRequestIds.push(requestId);
+
+        emit AuthRequestSet(
+            requestId,
+            _msgSender(),
+            request.metadata,
+            address(request.validator),
+            request.params
+        );
     }
 
     /**
-     * @dev Gets an auth validator
-     * @param authID The Id of the auth validator
-     * @return The auth validator address
+     * @dev Gets an auth request
+     * @param authRequestId The Id of the auth request to get
+     * @return authRequest The auth request data
      */
-    function getAuthValidator(uint256 authID) public view returns (address) {
-        return _getUniversalVerifierMultiQueryStorage()._auth_validators[authID];
+    function getAuthRequest(
+        uint256 authRequestId
+    )
+        public
+        view
+        checkAuthRequestExistence(authRequestId, true)
+        returns (Request memory authRequest)
+    {
+        return _getUniversalVerifierMultiQueryStorage()._requests[authRequestId];
     }
 }
