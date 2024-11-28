@@ -11,10 +11,15 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      */
     string public constant VERSION = "1.0.0";
 
+    // requestId. 32 bytes (in Big Endian): 31-0x00(not used), 30-0x01(requestType), 29..0 hash calculated Id,
+    //
+    // For requestType:
+    // 0x00 - regular request
+    // 0x01 - auth request
     /**
      * @dev Auth request type
      */
-    uint256 constant AUTH_REQUEST_TYPE = 1;
+    uint8 constant AUTH_REQUEST_TYPE = 1;
 
     /**
      * @dev Request. Structure for request.
@@ -160,16 +165,16 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     /**
      * @dev Modifier to check if the auth request exists
      */
-    modifier checkAuthRequestExistence(uint256 authRequestId, bool existence) {
+    modifier checkAuthRequestExistence(uint256 requestId, bool existence) {
         if (existence) {
             require(
-                requestIdExists(authRequestId) && typeOfRequest(authRequestId) == AUTH_REQUEST_TYPE,
+                requestIdExists(requestId) && _getRequestType(requestId) == AUTH_REQUEST_TYPE,
                 "auth request id doesn't exist"
             );
         } else {
             require(
-                !(requestIdExists(authRequestId) &&
-                    typeOfRequest(authRequestId) == AUTH_REQUEST_TYPE),
+                !(requestIdExists(requestId) &&
+                    _getRequestType(requestId) == AUTH_REQUEST_TYPE),
                 "auth request id already exists"
             );
         }
@@ -181,10 +186,8 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      * @param requestId The ID of the request
      * @return requestType Type of the request
      */
-    function typeOfRequest(uint256 requestId) public pure returns (uint256 requestType) {
-        //TODO: analyze first byte of the request and return its type
-        uint256 typeOfTheRequest = 0;
-        return typeOfTheRequest = 0;
+    function _getRequestType(uint256 requestId) internal pure returns (uint8 requestType) {
+        return uint8(requestId >> 248);
     }
 
     /**
@@ -283,7 +286,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         uint256 userID;
 
         for (uint256 i = 0; i < responses.length; i++) {
-            if (typeOfRequest(responses[i].requestId) == AUTH_REQUEST_TYPE) {
+            if (_getRequestType(responses[i].requestId) == AUTH_REQUEST_TYPE) {
                 numAuthResponses++;
             }
 
@@ -393,18 +396,18 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
     /**
      * @dev Gets an auth request
-     * @param authRequestId The Id of the auth request to get
+     * @param requestId The Id of the auth request to get
      * @return authRequest The auth request data
      */
     function getAuthRequest(
-        uint256 authRequestId
+        uint256 requestId
     )
         public
         view
-        checkAuthRequestExistence(authRequestId, true)
+        checkAuthRequestExistence(requestId, true)
         returns (Request memory authRequest)
     {
-        return _getUniversalVerifierMultiQueryStorage()._requests[authRequestId];
+        return _getUniversalVerifierMultiQueryStorage()._requests[requestId];
     }
 
     /**
