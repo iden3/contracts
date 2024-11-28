@@ -278,6 +278,22 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         return _getUniversalVerifierMultiQueryStorage()._queries[queryId];
     }
 
+    function checkAuthResponses(Response[] memory responses) internal pure returns (uint256) {
+        uint256 numAuthResponses = 0;
+        uint256 userID;
+
+        for (uint256 i = 0; i < responses.length; i++) {
+            if (typeOfRequest(responses[i].requestId) == AUTH_REQUEST_TYPE) {
+                numAuthResponses++;
+            }
+
+            //TODO: Get the userID from the response
+        }
+        require(numAuthResponses == 1, "Exactly 1 auth response is required");
+
+        return userID;
+    }
+
     /**
      * @dev Submits an array of responses and updates proofs status
      * @param responses The list of responses including request ID, proof and metadata
@@ -287,8 +303,15 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     function submitResponse(Response[] memory responses, bytes memory crossChainProofs) public {
         UniversalVerifierMultiQueryStorage storage $ = _getUniversalVerifierMultiQueryStorage();
 
+        // 1. Check for auth responses (throw if not provided exactly 1)
+        //      and remember the userID from the response
+        uint256 userIDFromResponses = checkAuthResponses(responses);
+
+        // 2. Process crossChainProofs
         $._state.processCrossChainProofs(crossChainProofs);
 
+       // 3. Verify regular responses, write proof results (under the userID key from the step 1),
+        //      emit events (existing logic)
         for (uint256 i = 0; i < responses.length; i++) {
             Response memory response = responses[i];
 
@@ -296,6 +319,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
             // TODO some internal method and storage location to save gas?
             Request memory request = getRequest(response.requestId);
+
             IRequestValidator.ResponseField[] memory signals = request.validator.verify(
                 response.proof,
                 request.params,
@@ -305,6 +329,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
             //TODO: Find the userID of the sender? or the userID is in the request?
             uint256 userID = $._user_address_to_id[sender];
+            require(userID == userIDFromResponses, "User ID mismatch");
 
             writeProofResults(userID, response.requestId, signals);
 
@@ -380,5 +405,37 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         returns (Request memory authRequest)
     {
         return _getUniversalVerifierMultiQueryStorage()._requests[authRequestId];
+    }
+
+    /**
+     * @dev Gets the status of the query verification
+     * @param queryId The ID of the query
+     * @param userAddress The address of the user
+     * @return status The status of the query. "True" if all requests are verified, "false" otherwise
+     */
+    function getQueryStatus(
+        uint256 queryId,
+        address userAddress
+    ) public view returns (bool status) {
+        //TODO implement
+        UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
+
+        // 1. Get the latest userId by the userAddress arg (in the mapping)
+        uint256 userID = s._user_address_to_id[userAddress];
+        require(userID != 0, "UserID not found");
+
+        // 2. Check if any active auth for the userId is true
+        bool activeAuth = s._user_id_and_address_auth[userID][userAddress];
+        require(activeAuth, "No active auth for the user found");
+
+        // 3. Check if all requests statuses are true for the userId
+        for (uint256 i = 0; i < s._queries[queryId].requestIds.length; i++) {
+            uint256 requestId = s._queries[queryId].requestIds[i];
+            if (!s._proofs[userID][requestId].isVerified) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
