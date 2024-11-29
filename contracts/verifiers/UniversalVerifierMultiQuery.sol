@@ -51,9 +51,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      * @param metadata Metadata of the request.
      */
     struct Response {
-        uint256 queryId; // TODO new field
+        uint256 queryId;
         uint256 requestId;
-        uint256 requestIndexInQuery; // TODO new field
+        uint256 requestIndexInQuery;
         bytes proof;
         bytes metadata;
     }
@@ -74,6 +74,12 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     //          ]
     // TODO discussion result start
 
+    struct ResponseFieldFromRequest {
+        uint256 requestId;
+        uint256 requestIndexInQuery;
+        string responseFieldName;
+    }
+
     /**
      * @dev Query. Structure for query.
      * @param queryId Query id.
@@ -83,6 +89,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     struct Query {
         uint256 queryId;
         uint256[] requestIds;
+        ResponseFieldFromRequest[][] linkedResponseFields; // this are response fields linked between requests
         bytes metadata;
     }
 
@@ -97,7 +104,6 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         mapping(uint256 queryId => Query) _queries;
         uint256[] _queryIds;
         // Information linked between users and their addresses
-        // TODO think about arrays for these two mappings
         mapping(address userAddress => uint256 userID) _user_address_to_id;
         mapping(uint256 userID => address userAddress) _id_to_user_address; // check address[] to allow multiple addresses for the same userID?
         mapping(uint256 userID => mapping(address userAddress => bool hasAuth)) _user_id_and_address_auth;
@@ -337,7 +343,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         $._state.processCrossChainProofs(crossChainProofs);
 
         // Verify for the auth request and get the userID
-        Response memory authResponse = responses[authResponseIndex]; 
+        Response memory authResponse = responses[authResponseIndex];
         Request memory authRequest = getRequest(authResponse.requestId);
         IRequestValidator.ResponseField[] memory authSignals = authRequest.validator.verify(
             authResponse.proof,
@@ -362,7 +368,6 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
             authSignals
         );
 
-        //TODO: Check all the mappings
         $._user_address_to_id[sender] = userIDFromAuth;
         $._id_to_user_address[userIDFromAuth] = sender;
         $._user_id_and_address_auth[userIDFromAuth][sender] = true;
@@ -380,7 +385,6 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
             Response memory response = responses[i];
 
-            // TODO some internal method and storage location to save gas?
             Request memory request = getRequest(response.requestId);
 
             IRequestValidator.ResponseField[] memory signals = request.validator.verify(
@@ -471,6 +475,66 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     }
 
     /**
+     * @dev Gets response field value
+     * @param queryId Id of the query
+     * @param requestId Id of the request
+     * @param requestIndexInQuery Index of the request in the query
+     * @param userID Id of the user
+     * @param responseFieldName Name of the response field to get
+     */
+    function getResponseFieldValue(
+        uint256 queryId,
+        uint256 requestId,
+        uint256 requestIndexInQuery,
+        uint256 userID,
+        string memory responseFieldName
+    ) public view returns (uint256) {
+        UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
+        return
+            s._proofs[queryId][requestId][requestIndexInQuery][userID].storageFields[
+                responseFieldName
+            ];
+    }
+
+    /**
+     * @dev Checks if all linked response fields are the same
+     * @param queryId The ID of the query
+     * @param userID The ID of the user
+     * @return Whether all linked response fields are the same
+     */
+    function checkLinkedResponseFields(uint256 queryId, uint256 userID) public view returns (bool) {
+        UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
+
+        for (uint256 i = 0; i < s._queries[queryId].linkedResponseFields.length; i++) {
+            // check if we have linked response fields
+            if (s._queries[queryId].linkedResponseFields[i].length > 0) {
+                // Get first value and check if all the values for the same linked responses are the same
+                uint256 firstValue = getResponseFieldValue(
+                    queryId,
+                    s._queries[queryId].linkedResponseFields[i][0].requestId,
+                    s._queries[queryId].linkedResponseFields[i][0].requestIndexInQuery,
+                    userID,
+                    s._queries[queryId].linkedResponseFields[i][0].responseFieldName
+                );
+
+                for (uint256 j = 1; j < s._queries[queryId].linkedResponseFields[i].length; j++) {
+                    uint256 valueToCompare = getResponseFieldValue(
+                        queryId,
+                        s._queries[queryId].linkedResponseFields[i][j].requestId,
+                        s._queries[queryId].linkedResponseFields[i][j].requestIndexInQuery,
+                        userID,
+                        s._queries[queryId].linkedResponseFields[i][j].responseFieldName
+                    );
+
+                    if (firstValue != valueToCompare) {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * @dev Gets the status of the query verification
      * @param queryId The ID of the query
      * @param userAddress The address of the user
@@ -480,7 +544,6 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         uint256 queryId,
         address userAddress
     ) public view returns (bool status) {
-        //TODO implement
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
 
         // 1. Get the latest userId by the userAddress arg (in the mapping)
@@ -498,6 +561,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
                 return false;
             }
         }
+
+        // 4. Check if all linked response fields are the same
+        checkLinkedResponseFields(queryId, userID);
 
         return true;
     }
