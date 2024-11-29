@@ -53,28 +53,26 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     struct Response {
         uint256 queryId; // TODO new field
         uint256 requestId;
-        uint256 requestIndexInQuery;  // TODO new field
+        uint256 requestIndexInQuery; // TODO new field
         bytes proof;
         bytes metadata;
     }
 
+    // TODO discussion result start
+    //    struct ResponseFieldFromRequest {
+    //        uint256 requestId;
+    //        string responseFieldName;
+    //        uint256 requestIndexInQuery;
+    //    }
+    //
+    //ResponseFieldFromRequest[][]
 
-// TODO discussion result start
-//    struct ResponseFieldFromRequest {
-//        uint256 requestId;
-//        string responseFieldName;
-//        uint256 requestIndexInQuery;
-//    }
-//
-//ResponseFieldFromRequest[][]
-
-//          [
-//              [{linkID, 1, 0}, {linkID, 2, 0}]
-//              [{linkID, 2, 2}, {linkID, 3, 1}],
-//              [{issuerID, 2, 3}, {issuer, 3, 4}],
-//          ]
-// TODO discussion result start
-
+    //          [
+    //              [{linkID, 1, 0}, {linkID, 2, 0}]
+    //              [{linkID, 2, 2}, {linkID, 3, 1}],
+    //              [{issuerID, 2, 3}, {issuer, 3, 4}],
+    //          ]
+    // TODO discussion result start
 
     /**
      * @dev Query. Structure for query.
@@ -91,7 +89,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     /// @custom:storage-location erc7201:iden3.storage.UniversalVerifierMultiQuery
     struct UniversalVerifierMultiQueryStorage {
         // Information about requests
-        mapping(uint256 requestId => mapping(uint256 userID => Proof)) _proofs;
+        mapping(uint256 queryId => mapping(uint256 requestIndexInQuery => mapping(uint256 requestId => mapping(uint256 userID => Proof)))) _proofs;
         mapping(uint256 requestId => Request) _requests;
         uint256[] _requestIds;
         IState _state;
@@ -300,20 +298,24 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         return _getUniversalVerifierMultiQueryStorage()._queries[queryId];
     }
 
+    /**
+     * @dev Checks for exactly 1 auth response and returns the index of the auth response
+     * @param responses The list of responses
+     * @return The index of the auth response
+     */
     function checkAuthResponses(Response[] memory responses) internal pure returns (uint256) {
         uint256 numAuthResponses = 0;
-        uint256 userID;
+        uint256 authResponseIndex;
 
         for (uint256 i = 0; i < responses.length; i++) {
             if (_getRequestType(responses[i].requestId) == AUTH_REQUEST_TYPE) {
+                authResponseIndex = i;
                 numAuthResponses++;
             }
-
-            //TODO: Get the userID from the response
         }
         require(numAuthResponses == 1, "Exactly 1 auth response is required");
 
-        return userID;
+        return authResponseIndex;
     }
 
     /**
@@ -324,35 +326,54 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      */
     function submitResponse(Response[] memory responses, bytes memory crossChainProofs) public {
         UniversalVerifierMultiQueryStorage storage $ = _getUniversalVerifierMultiQueryStorage();
+        address sender = _msgSender();
 
         // 1. Check for auth responses (throw if not provided exactly 1)
-        //      and remember the userID from the response
-        //TODO: return requestId of the auth response and execute verification for this response
-        // in order to get "userID" from the output response field
-        uint256 authRequestId = checkAuthResponses(responses);
+        // and return auth response index in the responses array
+        // in order to get "userID" from the output response field then
+        uint256 authResponseIndex = checkAuthResponses(responses);
 
         // 2. Process crossChainProofs
         $._state.processCrossChainProofs(crossChainProofs);
 
-        // Verify for the auth request
-        // authRequest.validator.verify(...) -> userIDFromAuth
-        // write results for the auth request
-        // emit 
-        uint256 userIDFromAuth = 0;
-        
-        address sender = _msgSender();
+        // Verify for the auth request and get the userID
+        Response memory authResponse = responses[authResponseIndex]; 
+        Request memory authRequest = getRequest(authResponse.requestId);
+        IRequestValidator.ResponseField[] memory authSignals = authRequest.validator.verify(
+            authResponse.proof,
+            authRequest.params,
+            sender,
+            $._state
+        );
+
+        uint256 userIDFromAuth;
+        for (uint256 i = 0; i < authSignals.length; i++) {
+            if (keccak256(bytes(authSignals[i].name)) == keccak256(bytes("userID"))) {
+                userIDFromAuth = authSignals[i].value;
+                break;
+            }
+        }
+
+        writeProofResults(
+            authResponse.queryId,
+            authResponse.requestId,
+            authResponse.requestIndexInQuery,
+            userIDFromAuth,
+            authSignals
+        );
 
         //TODO: Check all the mappings
         $._user_address_to_id[sender] = userIDFromAuth;
         $._id_to_user_address[userIDFromAuth] = sender;
         $._user_id_and_address_auth[userIDFromAuth][sender] = true;
 
-
-         // 3. Verify regular responses, write proof results (under the userID key from the step 1),
+        // 3. Verify regular responses, write proof results (under the userID key from the step 1),
         //      emit events (existing logic)
         for (uint256 i = 0; i < responses.length; i++) {
+            // emit for all the responses
             emit ResponseSubmitted(responses[i].requestId, _msgSender());
 
+            // avoid to process auth request again
             if (_getRequestType(responses[i].requestId) == AUTH_REQUEST_TYPE) {
                 continue;
             }
@@ -369,29 +390,38 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
                 $._state
             );
 
-            writeProofResults(userIDFromAuth, response.requestId, signals);
+            writeProofResults(
+                response.queryId,
+                response.requestId,
+                response.requestIndexInQuery,
+                userIDFromAuth,
+                signals
+            );
 
             if (response.metadata.length > 0) {
                 revert("Metadata not supported yet");
             }
-
         }
     }
 
     /**
      * @dev Writes proof results.
-     * @param userID The userID of the proof
+     * @param queryId The query ID of the proof
      * @param requestId The request ID of the proof
+     * @param requestIndexInQuery The index of the request in the query definition
+     * @param userID The userID of the proof
      * @param responseFields The array of response fields of the proof
      */
     function writeProofResults(
-        uint256 userID,
+        uint256 queryId,
         uint256 requestId,
+        uint256 requestIndexInQuery,
+        uint256 userID,
         IRequestValidator.ResponseField[] memory responseFields
     ) public {
         UniversalVerifierMultiQueryStorage storage $ = _getUniversalVerifierMultiQueryStorage();
 
-        Proof storage proof = $._proofs[userID][requestId];
+        Proof storage proof = $._proofs[queryId][requestId][requestIndexInQuery][userID];
         for (uint256 i = 0; i < responseFields.length; i++) {
             proof.storageFields[responseFields[i].name] = responseFields[i].value;
         }
@@ -464,7 +494,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         // 3. Check if all requests statuses are true for the userId
         for (uint256 i = 0; i < s._queries[queryId].requestIds.length; i++) {
             uint256 requestId = s._queries[queryId].requestIds[i];
-            if (!s._proofs[userID][requestId].isVerified) {
+            if (!s._proofs[queryId][requestId][i][userID].isVerified) {
                 return false;
             }
         }
