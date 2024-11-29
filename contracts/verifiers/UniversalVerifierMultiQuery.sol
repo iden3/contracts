@@ -51,10 +51,30 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      * @param metadata Metadata of the request.
      */
     struct Response {
+        uint256 queryId; // TODO new field
         uint256 requestId;
+        uint256 requestIndexInQuery;  // TODO new field
         bytes proof;
         bytes metadata;
     }
+
+
+// TODO discussion result start
+//    struct ResponseFieldFromRequest {
+//        uint256 requestId;
+//        string responseFieldName;
+//        uint256 requestIndexInQuery;
+//    }
+//
+//ResponseFieldFromRequest[][]
+
+//          [
+//              [{linkID, 1, 0}, {linkID, 2, 0}]
+//              [{linkID, 2, 2}, {linkID, 3, 1}],
+//              [{issuerID, 2, 3}, {issuer, 3, 4}],
+//          ]
+// TODO discussion result start
+
 
     /**
      * @dev Query. Structure for query.
