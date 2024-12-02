@@ -36,5 +36,5 @@ interface IRequestValidator {
         bytes calldata data,
         address sender,
         IState state
-    ) external returns (IRequestValidator.ResponseField[] memory);
+    ) external returns (ResponseField[] memory);
 }

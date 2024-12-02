@@ -30,10 +30,9 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IRequestValidator, ERC
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.EthIdentityValidator")) - 1))
     //  & ~bytes32(uint256(0xff));
     bytes32 private constant EthIdentityValidatorBaseStorageLocation =
-        0x28c92975a30f1f2f7970a65953987652034d896ba2d3b7a4961ada9e18287510;
-    //TODO: need to calc properly
+        0x1816cff28d525c2e505742319020369d0e29e8fafd5168e127e29766cf2be1fb;
     
-        /// @dev Get the main storage using assembly to ensure specific storage location
+    /// @dev Get the main storage using assembly to ensure specific storage location
     function _getEthIdentityValidatorBaseStorage()
         private
         pure
@@ -46,17 +45,13 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IRequestValidator, ERC
 
     /**
      * @dev Initialize the contract
-     * @param _verifierContractAddr Address of the verifier contract
      * @param _stateContractAddr Address of the state contract
      * @param owner Owner of the contract
      */
     function initialize(
-        address _verifierContractAddr,
         address _stateContractAddr,
         address owner
     ) public initializer {
-        _setInputToIndex("userID", 0);
-
         _initDefaultStateVariables(_stateContractAddr, owner);
     }
 
@@ -93,14 +88,14 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IRequestValidator, ERC
         bytes calldata data,
         address sender,
         IState stateContract
-    ) public view override returns (IRequestValidator.Signal[] memory) {
+    ) public view override returns (IRequestValidator.ResponseField[] memory) {
         (
             uint256 userID
         ) = abi.decode(proof, (uint256));
 
         _verifyEthIdentity(userID, sender);
-        IRequestValidator.Signal[] memory signals = new IRequestValidator.Signal[](1);
-        signals[0] = IRequestValidator.Signal({name: "userID", value: userID});
+        IRequestValidator.ResponseField[] memory signals = new IRequestValidator.ResponseField[](1);
+        signals[0] = IRequestValidator.ResponseField({name: "userID", value: userID});
         return signals;
     }
 
