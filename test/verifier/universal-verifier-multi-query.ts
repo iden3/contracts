@@ -3,18 +3,18 @@ import { DeployHelper } from "../../helpers/DeployHelper";
 import { ethers } from "hardhat";
 import { packValidatorParams } from "../utils/validator-pack-utils";
 import { prepareInputs } from "../utils/state-utils";
-import { Block, Contract } from "ethers";
+import { Contract } from "ethers";
 import proofJson from "../validators/sig/data/valid_sig_user_genesis.json";
 import { buildCrossChainProofs, packCrossChainProofs, packZKProof } from "../utils/packData";
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 describe("Universal Verifier Multi-query", function () {
-  let verifier: any, sig: any;
+  let verifier: any, sig: any, authV2: any;
   let signer;
   let signerAddress: string;
   let deployHelper: DeployHelper;
-  let stateCrossChainStub, crossChainProofValidatorStub, validatorStub: Contract;
+  let stateCrossChainStub, crossChainProofValidatorStub: Contract;
 
   const globalStateMessage = {
     timestamp: BigInt(Math.floor(Date.now() / 1000)),
@@ -68,9 +68,9 @@ describe("Universal Verifier Multi-query", function () {
       await stateCrossChainStub.getAddress(),
     );
 
-    validatorStub = await deployHelper.deployRequestValidatorStub();
+    sig = await deployHelper.deployRequestValidatorStub();
+    authV2 = await deployHelper.deployRequestValidatorStub();
 
-    sig = validatorStub;
     await verifier.addValidatorToWhitelist(await sig.getAddress());
     await verifier.connect();
   }
@@ -122,12 +122,12 @@ describe("Universal Verifier Multi-query", function () {
 
     await verifier.setAuthRequest(authRequestId, {
       metadata: "metadata",
-      validator: await sig.getAddress(),
+      validator: await authV2.getAddress(),
       params: params,
     });
     const authRequestStored = await verifier.getAuthRequest(authRequestId);
     expect(authRequestStored[0]).to.be.equal("metadata");
-    expect(authRequestStored[1]).to.be.equal(await sig.getAddress());
+    expect(authRequestStored[1]).to.be.equal(await authV2.getAddress());
     expect(authRequestStored[2]).to.be.equal(params);
 
     const query = {
