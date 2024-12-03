@@ -39,6 +39,11 @@ const config: HardhatUserConfig = {
     compilers: [
       {
         version: "0.8.27",
+      },
+    ],
+    overrides: {
+      "contracts/verifiers/UniversalVerifierMultiQuery.sol": {
+        version: "0.8.27",
         settings: {
           optimizer: {
             enabled: true,
@@ -46,7 +51,7 @@ const config: HardhatUserConfig = {
           },
         },
       },
-    ],
+    },
   },
   networks: {
     "privado-main": {
