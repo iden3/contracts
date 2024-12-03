@@ -173,12 +173,14 @@ describe("Universal Verifier Multi-query", function () {
         {
           queryId,
           requestId,
+          groupId,
           proof,
           metadata: metadatas,
         },
         {
           queryId,
           requestId: authRequestId,
+          groupId,
           proof,
           metadata: metadatas,
         },

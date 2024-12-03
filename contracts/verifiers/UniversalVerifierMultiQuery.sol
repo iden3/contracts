@@ -54,7 +54,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     struct Response {
         uint256 queryId;
         uint256 requestId;
-        //uint256 groupId; // TODO: We remove from response and add to the query groupIdFromRequestId
+        uint256 groupId;
         bytes proof;
         bytes metadata;
     }
@@ -176,9 +176,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      */
     modifier checkRequestExistence(uint256 requestId, bool existence) {
         if (existence) {
-            require(requestIdExists(requestId), "request id doesn't exist");
+            require(requestIdExists(requestId), "request id or auth request id doesn't exist");
         } else {
-            require(!requestIdExists(requestId), "request id already exists");
+            require(!requestIdExists(requestId), "request id or auth request id already exists");
         }
         _;
     }
@@ -191,24 +191,6 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
             require(queryIdExists(queryId), "query id doesn't exist");
         } else {
             require(!queryIdExists(queryId), "query id already exists");
-        }
-        _;
-    }
-
-    /**
-     * @dev Modifier to check if the auth request exists
-     */
-    modifier checkAuthRequestExistence(uint256 requestId, bool existence) {
-        if (existence) {
-            require(
-                requestIdExists(requestId) && _getRequestType(requestId) == AUTH_REQUEST_TYPE,
-                "auth request id doesn't exist"
-            );
-        } else {
-            require(
-                !(requestIdExists(requestId) && _getRequestType(requestId) == AUTH_REQUEST_TYPE),
-                "auth request id already exists"
-            );
         }
         _;
     }
@@ -370,23 +352,6 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     }
 
     /**
-     * @dev Gets the group ID from the query request
-     * @param queryId The ID of the query
-     * @param requestId The ID of the request
-     * @return The group ID of the request in the query
-     */
-    function getGroupIdFromQueryRequest(uint256 queryId, uint256 requestId) public view returns (uint256) {
-        UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
-        Query memory query = s._queries[queryId];
-        for (uint256 i = 0; i < query.requestIds.length; i++) {
-            if (query.requestIds[i] == requestId) {
-                return query.groupIdFromRequests[i];
-            }
-        }
-        revert("Request not found in the query");
-    }
-
-    /**
      * @dev Submits an array of responses and updates proofs status
      * @param responses The list of responses including request ID, proof and metadata
      * @param crossChainProofs The list of cross chain proofs from universal resolver (oracle). This
@@ -425,7 +390,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         writeProofResults(
             authResponse.queryId,
             authResponse.requestId,
-            getGroupIdFromQueryRequest(authResponse.queryId, authResponse.requestId),
+            authResponse.groupId, //getGroupIdFromQueryRequest(authResponse.queryId, authResponse.requestId),
             userIDFromAuth,
             authSignals
         );
@@ -441,7 +406,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
             emit ResponseSubmitted(
                 responses[i].queryId,
                 responses[i].requestId,
-                getGroupIdFromQueryRequest(responses[i].queryId, responses[i].requestId),
+                responses[i].groupId,
                 _msgSender()
             );
 
@@ -464,7 +429,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
             writeProofResults(
                 response.queryId,
                 response.requestId,
-                getGroupIdFromQueryRequest(response.queryId, response.requestId),
+                response.groupId,
                 userIDFromAuth,
                 signals
             );
@@ -510,7 +475,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     function setAuthRequest(
         uint256 requestId,
         Request calldata request
-    ) public checkAuthRequestExistence(requestId, false) onlyOwner {
+    ) public checkRequestExistence(requestId, false) onlyOwner {
         if (_getRequestType(requestId) != AUTH_REQUEST_TYPE) {
             revert("Request ID is not an auth request");
         }
@@ -537,7 +502,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      */
     function getAuthRequest(
         uint256 requestId
-    ) public view checkAuthRequestExistence(requestId, true) returns (Request memory authRequest) {
+    ) public view checkRequestExistence(requestId, true) returns (Request memory authRequest) {
         return _getUniversalVerifierMultiQueryStorage()._requests[requestId];
     }
 
