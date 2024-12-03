@@ -52,6 +52,17 @@ describe("Universal Verifier Multi-query", function () {
     claimPathNotExists: 0,
   };
 
+  const storageFields = [
+    {
+      name: "userID",
+      value: 1,
+    },
+    {
+      name: "issuerID",
+      value: 2,
+    },
+  ];
+
   async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
     signerAddress = await signer.getAddress();
@@ -80,17 +91,17 @@ describe("Universal Verifier Multi-query", function () {
     queryId: bigint,
     requestId: bigint,
     groupId: bigint,
+    storageFields: any[],
   ) {
-    const fieldsToCheck = ["userID", "issuerID"];
-    for (const field of fieldsToCheck) {
+    for (const field of storageFields) {
       const value = await verifier.getResponseFieldValueFromAddress(
         queryId,
         requestId,
         groupId,
         await signer.getAddress(),
-        field,
+        field.name,
       );
-      expect(value).to.be.greaterThan(0n);
+      expect(value).to.be.equal(field.value);
     }
   }
 
@@ -177,8 +188,20 @@ describe("Universal Verifier Multi-query", function () {
 
     await tx.wait();
 
-    await checkStorageFields(verifier, BigInt(queryId), authRequestId, BigInt(groupId));
-    await checkStorageFields(verifier, BigInt(queryId), BigInt(requestId), BigInt(groupId));
+    await checkStorageFields(
+      verifier,
+      BigInt(queryId),
+      authRequestId,
+      BigInt(groupId),
+      storageFields,
+    );
+    await checkStorageFields(
+      verifier,
+      BigInt(queryId),
+      BigInt(requestId),
+      BigInt(groupId),
+      storageFields,
+    );
     const filter = verifier.filters.ResponseSubmitted;
 
     const events = await verifier.queryFilter(filter, -1);
