@@ -31,7 +31,7 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IRequestValidator, ERC
     //  & ~bytes32(uint256(0xff));
     bytes32 private constant EthIdentityValidatorBaseStorageLocation =
         0x1816cff28d525c2e505742319020369d0e29e8fafd5168e127e29766cf2be1fb;
-    
+
     /// @dev Get the main storage using assembly to ensure specific storage location
     function _getEthIdentityValidatorBaseStorage()
         private
@@ -48,19 +48,12 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IRequestValidator, ERC
      * @param _stateContractAddr Address of the state contract
      * @param owner Owner of the contract
      */
-    function initialize(
-        address _stateContractAddr,
-        address owner
-    ) public initializer {
+    function initialize(address _stateContractAddr, address owner) public initializer {
         _initDefaultStateVariables(_stateContractAddr, owner);
     }
 
-    function _initDefaultStateVariables(
-        address _stateContractAddr,
-        address owner
-    ) internal {
-        EthIdentityValidatorBaseStorage
-            storage s = _getEthIdentityValidatorBaseStorage();
+    function _initDefaultStateVariables(address _stateContractAddr, address owner) internal {
+        EthIdentityValidatorBaseStorage storage s = _getEthIdentityValidatorBaseStorage();
 
         s.state = IState(_stateContractAddr);
         __Ownable_init(owner);
@@ -89,9 +82,7 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IRequestValidator, ERC
         address sender,
         IState stateContract
     ) public view override returns (IRequestValidator.ResponseField[] memory) {
-        (
-            uint256 userID
-        ) = abi.decode(proof, (uint256));
+        uint256 userID = abi.decode(proof, (uint256));
 
         _verifyEthIdentity(userID, sender);
         IRequestValidator.ResponseField[] memory signals = new IRequestValidator.ResponseField[](1);
@@ -99,15 +90,11 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IRequestValidator, ERC
         return signals;
     }
 
-
     function _getState() internal view returns (IState) {
         return _getEthIdentityValidatorBaseStorage().state;
     }
 
-    function _verifyEthIdentity(
-        uint256 id,
-        address sender
-    ) internal view {
+    function _verifyEthIdentity(uint256 id, address sender) internal view {
         bytes2 idType = _getState().getIdTypeIfSupported(id);
         uint256 calcId = GenesisUtils.calcIdFromEthAddress(idType, sender);
         require(calcId == id, "Sender is not owner of the ethereum identity");

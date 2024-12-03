@@ -98,6 +98,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     /// @custom:storage-location erc7201:iden3.storage.UniversalVerifierMultiQuery
     struct UniversalVerifierMultiQueryStorage {
         // Information about requests
+        // solhint-disable-next-line
         mapping(uint256 queryId => mapping(uint256 groupId => mapping(uint256 requestId => mapping(uint256 userID => Proof)))) _proofs;
         mapping(uint256 requestId => Request) _requests;
         uint256[] _requestIds;
@@ -107,14 +108,15 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         uint256[] _queryIds;
         // Information linked between users and their addresses
         mapping(address userAddress => uint256 userID) _user_address_to_id;
-        mapping(uint256 userID => address userAddress) _id_to_user_address; // check address[] to allow multiple addresses for the same userID?
+        mapping(uint256 userID => address userAddress) _id_to_user_address;
         mapping(uint256 userID => mapping(address userAddress => bool hasAuth)) _user_id_and_address_auth;
         uint256[] _authRequestIds; // reuses the same _requests mapping to store the auth requests
         // Whitelisted validators
         mapping(IRequestValidator => bool isApproved) _validatorWhitelist;
     }
 
-    // keccak256(abi.encode(uint256(keccak256("iden3.storage.UniversalVerifierMultiQuery")) - 1)) & ~bytes32(uint256(0xff));
+    // solhint-disable-next-line
+    // keccak256(abi.encode(uint256(keccak256("iden3.storage.UniversalVerifierMultiQuery")) -1 )) & ~bytes32(uint256(0xff));
     bytes32 internal constant UniversalVerifierMultiQueryStorageLocation =
         0x4235c64ddf027641dd9aa586d246e4cc3acfcb3f7016a8aa68f7ac21d38b3b00;
 
@@ -176,7 +178,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      */
     modifier checkRequestExistence(uint256 requestId, bool existence) {
         if (existence) {
-            require(requestIdExists(requestId), "request id or auth request id doesn't exist");
+            require(requestIdExists(requestId), "requestu id or auth request id doesn't exist");
         } else {
             require(!requestIdExists(requestId), "request id or auth request id already exists");
         }
@@ -520,11 +522,16 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         uint256 groupId,
         uint256 userID,
         string memory responseFieldName
-    ) public view checkQueryExistence(queryId, true) checkRequestExistence(requestId, true) returns (uint256) {
+    )
+        public
+        view
+        checkQueryExistence(queryId, true)
+        checkRequestExistence(requestId, true)
+        returns (uint256)
+    {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
         return s._proofs[queryId][requestId][groupId][userID].storageFields[responseFieldName];
     }
-
 
     /**
      * @dev Gets response field value
@@ -540,7 +547,13 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         uint256 groupId,
         address sender,
         string memory responseFieldName
-    ) public view checkQueryExistence(queryId, true) checkRequestExistence(requestId, true) returns (uint256) {
+    )
+        public
+        view
+        checkQueryExistence(queryId, true)
+        checkRequestExistence(requestId, true)
+        returns (uint256)
+    {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
         uint256 userID = s._user_address_to_id[sender];
         return s._proofs[queryId][requestId][groupId][userID].storageFields[responseFieldName];
@@ -552,7 +565,10 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      * @param userID The ID of the user
      * @return Whether all linked response fields are the same
      */
-    function _checkLinkedResponseFields(uint256 queryId, uint256 userID) internal view returns (bool) {
+    function _checkLinkedResponseFields(
+        uint256 queryId,
+        uint256 userID
+    ) internal view returns (bool) {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
 
         for (uint256 i = 0; i < s._queries[queryId].linkedResponseFields.length; i++) {
