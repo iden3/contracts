@@ -7,6 +7,9 @@ import {IState} from "./IState.sol";
  * @dev IRequestValidator. Interface for verification of request query data.
  */
 interface IRequestValidator {
+
+    function getGroupID(bytes params) external view returns (uint256);
+
     /**
      * @dev ResponseField. Information about response fields from verification. Used in verify function.
      * @param name Name of the response field

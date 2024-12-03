@@ -52,32 +52,13 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      * @param metadata Metadata of the request.
      */
     struct Response {
-        uint256 queryId;
         uint256 requestId;
-        //uint256 groupId; // TODO: We remove from response and add to the query groupIdFromRequestId
         bytes proof;
         bytes metadata;
     }
 
-    // TODO discussion result start
-    //    struct ResponseFieldFromRequest {
-    //        uint256 requestId;
-    //        string responseFieldName;
-    //        uint256 groupId;
-    //    }
-    //
-    //ResponseFieldFromRequest[][]
-
-    //          [
-    //              [{linkID, 1, 0}, {linkID, 2, 0}]
-    //              [{linkID, 2, 2}, {linkID, 3, 1}],
-    //              [{issuerID, 2, 3}, {issuer, 3, 4}],
-    //          ]
-    // TODO discussion result start
-
     struct ResponseFieldFromRequest {
         uint256 requestId;
-        uint256 groupId;
         string responseFieldName;
     }
 
@@ -90,16 +71,53 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     struct Query {
         uint256 queryId;
         uint256[] requestIds;
-        uint256[] groupIdFromRequests; // TODO: We need it to know the group id of the request
         ResponseFieldFromRequest[][] linkedResponseFields; // this are response fields linked between requests
         bytes metadata;
     }
+    //ResponseFieldFromRequest[][]
+    //          [
+    //              [
+    //                   {1, linkID}, {200, linkID}
+    //              ],
+    //              [
+    //                   {2, linkID}, {201, linkID}
+    //              ]
+    //          ]
 
     /// @custom:storage-location erc7201:iden3.storage.UniversalVerifierMultiQuery
     struct UniversalVerifierMultiQueryStorage {
         // Information about requests
-        mapping(uint256 queryId => mapping(uint256 groupId => mapping(uint256 requestId => mapping(uint256 userID => Proof)))) _proofs;
+        mapping(uint256 requestId => mapping(uint256 userID => Proof)) _proofs;
         mapping(uint256 requestId => Request) _requests;
+
+        mapping(uint256 groupId => uint256[] requestIds) _groupedRequests;
+
+//      1. Set Req 1 (groupID = 1)
+            // Check that groupID doesn't exist yet
+//      2. Set Req 2 (groupID = 1)
+            // Check that groupID doesn't exist yet
+//      3. Set Req 200 (groupID = 1)
+            // Check that groupID doesn't exist yet
+
+//      4. Set Req 3 (groupID = 2)
+//      5. Set Req 201 (groupID = 2)
+
+//      6. setQuery[1,2]
+            // Check that groupID doesn't exist yet
+//           1 => [1, 2]
+//           2 => [3, 201]
+
+//        7. submitResponse: requests 1, 2, 200
+//                7.1 Check that all the group are full
+//                7.2 Check LinkID is the same for each of the groups
+
+//        8. getQueryStatus: it result to FALSE cuz requests 3 and 201 are false
+//        9. submitResponse: requests 3,201
+//        10. getQueryStatus: it result to TRUE as all requests are true
+
+        // Query1 => (1, 2, 200), (3, 201)
+        // Query2 => (1, 2, 200), 10
+
         uint256[] _requestIds;
         IState _state;
         // Information about queries

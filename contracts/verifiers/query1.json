@@ -1,0 +1,103 @@
+{
+  "id": "f8aee09d-f592-4fcc-8d2a-8938aa26676c",
+  "typ": "application/iden3comm-plain-json",
+  "type": "https://iden3-communication.io/authorization/1.0/request",
+  "thid": "f8aee09d-f592-4fcc-8d2a-8938aa26676c",
+  "from": "did:polygonid:polygon:mumbai:2qFroxB5kwgCxgVrNGUM6EW3khJgCdHHnKTr3VnTcp",
+  "body": {
+    "callbackUrl": "https://test.com/callback",
+    "reason": "age verification",
+    "message": "test message",
+    "scope": [
+      {
+        "id": 1,
+        "circuitId": "credentialAtomicQueryV3",
+        "params": {
+          "nullifierSessionId" : "123443290439234342342423423423423"
+        },
+        "query": {
+          "groupId": 1,
+          "proofType": "BJJSignature",
+          "allowedIssuers": ["*"],
+          "context": "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v101.json-ld",
+          "type": "KYCEmployee",
+          "credentialSubject": {
+            "position": {
+              "$eq": "developer"
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "circuitId": "credentialAtomicQueryV3",
+        "params": {
+          "nullifierSessionId" : "123443290439234342342423423423423"
+        },
+        "query": {
+          "groupId": 1,
+          "proofType": "BJJSignature",
+          "allowedIssuers": ["*"],
+          "context": "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v101.json-ld",
+          "type": "KYCEmployee",
+          "credentialSubject": {
+            "position": {
+              "$eq": "developer"
+            }
+          }
+        }
+      },
+      {
+        "id": 200,
+        "circuitId": "LinkedMultiQuery",
+        "query": {
+          "groupId" : 1,
+          "credentialSubject": {
+            "bithdate": {
+              "$lt": "20010101",
+              "$gt": "19900101"
+            },
+            "country": {
+              "$eq": "20010101"
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "circuitId": "credentialAtomicQueryV3",
+        "params": {
+          "nullifierSessionId" : "123443290439234342342423423423423"
+        },
+        "query": {
+          "groupId": 1,
+          "proofType": "BJJSignature",
+          "allowedIssuers": ["*"],
+          "context": "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v101.json-ld",
+          "type": "KYCEmployee",
+          "credentialSubject": {
+            "position": {
+              "$eq": "developer"
+            }
+          }
+        }
+      },
+      {
+        "id": 201,
+        "circuitId": "LinkedMultiQuery",
+        "query": {
+          "groupId" : 2,
+          "credentialSubject": {
+            "bithdate": {
+              "$lt": "20010101",
+              "$gt": "19900101"
+            },
+            "country": {
+              "$eq": "20010101"
+            }
+          }
+        }
+      }
+    ]
+  }
+}
