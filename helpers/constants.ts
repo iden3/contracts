@@ -123,6 +123,25 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
+  UNIVERSAL_VERIFIER_MULTIQUERY: {
+    name: "UniversalVerifierMultiQuery",
+    version: "1.0.0",
+    unifiedAddress: "",
+    create2Calldata: ethers.hexlify(
+      ethers.toUtf8Bytes("iden3.create2.UniversalVerifierMultiQuery"),
+    ),
+    verificationOpts: {
+      // For verifying the different contracts with proxy we need verification with different constructor arguments
+      constructorArgsImplementation: [],
+      constructorArgsProxy: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+      ],
+      constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
+      libraries: {},
+    },
+  },
   STATE: {
     name: "State",
     version: "2.6.1",
