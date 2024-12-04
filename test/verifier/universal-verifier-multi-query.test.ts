@@ -86,18 +86,10 @@ describe("Universal Verifier Multi-query", function () {
     await verifier.connect();
   }
 
-  async function checkStorageFields(
-    verifier: any,
-    queryId: bigint,
-    requestId: bigint,
-    groupId: bigint,
-    storageFields: any[],
-  ) {
+  async function checkStorageFields(verifier: any, requestId: bigint, storageFields: any[]) {
     for (const field of storageFields) {
       const value = await verifier.getResponseFieldValueFromAddress(
-        queryId,
         requestId,
-        groupId,
         await signer.getAddress(),
         field.name,
       );
@@ -144,16 +136,12 @@ describe("Universal Verifier Multi-query", function () {
     const query = {
       queryId,
       requestIds: [requestId, authRequestId],
-      groupIdFromRequests: [0, 0],
-      linkedResponseFields: [[]],
       metadata: "0x",
     };
     await verifier.setQuery(0, query);
     const queryStored = await verifier.getQuery(queryId);
     expect(queryStored[0]).to.be.equal(queryId);
     expect(queryStored[1]).to.be.deep.equal(query.requestIds);
-    expect(queryStored[2]).to.be.deep.equal(query.groupIdFromRequests);
-    expect(queryStored[3]).to.be.deep.equal(query.linkedResponseFields);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
 
@@ -171,16 +159,12 @@ describe("Universal Verifier Multi-query", function () {
     const tx = await verifier.submitResponse(
       [
         {
-          queryId,
           requestId,
-          groupId,
           proof,
           metadata: metadatas,
         },
         {
-          queryId,
           requestId: authRequestId,
-          groupId,
           proof,
           metadata: metadatas,
         },
@@ -190,27 +174,13 @@ describe("Universal Verifier Multi-query", function () {
 
     await tx.wait();
 
-    await checkStorageFields(
-      verifier,
-      BigInt(queryId),
-      authRequestId,
-      BigInt(groupId),
-      storageFields,
-    );
-    await checkStorageFields(
-      verifier,
-      BigInt(queryId),
-      BigInt(requestId),
-      BigInt(groupId),
-      storageFields,
-    );
+    await checkStorageFields(verifier, authRequestId, storageFields);
+    await checkStorageFields(verifier, BigInt(requestId), storageFields);
     const filter = verifier.filters.ResponseSubmitted;
 
     const events = await verifier.queryFilter(filter, -1);
     expect(events[0].eventName).to.be.equal("ResponseSubmitted");
-    expect(events[0].args.queryId).to.be.equal(queryId);
     expect(events[0].args.requestId).to.be.equal(requestId);
-    expect(events[0].args.groupId).to.be.equal(groupId);
     expect(events[0].args.caller).to.be.equal(signerAddress);
 
     await expect(verifier.getQueryStatus(nonExistingQueryId, signerAddress)).to.be.rejectedWith(

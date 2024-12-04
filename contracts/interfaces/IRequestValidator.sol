@@ -37,4 +37,12 @@ interface IRequestValidator {
         address sender,
         IState state
     ) external returns (ResponseField[] memory);
+
+    /**
+     * @dev Get the group ID of the request query data.
+     * @param params Request query data of the credential to verify.
+     * @return Group ID of the request query data.
+     */
+    function getGroupID(bytes calldata params) external view returns (uint256);
+
 }

@@ -99,4 +99,9 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IRequestValidator, ERC
         uint256 calcId = GenesisUtils.calcIdFromEthAddress(idType, sender);
         require(calcId == id, "Sender is not owner of the ethereum identity");
     }
+
+    function getGroupID(bytes calldata) external pure override returns (uint256) {
+        // TODO: Implement group ID
+        return 0;
+    }
 }

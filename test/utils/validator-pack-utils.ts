@@ -15,7 +15,7 @@ export function packValidatorParams(query: any, allowedIssuers: any[] = []): str
         "uint256[] allowedIssuers," +
         "string[] circuitIds," +
         "bool skipClaimRevocationCheck," +
-        "uint256 claimPathNotExists" +
+        "uint256 claimPathNotExists," +
         ")",
     ],
     [

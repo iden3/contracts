@@ -52,9 +52,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      * @param metadata Metadata of the request.
      */
     struct Response {
-        uint256 queryId;
         uint256 requestId;
-        uint256 groupId;
         bytes proof;
         bytes metadata;
     }
@@ -77,7 +75,6 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
     struct ResponseFieldFromRequest {
         uint256 requestId;
-        uint256 groupId;
         string responseFieldName;
     }
 
@@ -90,8 +87,6 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     struct Query {
         uint256 queryId;
         uint256[] requestIds;
-        uint256[] groupIdFromRequests; // TODO: We need it to know the group id of the request
-        ResponseFieldFromRequest[][] linkedResponseFields; // this are response fields linked between requests
         bytes metadata;
     }
 
@@ -99,9 +94,36 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     struct UniversalVerifierMultiQueryStorage {
         // Information about requests
         // solhint-disable-next-line
-        mapping(uint256 queryId => mapping(uint256 groupId => mapping(uint256 requestId => mapping(uint256 userID => Proof)))) _proofs;
+        mapping(uint256 requestId => mapping(uint256 userID => Proof)) _proofs;
         mapping(uint256 requestId => Request) _requests;
         uint256[] _requestIds;
+        mapping(uint256 groupId => uint256[] requestIds) _groupedRequests;
+        //      1. Set Req 1 (groupID = 1)
+        // Check that groupID doesn't exist yet
+        //      2. Set Req 2 (groupID = 1)
+        // Check that groupID doesn't exist yet
+        //      3. Set Req 200 (groupID = 1)
+        // Check that groupID doesn't exist yet
+
+        //      4. Set Req 3 (groupID = 2)
+        //      5. Set Req 201 (groupID = 2)
+
+        //      6. setQuery[1,2]
+        // Check that groupID doesn't exist yet
+        //           1 => [1, 2]
+        //           2 => [3, 201]
+
+        //        7. submitResponse: requests 1, 2, 200
+        //                7.1 Check that all the group are full
+        //                7.2 Check LinkID is the same for each of the groups
+
+        //        8. getQueryStatus: it result to FALSE cuz requests 3 and 201 are false
+        //        9. submitResponse: requests 3,201
+        //        10. getQueryStatus: it result to TRUE as all requests are true
+
+        // Query1 => (1, 2, 200), (3, 201)
+        // Query2 => (1, 2, 200), 10
+
         IState _state;
         // Information about queries
         mapping(uint256 queryId => Query) _queries;
@@ -123,12 +145,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     /**
      * @dev Event emitted upon submitting a request
      */
-    event ResponseSubmitted(
-        uint256 queryId,
-        uint256 indexed requestId,
-        uint256 groupId,
-        address indexed caller
-    );
+    event ResponseSubmitted(uint256 indexed requestId, address indexed caller);
 
     /**
      * @dev Event emitted upon adding a request
@@ -178,9 +195,21 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      */
     modifier checkRequestExistence(uint256 requestId, bool existence) {
         if (existence) {
-            require(requestIdExists(requestId), "requestu id or auth request id doesn't exist");
+            require(requestIdExists(requestId), "request id or auth request id doesn't exist");
         } else {
             require(!requestIdExists(requestId), "request id or auth request id already exists");
+        }
+        _;
+    }
+
+    /**
+     * @dev Modifier to check if the request exists
+     */
+    modifier checkRequestGroupExistence(uint256 groupId, bool existence) {
+        if (existence) {
+            require(groupIdExists(groupId), "group id doesn't exist");
+        } else {
+            require(!groupIdExists(groupId), "group id already exists");
         }
         _;
     }
@@ -236,6 +265,15 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     }
 
     /**
+     * @dev Checks if a group ID exists
+     * @param groupId The ID of the group
+     * @return Whether the group ID exists
+     */
+    function groupIdExists(uint256 groupId) public view returns (bool) {
+        return _getUniversalVerifierMultiQueryStorage()._groupedRequests[groupId].length > 0;
+    }
+
+    /**
      * @dev Checks if a query ID exists
      * @param queryId The ID of the query
      * @return Whether the query ID exists
@@ -265,7 +303,12 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     function setRequest(
         uint256 requestId,
         Request calldata request
-    ) public checkRequestExistence(requestId, false) onlyWhitelistedValidator(request.validator) {
+    )
+        public
+        checkRequestExistence(requestId, false)
+        checkRequestGroupExistence(request.validator.getGroupID(request.params), false)
+        onlyWhitelistedValidator(request.validator)
+    {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
         s._requests[requestId] = request;
         s._requestIds.push(requestId);
@@ -389,13 +432,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
             }
         }
 
-        writeProofResults(
-            authResponse.queryId,
-            authResponse.requestId,
-            authResponse.groupId, //getGroupIdFromQueryRequest(authResponse.queryId, authResponse.requestId),
-            userIDFromAuth,
-            authSignals
-        );
+        writeProofResults(authResponse.requestId, userIDFromAuth, authSignals);
 
         $._user_address_to_id[sender] = userIDFromAuth;
         $._id_to_user_address[userIDFromAuth] = sender;
@@ -405,12 +442,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         //      emit events (existing logic)
         for (uint256 i = 0; i < responses.length; i++) {
             // emit for all the responses
-            emit ResponseSubmitted(
-                responses[i].queryId,
-                responses[i].requestId,
-                responses[i].groupId,
-                _msgSender()
-            );
+            emit ResponseSubmitted(responses[i].requestId, _msgSender());
 
             // avoid to process auth request again
             if (_getRequestType(responses[i].requestId) == AUTH_REQUEST_TYPE) {
@@ -418,7 +450,6 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
             }
 
             Response memory response = responses[i];
-
             Request memory request = getRequest(response.requestId);
 
             IRequestValidator.ResponseField[] memory signals = request.validator.verify(
@@ -428,13 +459,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
                 $._state
             );
 
-            writeProofResults(
-                response.queryId,
-                response.requestId,
-                response.groupId,
-                userIDFromAuth,
-                signals
-            );
+            writeProofResults(response.requestId, userIDFromAuth, signals);
 
             if (response.metadata.length > 0) {
                 revert("Metadata not supported yet");
@@ -444,22 +469,18 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
     /**
      * @dev Writes proof results.
-     * @param queryId The query ID of the proof
      * @param requestId The request ID of the proof
-     * @param groupId The index of the request in the query definition
      * @param userID The userID of the proof
      * @param responseFields The array of response fields of the proof
      */
     function writeProofResults(
-        uint256 queryId,
         uint256 requestId,
-        uint256 groupId,
         uint256 userID,
         IRequestValidator.ResponseField[] memory responseFields
     ) public {
         UniversalVerifierMultiQueryStorage storage $ = _getUniversalVerifierMultiQueryStorage();
 
-        Proof storage proof = $._proofs[queryId][requestId][groupId][userID];
+        Proof storage proof = $._proofs[requestId][userID];
         for (uint256 i = 0; i < responseFields.length; i++) {
             proof.storageFields[responseFields[i].name] = responseFields[i].value;
         }
@@ -510,53 +531,33 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
     /**
      * @dev Gets response field value
-     * @param queryId Id of the query
      * @param requestId Id of the request
-     * @param groupId Group id of the request in the query
      * @param userID Id of the user
      * @param responseFieldName Name of the response field to get
      */
     function getResponseFieldValue(
-        uint256 queryId,
         uint256 requestId,
-        uint256 groupId,
         uint256 userID,
         string memory responseFieldName
-    )
-        public
-        view
-        checkQueryExistence(queryId, true)
-        checkRequestExistence(requestId, true)
-        returns (uint256)
-    {
+    ) public view checkRequestExistence(requestId, true) returns (uint256) {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
-        return s._proofs[queryId][requestId][groupId][userID].storageFields[responseFieldName];
+        return s._proofs[requestId][userID].storageFields[responseFieldName];
     }
 
     /**
      * @dev Gets response field value
-     * @param queryId Id of the query
      * @param requestId Id of the request
-     * @param groupId Group id of the request in the query
      * @param sender Address of the sender
      * @param responseFieldName Name of the response field to get
      */
     function getResponseFieldValueFromAddress(
-        uint256 queryId,
         uint256 requestId,
-        uint256 groupId,
         address sender,
         string memory responseFieldName
-    )
-        public
-        view
-        checkQueryExistence(queryId, true)
-        checkRequestExistence(requestId, true)
-        returns (uint256)
-    {
+    ) public view checkRequestExistence(requestId, true) returns (uint256) {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
         uint256 userID = s._user_address_to_id[sender];
-        return s._proofs[queryId][requestId][groupId][userID].storageFields[responseFieldName];
+        return s._proofs[requestId][userID].storageFields[responseFieldName];
     }
 
     /**
@@ -571,33 +572,26 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     ) internal view returns (bool) {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
 
-        for (uint256 i = 0; i < s._queries[queryId].linkedResponseFields.length; i++) {
-            // check if we have linked response fields
-            if (s._queries[queryId].linkedResponseFields[i].length > 0) {
-                // Get first value and check if all the values for the same linked responses are the same
-                uint256 firstValue = getResponseFieldValue(
-                    queryId,
-                    s._queries[queryId].linkedResponseFields[i][0].requestId,
-                    s._queries[queryId].linkedResponseFields[i][0].groupId,
-                    userID,
-                    s._queries[queryId].linkedResponseFields[i][0].responseFieldName
-                );
+        // TODO: Check hardcoded linkID only for now by groupID
 
-                for (uint256 j = 1; j < s._queries[queryId].linkedResponseFields[i].length; j++) {
-                    uint256 valueToCompare = getResponseFieldValue(
-                        queryId,
-                        s._queries[queryId].linkedResponseFields[i][j].requestId,
-                        s._queries[queryId].linkedResponseFields[i][j].groupId,
-                        userID,
-                        s._queries[queryId].linkedResponseFields[i][j].responseFieldName
-                    );
+        // Get first value and check if all the values for the same linked responses are the same
+        /*uint256 firstValue = getResponseFieldValue(
+            s._queries[queryId].requestIds[0].requestId,
+            userID,
+            "linkID"
+        );
 
-                    if (firstValue != valueToCompare) {
-                        return false;
-                    }
-                }
+        for (uint256 j = 1; j < s._queries[queryId].linkedResponseFields[i].length; j++) {
+            uint256 valueToCompare = getResponseFieldValue(
+                s._queries[queryId].linkedResponseFields[i][j].requestId,
+                userID,
+                s._queries[queryId].linkedResponseFields[i][j].responseFieldName
+            );
+
+            if (firstValue != valueToCompare) {
+                return false;
             }
-        }
+        }*/
         return true;
     }
 
@@ -624,8 +618,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         // 3. Check if all requests statuses are true for the userId
         for (uint256 i = 0; i < s._queries[queryId].requestIds.length; i++) {
             uint256 requestId = s._queries[queryId].requestIds[i];
-            uint256 groupId = s._queries[queryId].groupIdFromRequests[i];
-            if (!s._proofs[queryId][requestId][groupId][userID].isVerified) {
+            if (!s._proofs[requestId][userID].isVerified) {
                 return false;
             }
         }

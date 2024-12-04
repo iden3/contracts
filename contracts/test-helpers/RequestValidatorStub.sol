@@ -34,4 +34,8 @@ contract RequestValidatorStub is IRequestValidator, ERC165 {
         signals[1].value = 2;
         return signals;
     }
+
+    function getGroupID(bytes calldata) external pure override returns (uint256) {
+        return 0;
+    }
 }
