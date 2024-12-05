@@ -487,6 +487,13 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         }
     }
 
+    /**
+     * @dev Checks if all requests are included
+     * @param reqIds1 The list of request IDs from storage for a specific group
+     * @param reqIds2 The list of request IDs from the query for a specific group
+     * @param numRequests2 The number of requests in the query for a specific group
+     * @return Whether all requests in reqIds1 are included in reqIds2
+     */
     function _allRequestsIncluded(
         uint256[] storage reqIds1,
         uint256[] memory reqIds2,
@@ -681,10 +688,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      * @param queryId The ID of the query
      * @param userID The ID of the user
      */
-    function _checkLinkedResponseFields(
-        uint256 queryId,
-        uint256 userID
-    ) internal view {
+    function _checkLinkedResponseFields(uint256 queryId, uint256 userID) internal view {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
 
         uint256[] memory groupIndex = new uint256[](s._queries[queryId].requestIds.length);
@@ -692,7 +696,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         uint256 numGroups = 0;
 
         for (uint256 i = 0; i < s._queries[queryId].requestIds.length; i++) {
-            Request memory request = getRequest(s._queries[queryId].requestIds[i]);            
+            Request memory request = getRequest(s._queries[queryId].requestIds[i]);
 
             if (_getRequestType(s._queries[queryId].requestIds[i]) == AUTH_REQUEST_TYPE) {
                 continue;
@@ -711,9 +715,12 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
             );
 
             bool found = false;
-            for (uint256 j = 0; j < numGroups; j++) {                
+            for (uint256 j = 0; j < numGroups; j++) {
                 if (groupIndex[j] == requestGroupId) {
-                    require(groupLinkID[j] == requestLinkID, "linkID is not the same for each of the requests of the group");
+                    require(
+                        groupLinkID[j] == requestLinkID,
+                        "linkID is not the same for each of the requests of the group"
+                    );
                     found = true;
                 }
             }
