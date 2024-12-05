@@ -323,6 +323,29 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     }
 
     /**
+     * @dev Sets a group of requests
+     * @param groupId The ID of the group
+     * @param requestIds The IDs of the requests
+     * @param requests The requests data
+     */
+    function setGroupOfRequests(
+        uint256 groupId,
+        uint256[] memory requestIds,
+        Request[] calldata requests
+    ) public {
+        UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
+
+        for (uint256 i = 0; i < requestIds.length; i++) {
+            setRequest(requestIds[i], requests[i]);
+        }
+        // check that all the requests are set before adding them to the group
+        // because there is a check in setRequest that the group doesn't exist yet
+        for (uint256 i = 0; i < requestIds.length; i++) {
+            s._groupedRequests[groupId].push(requestIds[i]);
+        }
+    }
+
+    /**
      * @dev Gets a specific request by ID
      * @param requestId The ID of the request
      * @return request The request data
@@ -360,9 +383,13 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     ) public checkQueryExistence(queryId, false) {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
 
+        // check that exactly 1 auth request is included in the query
         _checkAuthRequestInQuery(query);
         s._queries[queryId] = query;
         s._queryIds.push(queryId);
+
+        // check that all the requests of the groups are included in this query
+        _checkRequestsInGroupsIncluded(queryId);
 
         emit QuerySet(queryId, query.requestIds);
     }
@@ -394,6 +421,95 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         require(numAuthResponses == 1, "Exactly 1 auth response is required");
 
         return authResponseIndex;
+    }
+
+    /**
+     * @dev Checks that all the requests of the groups are included in this query
+     * @param queryId The query id to check
+     */
+    function _checkRequestsInGroupsIncluded(uint256 queryId) internal view {
+        UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
+
+        uint256[] memory requestIds = s._queries[queryId].requestIds;
+        // check that groupId from requests exist and all the requests of the groups are used in this query
+        uint256[] memory groupIds = new uint256[](requestIds.length);
+        uint256[] memory groupLength = new uint256[](requestIds.length);
+        uint256[][] memory groupedRequestQuery = new uint256[][](requestIds.length);
+        uint256 numGroups = 0;
+
+        // build the groups based on the requests of the query
+        for (uint256 i = 0; i < requestIds.length; i++) {
+            if (_getRequestType(s._queries[queryId].requestIds[i]) == AUTH_REQUEST_TYPE) {
+                continue;
+            }
+            uint256 groupId = s._requests[requestIds[i]].validator.getGroupID(
+                s._requests[requestIds[i]].params
+            );
+
+            if (groupId > 0) {
+                uint256 iGroup;
+                bool found = false;
+                // check if groupId already exists in the local groupIds variable
+                for (uint256 j = 0; j < numGroups; j++) {
+                    if (groupIds[j] == groupId) {
+                        iGroup = j;
+                        found = true;
+                        break;
+                    }
+                }
+
+                // If not found we added to the end of the groupIds and groupedRequestQuery
+                if (numGroups == 0 || found == false) {
+                    groupIds[numGroups] = groupId;
+                    groupedRequestQuery[numGroups] = new uint256[](requestIds.length);
+                    groupedRequestQuery[numGroups][0] = requestIds[i];
+                    groupLength[numGroups] = 1;
+                    numGroups++;
+                } else {
+                    // add request id to the end of the group request query
+                    groupedRequestQuery[iGroup][groupLength[iGroup]] = requestIds[i];
+                    groupLength[iGroup]++;
+                }
+            }
+        }
+
+        // check that all the requests of the group are used in this query
+        for (uint256 i = 0; i < numGroups; i++) {
+            // Check that all the requests of the group are used in this query
+            require(
+                _allRequestsIncluded(
+                    s._groupedRequests[groupIds[i]],
+                    groupedRequestQuery[i],
+                    groupLength[i]
+                ),
+                "The requests of the group in this query doesn't match the existing group"
+            );
+        }
+    }
+
+    function _allRequestsIncluded(
+        uint256[] storage reqIds1,
+        uint256[] memory reqIds2,
+        uint256 numRequests2
+    ) internal view returns (bool) {
+        if (reqIds1.length != numRequests2) {
+            return false;
+        }
+
+        for (uint256 i = 0; i < reqIds1.length; i++) {
+            bool found = false;
+            for (uint256 j = 0; j < numRequests2; j++) {
+                if (reqIds1[i] == reqIds2[j]) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -564,35 +680,51 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      * @dev Checks if all linked response fields are the same
      * @param queryId The ID of the query
      * @param userID The ID of the user
-     * @return Whether all linked response fields are the same
      */
     function _checkLinkedResponseFields(
         uint256 queryId,
         uint256 userID
-    ) internal view returns (bool) {
+    ) internal view {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
 
-        // TODO: Check hardcoded linkID only for now by groupID
+        uint256[] memory groupIndex = new uint256[](s._queries[queryId].requestIds.length);
+        uint256[] memory groupLinkID = new uint256[](s._queries[queryId].requestIds.length);
+        uint256 numGroups = 0;
 
-        // Get first value and check if all the values for the same linked responses are the same
-        /*uint256 firstValue = getResponseFieldValue(
-            s._queries[queryId].requestIds[0].requestId,
-            userID,
-            "linkID"
-        );
+        for (uint256 i = 0; i < s._queries[queryId].requestIds.length; i++) {
+            Request memory request = getRequest(s._queries[queryId].requestIds[i]);            
 
-        for (uint256 j = 1; j < s._queries[queryId].linkedResponseFields[i].length; j++) {
-            uint256 valueToCompare = getResponseFieldValue(
-                s._queries[queryId].linkedResponseFields[i][j].requestId,
+            if (_getRequestType(s._queries[queryId].requestIds[i]) == AUTH_REQUEST_TYPE) {
+                continue;
+            }
+
+            uint256 requestGroupId = request.validator.getGroupID(request.params);
+
+            if (requestGroupId == 0) {
+                continue;
+            }
+
+            uint256 requestLinkID = getResponseFieldValue(
+                s._queries[queryId].requestIds[i],
                 userID,
-                s._queries[queryId].linkedResponseFields[i][j].responseFieldName
+                "linkID"
             );
 
-            if (firstValue != valueToCompare) {
-                return false;
+            bool found = false;
+            for (uint256 j = 0; j < numGroups; j++) {                
+                if (groupIndex[j] == requestGroupId) {
+                    require(groupLinkID[j] == requestLinkID, "linkID is not the same for each of the requests of the group");
+                    found = true;
+                }
             }
-        }*/
-        return true;
+            // If not found we added to the end of the groupIndex and groupLinkID to check
+            // linkID with the same groupID later
+            if (!found) {
+                groupIndex[numGroups] = requestGroupId;
+                groupLinkID[numGroups] = requestLinkID;
+                numGroups++;
+            }
+        }
     }
 
     /**
@@ -622,7 +754,6 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
                 return false;
             }
         }
-
         // 4. Check if all linked response fields are the same
         _checkLinkedResponseFields(queryId, userID);
 

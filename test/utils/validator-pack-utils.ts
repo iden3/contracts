@@ -31,7 +31,7 @@ export function packValidatorParams(query: any, allowedIssuers: any[] = []): str
         skipClaimRevocationCheck: query.skipClaimRevocationCheck,
         claimPathNotExists: query.claimPathNotExists,
       },
-    ]
+    ],
   );
 }
 
@@ -70,6 +70,6 @@ export function packV3ValidatorParams(query: any, allowedIssuers: any[] = []): s
         proofType: query.proofType,
         verifierID: query.verifierID,
       },
-    ]
+    ],
   );
 }

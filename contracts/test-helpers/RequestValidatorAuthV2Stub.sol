@@ -6,9 +6,9 @@ import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
 import {IState} from "../interfaces/IState.sol";
 
 /**
- * @dev RequestValidatorStub validator
+ * @dev RequestValidatorAuthV2Stub validator
  */
-contract RequestValidatorStub is IRequestValidator, ERC165 {
+contract RequestValidatorAuthV2Stub is IRequestValidator, ERC165 {
     string public constant VERSION = "1.0.0-mock";
 
     function version() public pure override returns (string memory) {
@@ -27,15 +27,17 @@ contract RequestValidatorStub is IRequestValidator, ERC165 {
         address,
         IState
     ) external pure override returns (IRequestValidator.ResponseField[] memory) {
-        IRequestValidator.ResponseField[] memory signals = new IRequestValidator.ResponseField[](2);
+        IRequestValidator.ResponseField[] memory signals = new IRequestValidator.ResponseField[](1);
         signals[0].name = "userID";
         signals[0].value = 1;
-        signals[1].name = "issuerID";
-        signals[1].value = 2;
         return signals;
     }
 
     function getGroupID(bytes calldata) external pure override returns (uint256) {
-        return 0;
+        revert("AuthV2 validator does not support groupId field");
+    }
+
+    function getGroupFieldHash(bytes calldata params) external pure override returns (bytes32) {
+        revert("AuthV2 validator does not support groupId field");
     }
 }
