@@ -495,6 +495,16 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
         // 5. Verify all the grouped responses, write proof results (under the userID key from the auth of the user),
         //      emit events (existing logic)
+        _writeGroupedResponses(groupedResponses, userID, sender);
+    }
+
+    function _writeGroupedResponses(
+        GroupedResponses[] memory groupedResponses,
+        uint256 userID,
+        address sender
+    ) internal {
+        UniversalVerifierMultiQueryStorage storage $ = _getUniversalVerifierMultiQueryStorage();
+
         for (uint256 i = 0; i < groupedResponses.length; i++) {
             for (uint256 j = 0; j < groupedResponses[i].responses.length; j++) {
                 Response memory response = groupedResponses[i].responses[j];
