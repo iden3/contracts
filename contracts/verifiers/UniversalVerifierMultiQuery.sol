@@ -23,16 +23,29 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     uint8 constant AUTH_REQUEST_TYPE = 1;
 
     /**
-     * @dev Request. Structure for request.
+     * @dev Request. Structure for request for storage.
      * @param metadata Metadata of the request.
      * @param validator Validator circuit.
      * @param params Params of the request. Proof parameters could be ZK groth16, plonk, ESDSA, EIP712, etc.
      */
-    struct Request {
+    struct RequestData {
         string metadata;
         IRequestValidator validator;
         bytes params;
     }
+
+    struct Request {
+        uint256 requestId;
+        string metadata;
+        IRequestValidator validator;
+        bytes params;
+    }
+
+    struct GroupedRequests {
+        uint256 groupId;
+        Request[] requests;
+    }
+
     /**
      * @dev Struct to store proof and associated data
      */
@@ -57,36 +70,22 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         bytes metadata;
     }
 
-    // TODO discussion result start
-    //    struct ResponseFieldFromRequest {
-    //        uint256 requestId;
-    //        string responseFieldName;
-    //        uint256 groupId;
-    //    }
-    //
-    //ResponseFieldFromRequest[][]
-
-    //          [
-    //              [{linkID, 1, 0}, {linkID, 2, 0}]
-    //              [{linkID, 2, 2}, {linkID, 3, 1}],
-    //              [{issuerID, 2, 3}, {issuer, 3, 4}],
-    //          ]
-    // TODO discussion result start
-
-    struct ResponseFieldFromRequest {
-        uint256 requestId;
-        string responseFieldName;
+    struct GroupedResponses {
+        uint256 groupId;
+        Response[] responses;
     }
 
     /**
      * @dev Query. Structure for query.
      * @param queryId Query id.
-     * @param requestIds Request ids for this multi query.
+     * @param requestIds Request ids for this multi query (without groupId. Single requests).
+     * @param groupIds Group ids for this multi query (all the requests included in the group. Grouped requests).
      * @param metadata Metadata for the query. Empty in first version.
      */
     struct Query {
         uint256 queryId;
         uint256[] requestIds;
+        uint256[] groupIds;
         bytes metadata;
     }
 
@@ -95,7 +94,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         // Information about requests
         // solhint-disable-next-line
         mapping(uint256 requestId => mapping(uint256 userID => Proof)) _proofs;
-        mapping(uint256 requestId => Request) _requests;
+        mapping(uint256 requestId => RequestData) _requests;
         uint256[] _requestIds;
         mapping(uint256 groupId => uint256[] requestIds) _groupedRequests;
         //      1. Set Req 1 (groupID = 1)
@@ -244,11 +243,6 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         _getUniversalVerifierMultiQueryStorage()._state = state;
     }
 
-    /**
-     * @dev Checks if a request ID exists
-     * @param requestId The ID of the request
-     * @return requestType Type of the request
-     */
     function _getRequestType(uint256 requestId) internal pure returns (uint8 requestType) {
         return uint8(requestId >> 248);
     }
@@ -279,12 +273,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      * @return Whether the query ID exists
      */
     function queryIdExists(uint256 queryId) public view returns (bool) {
-        return _getUniversalVerifierMultiQueryStorage()._queries[queryId].requestIds.length > 0;
+        return _getUniversalVerifierMultiQueryStorage()._queries[queryId].queryId == queryId;
     }
 
-    /**
-     * @dev Get the main storage using assembly to ensure specific storage location
-     */
     function _getUniversalVerifierMultiQueryStorage()
         private
         pure
@@ -297,24 +288,30 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
     /**
      * @dev Sets a request
-     * @param requestId The ID of the request
      * @param request The request data
      */
     function setRequest(
-        uint256 requestId,
         Request calldata request
     )
         public
-        checkRequestExistence(requestId, false)
+        checkRequestExistence(request.requestId, false)
         checkRequestGroupExistence(request.validator.getGroupID(request.params), false)
         onlyWhitelistedValidator(request.validator)
     {
+        _setRequest(request);
+    }
+
+    function _setRequest(Request calldata request) internal {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
-        s._requests[requestId] = request;
-        s._requestIds.push(requestId);
+        s._requests[request.requestId] = RequestData({
+            metadata: request.metadata,
+            validator: request.validator,
+            params: request.params
+        });
+        s._requestIds.push(request.requestId);
 
         emit RequestSet(
-            requestId,
+            request.requestId,
             _msgSender(),
             request.metadata,
             address(request.validator),
@@ -323,25 +320,26 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     }
 
     /**
-     * @dev Sets a group of requests
-     * @param groupId The ID of the group
-     * @param requestIds The IDs of the requests
-     * @param requests The requests data
+     * @dev Sets different requests
+     * @param singleRequests The requests that are not in any group
+     * @param groupedRequests The requests that are in a group
      */
-    function setGroupOfRequests(
-        uint256 groupId,
-        uint256[] memory requestIds,
-        Request[] calldata requests
+    function setRequests(
+        Request[] calldata singleRequests,
+        GroupedRequests[] calldata groupedRequests
     ) public {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
 
-        for (uint256 i = 0; i < requestIds.length; i++) {
-            setRequest(requestIds[i], requests[i]);
+        for (uint256 i = 0; i < singleRequests.length; i++) {
+            setRequest(singleRequests[i]); // checkRequestGroupExistence is done in setRequest
         }
-        // check that all the requests are set before adding them to the group
-        // because there is a check in setRequest that the group doesn't exist yet
-        for (uint256 i = 0; i < requestIds.length; i++) {
-            s._groupedRequests[groupId].push(requestIds[i]);
+        for (uint256 i = 0; i < groupedRequests.length; i++) {
+            for (uint256 j = 0; j < groupedRequests[i].requests.length; j++) {
+                _setRequest(groupedRequests[i].requests[j]); // checkRequestGroupExistence is not done here
+                s._groupedRequests[groupedRequests[i].groupId].push(
+                    groupedRequests[i].requests[j].requestId
+                );
+            }
         }
     }
 
@@ -352,24 +350,8 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      */
     function getRequest(
         uint256 requestId
-    ) public view checkRequestExistence(requestId, true) returns (Request memory request) {
+    ) public view checkRequestExistence(requestId, true) returns (RequestData memory request) {
         return _getUniversalVerifierMultiQueryStorage()._requests[requestId];
-    }
-
-    /**
-     * @dev Checks auth request in query
-     * @param query The query data
-     */
-    function _checkAuthRequestInQuery(Query calldata query) internal pure {
-        uint256 numAuthRequests = 0;
-
-        for (uint256 i = 0; i < query.requestIds.length; i++) {
-            if (_getRequestType(query.requestIds[i]) == AUTH_REQUEST_TYPE) {
-                numAuthRequests++;
-            }
-        }
-
-        require(numAuthRequests == 1, "Exactly 1 auth request is required");
     }
 
     /**
@@ -382,14 +364,11 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         Query calldata query
     ) public checkQueryExistence(queryId, false) {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
-
-        // check that exactly 1 auth request is included in the query
-        _checkAuthRequestInQuery(query);
         s._queries[queryId] = query;
         s._queryIds.push(queryId);
 
-        // check that all the requests of the groups are included in this query
-        _checkRequestsInGroupsIncluded(queryId);
+        // checks for all the requests in this query
+        _checkRequestsInQuery(queryId);
 
         emit QuerySet(queryId, query.requestIds);
     }
@@ -403,11 +382,6 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         return _getUniversalVerifierMultiQueryStorage()._queries[queryId];
     }
 
-    /**
-     * @dev Checks for exactly 1 auth response and returns the index of the auth response
-     * @param responses The list of responses
-     * @return The index of the auth response
-     */
     function _checkAuthResponses(Response[] memory responses) internal pure returns (uint256) {
         uint256 numAuthResponses = 0;
         uint256 authResponseIndex;
@@ -423,157 +397,85 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         return authResponseIndex;
     }
 
-    /**
-     * @dev Checks that all the requests of the groups are included in this query
-     * @param queryId The query id to check
-     */
-    function _checkRequestsInGroupsIncluded(uint256 queryId) internal view {
+    function _checkRequestsInQuery(uint256 queryId) internal view {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
 
         uint256[] memory requestIds = s._queries[queryId].requestIds;
-        // check that groupId from requests exist and all the requests of the groups are used in this query
-        uint256[] memory groupIds = new uint256[](requestIds.length);
-        uint256[] memory groupLength = new uint256[](requestIds.length);
-        uint256[][] memory groupedRequestQuery = new uint256[][](requestIds.length);
-        uint256 numGroups = 0;
 
-        // build the groups based on the requests of the query
+        // check that all the single requests doesn't have group
         for (uint256 i = 0; i < requestIds.length; i++) {
-            if (_getRequestType(s._queries[queryId].requestIds[i]) == AUTH_REQUEST_TYPE) {
-                continue;
-            }
-            uint256 groupId = s._requests[requestIds[i]].validator.getGroupID(
-                s._requests[requestIds[i]].params
-            );
-
-            if (groupId > 0) {
-                uint256 iGroup;
-                bool found = false;
-                // check if groupId already exists in the local groupIds variable
-                for (uint256 j = 0; j < numGroups; j++) {
-                    if (groupIds[j] == groupId) {
-                        iGroup = j;
-                        found = true;
-                        break;
-                    }
-                }
-
-                // If not found we added to the end of the groupIds and groupedRequestQuery
-                if (numGroups == 0 || found == false) {
-                    groupIds[numGroups] = groupId;
-                    groupedRequestQuery[numGroups] = new uint256[](requestIds.length);
-                    groupedRequestQuery[numGroups][0] = requestIds[i];
-                    groupLength[numGroups] = 1;
-                    numGroups++;
-                } else {
-                    // add request id to the end of the group request query
-                    groupedRequestQuery[iGroup][groupLength[iGroup]] = requestIds[i];
-                    groupLength[iGroup]++;
-                }
-            }
-        }
-
-        // check that all the requests of the group are used in this query
-        for (uint256 i = 0; i < numGroups; i++) {
-            // Check that all the requests of the group are used in this query
             require(
-                _allRequestsIncluded(
-                    s._groupedRequests[groupIds[i]],
-                    groupedRequestQuery[i],
-                    groupLength[i]
-                ),
-                "The requests of the group in this query doesn't match the existing group"
+                s._requests[requestIds[i]].validator.getGroupID(
+                    s._requests[requestIds[i]].params
+                ) == 0,
+                "A single request in this query is a grouped request"
             );
         }
-    }
-
-    /**
-     * @dev Checks if all requests are included
-     * @param reqIds1 The list of request IDs from storage for a specific group
-     * @param reqIds2 The list of request IDs from the query for a specific group
-     * @param numRequests2 The number of requests in the query for a specific group
-     * @return Whether all requests in reqIds1 are included in reqIds2
-     */
-    function _allRequestsIncluded(
-        uint256[] storage reqIds1,
-        uint256[] memory reqIds2,
-        uint256 numRequests2
-    ) internal view returns (bool) {
-        if (reqIds1.length != numRequests2) {
-            return false;
-        }
-
-        for (uint256 i = 0; i < reqIds1.length; i++) {
-            bool found = false;
-            for (uint256 j = 0; j < numRequests2; j++) {
-                if (reqIds1[i] == reqIds2[j]) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**
      * @dev Submits an array of responses and updates proofs status
-     * @param responses The list of responses including request ID, proof and metadata
+     * @param authResponses The list of auth responses including request ID, proof and metadata for auth requests
+     * @param singleResponses The list of responses including request ID, proof and metadata for single requests
+     * @param groupedResponses The list of responses including request ID, proof and metadata for grouped requests
      * @param crossChainProofs The list of cross chain proofs from universal resolver (oracle). This
      * includes identities and global states.
      */
-    function submitResponse(Response[] memory responses, bytes memory crossChainProofs) public {
+    function submitResponse(
+        Response[] memory authResponses,
+        Response[] memory singleResponses,
+        GroupedResponses[] memory groupedResponses,
+        bytes memory crossChainProofs
+    ) public {
         UniversalVerifierMultiQueryStorage storage $ = _getUniversalVerifierMultiQueryStorage();
         address sender = _msgSender();
 
-        // 1. Check for auth responses (throw if not provided exactly 1)
-        // and return auth response index in the responses array
-        // in order to get "userID" from the output response field then
-        uint256 authResponseIndex = _checkAuthResponses(responses);
-
-        // 2. Process crossChainProofs
+        // 1. Process crossChainProofs
         $._state.processCrossChainProofs(crossChainProofs);
 
-        // Verify for the auth request and get the userID
-        Response memory authResponse = responses[authResponseIndex];
-        Request memory authRequest = getRequest(authResponse.requestId);
-        IRequestValidator.ResponseField[] memory authSignals = authRequest.validator.verify(
-            authResponse.proof,
-            authRequest.params,
-            sender,
-            $._state
-        );
+        // 2. Process auth responses first
 
-        uint256 userIDFromAuth;
-        for (uint256 i = 0; i < authSignals.length; i++) {
-            if (keccak256(bytes(authSignals[i].name)) == keccak256(bytes("userID"))) {
-                userIDFromAuth = authSignals[i].value;
-                break;
+        for (uint256 i = 0; i < authResponses.length; i++) {
+            uint256 userIDFromReponse;
+            if (_getRequestType(authResponses[i].requestId) != AUTH_REQUEST_TYPE) {
+                revert("Request ID is not an auth request");
             }
+            RequestData memory authRequest = $._requests[authResponses[i].requestId];
+            IRequestValidator.ResponseField[] memory authSignals = authRequest.validator.verify(
+                authResponses[i].proof,
+                authRequest.params,
+                sender,
+                $._state
+            );
+
+            for (uint256 j = 0; j < authSignals.length; j++) {
+                if (keccak256(bytes(authSignals[j].name)) == keccak256(bytes("userID"))) {
+                    userIDFromReponse = authSignals[j].value;
+                    break;
+                }
+            }
+
+            writeProofResults(authResponses[i].requestId, userIDFromReponse, authSignals);
+
+            emit ResponseSubmitted(authResponses[i].requestId, _msgSender());
+
+            $._user_address_to_id[sender] = userIDFromReponse;
+            $._id_to_user_address[userIDFromReponse] = sender;
+            $._user_id_and_address_auth[userIDFromReponse][sender] = true;
         }
 
-        writeProofResults(authResponse.requestId, userIDFromAuth, authSignals);
+        // 3. Get userID from latest auth response processed in this submitResponse or before
+        uint256 userID = $._user_address_to_id[sender];
 
-        $._user_address_to_id[sender] = userIDFromAuth;
-        $._id_to_user_address[userIDFromAuth] = sender;
-        $._user_id_and_address_auth[userIDFromAuth][sender] = true;
+        if (userID == 0) {
+            revert("The user is not authenticated");
+        }
 
-        // 3. Verify regular responses, write proof results (under the userID key from the step 1),
+        // 4. Verify all the single responses, write proof results (under the userID key from the auth of the user),
         //      emit events (existing logic)
-        for (uint256 i = 0; i < responses.length; i++) {
-            // emit for all the responses
-            emit ResponseSubmitted(responses[i].requestId, _msgSender());
-
-            // avoid to process auth request again
-            if (_getRequestType(responses[i].requestId) == AUTH_REQUEST_TYPE) {
-                continue;
-            }
-
-            Response memory response = responses[i];
-            Request memory request = getRequest(response.requestId);
+        for (uint256 i = 0; i < singleResponses.length; i++) {
+            Response memory response = singleResponses[i];
+            RequestData memory request = $._requests[response.requestId];
 
             IRequestValidator.ResponseField[] memory signals = request.validator.verify(
                 response.proof,
@@ -582,10 +484,36 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
                 $._state
             );
 
-            writeProofResults(response.requestId, userIDFromAuth, signals);
+            writeProofResults(response.requestId, userID, signals);
 
             if (response.metadata.length > 0) {
                 revert("Metadata not supported yet");
+            }
+            // emit for all the responses
+            emit ResponseSubmitted(response.requestId, _msgSender());
+        }
+
+        // 5. Verify all the grouped responses, write proof results (under the userID key from the auth of the user),
+        //      emit events (existing logic)
+        for (uint256 i = 0; i < groupedResponses.length; i++) {
+            for (uint256 j = 0; j < groupedResponses[i].responses.length; j++) {
+                Response memory response = groupedResponses[i].responses[j];
+                RequestData memory request = $._requests[response.requestId];
+
+                IRequestValidator.ResponseField[] memory signals = request.validator.verify(
+                    response.proof,
+                    request.params,
+                    sender,
+                    $._state
+                );
+
+                writeProofResults(response.requestId, userID, signals);
+
+                if (response.metadata.length > 0) {
+                    revert("Metadata not supported yet");
+                }
+
+                emit ResponseSubmitted(response.requestId, _msgSender());
             }
         }
     }
@@ -616,24 +544,27 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
     /**
      * @dev Adds an auth request
-     * @param requestId The Id of the auth request to add
+     * @param request The data of the auth request to add
      */
     function setAuthRequest(
-        uint256 requestId,
         Request calldata request
-    ) public checkRequestExistence(requestId, false) onlyOwner {
-        if (_getRequestType(requestId) != AUTH_REQUEST_TYPE) {
+    ) public checkRequestExistence(request.requestId, false) onlyOwner {
+        if (_getRequestType(request.requestId) != AUTH_REQUEST_TYPE) {
             revert("Request ID is not an auth request");
         }
 
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
-        s._requests[requestId] = request;
-        s._requestIds.push(requestId);
+        s._requests[request.requestId] = RequestData({
+            metadata: request.metadata,
+            validator: request.validator,
+            params: request.params
+        });
+        s._requestIds.push(request.requestId);
 
-        s._authRequestIds.push(requestId);
+        s._authRequestIds.push(request.requestId);
 
         emit AuthRequestSet(
-            requestId,
+            request.requestId,
             _msgSender(),
             request.metadata,
             address(request.validator),
@@ -648,7 +579,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      */
     function getAuthRequest(
         uint256 requestId
-    ) public view checkRequestExistence(requestId, true) returns (Request memory authRequest) {
+    ) public view checkRequestExistence(requestId, true) returns (RequestData memory authRequest) {
         return _getUniversalVerifierMultiQueryStorage()._requests[requestId];
     }
 
@@ -683,53 +614,28 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         return s._proofs[requestId][userID].storageFields[responseFieldName];
     }
 
-    /**
-     * @dev Checks if all linked response fields are the same
-     * @param queryId The ID of the query
-     * @param userID The ID of the user
-     */
     function _checkLinkedResponseFields(uint256 queryId, uint256 userID) internal view {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
 
-        uint256[] memory groupIndex = new uint256[](s._queries[queryId].requestIds.length);
-        uint256[] memory groupLinkID = new uint256[](s._queries[queryId].requestIds.length);
-        uint256 numGroups = 0;
+        for (uint256 i = 0; i < s._queries[queryId].groupIds.length; i++) {
+            uint256 groupId = s._queries[queryId].groupIds[i];
 
-        for (uint256 i = 0; i < s._queries[queryId].requestIds.length; i++) {
-            Request memory request = getRequest(s._queries[queryId].requestIds[i]);
-
-            if (_getRequestType(s._queries[queryId].requestIds[i]) == AUTH_REQUEST_TYPE) {
-                continue;
-            }
-
-            uint256 requestGroupId = request.validator.getGroupID(request.params);
-
-            if (requestGroupId == 0) {
-                continue;
-            }
-
+            // Check linkID in the same group or requests is the same
             uint256 requestLinkID = getResponseFieldValue(
-                s._queries[queryId].requestIds[i],
+                s._groupedRequests[groupId][0],
                 userID,
                 "linkID"
             );
-
-            bool found = false;
-            for (uint256 j = 0; j < numGroups; j++) {
-                if (groupIndex[j] == requestGroupId) {
-                    require(
-                        groupLinkID[j] == requestLinkID,
-                        "linkID is not the same for each of the requests of the group"
-                    );
-                    found = true;
-                }
-            }
-            // If not found we added to the end of the groupIndex and groupLinkID to check
-            // linkID with the same groupID later
-            if (!found) {
-                groupIndex[numGroups] = requestGroupId;
-                groupLinkID[numGroups] = requestLinkID;
-                numGroups++;
+            for (uint256 j = 1; j < s._groupedRequests[groupId].length; j++) {
+                uint256 requestLinkIDToCompare = getResponseFieldValue(
+                    s._groupedRequests[groupId][j],
+                    userID,
+                    "linkID"
+                );
+                require(
+                    requestLinkIDToCompare == requestLinkID,
+                    "linkID is not the same for each of the requests of the group"
+                );
             }
         }
     }

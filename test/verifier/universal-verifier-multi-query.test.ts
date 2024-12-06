@@ -9,6 +9,7 @@ import { buildCrossChainProofs, packCrossChainProofs, packZKProof } from "../uti
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { calculateQueryHashV3 } from "../utils/query-hash-utils";
+import { request } from "http";
 
 describe("Universal Verifier Multi-query", function () {
   let verifier: any, v3Validator: any, authV2Validator: any, v3_2Validator: any;
@@ -175,11 +176,13 @@ describe("Universal Verifier Multi-query", function () {
     const nonExistingQueryId = 5;
     const params = packV3ValidatorParams(requestQuery1);
 
-    await verifier.setRequest(requestId, {
+    const txSetRequests = await verifier.setRequest({
+      requestId: requestId,
       metadata: "metadata",
       validator: await v3Validator.getAddress(),
       params: params,
     });
+    await txSetRequests.wait();
 
     const requestStored = await verifier.getRequest(requestId);
     // check if the request is stored correctly checking metadata and validator
@@ -187,7 +190,8 @@ describe("Universal Verifier Multi-query", function () {
     expect(requestStored[1]).to.be.equal(await v3Validator.getAddress());
     expect(requestStored[2]).to.be.equal(params);
 
-    await verifier.setAuthRequest(authRequestId, {
+    await verifier.setAuthRequest({
+      requestId: authRequestId,
       metadata: "metadata",
       validator: await authV2Validator.getAddress(),
       params: params,
@@ -199,10 +203,12 @@ describe("Universal Verifier Multi-query", function () {
 
     const query = {
       queryId,
-      requestIds: [requestId, authRequestId],
+      requestIds: [requestId],
+      groupIds: [],
       metadata: "0x",
     };
-    await verifier.setQuery(queryId, query);
+    const txSetQuery = await verifier.setQuery(queryId, query);
+    await txSetQuery.wait();
     const queryStored = await verifier.getQuery(queryId);
     expect(queryStored[0]).to.be.equal(queryId);
     expect(queryStored[1]).to.be.deep.equal(query.requestIds);
@@ -223,16 +229,19 @@ describe("Universal Verifier Multi-query", function () {
     const tx = await verifier.submitResponse(
       [
         {
-          requestId,
-          proof,
-          metadata: metadatas,
-        },
-        {
           requestId: authRequestId,
           proof,
           metadata: metadatas,
         },
       ],
+      [
+        {
+          requestId,
+          proof,
+          metadata: metadatas,
+        },
+      ],
+      [],
       crossChainProofs,
     );
 
@@ -244,7 +253,7 @@ describe("Universal Verifier Multi-query", function () {
 
     const events = await verifier.queryFilter(filter, -1);
     expect(events[0].eventName).to.be.equal("ResponseSubmitted");
-    expect(events[0].args.requestId).to.be.equal(requestId);
+    expect(events[0].args.requestId).to.be.equal(authRequestId);
     expect(events[0].args.caller).to.be.equal(signerAddress);
 
     await expect(verifier.getQueryStatus(nonExistingQueryId, signerAddress)).to.be.rejectedWith(
@@ -268,19 +277,29 @@ describe("Universal Verifier Multi-query", function () {
     const paramsRequest2 = packV3ValidatorParams(requestQuery2);
     const paramsRequest3 = packV3ValidatorParams(requestQuery3);
 
-    const txGroupRequests = await verifier.setGroupOfRequests(
-      groupId,
-      [requestId2, requestId3],
+    const txSetRequests = await verifier.setRequests(
+      [],
       [
-        { metadata: "metadata", validator: await v3Validator.getAddress(), params: paramsRequest2 },
         {
-          metadata: "metadata",
-          validator: await v3Validator.getAddress(),
-          params: paramsRequest3,
+          groupId: groupId,
+          requests: [
+            {
+              requestId: requestId2,
+              metadata: "metadata",
+              validator: await v3Validator.getAddress(),
+              params: paramsRequest2,
+            },
+            {
+              requestId: requestId3,
+              metadata: "metadata",
+              validator: await v3Validator.getAddress(),
+              params: paramsRequest3,
+            },
+          ],
         },
       ],
     );
-    await txGroupRequests.wait();
+    await txSetRequests.wait();
 
     const requestStored = await verifier.getRequest(requestId2);
     // check if the request is stored correctly checking metadata and validator
@@ -288,7 +307,8 @@ describe("Universal Verifier Multi-query", function () {
     expect(requestStored[1]).to.be.equal(await v3Validator.getAddress());
     expect(requestStored[2]).to.be.equal(paramsRequest2);
 
-    await verifier.setAuthRequest(authRequestId, {
+    await verifier.setAuthRequest({
+      requestId: authRequestId,
       metadata: "metadata",
       validator: await authV2Validator.getAddress(),
       params: authParams,
@@ -300,10 +320,13 @@ describe("Universal Verifier Multi-query", function () {
 
     const query = {
       queryId,
-      requestIds: [requestId2, authRequestId, requestId3],
+      requestIds: [],
+      groupIds: [groupId],
       metadata: "0x",
     };
-    await verifier.setQuery(queryId, query);
+    const txSetQuery = await verifier.setQuery(queryId, query);
+    await txSetQuery.wait();
+
     const queryStored = await verifier.getQuery(queryId);
     expect(queryStored[0]).to.be.equal(queryId);
     expect(queryStored[1]).to.be.deep.equal(query.requestIds);
@@ -324,24 +347,23 @@ describe("Universal Verifier Multi-query", function () {
     const tx = await verifier.submitResponse(
       [
         {
-          requestId: requestId2,
-          proof,
-          metadata: metadatas,
-        },
-        {
           requestId: authRequestId,
           proof,
           metadata: metadatas,
         },
+      ],
+      [],
+      [
         {
-          requestId: requestId3,
-          proof,
-          metadata: metadatas,
+          groupId: groupId,
+          responses: [
+            { requestId: requestId2, proof, metadata: metadatas },
+            { requestId: requestId3, proof, metadata: metadatas },
+          ],
         },
       ],
       crossChainProofs,
     );
-
     await tx.wait();
 
     await checkStorageFields(verifier, authRequestId, authStorageFields);
@@ -350,13 +372,12 @@ describe("Universal Verifier Multi-query", function () {
 
     const events = await verifier.queryFilter(filter, -1);
     expect(events[0].eventName).to.be.equal("ResponseSubmitted");
-    expect(events[0].args.requestId).to.be.equal(requestId2);
+    expect(events[0].args.requestId).to.be.equal(authRequestId);
     expect(events[0].args.caller).to.be.equal(signerAddress);
 
     await expect(verifier.getQueryStatus(nonExistingQueryId, signerAddress)).to.be.rejectedWith(
       "query id doesn't exist",
     );
-
     const status = await verifier.getQueryStatus(queryId, signerAddress);
     expect(status).to.be.true;
   });
@@ -373,21 +394,32 @@ describe("Universal Verifier Multi-query", function () {
     const paramsRequest2 = packV3ValidatorParams(requestQuery2);
     const paramsRequest3 = packV3ValidatorParams(requestQuery3);
 
-    const txGroupRequests = await verifier.setGroupOfRequests(
-      groupId,
-      [requestId2, requestId3],
+    const txSetRequests = await verifier.setRequests(
+      [],
       [
-        { metadata: "metadata", validator: await v3Validator.getAddress(), params: paramsRequest2 },
         {
-          metadata: "metadata",
-          validator: await v3_2Validator.getAddress(),
-          params: paramsRequest3,
+          groupId: groupId,
+          requests: [
+            {
+              requestId: requestId2,
+              metadata: "metadata",
+              validator: await v3Validator.getAddress(),
+              params: paramsRequest2,
+            },
+            {
+              requestId: requestId3,
+              metadata: "metadata",
+              validator: await v3_2Validator.getAddress(),
+              params: paramsRequest3,
+            },
+          ],
         },
       ],
     );
-    await txGroupRequests.wait();
+    await txSetRequests.wait();
 
-    await verifier.setAuthRequest(authRequestId, {
+    await verifier.setAuthRequest({
+      requestId: authRequestId,
       metadata: "metadata",
       validator: await authV2Validator.getAddress(),
       params: authParams,
@@ -395,10 +427,12 @@ describe("Universal Verifier Multi-query", function () {
 
     const query = {
       queryId,
-      requestIds: [requestId2, authRequestId, requestId3],
+      requestIds: [],
+      groupIds: [groupId],
       metadata: "0x",
     };
-    await verifier.setQuery(queryId, query);
+    const txSetQuery = await verifier.setQuery(queryId, query);
+    await txSetQuery.wait();
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
 
@@ -412,28 +446,26 @@ describe("Universal Verifier Multi-query", function () {
     );
 
     const metadatas = "0x";
-
     const tx = await verifier.submitResponse(
       [
-        {
-          requestId: requestId2,
-          proof,
-          metadata: metadatas,
-        },
         {
           requestId: authRequestId,
           proof,
           metadata: metadatas,
         },
+      ],
+      [],
+      [
         {
-          requestId: requestId3,
-          proof,
-          metadata: metadatas,
+          groupId: groupId,
+          responses: [
+            { requestId: requestId2, proof, metadata: metadatas },
+            { requestId: requestId3, proof, metadata: metadatas },
+          ],
         },
       ],
       crossChainProofs,
     );
-
     await tx.wait();
 
     await expect(verifier.getQueryStatus(queryId, signerAddress)).to.be.rejectedWith(
