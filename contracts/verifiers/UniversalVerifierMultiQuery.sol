@@ -97,32 +97,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         mapping(uint256 requestId => RequestData) _requests;
         uint256[] _requestIds;
         mapping(uint256 groupId => uint256[] requestIds) _groupedRequests;
-        //      1. Set Req 1 (groupID = 1)
-        // Check that groupID doesn't exist yet
-        //      2. Set Req 2 (groupID = 1)
-        // Check that groupID doesn't exist yet
-        //      3. Set Req 200 (groupID = 1)
-        // Check that groupID doesn't exist yet
-
-        //      4. Set Req 3 (groupID = 2)
-        //      5. Set Req 201 (groupID = 2)
-
-        //      6. setQuery[1,2]
-        // Check that groupID doesn't exist yet
-        //           1 => [1, 2]
-        //           2 => [3, 201]
-
-        //        7. submitResponse: requests 1, 2, 200
-        //                7.1 Check that all the group are full
-        //                7.2 Check LinkID is the same for each of the groups
-
-        //        8. getQueryStatus: it result to FALSE cuz requests 3 and 201 are false
-        //        9. submitResponse: requests 3,201
-        //        10. getQueryStatus: it result to TRUE as all requests are true
-
-        // Query1 => (1, 2, 200), (3, 201)
-        // Query2 => (1, 2, 200), 10
-
+        uint256[] _groupIds;
         IState _state;
         // Information about queries
         mapping(uint256 queryId => Query) _queries;
@@ -130,7 +105,6 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         // Information linked between users and their addresses
         mapping(address userAddress => uint256 userID) _user_address_to_id;
         mapping(uint256 userID => address userAddress) _id_to_user_address;
-        mapping(uint256 userID => mapping(address userAddress => bool hasAuth)) _user_id_and_address_auth;
         uint256[] _authRequestIds; // reuses the same _requests mapping to store the auth requests
         // Whitelisted validators
         mapping(IRequestValidator => bool isApproved) _validatorWhitelist;
@@ -204,7 +178,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     /**
      * @dev Modifier to check if the request exists
      */
-    modifier checkRequestGroupExistence(uint256 groupId, bool existence) {
+    modifier checkRequestGroupExistence(Request memory request, bool existence) {
+        uint256 groupId = request.validator.getGroupID(request.params);
+
         if (existence) {
             require(groupIdExists(groupId), "group id doesn't exist");
         } else {
@@ -264,7 +240,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      * @return Whether the group ID exists
      */
     function groupIdExists(uint256 groupId) public view returns (bool) {
-        return _getUniversalVerifierMultiQueryStorage()._groupedRequests[groupId].length > 0;
+        return
+            _getUniversalVerifierMultiQueryStorage()._groupIds.length > 0 &&
+            _getUniversalVerifierMultiQueryStorage()._groupIds[groupId] != 0;
     }
 
     /**
@@ -290,12 +268,12 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      * @dev Sets a request
      * @param request The request data
      */
-    function setRequest(
+    function _setRequestWithChecks(
         Request calldata request
     )
-        public
+        internal
         checkRequestExistence(request.requestId, false)
-        checkRequestGroupExistence(request.validator.getGroupID(request.params), false)
+        checkRequestGroupExistence(request, false)
         onlyWhitelistedValidator(request.validator)
     {
         _setRequest(request);
@@ -331,11 +309,16 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
 
         for (uint256 i = 0; i < singleRequests.length; i++) {
-            setRequest(singleRequests[i]); // checkRequestGroupExistence is done in setRequest
+            _setRequestWithChecks(singleRequests[i]);
         }
         for (uint256 i = 0; i < groupedRequests.length; i++) {
+            if (groupIdExists(groupedRequests[i].groupId)) {
+                revert("Group ID already exists");
+            }
+            s._groupIds.push(groupedRequests[i].groupId);
+
             for (uint256 j = 0; j < groupedRequests[i].requests.length; j++) {
-                _setRequest(groupedRequests[i].requests[j]); // checkRequestGroupExistence is not done here
+                _setRequest(groupedRequests[i].requests[j]);
                 s._groupedRequests[groupedRequests[i].groupId].push(
                     groupedRequests[i].requests[j].requestId
                 );
@@ -415,14 +398,14 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
     /**
      * @dev Submits an array of responses and updates proofs status
-     * @param authResponses The list of auth responses including request ID, proof and metadata for auth requests
+     * @param authResponse The auth response including request ID, proof and metadata for auth requests
      * @param singleResponses The list of responses including request ID, proof and metadata for single requests
      * @param groupedResponses The list of responses including request ID, proof and metadata for grouped requests
      * @param crossChainProofs The list of cross chain proofs from universal resolver (oracle). This
      * includes identities and global states.
      */
     function submitResponse(
-        Response[] memory authResponses,
+        Response memory authResponse,
         Response[] memory singleResponses,
         GroupedResponses[] memory groupedResponses,
         bytes memory crossChainProofs
@@ -433,35 +416,34 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         // 1. Process crossChainProofs
         $._state.processCrossChainProofs(crossChainProofs);
 
-        // 2. Process auth responses first
+        // 2. Process auth response first
+        uint256 userIDFromReponse;
+        if (_getRequestType(authResponse.requestId) != AUTH_REQUEST_TYPE) {
+            revert("Request ID is not an auth request");
+        }
+        RequestData storage authRequest = $._requests[authResponse.requestId];
+        // Authenticate user
+        IRequestValidator.ResponseField[] memory authSignals = authRequest.validator.verify(
+            authResponse.proof,
+            authRequest.params,
+            sender,
+            $._state
+        );
 
-        for (uint256 i = 0; i < authResponses.length; i++) {
-            uint256 userIDFromReponse;
-            if (_getRequestType(authResponses[i].requestId) != AUTH_REQUEST_TYPE) {
-                revert("Request ID is not an auth request");
+        for (uint256 j = 0; j < authSignals.length; j++) {
+            if (keccak256(bytes(authSignals[j].name)) == keccak256(bytes("userID"))) {
+                userIDFromReponse = authSignals[j].value;
+                break;
             }
-            RequestData memory authRequest = $._requests[authResponses[i].requestId];
-            IRequestValidator.ResponseField[] memory authSignals = authRequest.validator.verify(
-                authResponses[i].proof,
-                authRequest.params,
-                sender,
-                $._state
-            );
+        }
 
-            for (uint256 j = 0; j < authSignals.length; j++) {
-                if (keccak256(bytes(authSignals[j].name)) == keccak256(bytes("userID"))) {
-                    userIDFromReponse = authSignals[j].value;
-                    break;
-                }
-            }
-
-            writeProofResults(authResponses[i].requestId, userIDFromReponse, authSignals);
-
-            emit ResponseSubmitted(authResponses[i].requestId, _msgSender());
-
+        // For some reason the auth request doesn't return the userID in the response
+        if (userIDFromReponse != 0) {
+            writeProofResults(authResponse.requestId, userIDFromReponse, authSignals);
+            emit ResponseSubmitted(authResponse.requestId, _msgSender());
+            // Link userID and user address
             $._user_address_to_id[sender] = userIDFromReponse;
             $._id_to_user_address[userIDFromReponse] = sender;
-            $._user_id_and_address_auth[userIDFromReponse][sender] = true;
         }
 
         // 3. Get userID from latest auth response processed in this submitResponse or before
@@ -475,7 +457,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         //      emit events (existing logic)
         for (uint256 i = 0; i < singleResponses.length; i++) {
             Response memory response = singleResponses[i];
-            RequestData memory request = $._requests[response.requestId];
+            RequestData storage request = $._requests[response.requestId];
 
             IRequestValidator.ResponseField[] memory signals = request.validator.verify(
                 response.proof,
@@ -508,7 +490,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         for (uint256 i = 0; i < groupedResponses.length; i++) {
             for (uint256 j = 0; j < groupedResponses[i].responses.length; j++) {
                 Response memory response = groupedResponses[i].responses[j];
-                RequestData memory request = $._requests[response.requestId];
+                RequestData storage request = $._requests[response.requestId];
 
                 IRequestValidator.ResponseField[] memory signals = request.validator.verify(
                     response.proof,
@@ -666,18 +648,14 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         uint256 userID = s._user_address_to_id[userAddress];
         require(userID != 0, "UserID not found");
 
-        // 2. Check if any active auth for the userId is true
-        bool activeAuth = s._user_id_and_address_auth[userID][userAddress];
-        require(activeAuth, "No active auth for the user found");
-
-        // 3. Check if all requests statuses are true for the userId
+        // 2. Check if all requests statuses are true for the userId
         for (uint256 i = 0; i < s._queries[queryId].requestIds.length; i++) {
             uint256 requestId = s._queries[queryId].requestIds[i];
             if (!s._proofs[requestId][userID].isVerified) {
                 return false;
             }
         }
-        // 4. Check if all linked response fields are the same
+        // 3. Check if all linked response fields are the same
         _checkLinkedResponseFields(queryId, userID);
 
         return true;

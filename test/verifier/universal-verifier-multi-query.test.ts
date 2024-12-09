@@ -176,12 +176,17 @@ describe("Universal Verifier Multi-query", function () {
     const nonExistingQueryId = 5;
     const params = packV3ValidatorParams(requestQuery1);
 
-    const txSetRequests = await verifier.setRequest({
-      requestId: requestId,
-      metadata: "metadata",
-      validator: await v3Validator.getAddress(),
-      params: params,
-    });
+    const txSetRequests = await verifier.setRequests(
+      [
+        {
+          requestId: requestId,
+          metadata: "metadata",
+          validator: await v3Validator.getAddress(),
+          params: params,
+        },
+      ],
+      [],
+    );
     await txSetRequests.wait();
 
     const requestStored = await verifier.getRequest(requestId);
@@ -227,13 +232,11 @@ describe("Universal Verifier Multi-query", function () {
     const metadatas = "0x";
 
     const tx = await verifier.submitResponse(
-      [
-        {
-          requestId: authRequestId,
-          proof,
-          metadata: metadatas,
-        },
-      ],
+      {
+        requestId: authRequestId,
+        proof,
+        metadata: metadatas,
+      },
       [
         {
           requestId,
@@ -345,13 +348,11 @@ describe("Universal Verifier Multi-query", function () {
     const metadatas = "0x";
 
     const tx = await verifier.submitResponse(
-      [
-        {
-          requestId: authRequestId,
-          proof,
-          metadata: metadatas,
-        },
-      ],
+      {
+        requestId: authRequestId,
+        proof,
+        metadata: metadatas,
+      },
       [],
       [
         {
@@ -447,13 +448,11 @@ describe("Universal Verifier Multi-query", function () {
 
     const metadatas = "0x";
     const tx = await verifier.submitResponse(
-      [
-        {
-          requestId: authRequestId,
-          proof,
-          metadata: metadatas,
-        },
-      ],
+      {
+        requestId: authRequestId,
+        proof,
+        metadata: metadatas,
+      },
       [],
       [
         {
