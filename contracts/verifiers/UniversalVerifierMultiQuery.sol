@@ -4,6 +4,7 @@ pragma solidity 0.8.27;
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
+import {IAuthValidator} from "../interfaces/IAuthValidator.sol";
 import {IState} from "../interfaces/IState.sol";
 
 contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
@@ -11,16 +12,6 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      * @dev Version of the contract
      */
     string public constant VERSION = "1.0.0";
-
-    // requestId. 32 bytes (in Big Endian): 31-0x00(not used), 30-0x01(requestType), 29..0 hash calculated Id,
-    //
-    // For requestType:
-    // 0x00 - regular request
-    // 0x01 - auth request
-    /**
-     * @dev Auth request type
-     */
-    uint8 constant AUTH_REQUEST_TYPE = 1;
 
     /**
      * @dev Request. Structure for request for storage.
@@ -70,6 +61,35 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         bytes metadata;
     }
 
+    struct AuthType {
+        string authType;
+        IAuthValidator validator;
+        bytes params;
+    }
+
+    struct AuthTypeData {
+        IAuthValidator validator;
+        bytes params;
+        bool isActive;
+    }
+    struct AuthResponse {
+        string authType; //zkp-auth-v2, zkp-auth-v3, etc. will deside later
+        bytes proof;
+    }
+
+    struct RequestProofStatus {
+        uint256 requestId;
+        bool isVerified;
+        string validatorVersion;
+        uint256 timestamp;
+    }
+    struct AuthProofStatus {
+        string authType;
+        bool isVerified;
+        string validatorVersion;
+        uint256 timestamp;
+    }
+
     struct GroupedResponses {
         uint256 groupId;
         Response[] responses;
@@ -105,9 +125,12 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         // Information linked between users and their addresses
         mapping(address userAddress => uint256 userID) _user_address_to_id;
         mapping(uint256 userID => address userAddress) _id_to_user_address;
-        uint256[] _authRequestIds; // reuses the same _requests mapping to store the auth requests
         // Whitelisted validators
         mapping(IRequestValidator => bool isApproved) _validatorWhitelist;
+        // Information about auth types and validators
+        string[] _authTypes;
+        mapping(string authType => AuthTypeData) _authMethods;
+        mapping(string authType => mapping(uint256 userID => Proof)) _authProofs;
     }
 
     // solhint-disable-next-line
@@ -121,6 +144,11 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     event ResponseSubmitted(uint256 indexed requestId, address indexed caller);
 
     /**
+     * @dev Event emitted upon submitting an auth response
+     */
+    event AuthResponseSubmitted(string indexed authType, address indexed caller);
+
+    /**
      * @dev Event emitted upon adding a request
      */
     event RequestSet(
@@ -132,15 +160,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     );
 
     /**
-     * @dev Event emitted upon adding an auth request by the owner
+     * @dev Event emitted upon adding an auth type by the owner
      */
-    event AuthRequestSet(
-        uint256 indexed requestId,
-        address indexed requestOwner,
-        string metadata,
-        address validator,
-        bytes params
-    );
+    event AuthSet(string indexed authType, address validator, bytes params);
 
     /**
      * @dev Event emitted upon updating a request
@@ -202,6 +224,18 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     }
 
     /**
+     * @dev Modifier to check if the auth type exists
+     */
+    modifier checkAuthTypeExistence(string memory authType, bool existence) {
+        if (existence) {
+            require(authTypeExists(authType), "auth type doesn't exist");
+        } else {
+            require(!authTypeExists(authType), "auth type already exists");
+        }
+        _;
+    }
+
+    /**
      * @dev Modifier to check if the validator is whitelisted
      */
     modifier onlyWhitelistedValidator(IRequestValidator validator) {
@@ -217,6 +251,16 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     function initialize(IState state, address owner) public initializer {
         __Ownable_init(owner);
         _getUniversalVerifierMultiQueryStorage()._state = state;
+    }
+
+    function _getUniversalVerifierMultiQueryStorage()
+        private
+        pure
+        returns (UniversalVerifierMultiQueryStorage storage $)
+    {
+        assembly {
+            $.slot := UniversalVerifierMultiQueryStorageLocation
+        }
     }
 
     function _getRequestType(uint256 requestId) internal pure returns (uint8 requestType) {
@@ -254,14 +298,13 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         return _getUniversalVerifierMultiQueryStorage()._queries[queryId].queryId == queryId;
     }
 
-    function _getUniversalVerifierMultiQueryStorage()
-        private
-        pure
-        returns (UniversalVerifierMultiQueryStorage storage $)
-    {
-        assembly {
-            $.slot := UniversalVerifierMultiQueryStorageLocation
-        }
+    /**
+     * @dev Checks if an auth type exists
+     * @param authType The auth type
+     * @return Whether the auth type exists
+     */
+    function authTypeExists(string memory authType) public view returns (bool) {
+        return _getUniversalVerifierMultiQueryStorage()._authMethods[authType].isActive == true;
     }
 
     /**
@@ -365,21 +408,6 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         return _getUniversalVerifierMultiQueryStorage()._queries[queryId];
     }
 
-    function _checkAuthResponses(Response[] memory responses) internal pure returns (uint256) {
-        uint256 numAuthResponses = 0;
-        uint256 authResponseIndex;
-
-        for (uint256 i = 0; i < responses.length; i++) {
-            if (_getRequestType(responses[i].requestId) == AUTH_REQUEST_TYPE) {
-                authResponseIndex = i;
-                numAuthResponses++;
-            }
-        }
-        require(numAuthResponses == 1, "Exactly 1 auth response is required");
-
-        return authResponseIndex;
-    }
-
     function _checkRequestsInQuery(uint256 queryId) internal view {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
 
@@ -398,14 +426,14 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
     /**
      * @dev Submits an array of responses and updates proofs status
-     * @param authResponse The auth response including request ID, proof and metadata for auth requests
+     * @param authResponses The list of auth responses including auth type and proof
      * @param singleResponses The list of responses including request ID, proof and metadata for single requests
      * @param groupedResponses The list of responses including request ID, proof and metadata for grouped requests
      * @param crossChainProofs The list of cross chain proofs from universal resolver (oracle). This
      * includes identities and global states.
      */
     function submitResponse(
-        Response memory authResponse,
+        AuthResponse[] memory authResponses,
         Response[] memory singleResponses,
         GroupedResponses[] memory groupedResponses,
         bytes memory crossChainProofs
@@ -417,15 +445,14 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         $._state.processCrossChainProofs(crossChainProofs);
 
         // 2. Process auth response first
+        require(authResponses.length == 1, "Only one auth response is required");
+
         uint256 userIDFromReponse;
-        if (_getRequestType(authResponse.requestId) != AUTH_REQUEST_TYPE) {
-            revert("Request ID is not an auth request");
-        }
-        RequestData storage authRequest = $._requests[authResponse.requestId];
+        AuthTypeData storage authTypeData = $._authMethods[authResponses[0].authType];
         // Authenticate user
-        IRequestValidator.ResponseField[] memory authSignals = authRequest.validator.verify(
-            authResponse.proof,
-            authRequest.params,
+        IAuthValidator.ResponseField[] memory authSignals = authTypeData.validator.verify(
+            authResponses[0].proof,
+            authTypeData.params,
             sender,
             $._state
         );
@@ -439,8 +466,8 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
         // For some reason the auth request doesn't return the userID in the response
         if (userIDFromReponse != 0) {
-            writeProofResults(authResponse.requestId, userIDFromReponse, authSignals);
-            emit ResponseSubmitted(authResponse.requestId, _msgSender());
+            writeAuthProofResults(authResponses[0].authType, userIDFromReponse, authSignals);
+            emit AuthResponseSubmitted(authResponses[0].authType, _msgSender());
             // Link userID and user address
             $._user_address_to_id[sender] = userIDFromReponse;
             $._id_to_user_address[userIDFromReponse] = sender;
@@ -535,33 +562,67 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     }
 
     /**
-     * @dev Adds an auth request
-     * @param request The data of the auth request to add
+     * @dev Writes proof results.
+     * @param authType The auth type of the proof
+     * @param userID The userID of the proof
+     * @param responseFields The array of response fields of the proof
      */
-    function setAuthRequest(
-        Request calldata request
-    ) public checkRequestExistence(request.requestId, false) onlyOwner {
-        if (_getRequestType(request.requestId) != AUTH_REQUEST_TYPE) {
-            revert("Request ID is not an auth request");
+    function writeAuthProofResults(
+        string memory authType,
+        uint256 userID,
+        IAuthValidator.ResponseField[] memory responseFields
+    ) public {
+        UniversalVerifierMultiQueryStorage storage $ = _getUniversalVerifierMultiQueryStorage();
+
+        Proof storage proof = $._authProofs[authType][userID];
+        for (uint256 i = 0; i < responseFields.length; i++) {
+            proof.storageFields[responseFields[i].name] = responseFields[i].value;
         }
 
+        proof.isVerified = true;
+        proof.validatorVersion = $._authMethods[authType].validator.version();
+        proof.blockNumber = block.number;
+        proof.blockTimestamp = block.timestamp;
+    }
+
+    /**
+     * @dev Sets an auth type
+     * @param authType The auth type to add
+     */
+    function setAuthType(
+        AuthType calldata authType
+    ) public onlyOwner checkAuthTypeExistence(authType.authType, false) {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
-        s._requests[request.requestId] = RequestData({
-            metadata: request.metadata,
-            validator: request.validator,
-            params: request.params
+        s._authTypes.push(authType.authType);
+        s._authMethods[authType.authType] = AuthTypeData({
+            validator: authType.validator,
+            params: authType.params,
+            isActive: true
         });
-        s._requestIds.push(request.requestId);
 
-        s._authRequestIds.push(request.requestId);
+        emit AuthSet(authType.authType, address(authType.validator), authType.params);
+    }
 
-        emit AuthRequestSet(
-            request.requestId,
-            _msgSender(),
-            request.metadata,
-            address(request.validator),
-            request.params
-        );
+    /**
+     * @dev Disables an auth type
+     * @param authType The auth type to disable
+     */
+    function disableAuthType(
+        string calldata authType
+    ) public onlyOwner checkAuthTypeExistence(authType, true) {
+        UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
+        s._authMethods[authType].isActive = false;
+    }
+
+    /**
+     * @dev Enables an auth type
+     * @param authType The auth type to enable
+     */
+    function enableAuthType(
+        string calldata authType
+    ) public onlyOwner checkAuthTypeExistence(authType, true) {
+        UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
+        s._authMethods[authType].isActive = true;
     }
 
     /**
@@ -641,7 +702,12 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     function getQueryStatus(
         uint256 queryId,
         address userAddress
-    ) public view checkQueryExistence(queryId, true) returns (bool status) {
+    )
+        public
+        view
+        checkQueryExistence(queryId, true)
+        returns (AuthProofStatus[] memory, RequestProofStatus[] memory)
+    {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
 
         // 1. Get the latest userId by the userAddress arg (in the mapping)
@@ -649,16 +715,86 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         require(userID != 0, "UserID not found");
 
         // 2. Check if all requests statuses are true for the userId
-        for (uint256 i = 0; i < s._queries[queryId].requestIds.length; i++) {
-            uint256 requestId = s._queries[queryId].requestIds[i];
-            if (!s._proofs[requestId][userID].isVerified) {
-                return false;
-            }
-        }
+        (
+            AuthProofStatus[] memory authProofStatus,
+            RequestProofStatus[] memory requestProofStatus
+        ) = _getQueryStatus(queryId, userID);
+
         // 3. Check if all linked response fields are the same
         _checkLinkedResponseFields(queryId, userID);
 
-        return true;
+        return (authProofStatus, requestProofStatus);
+    }
+
+    function _getQueryStatus(
+        uint256 queryId,
+        uint256 userID
+    ) internal view returns (AuthProofStatus[] memory, RequestProofStatus[] memory) {
+        UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
+        Query storage query = s._queries[queryId];
+        AuthProofStatus[] memory authProofStatus = new AuthProofStatus[](s._authTypes.length);
+        RequestProofStatus[] memory requestProofStatus = new RequestProofStatus[](
+            query.requestIds.length
+        );
+
+        for (uint256 i = 0; i < s._authTypes.length; i++) {
+            string memory authType = s._authTypes[i];
+            authProofStatus[i] = AuthProofStatus({
+                authType: authType,
+                isVerified: s._authProofs[authType][userID].isVerified,
+                validatorVersion: s._authProofs[authType][userID].validatorVersion,
+                timestamp: s._authProofs[authType][userID].blockTimestamp
+            });
+        }
+
+        for (uint256 i = 0; i < query.requestIds.length; i++) {
+            uint256 requestId = query.requestIds[i];
+
+            requestProofStatus[i] = RequestProofStatus({
+                requestId: requestId,
+                isVerified: s._proofs[requestId][userID].isVerified,
+                validatorVersion: s._proofs[requestId][userID].validatorVersion,
+                timestamp: s._proofs[requestId][userID].blockTimestamp
+            });
+        }
+
+        return (authProofStatus, requestProofStatus);
+    }
+
+    function getQueryStatus(
+        uint256 queryId,
+        address userAddress,
+        uint256 userID
+    )
+        public
+        view
+        checkQueryExistence(queryId, true)
+        returns (AuthProofStatus[] memory, RequestProofStatus[] memory)
+    {
+        UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
+
+        // 1. Get the latest userId by the userAddress arg (in the mapping)
+        uint256 userIDFromAddress = s._user_address_to_id[userAddress];
+        uint256 userIDSelected;
+
+        if (userIDFromAddress != userID) {
+            address addressFromUserID = s._id_to_user_address[userID];
+            require(addressFromUserID == userAddress, "The userAddress and userID are not linked");
+            userIDSelected = s._user_address_to_id[addressFromUserID];
+        } else {
+            userIDSelected = userID;
+        }
+
+        // 2. Check if all requests statuses are true for the userId
+        (
+            AuthProofStatus[] memory authProofStatus,
+            RequestProofStatus[] memory requestProofStatus
+        ) = _getQueryStatus(queryId, userIDSelected);
+
+        // 3. Check if all linked response fields are the same
+        _checkLinkedResponseFields(queryId, userIDSelected);
+
+        return (authProofStatus, requestProofStatus);
     }
 
     /**
