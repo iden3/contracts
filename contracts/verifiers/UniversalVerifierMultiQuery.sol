@@ -626,14 +626,14 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     }
 
     /**
-     * @dev Gets an auth request
-     * @param requestId The Id of the auth request to get
-     * @return authRequest The auth request data
+     * @dev Gets an auth type
+     * @param authType The Id of the auth type to get
+     * @return authMethod The auth type data
      */
-    function getAuthRequest(
-        uint256 requestId
-    ) public view checkRequestExistence(requestId, true) returns (RequestData memory authRequest) {
-        return _getUniversalVerifierMultiQueryStorage()._requests[requestId];
+    function getAuthType(
+        string calldata authType
+    ) public view checkAuthTypeExistence(authType, true) returns (AuthTypeData memory authMethod) {
+        return _getUniversalVerifierMultiQueryStorage()._authMethods[authType];
     }
 
     /**
@@ -665,6 +665,22 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
         uint256 userID = s._user_address_to_id[sender];
         return s._proofs[requestId][userID].storageFields[responseFieldName];
+    }
+
+    /**
+     * @dev Gets response field value
+     * @param authType Auth type of the proof response
+     * @param sender Address of the sender
+     * @param responseFieldName Name of the response field to get
+     */
+    function getAuthResponseFieldValueFromAddress(
+        string memory authType,
+        address sender,
+        string memory responseFieldName
+    ) public view checkAuthTypeExistence(authType, true) returns (uint256) {
+        UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
+        uint256 userID = s._user_address_to_id[sender];
+        return s._authProofs[authType][userID].storageFields[responseFieldName];
     }
 
     function _checkLinkedResponseFields(uint256 queryId, uint256 userID) internal view {
@@ -732,9 +748,19 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     ) internal view returns (AuthProofStatus[] memory, RequestProofStatus[] memory) {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
         Query storage query = s._queries[queryId];
+
+        uint256 lengthGroupIds;
+
+        if (query.groupIds.length > 0) {
+            for (uint256 i = 0; i < query.groupIds.length; i++) {
+                uint256 groupId = query.groupIds[i];
+                lengthGroupIds += s._groupedRequests[groupId].length;
+            }
+        }
+
         AuthProofStatus[] memory authProofStatus = new AuthProofStatus[](s._authTypes.length);
         RequestProofStatus[] memory requestProofStatus = new RequestProofStatus[](
-            query.requestIds.length
+            query.requestIds.length + lengthGroupIds
         );
 
         for (uint256 i = 0; i < s._authTypes.length; i++) {
@@ -756,6 +782,21 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
                 validatorVersion: s._proofs[requestId][userID].validatorVersion,
                 timestamp: s._proofs[requestId][userID].blockTimestamp
             });
+        }
+
+        for (uint256 i = 0; i < query.groupIds.length; i++) {
+            uint256 groupId = query.groupIds[i];
+
+            for (uint256 j = 0; j < s._groupedRequests[groupId].length; j++) {
+                uint256 requestId = s._groupedRequests[groupId][j];
+
+                requestProofStatus[query.requestIds.length + j] = RequestProofStatus({
+                    requestId: requestId,
+                    isVerified: s._proofs[requestId][userID].isVerified,
+                    validatorVersion: s._proofs[requestId][userID].validatorVersion,
+                    timestamp: s._proofs[requestId][userID].blockTimestamp
+                });
+            }
         }
 
         return (authProofStatus, requestProofStatus);

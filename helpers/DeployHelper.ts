@@ -787,22 +787,12 @@ export class DeployHelper {
     };
   }
 
-  async deployValidatorStub(): Promise<Contract> {
-    const stub = await ethers.getContractFactory("ValidatorStub");
+  async deployValidatorStub(validatorName: string = "ValidatorStub"): Promise<Contract> {
+    const stub = await ethers.getContractFactory(validatorName);
     const stubInstance = await stub.deploy();
     await stubInstance.waitForDeployment();
 
-    console.log("Validator stub deployed to:", await stubInstance.getAddress());
-
-    return stubInstance;
-  }
-
-  async deployRequestValidatorStub(requestValidatorName: string): Promise<Contract> {
-    const stub = await ethers.getContractFactory(requestValidatorName);
-    const stubInstance = await stub.deploy();
-    await stubInstance.waitForDeployment();
-
-    console.log(`${requestValidatorName} stub deployed to:`, await stubInstance.getAddress());
+    console.log(`${validatorName} stub deployed to:`, await stubInstance.getAddress());
 
     return stubInstance;
   }
