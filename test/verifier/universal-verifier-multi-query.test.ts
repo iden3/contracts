@@ -181,6 +181,8 @@ describe("Universal Verifier Multi-query", function () {
     const requestId = 1;
     const queryId = 1;
     const nonExistingQueryId = 5;
+    const userId = 1;
+    const userId2 = 2;
     const authType = "authV2";
     const params = packV3ValidatorParams(requestQuery1);
 
@@ -260,6 +262,14 @@ describe("Universal Verifier Multi-query", function () {
 
     await checkAuthStorageFields(verifier, authType, authStorageFields);
     await checkStorageFields(verifier, BigInt(requestId), storageFields);
+
+    const isUserAuth = await verifier.isUserAuth(userId, await signer.getAddress());
+    expect(isUserAuth).to.be.equal(true);
+
+    const isUserAuth2 = await verifier.isUserAuth(userId2, await signer.getAddress());
+    expect(isUserAuth2).to.be.equal(false);
+
+
     const filter = verifier.filters.ResponseSubmitted;
 
     const events = await verifier.queryFilter(filter, -1);
@@ -285,6 +295,7 @@ describe("Universal Verifier Multi-query", function () {
     const authType = "authV2";
     const queryId = 1;
     const nonExistingQueryId = 5;
+    const userId = 1;
     const authParams = "0x";
     const paramsRequest2 = packV3ValidatorParams(requestQuery2);
     const paramsRequest3 = packV3ValidatorParams(requestQuery3);
@@ -379,6 +390,10 @@ describe("Universal Verifier Multi-query", function () {
     await checkAuthStorageFields(verifier, authType, authStorageFields);
     await checkStorageFields(verifier, BigInt(requestId2), storageFields);
     await checkStorageFields(verifier, BigInt(requestId3), storageFields);
+
+    const isUserAuth = await verifier.isUserAuth(userId, await signer.getAddress());
+    expect(isUserAuth).to.be.equal(true);
+
     const filter = verifier.filters.ResponseSubmitted;
 
     const events = await verifier.queryFilter(filter, -1);

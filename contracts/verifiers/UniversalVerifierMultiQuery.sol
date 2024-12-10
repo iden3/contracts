@@ -95,6 +95,16 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         Response[] responses;
     }
 
+    struct UserAddressToIdInfo {
+        uint256 userID;
+        uint256 timestamp;
+    }
+
+    struct UserIdToAddressInfo {
+        address userAddress;
+        uint256 timestamp;
+    }
+
     /**
      * @dev Query. Structure for query.
      * @param queryId Query id.
@@ -123,8 +133,8 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         mapping(uint256 queryId => Query) _queries;
         uint256[] _queryIds;
         // Information linked between users and their addresses
-        mapping(address userAddress => uint256 userID) _user_address_to_id;
-        mapping(uint256 userID => address userAddress) _id_to_user_address;
+        mapping(address userAddress => UserAddressToIdInfo) _user_address_to_id;
+        mapping(uint256 userID => UserIdToAddressInfo) _id_to_user_address;
         // Whitelisted validators
         mapping(IRequestValidator => bool isApproved) _validatorWhitelist;
         // Information about auth types and validators
@@ -469,12 +479,18 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
             writeAuthProofResults(authResponses[0].authType, userIDFromReponse, authSignals);
             emit AuthResponseSubmitted(authResponses[0].authType, _msgSender());
             // Link userID and user address
-            $._user_address_to_id[sender] = userIDFromReponse;
-            $._id_to_user_address[userIDFromReponse] = sender;
+            $._user_address_to_id[sender] = UserAddressToIdInfo({
+                userID: userIDFromReponse,
+                timestamp: block.timestamp
+            });
+            $._id_to_user_address[userIDFromReponse] = UserIdToAddressInfo({
+                userAddress: sender,
+                timestamp: block.timestamp
+            });
         }
 
         // 3. Get userID from latest auth response processed in this submitResponse or before
-        uint256 userID = $._user_address_to_id[sender];
+        uint256 userID = $._user_address_to_id[sender].userID;
 
         if (userID == 0) {
             revert("The user is not authenticated");
@@ -663,7 +679,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         string memory responseFieldName
     ) public view checkRequestExistence(requestId, true) returns (uint256) {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
-        uint256 userID = s._user_address_to_id[sender];
+        uint256 userID = s._user_address_to_id[sender].userID;
         return s._proofs[requestId][userID].storageFields[responseFieldName];
     }
 
@@ -679,7 +695,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         string memory responseFieldName
     ) public view checkAuthTypeExistence(authType, true) returns (uint256) {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
-        uint256 userID = s._user_address_to_id[sender];
+        uint256 userID = s._user_address_to_id[sender].userID;
         return s._authProofs[authType][userID].storageFields[responseFieldName];
     }
 
@@ -727,7 +743,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
 
         // 1. Get the latest userId by the userAddress arg (in the mapping)
-        uint256 userID = s._user_address_to_id[userAddress];
+        uint256 userID = s._user_address_to_id[userAddress].userID;
         require(userID != 0, "UserID not found");
 
         // 2. Check if all requests statuses are true for the userId
@@ -738,6 +754,49 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
         // 3. Check if all linked response fields are the same
         _checkLinkedResponseFields(queryId, userID);
+
+        return (authProofStatus, requestProofStatus);
+    }
+
+    /**
+     * @dev Gets the status of the query verification
+     * @param queryId The ID of the query
+     * @param userAddress The address of the user
+     * @param userID The user id of the user
+     * @return status The status of the query. "True" if all requests are verified, "false" otherwise
+     */
+    function getQueryStatus(
+        uint256 queryId,
+        address userAddress,
+        uint256 userID
+    )
+        public
+        view
+        checkQueryExistence(queryId, true)
+        returns (AuthProofStatus[] memory, RequestProofStatus[] memory)
+    {
+        UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
+
+        // 1. Get the latest userId by the userAddress arg (in the mapping)
+        uint256 userIDFromAddress = s._user_address_to_id[userAddress].userID;
+        uint256 userIDSelected;
+
+        if (userIDFromAddress != userID) {
+            address addressFromUserID = s._id_to_user_address[userID].userAddress;
+            require(addressFromUserID == userAddress, "The userAddress and userID are not linked");
+            userIDSelected = s._user_address_to_id[addressFromUserID].userID;
+        } else {
+            userIDSelected = userID;
+        }
+
+        // 2. Check if all requests statuses are true for the userId
+        (
+            AuthProofStatus[] memory authProofStatus,
+            RequestProofStatus[] memory requestProofStatus
+        ) = _getQueryStatus(queryId, userIDSelected);
+
+        // 3. Check if all linked response fields are the same
+        _checkLinkedResponseFields(queryId, userIDSelected);
 
         return (authProofStatus, requestProofStatus);
     }
@@ -802,40 +861,36 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         return (authProofStatus, requestProofStatus);
     }
 
-    function getQueryStatus(
-        uint256 queryId,
-        address userAddress,
-        uint256 userID
-    )
-        public
-        view
-        checkQueryExistence(queryId, true)
-        returns (AuthProofStatus[] memory, RequestProofStatus[] memory)
-    {
+    /**
+     * @dev Checks if a user is authenticated
+     * @param userId The ID of the user
+     * @param userAddress The address of the user
+     * @return Whether the user is authenticated
+     */
+    function isUserAuth(uint256 userId, address userAddress) public view returns (bool) {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
+        return
+            s._user_address_to_id[userAddress].userID == userId ||
+            s._id_to_user_address[userId].userAddress == userAddress;
+    }
 
-        // 1. Get the latest userId by the userAddress arg (in the mapping)
-        uint256 userIDFromAddress = s._user_address_to_id[userAddress];
-        uint256 userIDSelected;
-
-        if (userIDFromAddress != userID) {
-            address addressFromUserID = s._id_to_user_address[userID];
-            require(addressFromUserID == userAddress, "The userAddress and userID are not linked");
-            userIDSelected = s._user_address_to_id[addressFromUserID];
+    /**
+     * @dev Gets the timestamp of the authentication of a user
+     * @param userId The user id of the user
+     * @param userAddress The address of the user
+     * @return The user ID
+     */
+    function userAuthTimestamp(uint256 userId, address userAddress) public view returns (uint256) {
+        if (isUserAuth(userId, userAddress)) {
+            UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
+            if (s._user_address_to_id[userAddress].userID == userId) {
+                return s._user_address_to_id[userAddress].timestamp;
+            } 
+            
+            return s._id_to_user_address[userId].timestamp;            
         } else {
-            userIDSelected = userID;
+            return 0;
         }
-
-        // 2. Check if all requests statuses are true for the userId
-        (
-            AuthProofStatus[] memory authProofStatus,
-            RequestProofStatus[] memory requestProofStatus
-        ) = _getQueryStatus(queryId, userIDSelected);
-
-        // 3. Check if all linked response fields are the same
-        _checkLinkedResponseFields(queryId, userIDSelected);
-
-        return (authProofStatus, requestProofStatus);
     }
 
     /**
