@@ -885,9 +885,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
             UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
             if (s._user_address_to_id[userAddress].userID == userId) {
                 return s._user_address_to_id[userAddress].timestamp;
-            } 
-            
-            return s._id_to_user_address[userId].timestamp;            
+            }
+
+            return s._id_to_user_address[userId].timestamp;
         } else {
             return 0;
         }
