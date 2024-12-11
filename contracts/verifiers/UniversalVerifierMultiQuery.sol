@@ -44,10 +44,23 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         bool isVerified;
         mapping(string key => uint256 inputValue) storageFields;
         string validatorVersion;
-        uint256 blockNumber;
+        // TODO: discuss if we need this field
+        // uint256 blockNumber;
         uint256 blockTimestamp;
         mapping(string key => bytes) metadata;
     }
+
+    /**
+     * @dev Struct to store proof and associated data
+     */
+    struct AuthProof {
+        bool isVerified;
+        mapping(string key => uint256 inputValue) storageFields;
+        string validatorVersion;
+        uint256 blockTimestamp;
+    }
+
+    //TODO: custom errors to save some gas.
 
     /**
      * @dev Response. Structure for response.
@@ -133,8 +146,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         mapping(uint256 queryId => Query) _queries;
         uint256[] _queryIds;
         // Information linked between users and their addresses
-        mapping(address userAddress => UserAddressToIdInfo) _user_address_to_id;
-        mapping(uint256 userID => UserIdToAddressInfo) _id_to_user_address;
+        mapping(address userAddress => uint256 userID) _user_address_to_id;
+        mapping(uint256 userID => address userAddress) _id_to_user_address;
+        mapping(uint256 userID => mapping(address userAddress => uint256 timestamp)) _user_auth_timestamp;
         // Whitelisted validators
         mapping(IRequestValidator => bool isApproved) _validatorWhitelist;
         // Information about auth types and validators
@@ -172,7 +186,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     /**
      * @dev Event emitted upon adding an auth type by the owner
      */
-    event AuthSet(string indexed authType, address validator, bytes params);
+    event AuthTypeSet(string indexed authType, address validator, bytes params);
 
     /**
      * @dev Event emitted upon updating a request
@@ -273,10 +287,6 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         }
     }
 
-    function _getRequestType(uint256 requestId) internal pure returns (uint8 requestType) {
-        return uint8(requestId >> 248);
-    }
-
     /**
      * @dev Checks if a request ID exists
      * @param requestId The ID of the request
@@ -332,7 +342,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         _setRequest(request);
     }
 
-    function _setRequest(Request calldata request) internal {
+    function _setRequest(
+        Request calldata request
+    ) internal checkRequestExistence(request.requestId, false) {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
         s._requests[request.requestId] = RequestData({
             metadata: request.metadata,
@@ -455,7 +467,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         $._state.processCrossChainProofs(crossChainProofs);
 
         // 2. Process auth response first
-        require(authResponses.length == 1, "Only one auth response is required");
+        require(authResponses.length == 1, "Exactly one auth response is required");
 
         uint256 userIDFromReponse;
         AuthTypeData storage authTypeData = $._authMethods[authResponses[0].authType];
@@ -479,18 +491,13 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
             writeAuthProofResults(authResponses[0].authType, userIDFromReponse, authSignals);
             emit AuthResponseSubmitted(authResponses[0].authType, _msgSender());
             // Link userID and user address
-            $._user_address_to_id[sender] = UserAddressToIdInfo({
-                userID: userIDFromReponse,
-                timestamp: block.timestamp
-            });
-            $._id_to_user_address[userIDFromReponse] = UserIdToAddressInfo({
-                userAddress: sender,
-                timestamp: block.timestamp
-            });
+            $._user_address_to_id[sender] = userIDFromReponse;
+            $._id_to_user_address[userIDFromReponse] = sender;
+            $._user_auth_timestamp[userIDFromReponse][sender] = block.timestamp;
         }
 
         // 3. Get userID from latest auth response processed in this submitResponse or before
-        uint256 userID = $._user_address_to_id[sender].userID;
+        uint256 userID = $._user_address_to_id[sender];
 
         if (userID == 0) {
             revert("The user is not authenticated");
@@ -573,7 +580,6 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
         proof.isVerified = true;
         proof.validatorVersion = $._requests[requestId].validator.version();
-        proof.blockNumber = block.number;
         proof.blockTimestamp = block.timestamp;
     }
 
@@ -597,7 +603,6 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
         proof.isVerified = true;
         proof.validatorVersion = $._authMethods[authType].validator.version();
-        proof.blockNumber = block.number;
         proof.blockTimestamp = block.timestamp;
     }
 
@@ -616,7 +621,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
             isActive: true
         });
 
-        emit AuthSet(authType.authType, address(authType.validator), authType.params);
+        emit AuthTypeSet(authType.authType, address(authType.validator), authType.params);
     }
 
     /**
@@ -679,7 +684,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         string memory responseFieldName
     ) public view checkRequestExistence(requestId, true) returns (uint256) {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
-        uint256 userID = s._user_address_to_id[sender].userID;
+        uint256 userID = s._user_address_to_id[sender];
         return s._proofs[requestId][userID].storageFields[responseFieldName];
     }
 
@@ -695,7 +700,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         string memory responseFieldName
     ) public view checkAuthTypeExistence(authType, true) returns (uint256) {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
-        uint256 userID = s._user_address_to_id[sender].userID;
+        uint256 userID = s._user_address_to_id[sender];
         return s._authProofs[authType][userID].storageFields[responseFieldName];
     }
 
@@ -743,7 +748,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
 
         // 1. Get the latest userId by the userAddress arg (in the mapping)
-        uint256 userID = s._user_address_to_id[userAddress].userID;
+        uint256 userID = s._user_address_to_id[userAddress];
         require(userID != 0, "UserID not found");
 
         // 2. Check if all requests statuses are true for the userId
@@ -778,13 +783,13 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
 
         // 1. Get the latest userId by the userAddress arg (in the mapping)
-        uint256 userIDFromAddress = s._user_address_to_id[userAddress].userID;
+        uint256 userIDFromAddress = s._user_address_to_id[userAddress];
         uint256 userIDSelected;
 
         if (userIDFromAddress != userID) {
-            address addressFromUserID = s._id_to_user_address[userID].userAddress;
+            address addressFromUserID = s._id_to_user_address[userID];
             require(addressFromUserID == userAddress, "The userAddress and userID are not linked");
-            userIDSelected = s._user_address_to_id[addressFromUserID].userID;
+            userIDSelected = s._user_address_to_id[addressFromUserID];
         } else {
             userIDSelected = userID;
         }
@@ -863,31 +868,26 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
     /**
      * @dev Checks if a user is authenticated
-     * @param userId The ID of the user
+     * @param userID The ID of the user
      * @param userAddress The address of the user
      * @return Whether the user is authenticated
      */
-    function isUserAuth(uint256 userId, address userAddress) public view returns (bool) {
+    function isUserAuth(uint256 userID, address userAddress) public view returns (bool) {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
-        return
-            s._user_address_to_id[userAddress].userID == userId ||
-            s._id_to_user_address[userId].userAddress == userAddress;
+        return s._user_auth_timestamp[userID][userAddress] != 0;
     }
 
     /**
      * @dev Gets the timestamp of the authentication of a user
-     * @param userId The user id of the user
+     * @param userID The user id of the user
      * @param userAddress The address of the user
      * @return The user ID
      */
-    function userAuthTimestamp(uint256 userId, address userAddress) public view returns (uint256) {
-        if (isUserAuth(userId, userAddress)) {
+    function userAuthTimestamp(uint256 userID, address userAddress) public view returns (uint256) {
+        if (isUserAuth(userID, userAddress)) {
             UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
-            if (s._user_address_to_id[userAddress].userID == userId) {
-                return s._user_address_to_id[userAddress].timestamp;
-            }
 
-            return s._id_to_user_address[userId].timestamp;
+            return s._user_auth_timestamp[userID][userAddress];
         } else {
             return 0;
         }
