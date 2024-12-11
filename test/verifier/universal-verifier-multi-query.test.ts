@@ -269,7 +269,6 @@ describe("Universal Verifier Multi-query", function () {
     const isUserAuth2 = await verifier.isUserAuth(userId2, await signer.getAddress());
     expect(isUserAuth2).to.be.equal(false);
 
-
     const filter = verifier.filters.ResponseSubmitted;
 
     const events = await verifier.queryFilter(filter, -1);
@@ -278,7 +277,7 @@ describe("Universal Verifier Multi-query", function () {
     expect(events[0].args.caller).to.be.equal(signerAddress);
 
     await expect(verifier.getQueryStatus(nonExistingQueryId, signerAddress)).to.be.rejectedWith(
-      "query id doesn't exist",
+      `QueryIdNotFound(${nonExistingQueryId})`,
     );
 
     const status = await verifier.getQueryStatus(queryId, signerAddress);
@@ -402,7 +401,7 @@ describe("Universal Verifier Multi-query", function () {
     expect(events[0].args.caller).to.be.equal(signerAddress);
 
     await expect(verifier.getQueryStatus(nonExistingQueryId, signerAddress)).to.be.rejectedWith(
-      "query id doesn't exist",
+      `QueryIdNotFound(${nonExistingQueryId})`,
     );
     const status = await verifier.getQueryStatus(queryId, signerAddress);
     expect(status[0][0][0]).to.be.equal(authType);
@@ -496,7 +495,7 @@ describe("Universal Verifier Multi-query", function () {
     await tx.wait();
 
     await expect(verifier.getQueryStatus(queryId, signerAddress)).to.be.rejectedWith(
-      "linkID is not the same for each of the requests of the group",
+      "LinkIDNotTheSameForGroupedRequests(3, 4)",
     );
   });
 });

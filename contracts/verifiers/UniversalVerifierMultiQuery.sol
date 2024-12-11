@@ -7,6 +7,22 @@ import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
 import {IAuthValidator} from "../interfaces/IAuthValidator.sol";
 import {IState} from "../interfaces/IState.sol";
 
+error RequestIdNotFound(uint256 requestId);
+error RequestAlreadyExists(uint256 requestId);
+error GroupIdNotFound(uint256 groupId);
+error GroupIdAlreadyExists(uint256 groupId);
+error QueryIdNotFound(uint256 queryId);
+error QueryIdAlreadyExists(uint256 queryId);
+error AuthTypeNotFound(string authType);
+error AuthTypeAlreadyExists(string authType);
+error ValidatorNotWhitelisted(address validator);
+error RequestIsAlreadyGrouped(uint256 requestId);
+error AuthResponsesExactlyOneRequired();
+error LinkIDNotTheSameForGroupedRequests(uint256 requestLinkID, uint256 requestLinkIDToCompare);
+error UserIDNotFound(uint256 userID);
+error UserIDNotLinkedToAddress(uint256 userID, address userAddress);
+error ValidatorNotSupportInterface(address validator);
+
 contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     /**
      * @dev Version of the contract
@@ -216,9 +232,13 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      */
     modifier checkRequestExistence(uint256 requestId, bool existence) {
         if (existence) {
-            require(requestIdExists(requestId), "request id or auth request id doesn't exist");
+            if (!requestIdExists(requestId)) {
+                revert RequestIdNotFound(requestId);
+            }
         } else {
-            require(!requestIdExists(requestId), "request id or auth request id already exists");
+            if (requestIdExists(requestId)) {
+                revert RequestAlreadyExists(requestId);
+            }
         }
         _;
     }
@@ -230,9 +250,13 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         uint256 groupId = request.validator.getGroupID(request.params);
 
         if (existence) {
-            require(groupIdExists(groupId), "group id doesn't exist");
+            if (!groupIdExists(groupId)) {
+                revert GroupIdNotFound(groupId);
+            }
         } else {
-            require(!groupIdExists(groupId), "group id already exists");
+            if (groupIdExists(groupId)) {
+                revert GroupIdAlreadyExists(groupId);
+            }
         }
         _;
     }
@@ -242,9 +266,13 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      */
     modifier checkQueryExistence(uint256 queryId, bool existence) {
         if (existence) {
-            require(queryIdExists(queryId), "query id doesn't exist");
+            if (!queryIdExists(queryId)) {
+                revert QueryIdNotFound(queryId);
+            }
         } else {
-            require(!queryIdExists(queryId), "query id already exists");
+            if (queryIdExists(queryId)) {
+                revert QueryIdAlreadyExists(queryId);
+            }
         }
         _;
     }
@@ -254,9 +282,13 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      */
     modifier checkAuthTypeExistence(string memory authType, bool existence) {
         if (existence) {
-            require(authTypeExists(authType), "auth type doesn't exist");
+            if (!authTypeExists(authType)) {
+                revert AuthTypeNotFound(authType);
+            }
         } else {
-            require(!authTypeExists(authType), "auth type already exists");
+            if (authTypeExists(authType)) {
+                revert AuthTypeAlreadyExists(authType);
+            }
         }
         _;
     }
@@ -265,7 +297,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      * @dev Modifier to check if the validator is whitelisted
      */
     modifier onlyWhitelistedValidator(IRequestValidator validator) {
-        require(isWhitelistedValidator(validator), "Validator is not whitelisted");
+        if (!isWhitelistedValidator(validator)) {
+            revert ValidatorNotWhitelisted(address(validator));
+        }
         _;
     }
 
@@ -439,12 +473,13 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
         // check that all the single requests doesn't have group
         for (uint256 i = 0; i < requestIds.length; i++) {
-            require(
+            if (
                 s._requests[requestIds[i]].validator.getGroupID(
                     s._requests[requestIds[i]].params
-                ) == 0,
-                "A single request in this query is a grouped request"
-            );
+                ) != 0
+            ) {
+                revert RequestIsAlreadyGrouped(requestIds[i]);
+            }
         }
     }
 
@@ -469,7 +504,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         $._state.processCrossChainProofs(crossChainProofs);
 
         // 2. Process auth response first
-        require(authResponses.length == 1, "Exactly one auth response is required");
+        if (authResponses.length != 1) {
+            revert AuthResponsesExactlyOneRequired();
+        }
 
         uint256 userIDFromReponse;
         AuthTypeData storage authTypeData = $._authMethods[authResponses[0].authType];
@@ -724,10 +761,12 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
                     userID,
                     LINKED_PROOF_KEY
                 );
-                require(
-                    requestLinkIDToCompare == requestLinkID,
-                    "linkID is not the same for each of the requests of the group"
-                );
+                if (requestLinkID != requestLinkIDToCompare) {
+                    revert LinkIDNotTheSameForGroupedRequests(
+                        requestLinkID,
+                        requestLinkIDToCompare
+                    );
+                }
             }
         }
     }
@@ -751,7 +790,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
         // 1. Get the latest userId by the userAddress arg (in the mapping)
         uint256 userID = s._user_address_to_id[userAddress];
-        require(userID != 0, "UserID not found");
+        if (userID == 0) {
+            revert UserIDNotFound(userID);
+        }
 
         // 2. Check if all requests statuses are true for the userId
         (
@@ -790,7 +831,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
         if (userIDFromAddress != userID) {
             address addressFromUserID = s._id_to_user_address[userID];
-            require(addressFromUserID == userAddress, "The userAddress and userID are not linked");
+            if (addressFromUserID != userAddress) {
+                revert UserIDNotLinkedToAddress(userID, userAddress);
+            }
             userIDSelected = s._user_address_to_id[addressFromUserID];
         } else {
             userIDSelected = userID;
@@ -900,10 +943,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      * @param validator The validator to add
      */
     function addValidatorToWhitelist(IRequestValidator validator) public {
-        require(
-            IERC165(address(validator)).supportsInterface(type(IRequestValidator).interfaceId),
-            "Validator doesn't support relevant interface"
-        );
+        if (!IERC165(address(validator)).supportsInterface(type(IRequestValidator).interfaceId)) {
+            revert ValidatorNotSupportInterface(address(validator));
+        }
 
         _getUniversalVerifierMultiQueryStorage()._validatorWhitelist[validator] = true;
     }
