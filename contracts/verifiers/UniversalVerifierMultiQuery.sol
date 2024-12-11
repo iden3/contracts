@@ -12,6 +12,8 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
      * @dev Version of the contract
      */
     string public constant VERSION = "1.0.0";
+    /// @dev Key to retrieve the linkID from the proof storage
+    string constant LINKED_PROOF_KEY = "linkID";
 
     /**
      * @dev Request. Structure for request for storage.
@@ -51,7 +53,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     }
 
     /**
-     * @dev Struct to store proof and associated data
+     * @dev Struct to store auth proof and associated data
      */
     struct AuthProof {
         bool isVerified;
@@ -154,7 +156,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         // Information about auth types and validators
         string[] _authTypes;
         mapping(string authType => AuthTypeData) _authMethods;
-        mapping(string authType => mapping(uint256 userID => Proof)) _authProofs;
+        mapping(string authType => mapping(uint256 userID => AuthProof)) _authProofs;
     }
 
     // solhint-disable-next-line
@@ -527,10 +529,10 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
         // 5. Verify all the grouped responses, write proof results (under the userID key from the auth of the user),
         //      emit events (existing logic)
-        _writeGroupedResponses(groupedResponses, userID, sender);
+        _verifyGroupedResponses(groupedResponses, userID, sender);
     }
 
-    function _writeGroupedResponses(
+    function _verifyGroupedResponses(
         GroupedResponses[] memory groupedResponses,
         uint256 userID,
         address sender
@@ -596,7 +598,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     ) public {
         UniversalVerifierMultiQueryStorage storage $ = _getUniversalVerifierMultiQueryStorage();
 
-        Proof storage proof = $._authProofs[authType][userID];
+        AuthProof storage proof = $._authProofs[authType][userID];
         for (uint256 i = 0; i < responseFields.length; i++) {
             proof.storageFields[responseFields[i].name] = responseFields[i].value;
         }
@@ -714,13 +716,13 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
             uint256 requestLinkID = getResponseFieldValue(
                 s._groupedRequests[groupId][0],
                 userID,
-                "linkID"
+                LINKED_PROOF_KEY
             );
             for (uint256 j = 1; j < s._groupedRequests[groupId].length; j++) {
                 uint256 requestLinkIDToCompare = getResponseFieldValue(
                     s._groupedRequests[groupId][j],
                     userID,
-                    "linkID"
+                    LINKED_PROOF_KEY
                 );
                 require(
                     requestLinkIDToCompare == requestLinkID,
