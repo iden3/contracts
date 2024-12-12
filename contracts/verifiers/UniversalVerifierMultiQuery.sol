@@ -66,6 +66,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         // uint256 blockNumber;
         uint256 blockTimestamp;
         mapping(string key => bytes) metadata;
+        // This empty reserved space is put in place to allow future versions
+        // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+        uint256[45] __gap;
     }
 
     /**
@@ -76,6 +79,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         mapping(string key => uint256 inputValue) storageFields;
         string validatorVersion;
         uint256 blockTimestamp;
+        // This empty reserved space is put in place to allow future versions
+        // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+        uint256[45] __gap;
     }
 
     //TODO: custom errors to save some gas.
@@ -154,7 +160,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     struct UniversalVerifierMultiQueryStorage {
         // Information about requests
         // solhint-disable-next-line
-        mapping(uint256 requestId => mapping(uint256 userID => Proof)) _proofs;
+        mapping(uint256 requestId => mapping(uint256 userID => Proof[])) _proofs;
         mapping(uint256 requestId => RequestData) _requests;
         uint256[] _requestIds;
         mapping(uint256 groupId => uint256[] requestIds) _groupedRequests;
@@ -172,7 +178,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         // Information about auth types and validators
         string[] _authTypes;
         mapping(string authType => AuthTypeData) _authMethods;
-        mapping(string authType => mapping(uint256 userID => AuthProof)) _authProofs;
+        mapping(string authType => mapping(uint256 userID => AuthProof[])) _authProofs;
     }
 
     // solhint-disable-next-line
@@ -612,14 +618,18 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     ) public {
         UniversalVerifierMultiQueryStorage storage $ = _getUniversalVerifierMultiQueryStorage();
 
-        Proof storage proof = $._proofs[requestId][userID];
+        Proof[] storage proofs = $._proofs[requestId][userID];
+        // We only keep only 1 proof now without history. Prepared for the future if needed.
+        if (proofs.length == 0) {
+            proofs.push();
+        }
         for (uint256 i = 0; i < responseFields.length; i++) {
-            proof.storageFields[responseFields[i].name] = responseFields[i].value;
+            proofs[0].storageFields[responseFields[i].name] = responseFields[i].value;
         }
 
-        proof.isVerified = true;
-        proof.validatorVersion = $._requests[requestId].validator.version();
-        proof.blockTimestamp = block.timestamp;
+        proofs[0].isVerified = true;
+        proofs[0].validatorVersion = $._requests[requestId].validator.version();
+        proofs[0].blockTimestamp = block.timestamp;
     }
 
     /**
@@ -635,14 +645,17 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     ) public {
         UniversalVerifierMultiQueryStorage storage $ = _getUniversalVerifierMultiQueryStorage();
 
-        AuthProof storage proof = $._authProofs[authType][userID];
+        AuthProof[] storage proofs = $._authProofs[authType][userID];
+        if (proofs.length == 0) {
+            proofs.push();
+        }
         for (uint256 i = 0; i < responseFields.length; i++) {
-            proof.storageFields[responseFields[i].name] = responseFields[i].value;
+            proofs[0].storageFields[responseFields[i].name] = responseFields[i].value;
         }
 
-        proof.isVerified = true;
-        proof.validatorVersion = $._authMethods[authType].validator.version();
-        proof.blockTimestamp = block.timestamp;
+        proofs[0].isVerified = true;
+        proofs[0].validatorVersion = $._authMethods[authType].validator.version();
+        proofs[0].blockTimestamp = block.timestamp;
     }
 
     /**
@@ -708,7 +721,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         string memory responseFieldName
     ) public view checkRequestExistence(requestId, true) returns (uint256) {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
-        return s._proofs[requestId][userID].storageFields[responseFieldName];
+        return s._proofs[requestId][userID][0].storageFields[responseFieldName];
     }
 
     /**
@@ -724,7 +737,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     ) public view checkRequestExistence(requestId, true) returns (uint256) {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
         uint256 userID = s._user_address_to_id[sender];
-        return s._proofs[requestId][userID].storageFields[responseFieldName];
+        return s._proofs[requestId][userID][0].storageFields[responseFieldName];
     }
 
     /**
@@ -740,7 +753,7 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     ) public view checkAuthTypeExistence(authType, true) returns (uint256) {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
         uint256 userID = s._user_address_to_id[sender];
-        return s._authProofs[authType][userID].storageFields[responseFieldName];
+        return s._authProofs[authType][userID][0].storageFields[responseFieldName];
     }
 
     function _checkLinkedResponseFields(uint256 queryId, uint256 userID) internal view {
@@ -876,9 +889,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
             string memory authType = s._authTypes[i];
             authProofStatus[i] = AuthProofStatus({
                 authType: authType,
-                isVerified: s._authProofs[authType][userID].isVerified,
-                validatorVersion: s._authProofs[authType][userID].validatorVersion,
-                timestamp: s._authProofs[authType][userID].blockTimestamp
+                isVerified: s._authProofs[authType][userID][0].isVerified,
+                validatorVersion: s._authProofs[authType][userID][0].validatorVersion,
+                timestamp: s._authProofs[authType][userID][0].blockTimestamp
             });
         }
 
@@ -887,9 +900,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
             requestProofStatus[i] = RequestProofStatus({
                 requestId: requestId,
-                isVerified: s._proofs[requestId][userID].isVerified,
-                validatorVersion: s._proofs[requestId][userID].validatorVersion,
-                timestamp: s._proofs[requestId][userID].blockTimestamp
+                isVerified: s._proofs[requestId][userID][0].isVerified,
+                validatorVersion: s._proofs[requestId][userID][0].validatorVersion,
+                timestamp: s._proofs[requestId][userID][0].blockTimestamp
             });
         }
 
@@ -901,9 +914,9 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
 
                 requestProofStatus[query.requestIds.length + j] = RequestProofStatus({
                     requestId: requestId,
-                    isVerified: s._proofs[requestId][userID].isVerified,
-                    validatorVersion: s._proofs[requestId][userID].validatorVersion,
-                    timestamp: s._proofs[requestId][userID].blockTimestamp
+                    isVerified: s._proofs[requestId][userID][0].isVerified,
+                    validatorVersion: s._proofs[requestId][userID][0].validatorVersion,
+                    timestamp: s._proofs[requestId][userID][0].blockTimestamp
                 });
             }
         }
