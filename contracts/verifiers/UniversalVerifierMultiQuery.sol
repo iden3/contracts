@@ -41,6 +41,8 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         string metadata;
         IRequestValidator validator;
         bytes params;
+        address creator;
+        uint256 verifierId;
     }
 
     struct Request {
@@ -48,6 +50,16 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         string metadata;
         IRequestValidator validator;
         bytes params;
+    }
+
+    struct RequestInfo {
+        uint256 requestId;
+        string metadata;
+        IRequestValidator validator;
+        bytes params;
+        address creator;
+        uint256 verifierId;
+        bool isVerifierAuthenticated;
     }
 
     struct GroupedRequests {
@@ -388,10 +400,14 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
         Request calldata request
     ) internal checkRequestExistence(request.requestId, false) {
         UniversalVerifierMultiQueryStorage storage s = _getUniversalVerifierMultiQueryStorage();
+        uint256 verifierId = request.validator.getVerifierId(request.params);
+
         s._requests[request.requestId] = RequestData({
             metadata: request.metadata,
             validator: request.validator,
-            params: request.params
+            params: request.params,
+            creator: _msgSender(),
+            verifierId: verifierId
         });
         s._requestIds.push(request.requestId);
 
@@ -436,12 +452,23 @@ contract UniversalVerifierMultiQuery is Ownable2StepUpgradeable {
     /**
      * @dev Gets a specific request by ID
      * @param requestId The ID of the request
-     * @return request The request data
+     * @return request The request info
      */
     function getRequest(
         uint256 requestId
-    ) public view checkRequestExistence(requestId, true) returns (RequestData memory request) {
-        return _getUniversalVerifierMultiQueryStorage()._requests[requestId];
+    ) public view checkRequestExistence(requestId, true) returns (RequestInfo memory request) {
+        UniversalVerifierMultiQueryStorage storage $ = _getUniversalVerifierMultiQueryStorage();
+        RequestData storage rd = $._requests[requestId];
+        return
+            RequestInfo({
+                requestId: requestId,
+                metadata: rd.metadata,
+                validator: rd.validator,
+                params: rd.params,
+                creator: rd.creator,
+                verifierId: rd.verifierId,
+                isVerifierAuthenticated: $._user_auth_timestamp[rd.verifierId][rd.creator] != 0
+            });
     }
 
     /**

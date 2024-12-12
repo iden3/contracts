@@ -65,4 +65,12 @@ contract RequestValidatorV3Stub is IRequestValidator, ERC165 {
         // TODO: Implement hash function
         return keccak256(params);
     }
+
+    function getVerifierId(bytes calldata params) external pure override returns (uint256) {
+        CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
+            params,
+            (CredentialAtomicQueryV3)
+        );
+        return credAtomicQuery.verifierID;
+    }
 }

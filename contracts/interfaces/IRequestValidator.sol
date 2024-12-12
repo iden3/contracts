@@ -51,4 +51,11 @@ interface IRequestValidator {
      * @return Hash of the group Id of the request query data.
      */
     function getGroupFieldHash(bytes calldata params) external view returns (bytes32);
+
+    /**
+     * @dev Get the verifier ID of the request query data.
+     * @param params Request query data of the credential to verify.
+     * @return Verifier ID encoded in the request query data.
+     */
+    function getVerifierId(bytes calldata params) external view returns (uint256);
 }

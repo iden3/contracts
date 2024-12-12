@@ -48,7 +48,7 @@ describe("Universal Verifier Multi-query", function () {
     "20376033832371109177683048456014525905119173674985843915445634726167450989630";
   const [merklized, isRevocationChecked, valueArrSize] = [1, 1, 1];
   const nullifierSessionId = "0";
-  const verifierId = "21929109382993718606847853573861987353620810345503358891473103689157378049";
+  const verifierId = "1";
   const queryHash = calculateQueryHashV3(
     value,
     schema,
@@ -199,11 +199,14 @@ describe("Universal Verifier Multi-query", function () {
     );
     await txSetRequests.wait();
 
-    const requestStored = await verifier.getRequest(requestId);
+    let requestStored = await verifier.getRequest(requestId);
     // check if the request is stored correctly checking metadata and validator
-    expect(requestStored[0]).to.be.equal("metadata");
-    expect(requestStored[1]).to.be.equal(await v3Validator.getAddress());
-    expect(requestStored[2]).to.be.equal(params);
+    expect(requestStored.metadata).to.be.equal("metadata");
+    expect(requestStored.validator).to.be.equal(await v3Validator.getAddress());
+    expect(requestStored.params).to.be.equal(params);
+    expect(requestStored.creator).to.be.equal(await signer.getAddress());
+    expect(requestStored.verifierId).to.be.equal(verifierId);
+    expect(requestStored.isVerifierAuthenticated).to.be.equal(false);
 
     await verifier.setAuthType({
       authType: authType,
@@ -285,6 +288,11 @@ describe("Universal Verifier Multi-query", function () {
     expect(status[0][0][1]).to.be.equal(true); // auth type isVerified
     expect(status[1][0][0]).to.be.equal(requestId);
     expect(status[1][0][1]).to.be.equal(true); // request isVerified
+
+    requestStored = await verifier.getRequest(requestId);
+    // check if validator is authenticated
+    // TODO reorg the tests to decouple validator from user
+    expect(requestStored.isVerifierAuthenticated).to.be.equal(true);
   });
 
   it("Test submit response multiquery with same groupID and linkID", async () => {
@@ -325,9 +333,12 @@ describe("Universal Verifier Multi-query", function () {
 
     const requestStored = await verifier.getRequest(requestId2);
     // check if the request is stored correctly checking metadata and validator
-    expect(requestStored[0]).to.be.equal("metadata");
-    expect(requestStored[1]).to.be.equal(await v3Validator.getAddress());
-    expect(requestStored[2]).to.be.equal(paramsRequest2);
+    expect(requestStored.metadata).to.be.equal("metadata");
+    expect(requestStored.validator).to.be.equal(await v3Validator.getAddress());
+    expect(requestStored.params).to.be.equal(paramsRequest2);
+    expect(requestStored.creator).to.be.equal(await signer.getAddress());
+    expect(requestStored.verifierId).to.be.equal(verifierId);
+    expect(requestStored.isVerifierAuthenticated).to.be.equal(false);
 
     await verifier.setAuthType({
       authType: authType,
