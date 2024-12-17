@@ -214,9 +214,9 @@ describe("Universal Verifier Multi-query", function () {
       params: params,
     });
     const authRequestStored = await verifier.getAuthType(authType);
-    expect(authRequestStored[0]).to.be.equal(await authV2Validator.getAddress());
-    expect(authRequestStored[1]).to.be.equal(params);
-    expect(authRequestStored[2]).to.be.equal(true);
+    expect(authRequestStored.validator).to.be.equal(await authV2Validator.getAddress());
+    expect(authRequestStored.params).to.be.equal(params);
+    expect(authRequestStored.isActive).to.be.equal(true);
 
     const query = {
       queryId,
@@ -227,8 +227,8 @@ describe("Universal Verifier Multi-query", function () {
     const txSetQuery = await verifier.setQuery(queryId, query);
     await txSetQuery.wait();
     const queryStored = await verifier.getQuery(queryId);
-    expect(queryStored[0]).to.be.equal(queryId);
-    expect(queryStored[1]).to.be.deep.equal(query.requestIds);
+    expect(queryStored.queryId).to.be.equal(queryId);
+    expect(queryStored.requestIds).to.be.deep.equal(query.requestIds);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
 
@@ -284,10 +284,10 @@ describe("Universal Verifier Multi-query", function () {
     );
 
     const status = await verifier.getQueryStatus(queryId, signerAddress);
-    expect(status[0][0][0]).to.be.equal(authType);
-    expect(status[0][0][1]).to.be.equal(true); // auth type isVerified
-    expect(status[1][0][0]).to.be.equal(requestId);
-    expect(status[1][0][1]).to.be.equal(true); // request isVerified
+    expect(status[0][0].authType).to.be.equal(authType);
+    expect(status[0][0].isVerified).to.be.equal(true); // auth type isVerified
+    expect(status[1][0].requestId).to.be.equal(requestId);
+    expect(status[1][0].isVerified).to.be.equal(true); // request isVerified
 
     requestStored = await verifier.getRequest(requestId);
     // check if validator is authenticated
@@ -346,9 +346,9 @@ describe("Universal Verifier Multi-query", function () {
       params: authParams,
     });
     const authRequestStored = await verifier.getAuthType(authType);
-    expect(authRequestStored[0]).to.be.equal(await authV2Validator.getAddress());
-    expect(authRequestStored[1]).to.be.equal(authParams);
-    expect(authRequestStored[2]).to.be.equal(true);
+    expect(authRequestStored.validator).to.be.equal(await authV2Validator.getAddress());
+    expect(authRequestStored.params).to.be.equal(authParams);
+    expect(authRequestStored.isActive).to.be.equal(true);
 
     const query = {
       queryId,
@@ -415,12 +415,12 @@ describe("Universal Verifier Multi-query", function () {
       `QueryIdNotFound(${nonExistingQueryId})`,
     );
     const status = await verifier.getQueryStatus(queryId, signerAddress);
-    expect(status[0][0][0]).to.be.equal(authType);
-    expect(status[0][0][1]).to.be.equal(true); // auth type isVerified
-    expect(status[1][0][0]).to.be.equal(requestId2);
-    expect(status[1][0][1]).to.be.equal(true); // requestId2 isVerified
-    expect(status[1][1][0]).to.be.equal(requestId3);
-    expect(status[1][1][1]).to.be.equal(true); // requestId3 isVerified
+    expect(status[0][0].authType).to.be.equal(authType);
+    expect(status[0][0].isVerified).to.be.equal(true); // auth type isVerified
+    expect(status[1][0].requestId).to.be.equal(requestId2);
+    expect(status[1][0].isVerified).to.be.equal(true); // requestId2 isVerified
+    expect(status[1][1].requestId).to.be.equal(requestId3);
+    expect(status[1][1].isVerified).to.be.equal(true); // requestId3 isVerified
   });
 
   it("Test submit response multiquery with same groupID and different linkID", async () => {
