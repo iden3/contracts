@@ -77,6 +77,15 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     /// @dev Event emitted upon payment
     event Payment(address indexed recipient, uint256 indexed nonce);
 
+    // Emit event for tracking
+    event WithdrawWithSignature(
+        address indexed from,
+        address indexed recipient,
+        address tokenAddress,
+        uint256 amount,
+        uint256 indexed nonce
+    );
+
     /// @dev Error emitted upon invalid signature
     error InvalidSignature(string message);
     /// @dev Error emitted upon payment error
@@ -232,6 +241,56 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     }
 
     /**
+     * @dev Withdraw in ERC-20 token utilizing permit (EIP-2612)
+     * @param permitSignature permit signature
+     * @param paymentData Payment data
+     * @param signature Signature of the payment data
+     */
+    function withdrawERC20Permit(
+        bytes memory permitSignature,
+        Iden3PaymentRailsERC20RequestV1 memory paymentData,
+        bytes memory signature
+    ) external {
+        if (_msgSender() != paymentData.recipient) {
+            revert PaymentError(
+                paymentData.recipient,
+                paymentData.nonce,
+                "MCPayment: invalid recipient"
+            );
+        }
+
+        address sponsor = _recoverERC20PaymentSignature(paymentData, signature);
+        ERC20Permit token = ERC20Permit(paymentData.tokenAddress);
+        if (permitSignature.length != 65) {
+            revert ECDSAInvalidSignatureLength("MCPayment: invalid permit signature length");
+        }
+
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        // ecrecover takes the signature parameters, and the only way to get them
+        // currently is to use assembly.
+        /// @solidity memory-safe-assembly
+        assembly {
+            r := mload(add(permitSignature, 0x20))
+            s := mload(add(permitSignature, 0x40))
+            v := byte(0, mload(add(permitSignature, 0x60)))
+        }
+
+        token.permit(
+            sponsor,
+            address(this),
+            paymentData.amount,
+            paymentData.expirationDate,
+            v,
+            r,
+            s
+        );
+
+        _withdrawERC20(paymentData, sponsor);
+    }
+
+    /**
      * @dev Verify if payment is done
      * @param issuer Issuer address that signed the payment
      * @param nonce Payment nonce
@@ -354,6 +413,30 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
             );
         }
         return signer;
+    }
+
+    function _withdrawERC20(
+        Iden3PaymentRailsERC20RequestV1 memory paymentData,
+        address sender
+    ) internal {
+        IERC20 token = IERC20(paymentData.tokenAddress);
+        if (token.transferFrom(sender, address(this), paymentData.amount)) {
+            MCPaymentStorage storage $ = _getMCPaymentStorage();
+            uint256 ownerPart = (paymentData.amount * $.ownerPercentage) / 100;
+            uint256 recipientPart = paymentData.amount - ownerPart;
+            token.transfer(paymentData.recipient, recipientPart);
+            emit WithdrawWithSignature(
+                sender,
+                paymentData.recipient,
+                paymentData.tokenAddress,
+                paymentData.amount,
+                paymentData.nonce
+            );
+            bytes32 paymentId = keccak256(abi.encode(sender, paymentData.nonce));
+            $.isPaid[paymentId] = true;
+        } else {
+            revert WithdrawError("MCPayment: ERC-20 Permit transfer failed");
+        }
     }
 
     function _transferERC20(

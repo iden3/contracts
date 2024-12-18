@@ -585,6 +585,46 @@ describe("MC Payment Contract", () => {
     expect(await payment.isPaymentDone(recipient.address, 35)).to.be.false;
     expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
   });
+
+  it.only("Transfer ERC-20 Permit (EIP-2612) payment - different signer and recipient:", async () => {
+    const tokenFactory = await ethers.getContractFactory("ERC20PermitToken", owner);
+    const token = await tokenFactory.deploy(1_000);
+    const sponsor = issuer1Signer;
+    console.log(sponsor);
+    // sponsor deposits money to the user
+    await token.connect(owner).transfer(await sponsor.getAddress(), 100);
+    expect(await token.balanceOf(await sponsor.getAddress())).to.be.eq(100);
+
+    const paymentAmount = 10n;
+    const permitSignature = await getPermitSignature(
+      sponsor,
+      await token.getAddress(),
+      await payment.getAddress(),
+      paymentAmount,
+      0n,
+      Math.round(new Date().getTime() / 1000) + 60 * 60,
+    );
+
+    const paymentData = {
+      tokenAddress: await token.getAddress(),
+      recipient: recipient.address,
+      amount: paymentAmount,
+      expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60,
+      nonce: 355,
+      metadata: "0x",
+    };
+
+    const signature = await sponsor.signTypedData(domainData, erc20types, paymentData);
+    await payment.connect(recipient).withdrawERC20Permit(permitSignature, paymentData, signature);
+
+    expect(await token.balanceOf(await sponsor.getAddress())).to.be.eq(90);
+    // 10 - 10% owner fee = 9
+    expect(await token.balanceOf(await recipient.getAddress())).to.be.eq(9);
+    expect(await token.balanceOf(await payment.getAddress())).to.be.eq(1);
+
+    expect(await payment.isPaymentDone(recipient.address, 355)).to.be.false;
+    expect(await payment.isPaymentDone(sponsor.address, 355)).to.be.true;
+  });
 });
 
 async function getPermitSignature(
