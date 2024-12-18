@@ -88,7 +88,10 @@ contract UniversalVerifier is
      * @param requestIds Request ids of the ZKP requests.
      * @param requests ZKP requests to set.
      */
-    function setZKPRequests(uint64[] calldata requestIds, ZKPRequest[] calldata requests) public override(RequestOwnership, ValidatorWhitelist, ZKPVerifierBase) {
+    function setZKPRequests(
+        uint64[] calldata requestIds,
+        ZKPRequest[] calldata requests
+    ) public override(RequestOwnership, ValidatorWhitelist, ZKPVerifierBase) {
         for (uint256 i = 0; i < requestIds.length; i++) {
             setZKPRequest(requestIds[i], requests[i]);
         }

@@ -46,7 +46,10 @@ abstract contract RequestOwnership is ZKPVerifierBase {
      * @param requestIds Request ids of the ZKP requests.
      * @param requests ZKP requests to set.
      */
-    function setZKPRequests(uint64[] calldata requestIds, ZKPRequest[] calldata requests) public virtual override {
+    function setZKPRequests(
+        uint64[] calldata requestIds,
+        ZKPRequest[] calldata requests
+    ) public virtual override {
         for (uint256 i = 0; i < requestIds.length; i++) {
             setZKPRequest(requestIds[i], requests[i]);
         }

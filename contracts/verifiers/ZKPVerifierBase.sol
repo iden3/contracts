@@ -91,7 +91,10 @@ abstract contract ZKPVerifierBase is IZKPVerifier, ContextUpgradeable {
      * @param requestIds Request ids of the ZKP requests.
      * @param requests ZKP requests to set.
      */
-    function setZKPRequests(uint64[] calldata requestIds, ZKPRequest[] calldata requests) public virtual {
+    function setZKPRequests(
+        uint64[] calldata requestIds,
+        ZKPRequest[] calldata requests
+    ) public virtual {
         require(requestIds.length == requests.length, "Request IDs and requests length mismatch");
 
         for (uint256 i = 0; i < requestIds.length; i++) {

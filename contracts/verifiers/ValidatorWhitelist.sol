@@ -47,12 +47,15 @@ contract ValidatorWhitelist is ZKPVerifierBase {
      * @param requestIds Request ids of the ZKP requests.
      * @param requests ZKP requests to set.
      */
-    function setZKPRequests(uint64[] calldata requestIds, ZKPRequest[] calldata requests) public virtual override {
+    function setZKPRequests(
+        uint64[] calldata requestIds,
+        ZKPRequest[] calldata requests
+    ) public virtual override {
         for (uint256 i = 0; i < requestIds.length; i++) {
             setZKPRequest(requestIds[i], requests[i]);
         }
     }
-    
+
     /// @dev Verifies a ZKP response without updating any proof status
     /// @param requestId The ID of the ZKP request
     /// @param inputs The public inputs for the proof
