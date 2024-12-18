@@ -586,7 +586,7 @@ describe("MC Payment Contract", () => {
     expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
   });
 
-  it.only("Transfer ERC-20 Permit (EIP-2612) payment - different signer and recipient:", async () => {
+  it("Transfer ERC-20 Permit (EIP-2612) sponsor payment", async () => {
     const tokenFactory = await ethers.getContractFactory("ERC20PermitToken", owner);
     const token = await tokenFactory.deploy(1_000);
     const sponsor = issuer1Signer;
