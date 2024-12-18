@@ -108,6 +108,39 @@ describe("Universal Verifier MTP & SIG validators", function () {
     expect(count).to.be.equal(requestsCount);
   });
 
+  it("Test add, get ZKPRequest, requestIdExists, getZKPRequestsCount with multiple set", async () => {
+    const requestsCount = 3;
+    const validatorAddr = await validator.getAddress();
+
+    const requestIds: number[] = [];
+    const requests: any[] = [];
+    for (let i = 0; i < requestsCount; i++) {
+      requestIds.push(i);
+      requests.push({
+        metadata: "metadataN" + i,
+        validator: validatorAddr,
+        data: "0x0" + i,
+      });
+    }
+
+    await expect(verifier.setZKPRequests(requestIds, requests))
+      .to.emit(verifier, "ZKPRequestSet")
+      .withArgs(0, signerAddress, "metadataN" + 0, validatorAddr, "0x0" + 0);
+
+    for (let i = 1; i < requestsCount; i++) {
+      const request = await verifier.getZKPRequest(i);
+      expect(request.metadata).to.be.equal("metadataN" + i);
+      expect(request.validator).to.be.equal(validatorAddr);
+      expect(request.data).to.be.equal("0x0" + i);
+
+      const requestIdExists = await verifier.requestIdExists(i);
+      expect(requestIdExists).to.be.true;
+    }
+
+    const count = await verifier.getZKPRequestsCount();
+    expect(count).to.be.equal(requestsCount);
+  });
+
   it("Test submit response", async () => {
     const requestId = 0;
     const nonExistingRequestId = 1;

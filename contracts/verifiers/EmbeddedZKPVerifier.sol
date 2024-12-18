@@ -40,6 +40,18 @@ abstract contract EmbeddedZKPVerifier is Ownable2StepUpgradeable, ZKPVerifierBas
         super.setZKPRequest(requestId, request);
     }
 
+    /**
+     * @dev Set the list of ZKP requests for the list of requestIds in the same order.
+     * @param requestIds Request ids of the ZKP requests.
+     * @param requests ZKP requests to set.
+     */
+    function setZKPRequests(
+        uint64[] calldata requestIds,
+        ZKPRequest[] calldata requests
+    ) public virtual override onlyOwner {
+        super.setZKPRequests(requestIds, requests);
+    }
+
     /// @dev Submits a ZKP response and updates proof status
     /// @param requestId The ID of the ZKP request
     /// @param inputs The input data for the proof
