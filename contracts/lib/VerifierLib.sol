@@ -1,71 +1,92 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.27;
 
-import {ZKPVerifierBase} from "../verifiers/ZKPVerifierBase.sol";
-import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {Verifier} from "../verifiers/Verifier.sol";
+import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
+import {IAuthValidator} from "../interfaces/IAuthValidator.sol";
 
 /**
  * @title VerifierLib
  * @dev A library for writing proof results.
  */
 library VerifierLib {
-    /// @dev Struct to store ZKP proof and associated data
+    /**
+     * @dev Struct to store proof and associated data
+     */
     struct Proof {
         bool isVerified;
         mapping(string key => uint256 inputValue) storageFields;
         string validatorVersion;
-        uint256 blockNumber;
+        // TODO: discuss if we need this field
+        // uint256 blockNumber;
         uint256 blockTimestamp;
         mapping(string key => bytes) metadata;
+        // This empty reserved space is put in place to allow future versions
+        // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+        uint256[45] __gap;
     }
 
     /**
+     * @dev Struct to store auth proof and associated data
+     */
+    struct AuthProof {
+        bool isVerified;
+        mapping(string key => uint256 inputValue) storageFields;
+        string validatorVersion;
+        uint256 blockTimestamp;
+        // This empty reserved space is put in place to allow future versions
+        // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+        uint256[45] __gap;
+    }
+    
+    /**
      * @dev Writes proof results.
-     * @param self The ZKPVerifierStorage storage pointer
-     * @param sender The sender of the proof
-     * @param requestId The request ID
-     * @param keyToInpIdxs The array of key to public inputs index mapping
-     * @param inputs The array of public inputs
+     * @param requestId The request ID of the proof
+     * @param userID The userID of the proof
+     * @param responseFields The array of response fields of the proof
      */
     function writeProofResults(
-        ZKPVerifierBase.ZKPVerifierStorage storage self,
-        address sender,
-        uint64 requestId,
-        ICircuitValidator.KeyToInputIndex[] memory keyToInpIdxs,
-        uint256[] memory inputs
+        Verifier.VerifierStorage storage self,
+        uint256 requestId,
+        uint256 userID,
+        IRequestValidator.ResponseField[] memory responseFields
     ) public {
-        Proof storage proof = self._proofs[sender][requestId];
-        for (uint256 i = 0; i < keyToInpIdxs.length; i++) {
-            proof.storageFields[keyToInpIdxs[i].key] = inputs[keyToInpIdxs[i].inputIndex];
+        Proof[] storage proofs = self._proofs[requestId][userID];
+        // We only keep only 1 proof now without history. Prepared for the future if needed.
+        if (proofs.length == 0) {
+            proofs.push();
+        }
+        for (uint256 i = 0; i < responseFields.length; i++) {
+            proofs[0].storageFields[responseFields[i].name] = responseFields[i].value;
         }
 
-        proof.isVerified = true;
-        proof.validatorVersion = self._requests[requestId].validator.version();
-        proof.blockNumber = block.number;
-        proof.blockTimestamp = block.timestamp;
+        proofs[0].isVerified = true;
+        proofs[0].validatorVersion = self._requests[requestId].validator.version();
+        proofs[0].blockTimestamp = block.timestamp;
     }
 
     /**
      * @dev Writes proof results.
-     * @param self The ZKPVerifierStorage storage pointer
-     * @param sender The sender of the proof
-     * @param requestId The request ID of the proof
-     * @param signals The array of public signals of the proof
+     * @param authType The auth type of the proof
+     * @param userID The userID of the proof
+     * @param responseFields The array of response fields of the proof
      */
-    function writeProofResultsV2(
-        ZKPVerifierBase.ZKPVerifierStorage storage self,
-        address sender,
-        uint64 requestId,
-        ICircuitValidator.Signal[] memory signals
+    function writeAuthProofResults(
+        Verifier.VerifierStorage storage self,
+        string memory authType,
+        uint256 userID,
+        IAuthValidator.ResponseField[] memory responseFields
     ) public {
-        Proof storage proof = self._proofs[sender][requestId];
-        for (uint256 i = 0; i < signals.length; i++) {
-            proof.storageFields[signals[i].name] = signals[i].value;
+        AuthProof[] storage proofs = self._authProofs[authType][userID];
+        if (proofs.length == 0) {
+            proofs.push();
+        }
+        for (uint256 i = 0; i < responseFields.length; i++) {
+            proofs[0].storageFields[responseFields[i].name] = responseFields[i].value;
         }
 
-        proof.isVerified = true;
-        proof.validatorVersion = self._requests[requestId].validator.version();
-        proof.blockNumber = block.number;
-        proof.blockTimestamp = block.timestamp;
+        proofs[0].isVerified = true;
+        proofs[0].validatorVersion = self._authMethods[authType].validator.version();
+        proofs[0].blockTimestamp = block.timestamp;
     }
 }

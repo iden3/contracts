@@ -2,14 +2,16 @@
 pragma solidity 0.8.27;
 
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
-import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
-import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
+import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
+import {Verifier} from "./Verifier.sol";
+import {IVerifier} from "../interfaces/IVerifier.sol";
 
-contract ValidatorWhitelist is ZKPVerifierBase {
+error ValidatorIsNotWhitelisted(address validator);
+
+contract ValidatorWhitelist is Verifier {
     /// @custom:storage-location erc7201:iden3.storage.ValidatorWhitelist
     struct ValidatorWhitelistStorage {
-        mapping(ICircuitValidator => bool isApproved) _validatorWhitelist;
+        mapping(IRequestValidator => bool isApproved) _validatorWhitelist;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.ValidatorWhitelist")) - 1)) & ~bytes32(uint256(0xff));
@@ -26,79 +28,88 @@ contract ValidatorWhitelist is ZKPVerifierBase {
         }
     }
 
-    /// @dev Modifier to check if the validator is whitelisted
-    modifier onlyWhitelistedValidator(ICircuitValidator validator) {
-        require(isWhitelistedValidator(validator), "Validator is not whitelisted");
-        _;
-    }
-
-    /// @dev Sets a ZKP request
-    /// @param requestId The ID of the ZKP request
-    /// @param request The ZKP request data
-    function setZKPRequest(
-        uint64 requestId,
-        IZKPVerifier.ZKPRequest calldata request
-    ) public virtual override onlyWhitelistedValidator(request.validator) {
-        super.setZKPRequest(requestId, request);
-    }
-
-    /// @dev Submits a ZKP response and updates proof status
-    /// @param requestId The ID of the ZKP request
-    /// @param inputs The input data for the proof
-    /// @param a The first component of the proof
-    /// @param b The second component of the proof
-    /// @param c The third component of the proof
-    function submitZKPResponse(
-        uint64 requestId,
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c
+    /**
+     * @dev Sets different requests
+     * @param singleRequests The requests that are not in any group
+     * @param groupedRequests The requests that are in a group
+     */
+    function setRequests(
+        IVerifier.Request[] calldata singleRequests,
+        IVerifier.GroupedRequests[] calldata groupedRequests
     ) public virtual override {
-        ICircuitValidator validator = getZKPRequest(requestId).validator;
-        require(isWhitelistedValidator(validator), "Validator is not whitelisted");
-        super.submitZKPResponse(requestId, inputs, a, b, c);
+        for (uint256 i = 0; i < singleRequests.length; i++) {
+            IRequestValidator validator = getRequest(singleRequests[i].requestId).validator;
+            if (!isWhitelistedValidator(validator)) {
+                revert ValidatorIsNotWhitelisted(address(validator));
+            }
+        }
+
+        for (uint256 i = 0; i < groupedRequests.length; i++) {
+            for (uint256 j = 0; j < groupedRequests[i].requests.length; j++) {
+                IRequestValidator validator = getRequest(groupedRequests[i].requests[j].requestId)
+                    .validator;
+                if (!isWhitelistedValidator(validator)) {
+                    revert ValidatorIsNotWhitelisted(address(validator));
+                }
+            }
+        }
+        super.setRequests(singleRequests, groupedRequests);
     }
 
-    /// @dev Verifies a ZKP response without updating any proof status
-    /// @param requestId The ID of the ZKP request
-    /// @param inputs The public inputs for the proof
-    /// @param a The first component of the proof
-    /// @param b The second component of the proof
-    /// @param c The third component of the proof
-    /// @param sender The sender on behalf of which the proof is done
-    function verifyZKPResponse(
-        uint64 requestId,
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        address sender
-    ) public virtual override returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        ICircuitValidator validator = getZKPRequest(requestId).validator;
-        require(isWhitelistedValidator(validator), "Validator is not whitelisted");
-        return super.verifyZKPResponse(requestId, inputs, a, b, c, sender);
+    /**
+     * @dev Submits an array of responses and updates proofs status
+     * @param authResponses The list of auth responses including auth type and proof
+     * @param singleResponses The list of responses including request ID, proof and metadata for single requests
+     * @param groupedResponses The list of responses including request ID, proof and metadata for grouped requests
+     * @param crossChainProofs The list of cross chain proofs from universal resolver (oracle). This
+     * includes identities and global states.
+     */
+    function submitResponse(
+        IVerifier.AuthResponse[] memory authResponses,
+        IVerifier.Response[] memory singleResponses,
+        IVerifier.GroupedResponses[] memory groupedResponses,
+        bytes memory crossChainProofs
+    ) public virtual override {
+        for (uint256 i = 0; i < singleResponses.length; i++) {
+            IRequestValidator validator = getRequest(singleResponses[i].requestId).validator;
+            if (!isWhitelistedValidator(validator)) {
+                revert ValidatorIsNotWhitelisted(address(validator));
+            }
+        }
+
+        for (uint256 i = 0; i < groupedResponses.length; i++) {
+            for (uint256 j = 0; j < groupedResponses[i].responses.length; j++) {
+                IRequestValidator validator = getRequest(groupedResponses[i].responses[j].requestId)
+                    .validator;
+                if (!isWhitelistedValidator(validator)) {
+                    revert ValidatorIsNotWhitelisted(address(validator));
+                }
+            }
+        }
+        super.submitResponse(authResponses, singleResponses, groupedResponses, crossChainProofs);
     }
 
-    /// @dev Checks if validator is whitelisted
-    /// @param validator The validator address
-    /// @return True if validator is whitelisted, otherwise returns false
+    /**
+     * @dev Checks if validator is whitelisted
+     * @param validator The validator address
+     * @return True if validator is whitelisted, otherwise returns false
+     */
     function isWhitelistedValidator(
-        ICircuitValidator validator
+        IRequestValidator validator
     ) public view virtual returns (bool) {
         return _getValidatorWhitelistStorage()._validatorWhitelist[validator];
     }
 
-    function _addValidatorToWhitelist(ICircuitValidator validator) internal {
+    function _addValidatorToWhitelist(IRequestValidator validator) internal {
         require(
-            IERC165(address(validator)).supportsInterface(type(ICircuitValidator).interfaceId),
+            IERC165(address(validator)).supportsInterface(type(IRequestValidator).interfaceId),
             "Validator doesn't support relevant interface"
         );
 
         _getValidatorWhitelistStorage()._validatorWhitelist[validator] = true;
     }
 
-    function _removeValidatorFromWhitelist(ICircuitValidator validator) internal {
+    function _removeValidatorFromWhitelist(IRequestValidator validator) internal {
         _getValidatorWhitelistStorage()._validatorWhitelist[validator] = false;
     }
 }

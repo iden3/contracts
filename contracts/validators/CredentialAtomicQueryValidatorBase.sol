@@ -5,7 +5,7 @@ import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/acces
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
-import {IVerifier} from "../interfaces/IVerifier.sol";
+import {IGroth16Verifier} from "../interfaces/IGroth16Verifier.sol";
 import {IState} from "../interfaces/IState.sol";
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
 
@@ -20,7 +20,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
     /// @dev Main storage structure for the contract
     /// @custom:storage-location iden3.storage.CredentialAtomicQueryValidator
     struct CredentialAtomicQueryValidatorBaseStorage {
-        mapping(string => IVerifier) _circuitIdToVerifier;
+        mapping(string => IGroth16Verifier) _circuitIdToVerifier;
         string[] _supportedCircuitIds;
         IState state;
         uint256 revocationStateExpirationTimeout;
@@ -58,7 +58,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         s.proofExpirationTimeout = 1 hours;
         s.gistRootExpirationTimeout = 1 hours;
         s._supportedCircuitIds = [circuitId];
-        s._circuitIdToVerifier[circuitId] = IVerifier(_verifierContractAddr);
+        s._circuitIdToVerifier[circuitId] = IGroth16Verifier(_verifierContractAddr);
         s.state = IState(_stateContractAddr);
         __Ownable_init(owner);
     }
@@ -186,7 +186,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
      */
     function getVerifierByCircuitId(
         string memory circuitId
-    ) public view virtual returns (IVerifier) {
+    ) public view virtual returns (IGroth16Verifier) {
         return _getCredentialAtomicQueryValidatorBaseStorage()._circuitIdToVerifier[circuitId];
     }
 

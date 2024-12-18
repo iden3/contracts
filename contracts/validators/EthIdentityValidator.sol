@@ -3,7 +3,7 @@ pragma solidity 0.8.27;
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-import {IVerifier} from "../interfaces/IVerifier.sol";
+import {IGroth16Verifier} from "../interfaces/IGroth16Verifier.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
 import {IState} from "../interfaces/IState.sol";

@@ -2,7 +2,7 @@
 pragma solidity 0.8.27;
 
 import {CredentialAtomicQueryValidatorBase} from "./CredentialAtomicQueryValidatorBase.sol";
-import {IVerifier} from "../interfaces/IVerifier.sol";
+import {IGroth16Verifier} from "../interfaces/IGroth16Verifier.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IState} from "../interfaces/IState.sol";
@@ -129,8 +129,8 @@ contract AuthV2Validator is CredentialAtomicQueryValidatorBase {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) internal view {
-        IVerifier verifier = getVerifierByCircuitId(CIRCUIT_ID);
-        require(verifier != IVerifier(address(0)), "Verifier address should not be zero");
+        IGroth16Verifier verifier = getVerifierByCircuitId(CIRCUIT_ID);
+        require(verifier != IGroth16Verifier(address(0)), "Verifier address should not be zero");
 
         // verify that zkp is valid
         require(verifier.verify(a, b, c, inputs), "Proof is not valid");

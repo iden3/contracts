@@ -2,12 +2,12 @@
 pragma solidity 0.8.27;
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
-import {IZKPVerifier} from "../interfaces/IZKPVerifier.sol";
+import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
+import {IVerifier} from "../interfaces/IVerifier.sol";
 import {RequestOwnership} from "./RequestOwnership.sol";
 import {RequestDisableable} from "./RequestDisableable.sol";
 import {ValidatorWhitelist} from "./ValidatorWhitelist.sol";
-import {ZKPVerifierBase} from "./ZKPVerifierBase.sol";
+import {Verifier} from "./Verifier.sol";
 import {IState} from "../interfaces/IState.sol";
 
 /// @title Universal Verifier Contract
@@ -21,31 +21,47 @@ contract UniversalVerifier is
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.1.3";
+    string public constant VERSION = "2.0.0";
 
-    /// @dev Event emitted upon submitting a ZKP request
-    event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);
+    /**
+     * @dev Event emitted upon submitting a request
+     */
+    event ResponseSubmitted(uint256 indexed requestId, address indexed caller);
 
-    /// @dev Event emitted upon adding a ZKP request
-    event ZKPRequestSet(
-        uint64 indexed requestId,
+    /**
+     * @dev Event emitted upon submitting an auth response
+     */
+    event AuthResponseSubmitted(string indexed authType, address indexed caller);
+
+    /**
+     * @dev Event emitted upon adding a request
+     */
+    event RequestSet(
+        uint256 indexed requestId,
         address indexed requestOwner,
         string metadata,
         address validator,
-        bytes data
+        bytes params
     );
 
-    /// @dev Event emitted upon updating a ZKP request
-    event ZKPRequestUpdate(
-        uint64 indexed requestId,
+    /**
+     * @dev Event emitted upon adding an auth type by the owner
+     */
+    event AuthTypeSet(string indexed authType, address validator, bytes params);
+
+    /**
+     * @dev Event emitted upon updating a request
+     */
+    event RequestUpdate(
+        uint256 indexed requestId,
         address indexed requestOwner,
         string metadata,
         address validator,
-        bytes data
+        bytes params
     );
 
     /// @dev Modifier to check if the caller is the contract Owner or ZKP Request Owner
-    modifier onlyOwnerOrRequestOwner(uint64 requestId) {
+    modifier onlyOwnerOrRequestOwner(uint256 requestId) {
         address sender = _msgSender();
         require(
             sender == getRequestOwner(requestId) || sender == owner(),
@@ -57,7 +73,7 @@ contract UniversalVerifier is
     /// @dev Initializes the contract
     function initialize(IState state, address owner) public initializer {
         __Ownable_init(owner);
-        __ZKPVerifierBase_init(state);
+        __Verifier_init(state);
     }
 
     /// @dev Version of contract getter
@@ -65,95 +81,94 @@ contract UniversalVerifier is
         return VERSION;
     }
 
-    /// @dev Sets a ZKP request
-    /// @param requestId The ID of the ZKP request
-    /// @param request The ZKP request data
-    function setZKPRequest(
-        uint64 requestId,
-        IZKPVerifier.ZKPRequest calldata request
-    ) public override(RequestOwnership, ValidatorWhitelist, ZKPVerifierBase) {
-        super.setZKPRequest(requestId, request);
-
-        emit ZKPRequestSet(
-            requestId,
-            _msgSender(),
-            request.metadata,
-            address(request.validator),
-            request.data
-        );
-    }
-
-    /// @dev Update a ZKP request
-    /// @param requestId The ID of the ZKP request
-    /// @param request The ZKP request data
-    function updateZKPRequest(
-        uint64 requestId,
-        IZKPVerifier.ZKPRequest calldata request
-    ) public onlyOwner {
-        super._updateZKPRequest(requestId, request);
-
-        emit ZKPRequestUpdate(
-            requestId,
-            _msgSender(),
-            request.metadata,
-            address(request.validator),
-            request.data
-        );
-    }
-
-    /// @dev Submits a ZKP response and updates proof status
-    /// @param requestId The ID of the ZKP request
-    /// @param inputs The input data for the proof
-    /// @param a The first component of the proof
-    /// @param b The second component of the proof
-    /// @param c The third component of the proof
-    function submitZKPResponse(
-        uint64 requestId,
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c
-    ) public override(RequestDisableable, ValidatorWhitelist, ZKPVerifierBase) {
-        super.submitZKPResponse(requestId, inputs, a, b, c);
-        emit ZKPResponseSubmitted(requestId, _msgSender());
+    /**
+     * @dev Sets an auth type
+     * @param authType The auth type to add
+     */
+    function setAuthType(IVerifier.AuthType calldata authType) public override onlyOwner {
+        super.setAuthType(authType);
+        emit AuthTypeSet(authType.authType, address(authType.validator), authType.params);
     }
 
     /**
-     * @dev Submits an array of ZKP responses and updates proofs status
-     * @param responses The list of responses including ZKP request ID, ZK proof and metadata
-     * @param crossChainProof The list of cross chain proofs from universal resolver (oracle). This
-     * includes identities and global states.
+     * @dev Sets different requests
+     * @param singleRequests The requests that are not in any group
+     * @param groupedRequests The requests that are in a group
      */
-    function submitZKPResponseV2(
-        IZKPVerifier.ZKPResponse[] memory responses,
-        bytes memory crossChainProof
-    ) public override {
-        super.submitZKPResponseV2(responses, crossChainProof);
-        for (uint256 i = 0; i < responses.length; i++) {
-            emit ZKPResponseSubmitted(responses[i].requestId, _msgSender());
+    function setRequests(
+        Request[] calldata singleRequests,
+        GroupedRequests[] calldata groupedRequests
+    ) public override(RequestOwnership, ValidatorWhitelist, Verifier) {
+        super.setRequests(singleRequests, groupedRequests);
+
+        for (uint256 i = 0; i < singleRequests.length; i++) {
+            emit RequestSet(
+                singleRequests[i].requestId,
+                _msgSender(),
+                singleRequests[i].metadata,
+                address(singleRequests[i].validator),
+                singleRequests[i].params
+            );
+        }
+
+        for (uint256 i = 0; i < groupedRequests.length; i++) {
+            for (uint256 j = 0; j < groupedRequests[i].requests.length; j++) {
+                emit RequestSet(
+                    groupedRequests[i].requests[j].requestId,
+                    _msgSender(),
+                    groupedRequests[i].requests[j].metadata,
+                    address(groupedRequests[i].requests[j].validator),
+                    groupedRequests[i].requests[j].params
+                );
+            }
         }
     }
 
-    /// @dev Verifies a ZKP response without updating any proof status
-    /// @param requestId The ID of the ZKP request
-    /// @param inputs The public inputs for the proof
-    /// @param a The first component of the proof
-    /// @param b The second component of the proof
-    /// @param c The third component of the proof
-    /// @param sender The sender on behalf of which the proof is done
-    function verifyZKPResponse(
-        uint64 requestId,
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        address sender
-    )
-        public
-        override(RequestDisableable, ValidatorWhitelist, ZKPVerifierBase)
-        returns (ICircuitValidator.KeyToInputIndex[] memory)
-    {
-        return super.verifyZKPResponse(requestId, inputs, a, b, c, sender);
+    /**
+     * @dev Updates a request
+     * @param requestId The ID of the request
+     * @param request The request data
+     */
+    function updateRequest(uint256 requestId, IVerifier.Request calldata request) public onlyOwner {
+        super._updateRequest(requestId, request);
+
+        emit RequestUpdate(
+            requestId,
+            _msgSender(),
+            request.metadata,
+            address(request.validator),
+            request.params
+        );
+    }
+
+    /**
+     * @dev Submits an array of responses and updates proofs status
+     * @param authResponses The list of auth responses including auth type and proof
+     * @param singleResponses The list of responses including request ID, proof and metadata for single requests
+     * @param groupedResponses The list of responses including request ID, proof and metadata for grouped requests
+     * @param crossChainProofs The list of cross chain proofs from universal resolver (oracle). This
+     * includes identities and global states.
+     */
+    function submitResponse(
+        AuthResponse[] memory authResponses,
+        Response[] memory singleResponses,
+        GroupedResponses[] memory groupedResponses,
+        bytes memory crossChainProofs
+    ) public override(RequestDisableable, ValidatorWhitelist, Verifier) {
+        super.submitResponse(authResponses, singleResponses, groupedResponses, crossChainProofs);
+        for (uint256 i = 0; i < authResponses.length; i++) {
+            emit AuthResponseSubmitted(authResponses[i].authType, _msgSender());
+        }
+
+        for (uint256 i = 0; i < singleResponses.length; i++) {
+            emit ResponseSubmitted(singleResponses[i].requestId, _msgSender());
+        }
+
+        for (uint256 i = 0; i < groupedResponses.length; i++) {
+            for (uint256 j = 0; j < groupedResponses[i].responses.length; j++) {
+                emit ResponseSubmitted(groupedResponses[i].responses[j].requestId, _msgSender());
+            }
+        }
     }
 
     /**
@@ -163,48 +178,47 @@ contract UniversalVerifier is
         _setState(state);
     }
 
-    /// @dev Gets multiple ZKP requests within a range (disabled in this contract)
-    /// @param startIndex The starting index of the range
-    /// @param length The length of the range
-    /// @return An array of ZKP requests within the specified range
-    function getZKPRequests(
-        uint256 startIndex,
-        uint256 length
-    ) public view override returns (IZKPVerifier.ZKPRequest[] memory) {
-        revert("Not implemented in this version");
-    }
-
-    /// @dev Sets ZKP Request Owner address
-    /// @param requestId The ID of the ZKP request
-    /// @param requestOwner ZKP Request Owner address
+    /**
+     * @dev Sets the request owner address
+     * @param requestId The ID of the request
+     * @param requestOwner The address of the request owner
+     */
     function setRequestOwner(
-        uint64 requestId,
+        uint256 requestId,
         address requestOwner
     ) public onlyOwnerOrRequestOwner(requestId) {
         _setRequestOwner(requestId, requestOwner);
     }
 
-    /// @dev Disables ZKP Request
-    /// @param requestId The ID of the ZKP request
-    function disableZKPRequest(uint64 requestId) public onlyOwnerOrRequestOwner(requestId) {
-        _disableZKPRequest(requestId);
+    /**
+     * @dev Disables Request
+     * @param requestId The ID of the request
+     */
+    function disableRequest(uint256 requestId) public onlyOwnerOrRequestOwner(requestId) {
+        _disableRequest(requestId);
     }
 
-    /// @dev Enables ZKP Request
-    /// @param requestId The ID of the ZKP request
-    function enableZKPRequest(uint64 requestId) public onlyOwnerOrRequestOwner(requestId) {
-        _enableZKPRequest(requestId);
+    /**
+     * @dev Enables Request
+     * @param requestId The ID of the request
+     */
+    function enableRequest(uint256 requestId) public onlyOwnerOrRequestOwner(requestId) {
+        _enableRequest(requestId);
     }
 
-    /// @dev Add new validator to the whitelist
-    /// @param validator Validator address
-    function addValidatorToWhitelist(ICircuitValidator validator) public onlyOwner {
+    /**
+     * @dev Adds a validator to the whitelist
+     * @param validator The address of the validator
+     */
+    function addValidatorToWhitelist(IRequestValidator validator) public onlyOwner {
         _addValidatorToWhitelist(validator);
     }
 
-    /// @dev Remove validator from the whitelist
-    /// @param validator Validator address
-    function removeValidatorFromWhitelist(ICircuitValidator validator) public onlyOwner {
+    /**
+     * @dev Removes a validator from the whitelist
+     * @param validator The address of the validator
+     */
+    function removeValidatorFromWhitelist(IRequestValidator validator) public onlyOwner {
         _removeValidatorFromWhitelist(validator);
     }
 }

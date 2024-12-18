@@ -14,9 +14,9 @@
 pragma solidity 0.8.27;
 
 import "./Groth16VerifierMTP.sol";
-import "../../interfaces/IVerifier.sol";
+import "../../interfaces/IGroth16Verifier.sol";
 
-contract Groth16VerifierMTPWrapper is Groth16VerifierMTP, IVerifier {
+contract Groth16VerifierMTPWrapper is Groth16VerifierMTP, IGroth16Verifier {
     /**
      * @dev Number of public signals for atomic mtp circuit
      */
