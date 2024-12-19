@@ -130,6 +130,20 @@ interface IVerifier {
     }
 
     /**
+     * @dev Query. Structure for query.
+     * @param queryId Query id.
+     * @param requestIds Request ids for this multi query (without groupId. Single requests).
+     * @param groupIds Group ids for this multi query (all the requests included in the group. Grouped requests).
+     * @param metadata Metadata for the query. Empty in first version.
+     */
+    struct Query {
+        uint256 queryId;
+        uint256[] requestIds;
+        uint256[] groupIds;
+        bytes metadata;
+    }
+
+    /**
      * @dev Submits an array of responses and updates proofs status
      * @param authResponses The list of auth responses including auth type and proof
      * @param singleResponses The list of responses including request ID, proof and metadata for single requests
@@ -210,4 +224,18 @@ interface IVerifier {
      * @param authType The auth type to add
      */
     function setAuthType(AuthType calldata authType) external;
+
+    /**
+     * @dev Sets a query
+     * @param queryId The ID of the query
+     * @param query The query data
+     */
+    function setQuery(uint256 queryId, Query calldata query) external;
+
+    /**
+     * @dev Gets a specific multi query by ID
+     * @param queryId The ID of the multi query
+     * @return query The query data
+     */
+    function getQuery(uint256 queryId) external view returns (IVerifier.Query memory query);
 }

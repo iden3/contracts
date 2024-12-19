@@ -60,6 +60,16 @@ contract UniversalVerifier is
         bytes params
     );
 
+    /**
+     * @dev Event emitted upon adding a query
+     */
+    event QuerySet(uint256 indexed queryId, uint256[] requestIds);
+
+    /**
+     * @dev Event emitted upon updating a query
+     */
+    event QueryUpdate(uint256 indexed queryId, uint256[] requestIds);
+
     /// @dev Modifier to check if the caller is the contract Owner or ZKP Request Owner
     modifier onlyOwnerOrRequestOwner(uint256 requestId) {
         address sender = _msgSender();
@@ -139,6 +149,19 @@ contract UniversalVerifier is
             address(request.validator),
             request.params
         );
+    }
+
+    /**
+     * @dev Sets a query
+     * @param queryId The ID of the query
+     * @param query The query data
+     */
+    function setQuery(
+        uint256 queryId,
+        Query calldata query
+    ) public override checkQueryExistence(queryId, false) {
+        super.setQuery(queryId, query);
+        emit QuerySet(queryId, query.requestIds);
     }
 
     /**

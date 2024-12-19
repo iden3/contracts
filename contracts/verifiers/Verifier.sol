@@ -59,19 +59,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         uint256 timestamp;
     }
 
-    /**
-     * @dev Query. Structure for query.
-     * @param queryId Query id.
-     * @param requestIds Request ids for this multi query (without groupId. Single requests).
-     * @param groupIds Group ids for this multi query (all the requests included in the group. Grouped requests).
-     * @param metadata Metadata for the query. Empty in first version.
-     */
-    struct Query {
-        uint256 queryId;
-        uint256[] requestIds;
-        uint256[] groupIds;
-        bytes metadata;
-    }
+
 
     /// @custom:storage-location erc7201:iden3.storage.Verifier
     struct VerifierStorage {
@@ -105,15 +93,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
     using VerifierLib for VerifierStorage;
 
-    /**
-     * @dev Event emitted upon adding a query
-     */
-    event QuerySet(uint256 indexed queryId, uint256[] requestIds);
 
-    /**
-     * @dev Event emitted upon updating a query
-     */
-    event QueryUpdate(uint256 indexed queryId, uint256[] requestIds);
 
     /**
      * @dev Modifier to check if the request exists
@@ -326,16 +306,14 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      */
     function setQuery(
         uint256 queryId,
-        Query calldata query
-    ) public checkQueryExistence(queryId, false) {
+        IVerifier.Query calldata query
+    ) public virtual checkQueryExistence(queryId, false) {
         VerifierStorage storage s = _getVerifierStorage();
         s._queries[queryId] = query;
         s._queryIds.push(queryId);
 
         // checks for all the requests in this query
         _checkRequestsInQuery(queryId);
-
-        emit QuerySet(queryId, query.requestIds);
     }
 
     /**
@@ -343,7 +321,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      * @param queryId The ID of the multi query
      * @return query The query data
      */
-    function getQuery(uint256 queryId) public view returns (Query memory query) {
+    function getQuery(uint256 queryId) public view returns (IVerifier.Query memory query) {
         return _getVerifierStorage()._queries[queryId];
     }
 

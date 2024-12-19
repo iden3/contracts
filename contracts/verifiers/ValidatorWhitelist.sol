@@ -38,7 +38,7 @@ contract ValidatorWhitelist is Verifier {
         IVerifier.GroupedRequests[] calldata groupedRequests
     ) public virtual override {
         for (uint256 i = 0; i < singleRequests.length; i++) {
-            IRequestValidator validator = getRequest(singleRequests[i].requestId).validator;
+            IRequestValidator validator = singleRequests[i].validator;
             if (!isWhitelistedValidator(validator)) {
                 revert ValidatorIsNotWhitelisted(address(validator));
             }
@@ -46,8 +46,7 @@ contract ValidatorWhitelist is Verifier {
 
         for (uint256 i = 0; i < groupedRequests.length; i++) {
             for (uint256 j = 0; j < groupedRequests[i].requests.length; j++) {
-                IRequestValidator validator = getRequest(groupedRequests[i].requests[j].requestId)
-                    .validator;
+                IRequestValidator validator = groupedRequests[i].requests[j].validator;
                 if (!isWhitelistedValidator(validator)) {
                     revert ValidatorIsNotWhitelisted(address(validator));
                 }
