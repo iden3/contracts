@@ -21,7 +21,7 @@ contract UniversalVerifier is
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.1.4";
+    string public constant VERSION = "1.1.5";
 
     /// @dev Event emitted upon submitting a ZKP request
     event ZKPResponseSubmitted(uint64 indexed requestId, address indexed caller);
@@ -81,6 +81,20 @@ contract UniversalVerifier is
             address(request.validator),
             request.data
         );
+    }
+
+    /**
+     * @dev Set the list of ZKP requests for the list of requestIds in the same order.
+     * @param requestIds Request ids of the ZKP requests.
+     * @param requests ZKP requests to set.
+     */
+    function setZKPRequests(
+        uint64[] calldata requestIds,
+        ZKPRequest[] calldata requests
+    ) public override(RequestOwnership, ValidatorWhitelist, ZKPVerifierBase) {
+        for (uint256 i = 0; i < requestIds.length; i++) {
+            setZKPRequest(requestIds[i], requests[i]);
+        }
     }
 
     /// @dev Update a ZKP request

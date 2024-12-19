@@ -41,6 +41,20 @@ abstract contract RequestOwnership is ZKPVerifierBase {
         _setRequestOwner(requestId, _msgSender());
     }
 
+    /**
+     * @dev Set the list of ZKP requests for the list of requestIds in the same order.
+     * @param requestIds Request ids of the ZKP requests.
+     * @param requests ZKP requests to set.
+     */
+    function setZKPRequests(
+        uint64[] calldata requestIds,
+        ZKPRequest[] calldata requests
+    ) public virtual override {
+        for (uint256 i = 0; i < requestIds.length; i++) {
+            setZKPRequest(requestIds[i], requests[i]);
+        }
+    }
+
     /// @dev Get a ZKP Request Owner address
     /// @param requestId The ID of a ZKP Request
     /// @return The ZKP Request Owner address
