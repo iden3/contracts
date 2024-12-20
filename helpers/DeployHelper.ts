@@ -13,6 +13,7 @@ import {
   CredentialAtomicQueryV3ValidatorProxyModule,
   UniversalVerifierProxyModule,
   AuthV2ValidatorProxyModule,
+  UniversalVerifierMultiQueryProxyModule,
 } from "../ignition";
 import { chainIdInfoMap, contractsInfo } from "./constants";
 import {
@@ -786,12 +787,12 @@ export class DeployHelper {
     };
   }
 
-  async deployValidatorStub(): Promise<Contract> {
-    const stub = await ethers.getContractFactory("ValidatorStub");
+  async deployValidatorStub(validatorName: string = "ValidatorStub"): Promise<Contract> {
+    const stub = await ethers.getContractFactory(validatorName);
     const stubInstance = await stub.deploy();
     await stubInstance.waitForDeployment();
 
-    console.log("Validator stub deployed to:", await stubInstance.getAddress());
+    console.log(`${validatorName} stub deployed to:`, await stubInstance.getAddress());
 
     return stubInstance;
   }
@@ -898,12 +899,12 @@ export class DeployHelper {
     return primitiveTypeUtilsWrapper;
   }
 
-  async deployEmbeddedZKPVerifierWrapper(
+  async deployEmbeddedVerifierWrapper(
     owner: SignerWithAddress | undefined,
     stateAddr: string,
     verifierLibAddr: string,
   ): Promise<Contract> {
-    const Verifier = await ethers.getContractFactory("EmbeddedZKPVerifierWrapper", {
+    const Verifier = await ethers.getContractFactory(contractsInfo.EMBEDDED_VERIFIER_WRAPPER.name, {
       libraries: {
         VerifierLib: verifierLibAddr,
       },
@@ -913,7 +914,10 @@ export class DeployHelper {
       unsafeAllow: ["external-library-linking"],
     });
     await verifier.waitForDeployment();
-    console.log("EmbeddedZKPVerifierWrapper deployed to:", await verifier.getAddress());
+    console.log(
+      `${contractsInfo.EMBEDDED_VERIFIER_WRAPPER.name} deployed to:`,
+      await verifier.getAddress(),
+    );
     return verifier;
   }
 

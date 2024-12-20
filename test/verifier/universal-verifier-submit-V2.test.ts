@@ -9,12 +9,13 @@ import { buildCrossChainProofs, packCrossChainProofs, packZKProof } from "../uti
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
-describe("Universal Verifier submitZKPResponseV2 SigV2 validators", function () {
+describe("Universal Verifier submitResponse SigV2 validators", function () {
   let verifier: any, sig: any;
   let signer;
   let signerAddress: string;
   let deployHelper: DeployHelper;
   let stateCrossChainStub, crossChainProofValidatorStub, validatorStub: Contract;
+  const authType = "authV2";
 
   const globalStateMessage = {
     timestamp: BigInt(Math.floor(Date.now() / 1000)),
@@ -55,7 +56,7 @@ describe("Universal Verifier submitZKPResponseV2 SigV2 validators", function () 
   const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
   const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
   const metadatas = "0x";
-  const data = packValidatorParams(query);
+  const params = packValidatorParams(query);
 
   const requestIds = [0, 1, 2];
   const nonExistingRequestId = 3;
@@ -63,21 +64,21 @@ describe("Universal Verifier submitZKPResponseV2 SigV2 validators", function () 
   const singleProof = [
     {
       requestId: 0,
-      zkProof: zkProof,
-      data: metadatas,
+      proof: zkProof,
+      metadata: metadatas,
     },
   ];
 
   const multiProof = [
     {
       requestId: 1,
-      zkProof: zkProof,
-      data: metadatas,
+      proof: zkProof,
+      metadata: metadatas,
     },
     {
       requestId: 2,
-      zkProof: zkProof,
-      data: metadatas,
+      proof: zkProof,
+      metadata: metadatas,
     },
   ];
 
@@ -102,18 +103,32 @@ describe("Universal Verifier submitZKPResponseV2 SigV2 validators", function () 
       await verifierLib.getAddress(),
     );
 
-    validatorStub = await deployHelper.deployValidatorStub();
+    validatorStub = await deployHelper.deployValidatorStub("RequestValidatorV2Stub");
 
     sig = validatorStub;
     await verifier.addValidatorToWhitelist(await sig.getAddress());
     await verifier.connect();
 
+    const authV2Validator = await deployHelper.deployValidatorStub("AuthValidatorStub");
+
+    await verifier.setAuthType({
+      authType: authType,
+      validator: await authV2Validator.getAddress(),
+      params: params,
+    });
+
     for (const requestId of requestIds) {
-      await verifier.setZKPRequest(requestId, {
-        metadata: "metadata",
-        validator: await sig.getAddress(),
-        data: data,
-      });
+      await verifier.setRequests(
+        [
+          {
+            requestId: requestId,
+            metadata: "metadata",
+            validator: await sig.getAddress(),
+            params: params,
+          },
+        ],
+        [],
+      );
     }
   }
 
@@ -128,11 +143,11 @@ describe("Universal Verifier submitZKPResponseV2 SigV2 validators", function () 
     },
   ];
 
-  async function checkStorageFields(verifier: any, requestId: number, storageFields: any[]) {
+  async function checkStorageFields(verifier: any, requestId: bigint, storageFields: any[]) {
     for (const field of storageFields) {
-      const value = await verifier.getProofStorageField(
-        await signer.getAddress(),
+      const value = await verifier.getResponseFieldValueFromAddress(
         requestId,
+        await signer.getAddress(),
         field.name,
       );
       expect(value).to.be.equal(field.value);
@@ -149,16 +164,29 @@ describe("Universal Verifier submitZKPResponseV2 SigV2 validators", function () 
     );
   });
 
-  it("Test submit response V2", async () => {
+  it("Test submit response", async () => {
     const requestId = 0;
-    const tx = await verifier.submitZKPResponseV2(singleProof, crossChainProofs);
+
+    const crossChainProofs = "0x";
+
+    const tx = await verifier.submitResponse(
+      [
+        {
+          authType: authType,
+          proof: singleProof[0].proof,
+        },
+      ],
+      singleProof,
+      [],
+      crossChainProofs,
+    );
 
     const txRes = await tx.wait();
-    await checkStorageFields(verifier, requestId, storageFields);
-    const filter = verifier.filters.ZKPResponseSubmitted;
+    await checkStorageFields(verifier, BigInt(requestId), storageFields);
+    const filter = verifier.filters.ResponseSubmitted;
 
     const events = await verifier.queryFilter(filter, -1);
-    expect(events[0].eventName).to.be.equal("ZKPResponseSubmitted");
+    expect(events[0].eventName).to.be.equal("ResponseSubmitted");
     expect(events[0].args.requestId).to.be.equal(0);
     expect(events[0].args.caller).to.be.equal(signerAddress);
 
@@ -168,21 +196,30 @@ describe("Universal Verifier submitZKPResponseV2 SigV2 validators", function () 
 
     const status = await verifier.getProofStatus(signerAddress, requestId);
     expect(status.isVerified).to.be.true;
-    expect(status.validatorVersion).to.be.equal("2.0.2-mock");
-    expect(status.blockNumber).to.be.equal(txRes.blockNumber);
+    expect(status.validatorVersion).to.be.equal("1.0.0-mock");
     expect(status.blockTimestamp).to.be.equal(txResTimestamp);
 
     await expect(verifier.getProofStatus(signerAddress, nonExistingRequestId)).to.be.rejectedWith(
-      "request id doesn't exist",
+      `RequestIdNotFound(${nonExistingRequestId})`,
     );
 
     const requestIdsMulti = requestIds.slice(1, 3);
-    const txMulti = await verifier.submitZKPResponseV2(multiProof, crossChainProofs);
+    const txMulti = await verifier.submitResponse(
+      [
+        {
+          authType: authType,
+          proof: singleProof[0].proof,
+        },
+      ],
+      multiProof,
+      [],
+      crossChainProofs,
+    );
 
     const txResMulti = await txMulti.wait();
 
     const eventsMulti = await verifier.queryFilter(filter, txRes.blockNumber + 1);
-    expect(eventsMulti[0].eventName).to.be.equal("ZKPResponseSubmitted");
+    expect(eventsMulti[0].eventName).to.be.equal("ResponseSubmitted");
     expect(eventsMulti[0].args.requestId).to.be.equal(1);
     expect(eventsMulti[0].args.caller).to.be.equal(signerAddress);
 
@@ -193,42 +230,129 @@ describe("Universal Verifier submitZKPResponseV2 SigV2 validators", function () 
     for (const requestId of requestIdsMulti) {
       const status = await verifier.getProofStatus(signerAddress, requestId);
       expect(status.isVerified).to.be.true;
-      expect(status.validatorVersion).to.be.equal("2.0.2-mock");
-      expect(status.blockNumber).to.be.equal(txResMulti.blockNumber);
+      expect(status.validatorVersion).to.be.equal("1.0.0-mock");
       expect(status.blockTimestamp).to.be.equal(txResTimestampMuti);
-      await checkStorageFields(verifier, requestId, storageFields);
+      await checkStorageFields(verifier, BigInt(requestId), storageFields);
     }
   });
 
-  it("Test submit response V2 with disable/enable functionality", async () => {
-    await verifier.disableZKPRequest(0);
-    await expect(verifier.submitZKPResponseV2(singleProof, crossChainProofs)).to.be.rejectedWith(
-      "Request is disabled",
-    );
+  it("Test submit response with disable/enable functionality", async () => {
+    await verifier.disableRequest(0);
+    await expect(
+      verifier.submitResponse(
+        [
+          {
+            authType: authType,
+            proof: singleProof[0].proof,
+          },
+        ],
+        singleProof,
+        [],
+        crossChainProofs,
+      ),
+    ).to.be.rejectedWith(`RequestIsDisabled(${singleProof[0].requestId})`);
 
-    await verifier.disableZKPRequest(1);
-    await expect(verifier.submitZKPResponseV2(multiProof, crossChainProofs)).to.be.rejectedWith(
-      "Request is disabled",
-    );
+    await verifier.disableRequest(1);
+    await expect(
+      verifier.submitResponse(
+        [
+          {
+            authType: authType,
+            proof: singleProof[0].proof,
+          },
+        ],
+        multiProof,
+        [],
+        crossChainProofs,
+      ),
+    ).to.be.rejectedWith(`RequestIsDisabled(${multiProof[0].requestId})`);
 
-    await verifier.enableZKPRequest(0);
-    await expect(verifier.submitZKPResponseV2(singleProof, crossChainProofs)).not.to.be.rejected;
+    await verifier.enableRequest(0);
+    await expect(
+      verifier.submitResponse(
+        [
+          {
+            authType: authType,
+            proof: singleProof[0].proof,
+          },
+        ],
+        singleProof,
+        [],
+        crossChainProofs,
+      ),
+    ).not.to.be.rejected;
 
-    await verifier.enableZKPRequest(1);
-    await expect(verifier.submitZKPResponseV2(multiProof, crossChainProofs)).not.to.be.rejected;
+    await verifier.enableRequest(1);
+    await expect(
+      verifier.submitResponse(
+        [
+          {
+            authType: authType,
+            proof: singleProof[0].proof,
+          },
+        ],
+        multiProof,
+        [],
+        crossChainProofs,
+      ),
+    ).not.to.be.rejected;
   });
 
-  it("Test submit response V2 check whitelisted functionality", async () => {
+  it("Test submit response check whitelisted functionality", async () => {
     await verifier.removeValidatorFromWhitelist(await sig.getAddress());
-    await expect(verifier.submitZKPResponseV2(singleProof, crossChainProofs)).to.be.rejectedWith(
-      "Validator is not whitelisted",
-    );
-    await expect(verifier.submitZKPResponseV2(multiProof, crossChainProofs)).to.be.rejectedWith(
-      "Validator is not whitelisted",
-    );
+    await expect(
+      verifier.submitResponse(
+        [
+          {
+            authType: authType,
+            proof: singleProof[0].proof,
+          },
+        ],
+        singleProof,
+        [],
+        crossChainProofs,
+      ),
+    ).to.be.rejectedWith(`ValidatorIsNotWhitelisted("${await sig.getAddress()}")`);
+    await expect(
+      verifier.submitResponse(
+        [
+          {
+            authType: authType,
+            proof: singleProof[0].proof,
+          },
+        ],
+        multiProof,
+        [],
+        crossChainProofs,
+      ),
+    ).to.be.rejectedWith(`ValidatorIsNotWhitelisted("${await sig.getAddress()}")`);
 
     await verifier.addValidatorToWhitelist(await sig.getAddress());
-    await expect(verifier.submitZKPResponseV2(singleProof, crossChainProofs)).not.to.be.rejected;
-    await expect(verifier.submitZKPResponseV2(multiProof, crossChainProofs)).not.to.be.rejected;
+    await expect(
+      verifier.submitResponse(
+        [
+          {
+            authType: authType,
+            proof: singleProof[0].proof,
+          },
+        ],
+        singleProof,
+        [],
+        crossChainProofs,
+      ),
+    ).not.to.be.rejected;
+    await expect(
+      verifier.submitResponse(
+        [
+          {
+            authType: authType,
+            proof: singleProof[0].proof,
+          },
+        ],
+        multiProof,
+        [],
+        crossChainProofs,
+      ),
+    ).not.to.be.rejected;
   });
 });

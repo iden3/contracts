@@ -10,8 +10,20 @@ import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 describe("Embedded ZKP Verifier", function () {
-  let verifier: any, validator: any;
+  let verifier: any, sig: any, authV2Validator: any;
   let owner: Signer;
+  const authType = "authV2";
+
+  const storageFields = [
+    {
+      name: "userID",
+      value: 1n,
+    },
+    {
+      name: "issuerID",
+      value: 2n,
+    },
+  ];
 
   const query = {
     schema: BigInt("180410020913331409885634153623124536270"),
@@ -28,9 +40,6 @@ describe("Embedded ZKP Verifier", function () {
     claimPathNotExists: 0,
   };
 
-  const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
-  const metadatas = "0x";
-
   async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize(null, true);
     [owner] = await ethers.getSigners();
@@ -39,20 +48,22 @@ describe("Embedded ZKP Verifier", function () {
 
     const verifierLib = await deployHelper.deployVerifierLib();
 
-    verifier = await deployHelper.deployEmbeddedZKPVerifierWrapper(
+    verifier = await deployHelper.deployEmbeddedVerifierWrapper(
       owner,
       await state.getAddress(),
       await verifierLib.getAddress(),
     );
 
-    validator = await deployHelper.deployValidatorStub();
+    const stub = await deployHelper.deployValidatorStub("RequestValidatorV2Stub");
+    sig = stub;
+    authV2Validator = await deployHelper.deployValidatorStub("AuthValidatorStub");
   }
 
-  async function checkStorageFields(verifier: any, requestId: number, storageFields: any[]) {
+  async function checkStorageFields(verifier: any, requestId: bigint, storageFields: any[]) {
     for (const field of storageFields) {
-      const value = await verifier.getProofStorageField(
-        await owner.getAddress(),
+      const value = await verifier.getResponseFieldValueFromAddress(
         requestId,
+        await owner.getAddress(),
         field.name,
       );
       expect(value).to.be.equal(field.value);
@@ -64,71 +75,8 @@ describe("Embedded ZKP Verifier", function () {
   });
 
   it("test submit response", async () => {
-    await verifier.setZKPRequest(0, {
-      metadata: "metadata",
-      validator: await validator.getAddress(),
-      data: packValidatorParams(query),
-    });
+    const requestId = 0;
 
-    const tx = await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
-    const txRes = await tx.wait();
-    const storageFields = [
-      {
-        name: "userID",
-        value: inputs[1],
-      },
-      {
-        name: "issuerID",
-        value: inputs[2],
-      },
-    ];
-
-    await checkStorageFields(verifier, 0, storageFields);
-    const receipt = await ethers.provider.getTransactionReceipt(txRes.hash);
-
-    // 2 events are emitted
-    expect(receipt?.logs.length).to.equal(2);
-
-    const interfaceEventBeforeProofSubmit = new ethers.Interface([
-      "event BeforeProofSubmit(uint64 requestId, uint256[] inputs, address validator)",
-    ]);
-    const eventBeforeProofSubmit = interfaceEventBeforeProofSubmit.decodeEventLog(
-      "BeforeProofSubmit",
-      receipt?.logs[0].data || "",
-      receipt?.logs[0].topics,
-    );
-    expect(eventBeforeProofSubmit[0]).to.equal(0);
-    expect(eventBeforeProofSubmit[1]).to.deep.equal(inputs.map((x) => BigInt(x)));
-    expect(eventBeforeProofSubmit[2]).to.equal(await validator.getAddress());
-
-    const interfaceEventAfterProofSubmit = new ethers.Interface([
-      "event AfterProofSubmit(uint64 requestId, uint256[] inputs, address validator)",
-    ]);
-    const eventAfterProofSubmit = interfaceEventAfterProofSubmit.decodeEventLog(
-      "AfterProofSubmit",
-      receipt?.logs[1].data || "",
-      receipt?.logs[1].topics,
-    );
-    expect(eventAfterProofSubmit[0]).to.equal(0);
-    expect(eventAfterProofSubmit[1]).to.deep.equal(inputs.map((x) => BigInt(x)));
-    expect(eventAfterProofSubmit[2]).to.equal(await validator.getAddress());
-
-    const ownerAddress = await owner.getAddress();
-    const requestID = 0;
-    const { timestamp: txResTimestamp } = (await ethers.provider.getBlock(
-      txRes.blockNumber,
-    )) as Block;
-
-    const isProofVerified = await verifier.isProofVerified(ownerAddress, requestID);
-    expect(isProofVerified).to.be.equal(true);
-    const proofStatus = await verifier.getProofStatus(ownerAddress, requestID);
-    expect(proofStatus.isVerified).to.be.equal(true);
-    expect(proofStatus.validatorVersion).to.be.equal("2.0.2-mock");
-    expect(proofStatus.blockNumber).to.be.equal(txRes.blockNumber);
-    expect(proofStatus.blockTimestamp).to.be.equal(txResTimestamp);
-  });
-
-  it("test submit response v2", async () => {
     const globalStateMessage = {
       timestamp: BigInt(Math.floor(Date.now() / 1000)),
       idType: "0x01A1",
@@ -150,13 +98,31 @@ describe("Embedded ZKP Verifier", function () {
       replacedAtTimestamp: 1724858009n,
     };
 
-    await verifier.setZKPRequest(0, {
-      metadata: "metadata",
-      validator: await validator.getAddress(),
-      data: packValidatorParams(query),
+    const params = packValidatorParams(query);
+
+    await verifier.setAuthType({
+      authType: authType,
+      validator: await authV2Validator.getAddress(),
+      params: params,
     });
 
-    const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
+    await expect(
+      verifier.setRequests(
+        [
+          {
+            requestId: requestId,
+            metadata: "metadata",
+            validator: await sig.getAddress(),
+            params: params,
+          },
+        ],
+        [],
+      ),
+    );
+
+    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
+
+    const proof = packZKProof(inputs, pi_a, pi_b, pi_c);
     const [signer] = await ethers.getSigners();
 
     const crossChainProofs = packCrossChainProofs(
@@ -166,59 +132,61 @@ describe("Embedded ZKP Verifier", function () {
       ),
     );
 
-    const tx = await verifier.submitZKPResponseV2(
+    const metadatas = "0x";
+
+    const tx = await verifier.submitResponse(
       [
         {
-          requestId: 0,
-          zkProof: zkProof,
-          data: metadatas,
+          authType: authType,
+          proof,
         },
       ],
+      [
+        {
+          requestId: requestId,
+          proof,
+          metadata: metadatas,
+        },
+      ],
+      [],
       crossChainProofs,
     );
 
     const txRes = await tx.wait();
-
-    const storageFields = [
-      {
-        name: "userID",
-        value: 1n,
-      },
-      {
-        name: "issuerID",
-        value: 2n,
-      },
-    ];
-    await checkStorageFields(verifier, 0, storageFields);
+    await checkStorageFields(verifier, BigInt(0), storageFields);
 
     const receipt = await ethers.provider.getTransactionReceipt(txRes.hash);
 
     // 2 events are emitted
     expect(receipt?.logs.length).to.equal(2);
 
-    const interfaceEventBeforeProofSubmitV2 = new ethers.Interface([
-      "event BeforeProofSubmitV2(tuple(uint64 requestId,bytes zkProof,bytes data)[])",
+    const interfaceEventBeforeProofSubmit = new ethers.Interface([
+      "event BeforeProofSubmit(tuple(string authType,bytes proof)[],tuple(uint256 requestId,bytes proof,bytes metadata)[],tuple(uint256 groupId,tuple(uint256 requestId,bytes proof,bytes metadata)[])[])",
     ]);
-    const eventBeforeProofSubmitV2 = interfaceEventBeforeProofSubmitV2.decodeEventLog(
-      "BeforeProofSubmitV2",
+    const eventBeforeProofSubmit = interfaceEventBeforeProofSubmit.decodeEventLog(
+      "BeforeProofSubmit",
       receipt?.logs[0].data || "",
       receipt?.logs[0].topics,
     );
-    expect(eventBeforeProofSubmitV2[0][0][0]).to.equal(0);
-    expect(eventBeforeProofSubmitV2[0][0][1]).to.deep.equal(zkProof);
-    expect(eventBeforeProofSubmitV2[0][0][2]).to.equal(metadatas);
+    expect(eventBeforeProofSubmit[0][0][0]).to.equal("authV2");
+    expect(eventBeforeProofSubmit[0][0][1]).to.deep.equal(proof);
+    expect(eventBeforeProofSubmit[1][0][0]).to.equal(0);
+    expect(eventBeforeProofSubmit[1][0][1]).to.deep.equal(proof);
+    expect(eventBeforeProofSubmit[1][0][2]).to.equal(metadatas);
 
-    const interfaceEventAfterProofSubmitV2 = new ethers.Interface([
-      "event AfterProofSubmitV2(tuple(uint64 requestId,bytes zkProof,bytes data)[])",
+    const interfaceEventAfterProofSubmit = new ethers.Interface([
+      "event AfterProofSubmit(tuple(string authType,bytes proof)[],tuple(uint256 requestId,bytes proof,bytes metadata)[],tuple(uint256 groupId,tuple(uint256 requestId,bytes proof,bytes metadata)[])[])",
     ]);
-    const eventAfterProofSubmitV2 = interfaceEventAfterProofSubmitV2.decodeEventLog(
-      "AfterProofSubmitV2",
+    const eventAfterProofSubmit = interfaceEventAfterProofSubmit.decodeEventLog(
+      "AfterProofSubmit",
       receipt?.logs[1].data || "",
       receipt?.logs[1].topics,
     );
-    expect(eventAfterProofSubmitV2[0][0][0]).to.equal(0);
-    expect(eventAfterProofSubmitV2[0][0][1]).to.deep.equal(zkProof);
-    expect(eventAfterProofSubmitV2[0][0][2]).to.equal(metadatas);
+    expect(eventAfterProofSubmit[0][0][0]).to.equal("authV2");
+    expect(eventAfterProofSubmit[0][0][1]).to.deep.equal(proof);
+    expect(eventAfterProofSubmit[1][0][0]).to.equal(0);
+    expect(eventAfterProofSubmit[1][0][1]).to.deep.equal(proof);
+    expect(eventAfterProofSubmit[1][0][2]).to.equal(metadatas);
 
     const ownerAddress = await owner.getAddress();
     const requestID = 0;
@@ -230,29 +198,34 @@ describe("Embedded ZKP Verifier", function () {
     expect(isProofVerified).to.be.equal(true);
     const proofStatus = await verifier.getProofStatus(ownerAddress, requestID);
     expect(proofStatus.isVerified).to.be.equal(true);
-    expect(proofStatus.validatorVersion).to.be.equal("2.0.2-mock");
-    expect(proofStatus.blockNumber).to.be.equal(txRes.blockNumber);
+    expect(proofStatus.validatorVersion).to.be.equal("1.0.0-mock");
     expect(proofStatus.blockTimestamp).to.be.equal(txResTimestamp);
   });
 
-  it("test getZKPRequest and request id exists", async () => {
+  it("test getRequest and request id exists", async () => {
     const requestsCount = 3;
     for (let i = 0; i < requestsCount; i++) {
-      await verifier.setZKPRequest(i, {
-        metadata: "metadataN" + i,
-        validator: await validator.getAddress(),
-        data: "0x00",
-      });
-      const reqeustIdExists = await verifier.requestIdExists(i);
-      expect(reqeustIdExists).to.be.true;
-      const reqeustIdDoesntExists = await verifier.requestIdExists(i + 1);
-      expect(reqeustIdDoesntExists).to.be.false;
+      await verifier.setRequests(
+        [
+          {
+            requestId: i,
+            metadata: "metadataN" + i,
+            validator: await sig.getAddress(),
+            params: "0x00",
+          },
+        ],
+        [],
+      );
+      const requestIdExists = await verifier.requestIdExists(i);
+      expect(requestIdExists).to.be.true;
+      const requestIdDoesntExists = await verifier.requestIdExists(i + 1);
+      expect(requestIdDoesntExists).to.be.false;
 
-      const request = await verifier.getZKPRequest(i);
+      const request = await verifier.getRequest(i);
       expect(request.metadata).to.be.equal("metadataN" + i);
-      await expect(verifier.getZKPRequest(i + 1)).to.be.rejectedWith("request id doesn't exist");
+      await expect(verifier.getRequest(i + 1)).to.be.rejectedWith(`RequestIdNotFound(${i + 1})`);
     }
-    const count = await verifier.getZKPRequestsCount();
+    const count = await verifier.getRequestsCount();
     expect(count).to.be.equal(requestsCount);
   });
 });

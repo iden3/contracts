@@ -14,9 +14,9 @@
 pragma solidity 0.8.27;
 
 import "./Groth16VerifierSig.sol";
-import "../../interfaces/IVerifier.sol";
+import "../../interfaces/IGroth16Verifier.sol";
 
-contract Groth16VerifierSigWrapper is Groth16VerifierSig, IVerifier {
+contract Groth16VerifierSigWrapper is Groth16VerifierSig, IGroth16Verifier {
     /**
      * @dev Number of public signals for atomic sig circuit
      */

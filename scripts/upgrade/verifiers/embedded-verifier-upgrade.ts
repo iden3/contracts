@@ -16,11 +16,11 @@ const network = hre.network.name;
 const forceImport = false;
 
 async function main() {
-  // EmbeddedZKPVerifer is abstract contract
+  // EmbeddedVerifer is abstract contract
   // In real upgrade, you should use THE NAME as THE ADDRESS
-  // of your custom contract, which inherits EmbeddedZKPVerifer
+  // of your custom contract, which inherits EmbeddedVerifer
   let verifierContract = await ethers.getContractAt(
-    "<verifier contract name>", // EmbeddedZKPVerifierWrapper
+    "<verifier contract name>", // EmbeddedVerifierWrapper
     "<verifier contract address>",
   );
 
@@ -44,11 +44,14 @@ async function main() {
   const verifierLib = await deployerHelper.deployVerifierLib();
 
   // **** Upgrade Embedded Verifier ****
-  const verifierFactory = await ethers.getContractFactory("EmbeddedZKPVerifierWrapper", {
-    libraries: {
-      VerifierLib: await verifierLib.getAddress(),
+  const verifierFactory = await ethers.getContractFactory(
+    contractsInfo.EMBEDDED_VERIFIER_WRAPPER.name,
+    {
+      libraries: {
+        VerifierLib: await verifierLib.getAddress(),
+      },
     },
-  });
+  );
 
   try {
     verifierContract = await upgrades.upgradeProxy(
