@@ -117,13 +117,15 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     modifier checkRequestGroupExistence(Request memory request, bool existence) {
         uint256 groupId = request.validator.getGroupID(request.params);
 
-        if (existence) {
-            if (!groupIdExists(groupId)) {
-                revert GroupIdNotFound(groupId);
-            }
-        } else {
-            if (groupIdExists(groupId)) {
-                revert GroupIdAlreadyExists(groupId);
+        if (groupId != 0) {
+            if (existence) {
+                if (!groupIdExists(groupId)) {
+                    revert GroupIdNotFound(groupId);
+                }
+            } else {
+                if (groupIdExists(groupId)) {
+                    revert GroupIdAlreadyExists(groupId);
+                }
             }
         }
         _;
@@ -430,17 +432,15 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
     /**
      * @dev Updates a request
-     * @param requestId The ID of the request
      * @param request The request data
      */
     function _updateRequest(
-        uint256 requestId,
         IVerifier.Request calldata request
-    ) internal checkRequestExistence(requestId, true) {
+    ) internal checkRequestExistence(request.requestId, true) {
         VerifierStorage storage s = _getVerifierStorage();
         uint256 verifierId = request.validator.getVerifierId(request.params);
 
-        s._requests[requestId] = RequestData({
+        s._requests[request.requestId] = RequestData({
             metadata: request.metadata,
             validator: request.validator,
             params: request.params,
@@ -790,5 +790,36 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      */
     function getRequestsCount() public view returns (uint256) {
         return _getVerifierStorage()._requestIds.length;
+    }
+
+    /**
+     * @dev Gets the address of the state contract linked to the verifier
+     * @return address State contract address
+     */
+    function getStateAddress() public view virtual returns (address) {
+        return address(_getVerifierStorage()._state);
+    }
+
+    /**
+     * @dev Checks the proof status for a given user and request ID
+     * @param sender The sender's address
+     * @param requestId The ID of the ZKP request
+     * @return The proof status structure
+     */
+    function getProofStatus(
+        address sender,
+        uint256 requestId
+    ) public view checkRequestExistence(requestId, true) returns (IVerifier.ProofStatus memory) {
+
+        VerifierStorage storage s = _getVerifierStorage();
+        uint256 userID = s._user_address_to_id[sender];
+        VerifierLib.Proof storage proof = s._proofs[requestId][userID][0];
+
+        return
+            IVerifier.ProofStatus(
+                proof.isVerified,
+                proof.validatorVersion,
+                proof.blockTimestamp
+            );
     }
 }

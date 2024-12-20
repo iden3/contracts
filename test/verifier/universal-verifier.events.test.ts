@@ -96,27 +96,36 @@ describe("Universal Verifier events", function () {
     await verifier.connect();
   });
 
-  it("Check ZKPRequestSet event", async () => {
+  it("Check RequestSet event", async () => {
     const requestsCount = 3;
-    const data = [
+    const params = [
       packValidatorParams(queries[0]),
       packValidatorParams(queries[1]),
       packValidatorParams(queries[2]),
     ];
 
     for (let i = 0; i < requestsCount; i++) {
-      await verifier.setZKPRequest(i, {
-        metadata: "metadataN" + i,
-        validator: await sig.getAddress(),
-        data: data[i],
-      });
+      await expect(
+        verifier.setRequests(
+          [
+            {
+              requestId: i,
+              metadata: "metadata",
+              validator: await sig.getAddress(),
+              params: params[i],
+            },
+          ],
+          [],
+        ),
+      ).to.emit(verifier, "RequestSet");
+      console.log("RequestSet event emitted");
     }
-    const filter = verifier.filters.ZKPRequestSet(null, null);
+    const filter = verifier.filters.RequestSet(null, null);
     const logs = await verifier.queryFilter(filter, 0, "latest");
 
     const coder = AbiCoder.defaultAbiCoder();
     logs.map((log, index) => {
-      const [decodedData] = coder.decode(encodedDataAbi as any, log.args.data);
+      const [decodedData] = coder.decode(encodedDataAbi as any, log.args.params);
       expect(decodedData.schema).to.equal(queries[index].schema);
       expect(decodedData.claimPathKey).to.equal(queries[index].claimPathKey);
       expect(decodedData.operator).to.equal(queries[index].operator);
@@ -135,28 +144,35 @@ describe("Universal Verifier events", function () {
     });
   });
 
-  it("Check ZKPRequestUpdate event", async () => {
+  it("Check RequestUpdate event", async () => {
     const originalRequestData = packValidatorParams(queries[0]);
     const updatedRequestData = packValidatorParams(queries[1]);
 
-    await verifier.setZKPRequest(0, {
-      metadata: "metadataN0",
-      validator: await sig.getAddress(),
-      data: originalRequestData,
-    });
+    await verifier.setRequests(
+      [
+        {
+          requestId: 0,
+          metadata: "metadata0",
+          validator: await sig.getAddress(),
+          params: originalRequestData,
+        },
+      ],
+      [],
+    );
 
-    await verifier.updateZKPRequest(0, {
+    await verifier.updateRequest({
+      requestId: 0,
       metadata: "metadataN1",
       validator: await sig.getAddress(),
-      data: updatedRequestData,
+      params: updatedRequestData,
     });
 
-    const filter = verifier.filters.ZKPRequestUpdate(null, null);
+    const filter = verifier.filters.RequestUpdate(null, null);
     const logs = await verifier.queryFilter(filter, 0, "latest");
 
     const coder = AbiCoder.defaultAbiCoder();
     logs.map((log) => {
-      const [decodedData] = coder.decode(encodedDataAbi as any, log.args.data);
+      const [decodedData] = coder.decode(encodedDataAbi as any, log.args.params);
       expect(decodedData.schema).to.equal(queries[1].schema);
       expect(decodedData.claimPathKey).to.equal(queries[1].claimPathKey);
       expect(decodedData.operator).to.equal(queries[1].operator);

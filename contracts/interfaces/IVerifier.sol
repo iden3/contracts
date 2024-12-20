@@ -55,13 +55,11 @@ interface IVerifier {
      * @dev ProofStatus. Structure for proof status.
      * @param isVerified True if the proof is verified.
      * @param validatorVersion Version of the validator.
-     * @param blockNumber Block number of the proof.
      * @param blockTimestamp Block timestamp of the proof.
      */
     struct ProofStatus {
         bool isVerified;
         string validatorVersion;
-        uint256 blockNumber;
         uint256 blockTimestamp;
     }
 
@@ -238,4 +236,15 @@ interface IVerifier {
      * @return query The query data
      */
     function getQuery(uint256 queryId) external view returns (IVerifier.Query memory query);
+
+    /**
+     * @dev Get the proof status for the sender and request with requestId.
+     * @param sender Sender of the proof.
+     * @param requestId Request id of the proof.
+     * @return Proof status.
+     */
+    function getProofStatus(
+        address sender,
+        uint256 requestId
+    ) external view returns (ProofStatus memory);
 }

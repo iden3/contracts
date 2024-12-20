@@ -108,9 +108,9 @@ export const contractsInfo = Object.freeze({
   },
   UNIVERSAL_VERIFIER: {
     name: "UniversalVerifier",
-    version: "1.1.3",
+    version: "2.0.0",
     unifiedAddress: "0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c",
-    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier")),
+    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier.v2")),
     verificationOpts: {
       // For verifying the different contracts with proxy we need verification with different constructor arguments
       constructorArgsImplementation: [],
@@ -365,8 +365,8 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
-  EMBEDDED_ZKP_VERIFIER_WRAPPER: {
-    name: "EmbeddedZKPVerifierWrapper",
+  EMBEDDED_VERIFIER_WRAPPER: {
+    name: "EmbeddedVerifierWrapper",
     unifiedAddress: "",
     create2Calldata: "",
   },

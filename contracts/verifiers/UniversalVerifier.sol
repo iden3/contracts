@@ -106,8 +106,8 @@ contract UniversalVerifier is
      * @param groupedRequests The requests that are in a group
      */
     function setRequests(
-        Request[] calldata singleRequests,
-        GroupedRequests[] calldata groupedRequests
+        IVerifier.Request[] calldata singleRequests,
+        IVerifier.GroupedRequests[] calldata groupedRequests
     ) public override(RequestOwnership, ValidatorWhitelist, Verifier) {
         super.setRequests(singleRequests, groupedRequests);
 
@@ -136,14 +136,13 @@ contract UniversalVerifier is
 
     /**
      * @dev Updates a request
-     * @param requestId The ID of the request
      * @param request The request data
      */
-    function updateRequest(uint256 requestId, IVerifier.Request calldata request) public onlyOwner {
-        super._updateRequest(requestId, request);
+    function updateRequest(IVerifier.Request calldata request) public onlyOwner {
+        super._updateRequest(request);
 
         emit RequestUpdate(
-            requestId,
+            request.requestId,
             _msgSender(),
             request.metadata,
             address(request.validator),
