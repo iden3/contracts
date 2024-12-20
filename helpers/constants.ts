@@ -109,7 +109,7 @@ export const contractsInfo = Object.freeze({
   UNIVERSAL_VERIFIER: {
     name: "UniversalVerifier",
     version: "2.0.0",
-    unifiedAddress: "0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c",
+    unifiedAddress: "0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c", // TODO: Recalculate new address
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier.v2")),
     verificationOpts: {
       // For verifying the different contracts with proxy we need verification with different constructor arguments

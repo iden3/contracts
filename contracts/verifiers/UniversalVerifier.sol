@@ -176,7 +176,7 @@ contract UniversalVerifier is
         Response[] memory singleResponses,
         GroupedResponses[] memory groupedResponses,
         bytes memory crossChainProofs
-    ) public override(RequestDisableable, ValidatorWhitelist, Verifier) {
+    ) public override {
         super.submitResponse(authResponses, singleResponses, groupedResponses, crossChainProofs);
         for (uint256 i = 0; i < authResponses.length; i++) {
             emit AuthResponseSubmitted(authResponses[i].authType, _msgSender());
@@ -242,5 +242,17 @@ contract UniversalVerifier is
      */
     function removeValidatorFromWhitelist(IRequestValidator validator) public onlyOwner {
         _removeValidatorFromWhitelist(validator);
+    }
+
+    function _getRequestIfCanBeVerified(
+        uint256 requestId
+    )
+        internal
+        view
+        override(RequestDisableable, ValidatorWhitelist, Verifier)
+        onlyEnabledRequest(requestId)
+        returns (IVerifier.RequestData storage)
+    {
+        return super._getRequestIfCanBeVerified(requestId);
     }
 }

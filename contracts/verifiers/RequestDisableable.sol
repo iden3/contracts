@@ -22,34 +22,12 @@ contract RequestDisableable is Verifier {
         }
     }
 
-    /**
-     * @dev Submits an array of responses and updates proofs status
-     * @param authResponses The list of auth responses including auth type and proof
-     * @param singleResponses The list of responses including request ID, proof and metadata for single requests
-     * @param groupedResponses The list of responses including request ID, proof and metadata for grouped requests
-     * @param crossChainProofs The list of cross chain proofs from universal resolver (oracle). This
-     * includes identities and global states.
-     */
-    function submitResponse(
-        IVerifier.AuthResponse[] memory authResponses,
-        IVerifier.Response[] memory singleResponses,
-        IVerifier.GroupedResponses[] memory groupedResponses,
-        bytes memory crossChainProofs
-    ) public virtual override {
-        for (uint256 i = 0; i < singleResponses.length; i++) {
-            if (!isRequestEnabled(singleResponses[i].requestId)) {
-                revert RequestIsDisabled(singleResponses[i].requestId);
-            }
+    /// @dev Modifier to check if the request is enabled
+    modifier onlyEnabledRequest(uint256 requestId) {
+        if (!isRequestEnabled(requestId)) {
+            revert RequestIsDisabled(requestId);
         }
-
-        for (uint256 i = 0; i < groupedResponses.length; i++) {
-            for (uint256 j = 0; j < groupedResponses[i].responses.length; j++) {
-                if (!isRequestEnabled(groupedResponses[i].responses[j].requestId)) {
-                    revert RequestIsDisabled(groupedResponses[i].responses[j].requestId);
-                }
-            }
-        }
-        super.submitResponse(authResponses, singleResponses, groupedResponses, crossChainProofs);
+        _;
     }
 
     /**
@@ -69,5 +47,18 @@ contract RequestDisableable is Verifier {
 
     function _enableRequest(uint256 requestId) internal checkRequestExistence(requestId, true) {
         _getRequestDisableStorage()._requestDisabling[requestId] = false;
+    }
+
+    function _getRequestIfCanBeVerified(
+        uint256 requestId
+    )
+        internal
+        view
+        virtual
+        override
+        onlyEnabledRequest(requestId)
+        returns (IVerifier.RequestData storage)
+    {
+        return super._getRequestIfCanBeVerified(requestId);
     }
 }

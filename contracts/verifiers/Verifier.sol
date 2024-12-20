@@ -29,20 +29,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     /// @dev Key to retrieve the linkID from the proof storage
     string constant LINKED_PROOF_KEY = "linkID";
 
-    /**
-     * @dev Request. Structure for request for storage.
-     * @param metadata Metadata of the request.
-     * @param validator Validator circuit.
-     * @param params Params of the request. Proof parameters could be ZK groth16, plonk, ESDSA, EIP712, etc.
-     */
-    struct RequestData {
-        string metadata;
-        IRequestValidator validator;
-        bytes params;
-        address creator;
-        uint256 verifierId;
-    }
-
     struct AuthTypeData {
         IAuthValidator validator;
         bytes params;
@@ -64,7 +50,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         // Information about requests
         // solhint-disable-next-line
         mapping(uint256 requestId => mapping(uint256 userID => VerifierLib.Proof[])) _proofs;
-        mapping(uint256 requestId => RequestData) _requests;
+        mapping(uint256 requestId => IVerifier.RequestData) _requests;
         uint256[] _requestIds;
         mapping(uint256 groupId => uint256[] requestIds) _groupedRequests;
         uint256[] _groupIds;
@@ -236,7 +222,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         VerifierStorage storage s = _getVerifierStorage();
         uint256 verifierId = request.validator.getVerifierId(request.params);
 
-        s._requests[request.requestId] = RequestData({
+        s._requests[request.requestId] = IVerifier.RequestData({
             metadata: request.metadata,
             validator: request.validator,
             params: request.params,
@@ -284,7 +270,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         uint256 requestId
     ) public view checkRequestExistence(requestId, true) returns (RequestInfo memory request) {
         VerifierStorage storage $ = _getVerifierStorage();
-        RequestData storage rd = $._requests[requestId];
+        IVerifier.RequestData storage rd = $._requests[requestId];
         return
             RequestInfo({
                 requestId: requestId,
@@ -405,7 +391,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         //      emit events (existing logic)
         for (uint256 i = 0; i < singleResponses.length; i++) {
             IVerifier.Response memory response = singleResponses[i];
-            RequestData storage request = $._requests[response.requestId];
+            IVerifier.RequestData storage request = _getRequestIfCanBeVerified(response.requestId);
 
             IRequestValidator.ResponseField[] memory signals = request.validator.verify(
                 response.proof,
@@ -436,7 +422,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         VerifierStorage storage s = _getVerifierStorage();
         uint256 verifierId = request.validator.getVerifierId(request.params);
 
-        s._requests[request.requestId] = RequestData({
+        s._requests[request.requestId] = IVerifier.RequestData({
             metadata: request.metadata,
             validator: request.validator,
             params: request.params,
@@ -446,7 +432,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     }
 
     function _verifyGroupedResponses(
-        GroupedResponses[] memory groupedResponses,
+        IVerifier.GroupedResponses[] memory groupedResponses,
         uint256 userID,
         address sender
     ) internal {
@@ -454,8 +440,8 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         for (uint256 i = 0; i < groupedResponses.length; i++) {
             for (uint256 j = 0; j < groupedResponses[i].responses.length; j++) {
-                Response memory response = groupedResponses[i].responses[j];
-                RequestData storage request = $._requests[response.requestId];
+                IVerifier.Response memory response = groupedResponses[i].responses[j];
+                IVerifier.RequestData storage request = $._requests[response.requestId];
 
                 IRequestValidator.ResponseField[] memory signals = request.validator.verify(
                     response.proof,
@@ -818,5 +804,18 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         return
             IVerifier.ProofStatus(proof.isVerified, proof.validatorVersion, proof.blockTimestamp);
+    }
+
+    function _getRequestIfCanBeVerified(
+        uint256 requestId
+    )
+        internal
+        view
+        virtual
+        checkRequestExistence(requestId, true)
+        returns (IVerifier.RequestData storage)
+    {
+        VerifierStorage storage $ = _getVerifierStorage();
+        return $._requests[requestId];
     }
 }

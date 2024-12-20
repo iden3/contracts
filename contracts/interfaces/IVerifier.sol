@@ -22,6 +22,21 @@ interface IVerifier {
         IRequestValidator validator;
         bytes params;
     }
+
+    /**
+     * @dev Request. Structure for request for storage.
+     * @param metadata Metadata of the request.
+     * @param validator Validator circuit.
+     * @param params Params of the request. Proof parameters could be ZK groth16, plonk, ESDSA, EIP712, etc.
+     */
+    struct RequestData {
+        string metadata;
+        IRequestValidator validator;
+        bytes params;
+        address creator;
+        uint256 verifierId;
+    }
+
     /**
      * @dev RequestInfo. Structure for request info.
      * @param requestId Request id.
