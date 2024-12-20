@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.10;
 
+import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
 import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {IGroth16Verifier} from "../interfaces/IGroth16Verifier.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {OwnableUpgradeable} from "../.deps/npm/@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {IState} from "../interfaces/IState.sol";
 
-contract LinkedMultiQuery10Validator is IRequestValidator {
+contract LinkedMultiQueryValidator is IRequestValidator, OwnableUpgradeable {
     // TODO do we need it? Limit to real number for queries?
     // yes, should be limited to the real number of queries in which operator != 0
-    struct Query {
+    struct Params {
         uint256[] claimPathKey;
         uint256[] operator; // when checking SD take operator from here
         uint256[] slotIndex;
@@ -18,13 +22,37 @@ contract LinkedMultiQuery10Validator is IRequestValidator {
         uint256 verifierID;
     }
 
+    /// @dev Main storage structure for the contract
+    /// @custom:storage-location iden3.storage.LinkedMultiQueryValidatorBaseStorage
+    struct LinkedMultiQueryValidatorBaseStorage {
+        //TODO do we need this mapping?
+        mapping(string circuitName => IGroth16Verifier) _supportedCircuits;
+        string[] _supportedCircuitIds;
+    }
+
+    // keccak256(abi.encode(uint256(keccak256("iden3.storage.LinkedMultiQueryValidatorBaseStorage")) - 1))
+    //  & ~bytes32(uint256(0xff));
+    bytes32 private constant LinkedMultiQueryValidatorBaseStorageLocation =
+        0x2a12018e5edfc1fb8de8bb271d40c512afd1e683a34fc602c9c8e5cfd4529700;
+
+    /// @dev Get the main storage using assembly to ensure specific storage location
+    function _getLinkedMultiQueryValidatorBaseStorage()
+        private
+        pure
+        returns (LinkedMultiQueryValidatorBaseStorage storage $)
+    {
+        assembly {
+            $.slot := LinkedMultiQueryValidatorBaseStorageLocation
+        }
+    }
+
     function getGroupID(bytes calldata params) external view override returns (uint256) {
-        Query memory query = abi.decode(params, (Query));
+        Params memory query = abi.decode(params, (Params));
         return query.groupID;
     }
 
     function getVerifierId(bytes calldata params) external view override returns (uint256) {
-        Query memory query = abi.decode(params, (Query));
+        Params memory query = abi.decode(params, (Params));
         return query.verifierID;
     }
 
@@ -42,18 +70,8 @@ contract LinkedMultiQuery10Validator is IRequestValidator {
         return VERSION;
     }
 
-    struct Storage {
-        //TODO do we need this mapping?
-        mapping(string circuitName => address groth16VerifierAddress) _supportedCircuits;
-        string[] _supportedCircuitIds;
-    }
-
-    function initialize(
-        address _groth16VerifierContractAddr,
-        address owner
-    ) public initializer {
-        // TODO get storage $
-        $.groth16VerifierContractAddr = _groth16VerifierContractAddr;
+    function initialize(address _groth16VerifierContractAddr, address owner) public initializer {
+        LinkedMultiQueryValidatorBaseStorage storage $ = _getLinkedMultiQueryValidatorBaseStorage();
         $._supportedCircuits[CIRCUIT_ID] = _groth16VerifierContractAddr;
         $._supportedCircuitIds.push(CIRCUIT_ID);
     }
@@ -63,9 +81,11 @@ contract LinkedMultiQuery10Validator is IRequestValidator {
         bytes calldata data,
         address sender,
         IState state
-    ) external returns (Signal[] memory) {
+    ) external returns (IRequestValidator.ResponseField[] memory) {
+        LinkedMultiQueryValidatorBaseStorage storage $ = _getLinkedMultiQueryValidatorBaseStorage();
+
         // 0. Parse query
-        Query memory query = abi.decode(data, (Query));
+        Params memory query = abi.decode(data, (Params));
 
         // 1. Parse public signals
         (
@@ -73,7 +93,7 @@ contract LinkedMultiQuery10Validator is IRequestValidator {
             uint256[2] memory a,
             uint256[2][2] memory b,
             uint256[2] memory c
-        )= abi.decode(proof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
+        ) = abi.decode(proof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
         PubSignals memory pubSignals = parsePubSignals(inputs);
 
@@ -95,7 +115,7 @@ contract LinkedMultiQuery10Validator is IRequestValidator {
         }
     }
 
-    function _checkQueryHash(Query memory query, PubSignals memory pubSignals) internal pure {
+    function _checkQueryHash(Params memory query, PubSignals memory pubSignals) internal pure {
         for (uint256 i = 0; i < 10; i++) {
             if (query.queryHash[i] != pubSignals.circuitQueryHash[i]) {
                 revert InvalidQueryHash(query.queryHash[i], pubSignals.circuitQueryHash[i]);
@@ -114,19 +134,29 @@ contract LinkedMultiQuery10Validator is IRequestValidator {
         return pubSignals;
     }
 
-    function _getSpecialSignals(PubSignals memory pubSignals, Query memory query) internal pure returns (ResponseField[] memory) {
+    function _getSpecialSignals(
+        PubSignals memory pubSignals,
+        Params memory query
+    ) internal pure returns (ResponseField[] memory) {
         // TODO selective disclosure influence number of signals
         ResponseField[] memory signals = new ResponseField[](12);
         signals[0] = ResponseField("linkID", pubSignals.linkID);
         signals[1] = ResponseField("merklized", pubSignals.merklized);
         uint256 n = 2;
         for (uint256 i = 0; i < 10; i++) {
-            if (query.operator == 0) { // the first noop operator is the end of the query
+            if (query.operator[i] == 0) {
+                // the first noop operator is the end of the query
                 break;
             }
             // TODO consider if can be more gas efficient
-            signals[n++] = ResponseField(string(abi.encodePacked("operatorOutput", Strings.toString(i))), pubSignals.operatorOutput[i]);
-            signals[n++] = ResponseField(string(abi.encodePacked("circuitQueryHash", Strings.toString(i))), pubSignals.circuitQueryHash[i]);
+            signals[n++] = ResponseField(
+                string(abi.encodePacked("operatorOutput", Strings.toString(i))),
+                pubSignals.operatorOutput[i]
+            );
+            signals[n++] = ResponseField(
+                string(abi.encodePacked("circuitQueryHash", Strings.toString(i))),
+                pubSignals.circuitQueryHash[i]
+            );
         }
         return signals;
     }
