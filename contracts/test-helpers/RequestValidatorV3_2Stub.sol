@@ -61,11 +61,6 @@ contract RequestValidatorV3_2Stub is IRequestValidator, ERC165 {
         return credAtomicQuery.groupID;
     }
 
-    function getGroupFieldHash(bytes calldata params) external pure override returns (bytes32) {
-        // TODO: Implement hash function
-        return keccak256(params);
-    }
-
     function getVerifierId(bytes calldata params) external pure override returns (uint256) {
         CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
             params,

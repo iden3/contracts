@@ -42,7 +42,16 @@ const config: HardhatUserConfig = {
       },
     ],
     overrides: {
-      "contracts/verifiers/UniversalVerifierMultiQuery.sol": {
+      "contracts/verifiers/UniversalVerifier.sol": {
+        version: "0.8.27",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      "contracts/test-helpers/EmbeddedVerifierWrapper.sol": {
         version: "0.8.27",
         settings: {
           optimizer: {

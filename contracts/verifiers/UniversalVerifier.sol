@@ -60,6 +60,16 @@ contract UniversalVerifier is
         bytes params
     );
 
+    /**
+     * @dev Event emitted upon adding a query
+     */
+    event QuerySet(uint256 indexed queryId, uint256[] requestIds);
+
+    /**
+     * @dev Event emitted upon updating a query
+     */
+    event QueryUpdate(uint256 indexed queryId, uint256[] requestIds);
+
     /// @dev Modifier to check if the caller is the contract Owner or ZKP Request Owner
     modifier onlyOwnerOrRequestOwner(uint256 requestId) {
         address sender = _msgSender();
@@ -96,8 +106,8 @@ contract UniversalVerifier is
      * @param groupedRequests The requests that are in a group
      */
     function setRequests(
-        Request[] calldata singleRequests,
-        GroupedRequests[] calldata groupedRequests
+        IVerifier.Request[] calldata singleRequests,
+        IVerifier.GroupedRequests[] calldata groupedRequests
     ) public override(RequestOwnership, ValidatorWhitelist, Verifier) {
         super.setRequests(singleRequests, groupedRequests);
 
@@ -126,19 +136,31 @@ contract UniversalVerifier is
 
     /**
      * @dev Updates a request
-     * @param requestId The ID of the request
      * @param request The request data
      */
-    function updateRequest(uint256 requestId, IVerifier.Request calldata request) public onlyOwner {
-        super._updateRequest(requestId, request);
+    function updateRequest(IVerifier.Request calldata request) public onlyOwner {
+        super._updateRequest(request);
 
         emit RequestUpdate(
-            requestId,
+            request.requestId,
             _msgSender(),
             request.metadata,
             address(request.validator),
             request.params
         );
+    }
+
+    /**
+     * @dev Sets a query
+     * @param queryId The ID of the query
+     * @param query The query data
+     */
+    function setQuery(
+        uint256 queryId,
+        Query calldata query
+    ) public override checkQueryExistence(queryId, false) {
+        super.setQuery(queryId, query);
+        emit QuerySet(queryId, query.requestIds);
     }
 
     /**
@@ -154,7 +176,7 @@ contract UniversalVerifier is
         Response[] memory singleResponses,
         GroupedResponses[] memory groupedResponses,
         bytes memory crossChainProofs
-    ) public override(RequestDisableable, ValidatorWhitelist, Verifier) {
+    ) public override {
         super.submitResponse(authResponses, singleResponses, groupedResponses, crossChainProofs);
         for (uint256 i = 0; i < authResponses.length; i++) {
             emit AuthResponseSubmitted(authResponses[i].authType, _msgSender());
@@ -220,5 +242,17 @@ contract UniversalVerifier is
      */
     function removeValidatorFromWhitelist(IRequestValidator validator) public onlyOwner {
         _removeValidatorFromWhitelist(validator);
+    }
+
+    function _getRequestIfCanBeVerified(
+        uint256 requestId
+    )
+        internal
+        view
+        override(RequestDisableable, ValidatorWhitelist, Verifier)
+        onlyEnabledRequest(requestId)
+        returns (IVerifier.RequestData storage)
+    {
+        return super._getRequestIfCanBeVerified(requestId);
     }
 }

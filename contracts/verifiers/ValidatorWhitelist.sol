@@ -18,6 +18,14 @@ contract ValidatorWhitelist is Verifier {
     bytes32 private constant ValidatorWhitelistStorageLocation =
         0x76aa24e3538905838cc74060b2aa4c054b1e474aacf44741879e1850715e9300;
 
+    /// @dev Modifier to check if the validator is whitelisted
+    modifier onlyWhitelistedValidator(IRequestValidator validator) {
+        if (!isWhitelistedValidator(validator)) {
+            revert ValidatorIsNotWhitelisted(address(validator));
+        }
+        _;
+    }
+
     function _getValidatorWhitelistStorage()
         private
         pure
@@ -38,7 +46,7 @@ contract ValidatorWhitelist is Verifier {
         IVerifier.GroupedRequests[] calldata groupedRequests
     ) public virtual override {
         for (uint256 i = 0; i < singleRequests.length; i++) {
-            IRequestValidator validator = getRequest(singleRequests[i].requestId).validator;
+            IRequestValidator validator = singleRequests[i].validator;
             if (!isWhitelistedValidator(validator)) {
                 revert ValidatorIsNotWhitelisted(address(validator));
             }
@@ -46,47 +54,13 @@ contract ValidatorWhitelist is Verifier {
 
         for (uint256 i = 0; i < groupedRequests.length; i++) {
             for (uint256 j = 0; j < groupedRequests[i].requests.length; j++) {
-                IRequestValidator validator = getRequest(groupedRequests[i].requests[j].requestId)
-                    .validator;
+                IRequestValidator validator = groupedRequests[i].requests[j].validator;
                 if (!isWhitelistedValidator(validator)) {
                     revert ValidatorIsNotWhitelisted(address(validator));
                 }
             }
         }
         super.setRequests(singleRequests, groupedRequests);
-    }
-
-    /**
-     * @dev Submits an array of responses and updates proofs status
-     * @param authResponses The list of auth responses including auth type and proof
-     * @param singleResponses The list of responses including request ID, proof and metadata for single requests
-     * @param groupedResponses The list of responses including request ID, proof and metadata for grouped requests
-     * @param crossChainProofs The list of cross chain proofs from universal resolver (oracle). This
-     * includes identities and global states.
-     */
-    function submitResponse(
-        IVerifier.AuthResponse[] memory authResponses,
-        IVerifier.Response[] memory singleResponses,
-        IVerifier.GroupedResponses[] memory groupedResponses,
-        bytes memory crossChainProofs
-    ) public virtual override {
-        for (uint256 i = 0; i < singleResponses.length; i++) {
-            IRequestValidator validator = getRequest(singleResponses[i].requestId).validator;
-            if (!isWhitelistedValidator(validator)) {
-                revert ValidatorIsNotWhitelisted(address(validator));
-            }
-        }
-
-        for (uint256 i = 0; i < groupedResponses.length; i++) {
-            for (uint256 j = 0; j < groupedResponses[i].responses.length; j++) {
-                IRequestValidator validator = getRequest(groupedResponses[i].responses[j].requestId)
-                    .validator;
-                if (!isWhitelistedValidator(validator)) {
-                    revert ValidatorIsNotWhitelisted(address(validator));
-                }
-            }
-        }
-        super.submitResponse(authResponses, singleResponses, groupedResponses, crossChainProofs);
     }
 
     /**
@@ -111,5 +85,18 @@ contract ValidatorWhitelist is Verifier {
 
     function _removeValidatorFromWhitelist(IRequestValidator validator) internal {
         _getValidatorWhitelistStorage()._validatorWhitelist[validator] = false;
+    }
+
+    function _getRequestIfCanBeVerified(
+        uint256 requestId
+    )
+        internal
+        view
+        virtual
+        override
+        onlyWhitelistedValidator(getRequest(requestId).validator)
+        returns (IVerifier.RequestData storage)
+    {
+        return super._getRequestIfCanBeVerified(requestId);
     }
 }

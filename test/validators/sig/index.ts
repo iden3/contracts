@@ -202,34 +202,16 @@ describe("Atomic Sig Validator", function () {
       const data = packValidatorParams(query, test.allowedIssuers);
 
       // Check verify function
-      if (test.errorMessage) {
-        await expect(
-          sigValidator.verify(inputs, pi_a, pi_b, pi_c, data, senderAddress),
-        ).to.be.rejectedWith(test.errorMessage);
-      } else if (test.errorMessage === "") {
-        await expect(sigValidator.verify(inputs, pi_a, pi_b, pi_c, data, senderAddress)).to.be
-          .reverted;
-      } else {
-        const signals = await sigValidator.verify(inputs, pi_a, pi_b, pi_c, data, senderAddress);
-        const signalValues: any[] = [];
-        // Replace index with value to check instead of signal index
-        for (let i = 0; i < signals.length; i++) {
-          signalValues.push([signals[i][0], inputs[signals[i][1]]]);
-        }
-        checkSignals(signalValues, test.signalValues);
-      }
-
-      // Check verifyV2 function
       const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
       if (test.errorMessage) {
         await expect(
-          sigValidator.verifyV2(zkProof, data, senderAddress, await state.getAddress()),
+          sigValidator.verify(zkProof, data, senderAddress, await state.getAddress()),
         ).to.be.rejectedWith(test.errorMessage);
       } else if (test.errorMessage === "") {
-        await expect(sigValidator.verifyV2(zkProof, data, senderAddress, await state.getAddress()))
-          .to.be.reverted;
+        await expect(sigValidator.verify(zkProof, data, senderAddress, await state.getAddress())).to
+          .be.reverted;
       } else {
-        const signals = await sigValidator.verifyV2(
+        const signals = await sigValidator.verify(
           zkProof,
           data,
           senderAddress,

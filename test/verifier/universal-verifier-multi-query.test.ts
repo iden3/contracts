@@ -137,9 +137,12 @@ describe("Universal Verifier Multi-query", function () {
     await state.setCrossChainProofValidator(crossChainProofValidatorStub);
     stateCrossChainStub = state;
 
-    verifier = await deployHelper.deployUniversalVerifierMultiQuery(
+    const verifierLib = await deployHelper.deployVerifierLib();
+
+    verifier = await deployHelper.deployUniversalVerifier(
       signer,
       await stateCrossChainStub.getAddress(),
+      await verifierLib.getAddress(),
     );
 
     v3Validator = await deployHelper.deployValidatorStub("RequestValidatorV3Stub");

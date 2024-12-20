@@ -34,11 +34,7 @@ contract RequestValidatorAuthV2Stub is IRequestValidator, ERC165 {
     }
 
     function getGroupID(bytes calldata) external pure override returns (uint256) {
-        revert("AuthV2 validator does not support groupId field");
-    }
-
-    function getGroupFieldHash(bytes calldata params) external pure override returns (bytes32) {
-        revert("AuthV2 validator does not support groupId field");
+        return 0;
     }
 
     function getVerifierId(bytes calldata) external pure override returns (uint256) {

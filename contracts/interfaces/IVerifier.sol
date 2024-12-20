@@ -22,6 +22,21 @@ interface IVerifier {
         IRequestValidator validator;
         bytes params;
     }
+
+    /**
+     * @dev Request. Structure for request for storage.
+     * @param metadata Metadata of the request.
+     * @param validator Validator circuit.
+     * @param params Params of the request. Proof parameters could be ZK groth16, plonk, ESDSA, EIP712, etc.
+     */
+    struct RequestData {
+        string metadata;
+        IRequestValidator validator;
+        bytes params;
+        address creator;
+        uint256 verifierId;
+    }
+
     /**
      * @dev RequestInfo. Structure for request info.
      * @param requestId Request id.
@@ -55,13 +70,11 @@ interface IVerifier {
      * @dev ProofStatus. Structure for proof status.
      * @param isVerified True if the proof is verified.
      * @param validatorVersion Version of the validator.
-     * @param blockNumber Block number of the proof.
      * @param blockTimestamp Block timestamp of the proof.
      */
     struct ProofStatus {
         bool isVerified;
         string validatorVersion;
-        uint256 blockNumber;
         uint256 blockTimestamp;
     }
 
@@ -127,6 +140,20 @@ interface IVerifier {
         bool isVerified;
         string validatorVersion;
         uint256 timestamp;
+    }
+
+    /**
+     * @dev Query. Structure for query.
+     * @param queryId Query id.
+     * @param requestIds Request ids for this multi query (without groupId. Single requests).
+     * @param groupIds Group ids for this multi query (all the requests included in the group. Grouped requests).
+     * @param metadata Metadata for the query. Empty in first version.
+     */
+    struct Query {
+        uint256 queryId;
+        uint256[] requestIds;
+        uint256[] groupIds;
+        bytes metadata;
     }
 
     /**
@@ -210,4 +237,29 @@ interface IVerifier {
      * @param authType The auth type to add
      */
     function setAuthType(AuthType calldata authType) external;
+
+    /**
+     * @dev Sets a query
+     * @param queryId The ID of the query
+     * @param query The query data
+     */
+    function setQuery(uint256 queryId, Query calldata query) external;
+
+    /**
+     * @dev Gets a specific multi query by ID
+     * @param queryId The ID of the multi query
+     * @return query The query data
+     */
+    function getQuery(uint256 queryId) external view returns (IVerifier.Query memory query);
+
+    /**
+     * @dev Get the proof status for the sender and request with requestId.
+     * @param sender Sender of the proof.
+     * @param requestId Request id of the proof.
+     * @return Proof status.
+     */
+    function getProofStatus(
+        address sender,
+        uint256 requestId
+    ) external view returns (ProofStatus memory);
 }

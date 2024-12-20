@@ -105,11 +105,6 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IRequestValidator, ERC
         return 0;
     }
 
-    function getGroupFieldHash(bytes calldata params) external pure override returns (bytes32) {
-        // TODO: Implement hash function
-        return keccak256(params);
-    }
-
     /**
      * @dev Get the verifier ID of the request query data.
      * @param params Request query data of the credential to verify.

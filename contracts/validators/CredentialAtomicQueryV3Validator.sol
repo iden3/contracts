@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 import {CredentialAtomicQueryValidatorBase} from "./CredentialAtomicQueryValidatorBase.sol";
 import {IGroth16Verifier} from "../interfaces/IGroth16Verifier.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
-import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
 import {IState} from "../interfaces/IState.sol";
 
 /**
@@ -116,47 +116,24 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
 
     /**
      * @dev Verify the groth16 proof and check the request query data
-     * @param inputs Public inputs of the circuit.
-     * @param a πa element of the groth16 proof.
-     * @param b πb element of the groth16 proof.
-     * @param c πc element of the groth16 proof.
+     * @param proof Proof packed as bytes to verify.
      * @param data Request query data of the credential to verify.
      * @param sender Sender of the proof.
-     * @return Array of key to public input index as result.
-     */
-    function verify(
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        bytes calldata data,
-        address sender
-    ) public view override returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        (, bool hasSD) = _verifyMain(inputs, a, b, c, data, sender, IState(getStateAddress()));
-
-        return _getSpecialInputIndexes(hasSD);
-    }
-
-    /**
-     * @dev Verify the groth16 proof and check the request query data
-     * @param zkProof Proof packed as bytes to verify.
-     * @param data Request query data of the credential to verify.
-     * @param sender Sender of the proof.
-     * @param stateContract State contract to get identities and gist states to check.
+     * @param state State contract to get identities and gist states to check.
      * @return Array of public signals as result.
      */
-    function verifyV2(
-        bytes calldata zkProof,
+    function verify(
+        bytes calldata proof,
         bytes calldata data,
         address sender,
-        IState stateContract
-    ) public view override returns (ICircuitValidator.Signal[] memory) {
+        IState state
+    ) public view override returns (IRequestValidator.ResponseField[] memory) {
         (
             uint256[] memory inputs,
             uint256[2] memory a,
             uint256[2][2] memory b,
             uint256[2] memory c
-        ) = abi.decode(zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
+        ) = abi.decode(proof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
         (PubSignals memory pubSignals, bool hasSD) = _verifyMain(
             inputs,
@@ -165,9 +142,35 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
             c,
             data,
             sender,
-            stateContract
+            state
         );
-        return _getSpecialSignals(pubSignals, hasSD);
+        return _getResponseFields(pubSignals, hasSD);
+    }
+
+    /**
+     * @dev Get the group ID of the request query data.
+     * @param params Request query data of the credential to verify.
+     * @return Group ID of the request query data.
+     */
+    function getGroupID(bytes calldata params) external pure override returns (uint256) {
+        CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
+            params,
+            (CredentialAtomicQueryV3)
+        );
+        return credAtomicQuery.groupID;
+    }
+
+    /**
+     * @dev Get the verifier ID from the request query data
+     * @param params Request query data of the credential to verify.
+     * @return Verifier ID
+     */
+    function getVerifierId(bytes calldata params) external pure override returns (uint256) {
+        CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
+            params,
+            (CredentialAtomicQueryV3)
+        );
+        return credAtomicQuery.verifierID;
     }
 
     /**
@@ -272,64 +275,42 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         );
     }
 
-    function _getSpecialSignals(
+    function _getResponseFields(
         PubSignals memory pubSignals,
         bool hasSelectiveDisclosure
-    ) internal pure returns (ICircuitValidator.Signal[] memory) {
+    ) internal pure returns (IRequestValidator.ResponseField[] memory) {
         uint256 numSignals = hasSelectiveDisclosure ? 6 : 5;
-        ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](numSignals);
+        IRequestValidator.ResponseField[]
+            memory responseFields = new IRequestValidator.ResponseField[](numSignals);
 
         uint i = 0;
-        signals[i++] = ICircuitValidator.Signal({name: "userID", value: pubSignals.userID});
-        signals[i++] = ICircuitValidator.Signal({name: "linkID", value: pubSignals.linkID});
-        signals[i++] = ICircuitValidator.Signal({name: "nullifier", value: pubSignals.nullifier});
+        responseFields[i++] = IRequestValidator.ResponseField({
+            name: "userID",
+            value: pubSignals.userID
+        });
+        responseFields[i++] = IRequestValidator.ResponseField({
+            name: "linkID",
+            value: pubSignals.linkID
+        });
+        responseFields[i++] = IRequestValidator.ResponseField({
+            name: "nullifier",
+            value: pubSignals.nullifier
+        });
         if (hasSelectiveDisclosure) {
-            signals[i++] = ICircuitValidator.Signal({
+            responseFields[i++] = IRequestValidator.ResponseField({
                 name: "operatorOutput",
                 value: pubSignals.operatorOutput
             });
         }
-        signals[i++] = ICircuitValidator.Signal({name: "timestamp", value: pubSignals.timestamp});
-        signals[i++] = ICircuitValidator.Signal({name: "issuerID", value: pubSignals.issuerID});
-
-        return signals;
-    }
-
-    function _getSpecialInputIndexes(
-        bool hasSelectiveDisclosure
-    ) internal view returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        uint256 numSignals = hasSelectiveDisclosure ? 6 : 5;
-        ICircuitValidator.KeyToInputIndex[]
-            memory keyToInputIndexes = new ICircuitValidator.KeyToInputIndex[](numSignals);
-
-        uint i = 0;
-        keyToInputIndexes[i++] = ICircuitValidator.KeyToInputIndex({
-            key: "userID",
-            inputIndex: inputIndexOf("userID")
+        responseFields[i++] = IRequestValidator.ResponseField({
+            name: "timestamp",
+            value: pubSignals.timestamp
         });
-        keyToInputIndexes[i++] = ICircuitValidator.KeyToInputIndex({
-            key: "linkID",
-            inputIndex: inputIndexOf("linkID")
-        });
-        keyToInputIndexes[i++] = ICircuitValidator.KeyToInputIndex({
-            key: "nullifier",
-            inputIndex: inputIndexOf("nullifier")
-        });
-        if (hasSelectiveDisclosure) {
-            keyToInputIndexes[i++] = ICircuitValidator.KeyToInputIndex({
-                key: "operatorOutput",
-                inputIndex: inputIndexOf("operatorOutput")
-            });
-        }
-        keyToInputIndexes[i++] = ICircuitValidator.KeyToInputIndex({
-            key: "timestamp",
-            inputIndex: inputIndexOf("timestamp")
-        });
-        keyToInputIndexes[i++] = ICircuitValidator.KeyToInputIndex({
-            key: "issuerID",
-            inputIndex: inputIndexOf("issuerID")
+        responseFields[i++] = IRequestValidator.ResponseField({
+            name: "issuerID",
+            value: pubSignals.issuerID
         });
 
-        return keyToInputIndexes;
+        return responseFields;
     }
 }

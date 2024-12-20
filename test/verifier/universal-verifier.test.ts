@@ -7,12 +7,25 @@ import { Block } from "ethers";
 import proofJson from "../validators/mtp/data/valid_mtp_user_genesis.json";
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { packZKProof } from "../utils/packData";
 
 describe("Universal Verifier MTP & SIG validators", function () {
-  let verifier: any, sigValidator: any, state: any;
+  let verifier: any, sigValidator: any, authV2Validator: any, state: any;
   let signer, signer2, signer3;
   let signerAddress: string;
   let deployHelper: DeployHelper;
+  const authType = "authV2";
+
+  const storageFields = [
+    {
+      name: "userID",
+      value: 1n,
+    },
+    {
+      name: "issuerID",
+      value: 2n,
+    },
+  ];
 
   const query = {
     schema: BigInt("180410020913331409885634153623124536270"),
@@ -36,30 +49,38 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0112"]);
     const verifierLib = await deployHelper.deployVerifierLib();
 
+    const sigV2Validator = await deployHelper.deployValidatorStub("RequestValidatorV2Stub");
+
     const universalVerifier: any = await deployHelper.deployUniversalVerifier(
       ethSigner,
       await stateContract.getAddress(),
       await verifierLib.getAddress(),
     );
 
-    const stub = await deployHelper.deployValidatorStub();
-
-    const validator = stub;
-    await universalVerifier.addValidatorToWhitelist(await validator.getAddress());
+    await universalVerifier.addValidatorToWhitelist(await sigV2Validator.getAddress());
     await universalVerifier.connect();
 
-    return { ethSigner, ethSigner2, ethSigner3, stateContract, universalVerifier, validator };
+    const authV2Validator = await deployHelper.deployValidatorStub("AuthValidatorStub");
+
+    return {
+      ethSigner,
+      ethSigner2,
+      ethSigner3,
+      stateContract,
+      universalVerifier,
+      sigV2Validator,
+      authV2Validator,
+    };
   }
 
-  async function checkStorageFields(verifier: any, requestId: number) {
-    const fieldsToCheck = ["userID", "issuerID"];
-    for (const field of fieldsToCheck) {
-      const value = await verifier.getProofStorageField(
-        await signer.getAddress(),
+  async function checkStorageFields(verifier: any, requestId: bigint, storageFields: any[]) {
+    for (const field of storageFields) {
+      const value = await verifier.getResponseFieldValueFromAddress(
         requestId,
-        field,
+        await signer.getAddress(),
+        field.name,
       );
-      expect(value).to.be.greaterThan(0n);
+      expect(value).to.be.equal(field.value);
     }
   }
 
@@ -70,7 +91,8 @@ describe("Universal Verifier MTP & SIG validators", function () {
       ethSigner3: signer3,
       stateContract: state,
       universalVerifier: verifier,
-      validator: sigValidator,
+      sigV2Validator: sigValidator,
+      authV2Validator: authV2Validator,
     } = await loadFixture(deployContractsFixture));
     signerAddress = await signer.getAddress();
   });
@@ -86,50 +108,90 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
     for (let i = 0; i < requestsCount; i++) {
       await expect(
-        verifier.setZKPRequest(i, {
-          metadata: "metadataN" + i,
-          validator: validatorAddr,
-          data: "0x0" + i,
-        }),
+        verifier.setRequests(
+          [
+            {
+              requestId: i,
+              metadata: "metadataN" + i,
+              validator: validatorAddr,
+              params: "0x0" + i,
+            },
+          ],
+          [],
+        ),
       )
-        .to.emit(verifier, "ZKPRequestSet")
+        .to.emit(verifier, "RequestSet")
         .withArgs(i, signerAddress, "metadataN" + i, validatorAddr, "0x0" + i);
-      const request = await verifier.getZKPRequest(i);
+      const request = await verifier.getRequest(i);
       expect(request.metadata).to.be.equal("metadataN" + i);
       expect(request.validator).to.be.equal(validatorAddr);
-      expect(request.data).to.be.equal("0x0" + i);
+      expect(request.params).to.be.equal("0x0" + i);
 
       const requestIdExists = await verifier.requestIdExists(i);
       expect(requestIdExists).to.be.true;
       const requestIdDoesntExists = await verifier.requestIdExists(i + 1);
       expect(requestIdDoesntExists).to.be.false;
 
-      await expect(verifier.getZKPRequest(i + 1)).to.be.rejectedWith("request id doesn't exist");
+      await expect(verifier.getRequest(i + 1)).to.be.rejectedWith(`RequestIdNotFound(${i + 1})`);
     }
 
-    const count = await verifier.getZKPRequestsCount();
+    const count = await verifier.getRequestsCount();
     expect(count).to.be.equal(requestsCount);
   });
 
   it("Test submit response", async () => {
     const requestId = 0;
     const nonExistingRequestId = 1;
-    const data = packValidatorParams(query);
+    const params = packValidatorParams(query);
 
-    await verifier.setZKPRequest(0, {
-      metadata: "metadata",
-      validator: await sigValidator.getAddress(),
-      data: data,
+    verifier.setRequests(
+      [
+        {
+          requestId: 0,
+          metadata: "metadata",
+          validator: await sigValidator.getAddress(),
+          params: params,
+        },
+      ],
+      [],
+    );
+
+    await verifier.setAuthType({
+      authType: authType,
+      validator: await authV2Validator.getAddress(),
+      params: params,
     });
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
-    const tx = await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
+    const proof = packZKProof(inputs, pi_a, pi_b, pi_c);
+
+    const crossChainProofs = "0x";
+    const metadatas = "0x";
+
+    const tx = await verifier.submitResponse(
+      [
+        {
+          authType: authType,
+          proof,
+        },
+      ],
+      [
+        {
+          requestId: 0,
+          proof,
+          metadata: metadatas,
+        },
+      ],
+      [],
+      crossChainProofs,
+    );
+
     const txRes = await tx.wait();
-    await checkStorageFields(verifier, requestId);
-    const filter = verifier.filters.ZKPResponseSubmitted;
+    await checkStorageFields(verifier, BigInt(requestId), storageFields);
+    const filter = verifier.filters.ResponseSubmitted;
 
     const events = await verifier.queryFilter(filter, -1);
-    expect(events[0].eventName).to.be.equal("ZKPResponseSubmitted");
+    expect(events[0].eventName).to.be.equal("ResponseSubmitted");
     expect(events[0].args.requestId).to.be.equal(0);
     expect(events[0].args.caller).to.be.equal(signerAddress);
 
@@ -137,25 +199,13 @@ describe("Universal Verifier MTP & SIG validators", function () {
       txRes.blockNumber,
     )) as Block;
 
-    await expect(
-      verifier.verifyZKPResponse(
-        0,
-        inputs,
-        pi_a,
-        pi_b,
-        pi_c,
-        "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
-      ),
-    ).not.to.be.rejected;
-
     const status = await verifier.getProofStatus(signerAddress, requestId);
     expect(status.isVerified).to.be.true;
-    expect(status.validatorVersion).to.be.equal("2.0.2-mock");
-    expect(status.blockNumber).to.be.equal(txRes.blockNumber);
+    expect(status.validatorVersion).to.be.equal("1.0.0-mock");
     expect(status.blockTimestamp).to.be.equal(txResTimestamp);
 
     await expect(verifier.getProofStatus(signerAddress, nonExistingRequestId)).to.be.rejectedWith(
-      "request id doesn't exist",
+      `RequestIdNotFound(${nonExistingRequestId})`,
     );
   });
 
@@ -169,13 +219,20 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const someSignerAddress = await someSigner.getAddress();
 
     await expect(verifier.getRequestOwner(requestId)).to.be.rejectedWith(
-      "request id doesn't exist",
+      `RequestIdNotFound(${requestId})`,
     );
-    await verifier.connect(requestOwner).setZKPRequest(requestId, {
-      metadata: "metadata",
-      validator: await sigValidator.getAddress(),
-      data: packValidatorParams(query),
-    });
+
+    await verifier.connect(requestOwner).setRequests(
+      [
+        {
+          requestId: requestId,
+          metadata: "metadata",
+          validator: await sigValidator.getAddress(),
+          params: packValidatorParams(query),
+        },
+      ],
+      [],
+    );
 
     expect(await verifier.getRequestOwner(requestId)).to.be.equal(requestOwnerAddr);
     await expect(
@@ -192,11 +249,11 @@ describe("Universal Verifier MTP & SIG validators", function () {
     expect(await verifier.getRequestOwner(requestId)).to.be.equal(requestOwnerAddr);
 
     await expect(verifier.getRequestOwner(nonExistentRequestId)).to.be.rejectedWith(
-      "request id doesn't exist",
+      `RequestIdNotFound(${nonExistentRequestId})`,
     );
     await expect(
       verifier.setRequestOwner(nonExistentRequestId, someSignerAddress),
-    ).to.be.rejectedWith("request id doesn't exist");
+    ).to.be.rejectedWith(`RequestIdNotFound(${nonExistentRequestId})`);
   });
 
   it("Check disable/enable functionality", async () => {
@@ -206,57 +263,99 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const requestId = 0;
     const nonExistentRequestId = 1;
 
-    await expect(verifier.isZKPRequestEnabled(requestId)).to.be.rejectedWith(
-      "request id doesn't exist",
+    const params = packValidatorParams(query);
+
+    await expect(verifier.isRequestEnabled(requestId)).to.be.rejectedWith(
+      `RequestIdNotFound(${requestId})`,
     );
 
-    await verifier.connect(requestOwner).setZKPRequest(requestId, {
-      metadata: "metadata",
-      validator: await sigValidator.getAddress(),
-      data: packValidatorParams(query),
+    await verifier.connect(requestOwner).setRequests(
+      [
+        {
+          requestId: requestId,
+          metadata: "metadata",
+          validator: await sigValidator.getAddress(),
+          params: params,
+        },
+      ],
+      [],
+    );
+
+    expect(await verifier.isRequestEnabled(requestId)).to.be.true;
+
+    await expect(verifier.connect(someSigner).disableRequest(requestId)).to.be.rejectedWith(
+      "Not an owner or request owner",
+    );
+    expect(await verifier.isRequestEnabled(requestId)).to.be.true;
+
+    await verifier.connect(owner).disableRequest(requestId);
+    expect(await verifier.isRequestEnabled(requestId)).to.be.false;
+
+    await expect(verifier.connect(someSigner).enableRequest(requestId)).to.be.rejectedWith(
+      "Not an owner or request owner",
+    );
+    await verifier.connect(requestOwner).enableRequest(requestId);
+    expect(await verifier.isRequestEnabled(requestId)).to.be.true;
+
+    await verifier.setAuthType({
+      authType: authType,
+      validator: await authV2Validator.getAddress(),
+      params: params,
     });
-    expect(await verifier.isZKPRequestEnabled(requestId)).to.be.true;
-
-    await expect(verifier.connect(someSigner).disableZKPRequest(requestId)).to.be.rejectedWith(
-      "Not an owner or request owner",
-    );
-    expect(await verifier.isZKPRequestEnabled(requestId)).to.be.true;
-
-    await verifier.connect(owner).disableZKPRequest(requestId);
-    expect(await verifier.isZKPRequestEnabled(requestId)).to.be.false;
-
-    await expect(verifier.connect(someSigner).enableZKPRequest(requestId)).to.be.rejectedWith(
-      "Not an owner or request owner",
-    );
-    await verifier.connect(requestOwner).enableZKPRequest(requestId);
-    expect(await verifier.isZKPRequestEnabled(requestId)).to.be.true;
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
-    await verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c);
+    const proof = packZKProof(inputs, pi_a, pi_b, pi_c);
 
-    await verifier.connect(requestOwner).disableZKPRequest(requestId);
-    await expect(verifier.submitZKPResponse(0, inputs, pi_a, pi_b, pi_c)).to.be.rejectedWith(
-      "Request is disabled",
+    const crossChainProofs = "0x";
+    const metadatas = "0x";
+
+    await verifier.submitResponse(
+      [
+        {
+          authType: authType,
+          proof,
+        },
+      ],
+      [
+        {
+          requestId: requestId,
+          proof,
+          metadata: metadatas,
+        },
+      ],
+      [],
+      crossChainProofs,
     );
+
+    await verifier.connect(requestOwner).disableRequest(requestId);
     await expect(
-      verifier.verifyZKPResponse(
-        0,
-        inputs,
-        pi_a,
-        pi_b,
-        pi_c,
-        "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+      verifier.submitResponse(
+        [
+          {
+            authType: authType,
+            proof,
+          },
+        ],
+        [
+          {
+            requestId: requestId,
+            proof,
+            metadata: metadatas,
+          },
+        ],
+        [],
+        crossChainProofs,
       ),
-    ).to.be.rejectedWith("Request is disabled");
+    ).to.be.rejectedWith(`RequestIsDisabled(${requestId})`);
 
-    await expect(verifier.isZKPRequestEnabled(nonExistentRequestId)).to.be.rejectedWith(
-      "request id doesn't exist",
+    await expect(verifier.isRequestEnabled(nonExistentRequestId)).to.be.rejectedWith(
+      `RequestIdNotFound(${nonExistentRequestId})`,
     );
-    await expect(verifier.disableZKPRequest(nonExistentRequestId)).to.be.rejectedWith(
-      "request id doesn't exist",
+    await expect(verifier.disableRequest(nonExistentRequestId)).to.be.rejectedWith(
+      `RequestIdNotFound(${nonExistentRequestId})`,
     );
-    await expect(verifier.enableZKPRequest(nonExistentRequestId)).to.be.rejectedWith(
-      "request id doesn't exist",
+    await expect(verifier.enableRequest(nonExistentRequestId)).to.be.rejectedWith(
+      `RequestIdNotFound(${nonExistentRequestId})`,
     );
   });
 
@@ -271,15 +370,19 @@ describe("Universal Verifier MTP & SIG validators", function () {
     );
     const mtpValAddr = await mtp.getAddress();
     expect(await verifier.isWhitelistedValidator(mtpValAddr)).to.be.false;
-
     await expect(
-      verifier.setZKPRequest(requestId, {
-        metadata: "metadata",
-        validator: mtpValAddr,
-        data: "0x00",
-      }),
-    ).to.be.rejectedWith("Validator is not whitelisted");
-
+      verifier.setRequests(
+        [
+          {
+            requestId: requestId,
+            metadata: "metadata",
+            validator: mtpValAddr,
+            params: "0x00",
+          },
+        ],
+        [],
+      ),
+    ).to.be.rejectedWith(`ValidatorIsNotWhitelisted("${mtpValAddr}")`);
     await expect(verifier.connect(someAddress).addValidatorToWhitelist(mtpValAddr))
       .to.be.revertedWithCustomError(verifier, "OwnableUnauthorizedAccount")
       .withArgs(someAddress);
@@ -289,84 +392,128 @@ describe("Universal Verifier MTP & SIG validators", function () {
     expect(await verifier.isWhitelistedValidator(mtpValAddr)).to.be.true;
 
     await expect(
-      verifier.setZKPRequest(requestId, {
-        metadata: "metadata",
-        validator: mtpValAddr,
-        data: "0x00",
-      }),
+      verifier.setRequests(
+        [
+          {
+            requestId: requestId,
+            metadata: "metadata",
+            validator: mtpValAddr,
+            params: "0x00",
+          },
+        ],
+        [],
+      ),
     ).not.to.be.rejected;
 
     // can't whitelist validator, which does not support ICircuitValidator interface
     await expect(verifier.addValidatorToWhitelist(someAddress)).to.be.rejected;
 
     await expect(
-      verifier.setZKPRequest(otherRequestId, {
-        metadata: "metadata",
-        validator: someAddress,
-        data: "0x00",
-      }),
-    ).to.be.rejectedWith("Validator is not whitelisted");
+      verifier.setRequests(
+        [
+          {
+            requestId: otherRequestId,
+            metadata: "metadata",
+            validator: someAddress,
+            params: "0x00",
+          },
+        ],
+        [],
+      ),
+    ).to.be.rejectedWith(`ValidatorIsNotWhitelisted("${await someAddress.getAddress()}")`);
 
     await verifier.removeValidatorFromWhitelist(mtpValAddr);
+    await verifier.setAuthType({
+      authType: authType,
+      validator: await authV2Validator.getAddress(),
+      params: "0x00",
+    });
 
+    const proof = packZKProof(
+      [],
+      ["0", "0"],
+      [
+        ["0", "0"],
+        ["0", "0"],
+      ],
+      ["0", "0"],
+    );
+
+    const crossChainProofs = "0x";
+    const metadatas = "0x";
     await expect(
-      verifier.submitZKPResponse(
-        requestId,
-        [],
-        [0, 0],
+      verifier.submitResponse(
         [
-          [0, 0],
-          [0, 0],
+          {
+            authType: authType,
+            proof,
+          },
         ],
-        [0, 0],
+        [
+          {
+            requestId: requestId,
+            proof,
+            metadata: metadatas,
+          },
+        ],
+        [],
+        crossChainProofs,
       ),
-    ).to.be.rejectedWith("Validator is not whitelisted");
+    ).to.be.rejectedWith(`ValidatorIsNotWhitelisted("${mtpValAddr}")`);
   });
 
-  it("Check updateZKPRequest", async () => {
+  it("Check updateRequest", async () => {
     const owner = signer;
     const requestOwner = signer2;
     const requestId = 0;
-    const data = packValidatorParams(query);
+    const params = packValidatorParams(query);
 
-    await verifier.connect(requestOwner).setZKPRequest(requestId, {
-      metadata: "metadata",
-      validator: await sigValidator.getAddress(),
-      data: data,
-    });
+    await verifier.connect(requestOwner).setRequests(
+      [
+        {
+          requestId: requestId,
+          metadata: "metadata",
+          validator: await sigValidator.getAddress(),
+          params: params,
+        },
+      ],
+      [],
+    );
 
-    let request = await verifier.getZKPRequest(requestId);
+    let request = await verifier.getRequest(requestId);
     expect(request.metadata).to.be.equal("metadata");
-
     await expect(
-      verifier.connect(requestOwner).updateZKPRequest(requestId, {
+      verifier.connect(requestOwner).updateRequest({
+        requestId,
         metadata: "metadata",
         validator: await sigValidator.getAddress(),
-        data: data,
+        params: params,
       }),
     ).to.be.revertedWithCustomError(verifier, "OwnableUnauthorizedAccount");
 
-    await verifier.connect(owner).updateZKPRequest(requestId, {
+    await verifier.connect(owner).updateRequest({
+      requestId,
       metadata: "metadata2",
       validator: await sigValidator.getAddress(),
-      data: data,
+      params: params,
     });
 
-    request = await verifier.getZKPRequest(requestId);
+    request = await verifier.getRequest(requestId);
     expect(request.metadata).to.be.equal("metadata2");
   });
 
-  it("updateZKPRequest - not existed request", async () => {
+  it("updateRequest - not existed request", async () => {
     const owner = signer;
     const requestId = 0;
-    const data = packValidatorParams(query);
+    const params = packValidatorParams(query);
 
     await expect(
-      verifier.connect(owner).updateZKPRequest(requestId, {
+      verifier.connect(owner).updateRequest({
+        requestId,
         metadata: "metadata",
         validator: await sigValidator.getAddress(),
-        data: data,
+        params,
       }),
-    ).to.be.rejectedWith("equest id doesn't exis");
+    ).to.be.rejectedWith(`RequestIdNotFound(${requestId})`);
   });
 });

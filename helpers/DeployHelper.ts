@@ -899,12 +899,12 @@ export class DeployHelper {
     return primitiveTypeUtilsWrapper;
   }
 
-  async deployEmbeddedZKPVerifierWrapper(
+  async deployEmbeddedVerifierWrapper(
     owner: SignerWithAddress | undefined,
     stateAddr: string,
     verifierLibAddr: string,
   ): Promise<Contract> {
-    const Verifier = await ethers.getContractFactory("EmbeddedZKPVerifierWrapper", {
+    const Verifier = await ethers.getContractFactory(contractsInfo.EMBEDDED_VERIFIER_WRAPPER.name, {
       libraries: {
         VerifierLib: verifierLibAddr,
       },
@@ -914,7 +914,10 @@ export class DeployHelper {
       unsafeAllow: ["external-library-linking"],
     });
     await verifier.waitForDeployment();
-    console.log("EmbeddedZKPVerifierWrapper deployed to:", await verifier.getAddress());
+    console.log(
+      `${contractsInfo.EMBEDDED_VERIFIER_WRAPPER.name} deployed to:`,
+      await verifier.getAddress(),
+    );
     return verifier;
   }
 
@@ -1009,93 +1012,6 @@ export class DeployHelper {
     );
 
     return universalVerifier;
-  }
-
-  async deployUniversalVerifierMultiQuery(
-    owner: SignerWithAddress | undefined,
-    stateAddr: string,
-    deployStrategy: "basic" | "create2" = "basic",
-  ): Promise<Contract> {
-    if (!owner) {
-      owner = this.signers[0];
-    }
-    const UniversalVerifierMultiQueryFactory = await ethers.getContractFactory(
-      contractsInfo.UNIVERSAL_VERIFIER_MULTIQUERY.name,
-      {
-        signer: owner,
-      },
-    );
-    const Create2AddressAnchorFactory = await ethers.getContractFactory(
-      contractsInfo.CREATE2_ADDRESS_ANCHOR.name,
-    );
-
-    let universalVerifierMultiQuery;
-    let create2AlreadyDeployed = false;
-
-    if (deployStrategy === "create2") {
-      this.log("deploying with CREATE2 strategy...");
-
-      universalVerifierMultiQuery = await getUnifiedContract(
-        contractsInfo.UNIVERSAL_VERIFIER_MULTIQUERY.name,
-      );
-      if (universalVerifierMultiQuery) {
-        let version;
-        try {
-          version = await universalVerifierMultiQuery.VERSION();
-        } catch (e) {
-          create2AlreadyDeployed = true;
-          Logger.warning(
-            `Create2AnchorAddress implementation already deployed to TransparentUpgradeableProxy of ${contractsInfo.UNIVERSAL_VERIFIER_MULTIQUERY.name}.`,
-          );
-        }
-
-        if (version) {
-          Logger.warning(
-            `${contractsInfo.UNIVERSAL_VERIFIER.name} found already deployed to:  ${await universalVerifierMultiQuery?.getAddress()}`,
-          );
-          return universalVerifierMultiQuery;
-        }
-      }
-
-      if (!create2AlreadyDeployed) {
-        // Deploying UniversalVerifier contract to predictable address but with dummy implementation
-        universalVerifierMultiQuery = (
-          await ignition.deploy(UniversalVerifierMultiQueryProxyModule, {
-            strategy: deployStrategy,
-          })
-        ).proxy;
-        await universalVerifierMultiQuery.waitForDeployment();
-      }
-      // Upgrading UniversalVerifierMultiQuery contract to the first real implementation
-      // and force network files import, so creation, as they do not exist at the moment
-      const universalVerifierMultiQueryAddress = await universalVerifierMultiQuery.getAddress();
-      await upgrades.forceImport(universalVerifierMultiQueryAddress, Create2AddressAnchorFactory);
-      universalVerifierMultiQuery = await upgrades.upgradeProxy(
-        universalVerifierMultiQuery,
-        UniversalVerifierMultiQueryFactory,
-        {
-          redeployImplementation: "always",
-          call: {
-            fn: "initialize",
-            args: [stateAddr, await owner.getAddress()],
-          },
-        },
-      );
-    } else {
-      this.log("deploying with BASIC strategy...");
-
-      universalVerifierMultiQuery = await upgrades.deployProxy(UniversalVerifierMultiQueryFactory, [
-        stateAddr,
-        await owner.getAddress(),
-      ]);
-    }
-
-    await universalVerifierMultiQuery.waitForDeployment();
-    Logger.success(
-      `${contractsInfo.UNIVERSAL_VERIFIER_MULTIQUERY.name} deployed to: ${await universalVerifierMultiQuery.getAddress()}`,
-    );
-
-    return universalVerifierMultiQuery;
   }
 
   async getDefaultIdType(): Promise<{ defaultIdType: string; chainId: number }> {

@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 import {CredentialAtomicQueryValidatorBase} from "./CredentialAtomicQueryValidatorBase.sol";
 import {IGroth16Verifier} from "../interfaces/IGroth16Verifier.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
-import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
+import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
 import {IState} from "../interfaces/IState.sol";
 
 /**
@@ -66,61 +66,56 @@ contract AuthV2Validator is CredentialAtomicQueryValidatorBase {
     }
 
     /**
-     * @dev Verify the groth16 proof and check the request query data
-     * @param inputs Public inputs of the circuit.
-     * @param a πa element of the groth16 proof.
-     * @param b πb element of the groth16 proof.
-     * @param c πc element of the groth16 proof.
-     * @param data Request query data of the credential to verify.
-     * @param sender Sender of the proof.
-     * @return Array of key to public input index as result.
+     * @dev Get the group ID of the request query data.
+     * @param params Request query data of the credential to verify.
+     * @return Group ID of the request query data.
      */
-    function verify(
-        // solhint-disable-next-line no-unused-vars
-        uint256[] memory inputs,
-        // solhint-disable-next-line no-unused-vars
-        uint256[2] memory a,
-        // solhint-disable-next-line no-unused-vars
-        uint256[2][2] memory b,
-        // solhint-disable-next-line no-unused-vars
-        uint256[2] memory c,
-        // solhint-disable-next-line no-unused-vars
-        bytes calldata data,
-        // solhint-disable-next-line no-unused-vars
-        address sender
-    ) public view override returns (ICircuitValidator.KeyToInputIndex[] memory) {
-        revert("function not supported in this contract");
+    function getGroupID(bytes calldata params) external pure override returns (uint256) {
+        return 0;
+    }
+
+    /**
+     * @dev Get the verifier ID from the request query data
+     * @param params Request query data of the credential to verify.
+     * @return Verifier ID
+     */
+    function getVerifierId(bytes calldata params) external pure override returns (uint256) {
+        return 0;
     }
 
     /**
      * @dev Verify the groth16 proof and check the request query data
-     * @param zkProof Proof packed as bytes to verify.
+     * @param proof Proof packed as bytes to verify.
      * @param data Request query data of the credential to verify.
      * @param sender Sender of the proof.
-     * @param stateContract State contract to get identities and gist states to check.
+     * @param state State contract to get identities and gist states to check.
      * @return Array of public signals as result.
      */
-    function verifyV2(
-        bytes calldata zkProof,
+    function verify(
+        bytes calldata proof,
         // solhint-disable-next-line no-unused-vars
         bytes calldata data,
         address sender,
-        IState stateContract
-    ) public view override returns (ICircuitValidator.Signal[] memory) {
+        IState state
+    ) public view override returns (IRequestValidator.ResponseField[] memory) {
         (
             uint256[] memory inputs,
             uint256[2] memory a,
             uint256[2][2] memory b,
             uint256[2] memory c
-        ) = abi.decode(zkProof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
+        ) = abi.decode(proof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
         PubSignals memory pubSignals = parsePubSignals(inputs);
-        _checkGistRoot(pubSignals.userID, pubSignals.gistRoot, stateContract);
+        _checkGistRoot(pubSignals.userID, pubSignals.gistRoot, state);
         _checkChallenge(pubSignals.challenge, sender);
         _verifyZKP(inputs, a, b, c);
-        ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](1);
-        signals[0] = ICircuitValidator.Signal({name: "userID", value: pubSignals.userID});
-        return signals;
+        IRequestValidator.ResponseField[]
+            memory responseFields = new IRequestValidator.ResponseField[](1);
+        responseFields[0] = IRequestValidator.ResponseField({
+            name: "userID",
+            value: pubSignals.userID
+        });
+        return responseFields;
     }
 
     function _verifyZKP(
