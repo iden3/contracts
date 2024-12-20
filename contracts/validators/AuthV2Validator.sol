@@ -65,7 +65,7 @@ contract AuthV2Validator is CredentialAtomicQueryValidatorBase {
         return pubSignals;
     }
 
-  /**
+    /**
      * @dev Get the group ID of the request query data.
      * @param params Request query data of the credential to verify.
      * @return Group ID of the request query data.
@@ -83,7 +83,7 @@ contract AuthV2Validator is CredentialAtomicQueryValidatorBase {
         return 0;
     }
 
- /**
+    /**
      * @dev Verify the groth16 proof and check the request query data
      * @param proof Proof packed as bytes to verify.
      * @param data Request query data of the credential to verify.
@@ -104,13 +104,17 @@ contract AuthV2Validator is CredentialAtomicQueryValidatorBase {
             uint256[2][2] memory b,
             uint256[2] memory c
         ) = abi.decode(proof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
-        
+
         PubSignals memory pubSignals = parsePubSignals(inputs);
         _checkGistRoot(pubSignals.userID, pubSignals.gistRoot, state);
         _checkChallenge(pubSignals.challenge, sender);
         _verifyZKP(inputs, a, b, c);
-        IRequestValidator.ResponseField[] memory responseFields = new IRequestValidator.ResponseField[](1);
-        responseFields[0] = IRequestValidator.ResponseField({name: "userID", value: pubSignals.userID});
+        IRequestValidator.ResponseField[]
+            memory responseFields = new IRequestValidator.ResponseField[](1);
+        responseFields[0] = IRequestValidator.ResponseField({
+            name: "userID",
+            value: pubSignals.userID
+        });
         return responseFields;
     }
 

@@ -594,37 +594,16 @@ describe("Atomic V3 Validator", function () {
       const data = packV3ValidatorParams(query, test.allowedIssuers);
 
       // Check verify function
-      if (test.errorMessage) {
-        await expect(
-          v3validator.verify(inputs, pi_a, pi_b, pi_c, data, test.sender),
-        ).to.be.rejectedWith(test.errorMessage);
-      } else if (test.errorMessage === "") {
-        await expect(v3validator.verify(inputs, pi_a, pi_b, pi_c, data, test.sender)).to.be
-          .reverted;
-      } else {
-        const signals = await v3validator.verify(inputs, pi_a, pi_b, pi_c, data, test.sender);
-
-        const signalValues: any[] = [];
-        // Replace index with value to check instead of signal index
-        for (let i = 0; i < signals.length; i++) {
-          signalValues.push([signals[i][0], inputs[signals[i][1]]]);
-        }
-
-        // Check if the number signals are correct. "operatorOutput" for selective disclosure is optional
-        checkSignals(signalValues, test.signalValues);
-      }
-
-      // Check verifyV2 function
       const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
       if (test.errorMessage) {
         await expect(
-          v3validator.verifyV2(zkProof, data, test.sender, await state.getAddress()),
+          v3validator.verify(zkProof, data, test.sender, await state.getAddress()),
         ).to.be.rejectedWith(test.errorMessage);
       } else if (test.errorMessage === "") {
-        await expect(v3validator.verifyV2(zkProof, data, test.sender, await state.getAddress())).to
-          .be.reverted;
+        await expect(v3validator.verify(zkProof, data, test.sender, await state.getAddress())).to.be
+          .reverted;
       } else {
-        const signals = await v3validator.verifyV2(
+        const signals = await v3validator.verify(
           zkProof,
           data,
           test.sender,

@@ -38,7 +38,7 @@ library VerifierLib {
         // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
         uint256[45] __gap;
     }
-    
+
     /**
      * @dev Writes proof results.
      * @param requestId The request ID of the proof

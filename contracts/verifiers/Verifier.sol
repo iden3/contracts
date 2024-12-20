@@ -59,8 +59,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         uint256 timestamp;
     }
 
-
-
     /// @custom:storage-location erc7201:iden3.storage.Verifier
     struct VerifierStorage {
         // Information about requests
@@ -92,8 +90,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         0x11369addde4aae8af30dcf56fa25ad3d864848d3201d1e9197f8b4da18a51a00;
 
     using VerifierLib for VerifierStorage;
-
-
 
     /**
      * @dev Modifier to check if the request exists
@@ -684,7 +680,11 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function _getQueryStatus(
         uint256 queryId,
         uint256 userID
-    ) internal view returns (IVerifier.AuthProofStatus[] memory, IVerifier.RequestProofStatus[] memory) {
+    )
+        internal
+        view
+        returns (IVerifier.AuthProofStatus[] memory, IVerifier.RequestProofStatus[] memory)
+    {
         VerifierStorage storage s = _getVerifierStorage();
         Query storage query = s._queries[queryId];
 
@@ -697,10 +697,13 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             }
         }
 
-        IVerifier.AuthProofStatus[] memory authProofStatus = new IVerifier.AuthProofStatus[](s._authTypes.length);
-        IVerifier.RequestProofStatus[] memory requestProofStatus = new IVerifier.RequestProofStatus[](
-            query.requestIds.length + lengthGroupIds
+        IVerifier.AuthProofStatus[] memory authProofStatus = new IVerifier.AuthProofStatus[](
+            s._authTypes.length
         );
+        IVerifier.RequestProofStatus[]
+            memory requestProofStatus = new IVerifier.RequestProofStatus[](
+                query.requestIds.length + lengthGroupIds
+            );
 
         for (uint256 i = 0; i < s._authTypes.length; i++) {
             string memory authType = s._authTypes[i];
@@ -783,7 +786,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         }
     }
 
-
     /**
      * @dev Get the requests count.
      * @return Requests count.
@@ -810,16 +812,11 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         address sender,
         uint256 requestId
     ) public view checkRequestExistence(requestId, true) returns (IVerifier.ProofStatus memory) {
-
         VerifierStorage storage s = _getVerifierStorage();
         uint256 userID = s._user_address_to_id[sender];
         VerifierLib.Proof storage proof = s._proofs[requestId][userID][0];
 
         return
-            IVerifier.ProofStatus(
-                proof.isVerified,
-                proof.validatorVersion,
-                proof.blockTimestamp
-            );
+            IVerifier.ProofStatus(proof.isVerified, proof.validatorVersion, proof.blockTimestamp);
     }
 }
