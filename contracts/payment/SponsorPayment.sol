@@ -107,7 +107,7 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
         mapping(address => mapping(address => uint256)) balances; // sponsor => token => balance
         mapping(address => mapping(address => WithdrawalRequest)) withdrawalRequests; // sponsor => token => request
         mapping(bytes32 => bool) isWithdrawn; // requestId => isWithdrawn
-        uint8 ownerPercentage;
+        uint8 ownerPercentFee;
         uint256 withdrawalDelay;
     }
 
@@ -149,12 +149,12 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
 
     function initialize(
         address owner,
-        uint8 ownerPercentage,
+        uint8 ownerPercentFee,
         uint256 withdrawalDelay
-    ) external initializer validPercentValue(ownerPercentage) {
+    ) external initializer validPercentValue(ownerPercentFee) {
         if (withdrawalDelay == 0) revert InvalidParameter("Invalid withdrawal delay");
         SponsorPaymentStorage storage $ = _getSponsorPaymentStorage();
-        $.ownerPercentage = ownerPercentage;
+        $.ownerPercentFee = ownerPercentFee;
         $.withdrawalDelay = withdrawalDelay;
         __ReentrancyGuard_init();
         __EIP712_init("SponsorPayment", VERSION);
@@ -183,22 +183,22 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
 
     /**
      * @dev Get the owner percentage value
-     * @return ownerPercentage
+     * @return ownerPercentFee
      */
-    function getOwnerPercentage() external view returns (uint8) {
+    function getOwnerPercentFee() external view returns (uint8) {
         SponsorPaymentStorage storage $ = _getSponsorPaymentStorage();
-        return $.ownerPercentage;
+        return $.ownerPercentFee;
     }
 
     /**
      * @dev Updates owner percentage value
-     * @param ownerPercentage Amount between 0 and 100 representing the owner percentage
+     * @param ownerPercentFee Amount between 0 and 100 representing the owner percentage
      */
-    function updateOwnerPercentage(
-        uint8 ownerPercentage
-    ) external onlyOwner validPercentValue(ownerPercentage) {
+    function updateOwnerPercentFee(
+        uint8 ownerPercentFee
+    ) external onlyOwner validPercentValue(ownerPercentFee) {
         SponsorPaymentStorage storage $ = _getSponsorPaymentStorage();
-        $.ownerPercentage = ownerPercentage;
+        $.ownerPercentFee = ownerPercentFee;
     }
 
     function _tryRecoverSigner(
@@ -406,7 +406,7 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
         if (sponsorBalance == 0) revert InvalidPaymentClaim("Invalid sponsor");
         if (sponsorBalance < amount) revert InvalidPaymentClaim("Insufficient balance");
 
-        uint256 ownerPart = (amount * $.ownerPercentage) / 100;
+        uint256 ownerPart = (amount * $.ownerPercentFee) / 100;
         uint256 recipientPart = amount - ownerPart;
         $.isWithdrawn[requestId] = true;
         $.balances[sponsor][token] -= amount;
