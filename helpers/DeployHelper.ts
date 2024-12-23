@@ -22,6 +22,7 @@ import {
   waitNotToInterfereWithHardhatIgnition,
 } from "./helperUtils";
 import { MCPaymentProxyModule } from "../ignition/modules/mcPayment";
+import { SponsorPaymentProxyModule } from "../ignition/modules/sponsorPayment";
 
 const SMT_MAX_DEPTH = 64;
 
@@ -1229,6 +1230,58 @@ export class DeployHelper {
 
     return {
       mcPayment,
+    };
+  }
+
+  async deploySponsorPayment(
+    ownerPercentage: number,
+    sponsorWithDrawalDelay: number,
+    deployStrategy: "basic" | "create2" = "basic",
+  ): Promise<{
+    sponsorPayment: Contract;
+  }> {
+    const owner = this.signers[0];
+    const SponsorPaymentFactory = await ethers.getContractFactory("SponsorPayment");
+    const Create2AddressAnchorFactory = await ethers.getContractFactory("Create2AddressAnchor");
+
+    let sponsorPayment;
+    if (deployStrategy === "create2") {
+      this.log("deploying with CREATE2 strategy...");
+
+      // Deploying SponsorPayment contract to predictable address but with dummy implementation
+      sponsorPayment = (
+        await ignition.deploy(SponsorPaymentProxyModule, {
+          strategy: deployStrategy,
+        })
+      ).proxy;
+      await sponsorPayment.waitForDeployment();
+
+      // Upgrading SponsorPayment contract to the first real implementation
+      // and force network files import, so creation, as they do not exist at the moment
+      const sponsorPaymentAddress = await sponsorPayment.getAddress();
+      await upgrades.forceImport(sponsorPaymentAddress, Create2AddressAnchorFactory);
+      sponsorPayment = await upgrades.upgradeProxy(sponsorPaymentAddress, SponsorPaymentFactory, {
+        redeployImplementation: "always",
+        call: {
+          fn: "initialize",
+          args: [await owner.getAddress(), ownerPercentage, sponsorWithDrawalDelay],
+        },
+      });
+    } else {
+      this.log("deploying with BASIC strategy...");
+
+      sponsorPayment = await upgrades.deployProxy(SponsorPaymentFactory, [
+        await owner.getAddress(),
+        ownerPercentage,
+        sponsorWithDrawalDelay,
+      ]);
+    }
+
+    await sponsorPayment.waitForDeployment();
+    console.log("\nSponsorPaymentAddress deployed to:", await sponsorPayment.getAddress());
+
+    return {
+      sponsorPayment,
     };
   }
 

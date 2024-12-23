@@ -245,6 +245,16 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
+  SPONSOR_PAYMENT: {
+    name: "SponsorPayment",
+    version: "1.0.0",
+    unifiedAddress: "",
+    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.SponsorPayment")),
+    verificationOpts: {
+      constructorArgsImplementation: [],
+      libraries: {},
+    },
+  },
   CROSS_CHAIN_PROOF_VALIDATOR: {
     name: "CrossChainProofValidator",
     unifiedAddress: "",
