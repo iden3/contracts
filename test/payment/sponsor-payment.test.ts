@@ -321,7 +321,6 @@ describe("Sponsor Payment Contract", () => {
       await token.connect(owner).transfer(sponsor.address, 100);
       await token.connect(sponsor).approve(paymentContractAddr, 100);
       await sponsorPaymentContract.connect(sponsor).depositERC20(100, tokenAddr);
-      console.log("sponsor", sponsor.address);
       const amount = 50;
       const paymentData = {
         recipient: recipient.address,
@@ -332,9 +331,6 @@ describe("Sponsor Payment Contract", () => {
         metadata: "0x",
       };
       const signature = await sponsor.signTypedData(domainData, typesERC20, paymentData);
-
-      const balance = await sponsorPaymentContract.getBalanceERC20(sponsor.address, tokenAddr);
-      console.log("balance", balance.toString());
 
       await expect(
         sponsorPaymentContract.connect(recipient).claimPaymentERC20(paymentData, signature),

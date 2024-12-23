@@ -125,8 +125,10 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
             "ERC20SponsorPaymentInfo(address recipient,uint256 amount,uint256 expiration,uint256 nonce,bytes metadata)"
         );
 
-    bytes32 private constant SponsorPaymentStorageLocation =
-        0x843c93f996398391e581389b674681e6ea27a4f9a96390a9d8ecb41cf0226300;
+    //  keccak256(abi.encode(uint256(keccak256("iden3.storage.SponsorPayment")) - 1)) &
+    //             ~bytes32(uint256(0xff));
+    bytes32 private constant SPONSOR_PAYMENT_STORAGE_LOCATION =
+        0x98fc76e32452055302f77aa95cd08aa0cf22c02a3ebdaee3e1411f6c47c2ef00;
 
     modifier validToken(address token) {
         if (token != address(0)) {
@@ -161,8 +163,9 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
     }
 
     function _getSponsorPaymentStorage() private pure returns (SponsorPaymentStorage storage $) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := SponsorPaymentStorageLocation
+            $.slot := SPONSOR_PAYMENT_STORAGE_LOCATION
         }
     }
 
@@ -172,6 +175,7 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
      */
     function _isContract(address addr) private view returns (bool) {
         uint256 size;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             size := extcodesize(addr)
         }
