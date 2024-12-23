@@ -106,7 +106,7 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
     struct SponsorPaymentStorage {
         mapping(address => mapping(address => uint256)) balances; // sponsor => token => balance
         mapping(address => mapping(address => WithdrawalRequest)) withdrawalRequests; // sponsor => token => request
-        mapping(bytes32 => bool) isWithdrawn;
+        mapping(bytes32 => bool) isWithdrawn; // requestId => isWithdrawn
         uint8 ownerPercentage;
         uint256 withdrawalDelay;
     }
