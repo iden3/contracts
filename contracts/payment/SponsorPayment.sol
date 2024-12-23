@@ -133,7 +133,6 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
     modifier validToken(address token) {
         if (token != address(0)) {
             if (!_isContract(token)) revert InvalidToken("Not a contract address");
-            SponsorPaymentStorage storage s = _getSponsorPaymentStorage();
         }
         _;
     }
