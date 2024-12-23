@@ -132,7 +132,7 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
 
     modifier validToken(address token) {
         if (token != address(0)) {
-            if (!_isContract(token)) revert InvalidToken("Not a contract address");
+            if (token.code.length == 0) revert InvalidToken("Not a contract address");
         }
         _;
     }
@@ -166,19 +166,6 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
         assembly {
             $.slot := SPONSOR_PAYMENT_STORAGE_LOCATION
         }
-    }
-
-    /**
-     * @notice Checks if an address contains contract code
-     * @param addr Address to check
-     */
-    function _isContract(address addr) private view returns (bool) {
-        uint256 size;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            size := extcodesize(addr)
-        }
-        return size > 0;
     }
 
     /**
