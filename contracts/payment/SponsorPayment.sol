@@ -113,7 +113,7 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
 
     string public constant VERSION = "1.0.0";
 
-    bytes32 public constant ERC20_PAYMENT_CLAIM_DATA_TYPE_HASH =
+    bytes32 public constant ERC_20_SPONSOR_PAYMENT_INFO_TYPE_HASH =
         keccak256(
             // solhint-disable-next-line max-line-length
             "ERC20SponsorPaymentInfo(address recipient,uint256 amount,address token,uint256 expiration,uint256 nonce,bytes metadata)"
@@ -131,8 +131,8 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
         0x98fc76e32452055302f77aa95cd08aa0cf22c02a3ebdaee3e1411f6c47c2ef00;
 
     modifier validToken(address token) {
-        if (token != address(0)) {
-            if (token.code.length == 0) revert InvalidToken("Not a contract address");
+        if (token == address(0) || token.code.length == 0) {
+            revert InvalidToken("Not a contract address");
         }
         _;
     }
@@ -225,7 +225,7 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
         bytes32 digest = _hashTypedDataV4(
             keccak256(
                 abi.encode(
-                    ERC20_PAYMENT_CLAIM_DATA_TYPE_HASH,
+                    ERC_20_SPONSOR_PAYMENT_INFO_TYPE_HASH,
                     payment.recipient,
                     payment.amount,
                     payment.token,
@@ -449,9 +449,7 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
      * @dev Allows the owner to withdraw their accumulated balance.
      * @param tokenAddress The address of the token (use address(0) for Ether)
      */
-    function withdrawOwnerBalance(
-        address tokenAddress
-    ) external onlyOwner nonReentrant validToken(tokenAddress) {
+    function withdrawOwnerBalance(address tokenAddress) external onlyOwner nonReentrant {
         SponsorPaymentStorage storage $ = _getSponsorPaymentStorage();
         uint256 amount = $.balances[address(this)][tokenAddress];
         if (amount == 0) revert InvalidWithdraw("No balance to withdraw");
@@ -461,6 +459,7 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
             (bool success, ) = payable(owner()).call{value: amount}("");
             if (!success) revert InvalidWithdraw("Owner balance transfer failed");
         } else {
+            if (tokenAddress.code.length == 0) revert InvalidToken("Not a contract address");
             IERC20(tokenAddress).safeTransfer(owner(), amount);
         }
         emit OwnerBalanceWithdrawn(amount);
