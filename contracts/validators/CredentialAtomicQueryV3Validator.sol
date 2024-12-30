@@ -147,32 +147,14 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         return _getResponseFields(pubSignals, hasSD);
     }
 
-    /**
-     * @dev Get the group ID of the request query data.
-     * @param params Request query data of the credential to verify.
-     * @return Group ID of the request query data.
-     */
-    function getGroupID(bytes calldata params) external pure override returns (uint256) {
+    function getRequestParams(bytes calldata params) external pure override returns (IRequestValidator.RequestParams memory) {
         CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
             params,
             (CredentialAtomicQueryV3)
         );
-        return credAtomicQuery.groupID;
+        return IRequestValidator.RequestParams({ groupID: credAtomicQuery.groupID, verifierID: credAtomicQuery.verifierID });
     }
-
-    /**
-     * @dev Get the verifier ID from the request query data
-     * @param params Request query data of the credential to verify.
-     * @return Verifier ID
-     */
-    function getVerifierId(bytes calldata params) external pure override returns (uint256) {
-        CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
-            params,
-            (CredentialAtomicQueryV3)
-        );
-        return credAtomicQuery.verifierID;
-    }
-
+    
     /**
      * @dev Verify the groth16 proof and check the request query data
      * @param inputs Public inputs of the circuit.
