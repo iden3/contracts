@@ -9,8 +9,7 @@ import {OwnableUpgradeable} from "../.deps/npm/@openzeppelin/contracts-upgradeab
 import {IState} from "../interfaces/IState.sol";
 
 contract LinkedMultiQueryValidator is IRequestValidator, OwnableUpgradeable {
-    // TODO do we need it? Limit to real number for queries?
-    // yes, should be limited to the real number of queries in which operator != 0
+    // This should be limited to the real number of queries in which operator != 0
     struct Params {
         uint256[] claimPathKey;
         uint256[] operator; // when checking SD take operator from here
@@ -72,7 +71,7 @@ contract LinkedMultiQueryValidator is IRequestValidator, OwnableUpgradeable {
 
     function initialize(address _groth16VerifierContractAddr, address owner) public initializer {
         LinkedMultiQueryValidatorBaseStorage storage $ = _getLinkedMultiQueryValidatorBaseStorage();
-        $._supportedCircuits[CIRCUIT_ID] = _groth16VerifierContractAddr;
+        $._supportedCircuits[CIRCUIT_ID] = IGroth16Verifier(_groth16VerifierContractAddr);
         $._supportedCircuitIds.push(CIRCUIT_ID);
     }
 
@@ -85,7 +84,7 @@ contract LinkedMultiQueryValidator is IRequestValidator, OwnableUpgradeable {
         LinkedMultiQueryValidatorBaseStorage storage $ = _getLinkedMultiQueryValidatorBaseStorage();
 
         // 0. Parse query
-        Params memory query = abi.decode(data, (Params));
+        Params memory params = abi.decode(data, (Params));
 
         // 1. Parse public signals
         (
@@ -99,15 +98,16 @@ contract LinkedMultiQueryValidator is IRequestValidator, OwnableUpgradeable {
 
         // 1. Verify circuit query hash for 10
         // TODO check
-        $._supportedCircuits[CIRCUIT_ID].verify(inputs, a, b, c, data, sender);
-        _checkQueryHash(query, pubSignals);
-        _checkGroupId(query.groupID);
+        $._supportedCircuits[CIRCUIT_ID].verify(a, b, c, inputs);
+        _checkQueryHash(params, pubSignals);
+        _checkGroupId(params.groupID);
 
-        return _getSpecialSignals(pubSignals);
+        return _getSpecialSignals(pubSignals, params);
     }
 
     error InvalidQueryHash(uint256 expectedQueryHash, uint256 actualQueryHash);
     error InvalidGroupID(uint256 groupID);
+    error InvalidOperator(uint256 operator);
 
     function _checkGroupId(uint256 groupID) internal pure {
         if (groupID == 0) {
@@ -136,28 +136,32 @@ contract LinkedMultiQueryValidator is IRequestValidator, OwnableUpgradeable {
 
     function _getSpecialSignals(
         PubSignals memory pubSignals,
-        Params memory query
+        Params memory params
     ) internal pure returns (ResponseField[] memory) {
-        // TODO selective disclosure influence number of signals
-        ResponseField[] memory signals = new ResponseField[](12);
-        signals[0] = ResponseField("linkID", pubSignals.linkID);
-        signals[1] = ResponseField("merklized", pubSignals.merklized);
-        uint256 n = 2;
-        for (uint256 i = 0; i < 10; i++) {
-            if (query.operator[i] == 0) {
-                // the first noop operator is the end of the query
-                break;
+        uint256 operatorCount = 0;
+        for (uint256 i = 0; i < params.operator.length; i++) {
+            if (params.operator[i] == 16) {
+                operatorCount++;
+            } else {
+                revert InvalidOperator(params.operator[i]);
             }
-            // TODO consider if can be more gas efficient
-            signals[n++] = ResponseField(
-                string(abi.encodePacked("operatorOutput", Strings.toString(i))),
-                pubSignals.operatorOutput[i]
-            );
-            signals[n++] = ResponseField(
-                string(abi.encodePacked("circuitQueryHash", Strings.toString(i))),
-                pubSignals.circuitQueryHash[i]
-            );
         }
+
+        uint256 n = 1;
+        ResponseField[] memory signals = new ResponseField[](n + operatorCount);
+        signals[0] = ResponseField("linkID", pubSignals.linkID);
+
+        uint256 m = 1;
+        for (uint256 i = 0; i < params.operator.length; i++) {
+            // TODO consider if can be more gas efficient
+            if (params.operator[i] == 16) {
+                signals[m++] = ResponseField(
+                    string(abi.encodePacked("operatorOutput", Strings.toString(i))),
+                    pubSignals.operatorOutput[i]
+                );
+            }
+        }
+
         return signals;
     }
 }
