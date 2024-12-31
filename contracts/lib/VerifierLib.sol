@@ -20,10 +20,9 @@ library VerifierLib {
         // TODO: discuss if we need this field
         // uint256 blockNumber;
         uint256 blockTimestamp;
-        mapping(string key => bytes) metadata;
         // This empty reserved space is put in place to allow future versions
         // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-        uint256[45] __gap;
+        uint256[46] __gap;
     }
 
     /**

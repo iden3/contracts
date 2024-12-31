@@ -100,17 +100,8 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IRequestValidator, ERC
         require(calcId == id, "Sender is not owner of the ethereum identity");
     }
 
-    function getGroupID(bytes calldata) external pure override returns (uint256) {
-        // TODO: Implement group ID
-        return 0;
+    function getRequestParams(bytes calldata) external pure override returns (IRequestValidator.RequestParams memory) {
+        return IRequestValidator.RequestParams({ groupID: 0, verifierID: 0 });
     }
-
-    /**
-     * @dev Get the verifier ID of the request query data.
-     * @param params Request query data of the credential to verify.
-     * @return Verifier ID encoded in the request query data.
-     */
-    function getVerifierId(bytes calldata params) external view returns (uint256) {
-        return 0;
-    }
+    
 }

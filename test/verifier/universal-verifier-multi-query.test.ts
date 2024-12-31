@@ -227,7 +227,7 @@ describe("Universal Verifier Multi-query", function () {
       groupIds: [],
       metadata: "0x",
     };
-    const txSetQuery = await verifier.setQuery(queryId, query);
+    const txSetQuery = await verifier.setQuery(query);
     await txSetQuery.wait();
     const queryStored = await verifier.getQuery(queryId);
     expect(queryStored.queryId).to.be.equal(queryId);
@@ -359,7 +359,7 @@ describe("Universal Verifier Multi-query", function () {
       groupIds: [groupId],
       metadata: "0x",
     };
-    const txSetQuery = await verifier.setQuery(queryId, query);
+    const txSetQuery = await verifier.setQuery(query);
     await txSetQuery.wait();
 
     const queryStored = await verifier.getQuery(queryId);
@@ -472,7 +472,7 @@ describe("Universal Verifier Multi-query", function () {
       groupIds: [groupId],
       metadata: "0x",
     };
-    const txSetQuery = await verifier.setQuery(queryId, query);
+    const txSetQuery = await verifier.setQuery(query);
     await txSetQuery.wait();
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);

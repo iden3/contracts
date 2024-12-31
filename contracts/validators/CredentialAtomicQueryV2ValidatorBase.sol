@@ -82,22 +82,8 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         return _getResponseFields(pubSignals);
     }
 
-    /**
-     * @dev Get the group ID of the request query data.
-     * @param params Request query data of the credential to verify.
-     * @return Group ID of the request query data.
-     */
-    function getGroupID(bytes calldata params) external pure override returns (uint256) {
-        return 0;
-    }
-
-    /**
-     * @dev Get the verifier ID from the request query data
-     * @param params Request query data of the credential to verify.
-     * @return Verifier ID
-     */
-    function getVerifierId(bytes calldata params) external pure override returns (uint256) {
-        return 0;
+    function getRequestParams(bytes calldata) external pure override returns (IRequestValidator.RequestParams memory) {
+        return IRequestValidator.RequestParams({ groupID: 0, verifierID: 0 });
     }
 
     /**

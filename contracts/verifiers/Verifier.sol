@@ -97,16 +97,16 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      * @dev Modifier to check if the request exists
      */
     modifier checkRequestGroupExistence(Request memory request, bool existence) {
-        uint256 groupId = request.validator.getGroupID(request.params);
+        IRequestValidator.RequestParams memory requestParams = request.validator.getRequestParams(request.params);
 
-        if (groupId != 0) {
+        if (requestParams.groupID != 0) {
             if (existence) {
-                if (!groupIdExists(groupId)) {
-                    revert GroupIdNotFound(groupId);
+                if (!groupIdExists(requestParams.groupID)) {
+                    revert GroupIdNotFound(requestParams.groupID);
                 }
             } else {
-                if (groupIdExists(groupId)) {
-                    revert GroupIdAlreadyExists(groupId);
+                if (groupIdExists(requestParams.groupID)) {
+                    revert GroupIdAlreadyExists(requestParams.groupID);
                 }
             }
         }
@@ -220,14 +220,14 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         Request calldata request
     ) internal checkRequestExistence(request.requestId, false) {
         VerifierStorage storage s = _getVerifierStorage();
-        uint256 verifierId = request.validator.getVerifierId(request.params);
+        IRequestValidator.RequestParams memory requestParams = request.validator.getRequestParams(request.params);
 
         s._requests[request.requestId] = IVerifier.RequestData({
             metadata: request.metadata,
             validator: request.validator,
             params: request.params,
             creator: _msgSender(),
-            verifierId: verifierId
+            verifierId: requestParams.verifierID
         });
         s._requestIds.push(request.requestId);
     }
@@ -285,19 +285,17 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
     /**
      * @dev Sets a query
-     * @param queryId The ID of the query
      * @param query The query data
      */
     function setQuery(
-        uint256 queryId,
         IVerifier.Query calldata query
-    ) public virtual checkQueryExistence(queryId, false) {
+    ) public virtual checkQueryExistence(query.queryId, false) {
         VerifierStorage storage s = _getVerifierStorage();
-        s._queries[queryId] = query;
-        s._queryIds.push(queryId);
+        s._queries[query.queryId] = query;
+        s._queryIds.push(query.queryId);
 
         // checks for all the requests in this query
-        _checkRequestsInQuery(queryId);
+        _checkRequestsInQuery(query.queryId);
     }
 
     /**
@@ -316,10 +314,11 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         // check that all the single requests doesn't have group
         for (uint256 i = 0; i < requestIds.length; i++) {
+            IRequestValidator.RequestParams memory requestParams = s._requests[requestIds[i]].validator.getRequestParams(
+                s._requests[requestIds[i]].params
+            );
             if (
-                s._requests[requestIds[i]].validator.getGroupID(
-                    s._requests[requestIds[i]].params
-                ) != 0
+                requestParams.groupID != 0
             ) {
                 revert RequestIsAlreadyGrouped(requestIds[i]);
             }
@@ -420,14 +419,14 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         IVerifier.Request calldata request
     ) internal checkRequestExistence(request.requestId, true) {
         VerifierStorage storage s = _getVerifierStorage();
-        uint256 verifierId = request.validator.getVerifierId(request.params);
-
+        IRequestValidator.RequestParams memory requestParams = request.validator.getRequestParams(request.params);
+        
         s._requests[request.requestId] = IVerifier.RequestData({
             metadata: request.metadata,
             validator: request.validator,
             params: request.params,
             creator: _msgSender(),
-            verifierId: verifierId
+            verifierId: requestParams.verifierID
         });
     }
 

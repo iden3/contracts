@@ -152,15 +152,13 @@ contract UniversalVerifier is
 
     /**
      * @dev Sets a query
-     * @param queryId The ID of the query
      * @param query The query data
      */
     function setQuery(
-        uint256 queryId,
         Query calldata query
-    ) public override checkQueryExistence(queryId, false) {
-        super.setQuery(queryId, query);
-        emit QuerySet(queryId, query.requestIds);
+    ) public override checkQueryExistence(query.queryId, false) {
+        super.setQuery(query);
+        emit QuerySet(query.queryId, query.requestIds);
     }
 
     /**

@@ -240,10 +240,9 @@ interface IVerifier {
 
     /**
      * @dev Sets a query
-     * @param queryId The ID of the query
      * @param query The query data
      */
-    function setQuery(uint256 queryId, Query calldata query) external;
+    function setQuery(Query calldata query) external;
 
     /**
      * @dev Gets a specific multi query by ID

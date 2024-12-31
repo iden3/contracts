@@ -33,11 +33,7 @@ contract RequestValidatorAuthV2Stub is IRequestValidator, ERC165 {
         return signals;
     }
 
-    function getGroupID(bytes calldata) external pure override returns (uint256) {
-        return 0;
-    }
-
-    function getVerifierId(bytes calldata) external pure override returns (uint256) {
-        return 0;
+    function getRequestParams(bytes calldata) external pure override returns (IRequestValidator.RequestParams memory) {
+        return IRequestValidator.RequestParams({ groupID: 0, verifierID: 0 });
     }
 }
