@@ -10,7 +10,7 @@ import {IState} from "../interfaces/IState.sol";
 
 contract LinkedMultiQueryValidator is IRequestValidator, OwnableUpgradeable {
     // This should be limited to the real number of queries in which operator != 0
-    struct Params {
+    struct Query {
         uint256[] claimPathKey;
         uint256[] operator; // when checking SD take operator from here
         uint256[] slotIndex;
@@ -45,14 +45,9 @@ contract LinkedMultiQueryValidator is IRequestValidator, OwnableUpgradeable {
         }
     }
 
-    function getGroupID(bytes calldata params) external view override returns (uint256) {
-        Params memory query = abi.decode(params, (Params));
-        return query.groupID;
-    }
-
-    function getVerifierId(bytes calldata params) external view override returns (uint256) {
-        Params memory query = abi.decode(params, (Params));
-        return query.verifierID;
+    function getRequestParams(bytes calldata params) external view override returns (IRequestValidator.RequestParams memory) {
+        Query memory query = abi.decode(params, (Query));
+        return IRequestValidator.RequestParams(query.groupID, query.verifierID);
     }
 
     struct PubSignals {
@@ -84,7 +79,7 @@ contract LinkedMultiQueryValidator is IRequestValidator, OwnableUpgradeable {
         LinkedMultiQueryValidatorBaseStorage storage $ = _getLinkedMultiQueryValidatorBaseStorage();
 
         // 0. Parse query
-        Params memory params = abi.decode(data, (Params));
+        Query memory query = abi.decode(data, (Query));
 
         // 1. Parse public signals
         (
@@ -99,10 +94,10 @@ contract LinkedMultiQueryValidator is IRequestValidator, OwnableUpgradeable {
         // 1. Verify circuit query hash for 10
         // TODO check
         $._supportedCircuits[CIRCUIT_ID].verify(a, b, c, inputs);
-        _checkQueryHash(params, pubSignals);
-        _checkGroupId(params.groupID);
+        _checkQueryHash(query, pubSignals);
+        _checkGroupId(query.groupID);
 
-        return _getSpecialSignals(pubSignals, params);
+        return _getSpecialSignals(pubSignals, query);
     }
 
     error InvalidQueryHash(uint256 expectedQueryHash, uint256 actualQueryHash);
@@ -115,8 +110,8 @@ contract LinkedMultiQueryValidator is IRequestValidator, OwnableUpgradeable {
         }
     }
 
-    function _checkQueryHash(Params memory query, PubSignals memory pubSignals) internal pure {
-        for (uint256 i = 0; i < 10; i++) {
+    function _checkQueryHash(Query memory query, PubSignals memory pubSignals) internal pure {
+        for (uint256 i = 0; i < query.operator.length; i++) {
             if (query.queryHash[i] != pubSignals.circuitQueryHash[i]) {
                 revert InvalidQueryHash(query.queryHash[i], pubSignals.circuitQueryHash[i]);
             }
@@ -136,14 +131,14 @@ contract LinkedMultiQueryValidator is IRequestValidator, OwnableUpgradeable {
 
     function _getSpecialSignals(
         PubSignals memory pubSignals,
-        Params memory params
+        Query memory query
     ) internal pure returns (ResponseField[] memory) {
         uint256 operatorCount = 0;
-        for (uint256 i = 0; i < params.operator.length; i++) {
-            if (params.operator[i] == 16) {
+        for (uint256 i = 0; i < query.operator.length; i++) {
+            if (query.operator[i] == 16) {
                 operatorCount++;
             } else {
-                revert InvalidOperator(params.operator[i]);
+                revert InvalidOperator(query.operator[i]);
             }
         }
 
@@ -152,9 +147,9 @@ contract LinkedMultiQueryValidator is IRequestValidator, OwnableUpgradeable {
         signals[0] = ResponseField("linkID", pubSignals.linkID);
 
         uint256 m = 1;
-        for (uint256 i = 0; i < params.operator.length; i++) {
+        for (uint256 i = 0; i < query.operator.length; i++) {
             // TODO consider if can be more gas efficient
-            if (params.operator[i] == 16) {
+            if (query.operator[i] == 16) {
                 signals[m++] = ResponseField(
                     string(abi.encodePacked("operatorOutput", Strings.toString(i))),
                     pubSignals.operatorOutput[i]
