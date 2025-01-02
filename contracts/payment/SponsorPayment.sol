@@ -97,16 +97,15 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
     struct WithdrawalRequest {
         uint256 amount;
         uint256 lockTime;
-        bool exists;
     }
 
     /**
-     * @dev Main storage $tructure for the contract
+     * @dev Main storage structure for the contract
      */
     struct SponsorPaymentStorage {
-        mapping(address => mapping(address => uint256)) balances; // sponsor => token => balance
-        mapping(address => mapping(address => WithdrawalRequest)) withdrawalRequests; // sponsor => token => request
-        mapping(bytes32 => bool) isWithdrawn; // requestId => isWithdrawn
+        mapping(address sponsor => mapping(address token => uint256 balance)) balances;
+        mapping(address sponsor => mapping(address token => WithdrawalRequest request)) withdrawalRequests;
+        mapping(bytes32 requestId => bool isWithdrawn) isWithdrawn;
         uint8 ownerPercentFee;
         uint256 withdrawalDelay;
     }
@@ -119,7 +118,7 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
             "ERC20SponsorPaymentInfo(address recipient,uint256 amount,address token,uint256 expiration,uint256 nonce,bytes metadata)"
         );
 
-    bytes32 public constant PAYMENT_CLAIM_DATA_TYPE_HASH =
+    bytes32 public constant SPONSOR_PAYMENT_INFO_TYPE_HASH =
         keccak256(
             // solhint-disable-next-line max-line-length
             "ERC20SponsorPaymentInfo(address recipient,uint256 amount,uint256 expiration,uint256 nonce,bytes metadata)"
@@ -188,16 +187,12 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
         $.ownerPercentFee = ownerPercentFee;
     }
 
-    function _tryRecoverSigner(
-        bytes32 digest,
-        bytes memory signature
-    ) private pure returns (address) {
-        (address signer, ECDSA.RecoverError err, ) = digest.tryRecover(signature);
-        if (err != ECDSA.RecoverError.NoError) revert InvalidPaymentClaim("Invalid signature");
-
-        return signer;
-    }
-
+    /**
+     * @dev Recovers the signer of a SponsorPaymentInfo struct
+     * @param payment The SponsorPaymentInfo struct
+     * @param signature The signature of the payment
+     * @return The address of the signer
+     */
     function recoverSponsorPaymentSigner(
         SponsorPaymentInfo memory payment,
         bytes memory signature
@@ -205,7 +200,7 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
         bytes32 digest = _hashTypedDataV4(
             keccak256(
                 abi.encode(
-                    PAYMENT_CLAIM_DATA_TYPE_HASH,
+                    SPONSOR_PAYMENT_INFO_TYPE_HASH,
                     payment.recipient,
                     payment.amount,
                     payment.expiration,
@@ -218,6 +213,12 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
         return _tryRecoverSigner(digest, signature);
     }
 
+    /**
+     * @dev Recovers the signer of a SponsorPaymentInfo struct
+     * @param payment The SponsorPaymentInfo struct
+     * @param signature The signature of the payment
+     * @return The address of the signer
+     */
     function recoverSponsorPaymentSignerERC20(
         ERC20SponsorPaymentInfo memory payment,
         bytes memory signature
@@ -266,25 +267,6 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
         emit ERC20Deposit(_msgSender(), token, amount);
     }
 
-    function _requestWithdrawal(address balanceAddress, uint256 amount) private returns (uint256) {
-        SponsorPaymentStorage storage $ = _getSponsorPaymentStorage();
-
-        uint256 balance = $.balances[_msgSender()][balanceAddress];
-        if (balance < amount) revert InvalidWithdraw("Insufficient balance");
-
-        WithdrawalRequest storage request = $.withdrawalRequests[_msgSender()][balanceAddress];
-        if (request.exists) revert InvalidWithdraw("Existing withdrawal pending");
-
-        uint256 lockTime = block.timestamp + $.withdrawalDelay;
-        // Create withdrawal request
-        request.amount = amount;
-        request.lockTime = lockTime;
-        request.exists = true;
-        $.balances[_msgSender()][balanceAddress] -= amount;
-
-        return lockTime;
-    }
-
     /**
      * @notice Request a withdrawal with delay
      * @param amount The amount to withdraw
@@ -304,21 +286,6 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
         emit ERC20WithdrawalRequested(_msgSender(), token, amount, lockTime);
     }
 
-    function _cancelWithdrawal(address token) private returns (uint256) {
-        SponsorPaymentStorage storage $ = _getSponsorPaymentStorage();
-        WithdrawalRequest storage request = $.withdrawalRequests[_msgSender()][token];
-
-        if (!request.exists) revert InvalidWithdraw("No withdrawal request exists");
-
-        uint256 amount = request.amount;
-        delete $.withdrawalRequests[_msgSender()][token];
-
-        // Return the funds
-        $.balances[_msgSender()][token] += amount;
-
-        return amount;
-    }
-
     /**
      * @notice Cancel a pending withdrawal request
      */
@@ -334,17 +301,6 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
     function cancelWithdrawalERC20(address token) external validToken(token) {
         uint256 amount = _cancelWithdrawal(token);
         emit ERC20WithdrawalCancelled(_msgSender(), token, amount);
-    }
-
-    function _getWithdrawalAmount(address token) private view returns (uint256) {
-        SponsorPaymentStorage storage $ = _getSponsorPaymentStorage();
-        WithdrawalRequest memory request = $.withdrawalRequests[_msgSender()][token];
-
-        if (!request.exists) revert InvalidWithdraw("No withdrawal request exists");
-        if (block.timestamp < request.lockTime)
-            revert InvalidWithdraw("Withdrawal is still locked");
-
-        return request.amount;
     }
 
     /**
@@ -369,37 +325,6 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
         IERC20(token).safeTransfer(_msgSender(), amount);
         delete $.withdrawalRequests[_msgSender()][token];
         emit ERC20Withdrawal(_msgSender(), token, amount);
-    }
-
-    function _claimPayment(
-        address recipient,
-        uint256 nonce,
-        uint256 expiration,
-        uint256 amount,
-        address token,
-        address sponsor
-    ) private returns (uint256) {
-        if (recipient == address(0) || _msgSender() != recipient)
-            revert InvalidPaymentClaim("Invalid recipient");
-
-        if (block.timestamp > expiration) revert InvalidPaymentClaim("Payment expired");
-
-        SponsorPaymentStorage storage $ = _getSponsorPaymentStorage();
-
-        bytes32 requestId = keccak256(abi.encode(recipient, nonce));
-        if ($.isWithdrawn[requestId]) revert InvalidPaymentClaim("Payment already claimed");
-
-        uint256 sponsorBalance = $.balances[sponsor][token];
-        if (sponsorBalance == 0) revert InvalidPaymentClaim("Invalid sponsor");
-        if (sponsorBalance < amount) revert InvalidPaymentClaim("Insufficient balance");
-
-        uint256 ownerPart = (amount * $.ownerPercentFee) / 100;
-        uint256 recipientPart = amount - ownerPart;
-        $.isWithdrawn[requestId] = true;
-        $.balances[sponsor][token] -= amount;
-        $.balances[address(this)][token] += ownerPart;
-
-        return recipientPart;
     }
 
     /**
@@ -428,6 +353,11 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
         emit PaymentClaimed(payment.recipient, payment.nonce, payment.amount);
     }
 
+    /**
+     * @notice Allows a recipient to claim a payment with a valid signature
+     * @param payment ERC20SponsorPaymentInfo struct containing payment details
+     * @param signature EIP-712 signature from the sponsor
+     */
     function claimPaymentERC20(
         ERC20SponsorPaymentInfo calldata payment,
         bytes calldata signature
@@ -500,5 +430,94 @@ contract SponsorPayment is ReentrancyGuardUpgradeable, EIP712Upgradeable, Ownabl
      */
     function getBalanceERC20(address sponsor, address token) external view returns (uint256) {
         return _getSponsorPaymentStorage().balances[sponsor][token];
+    }
+
+    function _getWithdrawalAmount(address token) private view returns (uint256) {
+        SponsorPaymentStorage storage $ = _getSponsorPaymentStorage();
+        WithdrawalRequest storage request = $.withdrawalRequests[_msgSender()][token];
+
+        if (request.amount == 0) revert InvalidWithdraw("No withdrawal request exists");
+
+        if (block.timestamp < request.lockTime)
+            revert InvalidWithdraw("Withdrawal is still locked");
+
+        return request.amount;
+    }
+
+    function _tryRecoverSigner(
+        bytes32 digest,
+        bytes memory signature
+    ) private pure returns (address) {
+        (address signer, ECDSA.RecoverError err, ) = digest.tryRecover(signature);
+        if (err != ECDSA.RecoverError.NoError) revert InvalidPaymentClaim("Invalid signature");
+
+        return signer;
+    }
+
+    function _claimPayment(
+        address recipient,
+        uint256 nonce,
+        uint256 expiration,
+        uint256 amount,
+        address token,
+        address sponsor
+    ) private returns (uint256) {
+        if (recipient == address(0) || _msgSender() != recipient)
+            revert InvalidPaymentClaim("Invalid recipient");
+
+        if (block.timestamp > expiration) revert InvalidPaymentClaim("Payment expired");
+
+        SponsorPaymentStorage storage $ = _getSponsorPaymentStorage();
+
+        bytes32 requestId = keccak256(abi.encode(recipient, nonce));
+        if ($.isWithdrawn[requestId]) revert InvalidPaymentClaim("Payment already claimed");
+
+        uint256 sponsorBalance = $.balances[sponsor][token];
+        if (sponsorBalance == 0) revert InvalidPaymentClaim("Invalid sponsor");
+        if (sponsorBalance < amount) revert InvalidPaymentClaim("Insufficient balance");
+
+        uint256 ownerPart = (amount * $.ownerPercentFee) / 100;
+        uint256 recipientPart = amount - ownerPart;
+        $.isWithdrawn[requestId] = true;
+        $.balances[sponsor][token] -= amount;
+        $.balances[address(this)][token] += ownerPart;
+
+        return recipientPart;
+    }
+
+    function _requestWithdrawal(address balanceAddress, uint256 amount) private returns (uint256) {
+        if (amount == 0) revert InvalidWithdraw("Invalid withdrawal amount");
+
+        SponsorPaymentStorage storage $ = _getSponsorPaymentStorage();
+
+        uint256 balance = $.balances[_msgSender()][balanceAddress];
+        if (balance < amount) revert InvalidWithdraw("Insufficient balance");
+
+        WithdrawalRequest storage request = $.withdrawalRequests[_msgSender()][balanceAddress];
+
+        if (request.amount != 0) revert InvalidWithdraw("Existing withdrawal pending");
+
+        uint256 lockTime = block.timestamp + $.withdrawalDelay;
+        // Create withdrawal request
+        request.amount = amount;
+        request.lockTime = lockTime;
+        $.balances[_msgSender()][balanceAddress] -= amount;
+
+        return lockTime;
+    }
+
+    function _cancelWithdrawal(address token) private returns (uint256) {
+        SponsorPaymentStorage storage $ = _getSponsorPaymentStorage();
+        WithdrawalRequest storage request = $.withdrawalRequests[_msgSender()][token];
+
+        if (request.amount == 0) revert InvalidWithdraw("No withdrawal request exists");
+
+        uint256 amount = request.amount;
+        delete $.withdrawalRequests[_msgSender()][token];
+
+        // Return the funds
+        $.balances[_msgSender()][token] += amount;
+
+        return amount;
     }
 }
