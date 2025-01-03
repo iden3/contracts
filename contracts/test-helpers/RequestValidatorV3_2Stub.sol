@@ -53,11 +53,17 @@ contract RequestValidatorV3_2Stub is IRequestValidator, ERC165 {
         return signals;
     }
 
-    function getRequestParams(bytes calldata params) external pure override returns (IRequestValidator.RequestParams memory) {
+    function getRequestParams(
+        bytes calldata params
+    ) external pure override returns (IRequestValidator.RequestParams memory) {
         CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
             params,
             (CredentialAtomicQueryV3)
         );
-        return IRequestValidator.RequestParams({ groupID: credAtomicQuery.groupID, verifierID: credAtomicQuery.verifierID });
+        return
+            IRequestValidator.RequestParams({
+                groupID: credAtomicQuery.groupID,
+                verifierID: credAtomicQuery.verifierID
+            });
     }
 }

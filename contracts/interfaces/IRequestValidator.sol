@@ -18,7 +18,7 @@ interface IRequestValidator {
     }
 
     /**
-     * @dev RequestParams. Information about request params from request query data. 
+     * @dev RequestParams. Information about request params from request query data.
      * @param groupID Group ID of the request query params
      * @param verifierID Verifier ID of the request query params
      */
