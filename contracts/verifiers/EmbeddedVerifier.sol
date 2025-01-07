@@ -26,18 +26,6 @@ abstract contract EmbeddedVerifier is Ownable2StepUpgradeable, Verifier {
     }
 
     /**
-     * @dev Sets different requests
-     * @param singleRequests The requests that are not in any group
-     * @param groupedRequests The requests that are in a group
-     */
-    function setRequests(
-        Request[] calldata singleRequests,
-        GroupedRequests[] calldata groupedRequests
-    ) public virtual override onlyOwner {
-        super.setRequests(singleRequests, groupedRequests);
-    }
-
-    /**
      * @dev Submits an array of responses and updates proofs status
      * @param authResponses The list of auth responses including auth type and proof
      * @param singleResponses The list of responses including request ID, proof and metadata for single requests

@@ -7,6 +7,7 @@ import {Verifier} from "./Verifier.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 
 error ValidatorIsNotWhitelisted(address validator);
+error ValidatorNotSupportInterface(address validator);
 
 contract ValidatorWhitelist is Verifier {
     /// @custom:storage-location erc7201:iden3.storage.ValidatorWhitelist
@@ -37,33 +38,6 @@ contract ValidatorWhitelist is Verifier {
     }
 
     /**
-     * @dev Sets different requests
-     * @param singleRequests The requests that are not in any group
-     * @param groupedRequests The requests that are in a group
-     */
-    function setRequests(
-        IVerifier.Request[] calldata singleRequests,
-        IVerifier.GroupedRequests[] calldata groupedRequests
-    ) public virtual override {
-        for (uint256 i = 0; i < singleRequests.length; i++) {
-            IRequestValidator validator = singleRequests[i].validator;
-            if (!isWhitelistedValidator(validator)) {
-                revert ValidatorIsNotWhitelisted(address(validator));
-            }
-        }
-
-        for (uint256 i = 0; i < groupedRequests.length; i++) {
-            for (uint256 j = 0; j < groupedRequests[i].requests.length; j++) {
-                IRequestValidator validator = groupedRequests[i].requests[j].validator;
-                if (!isWhitelistedValidator(validator)) {
-                    revert ValidatorIsNotWhitelisted(address(validator));
-                }
-            }
-        }
-        super.setRequests(singleRequests, groupedRequests);
-    }
-
-    /**
      * @dev Checks if validator is whitelisted
      * @param validator The validator address
      * @return True if validator is whitelisted, otherwise returns false
@@ -75,10 +49,9 @@ contract ValidatorWhitelist is Verifier {
     }
 
     function _addValidatorToWhitelist(IRequestValidator validator) internal {
-        require(
-            IERC165(address(validator)).supportsInterface(type(IRequestValidator).interfaceId),
-            "Validator doesn't support relevant interface"
-        );
+        if (!IERC165(address(validator)).supportsInterface(type(IRequestValidator).interfaceId)) {
+            revert ValidatorNotSupportInterface(address(validator));
+        }
 
         _getValidatorWhitelistStorage()._validatorWhitelist[validator] = true;
     }
@@ -98,5 +71,13 @@ contract ValidatorWhitelist is Verifier {
         returns (IVerifier.RequestData storage)
     {
         return super._getRequestIfCanBeVerified(requestId);
+    }
+
+    function _setRequest(Request calldata request) internal virtual override {
+        IRequestValidator validator = request.validator;
+        if (!isWhitelistedValidator(validator)) {
+            revert ValidatorIsNotWhitelisted(address(validator));
+        }
+        super._setRequest(request);
     }
 }

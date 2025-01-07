@@ -23,7 +23,6 @@ error AuthResponsesExactlyOneRequired();
 error LinkIDNotTheSameForGroupedRequests(uint256 requestLinkID, uint256 requestLinkIDToCompare);
 error UserIDNotFound(uint256 userID);
 error UserIDNotLinkedToAddress(uint256 userID, address userAddress);
-error ValidatorNotSupportInterface(address validator);
 
 abstract contract Verifier is IVerifier, ContextUpgradeable {
     /// @dev Key to retrieve the linkID from the proof storage
@@ -97,7 +96,9 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      * @dev Modifier to check if the request exists
      */
     modifier checkRequestGroupExistence(Request memory request, bool existence) {
-        IRequestValidator.RequestParams memory requestParams = request.validator.getRequestParams(request.params);
+        IRequestValidator.RequestParams memory requestParams = request.validator.getRequestParams(
+            request.params
+        );
 
         if (requestParams.groupID != 0) {
             if (existence) {
@@ -218,9 +219,11 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
     function _setRequest(
         Request calldata request
-    ) internal checkRequestExistence(request.requestId, false) {
+    ) internal virtual checkRequestExistence(request.requestId, false) {
         VerifierStorage storage s = _getVerifierStorage();
-        IRequestValidator.RequestParams memory requestParams = request.validator.getRequestParams(request.params);
+        IRequestValidator.RequestParams memory requestParams = request.validator.getRequestParams(
+            request.params
+        );
 
         s._requests[request.requestId] = IVerifier.RequestData({
             metadata: request.metadata,
@@ -240,7 +243,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function setRequests(
         Request[] calldata singleRequests,
         GroupedRequests[] calldata groupedRequests
-    ) public virtual {
+    ) public {
         VerifierStorage storage s = _getVerifierStorage();
 
         for (uint256 i = 0; i < singleRequests.length; i++) {
@@ -314,12 +317,11 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         // check that all the single requests doesn't have group
         for (uint256 i = 0; i < requestIds.length; i++) {
-            IRequestValidator.RequestParams memory requestParams = s._requests[requestIds[i]].validator.getRequestParams(
-                s._requests[requestIds[i]].params
-            );
-            if (
-                requestParams.groupID != 0
-            ) {
+            IRequestValidator.RequestParams memory requestParams = s
+                ._requests[requestIds[i]]
+                .validator
+                .getRequestParams(s._requests[requestIds[i]].params);
+            if (requestParams.groupID != 0) {
                 revert RequestIsAlreadyGrouped(requestIds[i]);
             }
         }
@@ -419,8 +421,10 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         IVerifier.Request calldata request
     ) internal checkRequestExistence(request.requestId, true) {
         VerifierStorage storage s = _getVerifierStorage();
-        IRequestValidator.RequestParams memory requestParams = request.validator.getRequestParams(request.params);
-        
+        IRequestValidator.RequestParams memory requestParams = request.validator.getRequestParams(
+            request.params
+        );
+
         s._requests[request.requestId] = IVerifier.RequestData({
             metadata: request.metadata,
             validator: request.validator,

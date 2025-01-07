@@ -408,6 +408,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     // can't whitelist validator, which does not support ICircuitValidator interface
     await expect(verifier.addValidatorToWhitelist(someAddress)).to.be.rejected;
 
+    // not a validator with proper interface and even not supporting IERC165 interface to check it
     await expect(
       verifier.setRequests(
         [
@@ -420,7 +421,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
         ],
         [],
       ),
-    ).to.be.rejectedWith(`ValidatorIsNotWhitelisted("${await someAddress.getAddress()}")`);
+    ).to.be.rejectedWith(`function returned an unexpected amount of data`);
 
     await verifier.removeValidatorFromWhitelist(mtpValAddr);
     await verifier.setAuthType({

@@ -101,40 +101,6 @@ contract UniversalVerifier is
     }
 
     /**
-     * @dev Sets different requests
-     * @param singleRequests The requests that are not in any group
-     * @param groupedRequests The requests that are in a group
-     */
-    function setRequests(
-        IVerifier.Request[] calldata singleRequests,
-        IVerifier.GroupedRequests[] calldata groupedRequests
-    ) public override(RequestOwnership, ValidatorWhitelist, Verifier) {
-        super.setRequests(singleRequests, groupedRequests);
-
-        for (uint256 i = 0; i < singleRequests.length; i++) {
-            emit RequestSet(
-                singleRequests[i].requestId,
-                _msgSender(),
-                singleRequests[i].metadata,
-                address(singleRequests[i].validator),
-                singleRequests[i].params
-            );
-        }
-
-        for (uint256 i = 0; i < groupedRequests.length; i++) {
-            for (uint256 j = 0; j < groupedRequests[i].requests.length; j++) {
-                emit RequestSet(
-                    groupedRequests[i].requests[j].requestId,
-                    _msgSender(),
-                    groupedRequests[i].requests[j].metadata,
-                    address(groupedRequests[i].requests[j].validator),
-                    groupedRequests[i].requests[j].params
-                );
-            }
-        }
-    }
-
-    /**
      * @dev Updates a request
      * @param request The request data
      */
@@ -252,5 +218,18 @@ contract UniversalVerifier is
         returns (IVerifier.RequestData storage)
     {
         return super._getRequestIfCanBeVerified(requestId);
+    }
+
+    function _setRequest(
+        Request calldata request
+    ) internal virtual override(RequestOwnership, ValidatorWhitelist, Verifier) {
+        super._setRequest(request);
+        emit RequestSet(
+            request.requestId,
+            _msgSender(),
+            request.metadata,
+            address(request.validator),
+            request.params
+        );
     }
 }
