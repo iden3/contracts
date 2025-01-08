@@ -27,44 +27,38 @@ abstract contract EmbeddedVerifier is Ownable2StepUpgradeable, Verifier {
 
     /**
      * @dev Submits an array of responses and updates proofs status
-     * @param authResponses The list of auth responses including auth type and proof
-     * @param singleResponses The list of responses including request ID, proof and metadata for single requests
-     * @param groupedResponses The list of responses including request ID, proof and metadata for grouped requests
+     * @param authResponse Auth response including auth type and proof
+     * @param responses The list of responses including request ID, proof and metadata for requests
      * @param crossChainProofs The list of cross chain proofs from universal resolver (oracle). This
      * includes identities and global states.
      */
     function submitResponse(
-        AuthResponse[] memory authResponses,
-        Response[] memory singleResponses,
-        GroupedResponses[] memory groupedResponses,
+        AuthResponse memory authResponse,
+        Response[] memory responses,
         bytes memory crossChainProofs
     ) public virtual override {
-        _beforeProofSubmit(authResponses, singleResponses, groupedResponses);
-        super.submitResponse(authResponses, singleResponses, groupedResponses, crossChainProofs);
-        _afterProofSubmit(authResponses, singleResponses, groupedResponses);
+        _beforeProofSubmit(authResponse, responses);
+        super.submitResponse(authResponse, responses, crossChainProofs);
+        _afterProofSubmit(authResponse, responses);
     }
 
     /**
      * @dev Hook that is called before any proof response submit
-     * @param authResponses The list of auth responses including auth type and proof
-     * @param singleResponses The list of responses including request ID, proof and metadata for single requests
-     * @param groupedResponses The list of responses including request ID, proof and metadata for grouped requests
+     * @param authResponse Auth response including auth type and proof
+     * @param responses The list of responses including request ID, proof and metadata for requests
      */
     function _beforeProofSubmit(
-        AuthResponse[] memory authResponses,
-        Response[] memory singleResponses,
-        GroupedResponses[] memory groupedResponses
+        AuthResponse memory authResponse,
+        Response[] memory responses
     ) internal virtual {}
 
     /**
      * @dev Hook that is called after any proof response submit
-     * @param authResponses The list of auth responses including auth type and proof
-     * @param singleResponses The list of responses including request ID, proof and metadata for single requests
-     * @param groupedResponses The list of responses including request ID, proof and metadata for grouped requests
+     * @param authResponse The list of auth responses including auth type and proof
+     * @param responses The list of responses including request ID, proof and metadata for requests
      */
     function _afterProofSubmit(
-        AuthResponse[] memory authResponses,
-        Response[] memory singleResponses,
-        GroupedResponses[] memory groupedResponses
+        AuthResponse memory authResponse,
+        Response[] memory responses
     ) internal virtual {}
 }

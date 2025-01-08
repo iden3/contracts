@@ -170,14 +170,11 @@ describe("Universal Verifier submitResponse SigV2 validators", function () {
     const crossChainProofs = "0x";
 
     const tx = await verifier.submitResponse(
-      [
-        {
-          authType: authType,
-          proof: singleProof[0].proof,
-        },
-      ],
+      {
+        authType: authType,
+        proof: singleProof[0].proof,
+      },
       singleProof,
-      [],
       crossChainProofs,
     );
 
@@ -205,14 +202,11 @@ describe("Universal Verifier submitResponse SigV2 validators", function () {
 
     const requestIdsMulti = requestIds.slice(1, 3);
     const txMulti = await verifier.submitResponse(
-      [
-        {
-          authType: authType,
-          proof: singleProof[0].proof,
-        },
-      ],
+      {
+        authType: authType,
+        proof: singleProof[0].proof,
+      },
       multiProof,
-      [],
       crossChainProofs,
     );
 
@@ -240,14 +234,11 @@ describe("Universal Verifier submitResponse SigV2 validators", function () {
     await verifier.disableRequest(0);
     await expect(
       verifier.submitResponse(
-        [
-          {
-            authType: authType,
-            proof: singleProof[0].proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof: singleProof[0].proof,
+        },
         singleProof,
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith(`RequestIsDisabled(${singleProof[0].requestId})`);
@@ -255,14 +246,11 @@ describe("Universal Verifier submitResponse SigV2 validators", function () {
     await verifier.disableRequest(1);
     await expect(
       verifier.submitResponse(
-        [
-          {
-            authType: authType,
-            proof: singleProof[0].proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof: singleProof[0].proof,
+        },
         multiProof,
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith(`RequestIsDisabled(${multiProof[0].requestId})`);
@@ -270,14 +258,11 @@ describe("Universal Verifier submitResponse SigV2 validators", function () {
     await verifier.enableRequest(0);
     await expect(
       verifier.submitResponse(
-        [
-          {
-            authType: authType,
-            proof: singleProof[0].proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof: singleProof[0].proof,
+        },
         singleProof,
-        [],
         crossChainProofs,
       ),
     ).not.to.be.rejected;
@@ -285,14 +270,11 @@ describe("Universal Verifier submitResponse SigV2 validators", function () {
     await verifier.enableRequest(1);
     await expect(
       verifier.submitResponse(
-        [
-          {
-            authType: authType,
-            proof: singleProof[0].proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof: singleProof[0].proof,
+        },
         multiProof,
-        [],
         crossChainProofs,
       ),
     ).not.to.be.rejected;
@@ -302,27 +284,21 @@ describe("Universal Verifier submitResponse SigV2 validators", function () {
     await verifier.removeValidatorFromWhitelist(await sig.getAddress());
     await expect(
       verifier.submitResponse(
-        [
-          {
-            authType: authType,
-            proof: singleProof[0].proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof: singleProof[0].proof,
+        },
         singleProof,
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith(`ValidatorIsNotWhitelisted("${await sig.getAddress()}")`);
     await expect(
       verifier.submitResponse(
-        [
-          {
-            authType: authType,
-            proof: singleProof[0].proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof: singleProof[0].proof,
+        },
         multiProof,
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith(`ValidatorIsNotWhitelisted("${await sig.getAddress()}")`);
@@ -330,27 +306,21 @@ describe("Universal Verifier submitResponse SigV2 validators", function () {
     await verifier.addValidatorToWhitelist(await sig.getAddress());
     await expect(
       verifier.submitResponse(
-        [
-          {
-            authType: authType,
-            proof: singleProof[0].proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof: singleProof[0].proof,
+        },
         singleProof,
-        [],
         crossChainProofs,
       ),
     ).not.to.be.rejected;
     await expect(
       verifier.submitResponse(
-        [
-          {
-            authType: authType,
-            proof: singleProof[0].proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof: singleProof[0].proof,
+        },
         multiProof,
-        [],
         crossChainProofs,
       ),
     ).not.to.be.rejected;

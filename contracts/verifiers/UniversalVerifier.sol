@@ -129,31 +129,21 @@ contract UniversalVerifier is
 
     /**
      * @dev Submits an array of responses and updates proofs status
-     * @param authResponses The list of auth responses including auth type and proof
-     * @param singleResponses The list of responses including request ID, proof and metadata for single requests
-     * @param groupedResponses The list of responses including request ID, proof and metadata for grouped requests
+     * @param authResponse Auth responses including auth type and proof
+     * @param responses The list of responses including request ID, proof and metadata for requests
      * @param crossChainProofs The list of cross chain proofs from universal resolver (oracle). This
      * includes identities and global states.
      */
     function submitResponse(
-        AuthResponse[] memory authResponses,
-        Response[] memory singleResponses,
-        GroupedResponses[] memory groupedResponses,
+        AuthResponse memory authResponse,
+        Response[] memory responses,
         bytes memory crossChainProofs
     ) public override {
-        super.submitResponse(authResponses, singleResponses, groupedResponses, crossChainProofs);
-        for (uint256 i = 0; i < authResponses.length; i++) {
-            emit AuthResponseSubmitted(authResponses[i].authType, _msgSender());
-        }
+        super.submitResponse(authResponse, responses, crossChainProofs);
+        emit AuthResponseSubmitted(authResponse.authType, _msgSender());
 
-        for (uint256 i = 0; i < singleResponses.length; i++) {
-            emit ResponseSubmitted(singleResponses[i].requestId, _msgSender());
-        }
-
-        for (uint256 i = 0; i < groupedResponses.length; i++) {
-            for (uint256 j = 0; j < groupedResponses[i].responses.length; j++) {
-                emit ResponseSubmitted(groupedResponses[i].responses[j].requestId, _msgSender());
-            }
+        for (uint256 i = 0; i < responses.length; i++) {
+            emit ResponseSubmitted(responses[i].requestId, _msgSender());
         }
     }
 

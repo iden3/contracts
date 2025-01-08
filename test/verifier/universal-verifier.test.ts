@@ -169,12 +169,10 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const metadatas = "0x";
 
     const tx = await verifier.submitResponse(
-      [
-        {
-          authType: authType,
-          proof,
-        },
-      ],
+      {
+        authType: authType,
+        proof,
+      },
       [
         {
           requestId: 0,
@@ -182,7 +180,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
           metadata: metadatas,
         },
       ],
-      [],
       crossChainProofs,
     );
 
@@ -310,12 +307,10 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const metadatas = "0x";
 
     await verifier.submitResponse(
-      [
-        {
-          authType: authType,
-          proof,
-        },
-      ],
+      {
+        authType: authType,
+        proof,
+      },
       [
         {
           requestId: requestId,
@@ -323,19 +318,16 @@ describe("Universal Verifier MTP & SIG validators", function () {
           metadata: metadatas,
         },
       ],
-      [],
       crossChainProofs,
     );
 
     await verifier.connect(requestOwner).disableRequest(requestId);
     await expect(
       verifier.submitResponse(
-        [
-          {
-            authType: authType,
-            proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof,
+        },
         [
           {
             requestId: requestId,
@@ -343,7 +335,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
             metadata: metadatas,
           },
         ],
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith(`RequestIsDisabled(${requestId})`);
@@ -444,12 +435,10 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const metadatas = "0x";
     await expect(
       verifier.submitResponse(
-        [
-          {
-            authType: authType,
-            proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof,
+        },
         [
           {
             requestId: requestId,
@@ -457,7 +446,6 @@ describe("Universal Verifier MTP & SIG validators", function () {
             metadata: metadatas,
           },
         ],
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith(`ValidatorIsNotWhitelisted("${mtpValAddr}")`);

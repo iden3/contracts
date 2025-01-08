@@ -184,12 +184,10 @@ describe("Universal Verifier V3 validator", function () {
 
     await expect(
       verifier.submitResponse(
-        [
-          {
-            authType: authType,
-            proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof,
+        },
         [
           {
             requestId,
@@ -197,7 +195,6 @@ describe("Universal Verifier V3 validator", function () {
             metadata: metadatas,
           },
         ],
-        [],
         crossChainProofs,
       ),
     ).not.to.be.rejected;
@@ -216,12 +213,10 @@ describe("Universal Verifier V3 validator", function () {
 
     await expect(
       verifier.connect(signer2).submitResponse(
-        [
-          {
-            authType: authType,
-            proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof,
+        },
         [
           {
             requestId,
@@ -229,7 +224,6 @@ describe("Universal Verifier V3 validator", function () {
             metadata: metadatas,
           },
         ],
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith("UserID does not correspond to the sender");
@@ -258,12 +252,10 @@ describe("Universal Verifier V3 validator", function () {
 
     await expect(
       verifier.connect(signer).submitResponse(
-        [
-          {
-            authType: authType,
-            proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof,
+        },
         [
           {
             requestId,
@@ -271,7 +263,6 @@ describe("Universal Verifier V3 validator", function () {
             metadata: metadatas,
           },
         ],
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith("Issuer is not on the Allowed Issuers list");
@@ -304,12 +295,10 @@ describe("Universal Verifier V3 validator", function () {
 
     await expect(
       verifier.connect(signer).submitResponse(
-        [
-          {
-            authType: authType,
-            proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof,
+        },
         [
           {
             requestId,
@@ -317,7 +306,6 @@ describe("Universal Verifier V3 validator", function () {
             metadata: metadatas,
           },
         ],
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith("Invalid Link ID pub signal");
@@ -350,12 +338,10 @@ describe("Universal Verifier V3 validator", function () {
 
     await expect(
       verifier.connect(signer).submitResponse(
-        [
-          {
-            authType: authType,
-            proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof,
+        },
         [
           {
             requestId,
@@ -363,7 +349,6 @@ describe("Universal Verifier V3 validator", function () {
             metadata: metadatas,
           },
         ],
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith("Proof type should match the requested one in query");
@@ -396,12 +381,10 @@ describe("Universal Verifier V3 validator", function () {
 
     await expect(
       verifier.connect(signer).submitResponse(
-        [
-          {
-            authType: authType,
-            proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof,
+        },
         [
           {
             requestId,
@@ -409,7 +392,6 @@ describe("Universal Verifier V3 validator", function () {
             metadata: metadatas,
           },
         ],
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith("Invalid nullify pub signal");
@@ -442,12 +424,10 @@ describe("Universal Verifier V3 validator", function () {
 
     await expect(
       verifier.connect(signer).submitResponse(
-        [
-          {
-            authType: authType,
-            proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof,
+        },
         [
           {
             requestId,
@@ -455,7 +435,6 @@ describe("Universal Verifier V3 validator", function () {
             metadata: metadatas,
           },
         ],
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith("Query hash does not match the requested one");
@@ -502,12 +481,10 @@ describe("Universal Verifier V3 validator", function () {
 
     await expect(
       verifier.connect(signer).submitResponse(
-        [
-          {
-            authType: authType,
-            proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof,
+        },
         [
           {
             requestId,
@@ -515,7 +492,6 @@ describe("Universal Verifier V3 validator", function () {
             metadata: metadatas,
           },
         ],
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith("Generated proof is outdated");

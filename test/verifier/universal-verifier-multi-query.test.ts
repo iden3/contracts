@@ -246,12 +246,10 @@ describe("Universal Verifier Multi-request", function () {
     const metadatas = "0x";
 
     const tx = await verifier.submitResponse(
-      [
-        {
-          authType: authType,
-          proof,
-        },
-      ],
+      {
+        authType: authType,
+        proof,
+      },
       [
         {
           requestId,
@@ -259,7 +257,6 @@ describe("Universal Verifier Multi-request", function () {
           metadata: metadatas,
         },
       ],
-      [],
       crossChainProofs,
     );
 
@@ -379,21 +376,13 @@ describe("Universal Verifier Multi-request", function () {
     const metadatas = "0x";
 
     const tx = await verifier.submitResponse(
+      {
+        authType: authType,
+        proof,
+      },
       [
-        {
-          authType: authType,
-          proof,
-        },
-      ],
-      [],
-      [
-        {
-          groupId: groupId,
-          responses: [
-            { requestId: requestId2, proof, metadata: metadatas },
-            { requestId: requestId3, proof, metadata: metadatas },
-          ],
-        },
+        { requestId: requestId2, proof, metadata: metadatas },
+        { requestId: requestId3, proof, metadata: metadatas },
       ],
       crossChainProofs,
     );
@@ -487,21 +476,13 @@ describe("Universal Verifier Multi-request", function () {
 
     const metadatas = "0x";
     const tx = await verifier.submitResponse(
+      {
+        authType: authType,
+        proof,
+      },
       [
-        {
-          authType: authType,
-          proof,
-        },
-      ],
-      [],
-      [
-        {
-          groupId: groupId,
-          responses: [
-            { requestId: requestId2, proof, metadata: metadatas },
-            { requestId: requestId3, proof, metadata: metadatas },
-          ],
-        },
+        { requestId: requestId2, proof, metadata: metadatas },
+        { requestId: requestId3, proof, metadata: metadatas },
       ],
       crossChainProofs,
     );

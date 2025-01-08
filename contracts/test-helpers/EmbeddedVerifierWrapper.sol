@@ -8,14 +8,12 @@ import {IVerifier} from "../interfaces/IVerifier.sol";
 
 contract EmbeddedVerifierWrapper is EmbeddedVerifier {
     event BeforeProofSubmit(
-        AuthResponse[] authResponses,
-        Response[] singleResponses,
-        GroupedResponses[] groupedResponses
+        AuthResponse authResponse,
+        Response[] responses
     );
     event AfterProofSubmit(
-        AuthResponse[] authResponses,
-        Response[] singleResponses,
-        GroupedResponses[] groupedResponses
+        AuthResponse authResponse,
+        Response[] responses
     );
 
     function initialize(address initialOwner, IState state) public initializer {
@@ -23,18 +21,16 @@ contract EmbeddedVerifierWrapper is EmbeddedVerifier {
     }
 
     function _beforeProofSubmit(
-        AuthResponse[] memory authResponses,
-        Response[] memory singleResponses,
-        GroupedResponses[] memory groupedResponses
+        AuthResponse memory authResponse,
+        Response[] memory responses
     ) internal override {
-        emit BeforeProofSubmit(authResponses, singleResponses, groupedResponses);
+        emit BeforeProofSubmit(authResponse, responses);
     }
 
     function _afterProofSubmit(
-        AuthResponse[] memory authResponses,
-        Response[] memory singleResponses,
-        GroupedResponses[] memory groupedResponses
+        AuthResponse memory authResponse,
+        Response[] memory responses
     ) internal override {
-        emit AfterProofSubmit(authResponses, singleResponses, groupedResponses);
+        emit AfterProofSubmit(authResponse, responses);
     }
 }

@@ -19,7 +19,6 @@ error AuthTypeNotFound(string authType);
 error AuthTypeAlreadyExists(string authType);
 error ValidatorNotWhitelisted(address validator);
 error RequestIsAlreadyGrouped(uint256 requestId);
-error AuthResponsesExactlyOneRequired();
 error LinkIDNotTheSameForGroupedRequests(uint256 requestLinkID, uint256 requestLinkIDToCompare);
 error UserIDNotFound(uint256 userID);
 error UserIDNotLinkedToAddress(uint256 userID, address userAddress);
@@ -329,16 +328,14 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
     /**
      * @dev Submits an array of responses and updates proofs status
-     * @param authResponses The list of auth responses including auth type and proof
-     * @param singleResponses The list of responses including request ID, proof and metadata for single requests
-     * @param groupedResponses The list of responses including request ID, proof and metadata for grouped requests
+     * @param authResponse Auth response including auth type and proof
+     * @param responses The list of responses including request ID, proof and metadata for requests
      * @param crossChainProofs The list of cross chain proofs from universal resolver (oracle). This
      * includes identities and global states.
      */
     function submitResponse(
-        AuthResponse[] memory authResponses,
-        Response[] memory singleResponses,
-        GroupedResponses[] memory groupedResponses,
+        AuthResponse memory authResponse,
+        Response[] memory responses,
         bytes memory crossChainProofs
     ) public virtual {
         VerifierStorage storage $ = _getVerifierStorage();
@@ -349,17 +346,11 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         // TODO: Get userID from responses that has userID informed (LinkedMultiquery doesn't have userID)
 
-        // 2. Process auth response first
-        if (authResponses.length != 1) {
-            // TODO: Check if it's already authenticated or it's an ethereum identity
-            revert AuthResponsesExactlyOneRequired();
-        }
-
         uint256 userIDFromReponse;
-        AuthTypeData storage authTypeData = $._authMethods[authResponses[0].authType];
+        AuthTypeData storage authTypeData = $._authMethods[authResponse.authType];
         // Authenticate user
         IAuthValidator.ResponseField[] memory authSignals = authTypeData.validator.verify(
-            authResponses[0].proof,
+            authResponse.proof,
             authTypeData.params,
             sender,
             $._state
@@ -374,24 +365,24 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         // For some reason the auth request doesn't return the userID in the response
         if (userIDFromReponse != 0) {
-            $.writeAuthProofResults(authResponses[0].authType, userIDFromReponse, authSignals);
+            $.writeAuthProofResults(authResponse.authType, userIDFromReponse, authSignals);
             // Link userID and user address
             $._user_address_to_id[sender] = userIDFromReponse;
             $._id_to_user_address[userIDFromReponse] = sender;
             $._user_auth_timestamp[userIDFromReponse][sender] = block.timestamp;
         }
 
-        // 3. Get userID from latest auth response processed in this submitResponse or before
+        // 2. Get userID from latest auth response processed in this submitResponse or before
         uint256 userID = $._user_address_to_id[sender];
 
         if (userID == 0) {
             revert("The user is not authenticated");
         }
 
-        // 4. Verify all the single responses, write proof results (under the userID key from the auth of the user),
+        // 3. Verify all the responses, write proof results (under the userID key from the auth of the user),
         //      emit events (existing logic)
-        for (uint256 i = 0; i < singleResponses.length; i++) {
-            IVerifier.Response memory response = singleResponses[i];
+        for (uint256 i = 0; i < responses.length; i++) {
+            IVerifier.Response memory response = responses[i];
             IVerifier.RequestData storage request = _getRequestIfCanBeVerified(response.requestId);
 
             IRequestValidator.ResponseField[] memory signals = request.validator.verify(
@@ -407,10 +398,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                 revert("Metadata not supported yet");
             }
         }
-
-        // 5. Verify all the grouped responses, write proof results (under the userID key from the auth of the user),
-        //      emit events (existing logic)
-        _verifyGroupedResponses(groupedResponses, userID, sender);
     }
 
     /**
@@ -432,34 +419,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             creator: _msgSender(),
             verifierId: requestParams.verifierID
         });
-    }
-
-    function _verifyGroupedResponses(
-        IVerifier.GroupedResponses[] memory groupedResponses,
-        uint256 userID,
-        address sender
-    ) internal {
-        VerifierStorage storage $ = _getVerifierStorage();
-
-        for (uint256 i = 0; i < groupedResponses.length; i++) {
-            for (uint256 j = 0; j < groupedResponses[i].responses.length; j++) {
-                IVerifier.Response memory response = groupedResponses[i].responses[j];
-                IVerifier.RequestData storage request = $._requests[response.requestId];
-
-                IRequestValidator.ResponseField[] memory signals = request.validator.verify(
-                    response.proof,
-                    request.params,
-                    sender,
-                    $._state
-                );
-
-                $.writeProofResults(response.requestId, userID, signals);
-
-                if (response.metadata.length > 0) {
-                    revert("Metadata not supported yet");
-                }
-            }
-        }
     }
 
     /**
