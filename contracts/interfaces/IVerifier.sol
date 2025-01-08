@@ -143,14 +143,14 @@ interface IVerifier {
     }
 
     /**
-     * @dev Query. Structure for query.
-     * @param queryId Query id.
-     * @param requestIds Request ids for this multi query (without groupId. Single requests).
-     * @param groupIds Group ids for this multi query (all the requests included in the group. Grouped requests).
-     * @param metadata Metadata for the query. Empty in first version.
+     * @dev MultiRequest. Structure for multiRequest.
+     * @param multiRequestId MultiRequest id.
+     * @param requestIds Request ids for this multi multiRequest (without groupId. Single requests).
+     * @param groupIds Group ids for this multi multiRequest (all the requests included in the group. Grouped requests).
+     * @param metadata Metadata for the multiRequest. Empty in first version.
      */
-    struct Query {
-        uint256 queryId;
+    struct MultiRequest {
+        uint256 multiRequestId;
         uint256[] requestIds;
         uint256[] groupIds;
         bytes metadata;
@@ -202,13 +202,13 @@ interface IVerifier {
     function requestIdExists(uint256 requestId) external view returns (bool);
 
     /**
-     * @dev Gets the status of the query verification
-     * @param queryId The ID of the query
+     * @dev Gets the status of the multiRequest verification
+     * @param multiRequestId The ID of the MultiRequest
      * @param userAddress The address of the user
-     * @return status The status of the query. "True" if all requests are verified, "false" otherwise
+     * @return status The status of the MultiRequest. "True" if all requests are verified, "false" otherwise
      */
-    function getQueryStatus(
-        uint256 queryId,
+    function getMultiRequestStatus(
+        uint256 multiRequestId,
         address userAddress
     ) external view returns (AuthProofStatus[] memory, RequestProofStatus[] memory);
 
@@ -239,17 +239,17 @@ interface IVerifier {
     function setAuthType(AuthType calldata authType) external;
 
     /**
-     * @dev Sets a query
-     * @param query The query data
+     * @dev Sets a multiRequest
+     * @param multiRequest The multiRequest data
      */
-    function setQuery(Query calldata query) external;
+    function setMultiRequest(MultiRequest calldata multiRequest) external;
 
     /**
-     * @dev Gets a specific multi query by ID
-     * @param queryId The ID of the multi query
-     * @return query The query data
+     * @dev Gets a specific multiRequest by ID
+     * @param multiRequestId The ID of the multiRequest
+     * @return multiRequest The multiRequest data
      */
-    function getQuery(uint256 queryId) external view returns (IVerifier.Query memory query);
+    function getMultiRequest(uint256 multiRequestId) external view returns (MultiRequest memory multiRequest);
 
     /**
      * @dev Get the proof status for the sender and request with requestId.

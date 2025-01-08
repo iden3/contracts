@@ -61,14 +61,14 @@ contract UniversalVerifier is
     );
 
     /**
-     * @dev Event emitted upon adding a query
+     * @dev Event emitted upon adding a multiRequest
      */
-    event QuerySet(uint256 indexed queryId, uint256[] requestIds);
+    event MultiRequestSet(uint256 indexed multiRequestId, uint256[] requestIds);
 
     /**
-     * @dev Event emitted upon updating a query
+     * @dev Event emitted upon updating a multiRequest
      */
-    event QueryUpdate(uint256 indexed queryId, uint256[] requestIds);
+    event MultiRequestUpdate(uint256 indexed multiRequestId, uint256[] requestIds);
 
     /// @dev Modifier to check if the caller is the contract Owner or ZKP Request Owner
     modifier onlyOwnerOrRequestOwner(uint256 requestId) {
@@ -117,14 +117,14 @@ contract UniversalVerifier is
     }
 
     /**
-     * @dev Sets a query
-     * @param query The query data
+     * @dev Sets a multiRequest
+     * @param multiRequest The multiRequest data
      */
-    function setQuery(
-        Query calldata query
-    ) public override checkQueryExistence(query.queryId, false) {
-        super.setQuery(query);
-        emit QuerySet(query.queryId, query.requestIds);
+    function setMultiRequest(
+        IVerifier.MultiRequest calldata multiRequest
+    ) public override checkMultiRequestExistence(multiRequest.multiRequestId, false) {
+        super.setMultiRequest(multiRequest);
+        emit MultiRequestSet(multiRequest.multiRequestId, multiRequest.requestIds);
     }
 
     /**

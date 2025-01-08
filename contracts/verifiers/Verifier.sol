@@ -13,8 +13,8 @@ error RequestIdNotFound(uint256 requestId);
 error RequestAlreadyExists(uint256 requestId);
 error GroupIdNotFound(uint256 groupId);
 error GroupIdAlreadyExists(uint256 groupId);
-error QueryIdNotFound(uint256 queryId);
-error QueryIdAlreadyExists(uint256 queryId);
+error MultiRequestIdNotFound(uint256 multiRequestId);
+error MultiRequestIdAlreadyExists(uint256 multiRequestId);
 error AuthTypeNotFound(string authType);
 error AuthTypeAlreadyExists(string authType);
 error ValidatorNotWhitelisted(address validator);
@@ -54,9 +54,9 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         mapping(uint256 groupId => uint256[] requestIds) _groupedRequests;
         uint256[] _groupIds;
         IState _state;
-        // Information about queries
-        mapping(uint256 queryId => Query) _queries;
-        uint256[] _queryIds;
+        // Information about multiRequests
+        mapping(uint256 multiRequestId => IVerifier.MultiRequest) _multiRequests;
+        uint256[] _multiRequestIds;
         // Information linked between users and their addresses
         mapping(address userAddress => uint256 userID) _user_address_to_id;
         mapping(uint256 userID => address userAddress) _id_to_user_address;
@@ -115,16 +115,16 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     }
 
     /**
-     * @dev Modifier to check if the query exists
+     * @dev Modifier to check if the multiRequest exists
      */
-    modifier checkQueryExistence(uint256 queryId, bool existence) {
+    modifier checkMultiRequestExistence(uint256 multiRequestId, bool existence) {
         if (existence) {
-            if (!queryIdExists(queryId)) {
-                revert QueryIdNotFound(queryId);
+            if (!multiRequestIdExists(multiRequestId)) {
+                revert MultiRequestIdNotFound(multiRequestId);
             }
         } else {
-            if (queryIdExists(queryId)) {
-                revert QueryIdAlreadyExists(queryId);
+            if (multiRequestIdExists(multiRequestId)) {
+                revert MultiRequestIdAlreadyExists(multiRequestId);
             }
         }
         _;
@@ -186,12 +186,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     }
 
     /**
-     * @dev Checks if a query ID exists
-     * @param queryId The ID of the query
-     * @return Whether the query ID exists
+     * @dev Checks if a multiRequest ID exists
+     * @param multiRequestId The ID of the multiRequest
+     * @return Whether the multiRequest ID exists
      */
-    function queryIdExists(uint256 queryId) public view returns (bool) {
-        return _getVerifierStorage()._queries[queryId].queryId == queryId;
+    function multiRequestIdExists(uint256 multiRequestId) public view returns (bool) {
+        return _getVerifierStorage()._multiRequests[multiRequestId].multiRequestId == multiRequestId;
     }
 
     /**
@@ -287,33 +287,33 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     }
 
     /**
-     * @dev Sets a query
-     * @param query The query data
+     * @dev Sets a multiRequest
+     * @param multiRequest The multiRequest data
      */
-    function setQuery(
-        IVerifier.Query calldata query
-    ) public virtual checkQueryExistence(query.queryId, false) {
+    function setMultiRequest(
+        IVerifier.MultiRequest calldata multiRequest
+    ) public virtual checkMultiRequestExistence(multiRequest.multiRequestId, false) {
         VerifierStorage storage s = _getVerifierStorage();
-        s._queries[query.queryId] = query;
-        s._queryIds.push(query.queryId);
+        s._multiRequests[multiRequest.multiRequestId] = multiRequest;
+        s._multiRequestIds.push(multiRequest.multiRequestId);
 
-        // checks for all the requests in this query
-        _checkRequestsInQuery(query.queryId);
+        // checks for all the requests in this multiRequest
+        _checkRequestsInMultiRequest(multiRequest.multiRequestId);
     }
 
     /**
-     * @dev Gets a specific multi query by ID
-     * @param queryId The ID of the multi query
-     * @return query The query data
+     * @dev Gets a specific multiRequest by ID
+     * @param multiRequestId The ID of the multiRequest
+     * @return multiRequest The multiRequest data
      */
-    function getQuery(uint256 queryId) public view returns (IVerifier.Query memory query) {
-        return _getVerifierStorage()._queries[queryId];
+    function getMultiRequest(uint256 multiRequestId) public view returns (IVerifier.MultiRequest memory multiRequest) {
+        return _getVerifierStorage()._multiRequests[multiRequestId];
     }
 
-    function _checkRequestsInQuery(uint256 queryId) internal view {
+    function _checkRequestsInMultiRequest(uint256 multiRequestId) internal view {
         VerifierStorage storage s = _getVerifierStorage();
 
-        uint256[] memory requestIds = s._queries[queryId].requestIds;
+        uint256[] memory requestIds = s._multiRequests[multiRequestId].requestIds;
 
         // check that all the single requests doesn't have group
         for (uint256 i = 0; i < requestIds.length; i++) {
@@ -558,11 +558,11 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         return s._authProofs[authType][userID][0].storageFields[responseFieldName];
     }
 
-    function _checkLinkedResponseFields(uint256 queryId, uint256 userID) internal view {
+    function _checkLinkedResponseFields(uint256 multiRequestId, uint256 userID) internal view {
         VerifierStorage storage s = _getVerifierStorage();
 
-        for (uint256 i = 0; i < s._queries[queryId].groupIds.length; i++) {
-            uint256 groupId = s._queries[queryId].groupIds[i];
+        for (uint256 i = 0; i < s._multiRequests[multiRequestId].groupIds.length; i++) {
+            uint256 groupId = s._multiRequests[multiRequestId].groupIds[i];
 
             // Check linkID in the same group or requests is the same
             uint256 requestLinkID = getResponseFieldValue(
@@ -587,18 +587,18 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     }
 
     /**
-     * @dev Gets the status of the query verification
-     * @param queryId The ID of the query
+     * @dev Gets the status of the multiRequest verification
+     * @param multiRequestId The ID of the multiRequest
      * @param userAddress The address of the user
-     * @return status The status of the query. "True" if all requests are verified, "false" otherwise
+     * @return status The status of the multiRequest. "True" if all requests are verified, "false" otherwise
      */
-    function getQueryStatus(
-        uint256 queryId,
+    function getMultiRequestStatus(
+        uint256 multiRequestId,
         address userAddress
     )
         public
         view
-        checkQueryExistence(queryId, true)
+        checkMultiRequestExistence(multiRequestId, true)
         returns (IVerifier.AuthProofStatus[] memory, IVerifier.RequestProofStatus[] memory)
     {
         VerifierStorage storage s = _getVerifierStorage();
@@ -613,29 +613,29 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         (
             IVerifier.AuthProofStatus[] memory authProofStatus,
             IVerifier.RequestProofStatus[] memory requestProofStatus
-        ) = _getQueryStatus(queryId, userID);
+        ) = _getMultiRequestStatus(multiRequestId, userID);
 
         // 3. Check if all linked response fields are the same
-        _checkLinkedResponseFields(queryId, userID);
+        _checkLinkedResponseFields(multiRequestId, userID);
 
         return (authProofStatus, requestProofStatus);
     }
 
     /**
-     * @dev Gets the status of the query verification
-     * @param queryId The ID of the query
+     * @dev Gets the status of the multiRequest verification
+     * @param multiRequestId The ID of the multiRequest
      * @param userAddress The address of the user
      * @param userID The user id of the user
-     * @return status The status of the query. "True" if all requests are verified, "false" otherwise
+     * @return status The status of the multiRequest. "True" if all requests are verified, "false" otherwise
      */
-    function getQueryStatus(
-        uint256 queryId,
+    function getMultiRequestStatus(
+        uint256 multiRequestId,
         address userAddress,
         uint256 userID
     )
         public
         view
-        checkQueryExistence(queryId, true)
+        checkMultiRequestExistence(multiRequestId, true)
         returns (IVerifier.AuthProofStatus[] memory, IVerifier.RequestProofStatus[] memory)
     {
         VerifierStorage storage s = _getVerifierStorage();
@@ -658,16 +658,16 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         (
             IVerifier.AuthProofStatus[] memory authProofStatus,
             IVerifier.RequestProofStatus[] memory requestProofStatus
-        ) = _getQueryStatus(queryId, userIDSelected);
+        ) = _getMultiRequestStatus(multiRequestId, userIDSelected);
 
         // 3. Check if all linked response fields are the same
-        _checkLinkedResponseFields(queryId, userIDSelected);
+        _checkLinkedResponseFields(multiRequestId, userIDSelected);
 
         return (authProofStatus, requestProofStatus);
     }
 
-    function _getQueryStatus(
-        uint256 queryId,
+    function _getMultiRequestStatus(
+        uint256 multiRequestId,
         uint256 userID
     )
         internal
@@ -675,13 +675,13 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         returns (IVerifier.AuthProofStatus[] memory, IVerifier.RequestProofStatus[] memory)
     {
         VerifierStorage storage s = _getVerifierStorage();
-        Query storage query = s._queries[queryId];
+        IVerifier.MultiRequest storage multiRequest = s._multiRequests[multiRequestId];
 
         uint256 lengthGroupIds;
 
-        if (query.groupIds.length > 0) {
-            for (uint256 i = 0; i < query.groupIds.length; i++) {
-                uint256 groupId = query.groupIds[i];
+        if (multiRequest.groupIds.length > 0) {
+            for (uint256 i = 0; i < multiRequest.groupIds.length; i++) {
+                uint256 groupId = multiRequest.groupIds[i];
                 lengthGroupIds += s._groupedRequests[groupId].length;
             }
         }
@@ -691,7 +691,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         );
         IVerifier.RequestProofStatus[]
             memory requestProofStatus = new IVerifier.RequestProofStatus[](
-                query.requestIds.length + lengthGroupIds
+                multiRequest.requestIds.length + lengthGroupIds
             );
 
         for (uint256 i = 0; i < s._authTypes.length; i++) {
@@ -704,8 +704,8 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             });
         }
 
-        for (uint256 i = 0; i < query.requestIds.length; i++) {
-            uint256 requestId = query.requestIds[i];
+        for (uint256 i = 0; i < multiRequest.requestIds.length; i++) {
+            uint256 requestId = multiRequest.requestIds[i];
 
             requestProofStatus[i] = IVerifier.RequestProofStatus({
                 requestId: requestId,
@@ -715,13 +715,13 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             });
         }
 
-        for (uint256 i = 0; i < query.groupIds.length; i++) {
-            uint256 groupId = query.groupIds[i];
+        for (uint256 i = 0; i < multiRequest.groupIds.length; i++) {
+            uint256 groupId = multiRequest.groupIds[i];
 
             for (uint256 j = 0; j < s._groupedRequests[groupId].length; j++) {
                 uint256 requestId = s._groupedRequests[groupId][j];
 
-                requestProofStatus[query.requestIds.length + j] = IVerifier.RequestProofStatus({
+                requestProofStatus[multiRequest.requestIds.length + j] = IVerifier.RequestProofStatus({
                     requestId: requestId,
                     isVerified: s._proofs[requestId][userID][0].isVerified,
                     validatorVersion: s._proofs[requestId][userID][0].validatorVersion,
