@@ -190,7 +190,8 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      * @return Whether the multiRequest ID exists
      */
     function multiRequestIdExists(uint256 multiRequestId) public view returns (bool) {
-        return _getVerifierStorage()._multiRequests[multiRequestId].multiRequestId == multiRequestId;
+        return
+            _getVerifierStorage()._multiRequests[multiRequestId].multiRequestId == multiRequestId;
     }
 
     /**
@@ -305,7 +306,9 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      * @param multiRequestId The ID of the multiRequest
      * @return multiRequest The multiRequest data
      */
-    function getMultiRequest(uint256 multiRequestId) public view returns (IVerifier.MultiRequest memory multiRequest) {
+    function getMultiRequest(
+        uint256 multiRequestId
+    ) public view returns (IVerifier.MultiRequest memory multiRequest) {
         return _getVerifierStorage()._multiRequests[multiRequestId];
     }
 
@@ -680,12 +683,13 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             for (uint256 j = 0; j < s._groupedRequests[groupId].length; j++) {
                 uint256 requestId = s._groupedRequests[groupId][j];
 
-                requestProofStatus[multiRequest.requestIds.length + j] = IVerifier.RequestProofStatus({
-                    requestId: requestId,
-                    isVerified: s._proofs[requestId][userID][0].isVerified,
-                    validatorVersion: s._proofs[requestId][userID][0].validatorVersion,
-                    timestamp: s._proofs[requestId][userID][0].blockTimestamp
-                });
+                requestProofStatus[multiRequest.requestIds.length + j] = IVerifier
+                    .RequestProofStatus({
+                        requestId: requestId,
+                        isVerified: s._proofs[requestId][userID][0].isVerified,
+                        validatorVersion: s._proofs[requestId][userID][0].validatorVersion,
+                        timestamp: s._proofs[requestId][userID][0].blockTimestamp
+                    });
             }
         }
 

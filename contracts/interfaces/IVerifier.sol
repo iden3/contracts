@@ -247,7 +247,9 @@ interface IVerifier {
      * @param multiRequestId The ID of the multiRequest
      * @return multiRequest The multiRequest data
      */
-    function getMultiRequest(uint256 multiRequestId) external view returns (MultiRequest memory multiRequest);
+    function getMultiRequest(
+        uint256 multiRequestId
+    ) external view returns (MultiRequest memory multiRequest);
 
     /**
      * @dev Get the proof status for the sender and request with requestId.

@@ -7,14 +7,8 @@ import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 
 contract EmbeddedVerifierWrapper is EmbeddedVerifier {
-    event BeforeProofSubmit(
-        AuthResponse authResponse,
-        Response[] responses
-    );
-    event AfterProofSubmit(
-        AuthResponse authResponse,
-        Response[] responses
-    );
+    event BeforeProofSubmit(AuthResponse authResponse, Response[] responses);
+    event AfterProofSubmit(AuthResponse authResponse, Response[] responses);
 
     function initialize(address initialOwner, IState state) public initializer {
         super.__EmbeddedVerifier_init(initialOwner, state);
