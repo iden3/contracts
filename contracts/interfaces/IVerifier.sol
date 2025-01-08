@@ -45,7 +45,6 @@ interface IVerifier {
      * @param params Parameters data of the request.
      * @param creator Creator of the request.
      * @param verifierId Verifier id.
-     * @param isVerifierAuthenticated True if the verifier is authenticated.
      */
     struct RequestInfo {
         uint256 requestId;
@@ -54,10 +53,9 @@ interface IVerifier {
         bytes params;
         address creator;
         uint256 verifierId;
-        bool isVerifierAuthenticated;
     }
     /**
-     * @dev AuthProofStatus. Structure for auth proof status.
+     * @dev GroupedRequests. Structure for auth proof status.
      * @param groupId Group id of the requests.
      * @param requests Requests of the group.
      */
@@ -129,20 +127,6 @@ interface IVerifier {
     }
 
     /**
-     * @dev AuthProofStatus. Structure for auth proof status.
-     * @param authType Auth type of the auth proof.
-     * @param isVerified True if the proof is verified.
-     * @param validatorVersion Version of the validator.
-     * @param timestamp Timestamp of the proof.
-     */
-    struct AuthProofStatus {
-        string authType;
-        bool isVerified;
-        string validatorVersion;
-        uint256 timestamp;
-    }
-
-    /**
      * @dev MultiRequest. Structure for multiRequest.
      * @param multiRequestId MultiRequest id.
      * @param requestIds Request ids for this multi multiRequest (without groupId. Single requests).
@@ -171,12 +155,10 @@ interface IVerifier {
 
     /**
      * @dev Sets different requests
-     * @param singleRequests The requests that are not in any group
-     * @param groupedRequests The requests that are in a group
+     * @param requests List of requests
      */
     function setRequests(
-        Request[] calldata singleRequests,
-        GroupedRequests[] calldata groupedRequests
+        Request[] calldata requests
     ) external;
 
     /**
@@ -208,17 +190,17 @@ interface IVerifier {
     function getMultiRequestStatus(
         uint256 multiRequestId,
         address userAddress
-    ) external view returns (AuthProofStatus[] memory, RequestProofStatus[] memory);
+    ) external view returns (RequestProofStatus[] memory);
 
     /**
      * @dev Gets proof storage response field value
      * @param requestId Id of the request
-     * @param userID Id of the user
+     * @param sender Address of the user
      * @param responseFieldName Name of the proof storage response field to get
      */
     function getResponseFieldValue(
         uint256 requestId,
-        uint256 userID,
+        address sender,
         string memory responseFieldName
     ) external view returns (uint256);
 

@@ -106,17 +106,14 @@ describe("Universal Verifier events", function () {
 
     for (let i = 0; i < requestsCount; i++) {
       await expect(
-        verifier.setRequests(
-          [
-            {
-              requestId: i,
-              metadata: "metadata",
-              validator: await sig.getAddress(),
-              params: params[i],
-            },
-          ],
-          [],
-        ),
+        verifier.setRequests([
+          {
+            requestId: i,
+            metadata: "metadata",
+            validator: await sig.getAddress(),
+            params: params[i],
+          },
+        ]),
       ).to.emit(verifier, "RequestSet");
       console.log("RequestSet event emitted");
     }
@@ -148,17 +145,14 @@ describe("Universal Verifier events", function () {
     const originalRequestData = packValidatorParams(queries[0]);
     const updatedRequestData = packValidatorParams(queries[1]);
 
-    await verifier.setRequests(
-      [
-        {
-          requestId: 0,
-          metadata: "metadata0",
-          validator: await sig.getAddress(),
-          params: originalRequestData,
-        },
-      ],
-      [],
-    );
+    await verifier.setRequests([
+      {
+        requestId: 0,
+        metadata: "metadata0",
+        validator: await sig.getAddress(),
+        params: originalRequestData,
+      },
+    ]);
 
     await verifier.updateRequest({
       requestId: 0,

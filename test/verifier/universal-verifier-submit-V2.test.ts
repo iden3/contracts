@@ -118,17 +118,14 @@ describe("Universal Verifier submitResponse SigV2 validators", function () {
     });
 
     for (const requestId of requestIds) {
-      await verifier.setRequests(
-        [
-          {
-            requestId: requestId,
-            metadata: "metadata",
-            validator: await sig.getAddress(),
-            params: params,
-          },
-        ],
-        [],
-      );
+      await verifier.setRequests([
+        {
+          requestId: requestId,
+          metadata: "metadata",
+          validator: await sig.getAddress(),
+          params: params,
+        },
+      ]);
     }
   }
 
@@ -145,7 +142,7 @@ describe("Universal Verifier submitResponse SigV2 validators", function () {
 
   async function checkStorageFields(verifier: any, requestId: bigint, storageFields: any[]) {
     for (const field of storageFields) {
-      const value = await verifier.getResponseFieldValueFromAddress(
+      const value = await verifier.getResponseFieldValue(
         requestId,
         await signer.getAddress(),
         field.name,

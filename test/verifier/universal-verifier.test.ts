@@ -75,7 +75,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
   async function checkStorageFields(verifier: any, requestId: bigint, storageFields: any[]) {
     for (const field of storageFields) {
-      const value = await verifier.getResponseFieldValueFromAddress(
+      const value = await verifier.getResponseFieldValue(
         requestId,
         await signer.getAddress(),
         field.name,
@@ -108,17 +108,14 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
     for (let i = 0; i < requestsCount; i++) {
       await expect(
-        verifier.setRequests(
-          [
-            {
-              requestId: i,
-              metadata: "metadataN" + i,
-              validator: validatorAddr,
-              params: "0x0" + i,
-            },
-          ],
-          [],
-        ),
+        verifier.setRequests([
+          {
+            requestId: i,
+            metadata: "metadataN" + i,
+            validator: validatorAddr,
+            params: "0x0" + i,
+          },
+        ]),
       )
         .to.emit(verifier, "RequestSet")
         .withArgs(i, signerAddress, "metadataN" + i, validatorAddr, "0x0" + i);
@@ -144,17 +141,14 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const nonExistingRequestId = 1;
     const params = packValidatorParams(query);
 
-    verifier.setRequests(
-      [
-        {
-          requestId: 0,
-          metadata: "metadata",
-          validator: await sigValidator.getAddress(),
-          params: params,
-        },
-      ],
-      [],
-    );
+    verifier.setRequests([
+      {
+        requestId: 0,
+        metadata: "metadata",
+        validator: await sigValidator.getAddress(),
+        params: params,
+      },
+    ]);
 
     await verifier.setAuthType({
       authType: authType,
@@ -219,17 +213,14 @@ describe("Universal Verifier MTP & SIG validators", function () {
       `RequestIdNotFound(${requestId})`,
     );
 
-    await verifier.connect(requestOwner).setRequests(
-      [
-        {
-          requestId: requestId,
-          metadata: "metadata",
-          validator: await sigValidator.getAddress(),
-          params: packValidatorParams(query),
-        },
-      ],
-      [],
-    );
+    await verifier.connect(requestOwner).setRequests([
+      {
+        requestId: requestId,
+        metadata: "metadata",
+        validator: await sigValidator.getAddress(),
+        params: packValidatorParams(query),
+      },
+    ]);
 
     expect(await verifier.getRequestOwner(requestId)).to.be.equal(requestOwnerAddr);
     await expect(
@@ -266,17 +257,14 @@ describe("Universal Verifier MTP & SIG validators", function () {
       `RequestIdNotFound(${requestId})`,
     );
 
-    await verifier.connect(requestOwner).setRequests(
-      [
-        {
-          requestId: requestId,
-          metadata: "metadata",
-          validator: await sigValidator.getAddress(),
-          params: params,
-        },
-      ],
-      [],
-    );
+    await verifier.connect(requestOwner).setRequests([
+      {
+        requestId: requestId,
+        metadata: "metadata",
+        validator: await sigValidator.getAddress(),
+        params: params,
+      },
+    ]);
 
     expect(await verifier.isRequestEnabled(requestId)).to.be.true;
 
@@ -362,17 +350,14 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const mtpValAddr = await mtp.getAddress();
     expect(await verifier.isWhitelistedValidator(mtpValAddr)).to.be.false;
     await expect(
-      verifier.setRequests(
-        [
-          {
-            requestId: requestId,
-            metadata: "metadata",
-            validator: mtpValAddr,
-            params: "0x00",
-          },
-        ],
-        [],
-      ),
+      verifier.setRequests([
+        {
+          requestId: requestId,
+          metadata: "metadata",
+          validator: mtpValAddr,
+          params: "0x00",
+        },
+      ]),
     ).to.be.rejectedWith(`ValidatorIsNotWhitelisted("${mtpValAddr}")`);
     await expect(verifier.connect(someAddress).addValidatorToWhitelist(mtpValAddr))
       .to.be.revertedWithCustomError(verifier, "OwnableUnauthorizedAccount")
@@ -383,17 +368,14 @@ describe("Universal Verifier MTP & SIG validators", function () {
     expect(await verifier.isWhitelistedValidator(mtpValAddr)).to.be.true;
 
     await expect(
-      verifier.setRequests(
-        [
-          {
-            requestId: requestId,
-            metadata: "metadata",
-            validator: mtpValAddr,
-            params: "0x00",
-          },
-        ],
-        [],
-      ),
+      verifier.setRequests([
+        {
+          requestId: requestId,
+          metadata: "metadata",
+          validator: mtpValAddr,
+          params: "0x00",
+        },
+      ]),
     ).not.to.be.rejected;
 
     // can't whitelist validator, which does not support ICircuitValidator interface
@@ -401,17 +383,14 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
     // not a validator with proper interface and even not supporting IERC165 interface to check it
     await expect(
-      verifier.setRequests(
-        [
-          {
-            requestId: otherRequestId,
-            metadata: "metadata",
-            validator: someAddress,
-            params: "0x00",
-          },
-        ],
-        [],
-      ),
+      verifier.setRequests([
+        {
+          requestId: otherRequestId,
+          metadata: "metadata",
+          validator: someAddress,
+          params: "0x00",
+        },
+      ]),
     ).to.be.rejectedWith(`function returned an unexpected amount of data`);
 
     await verifier.removeValidatorFromWhitelist(mtpValAddr);
@@ -457,17 +436,14 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const requestId = 0;
     const params = packValidatorParams(query);
 
-    await verifier.connect(requestOwner).setRequests(
-      [
-        {
-          requestId: requestId,
-          metadata: "metadata",
-          validator: await sigValidator.getAddress(),
-          params: params,
-        },
-      ],
-      [],
-    );
+    await verifier.connect(requestOwner).setRequests([
+      {
+        requestId: requestId,
+        metadata: "metadata",
+        validator: await sigValidator.getAddress(),
+        params: params,
+      },
+    ]);
 
     let request = await verifier.getRequest(requestId);
     expect(request.metadata).to.be.equal("metadata");

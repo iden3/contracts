@@ -41,16 +41,16 @@ library VerifierLib {
     /**
      * @dev Writes proof results.
      * @param requestId The request ID of the proof
-     * @param userID The userID of the proof
+     * @param sender The address of the sender of the proof
      * @param responseFields The array of response fields of the proof
      */
     function writeProofResults(
         Verifier.VerifierStorage storage self,
         uint256 requestId,
-        uint256 userID,
+        address sender,
         IRequestValidator.ResponseField[] memory responseFields
     ) public {
-        Proof[] storage proofs = self._proofs[requestId][userID];
+        Proof[] storage proofs = self._proofs[requestId][sender];
         // We only keep only 1 proof now without history. Prepared for the future if needed.
         if (proofs.length == 0) {
             proofs.push();
@@ -61,31 +61,6 @@ library VerifierLib {
 
         proofs[0].isVerified = true;
         proofs[0].validatorVersion = self._requests[requestId].validator.version();
-        proofs[0].blockTimestamp = block.timestamp;
-    }
-
-    /**
-     * @dev Writes proof results.
-     * @param authType The auth type of the proof
-     * @param userID The userID of the proof
-     * @param responseFields The array of response fields of the proof
-     */
-    function writeAuthProofResults(
-        Verifier.VerifierStorage storage self,
-        string memory authType,
-        uint256 userID,
-        IAuthValidator.ResponseField[] memory responseFields
-    ) public {
-        AuthProof[] storage proofs = self._authProofs[authType][userID];
-        if (proofs.length == 0) {
-            proofs.push();
-        }
-        for (uint256 i = 0; i < responseFields.length; i++) {
-            proofs[0].storageFields[responseFields[i].name] = responseFields[i].value;
-        }
-
-        proofs[0].isVerified = true;
-        proofs[0].validatorVersion = self._authMethods[authType].validator.version();
         proofs[0].blockTimestamp = block.timestamp;
     }
 }
