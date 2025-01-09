@@ -249,27 +249,23 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                     revert GroupIdAlreadyExists(groupID);
                 }
 
-                bool existingGroupID = false;
-                for (uint256 j = 0; j < newGroupsCount; j++) {
-                    if (newGroupsGroupID[j] == groupID) {
-                        newGroupsRequestCount[j]++;
-                        existingGroupID = true;
-                        break;
-                    }
-                }
-                if (!existingGroupID) {
+                (bool exists, uint256 groupIDIndex) = _getGroupIDIndex(
+                    groupID,
+                    newGroupsGroupID,
+                    newGroupsCount
+                );
+
+                if (!exists) {
                     newGroupsGroupID[newGroupsCount] = groupID;
                     newGroupsRequestCount[newGroupsCount]++;
                     newGroupsCount++;
+                } else {
+                    newGroupsRequestCount[groupIDIndex]++;
                 }
             }
         }
 
-        for (uint256 i = 0; i < newGroupsCount; i++) {
-            if (newGroupsRequestCount[i] < 2) {
-                revert GroupMustHaveAtLeastTwoRequests(newGroupsGroupID[i]);
-            }
-        }
+        _checkGroupsRequestsCount(newGroupsGroupID, newGroupsRequestCount, newGroupsCount);
 
         // 2. Set requests checking groups
         for (uint256 i = 0; i < requests.length; i++) {
@@ -286,6 +282,32 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
                 _setRequest(requests[i]);
                 s._groupedRequests[groupID].push(requests[i].requestId);
+            }
+        }
+    }
+
+    function _getGroupIDIndex(
+        uint256 groupID,
+        uint256[] memory groupList,
+        uint256 listCount
+    ) internal pure returns (bool, uint256) {
+        for (uint256 j = 0; j < listCount; j++) {
+            if (groupList[j] == groupID) {
+                return (true, j);
+            }
+        }
+
+        return (false, 0);
+    }
+
+    function _checkGroupsRequestsCount(
+        uint256[] memory groupList,
+        uint256[] memory groupRequestsList,
+        uint256 groupsCount
+    ) internal pure {
+        for (uint256 i = 0; i < groupsCount; i++) {
+            if (groupRequestsList[i] < 2) {
+                revert GroupMustHaveAtLeastTwoRequests(groupList[i]);
             }
         }
     }
