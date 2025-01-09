@@ -188,12 +188,12 @@ describe("Universal Verifier submitResponse SigV2 validators", function () {
       txRes.blockNumber,
     )) as Block;
 
-    const status = await verifier.getProofStatus(signerAddress, requestId);
+    const status = await verifier.getRequestStatus(signerAddress, requestId);
     expect(status.isVerified).to.be.true;
     expect(status.validatorVersion).to.be.equal("1.0.0-mock");
-    expect(status.blockTimestamp).to.be.equal(txResTimestamp);
+    expect(status.timestamp).to.be.equal(txResTimestamp);
 
-    await expect(verifier.getProofStatus(signerAddress, nonExistingRequestId)).to.be.rejectedWith(
+    await expect(verifier.getRequestStatus(signerAddress, nonExistingRequestId)).to.be.rejectedWith(
       `RequestIdNotFound(${nonExistingRequestId})`,
     );
 
@@ -219,10 +219,10 @@ describe("Universal Verifier submitResponse SigV2 validators", function () {
     )) as Block;
 
     for (const requestId of requestIdsMulti) {
-      const status = await verifier.getProofStatus(signerAddress, requestId);
+      const status = await verifier.getRequestStatus(signerAddress, requestId);
       expect(status.isVerified).to.be.true;
       expect(status.validatorVersion).to.be.equal("1.0.0-mock");
-      expect(status.blockTimestamp).to.be.equal(txResTimestampMuti);
+      expect(status.timestamp).to.be.equal(txResTimestampMuti);
       await checkStorageFields(verifier, BigInt(requestId), storageFields);
     }
   });

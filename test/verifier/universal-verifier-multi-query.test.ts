@@ -257,6 +257,12 @@ describe("Universal Verifier Multi-request", function () {
       verifier.getMultiRequestStatus(nonExistingMultiRequestId, signerAddress),
     ).to.be.rejectedWith(`MultiRequestIdNotFound(${nonExistingMultiRequestId})`);
 
+    const isMultiRequestVerified = await verifier.isMultiRequestVerified(
+      multiRequestId,
+      signerAddress,
+    );
+    expect(isMultiRequestVerified).to.be.equal(true);
+
     const status = await verifier.getMultiRequestStatus(multiRequestId, signerAddress);
     expect(status[0].requestId).to.be.equal(requestId);
     expect(status[0].isVerified).to.be.equal(true); // request isVerified
@@ -362,6 +368,13 @@ describe("Universal Verifier Multi-request", function () {
     await expect(
       verifier.getMultiRequestStatus(nonExistingMultiRequestId, signerAddress),
     ).to.be.rejectedWith(`MultiRequestIdNotFound(${nonExistingMultiRequestId})`);
+
+    const isMultiRequestVerified = await verifier.isMultiRequestVerified(
+      multiRequestId,
+      signerAddress,
+    );
+    expect(isMultiRequestVerified).to.be.equal(true);
+
     const status = await verifier.getMultiRequestStatus(multiRequestId, signerAddress);
     expect(status[0].isVerified).to.be.equal(true); // requestId2 isVerified
     expect(status[1].requestId).to.be.equal(requestId3);

@@ -65,18 +65,6 @@ interface IVerifier {
     }
 
     /**
-     * @dev ProofStatus. Structure for proof status.
-     * @param isVerified True if the proof is verified.
-     * @param validatorVersion Version of the validator.
-     * @param blockTimestamp Block timestamp of the proof.
-     */
-    struct ProofStatus {
-        bool isVerified;
-        string validatorVersion;
-        uint256 blockTimestamp;
-    }
-
-    /**
      * @dev Response. Structure for response.
      * @param requestId Request id of the request.
      * @param proof proof to verify.
@@ -107,13 +95,13 @@ interface IVerifier {
     }
 
     /**
-     * @dev RequestProofStatus. Structure for request proof status.
+     * @dev RequestStatus. Structure for request proof status.
      * @param requestId Request id of the proof.
      * @param isVerified True if the proof is verified.
      * @param validatorVersion Version of the validator.
      * @param timestamp Timestamp of the proof.
      */
-    struct RequestProofStatus {
+    struct RequestStatus {
         uint256 requestId;
         bool isVerified;
         string validatorVersion;
@@ -188,7 +176,18 @@ interface IVerifier {
     function getMultiRequestStatus(
         uint256 multiRequestId,
         address userAddress
-    ) external view returns (RequestProofStatus[] memory);
+    ) external view returns (RequestStatus[] memory);
+
+    /**
+     * @dev Checks if the proofs from a Multirequest submitted for a given sender and request ID are verified
+     * @param multiRequestId The ID of the MultiRequest
+     * @param userAddress The address of the user
+     * @return Wether the multiRequest is verified.
+     */
+    function isMultiRequestVerified(
+        uint256 multiRequestId,
+        address userAddress
+    ) external view returns (bool);
 
     /**
      * @dev Gets proof storage response field value
@@ -203,12 +202,12 @@ interface IVerifier {
     ) external view returns (uint256);
 
     /**
-     * @dev Get if proof is verified for the sender and request with requestId.
+     * @dev Checks if a proof from a request submitted for a given sender and request ID is verified
      * @param sender Sender of the proof.
      * @param requestId Request id of the Request to verify.
      * @return True if proof is verified for the sender and request id.
      */
-    function isProofVerified(address sender, uint256 requestId) external view returns (bool);
+    function isRequestVerified(address sender, uint256 requestId) external view returns (bool);
 
     /**
      * @dev Sets an auth type
@@ -237,8 +236,8 @@ interface IVerifier {
      * @param requestId Request id of the proof.
      * @return Proof status.
      */
-    function getProofStatus(
+    function getRequestStatus(
         address sender,
         uint256 requestId
-    ) external view returns (ProofStatus memory);
+    ) external view returns (RequestStatus memory);
 }

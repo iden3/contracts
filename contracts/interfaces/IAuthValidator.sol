@@ -8,16 +8,6 @@ import {IState} from "./IState.sol";
  */
 interface IAuthValidator {
     /**
-     * @dev ResponseField. Information about response fields from verification. Used in verify function.
-     * @param name Name of the response field
-     * @param value Value of the response field
-     */
-    struct ResponseField {
-        string name;
-        uint256 value;
-    }
-
-    /**
      * @dev Get version of the contract
      */
     function version() external view returns (string memory);
@@ -29,12 +19,12 @@ interface IAuthValidator {
      * @param params Request query data of the credential to verify.
      * @param sender Sender of the proof.
      * @param state State contract to get identities and gist states to check.
-     * @return Array of response fields as result.
+     * @return userID User Id for the auth proof verified.
      */
     function verify(
         bytes calldata proof,
         bytes calldata params,
         address sender,
         IState state
-    ) external returns (ResponseField[] memory);
+    ) external returns (uint256 userID);
 }

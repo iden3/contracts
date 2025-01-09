@@ -351,19 +351,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         uint256 userIDFromReponse;
         AuthTypeData storage authTypeData = $._authMethods[authResponse.authType];
         // Authenticate user
-        IAuthValidator.ResponseField[] memory authSignals = authTypeData.validator.verify(
+        userIDFromReponse = authTypeData.validator.verify(
             authResponse.proof,
             authTypeData.params,
             sender,
             $._state
         );
-
-        for (uint256 j = 0; j < authSignals.length; j++) {
-            if (keccak256(bytes(authSignals[j].name)) == keccak256(bytes("userID"))) {
-                userIDFromReponse = authSignals[j].value;
-                break;
-            }
-        }
 
         if (userIDFromReponse == 0) {
             revert UserNotAuthenticated();
@@ -516,12 +509,10 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         public
         view
         checkMultiRequestExistence(multiRequestId, true)
-        returns (IVerifier.RequestProofStatus[] memory)
+        returns (IVerifier.RequestStatus[] memory)
     {
-        VerifierStorage storage s = _getVerifierStorage();
-
         // 1. Check if all requests statuses are true for the userAddress
-        IVerifier.RequestProofStatus[] memory requestProofStatus = _getMultiRequestStatus(
+        IVerifier.RequestStatus[] memory requestStatus = _getMultiRequestStatus(
             multiRequestId,
             userAddress
         );
@@ -529,44 +520,32 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         // 2. Check if all linked response fields are the same
         _checkLinkedResponseFields(multiRequestId, userAddress);
 
-        return requestProofStatus;
+        return requestStatus;
     }
 
     /**
-     * @dev Gets the status of the multiRequest verification
+     * @dev Checks if the proofs from a Multirequest submitted for a given sender and request ID are verified
      * @param multiRequestId The ID of the multiRequest
      * @param userAddress The address of the user
-     * @param userID The user id of the user
      * @return status The status of the multiRequest. "True" if all requests are verified, "false" otherwise
      */
-    function getMultiRequestStatus(
+    function isMultiRequestVerified(
         uint256 multiRequestId,
-        address userAddress,
-        uint256 userID
-    )
-        public
-        view
-        checkMultiRequestExistence(multiRequestId, true)
-        returns (IVerifier.RequestProofStatus[] memory)
-    {
-        VerifierStorage storage s = _getVerifierStorage();
-
-        // 1. Check if all requests statuses are true for the userId
-        IVerifier.RequestProofStatus[] memory requestProofStatus = _getMultiRequestStatus(
-            multiRequestId,
-            userAddress
-        );
+        address userAddress
+    ) public view checkMultiRequestExistence(multiRequestId, true) returns (bool) {
+        // 1. Check if all requests are verified for the userAddress
+        bool verified = _isMultiRequestVerified(multiRequestId, userAddress);
 
         // 2. Check if all linked response fields are the same
         _checkLinkedResponseFields(multiRequestId, userAddress);
 
-        return requestProofStatus;
+        return verified;
     }
 
     function _getMultiRequestStatus(
         uint256 multiRequestId,
         address userAddress
-    ) internal view returns (IVerifier.RequestProofStatus[] memory) {
+    ) internal view returns (IVerifier.RequestStatus[] memory) {
         VerifierStorage storage s = _getVerifierStorage();
         IVerifier.MultiRequest storage multiRequest = s._multiRequests[multiRequestId];
 
@@ -579,15 +558,14 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             }
         }
 
-        IVerifier.RequestProofStatus[]
-            memory requestProofStatus = new IVerifier.RequestProofStatus[](
-                multiRequest.requestIds.length + lengthGroupIds
-            );
+        IVerifier.RequestStatus[] memory requestStatus = new IVerifier.RequestStatus[](
+            multiRequest.requestIds.length + lengthGroupIds
+        );
 
         for (uint256 i = 0; i < multiRequest.requestIds.length; i++) {
             uint256 requestId = multiRequest.requestIds[i];
 
-            requestProofStatus[i] = IVerifier.RequestProofStatus({
+            requestStatus[i] = IVerifier.RequestStatus({
                 requestId: requestId,
                 isVerified: s._proofs[requestId][userAddress][0].isVerified,
                 validatorVersion: s._proofs[requestId][userAddress][0].validatorVersion,
@@ -601,26 +579,55 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             for (uint256 j = 0; j < s._groupedRequests[groupId].length; j++) {
                 uint256 requestId = s._groupedRequests[groupId][j];
 
-                requestProofStatus[multiRequest.requestIds.length + j] = IVerifier
-                    .RequestProofStatus({
-                        requestId: requestId,
-                        isVerified: s._proofs[requestId][userAddress][0].isVerified,
-                        validatorVersion: s._proofs[requestId][userAddress][0].validatorVersion,
-                        timestamp: s._proofs[requestId][userAddress][0].blockTimestamp
-                    });
+                requestStatus[multiRequest.requestIds.length + j] = IVerifier.RequestStatus({
+                    requestId: requestId,
+                    isVerified: s._proofs[requestId][userAddress][0].isVerified,
+                    validatorVersion: s._proofs[requestId][userAddress][0].validatorVersion,
+                    timestamp: s._proofs[requestId][userAddress][0].blockTimestamp
+                });
             }
         }
 
-        return requestProofStatus;
+        return requestStatus;
+    }
+
+    function _isMultiRequestVerified(
+        uint256 multiRequestId,
+        address userAddress
+    ) internal view returns (bool) {
+        VerifierStorage storage s = _getVerifierStorage();
+        IVerifier.MultiRequest storage multiRequest = s._multiRequests[multiRequestId];
+
+        for (uint256 i = 0; i < multiRequest.requestIds.length; i++) {
+            uint256 requestId = multiRequest.requestIds[i];
+
+            if (!s._proofs[requestId][userAddress][0].isVerified) {
+                return false;
+            }
+        }
+
+        for (uint256 i = 0; i < multiRequest.groupIds.length; i++) {
+            uint256 groupId = multiRequest.groupIds[i];
+
+            for (uint256 j = 0; j < s._groupedRequests[groupId].length; j++) {
+                uint256 requestId = s._groupedRequests[groupId][j];
+
+                if (!s._proofs[requestId][userAddress][0].isVerified) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /**
-     * @dev Checks if a proof submitted for a given sender and request ID is verified
+     * @dev Checks if a proof from a request submitted for a given sender and request ID is verified
      * @param sender The sender's address
      * @param requestId The ID of the request
      * @return True if proof is verified
      */
-    function isProofVerified(
+    function isRequestVerified(
         address sender,
         uint256 requestId
     ) public view checkRequestExistence(requestId, true) returns (bool) {
@@ -650,15 +657,20 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      * @param requestId The ID of the ZKP request
      * @return The proof status structure
      */
-    function getProofStatus(
+    function getRequestStatus(
         address sender,
         uint256 requestId
-    ) public view checkRequestExistence(requestId, true) returns (IVerifier.ProofStatus memory) {
+    ) public view checkRequestExistence(requestId, true) returns (IVerifier.RequestStatus memory) {
         VerifierStorage storage s = _getVerifierStorage();
         VerifierLib.Proof storage proof = s._proofs[requestId][sender][0];
 
         return
-            IVerifier.ProofStatus(proof.isVerified, proof.validatorVersion, proof.blockTimestamp);
+            IVerifier.RequestStatus(
+                requestId,
+                proof.isVerified,
+                proof.validatorVersion,
+                proof.blockTimestamp
+            );
     }
 
     function _getRequestIfCanBeVerified(

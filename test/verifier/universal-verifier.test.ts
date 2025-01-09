@@ -190,12 +190,12 @@ describe("Universal Verifier MTP & SIG validators", function () {
       txRes.blockNumber,
     )) as Block;
 
-    const status = await verifier.getProofStatus(signerAddress, requestId);
+    const status = await verifier.getRequestStatus(signerAddress, requestId);
     expect(status.isVerified).to.be.true;
     expect(status.validatorVersion).to.be.equal("1.0.0-mock");
-    expect(status.blockTimestamp).to.be.equal(txResTimestamp);
+    expect(status.timestamp).to.be.equal(txResTimestamp);
 
-    await expect(verifier.getProofStatus(signerAddress, nonExistingRequestId)).to.be.rejectedWith(
+    await expect(verifier.getRequestStatus(signerAddress, nonExistingRequestId)).to.be.rejectedWith(
       `RequestIdNotFound(${nonExistingRequestId})`,
     );
   });

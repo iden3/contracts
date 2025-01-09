@@ -25,10 +25,7 @@ contract AuthValidatorStub is IAuthValidator, ERC165 {
         bytes calldata,
         address,
         IState
-    ) external pure override returns (IAuthValidator.ResponseField[] memory) {
-        IAuthValidator.ResponseField[] memory signals = new IAuthValidator.ResponseField[](1);
-        signals[0].name = "userID";
-        signals[0].value = 1;
-        return signals;
+    ) external pure override returns (uint256 userID) {
+        return 1;
     }
 }
