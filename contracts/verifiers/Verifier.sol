@@ -22,6 +22,8 @@ error RequestIsAlreadyGrouped(uint256 requestId);
 error LinkIDNotTheSameForGroupedRequests(uint256 requestLinkID, uint256 requestLinkIDToCompare);
 error UserIDNotFound(uint256 userID);
 error UserIDNotLinkedToAddress(uint256 userID, address userAddress);
+error UserNotAuthenticated();
+error MetadataNotSupportedYet();
 
 abstract contract Verifier is IVerifier, ContextUpgradeable {
     /// @dev Key to retrieve the linkID from the proof storage
@@ -239,7 +241,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         for (uint256 i = 0; i < requests.length; i++) {
             uint256 groupID = requests[i].validator.getRequestParams(requests[i].params).groupID;
             if (groupID != 0 && groupIdExists(groupID)) {
-                revert("Group ID already exists");
+                revert GroupIdAlreadyExists(groupID);
             }
         }
 
@@ -364,7 +366,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         }
 
         if (userIDFromReponse == 0) {
-            revert("The user is not authenticated");
+            revert UserNotAuthenticated();
         }
 
         // 3. Verify all the responses, write proof results (under the userID key from the auth of the user),
@@ -383,7 +385,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             $.writeProofResults(response.requestId, sender, signals);
 
             if (response.metadata.length > 0) {
-                revert("Metadata not supported yet");
+                revert MetadataNotSupportedYet();
             }
         }
     }

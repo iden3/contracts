@@ -157,9 +157,7 @@ interface IVerifier {
      * @dev Sets different requests
      * @param requests List of requests
      */
-    function setRequests(
-        Request[] calldata requests
-    ) external;
+    function setRequests(Request[] calldata requests) external;
 
     /**
      * @dev Gets a specific request by ID
