@@ -148,6 +148,12 @@ describe("Universal Verifier V3 validator", function () {
         validator: await v3Validator.getAddress(),
         params: params,
       },
+      {
+        requestId: requestId + 10,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params,
+      },
     ]);
 
     const requestStored = await verifier.getRequest(requestId);
@@ -238,6 +244,12 @@ describe("Universal Verifier V3 validator", function () {
         validator: await v3Validator.getAddress(),
         params: params,
       },
+      {
+        requestId: requestId + 10,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params,
+      },
     ]);
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
     const proof = packZKProof(inputs, pi_a, pi_b, pi_c);
@@ -318,6 +330,12 @@ describe("Universal Verifier V3 validator", function () {
         validator: await v3Validator.getAddress(),
         params: params,
       },
+      {
+        requestId: requestId + 10,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params,
+      },
     ]);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
@@ -355,6 +373,12 @@ describe("Universal Verifier V3 validator", function () {
     await verifier.setRequests([
       {
         requestId: requestId,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params,
+      },
+      {
+        requestId: requestId + 10,
         metadata: "metadata",
         validator: await v3Validator.getAddress(),
         params: params,
@@ -400,6 +424,12 @@ describe("Universal Verifier V3 validator", function () {
         validator: await v3Validator.getAddress(),
         params: params,
       },
+      {
+        requestId: requestId + 10,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params,
+      },
     ]);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
@@ -439,7 +469,11 @@ describe("Universal Verifier V3 validator", function () {
     await publishState(state, stateTransition12 as any);
     await publishState(state, stateTransition13 as any);
 
-    const params = packV3ValidatorParams(query);
+    const query2 = {
+      ...query,
+    };
+    query2.groupID = 0;
+    const params = packV3ValidatorParams(query2);
     const requestId = 37;
     await verifier.setRequests([
       {

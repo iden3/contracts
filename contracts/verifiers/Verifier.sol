@@ -24,6 +24,7 @@ error UserIDNotFound(uint256 userID);
 error UserIDNotLinkedToAddress(uint256 userID, address userAddress);
 error UserNotAuthenticated();
 error MetadataNotSupportedYet();
+error GroupMustHaveAtLeastTwoRequests(uint256 groupID);
 
 abstract contract Verifier is IVerifier, ContextUpgradeable {
     /// @dev Key to retrieve the linkID from the proof storage
@@ -58,8 +59,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         // Information about multiRequests
         mapping(uint256 multiRequestId => IVerifier.MultiRequest) _multiRequests;
         uint256[] _multiRequestIds;
-        // Whitelisted validators
-        mapping(IRequestValidator => bool isApproved) _validatorWhitelist;
         // Information about auth types and validators
         string[] _authTypes;
         mapping(string authType => AuthTypeData) _authMethods;
@@ -234,14 +233,41 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      * @dev Sets different requests
      * @param requests The list of requests
      */
-    function setRequests(Request[] calldata requests) public {
+    function setRequests(IVerifier.Request[] calldata requests) public {
         VerifierStorage storage s = _getVerifierStorage();
 
-        // 1. Check first that groupIds don't exist
+        uint256 newGroupsCount = 0;
+        uint256[] memory newGroupsGroupID = new uint256[](requests.length);
+        uint256[] memory newGroupsRequestCount = new uint256[](requests.length);
+
+        // 1. Check first that groupIds don't exist and keep the number of requests per group
         for (uint256 i = 0; i < requests.length; i++) {
             uint256 groupID = requests[i].validator.getRequestParams(requests[i].params).groupID;
-            if (groupID != 0 && groupIdExists(groupID)) {
-                revert GroupIdAlreadyExists(groupID);
+
+            if (groupID != 0) {
+                if (groupIdExists(groupID)) {
+                    revert GroupIdAlreadyExists(groupID);
+                }
+
+                bool existingGroupID = false;
+                for (uint256 j = 0; j < newGroupsCount; j++) {
+                    if (newGroupsGroupID[j] == groupID) {
+                        newGroupsRequestCount[j]++;
+                        existingGroupID = true;
+                        break;
+                    }
+                }
+                if (!existingGroupID) {
+                    newGroupsGroupID[newGroupsCount] = groupID;
+                    newGroupsRequestCount[newGroupsCount]++;
+                    newGroupsCount++;
+                }
+            }
+        }
+
+        for (uint256 i = 0; i < newGroupsCount; i++) {
+            if (newGroupsRequestCount[i] < 2) {
+                revert GroupMustHaveAtLeastTwoRequests(newGroupsGroupID[i]);
             }
         }
 
