@@ -50,7 +50,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     struct VerifierStorage {
         // Information about requests
         // solhint-disable-next-line
-        mapping(uint256 requestId => mapping(address sender => VerifierLib.Proof[])) _proofs;
+        mapping(uint256 requestId => mapping(address sender => VerifierLib.Proof)) _proofs;
         mapping(uint256 requestId => IVerifier.RequestData) _requests;
         uint256[] _requestIds;
         IState _state;
@@ -513,10 +513,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         string memory responseFieldName
     ) public view checkRequestExistence(requestId, true) returns (uint256) {
         VerifierStorage storage s = _getVerifierStorage();
-        return
-            s._proofs[requestId][sender][s._proofs[requestId][sender].length - 1].storageFields[
-                responseFieldName
-            ];
+        return s._proofs[requestId][sender].storageFields[responseFieldName];
     }
 
     function _checkLinkedResponseFields(
@@ -630,9 +627,9 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
             requestStatus[i] = IVerifier.RequestStatus({
                 requestId: requestId,
-                isVerified: s._proofs[requestId][userAddress][0].isVerified,
-                validatorVersion: s._proofs[requestId][userAddress][0].validatorVersion,
-                timestamp: s._proofs[requestId][userAddress][0].blockTimestamp
+                isVerified: s._proofs[requestId][userAddress].isVerified,
+                validatorVersion: s._proofs[requestId][userAddress].validatorVersion,
+                timestamp: s._proofs[requestId][userAddress].blockTimestamp
             });
         }
 
@@ -644,9 +641,9 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
                 requestStatus[multiRequest.requestIds.length + j] = IVerifier.RequestStatus({
                     requestId: requestId,
-                    isVerified: s._proofs[requestId][userAddress][0].isVerified,
-                    validatorVersion: s._proofs[requestId][userAddress][0].validatorVersion,
-                    timestamp: s._proofs[requestId][userAddress][0].blockTimestamp
+                    isVerified: s._proofs[requestId][userAddress].isVerified,
+                    validatorVersion: s._proofs[requestId][userAddress].validatorVersion,
+                    timestamp: s._proofs[requestId][userAddress].blockTimestamp
                 });
             }
         }
@@ -664,7 +661,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         for (uint256 i = 0; i < multiRequest.requestIds.length; i++) {
             uint256 requestId = multiRequest.requestIds[i];
 
-            if (!s._proofs[requestId][userAddress][0].isVerified) {
+            if (!s._proofs[requestId][userAddress].isVerified) {
                 return false;
             }
         }
@@ -675,7 +672,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             for (uint256 j = 0; j < s._groupedRequests[groupId].length; j++) {
                 uint256 requestId = s._groupedRequests[groupId][j];
 
-                if (!s._proofs[requestId][userAddress][0].isVerified) {
+                if (!s._proofs[requestId][userAddress].isVerified) {
                     return false;
                 }
             }
@@ -695,7 +692,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         uint256 requestId
     ) public view checkRequestExistence(requestId, true) returns (bool) {
         VerifierStorage storage s = _getVerifierStorage();
-        return s._proofs[requestId][sender][0].isVerified;
+        return s._proofs[requestId][sender].isVerified;
     }
 
     /**
@@ -725,7 +722,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         uint256 requestId
     ) public view checkRequestExistence(requestId, true) returns (IVerifier.RequestStatus memory) {
         VerifierStorage storage s = _getVerifierStorage();
-        VerifierLib.Proof storage proof = s._proofs[requestId][sender][0];
+        VerifierLib.Proof storage proof = s._proofs[requestId][sender];
 
         return
             IVerifier.RequestStatus(

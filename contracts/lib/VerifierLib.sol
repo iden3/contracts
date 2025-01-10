@@ -50,17 +50,14 @@ library VerifierLib {
         address sender,
         IRequestValidator.ResponseField[] memory responseFields
     ) public {
-        Proof[] storage proofs = self._proofs[requestId][sender];
+        Proof storage proof = self._proofs[requestId][sender];
         // We only keep only 1 proof now without history. Prepared for the future if needed.
-        if (proofs.length == 0) {
-            proofs.push();
-        }
         for (uint256 i = 0; i < responseFields.length; i++) {
-            proofs[0].storageFields[responseFields[i].name] = responseFields[i].value;
+            proof.storageFields[responseFields[i].name] = responseFields[i].value;
         }
 
-        proofs[0].isVerified = true;
-        proofs[0].validatorVersion = self._requests[requestId].validator.version();
-        proofs[0].blockTimestamp = block.timestamp;
+        proof.isVerified = true;
+        proof.validatorVersion = self._requests[requestId].validator.version();
+        proof.blockTimestamp = block.timestamp;
     }
 }
