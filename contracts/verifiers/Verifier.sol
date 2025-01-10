@@ -53,9 +53,9 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         mapping(uint256 requestId => mapping(address sender => VerifierLib.Proof[])) _proofs;
         mapping(uint256 requestId => IVerifier.RequestData) _requests;
         uint256[] _requestIds;
+        IState _state;
         mapping(uint256 groupId => uint256[] requestIds) _groupedRequests;
         uint256[] _groupIds;
-        IState _state;
         // Information about multiRequests
         mapping(uint256 multiRequestId => IVerifier.MultiRequest) _multiRequests;
         uint256[] _multiRequestIds;
