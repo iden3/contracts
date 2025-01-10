@@ -571,10 +571,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         );
 
         // 2. Check if all linked response fields are the same
-        bool linkedResponsesOK = _checkLinkedResponseFields(
-            multiRequestId,
-            userAddress
-        );
+        bool linkedResponsesOK = _checkLinkedResponseFields(multiRequestId, userAddress);
 
         if (!linkedResponsesOK) {
             revert LinkIDNotTheSameForGroupedRequests();
@@ -598,16 +595,13 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         if (verified) {
             // 2. Check if all linked response fields are the same
-            bool linkedResponsesOK = _checkLinkedResponseFields(
-                multiRequestId,
-                userAddress
-            );
+            bool linkedResponsesOK = _checkLinkedResponseFields(multiRequestId, userAddress);
 
             if (!linkedResponsesOK) {
                 verified = false;
             }
         }
-        
+
         return verified;
     }
 
