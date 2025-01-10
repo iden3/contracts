@@ -245,7 +245,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         // 1. Check first that groupIds don't exist and keep the number of requests per group.
         for (uint256 i = 0; i < requests.length; i++) {
             uint256 groupID = requests[i].validator.getRequestParams(requests[i].params).groupID;
-            
 
             if (groupID != 0) {
                 if (groupIdExists(groupID)) {
@@ -272,13 +271,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         // 2. Set requests checking groups and nullifierSessionID uniqueness
         for (uint256 i = 0; i < requests.length; i++) {
-            uint256 nullifierSessionID = requests[i].validator.getRequestParams(requests[i].params).nullifierSessionID;
-            if (nullifierSessionID != 0) {
-                if (s._nullifierSessionIDs[nullifierSessionID] != 0) {
-                    revert NullifierSessionIDAlreadyExists(nullifierSessionID);
-                }
-                s._nullifierSessionIDs[nullifierSessionID] = requests[i].requestId;
-            }
+            _checkNullifierSessionIdUniqueness(requests[i]);
 
             uint256 groupID = requests[i].validator.getRequestParams(requests[i].params).groupID;
 
@@ -294,6 +287,20 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                 _setRequest(requests[i]);
                 s._groupedRequests[groupID].push(requests[i].requestId);
             }
+        }
+    }
+
+    function _checkNullifierSessionIdUniqueness(IVerifier.Request calldata request) internal {
+        VerifierStorage storage s = _getVerifierStorage();
+        uint256 nullifierSessionID = request
+            .validator
+            .getRequestParams(request.params)
+            .nullifierSessionID;
+        if (nullifierSessionID != 0) {
+            if (s._nullifierSessionIDs[nullifierSessionID] != 0) {
+                revert NullifierSessionIDAlreadyExists(nullifierSessionID);
+            }
+            s._nullifierSessionIDs[nullifierSessionID] = request.requestId;
         }
     }
 
