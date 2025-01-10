@@ -19,7 +19,7 @@ error AuthTypeNotFound(string authType);
 error AuthTypeAlreadyExists(string authType);
 error ValidatorNotWhitelisted(address validator);
 error RequestIsAlreadyGrouped(uint256 requestId);
-error LinkIDNotTheSameForGroupedRequests(uint256 requestLinkID, uint256 requestLinkIDToCompare);
+error LinkIDNotTheSameForGroupedRequests();
 error UserIDNotFound(uint256 userID);
 error UserIDNotLinkedToAddress(uint256 userID, address userAddress);
 error UserNotAuthenticated();
@@ -513,10 +513,16 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         string memory responseFieldName
     ) public view checkRequestExistence(requestId, true) returns (uint256) {
         VerifierStorage storage s = _getVerifierStorage();
-        return s._proofs[requestId][sender][0].storageFields[responseFieldName];
+        return
+            s._proofs[requestId][sender][s._proofs[requestId][sender].length - 1].storageFields[
+                responseFieldName
+            ];
     }
 
-    function _checkLinkedResponseFields(uint256 multiRequestId, address sender) internal view {
+    function _checkLinkedResponseFields(
+        uint256 multiRequestId,
+        address sender
+    ) internal view returns (bool) {
         VerifierStorage storage s = _getVerifierStorage();
 
         for (uint256 i = 0; i < s._multiRequests[multiRequestId].groupIds.length; i++) {
@@ -535,13 +541,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                     LINKED_PROOF_KEY
                 );
                 if (requestLinkID != requestLinkIDToCompare) {
-                    revert LinkIDNotTheSameForGroupedRequests(
-                        requestLinkID,
-                        requestLinkIDToCompare
-                    );
+                    return false;
                 }
             }
         }
+
+        return true;
     }
 
     /**
@@ -566,7 +571,14 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         );
 
         // 2. Check if all linked response fields are the same
-        _checkLinkedResponseFields(multiRequestId, userAddress);
+        bool linkedResponsesOK = _checkLinkedResponseFields(
+            multiRequestId,
+            userAddress
+        );
+
+        if (!linkedResponsesOK) {
+            revert LinkIDNotTheSameForGroupedRequests();
+        }
 
         return requestStatus;
     }
@@ -584,9 +596,18 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         // 1. Check if all requests are verified for the userAddress
         bool verified = _isMultiRequestVerified(multiRequestId, userAddress);
 
-        // 2. Check if all linked response fields are the same
-        _checkLinkedResponseFields(multiRequestId, userAddress);
+        if (verified) {
+            // 2. Check if all linked response fields are the same
+            bool linkedResponsesOK = _checkLinkedResponseFields(
+                multiRequestId,
+                userAddress
+            );
 
+            if (!linkedResponsesOK) {
+                verified = false;
+            }
+        }
+        
         return verified;
     }
 

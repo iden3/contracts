@@ -448,7 +448,7 @@ describe("Universal Verifier Multi-request", function () {
     await tx.wait();
 
     await expect(verifier.getMultiRequestStatus(multiRequestId, signerAddress)).to.be.rejectedWith(
-      "LinkIDNotTheSameForGroupedRequests(3, 4)",
+      "LinkIDNotTheSameForGroupedRequests()",
     );
   });
 });
