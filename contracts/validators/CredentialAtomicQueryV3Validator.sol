@@ -7,6 +7,8 @@ import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
 import {IState} from "../interfaces/IState.sol";
 
+error VerifierIDNotSet();
+
 /**
  * @dev CredentialAtomicQueryV3 validator
  */
@@ -154,10 +156,14 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
             params,
             (CredentialAtomicQueryV3)
         );
+
+        if (credAtomicQuery.verifierID == 0) revert VerifierIDNotSet();
+
         return
             IRequestValidator.RequestParams({
                 groupID: credAtomicQuery.groupID,
-                verifierID: credAtomicQuery.verifierID
+                verifierID: credAtomicQuery.verifierID,
+                nullifierSessionID: credAtomicQuery.nullifierSessionID
             });
     }
 

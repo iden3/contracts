@@ -370,6 +370,15 @@ describe("Universal Verifier V3 validator", function () {
     query2.groupID = 4;
     const requestId = 36;
     const params = packV3ValidatorParams(query2);
+
+    const query3 = {
+      ...query,
+    };
+    query3.nullifierSessionID = "3";
+    query3.groupID = 4;
+    const requestId2 = 46;
+    const params2 = packV3ValidatorParams(query3);
+
     await verifier.setRequests([
       {
         requestId: requestId,
@@ -378,10 +387,10 @@ describe("Universal Verifier V3 validator", function () {
         params: params,
       },
       {
-        requestId: requestId + 10,
+        requestId: requestId2,
         metadata: "metadata",
         validator: await v3Validator.getAddress(),
-        params: params,
+        params: params2,
       },
     ]);
 
@@ -512,5 +521,42 @@ describe("Universal Verifier V3 validator", function () {
         crossChainProofs,
       ),
     ).to.be.rejectedWith("Generated proof is outdated");
+  });
+
+  it("Test set request fails with NullifierSessionID already exists", async () => {
+    const query2 = {
+      ...query,
+    };
+    query2.groupID = 0;
+    query2.nullifierSessionID = "1";
+    const requestId = 38;
+    const params = packV3ValidatorParams(query2);
+    await verifier.setRequests([
+      {
+        requestId: requestId,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params,
+      },
+    ]);
+
+    const query3 = {
+      ...query,
+    };
+    query3.groupID = 0;
+    query3.nullifierSessionID = "1";
+    const requestId2 = 39;
+    const params2 = packV3ValidatorParams(query3);
+
+    await expect(
+      verifier.setRequests([
+        {
+          requestId: requestId2,
+          metadata: "metadata",
+          validator: await v3Validator.getAddress(),
+          params: params2,
+        },
+      ]),
+    ).to.be.rejectedWith(`NullifierSessionIDAlreadyExists(${query2.nullifierSessionID})`);
   });
 });

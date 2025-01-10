@@ -25,6 +25,7 @@ error UserIDNotLinkedToAddress(uint256 userID, address userAddress);
 error UserNotAuthenticated();
 error MetadataNotSupportedYet();
 error GroupMustHaveAtLeastTwoRequests(uint256 groupID);
+error NullifierSessionIDAlreadyExists(uint256 nullifierSessionID);
 
 abstract contract Verifier is IVerifier, ContextUpgradeable {
     /// @dev Key to retrieve the linkID from the proof storage
@@ -62,6 +63,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         // Information about auth types and validators
         string[] _authTypes;
         mapping(string authType => AuthTypeData) _authMethods;
+        mapping(uint256 nullifierSessionID => uint256 requestId) _nullifierSessionIDs;
     }
 
     // solhint-disable-next-line
@@ -240,9 +242,10 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         uint256[] memory newGroupsGroupID = new uint256[](requests.length);
         uint256[] memory newGroupsRequestCount = new uint256[](requests.length);
 
-        // 1. Check first that groupIds don't exist and keep the number of requests per group
+        // 1. Check first that groupIds don't exist and keep the number of requests per group.
         for (uint256 i = 0; i < requests.length; i++) {
             uint256 groupID = requests[i].validator.getRequestParams(requests[i].params).groupID;
+            
 
             if (groupID != 0) {
                 if (groupIdExists(groupID)) {
@@ -267,8 +270,16 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         _checkGroupsRequestsCount(newGroupsGroupID, newGroupsRequestCount, newGroupsCount);
 
-        // 2. Set requests checking groups
+        // 2. Set requests checking groups and nullifierSessionID uniqueness
         for (uint256 i = 0; i < requests.length; i++) {
+            uint256 nullifierSessionID = requests[i].validator.getRequestParams(requests[i].params).nullifierSessionID;
+            if (nullifierSessionID != 0) {
+                if (s._nullifierSessionIDs[nullifierSessionID] != 0) {
+                    revert NullifierSessionIDAlreadyExists(nullifierSessionID);
+                }
+                s._nullifierSessionIDs[nullifierSessionID] = requests[i].requestId;
+            }
+
             uint256 groupID = requests[i].validator.getRequestParams(requests[i].params).groupID;
 
             // request without group
