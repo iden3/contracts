@@ -40,6 +40,7 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
         string memory signatureVersion,
         address oracleSigningAddress
     ) EIP712(domainName, signatureVersion) Ownable(msg.sender) {
+        require(oracleSigningAddress != address(0), "Oracle signing address should not be zero");
         bytes32 hashedName = keccak256(bytes(domainName));
         bytes32 hashedVersion = keccak256(bytes(signatureVersion));
         uint256 chainId = 0;
@@ -63,6 +64,7 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
      * @param oracleSigningAddress The new oracle signing address
      **/
     function setOracleSigningAddress(address oracleSigningAddress) public onlyOwner {
+        require(oracleSigningAddress != address(0), "Oracle signing address should not be zero");
         _oracleSigningAddress = oracleSigningAddress;
     }
 
