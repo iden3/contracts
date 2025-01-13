@@ -63,7 +63,8 @@ contract RequestValidatorV3Stub is IRequestValidator, ERC165 {
         return
             IRequestValidator.RequestParams({
                 groupID: credAtomicQuery.groupID,
-                verifierID: credAtomicQuery.verifierID
+                verifierID: credAtomicQuery.verifierID,
+                nullifierSessionID: credAtomicQuery.nullifierSessionID
             });
     }
 }

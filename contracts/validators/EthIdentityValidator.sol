@@ -5,13 +5,13 @@ import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/acces
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {IGroth16Verifier} from "../interfaces/IGroth16Verifier.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
-import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
+import {IAuthValidator} from "../interfaces/IAuthValidator.sol";
 import {IState} from "../interfaces/IState.sol";
 
 /**
  * @dev EthIdentityValidator validator
  */
-contract EthIdentityValidator is Ownable2StepUpgradeable, IRequestValidator, ERC165 {
+contract EthIdentityValidator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
     struct PubSignals {
         uint256 userID;
     }
@@ -81,13 +81,11 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IRequestValidator, ERC
         bytes calldata data,
         address sender,
         IState stateContract
-    ) public view override returns (IRequestValidator.ResponseField[] memory) {
+    ) public view override returns (uint256) {
         uint256 userID = abi.decode(proof, (uint256));
 
         _verifyEthIdentity(userID, sender);
-        IRequestValidator.ResponseField[] memory signals = new IRequestValidator.ResponseField[](1);
-        signals[0] = IRequestValidator.ResponseField({name: "userID", value: userID});
-        return signals;
+        return userID;
     }
 
     function _getState() internal view returns (IState) {
@@ -98,11 +96,5 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IRequestValidator, ERC
         bytes2 idType = _getState().getIdTypeIfSupported(id);
         uint256 calcId = GenesisUtils.calcIdFromEthAddress(idType, sender);
         require(calcId == id, "Sender is not owner of the ethereum identity");
-    }
-
-    function getRequestParams(
-        bytes calldata
-    ) external pure override returns (IRequestValidator.RequestParams memory) {
-        return IRequestValidator.RequestParams({groupID: 0, verifierID: 0});
     }
 }

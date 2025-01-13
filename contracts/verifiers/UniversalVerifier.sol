@@ -61,14 +61,14 @@ contract UniversalVerifier is
     );
 
     /**
-     * @dev Event emitted upon adding a query
+     * @dev Event emitted upon adding a multiRequest
      */
-    event QuerySet(uint256 indexed queryId, uint256[] requestIds);
+    event MultiRequestSet(uint256 indexed multiRequestId, uint256[] requestIds);
 
     /**
-     * @dev Event emitted upon updating a query
+     * @dev Event emitted upon updating a multiRequest
      */
-    event QueryUpdate(uint256 indexed queryId, uint256[] requestIds);
+    event MultiRequestUpdate(uint256 indexed multiRequestId, uint256[] requestIds);
 
     /// @dev Modifier to check if the caller is the contract Owner or ZKP Request Owner
     modifier onlyOwnerOrRequestOwner(uint256 requestId) {
@@ -101,40 +101,6 @@ contract UniversalVerifier is
     }
 
     /**
-     * @dev Sets different requests
-     * @param singleRequests The requests that are not in any group
-     * @param groupedRequests The requests that are in a group
-     */
-    function setRequests(
-        IVerifier.Request[] calldata singleRequests,
-        IVerifier.GroupedRequests[] calldata groupedRequests
-    ) public override(RequestOwnership, ValidatorWhitelist, Verifier) {
-        super.setRequests(singleRequests, groupedRequests);
-
-        for (uint256 i = 0; i < singleRequests.length; i++) {
-            emit RequestSet(
-                singleRequests[i].requestId,
-                _msgSender(),
-                singleRequests[i].metadata,
-                address(singleRequests[i].validator),
-                singleRequests[i].params
-            );
-        }
-
-        for (uint256 i = 0; i < groupedRequests.length; i++) {
-            for (uint256 j = 0; j < groupedRequests[i].requests.length; j++) {
-                emit RequestSet(
-                    groupedRequests[i].requests[j].requestId,
-                    _msgSender(),
-                    groupedRequests[i].requests[j].metadata,
-                    address(groupedRequests[i].requests[j].validator),
-                    groupedRequests[i].requests[j].params
-                );
-            }
-        }
-    }
-
-    /**
      * @dev Updates a request
      * @param request The request data
      */
@@ -151,43 +117,33 @@ contract UniversalVerifier is
     }
 
     /**
-     * @dev Sets a query
-     * @param query The query data
+     * @dev Sets a multiRequest
+     * @param multiRequest The multiRequest data
      */
-    function setQuery(
-        Query calldata query
-    ) public override checkQueryExistence(query.queryId, false) {
-        super.setQuery(query);
-        emit QuerySet(query.queryId, query.requestIds);
+    function setMultiRequest(
+        IVerifier.MultiRequest calldata multiRequest
+    ) public override checkMultiRequestExistence(multiRequest.multiRequestId, false) {
+        super.setMultiRequest(multiRequest);
+        emit MultiRequestSet(multiRequest.multiRequestId, multiRequest.requestIds);
     }
 
     /**
      * @dev Submits an array of responses and updates proofs status
-     * @param authResponses The list of auth responses including auth type and proof
-     * @param singleResponses The list of responses including request ID, proof and metadata for single requests
-     * @param groupedResponses The list of responses including request ID, proof and metadata for grouped requests
+     * @param authResponse Auth responses including auth type and proof
+     * @param responses The list of responses including request ID, proof and metadata for requests
      * @param crossChainProofs The list of cross chain proofs from universal resolver (oracle). This
      * includes identities and global states.
      */
     function submitResponse(
-        AuthResponse[] memory authResponses,
-        Response[] memory singleResponses,
-        GroupedResponses[] memory groupedResponses,
+        AuthResponse memory authResponse,
+        Response[] memory responses,
         bytes memory crossChainProofs
     ) public override {
-        super.submitResponse(authResponses, singleResponses, groupedResponses, crossChainProofs);
-        for (uint256 i = 0; i < authResponses.length; i++) {
-            emit AuthResponseSubmitted(authResponses[i].authType, _msgSender());
-        }
+        super.submitResponse(authResponse, responses, crossChainProofs);
+        emit AuthResponseSubmitted(authResponse.authType, _msgSender());
 
-        for (uint256 i = 0; i < singleResponses.length; i++) {
-            emit ResponseSubmitted(singleResponses[i].requestId, _msgSender());
-        }
-
-        for (uint256 i = 0; i < groupedResponses.length; i++) {
-            for (uint256 j = 0; j < groupedResponses[i].responses.length; j++) {
-                emit ResponseSubmitted(groupedResponses[i].responses[j].requestId, _msgSender());
-            }
+        for (uint256 i = 0; i < responses.length; i++) {
+            emit ResponseSubmitted(responses[i].requestId, _msgSender());
         }
     }
 
@@ -196,6 +152,13 @@ contract UniversalVerifier is
      */
     function setState(IState state) public onlyOwner {
         _setState(state);
+    }
+
+    /**
+     * @dev Sets the verifier ID
+     */
+    function setVerifierID(uint256 verifierID) public onlyOwner {
+        _setVerifierID(verifierID);
     }
 
     /**
@@ -252,5 +215,18 @@ contract UniversalVerifier is
         returns (IVerifier.RequestData storage)
     {
         return super._getRequestIfCanBeVerified(requestId);
+    }
+
+    function _setRequest(
+        Request calldata request
+    ) internal virtual override(RequestOwnership, ValidatorWhitelist, Verifier) {
+        super._setRequest(request);
+        emit RequestSet(
+            request.requestId,
+            _msgSender(),
+            request.metadata,
+            address(request.validator),
+            request.params
+        );
     }
 }

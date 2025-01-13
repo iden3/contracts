@@ -91,6 +91,8 @@ describe("Universal Verifier V3 validator", function () {
       await stateContract.getAddress(),
       await verifierLib.getAddress(),
     );
+    // set the verifierID of the proof for the test
+    await universalVerifier.setVerifierID(verifierId);
     await universalVerifier.addValidatorToWhitelist(await v3Validator.getAddress());
     await universalVerifier.connect();
 
@@ -115,7 +117,7 @@ describe("Universal Verifier V3 validator", function () {
 
   async function checkStorageFields(verifier: any, requestId: bigint, storageFields: any[]) {
     for (const field of storageFields) {
-      const value = await verifier.getResponseFieldValueFromAddress(
+      const value = await verifier.getResponseFieldValue(
         requestId,
         await signer.getAddress(),
         field.name,
@@ -141,17 +143,20 @@ describe("Universal Verifier V3 validator", function () {
 
     await publishState(state, stateTransition1 as any);
     const params = packV3ValidatorParams(query);
-    await verifier.setRequests(
-      [
-        {
-          requestId: requestId,
-          metadata: "metadata",
-          validator: await v3Validator.getAddress(),
-          params: params,
-        },
-      ],
-      [],
-    );
+    await verifier.setRequests([
+      {
+        requestId: requestId,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params,
+      },
+      {
+        requestId: requestId + 10,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params,
+      },
+    ]);
 
     const requestStored = await verifier.getRequest(requestId);
     // check if the request is stored correctly checking metadata and validator
@@ -160,7 +165,6 @@ describe("Universal Verifier V3 validator", function () {
     expect(requestStored.params).to.be.equal(params);
     expect(requestStored.creator).to.be.equal(await signer.getAddress());
     expect(requestStored.verifierId).to.be.equal(verifierId);
-    expect(requestStored.isVerifierAuthenticated).to.be.equal(false);
 
     await verifier.setAuthType({
       authType: authType,
@@ -184,12 +188,10 @@ describe("Universal Verifier V3 validator", function () {
 
     await expect(
       verifier.submitResponse(
-        [
-          {
-            authType: authType,
-            proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof,
+        },
         [
           {
             requestId,
@@ -197,7 +199,6 @@ describe("Universal Verifier V3 validator", function () {
             metadata: metadatas,
           },
         ],
-        [],
         crossChainProofs,
       ),
     ).not.to.be.rejected;
@@ -216,12 +217,10 @@ describe("Universal Verifier V3 validator", function () {
 
     await expect(
       verifier.connect(signer2).submitResponse(
-        [
-          {
-            authType: authType,
-            proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof,
+        },
         [
           {
             requestId,
@@ -229,27 +228,31 @@ describe("Universal Verifier V3 validator", function () {
             metadata: metadatas,
           },
         ],
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith("UserID does not correspond to the sender");
   });
 
   it("Test submit response fails with Issuer is not on the Allowed Issuers list", async () => {
-    const params = packV3ValidatorParams(query, ["1"]);
+    const query2 = { ...query };
+    query2.groupID = 2;
+    const params = packV3ValidatorParams(query2, ["1"]);
     const requestId = 33;
 
-    await verifier.setRequests(
-      [
-        {
-          requestId: requestId,
-          metadata: "metadata",
-          validator: await v3Validator.getAddress(),
-          params: params,
-        },
-      ],
-      [],
-    );
+    await verifier.setRequests([
+      {
+        requestId: requestId,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params,
+      },
+      {
+        requestId: requestId + 10,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params,
+      },
+    ]);
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
     const proof = packZKProof(inputs, pi_a, pi_b, pi_c);
 
@@ -258,12 +261,10 @@ describe("Universal Verifier V3 validator", function () {
 
     await expect(
       verifier.connect(signer).submitResponse(
-        [
-          {
-            authType: authType,
-            proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof,
+        },
         [
           {
             requestId,
@@ -271,7 +272,6 @@ describe("Universal Verifier V3 validator", function () {
             metadata: metadatas,
           },
         ],
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith("Issuer is not on the Allowed Issuers list");
@@ -284,17 +284,14 @@ describe("Universal Verifier V3 validator", function () {
     query2.groupID = 0;
     const requestId = 34;
     const params = packV3ValidatorParams(query2);
-    await verifier.setRequests(
-      [
-        {
-          requestId: requestId,
-          metadata: "metadata",
-          validator: await v3Validator.getAddress(),
-          params: params,
-        },
-      ],
-      [],
-    );
+    await verifier.setRequests([
+      {
+        requestId: requestId,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params,
+      },
+    ]);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
     const proof = packZKProof(inputs, pi_a, pi_b, pi_c);
@@ -304,12 +301,10 @@ describe("Universal Verifier V3 validator", function () {
 
     await expect(
       verifier.connect(signer).submitResponse(
-        [
-          {
-            authType: authType,
-            proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof,
+        },
         [
           {
             requestId,
@@ -317,7 +312,6 @@ describe("Universal Verifier V3 validator", function () {
             metadata: metadatas,
           },
         ],
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith("Invalid Link ID pub signal");
@@ -328,19 +322,23 @@ describe("Universal Verifier V3 validator", function () {
       ...query,
     };
     query2.proofType = 2;
+    query2.groupID = 3;
     const requestId = 35;
     const params = packV3ValidatorParams(query2);
-    await verifier.setRequests(
-      [
-        {
-          requestId: requestId,
-          metadata: "metadata",
-          validator: await v3Validator.getAddress(),
-          params: params,
-        },
-      ],
-      [],
-    );
+    await verifier.setRequests([
+      {
+        requestId: requestId,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params,
+      },
+      {
+        requestId: requestId + 10,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params,
+      },
+    ]);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
     const proof = packZKProof(inputs, pi_a, pi_b, pi_c);
@@ -350,12 +348,10 @@ describe("Universal Verifier V3 validator", function () {
 
     await expect(
       verifier.connect(signer).submitResponse(
-        [
-          {
-            authType: authType,
-            proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof,
+        },
         [
           {
             requestId,
@@ -363,7 +359,6 @@ describe("Universal Verifier V3 validator", function () {
             metadata: metadatas,
           },
         ],
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith("Proof type should match the requested one in query");
@@ -374,19 +369,32 @@ describe("Universal Verifier V3 validator", function () {
       ...query,
     };
     query2.nullifierSessionID = "2";
+    query2.groupID = 4;
     const requestId = 36;
     const params = packV3ValidatorParams(query2);
-    await verifier.setRequests(
-      [
-        {
-          requestId: requestId,
-          metadata: "metadata",
-          validator: await v3Validator.getAddress(),
-          params: params,
-        },
-      ],
-      [],
-    );
+
+    const query3 = {
+      ...query,
+    };
+    query3.nullifierSessionID = "3";
+    query3.groupID = 4;
+    const requestId2 = 46;
+    const params2 = packV3ValidatorParams(query3);
+
+    await verifier.setRequests([
+      {
+        requestId: requestId,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params,
+      },
+      {
+        requestId: requestId2,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params2,
+      },
+    ]);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
     const proof = packZKProof(inputs, pi_a, pi_b, pi_c);
@@ -396,12 +404,10 @@ describe("Universal Verifier V3 validator", function () {
 
     await expect(
       verifier.connect(signer).submitResponse(
-        [
-          {
-            authType: authType,
-            proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof,
+        },
         [
           {
             requestId,
@@ -409,7 +415,6 @@ describe("Universal Verifier V3 validator", function () {
             metadata: metadatas,
           },
         ],
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith("Invalid nullify pub signal");
@@ -420,19 +425,23 @@ describe("Universal Verifier V3 validator", function () {
       ...query,
     };
     query2.queryHash = BigInt(0);
+    query2.groupID = 5;
     const requestId = 37;
     const params = packV3ValidatorParams(query2);
-    await verifier.setRequests(
-      [
-        {
-          requestId: requestId,
-          metadata: "metadata",
-          validator: await v3Validator.getAddress(),
-          params: params,
-        },
-      ],
-      [],
-    );
+    await verifier.setRequests([
+      {
+        requestId: requestId,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params,
+      },
+      {
+        requestId: requestId + 10,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params,
+      },
+    ]);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
     const proof = packZKProof(inputs, pi_a, pi_b, pi_c);
@@ -442,12 +451,10 @@ describe("Universal Verifier V3 validator", function () {
 
     await expect(
       verifier.connect(signer).submitResponse(
-        [
-          {
-            authType: authType,
-            proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof,
+        },
         [
           {
             requestId,
@@ -455,7 +462,6 @@ describe("Universal Verifier V3 validator", function () {
             metadata: metadatas,
           },
         ],
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith("Query hash does not match the requested one");
@@ -474,19 +480,20 @@ describe("Universal Verifier V3 validator", function () {
     await publishState(state, stateTransition12 as any);
     await publishState(state, stateTransition13 as any);
 
-    const params = packV3ValidatorParams(query);
+    const query2 = {
+      ...query,
+    };
+    query2.groupID = 0;
+    const params = packV3ValidatorParams(query2);
     const requestId = 37;
-    await verifier.setRequests(
-      [
-        {
-          requestId: requestId,
-          metadata: "metadata",
-          validator: await v3Validator.getAddress(),
-          params: params,
-        },
-      ],
-      [],
-    );
+    await verifier.setRequests([
+      {
+        requestId: requestId,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params,
+      },
+    ]);
 
     await verifier.setAuthType({
       authType: authType,
@@ -502,12 +509,10 @@ describe("Universal Verifier V3 validator", function () {
 
     await expect(
       verifier.connect(signer).submitResponse(
-        [
-          {
-            authType: authType,
-            proof,
-          },
-        ],
+        {
+          authType: authType,
+          proof,
+        },
         [
           {
             requestId,
@@ -515,9 +520,76 @@ describe("Universal Verifier V3 validator", function () {
             metadata: metadatas,
           },
         ],
-        [],
         crossChainProofs,
       ),
     ).to.be.rejectedWith("Generated proof is outdated");
+  });
+
+  it("Test set request fails with NullifierSessionID already exists", async () => {
+    const query2 = {
+      ...query,
+    };
+    query2.groupID = 0;
+    query2.nullifierSessionID = "1";
+    const requestId = 38;
+    const params = packV3ValidatorParams(query2);
+    await verifier.setRequests([
+      {
+        requestId: requestId,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params,
+      },
+    ]);
+
+    const query3 = {
+      ...query,
+    };
+    query3.groupID = 0;
+    query3.nullifierSessionID = "1";
+    const requestId2 = 39;
+    const params2 = packV3ValidatorParams(query3);
+
+    await expect(
+      verifier.setRequests([
+        {
+          requestId: requestId2,
+          metadata: "metadata",
+          validator: await v3Validator.getAddress(),
+          params: params2,
+        },
+      ]),
+    ).to.be.rejectedWith(`NullifierSessionIDAlreadyExists(${query2.nullifierSessionID})`);
+  });
+
+  it("Test set request fails with VerifierIDIsNotValid", async () => {
+    ({
+      ethSigner: signer,
+      ethSigner2: signer2,
+      stateContract: state,
+      v3Validator: v3Validator,
+      universalVerifier: verifier,
+    } = await loadFixture(deployContractsFixture));
+
+    await verifier.setVerifierID(1);
+
+    const query2 = {
+      ...query,
+    };
+    query2.groupID = 0;
+    const params = packV3ValidatorParams(query2);
+    const requestId = 40;
+    await expect(
+      verifier.setRequests([
+        {
+          requestId: requestId,
+          metadata: "metadata",
+          validator: await v3Validator.getAddress(),
+          params: params,
+        },
+      ]),
+    ).to.be.rejectedWith(
+      `VerifierIDIsNotValid(21929109382993718606847853573861987353620810345503358891473103689157378049, ${await verifier.getVerifierID()})`,
+    );
   });
 });

@@ -9,9 +9,8 @@ import { buildCrossChainProofs, packCrossChainProofs, packZKProof } from "../uti
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { calculateQueryHashV3 } from "../utils/query-hash-utils";
-import { request } from "http";
 
-describe("Universal Verifier Multi-query", function () {
+describe("Universal Verifier Multi-request", function () {
   let verifier: any, v3Validator: any, authV2Validator: any, v3_2Validator: any;
   let signer;
   let signerAddress: string;
@@ -48,65 +47,11 @@ describe("Universal Verifier Multi-query", function () {
     "20376033832371109177683048456014525905119173674985843915445634726167450989630";
   const [merklized, isRevocationChecked, valueArrSize] = [1, 1, 1];
   const nullifierSessionId = "0";
-  const verifierId = "1";
-  const queryHash = calculateQueryHashV3(
-    value,
-    schema,
-    slotIndex,
-    operator,
-    claimPathKey,
-    valueArrSize,
-    merklized,
-    isRevocationChecked,
-    verifierId,
-    nullifierSessionId,
-  );
-
-  const requestQuery1 = {
-    schema,
-    claimPathKey,
-    operator,
-    slotIndex,
-    value,
-    // we can use the same offchain circuit id because now an auth request is used for authentication
-    circuitIds: [CircuitId.AuthV2],
-    skipClaimRevocationCheck: false,
-    queryHash,
-    groupID: 0,
-    nullifierSessionID: nullifierSessionId, // for ethereum based user
-    proofType: 1, // 1 for BJJ
-    verifierID: verifierId,
-  };
-
-  const requestQuery2 = {
-    schema,
-    claimPathKey,
-    operator,
-    slotIndex,
-    value,
-    circuitIds: [CircuitId.AtomicQueryV3],
-    skipClaimRevocationCheck: false,
-    queryHash,
-    groupID: 1,
-    nullifierSessionID: nullifierSessionId, // for ethereum based user
-    proofType: 1, // 1 for BJJ
-    verifierID: verifierId,
-  };
-
-  const requestQuery3 = {
-    schema,
-    claimPathKey,
-    operator,
-    slotIndex,
-    value,
-    circuitIds: [CircuitId.AtomicQueryV3],
-    skipClaimRevocationCheck: false,
-    queryHash,
-    groupID: 1,
-    nullifierSessionID: nullifierSessionId, // for ethereum based user
-    proofType: 1, // 1 for BJJ
-    verifierID: verifierId,
-  };
+  let verifierId;
+  let queryHash: any;
+  let requestQuery1: any;
+  let requestQuery2: any;
+  let requestQuery3: any;
 
   const storageFields = [
     {
@@ -145,6 +90,67 @@ describe("Universal Verifier Multi-query", function () {
       await verifierLib.getAddress(),
     );
 
+    verifierId = await verifier.getVerifierID();
+
+    queryHash = calculateQueryHashV3(
+      value,
+      schema,
+      slotIndex,
+      operator,
+      claimPathKey,
+      valueArrSize,
+      merklized,
+      isRevocationChecked,
+      verifierId,
+      nullifierSessionId,
+    );
+
+    requestQuery1 = {
+      schema,
+      claimPathKey,
+      operator,
+      slotIndex,
+      value,
+      // we can use the same offchain circuit id because now an auth request is used for authentication
+      circuitIds: [CircuitId.AuthV2],
+      skipClaimRevocationCheck: false,
+      queryHash,
+      groupID: 0,
+      nullifierSessionID: nullifierSessionId, // for ethereum based user
+      proofType: 1, // 1 for BJJ
+      verifierID: verifierId,
+    };
+
+    requestQuery2 = {
+      schema,
+      claimPathKey,
+      operator,
+      slotIndex,
+      value,
+      circuitIds: [CircuitId.AtomicQueryV3],
+      skipClaimRevocationCheck: false,
+      queryHash,
+      groupID: 1,
+      nullifierSessionID: nullifierSessionId, // for ethereum based user
+      proofType: 1, // 1 for BJJ
+      verifierID: verifierId,
+    };
+
+    requestQuery3 = {
+      schema,
+      claimPathKey,
+      operator,
+      slotIndex,
+      value,
+      circuitIds: [CircuitId.AtomicQueryV3],
+      skipClaimRevocationCheck: false,
+      queryHash,
+      groupID: 1,
+      nullifierSessionID: nullifierSessionId, // for ethereum based user
+      proofType: 1, // 1 for BJJ
+      verifierID: verifierId,
+    };
+
     v3Validator = await deployHelper.deployValidatorStub("RequestValidatorV3Stub");
     v3_2Validator = await deployHelper.deployValidatorStub("RequestValidatorV3_2Stub");
     authV2Validator = await deployHelper.deployValidatorStub("AuthValidatorStub");
@@ -156,19 +162,8 @@ describe("Universal Verifier Multi-query", function () {
 
   async function checkStorageFields(verifier: any, requestId: bigint, storageFields: any[]) {
     for (const field of storageFields) {
-      const value = await verifier.getResponseFieldValueFromAddress(
+      const value = await verifier.getResponseFieldValue(
         requestId,
-        await signer.getAddress(),
-        field.name,
-      );
-      expect(value).to.be.equal(field.value);
-    }
-  }
-
-  async function checkAuthStorageFields(verifier: any, authType: string, storageFields: any[]) {
-    for (const field of storageFields) {
-      const value = await verifier.getAuthResponseFieldValueFromAddress(
-        authType,
         await signer.getAddress(),
         field.name,
       );
@@ -180,26 +175,21 @@ describe("Universal Verifier Multi-query", function () {
     await loadFixture(deployContractsFixture);
   });
 
-  it("Test submit response multiquery without groupID", async () => {
+  it("Test submit response multi-request without groupID", async () => {
     const requestId = 1;
-    const queryId = 1;
-    const nonExistingQueryId = 5;
-    const userId = 1;
-    const userId2 = 2;
+    const multiRequestId = 1;
+    const nonExistingMultiRequestId = 5;
     const authType = "authV2";
     const params = packV3ValidatorParams(requestQuery1);
 
-    const txSetRequests = await verifier.setRequests(
-      [
-        {
-          requestId: requestId,
-          metadata: "metadata",
-          validator: await v3Validator.getAddress(),
-          params: params,
-        },
-      ],
-      [],
-    );
+    const txSetRequests = await verifier.setRequests([
+      {
+        requestId: requestId,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: params,
+      },
+    ]);
     await txSetRequests.wait();
 
     let requestStored = await verifier.getRequest(requestId);
@@ -209,7 +199,6 @@ describe("Universal Verifier Multi-query", function () {
     expect(requestStored.params).to.be.equal(params);
     expect(requestStored.creator).to.be.equal(await signer.getAddress());
     expect(requestStored.verifierId).to.be.equal(verifierId);
-    expect(requestStored.isVerifierAuthenticated).to.be.equal(false);
 
     await verifier.setAuthType({
       authType: authType,
@@ -221,17 +210,17 @@ describe("Universal Verifier Multi-query", function () {
     expect(authRequestStored.params).to.be.equal(params);
     expect(authRequestStored.isActive).to.be.equal(true);
 
-    const query = {
-      queryId,
+    const multiRequest = {
+      multiRequestId,
       requestIds: [requestId],
       groupIds: [],
       metadata: "0x",
     };
-    const txSetQuery = await verifier.setQuery(query);
-    await txSetQuery.wait();
-    const queryStored = await verifier.getQuery(queryId);
-    expect(queryStored.queryId).to.be.equal(queryId);
-    expect(queryStored.requestIds).to.be.deep.equal(query.requestIds);
+    const txSetMultiRequest = await verifier.setMultiRequest(multiRequest);
+    await txSetMultiRequest.wait();
+    const multiRequestStored = await verifier.getMultiRequest(multiRequestId);
+    expect(multiRequestStored.multiRequestId).to.be.equal(multiRequestId);
+    expect(multiRequestStored.requestIds).to.be.deep.equal(multiRequest.requestIds);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
 
@@ -247,12 +236,10 @@ describe("Universal Verifier Multi-query", function () {
     const metadatas = "0x";
 
     const tx = await verifier.submitResponse(
-      [
-        {
-          authType: authType,
-          proof,
-        },
-      ],
+      {
+        authType: authType,
+        proof,
+      },
       [
         {
           requestId,
@@ -260,78 +247,63 @@ describe("Universal Verifier Multi-query", function () {
           metadata: metadatas,
         },
       ],
-      [],
       crossChainProofs,
     );
 
     await tx.wait();
 
-    await checkAuthStorageFields(verifier, authType, authStorageFields);
     await checkStorageFields(verifier, BigInt(requestId), storageFields);
 
-    const isUserAuth = await verifier.isUserAuth(userId, await signer.getAddress());
-    expect(isUserAuth).to.be.equal(true);
-
-    const isUserAuth2 = await verifier.isUserAuth(userId2, await signer.getAddress());
-    expect(isUserAuth2).to.be.equal(false);
-
     const filter = verifier.filters.ResponseSubmitted;
-
     const events = await verifier.queryFilter(filter, -1);
     expect(events[0].eventName).to.be.equal("ResponseSubmitted");
     expect(events[0].args.requestId).to.be.equal(requestId);
     expect(events[0].args.caller).to.be.equal(signerAddress);
 
-    await expect(verifier.getQueryStatus(nonExistingQueryId, signerAddress)).to.be.rejectedWith(
-      `QueryIdNotFound(${nonExistingQueryId})`,
-    );
+    await expect(
+      verifier.getMultiRequestStatus(nonExistingMultiRequestId, signerAddress),
+    ).to.be.rejectedWith(`MultiRequestIdNotFound(${nonExistingMultiRequestId})`);
 
-    const status = await verifier.getQueryStatus(queryId, signerAddress);
-    expect(status[0][0].authType).to.be.equal(authType);
-    expect(status[0][0].isVerified).to.be.equal(true); // auth type isVerified
-    expect(status[1][0].requestId).to.be.equal(requestId);
-    expect(status[1][0].isVerified).to.be.equal(true); // request isVerified
+    const isMultiRequestVerified = await verifier.isMultiRequestVerified(
+      multiRequestId,
+      signerAddress,
+    );
+    expect(isMultiRequestVerified).to.be.equal(true);
+
+    const status = await verifier.getMultiRequestStatus(multiRequestId, signerAddress);
+    expect(status[0].requestId).to.be.equal(requestId);
+    expect(status[0].isVerified).to.be.equal(true); // request isVerified
 
     requestStored = await verifier.getRequest(requestId);
     // check if validator is authenticated
     // TODO reorg the tests to decouple validator from user
-    expect(requestStored.isVerifierAuthenticated).to.be.equal(true);
   });
 
-  it("Test submit response multiquery with same groupID and linkID", async () => {
+  it("Test submit response multi-request with same groupID and linkID", async () => {
     const requestId2 = 2;
     const requestId3 = 3;
     const groupId = 1;
     const authType = "authV2";
-    const queryId = 1;
-    const nonExistingQueryId = 5;
-    const userId = 1;
+    const multiRequestId = 1;
+    const nonExistingMultiRequestId = 5;
     const authParams = "0x";
     const paramsRequest2 = packV3ValidatorParams(requestQuery2);
     const paramsRequest3 = packV3ValidatorParams(requestQuery3);
 
-    const txSetRequests = await verifier.setRequests(
-      [],
-      [
-        {
-          groupId: groupId,
-          requests: [
-            {
-              requestId: requestId2,
-              metadata: "metadata",
-              validator: await v3Validator.getAddress(),
-              params: paramsRequest2,
-            },
-            {
-              requestId: requestId3,
-              metadata: "metadata",
-              validator: await v3Validator.getAddress(),
-              params: paramsRequest3,
-            },
-          ],
-        },
-      ],
-    );
+    const txSetRequests = await verifier.setRequests([
+      {
+        requestId: requestId2,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: paramsRequest2,
+      },
+      {
+        requestId: requestId3,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: paramsRequest3,
+      },
+    ]);
     await txSetRequests.wait();
 
     const requestStored = await verifier.getRequest(requestId2);
@@ -341,7 +313,6 @@ describe("Universal Verifier Multi-query", function () {
     expect(requestStored.params).to.be.equal(paramsRequest2);
     expect(requestStored.creator).to.be.equal(await signer.getAddress());
     expect(requestStored.verifierId).to.be.equal(verifierId);
-    expect(requestStored.isVerifierAuthenticated).to.be.equal(false);
 
     await verifier.setAuthType({
       authType: authType,
@@ -353,18 +324,18 @@ describe("Universal Verifier Multi-query", function () {
     expect(authRequestStored.params).to.be.equal(authParams);
     expect(authRequestStored.isActive).to.be.equal(true);
 
-    const query = {
-      queryId,
+    const multiRequest = {
+      multiRequestId,
       requestIds: [],
       groupIds: [groupId],
       metadata: "0x",
     };
-    const txSetQuery = await verifier.setQuery(query);
-    await txSetQuery.wait();
+    const txSetMultiRequest = await verifier.setMultiRequest(multiRequest);
+    await txSetMultiRequest.wait();
 
-    const queryStored = await verifier.getQuery(queryId);
-    expect(queryStored[0]).to.be.equal(queryId);
-    expect(queryStored[1]).to.be.deep.equal(query.requestIds);
+    const multiRequestStored = await verifier.getMultiRequest(multiRequestId);
+    expect(multiRequestStored[0]).to.be.equal(multiRequestId);
+    expect(multiRequestStored[1]).to.be.deep.equal(multiRequest.requestIds);
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
 
@@ -380,84 +351,67 @@ describe("Universal Verifier Multi-query", function () {
     const metadatas = "0x";
 
     const tx = await verifier.submitResponse(
+      {
+        authType: authType,
+        proof,
+      },
       [
-        {
-          authType: authType,
-          proof,
-        },
-      ],
-      [],
-      [
-        {
-          groupId: groupId,
-          responses: [
-            { requestId: requestId2, proof, metadata: metadatas },
-            { requestId: requestId3, proof, metadata: metadatas },
-          ],
-        },
+        { requestId: requestId2, proof, metadata: metadatas },
+        { requestId: requestId3, proof, metadata: metadatas },
       ],
       crossChainProofs,
     );
     await tx.wait();
 
-    await checkAuthStorageFields(verifier, authType, authStorageFields);
     await checkStorageFields(verifier, BigInt(requestId2), storageFields);
     await checkStorageFields(verifier, BigInt(requestId3), storageFields);
 
-    const isUserAuth = await verifier.isUserAuth(userId, await signer.getAddress());
-    expect(isUserAuth).to.be.equal(true);
-
     const filter = verifier.filters.ResponseSubmitted;
-
     const events = await verifier.queryFilter(filter, -1);
     expect(events[0].eventName).to.be.equal("ResponseSubmitted");
     expect(events[0].args.requestId).to.be.equal(requestId2);
     expect(events[0].args.caller).to.be.equal(signerAddress);
 
-    await expect(verifier.getQueryStatus(nonExistingQueryId, signerAddress)).to.be.rejectedWith(
-      `QueryIdNotFound(${nonExistingQueryId})`,
+    await expect(
+      verifier.getMultiRequestStatus(nonExistingMultiRequestId, signerAddress),
+    ).to.be.rejectedWith(`MultiRequestIdNotFound(${nonExistingMultiRequestId})`);
+
+    const isMultiRequestVerified = await verifier.isMultiRequestVerified(
+      multiRequestId,
+      signerAddress,
     );
-    const status = await verifier.getQueryStatus(queryId, signerAddress);
-    expect(status[0][0].authType).to.be.equal(authType);
-    expect(status[0][0].isVerified).to.be.equal(true); // auth type isVerified
-    expect(status[1][0].requestId).to.be.equal(requestId2);
-    expect(status[1][0].isVerified).to.be.equal(true); // requestId2 isVerified
-    expect(status[1][1].requestId).to.be.equal(requestId3);
-    expect(status[1][1].isVerified).to.be.equal(true); // requestId3 isVerified
+    expect(isMultiRequestVerified).to.be.equal(true);
+
+    const status = await verifier.getMultiRequestStatus(multiRequestId, signerAddress);
+    expect(status[0].isVerified).to.be.equal(true); // requestId2 isVerified
+    expect(status[1].requestId).to.be.equal(requestId3);
+    expect(status[1].isVerified).to.be.equal(true); // requestId3 isVerified
   });
 
-  it("Test submit response multiquery with same groupID and different linkID", async () => {
+  it("Test submit response multi-request with same groupID and different linkID", async () => {
     const requestId2 = 2;
     const requestId3 = 3;
     const groupId = 1;
     const authType = "authV2";
-    const queryId = 1;
+    const multiRequestId = 1;
     const authParams = "0x";
     const paramsRequest2 = packV3ValidatorParams(requestQuery2);
     const paramsRequest3 = packV3ValidatorParams(requestQuery3);
 
-    const txSetRequests = await verifier.setRequests(
-      [],
-      [
-        {
-          groupId: groupId,
-          requests: [
-            {
-              requestId: requestId2,
-              metadata: "metadata",
-              validator: await v3Validator.getAddress(),
-              params: paramsRequest2,
-            },
-            {
-              requestId: requestId3,
-              metadata: "metadata",
-              validator: await v3_2Validator.getAddress(),
-              params: paramsRequest3,
-            },
-          ],
-        },
-      ],
-    );
+    const txSetRequests = await verifier.setRequests([
+      {
+        requestId: requestId2,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        params: paramsRequest2,
+      },
+      {
+        requestId: requestId3,
+        metadata: "metadata",
+        validator: await v3_2Validator.getAddress(),
+        params: paramsRequest3,
+      },
+    ]);
     await txSetRequests.wait();
 
     await verifier.setAuthType({
@@ -466,14 +420,14 @@ describe("Universal Verifier Multi-query", function () {
       params: authParams,
     });
 
-    const query = {
-      queryId,
+    const multiRequest = {
+      multiRequestId,
       requestIds: [],
       groupIds: [groupId],
       metadata: "0x",
     };
-    const txSetQuery = await verifier.setQuery(query);
-    await txSetQuery.wait();
+    const txSetMultiRequest = await verifier.setMultiRequest(multiRequest);
+    await txSetMultiRequest.wait();
 
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
 
@@ -488,28 +442,20 @@ describe("Universal Verifier Multi-query", function () {
 
     const metadatas = "0x";
     const tx = await verifier.submitResponse(
+      {
+        authType: authType,
+        proof,
+      },
       [
-        {
-          authType: authType,
-          proof,
-        },
-      ],
-      [],
-      [
-        {
-          groupId: groupId,
-          responses: [
-            { requestId: requestId2, proof, metadata: metadatas },
-            { requestId: requestId3, proof, metadata: metadatas },
-          ],
-        },
+        { requestId: requestId2, proof, metadata: metadatas },
+        { requestId: requestId3, proof, metadata: metadatas },
       ],
       crossChainProofs,
     );
     await tx.wait();
 
-    await expect(verifier.getQueryStatus(queryId, signerAddress)).to.be.rejectedWith(
-      "LinkIDNotTheSameForGroupedRequests(3, 4)",
+    await expect(verifier.getMultiRequestStatus(multiRequestId, signerAddress)).to.be.rejectedWith(
+      "LinkIDNotTheSameForGroupedRequests()",
     );
   });
 });

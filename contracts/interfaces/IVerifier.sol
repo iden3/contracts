@@ -45,7 +45,6 @@ interface IVerifier {
      * @param params Parameters data of the request.
      * @param creator Creator of the request.
      * @param verifierId Verifier id.
-     * @param isVerifierAuthenticated True if the verifier is authenticated.
      */
     struct RequestInfo {
         uint256 requestId;
@@ -54,28 +53,15 @@ interface IVerifier {
         bytes params;
         address creator;
         uint256 verifierId;
-        bool isVerifierAuthenticated;
     }
     /**
-     * @dev AuthProofStatus. Structure for auth proof status.
+     * @dev GroupedRequests. Structure for auth proof status.
      * @param groupId Group id of the requests.
      * @param requests Requests of the group.
      */
     struct GroupedRequests {
         uint256 groupId;
         Request[] requests;
-    }
-
-    /**
-     * @dev ProofStatus. Structure for proof status.
-     * @param isVerified True if the proof is verified.
-     * @param validatorVersion Version of the validator.
-     * @param blockTimestamp Block timestamp of the proof.
-     */
-    struct ProofStatus {
-        bool isVerified;
-        string validatorVersion;
-        uint256 blockTimestamp;
     }
 
     /**
@@ -109,13 +95,13 @@ interface IVerifier {
     }
 
     /**
-     * @dev RequestProofStatus. Structure for request proof status.
+     * @dev RequestStatus. Structure for request proof status.
      * @param requestId Request id of the proof.
      * @param isVerified True if the proof is verified.
      * @param validatorVersion Version of the validator.
      * @param timestamp Timestamp of the proof.
      */
-    struct RequestProofStatus {
+    struct RequestStatus {
         uint256 requestId;
         bool isVerified;
         string validatorVersion;
@@ -129,28 +115,14 @@ interface IVerifier {
     }
 
     /**
-     * @dev AuthProofStatus. Structure for auth proof status.
-     * @param authType Auth type of the auth proof.
-     * @param isVerified True if the proof is verified.
-     * @param validatorVersion Version of the validator.
-     * @param timestamp Timestamp of the proof.
+     * @dev MultiRequest. Structure for multiRequest.
+     * @param multiRequestId MultiRequest id.
+     * @param requestIds Request ids for this multi multiRequest (without groupId. Single requests).
+     * @param groupIds Group ids for this multi multiRequest (all the requests included in the group. Grouped requests).
+     * @param metadata Metadata for the multiRequest. Empty in first version.
      */
-    struct AuthProofStatus {
-        string authType;
-        bool isVerified;
-        string validatorVersion;
-        uint256 timestamp;
-    }
-
-    /**
-     * @dev Query. Structure for query.
-     * @param queryId Query id.
-     * @param requestIds Request ids for this multi query (without groupId. Single requests).
-     * @param groupIds Group ids for this multi query (all the requests included in the group. Grouped requests).
-     * @param metadata Metadata for the query. Empty in first version.
-     */
-    struct Query {
-        uint256 queryId;
+    struct MultiRequest {
+        uint256 multiRequestId;
         uint256[] requestIds;
         uint256[] groupIds;
         bytes metadata;
@@ -158,28 +130,22 @@ interface IVerifier {
 
     /**
      * @dev Submits an array of responses and updates proofs status
-     * @param authResponses The list of auth responses including auth type and proof
-     * @param singleResponses The list of responses including request ID, proof and metadata for single requests
-     * @param groupedResponses The list of responses including request ID, proof and metadata for grouped requests
+     * @param authResponse Auth response including auth type and proof
+     * @param responses The list of responses including request ID, proof and metadata for requests
      * @param crossChainProofs The list of cross chain proofs from universal resolver (oracle). This
      * includes identities and global states.
      */
     function submitResponse(
-        AuthResponse[] memory authResponses,
-        Response[] memory singleResponses,
-        GroupedResponses[] memory groupedResponses,
+        AuthResponse memory authResponse,
+        Response[] memory responses,
         bytes memory crossChainProofs
     ) external;
 
     /**
      * @dev Sets different requests
-     * @param singleRequests The requests that are not in any group
-     * @param groupedRequests The requests that are in a group
+     * @param requests List of requests
      */
-    function setRequests(
-        Request[] calldata singleRequests,
-        GroupedRequests[] calldata groupedRequests
-    ) external;
+    function setRequests(Request[] calldata requests) external;
 
     /**
      * @dev Gets a specific request by ID
@@ -202,35 +168,46 @@ interface IVerifier {
     function requestIdExists(uint256 requestId) external view returns (bool);
 
     /**
-     * @dev Gets the status of the query verification
-     * @param queryId The ID of the query
+     * @dev Gets the status of the multiRequest verification
+     * @param multiRequestId The ID of the MultiRequest
      * @param userAddress The address of the user
-     * @return status The status of the query. "True" if all requests are verified, "false" otherwise
+     * @return status The status of the MultiRequest. "True" if all requests are verified, "false" otherwise
      */
-    function getQueryStatus(
-        uint256 queryId,
+    function getMultiRequestStatus(
+        uint256 multiRequestId,
         address userAddress
-    ) external view returns (AuthProofStatus[] memory, RequestProofStatus[] memory);
+    ) external view returns (RequestStatus[] memory);
+
+    /**
+     * @dev Checks if the proofs from a Multirequest submitted for a given sender and request ID are verified
+     * @param multiRequestId The ID of the MultiRequest
+     * @param userAddress The address of the user
+     * @return Wether the multiRequest is verified.
+     */
+    function isMultiRequestVerified(
+        uint256 multiRequestId,
+        address userAddress
+    ) external view returns (bool);
 
     /**
      * @dev Gets proof storage response field value
      * @param requestId Id of the request
-     * @param userID Id of the user
+     * @param sender Address of the user
      * @param responseFieldName Name of the proof storage response field to get
      */
     function getResponseFieldValue(
         uint256 requestId,
-        uint256 userID,
+        address sender,
         string memory responseFieldName
     ) external view returns (uint256);
 
     /**
-     * @dev Get if proof is verified for the sender and request with requestId.
+     * @dev Checks if a proof from a request submitted for a given sender and request ID is verified
      * @param sender Sender of the proof.
      * @param requestId Request id of the Request to verify.
      * @return True if proof is verified for the sender and request id.
      */
-    function isProofVerified(address sender, uint256 requestId) external view returns (bool);
+    function isRequestVerified(address sender, uint256 requestId) external view returns (bool);
 
     /**
      * @dev Sets an auth type
@@ -239,17 +216,19 @@ interface IVerifier {
     function setAuthType(AuthType calldata authType) external;
 
     /**
-     * @dev Sets a query
-     * @param query The query data
+     * @dev Sets a multiRequest
+     * @param multiRequest The multiRequest data
      */
-    function setQuery(Query calldata query) external;
+    function setMultiRequest(MultiRequest calldata multiRequest) external;
 
     /**
-     * @dev Gets a specific multi query by ID
-     * @param queryId The ID of the multi query
-     * @return query The query data
+     * @dev Gets a specific multiRequest by ID
+     * @param multiRequestId The ID of the multiRequest
+     * @return multiRequest The multiRequest data
      */
-    function getQuery(uint256 queryId) external view returns (IVerifier.Query memory query);
+    function getMultiRequest(
+        uint256 multiRequestId
+    ) external view returns (MultiRequest memory multiRequest);
 
     /**
      * @dev Get the proof status for the sender and request with requestId.
@@ -257,8 +236,8 @@ interface IVerifier {
      * @param requestId Request id of the proof.
      * @return Proof status.
      */
-    function getProofStatus(
+    function getRequestStatus(
         address sender,
         uint256 requestId
-    ) external view returns (ProofStatus memory);
+    ) external view returns (RequestStatus memory);
 }

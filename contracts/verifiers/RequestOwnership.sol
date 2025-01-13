@@ -25,27 +25,6 @@ abstract contract RequestOwnership is Verifier {
     }
 
     /**
-     * @dev Sets different requests
-     * @param singleRequests The requests that are not in any group
-     * @param groupedRequests The requests that are in a group
-     */
-    function setRequests(
-        IVerifier.Request[] calldata singleRequests,
-        IVerifier.GroupedRequests[] calldata groupedRequests
-    ) public virtual override {
-        super.setRequests(singleRequests, groupedRequests);
-        for (uint256 i = 0; i < singleRequests.length; i++) {
-            _setRequestOwner(singleRequests[i].requestId, _msgSender());
-        }
-
-        for (uint256 i = 0; i < groupedRequests.length; i++) {
-            for (uint256 j = 0; j < groupedRequests[i].requests.length; j++) {
-                _setRequestOwner(groupedRequests[i].requests[j].requestId, _msgSender());
-            }
-        }
-    }
-
-    /**
      * @dev Get a request owner address
      * @param requestId The ID of a request
      * @return The request owner address
@@ -54,6 +33,11 @@ abstract contract RequestOwnership is Verifier {
         uint256 requestId
     ) public view virtual checkRequestExistence(requestId, true) returns (address) {
         return _getRequestOwnershipStorage()._requestOwners[requestId];
+    }
+
+    function _setRequest(Request calldata request) internal virtual override {
+        super._setRequest(request);
+        _setRequestOwner(request.requestId, _msgSender());
     }
 
     function _setRequestOwner(

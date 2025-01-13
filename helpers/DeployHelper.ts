@@ -899,28 +899,6 @@ export class DeployHelper {
     return primitiveTypeUtilsWrapper;
   }
 
-  async deployEmbeddedVerifierWrapper(
-    owner: SignerWithAddress | undefined,
-    stateAddr: string,
-    verifierLibAddr: string,
-  ): Promise<Contract> {
-    const Verifier = await ethers.getContractFactory(contractsInfo.EMBEDDED_VERIFIER_WRAPPER.name, {
-      libraries: {
-        VerifierLib: verifierLibAddr,
-      },
-    });
-    // const zkpVerifier = await ZKPVerifier.deploy(await owner.getAddress());
-    const verifier = await upgrades.deployProxy(Verifier, [await owner.getAddress(), stateAddr], {
-      unsafeAllow: ["external-library-linking"],
-    });
-    await verifier.waitForDeployment();
-    console.log(
-      `${contractsInfo.EMBEDDED_VERIFIER_WRAPPER.name} deployed to:`,
-      await verifier.getAddress(),
-    );
-    return verifier;
-  }
-
   async deployUniversalVerifier(
     owner: SignerWithAddress | undefined,
     stateAddr: string,
