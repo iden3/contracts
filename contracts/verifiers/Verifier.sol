@@ -8,6 +8,7 @@ import {IAuthValidator} from "../interfaces/IAuthValidator.sol";
 import {IState} from "../interfaces/IState.sol";
 import {VerifierLib} from "../lib/VerifierLib.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
+import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
 error RequestIdNotFound(uint256 requestId);
 error RequestAlreadyExists(uint256 requestId);
@@ -26,6 +27,7 @@ error UserNotAuthenticated();
 error MetadataNotSupportedYet();
 error GroupMustHaveAtLeastTwoRequests(uint256 groupID);
 error NullifierSessionIDAlreadyExists(uint256 nullifierSessionID);
+error VerifierIDIsNotValid(uint256 requestVerifierID, uint256 expectedVerifierID);
 
 abstract contract Verifier is IVerifier, ContextUpgradeable {
     /// @dev Key to retrieve the linkID from the proof storage
@@ -64,6 +66,8 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         string[] _authTypes;
         mapping(string authType => AuthTypeData) _authMethods;
         mapping(uint256 nullifierSessionID => uint256 requestId) _nullifierSessionIDs;
+        // verifierID to check in requests
+        uint256 _verifierID;
     }
 
     // solhint-disable-next-line
@@ -153,12 +157,22 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
     function __Verifier_init_unchained(IState state) internal onlyInitializing {
         _setState(state);
+        // initial calculation of verifierID from contract address and default id type from State contract
+        VerifierStorage storage s = _getVerifierStorage();
+        bytes2 idType = s._state.getDefaultIdType();
+        uint256 calculatedVerifierID = GenesisUtils.calcIdFromEthAddress(idType, address(this));
+        _setVerifierID(calculatedVerifierID);
     }
 
     function _getVerifierStorage() private pure returns (VerifierStorage storage $) {
         assembly {
             $.slot := VerifierStorageLocation
         }
+    }
+
+    function _setVerifierID(uint256 verifierID) internal {
+        VerifierStorage storage s = _getVerifierStorage();
+        s._verifierID = verifierID;
     }
 
     /**
@@ -272,6 +286,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         // 2. Set requests checking groups and nullifierSessionID uniqueness
         for (uint256 i = 0; i < requests.length; i++) {
             _checkNullifierSessionIdUniqueness(requests[i]);
+            _checkVerifierID(requests[i]);
 
             uint256 groupID = requests[i].validator.getRequestParams(requests[i].params).groupID;
 
@@ -286,6 +301,17 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
                 _setRequest(requests[i]);
                 s._groupedRequests[groupID].push(requests[i].requestId);
+            }
+        }
+    }
+
+    function _checkVerifierID(IVerifier.Request calldata request) internal view {
+        VerifierStorage storage s = _getVerifierStorage();
+        uint256 requestVerifierID = request.validator.getRequestParams(request.params).verifierID;
+
+        if (requestVerifierID != 0) {
+            if (requestVerifierID != s._verifierID) {
+                revert VerifierIDIsNotValid(requestVerifierID, s._verifierID);
             }
         }
     }
@@ -727,6 +753,14 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      */
     function getStateAddress() public view virtual returns (address) {
         return address(_getVerifierStorage()._state);
+    }
+
+    /**
+     * @dev Gets the verifierID of the verifier contract
+     * @return uint256 verifierID of the verifier contract
+     */
+    function getVerifierID() public view virtual returns (uint256) {
+        return _getVerifierStorage()._verifierID;
     }
 
     /**

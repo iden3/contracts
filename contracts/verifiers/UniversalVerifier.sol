@@ -155,6 +155,13 @@ contract UniversalVerifier is
     }
 
     /**
+     * @dev Sets the verifier ID
+     */
+    function setVerifierID(uint256 verifierID) public onlyOwner {
+        _setVerifierID(verifierID);
+    }
+
+    /**
      * @dev Sets the request owner address
      * @param requestId The ID of the request
      * @param requestOwner The address of the request owner

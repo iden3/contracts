@@ -47,65 +47,11 @@ describe("Universal Verifier Multi-request", function () {
     "20376033832371109177683048456014525905119173674985843915445634726167450989630";
   const [merklized, isRevocationChecked, valueArrSize] = [1, 1, 1];
   const nullifierSessionId = "0";
-  const verifierId = "1";
-  const queryHash = calculateQueryHashV3(
-    value,
-    schema,
-    slotIndex,
-    operator,
-    claimPathKey,
-    valueArrSize,
-    merklized,
-    isRevocationChecked,
-    verifierId,
-    nullifierSessionId,
-  );
-
-  const requestQuery1 = {
-    schema,
-    claimPathKey,
-    operator,
-    slotIndex,
-    value,
-    // we can use the same offchain circuit id because now an auth request is used for authentication
-    circuitIds: [CircuitId.AuthV2],
-    skipClaimRevocationCheck: false,
-    queryHash,
-    groupID: 0,
-    nullifierSessionID: nullifierSessionId, // for ethereum based user
-    proofType: 1, // 1 for BJJ
-    verifierID: verifierId,
-  };
-
-  const requestQuery2 = {
-    schema,
-    claimPathKey,
-    operator,
-    slotIndex,
-    value,
-    circuitIds: [CircuitId.AtomicQueryV3],
-    skipClaimRevocationCheck: false,
-    queryHash,
-    groupID: 1,
-    nullifierSessionID: nullifierSessionId, // for ethereum based user
-    proofType: 1, // 1 for BJJ
-    verifierID: verifierId,
-  };
-
-  const requestQuery3 = {
-    schema,
-    claimPathKey,
-    operator,
-    slotIndex,
-    value,
-    circuitIds: [CircuitId.AtomicQueryV3],
-    skipClaimRevocationCheck: false,
-    queryHash,
-    groupID: 1,
-    nullifierSessionID: nullifierSessionId, // for ethereum based user
-    proofType: 1, // 1 for BJJ
-    verifierID: verifierId,
-  };
+  let verifierId;
+  let queryHash: any;
+  let requestQuery1: any;
+  let requestQuery2: any;
+  let requestQuery3: any;
 
   const storageFields = [
     {
@@ -143,6 +89,67 @@ describe("Universal Verifier Multi-request", function () {
       await stateCrossChainStub.getAddress(),
       await verifierLib.getAddress(),
     );
+
+    verifierId = await verifier.getVerifierID();
+
+    queryHash = calculateQueryHashV3(
+      value,
+      schema,
+      slotIndex,
+      operator,
+      claimPathKey,
+      valueArrSize,
+      merklized,
+      isRevocationChecked,
+      verifierId,
+      nullifierSessionId,
+    );
+
+    requestQuery1 = {
+      schema,
+      claimPathKey,
+      operator,
+      slotIndex,
+      value,
+      // we can use the same offchain circuit id because now an auth request is used for authentication
+      circuitIds: [CircuitId.AuthV2],
+      skipClaimRevocationCheck: false,
+      queryHash,
+      groupID: 0,
+      nullifierSessionID: nullifierSessionId, // for ethereum based user
+      proofType: 1, // 1 for BJJ
+      verifierID: verifierId,
+    };
+
+    requestQuery2 = {
+      schema,
+      claimPathKey,
+      operator,
+      slotIndex,
+      value,
+      circuitIds: [CircuitId.AtomicQueryV3],
+      skipClaimRevocationCheck: false,
+      queryHash,
+      groupID: 1,
+      nullifierSessionID: nullifierSessionId, // for ethereum based user
+      proofType: 1, // 1 for BJJ
+      verifierID: verifierId,
+    };
+
+    requestQuery3 = {
+      schema,
+      claimPathKey,
+      operator,
+      slotIndex,
+      value,
+      circuitIds: [CircuitId.AtomicQueryV3],
+      skipClaimRevocationCheck: false,
+      queryHash,
+      groupID: 1,
+      nullifierSessionID: nullifierSessionId, // for ethereum based user
+      proofType: 1, // 1 for BJJ
+      verifierID: verifierId,
+    };
 
     v3Validator = await deployHelper.deployValidatorStub("RequestValidatorV3Stub");
     v3_2Validator = await deployHelper.deployValidatorStub("RequestValidatorV3_2Stub");

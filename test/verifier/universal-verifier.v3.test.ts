@@ -91,6 +91,8 @@ describe("Universal Verifier V3 validator", function () {
       await stateContract.getAddress(),
       await verifierLib.getAddress(),
     );
+    // set the verifierID of the proof for the test
+    await universalVerifier.setVerifierID(verifierId);
     await universalVerifier.addValidatorToWhitelist(await v3Validator.getAddress());
     await universalVerifier.connect();
 
@@ -558,5 +560,36 @@ describe("Universal Verifier V3 validator", function () {
         },
       ]),
     ).to.be.rejectedWith(`NullifierSessionIDAlreadyExists(${query2.nullifierSessionID})`);
+  });
+
+  it("Test set request fails with VerifierIDIsNotValid", async () => {
+    ({
+      ethSigner: signer,
+      ethSigner2: signer2,
+      stateContract: state,
+      v3Validator: v3Validator,
+      universalVerifier: verifier,
+    } = await loadFixture(deployContractsFixture));
+
+    await verifier.setVerifierID(1);
+
+    const query2 = {
+      ...query,
+    };
+    query2.groupID = 0;
+    const params = packV3ValidatorParams(query2);
+    const requestId = 40;
+    await expect(
+      verifier.setRequests([
+        {
+          requestId: requestId,
+          metadata: "metadata",
+          validator: await v3Validator.getAddress(),
+          params: params,
+        },
+      ]),
+    ).to.be.rejectedWith(
+      `VerifierIDIsNotValid(21929109382993718606847853573861987353620810345503358891473103689157378049, ${await verifier.getVerifierID()})`,
+    );
   });
 });
