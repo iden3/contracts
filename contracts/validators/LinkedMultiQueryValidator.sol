@@ -49,7 +49,7 @@ contract LinkedMultiQueryValidator is IRequestValidator, OwnableUpgradeable {
         bytes calldata params
     ) external view override returns (IRequestValidator.RequestParams memory) {
         Query memory query = abi.decode(params, (Query));
-        return IRequestValidator.RequestParams(query.groupID, query.verifierID);
+        return IRequestValidator.RequestParams(query.groupID, query.verifierID, 0);
     }
 
     struct PubSignals {
