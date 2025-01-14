@@ -326,7 +326,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             if (s._nullifierSessionIDs[nullifierSessionID] != 0) {
                 revert NullifierSessionIDAlreadyExists(nullifierSessionID);
             }
-            s._nullifierSessionIDs[nullifierSessionID] = request.requestId;
+            s._nullifierSessionIDs[nullifierSessionID] = nullifierSessionID;
         }
     }
 
