@@ -24,7 +24,8 @@ contract AuthValidatorStub is IAuthValidator, ERC165 {
         bytes calldata,
         bytes calldata,
         address,
-        IState
+        IState,
+        bytes32
     ) external pure override returns (uint256 userID) {
         return 1;
     }

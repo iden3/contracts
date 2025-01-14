@@ -19,12 +19,14 @@ interface IAuthValidator {
      * @param params Request query data of the credential to verify.
      * @param sender Sender of the proof.
      * @param state State contract to get identities and gist states to check.
+     * @param expectedNonce Expected nonce hash calculated to check
      * @return userID User Id for the auth proof verified.
      */
     function verify(
         bytes calldata proof,
         bytes calldata params,
         address sender,
-        IState state
+        IState state,
+        bytes32 expectedNonce
     ) external returns (uint256 userID);
 }

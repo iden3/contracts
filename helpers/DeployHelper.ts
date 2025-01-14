@@ -23,11 +23,12 @@ import {
   waitNotToInterfereWithHardhatIgnition,
 } from "./helperUtils";
 import { MCPaymentProxyModule } from "../ignition/modules/mcPayment";
+import { AuthV2ValidatorForAuthProxyModule } from "../ignition/modules/authV2ValidatorForAuth";
 
 const SMT_MAX_DEPTH = 64;
 
 export type Groth16VerifierType = "mtpV2" | "sigV2" | "v3" | "authV2";
-export type ValidatorType = "mtpV2" | "sigV2" | "v3" | "authV2";
+export type ValidatorType = "mtpV2" | "sigV2" | "v3" | "authV2" | "authV2_forAuth";
 
 export class DeployHelper {
   constructor(
@@ -556,6 +557,28 @@ export class DeployHelper {
     return g16Verifier;
   }
 
+  getGroth16VerifierTypeFromValidatorType(validatorType: ValidatorType): Groth16VerifierType {
+    let groth16VerifierType;
+    switch (validatorType) {
+      case "mtpV2":
+        groth16VerifierType = "mtpV2";
+        break;
+      case "sigV2":
+        groth16VerifierType = "sigV2";
+        break;
+      case "v3":
+        groth16VerifierType = "v3";
+        break;
+      case "authV2":
+        groth16VerifierType = "authV2";
+        break;
+      case "authV2_forAuth":
+        groth16VerifierType = "authV2";
+        break;
+    }
+    return groth16VerifierType;
+  }
+
   getGroth16VerifierWrapperName(groth16VerifierType: Groth16VerifierType): string {
     let g16VerifierContractWrapperName;
     switch (groth16VerifierType) {
@@ -640,6 +663,7 @@ export class DeployHelper {
     validatorType: ValidatorType,
     stateAddress: string,
     deployStrategy: "basic" | "create2" = "basic",
+    groth16VerifierWrapperAddress?: string,
   ): Promise<{
     state: any;
     groth16VerifierWrapper: any;
@@ -649,6 +673,7 @@ export class DeployHelper {
       validatorType,
       stateAddress,
       deployStrategy,
+      groth16VerifierWrapperAddress,
     );
 
     const state = await ethers.getContractAt("State", stateAddress);
@@ -663,6 +688,7 @@ export class DeployHelper {
     validatorType: ValidatorType,
     stateAddress: string,
     deployStrategy: "basic" | "create2" = "basic",
+    groth16VerifierWrapperAddress?: string,
   ): Promise<{
     state: any;
     validator: any;
@@ -684,6 +710,9 @@ export class DeployHelper {
       case "authV2":
         validatorContractName = "AuthV2Validator";
         break;
+      case "authV2_forAuth":
+        validatorContractName = "AuthV2Validator_forAuth";
+        break;
     }
 
     let validator;
@@ -703,6 +732,9 @@ export class DeployHelper {
           break;
         case "authV2":
           validatorModule = AuthV2ValidatorProxyModule;
+          break;
+        case "authV2_forAuth":
+          validatorContractName = AuthV2ValidatorForAuthProxyModule;
           break;
       }
 
@@ -733,7 +765,19 @@ export class DeployHelper {
       }
     }
 
-    const groth16VerifierWrapper = await this.deployGroth16VerifierWrapper(validatorType);
+    let groth16VerifierWrapper;
+    if (!groth16VerifierWrapperAddress) {
+      groth16VerifierWrapper = await this.deployGroth16VerifierWrapper(
+        this.getGroth16VerifierTypeFromValidatorType(validatorType),
+      );
+    } else {
+      groth16VerifierWrapper = await ethers.getContractAt(
+        this.getGroth16VerifierWrapperName(
+          this.getGroth16VerifierTypeFromValidatorType(validatorType),
+        ),
+        groth16VerifierWrapperAddress,
+      );
+    }
 
     const ValidatorFactory = await ethers.getContractFactory(validatorContractName);
     const Create2AddressAnchorFactory = await ethers.getContractFactory(

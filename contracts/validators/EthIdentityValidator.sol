@@ -80,7 +80,8 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IAuthValidator, ERC165
         // solhint-disable-next-line no-unused-vars
         bytes calldata data,
         address sender,
-        IState stateContract
+        IState stateContract,
+        bytes32 expectedNonce
     ) public view override returns (uint256) {
         uint256 userID = abi.decode(proof, (uint256));
 
