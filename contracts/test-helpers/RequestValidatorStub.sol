@@ -6,12 +6,13 @@ import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
 import {IState} from "../interfaces/IState.sol";
 
 /**
- * @dev RequestValidatorV2Stub validator
+ * @dev RequestValidatorStub validator
  */
 contract RequestValidatorStub is IRequestValidator, ERC165 {
     string public constant VERSION = "1.0.0-stub";
 
-    IRequestValidator.RequestParams private requestParams;
+    mapping(bytes32 hashParams => IRequestValidator.RequestParams requestParams)
+        private requestParams;
     IRequestValidator.ResponseField[] private responseFields;
 
     function version() public pure override returns (string memory) {
@@ -43,14 +44,17 @@ contract RequestValidatorStub is IRequestValidator, ERC165 {
     }
 
     function getRequestParams(
-        bytes calldata
+        bytes calldata params
     ) external view returns (IRequestValidator.RequestParams memory) {
-        return requestParams;
+        return requestParams[keccak256(params)];
     }
 
     function stub_setRequestParams(
-        IRequestValidator.RequestParams calldata _requestParams
+        bytes[] calldata _params,
+        IRequestValidator.RequestParams[] calldata _requestParams
     ) external {
-        requestParams = _requestParams;
+        for (uint256 i = 0; i < _params.length; i++) {
+            requestParams[keccak256(_params[i])] = _requestParams[i];
+        }
     }
 }

@@ -9,7 +9,7 @@ import {IState} from "../interfaces/IState.sol";
  * @dev AuthValidatorStub validator
  */
 contract AuthValidatorStub is IAuthValidator, ERC165 {
-    string public constant VERSION = "1.0.0-mock";
+    string public constant VERSION = "1.0.0-stub";
 
     function version() public pure override returns (string memory) {
         return VERSION;

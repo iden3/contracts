@@ -103,7 +103,11 @@ describe("Universal Verifier submitResponse SigV2 validators", function () {
       await verifierLib.getAddress(),
     );
 
-    validatorStub = await deployHelper.deployValidatorStub("RequestValidatorV2Stub");
+    validatorStub = await deployHelper.deployValidatorStub("RequestValidatorStub");
+    await validatorStub.stub_setVerifyResults([
+      { name: "userID", value: 1 },
+      { name: "issuerID", value: 2 },
+    ]);
 
     sig = validatorStub;
     await verifier.addValidatorToWhitelist(await sig.getAddress());
@@ -190,7 +194,7 @@ describe("Universal Verifier submitResponse SigV2 validators", function () {
 
     const status = await verifier.getRequestStatus(signerAddress, requestId);
     expect(status.isVerified).to.be.true;
-    expect(status.validatorVersion).to.be.equal("1.0.0-mock");
+    expect(status.validatorVersion).to.be.equal("1.0.0-stub");
     expect(status.timestamp).to.be.equal(txResTimestamp);
 
     await expect(verifier.getRequestStatus(signerAddress, nonExistingRequestId)).to.be.rejectedWith(
@@ -221,7 +225,7 @@ describe("Universal Verifier submitResponse SigV2 validators", function () {
     for (const requestId of requestIdsMulti) {
       const status = await verifier.getRequestStatus(signerAddress, requestId);
       expect(status.isVerified).to.be.true;
-      expect(status.validatorVersion).to.be.equal("1.0.0-mock");
+      expect(status.validatorVersion).to.be.equal("1.0.0-stub");
       expect(status.timestamp).to.be.equal(txResTimestampMuti);
       await checkStorageFields(verifier, BigInt(requestId), storageFields);
     }

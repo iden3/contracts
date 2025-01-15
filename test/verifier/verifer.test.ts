@@ -50,7 +50,7 @@ describe("Verifer tests", function () {
     });
 
     it("setRequests: nullifierSessionID may be not unique if EQUAL to 0", async function () {
-      await validator.stub_setRequestParams(paramsFromValidator);
+      await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
 
       await verifier.setRequests([request]);
       request.requestId = 2;
@@ -59,7 +59,7 @@ describe("Verifer tests", function () {
 
     it("setRequests: nullifierSessionID must be unique if NOT EQUAL to 0", async function () {
       paramsFromValidator.nullifierSessionID = 1;
-      await validator.stub_setRequestParams(paramsFromValidator);
+      await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
 
       await verifier.setRequests([request]);
       request.requestId = 2;

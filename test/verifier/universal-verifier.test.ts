@@ -49,7 +49,11 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0112"]);
     const verifierLib = await deployHelper.deployVerifierLib();
 
-    const sigV2Validator = await deployHelper.deployValidatorStub("RequestValidatorV2Stub");
+    const sigV2Validator = await deployHelper.deployValidatorStub("RequestValidatorStub");
+    await sigV2Validator.stub_setVerifyResults([
+      { name: "userID", value: 1 },
+      { name: "issuerID", value: 2 },
+    ]);
 
     const universalVerifier: any = await deployHelper.deployUniversalVerifier(
       ethSigner,
@@ -192,7 +196,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
     const status = await verifier.getRequestStatus(signerAddress, requestId);
     expect(status.isVerified).to.be.true;
-    expect(status.validatorVersion).to.be.equal("1.0.0-mock");
+    expect(status.validatorVersion).to.be.equal("1.0.0-stub");
     expect(status.timestamp).to.be.equal(txResTimestamp);
 
     await expect(verifier.getRequestStatus(signerAddress, nonExistingRequestId)).to.be.rejectedWith(

@@ -64,13 +64,6 @@ describe("Universal Verifier Multi-request", function () {
     },
   ];
 
-  const authStorageFields = [
-    {
-      name: "userID",
-      value: 1,
-    },
-  ];
-
   async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
     signerAddress = await signer.getAddress();
@@ -151,8 +144,19 @@ describe("Universal Verifier Multi-request", function () {
       verifierID: verifierId,
     };
 
-    v3Validator = await deployHelper.deployValidatorStub("RequestValidatorV3Stub");
-    v3_2Validator = await deployHelper.deployValidatorStub("RequestValidatorV3_2Stub");
+    v3Validator = await deployHelper.deployValidatorStub("RequestValidatorStub");
+    await v3Validator.stub_setVerifyResults([
+      { name: "userID", value: 1 },
+      { name: "issuerID", value: 2 },
+      { name: "linkID", value: 3 },
+    ]);
+    v3_2Validator = await deployHelper.deployValidatorStub("RequestValidatorStub");
+    await v3_2Validator.stub_setVerifyResults([
+      { name: "userID", value: 1 },
+      { name: "issuerID", value: 2 },
+      { name: "linkID", value: 4 },
+    ]);
+
     authV2Validator = await deployHelper.deployValidatorStub("AuthValidatorStub");
 
     await verifier.addValidatorToWhitelist(await v3Validator.getAddress());
@@ -181,6 +185,17 @@ describe("Universal Verifier Multi-request", function () {
     const nonExistingMultiRequestId = 5;
     const authType = "authV2";
     const params = packV3ValidatorParams(requestQuery1);
+
+    await v3Validator.stub_setRequestParams(
+      [params],
+      [
+        {
+          groupID: requestQuery1.groupID,
+          verifierID: requestQuery1.verifierID,
+          nullifierSessionID: requestQuery1.nullifierSessionID,
+        },
+      ],
+    );
 
     const txSetRequests = await verifier.setRequests([
       {
@@ -290,6 +305,22 @@ describe("Universal Verifier Multi-request", function () {
     const paramsRequest2 = packV3ValidatorParams(requestQuery2);
     const paramsRequest3 = packV3ValidatorParams(requestQuery3);
 
+    await v3Validator.stub_setRequestParams(
+      [paramsRequest2, paramsRequest3],
+      [
+        {
+          groupID: requestQuery2.groupID,
+          verifierID: requestQuery2.verifierID,
+          nullifierSessionID: requestQuery2.nullifierSessionID,
+        },
+        {
+          groupID: requestQuery3.groupID,
+          verifierID: requestQuery3.verifierID,
+          nullifierSessionID: requestQuery3.nullifierSessionID,
+        },
+      ],
+    );
+
     const txSetRequests = await verifier.setRequests([
       {
         requestId: requestId2,
@@ -397,6 +428,28 @@ describe("Universal Verifier Multi-request", function () {
     const authParams = "0x";
     const paramsRequest2 = packV3ValidatorParams(requestQuery2);
     const paramsRequest3 = packV3ValidatorParams(requestQuery3);
+
+    await v3Validator.stub_setRequestParams(
+      [paramsRequest2],
+      [
+        {
+          groupID: requestQuery2.groupID,
+          verifierID: requestQuery2.verifierID,
+          nullifierSessionID: requestQuery2.nullifierSessionID,
+        },
+      ],
+    );
+
+    await v3_2Validator.stub_setRequestParams(
+      [paramsRequest3],
+      [
+        {
+          groupID: requestQuery3.groupID,
+          verifierID: requestQuery3.verifierID,
+          nullifierSessionID: requestQuery3.nullifierSessionID,
+        },
+      ],
+    );
 
     const txSetRequests = await verifier.setRequests([
       {
