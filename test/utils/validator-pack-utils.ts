@@ -73,3 +73,32 @@ export function packV3ValidatorParams(query: any, allowedIssuers: any[] = []): s
     ],
   );
 }
+
+export function packLinkedMultiQueryValidatorParams(query: any): string {
+  return abiCoder.encode(
+    [
+      "tuple(" +
+        "uint256[] claimPathKey," +
+        "uint256[] operator," +
+        "uint256[] slotIndex," +
+        "uint256[][] value," +
+        "uint256[] queryHash," +
+        "string[] circuitIds," +
+        "uint256 groupID," +
+        "uint256 verifierID," +
+        ")",
+    ],
+    [
+      {
+        claimPathKey: query.claimPathKey,
+        operator: query.operator,
+        slotIndex: query.slotIndex,
+        value: query.value,
+        queryHash: query.queryHash,
+        circuitIds: query.circuitIds,
+        groupID: query.groupID,
+        verifierID: query.verifierID,
+      },
+    ],
+  );
+}
