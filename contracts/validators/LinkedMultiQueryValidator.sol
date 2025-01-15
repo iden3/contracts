@@ -5,10 +5,10 @@ import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IGroth16Verifier} from "../interfaces/IGroth16Verifier.sol";
 import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
 import {IState} from "../interfaces/IState.sol";
-import {OwnableUpgradeable} from "../.deps/npm/@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-contract LinkedMultiQueryValidator is IRequestValidator, OwnableUpgradeable {
+contract LinkedMultiQueryValidator is IRequestValidator, Ownable2StepUpgradeable {
     // This should be limited to the real number of queries in which operator != 0
     struct Query {
         uint256[] claimPathKey;
