@@ -7,8 +7,15 @@ describe("Verifer tests", function () {
   let sender: any;
   let verifier, validator: any;
   let request, paramsFromValidator: any;
+  let multiRequest: any;
+  let signer: any;
+  let signerAddress: string;
+  let verifierId: any;
 
   async function deployContractsFixture() {
+    [signer] = await ethers.getSigners();
+    signerAddress = await signer.getAddress();
+
     const deployHelper = await DeployHelper.initialize(null, true);
     const veriferLib = await ethers.deployContract("VerifierLib");
     const verifier = await ethers.deployContract("VerifierTestWrapper", [], {
@@ -37,6 +44,8 @@ describe("Verifer tests", function () {
       [sender] = await ethers.getSigners();
       ({ verifier, validator } = await deployContractsFixture());
 
+      verifierId = await verifier.getVerifierID();
+
       request = {
         requestId: 1,
         metadata: "0x",
@@ -48,6 +57,13 @@ describe("Verifer tests", function () {
         groupID: 0,
         verifierID: 0,
         nullifierSessionID: 0,
+      };
+
+      multiRequest = {
+        multiRequestId: 1,
+        requestIds: [request.requestId],
+        groupIds: [],
+        metadata: "0x",
       };
     });
 
@@ -85,6 +101,33 @@ describe("Verifer tests", function () {
         verifier,
         "RequestIdUsesReservedBytes",
       );
+    });
+
+    it("getRequest: requestId should exist", async function () {
+      let requestObject = verifier.getRequest(request.requestId);
+      expect(requestObject)
+        .to.be.revertedWithCustomError(verifier, "RequestIdNotFound")
+        .withArgs(request.requestId);
+
+      paramsFromValidator.verifierID = verifierId;
+      await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await verifier.setRequests([request]);
+      requestObject = await verifier.getRequest(request.requestId);
+
+      expect(requestObject.requestId).to.be.equal(request.requestId);
+      expect(requestObject.metadata).to.be.equal(request.metadata);
+      expect(requestObject.validator).to.be.equal(request.validator);
+      expect(requestObject.params).to.be.equal(request.params);
+      expect(requestObject.creator).to.be.equal(await signer.getAddress());
+      expect(requestObject.verifierId).to.be.equal(verifierId);
+    });
+
+    it("getRequestStatus: requestId should exist", async function () {
+      const nonExistingRequestId = 2;
+
+      await expect(verifier.getRequestStatus(signerAddress, nonExistingRequestId))
+        .to.be.revertedWithCustomError(verifier, "RequestIdNotFound")
+        .withArgs(nonExistingRequestId);
     });
 
     it("submitResponse: not repeated responseFields from validator", async function () {
@@ -197,11 +240,101 @@ describe("Verifer tests", function () {
   });
 
   describe("Multi request tests", function () {
-    it("setMultiRequest", async function () {
-      // TODO check statuses of two different multiRequests pointing to the same requests
+    before(async function () {
+      [sender] = await ethers.getSigners();
+      ({ verifier, validator } = await deployContractsFixture());
+
+      request = {
+        requestId: 1,
+        metadata: "0x",
+        validator: await validator.getAddress(),
+        params: "0x",
+      };
+
+      paramsFromValidator = {
+        groupID: 0,
+        verifierID: 0,
+        nullifierSessionID: 0,
+      };
+
+      multiRequest = {
+        multiRequestId: 1,
+        requestIds: [request.requestId],
+        groupIds: [],
+        metadata: "0x",
+      };
     });
 
-    it("getStatus", async function () {
+    it("setMultiRequest: multi request should not exist", async function () {
+      await verifier.setRequests([request]);
+
+      await verifier.setMultiRequest(multiRequest);
+      await expect(verifier.setMultiRequest(multiRequest))
+        .revertedWithCustomError(verifier, "MultiRequestIdAlreadyExists")
+        .withArgs(multiRequest.multiRequestId);
+    });
+
+    it("setMultiRequest: check statuses of two different multiRequests pointing to the same requests", async function () {
+      const multiRequest2 = { ...multiRequest, multiRequestId: 2 };
+      await verifier.setMultiRequest(multiRequest2);
+
+      let isMultiRequestVerified = await verifier.isMultiRequestVerified(
+        multiRequest.multiRequestId,
+        signerAddress,
+      );
+      expect(isMultiRequestVerified).to.be.false;
+
+      let isMultiRequest2Verified = await verifier.isMultiRequestVerified(
+        multiRequest2.multiRequestId,
+        signerAddress,
+      );
+      expect(isMultiRequest2Verified).to.be.false;
+
+      const userID = 1; // we assume that userID is hardcoded to 1 in the auth stub contract
+      await validator.stub_setVerifyResults([
+        {
+          name: "userID",
+          value: userID,
+        },
+      ]);
+
+      const authResponse = {
+        authType: "stubAuth",
+        proof: "0x",
+      };
+      const response = {
+        requestId: request.requestId,
+        proof: "0x",
+        metadata: "0x",
+      };
+      const crossChainProofs = "0x";
+
+      await verifier.submitResponse(authResponse, [response], crossChainProofs);
+
+      //check statuses of two different multiRequests pointing to the same requests after response
+      isMultiRequestVerified = await verifier.isMultiRequestVerified(
+        multiRequest.multiRequestId,
+        signerAddress,
+      );
+      expect(isMultiRequestVerified).to.be.true;
+
+      isMultiRequest2Verified = await verifier.isMultiRequestVerified(
+        multiRequest2.multiRequestId,
+        signerAddress,
+      );
+      expect(isMultiRequest2Verified).to.be.true;
+    });
+
+    it("getMultiRequestStatus: multi request should exist", async function () {
+      const nonExistingMultiRequestId = 5;
+      await expect(verifier.getMultiRequestStatus(nonExistingMultiRequestId, signerAddress))
+        .to.be.revertedWithCustomError(verifier, "MultiRequestIdNotFound")
+        .withArgs(nonExistingMultiRequestId);
+      await expect(verifier.getMultiRequestStatus(multiRequest.multiRequestId, signerAddress)).not
+        .to.be.rejected;
+    });
+
+    it.skip("getMultiRequestStatus: linkID should be equal to all requests in a group, otherwise multiRequest pointing to it returns false", async function () {
       // TODO linkID should be equal to all requests in a group, otherwise multiRequest pointing to it returns false
     });
   });

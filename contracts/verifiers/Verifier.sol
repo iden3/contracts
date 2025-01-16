@@ -79,6 +79,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     bytes32 internal constant VerifierStorageLocation =
         0x11369addde4aae8af30dcf56fa25ad3d864848d3201d1e9197f8b4da18a51a00;
 
+    bytes2 internal constant VerifierIdType = 0x01A1;
     using VerifierLib for VerifierStorage;
 
     /**
@@ -161,10 +162,11 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
     function __Verifier_init_unchained(IState state) internal onlyInitializing {
         _setState(state);
-        // initial calculation of verifierID from contract address and default id type from State contract
-        VerifierStorage storage s = _getVerifierStorage();
-        bytes2 idType = s._state.getDefaultIdType();
-        uint256 calculatedVerifierID = GenesisUtils.calcIdFromEthAddress(idType, address(this));
+        // initial calculation of verifierID from contract address and verifier id type defined
+        uint256 calculatedVerifierID = GenesisUtils.calcIdFromEthAddress(
+            VerifierIdType,
+            address(this)
+        );
         _setVerifierID(calculatedVerifierID);
     }
 

@@ -54,15 +54,6 @@ interface IVerifier {
         address creator;
         uint256 verifierId;
     }
-    /**
-     * @dev GroupedRequests. Structure for auth proof status.
-     * @param groupId Group id of the requests.
-     * @param requests Requests of the group.
-     */
-    struct GroupedRequests {
-        uint256 groupId;
-        Request[] requests;
-    }
 
     /**
      * @dev Response. Structure for response.
@@ -75,15 +66,7 @@ interface IVerifier {
         bytes proof;
         bytes metadata;
     }
-    /**
-     * @dev GroupedResponses. Structure for grouped responses.
-     * @param groupId Group id of the responses.
-     * @param responses Responses of the group.
-     */
-    struct GroupedResponses {
-        uint256 groupId;
-        Response[] responses;
-    }
+
     /**
      * @dev AuthResponse. Structure for auth response.
      * @param authType Auth type of the proof response.
