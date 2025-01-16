@@ -5,7 +5,7 @@ import { expect } from "chai";
 
 describe("Verifer tests", function () {
   let sender: any;
-  let verifier, validator: any;
+  let verifier, verifierLib, validator: any;
   let request, paramsFromValidator: any;
   let multiRequest: any;
   let signer: any;
@@ -17,9 +17,9 @@ describe("Verifer tests", function () {
     signerAddress = await signer.getAddress();
 
     const deployHelper = await DeployHelper.initialize(null, true);
-    const veriferLib = await ethers.deployContract("VerifierLib");
+    const verifierLib = await ethers.deployContract("VerifierLib");
     const verifier = await ethers.deployContract("VerifierTestWrapper", [], {
-      libraries: { VerifierLib: await veriferLib.getAddress() },
+      libraries: { VerifierLib: await verifierLib.getAddress() },
     });
 
     const { state } = await deployHelper.deployStateWithLibraries([], "Groth16VerifierStub");
@@ -36,13 +36,13 @@ describe("Verifer tests", function () {
     await verifier.setAuthType(authType);
 
     const validator = await ethers.deployContract("RequestValidatorStub");
-    return { verifier, validator };
+    return { verifier, verifierLib, validator };
   }
 
   describe("Single request tests", function () {
     beforeEach(async function () {
       [sender] = await ethers.getSigners();
-      ({ verifier, validator } = await deployContractsFixture());
+      ({ verifier, verifierLib, validator } = await deployContractsFixture());
 
       verifierId = await verifier.getVerifierID();
 
@@ -101,6 +101,28 @@ describe("Verifer tests", function () {
         verifier,
         "RequestIdUsesReservedBytes",
       );
+    });
+
+    it("setRequests: a group should be formed by the groupID encoded in requests params", async function () {
+      const groupID = 1;
+      const groupRequest1 = { ...request, groupID };
+      const groupRequest2 = { ...request, requestId: 2, groupID };
+      paramsFromValidator.groupID = 1;
+      await validator.stub_setRequestParams([groupRequest1.params], [paramsFromValidator]);
+      await validator.stub_setRequestParams([groupRequest2.params], [paramsFromValidator]);
+
+      let groupsCount = await verifier.getGroupsCount();
+      expect(groupsCount).to.be.equal(0);
+
+      await verifier.setRequests([groupRequest1, groupRequest2]);
+
+      groupsCount = await verifier.getGroupsCount();
+      expect(groupsCount).to.be.equal(1);
+
+      const groupedRequests = await verifier.getGroupedRequests(groupID);
+      expect(groupedRequests.length).to.be.equal(2);
+      expect(groupedRequests[0]).to.be.equal(groupRequest1.requestId);
+      expect(groupedRequests[1]).to.be.equal(groupRequest2.requestId);
     });
 
     it("getRequest: requestId should exist", async function () {
@@ -193,7 +215,7 @@ describe("Verifer tests", function () {
       };
       const crossChainProofs = "0x";
       await expect(verifier.submitResponse(authResponse, [response], crossChainProofs))
-        .to.revertedWithCustomError(verifier, "ResponseFieldAlreadyExists")
+        .to.revertedWithCustomError(verifierLib, "ResponseFieldAlreadyExists")
         .withArgs("someFieldName1");
     });
 
@@ -232,10 +254,6 @@ describe("Verifer tests", function () {
       await expect(verifier.submitResponse(authResponse, [response], crossChainProofs))
         .to.revertedWithCustomError(verifier, "UserIDMismatch")
         .withArgs(1, 2);
-    });
-
-    it("submitResponse: a group should be formed by the groupID encoded in requests params", async function () {
-      // TODO: implement
     });
   });
 

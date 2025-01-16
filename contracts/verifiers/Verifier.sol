@@ -31,7 +31,6 @@ error NullifierSessionIDAlreadyExists(uint256 nullifierSessionID);
 error VerifierIDIsNotValid(uint256 requestVerifierID, uint256 expectedVerifierID);
 error RequestIdNotValid();
 error RequestIdUsesReservedBytes();
-error ResponseFieldAlreadyExists(string responseFieldName);
 
 abstract contract Verifier is IVerifier, ContextUpgradeable {
     /// @dev Key to retrieve the linkID from the proof storage
@@ -464,8 +463,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         // 1. Process crossChainProofs
         $._state.processCrossChainProofs(crossChainProofs);
 
-        // TODO: Get userID from responses that has userID informed (LinkedMultiquery doesn't have userID)
-
         uint256 userIDFromAuthResponse;
         AuthTypeData storage authTypeData = $._authMethods[authResponse.authType];
 
@@ -500,9 +497,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             // Check if userID from authResponse is the same as the one in the signals
             _checkUserIDMatch(userIDFromAuthResponse, signals);
 
-            // Check that response fields are not repeated
-            _checkSinals(signals);
-
             $.writeProofResults(response.requestId, sender, signals);
 
             if (response.metadata.length > 0) {
@@ -522,19 +516,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             ) {
                 if (userIDFromAuthResponse != signals[j].value) {
                     revert UserIDMismatch(userIDFromAuthResponse, signals[j].value);
-                }
-            }
-        }
-    }
-
-    function _checkSinals(IRequestValidator.ResponseField[] memory signals) internal pure {
-        for (uint256 j = 0; j < signals.length; j++) {
-            for (uint256 k = j + 1; k < signals.length; k++) {
-                if (
-                    keccak256(abi.encodePacked(signals[j].name)) ==
-                    keccak256(abi.encodePacked(signals[k].name))
-                ) {
-                    revert ResponseFieldAlreadyExists(signals[j].name);
                 }
             }
         }
@@ -810,6 +791,22 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      */
     function getRequestsCount() public view returns (uint256) {
         return _getVerifierStorage()._requestIds.length;
+    }
+
+    /**
+     * @dev Get the group of requests count.
+     * @return Group of requests count.
+     */
+    function getGroupsCount() public view returns (uint256) {
+        return _getVerifierStorage()._groupIds.length;
+    }
+
+    /**
+     * @dev Get the group of requests.
+     * @return Group of requests.
+     */
+    function getGroupedRequests(uint256 groupID) public view returns (uint256[] memory) {
+        return _getVerifierStorage()._groupedRequests[groupID];
     }
 
     /**

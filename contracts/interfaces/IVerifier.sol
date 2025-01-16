@@ -144,6 +144,18 @@ interface IVerifier {
     function getRequestsCount() external view returns (uint256);
 
     /**
+     * @dev Get the group of requests count.
+     * @return Group of requests count.
+     */
+    function getGroupsCount() external view returns (uint256);
+
+    /**
+     * @dev Get the group of requests.
+     * @return Group of requests.
+     */
+    function getGroupedRequests(uint256 groupID) external view returns (uint256[] memory);
+
+    /**
      * @dev Checks if a request ID exists
      * @param requestId The ID of the request
      * @return Whether the request ID exists
