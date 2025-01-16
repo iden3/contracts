@@ -68,6 +68,23 @@ describe("Verifer tests", function () {
         .withArgs(1);
     });
 
+    it("setRequests: requestId should be valid and not using reserved bytes", async function () {
+      await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
+
+      request.requestId = BigInt(2 ** 256) - BigInt(1);
+
+      await expect(verifier.setRequests([request])).to.be.revertedWithCustomError(
+        verifier,
+        "RequestIdNotValid",
+      );
+
+      request.requestId = BigInt(2 ** 248) + BigInt(2 ** 247);
+      await expect(verifier.setRequests([request])).to.be.revertedWithCustomError(
+        verifier,
+        "RequestIdUsesReservedBytes",
+      );
+    });
+
     it("submitResponse: not repeated responseFields from validator", async function () {
       await verifier.setRequests([request]);
       await validator.stub_setVerifyResults([

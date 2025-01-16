@@ -559,7 +559,9 @@ describe("Universal Verifier V3 validator", function () {
           params: params2,
         },
       ]),
-    ).to.be.rejectedWith(`NullifierSessionIDAlreadyExists(${query2.nullifierSessionID})`);
+    )
+      .to.be.revertedWithCustomError(verifier, "NullifierSessionIDAlreadyExists")
+      .withArgs(query2.nullifierSessionID);
   });
 
   it("Test set request fails with VerifierIDIsNotValid", async () => {

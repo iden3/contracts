@@ -134,7 +134,7 @@ contract AuthV2Validator_forAuth is Ownable2StepUpgradeable, IAuthValidator, ERC
 
         PubSignals memory pubSignals = parsePubSignals(inputs);
         _checkGistRoot(pubSignals.userID, pubSignals.gistRoot, state);
-        _checkChallenge(pubSignals.challenge, expectedNonce); // expectedNonce
+        _checkChallenge(pubSignals.challenge, expectedNonce);
         _verifyZKP(inputs, a, b, c);
         return pubSignals.userID;
     }

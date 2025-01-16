@@ -197,9 +197,9 @@ describe("Universal Verifier submitResponse SigV2 validators", function () {
     expect(status.validatorVersion).to.be.equal("1.0.0-stub");
     expect(status.timestamp).to.be.equal(txResTimestamp);
 
-    await expect(verifier.getRequestStatus(signerAddress, nonExistingRequestId)).to.be.rejectedWith(
-      `RequestIdNotFound(${nonExistingRequestId})`,
-    );
+    await expect(verifier.getRequestStatus(signerAddress, nonExistingRequestId))
+      .to.be.revertedWithCustomError(verifier, "RequestIdNotFound")
+      .withArgs(nonExistingRequestId);
 
     const requestIdsMulti = requestIds.slice(1, 3);
     const txMulti = await verifier.submitResponse(

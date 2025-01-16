@@ -28,6 +28,8 @@ error MetadataNotSupportedYet();
 error GroupMustHaveAtLeastTwoRequests(uint256 groupID);
 error NullifierSessionIDAlreadyExists(uint256 nullifierSessionID);
 error VerifierIDIsNotValid(uint256 requestVerifierID, uint256 expectedVerifierID);
+error RequestIdNotValid();
+error RequestIdUsesReservedBytes();
 
 abstract contract Verifier is IVerifier, ContextUpgradeable {
     /// @dev Key to retrieve the linkID from the proof storage
@@ -285,6 +287,8 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         // 2. Set requests checking groups and nullifierSessionID uniqueness
         for (uint256 i = 0; i < requests.length; i++) {
+            _checkRequestIdCorrectness(requests[i].requestId);
+
             _checkNullifierSessionIdUniqueness(requests[i]);
             _checkVerifierID(requests[i]);
 
@@ -313,6 +317,24 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             if (requestVerifierID != s._verifierID) {
                 revert VerifierIDIsNotValid(requestVerifierID, s._verifierID);
             }
+        }
+    }
+
+    function _getRequestType(uint256 requestId) internal pure returns (uint8) {
+        // 0x0000000000000000 - prefix for old uint64 requests
+        // 0x0000000000000001 - prefix for keccak256 cut to fit in the remaining 192 bits
+        return uint8(requestId >> 248);
+    }
+
+    function _checkRequestIdCorrectness(uint256 requestId) internal pure {
+        // 1. Check prefix
+        uint8 requestType = _getRequestType(requestId);
+        if (requestType >= 2) {
+            revert RequestIdNotValid();
+        }
+        // 2. Check reserved bytes
+        if (((requestId << 8) >> 200) > 0) {
+            revert RequestIdUsesReservedBytes();
         }
     }
 

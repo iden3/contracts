@@ -27,7 +27,6 @@ const testCases: any[] = [
   {
     name: "Validation of Gist root not found",
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-    challenge: "0x00",
     stateTransitions: [
       require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
     ],
