@@ -24,12 +24,14 @@ error LinkIDNotTheSameForGroupedRequests();
 error UserIDNotFound(uint256 userID);
 error UserIDNotLinkedToAddress(uint256 userID, address userAddress);
 error UserNotAuthenticated();
+error UserIDMismatch(uint256 userIDFromAuth, uint256 userIDFromResponse);
 error MetadataNotSupportedYet();
 error GroupMustHaveAtLeastTwoRequests(uint256 groupID);
 error NullifierSessionIDAlreadyExists(uint256 nullifierSessionID);
 error VerifierIDIsNotValid(uint256 requestVerifierID, uint256 expectedVerifierID);
 error RequestIdNotValid();
 error RequestIdUsesReservedBytes();
+error ResponseFieldAlreadyExists(string responseFieldName);
 
 abstract contract Verifier is IVerifier, ContextUpgradeable {
     /// @dev Key to retrieve the linkID from the proof storage
@@ -462,13 +464,13 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         // TODO: Get userID from responses that has userID informed (LinkedMultiquery doesn't have userID)
 
-        uint256 userIDFromReponse;
+        uint256 userIDFromAuthResponse;
         AuthTypeData storage authTypeData = $._authMethods[authResponse.authType];
 
         bytes32 expectedNonce = keccak256(abi.encode(sender, responses));
 
         // Authenticate user
-        userIDFromReponse = authTypeData.validator.verify(
+        userIDFromAuthResponse = authTypeData.validator.verify(
             authResponse.proof,
             authTypeData.params,
             sender,
@@ -476,11 +478,11 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             expectedNonce
         );
 
-        if (userIDFromReponse == 0) {
+        if (userIDFromAuthResponse == 0) {
             revert UserNotAuthenticated();
         }
 
-        // 3. Verify all the responses, write proof results (under the userID key from the auth of the user),
+        // 3. Verify all the responses, check userID from signals and write proof results,
         //      emit events (existing logic)
         for (uint256 i = 0; i < responses.length; i++) {
             IVerifier.Response memory response = responses[i];
@@ -493,10 +495,45 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                 $._state
             );
 
+            // Check if userID from authResponse is the same as the one in the signals
+            _checkUserIDMatch(userIDFromAuthResponse, signals);
+
+            // Check that response fields are not repeated
+            _checkSinals(signals);
+
             $.writeProofResults(response.requestId, sender, signals);
 
             if (response.metadata.length > 0) {
                 revert MetadataNotSupportedYet();
+            }
+        }
+    }
+
+    function _checkUserIDMatch(
+        uint256 userIDFromAuthResponse,
+        IRequestValidator.ResponseField[] memory signals
+    ) internal pure {
+        for (uint256 j = 0; j < signals.length; j++) {
+            if (
+                keccak256(abi.encodePacked(signals[j].name)) ==
+                keccak256(abi.encodePacked("userID"))
+            ) {
+                if (userIDFromAuthResponse != signals[j].value) {
+                    revert UserIDMismatch(userIDFromAuthResponse, signals[j].value);
+                }
+            }
+        }
+    }
+
+    function _checkSinals(IRequestValidator.ResponseField[] memory signals) internal pure {
+        for (uint256 j = 0; j < signals.length; j++) {
+            for (uint256 k = j + 1; k < signals.length; k++) {
+                if (
+                    keccak256(abi.encodePacked(signals[j].name)) ==
+                    keccak256(abi.encodePacked(signals[k].name))
+                ) {
+                    revert ResponseFieldAlreadyExists(signals[j].name);
+                }
             }
         }
     }

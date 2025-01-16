@@ -71,14 +71,14 @@ describe("Verifer tests", function () {
     it("setRequests: requestId should be valid and not using reserved bytes", async function () {
       await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
 
-      request.requestId = BigInt(2 ** 256) - BigInt(1);
+      request.requestId = BigInt(2 ** 256) - BigInt(1); // requestId without valid prefix 0x0000000000000000 or 0x0000000000000001
 
       await expect(verifier.setRequests([request])).to.be.revertedWithCustomError(
         verifier,
         "RequestIdNotValid",
       );
 
-      request.requestId = BigInt(2 ** 248) + BigInt(2 ** 247);
+      request.requestId = BigInt(2 ** 247); // requestId uses reserved bytes
       await expect(verifier.setRequests([request])).to.be.revertedWithCustomError(
         verifier,
         "RequestIdUsesReservedBytes",
@@ -124,7 +124,7 @@ describe("Verifer tests", function () {
       expect(resonseField2).to.be.equal(2);
     });
 
-    it.skip("submitResponse: should throw if repeated responseFields from validator", async function () {
+    it("submitResponse: should throw if repeated responseFields from validator", async function () {
       await verifier.setRequests([request]);
       await validator.stub_setVerifyResults([
         {
@@ -152,7 +152,7 @@ describe("Verifer tests", function () {
         .withArgs("someFieldName1");
     });
 
-    it.skip("submitResponse: userID in response fields should match auth userID", async function () {
+    it("submitResponse: userID in response fields should match auth userID", async function () {
       await verifier.setRequests([request]);
 
       let userID = 1; // we assume that userID is hardcoded to 1 in the auth stub contract
