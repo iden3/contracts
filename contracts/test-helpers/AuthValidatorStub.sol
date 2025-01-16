@@ -11,6 +11,8 @@ import {IState} from "../interfaces/IState.sol";
 contract AuthValidatorStub is IAuthValidator, ERC165 {
     string public constant VERSION = "1.0.0-stub";
 
+    uint256 private userID;
+
     function version() public pure override returns (string memory) {
         return VERSION;
     }
@@ -26,7 +28,11 @@ contract AuthValidatorStub is IAuthValidator, ERC165 {
         address,
         IState,
         bytes32
-    ) external pure override returns (uint256 userID) {
-        return 1;
+    ) external view override returns (uint256) {
+        return userID;
+    }
+
+    function stub_setVerifyResults(uint256 _userID) external {
+        userID = _userID;
     }
 }

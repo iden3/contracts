@@ -114,6 +114,7 @@ describe("Universal Verifier submitResponse SigV2 validators", function () {
     await verifier.connect();
 
     const authV2Validator = await deployHelper.deployValidatorStub("AuthValidatorStub");
+    await authV2Validator.stub_setVerifyResults(1);
 
     await verifier.setAuthType({
       authType: authType,

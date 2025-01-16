@@ -158,6 +158,7 @@ describe("Universal Verifier Multi-request", function () {
     ]);
 
     authV2Validator = await deployHelper.deployValidatorStub("AuthValidatorStub");
+    await authV2Validator.stub_setVerifyResults(1);
 
     await verifier.addValidatorToWhitelist(await v3Validator.getAddress());
     await verifier.addValidatorToWhitelist(await v3_2Validator.getAddress());

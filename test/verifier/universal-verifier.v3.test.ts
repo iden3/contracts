@@ -14,6 +14,8 @@ import stateTransition13 from "../validators/common-data/issuer_from_first_state
 import { packZKProof } from "../utils/packData";
 import { TEN_YEARS } from "../../helpers/constants";
 
+const userID = 23013175891893363078841232968022302880776034013620341061794940968520126978n;
+
 const storageFields = [
   {
     name: "issuerID",
@@ -21,7 +23,7 @@ const storageFields = [
   },
   {
     name: "userID",
-    value: 23013175891893363078841232968022302880776034013620341061794940968520126978n,
+    value: userID,
   },
   { name: "timestamp", value: 1642074362n },
   {
@@ -97,6 +99,7 @@ describe("Universal Verifier V3 validator", function () {
     await universalVerifier.connect();
 
     const authV2Validator = await deployHelper.deployValidatorStub("AuthValidatorStub");
+    await authV2Validator.stub_setVerifyResults(userID);
 
     return { stateContract, v3Validator, authV2Validator, universalVerifier };
   };
@@ -186,22 +189,22 @@ describe("Universal Verifier V3 validator", function () {
 
     const metadatas = "0x";
 
-    await expect(
-      verifier.submitResponse(
+    //await expect(
+    await verifier.submitResponse(
+      {
+        authType: authType,
+        proof,
+      },
+      [
         {
-          authType: authType,
+          requestId,
           proof,
+          metadata: metadatas,
         },
-        [
-          {
-            requestId,
-            proof,
-            metadata: metadatas,
-          },
-        ],
-        crossChainProofs,
-      ),
-    ).not.to.be.rejected;
+      ],
+      crossChainProofs,
+    );
+    //).not.to.be.rejected;
 
     await checkStorageFields(verifier, BigInt(requestId), storageFields);
   });

@@ -19,6 +19,8 @@ describe("Verifer tests", function () {
     await verifier.initialize(await state.getAddress());
 
     const authValidatorStub = await ethers.deployContract("AuthValidatorStub");
+    await authValidatorStub.stub_setVerifyResults(1);
+
     const authType = {
       authType: "stubAuth",
       validator: await authValidatorStub.getAddress(),
