@@ -10,27 +10,28 @@ import {VerifierLib} from "../lib/VerifierLib.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
-error RequestIdNotFound(uint256 requestId);
-error RequestAlreadyExists(uint256 requestId);
-error GroupIdNotFound(uint256 groupId);
-error GroupIdAlreadyExists(uint256 groupId);
-error MultiRequestIdNotFound(uint256 multiRequestId);
-error MultiRequestIdAlreadyExists(uint256 multiRequestId);
 error AuthTypeNotFound(string authType);
 error AuthTypeAlreadyExists(string authType);
-error ValidatorNotWhitelisted(address validator);
-error RequestIsAlreadyGrouped(uint256 requestId);
+error GroupIdNotFound(uint256 groupId);
+error GroupIdAlreadyExists(uint256 groupId);
+error GroupMustHaveAtLeastTwoRequests(uint256 groupID);
 error LinkIDNotTheSameForGroupedRequests();
+error MetadataNotSupportedYet();
+error MultiRequestIdAlreadyExists(uint256 multiRequestId);
+error MultiRequestIdNotFound(uint256 multiRequestId);
+error NullifierSessionIDAlreadyExists(uint256 nullifierSessionID);
+error RequestAlreadyExists(uint256 requestId);
+error RequestIdNotFound(uint256 requestId);
+error RequestIdNotValid();
+error RequestIdUsesReservedBytes();
+error RequestIdTypeNotValid();
+error RequestIsAlreadyGrouped(uint256 requestId);
+error UserIDMismatch(uint256 userIDFromAuth, uint256 userIDFromResponse);
 error UserIDNotFound(uint256 userID);
 error UserIDNotLinkedToAddress(uint256 userID, address userAddress);
 error UserNotAuthenticated();
-error UserIDMismatch(uint256 userIDFromAuth, uint256 userIDFromResponse);
-error MetadataNotSupportedYet();
-error GroupMustHaveAtLeastTwoRequests(uint256 groupID);
-error NullifierSessionIDAlreadyExists(uint256 nullifierSessionID);
+error ValidatorNotWhitelisted(address validator);
 error VerifierIDIsNotValid(uint256 requestVerifierID, uint256 expectedVerifierID);
-error RequestIdNotValid();
-error RequestIdUsesReservedBytes();
 
 abstract contract Verifier is IVerifier, ContextUpgradeable {
     /// @dev Key to retrieve the linkID from the proof storage
@@ -290,7 +291,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         // 2. Set requests checking groups and nullifierSessionID uniqueness
         for (uint256 i = 0; i < requests.length; i++) {
-            _checkRequestIdCorrectness(requests[i].requestId);
+            _checkRequestIdCorrectness(requests[i].requestId, requests[i].params);
 
             _checkNullifierSessionIdUniqueness(requests[i]);
             _checkVerifierID(requests[i]);
@@ -326,18 +327,32 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function _getRequestType(uint256 requestId) internal pure returns (uint8) {
         // 0x0000000000000000 - prefix for old uint64 requests
         // 0x0000000000000001 - prefix for keccak256 cut to fit in the remaining 192 bits
-        return uint8(requestId >> 248);
+        return uint8(requestId >> 192);
     }
 
-    function _checkRequestIdCorrectness(uint256 requestId) internal pure {
+    function _checkRequestIdCorrectness(
+        uint256 requestId,
+        bytes calldata requestParams
+    ) internal pure {
         // 1. Check prefix
         uint8 requestType = _getRequestType(requestId);
         if (requestType >= 2) {
-            revert RequestIdNotValid();
+            revert RequestIdTypeNotValid();
         }
         // 2. Check reserved bytes
-        if (((requestId << 8) >> 200) > 0) {
+        if ((requestId >> 200) > 0) {
             revert RequestIdUsesReservedBytes();
+        }
+        // 3. Check if requestId matches the hash of the requestParams
+        if (requestType == 1) {
+            uint256 hashValue = uint256(keccak256(requestParams));
+            if (
+                requestId !=
+                (hashValue & 0x0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) +
+                    0x0000000000000001000000000000000000000000000000000000000000000000
+            ) {
+                revert RequestIdNotValid();
+            }
         }
     }
 

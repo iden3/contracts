@@ -86,21 +86,39 @@ describe("Verifer tests", function () {
         .withArgs(1);
     });
 
-    it("setRequests: requestId should be valid and not using reserved bytes", async function () {
+    it("setRequests: requestId should be valid", async function () {
       await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
 
-      request.requestId = BigInt(2 ** 256) - BigInt(1); // requestId without valid prefix 0x0000000000000000 or 0x0000000000000001
+      request.requestId = BigInt(
+        "0x0000000000000002FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+      ); // requestId without valid prefix 0x00000000000000_00 or 0x00000000000000_01 (eigth byte)
 
+      await expect(verifier.setRequests([request])).to.be.revertedWithCustomError(
+        verifier,
+        "RequestIdTypeNotValid",
+      );
+
+      request.requestId = BigInt(
+        "0x0000000001000001FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+      ); // requestId uses reserved bytes (firt to seventh byte) 0x00000000000000
+      await expect(verifier.setRequests([request])).to.be.revertedWithCustomError(
+        verifier,
+        "RequestIdUsesReservedBytes",
+      );
+
+      request.requestId = BigInt(
+        "0x0000000000000001FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+      ); // requestId idType is valid but calculation from hash params is not valid
       await expect(verifier.setRequests([request])).to.be.revertedWithCustomError(
         verifier,
         "RequestIdNotValid",
       );
 
-      request.requestId = BigInt(2 ** 247); // requestId uses reserved bytes
-      await expect(verifier.setRequests([request])).to.be.revertedWithCustomError(
-        verifier,
-        "RequestIdUsesReservedBytes",
-      );
+      request.requestId =
+        (BigInt(ethers.keccak256(request.params)) &
+          BigInt("0x0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) +
+        BigInt("0x0000000000000001000000000000000000000000000000000000000000000000"); // requestId is valid;
+      await expect(verifier.setRequests([request])).not.to.be.rejected;
     });
 
     it("setRequests: a group should be formed by the groupID encoded in requests params", async function () {
