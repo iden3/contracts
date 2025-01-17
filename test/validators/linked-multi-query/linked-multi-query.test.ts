@@ -23,8 +23,10 @@ describe("Test linkedMultiQuery10.circom", function () {
   it("should work", async function () {
     const linkId = "1";
     const merklized = "1";
-    const operatorOutput1 = "1";
-    const operatorOutput2 = "16";
+    const operator1 = "1";
+    const operator2 = "16";
+    const operatorOutput1 = "0";
+    const operatorOutput2 = "777";
     const queryHash1 = "100";
     const queryHash2 = "200";
 
@@ -46,7 +48,7 @@ describe("Test linkedMultiQuery10.circom", function () {
 
     const query = {
       claimPathKey: [0, 0],
-      operator: [operatorOutput1, operatorOutput2],
+      operator: [operator1, operator2],
       slotIndex: [0, 0],
       value: [
         [0, 0],
@@ -61,6 +63,24 @@ describe("Test linkedMultiQuery10.circom", function () {
     const data = packLinkedMultiQueryValidatorParams(query);
     const stateAddress = ethers.ZeroAddress;
 
-    expect(await validator.verify(proof, data, signer.address, stateAddress)).not.to.throw;
+    const result = await validator.verify(proof, data, signer.address, stateAddress);
+    expect(result).to.deep.equal([
+      ["linkID", linkId],
+      ["operatorOutput1", 777n],
+    ]);
+
+    // have more than one operator output
   });
+
+  // Merge main dev branch into this branch
+
+  // CircuitID should be exactly linkedMultiQuery10
+
+  // Validate query, all the lengths should be equal and no longer than 10
+  // getRequestParams should return the correct values
+
+  // Maybe: make programmable groth16 verifier stub and throw error
+  // Should throw if wrong query hash
+  // Should throw if groupID is 0
 });
+

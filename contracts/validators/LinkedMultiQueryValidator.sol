@@ -16,7 +16,7 @@ contract LinkedMultiQueryValidator is IRequestValidator, Ownable2StepUpgradeable
         uint256[] slotIndex;
         uint256[][] value;
         uint256[] queryHash;
-        string[] circuitIds; // TODO should it be here that way?
+        string[] circuitIds;
         uint256 groupID;
         uint256 verifierID;
     }
@@ -78,7 +78,7 @@ contract LinkedMultiQueryValidator is IRequestValidator, Ownable2StepUpgradeable
         bytes calldata data,
         address sender,
         IState state
-    ) external returns (IRequestValidator.ResponseField[] memory) {
+    ) external view returns (IRequestValidator.ResponseField[] memory) {
         LinkedMultiQueryValidatorBaseStorage storage $ = _getLinkedMultiQueryValidatorBaseStorage();
 
         // 0. Parse query
@@ -100,7 +100,7 @@ contract LinkedMultiQueryValidator is IRequestValidator, Ownable2StepUpgradeable
         _checkQueryHash(query, pubSignals);
         _checkGroupId(query.groupID);
 
-        return _getSpecialSignals(pubSignals, query);
+        return _getResponseFields(pubSignals, query);
     }
 
     error InvalidQueryHash(uint256 expectedQueryHash, uint256 actualQueryHash);
@@ -122,25 +122,25 @@ contract LinkedMultiQueryValidator is IRequestValidator, Ownable2StepUpgradeable
 
     function _parsePubSignals(
         uint256[] memory inputs,
-        uint256 queriesNumber
+        uint256 queriesQty
     ) internal pure returns (PubSignals memory) {
         PubSignals memory pubSignals = PubSignals(
             0,
             0,
-            new uint256[](queriesNumber),
-            new uint256[](queriesNumber)
+            new uint256[](queriesQty),
+            new uint256[](queriesQty)
         );
 
         pubSignals.linkID = inputs[0];
         pubSignals.merklized = inputs[1];
-        for (uint256 i = 0; i < queriesNumber; i++) {
+        for (uint256 i = 0; i < queriesQty; i++) {
             pubSignals.operatorOutput[i] = inputs[2 + i];
-            pubSignals.circuitQueryHash[i] = inputs[2 + queriesNumber + i];
+            pubSignals.circuitQueryHash[i] = inputs[2 + queriesQty + i];
         }
         return pubSignals;
     }
 
-    function _getSpecialSignals(
+    function _getResponseFields(
         PubSignals memory pubSignals,
         Query memory query
     ) internal pure returns (ResponseField[] memory) {
@@ -157,7 +157,7 @@ contract LinkedMultiQueryValidator is IRequestValidator, Ownable2StepUpgradeable
 
         uint256 m = 1;
         for (uint256 i = 0; i < query.operator.length; i++) {
-            // TODO consider if can be more gas efficient
+            // TODO consider if can be more gas efficient. Check via gasleft() first
             if (query.operator[i] == 16) {
                 rfs[m++] = ResponseField(
                     string(abi.encodePacked("operatorOutput", Strings.toString(i))),
