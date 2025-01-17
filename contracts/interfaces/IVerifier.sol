@@ -163,6 +163,20 @@ interface IVerifier {
     function requestIdExists(uint256 requestId) external view returns (bool);
 
     /**
+     * @dev Checks if a group ID exists
+     * @param groupId The ID of the group
+     * @return Whether the group ID exists
+     */
+    function groupIdExists(uint256 groupId) external view returns (bool);
+
+    /**
+     * @dev Checks if a multiRequest ID exists
+     * @param multiRequestId The ID of the multiRequest
+     * @return Whether the multiRequest ID exists
+     */
+    function multiRequestIdExists(uint256 multiRequestId) external view returns (bool);
+
+    /**
      * @dev Gets the status of the multiRequest verification
      * @param multiRequestId The ID of the MultiRequest
      * @param userAddress The address of the user

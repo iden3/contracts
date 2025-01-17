@@ -5,7 +5,7 @@ import { expect } from "chai";
 
 describe("Verifer tests", function () {
   let sender: any;
-  let verifier, verifierLib, validator: any;
+  let verifier, verifierLib, validator1, validator2: any;
   let request, paramsFromValidator: any;
   let multiRequest: any;
   let signer: any;
@@ -35,21 +35,22 @@ describe("Verifer tests", function () {
     };
     await verifier.setAuthType(authType);
 
-    const validator = await ethers.deployContract("RequestValidatorStub");
-    return { verifier, verifierLib, validator };
+    const validator1 = await ethers.deployContract("RequestValidatorStub");
+    const validator2 = await ethers.deployContract("RequestValidatorStub");
+    return { verifier, verifierLib, validator1, validator2 };
   }
 
   describe("Single request tests", function () {
     beforeEach(async function () {
       [sender] = await ethers.getSigners();
-      ({ verifier, verifierLib, validator } = await deployContractsFixture());
+      ({ verifier, verifierLib, validator1, validator2 } = await deployContractsFixture());
 
       verifierId = await verifier.getVerifierID();
 
       request = {
         requestId: 1,
         metadata: "0x",
-        validator: await validator.getAddress(),
+        validator: await validator1.getAddress(),
         params: "0x",
       };
 
@@ -67,8 +68,27 @@ describe("Verifer tests", function () {
       };
     });
 
+    it("setRequests: should not exist when creating", async function () {
+      await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
+
+      let requestIdExists = await verifier.requestIdExists(request.requestId);
+      expect(requestIdExists).to.be.false;
+      let requestsCount = await verifier.getRequestsCount();
+      expect(requestsCount).to.be.equal(0);
+
+      await expect(verifier.setRequests([request])).not.to.be.rejected;
+      await expect(verifier.setRequests([request]))
+        .to.be.revertedWithCustomError(verifier, "RequestIdAlreadyExists")
+        .withArgs(request.requestId);
+
+      requestIdExists = await verifier.requestIdExists(request.requestId);
+      expect(requestIdExists).to.be.true;
+      requestsCount = await verifier.getRequestsCount();
+      expect(requestsCount).to.be.equal(1);
+    });
+
     it("setRequests: nullifierSessionID may be not unique if EQUAL to 0", async function () {
-      await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
 
       await verifier.setRequests([request]);
       request.requestId = 2;
@@ -77,7 +97,7 @@ describe("Verifer tests", function () {
 
     it("setRequests: nullifierSessionID must be unique if NOT EQUAL to 0", async function () {
       paramsFromValidator.nullifierSessionID = 1;
-      await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
 
       await verifier.setRequests([request]);
       request.requestId = 2;
@@ -87,7 +107,7 @@ describe("Verifer tests", function () {
     });
 
     it("setRequests: requestId should be valid", async function () {
-      await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
 
       request.requestId = BigInt(
         "0x0000000000000002FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
@@ -126,14 +146,18 @@ describe("Verifer tests", function () {
       const groupRequest1 = { ...request, groupID };
       const groupRequest2 = { ...request, requestId: 2, groupID };
       paramsFromValidator.groupID = 1;
-      await validator.stub_setRequestParams([groupRequest1.params], [paramsFromValidator]);
-      await validator.stub_setRequestParams([groupRequest2.params], [paramsFromValidator]);
+      await validator1.stub_setRequestParams([groupRequest1.params], [paramsFromValidator]);
+      await validator1.stub_setRequestParams([groupRequest2.params], [paramsFromValidator]);
 
+      let groupExists = await verifier.groupIdExists(groupID);
+      expect(groupExists).to.be.false;
       let groupsCount = await verifier.getGroupsCount();
       expect(groupsCount).to.be.equal(0);
 
       await verifier.setRequests([groupRequest1, groupRequest2]);
 
+      groupExists = await verifier.groupIdExists(groupID);
+      expect(groupExists).to.be.true;
       groupsCount = await verifier.getGroupsCount();
       expect(groupsCount).to.be.equal(1);
 
@@ -144,15 +168,15 @@ describe("Verifer tests", function () {
     });
 
     it("getRequest: requestId should exist", async function () {
-      let requestObject = verifier.getRequest(request.requestId);
-      expect(requestObject)
+      await expect(verifier.getRequest(request.requestId))
         .to.be.revertedWithCustomError(verifier, "RequestIdNotFound")
         .withArgs(request.requestId);
 
       paramsFromValidator.verifierID = verifierId;
-      await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
       await verifier.setRequests([request]);
-      requestObject = await verifier.getRequest(request.requestId);
+
+      const requestObject = await verifier.getRequest(request.requestId);
 
       expect(requestObject.requestId).to.be.equal(request.requestId);
       expect(requestObject.metadata).to.be.equal(request.metadata);
@@ -172,7 +196,7 @@ describe("Verifer tests", function () {
 
     it("submitResponse: not repeated responseFields from validator", async function () {
       await verifier.setRequests([request]);
-      await validator.stub_setVerifyResults([
+      await validator1.stub_setVerifyResults([
         {
           name: "someFieldName1",
           value: 1,
@@ -193,7 +217,14 @@ describe("Verifer tests", function () {
         metadata: "0x",
       };
       const crossChainProofs = "0x";
+
+      let isRequestVerified = await verifier.isRequestVerified(sender, request.requestId);
+      expect(isRequestVerified).to.be.false;
+
       await verifier.submitResponse(authResponse, [response], crossChainProofs);
+
+      isRequestVerified = await verifier.isRequestVerified(sender, request.requestId);
+      expect(isRequestVerified).to.be.true;
 
       const responseField1 = await verifier.getResponseFieldValue(
         request.requestId,
@@ -211,7 +242,7 @@ describe("Verifer tests", function () {
 
     it("submitResponse: should throw if repeated responseFields from validator", async function () {
       await verifier.setRequests([request]);
-      await validator.stub_setVerifyResults([
+      await validator1.stub_setVerifyResults([
         {
           name: "someFieldName1",
           value: 1,
@@ -241,7 +272,7 @@ describe("Verifer tests", function () {
       await verifier.setRequests([request]);
 
       let userID = 1; // we assume that userID is hardcoded to 1 in the auth stub contract
-      await validator.stub_setVerifyResults([
+      await validator1.stub_setVerifyResults([
         {
           name: "userID",
           value: userID,
@@ -262,7 +293,7 @@ describe("Verifer tests", function () {
       await verifier.submitResponse(authResponse, [response], crossChainProofs);
 
       userID = 2;
-      await validator.stub_setVerifyResults([
+      await validator1.stub_setVerifyResults([
         {
           name: "userID",
           value: userID,
@@ -278,12 +309,12 @@ describe("Verifer tests", function () {
   describe("Multi request tests", function () {
     before(async function () {
       [sender] = await ethers.getSigners();
-      ({ verifier, validator } = await deployContractsFixture());
+      ({ verifier, validator1, validator2 } = await deployContractsFixture());
 
       request = {
         requestId: 1,
         metadata: "0x",
-        validator: await validator.getAddress(),
+        validator: await validator1.getAddress(),
         params: "0x",
       };
 
@@ -301,13 +332,29 @@ describe("Verifer tests", function () {
       };
     });
 
-    it("setMultiRequest: multi request should not exist", async function () {
+    it("setMultiRequest: should not exist when creating", async function () {
       await verifier.setRequests([request]);
 
-      await verifier.setMultiRequest(multiRequest);
+      let multiRequestIdExists = await verifier.multiRequestIdExists(multiRequest.multiRequestId);
+      expect(multiRequestIdExists).to.be.false;
+      await expect(verifier.setMultiRequest(multiRequest)).not.to.be.rejected;
       await expect(verifier.setMultiRequest(multiRequest))
         .revertedWithCustomError(verifier, "MultiRequestIdAlreadyExists")
         .withArgs(multiRequest.multiRequestId);
+      multiRequestIdExists = await verifier.multiRequestIdExists(multiRequest.multiRequestId);
+      expect(multiRequestIdExists).to.be.true;
+    });
+
+    it("getMultiRequest: multiRequestId should exist", async function () {
+      const nonExistingMultiRequestId = 5;
+      await expect(verifier.getMultiRequest(nonExistingMultiRequestId))
+        .to.be.revertedWithCustomError(verifier, "MultiRequestIdNotFound")
+        .withArgs(nonExistingMultiRequestId);
+      const multiRequestObject = await verifier.getMultiRequest(multiRequest.multiRequestId);
+      expect(multiRequestObject.multiRequestId).to.be.equal(multiRequest.multiRequestId);
+      expect(multiRequestObject.metadata).to.be.equal(multiRequest.metadata);
+      expect(multiRequestObject.requestIds.length).to.be.equal(multiRequest.requestIds.length);
+      expect(multiRequestObject.groupIds.length).to.be.equal(multiRequest.groupIds.length);
     });
 
     it("setMultiRequest: check statuses of two different multiRequests pointing to the same requests", async function () {
@@ -327,7 +374,7 @@ describe("Verifer tests", function () {
       expect(isMultiRequest2Verified).to.be.false;
 
       const userID = 1; // we assume that userID is hardcoded to 1 in the auth stub contract
-      await validator.stub_setVerifyResults([
+      await validator1.stub_setVerifyResults([
         {
           name: "userID",
           value: userID,
@@ -370,8 +417,122 @@ describe("Verifer tests", function () {
         .to.be.rejected;
     });
 
-    it.skip("getMultiRequestStatus: linkID should be equal to all requests in a group, otherwise multiRequest pointing to it returns false", async function () {
-      // TODO linkID should be equal to all requests in a group, otherwise multiRequest pointing to it returns false
+    it("getMultiRequestStatus: linkID should be equal to all requests in a group, otherwise multiRequest pointing to it returns false", async function () {
+      const groupID = 1;
+      const groupRequest1 = { ...request, requestId: 5, groupID };
+      const groupRequest2 = {
+        ...request,
+        validator: await validator2.getAddress(),
+        requestId: 6,
+        groupID,
+      };
+      paramsFromValidator.groupID = groupID;
+      await validator1.stub_setRequestParams([groupRequest1.params], [paramsFromValidator]);
+      await validator2.stub_setRequestParams([groupRequest2.params], [paramsFromValidator]);
+
+      await verifier.setRequests([groupRequest1, groupRequest2]);
+
+      const multiRequest3 = {
+        multiRequestId: 3,
+        requestIds: [],
+        groupIds: [groupID],
+        metadata: "0x",
+      };
+      await verifier.setMultiRequest(multiRequest3);
+
+      const userID = 1;
+      await validator1.stub_setVerifyResults([
+        { name: "userID", value: userID },
+        { name: "issuerID", value: 2 },
+        { name: "linkID", value: 3 },
+      ]);
+      await validator2.stub_setVerifyResults([
+        { name: "userID", value: userID },
+        { name: "issuerID", value: 2 },
+        { name: "linkID", value: 4 },
+      ]);
+
+      const authResponse = {
+        authType: "stubAuth",
+        proof: "0x",
+      };
+      const response1 = {
+        requestId: groupRequest1.requestId,
+        proof: "0x",
+        metadata: "0x",
+      };
+      const response2 = {
+        requestId: groupRequest2.requestId,
+        proof: "0x",
+        metadata: "0x",
+      };
+      const crossChainProofs = "0x";
+
+      await verifier.submitResponse(authResponse, [response1, response2], crossChainProofs);
+      await expect(
+        verifier.getMultiRequestStatus(multiRequest3.multiRequestId, signerAddress),
+      ).to.be.revertedWithCustomError(verifier, "LinkIDNotTheSameForGroupedRequests");
+
+      const isMultiRequestVerified = await verifier.isMultiRequestVerified(
+        multiRequest3.multiRequestId,
+        signerAddress,
+      );
+      expect(isMultiRequestVerified).to.be.false;
+    });
+
+    it("getMultiRequestStatus: all request with same linkID in a group already verified returns true", async function () {
+      const groupID = 2;
+      const groupRequest1 = { ...request, requestId: 10, groupID };
+      const groupRequest2 = {
+        ...request,
+        requestId: 11,
+        groupID,
+      };
+      paramsFromValidator.groupID = groupID;
+      await validator1.stub_setRequestParams([groupRequest1.params], [paramsFromValidator]);
+
+      await verifier.setRequests([groupRequest1, groupRequest2]);
+
+      const multiRequest4 = {
+        multiRequestId: 4,
+        requestIds: [],
+        groupIds: [groupID],
+        metadata: "0x",
+      };
+      await verifier.setMultiRequest(multiRequest4);
+
+      const userID = 1;
+      await validator1.stub_setVerifyResults([
+        { name: "userID", value: userID },
+        { name: "issuerID", value: 2 },
+        { name: "linkID", value: 3 },
+      ]);
+
+      const authResponse = {
+        authType: "stubAuth",
+        proof: "0x",
+      };
+      const response1 = {
+        requestId: groupRequest1.requestId,
+        proof: "0x",
+        metadata: "0x",
+      };
+      const response2 = {
+        requestId: groupRequest2.requestId,
+        proof: "0x",
+        metadata: "0x",
+      };
+      const crossChainProofs = "0x";
+
+      await verifier.submitResponse(authResponse, [response1, response2], crossChainProofs);
+      await expect(verifier.getMultiRequestStatus(multiRequest4.multiRequestId, signerAddress)).not
+        .to.be.rejected;
+
+      const isMultiRequestVerified = await verifier.isMultiRequestVerified(
+        multiRequest4.multiRequestId,
+        signerAddress,
+      );
+      expect(isMultiRequestVerified).to.be.true;
     });
   });
 });

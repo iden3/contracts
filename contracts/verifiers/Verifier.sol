@@ -20,7 +20,7 @@ error MetadataNotSupportedYet();
 error MultiRequestIdAlreadyExists(uint256 multiRequestId);
 error MultiRequestIdNotFound(uint256 multiRequestId);
 error NullifierSessionIDAlreadyExists(uint256 nullifierSessionID);
-error RequestAlreadyExists(uint256 requestId);
+error RequestIdAlreadyExists(uint256 requestId);
 error RequestIdNotFound(uint256 requestId);
 error RequestIdNotValid();
 error RequestIdUsesReservedBytes();
@@ -92,7 +92,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             }
         } else {
             if (requestIdExists(requestId)) {
-                revert RequestAlreadyExists(requestId);
+                revert RequestIdAlreadyExists(requestId);
             }
         }
         _;
@@ -439,7 +439,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      */
     function getMultiRequest(
         uint256 multiRequestId
-    ) public view returns (IVerifier.MultiRequest memory multiRequest) {
+    )
+        public
+        view
+        checkMultiRequestExistence(multiRequestId, true)
+        returns (IVerifier.MultiRequest memory multiRequest)
+    {
         return _getVerifierStorage()._multiRequests[multiRequestId];
     }
 
