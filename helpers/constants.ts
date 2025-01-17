@@ -338,6 +338,17 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
+  GROTH16_VERIFIER_ANON_AADHAAR_V1: {
+    name: "Groth16VerifierAnonAadhaarV1Wrapper",
+    unifiedAddress: "",
+    create2Calldata: "",
+    verificationOpts: {
+      contract:
+        "contracts/lib/groth16-verifiers/Groth16VerifierAnonAadhaarV1Wrapper.sol:Groth16VerifierAnonAadhaarV1Wrapper",
+      constructorArgsImplementation: [],
+      libraries: {},
+    },
+  },
   STATE_LIB: {
     name: "StateLib",
     unifiedAddress: "",
