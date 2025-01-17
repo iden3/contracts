@@ -10,6 +10,8 @@ import {ValidatorWhitelist} from "./ValidatorWhitelist.sol";
 import {Verifier} from "./Verifier.sol";
 import {IState} from "../interfaces/IState.sol";
 
+error NotAnOwnerOrRequestOwner(address);
+
 /// @title Universal Verifier Contract
 /// @notice A contract to manage ZKP (Zero-Knowledge Proof) requests and proofs.
 contract UniversalVerifier is
@@ -73,10 +75,9 @@ contract UniversalVerifier is
     /// @dev Modifier to check if the caller is the contract Owner or ZKP Request Owner
     modifier onlyOwnerOrRequestOwner(uint256 requestId) {
         address sender = _msgSender();
-        require(
-            sender == getRequestOwner(requestId) || sender == owner(),
-            "Not an owner or request owner"
-        );
+        if (sender != getRequestOwner(requestId) && sender != owner()) {
+            revert NotAnOwnerOrRequestOwner(sender);
+        }
         _;
     }
 
