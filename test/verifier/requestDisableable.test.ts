@@ -47,6 +47,7 @@ describe("RequestDisableable tests", function () {
     expect(isRequestEnabled).to.be.true;
 
     await expect(verifier.testModifier(request.requestId)).not.to.be.reverted;
+    await expect(verifier.getRequestIfCanBeVerified(request.requestId)).not.to.be.reverted;
 
     await verifier.disableRequest(request.requestId);
 
@@ -54,6 +55,10 @@ describe("RequestDisableable tests", function () {
     expect(isRequestEnabled).to.be.false;
 
     await expect(verifier.testModifier(request.requestId))
+      .to.be.revertedWithCustomError(verifier, "RequestIsDisabled")
+      .withArgs(request.requestId);
+
+    await expect(verifier.getRequestIfCanBeVerified(request.requestId))
       .to.be.revertedWithCustomError(verifier, "RequestIsDisabled")
       .withArgs(request.requestId);
 

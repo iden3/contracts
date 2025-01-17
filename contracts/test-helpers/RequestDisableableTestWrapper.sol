@@ -3,6 +3,7 @@ pragma solidity ^0.8.10;
 
 import {RequestDisableable} from "../verifiers/RequestDisableable.sol";
 import {IState} from "../interfaces/IState.sol";
+import {IVerifier} from "../interfaces/IVerifier.sol";
 
 contract RequestDisableableTestWrapper is RequestDisableable {
     function initialize(IState state) public initializer {
@@ -18,4 +19,10 @@ contract RequestDisableableTestWrapper is RequestDisableable {
     }
 
     function testModifier(uint256 requestId) public view onlyEnabledRequest(requestId) {}
+
+    function getRequestIfCanBeVerified(
+        uint256 requestId
+    ) public view returns (IVerifier.RequestData memory) {
+        return _getRequestIfCanBeVerified(requestId);
+    }
 }

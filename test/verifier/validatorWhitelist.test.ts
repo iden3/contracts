@@ -6,6 +6,7 @@ import { expect } from "chai";
 describe("ValidatorWhitelist tests", function () {
   let verifier, validator: any;
   let signer1, signer2: any;
+  let request, paramsFromValidator: any;
 
   async function deployContractsFixture() {
     [signer1, signer2] = await ethers.getSigners();
@@ -25,6 +26,19 @@ describe("ValidatorWhitelist tests", function () {
 
   beforeEach(async function () {
     ({ verifier, validator, signer1, signer2 } = await deployContractsFixture());
+
+    request = {
+      requestId: 1,
+      metadata: "0x",
+      validator: await validator.getAddress(),
+      params: "0x",
+    };
+
+    paramsFromValidator = {
+      groupID: 0,
+      verifierID: 0,
+      nullifierSessionID: 0,
+    };
   });
 
   it("whitelist/remove Validators and modifier onlyWhitelistedValidator", async function () {
@@ -40,7 +54,11 @@ describe("ValidatorWhitelist tests", function () {
 
     await verifier.addValidatorToWhitelist(await validator.getAddress());
 
+    await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
+    await verifier.setRequests([request]);
+
     await expect(verifier.testModifier(await validator.getAddress())).not.to.be.reverted;
+    await expect(verifier.getRequestIfCanBeVerified(request.requestId)).not.to.be.reverted;
 
     isWhitelistedValidator = await verifier.isWhitelistedValidator(await validator.getAddress());
     expect(isWhitelistedValidator).to.be.true;
@@ -51,6 +69,9 @@ describe("ValidatorWhitelist tests", function () {
       verifier,
       "ValidatorIsNotWhitelisted",
     );
+    await expect(
+      verifier.getRequestIfCanBeVerified(request.requestId),
+    ).to.be.revertedWithCustomError(verifier, "ValidatorIsNotWhitelisted");
 
     isWhitelistedValidator = await verifier.isWhitelistedValidator(await validator.getAddress());
     expect(isWhitelistedValidator).to.be.false;
