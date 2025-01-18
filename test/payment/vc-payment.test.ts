@@ -148,7 +148,7 @@ describe("VC Payment Contract", () => {
     const issuer1BalanceAfterWithdraw = await payment.connect(issuer1Signer).getMyBalance();
     expect(issuer1BalanceAfterWithdraw).to.be.eq(0);
 
-    const issuer2BalanceAfterWithdraw = await payment.connect(issuer1Signer).getMyBalance();
+    const issuer2BalanceAfterWithdraw = await payment.connect(issuer2Signer).getMyBalance();
     expect(issuer2BalanceAfterWithdraw).to.be.eq(0);
 
     expect(await ethers.provider.getBalance(issuer1Signer.address)).to.be.eq(
