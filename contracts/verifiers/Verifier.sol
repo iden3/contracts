@@ -10,28 +10,28 @@ import {VerifierLib} from "../lib/VerifierLib.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
-error RequestIdNotFound(uint256 requestId);
-error RequestAlreadyExists(uint256 requestId);
-error GroupIdNotFound(uint256 groupId);
-error GroupIdAlreadyExists(uint256 groupId);
-error MultiRequestIdNotFound(uint256 multiRequestId);
-error MultiRequestIdAlreadyExists(uint256 multiRequestId);
 error AuthTypeNotFound(string authType);
 error AuthTypeAlreadyExists(string authType);
-error ValidatorNotWhitelisted(address validator);
-error RequestIsAlreadyGrouped(uint256 requestId);
+error GroupIdNotFound(uint256 groupId);
+error GroupIdAlreadyExists(uint256 groupId);
+error GroupMustHaveAtLeastTwoRequests(uint256 groupID);
 error LinkIDNotTheSameForGroupedRequests();
+error MetadataNotSupportedYet();
+error MultiRequestIdAlreadyExists(uint256 multiRequestId);
+error MultiRequestIdNotFound(uint256 multiRequestId);
+error NullifierSessionIDAlreadyExists(uint256 nullifierSessionID);
+error RequestIdAlreadyExists(uint256 requestId);
+error RequestIdNotFound(uint256 requestId);
+error RequestIdNotValid();
+error RequestIdUsesReservedBytes();
+error RequestIdTypeNotValid();
+error RequestIsAlreadyGrouped(uint256 requestId);
+error UserIDMismatch(uint256 userIDFromAuth, uint256 userIDFromResponse);
 error UserIDNotFound(uint256 userID);
 error UserIDNotLinkedToAddress(uint256 userID, address userAddress);
 error UserNotAuthenticated();
-error UserIDMismatch(uint256 userIDFromAuth, uint256 userIDFromResponse);
-error MetadataNotSupportedYet();
-error GroupMustHaveAtLeastTwoRequests(uint256 groupID);
-error NullifierSessionIDAlreadyExists(uint256 nullifierSessionID);
+error ValidatorNotWhitelisted(address validator);
 error VerifierIDIsNotValid(uint256 requestVerifierID, uint256 expectedVerifierID);
-error RequestIdNotValid();
-error RequestIdUsesReservedBytes();
-error ResponseFieldAlreadyExists(string responseFieldName);
 
 abstract contract Verifier is IVerifier, ContextUpgradeable {
     /// @dev Key to retrieve the linkID from the proof storage
@@ -79,6 +79,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     bytes32 internal constant VerifierStorageLocation =
         0x11369addde4aae8af30dcf56fa25ad3d864848d3201d1e9197f8b4da18a51a00;
 
+    bytes2 internal constant VerifierIdType = 0x01A1;
     using VerifierLib for VerifierStorage;
 
     /**
@@ -91,7 +92,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             }
         } else {
             if (requestIdExists(requestId)) {
-                revert RequestAlreadyExists(requestId);
+                revert RequestIdAlreadyExists(requestId);
             }
         }
         _;
@@ -161,10 +162,11 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
     function __Verifier_init_unchained(IState state) internal onlyInitializing {
         _setState(state);
-        // initial calculation of verifierID from contract address and default id type from State contract
-        VerifierStorage storage s = _getVerifierStorage();
-        bytes2 idType = s._state.getDefaultIdType();
-        uint256 calculatedVerifierID = GenesisUtils.calcIdFromEthAddress(idType, address(this));
+        // initial calculation of verifierID from contract address and verifier id type defined
+        uint256 calculatedVerifierID = GenesisUtils.calcIdFromEthAddress(
+            VerifierIdType,
+            address(this)
+        );
         _setVerifierID(calculatedVerifierID);
     }
 
@@ -289,7 +291,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         // 2. Set requests checking groups and nullifierSessionID uniqueness
         for (uint256 i = 0; i < requests.length; i++) {
-            _checkRequestIdCorrectness(requests[i].requestId);
+            _checkRequestIdCorrectness(requests[i].requestId, requests[i].params);
 
             _checkNullifierSessionIdUniqueness(requests[i]);
             _checkVerifierID(requests[i]);
@@ -325,18 +327,32 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function _getRequestType(uint256 requestId) internal pure returns (uint8) {
         // 0x0000000000000000 - prefix for old uint64 requests
         // 0x0000000000000001 - prefix for keccak256 cut to fit in the remaining 192 bits
-        return uint8(requestId >> 248);
+        return uint8(requestId >> 192);
     }
 
-    function _checkRequestIdCorrectness(uint256 requestId) internal pure {
+    function _checkRequestIdCorrectness(
+        uint256 requestId,
+        bytes calldata requestParams
+    ) internal pure {
         // 1. Check prefix
         uint8 requestType = _getRequestType(requestId);
         if (requestType >= 2) {
-            revert RequestIdNotValid();
+            revert RequestIdTypeNotValid();
         }
         // 2. Check reserved bytes
-        if (((requestId << 8) >> 200) > 0) {
+        if ((requestId >> 200) > 0) {
             revert RequestIdUsesReservedBytes();
+        }
+        // 3. Check if requestId matches the hash of the requestParams
+        if (requestType == 1) {
+            uint256 hashValue = uint256(keccak256(requestParams));
+            if (
+                requestId !=
+                (hashValue & 0x0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) +
+                    0x0000000000000001000000000000000000000000000000000000000000000000
+            ) {
+                revert RequestIdNotValid();
+            }
         }
     }
 
@@ -423,7 +439,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      */
     function getMultiRequest(
         uint256 multiRequestId
-    ) public view returns (IVerifier.MultiRequest memory multiRequest) {
+    )
+        public
+        view
+        checkMultiRequestExistence(multiRequestId, true)
+        returns (IVerifier.MultiRequest memory multiRequest)
+    {
         return _getVerifierStorage()._multiRequests[multiRequestId];
     }
 
@@ -462,8 +483,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         // 1. Process crossChainProofs
         $._state.processCrossChainProofs(crossChainProofs);
 
-        // TODO: Get userID from responses that has userID informed (LinkedMultiquery doesn't have userID)
-
         uint256 userIDFromAuthResponse;
         AuthTypeData storage authTypeData = $._authMethods[authResponse.authType];
 
@@ -498,9 +517,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             // Check if userID from authResponse is the same as the one in the signals
             _checkUserIDMatch(userIDFromAuthResponse, signals);
 
-            // Check that response fields are not repeated
-            _checkSinals(signals);
-
             $.writeProofResults(response.requestId, sender, signals);
 
             if (response.metadata.length > 0) {
@@ -520,19 +536,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             ) {
                 if (userIDFromAuthResponse != signals[j].value) {
                     revert UserIDMismatch(userIDFromAuthResponse, signals[j].value);
-                }
-            }
-        }
-    }
-
-    function _checkSinals(IRequestValidator.ResponseField[] memory signals) internal pure {
-        for (uint256 j = 0; j < signals.length; j++) {
-            for (uint256 k = j + 1; k < signals.length; k++) {
-                if (
-                    keccak256(abi.encodePacked(signals[j].name)) ==
-                    keccak256(abi.encodePacked(signals[k].name))
-                ) {
-                    revert ResponseFieldAlreadyExists(signals[j].name);
                 }
             }
         }
@@ -808,6 +811,22 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      */
     function getRequestsCount() public view returns (uint256) {
         return _getVerifierStorage()._requestIds.length;
+    }
+
+    /**
+     * @dev Get the group of requests count.
+     * @return Group of requests count.
+     */
+    function getGroupsCount() public view returns (uint256) {
+        return _getVerifierStorage()._groupIds.length;
+    }
+
+    /**
+     * @dev Get the group of requests.
+     * @return Group of requests.
+     */
+    function getGroupedRequests(uint256 groupID) public view returns (uint256[] memory) {
+        return _getVerifierStorage()._groupedRequests[groupID];
     }
 
     /**

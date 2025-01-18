@@ -54,15 +54,6 @@ interface IVerifier {
         address creator;
         uint256 verifierId;
     }
-    /**
-     * @dev GroupedRequests. Structure for auth proof status.
-     * @param groupId Group id of the requests.
-     * @param requests Requests of the group.
-     */
-    struct GroupedRequests {
-        uint256 groupId;
-        Request[] requests;
-    }
 
     /**
      * @dev Response. Structure for response.
@@ -75,15 +66,7 @@ interface IVerifier {
         bytes proof;
         bytes metadata;
     }
-    /**
-     * @dev GroupedResponses. Structure for grouped responses.
-     * @param groupId Group id of the responses.
-     * @param responses Responses of the group.
-     */
-    struct GroupedResponses {
-        uint256 groupId;
-        Response[] responses;
-    }
+
     /**
      * @dev AuthResponse. Structure for auth response.
      * @param authType Auth type of the proof response.
@@ -161,11 +144,37 @@ interface IVerifier {
     function getRequestsCount() external view returns (uint256);
 
     /**
+     * @dev Get the group of requests count.
+     * @return Group of requests count.
+     */
+    function getGroupsCount() external view returns (uint256);
+
+    /**
+     * @dev Get the group of requests.
+     * @return Group of requests.
+     */
+    function getGroupedRequests(uint256 groupID) external view returns (uint256[] memory);
+
+    /**
      * @dev Checks if a request ID exists
      * @param requestId The ID of the request
      * @return Whether the request ID exists
      */
     function requestIdExists(uint256 requestId) external view returns (bool);
+
+    /**
+     * @dev Checks if a group ID exists
+     * @param groupId The ID of the group
+     * @return Whether the group ID exists
+     */
+    function groupIdExists(uint256 groupId) external view returns (bool);
+
+    /**
+     * @dev Checks if a multiRequest ID exists
+     * @param multiRequestId The ID of the multiRequest
+     * @return Whether the multiRequest ID exists
+     */
+    function multiRequestIdExists(uint256 multiRequestId) external view returns (bool);
 
     /**
      * @dev Gets the status of the multiRequest verification

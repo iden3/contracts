@@ -228,16 +228,17 @@ describe("Universal Verifier MTP & SIG validators", function () {
     ]);
 
     expect(await verifier.getRequestOwner(requestId)).to.be.equal(requestOwnerAddr);
-    await expect(
-      verifier.connect(someSigner).setRequestOwner(requestId, someSigner),
-    ).to.be.rejectedWith("Not an owner or request owner");
+    await expect(verifier.connect(someSigner).setRequestOwner(requestId, someSigner))
+      .to.be.revertedWithCustomError(verifier, "NotAnOwnerOrRequestOwner")
+      .withArgs(someSigner);
 
     await verifier.connect(requestOwner).setRequestOwner(requestId, someSigner);
     expect(await verifier.getRequestOwner(requestId)).to.be.equal(someSignerAddress);
 
-    await expect(
-      verifier.connect(requestOwner).setRequestOwner(requestId, requestOwnerAddr),
-    ).to.be.rejectedWith("Not an owner or request owner");
+    await expect(verifier.connect(requestOwner).setRequestOwner(requestId, requestOwnerAddr))
+      .to.be.revertedWithCustomError(verifier, "NotAnOwnerOrRequestOwner")
+      .withArgs(requestOwner);
+
     await verifier.connect(owner).setRequestOwner(requestId, requestOwnerAddr);
     expect(await verifier.getRequestOwner(requestId)).to.be.equal(requestOwnerAddr);
 
@@ -273,17 +274,19 @@ describe("Universal Verifier MTP & SIG validators", function () {
 
     expect(await verifier.isRequestEnabled(requestId)).to.be.true;
 
-    await expect(verifier.connect(someSigner).disableRequest(requestId)).to.be.rejectedWith(
-      "Not an owner or request owner",
-    );
+    await expect(verifier.connect(someSigner).disableRequest(requestId))
+      .to.be.revertedWithCustomError(verifier, "NotAnOwnerOrRequestOwner")
+      .withArgs(someSigner);
+
     expect(await verifier.isRequestEnabled(requestId)).to.be.true;
 
     await verifier.connect(owner).disableRequest(requestId);
     expect(await verifier.isRequestEnabled(requestId)).to.be.false;
 
-    await expect(verifier.connect(someSigner).enableRequest(requestId)).to.be.rejectedWith(
-      "Not an owner or request owner",
-    );
+    await expect(verifier.connect(someSigner).enableRequest(requestId))
+      .to.be.revertedWithCustomError(verifier, "NotAnOwnerOrRequestOwner")
+      .withArgs(someSigner);
+
     await verifier.connect(requestOwner).enableRequest(requestId);
     expect(await verifier.isRequestEnabled(requestId)).to.be.true;
 
