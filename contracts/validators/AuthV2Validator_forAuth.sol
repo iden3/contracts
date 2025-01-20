@@ -172,13 +172,13 @@ contract AuthV2Validator_forAuth is Ownable2StepUpgradeable, IAuthValidator, ERC
         uint256[2][2] memory b,
         uint256[2] memory c
     ) internal view {
-        IGroth16Verifier verifier = getVerifierByCircuitId(CIRCUIT_ID);
-        if (verifier == IGroth16Verifier(address(0))) {
+        IGroth16Verifier g16Verifier = getVerifierByCircuitId(CIRCUIT_ID);
+        if (g16Verifier == IGroth16Verifier(address(0))) {
             revert VerifierAddressShouldNotBeZero();
         }
 
         // verify that zkp is valid
-        if (!verifier.verify(a, b, c, inputs)) {
+        if (!g16Verifier.verify(a, b, c, inputs)) {
             revert ProofIsNotValid();
         }
     }

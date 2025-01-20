@@ -163,8 +163,8 @@ describe("Verifer tests", function () {
 
       const groupedRequests = await verifier.getGroupedRequests(groupID);
       expect(groupedRequests.length).to.be.equal(2);
-      expect(groupedRequests[0]).to.be.equal(groupRequest1.requestId);
-      expect(groupedRequests[1]).to.be.equal(groupRequest2.requestId);
+      expect(groupedRequests[0].requestId).to.be.equal(groupRequest1.requestId);
+      expect(groupedRequests[1].requestId).to.be.equal(groupRequest2.requestId);
     });
 
     it("getRequest: requestId should exist", async function () {
@@ -183,7 +183,6 @@ describe("Verifer tests", function () {
       expect(requestObject.validator).to.be.equal(request.validator);
       expect(requestObject.params).to.be.equal(request.params);
       expect(requestObject.creator).to.be.equal(await signer.getAddress());
-      expect(requestObject.verifierId).to.be.equal(verifierId);
     });
 
     it("getRequestStatus: requestId should exist", async function () {

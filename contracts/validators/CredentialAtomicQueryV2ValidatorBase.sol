@@ -111,12 +111,12 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
 
         require(credAtomicQuery.circuitIds.length == 1, "circuitIds length is not equal to 1");
 
-        IGroth16Verifier verifier = getVerifierByCircuitId(credAtomicQuery.circuitIds[0]);
+        IGroth16Verifier g16Verifier = getVerifierByCircuitId(credAtomicQuery.circuitIds[0]);
 
-        require(verifier != IGroth16Verifier(address(0)), "Verifier address should not be zero");
+        require(g16Verifier != IGroth16Verifier(address(0)), "Verifier address should not be zero");
 
         // verify that zkp is valid
-        require(verifier.verify(a, b, c, inputs), "Proof is not valid");
+        require(g16Verifier.verify(a, b, c, inputs), "Proof is not valid");
 
         PubSignals memory pubSignals = parsePubSignals(inputs);
 

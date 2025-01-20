@@ -6,7 +6,7 @@ import {IAuthValidator} from "./IAuthValidator.sol";
 import {IRequestValidator} from "./IRequestValidator.sol";
 
 /**
- * @dev IVerifier. Interface for verification of groth16 proofs for validators circuits.
+ * @dev IVerifier. Interface for creating requests and verifying request responses through validators circuits.
  */
 interface IVerifier {
     /**
@@ -34,7 +34,6 @@ interface IVerifier {
         IRequestValidator validator;
         bytes params;
         address creator;
-        uint256 verifierId;
     }
 
     /**
@@ -52,7 +51,6 @@ interface IVerifier {
         IRequestValidator validator;
         bytes params;
         address creator;
-        uint256 verifierId;
     }
 
     /**
@@ -73,7 +71,7 @@ interface IVerifier {
      * @param proof proof to verify.
      */
     struct AuthResponse {
-        string authType; //zkp-auth-v2, zkp-auth-v3, etc. will deside later
+        string authType; //zkp-auth-v2, zkp-auth-v3, etc.
         bytes proof;
     }
 
@@ -91,6 +89,12 @@ interface IVerifier {
         uint256 timestamp;
     }
 
+    /**
+     * @dev AuthType. Structure for auth type for auth proofs.
+     * @param authType Auth type of the auth proof.
+     * @param validator Validator to verify the auth.
+     * @param params Parameters data of the auth.
+     */
     struct AuthType {
         string authType;
         IAuthValidator validator;
@@ -153,7 +157,7 @@ interface IVerifier {
      * @dev Get the group of requests.
      * @return Group of requests.
      */
-    function getGroupedRequests(uint256 groupID) external view returns (uint256[] memory);
+    function getGroupedRequests(uint256 groupID) external view returns (RequestInfo[] memory);
 
     /**
      * @dev Checks if a request ID exists

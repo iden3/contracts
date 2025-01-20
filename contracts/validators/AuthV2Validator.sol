@@ -112,10 +112,10 @@ contract AuthV2Validator is CredentialAtomicQueryValidatorBase {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) internal view {
-        IGroth16Verifier verifier = getVerifierByCircuitId(CIRCUIT_ID);
-        require(verifier != IGroth16Verifier(address(0)), "Verifier address should not be zero");
+        IGroth16Verifier g16Verifier = getVerifierByCircuitId(CIRCUIT_ID);
+        require(g16Verifier != IGroth16Verifier(address(0)), "Verifier address should not be zero");
 
         // verify that zkp is valid
-        require(verifier.verify(a, b, c, inputs), "Proof is not valid");
+        require(g16Verifier.verify(a, b, c, inputs), "Proof is not valid");
     }
 }
