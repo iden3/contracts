@@ -212,7 +212,6 @@ contract UniversalVerifier is
         internal
         view
         override(RequestDisableable, ValidatorWhitelist, Verifier)
-        onlyEnabledRequest(requestId)
         returns (IVerifier.RequestData storage)
     {
         return super._getRequestIfCanBeVerified(requestId);

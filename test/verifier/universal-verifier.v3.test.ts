@@ -167,7 +167,6 @@ describe("Universal Verifier V3 validator", function () {
     expect(requestStored.validator).to.be.equal(await v3Validator.getAddress());
     expect(requestStored.params).to.be.equal(params);
     expect(requestStored.creator).to.be.equal(await signer.getAddress());
-    expect(requestStored.verifierId).to.be.equal(verifierId);
 
     await verifier.setAuthType({
       authType: authType,

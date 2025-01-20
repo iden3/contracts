@@ -43,16 +43,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         bool isActive;
     }
 
-    struct UserAddressToIdInfo {
-        uint256 userID;
-        uint256 timestamp;
-    }
-
-    struct UserIdToAddressInfo {
-        address userAddress;
-        uint256 timestamp;
-    }
-
     /// @custom:storage-location erc7201:iden3.storage.Verifier
     struct VerifierStorage {
         // Information about requests
@@ -93,28 +83,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         } else {
             if (requestIdExists(requestId)) {
                 revert RequestIdAlreadyExists(requestId);
-            }
-        }
-        _;
-    }
-
-    /**
-     * @dev Modifier to check if the request exists
-     */
-    modifier checkRequestGroupExistence(Request memory request, bool existence) {
-        IRequestValidator.RequestParams memory requestParams = request.validator.getRequestParams(
-            request.params
-        );
-
-        if (requestParams.groupID != 0) {
-            if (existence) {
-                if (!groupIdExists(requestParams.groupID)) {
-                    revert GroupIdNotFound(requestParams.groupID);
-                }
-            } else {
-                if (groupIdExists(requestParams.groupID)) {
-                    revert GroupIdAlreadyExists(requestParams.groupID);
-                }
             }
         }
         _;
@@ -219,34 +187,16 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         return _getVerifierStorage()._authMethods[authType].isActive == true;
     }
 
-    /**
-     * @dev Sets a request
-     * @param request The request data
-     */
-    function _setRequestWithChecks(
-        Request calldata request
-    )
-        internal
-        checkRequestExistence(request.requestId, false)
-        checkRequestGroupExistence(request, false)
-    {
-        _setRequest(request);
-    }
-
     function _setRequest(
         Request calldata request
     ) internal virtual checkRequestExistence(request.requestId, false) {
         VerifierStorage storage s = _getVerifierStorage();
-        IRequestValidator.RequestParams memory requestParams = request.validator.getRequestParams(
-            request.params
-        );
 
         s._requests[request.requestId] = IVerifier.RequestData({
             metadata: request.metadata,
             validator: request.validator,
             params: request.params,
-            creator: _msgSender(),
-            verifierId: requestParams.verifierID
+            creator: _msgSender()
         });
         s._requestIds.push(request.requestId);
     }
@@ -298,16 +248,15 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
             uint256 groupID = requests[i].validator.getRequestParams(requests[i].params).groupID;
 
-            // request without group
-            if (groupID == 0) {
-                _setRequestWithChecks(requests[i]);
-            } else {
+            _setRequest(requests[i]);
+
+            // request with group
+            if (groupID != 0) {
                 // request with group
                 if (!groupIdExists(groupID)) {
                     s._groupIds.push(groupID);
                 }
 
-                _setRequest(requests[i]);
                 s._groupedRequests[groupID].push(requests[i].requestId);
             }
         }
@@ -412,8 +361,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                 metadata: rd.metadata,
                 validator: rd.validator,
                 params: rd.params,
-                creator: rd.creator,
-                verifierId: rd.verifierId
+                creator: rd.creator
             });
     }
 
@@ -549,16 +497,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         IVerifier.Request calldata request
     ) internal checkRequestExistence(request.requestId, true) {
         VerifierStorage storage s = _getVerifierStorage();
-        IRequestValidator.RequestParams memory requestParams = request.validator.getRequestParams(
-            request.params
-        );
 
         s._requests[request.requestId] = IVerifier.RequestData({
             metadata: request.metadata,
             validator: request.validator,
             params: request.params,
-            creator: _msgSender(),
-            verifierId: requestParams.verifierID
+            creator: _msgSender()
         });
     }
 
@@ -825,8 +769,29 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      * @dev Get the group of requests.
      * @return Group of requests.
      */
-    function getGroupedRequests(uint256 groupID) public view returns (uint256[] memory) {
-        return _getVerifierStorage()._groupedRequests[groupID];
+    function getGroupedRequests(
+        uint256 groupID
+    ) public view returns (IVerifier.RequestInfo[] memory) {
+        VerifierStorage storage s = _getVerifierStorage();
+
+        IVerifier.RequestInfo[] memory requests = new IVerifier.RequestInfo[](
+            s._groupedRequests[groupID].length
+        );
+
+        for (uint256 i = 0; i < s._groupedRequests[groupID].length; i++) {
+            uint256 requestId = s._groupedRequests[groupID][i];
+            IVerifier.RequestData storage rd = s._requests[requestId];
+
+            requests[i] = IVerifier.RequestInfo({
+                requestId: requestId,
+                metadata: rd.metadata,
+                validator: rd.validator,
+                params: rd.params,
+                creator: rd.creator
+            });
+        }
+
+        return requests;
     }
 
     /**
