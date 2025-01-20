@@ -734,7 +734,7 @@ export class DeployHelper {
           validatorModule = AuthV2ValidatorProxyModule;
           break;
         case "authV2_forAuth":
-          validatorContractName = AuthV2ValidatorForAuthProxyModule;
+          validatorModule = AuthV2ValidatorForAuthProxyModule;
           break;
       }
 

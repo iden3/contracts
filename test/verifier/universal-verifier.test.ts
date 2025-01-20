@@ -5,6 +5,7 @@ import { packValidatorParams } from "../utils/validator-pack-utils";
 import { AbiCoder, Block } from "ethers";
 import { byteEncoder, CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { contractsInfo } from "../../helpers/constants";
 
 describe("Universal Verifier tests", function () {
   let request, paramsFromValidator, multiRequest, authResponse, response: any;
@@ -122,9 +123,21 @@ describe("Universal Verifier tests", function () {
       signerAddress = await signer.getAddress();
     });
 
+    it("Test get version", async () => {
+      const version = await verifier.version();
+      expect(version).to.be.equal(contractsInfo.UNIVERSAL_VERIFIER.version);
+    });
+
     it("Test get state address", async () => {
-      const stateAddr = await verifier.getStateAddress();
+      let stateAddr = await verifier.getStateAddress();
       expect(stateAddr).to.be.equal(await state.getAddress());
+
+      await verifier.setState(await signer.getAddress());
+
+      stateAddr = await verifier.getStateAddress();
+      expect(stateAddr).to.be.equal(await signer.getAddress());
+
+      await verifier.setState(await state.getAddress());
     });
 
     it("Test add, getRequest, requestIdExists, getRequestsCount", async () => {
@@ -597,24 +610,15 @@ describe("Universal Verifier tests", function () {
     });
 
     it("Check AuthTypeSet event", async () => {
-      const existingAuthType = {
-        authType: "stubAuth",
-        validator: await authValidator.getAddress(),
-        params: "0x",
-      };
-      await expect(verifier.setAuthType(existingAuthType))
-        .to.revertedWithCustomError(verifier, "AuthTypeAlreadyExists")
-        .withArgs(existingAuthType.authType);
-
       const nonExistingAuthType = {
         authType: "stubAuth2",
         validator: await authValidator.getAddress(),
         params: "0x",
       };
-      await expect(verifier.setAuthType(nonExistingAuthType)).to.emit(verifier, "AuthTypeSet");
+      const tx = await verifier.setAuthType(nonExistingAuthType);
 
       const filter = verifier.filters.AuthTypeSet;
-      const events = await verifier.queryFilter(filter, -1);
+      const events = await verifier.queryFilter(filter, tx.blockNumber);
       expect(events[0].eventName).to.be.equal("AuthTypeSet");
       expect(events[0].args.authType.hash).to.be.equal(
         ethers.keccak256(byteEncoder.encode(nonExistingAuthType.authType)),

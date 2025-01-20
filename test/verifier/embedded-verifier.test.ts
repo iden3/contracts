@@ -4,7 +4,7 @@ import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
 
 describe("EmbeddedVerifier tests", function () {
-  let verifier, validator, signer: any;
+  let verifier, state, validator, signer: any;
   let request, paramsFromValidator, authResponse, response, crossChainProofs: any;
 
   async function deployContractsFixture() {
@@ -30,11 +30,11 @@ describe("EmbeddedVerifier tests", function () {
     };
     await verifier.setAuthType(authType);
 
-    return { verifier, validator };
+    return { state, verifier, validator };
   }
 
   beforeEach(async function () {
-    ({ verifier, validator } = await deployContractsFixture());
+    ({ state, verifier, validator } = await deployContractsFixture());
 
     request = {
       requestId: 0,
@@ -60,6 +60,18 @@ describe("EmbeddedVerifier tests", function () {
     };
 
     crossChainProofs = "0x";
+  });
+
+  it("Test get state address", async () => {
+    let stateAddr = await verifier.getStateAddress();
+    expect(stateAddr).to.be.equal(await state.getAddress());
+
+    await verifier.setState(await signer.getAddress());
+
+    stateAddr = await verifier.getStateAddress();
+    expect(stateAddr).to.be.equal(await signer.getAddress());
+
+    await verifier.setState(await state.getAddress());
   });
 
   it("beforeProofSubmit/afterProofSubmit when submitting response", async function () {
