@@ -3,12 +3,12 @@ import { DeployHelper } from "../../helpers/DeployHelper";
 import { ethers } from "hardhat";
 import { packValidatorParams } from "../utils/validator-pack-utils";
 import { AbiCoder, Block } from "ethers";
-import { CircuitId } from "@0xpolygonid/js-sdk";
+import { byteEncoder, CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 describe("Universal Verifier tests", function () {
-  let request, paramsFromValidator, authResponse, response: any;
-  let verifier: any, validator: any, state: any;
+  let request, paramsFromValidator, multiRequest, authResponse, response: any;
+  let verifier: any, validator: any, authValidator: any, state: any;
   let signer, signer2, signer3;
   let signerAddress: string;
   let deployHelper: DeployHelper;
@@ -48,12 +48,12 @@ describe("Universal Verifier tests", function () {
     await universalVerifier.addValidatorToWhitelist(await validator.getAddress());
     await universalVerifier.connect();
 
-    const authV2Validator = await deployHelper.deployValidatorStub("AuthValidatorStub");
-    await authV2Validator.stub_setVerifyResults(1);
+    const authValidator = await deployHelper.deployValidatorStub("AuthValidatorStub");
+    await authValidator.stub_setVerifyResults(1);
 
     const authType = {
       authType: "stubAuth",
-      validator: await authV2Validator.getAddress(),
+      validator: await authValidator.getAddress(),
       params: "0x",
     };
     await universalVerifier.setAuthType(authType);
@@ -65,6 +65,7 @@ describe("Universal Verifier tests", function () {
       stateContract,
       universalVerifier,
       validator,
+      authValidator,
     };
   }
 
@@ -109,6 +110,12 @@ describe("Universal Verifier tests", function () {
         groupID: 0,
         verifierID: 0,
         nullifierSessionID: 0,
+      };
+      multiRequest = {
+        multiRequestId: 1,
+        requestIds: [request.requestId],
+        groupIds: [],
+        metadata: "0x",
       };
       await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
 
@@ -157,11 +164,19 @@ describe("Universal Verifier tests", function () {
 
       const txRes = await tx.wait();
       await checkStorageFields(verifier, BigInt(request.requestId), storageFields);
-      const filter = verifier.filters.ResponseSubmitted;
 
-      const events = await verifier.queryFilter(filter, -1);
+      let filter = verifier.filters.ResponseSubmitted;
+      let events = await verifier.queryFilter(filter, -1);
       expect(events[0].eventName).to.be.equal("ResponseSubmitted");
-      expect(events[0].args.requestId).to.be.equal(0);
+      expect(events[0].args.requestId).to.be.equal(request.requestId);
+      expect(events[0].args.caller).to.be.equal(signerAddress);
+
+      filter = verifier.filters.AuthResponseSubmitted;
+      events = await verifier.queryFilter(filter, -1);
+      expect(events[0].eventName).to.be.equal("AuthResponseSubmitted");
+      expect(events[0].args.authType.hash).to.be.equal(
+        ethers.keccak256(byteEncoder.encode(authResponse.authType)),
+      );
       expect(events[0].args.caller).to.be.equal(signerAddress);
 
       const { timestamp: txResTimestamp } = (await ethers.provider.getBlock(
@@ -212,11 +227,18 @@ describe("Universal Verifier tests", function () {
         await checkStorageFields(verifier, BigInt(requestId), storageFields);
       }
 
-      const filter = verifier.filters.ResponseSubmitted;
-
-      const events = await verifier.queryFilter(filter, -1);
+      let filter = verifier.filters.ResponseSubmitted;
+      let events = await verifier.queryFilter(filter, -1);
       expect(events[0].eventName).to.be.equal("ResponseSubmitted");
       expect(events[0].args.requestId).to.be.equal(requestIds[0]);
+      expect(events[0].args.caller).to.be.equal(signerAddress);
+
+      filter = verifier.filters.AuthResponseSubmitted;
+      events = await verifier.queryFilter(filter, -1);
+      expect(events[0].eventName).to.be.equal("AuthResponseSubmitted");
+      expect(events[0].args.authType.hash).to.be.equal(
+        ethers.keccak256(byteEncoder.encode(authResponse.authType)),
+      );
       expect(events[0].args.caller).to.be.equal(signerAddress);
 
       const { timestamp: txResTimestamp } = (await ethers.provider.getBlock(
@@ -487,6 +509,7 @@ describe("Universal Verifier tests", function () {
         stateContract: state,
         universalVerifier: verifier,
         validator: validator,
+        authValidator: authValidator,
       } = await loadFixture(deployContractsFixture));
       signerAddress = await signer.getAddress();
     });
@@ -571,6 +594,45 @@ describe("Universal Verifier tests", function () {
         expect(decodedData.skipClaimRevocationCheck).to.equal(queries[1].skipClaimRevocationCheck);
         expect(decodedData.claimPathNotExists).to.equal(queries[1].claimPathNotExists);
       });
+    });
+
+    it("Check AuthTypeSet event", async () => {
+      const existingAuthType = {
+        authType: "stubAuth",
+        validator: await authValidator.getAddress(),
+        params: "0x",
+      };
+      await expect(verifier.setAuthType(existingAuthType))
+        .to.revertedWithCustomError(verifier, "AuthTypeAlreadyExists")
+        .withArgs(existingAuthType.authType);
+
+      const nonExistingAuthType = {
+        authType: "stubAuth2",
+        validator: await authValidator.getAddress(),
+        params: "0x",
+      };
+      await expect(verifier.setAuthType(nonExistingAuthType)).to.emit(verifier, "AuthTypeSet");
+
+      const filter = verifier.filters.AuthTypeSet;
+      const events = await verifier.queryFilter(filter, -1);
+      expect(events[0].eventName).to.be.equal("AuthTypeSet");
+      expect(events[0].args.authType.hash).to.be.equal(
+        ethers.keccak256(byteEncoder.encode(nonExistingAuthType.authType)),
+      );
+      expect(events[0].args.validator).to.be.equal(nonExistingAuthType.validator);
+      expect(events[0].args.params).to.be.equal(nonExistingAuthType.params);
+    });
+
+    it("Check MultiRequestSet event", async function () {
+      await verifier.setRequests([request]);
+
+      await expect(verifier.setMultiRequest(multiRequest)).to.emit(verifier, "MultiRequestSet");
+
+      const filter = verifier.filters.MultiRequestSet;
+      const events = await verifier.queryFilter(filter, -1);
+      expect(events[0].eventName).to.be.equal("MultiRequestSet");
+      expect(events[0].args.multiRequestId).to.be.equal(multiRequest.multiRequestId);
+      expect(events[0].args.requestIds).to.deep.equal(multiRequest.requestIds);
     });
   });
 });
