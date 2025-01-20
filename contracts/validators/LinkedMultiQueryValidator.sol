@@ -7,13 +7,15 @@ import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
 import {IState} from "../interfaces/IState.sol";
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {Initializable} from "../.deps/npm/@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 error WrongCircuitID(string circuitID);
 error InvalidQueryHash(uint256 expectedQueryHash, uint256 actualQueryHash);
 error InvalidGroupID(uint256 groupID);
 error TooManyQueries(uint256 operatorCount);
+error InvalidGroth16Proof();
 
-contract LinkedMultiQueryValidator is IRequestValidator, Ownable2StepUpgradeable {
+contract LinkedMultiQueryValidator is IRequestValidator, Initializable {
     // This should be limited to the real number of queries in which operator != 0
     struct Query {
         uint256[] claimPathKey;
@@ -71,7 +73,7 @@ contract LinkedMultiQueryValidator is IRequestValidator, Ownable2StepUpgradeable
         return VERSION;
     }
 
-    function initialize(address _groth16VerifierContractAddr, address owner) public initializer {
+    function initialize(address _groth16VerifierContractAddr) public initializer {
         LinkedMultiQueryValidatorStorage storage $ = _getLinkedMultiQueryValidatorStorage();
         $._supportedCircuits[CIRCUIT_ID] = IGroth16Verifier(_groth16VerifierContractAddr);
         $._supportedCircuitIds.push(CIRCUIT_ID);
@@ -100,7 +102,9 @@ contract LinkedMultiQueryValidator is IRequestValidator, Ownable2StepUpgradeable
         if (keccak256(bytes(query.circuitIds[0])) != keccak256(bytes(CIRCUIT_ID))) {
             revert WrongCircuitID(query.circuitIds[0]);
         }
-        $._supportedCircuits[CIRCUIT_ID].verify(a, b, c, inputs);
+        if (!$._supportedCircuits[CIRCUIT_ID].verify(a, b, c, inputs)) {
+            revert InvalidGroth16Proof();
+        }
 
         return _getResponseFields(pubSignals, query);
     }
