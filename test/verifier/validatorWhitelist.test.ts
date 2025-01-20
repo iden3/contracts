@@ -65,13 +65,12 @@ describe("ValidatorWhitelist tests", function () {
 
     await verifier.removeValidatorFromWhitelist(await validator.getAddress());
 
-    await expect(verifier.testModifier(await validator.getAddress())).to.be.revertedWithCustomError(
-      verifier,
-      "ValidatorIsNotWhitelisted",
-    );
-    await expect(
-      verifier.getRequestIfCanBeVerified(request.requestId),
-    ).to.be.revertedWithCustomError(verifier, "ValidatorIsNotWhitelisted");
+    await expect(verifier.testModifier(await validator.getAddress()))
+      .to.be.revertedWithCustomError(verifier, "ValidatorIsNotWhitelisted")
+      .withArgs(await validator.getAddress());
+    await expect(verifier.getRequestIfCanBeVerified(request.requestId))
+      .to.be.revertedWithCustomError(verifier, "ValidatorIsNotWhitelisted")
+      .withArgs(await validator.getAddress());
 
     isWhitelistedValidator = await verifier.isWhitelistedValidator(await validator.getAddress());
     expect(isWhitelistedValidator).to.be.false;

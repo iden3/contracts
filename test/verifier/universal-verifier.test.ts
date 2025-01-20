@@ -2,19 +2,16 @@ import { expect } from "chai";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { ethers } from "hardhat";
 import { packValidatorParams } from "../utils/validator-pack-utils";
-import { prepareInputs } from "../utils/state-utils";
-import { Block } from "ethers";
-import proofJson from "../validators/mtp/data/valid_mtp_user_genesis.json";
+import { AbiCoder, Block } from "ethers";
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { packZKProof } from "../utils/packData";
 
-describe("Universal Verifier MTP & SIG validators", function () {
-  let verifier: any, sigValidator: any, authV2Validator: any, state: any;
+describe("Universal Verifier tests", function () {
+  let request, paramsFromValidator, authResponse, response: any;
+  let verifier: any, validator: any, state: any;
   let signer, signer2, signer3;
   let signerAddress: string;
   let deployHelper: DeployHelper;
-  const authType = "authV2";
 
   const storageFields = [
     {
@@ -27,20 +24,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
     },
   ];
 
-  const query = {
-    schema: BigInt("180410020913331409885634153623124536270"),
-    claimPathKey: BigInt(
-      "8566939875427719562376598811066985304309117528846759529734201066483458512800",
-    ),
-    operator: 1n,
-    slotIndex: 0n,
-    value: [1420070400000000000n, ...new Array(63).fill("0").map((x) => BigInt(x))],
-    queryHash: BigInt(
-      "1496222740463292783938163206931059379817846775593932664024082849882751356658",
-    ),
-    circuitIds: [CircuitId.AtomicQuerySigV2OnChain],
-    claimPathNotExists: 0,
-  };
+  const crossChainProofs = "0x";
 
   async function deployContractsFixture() {
     const [ethSigner, ethSigner2, ethSigner3] = await ethers.getSigners();
@@ -49,8 +33,8 @@ describe("Universal Verifier MTP & SIG validators", function () {
     const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0112"]);
     const verifierLib = await deployHelper.deployVerifierLib();
 
-    const sigV2Validator = await deployHelper.deployValidatorStub("RequestValidatorStub");
-    await sigV2Validator.stub_setVerifyResults([
+    const validator = await deployHelper.deployValidatorStub("RequestValidatorStub");
+    await validator.stub_setVerifyResults([
       { name: "userID", value: 1 },
       { name: "issuerID", value: 2 },
     ]);
@@ -61,11 +45,18 @@ describe("Universal Verifier MTP & SIG validators", function () {
       await verifierLib.getAddress(),
     );
 
-    await universalVerifier.addValidatorToWhitelist(await sigV2Validator.getAddress());
+    await universalVerifier.addValidatorToWhitelist(await validator.getAddress());
     await universalVerifier.connect();
 
     const authV2Validator = await deployHelper.deployValidatorStub("AuthValidatorStub");
     await authV2Validator.stub_setVerifyResults(1);
+
+    const authType = {
+      authType: "stubAuth",
+      validator: await authV2Validator.getAddress(),
+      params: "0x",
+    };
+    await universalVerifier.setAuthType(authType);
 
     return {
       ethSigner,
@@ -73,8 +64,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
       ethSigner3,
       stateContract,
       universalVerifier,
-      sigV2Validator,
-      authV2Validator,
+      validator,
     };
   }
 
@@ -89,404 +79,498 @@ describe("Universal Verifier MTP & SIG validators", function () {
     }
   }
 
-  beforeEach(async () => {
-    ({
-      ethSigner: signer,
-      ethSigner2: signer2,
-      ethSigner3: signer3,
-      stateContract: state,
-      universalVerifier: verifier,
-      sigV2Validator: sigValidator,
-      authV2Validator: authV2Validator,
-    } = await loadFixture(deployContractsFixture));
-    signerAddress = await signer.getAddress();
-  });
-
-  it("Test get state address", async () => {
-    const stateAddr = await verifier.getStateAddress();
-    expect(stateAddr).to.be.equal(await state.getAddress());
-  });
-
-  it("Test add, get ZKPRequest, requestIdExists, getZKPRequestsCount", async () => {
-    const requestsCount = 3;
-    const validatorAddr = await sigValidator.getAddress();
-
-    for (let i = 0; i < requestsCount; i++) {
-      await expect(
-        verifier.setRequests([
-          {
-            requestId: i,
-            metadata: "metadataN" + i,
-            validator: validatorAddr,
-            params: "0x0" + i,
-          },
-        ]),
-      )
-        .to.emit(verifier, "RequestSet")
-        .withArgs(i, signerAddress, "metadataN" + i, validatorAddr, "0x0" + i);
-      const request = await verifier.getRequest(i);
-      expect(request.metadata).to.be.equal("metadataN" + i);
-      expect(request.validator).to.be.equal(validatorAddr);
-      expect(request.params).to.be.equal("0x0" + i);
-
-      const requestIdExists = await verifier.requestIdExists(i);
-      expect(requestIdExists).to.be.true;
-      const requestIdDoesntExists = await verifier.requestIdExists(i + 1);
-      expect(requestIdDoesntExists).to.be.false;
-
-      await expect(verifier.getRequest(i + 1)).to.be.rejectedWith(`RequestIdNotFound(${i + 1})`);
-    }
-
-    const count = await verifier.getRequestsCount();
-    expect(count).to.be.equal(requestsCount);
-  });
-
-  it("Test submit response", async () => {
-    const requestId = 0;
-    const nonExistingRequestId = 1;
-    const params = packValidatorParams(query);
-
-    verifier.setRequests([
-      {
+  describe("Methods", function () {
+    beforeEach(async () => {
+      ({
+        ethSigner: signer,
+        ethSigner2: signer2,
+        ethSigner3: signer3,
+        stateContract: state,
+        universalVerifier: verifier,
+        validator: validator,
+      } = await loadFixture(deployContractsFixture));
+      request = {
         requestId: 0,
-        metadata: "metadata",
-        validator: await sigValidator.getAddress(),
-        params: params,
-      },
-    ]);
+        metadata: "0x",
+        validator: await validator.getAddress(),
+        params: "0x",
+      };
 
-    await verifier.setAuthType({
-      authType: authType,
-      validator: await authV2Validator.getAddress(),
-      params: params,
+      authResponse = {
+        authType: "stubAuth",
+        proof: "0x",
+      };
+      response = {
+        requestId: 0,
+        proof: "0x",
+        metadata: "0x",
+      };
+      paramsFromValidator = {
+        groupID: 0,
+        verifierID: 0,
+        nullifierSessionID: 0,
+      };
+      await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
+
+      signerAddress = await signer.getAddress();
     });
 
-    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
-    const proof = packZKProof(inputs, pi_a, pi_b, pi_c);
-
-    const crossChainProofs = "0x";
-    const metadatas = "0x";
-
-    const tx = await verifier.submitResponse(
-      {
-        authType: authType,
-        proof,
-      },
-      [
-        {
-          requestId: 0,
-          proof,
-          metadata: metadatas,
-        },
-      ],
-      crossChainProofs,
-    );
-
-    const txRes = await tx.wait();
-    await checkStorageFields(verifier, BigInt(requestId), storageFields);
-    const filter = verifier.filters.ResponseSubmitted;
-
-    const events = await verifier.queryFilter(filter, -1);
-    expect(events[0].eventName).to.be.equal("ResponseSubmitted");
-    expect(events[0].args.requestId).to.be.equal(0);
-    expect(events[0].args.caller).to.be.equal(signerAddress);
-
-    const { timestamp: txResTimestamp } = (await ethers.provider.getBlock(
-      txRes.blockNumber,
-    )) as Block;
-
-    const status = await verifier.getRequestStatus(signerAddress, requestId);
-    expect(status.isVerified).to.be.true;
-    expect(status.validatorVersion).to.be.equal("1.0.0-stub");
-    expect(status.timestamp).to.be.equal(txResTimestamp);
-
-    await expect(verifier.getRequestStatus(signerAddress, nonExistingRequestId)).to.be.rejectedWith(
-      `RequestIdNotFound(${nonExistingRequestId})`,
-    );
-  });
-
-  it("Check access control", async () => {
-    const owner = signer;
-    const requestOwner = signer2;
-    const someSigner = signer3;
-    const requestId = 0;
-    const nonExistentRequestId = 1;
-    const requestOwnerAddr = await requestOwner.getAddress();
-    const someSignerAddress = await someSigner.getAddress();
-
-    await expect(verifier.getRequestOwner(requestId)).to.be.rejectedWith(
-      `RequestIdNotFound(${requestId})`,
-    );
-
-    await verifier.connect(requestOwner).setRequests([
-      {
-        requestId: requestId,
-        metadata: "metadata",
-        validator: await sigValidator.getAddress(),
-        params: packValidatorParams(query),
-      },
-    ]);
-
-    expect(await verifier.getRequestOwner(requestId)).to.be.equal(requestOwnerAddr);
-    await expect(verifier.connect(someSigner).setRequestOwner(requestId, someSigner))
-      .to.be.revertedWithCustomError(verifier, "NotAnOwnerOrRequestOwner")
-      .withArgs(someSigner);
-
-    await verifier.connect(requestOwner).setRequestOwner(requestId, someSigner);
-    expect(await verifier.getRequestOwner(requestId)).to.be.equal(someSignerAddress);
-
-    await expect(verifier.connect(requestOwner).setRequestOwner(requestId, requestOwnerAddr))
-      .to.be.revertedWithCustomError(verifier, "NotAnOwnerOrRequestOwner")
-      .withArgs(requestOwner);
-
-    await verifier.connect(owner).setRequestOwner(requestId, requestOwnerAddr);
-    expect(await verifier.getRequestOwner(requestId)).to.be.equal(requestOwnerAddr);
-
-    await expect(verifier.getRequestOwner(nonExistentRequestId)).to.be.rejectedWith(
-      `RequestIdNotFound(${nonExistentRequestId})`,
-    );
-    await expect(
-      verifier.setRequestOwner(nonExistentRequestId, someSignerAddress),
-    ).to.be.rejectedWith(`RequestIdNotFound(${nonExistentRequestId})`);
-  });
-
-  it("Check disable/enable functionality", async () => {
-    const owner = signer;
-    const requestOwner = signer2;
-    const someSigner = signer3;
-    const requestId = 0;
-    const nonExistentRequestId = 1;
-
-    const params = packValidatorParams(query);
-
-    await expect(verifier.isRequestEnabled(requestId)).to.be.rejectedWith(
-      `RequestIdNotFound(${requestId})`,
-    );
-
-    await verifier.connect(requestOwner).setRequests([
-      {
-        requestId: requestId,
-        metadata: "metadata",
-        validator: await sigValidator.getAddress(),
-        params: params,
-      },
-    ]);
-
-    expect(await verifier.isRequestEnabled(requestId)).to.be.true;
-
-    await expect(verifier.connect(someSigner).disableRequest(requestId))
-      .to.be.revertedWithCustomError(verifier, "NotAnOwnerOrRequestOwner")
-      .withArgs(someSigner);
-
-    expect(await verifier.isRequestEnabled(requestId)).to.be.true;
-
-    await verifier.connect(owner).disableRequest(requestId);
-    expect(await verifier.isRequestEnabled(requestId)).to.be.false;
-
-    await expect(verifier.connect(someSigner).enableRequest(requestId))
-      .to.be.revertedWithCustomError(verifier, "NotAnOwnerOrRequestOwner")
-      .withArgs(someSigner);
-
-    await verifier.connect(requestOwner).enableRequest(requestId);
-    expect(await verifier.isRequestEnabled(requestId)).to.be.true;
-
-    await verifier.setAuthType({
-      authType: authType,
-      validator: await authV2Validator.getAddress(),
-      params: params,
+    it("Test get state address", async () => {
+      const stateAddr = await verifier.getStateAddress();
+      expect(stateAddr).to.be.equal(await state.getAddress());
     });
 
-    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
-    const proof = packZKProof(inputs, pi_a, pi_b, pi_c);
+    it("Test add, getRequest, requestIdExists, getRequestsCount", async () => {
+      const requestsCount = 3;
+      for (let i = 0; i < requestsCount; i++) {
+        request.requestId = i;
+        request.metadata = "metadataN" + i;
+        request.params = "0x0" + i;
 
-    const crossChainProofs = "0x";
-    const metadatas = "0x";
+        await expect(verifier.setRequests([request]))
+          .to.emit(verifier, "RequestSet")
+          .withArgs(i, signerAddress, "metadataN" + i, request.validator, "0x0" + i);
+        const requestFromContract = await verifier.getRequest(i);
+        expect(requestFromContract.metadata).to.be.equal("metadataN" + i);
+        expect(requestFromContract.validator).to.be.equal(request.validator);
+        expect(requestFromContract.params).to.be.equal("0x0" + i);
 
-    await verifier.submitResponse(
-      {
-        authType: authType,
-        proof,
-      },
-      [
+        const requestIdExists = await verifier.requestIdExists(i);
+        expect(requestIdExists).to.be.true;
+        const requestIdDoesntExists = await verifier.requestIdExists(i + 1);
+        expect(requestIdDoesntExists).to.be.false;
+
+        await expect(verifier.getRequest(i + 1))
+          .to.be.revertedWithCustomError(verifier, "RequestIdNotFound")
+          .withArgs(i + 1);
+      }
+
+      const count = await verifier.getRequestsCount();
+      expect(count).to.be.equal(requestsCount);
+    });
+
+    it("Test submit response single request", async () => {
+      const nonExistingRequestId = 1;
+      await verifier.setRequests([request]);
+
+      const tx = await verifier.submitResponse(authResponse, [response], crossChainProofs);
+
+      const txRes = await tx.wait();
+      await checkStorageFields(verifier, BigInt(request.requestId), storageFields);
+      const filter = verifier.filters.ResponseSubmitted;
+
+      const events = await verifier.queryFilter(filter, -1);
+      expect(events[0].eventName).to.be.equal("ResponseSubmitted");
+      expect(events[0].args.requestId).to.be.equal(0);
+      expect(events[0].args.caller).to.be.equal(signerAddress);
+
+      const { timestamp: txResTimestamp } = (await ethers.provider.getBlock(
+        txRes.blockNumber,
+      )) as Block;
+
+      const status = await verifier.getRequestStatus(signerAddress, request.requestId);
+      expect(status.isVerified).to.be.true;
+      expect(status.validatorVersion).to.be.equal("1.0.0-stub");
+      expect(status.timestamp).to.be.equal(txResTimestamp);
+
+      await expect(verifier.getRequestStatus(signerAddress, nonExistingRequestId))
+        .to.be.revertedWithCustomError(verifier, "RequestIdNotFound")
+        .withArgs(nonExistingRequestId);
+    });
+
+    it("Test submit response multiple request", async () => {
+      const requestIds = [1, 2];
+      await verifier.setRequests([
         {
-          requestId: requestId,
-          proof,
-          metadata: metadatas,
+          ...request,
+          requestId: requestIds[0],
         },
-      ],
-      crossChainProofs,
-    );
-
-    await verifier.connect(requestOwner).disableRequest(requestId);
-    await expect(
-      verifier.submitResponse(
         {
-          authType: authType,
-          proof,
+          ...request,
+          requestId: requestIds[1],
         },
+      ]);
+
+      const tx = await verifier.submitResponse(
+        authResponse,
         [
           {
-            requestId: requestId,
-            proof,
-            metadata: metadatas,
+            ...response,
+            requestId: requestIds[0],
+          },
+          {
+            ...response,
+            requestId: requestIds[1],
           },
         ],
         crossChainProofs,
-      ),
-    ).to.be.rejectedWith(`RequestIsDisabled(${requestId})`);
+      );
 
-    await expect(verifier.isRequestEnabled(nonExistentRequestId)).to.be.rejectedWith(
-      `RequestIdNotFound(${nonExistentRequestId})`,
-    );
-    await expect(verifier.disableRequest(nonExistentRequestId)).to.be.rejectedWith(
-      `RequestIdNotFound(${nonExistentRequestId})`,
-    );
-    await expect(verifier.enableRequest(nonExistentRequestId)).to.be.rejectedWith(
-      `RequestIdNotFound(${nonExistentRequestId})`,
-    );
-  });
+      const txRes = await tx.wait();
 
-  it("Check whitelisted validators", async () => {
-    const owner = signer;
-    const someAddress = signer2;
-    const requestId = 1;
-    const otherRequestId = 2;
-    const { validator: mtp } = await deployHelper.deployValidatorContractsWithVerifiers(
-      "mtpV2",
-      await state.getAddress(),
-    );
-    const mtpValAddr = await mtp.getAddress();
-    expect(await verifier.isWhitelistedValidator(mtpValAddr)).to.be.false;
-    await expect(
-      verifier.setRequests([
-        {
-          requestId: requestId,
-          metadata: "metadata",
-          validator: mtpValAddr,
-          params: "0x00",
-        },
-      ]),
-    ).to.be.rejectedWith(`ValidatorIsNotWhitelisted("${mtpValAddr}")`);
-    await expect(verifier.connect(someAddress).addValidatorToWhitelist(mtpValAddr))
-      .to.be.revertedWithCustomError(verifier, "OwnableUnauthorizedAccount")
-      .withArgs(someAddress);
-    expect(await verifier.isWhitelistedValidator(mtpValAddr)).to.be.false;
+      for (const requestId of requestIds) {
+        await checkStorageFields(verifier, BigInt(requestId), storageFields);
+      }
 
-    await verifier.connect(owner).addValidatorToWhitelist(mtpValAddr);
-    expect(await verifier.isWhitelistedValidator(mtpValAddr)).to.be.true;
+      const filter = verifier.filters.ResponseSubmitted;
 
-    await expect(
-      verifier.setRequests([
-        {
-          requestId: requestId,
-          metadata: "metadata",
-          validator: mtpValAddr,
-          params: "0x00",
-        },
-      ]),
-    ).not.to.be.rejected;
+      const events = await verifier.queryFilter(filter, -1);
+      expect(events[0].eventName).to.be.equal("ResponseSubmitted");
+      expect(events[0].args.requestId).to.be.equal(requestIds[0]);
+      expect(events[0].args.caller).to.be.equal(signerAddress);
 
-    // can't whitelist validator, which does not support ICircuitValidator interface
-    await expect(verifier.addValidatorToWhitelist(someAddress)).to.be.rejected;
+      const { timestamp: txResTimestamp } = (await ethers.provider.getBlock(
+        txRes.blockNumber,
+      )) as Block;
 
-    // not a validator with proper interface and even not supporting IERC165 interface to check it
-    await expect(
-      verifier.setRequests([
-        {
-          requestId: otherRequestId,
-          metadata: "metadata",
-          validator: someAddress,
-          params: "0x00",
-        },
-      ]),
-    ).to.be.rejectedWith(`function returned an unexpected amount of data`);
-
-    await verifier.removeValidatorFromWhitelist(mtpValAddr);
-    await verifier.setAuthType({
-      authType: authType,
-      validator: await authV2Validator.getAddress(),
-      params: "0x00",
+      for (const requestId of requestIds) {
+        const status = await verifier.getRequestStatus(signerAddress, requestId);
+        expect(status.isVerified).to.be.true;
+        expect(status.validatorVersion).to.be.equal("1.0.0-stub");
+        expect(status.timestamp).to.be.equal(txResTimestamp);
+      }
     });
 
-    const proof = packZKProof(
-      [],
-      ["0", "0"],
-      [
-        ["0", "0"],
-        ["0", "0"],
-      ],
-      ["0", "0"],
-    );
+    it("Check access control", async () => {
+      const owner = signer;
+      const requestOwner = signer2;
+      const someSigner = signer3;
+      const nonExistentRequestId = 1;
+      const requestOwnerAddr = await requestOwner.getAddress();
+      const someSignerAddress = await someSigner.getAddress();
 
-    const crossChainProofs = "0x";
-    const metadatas = "0x";
-    await expect(
-      verifier.submitResponse(
+      await expect(verifier.getRequestOwner(request.requestId))
+        .to.be.revertedWithCustomError(verifier, "RequestIdNotFound")
+        .withArgs(request.requestId);
+
+      await verifier.connect(requestOwner).setRequests([request]);
+
+      expect(await verifier.getRequestOwner(request.requestId)).to.be.equal(requestOwnerAddr);
+      await expect(verifier.connect(someSigner).setRequestOwner(request.requestId, someSigner))
+        .to.be.revertedWithCustomError(verifier, "NotAnOwnerOrRequestOwner")
+        .withArgs(someSigner);
+
+      await verifier.connect(requestOwner).setRequestOwner(request.requestId, someSigner);
+      expect(await verifier.getRequestOwner(request.requestId)).to.be.equal(someSignerAddress);
+
+      await expect(
+        verifier.connect(requestOwner).setRequestOwner(request.requestId, requestOwnerAddr),
+      )
+        .to.be.revertedWithCustomError(verifier, "NotAnOwnerOrRequestOwner")
+        .withArgs(requestOwner);
+
+      await verifier.connect(owner).setRequestOwner(request.requestId, requestOwnerAddr);
+      expect(await verifier.getRequestOwner(request.requestId)).to.be.equal(requestOwnerAddr);
+
+      await expect(verifier.getRequestOwner(nonExistentRequestId))
+        .to.be.revertedWithCustomError(verifier, "RequestIdNotFound")
+        .withArgs(nonExistentRequestId);
+      await expect(verifier.setRequestOwner(nonExistentRequestId, someSignerAddress))
+        .to.be.revertedWithCustomError(verifier, "RequestIdNotFound")
+        .withArgs(nonExistentRequestId);
+    });
+
+    it("Test submit response with disable/enable functionality", async () => {
+      const requestIds = [0, 1, 2];
+
+      const singleResponse = [response];
+
+      const multiResponses = [
         {
-          authType: authType,
-          proof,
+          ...response,
+          requestId: 1,
         },
-        [
+        {
+          ...response,
+          requestId: 2,
+        },
+      ];
+
+      for (const requestId of requestIds) {
+        await verifier.setRequests([
           {
+            ...request,
             requestId: requestId,
-            proof,
-            metadata: metadatas,
           },
-        ],
-        crossChainProofs,
-      ),
-    ).to.be.rejectedWith(`ValidatorIsNotWhitelisted("${mtpValAddr}")`);
-  });
+        ]);
+      }
 
-  it("Check updateRequest", async () => {
-    const owner = signer;
-    const requestOwner = signer2;
-    const requestId = 0;
-    const params = packValidatorParams(query);
+      await verifier.disableRequest(singleResponse[0].requestId);
+      await expect(verifier.submitResponse(authResponse, singleResponse, crossChainProofs))
+        .to.be.revertedWithCustomError(verifier, "RequestIsDisabled")
+        .withArgs(singleResponse[0].requestId);
 
-    await verifier.connect(requestOwner).setRequests([
-      {
-        requestId: requestId,
-        metadata: "metadata",
-        validator: await sigValidator.getAddress(),
-        params: params,
-      },
-    ]);
+      await verifier.disableRequest(multiResponses[0].requestId);
+      await expect(verifier.submitResponse(authResponse, multiResponses, crossChainProofs))
+        .to.be.revertedWithCustomError(verifier, "RequestIsDisabled")
+        .withArgs(multiResponses[0].requestId);
 
-    let request = await verifier.getRequest(requestId);
-    expect(request.metadata).to.be.equal("metadata");
-    await expect(
-      verifier.connect(requestOwner).updateRequest({
-        requestId,
-        metadata: "metadata",
-        validator: await sigValidator.getAddress(),
-        params: params,
-      }),
-    ).to.be.revertedWithCustomError(verifier, "OwnableUnauthorizedAccount");
+      await verifier.enableRequest(singleResponse[0].requestId);
+      await expect(verifier.submitResponse(authResponse, singleResponse, crossChainProofs)).not.to
+        .be.rejected;
 
-    await verifier.connect(owner).updateRequest({
-      requestId,
-      metadata: "metadata2",
-      validator: await sigValidator.getAddress(),
-      params: params,
+      await verifier.enableRequest(multiResponses[0].requestId);
+      await expect(verifier.submitResponse(authResponse, multiResponses, crossChainProofs)).not.to
+        .be.rejected;
     });
 
-    request = await verifier.getRequest(requestId);
-    expect(request.metadata).to.be.equal("metadata2");
+    it("Test submit response check whitelisted functionality", async () => {
+      const requestIds = [0, 1, 2];
+      const singleResponse = [response];
+
+      const multiResponses = [
+        {
+          ...response,
+          requestId: 1,
+        },
+        {
+          ...response,
+          requestId: 2,
+        },
+      ];
+
+      for (const requestId of requestIds) {
+        await verifier.setRequests([
+          {
+            ...request,
+            requestId: requestId,
+          },
+        ]);
+      }
+
+      await verifier.removeValidatorFromWhitelist(await validator.getAddress());
+      await expect(verifier.submitResponse(authResponse, singleResponse, crossChainProofs))
+        .to.be.revertedWithCustomError(verifier, "ValidatorIsNotWhitelisted")
+        .withArgs(await validator.getAddress());
+      await expect(verifier.submitResponse(authResponse, multiResponses, crossChainProofs))
+        .to.be.revertedWithCustomError(verifier, "ValidatorIsNotWhitelisted")
+        .withArgs(await validator.getAddress());
+
+      await verifier.addValidatorToWhitelist(await validator.getAddress());
+      await expect(verifier.submitResponse(authResponse, singleResponse, crossChainProofs)).not.to
+        .be.rejected;
+      await expect(verifier.submitResponse(authResponse, multiResponses, crossChainProofs)).not.to
+        .be.rejected;
+    });
+
+    it("Check updateRequest", async () => {
+      const owner = signer;
+      const requestOwner = signer2;
+      const requestId = 0;
+
+      await verifier.connect(requestOwner).setRequests([request]);
+
+      let requestStored = await verifier.getRequest(requestId);
+      expect(requestStored.metadata).to.be.equal(request.metadata);
+      await expect(
+        verifier.connect(requestOwner).updateRequest(request),
+      ).to.be.revertedWithCustomError(verifier, "OwnableUnauthorizedAccount");
+
+      await verifier.connect(owner).updateRequest({
+        ...request,
+        metadata: "metadata2",
+      });
+
+      requestStored = await verifier.getRequest(requestId);
+      expect(requestStored.metadata).to.be.equal("metadata2");
+    });
+
+    it("updateRequest - not existed request", async () => {
+      const owner = signer;
+      const requestId = 0;
+
+      await expect(verifier.connect(owner).updateRequest(request))
+        .to.be.revertedWithCustomError(verifier, "RequestIdNotFound")
+        .withArgs(requestId);
+    });
+
+    it("Test set request fails with VerifierIDIsNotValid", async () => {
+      ({
+        ethSigner: signer,
+        ethSigner2: signer2,
+        stateContract: state,
+        validator: validator,
+        universalVerifier: verifier,
+      } = await loadFixture(deployContractsFixture));
+
+      paramsFromValidator.verifierID = 2;
+
+      const requestId = 40;
+
+      const request = {
+        requestId: requestId,
+        metadata: "0x",
+        validator: await validator.getAddress(),
+        params: "0x",
+      };
+      await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
+
+      await verifier.setVerifierID(1);
+
+      await expect(verifier.setRequests([request]))
+        .to.be.revertedWithCustomError(verifier, "VerifierIDIsNotValid")
+        .withArgs(2, 1);
+    });
   });
 
-  it("updateRequest - not existed request", async () => {
-    const owner = signer;
-    const requestId = 0;
-    const params = packValidatorParams(query);
+  describe("Events", function () {
+    const queries = [
+      {
+        schema: 111n,
+        claimPathKey: 8566939875427719562376598811066985304309117528846759529734201066483458512800n,
+        operator: 1n,
+        slotIndex: 0n,
+        value: [1420070400000000000n, ...new Array(63).fill("0").map((x) => BigInt(x))],
+        queryHash: BigInt(
+          "1496222740463292783938163206931059379817846775593932664024082849882751356658",
+        ),
+        circuitIds: [CircuitId.AtomicQuerySigV2OnChain],
+        skipClaimRevocationCheck: false,
+        claimPathNotExists: 0n,
+      },
+      {
+        schema: 222n,
+        claimPathKey: BigInt(
+          "8566939875427719562376598811066985304309117528846759529734201066483458512800",
+        ),
+        operator: 1n,
+        slotIndex: 0n,
+        value: [1420070400000000000n, ...new Array(63).fill("0").map((x) => BigInt(x))],
+        queryHash: BigInt(
+          "1496222740463292783938163206931059379817846775593932664024082849882751356658",
+        ),
+        circuitIds: [CircuitId.AtomicQuerySigV2OnChain],
+        skipClaimRevocationCheck: true,
+        claimPathNotExists: 0n,
+      },
+      {
+        schema: 333n,
+        claimPathKey: BigInt(
+          "8566939875427719562376598811066985304309117528846759529734201066483458512800",
+        ),
+        operator: 1n,
+        slotIndex: 0n,
+        value: [1420070400000000000n, ...new Array(63).fill("0").map((x) => BigInt(x))],
+        queryHash: BigInt(
+          "1496222740463292783938163206931059379817846775593932664024082849882751356658",
+        ),
+        circuitIds: [CircuitId.AtomicQuerySigV2OnChain],
+        skipClaimRevocationCheck: false,
+        claimPathNotExists: 0n,
+      },
+    ];
 
-    await expect(
-      verifier.connect(owner).updateRequest({
-        requestId,
-        metadata: "metadata",
-        validator: await sigValidator.getAddress(),
-        params,
-      }),
-    ).to.be.rejectedWith(`RequestIdNotFound(${requestId})`);
+    const encodedDataAbi = [
+      {
+        components: [
+          { name: "schema", type: "uint256" },
+          { name: "claimPathKey", type: "uint256" },
+          { name: "operator", type: "uint256" },
+          { name: "slotIndex", type: "uint256" },
+          { name: "value", type: "uint256[]" },
+          { name: "queryHash", type: "uint256" },
+          { name: "allowedIssuers", type: "uint256[]" },
+          { name: "circuitIds", type: "string[]" },
+          { name: "skipClaimRevocationCheck", type: "bool" },
+          { name: "claimPathNotExists", type: "uint256" },
+        ],
+        name: "",
+        type: "tuple",
+      },
+    ];
+
+    beforeEach(async () => {
+      ({
+        ethSigner: signer,
+        ethSigner2: signer2,
+        ethSigner3: signer3,
+        stateContract: state,
+        universalVerifier: verifier,
+        validator: validator,
+      } = await loadFixture(deployContractsFixture));
+      signerAddress = await signer.getAddress();
+    });
+
+    it("Check RequestSet event", async () => {
+      const requestsCount = 3;
+      const params = [
+        packValidatorParams(queries[0]),
+        packValidatorParams(queries[1]),
+        packValidatorParams(queries[2]),
+      ];
+
+      for (let i = 0; i < requestsCount; i++) {
+        await expect(
+          verifier.setRequests([
+            {
+              ...request,
+              requestId: i,
+              params: params[i],
+            },
+          ]),
+        ).to.emit(verifier, "RequestSet");
+      }
+      const filter = verifier.filters.RequestSet(null, null);
+      const logs = await verifier.queryFilter(filter, 0, "latest");
+
+      const coder = AbiCoder.defaultAbiCoder();
+      logs.map((log, index) => {
+        const [decodedData] = coder.decode(encodedDataAbi as any, log.args.params);
+        expect(decodedData.schema).to.equal(queries[index].schema);
+        expect(decodedData.claimPathKey).to.equal(queries[index].claimPathKey);
+        expect(decodedData.operator).to.equal(queries[index].operator);
+        expect(decodedData.slotIndex).to.equal(queries[index].slotIndex);
+        decodedData.value.forEach((v, i) => {
+          expect(v).to.equal(queries[index].value[i]);
+        });
+        expect(decodedData.queryHash).to.equal(queries[index].queryHash);
+        decodedData.circuitIds.forEach((circuitId, i) => {
+          expect(circuitId).to.equal(queries[index].circuitIds[i]);
+        });
+        expect(decodedData.skipClaimRevocationCheck).to.equal(
+          queries[index].skipClaimRevocationCheck,
+        );
+        expect(decodedData.claimPathNotExists).to.equal(queries[index].claimPathNotExists);
+      });
+    });
+
+    it("Check RequestUpdate event", async () => {
+      const originalRequestData = packValidatorParams(queries[0]);
+      const updatedRequestData = packValidatorParams(queries[1]);
+
+      await verifier.setRequests([
+        {
+          ...request,
+          params: originalRequestData,
+        },
+      ]);
+
+      await verifier.updateRequest({
+        ...request,
+        metadata: "metadataN1",
+        params: updatedRequestData,
+      });
+
+      const filter = verifier.filters.RequestUpdate(null, null);
+      const logs = await verifier.queryFilter(filter, 0, "latest");
+
+      const coder = AbiCoder.defaultAbiCoder();
+      logs.map((log) => {
+        const [decodedData] = coder.decode(encodedDataAbi as any, log.args.params);
+        expect(decodedData.schema).to.equal(queries[1].schema);
+        expect(decodedData.claimPathKey).to.equal(queries[1].claimPathKey);
+        expect(decodedData.operator).to.equal(queries[1].operator);
+        expect(decodedData.slotIndex).to.equal(queries[1].slotIndex);
+        decodedData.value.forEach((v, i) => {
+          expect(v).to.equal(queries[1].value[i]);
+        });
+        expect(decodedData.queryHash).to.equal(queries[1].queryHash);
+        decodedData.circuitIds.forEach((circuitId, i) => {
+          expect(circuitId).to.equal(queries[1].circuitIds[i]);
+        });
+        expect(decodedData.skipClaimRevocationCheck).to.equal(queries[1].skipClaimRevocationCheck);
+        expect(decodedData.claimPathNotExists).to.equal(queries[1].claimPathNotExists);
+      });
+    });
   });
 });
