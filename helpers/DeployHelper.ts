@@ -13,7 +13,6 @@ import {
   CredentialAtomicQueryV3ValidatorProxyModule,
   UniversalVerifierProxyModule,
   AuthV2ValidatorProxyModule,
-  UniversalVerifierMultiQueryProxyModule,
 } from "../ignition";
 import { chainIdInfoMap, contractsInfo } from "./constants";
 import {
@@ -24,11 +23,12 @@ import {
 } from "./helperUtils";
 import { MCPaymentProxyModule } from "../ignition/modules/mcPayment";
 import { AuthV2ValidatorForAuthProxyModule } from "../ignition/modules/authV2ValidatorForAuth";
+import { LinkedMultiQueryProxyModule } from "../ignition/modules/linkedMultiQuery";
 
 const SMT_MAX_DEPTH = 64;
 
-export type Groth16VerifierType = "mtpV2" | "sigV2" | "v3" | "authV2";
-export type ValidatorType = "mtpV2" | "sigV2" | "v3" | "authV2" | "authV2_forAuth";
+export type Groth16VerifierType = "mtpV2" | "sigV2" | "v3" | "authV2" | "lmk10";
+export type ValidatorType = "mtpV2" | "sigV2" | "v3" | "authV2" | "authV2_forAuth" | "lmk";
 
 export class DeployHelper {
   constructor(
@@ -575,6 +575,9 @@ export class DeployHelper {
       case "authV2_forAuth":
         groth16VerifierType = "authV2";
         break;
+      case "lmk":
+        groth16VerifierType = "lmk10";
+        break;
     }
     return groth16VerifierType;
   }
@@ -593,6 +596,9 @@ export class DeployHelper {
         break;
       case "authV2":
         g16VerifierContractWrapperName = contractsInfo.GROTH16_VERIFIER_AUTH_V2.name;
+        break;
+      case "lmk10":
+        g16VerifierContractWrapperName = contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.name;
         break;
     }
     return g16VerifierContractWrapperName;
@@ -615,9 +621,12 @@ export class DeployHelper {
         break;
       case "v3":
         verification = contractsInfo.GROTH16_VERIFIER_V3.verificationOpts;
+        break;
       case "authV2":
         verification = contractsInfo.GROTH16_VERIFIER_AUTH_V2.verificationOpts;
         break;
+      case "lmk10":
+        verification = contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.verificationOpts;
     }
     return verification;
   }
@@ -639,6 +648,7 @@ export class DeployHelper {
         break;
       case "v3":
         verification = contractsInfo.VALIDATOR_V3.verificationOpts;
+        break;
       case "authV2":
         verification = contractsInfo.VALIDATOR_AUTH_V2.verificationOpts;
         break;
@@ -713,6 +723,8 @@ export class DeployHelper {
       case "authV2_forAuth":
         validatorContractName = "AuthV2Validator_forAuth";
         break;
+      case "lmk":
+        validatorContractName = "LinkedMultiQueryValidator";
     }
 
     let validator;
@@ -734,7 +746,10 @@ export class DeployHelper {
           validatorModule = AuthV2ValidatorProxyModule;
           break;
         case "authV2_forAuth":
-          validatorContractName = AuthV2ValidatorForAuthProxyModule;
+          validatorModule = AuthV2ValidatorForAuthProxyModule;
+          break;
+        case "lmk":
+          validatorModule = LinkedMultiQueryProxyModule;
           break;
       }
 
