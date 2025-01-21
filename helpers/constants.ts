@@ -205,7 +205,7 @@ export const contractsInfo = Object.freeze({
         "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
         "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
       ],
-      constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
+      constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7f44012c728b9d74"],
       libraries: {},
     },
   },
@@ -355,6 +355,17 @@ export const contractsInfo = Object.freeze({
     verificationOpts: {
       contract:
         "contracts/lib/groth16-verifiers/Groth16VerifierV3Wrapper.sol:Groth16VerifierV3Wrapper",
+      constructorArgsImplementation: [],
+      libraries: {},
+    },
+  },
+  GROTH16_VERIFIER_LINKED_MULTI_QUERY10: {
+    name: "Groth16VerifierLinkedMultiQuery10Wrapper",
+    unifiedAddress: "",
+    create2Calldata: "",
+    verificationOpts: {
+      contract:
+        "contracts/lib/groth16-verifiers/Groth16VerifierLinkedMultiQuery10Wrapper.sol:Groth16VerifierLinkedMultiQuery10Wrapper",
       constructorArgsImplementation: [],
       libraries: {},
     },
