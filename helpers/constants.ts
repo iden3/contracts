@@ -365,7 +365,7 @@ export const contractsInfo = Object.freeze({
     create2Calldata: "",
     verificationOpts: {
       contract:
-        "contracts/lib/groth16-verifiers/Groth16VerifierLinkedMultiQueryWrapper.sol:Groth16VerifierLinkedMultiQueryWrapper",
+        "contracts/lib/groth16-verifiers/Groth16VerifierLinkedMultiQuery10Wrapper.sol:Groth16VerifierLinkedMultiQuery10Wrapper",
       constructorArgsImplementation: [],
       libraries: {},
     },
