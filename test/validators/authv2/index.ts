@@ -4,6 +4,7 @@ import { DeployHelper } from "../../../helpers/DeployHelper";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { packZKProof } from "../../utils/packData";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
+import { contractsInfo } from "../../../helpers/constants";
 
 const testCases: any[] = [
   {
@@ -135,4 +136,9 @@ describe("Auth V2 Validator", function () {
       }
     });
   }
+
+  it("check version", async () => {
+    const version = await authV2validator.version();
+    expect(version).to.be.equal(contractsInfo.VALIDATOR_AUTH_V2_FOR_AUTH.version);
+  });
 });

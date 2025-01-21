@@ -67,11 +67,6 @@ contract UniversalVerifier is
      */
     event MultiRequestSet(uint256 indexed multiRequestId, uint256[] requestIds);
 
-    /**
-     * @dev Event emitted upon updating a multiRequest
-     */
-    event MultiRequestUpdate(uint256 indexed multiRequestId, uint256[] requestIds);
-
     /// @dev Modifier to check if the caller is the contract Owner or ZKP Request Owner
     modifier onlyOwnerOrRequestOwner(uint256 requestId) {
         address sender = _msgSender();

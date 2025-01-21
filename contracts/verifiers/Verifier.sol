@@ -185,7 +185,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      * @return Whether the auth type exists
      */
     function authTypeExists(string memory authType) public view returns (bool) {
-        return _getVerifierStorage()._authMethods[authType].isActive == true;
+        return _getVerifierStorage()._authMethods[authType].validator != IAuthValidator(address(0));
     }
 
     function _setRequest(

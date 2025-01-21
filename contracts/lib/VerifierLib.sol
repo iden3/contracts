@@ -3,7 +3,6 @@ pragma solidity 0.8.27;
 
 import {Verifier} from "../verifiers/Verifier.sol";
 import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
-import {IAuthValidator} from "../interfaces/IAuthValidator.sol";
 
 error ResponseFieldAlreadyExists(string responseFieldName);
 

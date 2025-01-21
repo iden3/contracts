@@ -6,7 +6,7 @@ import { expect } from "chai";
 describe("Verifer tests", function () {
   let sender: any;
   let verifier, verifierLib, validator1, validator2: any;
-  let request, paramsFromValidator: any;
+  let request, paramsFromValidator, authType: any;
   let multiRequest: any;
   let signer: any;
   let signerAddress: string;
@@ -28,11 +28,12 @@ describe("Verifer tests", function () {
     const authValidatorStub = await ethers.deployContract("AuthValidatorStub");
     await authValidatorStub.stub_setVerifyResults(1);
 
-    const authType = {
+    authType = {
       authType: "stubAuth",
       validator: await authValidatorStub.getAddress(),
       params: "0x",
     };
+
     await verifier.setAuthType(authType);
 
     const validator1 = await ethers.deployContract("RequestValidatorStub");
@@ -191,6 +192,39 @@ describe("Verifer tests", function () {
       await expect(verifier.getRequestStatus(signerAddress, nonExistingRequestId))
         .to.be.revertedWithCustomError(verifier, "RequestIdNotFound")
         .withArgs(nonExistingRequestId);
+    });
+
+    it("getAuthType: authType should exist", async function () {
+      const authType2 = { ...authType, authType: "stubAuth2" };
+
+      await expect(verifier.getAuthType(authType2.authType))
+        .to.be.revertedWithCustomError(verifier, "AuthTypeNotFound")
+        .withArgs(authType2.authType);
+
+      await expect(verifier.setAuthType(authType))
+        .to.be.revertedWithCustomError(verifier, "AuthTypeAlreadyExists")
+        .withArgs(authType.authType);
+
+      await expect(verifier.setAuthType(authType2)).not.to.be.reverted;
+
+      const authTypeObject = await verifier.getAuthType(authType2.authType);
+      expect(authTypeObject.validator).to.be.equal(authType2.validator);
+      expect(authTypeObject.params).to.be.equal(authType2.params);
+    });
+
+    it("enableAuthType/disableAuthType", async function () {
+      let authTypeObject = await verifier.getAuthType(authType.authType);
+      expect(authTypeObject.isActive).to.be.true;
+
+      await verifier.disableAuthType(authType.authType);
+
+      authTypeObject = await verifier.getAuthType(authType.authType);
+      expect(authTypeObject.isActive).to.be.false;
+
+      await verifier.enableAuthType(authType.authType);
+
+      authTypeObject = await verifier.getAuthType(authType.authType);
+      expect(authTypeObject.isActive).to.be.true;
     });
 
     it("submitResponse: not repeated responseFields from validator", async function () {
@@ -523,11 +557,26 @@ describe("Verifer tests", function () {
       };
       const crossChainProofs = "0x";
 
-      await verifier.submitResponse(authResponse, [response1, response2], crossChainProofs);
+      // partial responses of the multiRequest group
+      await verifier.submitResponse(authResponse, [response1], crossChainProofs);
+
+      await expect(
+        verifier.getMultiRequestStatus(multiRequest4.multiRequestId, signerAddress),
+      ).to.be.revertedWithCustomError(verifier, "LinkIDNotTheSameForGroupedRequests");
+
+      let isMultiRequestVerified = await verifier.isMultiRequestVerified(
+        multiRequest4.multiRequestId,
+        signerAddress,
+      );
+      expect(isMultiRequestVerified).to.be.false;
+
+      // all responses of the multiRequest group completed
+      await verifier.submitResponse(authResponse, [response2], crossChainProofs);
+
       await expect(verifier.getMultiRequestStatus(multiRequest4.multiRequestId, signerAddress)).not
         .to.be.rejected;
 
-      const isMultiRequestVerified = await verifier.isMultiRequestVerified(
+      isMultiRequestVerified = await verifier.isMultiRequestVerified(
         multiRequest4.multiRequestId,
         signerAddress,
       );

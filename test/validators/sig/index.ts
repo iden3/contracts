@@ -5,8 +5,9 @@ import { packValidatorParams } from "../../utils/validator-pack-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { TEN_YEARS } from "../../../helpers/constants";
+import { contractsInfo, TEN_YEARS } from "../../../helpers/constants";
 import { packZKProof } from "../../utils/packData";
+import { ethers } from "hardhat";
 
 const tenYears = TEN_YEARS;
 const testCases: any[] = [
@@ -225,5 +226,62 @@ describe("Atomic Sig Validator", function () {
   it("check inputIndexOf", async () => {
     const challengeIndx = await sigValidator.inputIndexOf("challenge");
     expect(challengeIndx).to.be.equal(5);
+  });
+
+  it("check version", async () => {
+    const version = await sigValidator.version();
+    expect(version).to.be.equal(contractsInfo.VALIDATOR_SIG.version);
+  });
+
+  it("check getRequestParams", async () => {
+    const query: any = {
+      requestId: 1,
+      schema: 2,
+      claimPathKey: 3,
+      operator: 4,
+      slotIndex: 0,
+      queryHash: 5,
+      value: [20020101, ...new Array(63).fill(0)], // for operators 1-3 only first value matters
+      circuitIds: ["circuitName"],
+      skipClaimRevocationCheck: false,
+      claimPathNotExists: 0,
+    };
+
+    const params = packValidatorParams(query);
+    const requestParams = await sigValidator.getRequestParams(params);
+    expect(requestParams.groupID).to.be.equal(0);
+    expect(requestParams.verifierID).to.be.equal(0);
+    expect(requestParams.nullifierSessionID).to.be.equal(0);
+  });
+
+  it("Test get state address", async () => {
+    const [signer] = await ethers.getSigners();
+
+    let stateAddr = await sigValidator.getStateAddress();
+    expect(stateAddr).to.be.equal(await state.getAddress());
+
+    await sigValidator.setStateAddress(await signer.getAddress());
+
+    stateAddr = await sigValidator.getStateAddress();
+    expect(stateAddr).to.be.equal(await signer.getAddress());
+
+    await sigValidator.setStateAddress(await state.getAddress());
+  });
+
+  it("Test get config params", async () => {
+    const oneHour = 3600;
+    const expirationTimeout = await sigValidator.getProofExpirationTimeout();
+    const revocationStateExpirationTimeout =
+      await sigValidator.getRevocationStateExpirationTimeout();
+    const gistRootExpirationTimeout = await sigValidator.getGISTRootExpirationTimeout();
+    expect(expirationTimeout).to.be.equal(oneHour);
+    expect(revocationStateExpirationTimeout).to.be.equal(oneHour);
+    expect(gistRootExpirationTimeout).to.be.equal(oneHour);
+  });
+
+  it("Test supported circuits", async () => {
+    const supportedCircuitIds = await sigValidator.getSupportedCircuitIds();
+    expect(supportedCircuitIds.length).to.be.equal(1);
+    expect(supportedCircuitIds[0]).to.be.equal(CircuitId.AtomicQuerySigV2OnChain);
   });
 });
