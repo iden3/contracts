@@ -79,7 +79,8 @@ describe("Test linkedMultiQuery10.circom", function () {
     [signer] = await ethers.getSigners();
     const groth16Verifier = await ethers.deployContract("Groth16VerifierValidatorStub");
     const validator = await ethers.deployContract("LinkedMultiQueryValidator");
-    await validator.initialize(await groth16Verifier.getAddress());
+    const stateAddress = ethers.ZeroAddress;
+    await validator.initialize(await groth16Verifier.getAddress(), stateAddress, signer);
     return { validator, groth16Verifier };
   }
 
