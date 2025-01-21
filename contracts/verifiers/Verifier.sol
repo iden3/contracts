@@ -9,7 +9,6 @@ import {IState} from "../interfaces/IState.sol";
 import {VerifierLib} from "../lib/VerifierLib.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
-import {console} from "hardhat/console.sol";
 
 error AuthTypeNotFound(string authType);
 error AuthTypeAlreadyExists(string authType);
@@ -269,8 +268,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         if (requestVerifierID != 0) {
             if (requestVerifierID != s._verifierID) {
-                console.log("requestVerifierID", requestVerifierID);
-                console.log("s._verifierID", s._verifierID);
                 revert VerifierIDIsNotValid(requestVerifierID, s._verifierID);
             }
         }
