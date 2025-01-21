@@ -649,6 +649,9 @@ export class DeployHelper {
       case "v3":
         verification = contractsInfo.VALIDATOR_V3.verificationOpts;
         break;
+      case "lmk":
+        verification = contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.verificationOpts;
+        break;
       case "authV2":
         verification = contractsInfo.VALIDATOR_AUTH_V2.verificationOpts;
         break;
