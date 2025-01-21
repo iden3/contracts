@@ -3,6 +3,7 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { packZKProof } from "../../utils/packData";
 import { packLinkedMultiQueryValidatorParams } from "../../utils/validator-pack-utils";
 import { expect } from "chai";
+import { contractsInfo } from "../../../helpers/constants";
 
 describe("Test linkedMultiQuery10.circom", function () {
   let validator;
@@ -62,5 +63,32 @@ describe("Test linkedMultiQuery10.circom", function () {
     const stateAddress = ethers.ZeroAddress;
 
     expect(await validator.verify(proof, data, signer.address, stateAddress)).not.to.throw;
+  });
+
+  it("check version", async () => {
+    const version = await validator.version();
+    expect(version).to.be.equal(contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.version);
+  });
+
+  it("check getRequestParams", async () => {
+    const query: any = {
+      claimPathKey: [1, 2],
+      operator: [2, 3],
+      slotIndex: [0],
+      value: [
+        [20020101, ...new Array(63).fill(0)],
+        [20030101, ...new Array(63).fill(0)],
+      ],
+      queryHash: [3, 4],
+      circuitIds: ["circuitName"],
+      groupID: 4,
+      verifierID: 5,
+    };
+
+    const params = packLinkedMultiQueryValidatorParams(query);
+    const requestParams = await validator.getRequestParams(params);
+    expect(requestParams.groupID).to.be.equal(4);
+    expect(requestParams.verifierID).to.be.equal(5);
+    expect(requestParams.nullifierSessionID).to.be.equal(0);
   });
 });

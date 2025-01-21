@@ -193,6 +193,22 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
+  VALIDATOR_LINKED_MULTI_QUERY: {
+    name: "LinkedMultiQueryValidator",
+    version: "1.0.0-beta",
+    unifiedAddress: "",
+    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.LinkedMultiQueryValidator")),
+    verificationOpts: {
+      constructorArgsImplementation: [],
+      constructorArgsProxy: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+      ],
+      constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
+      libraries: {},
+    },
+  },
   VALIDATOR_AUTH_V2: {
     name: "AuthV2Validator",
     version: "1.0.0",
