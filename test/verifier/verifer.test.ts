@@ -168,6 +168,22 @@ describe("Verifer tests", function () {
       expect(groupedRequests[1].requestId).to.be.equal(groupRequest2.requestId);
     });
 
+    it("setRequests: a group should not exist previously", async function () {
+      const groupID = 1;
+      const groupRequest1 = { ...request, groupID };
+      const groupRequest2 = { ...request, requestId: 2, groupID };
+
+      paramsFromValidator.groupID = 1;
+      await validator1.stub_setRequestParams([groupRequest1.params], [paramsFromValidator]);
+      await validator1.stub_setRequestParams([groupRequest2.params], [paramsFromValidator]);
+
+      await verifier.setRequests([groupRequest1, groupRequest2]);
+
+      await expect(verifier.setRequests([groupRequest1, groupRequest2]))
+        .to.be.revertedWithCustomError(verifier, "GroupIdAlreadyExists")
+        .withArgs(groupID);
+    });
+
     it("getRequest: requestId should exist", async function () {
       await expect(verifier.getRequest(request.requestId))
         .to.be.revertedWithCustomError(verifier, "RequestIdNotFound")
@@ -376,6 +392,30 @@ describe("Verifer tests", function () {
         .withArgs(multiRequest.multiRequestId);
       multiRequestIdExists = await verifier.multiRequestIdExists(multiRequest.multiRequestId);
       expect(multiRequestIdExists).to.be.true;
+    });
+
+    it("setMultiRequest: requestIds and groupIds should exist", async function () {
+      const multiRequest2 = {
+        multiRequestId: 2,
+        requestIds: [2],
+        groupIds: [],
+        metadata: "0x",
+      };
+
+      await expect(verifier.setMultiRequest(multiRequest2))
+        .revertedWithCustomError(verifier, "RequestIdNotFound")
+        .withArgs(multiRequest2.requestIds[0]);
+
+      const multiRequest3 = {
+        multiRequestId: 3,
+        requestIds: [],
+        groupIds: [2],
+        metadata: "0x",
+      };
+
+      await expect(verifier.setMultiRequest(multiRequest3))
+        .revertedWithCustomError(verifier, "GroupIdNotFound")
+        .withArgs(multiRequest3.groupIds[0]);
     });
 
     it("getMultiRequest: multiRequestId should exist", async function () {

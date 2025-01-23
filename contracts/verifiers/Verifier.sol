@@ -25,7 +25,7 @@ error RequestIdNotFound(uint256 requestId);
 error RequestIdNotValid();
 error RequestIdUsesReservedBytes();
 error RequestIdTypeNotValid();
-error RequestIsAlreadyGrouped(uint256 requestId);
+error RequestShouldNotHaveAGroup(uint256 requestId);
 error UserIDMismatch(uint256 userIDFromAuth, uint256 userIDFromResponse);
 error UserIDNotFound(uint256 userID);
 error UserIDNotLinkedToAddress(uint256 userID, address userAddress);
@@ -400,15 +400,25 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         VerifierStorage storage s = _getVerifierStorage();
 
         uint256[] memory requestIds = s._multiRequests[multiRequestId].requestIds;
+        uint256[] memory groupIds = s._multiRequests[multiRequestId].groupIds;
 
         // check that all the single requests doesn't have group
         for (uint256 i = 0; i < requestIds.length; i++) {
+            if (!requestIdExists(requestIds[i])) {
+                revert RequestIdNotFound(requestIds[i]);
+            }
             IRequestValidator.RequestParams memory requestParams = s
                 ._requests[requestIds[i]]
                 .validator
                 .getRequestParams(s._requests[requestIds[i]].params);
             if (requestParams.groupID != 0) {
-                revert RequestIsAlreadyGrouped(requestIds[i]);
+                revert RequestShouldNotHaveAGroup(requestIds[i]);
+            }
+        }
+
+        for (uint256 i = 0; i < groupIds.length; i++) {
+            if (!groupIdExists(groupIds[i])) {
+                revert GroupIdNotFound(groupIds[i]);
             }
         }
     }
