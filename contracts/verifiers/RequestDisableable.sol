@@ -16,12 +16,6 @@ contract RequestDisableable is Verifier {
     bytes32 private constant RequestDisableStorageLocation =
         0x70325635d67d74932012fa921ccb2f335d3b1d69e3a487f50d001cc65f531600;
 
-    function _getRequestDisableStorage() private pure returns (RequestDisableStorage storage $) {
-        assembly {
-            $.slot := RequestDisableStorageLocation
-        }
-    }
-
     /// @dev Modifier to check if the request is enabled
     modifier onlyEnabledRequest(uint256 requestId) {
         if (!isRequestEnabled(requestId)) {
@@ -39,6 +33,12 @@ contract RequestDisableable is Verifier {
         uint256 requestId
     ) public view virtual checkRequestExistence(requestId, true) returns (bool) {
         return !_getRequestDisableStorage()._requestDisabling[requestId];
+    }
+
+    function _getRequestDisableStorage() private pure returns (RequestDisableStorage storage $) {
+        assembly {
+            $.slot := RequestDisableStorageLocation
+        }
     }
 
     function _disableRequest(uint256 requestId) internal checkRequestExistence(requestId, true) {

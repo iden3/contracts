@@ -111,10 +111,8 @@ describe("Verifier Integration test", function () {
     const { state } = await deployHelper.deployStateWithLibraries(["0x0212"]);
     await verifier.initialize(await state.getAddress());
 
-    const { validator: authValidator } = await deployHelper.deployValidatorContractsWithVerifiers(
-      "authV2_forAuth",
-      await state.getAddress(),
-    );
+    const { validator: authValidator } =
+      await deployHelper.deployValidatorContractsWithVerifiers("authV2_forAuth");
     await authValidator.setProofExpirationTimeout(TEN_YEARS);
     await authValidator.setGISTRootExpirationTimeout(TEN_YEARS);
 
@@ -125,17 +123,13 @@ describe("Verifier Integration test", function () {
     };
     await verifier.setAuthType(authType);
 
-    const { validator: v3Validator } = await deployHelper.deployValidatorContractsWithVerifiers(
-      "v3",
-      await state.getAddress(),
-    );
+    const { validator: v3Validator } =
+      await deployHelper.deployValidatorContractsWithVerifiers("v3");
     await v3Validator.setProofExpirationTimeout(TEN_YEARS);
     await v3Validator.setGISTRootExpirationTimeout(TEN_YEARS);
 
-    const { validator: lmkValidator } = await deployHelper.deployValidatorContractsWithVerifiers(
-      "lmk",
-      await state.getAddress(),
-    );
+    const { validator: lmkValidator } =
+      await deployHelper.deployValidatorContractsWithVerifiers("lmk");
 
     return { state, verifier, verifierLib, authValidator, v3Validator, lmkValidator };
   }

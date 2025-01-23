@@ -3,10 +3,10 @@ pragma solidity 0.8.27;
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-import {IGroth16Verifier} from "../interfaces/IGroth16Verifier.sol";
-import {GenesisUtils} from "../lib/GenesisUtils.sol";
-import {IAuthValidator} from "../interfaces/IAuthValidator.sol";
-import {IState} from "../interfaces/IState.sol";
+import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
+import {GenesisUtils} from "../../lib/GenesisUtils.sol";
+import {IAuthValidator} from "../../interfaces/IAuthValidator.sol";
+import {IState} from "../../interfaces/IState.sol";
 
 error VerifierAddressShouldNotBeZero();
 error ProofIsNotValid();
@@ -50,39 +50,10 @@ contract AuthV2Validator_forAuth is Ownable2StepUpgradeable, IAuthValidator, ERC
     /**
      * @dev Initialize the contract
      * @param _verifierContractAddr Address of the verifier contract
-     * @param _stateContractAddr Address of the state contract
      * @param owner Owner of the contract
      */
-    function initialize(
-        address _verifierContractAddr,
-        address _stateContractAddr,
-        address owner
-    ) public initializer {
-        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, owner);
-    }
-
-    /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getAuthV2ValidatorStorage() private pure returns (AuthV2ValidatorStorage storage $) {
-        assembly {
-            $.slot := AuthV2ValidatorStorageLocation
-        }
-    }
-
-    function _initDefaultStateVariables(
-        address _stateContractAddr,
-        address _verifierContractAddr,
-        string memory circuitId,
-        address owner
-    ) internal {
-        AuthV2ValidatorStorage storage s = _getAuthV2ValidatorStorage();
-
-        s.revocationStateExpirationTimeout = 1 hours;
-        s.proofExpirationTimeout = 1 hours;
-        s.gistRootExpirationTimeout = 1 hours;
-        s._supportedCircuitIds = [circuitId];
-        s._circuitIdToVerifier[circuitId] = IGroth16Verifier(_verifierContractAddr);
-        s.state = IState(_stateContractAddr);
-        __Ownable_init(owner);
+    function initialize(address _verifierContractAddr, address owner) public initializer {
+        _initDefaultStateVariables(_verifierContractAddr, CIRCUIT_ID, owner);
     }
 
     /**
@@ -139,19 +110,10 @@ contract AuthV2Validator_forAuth is Ownable2StepUpgradeable, IAuthValidator, ERC
         return pubSignals.userID;
     }
 
-    function _checkGistRoot(uint256 _id, uint256 _gistRoot, IState _stateContract) internal view {
-        AuthV2ValidatorStorage storage $ = _getAuthV2ValidatorStorage();
-        bytes2 idType = GenesisUtils.getIdType(_id);
-        uint256 replacedAt = _stateContract.getGistRootReplacedAt(idType, _gistRoot);
-
-        if (replacedAt != 0 && block.timestamp > $.gistRootExpirationTimeout + replacedAt) {
-            revert GistRootIsExpired();
-        }
-    }
-
-    function _checkChallenge(uint256 challenge, bytes32 expectedNonce) internal pure {
-        if (challenge != uint256(expectedNonce)) {
-            revert ChallengeIsInvalid();
+    /// @dev Get the main storage using assembly to ensure specific storage location
+    function _getAuthV2ValidatorStorage() private pure returns (AuthV2ValidatorStorage storage $) {
+        assembly {
+            $.slot := AuthV2ValidatorStorageLocation
         }
     }
 
@@ -164,23 +126,6 @@ contract AuthV2Validator_forAuth is Ownable2StepUpgradeable, IAuthValidator, ERC
         string memory circuitId
     ) public view virtual returns (IGroth16Verifier) {
         return _getAuthV2ValidatorStorage()._circuitIdToVerifier[circuitId];
-    }
-
-    function _verifyZKP(
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c
-    ) internal view {
-        IGroth16Verifier g16Verifier = getVerifierByCircuitId(CIRCUIT_ID);
-        if (g16Verifier == IGroth16Verifier(address(0))) {
-            revert VerifierAddressShouldNotBeZero();
-        }
-
-        // verify that zkp is valid
-        if (!g16Verifier.verify(a, b, c, inputs)) {
-            revert ProofIsNotValid();
-        }
     }
 
     /**
@@ -239,5 +184,53 @@ contract AuthV2Validator_forAuth is Ownable2StepUpgradeable, IAuthValidator, ERC
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return
             interfaceId == type(IAuthValidator).interfaceId || super.supportsInterface(interfaceId);
+    }
+
+    function _initDefaultStateVariables(
+        address _verifierContractAddr,
+        string memory circuitId,
+        address owner
+    ) internal {
+        AuthV2ValidatorStorage storage s = _getAuthV2ValidatorStorage();
+
+        s.revocationStateExpirationTimeout = 1 hours;
+        s.proofExpirationTimeout = 1 hours;
+        s.gistRootExpirationTimeout = 1 hours;
+        s._supportedCircuitIds = [circuitId];
+        s._circuitIdToVerifier[circuitId] = IGroth16Verifier(_verifierContractAddr);
+        __Ownable_init(owner);
+    }
+
+    function _checkGistRoot(uint256 _id, uint256 _gistRoot, IState _stateContract) internal view {
+        AuthV2ValidatorStorage storage $ = _getAuthV2ValidatorStorage();
+        bytes2 idType = GenesisUtils.getIdType(_id);
+        uint256 replacedAt = _stateContract.getGistRootReplacedAt(idType, _gistRoot);
+
+        if (replacedAt != 0 && block.timestamp > $.gistRootExpirationTimeout + replacedAt) {
+            revert GistRootIsExpired();
+        }
+    }
+
+    function _checkChallenge(uint256 challenge, bytes32 expectedNonce) internal pure {
+        if (challenge != uint256(expectedNonce)) {
+            revert ChallengeIsInvalid();
+        }
+    }
+
+    function _verifyZKP(
+        uint256[] memory inputs,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c
+    ) internal view {
+        IGroth16Verifier g16Verifier = getVerifierByCircuitId(CIRCUIT_ID);
+        if (g16Verifier == IGroth16Verifier(address(0))) {
+            revert VerifierAddressShouldNotBeZero();
+        }
+
+        // verify that zkp is valid
+        if (!g16Verifier.verify(a, b, c, inputs)) {
+            revert ProofIsNotValid();
+        }
     }
 }

@@ -3,10 +3,10 @@ pragma solidity 0.8.27;
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-import {IGroth16Verifier} from "../interfaces/IGroth16Verifier.sol";
-import {GenesisUtils} from "../lib/GenesisUtils.sol";
-import {IAuthValidator} from "../interfaces/IAuthValidator.sol";
-import {IState} from "../interfaces/IState.sol";
+import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
+import {GenesisUtils} from "../../lib/GenesisUtils.sol";
+import {IAuthValidator} from "../../interfaces/IAuthValidator.sol";
+import {IState} from "../../interfaces/IState.sol";
 
 /**
  * @dev EthIdentityValidator validator
@@ -32,17 +32,6 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IAuthValidator, ERC165
     bytes32 private constant EthIdentityValidatorBaseStorageLocation =
         0x1816cff28d525c2e505742319020369d0e29e8fafd5168e127e29766cf2be1fb;
 
-    /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getEthIdentityValidatorBaseStorage()
-        private
-        pure
-        returns (EthIdentityValidatorBaseStorage storage $)
-    {
-        assembly {
-            $.slot := EthIdentityValidatorBaseStorageLocation
-        }
-    }
-
     /**
      * @dev Initialize the contract
      * @param _stateContractAddr Address of the state contract
@@ -50,13 +39,6 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IAuthValidator, ERC165
      */
     function initialize(address _stateContractAddr, address owner) public initializer {
         _initDefaultStateVariables(_stateContractAddr, owner);
-    }
-
-    function _initDefaultStateVariables(address _stateContractAddr, address owner) internal {
-        EthIdentityValidatorBaseStorage storage s = _getEthIdentityValidatorBaseStorage();
-
-        s.state = IState(_stateContractAddr);
-        __Ownable_init(owner);
     }
 
     /**
@@ -91,6 +73,24 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IAuthValidator, ERC165
 
     function _getState() internal view returns (IState) {
         return _getEthIdentityValidatorBaseStorage().state;
+    }
+
+    /// @dev Get the main storage using assembly to ensure specific storage location
+    function _getEthIdentityValidatorBaseStorage()
+        private
+        pure
+        returns (EthIdentityValidatorBaseStorage storage $)
+    {
+        assembly {
+            $.slot := EthIdentityValidatorBaseStorageLocation
+        }
+    }
+
+    function _initDefaultStateVariables(address _stateContractAddr, address owner) internal {
+        EthIdentityValidatorBaseStorage storage s = _getEthIdentityValidatorBaseStorage();
+
+        s.state = IState(_stateContractAddr);
+        __Ownable_init(owner);
     }
 
     function _verifyEthIdentity(uint256 id, address sender) internal view {

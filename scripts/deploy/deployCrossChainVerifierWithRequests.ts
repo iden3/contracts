@@ -38,26 +38,19 @@ async function main() {
     console.log("Removing previous ignition files for chain: ", chainId);
     fs.rmSync(`./ignition/deployments/chain-${chainId}`, { recursive: true, force: true });
   }
-  // ##################### State with StateCrossChainLib deploy #####################
+  // ##################### State deploy #####################
 
   const { state, crossChainProofValidator } = await deployHelper.deployStateWithLibraries();
 
   // ##################### Validator deploy #####################
 
-  const { validator: validatorMTP } = await deployHelper.deployValidatorContractsWithVerifiers(
-    "mtpV2",
-    await state.getAddress(),
-  );
+  const { validator: validatorMTP } =
+    await deployHelper.deployValidatorContractsWithVerifiers("mtpV2");
 
-  const { validator: validatorSig } = await deployHelper.deployValidatorContractsWithVerifiers(
-    "sigV2",
-    await state.getAddress(),
-  );
+  const { validator: validatorSig } =
+    await deployHelper.deployValidatorContractsWithVerifiers("sigV2");
 
-  const { validator: validatorV3 } = await deployHelper.deployValidatorContractsWithVerifiers(
-    "v3",
-    await state.getAddress(),
-  );
+  const { validator: validatorV3 } = await deployHelper.deployValidatorContractsWithVerifiers("v3");
 
   // ##################### VerifierLib deploy #####################
   const verifierLib = await deployHelper.deployVerifierLib();

@@ -27,16 +27,6 @@ contract ValidatorWhitelist is Verifier {
         _;
     }
 
-    function _getValidatorWhitelistStorage()
-        private
-        pure
-        returns (ValidatorWhitelistStorage storage $)
-    {
-        assembly {
-            $.slot := ValidatorWhitelistStorageLocation
-        }
-    }
-
     /**
      * @dev Checks if validator is whitelisted
      * @param validator The validator address
@@ -46,6 +36,16 @@ contract ValidatorWhitelist is Verifier {
         IRequestValidator validator
     ) public view virtual returns (bool) {
         return _getValidatorWhitelistStorage()._validatorWhitelist[validator];
+    }
+
+    function _getValidatorWhitelistStorage()
+        private
+        pure
+        returns (ValidatorWhitelistStorage storage $)
+    {
+        assembly {
+            $.slot := ValidatorWhitelistStorageLocation
+        }
     }
 
     function _addValidatorToWhitelist(IRequestValidator validator) internal {

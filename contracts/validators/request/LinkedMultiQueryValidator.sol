@@ -2,10 +2,10 @@
 pragma solidity ^0.8.10;
 
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
-import {IGroth16Verifier} from "../interfaces/IGroth16Verifier.sol";
-import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
-import {IState} from "../interfaces/IState.sol";
+import {ICircuitValidator} from "../../interfaces/ICircuitValidator.sol";
+import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
+import {IRequestValidator} from "../../interfaces/IRequestValidator.sol";
+import {IState} from "../../interfaces/IState.sol";
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -40,17 +40,6 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
     bytes32 private constant LinkedMultiQueryValidatorStorageLocation =
         0x85875fc21d0742149175681df1689e48bce1484a73b475e15e5042650a2d7800;
 
-    /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getLinkedMultiQueryValidatorStorage()
-        private
-        pure
-        returns (LinkedMultiQueryValidatorStorage storage $)
-    {
-        assembly {
-            $.slot := LinkedMultiQueryValidatorStorageLocation
-        }
-    }
-
     struct PubSignals {
         uint256 linkID;
         uint256 merklized;
@@ -66,24 +55,20 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
      * @dev Returns the version of the contract
      * @return The version of the contract
      */
-    function version() external view override returns (string memory) {
+    function version() external pure override returns (string memory) {
         return VERSION;
     }
 
     /**
      * @dev Initialize the contract
      * @param _groth16VerifierContractAddr Address of the verifier contract
-     * @param _stateContractAddr Address of the state contract
      * @param owner Owner of the contract
      */
-    function initialize(
-        address _groth16VerifierContractAddr,
-        address _stateContractAddr,
-        address owner
-    ) public initializer {
+    function initialize(address _groth16VerifierContractAddr, address owner) public initializer {
         LinkedMultiQueryValidatorStorage storage $ = _getLinkedMultiQueryValidatorStorage();
         $._supportedCircuits[CIRCUIT_ID] = IGroth16Verifier(_groth16VerifierContractAddr);
         $._supportedCircuitIds.push(CIRCUIT_ID);
+        __Ownable_init(owner);
     }
 
     /**
@@ -133,7 +118,7 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
      */
     function getRequestParams(
         bytes calldata params
-    ) external view override returns (IRequestValidator.RequestParams memory) {
+    ) external pure override returns (IRequestValidator.RequestParams memory) {
         Query memory query = abi.decode(params, (Query));
         return IRequestValidator.RequestParams(query.groupID, query.verifierID, 0);
     }
@@ -145,6 +130,17 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
         return
             interfaceId == type(IRequestValidator).interfaceId ||
             super.supportsInterface(interfaceId);
+    }
+
+    /// @dev Get the main storage using assembly to ensure specific storage location
+    function _getLinkedMultiQueryValidatorStorage()
+        private
+        pure
+        returns (LinkedMultiQueryValidatorStorage storage $)
+    {
+        assembly {
+            $.slot := LinkedMultiQueryValidatorStorageLocation
+        }
     }
 
     function _checkGroupId(uint256 groupID) internal pure {

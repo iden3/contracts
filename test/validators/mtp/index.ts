@@ -137,10 +137,7 @@ describe("Atomic MTP Validator", function () {
     const deployHelper = await DeployHelper.initialize(null, true);
 
     const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0100"]);
-    const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
-      "mtpV2",
-      await stateContract.getAddress(),
-    );
+    const contracts = await deployHelper.deployValidatorContractsWithVerifiers("mtpV2");
     const validator = contracts.validator;
 
     return {
@@ -256,20 +253,6 @@ describe("Atomic MTP Validator", function () {
     expect(requestParams.groupID).to.be.equal(0);
     expect(requestParams.verifierID).to.be.equal(0);
     expect(requestParams.nullifierSessionID).to.be.equal(0);
-  });
-
-  it("Test get state address", async () => {
-    const [signer] = await ethers.getSigners();
-
-    let stateAddr = await mtpValidator.getStateAddress();
-    expect(stateAddr).to.be.equal(await state.getAddress());
-
-    await mtpValidator.setStateAddress(await signer.getAddress());
-
-    stateAddr = await mtpValidator.getStateAddress();
-    expect(stateAddr).to.be.equal(await signer.getAddress());
-
-    await mtpValidator.setStateAddress(await state.getAddress());
   });
 
   it("Test get config params", async () => {

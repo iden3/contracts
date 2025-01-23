@@ -68,12 +68,6 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     bytes32 private constant MCPaymentStorageLocation =
         0x843c93f996398391e581389b674681e6ea27a4f9a96390a9d8ecb41cf0226300;
 
-    function _getMCPaymentStorage() private pure returns (MCPaymentStorage storage $) {
-        assembly {
-            $.slot := MCPaymentStorageLocation
-        }
-    }
-
     /// @dev Event emitted upon payment
     event Payment(address indexed recipient, uint256 indexed nonce);
 
@@ -354,6 +348,12 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
             );
         }
         return signer;
+    }
+
+    function _getMCPaymentStorage() private pure returns (MCPaymentStorage storage $) {
+        assembly {
+            $.slot := MCPaymentStorageLocation
+        }
     }
 
     function _transferERC20(

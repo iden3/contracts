@@ -79,8 +79,7 @@ describe("Test linkedMultiQuery10.circom", function () {
     [signer] = await ethers.getSigners();
     const groth16Verifier = await ethers.deployContract("Groth16VerifierValidatorStub");
     const validator = await ethers.deployContract("LinkedMultiQueryValidator");
-    const stateAddress = ethers.ZeroAddress;
-    await validator.initialize(await groth16Verifier.getAddress(), stateAddress, signer);
+    await validator.initialize(await groth16Verifier.getAddress(), signer);
     return { validator, groth16Verifier };
   }
 
@@ -89,7 +88,12 @@ describe("Test linkedMultiQuery10.circom", function () {
   });
 
   it("Should verify", async function () {
-    const result = await validator.verify(proofForTwoQueries, twoQueriesParams, signer.address, stateAddress);
+    const result = await validator.verify(
+      proofForTwoQueries,
+      twoQueriesParams,
+      signer.address,
+      stateAddress,
+    );
     expect(result).to.deep.equal([
       ["linkID", linkId],
       ["operatorOutput1", 777n],

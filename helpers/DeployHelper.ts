@@ -58,7 +58,6 @@ export class DeployHelper {
   ): Promise<{
     state: Contract;
     stateLib: Contract;
-    stateCrossChainLib: Contract;
     crossChainProofValidator: Contract;
     smtLib: Contract;
     poseidon1: Contract;
@@ -82,7 +81,6 @@ export class DeployHelper {
     const {
       state,
       stateLib,
-      stateCrossChainLib,
       crossChainProofValidator,
       groth16VerifierStateTransition,
       defaultIdType,
@@ -97,7 +95,6 @@ export class DeployHelper {
     return {
       state,
       stateLib: stateLib!,
-      stateCrossChainLib: stateCrossChainLib!,
       crossChainProofValidator: crossChainProofValidator!,
       defaultIdType,
       smtLib,
@@ -119,7 +116,6 @@ export class DeployHelper {
   ): Promise<{
     state: Contract;
     stateLib: Contract | null;
-    stateCrossChainLib: Contract | null;
     crossChainProofValidator: Contract | null;
     groth16VerifierStateTransition: Contract | null;
     defaultIdType;
@@ -159,7 +155,6 @@ export class DeployHelper {
           return {
             state,
             stateLib: null,
-            stateCrossChainLib: null,
             crossChainProofValidator: null,
             groth16VerifierStateTransition: null,
             defaultIdType,
@@ -181,23 +176,6 @@ export class DeployHelper {
       this.log("deploying StateLib...");
       stateLib = await this.deployStateLib();
       tmpContractDeployments.addContract(contractsInfo.STATE_LIB.name, await stateLib.getAddress());
-    }
-
-    let stateCrossChainLib;
-    stateCrossChainLib = await tmpContractDeployments.getContract(
-      contractsInfo.STATE_CROSS_CHAIN_LIB.name,
-    );
-    if (stateCrossChainLib) {
-      Logger.warning(
-        `${contractsInfo.STATE_CROSS_CHAIN_LIB.name} found already deployed to:  ${await stateCrossChainLib?.getAddress()}`,
-      );
-    } else {
-      this.log("deploying StateCrossChainLib...");
-      stateCrossChainLib = await this.deployStateCrossChainLib("StateCrossChainLib");
-      tmpContractDeployments.addContract(
-        contractsInfo.STATE_CROSS_CHAIN_LIB.name,
-        await stateCrossChainLib.getAddress(),
-      );
     }
 
     let crossChainProofValidator;
@@ -224,7 +202,6 @@ export class DeployHelper {
         StateLib: await stateLib.getAddress(),
         SmtLib: smtLibAddress,
         PoseidonUnit1L: poseidon1Address,
-        StateCrossChainLib: await stateCrossChainLib.getAddress(),
       },
     });
 
@@ -303,7 +280,6 @@ export class DeployHelper {
     return {
       state,
       stateLib,
-      stateCrossChainLib,
       crossChainProofValidator,
       groth16VerifierStateTransition,
       defaultIdType,
@@ -320,7 +296,6 @@ export class DeployHelper {
   ): Promise<{
     state: Contract;
     stateLib: Contract;
-    stateCrossChainLib: Contract;
     crossChainProofValidator: Contract;
   }> {
     this.log("======== State: upgrade started ========");
@@ -330,9 +305,6 @@ export class DeployHelper {
 
     this.log("deploying StateLib...");
     const stateLib = await this.deployStateLib();
-
-    this.log("deploying StateCrossChainLib...");
-    const stateCrossChainLib = await this.deployStateCrossChainLib();
 
     this.log("upgrading state...");
 
@@ -350,7 +322,6 @@ export class DeployHelper {
         StateLib: await stateLib.getAddress(),
         SmtLib: smtLibAddress,
         PoseidonUnit1L: poseidon1Address,
-        StateCrossChainLib: await stateCrossChainLib.getAddress(),
       },
     });
 
@@ -386,7 +357,6 @@ export class DeployHelper {
       state: stateContract,
       crossChainProofValidator: opvContract,
       stateLib,
-      stateCrossChainLib,
     };
   }
 
@@ -430,14 +400,6 @@ export class DeployHelper {
     Logger.success(`StateLib deployed to:  ${await stateLib.getAddress()}`);
 
     return stateLib;
-  }
-
-  async deployStateCrossChainLib(StateCrossChainLibName = "StateCrossChainLib"): Promise<Contract> {
-    const stateCrossChainLib = await ethers.deployContract(StateCrossChainLibName);
-    await stateCrossChainLib.waitForDeployment();
-    Logger.success(`StateCrossChainLib deployed to:  ${await stateCrossChainLib.getAddress()}`);
-
-    return stateCrossChainLib;
   }
 
   async deploySmtLibTestWrapper(maxDepth: number = SMT_MAX_DEPTH): Promise<Contract> {
@@ -674,36 +636,29 @@ export class DeployHelper {
 
   async deployValidatorContractsWithVerifiers(
     validatorType: ValidatorType,
-    stateAddress: string,
     deployStrategy: "basic" | "create2" = "basic",
     groth16VerifierWrapperAddress?: string,
   ): Promise<{
-    state: any;
     groth16VerifierWrapper: any;
     validator: any;
   }> {
     const contracts = await this.deployValidatorContracts(
       validatorType,
-      stateAddress,
       deployStrategy,
       groth16VerifierWrapperAddress,
     );
 
-    const state = await ethers.getContractAt("State", stateAddress);
     return {
       validator: contracts.validator,
       groth16VerifierWrapper: contracts.groth16VerifierWrapper,
-      state,
     };
   }
 
   async deployValidatorContracts(
     validatorType: ValidatorType,
-    stateAddress: string,
     deployStrategy: "basic" | "create2" = "basic",
     groth16VerifierWrapperAddress?: string,
   ): Promise<{
-    state: any;
     validator: any;
     groth16VerifierWrapper: Contract | null;
   }> {
@@ -776,7 +731,6 @@ export class DeployHelper {
           );
           return {
             validator,
-            state: await ethers.getContractAt("State", stateAddress),
             groth16VerifierWrapper: null,
           };
         }
@@ -825,7 +779,7 @@ export class DeployHelper {
         redeployImplementation: "always",
         call: {
           fn: "initialize",
-          args: [await groth16VerifierWrapper.getAddress(), stateAddress, await owner.getAddress()],
+          args: [await groth16VerifierWrapper.getAddress(), await owner.getAddress()],
         },
       });
     } else {
@@ -833,7 +787,6 @@ export class DeployHelper {
 
       validator = await upgrades.deployProxy(ValidatorFactory, [
         await groth16VerifierWrapper.getAddress(),
-        stateAddress,
         await owner.getAddress(),
       ]);
     }
@@ -841,10 +794,8 @@ export class DeployHelper {
     validator.waitForDeployment();
 
     Logger.success(`${validatorContractName} deployed to: ${await validator.getAddress()}`);
-    const state = await ethers.getContractAt("State", stateAddress);
     return {
       validator,
-      state,
       groth16VerifierWrapper,
     };
   }

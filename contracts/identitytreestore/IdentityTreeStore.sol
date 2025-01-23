@@ -58,17 +58,6 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
     bytes32 private constant IdentityTreeStoreMainStorageLocation =
         0x95ca427007e091a13a7ccfcb233b8a2ed19d987330a248c445b1b483a35bb800;
 
-    /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getIdentityTreeStoreMainStorage()
-        private
-        pure
-        returns (IdentityTreeStoreMainStorage storage $)
-    {
-        assembly {
-            $.slot := IdentityTreeStoreMainStorageLocation
-        }
-    }
-
     /**
      * @dev Function to call first time for initialization of the proxy.
      * @param state The state contract address to be used to check state of the identities
@@ -127,6 +116,17 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
         uint64 nonce
     ) external view returns (CredentialStatus memory) {
         return _getRevocationStatusByState(state, nonce);
+    }
+
+    /// @dev Get the main storage using assembly to ensure specific storage location
+    function _getIdentityTreeStoreMainStorage()
+        private
+        pure
+        returns (IdentityTreeStoreMainStorage storage $)
+    {
+        assembly {
+            $.slot := IdentityTreeStoreMainStorageLocation
+        }
     }
 
     function _getRevocationStatusByState(

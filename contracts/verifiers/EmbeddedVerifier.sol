@@ -8,17 +8,6 @@ import {Verifier} from "./Verifier.sol";
 import {IState} from "../interfaces/IState.sol";
 
 abstract contract EmbeddedVerifier is Ownable2StepUpgradeable, Verifier {
-    /**
-     * @dev Sets the value for Owner
-     */
-    function __EmbeddedVerifier_init(address initialOwner, IState state) internal onlyInitializing {
-        __Ownable_init(initialOwner);
-        ___EmbeddedVerifier_init_unchained(initialOwner);
-        __Verifier_init(state);
-    }
-
-    function ___EmbeddedVerifier_init_unchained(address initialOwner) internal onlyInitializing {}
-
     /// @dev Sets the state contract linked to this verifier
     /// @param state The state contract address
     function setState(IState state) public onlyOwner {
@@ -41,6 +30,17 @@ abstract contract EmbeddedVerifier is Ownable2StepUpgradeable, Verifier {
         super.submitResponse(authResponse, responses, crossChainProofs);
         _afterProofSubmit(authResponse, responses);
     }
+
+    /**
+     * @dev Sets the value for Owner
+     */
+    function __EmbeddedVerifier_init(address initialOwner, IState state) internal onlyInitializing {
+        __Ownable_init(initialOwner);
+        ___EmbeddedVerifier_init_unchained(initialOwner);
+        __Verifier_init(state);
+    }
+
+    function ___EmbeddedVerifier_init_unchained(address initialOwner) internal onlyInitializing {}
 
     /**
      * @dev Hook that is called before any proof response submit

@@ -49,7 +49,6 @@ describe("Auth V2 Validator", function () {
 
     const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
       "authV2_forAuth",
-      await stateContract.getAddress(),
       "basic",
       await verifierStub.getAddress(),
     );

@@ -385,22 +385,6 @@ library IdentityLib {
     }
 
     /**
-     * @dev write roots to history by state
-     * @param self identity
-     * @param state identity state
-     * @param roots set of roots
-     */
-    function writeHistory(Data storage self, uint256 state, Roots memory roots) internal {
-        require(
-            self.rootsByState[state].claimsRoot == 0 &&
-                self.rootsByState[state].revocationsRoot == 0 &&
-                self.rootsByState[state].rootsRoot == 0,
-            "Roots for this state already exist"
-        );
-        self.rootsByState[state] = roots;
-    }
-
-    /**
      * @dev returns historical claimsTree roots, revocationsTree roots, rootsTree roots
      * by state
      * @param state identity state
@@ -417,5 +401,21 @@ library IdentityLib {
             "Roots for this state doesn't exist"
         );
         return self.rootsByState[state];
+    }
+
+    /**
+     * @dev write roots to history by state
+     * @param self identity
+     * @param state identity state
+     * @param roots set of roots
+     */
+    function writeHistory(Data storage self, uint256 state, Roots memory roots) internal {
+        require(
+            self.rootsByState[state].claimsRoot == 0 &&
+                self.rootsByState[state].revocationsRoot == 0 &&
+                self.rootsByState[state].rootsRoot == 0,
+            "Roots for this state already exist"
+        );
+        self.rootsByState[state] = roots;
     }
 }

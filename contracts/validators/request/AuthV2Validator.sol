@@ -2,10 +2,10 @@
 pragma solidity 0.8.27;
 
 import {CredentialAtomicQueryValidatorBase} from "./CredentialAtomicQueryValidatorBase.sol";
-import {IGroth16Verifier} from "../interfaces/IGroth16Verifier.sol";
-import {GenesisUtils} from "../lib/GenesisUtils.sol";
-import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
-import {IState} from "../interfaces/IState.sol";
+import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
+import {GenesisUtils} from "../../lib/GenesisUtils.sol";
+import {IRequestValidator} from "../../interfaces/IRequestValidator.sol";
+import {IState} from "../../interfaces/IState.sol";
 
 /**
  * @dev AuthV2Validator validator
@@ -27,19 +27,17 @@ contract AuthV2Validator is CredentialAtomicQueryValidatorBase {
     /**
      * @dev Initialize the contract
      * @param _verifierContractAddr Address of the verifier contract
-     * @param _stateContractAddr Address of the state contract
      * @param owner Owner of the contract
      */
     function initialize(
         address _verifierContractAddr,
-        address _stateContractAddr,
         address owner
     ) public initializer {
         _setInputToIndex("userID", 0);
         _setInputToIndex("challenge", 1);
         _setInputToIndex("gistRoot", 2);
 
-        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, owner);
+        _initDefaultStateVariables(_verifierContractAddr, CIRCUIT_ID, owner);
     }
 
     /**
@@ -64,7 +62,10 @@ contract AuthV2Validator is CredentialAtomicQueryValidatorBase {
 
         return pubSignals;
     }
-
+    /**
+     * @dev Get the request params for auth.
+     * @return RequestParams for auth.
+     */
     function getRequestParams(
         bytes calldata
     ) external pure override returns (IRequestValidator.RequestParams memory) {

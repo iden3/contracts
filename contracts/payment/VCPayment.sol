@@ -50,12 +50,6 @@ contract VCPayment is Ownable2StepUpgradeable {
     bytes32 private constant VCPaymentStorageLocation =
         0xbb49acb92ce91902600caabfefad66ed7ac2a150edbd631ab48a5501402b3300;
 
-    function _getVCPaymentStorage() private pure returns (VCPaymentStorage storage $) {
-        assembly {
-            $.slot := VCPaymentStorageLocation
-        }
-    }
-
     event Payment(uint256 indexed issuerId, string paymentId, uint256 indexed schemaHash);
 
     error InvalidOwnerPercentage(string message);
@@ -233,6 +227,12 @@ contract VCPayment is Ownable2StepUpgradeable {
     function getOwnerBalance() public view onlyOwner returns (uint256) {
         VCPaymentStorage storage $ = _getVCPaymentStorage();
         return $.ownerBalance;
+    }
+
+    function _getVCPaymentStorage() private pure returns (VCPaymentStorage storage $) {
+        assembly {
+            $.slot := VCPaymentStorageLocation
+        }
     }
 
     function _withdrawToIssuer(address issuer) internal {

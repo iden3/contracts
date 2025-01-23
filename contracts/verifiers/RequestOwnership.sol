@@ -14,16 +14,6 @@ abstract contract RequestOwnership is Verifier {
     bytes32 private constant RequestOwnershipStorageLocation =
         0x6209bdc3799f5201408f7a7d4d471bb2a0100353e618451674b93f730b006a00;
 
-    function _getRequestOwnershipStorage()
-        private
-        pure
-        returns (RequestOwnershipStorage storage $)
-    {
-        assembly {
-            $.slot := RequestOwnershipStorageLocation
-        }
-    }
-
     /**
      * @dev Get a request owner address
      * @param requestId The ID of a request
@@ -33,6 +23,16 @@ abstract contract RequestOwnership is Verifier {
         uint256 requestId
     ) public view virtual checkRequestExistence(requestId, true) returns (address) {
         return _getRequestOwnershipStorage()._requestOwners[requestId];
+    }
+
+    function _getRequestOwnershipStorage()
+        private
+        pure
+        returns (RequestOwnershipStorage storage $)
+    {
+        assembly {
+            $.slot := RequestOwnershipStorageLocation
+        }
     }
 
     function _setRequest(Request calldata request) internal virtual override {

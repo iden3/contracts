@@ -506,10 +506,7 @@ describe("Atomic V3 Validator", function () {
 
     const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0212"]);
 
-    const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
-      "v3",
-      await stateContract.getAddress(),
-    );
+    const contracts = await deployHelper.deployValidatorContractsWithVerifiers("v3");
     const validator = contracts.validator;
 
     return {
@@ -645,20 +642,6 @@ describe("Atomic V3 Validator", function () {
     expect(requestParams.groupID).to.be.equal(9);
     expect(requestParams.nullifierSessionID).to.be.equal(8);
     expect(requestParams.verifierID).to.be.equal(7);
-  });
-
-  it("Test get state address", async () => {
-    const [signer] = await ethers.getSigners();
-
-    let stateAddr = await v3Validator.getStateAddress();
-    expect(stateAddr).to.be.equal(await state.getAddress());
-
-    await v3Validator.setStateAddress(await signer.getAddress());
-
-    stateAddr = await v3Validator.getStateAddress();
-    expect(stateAddr).to.be.equal(await signer.getAddress());
-
-    await v3Validator.setStateAddress(await state.getAddress());
   });
 
   it("Test get config params", async () => {

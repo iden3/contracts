@@ -390,15 +390,6 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
-  STATE_CROSS_CHAIN_LIB: {
-    name: "StateCrossChainLib",
-    unifiedAddress: "",
-    create2Address: "",
-    verificationOpts: {
-      constructorArgsImplementation: [],
-      libraries: {},
-    },
-  },
   VERIFIER_LIB: {
     name: "VerifierLib",
     unifiedAddress: "",

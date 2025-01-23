@@ -2,10 +2,10 @@
 pragma solidity 0.8.27;
 
 import {CredentialAtomicQueryValidatorBase} from "./CredentialAtomicQueryValidatorBase.sol";
-import {IGroth16Verifier} from "../interfaces/IGroth16Verifier.sol";
-import {GenesisUtils} from "../lib/GenesisUtils.sol";
-import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
-import {IState} from "../interfaces/IState.sol";
+import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
+import {GenesisUtils} from "../../lib/GenesisUtils.sol";
+import {IRequestValidator} from "../../interfaces/IRequestValidator.sol";
+import {IState} from "../../interfaces/IState.sol";
 
 error VerifierIDNotSet();
 
@@ -56,14 +56,9 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
     /**
      * @dev Initialize the contract
      * @param _verifierContractAddr Address of the verifier contract
-     * @param _stateContractAddr Address of the state contract
      * @param owner Owner of the contract
      */
-    function initialize(
-        address _verifierContractAddr,
-        address _stateContractAddr,
-        address owner
-    ) public initializer {
+    function initialize(address _verifierContractAddr, address owner) public initializer {
         _setInputToIndex("userID", 0);
         _setInputToIndex("circuitQueryHash", 1);
         _setInputToIndex("issuerState", 2);
@@ -79,7 +74,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _setInputToIndex("timestamp", 12);
         _setInputToIndex("isBJJAuthEnabled", 13);
 
-        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, owner);
+        _initDefaultStateVariables(_verifierContractAddr, CIRCUIT_ID, owner);
     }
 
     /**
@@ -149,6 +144,11 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         return _getResponseFields(pubSignals, hasSD);
     }
 
+    /**
+     * @dev Get the request params of the request query data.
+     * @param params Request query data of the credential to verify.
+     * @return RequestParams of the request query data.
+     */
     function getRequestParams(
         bytes calldata params
     ) external pure override returns (IRequestValidator.RequestParams memory) {
@@ -208,7 +208,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         if (pubSignals.isBJJAuthEnabled == 1) {
             _checkGistRoot(pubSignals.userID, pubSignals.gistRoot, state);
         } else {
-            _checkAuth(pubSignals.userID, sender);
+            _checkAuth(pubSignals.userID, sender, state);
         }
 
         // Checking challenge to prevent replay attacks from other addresses
@@ -258,11 +258,11 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         require(nullifierSessionID == 0 || nullifier != 0, "Invalid nullify pub signal");
     }
 
-    function _checkAuth(uint256 userID, address ethIdentityOwner) internal view {
+    function _checkAuth(uint256 userID, address ethIdentityOwner, IState state) internal view {
         require(
             userID ==
                 GenesisUtils.calcIdFromEthAddress(
-                    _getState().getIdTypeIfSupported(userID),
+                    state.getIdTypeIfSupported(userID),
                     ethIdentityOwner
                 ),
             "UserID does not correspond to the sender"

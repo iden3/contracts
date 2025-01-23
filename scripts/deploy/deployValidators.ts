@@ -2,14 +2,13 @@ import fs from "fs";
 import path from "path";
 import { DeployHelper, ValidatorType } from "../../helpers/DeployHelper";
 import hre from "hardhat";
-import { getConfig, getStateContractAddress, verifyContract } from "../../helpers/helperUtils";
+import { getConfig, verifyContract } from "../../helpers/helperUtils";
 
 async function main() {
   const config = getConfig();
   const chainId = hre.network.config.chainId;
 
-  const stateContractAddress = getStateContractAddress();
-  const validators: ValidatorType[] = ["mtpV2", "sigV2", "v3", "authV2"];
+  const validators: ValidatorType[] = ["mtpV2", "sigV2", "v3", "lmk", "authV2"];
 
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
@@ -21,7 +20,6 @@ async function main() {
   for (const v of validators) {
     const { validator, groth16VerifierWrapper } = await deployHelper.deployValidatorContracts(
       v,
-      stateContractAddress,
       deployStrategy,
     );
 
