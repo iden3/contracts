@@ -41,16 +41,9 @@ async function main() {
   const verifierRequestsCountBeforeUpgrade = await verifierContract.getZKPRequestsCount();
   console.log("Owner Address Before Upgrade: ", verifierOwnerAddressBeforeUpgrade);
 
-  const verifierLib = await deployerHelper.deployVerifierLib();
-
   // **** Upgrade Embedded Verifier ****
   const verifierFactory = await ethers.getContractFactory(
     contractsInfo.EMBEDDED_VERIFIER_WRAPPER.name,
-    {
-      libraries: {
-        VerifierLib: await verifierLib.getAddress(),
-      },
-    },
   );
 
   try {
@@ -100,7 +93,6 @@ async function main() {
   const outputJson = {
     proxyAdminOwnerAddress: await signer.getAddress(),
     verifierContract: await verifierContract.getAddress(),
-    verifierLib: await verifierLib.getAddress(),
     state: stateContractAddress,
     network: network,
     chainId,

@@ -6,7 +6,6 @@ import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Cont
 import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
 import {IAuthValidator} from "../interfaces/IAuthValidator.sol";
 import {IState} from "../interfaces/IState.sol";
-import {VerifierLib} from "../lib/VerifierLib.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
@@ -20,6 +19,7 @@ error MetadataNotSupportedYet();
 error MultiRequestIdAlreadyExists(uint256 multiRequestId);
 error MultiRequestIdNotFound(uint256 multiRequestId);
 error NullifierSessionIDAlreadyExists(uint256 nullifierSessionID);
+error ResponseFieldAlreadyExists(string responseFieldName);
 error RequestIdAlreadyExists(uint256 requestId);
 error RequestIdNotFound(uint256 requestId);
 error RequestIdNotValid();
@@ -47,7 +47,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     struct VerifierStorage {
         // Information about requests
         // solhint-disable-next-line
-        mapping(uint256 requestId => mapping(address sender => VerifierLib.Proof)) _proofs;
+        mapping(uint256 requestId => mapping(address sender => Proof)) _proofs;
         mapping(uint256 requestId => IVerifier.RequestData) _requests;
         uint256[] _requestIds;
         IState _state;
@@ -64,13 +64,43 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         uint256 _verifierID;
     }
 
+    /**
+     * @dev Struct to store proof and associated data
+     */
+    struct Proof {
+        bool isVerified;
+        mapping(string key => uint256 inputValue) storageFields;
+        string validatorVersion;
+        // TODO: discuss if we need this field
+        // uint256 blockNumber;
+        uint256 blockTimestamp;
+        // This empty reserved space is put in place to allow future versions
+        // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+        string[] keys;
+        // introduce artificial shift + 1 to avoid 0 index
+        mapping(string key => uint256 keyIndex) keyIndexes;
+        uint256[44] __gap;
+    }
+
+    /**
+     * @dev Struct to store auth proof and associated data
+     */
+    struct AuthProof {
+        bool isVerified;
+        mapping(string key => uint256 inputValue) storageFields;
+        string validatorVersion;
+        uint256 blockTimestamp;
+        // This empty reserved space is put in place to allow future versions
+        // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
+        uint256[45] __gap;
+    }
+
     // solhint-disable-next-line
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.Verifier")) -1 )) & ~bytes32(uint256(0xff));
     bytes32 internal constant VerifierStorageLocation =
         0x11369addde4aae8af30dcf56fa25ad3d864848d3201d1e9197f8b4da18a51a00;
 
     bytes2 internal constant VerifierIdType = 0x01A1;
-    using VerifierLib for VerifierStorage;
 
     /**
      * @dev Modifier to check if the request exists
@@ -323,7 +353,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             // Check if userID from authResponse is the same as the one in the signals
             _checkUserIDMatch(userIDFromAuthResponse, signals);
 
-            $.writeProofResults(response.requestId, sender, signals);
+            _writeProofResults(response.requestId, sender, signals);
 
             if (response.metadata.length > 0) {
                 revert MetadataNotSupportedYet();
@@ -537,7 +567,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         uint256 requestId
     ) public view checkRequestExistence(requestId, true) returns (IVerifier.RequestStatus memory) {
         VerifierStorage storage s = _getVerifierStorage();
-        VerifierLib.Proof storage proof = s._proofs[requestId][sender];
+        Proof storage proof = s._proofs[requestId][sender];
 
         return
             IVerifier.RequestStatus(
@@ -854,5 +884,35 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     {
         VerifierStorage storage $ = _getVerifierStorage();
         return $._requests[requestId];
+    }
+
+    /**
+     * @dev Writes proof results.
+     * @param requestId The request ID of the proof
+     * @param sender The address of the sender of the proof
+     * @param responseFields The array of response fields of the proof
+     */
+    function _writeProofResults(
+        uint256 requestId,
+        address sender,
+        IRequestValidator.ResponseField[] memory responseFields
+    ) internal {
+        VerifierStorage storage s = _getVerifierStorage();
+        Proof storage proof = s._proofs[requestId][sender];
+
+        // We only keep only 1 proof now without history. Prepared for the future if needed.
+        for (uint256 i = 0; i < responseFields.length; i++) {
+            proof.storageFields[responseFields[i].name] = responseFields[i].value;
+            if (proof.keyIndexes[responseFields[i].name] == 0) {
+                proof.keys.push(responseFields[i].name);
+                proof.keyIndexes[responseFields[i].name] = proof.keys.length;
+            } else {
+                revert ResponseFieldAlreadyExists(responseFields[i].name);
+            }
+        }
+
+        proof.isVerified = true;
+        proof.validatorVersion = s._requests[requestId].validator.version();
+        proof.blockTimestamp = block.timestamp;
     }
 }

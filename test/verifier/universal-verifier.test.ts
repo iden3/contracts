@@ -32,7 +32,6 @@ describe("Universal Verifier tests", function () {
 
     deployHelper = await DeployHelper.initialize(null, true);
     const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0112"]);
-    const verifierLib = await deployHelper.deployVerifierLib();
 
     const validator = await deployHelper.deployValidatorStub("RequestValidatorStub");
     await validator.stub_setVerifyResults([
@@ -43,7 +42,6 @@ describe("Universal Verifier tests", function () {
     const universalVerifier: any = await deployHelper.deployUniversalVerifier(
       ethSigner,
       await stateContract.getAddress(),
-      await verifierLib.getAddress(),
     );
 
     await universalVerifier.addValidatorToWhitelist(await validator.getAddress());

@@ -52,15 +52,8 @@ async function main() {
 
   const { validator: validatorV3 } = await deployHelper.deployValidatorContractsWithVerifiers("v3");
 
-  // ##################### VerifierLib deploy #####################
-  const verifierLib = await deployHelper.deployVerifierLib();
-
   // ##################### Universal Verifier deploy #####################
-  const verifier = await deployHelper.deployUniversalVerifier(
-    undefined,
-    await state.getAddress(),
-    await verifierLib.getAddress(),
-  );
+  const verifier = await deployHelper.deployUniversalVerifier(undefined, await state.getAddress());
 
   const addToWhiteList1 = await verifier.addValidatorToWhitelist(await validatorSig.getAddress());
   await addToWhiteList1.wait();

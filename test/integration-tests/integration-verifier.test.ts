@@ -102,10 +102,7 @@ describe("Verifier Integration test", function () {
   async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
 
-    const verifierLib = await ethers.deployContract("VerifierLib");
-    const verifier = await ethers.deployContract("VerifierTestWrapper", [], {
-      libraries: { VerifierLib: await verifierLib.getAddress() },
-    });
+    const verifier = await ethers.deployContract("VerifierTestWrapper", []);
 
     const deployHelper = await DeployHelper.initialize(null, true);
     const { state } = await deployHelper.deployStateWithLibraries(["0x0212"]);
@@ -131,7 +128,7 @@ describe("Verifier Integration test", function () {
     const { validator: lmkValidator } =
       await deployHelper.deployValidatorContractsWithVerifiers("lmk");
 
-    return { state, verifier, verifierLib, authValidator, v3Validator, lmkValidator };
+    return { state, verifier, authValidator, v3Validator, lmkValidator };
   }
 
   beforeEach(async () => {

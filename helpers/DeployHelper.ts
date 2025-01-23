@@ -442,17 +442,6 @@ export class DeployHelper {
     return stateLibWrapper;
   }
 
-  async deployVerifierLib(): Promise<Contract> {
-    const contractName = "VerifierLib";
-
-    const verifierLib = await ethers.deployContract(contractName);
-    await verifierLib.waitForDeployment();
-
-    Logger.success(`${contractName} deployed to:  ${await verifierLib.getAddress()}`);
-
-    return verifierLib;
-  }
-
   async deployBinarySearchTestWrapper(): Promise<Contract> {
     this.log("deploying poseidons...");
     const [poseidon2Elements, poseidon3Elements] = await deployPoseidons([2, 3]);
@@ -860,7 +849,6 @@ export class DeployHelper {
 
   async upgradeUniversalVerifier(
     verifierAddress: string,
-    verifierLibAddr: string,
     verifierContractName = contractsInfo.UNIVERSAL_VERIFIER.name,
   ): Promise<Contract> {
     this.log("======== Verifier: upgrade started ========");
@@ -869,9 +857,6 @@ export class DeployHelper {
     this.log("upgrading verifier...");
     const VerifierFactory = await ethers.getContractFactory(verifierContractName, {
       signer: proxyAdminOwner,
-      libraries: {
-        VerifierLib: verifierLibAddr,
-      },
     });
 
     this.log("upgrading proxy...");
@@ -915,7 +900,6 @@ export class DeployHelper {
   async deployUniversalVerifier(
     owner: SignerWithAddress | undefined,
     stateAddr: string,
-    verifierLibAddr: string,
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<Contract> {
     if (!owner) {
@@ -925,9 +909,6 @@ export class DeployHelper {
       contractsInfo.UNIVERSAL_VERIFIER.name,
       {
         signer: owner,
-        libraries: {
-          VerifierLib: verifierLibAddr,
-        },
       },
     );
     const Create2AddressAnchorFactory = await ethers.getContractFactory(

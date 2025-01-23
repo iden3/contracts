@@ -9,10 +9,7 @@ describe("RequestDisableable tests", function () {
 
   async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize(null, true);
-    const verifierLib = await ethers.deployContract("VerifierLib");
-    const verifier = await ethers.deployContract("RequestDisableableTestWrapper", [], {
-      libraries: { VerifierLib: await verifierLib.getAddress() },
-    });
+    const verifier = await ethers.deployContract("RequestDisableableTestWrapper", []);
 
     const { state } = await deployHelper.deployStateWithLibraries([], "Groth16VerifierStub");
     await verifier.initialize(await state.getAddress());

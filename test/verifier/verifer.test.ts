@@ -5,7 +5,7 @@ import { expect } from "chai";
 
 describe("Verifer tests", function () {
   let sender: any;
-  let verifier, verifierLib, validator1, validator2: any;
+  let verifier, validator1, validator2: any;
   let request, paramsFromValidator, authType: any;
   let multiRequest: any;
   let signer: any;
@@ -17,10 +17,7 @@ describe("Verifer tests", function () {
     signerAddress = await signer.getAddress();
 
     const deployHelper = await DeployHelper.initialize(null, true);
-    const verifierLib = await ethers.deployContract("VerifierLib");
-    const verifier = await ethers.deployContract("VerifierTestWrapper", [], {
-      libraries: { VerifierLib: await verifierLib.getAddress() },
-    });
+    const verifier = await ethers.deployContract("VerifierTestWrapper", []);
 
     const { state } = await deployHelper.deployStateWithLibraries([], "Groth16VerifierStub");
     await verifier.initialize(await state.getAddress());
@@ -38,13 +35,13 @@ describe("Verifer tests", function () {
 
     const validator1 = await ethers.deployContract("RequestValidatorStub");
     const validator2 = await ethers.deployContract("RequestValidatorStub");
-    return { verifier, verifierLib, validator1, validator2 };
+    return { verifier, validator1, validator2 };
   }
 
   describe("Single request tests", function () {
     beforeEach(async function () {
       [sender] = await ethers.getSigners();
-      ({ verifier, verifierLib, validator1, validator2 } = await deployContractsFixture());
+      ({ verifier, validator1, validator2 } = await deployContractsFixture());
 
       verifierId = await verifier.getVerifierID();
 
@@ -313,7 +310,7 @@ describe("Verifer tests", function () {
       };
       const crossChainProofs = "0x";
       await expect(verifier.submitResponse(authResponse, [response], crossChainProofs))
-        .to.revertedWithCustomError(verifierLib, "ResponseFieldAlreadyExists")
+        .to.revertedWithCustomError(verifier, "ResponseFieldAlreadyExists")
         .withArgs("someFieldName1");
     });
 

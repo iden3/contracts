@@ -3,7 +3,6 @@ import { contractsInfo } from "../../helpers/constants";
 
 async function main() {
   const StateLibAddress: string = "<put-your-contract-address>";
-  const VerifierLibAddress: string = "<put-your-contract-address>";
   const StateAddress: string = "<put-your-contract-address>";
 
   if (StateAddress.includes("0x")) {
@@ -12,10 +11,6 @@ async function main() {
 
   if (StateLibAddress.includes("0x")) {
     await verifyContract(StateLibAddress, contractsInfo.STATE_LIB.verificationOpts);
-  }
-
-  if (VerifierLibAddress.includes("0x")) {
-    await verifyContract(VerifierLibAddress, contractsInfo.VERIFIER_LIB.verificationOpts);
   }
 }
 

@@ -10,10 +10,7 @@ describe("EmbeddedVerifier tests", function () {
   async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
     const deployHelper = await DeployHelper.initialize(null, true);
-    const verifierLib = await ethers.deployContract("VerifierLib");
-    const verifier = await ethers.deployContract("EmbeddedVerifierWrapper", [], {
-      libraries: { VerifierLib: await verifierLib.getAddress() },
-    });
+    const verifier = await ethers.deployContract("EmbeddedVerifierWrapper", []);
 
     const { state } = await deployHelper.deployStateWithLibraries([], "Groth16VerifierStub");
     await verifier.initialize(await signer.getAddress(), await state.getAddress());
