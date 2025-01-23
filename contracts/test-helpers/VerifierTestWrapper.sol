@@ -8,4 +8,8 @@ contract VerifierTestWrapper is Verifier {
     function initialize(IState state) public initializer {
         __Verifier_init(state);
     }
+
+    function setVerifierID(uint256 verifierID) public {
+        _setVerifierID(verifierID);
+    }
 }

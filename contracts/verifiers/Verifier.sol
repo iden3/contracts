@@ -434,9 +434,10 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         uint256 userIDFromAuthResponse;
         AuthTypeData storage authTypeData = $._authMethods[authResponse.authType];
 
-        bytes32 expectedNonce = keccak256(abi.encode(sender, responses));
+        // 2. Authenticate user and get userID
+        bytes32 expectedNonce = keccak256(abi.encode(sender, responses)) &
+            0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
 
-        // Authenticate user
         userIDFromAuthResponse = authTypeData.validator.verify(
             authResponse.proof,
             authTypeData.params,

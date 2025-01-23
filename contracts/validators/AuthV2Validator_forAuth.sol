@@ -184,6 +184,56 @@ contract AuthV2Validator_forAuth is Ownable2StepUpgradeable, IAuthValidator, ERC
     }
 
     /**
+     * @dev Set the expiration timeout for the revocation state
+     * @param expirationTimeout The expiration timeout for the revocation state
+     */
+    function setRevocationStateExpirationTimeout(
+        uint256 expirationTimeout
+    ) public virtual onlyOwner {
+        _getAuthV2ValidatorStorage().revocationStateExpirationTimeout = expirationTimeout;
+    }
+
+    /**
+     * @dev Get the expiration timeout for the revocation state
+     * @return The expiration timeout for the revocation state
+     */
+    function getRevocationStateExpirationTimeout() public view virtual returns (uint256) {
+        return _getAuthV2ValidatorStorage().revocationStateExpirationTimeout;
+    }
+
+    /**
+     * @dev Set the expiration timeout for the proof
+     * @param expirationTimeout The expiration timeout for the proof
+     */
+    function setProofExpirationTimeout(uint256 expirationTimeout) public virtual onlyOwner {
+        _getAuthV2ValidatorStorage().proofExpirationTimeout = expirationTimeout;
+    }
+
+    /**
+     * @dev Get the expiration timeout for the proof
+     * @return The expiration timeout for the proof
+     */
+    function getProofExpirationTimeout() public view virtual returns (uint256) {
+        return _getAuthV2ValidatorStorage().proofExpirationTimeout;
+    }
+
+    /**
+     * @dev Set the expiration timeout for the gist root
+     * @param expirationTimeout The expiration timeout for the gist root
+     */
+    function setGISTRootExpirationTimeout(uint256 expirationTimeout) public virtual onlyOwner {
+        _getAuthV2ValidatorStorage().gistRootExpirationTimeout = expirationTimeout;
+    }
+
+    /**
+     * @dev Get the expiration timeout for the gist root
+     * @return The expiration timeout for the gist root
+     */
+    function getGISTRootExpirationTimeout() public view virtual returns (uint256) {
+        return _getAuthV2ValidatorStorage().gistRootExpirationTimeout;
+    }
+
+    /**
      * @dev See {IERC165-supportsInterface}.
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
