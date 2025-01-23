@@ -18,6 +18,8 @@ contract AnonAadhaarCredentialIssuing is IdentityBase, EmbeddedZKPVerifier {
     struct AnonAadhaarCredentialIssuingStorage {
         uint256 nullifierSeed;
         uint256 publicKeysHash;
+        uint256 expirationTime;
+        uint256 templateRoot;
         mapping(uint256 => bool) nullifiers;
     }
 
@@ -38,13 +40,17 @@ contract AnonAadhaarCredentialIssuing is IdentityBase, EmbeddedZKPVerifier {
 
     function initialize(
         uint256 nullifierSeed,
-        uint256 publicKeyHash, 
-        address _stateContractAddr, 
+        uint256 publicKeyHash,
+        uint256 expirationTime,
+        uint256 templateRoot,
+        address _stateContractAddr,
         bytes2 idType
     ) public initializer {
         AnonAadhaarCredentialIssuingStorage storage $ = _getAnonAadhaarCredentialIssuingStorage();
         $.nullifierSeed = nullifierSeed;
         $.publicKeysHash = publicKeyHash;
+        $.expirationTime = expirationTime;
+        $.templateRoot = templateRoot;
 
         super.initialize(_stateContractAddr, idType);
         super.__EmbeddedZKPVerifier_init(_msgSender(), IState(_stateContractAddr));
@@ -53,10 +59,12 @@ contract AnonAadhaarCredentialIssuing is IdentityBase, EmbeddedZKPVerifier {
     function _validatePublicInputs(
         uint256 hashIndex,
         uint256 hashValue,
-        uint256 expirationDate,
         uint256 nullifier,
         uint256 pubKeyHash,
-        uint256 nullifierSeed
+        uint256 nullifierSeed,
+        uint256 issuanceDate,
+        uint256 expirationDate,
+        uint256 templateRoot
     ) private view {
         AnonAadhaarCredentialIssuingStorage storage $ = _getAnonAadhaarCredentialIssuingStorage();
         require(hashIndex != 0, "Invalid hashIndex");
@@ -65,7 +73,11 @@ contract AnonAadhaarCredentialIssuing is IdentityBase, EmbeddedZKPVerifier {
         require(nullifierSeed == $.nullifierSeed, "Invalid nullifierSeed");
         require(pubKeyHash == $.publicKeysHash, "Invalid pubKeyHash");
         
-        require(expirationDate > block.timestamp, "Credential is expired");
+        require(templateRoot == $.templateRoot, "Invalid templateRoot");
+
+        uint256 expectedExpiration = issuanceDate + $.expirationTime;
+        require(expirationDate == expectedExpiration, "Invalid expirationDate");
+        require(expirationDate > block.timestamp, "Proof is expired");
 
         require(!$.nullifiers[nullifier], "Nullifier already exists");
     }
@@ -84,46 +96,25 @@ contract AnonAadhaarCredentialIssuing is IdentityBase, EmbeddedZKPVerifier {
         require(responses.length == 1, "Only one response is allowed");
         uint256 hashIndex = super.getProofStorageField(_msgSender(), responses[0].requestId, "hashIndex");
         uint256 hashValue = super.getProofStorageField(_msgSender(), responses[0].requestId, "hashValue");
-        uint256 expirationDate = super.getProofStorageField(_msgSender(), responses[0].requestId, "expirationDate");
         uint256 nullifier = super.getProofStorageField(_msgSender(), responses[0].requestId, "nullifier");
         uint256 pubKeyHash = super.getProofStorageField(_msgSender(), responses[0].requestId, "pubKeyHash");
         uint256 nullifierSeed = super.getProofStorageField(_msgSender(), responses[0].requestId, "nullifierSeed");
+        uint256 issuanceDate = super.getProofStorageField(_msgSender(), responses[0].requestId, "issuanceDate");
+        uint256 expirationDate = super.getProofStorageField(_msgSender(), responses[0].requestId, "expirationDate");
+        uint256 templateRoot = super.getProofStorageField(_msgSender(), responses[0].requestId, "templateRoot");
+
         
-        _validatePublicInputs(hashIndex, hashValue, expirationDate, nullifier, pubKeyHash, nullifierSeed);
+        _validatePublicInputs(
+            hashIndex, 
+            hashValue, 
+            nullifier, 
+            pubKeyHash, 
+            nullifierSeed,
+            issuanceDate,
+            expirationDate,
+            templateRoot
+        );
         _setNullifier(nullifier);
         _addHashAndTransit(hashIndex, hashValue);
     }
 }
-
-/*
-The code we need if we want to convert timestamps to the YYYY-MM-DD format and compare them
-
-function _compareDates(uint256 timestamp) internal view returns (bool) {
-        // Convert nanoseconds to seconds
-        uint256 secondsTimestamp = timestamp.div(1e9);
-        
-        // Get the current date
-        (uint256 currentYear, uint256 currentMonth, uint256 currentDay) = _timestampToDate(block.timestamp);
-
-        // Get the expiration date
-        (uint256 expYear, uint256 expMonth, uint256 expDay) = _timestampToDate(secondsTimestamp);
-
-        // Compare year, month, and day
-        if (expYear > currentYear) return true;
-        if (expYear == currentYear && expMonth > currentMonth) return true;
-        if (expYear == currentYear && expMonth == currentMonth && expDay > currentDay) return true;
-
-        return false;
-    }
-
-    function _timestampToDate(uint256 timestamp) internal pure returns (uint256 year, uint256 month, uint256 day) {
-        uint256 SECONDS_PER_DAY = 24 * 60 * 60;
-        uint256 DAYS_IN_YEAR = 365;
-        uint256 DAYS_IN_LEAP_YEAR = 366;
-        uint256 DAYS_IN_MONTH = 30;
-
-        year = timestamp / (SECONDS_PER_DAY * DAYS_IN_YEAR);
-        month = (timestamp % (SECONDS_PER_DAY * DAYS_IN_YEAR)) / (SECONDS_PER_DAY * DAYS_IN_MONTH);
-        day = ((timestamp % (SECONDS_PER_DAY * DAYS_IN_YEAR)) % (SECONDS_PER_DAY * DAYS_IN_MONTH)) / SECONDS_PER_DAY;
-    }
-*/

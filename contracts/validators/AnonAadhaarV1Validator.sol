@@ -13,12 +13,12 @@ contract AnonAadhaarV1Validator is CredentialAtomicQueryValidatorBase {
     struct PubSignals {
         uint256 pubKeyHash;
         uint256 nullifier;
-        uint256 claimRoot;
         uint256 hashIndex;
         uint256 hashValue;
+        uint256 issuanceDate;
+        uint256 expirationDate;
         uint256 nullifierSeed;
         uint256 signalHash;
-        uint256 expirationDate;
         uint256 templateRoot;
     }
     /**
@@ -39,12 +39,12 @@ contract AnonAadhaarV1Validator is CredentialAtomicQueryValidatorBase {
     ) public initializer {
         _setInputToIndex("pubKeyHash", 0);
         _setInputToIndex("nullifier", 1);
-        _setInputToIndex("claimRoot", 2);
-        _setInputToIndex("hashIndex", 3);
-        _setInputToIndex("hashValue", 4);
-        _setInputToIndex("nullifierSeed", 5);
-        _setInputToIndex("signalHash", 6);
-        _setInputToIndex("expirationDate", 7);
+        _setInputToIndex("hashIndex", 2);
+        _setInputToIndex("hashValue", 3);
+        _setInputToIndex("issuanceDate", 4);
+        _setInputToIndex("expirationDate", 5);
+        _setInputToIndex("nullifierSeed", 6);
+        _setInputToIndex("signalHash", 7);
         _setInputToIndex("templateRoot", 8);
 
         _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, owner);
@@ -67,12 +67,12 @@ contract AnonAadhaarV1Validator is CredentialAtomicQueryValidatorBase {
         PubSignals memory pubSignals = PubSignals({
             pubKeyHash: inputs[0],
             nullifier: inputs[1],
-            claimRoot: inputs[2],
-            hashIndex: inputs[3],
-            hashValue: inputs[4],
-            nullifierSeed: inputs[5],
-            signalHash: inputs[6],
-            expirationDate: inputs[7],
+            hashIndex: inputs[2],
+            hashValue: inputs[3],
+            issuanceDate: inputs[4],
+            expirationDate: inputs[5],
+            nullifierSeed: inputs[6],
+            signalHash: inputs[7],
             templateRoot: inputs[8]
         });
 
@@ -132,12 +132,12 @@ contract AnonAadhaarV1Validator is CredentialAtomicQueryValidatorBase {
         ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](9);
         signals[0] = ICircuitValidator.Signal({name: "pubKeyHash", value: pubSignals.pubKeyHash});
         signals[1] = ICircuitValidator.Signal({name: "nullifier", value: pubSignals.nullifier});
-        signals[2] = ICircuitValidator.Signal({name: "claimRoot", value: pubSignals.claimRoot});
-        signals[3] = ICircuitValidator.Signal({name: "hashIndex", value: pubSignals.hashIndex});
-        signals[4] = ICircuitValidator.Signal({name: "hashValue", value: pubSignals.hashValue});
-        signals[5] = ICircuitValidator.Signal({name: "nullifierSeed", value: pubSignals.nullifierSeed});
-        signals[6] = ICircuitValidator.Signal({name: "signalHash", value: pubSignals.signalHash});
-        signals[7] = ICircuitValidator.Signal({name: "expirationDate", value: pubSignals.expirationDate});
+        signals[2] = ICircuitValidator.Signal({name: "hashIndex", value: pubSignals.hashIndex});
+        signals[3] = ICircuitValidator.Signal({name: "hashValue", value: pubSignals.hashValue});
+        signals[4] = ICircuitValidator.Signal({name: "issuanceDate", value: pubSignals.issuanceDate});
+        signals[5] = ICircuitValidator.Signal({name: "expirationDate", value: pubSignals.expirationDate});
+        signals[6] = ICircuitValidator.Signal({name: "nullifierSeed", value: pubSignals.nullifierSeed});
+        signals[7] = ICircuitValidator.Signal({name: "signalHash", value: pubSignals.signalHash});
         signals[8] = ICircuitValidator.Signal({name: "templateRoot", value: pubSignals.templateRoot});
         return signals;
     }

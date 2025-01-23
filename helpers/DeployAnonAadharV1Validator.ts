@@ -93,6 +93,8 @@ export class Groth16VerifierAnonAadhaarV1DeployHelper {
     const aadhaarIssuerTx = await deployment.initialize(
       12345678,
       BigInt("15134874015316324267425466444584014077184337590635665158241104437045239495873"),
+      15776640,
+      BigInt("19885546056720838706860449020869651677281577675447204956487418402102594191373"),
       stateContractAddress,
       state.defaultIdType,
     );

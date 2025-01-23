@@ -23,7 +23,7 @@ describe("Verify anon aadhaar proof onchain", async () => {
 
     const tx = await deployment.submitZKPResponseV2(singleProof, emptyCrossChainProofs);
     await tx.wait();
-    const proof = await deployment.getClaimProof(inputs[3]);
+    const proof = await deployment.getClaimProof(inputs[2]);
     expect(proof[1]).to.be.true;
 
     await expect(
