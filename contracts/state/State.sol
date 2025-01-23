@@ -526,7 +526,7 @@ contract State is Ownable2StepUpgradeable, IState {
             $.slot := StateCrossChainStorageLocation
         }
     }
-    
+
     /**
      * @dev Change the state of an identity (transit to the new state) with ZKP ownership check.
      * @param id Identity
