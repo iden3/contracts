@@ -46,10 +46,7 @@ it("Calculate and check unified addresses for proxy contracts", async () => {
   await ignition.deploy(Create2AddressAnchorModule, { strategy: "create2" });
 
   for (const property in contractsInfo) {
-    if (
-      contractsInfo[property].unifiedAddress !== "" &&
-      contractsInfo[property].create2Calldata !== ""
-    ) {
+    if (contractsInfo[property].create2Calldata !== "") {
       const proxyDeployed = (
         await ignition.deploy(GeneralProxyModule, {
           strategy: "create2",

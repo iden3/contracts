@@ -384,7 +384,7 @@ export const contractsInfo = Object.freeze({
   STATE_LIB: {
     name: "StateLib",
     unifiedAddress: "",
-    create2Address: "",
+    create2Calldata: "",
     verificationOpts: {
       constructorArgsImplementation: [],
       libraries: {},
