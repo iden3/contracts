@@ -1,6 +1,7 @@
 import { buildModule } from "@nomicfoundation/ignition-core";
 import { contractsInfo } from "../helpers/constants";
 import hre, { ethers, ignition } from "hardhat";
+import { Logger } from "../helpers/helperUtils";
 
 // Replace here with your own proxy admin owner address
 const proxyAdminOwnerAddress = "0xAe15d2023A76174a940cbb2b7F44012C728B9d74";
@@ -18,8 +19,7 @@ const Create2AddressAnchorModule = buildModule("Create2AddressAnchorModule", (m)
 });
 
 const GeneralProxyModule = buildModule("GeneralProxyModule", (m) => {
-  // Replace here with your own contract create2Calldata
-  const create2Calldata = contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.create2Calldata;
+  const create2Calldata = m.getParameter("create2Calldata", 0);
 
   const proxy = m.contract("TransparentUpgradeableProxy", [
     contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress,
@@ -32,7 +32,7 @@ const GeneralProxyModule = buildModule("GeneralProxyModule", (m) => {
   return { proxyAdmin, proxy };
 });
 
-it("should deploy and calculate a proxy contract address", async () => {
+it("Calculate and check unified addresses for proxy contracts", async () => {
   await hre.network.provider.request({
     method: "hardhat_impersonateAccount",
     params: [proxyAdminOwnerAddress],
@@ -44,11 +44,32 @@ it("should deploy and calculate a proxy contract address", async () => {
   });
 
   await ignition.deploy(Create2AddressAnchorModule, { strategy: "create2" });
-  const proxyDeployed = (
-    await ignition.deploy(GeneralProxyModule, {
-      strategy: "create2",
-    })
-  ).proxy;
-  await proxyDeployed.waitForDeployment();
-  console.log("Proxy deployed with create2 address: ", await proxyDeployed.getAddress());
+
+  for (const property in contractsInfo) {
+    if (
+      contractsInfo[property].unifiedAddress !== "" &&
+      contractsInfo[property].create2Calldata !== ""
+    ) {
+      const proxyDeployed = (
+        await ignition.deploy(GeneralProxyModule, {
+          strategy: "create2",
+          parameters: {
+            GeneralProxyModule: {
+              create2Calldata: contractsInfo[property].create2Calldata,
+            },
+          },
+        })
+      ).proxy;
+      await proxyDeployed.waitForDeployment();
+      if ((await proxyDeployed.getAddress()) !== contractsInfo[property].unifiedAddress) {
+        Logger.error(
+          `${contractsInfo[property].name} deployed with unified address: ${await proxyDeployed.getAddress()} (expected: ${contractsInfo[property].unifiedAddress})`,
+        );
+      } else {
+        Logger.success(
+          `${contractsInfo[property].name} deployed with unified address: ${await proxyDeployed.getAddress()}`,
+        );
+      }
+    }
+  }
 });
