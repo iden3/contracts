@@ -5,8 +5,9 @@ import { packValidatorParams } from "../../utils/validator-pack-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { TEN_YEARS } from "../../../helpers/constants";
+import { contractsInfo, TEN_YEARS } from "../../../helpers/constants";
 import { packZKProof } from "../../utils/packData";
+import { ethers } from "hardhat";
 
 const tenYears = TEN_YEARS;
 const testCases: any[] = [
@@ -132,10 +133,7 @@ describe("Atomic Sig Validator", function () {
     const deployHelper = await DeployHelper.initialize(null, true);
 
     const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0100"]);
-    const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
-      "sigV2",
-      await stateContract.getAddress(),
-    );
+    const contracts = await deployHelper.deployValidatorContractsWithVerifiers("sigV2");
     const validator = contracts.validator;
 
     return {
@@ -202,34 +200,16 @@ describe("Atomic Sig Validator", function () {
       const data = packValidatorParams(query, test.allowedIssuers);
 
       // Check verify function
-      if (test.errorMessage) {
-        await expect(
-          sigValidator.verify(inputs, pi_a, pi_b, pi_c, data, senderAddress),
-        ).to.be.rejectedWith(test.errorMessage);
-      } else if (test.errorMessage === "") {
-        await expect(sigValidator.verify(inputs, pi_a, pi_b, pi_c, data, senderAddress)).to.be
-          .reverted;
-      } else {
-        const signals = await sigValidator.verify(inputs, pi_a, pi_b, pi_c, data, senderAddress);
-        const signalValues: any[] = [];
-        // Replace index with value to check instead of signal index
-        for (let i = 0; i < signals.length; i++) {
-          signalValues.push([signals[i][0], inputs[signals[i][1]]]);
-        }
-        checkSignals(signalValues, test.signalValues);
-      }
-
-      // Check verifyV2 function
       const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
       if (test.errorMessage) {
         await expect(
-          sigValidator.verifyV2(zkProof, data, senderAddress, await state.getAddress()),
+          sigValidator.verify(zkProof, data, senderAddress, await state.getAddress()),
         ).to.be.rejectedWith(test.errorMessage);
       } else if (test.errorMessage === "") {
-        await expect(sigValidator.verifyV2(zkProof, data, senderAddress, await state.getAddress()))
-          .to.be.reverted;
+        await expect(sigValidator.verify(zkProof, data, senderAddress, await state.getAddress())).to
+          .be.reverted;
       } else {
-        const signals = await sigValidator.verifyV2(
+        const signals = await sigValidator.verify(
           zkProof,
           data,
           senderAddress,
@@ -243,5 +223,48 @@ describe("Atomic Sig Validator", function () {
   it("check inputIndexOf", async () => {
     const challengeIndx = await sigValidator.inputIndexOf("challenge");
     expect(challengeIndx).to.be.equal(5);
+  });
+
+  it("check version", async () => {
+    const version = await sigValidator.version();
+    expect(version).to.be.equal(contractsInfo.VALIDATOR_SIG.version);
+  });
+
+  it("check getRequestParams", async () => {
+    const query: any = {
+      requestId: 1,
+      schema: 2,
+      claimPathKey: 3,
+      operator: 4,
+      slotIndex: 0,
+      queryHash: 5,
+      value: [20020101, ...new Array(63).fill(0)], // for operators 1-3 only first value matters
+      circuitIds: ["circuitName"],
+      skipClaimRevocationCheck: false,
+      claimPathNotExists: 0,
+    };
+
+    const params = packValidatorParams(query);
+    const requestParams = await sigValidator.getRequestParams(params);
+    expect(requestParams.groupID).to.be.equal(0);
+    expect(requestParams.verifierID).to.be.equal(0);
+    expect(requestParams.nullifierSessionID).to.be.equal(0);
+  });
+
+  it("Test get config params", async () => {
+    const oneHour = 3600;
+    const expirationTimeout = await sigValidator.getProofExpirationTimeout();
+    const revocationStateExpirationTimeout =
+      await sigValidator.getRevocationStateExpirationTimeout();
+    const gistRootExpirationTimeout = await sigValidator.getGISTRootExpirationTimeout();
+    expect(expirationTimeout).to.be.equal(oneHour);
+    expect(revocationStateExpirationTimeout).to.be.equal(oneHour);
+    expect(gistRootExpirationTimeout).to.be.equal(oneHour);
+  });
+
+  it("Test supported circuits", async () => {
+    const supportedCircuitIds = await sigValidator.getSupportedCircuitIds();
+    expect(supportedCircuitIds.length).to.be.equal(1);
+    expect(supportedCircuitIds[0]).to.be.equal(CircuitId.AtomicQuerySigV2OnChain);
   });
 });

@@ -17,14 +17,9 @@ contract CredentialAtomicQueryMTPV2Validator is CredentialAtomicQueryV2Validator
     /**
      * @dev Initialize the contract
      * @param _verifierContractAddr Address of the verifier contract
-     * @param _stateContractAddr Address of the state contract
      * @param owner Owner of the contract
      */
-    function initialize(
-        address _verifierContractAddr,
-        address _stateContractAddr,
-        address owner
-    ) public initializer {
+    function initialize(address _verifierContractAddr, address owner) public initializer {
         _setInputToIndex("merklized", 0);
         _setInputToIndex("userID", 1);
         _setInputToIndex("circuitQueryHash", 2);
@@ -37,7 +32,7 @@ contract CredentialAtomicQueryMTPV2Validator is CredentialAtomicQueryV2Validator
         _setInputToIndex("issuerClaimNonRevState", 9);
         _setInputToIndex("timestamp", 10);
 
-        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, owner);
+        _initDefaultStateVariables(_verifierContractAddr, CIRCUIT_ID, owner);
     }
 
     /**
