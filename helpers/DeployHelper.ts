@@ -1277,6 +1277,26 @@ export class DeployHelper {
     return identityTreeStore;
   }
 
+  async deployIdentityLib(
+    smtpAddress: string,
+    poseidonUtil3lAddress: string,
+    poseidonUtil4lAddress: string,
+  ): Promise<Contract> {
+    const Identity = await ethers.getContractFactory("IdentityLib", {
+      libraries: {
+        SmtLib: smtpAddress,
+        PoseidonUnit3L: poseidonUtil3lAddress,
+        PoseidonUnit4L: poseidonUtil4lAddress,
+      },
+    });
+    const il = await Identity.deploy();
+    await il.waitForDeployment();
+
+    this.log(`IdentityLib deployed to address ${await il.getAddress()}`);
+
+    return il;
+  }
+
   private log(...args): void {
     this.enableLogging && console.log(args);
   }

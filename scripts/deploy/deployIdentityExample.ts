@@ -12,13 +12,17 @@ async function main() {
 
   const stateContractAddress = getStateContractAddress();
 
+  const identityLib = await stDeployHelper.deployIdentityLib(
+    contractsInfo.SMT_LIB.unifiedAddress,
+    contractsInfo.POSEIDON_3.unifiedAddress,
+    contractsInfo.POSEIDON_4.unifiedAddress,
+  );
+
   const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
 
   const contracts = await identityDeployHelper.deployIdentity(
     stateContractAddress,
-    contractsInfo.SMT_LIB.unifiedAddress,
-    contractsInfo.POSEIDON_3.unifiedAddress,
-    contractsInfo.POSEIDON_4.unifiedAddress,
+    await identityLib.getAddress(),
     defaultIdType,
   );
 

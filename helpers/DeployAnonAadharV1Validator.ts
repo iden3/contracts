@@ -2,11 +2,7 @@ import { ethers, upgrades } from "hardhat";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-import { DeployHelper } from "./DeployHelper";
-import { OnchainIdentityDeployHelper } from "./OnchainIdentityDeployHelper";
-import { deployPoseidons } from "./PoseidonDeployHelper";
-
-export class Groth16VerifierAnonAadhaarV1DeployHelper {
+export class AnonAadhaarDeployHelper {
   constructor(
     private signers: SignerWithAddress[],
     private readonly enableLogging: boolean = false,
@@ -15,7 +11,7 @@ export class Groth16VerifierAnonAadhaarV1DeployHelper {
   static async initialize(
     signers: SignerWithAddress[] | null = null,
     enableLogging = true,
-  ): Promise<Groth16VerifierAnonAadhaarV1DeployHelper> {
+  ): Promise<AnonAadhaarDeployHelper> {
     let sgrs;
     if (signers === null) {
       sgrs = await ethers.getSigners();
@@ -23,7 +19,7 @@ export class Groth16VerifierAnonAadhaarV1DeployHelper {
       sgrs = signers;
     }
 
-    return new Groth16VerifierAnonAadhaarV1DeployHelper(sgrs, enableLogging);
+    return new AnonAadhaarDeployHelper(sgrs, enableLogging);
   }
 
   public async deployGroth16Wrapper(): Promise<Contract> {
@@ -54,62 +50,49 @@ export class Groth16VerifierAnonAadhaarV1DeployHelper {
     return deployment;
   }
 
-  public async deployIdentityLib(smtLibAddress: string): Promise<Contract> {
-    const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
-    const [poseidon3Elements, poseidon4Elements] = await deployPoseidons([3, 4]);
-
-    const contracts = await identityDeployHelper.deployIdentityLib(
-      smtLibAddress,
-      await poseidon3Elements.getAddress(),
-      await poseidon4Elements.getAddress(),
-    );
-    contracts.waitForDeployment();
-
-    return contracts;
-  }
-
-  public async deployAnonAadhaarCredentialIssuing(): Promise<Contract> {
-    const deployHelper = await DeployHelper.initialize(this.signers, true);
-    const state = await deployHelper.deployStateWithLibraries();
-    await state.state.waitForDeployment();
-    const stateContractAddress = await state.state.getAddress();
-
-    const anonAadhaarProofValidator = await this.deployAnonAadhaarV1Validator(stateContractAddress);
-
-    const validatorAddress = await anonAadhaarProofValidator.getAddress();
-
-    console.log("id type", state.defaultIdType);
-    const verifierLib = await deployHelper.deployVerifierLib();
-    const identityLib = await this.deployIdentityLib(await state.smtLib.getAddress());
-
-    const issuer = await ethers.getContractFactory("AnonAadhaarCredentialIssuing", {
+  public async deployAnonAadhaarCredentialIssuing(
+    verifierLibAddress: string,
+    identityLibAddress: string,
+    stateContractAddress: string,
+    defaultIdType: string,
+  ): Promise<Contract> {
+    const aadhaarIssuer = await ethers.getContractFactory("AnonAadhaarCredentialIssuing", {
       libraries: {
-        VerifierLib: await verifierLib.getAddress(),
-        IdentityLib: await identityLib.getAddress(),
+        VerifierLib: verifierLibAddress,
+        IdentityLib: identityLibAddress,
       },
     });
-    const deployment = await issuer.deploy();
+    const deployment = await aadhaarIssuer.deploy();
     await deployment.waitForDeployment();
-    const aadhaarIssuerTx = await deployment.initialize(
+    const tx = await deployment.initialize(
       12345678,
       BigInt("15134874015316324267425466444584014077184337590635665158241104437045239495873"),
       15776640,
       BigInt("19885546056720838706860449020869651677281577675447204956487418402102594191373"),
       stateContractAddress,
-      state.defaultIdType,
+      defaultIdType,
     );
-    await aadhaarIssuerTx.wait();
+    await tx.wait();
 
-    const requestId = 940499666; // calculateRequestIdForCircuit(CircuitId.AuthV2);
+    return deployment;
+  }
 
-    const setRequestTx = await deployment.setZKPRequest(requestId, {
+  public async setZKPRequest(
+    issuer: Contract,
+    requestId: number,
+    stateContractAddress: string,
+    validator?: Contract,
+  ): Promise<void> {
+    const validatorAddress = validator
+      ? await validator.getAddress()
+      : await (await this.deployAnonAadhaarV1Validator(stateContractAddress)).getAddress();
+
+    const tx = await issuer.setZKPRequest(requestId, {
       metadata: "0x",
       validator: validatorAddress,
       data: "0x",
     });
-    await setRequestTx.wait();
-
-    return deployment;
+    await tx.wait();
   }
 
   private log(...args): void {
