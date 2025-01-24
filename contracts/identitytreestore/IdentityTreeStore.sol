@@ -43,12 +43,6 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
     bytes32 private constant ReverseHashLibDataStorageLocation =
         0x0f7e3bdc6cc0e880d509aa1f6b8d1a88e5fcb7274e18dfba772424a36fe9b400;
 
-    function _getReverseHashLibDataStorage() private pure returns (ReverseHashLib.Data storage $) {
-        assembly {
-            $.slot := ReverseHashLibDataStorageLocation
-        }
-    }
-
     /// @custom:storage-location erc7201:iden3.storage.IdentityTreeStore.Main
     struct IdentityTreeStoreMainStorage {
         IState _state;
@@ -116,6 +110,12 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
         uint64 nonce
     ) external view returns (CredentialStatus memory) {
         return _getRevocationStatusByState(state, nonce);
+    }
+
+    function _getReverseHashLibDataStorage() private pure returns (ReverseHashLib.Data storage $) {
+        assembly {
+            $.slot := ReverseHashLibDataStorageLocation
+        }
     }
 
     /// @dev Get the main storage using assembly to ensure specific storage location

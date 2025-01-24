@@ -19,10 +19,7 @@ contract CredentialAtomicQuerySigV2Validator is CredentialAtomicQueryV2Validator
      * @param _verifierContractAddr Address of the verifier contract
      * @param owner Owner of the contract
      */
-    function initialize(
-        address _verifierContractAddr,
-        address owner
-    ) public initializer {
+    function initialize(address _verifierContractAddr, address owner) public initializer {
         _setInputToIndex("merklized", 0);
         _setInputToIndex("userID", 1);
         _setInputToIndex("circuitQueryHash", 2);

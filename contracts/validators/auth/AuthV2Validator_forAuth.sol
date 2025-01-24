@@ -110,13 +110,6 @@ contract AuthV2Validator_forAuth is Ownable2StepUpgradeable, IAuthValidator, ERC
         return pubSignals.userID;
     }
 
-    /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getAuthV2ValidatorStorage() private pure returns (AuthV2ValidatorStorage storage $) {
-        assembly {
-            $.slot := AuthV2ValidatorStorageLocation
-        }
-    }
-
     /**
      * @dev Get the verifier by circuit id
      * @param circuitId Circuit id
@@ -184,6 +177,13 @@ contract AuthV2Validator_forAuth is Ownable2StepUpgradeable, IAuthValidator, ERC
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return
             interfaceId == type(IAuthValidator).interfaceId || super.supportsInterface(interfaceId);
+    }
+
+    /// @dev Get the main storage using assembly to ensure specific storage location
+    function _getAuthV2ValidatorStorage() private pure returns (AuthV2ValidatorStorage storage $) {
+        assembly {
+            $.slot := AuthV2ValidatorStorageLocation
+        }
     }
 
     function _initDefaultStateVariables(

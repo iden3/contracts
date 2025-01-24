@@ -29,10 +29,7 @@ contract AuthV2Validator is CredentialAtomicQueryValidatorBase {
      * @param _verifierContractAddr Address of the verifier contract
      * @param owner Owner of the contract
      */
-    function initialize(
-        address _verifierContractAddr,
-        address owner
-    ) public initializer {
+    function initialize(address _verifierContractAddr, address owner) public initializer {
         _setInputToIndex("userID", 0);
         _setInputToIndex("challenge", 1);
         _setInputToIndex("gistRoot", 2);
@@ -62,6 +59,7 @@ contract AuthV2Validator is CredentialAtomicQueryValidatorBase {
 
         return pubSignals;
     }
+
     /**
      * @dev Get the request params for auth.
      * @return RequestParams for auth.
