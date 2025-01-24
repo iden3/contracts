@@ -196,7 +196,7 @@ export const contractsInfo = Object.freeze({
   VALIDATOR_LINKED_MULTI_QUERY: {
     name: "LinkedMultiQueryValidator",
     version: "1.0.0-beta",
-    unifiedAddress: "",
+    unifiedAddress: "0xfA622418d7aBF33868545732CaD2C2E7ce9B16C8",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.LinkedMultiQueryValidator")),
     verificationOpts: {
       constructorArgsImplementation: [],
@@ -212,7 +212,7 @@ export const contractsInfo = Object.freeze({
   VALIDATOR_AUTH_V2: {
     name: "AuthV2Validator",
     version: "1.0.0",
-    unifiedAddress: "0x49ebdC163fa014F310CeDBc8e4a0b15C738D8073",
+    unifiedAddress: "0x535F6a1B30533616CE4bD44081ea7A17CF2042B8",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.AuthV2Validator")),
     verificationOpts: {
       constructorArgsImplementation: [],
@@ -228,7 +228,7 @@ export const contractsInfo = Object.freeze({
   VALIDATOR_AUTH_V2_FOR_AUTH: {
     name: "AuthV2Validator_forAuth",
     version: "1.0.0",
-    unifiedAddress: "",
+    unifiedAddress: "0x0aea4Cf26A895B0e31bca5DA49a06de85fEc73dA",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.AuthV2Validator_forAuth")),
     verificationOpts: {
       constructorArgsImplementation: [],
