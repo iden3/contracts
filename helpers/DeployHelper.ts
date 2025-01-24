@@ -404,18 +404,27 @@ export class DeployHelper {
         Logger.warning(`${contractName} found already deployed to:  ${await smtLib?.getAddress()}`);
         return smtLib;
       }
-    }
-    const smtLibDeploy = await ignition.deploy(SmtLibModule, {
-      parameters: {
-        SmtLibModule: {
-          poseidon2ElementAddress: poseidon2Address,
-          poseidon3ElementAddress: poseidon3Address,
-        },
-      },
-      strategy: deployStrategy,
-    });
 
-    smtLib = smtLibDeploy.smtLib;
+      const smtLibDeploy = await ignition.deploy(SmtLibModule, {
+        parameters: {
+          SmtLibModule: {
+            poseidon2ElementAddress: poseidon2Address,
+            poseidon3ElementAddress: poseidon3Address,
+          },
+        },
+        strategy: deployStrategy,
+      });
+
+      smtLib = smtLibDeploy.smtLib;
+    } else {
+      smtLib = await ethers.deployContract(contractName, {
+        libraries: {
+          PoseidonUnit2L: poseidon2Address,
+          PoseidonUnit3L: poseidon3Address,
+        },
+      });
+    }
+
     await smtLib.waitForDeployment();
     Logger.success(`${contractName} deployed to:  ${await smtLib.getAddress()}`);
 

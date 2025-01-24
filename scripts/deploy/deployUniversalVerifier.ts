@@ -14,7 +14,7 @@ import { contractsInfo } from "../../helpers/constants";
 
 async function main() {
   const config = getConfig();
-  const chainId = hre.network.config.chainId;
+  const chainId = parseInt(await hre.network.provider.send("eth_chainId"), 16);
 
   const stateContractAddress = getStateContractAddress();
   const deployStrategy: "basic" | "create2" =

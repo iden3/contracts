@@ -6,7 +6,7 @@ import { getConfig, getStateContractAddress, verifyContract } from "../../helper
 
 async function main() {
   const config = getConfig();
-  const chainId = hre.network.config.chainId;
+  const chainId = parseInt(await hre.network.provider.send("eth_chainId"), 16);
 
   const stateContractAddress = getStateContractAddress();
   const validators: ValidatorType[] = ["mtpV2", "sigV2", "v3", "authV2"];
