@@ -23,9 +23,7 @@ export class OnchainIdentityDeployHelper {
 
   async deployIdentity(
     stateAddr: string,
-    smtLibAddr: string,
-    poseidon3Addr: string,
-    poseidon4Addr: string,
+    identityLibAddr: string,
     idType: string,
   ): Promise<{
     identity: Contract;
@@ -35,13 +33,12 @@ export class OnchainIdentityDeployHelper {
     this.log("======== Identity: deploy started ========");
 
     const cb = await this.deployClaimBuilder();
-    const il = await this.deployIdentityLib(smtLibAddr, poseidon3Addr, poseidon4Addr);
 
     this.log("deploying Identity...");
     const IdentityFactory = await ethers.getContractFactory("IdentityExample", {
       libraries: {
         ClaimBuilder: await cb.getAddress(),
-        IdentityLib: await il.getAddress(),
+        IdentityLib: await identityLibAddr,
       },
     });
     const Identity = await upgrades.deployProxy(IdentityFactory, [stateAddr, idType], {
@@ -66,25 +63,6 @@ export class OnchainIdentityDeployHelper {
     this.enableLogging && this.log(`ClaimBuilder deployed to: ${await cb.getAddress()}`);
 
     return cb;
-  }
-
-  async deployIdentityLib(
-    smtpAddress: string,
-    poseidonUtil3lAddress: string,
-    poseidonUtil4lAddress: string,
-  ): Promise<Contract> {
-    const Identity = await ethers.getContractFactory("IdentityLib", {
-      libraries: {
-        SmtLib: smtpAddress,
-        PoseidonUnit3L: poseidonUtil3lAddress,
-        PoseidonUnit4L: poseidonUtil4lAddress,
-      },
-    });
-    const il = await Identity.deploy();
-    await il.waitForDeployment();
-    this.enableLogging && this.log(`ClaimBuilder deployed to: ${await il.getAddress()}`);
-
-    return il;
   }
 
   async deployClaimBuilderWrapper(): Promise<Contract> {
