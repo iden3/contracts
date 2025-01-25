@@ -7,7 +7,7 @@ import {
 import { contractsInfo, DEFAULT_MNEMONIC, networks } from "../../../helpers/constants";
 import { ethers } from "hardhat";
 
-const mnemonicWallet = ethers.Wallet.fromPhrase(DEFAULT_MNEMONIC);
+const mnemonicWallet = ethers.Wallet.fromMnemonic(DEFAULT_MNEMONIC);
 
 async function main() {
   const providers = getProviders();
