@@ -8,7 +8,7 @@ import { Contract } from "ethers";
 1. deploy state to mumbai from feature/state-v3 branch
 2. run transit-state script
 3. cp .openzeppelin/* ../../contracts/.openzeppelin/
-4. update addreess and block number in data
+4. update address and block number in data
 5. run this script
 */
 
