@@ -40,7 +40,7 @@ import { ProofData } from "@iden3/js-jwz";
 import { packCrossChainProofs, packZKProof } from "../../../../test/utils/packData";
 import { Groth16VerifierType } from "../../../../helpers/DeployHelper";
 
-const rhsUrl = "https://rhs-staging.polygonid.me";
+const rhsUrl = "";
 
 function createKYCAgeCredential(did: core.DID, birthday: number) {
   const credentialRequest: CredentialRequest = {
