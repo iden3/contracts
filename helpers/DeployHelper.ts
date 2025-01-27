@@ -789,7 +789,7 @@ export class DeployHelper {
     };
   }
 
-  async deployValidatorStub(validatorName: string = "ValidatorStub"): Promise<Contract> {
+  async deployValidatorStub(validatorName: string = "RequestValidatorStub"): Promise<Contract> {
     const stub = await ethers.getContractFactory(validatorName);
     const stubInstance = await stub.deploy();
     await stubInstance.waitForDeployment();

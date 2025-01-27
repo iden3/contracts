@@ -2,7 +2,6 @@
 pragma solidity 0.8.27;
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import {ICircuitValidator} from "../interfaces/ICircuitValidator.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {Verifier} from "./Verifier.sol";
 import {IState} from "../interfaces/IState.sol";

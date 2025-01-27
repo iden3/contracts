@@ -2,7 +2,6 @@
 pragma solidity ^0.8.10;
 
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-import {ICircuitValidator} from "../../interfaces/ICircuitValidator.sol";
 import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
 import {IRequestValidator} from "../../interfaces/IRequestValidator.sol";
 import {IState} from "../../interfaces/IState.sol";
