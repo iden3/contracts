@@ -39,6 +39,17 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
     bytes32 private constant LinkedMultiQueryValidatorStorageLocation =
         0x85875fc21d0742149175681df1689e48bce1484a73b475e15e5042650a2d7800;
 
+    /// @dev Get the main storage using assembly to ensure specific storage location
+    function _getLinkedMultiQueryValidatorStorage()
+        private
+        pure
+        returns (LinkedMultiQueryValidatorStorage storage $)
+    {
+        assembly {
+            $.slot := LinkedMultiQueryValidatorStorageLocation
+        }
+    }
+
     struct PubSignals {
         uint256 linkID;
         uint256 merklized;
@@ -129,17 +140,6 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
         return
             interfaceId == type(IRequestValidator).interfaceId ||
             super.supportsInterface(interfaceId);
-    }
-
-    /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getLinkedMultiQueryValidatorStorage()
-        private
-        pure
-        returns (LinkedMultiQueryValidatorStorage storage $)
-    {
-        assembly {
-            $.slot := LinkedMultiQueryValidatorStorageLocation
-        }
     }
 
     function _checkGroupId(uint256 groupID) internal pure {

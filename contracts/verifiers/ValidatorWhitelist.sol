@@ -19,6 +19,16 @@ contract ValidatorWhitelist is Verifier {
     bytes32 private constant ValidatorWhitelistStorageLocation =
         0x76aa24e3538905838cc74060b2aa4c054b1e474aacf44741879e1850715e9300;
 
+    function _getValidatorWhitelistStorage()
+        private
+        pure
+        returns (ValidatorWhitelistStorage storage $)
+    {
+        assembly {
+            $.slot := ValidatorWhitelistStorageLocation
+        }
+    }
+
     /// @dev Modifier to check if the validator is whitelisted
     modifier onlyWhitelistedValidator(IRequestValidator validator) {
         if (!isWhitelistedValidator(validator)) {
@@ -36,16 +46,6 @@ contract ValidatorWhitelist is Verifier {
         IRequestValidator validator
     ) public view virtual returns (bool) {
         return _getValidatorWhitelistStorage()._validatorWhitelist[validator];
-    }
-
-    function _getValidatorWhitelistStorage()
-        private
-        pure
-        returns (ValidatorWhitelistStorage storage $)
-    {
-        assembly {
-            $.slot := ValidatorWhitelistStorageLocation
-        }
     }
 
     function _addValidatorToWhitelist(IRequestValidator validator) internal {

@@ -23,6 +23,13 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
     bytes32 private constant IdentityBaseStorageLocation =
         0x3018a310c36c4f8228f09bf3b1822685cf0971daa8265a58ca807c4a4daba400;
 
+    /// @dev Get the main storage using assembly to ensure specific storage location
+    function _getIdentityBaseStorage() internal pure returns (IdentityBaseStorage storage $) {
+        assembly {
+            $.slot := IdentityBaseStorageLocation
+        }
+    }
+
     /**
      * @dev Get configured Identity SMT depth.
      * @return depth of the SMT
@@ -290,12 +297,5 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return
             interfaceId == type(IIdentifiable).interfaceId || super.supportsInterface(interfaceId);
-    }
-
-    /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getIdentityBaseStorage() internal pure returns (IdentityBaseStorage storage $) {
-        assembly {
-            $.slot := IdentityBaseStorageLocation
-        }
     }
 }

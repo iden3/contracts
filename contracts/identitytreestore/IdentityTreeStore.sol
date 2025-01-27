@@ -43,6 +43,12 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
     bytes32 private constant ReverseHashLibDataStorageLocation =
         0x0f7e3bdc6cc0e880d509aa1f6b8d1a88e5fcb7274e18dfba772424a36fe9b400;
 
+    function _getReverseHashLibDataStorage() private pure returns (ReverseHashLib.Data storage $) {
+        assembly {
+            $.slot := ReverseHashLibDataStorageLocation
+        }
+    }
+
     /// @custom:storage-location erc7201:iden3.storage.IdentityTreeStore.Main
     struct IdentityTreeStoreMainStorage {
         IState _state;
@@ -51,6 +57,17 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.IdentityTreeStore.Main")) - 1)) & ~bytes32(uint256(0xff));
     bytes32 private constant IdentityTreeStoreMainStorageLocation =
         0x95ca427007e091a13a7ccfcb233b8a2ed19d987330a248c445b1b483a35bb800;
+
+    /// @dev Get the main storage using assembly to ensure specific storage location
+    function _getIdentityTreeStoreMainStorage()
+        private
+        pure
+        returns (IdentityTreeStoreMainStorage storage $)
+    {
+        assembly {
+            $.slot := IdentityTreeStoreMainStorageLocation
+        }
+    }
 
     /**
      * @dev Function to call first time for initialization of the proxy.
@@ -110,23 +127,6 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
         uint64 nonce
     ) external view returns (CredentialStatus memory) {
         return _getRevocationStatusByState(state, nonce);
-    }
-
-    function _getReverseHashLibDataStorage() private pure returns (ReverseHashLib.Data storage $) {
-        assembly {
-            $.slot := ReverseHashLibDataStorageLocation
-        }
-    }
-
-    /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getIdentityTreeStoreMainStorage()
-        private
-        pure
-        returns (IdentityTreeStoreMainStorage storage $)
-    {
-        assembly {
-            $.slot := IdentityTreeStoreMainStorageLocation
-        }
     }
 
     function _getRevocationStatusByState(

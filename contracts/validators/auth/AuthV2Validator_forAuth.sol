@@ -47,6 +47,13 @@ contract AuthV2Validator_forAuth is Ownable2StepUpgradeable, IAuthValidator, ERC
     bytes32 private constant AuthV2ValidatorStorageLocation =
         0x5212d71c1540b1d75013e45246a2b44f2ee9363a102ea02fac1792932b691600;
 
+    /// @dev Get the main storage using assembly to ensure specific storage location
+    function _getAuthV2ValidatorStorage() private pure returns (AuthV2ValidatorStorage storage $) {
+        assembly {
+            $.slot := AuthV2ValidatorStorageLocation
+        }
+    }
+
     /**
      * @dev Initialize the contract
      * @param _verifierContractAddr Address of the verifier contract
@@ -177,13 +184,6 @@ contract AuthV2Validator_forAuth is Ownable2StepUpgradeable, IAuthValidator, ERC
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return
             interfaceId == type(IAuthValidator).interfaceId || super.supportsInterface(interfaceId);
-    }
-
-    /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getAuthV2ValidatorStorage() private pure returns (AuthV2ValidatorStorage storage $) {
-        assembly {
-            $.slot := AuthV2ValidatorStorageLocation
-        }
     }
 
     function _initDefaultStateVariables(

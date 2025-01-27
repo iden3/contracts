@@ -60,16 +60,22 @@ contract State is Ownable2StepUpgradeable, IState {
      */
     bool internal _defaultIdTypeInitialized;
 
-    // keccak256(abi.encode(uint256(keccak256("iden3.storage.StateCrossChain")) - 1))
-    //  & ~bytes32(uint256(0xff));
-    bytes32 private constant StateCrossChainStorageLocation =
-        0xfe6de916382846695d2555237dc6c0ef6555f4c949d4ba263e03532600778100;
-
     /// @custom:storage-location erc7201:iden3.storage.StateCrossChain
     struct StateCrossChainStorage {
         mapping(uint256 id => mapping(uint256 state => uint256 replacedAt)) _idToStateReplacedAt;
         mapping(bytes2 idType => mapping(uint256 root => uint256 replacedAt)) _rootToGistRootReplacedAt;
         ICrossChainProofValidator _crossChainProofValidator;
+    }
+
+    // keccak256(abi.encode(uint256(keccak256("iden3.storage.StateCrossChain")) - 1))
+    //  & ~bytes32(uint256(0xff));
+    bytes32 private constant StateCrossChainStorageLocation =
+        0xfe6de916382846695d2555237dc6c0ef6555f4c949d4ba263e03532600778100;
+
+    function _getStateCrossChainStorage() private pure returns (StateCrossChainStorage storage $) {
+        assembly {
+            $.slot := StateCrossChainStorageLocation
+        }
     }
 
     using SmtLib for SmtLib.Data;
@@ -519,12 +525,6 @@ contract State is Ownable2StepUpgradeable, IState {
      */
     function setSupportedIdType(bytes2 idType, bool supported) public onlyOwner {
         _stateData.isIdTypeSupported[idType] = supported;
-    }
-
-    function _getStateCrossChainStorage() private pure returns (StateCrossChainStorage storage $) {
-        assembly {
-            $.slot := StateCrossChainStorageLocation
-        }
     }
 
     /**

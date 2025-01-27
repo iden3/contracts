@@ -34,6 +34,17 @@ abstract contract CredentialAtomicQueryValidatorBase is
     bytes32 private constant CredentialAtomicQueryValidatorBaseStorageLocation =
         0x28c92975a30f1f2f7970a65953987652034d896ba2d3b7a4961ada9e18287500;
 
+    /// @dev Get the main storage using assembly to ensure specific storage location
+    function _getCredentialAtomicQueryValidatorBaseStorage()
+        private
+        pure
+        returns (CredentialAtomicQueryValidatorBaseStorage storage $)
+    {
+        assembly {
+            $.slot := CredentialAtomicQueryValidatorBaseStorageLocation
+        }
+    }
+
     /**
      * @dev Returns the version of the contract
      * @return The version of the contract
@@ -145,17 +156,6 @@ abstract contract CredentialAtomicQueryValidatorBase is
         return
             interfaceId == type(IRequestValidator).interfaceId ||
             super.supportsInterface(interfaceId);
-    }
-
-    /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getCredentialAtomicQueryValidatorBaseStorage()
-        private
-        pure
-        returns (CredentialAtomicQueryValidatorBaseStorage storage $)
-    {
-        assembly {
-            $.slot := CredentialAtomicQueryValidatorBaseStorageLocation
-        }
     }
 
     function _initDefaultStateVariables(

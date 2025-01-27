@@ -100,6 +100,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     bytes32 internal constant VerifierStorageLocation =
         0x11369addde4aae8af30dcf56fa25ad3d864848d3201d1e9197f8b4da18a51a00;
 
+    function _getVerifierStorage() private pure returns (VerifierStorage storage $) {
+        assembly {
+            $.slot := VerifierStorageLocation
+        }
+    }
+
     bytes2 internal constant VerifierIdType = 0x01A1;
 
     /**
@@ -594,12 +600,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             address(this)
         );
         _setVerifierID(calculatedVerifierID);
-    }
-
-    function _getVerifierStorage() private pure returns (VerifierStorage storage $) {
-        assembly {
-            $.slot := VerifierStorageLocation
-        }
     }
 
     function _setVerifierID(uint256 verifierID) internal {

@@ -32,6 +32,17 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IAuthValidator, ERC165
     bytes32 private constant EthIdentityValidatorBaseStorageLocation =
         0x1816cff28d525c2e505742319020369d0e29e8fafd5168e127e29766cf2be1fb;
 
+    /// @dev Get the main storage using assembly to ensure specific storage location
+    function _getEthIdentityValidatorBaseStorage()
+        private
+        pure
+        returns (EthIdentityValidatorBaseStorage storage $)
+    {
+        assembly {
+            $.slot := EthIdentityValidatorBaseStorageLocation
+        }
+    }
+
     /**
      * @dev Initialize the contract
      * @param _stateContractAddr Address of the state contract
@@ -73,17 +84,6 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IAuthValidator, ERC165
 
     function _getState() internal view returns (IState) {
         return _getEthIdentityValidatorBaseStorage().state;
-    }
-
-    /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getEthIdentityValidatorBaseStorage()
-        private
-        pure
-        returns (EthIdentityValidatorBaseStorage storage $)
-    {
-        assembly {
-            $.slot := EthIdentityValidatorBaseStorageLocation
-        }
     }
 
     function _initDefaultStateVariables(address _stateContractAddr, address owner) internal {
