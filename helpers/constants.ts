@@ -260,7 +260,7 @@ export const contractsInfo = Object.freeze({
   VC_PAYMENT: {
     name: "VCPayment",
     version: "1.0.0",
-    unifiedAddress: "",
+    unifiedAddress: "0xba83D99c87358Ef9B6f7c4a5A94021A58d870704",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.VCPayment")),
     verificationOpts: {
       constructorArgsImplementation: [],
@@ -270,7 +270,7 @@ export const contractsInfo = Object.freeze({
   MC_PAYMENT: {
     name: "MCPayment",
     version: "1.0.0",
-    unifiedAddress: "",
+    unifiedAddress: "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.MCPayment")),
     verificationOpts: {
       constructorArgsImplementation: [],
