@@ -71,25 +71,10 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         mapping(string key => uint256 inputValue) storageFields;
         string validatorVersion;
         uint256 blockTimestamp;
-        // This empty reserved space is put in place to allow future versions
-        // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
         string[] keys;
         // introduce artificial shift + 1 to avoid 0 index
         mapping(string key => uint256 keyIndex) keyIndexes;
         uint256[44] __gap;
-    }
-
-    /**
-     * @dev Struct to store auth proof and associated data
-     */
-    struct AuthProof {
-        bool isVerified;
-        mapping(string key => uint256 inputValue) storageFields;
-        string validatorVersion;
-        uint256 blockTimestamp;
-        // This empty reserved space is put in place to allow future versions
-        // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-        uint256[45] __gap;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.Verifier")) -1 )) & ~bytes32(uint256(0xff));
