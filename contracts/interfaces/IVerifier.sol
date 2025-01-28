@@ -215,6 +215,16 @@ interface IVerifier {
     ) external view returns (uint256);
 
     /**
+     * @dev Gets proof storage response fields
+     * @param requestId Id of the request
+     * @param sender Address of the user
+     */
+    function getResponseFields(
+        uint256 requestId,
+        address sender
+    ) external view returns (IRequestValidator.ResponseField[] memory);
+
+    /**
      * @dev Checks if a proof from a request submitted for a given sender and request ID is verified
      * @param sender Sender of the proof.
      * @param requestId Request id of the Request to verify.

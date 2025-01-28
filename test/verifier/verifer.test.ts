@@ -284,6 +284,13 @@ describe("Verifer tests", function () {
         "someFieldName2",
       );
       expect(resonseField2).to.be.equal(2);
+
+      const responseFields = await verifier.getResponseFields(request.requestId, sender);
+      expect(responseFields.length).to.be.equal(2);
+      expect(responseFields[0].name).to.be.equal("someFieldName1");
+      expect(responseFields[0].value).to.be.equal(1);
+      expect(responseFields[1].name).to.be.equal("someFieldName2");
+      expect(responseFields[1].value).to.be.equal(2);
     });
 
     it("submitResponse: should throw if repeated responseFields from validator", async function () {

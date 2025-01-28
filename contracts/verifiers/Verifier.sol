@@ -430,6 +430,31 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     }
 
     /**
+     * @dev Gets proof storage response fields
+     * @param requestId Id of the request
+     * @param sender Address of the user
+     */
+    function getResponseFields(
+        uint256 requestId,
+        address sender
+    ) public view returns (IRequestValidator.ResponseField[] memory) {
+        VerifierStorage storage s = _getVerifierStorage();
+        Proof storage proof = s._proofs[requestId][sender];
+
+        IRequestValidator.ResponseField[]
+            memory responseFields = new IRequestValidator.ResponseField[](proof.keys.length);
+
+        for (uint256 i = 0; i < proof.keys.length; i++) {
+            responseFields[i] = IRequestValidator.ResponseField({
+                name: proof.keys[i],
+                value: proof.storageFields[proof.keys[i]]
+            });
+        }
+
+        return responseFields;
+    }
+
+    /**
      * @dev Gets the status of the multiRequest verification
      * @param multiRequestId The ID of the multiRequest
      * @param userAddress The address of the user
