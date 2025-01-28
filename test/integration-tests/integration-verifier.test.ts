@@ -109,7 +109,7 @@ describe("Verifier Integration test", function () {
     await verifier.initialize(await state.getAddress());
 
     const { validator: authValidator } =
-      await deployHelper.deployValidatorContractsWithVerifiers("authV2_forAuth");
+      await deployHelper.deployValidatorContractsWithVerifiers("authV2");
     await authValidator.setProofExpirationTimeout(TEN_YEARS);
     await authValidator.setGISTRootExpirationTimeout(TEN_YEARS);
 

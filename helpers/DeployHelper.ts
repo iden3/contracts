@@ -28,7 +28,7 @@ import { LinkedMultiQueryProxyModule } from "../ignition/modules/linkedMultiQuer
 const SMT_MAX_DEPTH = 64;
 
 export type Groth16VerifierType = "mtpV2" | "sigV2" | "v3" | "authV2" | "lmk10";
-export type ValidatorType = "mtpV2" | "sigV2" | "v3" | "authV2" | "authV2_forAuth" | "lmk";
+export type ValidatorType = "mtpV2" | "sigV2" | "v3" | "authV2" | "lmk";
 
 export class DeployHelper {
   constructor(
@@ -523,9 +523,6 @@ export class DeployHelper {
       case "authV2":
         groth16VerifierType = "authV2";
         break;
-      case "authV2_forAuth":
-        groth16VerifierType = "authV2";
-        break;
       case "lmk":
         groth16VerifierType = "lmk10";
         break;
@@ -667,9 +664,6 @@ export class DeployHelper {
       case "authV2":
         validatorContractName = "AuthV2Validator";
         break;
-      case "authV2_forAuth":
-        validatorContractName = "AuthV2Validator_forAuth";
-        break;
       case "lmk":
         validatorContractName = "LinkedMultiQueryValidator";
     }
@@ -691,9 +685,6 @@ export class DeployHelper {
           break;
         case "authV2":
           validatorModule = AuthV2ValidatorProxyModule;
-          break;
-        case "authV2_forAuth":
-          validatorModule = AuthV2ValidatorForAuthProxyModule;
           break;
         case "lmk":
           validatorModule = LinkedMultiQueryProxyModule;

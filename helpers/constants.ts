@@ -225,22 +225,6 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
-  VALIDATOR_AUTH_V2_FOR_AUTH: {
-    name: "AuthV2Validator_forAuth",
-    version: "1.0.0",
-    unifiedAddress: "0x0aea4Cf26A895B0e31bca5DA49a06de85fEc73dA",
-    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.AuthV2Validator_forAuth")),
-    verificationOpts: {
-      constructorArgsImplementation: [],
-      constructorArgsProxy: [
-        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
-        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
-        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
-      ],
-      constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
-      libraries: {},
-    },
-  },
   IDENTITY_TREE_STORE: {
     name: "IdentityTreeStore",
     version: "1.1.0",

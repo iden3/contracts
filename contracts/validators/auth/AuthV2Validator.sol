@@ -14,9 +14,9 @@ error GistRootIsExpired();
 error ChallengeIsInvalid();
 
 /**
- * @dev AuthV2Validator validator
+ * @dev AuthV2 validator for auth
  */
-contract AuthV2Validator_forAuth is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
+contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
     struct PubSignals {
         uint256 userID;
         uint256 challenge;

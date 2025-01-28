@@ -48,7 +48,7 @@ describe("Auth V2 Validator", function () {
     const verifierStub = await deployHelper.deployGroth16VerifierValidatorStub();
 
     const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
-      "authV2_forAuth",
+      "authV2",
       "basic",
       await verifierStub.getAddress(),
     );
@@ -138,6 +138,6 @@ describe("Auth V2 Validator", function () {
 
   it("check version", async () => {
     const version = await authV2validator.version();
-    expect(version).to.be.equal(contractsInfo.VALIDATOR_AUTH_V2_FOR_AUTH.version);
+    expect(version).to.be.equal(contractsInfo.VALIDATOR_AUTH_V2.version);
   });
 });
