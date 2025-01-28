@@ -22,6 +22,10 @@ abstract contract CredentialAtomicQueryValidatorBase is
     struct CredentialAtomicQueryValidatorBaseStorage {
         mapping(string => IGroth16Verifier) _circuitIdToVerifier;
         string[] _supportedCircuitIds;
+        // This empty reserved space is put in place for compatibility with previous versions that
+        // had different storage layout with IState state variable in this slot that it's not used
+        // and we have removed it.
+        // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
         uint256[1] __gap;
         uint256 revocationStateExpirationTimeout;
         uint256 proofExpirationTimeout;

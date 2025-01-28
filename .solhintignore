@@ -7,6 +7,6 @@
 **/lib/VerifierStateTransition.sol
 **/lib/VerifierV3.sol
 **/lib/VerifierV3Wrapper.sol
-**/lib/groth16-verifiers/Groth16Verifier*.sol
+**/lib/groth16-verifiers
 **/node_modules
 
