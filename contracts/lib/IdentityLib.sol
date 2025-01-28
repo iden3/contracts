@@ -6,6 +6,12 @@ import {SmtLib} from "../lib/SmtLib.sol";
 import {PoseidonUnit3L, PoseidonUnit4L} from "../lib/Poseidon.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
+error SMTDepthIsGreaterThanMaxAllowed();
+error IdTypeNotSupported();
+error IdentityTreesHaventChanged();
+error RootsForThisStateDoesntExist();
+error RootsForThisStateAlreadyExist();
+
 // /**
 //  * @dev Contract managing onchain identity
 //  */
@@ -81,9 +87,13 @@ library IdentityLib {
         uint256 depth,
         bytes2 idType
     ) external {
-        require(depth <= IDENTITY_MAX_SMT_DEPTH, "SMT depth is greater than max allowed depth");
+        if (depth > IDENTITY_MAX_SMT_DEPTH) {
+            revert SMTDepthIsGreaterThanMaxAllowed();
+        }
         self.stateContract = IState(_stateContractAddr);
-        require(self.stateContract.isIdTypeSupported(idType), "id type is not supported");
+        if (!self.stateContract.isIdTypeSupported(idType)) {
+            revert IdTypeNotSupported();
+        }
         self.isOldStateGenesis = true;
         self.trees.claimsTree.initialize(depth);
         self.trees.revocationsTree.initialize(depth);
@@ -133,12 +143,13 @@ library IdentityLib {
         uint256 currentRevocationsTreeRoot = self.trees.revocationsTree.getRoot();
         uint256 currentRootsTreeRoot = self.trees.rootsTree.getRoot();
 
-        require(
-            (self.latestPublishedTreeRoots.claimsRoot != currentClaimsTreeRoot) ||
-                (self.latestPublishedTreeRoots.revocationsRoot != currentRevocationsTreeRoot) ||
-                (self.latestPublishedTreeRoots.rootsRoot != currentRootsTreeRoot),
-            "Identity trees haven't changed"
-        );
+        if (
+            (self.latestPublishedTreeRoots.claimsRoot == currentClaimsTreeRoot) &&
+            (self.latestPublishedTreeRoots.revocationsRoot == currentRevocationsTreeRoot) &&
+            (self.latestPublishedTreeRoots.rootsRoot == currentRootsTreeRoot)
+        ) {
+            revert IdentityTreesHaventChanged();
+        }
 
         // if claimsTreeRoot changed, then add it to rootsTree
         if (self.latestPublishedTreeRoots.claimsRoot != currentClaimsTreeRoot) {
@@ -394,12 +405,13 @@ library IdentityLib {
         Data storage self,
         uint256 state
     ) external view returns (Roots memory) {
-        require(
-            self.rootsByState[state].claimsRoot != 0 ||
-                self.rootsByState[state].revocationsRoot != 0 ||
-                self.rootsByState[state].rootsRoot != 0,
-            "Roots for this state doesn't exist"
-        );
+        if (
+            self.rootsByState[state].claimsRoot == 0 &&
+            self.rootsByState[state].revocationsRoot == 0 &&
+            self.rootsByState[state].rootsRoot == 0
+        ) {
+            revert RootsForThisStateDoesntExist();
+        }
         return self.rootsByState[state];
     }
 
@@ -410,12 +422,13 @@ library IdentityLib {
      * @param roots set of roots
      */
     function writeHistory(Data storage self, uint256 state, Roots memory roots) internal {
-        require(
-            self.rootsByState[state].claimsRoot == 0 &&
-                self.rootsByState[state].revocationsRoot == 0 &&
-                self.rootsByState[state].rootsRoot == 0,
-            "Roots for this state already exist"
-        );
+        if (
+            self.rootsByState[state].claimsRoot != 0 ||
+            self.rootsByState[state].revocationsRoot != 0 ||
+            self.rootsByState[state].rootsRoot != 0
+        ) {
+            revert RootsForThisStateAlreadyExist();
+        }
         self.rootsByState[state] = roots;
     }
 }

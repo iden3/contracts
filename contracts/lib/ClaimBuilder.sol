@@ -3,6 +3,15 @@ pragma solidity 0.8.27;
 
 import {PrimitiveTypeUtils} from "../lib/PrimitiveTypeUtils.sol";
 
+error IdShouldBeEmpty();
+error IdShouldBeNotEmpty();
+error InvalidIdPosition();
+error RevocationNonceShouldBeZeroForNonExpirableClaim();
+error ExpirationDateShouldBeZeroForNonExpirableClaim();
+error VersionShouldBeZeroForNonUpdatableClaim();
+error DataSlotsShouldBeEmpty();
+error MerklizedRootShouldBeZeroForNonMerklizedClaim();
+
 library ClaimBuilder {
     // ID_POSITION_NONE means ID value not located in claim.
     uint8 public constant ID_POSITION_NONE = 0;
@@ -50,6 +59,8 @@ library ClaimBuilder {
         uint256 valueDataSlotB;
     }
 
+    /* solhint-disable code-complexity */
+
     // RULE: each uint we convert to bytes has to be reversed (in go Little ending, solidity - big ending).
     //
     // Final result reverted bytes to get valid uint256
@@ -72,56 +83,64 @@ library ClaimBuilder {
 
         // ID
         if (c.idPosition == ID_POSITION_NONE) {
-            require(c.id == 0, "id should be empty");
+            if (c.id != 0) {
+                revert IdShouldBeEmpty();
+            }
         } else if (c.idPosition == ID_POSITION_INDEX) {
-            require(c.id != 0, "id should be not empty");
+            if (c.id == 0) {
+                revert IdShouldBeNotEmpty();
+            }
             flags |= SUBJECT_FLAG_OTHER_IDEN_INDEX;
             claim[1] = c.id;
         } else if (c.idPosition == ID_POSITION_VALUE) {
-            require(c.id != 0, "id should be not empty");
+            if (c.id == 0) {
+                revert IdShouldBeNotEmpty();
+            }
             flags |= SUBJECT_FLAG_OTHER_IDEN_VALUE;
             claim[5] = c.id;
         } else {
-            require(false, "invalid id position");
+            revert InvalidIdPosition();
         }
 
         // Expirable
         if (c.expirable) {
             flags |= EXPIRABLE_FLAG_YES;
-        } else {
-            require(c.expirationDate == 0, "expirationDate should be 0 for non expirable claim");
+        } else if (c.expirationDate != 0) {
+            revert ExpirationDateShouldBeZeroForNonExpirableClaim();
         }
 
         // Updatable
         if (c.updatable) {
             flags |= UPDATABLE_FLAG_YES;
-        } else {
-            require(c.version == 0, "version should be 0 for non updatable claim");
+        } else if (c.version != 0) {
+            revert VersionShouldBeZeroForNonUpdatableClaim();
         }
 
         // Merklized Root
         if (c.merklizedRootPosition == MERKLIZED_ROOT_POSITION_INDEX) {
-            require(
-                c.indexDataSlotA == 0 &&
-                    c.indexDataSlotB == 0 &&
-                    c.valueDataSlotA == 0 &&
-                    c.indexDataSlotB == 0,
-                "data slots should be empty"
-            );
+            if (
+                c.indexDataSlotA != 0 ||
+                c.indexDataSlotB != 0 ||
+                c.valueDataSlotA != 0 ||
+                c.valueDataSlotB != 0
+            ) {
+                revert DataSlotsShouldBeEmpty();
+            }
             flags |= MERKLIZED_FLAG_INDEX;
             claim[2] = c.merklizedRoot;
         } else if (c.merklizedRootPosition == MERKLIZED_ROOT_POSITION_VALUE) {
-            require(
-                c.indexDataSlotA == 0 &&
-                    c.indexDataSlotB == 0 &&
-                    c.valueDataSlotA == 0 &&
-                    c.indexDataSlotB == 0,
-                "data slots should be empty"
-            );
+            if (
+                c.indexDataSlotA != 0 ||
+                c.indexDataSlotB != 0 ||
+                c.valueDataSlotA != 0 ||
+                c.valueDataSlotB != 0
+            ) {
+                revert DataSlotsShouldBeEmpty();
+            }
             flags |= MERKLIZED_FLAG_VALUE;
             claim[6] = c.merklizedRoot;
-        } else {
-            require(c.merklizedRoot == 0, "merklizedRoot should be 0 for non merklized claim");
+        } else if (c.merklizedRoot != 0) {
+            revert MerklizedRootShouldBeZeroForNonMerklizedClaim();
         }
 
         bytes memory claim0 = PrimitiveTypeUtils.concat(
@@ -153,4 +172,5 @@ library ClaimBuilder {
 
         return claim;
     }
+    /* solhint-enable code-complexity */
 }

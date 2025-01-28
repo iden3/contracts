@@ -31,6 +31,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.CredentialAtomicQueryValidator")) - 1))
     //  & ~bytes32(uint256(0xff));
+    // solhint-disable-next-line const-name-snakecase
     bytes32 private constant CredentialAtomicQueryValidatorBaseStorageLocation =
         0x28c92975a30f1f2f7970a65953987652034d896ba2d3b7a4961ada9e18287500;
 
@@ -40,6 +41,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         pure
         returns (CredentialAtomicQueryValidatorBaseStorage storage $)
     {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             $.slot := CredentialAtomicQueryValidatorBaseStorageLocation
         }

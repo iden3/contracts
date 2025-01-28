@@ -32,6 +32,7 @@ contract AuthValidatorStub is IAuthValidator, ERC165 {
         return userID;
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function stub_setVerifyResults(uint256 _userID) external {
         userID = _userID;
     }

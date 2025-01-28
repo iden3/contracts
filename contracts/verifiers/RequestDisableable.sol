@@ -13,10 +13,12 @@ contract RequestDisableable is Verifier {
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.RequestDisableable")) - 1)) & ~bytes32(uint256(0xff));
+    // solhint-disable-next-line const-name-snakecase
     bytes32 private constant RequestDisableStorageLocation =
         0x70325635d67d74932012fa921ccb2f335d3b1d69e3a487f50d001cc65f531600;
 
     function _getRequestDisableStorage() private pure returns (RequestDisableStorage storage $) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             $.slot := RequestDisableStorageLocation
         }

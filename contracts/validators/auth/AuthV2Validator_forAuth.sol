@@ -44,11 +44,13 @@ contract AuthV2Validator_forAuth is Ownable2StepUpgradeable, IAuthValidator, ERC
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.AuthV2Validator")) - 1))
     //  & ~bytes32(uint256(0xff));
+    // solhint-disable-next-line const-name-snakecase
     bytes32 private constant AuthV2ValidatorStorageLocation =
         0x5212d71c1540b1d75013e45246a2b44f2ee9363a102ea02fac1792932b691600;
 
     /// @dev Get the main storage using assembly to ensure specific storage location
     function _getAuthV2ValidatorStorage() private pure returns (AuthV2ValidatorStorage storage $) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             $.slot := AuthV2ValidatorStorageLocation
         }

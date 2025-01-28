@@ -29,6 +29,7 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IAuthValidator, ERC165
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.EthIdentityValidator")) - 1))
     //  & ~bytes32(uint256(0xff));
+    // solhint-disable-next-line const-name-snakecase
     bytes32 private constant EthIdentityValidatorBaseStorageLocation =
         0x1816cff28d525c2e505742319020369d0e29e8fafd5168e127e29766cf2be1fb;
 
@@ -38,6 +39,7 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IAuthValidator, ERC165
         pure
         returns (EthIdentityValidatorBaseStorage storage $)
     {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             $.slot := EthIdentityValidatorBaseStorageLocation
         }

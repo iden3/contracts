@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.27;
 
+error LenghtShouldBeGreaterThanZero();
+error LengthLimitExceeded();
+error StartIndexOutOfBounds();
+
 /// @title A common functions for arrays.
 library ArrayUtils {
     /**
@@ -17,9 +21,15 @@ library ArrayUtils {
         uint256 length,
         uint256 limit
     ) internal pure returns (uint256, uint256) {
-        require(length > 0, "Length should be greater than 0");
-        require(length <= limit, "Length limit exceeded");
-        require(start < arrLength, "Start index out of bounds");
+        if (length == 0) {
+            revert LenghtShouldBeGreaterThanZero();
+        }
+        if (length > limit) {
+            revert LengthLimitExceeded();
+        }
+        if (start >= arrLength) {
+            revert StartIndexOutOfBounds();
+        }
 
         uint256 end = start + length;
         if (end > arrLength) {

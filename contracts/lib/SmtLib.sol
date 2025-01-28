@@ -4,6 +4,18 @@ pragma solidity 0.8.27;
 import {PoseidonUnit2L, PoseidonUnit3L} from "./Poseidon.sol";
 import {ArrayUtils} from "./ArrayUtils.sol";
 
+error RootDoesNotExist();
+error InvalidNodeType();
+error NoFutureTimestampsAllowed();
+error NoFutureBlocksAllowed();
+error MaxDepthMustBeGreaterThanZero();
+error MaxDepthCanOnlyBeIncreased();
+error MaxDepthIsGreaterThanHardCap();
+error SmtAlreadyInitialized();
+error SmtNotInitialized();
+error MaxDepthReached();
+error InvalidSearchType();
+
 /// @title A sparse merkle tree implementation, which keeps tree history.
 // Note that this SMT implementation can manage duplicated roots in the history,
 // which may happen when some leaf change its value and then changes it back to the original value.
@@ -132,7 +144,9 @@ library SmtLib {
      * @param root SMT root.
      */
     modifier onlyExistingRoot(Data storage self, uint256 root) {
-        require(rootExists(self, root), "Root does not exist");
+        if (!rootExists(self, root)) {
+            revert RootDoesNotExist();
+        }
         _;
     }
 
@@ -264,7 +278,7 @@ library SmtLib {
                     proof.siblings[i] = node.childRight;
                 }
             } else {
-                revert("Invalid node type");
+                revert InvalidNodeType();
             }
         }
         return proof;
@@ -313,7 +327,9 @@ library SmtLib {
         Data storage self,
         uint256 timestamp
     ) public view returns (RootEntryInfo memory) {
-        require(timestamp <= block.timestamp, "No future timestamps allowed");
+        if (timestamp > block.timestamp) {
+            revert NoFutureTimestampsAllowed();
+        }
 
         return
             _getRootInfoByTimestampOrBlock(
@@ -332,7 +348,9 @@ library SmtLib {
         Data storage self,
         uint256 blockN
     ) public view returns (RootEntryInfo memory) {
-        require(blockN <= block.number, "No future blocks allowed");
+        if (blockN > block.number) {
+            revert NoFutureBlocksAllowed();
+        }
 
         return _getRootInfoByTimestampOrBlock(self, blockN, BinarySearchSmtRoots.SearchType.BLOCK);
     }
@@ -408,9 +426,15 @@ library SmtLib {
      * @param maxDepth max depth
      */
     function setMaxDepth(Data storage self, uint256 maxDepth) public {
-        require(maxDepth > 0, "Max depth must be greater than zero");
-        require(maxDepth > self.maxDepth, "Max depth can only be increased");
-        require(maxDepth <= MAX_DEPTH_HARD_CAP, "Max depth is greater than hard cap");
+        if (maxDepth == 0) {
+            revert MaxDepthMustBeGreaterThanZero();
+        }
+        if (maxDepth <= self.maxDepth) {
+            revert MaxDepthCanOnlyBeIncreased();
+        }
+        if (maxDepth > MAX_DEPTH_HARD_CAP) {
+            revert MaxDepthIsGreaterThanHardCap();
+        }
         self.maxDepth = maxDepth;
     }
 
@@ -427,14 +451,18 @@ library SmtLib {
      * @param maxDepth Max depth of the SMT.
      */
     function initialize(Data storage self, uint256 maxDepth) external {
-        require(!isInitialized(self), "Smt is already initialized");
+        if (isInitialized(self)) {
+            revert SmtAlreadyInitialized();
+        }
         setMaxDepth(self, maxDepth);
         _addEntry(self, 0, 0, 0);
         self.initialized = true;
     }
 
     modifier onlyInitialized(Data storage self) {
-        require(isInitialized(self), "Smt is not initialized");
+        if (!isInitialized(self)) {
+            revert SmtNotInitialized();
+        }
         _;
     }
 
@@ -449,7 +477,7 @@ library SmtLib {
         uint256 depth
     ) internal returns (uint256) {
         if (depth > self.maxDepth) {
-            revert("Max depth reached");
+            revert MaxDepthReached();
         }
 
         Node memory node = self.nodes[nodeHash];
@@ -502,7 +530,7 @@ library SmtLib {
         // no reason to continue if we are at max possible depth
         // as, anyway, we exceed the depth going down the tree
         if (depth >= self.maxDepth) {
-            revert("Max depth reached");
+            revert MaxDepthReached();
         }
 
         Node memory newNodeMiddle;
@@ -696,7 +724,7 @@ library BinarySearchSmtRoots {
         } else if (st == SearchType.TIMESTAMP) {
             return rti.createdAtTimestamp;
         } else {
-            revert("Invalid search type");
+            revert InvalidSearchType();
         }
     }
 }

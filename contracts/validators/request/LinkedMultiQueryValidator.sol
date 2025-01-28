@@ -36,6 +36,7 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.LinkedMultiQueryValidator")) - 1))
     //  & ~bytes32(uint256(0xff));
+    // solhint-disable-next-line const-name-snakecase
     bytes32 private constant LinkedMultiQueryValidatorStorageLocation =
         0x85875fc21d0742149175681df1689e48bce1484a73b475e15e5042650a2d7800;
 
@@ -45,6 +46,7 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
         pure
         returns (LinkedMultiQueryValidatorStorage storage $)
     {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             $.slot := LinkedMultiQueryValidatorStorageLocation
         }

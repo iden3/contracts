@@ -34,6 +34,7 @@ contract RequestValidatorStub is IRequestValidator, ERC165 {
         return responseFields;
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function stub_setVerifyResults(
         IRequestValidator.ResponseField[] calldata _responseFields
     ) external {
@@ -49,6 +50,7 @@ contract RequestValidatorStub is IRequestValidator, ERC165 {
         return requestParams[keccak256(params)];
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function stub_setRequestParams(
         bytes[] calldata _params,
         IRequestValidator.RequestParams[] calldata _requestParams

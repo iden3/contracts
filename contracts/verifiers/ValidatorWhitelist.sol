@@ -16,6 +16,7 @@ contract ValidatorWhitelist is Verifier {
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.ValidatorWhitelist")) - 1)) & ~bytes32(uint256(0xff));
+    // solhint-disable-next-line const-name-snakecase
     bytes32 private constant ValidatorWhitelistStorageLocation =
         0x76aa24e3538905838cc74060b2aa4c054b1e474aacf44741879e1850715e9300;
 
@@ -24,6 +25,7 @@ contract ValidatorWhitelist is Verifier {
         pure
         returns (ValidatorWhitelistStorage storage $)
     {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             $.slot := ValidatorWhitelistStorageLocation
         }

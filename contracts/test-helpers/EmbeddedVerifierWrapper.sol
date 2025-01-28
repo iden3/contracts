@@ -3,8 +3,6 @@ pragma solidity 0.8.27;
 
 import {EmbeddedVerifier} from "../verifiers/EmbeddedVerifier.sol";
 import {IState} from "../interfaces/IState.sol";
-import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
-import {IVerifier} from "../interfaces/IVerifier.sol";
 
 contract EmbeddedVerifierWrapper is EmbeddedVerifier {
     event BeforeProofSubmit(AuthResponse authResponse, Response[] responses);

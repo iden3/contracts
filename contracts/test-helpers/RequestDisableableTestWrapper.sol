@@ -18,7 +18,9 @@ contract RequestDisableableTestWrapper is RequestDisableable {
         _enableRequest(requestId);
     }
 
+    /* solhint-disable no-empty-blocks */
     function testModifier(uint256 requestId) public view onlyEnabledRequest(requestId) {}
+    /* solhint-enable no-empty-blocks */
 
     function getRequestIfCanBeVerified(
         uint256 requestId

@@ -2,7 +2,6 @@
 pragma solidity 0.8.27;
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import {IVerifier} from "../interfaces/IVerifier.sol";
 import {Verifier} from "./Verifier.sol";
 import {IState} from "../interfaces/IState.sol";
 
@@ -33,12 +32,15 @@ abstract contract EmbeddedVerifier is Ownable2StepUpgradeable, Verifier {
     /**
      * @dev Sets the value for Owner
      */
+    // solhint-disable-next-line func-name-mixedcase
     function __EmbeddedVerifier_init(address initialOwner, IState state) internal onlyInitializing {
         __Ownable_init(initialOwner);
         ___EmbeddedVerifier_init_unchained(initialOwner);
         __Verifier_init(state);
     }
 
+    /* solhint-disable no-empty-blocks */
+    // solhint-disable-next-line func-name-mixedcase
     function ___EmbeddedVerifier_init_unchained(address initialOwner) internal onlyInitializing {}
 
     /**
@@ -60,4 +62,5 @@ abstract contract EmbeddedVerifier is Ownable2StepUpgradeable, Verifier {
         AuthResponse memory authResponse,
         Response[] memory responses
     ) internal virtual {}
+    /* solhint-enable no-empty-blocks */
 }

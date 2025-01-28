@@ -3,12 +3,15 @@ pragma solidity 0.8.27;
 
 import {BytesLib} from "solidity-bytes-utils/contracts/BytesLib.sol";
 
+error GivenInputNotAnAddressRepresentation(uint256 input);
+
 library PrimitiveTypeUtils {
     /**
      * @dev uint256ToBytes
      */
     function uint256ToBytes(uint256 x) internal pure returns (bytes memory b) {
         b = new bytes(32);
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             mstore(add(b, 32), x)
         }
@@ -90,6 +93,7 @@ library PrimitiveTypeUtils {
      * @dev bytesToAddress
      */
     function bytesToAddress(bytes memory bys) internal pure returns (address addr) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             addr := mload(add(bys, 20))
         }
@@ -135,10 +139,9 @@ library PrimitiveTypeUtils {
      * @return address representation of uint256 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
      */
     function uint256ToAddress(uint256 input) internal pure returns (address) {
-        require(
-            input == uint256(uint160(input)),
-            "given input is not a representation of address, 12 most significant bytes should be zero"
-        );
+        if (input != uint256(uint160(input))) {
+            revert GivenInputNotAnAddressRepresentation(input);
+        }
         return address(uint160(input));
     }
 
@@ -166,10 +169,9 @@ library PrimitiveTypeUtils {
      * @return address - 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
      */
     function uint256LEToAddress(uint256 input) internal pure returns (address) {
-        require(
-            input == uint256(uint160(input)),
-            "given uint256 is not a representation of an address, 12 most significant bytes should be zero"
-        );
+        if (input != uint256(uint160(input))) {
+            revert GivenInputNotAnAddressRepresentation(input);
+        }
         return bytesToAddress(uint256ToBytes(reverseUint256(input)));
     }
 

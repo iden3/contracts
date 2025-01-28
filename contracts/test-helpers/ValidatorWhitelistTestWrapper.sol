@@ -19,9 +19,11 @@ contract ValidatorWhitelistTestWrapper is ValidatorWhitelist {
         _removeValidatorFromWhitelist(validator);
     }
 
+    /* solhint-disable no-empty-blocks */
     function testModifier(
         IRequestValidator validator
     ) public view onlyWhitelistedValidator(validator) {}
+    /* solhint-enable no-empty-blocks */
 
     function getRequestIfCanBeVerified(
         uint256 requestId

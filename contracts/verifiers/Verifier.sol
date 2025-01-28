@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.27;
 
-import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
 import {IAuthValidator} from "../interfaces/IAuthValidator.sol";
@@ -35,7 +34,7 @@ error VerifierIDIsNotValid(uint256 requestVerifierID, uint256 expectedVerifierID
 
 abstract contract Verifier is IVerifier, ContextUpgradeable {
     /// @dev Key to retrieve the linkID from the proof storage
-    string constant LINKED_PROOF_KEY = "linkID";
+    string private constant LINKED_PROOF_KEY = "linkID";
 
     struct AuthTypeData {
         IAuthValidator validator;
@@ -71,8 +70,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         bool isVerified;
         mapping(string key => uint256 inputValue) storageFields;
         string validatorVersion;
-        // TODO: discuss if we need this field
-        // uint256 blockNumber;
         uint256 blockTimestamp;
         // This empty reserved space is put in place to allow future versions
         // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
@@ -95,18 +92,19 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         uint256[45] __gap;
     }
 
-    // solhint-disable-next-line
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.Verifier")) -1 )) & ~bytes32(uint256(0xff));
+    // solhint-disable-next-line const-name-snakecase
     bytes32 internal constant VerifierStorageLocation =
         0x11369addde4aae8af30dcf56fa25ad3d864848d3201d1e9197f8b4da18a51a00;
 
     function _getVerifierStorage() private pure returns (VerifierStorage storage $) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             $.slot := VerifierStorageLocation
         }
     }
 
-    bytes2 internal constant VerifierIdType = 0x01A1;
+    bytes2 internal constant VERIFIER_ID_TYPE = 0x01A1;
 
     /**
      * @dev Modifier to check if the request exists
@@ -588,15 +586,17 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         _getVerifierStorage()._state = state;
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function __Verifier_init(IState state) internal onlyInitializing {
         __Verifier_init_unchained(state);
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function __Verifier_init_unchained(IState state) internal onlyInitializing {
         _setState(state);
         // initial calculation of verifierID from contract address and verifier id type defined
         uint256 calculatedVerifierID = GenesisUtils.calcIdFromEthAddress(
-            VerifierIdType,
+            VERIFIER_ID_TYPE,
             address(this)
         );
         _setVerifierID(calculatedVerifierID);

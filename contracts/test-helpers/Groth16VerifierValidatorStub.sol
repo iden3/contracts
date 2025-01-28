@@ -19,6 +19,7 @@ contract Groth16VerifierValidatorStub is IGroth16Verifier {
         return verifyResult;
     }
 
+    // solhint-disable-next-line func-name-mixedcase
     function stub_setVerifyResult(bool result) external {
         verifyResult = result;
     }

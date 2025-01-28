@@ -3,12 +3,15 @@ pragma solidity 0.8.27;
 
 import {PrimitiveTypeUtils} from "./PrimitiveTypeUtils.sol";
 
+error ChecksumLengthRequired(uint256 length);
+error IdBytesLengthRequired(uint256 length);
+
 library GenesisUtils {
     /**
      *   @dev sum
      */
     function sum(bytes memory array) internal pure returns (uint16 s) {
-        require(array.length == 29, "Checksum requires 29 length array");
+        if (array.length != 29) revert ChecksumLengthRequired(29);
 
         for (uint256 i = 0; i < array.length; ++i) {
             s += uint16(uint8(array[i]));
@@ -49,7 +52,7 @@ library GenesisUtils {
         bytes memory checkSumBytes = abi.encodePacked(checksum);
 
         bytes memory idBytes = PrimitiveTypeUtils.concat(beforeChecksum, checkSumBytes);
-        require(idBytes.length == 31, "idBytes requires 31 length array");
+        if (idBytes.length != 31) revert IdBytesLengthRequired(31);
 
         return PrimitiveTypeUtils.reverseUint256(PrimitiveTypeUtils.padRightToUint256(idBytes));
     }
