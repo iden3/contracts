@@ -3,6 +3,7 @@ import path from "path";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import hre, { ethers } from "hardhat";
 import {
+  getChainId,
   getConfig,
   getStateContractAddress,
   Logger,
@@ -14,9 +15,9 @@ import { contractsInfo } from "../../helpers/constants";
 
 async function main() {
   const config = getConfig();
-  const chainId = parseInt(await hre.network.provider.send("eth_chainId"), 16);
+  const chainId = await getChainId();
 
-  const stateContractAddress = getStateContractAddress();
+  const stateContractAddress = await getStateContractAddress();
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
   const [signer] = await ethers.getSigners();

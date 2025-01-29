@@ -6,16 +6,17 @@ import {
   setZKPRequest_KYCAgeCredential,
   submitZKPResponses_KYCAgeCredential,
 } from "./helpers/testVerifier";
-import { getStateContractAddress } from "../../../helpers/helperUtils";
+import { getChainId, getStateContractAddress } from "../../../helpers/helperUtils";
 import { contractsInfo } from "../../../helpers/constants";
 import fs from "fs";
 import path from "path";
 
-const chainId = hre.network.config.chainId;
-const network = hre.network.name;
 const forceImport = false;
 
 async function main() {
+  const chainId = await getChainId();
+  const network = hre.network.name;
+
   // EmbeddedZKPVerifer is abstract contract
   // In real upgrade, you should use THE NAME as THE ADDRESS
   // of your custom contract, which inherits EmbeddedZKPVerifer

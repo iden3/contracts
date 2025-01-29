@@ -39,6 +39,7 @@ import {
 import { ProofData } from "@iden3/js-jwz";
 import { packCrossChainProofs, packZKProof } from "../../../../test/utils/packData";
 import { Groth16VerifierType } from "../../../../helpers/DeployHelper";
+import { getChainId } from "../../../../helpers/helperUtils";
 
 const rhsUrl = "https://rhs-staging.polygonid.me";
 
@@ -245,7 +246,7 @@ export async function submitZKPResponses_KYCAgeCredential(
     chainId = Number((await opts.provider.getNetwork()).chainId);
     networkName = (await opts.provider.getNetwork()).name;
   } else {
-    chainId = hre.network.config.chainId || 80002;
+    chainId = (await getChainId()) || 80002;
     networkName = hre.network.name;
   }
 
@@ -504,7 +505,7 @@ export async function setZKPRequest_KYCAgeCredential(
       chainId = Number((await provider.getNetwork()).chainId);
       network = (await provider.getNetwork()).name;
     } else {
-      chainId = hre.network.config.chainId || 80002;
+      chainId = (await getChainId()) || 80002;
       network = hre.network.name;
     }
 

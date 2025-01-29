@@ -1,5 +1,5 @@
 import hre, { ethers } from "hardhat";
-import { getConfig, Logger } from "../../helpers/helperUtils";
+import { getChainId, getConfig, Logger } from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
 import path from "path";
 import fs from "fs";
@@ -11,21 +11,29 @@ async function main() {
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
 
-  const chainId = parseInt(await hre.network.provider.send("eth_chainId"), 16);
+  const chainId = await getChainId();
   const networkName = hre.network.name;
-  let universalVerifierAddr, validatorMTPAddr, validatorSigAddr, validatorV3Addr, validatorAuthV2Addr;
+  let universalVerifierAddr,
+    validatorMTPAddr,
+    validatorSigAddr,
+    validatorV3Addr,
+    validatorAuthV2Addr;
 
   if (deployStrategy === "basic") {
-    const uvDeployOutput = fs.readFileSync(path.join(
-      __dirname,
-      `../deployments_output/deploy_universal_verifier_output_${chainId}_${networkName}.json`,
-    ));
+    const uvDeployOutput = fs.readFileSync(
+      path.join(
+        __dirname,
+        `../deployments_output/deploy_universal_verifier_output_${chainId}_${networkName}.json`,
+      ),
+    );
     ({ universalVerifier: universalVerifierAddr } = JSON.parse(uvDeployOutput.toString()));
 
-    const validatorsDeployOutput = fs.readFileSync(path.join(
-      __dirname,
-      `../deployments_output/deploy_validators_output_${chainId}_${networkName}.json`,
-    ));
+    const validatorsDeployOutput = fs.readFileSync(
+      path.join(
+        __dirname,
+        `../deployments_output/deploy_validators_output_${chainId}_${networkName}.json`,
+      ),
+    );
     const { validatorsInfo } = JSON.parse(validatorsDeployOutput.toString());
     for (const v of validatorsInfo) {
       if (v.validatorType === "mtpV2") {

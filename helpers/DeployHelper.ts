@@ -16,6 +16,7 @@ import {
 } from "../ignition";
 import { chainIdInfoMap, contractsInfo } from "./constants";
 import {
+  getChainId,
   getUnifiedContract,
   Logger,
   TempContractDeployments,
@@ -525,7 +526,7 @@ export class DeployHelper {
     domainName = "StateInfo",
     signatureVersion = "1",
   ): Promise<Contract> {
-    const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
+    const chainId = await getChainId();
     const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
 
     const crossChainProofValidator = await ethers.deployContract(contractName, [
@@ -1020,7 +1021,7 @@ export class DeployHelper {
   }
 
   async getDefaultIdType(): Promise<{ defaultIdType: string; chainId: number }> {
-    const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
+    const chainId = await getChainId();
     const defaultIdType = chainIdInfoMap.get(chainId)?.idType;
     if (!defaultIdType) {
       throw new Error(`Failed to find defaultIdType in Map for chainId ${chainId}`);
