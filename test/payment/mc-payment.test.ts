@@ -69,7 +69,7 @@ describe("MC Payment Contract", () => {
     expect(signer).to.be.eq(issuer1Signer.address);
   });
 
-  it("Check payment:", async () => {
+  it("Check payment", async () => {
     const paymentData = {
       recipient: issuer1Signer.address,
       amount: 100,
@@ -100,7 +100,7 @@ describe("MC Payment Contract", () => {
     // second issuer withdraw
     await expect(payment.connect(issuer1Signer).issuerWithdraw()).to.be.revertedWithCustomError(
       payment,
-      "WithdrawError",
+      "WithdrawErrorNoBalance",
     );
 
     const issuer1BalanceAfterWithdraw = await payment.getBalance(issuer1Signer.address);
