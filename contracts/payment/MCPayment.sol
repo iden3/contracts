@@ -320,6 +320,14 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     }
 
     /**
+     * @dev Get owner ERC-20 balance
+     * @return balance of owner
+     */
+    function getOwnerERC20Balance(address token) public view onlyOwner returns (uint256) {
+        return IERC20(token).balanceOf(address(this));
+    }
+
+    /**
      * @dev Withdraw balance to issuer
      */
     function issuerWithdraw() public {
@@ -337,6 +345,18 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         uint256 amount = $.ownerBalance;
         $.ownerBalance = 0;
         _withdraw(amount, owner());
+    }
+
+    /**
+     * @dev Withdraw ERC-20 balance to owner
+     */
+    function ownerERC20Withdraw(address token) public onlyOwner {
+        uint amount = IERC20(token).balanceOf(address(this));
+        if (amount == 0) {
+            revert WithdrawError("There is no balance to withdraw");
+        }
+
+        IERC20(token).transfer(owner(), amount);
     }
 
     function _recoverERC20PaymentSignature(

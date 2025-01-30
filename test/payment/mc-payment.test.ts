@@ -79,9 +79,11 @@ describe("MC Payment Contract", () => {
     };
     const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
 
-    await payment.connect(userSigner).pay(paymentData, signature, {
-      value: 100,
-    });
+    await expect(
+      payment.connect(userSigner).pay(paymentData, signature, {
+        value: 100,
+      }),
+    ).to.changeEtherBalances([userSigner, payment], [-100, 100]);
 
     const isPaymentDone = await payment.isPaymentDone(issuer1Signer.address, 25);
     expect(isPaymentDone).to.be.true;
@@ -236,14 +238,20 @@ describe("MC Payment Contract", () => {
       .payERC20.estimateGas(paymentData, signature);
     console.log("ERC-20 Payment Gas: " + erc20PaymentGas);
 
-    await payment.connect(userSigner).payERC20(paymentData, signature);
-
-    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(90);
-    // 10 - 10% owner fee = 9
-    expect(await token.balanceOf(await issuer1Signer.getAddress())).to.be.eq(9);
-    expect(await token.balanceOf(await payment.getAddress())).to.be.eq(1);
-
+    await expect(
+      payment.connect(userSigner).payERC20(paymentData, signature),
+    ).to.changeTokenBalances(token, [userSigner, issuer1Signer, payment], [-10, 9, 1]);
     expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
+    // owner ERC-20 withdraw
+    const tokenAddress = await token.getAddress();
+    const ownerBalance = await payment.getOwnerERC20Balance(tokenAddress);
+    expect(ownerBalance).to.be.eq(1);
+    await expect(payment.connect(owner).ownerERC20Withdraw(tokenAddress)).to.changeTokenBalances(
+      token,
+      [owner, payment],
+      [1, -1],
+    );
+    expect(await payment.getOwnerERC20Balance(tokenAddress)).to.be.eq(0);
   });
 
   it("ERC-20 payment - invalid signature", async () => {
@@ -364,14 +372,20 @@ describe("MC Payment Contract", () => {
       .payERC20Permit.estimateGas(permitSignature, paymentData, signature);
     console.log("EIP-2612 Payment Gas: " + eip2612PaymentGas);
 
-    await payment.connect(userSigner).payERC20Permit(permitSignature, paymentData, signature);
-
-    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(90);
-    // 10 - 10% owner fee = 9
-    expect(await token.balanceOf(await issuer1Signer.getAddress())).to.be.eq(9);
-    expect(await token.balanceOf(await payment.getAddress())).to.be.eq(1);
-
+    await expect(
+      payment.connect(userSigner).payERC20Permit(permitSignature, paymentData, signature),
+    ).to.changeTokenBalances(token, [userSigner, issuer1Signer, payment], [-10, 9, 1]);
     expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
+
+    // owner ERC-20 withdraw
+    const tokenAddress = await token.getAddress();
+    const ownerBalance = await payment.getOwnerERC20Balance(tokenAddress);
+    expect(ownerBalance).to.be.eq(1);
+    await expect(payment.connect(owner).ownerERC20Withdraw(tokenAddress)).to.changeTokenBalances(
+      token,
+      [owner, payment],
+      [1, -1],
+    );
   });
 
   it("ERC-20 Permit (EIP-2612) payment - invalid permit signature length:", async () => {
