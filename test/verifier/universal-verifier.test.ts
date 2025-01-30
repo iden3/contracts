@@ -105,11 +105,11 @@ describe("Universal Verifier tests", function () {
         proof: "0x",
         metadata: "0x",
       };
-      paramsFromValidator = {
-        groupID: 0,
-        verifierID: 0,
-        nullifierSessionID: 0,
-      };
+      paramsFromValidator = [
+        { name: "groupID", value: 0 },
+        { name: "verifierID", value: 0 },
+        { name: "nullifierSessionID", value: 0 },
+      ];
       multiRequest = {
         multiRequestId: 1,
         requestIds: [request.requestId],
@@ -144,6 +144,8 @@ describe("Universal Verifier tests", function () {
         request.requestId = i;
         request.metadata = "metadataN" + i;
         request.params = "0x0" + i;
+
+        await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
 
         await expect(verifier.setRequests([request]))
           .to.emit(verifier, "RequestSet")
@@ -194,12 +196,12 @@ describe("Universal Verifier tests", function () {
         txRes.blockNumber,
       )) as Block;
 
-      const status = await verifier.getRequestStatus(signerAddress, request.requestId);
+      const status = await verifier.getRequestProofStatus(signerAddress, request.requestId);
       expect(status.isVerified).to.be.true;
       expect(status.validatorVersion).to.be.equal("1.0.0-stub");
       expect(status.timestamp).to.be.equal(txResTimestamp);
 
-      await expect(verifier.getRequestStatus(signerAddress, nonExistingRequestId))
+      await expect(verifier.getRequestProofStatus(signerAddress, nonExistingRequestId))
         .to.be.revertedWithCustomError(verifier, "RequestIdNotFound")
         .withArgs(nonExistingRequestId);
     });
@@ -257,7 +259,7 @@ describe("Universal Verifier tests", function () {
       )) as Block;
 
       for (const requestId of requestIds) {
-        const status = await verifier.getRequestStatus(signerAddress, requestId);
+        const status = await verifier.getRequestProofStatus(signerAddress, requestId);
         expect(status.isVerified).to.be.true;
         expect(status.validatorVersion).to.be.equal("1.0.0-stub");
         expect(status.timestamp).to.be.equal(txResTimestamp);
@@ -426,7 +428,11 @@ describe("Universal Verifier tests", function () {
         universalVerifier: verifier,
       } = await loadFixture(deployContractsFixture));
 
-      paramsFromValidator.verifierID = 2;
+      paramsFromValidator = [
+        { name: "groupID", value: 0 },
+        { name: "verifierID", value: 2 },
+        { name: "nullifierSessionID", value: 0 },
+      ];
 
       const requestId = 40;
 
@@ -533,7 +539,14 @@ describe("Universal Verifier tests", function () {
         packValidatorParams(queries[2]),
       ];
 
+      paramsFromValidator = [
+        { name: "groupID", value: 0 },
+        { name: "verifierID", value: 0 },
+        { name: "nullifierSessionID", value: 0 },
+      ];
+
       for (let i = 0; i < requestsCount; i++) {
+        await validator.stub_setRequestParams([params[i]], [paramsFromValidator]);
         await expect(
           verifier.setRequests([
             {
@@ -571,6 +584,9 @@ describe("Universal Verifier tests", function () {
     it("Check RequestUpdate event", async () => {
       const originalRequestData = packValidatorParams(queries[0]);
       const updatedRequestData = packValidatorParams(queries[1]);
+
+      await validator.stub_setRequestParams([originalRequestData], [paramsFromValidator]);
+      await validator.stub_setRequestParams([updatedRequestData], [paramsFromValidator]);
 
       await verifier.setRequests([
         {
@@ -626,6 +642,7 @@ describe("Universal Verifier tests", function () {
     });
 
     it("Check MultiRequestSet event", async function () {
+      await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
       await verifier.setRequests([request]);
 
       await expect(verifier.setMultiRequest(multiRequest)).to.emit(verifier, "MultiRequestSet");

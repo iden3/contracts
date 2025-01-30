@@ -246,9 +246,11 @@ describe("Atomic Sig Validator", function () {
 
     const params = packValidatorParams(query);
     const requestParams = await sigValidator.getRequestParams(params);
-    expect(requestParams.groupID).to.be.equal(0);
-    expect(requestParams.verifierID).to.be.equal(0);
-    expect(requestParams.nullifierSessionID).to.be.equal(0);
+    expect(requestParams[await sigValidator.requestParamIndexOf("groupID")][1]).to.be.equal(0);
+    expect(requestParams[await sigValidator.requestParamIndexOf("verifierID")][1]).to.be.equal(0);
+    expect(
+      requestParams[await sigValidator.requestParamIndexOf("nullifierSessionID")][1],
+    ).to.be.equal(0);
   });
 
   it("Test get config params", async () => {

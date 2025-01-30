@@ -1065,12 +1065,12 @@ describe("Root history requests", function () {
   });
 
   it("should revert if length limit exceeded", async () => {
-    await expect(smt.getRootHistory(0, 10 ** 6)).to.be.rejectedWith("LengthLimitExceeded()");
+    await expect(smt.getRootHistory(0, 10 ** 6)).to.be.rejectedWith("LengthLimitExceeded(1000)");
   });
 
   it("should revert if out of bounds", async () => {
     await expect(smt.getRootHistory(historyLength, 100)).to.be.rejectedWith(
-      "StartIndexOutOfBounds()",
+      "StartIndexOutOfBounds(3)",
     );
   });
 
@@ -1166,7 +1166,7 @@ describe("Root history duplicates", function () {
     await smt.add(1, 1);
     const root = await smt.getRoot();
     await expect(smt.getRootInfoListByRoot(root, 0, 10 ** 6)).to.be.rejectedWith(
-      "LengthLimitExceeded()",
+      "LengthLimitExceeded(1000)",
     );
   });
 
@@ -1176,7 +1176,7 @@ describe("Root history duplicates", function () {
     await smt.add(1, 1);
     const root = await smt.getRoot();
     await expect(smt.getRootInfoListByRoot(root, 3, 100)).to.be.rejectedWith(
-      "StartIndexOutOfBounds()",
+      "StartIndexOutOfBounds(2)",
     );
   });
 

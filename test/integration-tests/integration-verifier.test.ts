@@ -210,11 +210,11 @@ describe("Verifier Integration test", function () {
     const multiRequestIdExists = await verifier.multiRequestIdExists(multiRequest.multiRequestId);
     expect(multiRequestIdExists).to.be.true;
 
-    let isMultiRequestVerified = await verifier.isMultiRequestVerified(
+    let areMultiRequestProofsVerified = await verifier.areMultiRequestProofsVerified(
       multiRequest.multiRequestId,
       await signer.getAddress(),
     );
-    expect(isMultiRequestVerified).to.be.false;
+    expect(areMultiRequestProofsVerified).to.be.false;
 
     // 3. Submitting a response with valid proofs
     await expect(
@@ -239,11 +239,11 @@ describe("Verifier Integration test", function () {
       ),
     ).not.to.be.reverted;
 
-    isMultiRequestVerified = await verifier.isMultiRequestVerified(
+    areMultiRequestProofsVerified = await verifier.areMultiRequestProofsVerified(
       multiRequest.multiRequestId,
       await signer.getAddress(),
     );
-    expect(isMultiRequestVerified).to.be.true;
+    expect(areMultiRequestProofsVerified).to.be.true;
   });
 
   // An integration test with a MultiRequest

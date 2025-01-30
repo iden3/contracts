@@ -2,8 +2,8 @@
 pragma solidity 0.8.27;
 
 error LenghtShouldBeGreaterThanZero();
-error LengthLimitExceeded();
-error StartIndexOutOfBounds();
+error LengthLimitExceeded(uint256 limit);
+error StartIndexOutOfBounds(uint256 arrLength);
 
 /// @title A common functions for arrays.
 library ArrayUtils {
@@ -25,10 +25,10 @@ library ArrayUtils {
             revert LenghtShouldBeGreaterThanZero();
         }
         if (length > limit) {
-            revert LengthLimitExceeded();
+            revert LengthLimitExceeded(limit);
         }
         if (start >= arrLength) {
-            revert StartIndexOutOfBounds();
+            revert StartIndexOutOfBounds(arrLength);
         }
 
         uint256 end = start + length;

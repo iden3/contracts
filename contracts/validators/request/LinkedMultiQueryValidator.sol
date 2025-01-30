@@ -32,6 +32,7 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
     struct LinkedMultiQueryValidatorStorage {
         mapping(string circuitName => IGroth16Verifier) _supportedCircuits;
         string[] _supportedCircuitIds;
+        mapping(string => uint256) _requestParamNameToIndex;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.LinkedMultiQueryValidator")) - 1))
@@ -80,6 +81,11 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
         LinkedMultiQueryValidatorStorage storage $ = _getLinkedMultiQueryValidatorStorage();
         $._supportedCircuits[CIRCUIT_ID] = IGroth16Verifier(_groth16VerifierContractAddr);
         $._supportedCircuitIds.push(CIRCUIT_ID);
+
+        _setRequestParamToIndex("groupID", 0);
+        _setRequestParamToIndex("verifierID", 1);
+        _setRequestParamToIndex("nullifierSessionID", 2);
+
         __Ownable_init(owner);
     }
 
@@ -130,9 +136,30 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
      */
     function getRequestParams(
         bytes calldata params
-    ) external pure override returns (IRequestValidator.RequestParams memory) {
+    ) external pure override returns (IRequestValidator.RequestParam[] memory) {
         Query memory query = abi.decode(params, (Query));
-        return IRequestValidator.RequestParams(query.groupID, query.verifierID, 0);
+        IRequestValidator.RequestParam[]
+            memory requestParams = new IRequestValidator.RequestParam[](3);
+        requestParams[0] = IRequestValidator.RequestParam({name: "groupID", value: query.groupID});
+        requestParams[1] = IRequestValidator.RequestParam({
+            name: "verifierID",
+            value: query.verifierID
+        });
+        requestParams[2] = IRequestValidator.RequestParam({name: "nullifierSessionID", value: 0});
+        return requestParams;
+    }
+
+    /**
+     * @dev Get the index of the request param by name
+     * @param name Name of the request param
+     * @return Index of the request param
+     */
+    function requestParamIndexOf(
+        string memory name
+    ) public view virtual override returns (uint256) {
+        uint256 index = _getLinkedMultiQueryValidatorStorage()._requestParamNameToIndex[name];
+        require(index != 0, "Request param name not found");
+        return --index; // we save 1-based index, but return 0-based
     }
 
     /**
@@ -207,5 +234,10 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
         }
 
         return rfs;
+    }
+
+    function _setRequestParamToIndex(string memory requestParamName, uint256 index) internal {
+        // increment index to avoid 0
+        _getLinkedMultiQueryValidatorStorage()._requestParamNameToIndex[requestParamName] = ++index;
     }
 }

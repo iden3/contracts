@@ -88,8 +88,12 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
      */
     function getRequestParams(
         bytes calldata
-    ) external pure override returns (IRequestValidator.RequestParams memory) {
-        return IRequestValidator.RequestParams({groupID: 0, verifierID: 0, nullifierSessionID: 0});
+    ) external pure override returns (IRequestValidator.RequestParam[] memory) {
+        IRequestValidator.RequestParam[] memory requestParams = new IRequestValidator.RequestParam[](3);
+        requestParams[0] = IRequestValidator.RequestParam({ name: "groupID", value: 0 });
+        requestParams[1] = IRequestValidator.RequestParam({ name: "verifierID", value: 0 });    
+        requestParams[2] = IRequestValidator.RequestParam({ name: "nullifierSessionID", value: 0 });
+        return requestParams;
     }
 
     /**

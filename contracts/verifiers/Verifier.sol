@@ -190,7 +190,11 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         // 1. Check first that groupIds don't exist and keep the number of requests per group.
         for (uint256 i = 0; i < requests.length; i++) {
-            uint256 groupID = requests[i].validator.getRequestParams(requests[i].params).groupID;
+            uint256 groupID = requests[i]
+            .validator
+            .getRequestParams(requests[i].params)[
+                requests[i].validator.requestParamIndexOf("groupID")
+            ].value;
 
             if (groupID != 0) {
                 if (groupIdExists(groupID)) {
@@ -222,8 +226,11 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             _checkNullifierSessionIdUniqueness(requests[i]);
             _checkVerifierID(requests[i]);
 
-            uint256 groupID = requests[i].validator.getRequestParams(requests[i].params).groupID;
-
+            uint256 groupID = requests[i]
+            .validator
+            .getRequestParams(requests[i].params)[
+                requests[i].validator.requestParamIndexOf("groupID")
+            ].value;
             _setRequest(requests[i]);
 
             // request with group
@@ -445,7 +452,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      * @param userAddress The address of the user
      * @return status The status of the multiRequest. "True" if all requests are verified, "false" otherwise
      */
-    function getMultiRequestStatus(
+    function getMultiRequestProofsStatus(
         uint256 multiRequestId,
         address userAddress
     )
@@ -455,7 +462,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         returns (IVerifier.RequestStatus[] memory)
     {
         // 1. Check if all requests statuses are true for the userAddress
-        IVerifier.RequestStatus[] memory requestStatus = _getMultiRequestStatus(
+        IVerifier.RequestStatus[] memory requestStatus = _getMultiRequestProofsStatus(
             multiRequestId,
             userAddress
         );
@@ -476,12 +483,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      * @param userAddress The address of the user
      * @return status The status of the multiRequest. "True" if all requests are verified, "false" otherwise
      */
-    function isMultiRequestVerified(
+    function areMultiRequestProofsVerified(
         uint256 multiRequestId,
         address userAddress
     ) public view checkMultiRequestExistence(multiRequestId, true) returns (bool) {
         // 1. Check if all requests are verified for the userAddress
-        bool verified = _isMultiRequestVerified(multiRequestId, userAddress);
+        bool verified = _areMultiRequestProofsVerified(multiRequestId, userAddress);
 
         if (verified) {
             // 2. Check if all linked response fields are the same
@@ -501,7 +508,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      * @param requestId The ID of the request
      * @return True if proof is verified
      */
-    function isRequestVerified(
+    function isRequestProofVerified(
         address sender,
         uint256 requestId
     ) public view checkRequestExistence(requestId, true) returns (bool) {
@@ -576,7 +583,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      * @param requestId The ID of the ZKP request
      * @return The proof status structure
      */
-    function getRequestStatus(
+    function getRequestProofStatus(
         address sender,
         uint256 requestId
     ) public view checkRequestExistence(requestId, true) returns (IVerifier.RequestStatus memory) {
@@ -633,7 +640,10 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
     function _checkVerifierID(IVerifier.Request calldata request) internal view {
         VerifierStorage storage s = _getVerifierStorage();
-        uint256 requestVerifierID = request.validator.getRequestParams(request.params).verifierID;
+        uint256 requestVerifierID = request
+        .validator
+        .getRequestParams(request.params)[request.validator.requestParamIndexOf("verifierID")]
+            .value;
 
         if (requestVerifierID != 0) {
             if (requestVerifierID != s._verifierID) {
@@ -677,9 +687,10 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function _checkNullifierSessionIdUniqueness(IVerifier.Request calldata request) internal {
         VerifierStorage storage s = _getVerifierStorage();
         uint256 nullifierSessionID = request
-            .validator
-            .getRequestParams(request.params)
-            .nullifierSessionID;
+        .validator
+        .getRequestParams(request.params)[
+            request.validator.requestParamIndexOf("nullifierSessionID")
+        ].value;
         if (nullifierSessionID != 0) {
             if (s._nullifierSessionIDs[nullifierSessionID] != 0) {
                 revert NullifierSessionIDAlreadyExists(nullifierSessionID);
@@ -725,11 +736,14 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             if (!requestIdExists(requestIds[i])) {
                 revert RequestIdNotFound(requestIds[i]);
             }
-            IRequestValidator.RequestParams memory requestParams = s
-                ._requests[requestIds[i]]
-                .validator
-                .getRequestParams(s._requests[requestIds[i]].params);
-            if (requestParams.groupID != 0) {
+            uint256 groupID = s
+            ._requests[requestIds[i]]
+            .validator
+            .getRequestParams(s._requests[requestIds[i]].params)[
+                s._requests[requestIds[i]].validator.requestParamIndexOf("groupID")
+            ].value;
+
+            if (groupID != 0) {
                 revert RequestShouldNotHaveAGroup(requestIds[i]);
             }
         }
@@ -804,7 +818,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         return true;
     }
 
-    function _getMultiRequestStatus(
+    function _getMultiRequestProofsStatus(
         uint256 multiRequestId,
         address userAddress
     ) internal view returns (IVerifier.RequestStatus[] memory) {
@@ -853,7 +867,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         return requestStatus;
     }
 
-    function _isMultiRequestVerified(
+    function _areMultiRequestProofsVerified(
         uint256 multiRequestId,
         address userAddress
     ) internal view returns (bool) {

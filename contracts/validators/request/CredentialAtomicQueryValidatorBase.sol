@@ -31,6 +31,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256 proofExpirationTimeout;
         uint256 gistRootExpirationTimeout;
         mapping(string => uint256) _inputNameToIndex;
+        mapping(string => uint256) _requestParamNameToIndex;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.CredentialAtomicQueryValidator")) - 1))
@@ -156,6 +157,17 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     /**
+     * @dev Get the index of the request param by name
+     * @param name Name of the request param
+     * @return Index of the request param
+     */
+    function requestParamIndexOf(string memory name) public view override returns (uint256) {
+        uint256 index = _getCredentialAtomicQueryValidatorBaseStorage()._requestParamNameToIndex[name];
+        require(index != 0, "Request param name not found");
+        return --index; // we save 1-based index, but return 0-based
+    }
+
+    /**
      * @dev See {IERC165-supportsInterface}.
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
@@ -256,5 +268,10 @@ abstract contract CredentialAtomicQueryValidatorBase is
     function _setInputToIndex(string memory inputName, uint256 index) internal {
         // increment index to avoid 0
         _getCredentialAtomicQueryValidatorBaseStorage()._inputNameToIndex[inputName] = ++index;
+    }
+
+    function _setRequestParamToIndex(string memory requestParamName, uint256 index) internal {
+        // increment index to avoid 0
+        _getCredentialAtomicQueryValidatorBaseStorage()._requestParamNameToIndex[requestParamName] = ++index;
     }
 }

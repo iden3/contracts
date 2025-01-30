@@ -186,7 +186,7 @@ interface IVerifier {
      * @param userAddress The address of the user
      * @return status The status of the MultiRequest. "True" if all requests are verified, "false" otherwise
      */
-    function getMultiRequestStatus(
+    function getMultiRequestProofsStatus(
         uint256 multiRequestId,
         address userAddress
     ) external view returns (RequestStatus[] memory);
@@ -197,7 +197,7 @@ interface IVerifier {
      * @param userAddress The address of the user
      * @return Wether the multiRequest is verified.
      */
-    function isMultiRequestVerified(
+    function areMultiRequestProofsVerified(
         uint256 multiRequestId,
         address userAddress
     ) external view returns (bool);
@@ -230,7 +230,7 @@ interface IVerifier {
      * @param requestId Request id of the Request to verify.
      * @return True if proof is verified for the sender and request id.
      */
-    function isRequestVerified(address sender, uint256 requestId) external view returns (bool);
+    function isRequestProofVerified(address sender, uint256 requestId) external view returns (bool);
 
     /**
      * @dev Sets an auth type
@@ -259,7 +259,7 @@ interface IVerifier {
      * @param requestId Request id of the proof.
      * @return Proof status.
      */
-    function getRequestStatus(
+    function getRequestProofStatus(
         address sender,
         uint256 requestId
     ) external view returns (RequestStatus memory);

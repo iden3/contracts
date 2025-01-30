@@ -18,15 +18,13 @@ interface IRequestValidator {
     }
 
     /**
-     * @dev RequestParams. Information about request params from request query data.
-     * @param groupID Group ID of the request query params
-     * @param verifierID Verifier ID of the request query params
-     * @param nullifierSessionID NullifierSessionID of the request query params
+     * @dev RequestParam. Information about request param from request query data.
+     * @param name Name of the request query param
+     * @param value Value of the request query param
      */
-    struct RequestParams {
-        uint256 groupID;
-        uint256 verifierID;
-        uint256 nullifierSessionID;
+    struct RequestParam {
+        string name;
+        uint256 value;
     }
 
     /**
@@ -55,5 +53,12 @@ interface IRequestValidator {
      * @param params Request query data of the credential to verify.
      * @return RequestParams of the request query data.
      */
-    function getRequestParams(bytes calldata params) external view returns (RequestParams memory);
+    function getRequestParams(bytes calldata params) external view returns (RequestParam[] memory);
+
+    /**
+     * @dev Get the index of the request param by name
+     * @param name Name of the request param
+     * @return Index of the request param
+     */
+    function requestParamIndexOf(string memory name) external view returns (uint256);
 }

@@ -31,11 +31,11 @@ describe("ValidatorWhitelist tests", function () {
       params: "0x",
     };
 
-    paramsFromValidator = {
-      groupID: 0,
-      verifierID: 0,
-      nullifierSessionID: 0,
-    };
+    paramsFromValidator = [
+      { name: "groupID", value: 0 },
+      { name: "verifierID", value: 0 },
+      { name: "nullifierSessionID", value: 0 },
+    ];
   });
 
   it("whitelist/remove Validators and modifier onlyWhitelistedValidator", async function () {

@@ -148,7 +148,11 @@ describe("Test linkedMultiQuery10.circom", function () {
 
   it("getRequestParams should return the correct values", async function () {
     const result = await validator.getRequestParams(oneQueryParams);
-    expect(result).to.deep.equal([oneQuery.groupID, oneQuery.verifierID, 0]);
+    expect(result).to.deep.equal([
+      ["groupID", oneQuery.groupID],
+      ["verifierID", oneQuery.verifierID],
+      ["nullifierSessionID", 0],
+    ]);
   });
 
   it("Should throw if failed ZK verification", async function () {
@@ -186,8 +190,10 @@ describe("Test linkedMultiQuery10.circom", function () {
 
     const params = packLinkedMultiQueryValidatorParams(query);
     const requestParams = await validator.getRequestParams(params);
-    expect(requestParams.groupID).to.be.equal(4);
-    expect(requestParams.verifierID).to.be.equal(5);
-    expect(requestParams.nullifierSessionID).to.be.equal(0);
+    expect(requestParams[await validator.requestParamIndexOf("groupID")][1]).to.be.equal(4);
+    expect(requestParams[await validator.requestParamIndexOf("verifierID")][1]).to.be.equal(5);
+    expect(requestParams[await validator.requestParamIndexOf("nullifierSessionID")][1]).to.be.equal(
+      0,
+    );
   });
 });

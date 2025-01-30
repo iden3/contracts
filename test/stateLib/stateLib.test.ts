@@ -124,14 +124,14 @@ describe("StateInfo history", function () {
 
   it("should be reverted if length limit exceeded", async () => {
     await expect(stateLibWrpr.getStateInfoHistoryById(id1, 0, 10 ** 6)).to.be.rejectedWith(
-      "LengthLimitExceeded()",
+      "LengthLimitExceeded(1000)",
     );
   });
 
   it("should be reverted if startIndex is out of bounds", async () => {
     await expect(
       stateLibWrpr.getStateInfoHistoryById(id1, id1HistoryLength, 100),
-    ).to.be.rejectedWith("StartIndexOutOfBounds()");
+    ).to.be.rejectedWith("StartIndexOutOfBounds(2)");
   });
 
   it("should not revert if startIndex + length >= historyLength", async () => {
@@ -262,7 +262,7 @@ describe("State history duplicates", function () {
     await stateLibWrpr.addState(id, state);
     await expect(
       stateLibWrpr.getStateInfoListByIdAndState(id, state, 0, 10 ** 6),
-    ).to.be.rejectedWith("LengthLimitExceeded()");
+    ).to.be.rejectedWith("LengthLimitExceeded(1000)");
   });
 
   it("should revert if out of bounds", async () => {
@@ -272,7 +272,7 @@ describe("State history duplicates", function () {
     await stateLibWrpr.addState(id, state);
     await stateLibWrpr.addState(id, state);
     await expect(stateLibWrpr.getStateInfoListByIdAndState(id, state, 3, 100)).to.be.rejectedWith(
-      "StartIndexOutOfBounds()",
+      "StartIndexOutOfBounds(3)",
     );
 
     it("should NOT revert if startIndex + length >= historyLength", async () => {

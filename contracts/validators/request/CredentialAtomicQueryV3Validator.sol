@@ -74,6 +74,10 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _setInputToIndex("timestamp", 12);
         _setInputToIndex("isBJJAuthEnabled", 13);
 
+        _setRequestParamToIndex("groupID", 0);
+        _setRequestParamToIndex("verifierID", 1);
+        _setRequestParamToIndex("nullifierSessionID", 2);
+
         _initDefaultStateVariables(_verifierContractAddr, CIRCUIT_ID, owner);
     }
 
@@ -151,20 +155,28 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
      */
     function getRequestParams(
         bytes calldata params
-    ) external pure override returns (IRequestValidator.RequestParams memory) {
+    ) external pure override returns (IRequestValidator.RequestParam[] memory) {
         CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
             params,
             (CredentialAtomicQueryV3)
         );
 
         if (credAtomicQuery.verifierID == 0) revert VerifierIDNotSet();
-
-        return
-            IRequestValidator.RequestParams({
-                groupID: credAtomicQuery.groupID,
-                verifierID: credAtomicQuery.verifierID,
-                nullifierSessionID: credAtomicQuery.nullifierSessionID
-            });
+        IRequestValidator.RequestParam[]
+            memory requestParams = new IRequestValidator.RequestParam[](3);
+        requestParams[0] = IRequestValidator.RequestParam({
+            name: "groupID",
+            value: credAtomicQuery.groupID
+        });
+        requestParams[1] = IRequestValidator.RequestParam({
+            name: "verifierID",
+            value: credAtomicQuery.verifierID
+        });
+        requestParams[2] = IRequestValidator.RequestParam({
+            name: "nullifierSessionID",
+            value: credAtomicQuery.nullifierSessionID
+        });
+        return requestParams;
     }
 
     /**
