@@ -27,6 +27,7 @@ export class OnchainIdentityDeployHelper {
     poseidon3Addr: string,
     poseidon4Addr: string,
     idType: string,
+    contractName: string = "IdentityExample",
   ): Promise<{
     identity: Contract;
   }> {
@@ -38,7 +39,7 @@ export class OnchainIdentityDeployHelper {
     const il = await this.deployIdentityLib(smtLibAddr, poseidon3Addr, poseidon4Addr);
 
     this.log("deploying Identity...");
-    const IdentityFactory = await ethers.getContractFactory("IdentityExample", {
+    const IdentityFactory = await ethers.getContractFactory(contractName, {
       libraries: {
         ClaimBuilder: await cb.getAddress(),
         IdentityLib: await il.getAddress(),
