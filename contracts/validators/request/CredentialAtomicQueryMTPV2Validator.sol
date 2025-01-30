@@ -35,7 +35,7 @@ contract CredentialAtomicQueryMTPV2Validator is CredentialAtomicQueryV2Validator
         _setRequestParamToIndex("groupID", 0);
         _setRequestParamToIndex("verifierID", 1);
         _setRequestParamToIndex("nullifierSessionID", 2);
-        
+
         _initDefaultStateVariables(_verifierContractAddr, CIRCUIT_ID, owner);
     }
 

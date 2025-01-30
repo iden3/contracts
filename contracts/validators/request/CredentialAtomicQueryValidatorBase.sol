@@ -162,7 +162,9 @@ abstract contract CredentialAtomicQueryValidatorBase is
      * @return Index of the request param
      */
     function requestParamIndexOf(string memory name) public view override returns (uint256) {
-        uint256 index = _getCredentialAtomicQueryValidatorBaseStorage()._requestParamNameToIndex[name];
+        uint256 index = _getCredentialAtomicQueryValidatorBaseStorage()._requestParamNameToIndex[
+            name
+        ];
         require(index != 0, "Request param name not found");
         return --index; // we save 1-based index, but return 0-based
     }
@@ -272,6 +274,8 @@ abstract contract CredentialAtomicQueryValidatorBase is
 
     function _setRequestParamToIndex(string memory requestParamName, uint256 index) internal {
         // increment index to avoid 0
-        _getCredentialAtomicQueryValidatorBaseStorage()._requestParamNameToIndex[requestParamName] = ++index;
+        _getCredentialAtomicQueryValidatorBaseStorage()._requestParamNameToIndex[
+            requestParamName
+        ] = ++index;
     }
 }
