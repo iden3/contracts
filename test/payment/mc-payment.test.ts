@@ -118,7 +118,7 @@ describe("MC Payment Contract", () => {
     // second owner withdraw
     await expect(payment.connect(owner).ownerWithdraw()).to.be.revertedWithCustomError(
       payment,
-      "WithdrawError",
+      "WithdrawErrorNoBalance",
     );
   });
 

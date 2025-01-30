@@ -15,7 +15,12 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.0.0";
+    string public constant VERSION = "1.0.1";
+
+    /**
+     * @dev Version of EIP 712 domain
+     */
+    string public constant DOMAIN_VERSION = "1.0.0";
 
     /**
      * @dev Iden3PaymentRailsRequestV1 data type hash
@@ -113,7 +118,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     ) public initializer validPercentValue(ownerPercentage) {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         $.ownerPercentage = ownerPercentage;
-        __EIP712_init("MCPayment", VERSION);
+        __EIP712_init("MCPayment", DOMAIN_VERSION);
         __Ownable_init(owner);
     }
 
