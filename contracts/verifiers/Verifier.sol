@@ -654,8 +654,8 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
     function _getRequestType(uint256 requestId) internal pure returns (uint8) {
         // 0x0000000000000000 - prefix for old uint64 requests
-        // 0x0000000000000001 - prefix for keccak256 cut to fit in the remaining 192 bits
-        return uint8(requestId >> 192);
+        // 0x0100000000000000 - prefix for keccak256 cut to fit in the remaining 192 bits
+        return uint8(requestId >> 248);
     }
 
     function _checkRequestIdCorrectness(
@@ -668,7 +668,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             revert RequestIdTypeNotValid();
         }
         // 2. Check reserved bytes
-        if ((requestId >> 200) > 0) {
+        if (((requestId << 8) >> 208) > 0) {
             revert RequestIdUsesReservedBytes();
         }
         // 3. Check if requestId matches the hash of the requestParams
@@ -677,7 +677,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             if (
                 requestId !=
                 (hashValue & 0x0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) +
-                    0x0000000000000001000000000000000000000000000000000000000000000000
+                    0x0100000000000000000000000000000000000000000000000000000000000000
             ) {
                 revert RequestIdNotValid();
             }

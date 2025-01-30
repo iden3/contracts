@@ -112,7 +112,7 @@ describe("Verifer tests", function () {
       await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
 
       request.requestId = BigInt(
-        "0x0000000000000002FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+        "0x0200000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
       ); // requestId without valid prefix 0x00000000000000_00 or 0x00000000000000_01 (eigth byte)
 
       await expect(verifier.setRequests([request])).to.be.revertedWithCustomError(
@@ -129,7 +129,7 @@ describe("Verifer tests", function () {
       );
 
       request.requestId = BigInt(
-        "0x0000000000000001FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+        "0x0100000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
       ); // requestId idType is valid but calculation from hash params is not valid
       await expect(verifier.setRequests([request])).to.be.revertedWithCustomError(
         verifier,
@@ -139,7 +139,7 @@ describe("Verifer tests", function () {
       request.requestId =
         (BigInt(ethers.keccak256(request.params)) &
           BigInt("0x0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) +
-        BigInt("0x0000000000000001000000000000000000000000000000000000000000000000"); // requestId is valid;
+        BigInt("0x0100000000000000000000000000000000000000000000000000000000000000"); // requestId is valid;
       await expect(verifier.setRequests([request])).not.to.be.rejected;
     });
 
