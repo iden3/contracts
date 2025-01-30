@@ -15,7 +15,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.0.1";
+    string public constant VERSION = "1.0.0";
 
     /**
      * @dev Iden3PaymentRailsRequestV1 data type hash
