@@ -60,7 +60,7 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
         uint256[10] circuitQueryHash;
     }
 
-    string public constant VERSION = "1.0.0-beta";
+    string public constant VERSION = "1.0.0-beta.1";
     string internal constant CIRCUIT_ID = "linkedMultiQuery10";
     uint256 internal constant QUERIES_COUNT = 10;
 
@@ -95,14 +95,12 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
      * @param proof Proof packed as bytes to verify.
      * @param data Request query data of the credential to verify.
      * @param sender Sender of the proof.
-     * @param state State contract to get identities and gist states to check.
      * @return Array of response fields as result.
      */
     function verify(
         bytes calldata proof,
         bytes calldata data,
-        address sender,
-        IState state
+        address sender
     ) external view returns (IRequestValidator.ResponseField[] memory) {
         LinkedMultiQueryValidatorStorage storage $ = _getLinkedMultiQueryValidatorStorage();
 

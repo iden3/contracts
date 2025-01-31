@@ -506,7 +506,10 @@ describe("Atomic V3 Validator", function () {
 
     const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0212"]);
 
-    const contracts = await deployHelper.deployValidatorContractsWithVerifiers("v3");
+    const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
+      "v3",
+      await stateContract.getAddress(),
+    );
     const validator = contracts.validator;
 
     return {
@@ -594,19 +597,13 @@ describe("Atomic V3 Validator", function () {
       // Check verify function
       const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
       if (test.errorMessage) {
-        await expect(
-          v3Validator.verify(zkProof, data, test.sender, await state.getAddress()),
-        ).to.be.rejectedWith(test.errorMessage);
-      } else if (test.errorMessage === "") {
-        await expect(v3Validator.verify(zkProof, data, test.sender, await state.getAddress())).to.be
-          .reverted;
-      } else {
-        const signals = await v3Validator.verify(
-          zkProof,
-          data,
-          test.sender,
-          await state.getAddress(),
+        await expect(v3Validator.verify(zkProof, data, test.sender)).to.be.rejectedWith(
+          test.errorMessage,
         );
+      } else if (test.errorMessage === "") {
+        await expect(v3Validator.verify(zkProof, data, test.sender)).to.be.reverted;
+      } else {
+        const signals = await v3Validator.verify(zkProof, data, test.sender);
 
         checkSignals(signals, test.signalValues);
       }

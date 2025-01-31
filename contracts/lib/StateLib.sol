@@ -5,7 +5,7 @@ import {ArrayUtils} from "../lib/ArrayUtils.sol";
 
 error IdentityDoesNotExist();
 error StateDoesNotExist();
-error ZeroTimestampAndBlockOnlyAllowedInFirstIdentityState();
+error IdentityAlreadyExists();
 
 /// @title Library for state data management.
 // It's purpose is to keep records of identity states along with their metadata and history.
@@ -129,7 +129,7 @@ library StateLib {
      */
     function addGenesisState(Data storage self, uint256 id, uint256 state) external {
         if (idExists(self, id)) {
-            revert ZeroTimestampAndBlockOnlyAllowedInFirstIdentityState();
+            revert IdentityAlreadyExists();
         }
         _addState(self, id, state, 0, 0);
     }

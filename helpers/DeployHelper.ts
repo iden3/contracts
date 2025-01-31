@@ -22,7 +22,6 @@ import {
   waitNotToInterfereWithHardhatIgnition,
 } from "./helperUtils";
 import { MCPaymentProxyModule } from "../ignition/modules/mcPayment";
-import { AuthV2ValidatorForAuthProxyModule } from "../ignition/modules/authV2ValidatorForAuth";
 import { LinkedMultiQueryProxyModule } from "../ignition/modules/linkedMultiQuery";
 
 const SMT_MAX_DEPTH = 64;
@@ -622,6 +621,7 @@ export class DeployHelper {
 
   async deployValidatorContractsWithVerifiers(
     validatorType: ValidatorType,
+    stateContractAddress: string,
     deployStrategy: "basic" | "create2" = "basic",
     groth16VerifierWrapperAddress?: string,
   ): Promise<{
@@ -630,6 +630,7 @@ export class DeployHelper {
   }> {
     const contracts = await this.deployValidatorContracts(
       validatorType,
+      stateContractAddress,
       deployStrategy,
       groth16VerifierWrapperAddress,
     );
@@ -642,6 +643,7 @@ export class DeployHelper {
 
   async deployValidatorContracts(
     validatorType: ValidatorType,
+    stateContractAddress: string,
     deployStrategy: "basic" | "create2" = "basic",
     groth16VerifierWrapperAddress?: string,
   ): Promise<{
@@ -759,16 +761,29 @@ export class DeployHelper {
         redeployImplementation: "always",
         call: {
           fn: "initialize",
-          args: [await groth16VerifierWrapper.getAddress(), await owner.getAddress()],
+          args:
+            validatorType != "lmk"
+              ? [
+                  stateContractAddress,
+                  await groth16VerifierWrapper.getAddress(),
+                  await owner.getAddress(),
+                ]
+              : [await groth16VerifierWrapper.getAddress(), await owner.getAddress()],
         },
       });
     } else {
       this.log("deploying with BASIC strategy...");
 
-      validator = await upgrades.deployProxy(ValidatorFactory, [
-        await groth16VerifierWrapper.getAddress(),
-        await owner.getAddress(),
-      ]);
+      validator = await upgrades.deployProxy(
+        ValidatorFactory,
+        validatorType != "lmk"
+          ? [
+              stateContractAddress,
+              await groth16VerifierWrapper.getAddress(),
+              await owner.getAddress(),
+            ]
+          : [await groth16VerifierWrapper.getAddress(), await owner.getAddress()],
+      );
     }
 
     validator.waitForDeployment();

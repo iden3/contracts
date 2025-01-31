@@ -88,12 +88,7 @@ describe("Test linkedMultiQuery10.circom", function () {
   });
 
   it("Should verify", async function () {
-    const result = await validator.verify(
-      proofForTwoQueries,
-      twoQueriesParams,
-      signer.address,
-      stateAddress,
-    );
+    const result = await validator.verify(proofForTwoQueries, twoQueriesParams, signer.address);
     expect(result).to.deep.equal([
       ["linkID", linkId],
       ["operatorOutput1", 777n],
@@ -108,7 +103,7 @@ describe("Test linkedMultiQuery10.circom", function () {
       circuitIds: ["someWrongCircuitId"],
     });
 
-    await expect(validator.verify(proofForOneQuery, params, signer.address, stateAddress))
+    await expect(validator.verify(proofForOneQuery, params, signer.address))
       .to.be.revertedWithCustomError(validator, "WrongCircuitID")
       .withArgs("someWrongCircuitId");
   });
@@ -119,7 +114,7 @@ describe("Test linkedMultiQuery10.circom", function () {
       queryHash: Array(11).fill(queryHash1),
     });
 
-    await expect(validator.verify(proofForOneQuery, params, signer.address, stateAddress))
+    await expect(validator.verify(proofForOneQuery, params, signer.address))
       .to.be.revertedWithCustomError(validator, "TooManyQueries")
       .withArgs(11);
   });
@@ -130,7 +125,7 @@ describe("Test linkedMultiQuery10.circom", function () {
       queryHash: [queryHash2],
     });
 
-    await expect(validator.verify(proofForOneQuery, params, signer.address, stateAddress))
+    await expect(validator.verify(proofForOneQuery, params, signer.address))
       .to.be.revertedWithCustomError(validator, "InvalidQueryHash")
       .withArgs(queryHash2, queryHash1);
   });
@@ -141,7 +136,7 @@ describe("Test linkedMultiQuery10.circom", function () {
       groupID: 0,
     });
 
-    await expect(validator.verify(proofForOneQuery, params, signer.address, stateAddress))
+    await expect(validator.verify(proofForOneQuery, params, signer.address))
       .to.be.revertedWithCustomError(validator, "InvalidGroupID")
       .withArgs(0);
   });
@@ -159,13 +154,13 @@ describe("Test linkedMultiQuery10.circom", function () {
     await groth16Verifier.stub_setVerifyResult(false);
 
     await expect(
-      validator.verify(proofForOneQuery, oneQueryParams, signer.address, stateAddress),
+      validator.verify(proofForOneQuery, oneQueryParams, signer.address),
     ).to.be.revertedWithCustomError(validator, "InvalidGroth16Proof");
   });
 
-  it("Contract version should be 1.0.0-beta", async function () {
-    expect(await validator.VERSION()).to.equal("1.0.0-beta");
-    expect(await validator.version()).to.equal("1.0.0-beta");
+  it("Contract version should be 1.0.0-beta.1", async function () {
+    expect(await validator.VERSION()).to.equal("1.0.0-beta.1");
+    expect(await validator.version()).to.equal("1.0.0-beta.1");
   });
 
   it("check version", async () => {

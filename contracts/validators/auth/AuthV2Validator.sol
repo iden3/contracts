@@ -58,11 +58,16 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
 
     /**
      * @dev Initialize the contract
+     * @param _stateContractAddr Address of the state contract
      * @param _verifierContractAddr Address of the verifier contract
      * @param owner Owner of the contract
      */
-    function initialize(address _verifierContractAddr, address owner) public initializer {
-        _initDefaultStateVariables(_verifierContractAddr, CIRCUIT_ID, owner);
+    function initialize(
+        address _stateContractAddr,
+        address _verifierContractAddr,
+        address owner
+    ) public initializer {
+        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, owner);
     }
 
     /**
@@ -93,7 +98,6 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
      * @param proof Proof packed as bytes to verify.
      * @param data Request query data of the credential to verify.
      * @param sender Sender of the proof.
-     * @param state State contract to get identities and gist states to check.
      * @param expectedNonce Expected nonce hash calculated to check
      * @return userID user ID of public signals as result.
      */
@@ -102,7 +106,6 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
         // solhint-disable-next-line no-unused-vars
         bytes calldata data,
         address sender,
-        IState state,
         bytes32 expectedNonce
     ) public view override returns (uint256 userID) {
         (
@@ -113,7 +116,7 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
         ) = abi.decode(proof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
         PubSignals memory pubSignals = parsePubSignals(inputs);
-        _checkGistRoot(pubSignals.userID, pubSignals.gistRoot, state);
+        _checkGistRoot(pubSignals.userID, pubSignals.gistRoot);
         _checkChallenge(pubSignals.challenge, expectedNonce);
         _verifyZKP(inputs, a, b, c);
         return pubSignals.userID;
@@ -189,6 +192,7 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
     }
 
     function _initDefaultStateVariables(
+        address _stateContractAddr,
         address _verifierContractAddr,
         string memory circuitId,
         address owner
@@ -200,13 +204,18 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
         s.gistRootExpirationTimeout = 1 hours;
         s._supportedCircuitIds = [circuitId];
         s._circuitIdToVerifier[circuitId] = IGroth16Verifier(_verifierContractAddr);
+        s.state = IState(_stateContractAddr);
         __Ownable_init(owner);
     }
 
-    function _checkGistRoot(uint256 _id, uint256 _gistRoot, IState _stateContract) internal view {
+    function _getState() internal view returns (IState) {
+        return _getAuthV2ValidatorStorage().state;
+    }
+
+    function _checkGistRoot(uint256 _id, uint256 _gistRoot) internal view {
         AuthV2ValidatorStorage storage $ = _getAuthV2ValidatorStorage();
         bytes2 idType = GenesisUtils.getIdType(_id);
-        uint256 replacedAt = _stateContract.getGistRootReplacedAt(idType, _gistRoot);
+        uint256 replacedAt = _getState().getGistRootReplacedAt(idType, _gistRoot);
 
         if (replacedAt != 0 && block.timestamp > $.gistRootExpirationTimeout + replacedAt) {
             revert GistRootIsExpired();

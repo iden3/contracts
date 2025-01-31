@@ -652,6 +652,7 @@ describe("Universal Verifier tests", function () {
       expect(events[0].eventName).to.be.equal("MultiRequestSet");
       expect(events[0].args.multiRequestId).to.be.equal(multiRequest.multiRequestId);
       expect(events[0].args.requestIds).to.deep.equal(multiRequest.requestIds);
+      expect(events[0].args.groupIds).to.deep.equal(multiRequest.groupIds);
     });
   });
 });

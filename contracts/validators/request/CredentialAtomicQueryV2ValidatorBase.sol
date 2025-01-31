@@ -62,14 +62,12 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
      * @param proof Proof packed as bytes to verify.
      * @param data Request query data of the credential to verify.
      * @param sender Sender of the proof.
-     * @param state State contract to get identities and gist states to check.
      * @return Array of public signals as result.
      */
     function verify(
         bytes calldata proof,
         bytes calldata data,
-        address sender,
-        IState state
+        address sender
     ) public view override returns (IRequestValidator.ResponseField[] memory) {
         (
             uint256[] memory inputs,
@@ -78,7 +76,7 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
             uint256[2] memory c
         ) = abi.decode(proof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
-        PubSignals memory pubSignals = _verifyMain(inputs, a, b, c, data, sender, state);
+        PubSignals memory pubSignals = _verifyMain(inputs, a, b, c, data, sender);
         return _getResponseFields(pubSignals);
     }
 
@@ -105,7 +103,6 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
      * @param c πc element of the groth16 proof.
      * @param data Request query data of the credential to verify.
      * @param sender Sender of the proof.
-     * @param state State contract to get identities and gist states to check.
      */
     function _verifyMain(
         uint256[] memory inputs,
@@ -113,8 +110,7 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         uint256[2][2] memory b,
         uint256[2] memory c,
         bytes calldata data,
-        address sender,
-        IState state
+        address sender
     ) internal view returns (PubSignals memory) {
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
 
@@ -149,9 +145,9 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         _checkChallenge(pubSignals.challenge, sender);
 
         // GIST root and state checks
-        _checkGistRoot(pubSignals.userID, pubSignals.gistRoot, state);
-        _checkClaimIssuanceState(pubSignals.issuerID, pubSignals.issuerState, state);
-        _checkClaimNonRevState(pubSignals.issuerID, pubSignals.issuerClaimNonRevState, state);
+        _checkGistRoot(pubSignals.userID, pubSignals.gistRoot);
+        _checkClaimIssuanceState(pubSignals.issuerID, pubSignals.issuerState);
+        _checkClaimNonRevState(pubSignals.issuerID, pubSignals.issuerClaimNonRevState);
 
         return pubSignals;
     }

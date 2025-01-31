@@ -49,6 +49,7 @@ describe("Auth V2 Validator", function () {
 
     const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
       "authV2",
+      await stateContract.getAddress(),
       "basic",
       await verifierStub.getAddress(),
     );
@@ -104,32 +105,13 @@ describe("Auth V2 Validator", function () {
 
       if (test.errorMessage) {
         await expect(
-          authV2validator.verify(
-            zkProof,
-            data,
-            test.sender,
-            await state.getAddress(),
-            expectedNonce,
-          ),
+          authV2validator.verify(zkProof, data, test.sender, expectedNonce),
         ).to.be.rejectedWith(test.errorMessage);
       } else if (test.errorMessage === "") {
-        await expect(
-          authV2validator.verify(
-            zkProof,
-            data,
-            test.sender,
-            await state.getAddress(),
-            expectedNonce,
-          ),
-        ).to.be.reverted;
+        await expect(authV2validator.verify(zkProof, data, test.sender, expectedNonce)).to.be
+          .reverted;
       } else {
-        const userID = await authV2validator.verify(
-          zkProof,
-          data,
-          test.sender,
-          await state.getAddress(),
-          expectedNonce,
-        );
+        const userID = await authV2validator.verify(zkProof, data, test.sender, expectedNonce);
 
         expect(userID).to.be.equal(test.userID);
       }

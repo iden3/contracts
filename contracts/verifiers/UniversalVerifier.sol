@@ -65,7 +65,7 @@ contract UniversalVerifier is
     /**
      * @dev Event emitted upon adding a multiRequest
      */
-    event MultiRequestSet(uint256 indexed multiRequestId, uint256[] requestIds);
+    event MultiRequestSet(uint256 indexed multiRequestId, uint256[] requestIds, uint256[] groupIds);
 
     /// @dev Modifier to check if the caller is the contract Owner or ZKP Request Owner
     modifier onlyOwnerOrRequestOwner(uint256 requestId) {
@@ -120,7 +120,11 @@ contract UniversalVerifier is
         IVerifier.MultiRequest calldata multiRequest
     ) public override checkMultiRequestExistence(multiRequest.multiRequestId, false) {
         super.setMultiRequest(multiRequest);
-        emit MultiRequestSet(multiRequest.multiRequestId, multiRequest.requestIds);
+        emit MultiRequestSet(
+            multiRequest.multiRequestId,
+            multiRequest.requestIds,
+            multiRequest.groupIds
+        );
     }
 
     /**

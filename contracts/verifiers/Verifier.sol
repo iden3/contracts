@@ -325,7 +325,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             authResponse.proof,
             authTypeData.params,
             sender,
-            $._state,
             expectedNonce
         );
 
@@ -342,8 +341,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             IRequestValidator.ResponseField[] memory signals = request.validator.verify(
                 response.proof,
                 request.params,
-                sender,
-                $._state
+                sender
             );
 
             // Check if userID from authResponse is the same as the one in the signals
@@ -657,10 +655,10 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         }
     }
 
-    function _getRequestType(uint256 requestId) internal pure returns (uint8) {
+    function _getRequestType(uint256 requestId) internal pure returns (uint16) {
         // 0x0000000000000000 - prefix for old uint64 requests
-        // 0x0100000000000000 - prefix for keccak256 cut to fit in the remaining 192 bits
-        return uint8(requestId >> 248);
+        // 0x0001000000000000 - prefix for keccak256 cut to fit in the remaining 192 bits
+        return uint16(requestId >> 240);
     }
 
     function _checkRequestIdCorrectness(
@@ -668,12 +666,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         bytes calldata requestParams
     ) internal pure {
         // 1. Check prefix
-        uint8 requestType = _getRequestType(requestId);
+        uint16 requestType = _getRequestType(requestId);
         if (requestType >= 2) {
             revert RequestIdTypeNotValid();
         }
         // 2. Check reserved bytes
-        if (((requestId << 8) >> 208) > 0) {
+        if (((requestId << 16) >> 216) > 0) {
             revert RequestIdUsesReservedBytes();
         }
         // 3. Check if requestId matches the hash of the requestParams
@@ -682,7 +680,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             if (
                 requestId !=
                 (hashValue & 0x0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) +
-                    0x0100000000000000000000000000000000000000000000000000000000000000
+                    0x0001000000000000000000000000000000000000000000000000000000000000
             ) {
                 revert RequestIdNotValid();
             }

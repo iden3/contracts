@@ -3,7 +3,6 @@ pragma solidity 0.8.27;
 
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
-import {IState} from "../interfaces/IState.sol";
 
 error RequestParamNameNotFound();
 
@@ -31,8 +30,7 @@ contract RequestValidatorStub is IRequestValidator, ERC165 {
     function verify(
         bytes calldata,
         bytes calldata,
-        address,
-        IState
+        address
     ) external view returns (IRequestValidator.ResponseField[] memory) {
         return responseFields;
     }

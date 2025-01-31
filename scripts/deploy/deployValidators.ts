@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { DeployHelper, ValidatorType } from "../../helpers/DeployHelper";
 import hre from "hardhat";
-import { getConfig, verifyContract } from "../../helpers/helperUtils";
+import { getConfig, getStateContractAddress, verifyContract } from "../../helpers/helperUtils";
 
 async function main() {
   const config = getConfig();
@@ -15,11 +15,13 @@ async function main() {
   const [signer] = await hre.ethers.getSigners();
 
   const deployHelper = await DeployHelper.initialize(null, true);
+  const stateContractAddress = getStateContractAddress();
 
   const validatorsInfo: any = [];
   for (const v of validators) {
     const { validator, groth16VerifierWrapper } = await deployHelper.deployValidatorContracts(
       v,
+      stateContractAddress,
       deployStrategy,
     );
 

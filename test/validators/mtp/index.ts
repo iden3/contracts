@@ -137,7 +137,10 @@ describe("Atomic MTP Validator", function () {
     const deployHelper = await DeployHelper.initialize(null, true);
 
     const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0100"]);
-    const contracts = await deployHelper.deployValidatorContractsWithVerifiers("mtpV2");
+    const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
+      "mtpV2",
+      await stateContract.getAddress(),
+    );
     const validator = contracts.validator;
 
     return {
@@ -206,19 +209,13 @@ describe("Atomic MTP Validator", function () {
       // Check verify function
       const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
       if (test.errorMessage) {
-        await expect(
-          mtpValidator.verify(zkProof, data, senderAddress, await state.getAddress()),
-        ).to.be.rejectedWith(test.errorMessage);
-      } else if (test.errorMessage === "") {
-        await expect(mtpValidator.verify(zkProof, data, senderAddress, await state.getAddress())).to
-          .be.reverted;
-      } else {
-        const signals = await mtpValidator.verify(
-          zkProof,
-          data,
-          senderAddress,
-          await state.getAddress(),
+        await expect(mtpValidator.verify(zkProof, data, senderAddress)).to.be.rejectedWith(
+          test.errorMessage,
         );
+      } else if (test.errorMessage === "") {
+        await expect(mtpValidator.verify(zkProof, data, senderAddress)).to.be.reverted;
+      } else {
+        const signals = await mtpValidator.verify(zkProof, data, senderAddress);
         checkSignals(signals, test.signalValues);
       }
     });

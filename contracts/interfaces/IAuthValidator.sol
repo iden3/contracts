@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.27;
 
-import {IState} from "./IState.sol";
-
 /**
  * @dev IAuthValidator. Interface for verification of auth data.
  */
@@ -18,7 +16,6 @@ interface IAuthValidator {
      * @param proof Proof packed as bytes to verify.
      * @param params Request query data of the credential to verify.
      * @param sender Sender of the proof.
-     * @param state State contract to get identities and gist states to check.
      * @param expectedNonce Expected nonce hash calculated to check
      * @return userID User Id for the auth proof verified.
      */
@@ -26,7 +23,6 @@ interface IAuthValidator {
         bytes calldata proof,
         bytes calldata params,
         address sender,
-        IState state,
         bytes32 expectedNonce
     ) external returns (uint256 userID);
 }

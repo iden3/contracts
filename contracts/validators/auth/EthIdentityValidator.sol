@@ -67,7 +67,6 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IAuthValidator, ERC165
      * @param proof Proof packed as bytes to verify.
      * @param data Request query data of the credential to verify.
      * @param sender Sender of the proof.
-     * @param stateContract State contract to get identities and gist states to check.
      * @return Array of signals as result.
      */
     function verify(
@@ -75,7 +74,6 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IAuthValidator, ERC165
         // solhint-disable-next-line no-unused-vars
         bytes calldata data,
         address sender,
-        IState stateContract,
         bytes32 expectedNonce
     ) public view override returns (uint256) {
         uint256 userID = abi.decode(proof, (uint256));

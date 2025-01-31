@@ -55,10 +55,15 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
 
     /**
      * @dev Initialize the contract
+     * @param _stateContractAddr Address of the state contract
      * @param _verifierContractAddr Address of the verifier contract
      * @param owner Owner of the contract
      */
-    function initialize(address _verifierContractAddr, address owner) public initializer {
+    function initialize(
+        address _stateContractAddr,
+        address _verifierContractAddr,
+        address owner
+    ) public initializer {
         _setInputToIndex("userID", 0);
         _setInputToIndex("circuitQueryHash", 1);
         _setInputToIndex("issuerState", 2);
@@ -78,7 +83,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _setRequestParamToIndex("verifierID", 1);
         _setRequestParamToIndex("nullifierSessionID", 2);
 
-        _initDefaultStateVariables(_verifierContractAddr, CIRCUIT_ID, owner);
+        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, owner);
     }
 
     /**
@@ -120,14 +125,12 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
      * @param proof Proof packed as bytes to verify.
      * @param data Request query data of the credential to verify.
      * @param sender Sender of the proof.
-     * @param state State contract to get identities and gist states to check.
      * @return Array of public signals as result.
      */
     function verify(
         bytes calldata proof,
         bytes calldata data,
-        address sender,
-        IState state
+        address sender
     ) public view override returns (IRequestValidator.ResponseField[] memory) {
         (
             uint256[] memory inputs,
@@ -136,15 +139,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
             uint256[2] memory c
         ) = abi.decode(proof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
-        (PubSignals memory pubSignals, bool hasSD) = _verifyMain(
-            inputs,
-            a,
-            b,
-            c,
-            data,
-            sender,
-            state
-        );
+        (PubSignals memory pubSignals, bool hasSD) = _verifyMain(inputs, a, b, c, data, sender);
         return _getResponseFields(pubSignals, hasSD);
     }
 
@@ -187,7 +182,6 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
      * @param c πc element of the groth16 proof.
      * @param data Request query data of the credential to verify.
      * @param sender Sender of the proof.
-     * @param state State contract to get identities and gist states to check.
      */
     function _verifyMain(
         uint256[] memory inputs,
@@ -195,8 +189,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         uint256[2][2] memory b,
         uint256[2] memory c,
         bytes calldata data,
-        address sender,
-        IState state
+        address sender
     ) internal view returns (PubSignals memory, bool) {
         CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
             data,
@@ -215,12 +208,12 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _checkNullify(pubSignals.nullifier, credAtomicQuery.nullifierSessionID);
 
         // GIST root and state checks
-        _checkClaimIssuanceState(pubSignals.issuerID, pubSignals.issuerState, state);
-        _checkClaimNonRevState(pubSignals.issuerID, pubSignals.issuerClaimNonRevState, state);
+        _checkClaimIssuanceState(pubSignals.issuerID, pubSignals.issuerState);
+        _checkClaimNonRevState(pubSignals.issuerID, pubSignals.issuerClaimNonRevState);
         if (pubSignals.isBJJAuthEnabled == 1) {
-            _checkGistRoot(pubSignals.userID, pubSignals.gistRoot, state);
+            _checkGistRoot(pubSignals.userID, pubSignals.gistRoot);
         } else {
-            _checkAuth(pubSignals.userID, sender, state);
+            _checkAuth(pubSignals.userID, sender);
         }
 
         // Checking challenge to prevent replay attacks from other addresses
@@ -270,11 +263,11 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         require(nullifierSessionID == 0 || nullifier != 0, "Invalid nullify pub signal");
     }
 
-    function _checkAuth(uint256 userID, address ethIdentityOwner, IState state) internal view {
+    function _checkAuth(uint256 userID, address ethIdentityOwner) internal view {
         require(
             userID ==
                 GenesisUtils.calcIdFromEthAddress(
-                    state.getIdTypeIfSupported(userID),
+                    _getState().getIdTypeIfSupported(userID),
                     ethIdentityOwner
                 ),
             "UserID does not correspond to the sender"
@@ -302,12 +295,6 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
             name: "nullifier",
             value: pubSignals.nullifier
         });
-        if (hasSelectiveDisclosure) {
-            responseFields[i++] = IRequestValidator.ResponseField({
-                name: "operatorOutput",
-                value: pubSignals.operatorOutput
-            });
-        }
         responseFields[i++] = IRequestValidator.ResponseField({
             name: "timestamp",
             value: pubSignals.timestamp
@@ -316,7 +303,12 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
             name: "issuerID",
             value: pubSignals.issuerID
         });
-
+        if (hasSelectiveDisclosure) {
+            responseFields[i++] = IRequestValidator.ResponseField({
+                name: "operatorOutput",
+                value: pubSignals.operatorOutput
+            });
+        }
         return responseFields;
     }
 }

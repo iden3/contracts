@@ -59,14 +59,10 @@ describe("Negative tests", function () {
 
   it("Zero timestamp and block should be only in the first identity state", async () => {
     await expect(stateLibWrpr.addGenesisState(2, 20)).to.be.not.reverted;
-    await expect(stateLibWrpr.addGenesisState(2, 20)).to.be.rejectedWith(
-      "ZeroTimestampAndBlockOnlyAllowedInFirstIdentityState()",
-    );
+    await expect(stateLibWrpr.addGenesisState(2, 20)).to.be.rejectedWith("IdentityAlreadyExists()");
 
     await expect(stateLibWrpr.addState(3, 30)).to.be.not.reverted;
-    await expect(stateLibWrpr.addGenesisState(3, 30)).to.be.rejectedWith(
-      "ZeroTimestampAndBlockOnlyAllowedInFirstIdentityState()",
-    );
+    await expect(stateLibWrpr.addGenesisState(3, 30)).to.be.rejectedWith("IdentityAlreadyExists()");
   });
 });
 

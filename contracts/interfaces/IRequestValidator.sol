@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.27;
 
-import {IState} from "./IState.sol";
-
 /**
  * @dev IRequestValidator. Interface for verification of request query data.
  */
@@ -38,14 +36,12 @@ interface IRequestValidator {
      * @param proof Proof packed as bytes to verify.
      * @param params Request query data of the credential to verify.
      * @param sender Sender of the proof.
-     * @param state State contract to get identities and gist states to check.
      * @return Array of response fields as result.
      */
     function verify(
         bytes calldata proof,
         bytes calldata params,
-        address sender,
-        IState state
+        address sender
     ) external returns (ResponseField[] memory);
 
     /**

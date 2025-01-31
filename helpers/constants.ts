@@ -195,7 +195,7 @@ export const contractsInfo = Object.freeze({
   },
   VALIDATOR_LINKED_MULTI_QUERY: {
     name: "LinkedMultiQueryValidator",
-    version: "1.0.0-beta",
+    version: "1.0.0-beta.1",
     unifiedAddress: "0xfA622418d7aBF33868545732CaD2C2E7ce9B16C8",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.LinkedMultiQueryValidator")),
     verificationOpts: {

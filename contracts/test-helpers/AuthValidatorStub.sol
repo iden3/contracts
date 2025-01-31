@@ -3,7 +3,6 @@ pragma solidity 0.8.27;
 
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {IAuthValidator} from "../interfaces/IAuthValidator.sol";
-import {IState} from "../interfaces/IState.sol";
 
 /**
  * @dev AuthValidatorStub validator
@@ -26,7 +25,6 @@ contract AuthValidatorStub is IAuthValidator, ERC165 {
         bytes calldata,
         bytes calldata,
         address,
-        IState,
         bytes32
     ) external view override returns (uint256) {
         return userID;

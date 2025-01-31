@@ -71,7 +71,7 @@ interface IVerifier {
      * @param proof proof to verify.
      */
     struct AuthResponse {
-        string authType; //zkp-auth-v2, zkp-auth-v3, etc.
+        string authType;
         bytes proof;
     }
 
