@@ -2,7 +2,6 @@
 pragma solidity 0.8.27;
 
 import {IState} from "./IState.sol";
-import {IState} from "./IState.sol";
 
 /**
  * @dev ICrossChainProofValidator. Interface for cross chain proof validation.
