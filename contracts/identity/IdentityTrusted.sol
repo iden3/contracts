@@ -22,26 +22,26 @@ contract IdentityTrusted is IdentityBase, Ownable2StepUpgradeable {
     ECDSA384.Parameters private _secp384r1CurveParams;
     bytes private _signerPubKey;
 
-    function verifySECP384r1(
-        bytes calldata message_,
-        bytes calldata signature_,
-        bytes calldata pubKey_
-    ) external view returns (bool) {
+    /// @dev Modifier to check if the validator is set for the request
+    modifier checkValidClaimSignature(
+        uint256 hashIndex,
+        uint256 hashValue,
+        bytes memory ecdsa384Signature
+    ) {
+        if (ecdsa384Signature.length != 96) {
+            revert InvalidSignatureLength();
+        }
 
-        return
-            _secp384r1CurveParams.verify(
-                abi.encodePacked(SHA384.sha384(message_)),
-                signature_,
-                pubKey_
-            );
-    }
+        bool verified = _secp384r1CurveParams.verify(
+            abi.encodePacked(SHA384.sha384(abi.encodePacked(hashIndex, hashValue))),
+            ecdsa384Signature,
+            _signerPubKey
+        );
 
-    function verifySECP384r1WithoutHashing(
-        bytes calldata hashedMessage_,
-        bytes calldata signature_,
-        bytes calldata pubKey_
-    ) external view returns (bool) {
-        return _secp384r1CurveParams.verify(abi.encodePacked(hashedMessage_), signature_, pubKey_);
+        if (!verified) {
+            revert InvalidSignature();
+        }
+        _;
     }
 
     function initialize(address _stateContractAddr, bytes2 _idType) public override initializer {
@@ -70,67 +70,56 @@ contract IdentityTrusted is IdentityBase, Ownable2StepUpgradeable {
         _signerPubKey = pubKey;
     }
 
-    function addClaimAndTransit(uint256[8] calldata claim) public onlyOwner {
-        addClaim(claim);
-        transitState();
+    function verifySECP384r1(
+        bytes calldata message_,
+        bytes calldata signature_,
+        bytes calldata pubKey_
+    ) external view returns (bool) {
+        return
+            _secp384r1CurveParams.verify(
+                abi.encodePacked(SHA384.sha384(message_)),
+                signature_,
+                pubKey_
+            );
     }
 
-    function addClaimHashAndTransit(uint256 hashIndex, uint256 hashValue) public onlyOwner {
-        addClaimHash(hashIndex, hashValue);
-        transitState();
-    }
-
-    function revokeClaimAndTransit(uint64 revocationNonce) public onlyOwner {
-        revokeClaim(revocationNonce);
-        transitState();
+    function verifySECP384r1WithoutHashing(
+        bytes calldata hashedMessage_,
+        bytes calldata signature_,
+        bytes calldata pubKey_
+    ) external view returns (bool) {
+        return _secp384r1CurveParams.verify(abi.encodePacked(hashedMessage_), signature_, pubKey_);
     }
 
     /**
-     * @dev Add claim
-     * @param claim - claim data
+     * @dev Add claim hash and transit state
+     * @param hashIndex - hash of claim index part
+     * @param hashValue - hash of claim value part
+     * @param ecdsa384Signature - signature of hashIndex and hashValue with P-384 from authorized signer
      */
-    function addClaim(uint256[8] calldata claim) public virtual onlyOwner {
-        _getIdentityBaseStorage().identity.addClaim(claim);
+    function addClaimHashAndTransit(
+        uint256 hashIndex,
+        uint256 hashValue,
+        bytes memory ecdsa384Signature
+    ) public checkValidClaimSignature(hashIndex, hashValue, ecdsa384Signature) {
+        addClaimHash(hashIndex, hashValue, ecdsa384Signature);
+        transitState();
     }
 
     /**
      * @dev Add claim hash
      * @param hashIndex - hash of claim index part
      * @param hashValue - hash of claim value part
+     * @param ecdsa384Signature - signature of hashIndex and hashValue with P-384 from authorized signer
      */
-    function addClaimHash(uint256 hashIndex, uint256 hashValue) public virtual onlyOwner {
-        _getIdentityBaseStorage().identity.addClaimHash(hashIndex, hashValue);
-    }
-
-    function addClaimHashWithSignature(
+    function addClaimHash(
         uint256 hashIndex,
         uint256 hashValue,
         bytes memory ecdsa384Signature
-    ) public virtual onlyOwner {
-        if (ecdsa384Signature.length != 96) {
-            revert InvalidSignatureLength();
-        }
-
-        bool verified = _secp384r1CurveParams.verify(
-            abi.encodePacked(SHA384.sha384(abi.encodePacked(hashIndex, hashValue))),
-            ecdsa384Signature,
-            _signerPubKey
-        );
-
-        if (!verified) {
-            revert InvalidSignature();
-        }
-
+    ) public virtual checkValidClaimSignature(hashIndex, hashValue, ecdsa384Signature) {
         _getIdentityBaseStorage().identity.addClaimHash(hashIndex, hashValue);
     }
 
-    /**
-     * @dev Revoke claim using it's revocationNonce
-     * @param revocationNonce - revocation nonce
-     */
-    function revokeClaim(uint64 revocationNonce) public virtual onlyOwner {
-        _getIdentityBaseStorage().identity.revokeClaim(revocationNonce);
-    }
 
     /**
      * @dev Make state transition
@@ -145,11 +134,6 @@ contract IdentityTrusted is IdentityBase, Ownable2StepUpgradeable {
      */
     function calcIdentityState() public view virtual returns (uint256) {
         return _getIdentityBaseStorage().identity.calcIdentityState();
-    }
-
-    function newClaimData() public pure virtual returns (ClaimBuilder.ClaimData memory) {
-        ClaimBuilder.ClaimData memory claimData;
-        return claimData;
     }
 
     /**

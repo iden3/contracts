@@ -5,6 +5,101 @@ import { deployPoseidons } from "../../helpers/PoseidonDeployHelper";
 import { AbiCoder } from "ethers";
 import { hexToBytes } from "@0xpolygonid/js-sdk";
 
+let publicKey: CryptoKey;
+let privateKey: CryptoKey;
+let publicKeyCompressed: string;
+
+async function signClaim(hashIndex, hashValue, privateKey) {
+  const encoder = new AbiCoder();
+  const messageEncoded = encoder.encode(["uint256", "uint256"], [hashIndex, hashValue]);
+  const messageBuffer = hexToBytes(messageEncoded);
+  const messageHashBuffer = await crypto.subtle.digest("SHA-384", messageBuffer);
+
+  const signatureBuffer = await crypto.subtle.sign(
+    {
+      name: "ECDSA",
+      hash: "SHA-384",
+    },
+    privateKey,
+    messageBuffer,
+  );
+
+  return {
+    message: `0x${Buffer.from(messageBuffer).toString("hex")}`,
+    messageHash: `0x${Buffer.from(messageHashBuffer).toString("hex")}`,
+    signature: `0x${Buffer.from(signatureBuffer).toString("hex")}`,
+  };
+}
+
+async function generateP384Keys() {
+  const keyPair = await crypto.subtle.generateKey(
+    {
+      name: "ECDSA",
+      namedCurve: "P-384",
+    },
+    true,
+    ["sign", "verify"],
+  );
+
+  const publicKeyExtracted = await crypto.subtle.exportKey("jwk", keyPair.publicKey);
+  const publicKeyX = Buffer.from(publicKeyExtracted.x!, "base64").toString("hex");
+  const publicKeyY = Buffer.from(publicKeyExtracted.y!, "base64").toString("hex");
+  const publicKeyXYCompressed = `0x${publicKeyX}${publicKeyY}`;
+
+  return {
+    generatedPrivateKey: keyPair.privateKey,
+    generatedPublicKey: keyPair.publicKey,
+    publicKeyXYCompressed,
+  };
+}
+
+async function importP384Keys() {
+  const jwkPrivateKey = {
+    key_ops: ["sign"],
+    ext: true,
+    kty: "EC",
+    x: "oSZkzjHSaHFzoiJwpMP5bWvO86FnzQmMgikQJ5zK32mmeq4x0sO8DQoYjkSIG-Wf",
+    y: "Ybf6DWDoMSvLF4_wxvGjRBVmrT4QytmXLnj1U95HAEoMkIn7Fm7_0zD2k0AhNpfF",
+    crv: "P-384",
+    d: "qkVtf_3bcxOwqCjF37AWuyxj7nCp6ymdA6q2_HIbEeVMOjkkvIYUjtBO_b2OsMMr",
+  };
+
+  const jwkPublicKey = {
+    key_ops: ["verify"],
+    ext: true,
+    kty: "EC",
+    x: "oSZkzjHSaHFzoiJwpMP5bWvO86FnzQmMgikQJ5zK32mmeq4x0sO8DQoYjkSIG-Wf",
+    y: "Ybf6DWDoMSvLF4_wxvGjRBVmrT4QytmXLnj1U95HAEoMkIn7Fm7_0zD2k0AhNpfF",
+    crv: "P-384",
+  };
+
+  const generatedPrivateKey = await crypto.subtle.importKey(
+    "jwk",
+    jwkPrivateKey,
+    { name: "ECDSA", namedCurve: "P-384" },
+    true,
+    ["sign"],
+  );
+
+  const generatedPublicKey = await crypto.subtle.importKey(
+    "jwk",
+    jwkPublicKey,
+    { name: "ECDSA", namedCurve: "P-384" },
+    true,
+    ["verify"],
+  );
+
+  const publicKeyX = Buffer.from(jwkPublicKey.x!, "base64").toString("hex");
+  const publicKeyY = Buffer.from(jwkPublicKey.y!, "base64").toString("hex");
+  const publicKeyXYCompressed = `0x${publicKeyX}${publicKeyY}`;
+
+  return {
+    generatedPrivateKey,
+    generatedPublicKey,
+    publicKeyXYCompressed,
+  };
+}
+
 describe("Next tests reproduce identity trusted life cycle", function () {
   this.timeout(10000);
 
@@ -93,101 +188,6 @@ describe("Next tests reproduce identity trusted life cycle", function () {
   });
 
   describe("test P-384", function () {
-    let publicKey: CryptoKey;
-    let privateKey: CryptoKey;
-    let publicKeyCompressed: string;
-
-    async function signClaim(hashIndex, hashValue, privateKey) {
-      const encoder = new AbiCoder();
-      const messageEncoded = encoder.encode(["uint256", "uint256"], [hashIndex, hashValue]);
-      const messageBuffer = hexToBytes(messageEncoded);
-      const messageHashBuffer = await crypto.subtle.digest("SHA-384", messageBuffer);
-
-      const signatureBuffer = await crypto.subtle.sign(
-        {
-          name: "ECDSA",
-          hash: "SHA-384",
-        },
-        privateKey,
-        messageBuffer,
-      );
-
-      return {
-        message: `0x${Buffer.from(messageBuffer).toString("hex")}`,
-        messageHash: `0x${Buffer.from(messageHashBuffer).toString("hex")}`,
-        signature: `0x${Buffer.from(signatureBuffer).toString("hex")}`,
-      };
-    }
-
-    async function generateP384Keys() {
-      const keyPair = await crypto.subtle.generateKey(
-        {
-          name: "ECDSA",
-          namedCurve: "P-384",
-        },
-        true,
-        ["sign", "verify"],
-      );
-
-      const publicKeyExtracted = await crypto.subtle.exportKey("jwk", keyPair.publicKey);
-      const publicKeyX = Buffer.from(publicKeyExtracted.x!, "base64").toString("hex");
-      const publicKeyY = Buffer.from(publicKeyExtracted.y!, "base64").toString("hex");
-      const publicKeyXYCompressed = `0x${publicKeyX}${publicKeyY}`;
-
-      return {
-        generatedPrivateKey: keyPair.privateKey,
-        generatedPublicKey: keyPair.publicKey,
-        publicKeyXYCompressed,
-      };
-    }
-
-    async function importP384Keys() {
-      const jwkPrivateKey = {
-        key_ops: ["sign"],
-        ext: true,
-        kty: "EC",
-        x: "oSZkzjHSaHFzoiJwpMP5bWvO86FnzQmMgikQJ5zK32mmeq4x0sO8DQoYjkSIG-Wf",
-        y: "Ybf6DWDoMSvLF4_wxvGjRBVmrT4QytmXLnj1U95HAEoMkIn7Fm7_0zD2k0AhNpfF",
-        crv: "P-384",
-        d: "qkVtf_3bcxOwqCjF37AWuyxj7nCp6ymdA6q2_HIbEeVMOjkkvIYUjtBO_b2OsMMr",
-      };
-
-      const jwkPublicKey = {
-        key_ops: ["verify"],
-        ext: true,
-        kty: "EC",
-        x: "oSZkzjHSaHFzoiJwpMP5bWvO86FnzQmMgikQJ5zK32mmeq4x0sO8DQoYjkSIG-Wf",
-        y: "Ybf6DWDoMSvLF4_wxvGjRBVmrT4QytmXLnj1U95HAEoMkIn7Fm7_0zD2k0AhNpfF",
-        crv: "P-384",
-      };
-
-      const generatedPrivateKey = await crypto.subtle.importKey(
-        "jwk",
-        jwkPrivateKey,
-        { name: "ECDSA", namedCurve: "P-384" },
-        true,
-        ["sign"],
-      );
-
-      const generatedPublicKey = await crypto.subtle.importKey(
-        "jwk",
-        jwkPublicKey,
-        { name: "ECDSA", namedCurve: "P-384" },
-        true,
-        ["verify"],
-      );
-
-      const publicKeyX = Buffer.from(jwkPublicKey.x!, "base64").toString("hex");
-      const publicKeyY = Buffer.from(jwkPublicKey.y!, "base64").toString("hex");
-      const publicKeyXYCompressed = `0x${publicKeyX}${publicKeyY}`;
-
-      return {
-        generatedPrivateKey,
-        generatedPublicKey,
-        publicKeyXYCompressed,
-      };
-    }
-
     before(async function () {
       /* ({
         generatedPrivateKey: privateKey,
@@ -248,15 +248,15 @@ describe("Next tests reproduce identity trusted life cycle", function () {
 
       const { signature } = await signClaim(hashIndex, hashValue, privateKey);
       await expect(
-        identity.addClaimHashWithSignature(hashIndex, hashValue, `0x${signature.slice(4)}`),
+        identity.addClaimHash(hashIndex, hashValue, `0x${signature.slice(4)}`),
       ).to.be.revertedWithCustomError(identity, "InvalidSignatureLength");
 
       await expect(
-        identity.addClaimHashWithSignature(hashIndex, hashValue, `0x112233${signature.slice(8)}`),
+        identity.addClaimHash(hashIndex, hashValue, `0x112233${signature.slice(8)}`),
       ).to.be.revertedWithCustomError(identity, "InvalidSignature");
 
       // Test adding claim with signature
-      await identity.addClaimHashWithSignature(hashIndex, hashValue, signature);
+      await identity.addClaimHash(hashIndex, hashValue, signature);
       const proof = await identity.getClaimProof(1);
       expect(proof).to.be.not.null;
       expect(proof.existence).to.be.false;
@@ -279,7 +279,13 @@ describe("Next tests reproduce identity trusted life cycle", function () {
       lastClaimTreeRoot = await identity.getLatestPublishedClaimsRoot();
       lastRevocationTreeRoot = await identity.getLatestPublishedRevocationsRoot();
       lastRootOfRootsTreeRoot = await identity.getLatestPublishedRootsRoot();
-      await identity.addClaimHash(1, 2);
+      // create claim and sign it
+      const hashIndex = 1;
+      const hashValue = 2;
+
+      const { signature } = await signClaim(hashIndex, hashValue, privateKey);
+
+      await identity.addClaimHash(hashIndex, hashValue, signature);
     });
 
     it("we should not have proof about claim existing but not published", async function () {
@@ -375,73 +381,6 @@ describe("Next tests reproduce identity trusted life cycle", function () {
       expect(claimProof[1].rootsRoot).to.be.equal(latestTransitionRootOfRootsTreeRoot);
     });
   });
-
-  describe("revoke state", function () {
-    let beforeRevocationClaimTreeRoot,
-      beforeRevocationRevocationTreeRoot,
-      beforeRevocationRootOfRootsTreeRoot;
-
-    before(async function () {
-      beforeRevocationClaimTreeRoot = await identity.getLatestPublishedClaimsRoot();
-      beforeRevocationRevocationTreeRoot = await identity.getLatestPublishedRevocationsRoot();
-      beforeRevocationRootOfRootsTreeRoot = await identity.getLatestPublishedRootsRoot();
-      await identity.revokeClaim(1);
-    });
-
-    it("revoked index should not exists in Revocation tree if not published", async function () {
-      const proof = await identity.getRevocationProof(1);
-      expect(proof).to.be.not.null;
-      expect(proof.existence).to.be.false;
-    });
-
-    it("transit of revocation tree shouldn't update root of roots tree", async function () {
-      const beforeRevocationRootOfRootsTreeRoot =
-        await identity.getLatestPublishedRevocationsRoot();
-      expect(beforeRevocationRootOfRootsTreeRoot).to.be.equal(beforeRevocationRevocationTreeRoot);
-    });
-
-    it("Root of Roots and Claims Root should be changed", async function () {
-      const afterRevocationClaimTreeRoot = await identity.getLatestPublishedClaimsRoot();
-      const afterRevocationRootOfRootsTreeRoot = await identity.getLatestPublishedRootsRoot();
-
-      expect(afterRevocationClaimTreeRoot).to.be.equal(beforeRevocationClaimTreeRoot);
-      expect(afterRevocationRootOfRootsTreeRoot).to.be.equal(beforeRevocationRootOfRootsTreeRoot);
-    });
-  });
-
-  describe("make transition after revocation", function () {
-    let beforeTransitionLatestSavedState;
-
-    before(async function () {
-      beforeTransitionLatestSavedState = await identity.getLatestPublishedState();
-      await identity.transitState();
-    });
-
-    it("revoked index should exists in Revocation tree if published", async function () {
-      const proof = await identity.getRevocationProof(1);
-      expect(proof).to.be.not.null;
-      expect(proof.existence).to.be.true;
-    });
-
-    it("state should be updated", async function () {
-      const afterTransitionLatestSavedState = await identity.getLatestPublishedState();
-      expect(beforeTransitionLatestSavedState).to.be.not.equal(afterTransitionLatestSavedState);
-    });
-
-    it("revocation proof must exist after publishing and StateInfo should be latest", async function () {
-      const latestState = await identity.getLatestPublishedState();
-      const latestClaimTreeRoot = await identity.getLatestPublishedClaimsRoot();
-      const latestRevocationTreeRoot = await identity.getLatestPublishedRevocationsRoot();
-      const latestTransitionRootOfRootsTreeRoot = await identity.getLatestPublishedRootsRoot();
-
-      const revocationProof = await identity.getRevocationProofWithStateInfo(1);
-      expect(revocationProof[0].existence).to.be.true;
-      expect(revocationProof[1].state).to.be.equal(latestState);
-      expect(revocationProof[1].claimsRoot).to.be.equal(latestClaimTreeRoot);
-      expect(revocationProof[1].revocationsRoot).to.be.equal(latestRevocationTreeRoot);
-      expect(revocationProof[1].rootsRoot).to.be.equal(latestTransitionRootOfRootsTreeRoot);
-    });
-  });
 });
 
 describe("Claims tree proofs", () => {
@@ -460,12 +399,19 @@ describe("Claims tree proofs", () => {
       await poseidon3Elements.getAddress(),
       await poseidon4Elements.getAddress(),
       stContracts.defaultIdType,
+      "IdentityTrusted",
     );
     identity = contracts.identity;
   });
 
   it("Insert new claim and generate proof", async function () {
-    await identity.addClaimHash(1, 2);
+    // create claim and sign it
+    const hashIndex = 1;
+    const hashValue = 2;
+
+    const { signature } = await signClaim(hashIndex, hashValue, privateKey);
+
+    await identity.addClaimHash(hashIndex, hashValue, signature);
     // We should take the latest root of the tree but getClaimProof()
     // will not return the latest root if it is not published
     // So we need to use getClaimProofByRoot() with the latest root
@@ -481,7 +427,13 @@ describe("Claims tree proofs", () => {
   });
 
   it("Get proof for claim by root", async function () {
-    await identity.addClaimHash(2, 2);
+    // create claim and sign it
+    const hashIndex = 2;
+    const hashValue = 2;
+
+    const { signature } = await signClaim(hashIndex, hashValue, privateKey);
+
+    await identity.addClaimHash(hashIndex, hashValue, signature);
 
     // using not latest Root
     let proof = await identity.getClaimProofByRoot(2, targetRoot);
@@ -495,63 +447,6 @@ describe("Claims tree proofs", () => {
     expect(proof.existence).to.be.true;
     expect(proof.index).to.be.equal(2);
     expect(proof.value).to.be.equal(2);
-    expect(proof.auxExistence).to.be.false;
-    expect(proof.auxIndex).to.be.equal(0);
-    expect(proof.auxValue).to.be.equal(0);
-  });
-});
-
-describe("Revocation tree proofs", () => {
-  let identity;
-  let targetRoot;
-
-  before(async function () {
-    const stDeployHelper = await DeployHelper.initialize();
-    const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
-    const [poseidon3Elements, poseidon4Elements] = await deployPoseidons([3, 4]);
-
-    const stContracts = await stDeployHelper.deployStateWithLibraries();
-    const contracts = await identityDeployHelper.deployIdentity(
-      await stContracts.state.getAddress(),
-      await stContracts.smtLib.getAddress(),
-      await poseidon3Elements.getAddress(),
-      await poseidon4Elements.getAddress(),
-      stContracts.defaultIdType,
-    );
-    identity = contracts.identity;
-  });
-
-  it("Insert new record to revocation tree and generate proof", async function () {
-    await identity.revokeClaim(1);
-    // We should take the latest root of the tree but getRevocationProof()
-    // will not return the latest root if it is not published
-    // So we need to use getRevocationProofByRoot() with the latest root
-    targetRoot = await identity.getRevocationsTreeRoot();
-    const proof = await identity.getRevocationProofByRoot(1, targetRoot);
-    expect(proof.root).to.be.equal(targetRoot);
-    expect(proof.existence).to.be.true;
-    expect(proof.index).to.be.equal(1);
-    expect(proof.value).to.be.equal(0);
-    expect(proof.auxExistence).to.be.false;
-    expect(proof.auxIndex).to.be.equal(0);
-    expect(proof.auxValue).to.be.equal(0);
-  });
-
-  it("Get proof for revocation by root", async function () {
-    await identity.revokeClaim(2);
-
-    // using not latest revocation root
-    let proof = await identity.getRevocationProofByRoot(2, targetRoot);
-    expect(proof.root).to.be.equal(targetRoot);
-    expect(proof.existence).to.be.false;
-
-    // update latest root
-    targetRoot = await identity.getRevocationsTreeRoot();
-    proof = await identity.getRevocationProofByRoot(2, targetRoot);
-    expect(proof.root).to.be.equal(targetRoot);
-    expect(proof.existence).to.be.true;
-    expect(proof.index).to.be.equal(2);
-    expect(proof.value).to.be.equal(0);
     expect(proof.auxExistence).to.be.false;
     expect(proof.auxIndex).to.be.equal(0);
     expect(proof.auxValue).to.be.equal(0);
@@ -574,14 +469,27 @@ describe("Root of roots tree proofs", () => {
       await poseidon3Elements.getAddress(),
       await poseidon4Elements.getAddress(),
       stContracts.defaultIdType,
+      "IdentityTrusted",
     );
     identity = contracts.identity;
   });
 
   describe("Insert two claims and make transtion state", () => {
     before(async function () {
-      await identity.addClaimHash(1, 2);
-      await identity.addClaimHash(2, 2);
+      const hashIndex = 1;
+      const hashValue = 2;
+
+      const { signature } = await signClaim(hashIndex, hashValue, privateKey);
+
+      await identity.addClaimHash(hashIndex, hashValue, signature);
+
+      const hashIndex2 = 2;
+      const hashValue2 = 2;
+
+      const { signature: signature2 } = await signClaim(hashIndex2, hashValue2, privateKey);
+
+      await identity.addClaimHash(hashIndex2, hashValue2, signature2);
+
       await identity.transitState();
     });
     it("Check that root of roots not empty", async function () {
@@ -594,7 +502,13 @@ describe("Root of roots tree proofs", () => {
     let currentClaimsTreeRoot;
     before(async function () {
       currentClaimsTreeRoot = await identity.getClaimsTreeRoot();
-      await identity.addClaimHash(3, 2);
+
+      const hashIndex = 3;
+      const hashValue = 2;
+
+      const { signature } = await signClaim(hashIndex, hashValue, privateKey);
+
+      await identity.addClaimHash(hashIndex, hashValue, signature);
       await identity.transitState();
     });
 
@@ -608,7 +522,13 @@ describe("Root of roots tree proofs", () => {
     let currentClaimsTreeRoot, latestRootOfRootsRoot;
     before(async function () {
       latestRootOfRootsRoot = await identity.getLatestPublishedRootsRoot();
-      await identity.addClaimHash(4, 2);
+
+      const hashIndex = 4;
+      const hashValue = 2;
+
+      const { signature } = await signClaim(hashIndex, hashValue, privateKey);
+
+      await identity.addClaimHash(hashIndex, hashValue, signature);
       await identity.transitState();
       currentClaimsTreeRoot = await identity.getClaimsTreeRoot();
     });
@@ -642,19 +562,38 @@ describe("Compare historical roots with latest roots from tree", () => {
       await poseidon3Elements.getAddress(),
       await poseidon4Elements.getAddress(),
       stContracts.defaultIdType,
+      "IdentityTrusted",
     );
     identity = contracts.identity;
+
+    ({
+      generatedPrivateKey: privateKey,
+      generatedPublicKey: publicKey,
+      publicKeyXYCompressed: publicKeyCompressed,
+    } = await importP384Keys());
   });
 
-  describe("Insert and revoke claims", () => {
+  describe("Insert claims", () => {
     before(async function () {
-      await identity.addClaimHash(1, 2);
-      await identity.addClaimHash(2, 2);
-      await identity.revokeClaim(1);
+      const hashIndex = 1;
+      const hashValue = 2;
+
+      const { signature } = await signClaim(hashIndex, hashValue, privateKey);
+
+      await identity.addClaimHash(hashIndex, hashValue, signature);
+
+      const hashIndex2 = 2;
+      const hashValue2 = 2;
+
+      const { signature: signature2 } = await signClaim(hashIndex2, hashValue2, privateKey);
+
+      await identity.addClaimHash(hashIndex2, hashValue2, signature2);
+
       await identity.transitState();
 
       latestState = await identity.getLatestPublishedState();
     });
+
     it("Compare latest claims tree root", async function () {
       const latestClaimsTreeRoot = await identity.getClaimsTreeRoot();
       const history = await identity.getRootsByState(latestState);
@@ -663,11 +602,11 @@ describe("Compare historical roots with latest roots from tree", () => {
       expect(history.claimsRoot).to.be.deep.equal(latestClaimsTreeRoot);
     });
     it("Compare latest revocations tree root", async function () {
-      const latestReocationsTreeRoot = await identity.getRevocationsTreeRoot();
+      const latestRevocationsTreeRoot = await identity.getRevocationsTreeRoot();
       const history = await identity.getRootsByState(latestState);
 
-      expect(latestReocationsTreeRoot).to.be.not.equal(0);
-      expect(history.revocationsRoot).to.be.deep.equal(latestReocationsTreeRoot);
+      expect(latestRevocationsTreeRoot).to.be.equal(0);
+      expect(history.revocationsRoot).to.be.deep.equal(latestRevocationsTreeRoot);
     });
     it("Compare latest roots tree root", async function () {
       const latestRootOfRoots = await identity.getRootsTreeRoot();
@@ -695,14 +634,19 @@ describe("Compare historical roots with latest roots from tree", () => {
       await poseidon3Elements.getAddress(),
       await poseidon4Elements.getAddress(),
       stContracts.defaultIdType,
+      "IdentityTrusted",
     );
     identity = contracts.identity;
   });
 
   describe("Check prev states", () => {
     before(async function () {
-      await identity.addClaimHash(1, 2);
-      await identity.revokeClaim(1);
+      const hashIndex = 1;
+      const hashValue = 2;
+
+      const { signature } = await signClaim(hashIndex, hashValue, privateKey);
+
+      await identity.addClaimHash(hashIndex, hashValue, signature);
       await identity.transitState();
       prevState = await identity.getLatestPublishedState();
     });
@@ -715,12 +659,12 @@ describe("Compare historical roots with latest roots from tree", () => {
       historyClaimsTreeRoot = latestClaimsTreeRoot;
     });
     it("Compare latest revocations tree root", async function () {
-      const latestReocationsTreeRoot = await identity.getRevocationsTreeRoot();
+      const latestRevocationsTreeRoot = await identity.getRevocationsTreeRoot();
       const history = await identity.getRootsByState(prevState);
 
-      expect(latestReocationsTreeRoot).to.be.not.equal(0);
-      expect(history.revocationsRoot).to.be.deep.equal(latestReocationsTreeRoot);
-      historyRevocationsTreeRoot = latestReocationsTreeRoot;
+      expect(latestRevocationsTreeRoot).to.be.equal(0);
+      expect(history.revocationsRoot).to.be.deep.equal(latestRevocationsTreeRoot);
+      historyRevocationsTreeRoot = latestRevocationsTreeRoot;
     });
     it("Compare latest roots tree root", async function () {
       const latestRootOfRoots = await identity.getRootsTreeRoot();
@@ -734,8 +678,12 @@ describe("Compare historical roots with latest roots from tree", () => {
 
   describe("Check next states", () => {
     before(async function () {
-      await identity.addClaimHash(2, 2);
-      await identity.revokeClaim(2);
+      const hashIndex = 2;
+      const hashValue = 2;
+
+      const { signature } = await signClaim(hashIndex, hashValue, privateKey);
+
+      await identity.addClaimHash(hashIndex, hashValue, signature);
       await identity.transitState();
     });
     it("Check historical claims tree root", async function () {
@@ -746,11 +694,11 @@ describe("Compare historical roots with latest roots from tree", () => {
       expect(history.claimsRoot).to.be.deep.equal(historyClaimsTreeRoot);
     });
     it("Check historical revocations tree root", async function () {
-      const latestReocationsTreeRoot = await identity.getRevocationsTreeRoot();
+      const latestRevocationsTreeRoot = await identity.getRevocationsTreeRoot();
       const history = await identity.getRootsByState(prevState);
 
-      expect(latestReocationsTreeRoot).to.be.not.equal(0);
-      expect(history.revocationsRoot).to.not.deep.equal(latestReocationsTreeRoot);
+      expect(latestRevocationsTreeRoot).to.be.equal(0);
+      expect(history.revocationsRoot).to.be.deep.equal(latestRevocationsTreeRoot);
       expect(history.revocationsRoot).to.be.deep.equal(historyRevocationsTreeRoot);
     });
     it("Check historical roots tree root", async function () {
@@ -779,6 +727,7 @@ describe("Genesis state doens't have history of states", () => {
       await poseidon3Elements.getAddress(),
       await poseidon4Elements.getAddress(),
       stContracts.defaultIdType,
+      "IdentityTrusted",
     );
     identity = contracts.identity;
   });
