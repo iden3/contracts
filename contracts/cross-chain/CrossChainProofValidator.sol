@@ -13,6 +13,8 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator {
     using ECDSA for bytes32;
 
+    error OracleSigningAddressShouldNotBeZero();
+
     bytes32 public constant TYPE_HASH =
         keccak256(
             "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
@@ -35,12 +37,18 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
 
     address private _oracleSigningAddress;
 
+    function _checkOracleSigningAddress(address oracleSigningAddress) internal pure {
+        if (oracleSigningAddress == address(0)) {
+            revert OracleSigningAddressShouldNotBeZero();
+        }
+    }
+
     constructor(
         string memory domainName,
         string memory signatureVersion,
         address oracleSigningAddress
     ) EIP712(domainName, signatureVersion) Ownable(msg.sender) {
-        require(oracleSigningAddress != address(0), "Oracle signing address should not be zero");
+        _checkOracleSigningAddress(oracleSigningAddress);
         bytes32 hashedName = keccak256(bytes(domainName));
         bytes32 hashedVersion = keccak256(bytes(signatureVersion));
         uint256 chainId = 0;
@@ -64,7 +72,7 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
      * @param oracleSigningAddress The new oracle signing address
      **/
     function setOracleSigningAddress(address oracleSigningAddress) public onlyOwner {
-        require(oracleSigningAddress != address(0), "Oracle signing address should not be zero");
+        _checkOracleSigningAddress(oracleSigningAddress);
         _oracleSigningAddress = oracleSigningAddress;
     }
 
