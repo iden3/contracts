@@ -92,78 +92,16 @@ describe("Next tests reproduce identity trusted life cycle", function () {
     });
   });
 
-  describe.only("test P-384", function () {
-    let publicKeyCK, publicKey, signature, message, messageHash, messageBuffer;
+  describe("test P-384", function () {
+    let publicKey: CryptoKey;
+    let privateKey: CryptoKey;
+    let publicKeyCompressed: string;
 
-    before(async function () {
-      /* const keyPair = await crypto.subtle.generateKey(
-        {
-          name: "ECDSA",
-          namedCurve: "P-384",
-        },
-        true,
-        ["sign", "verify"],
-      );
-      
-      console.log(
-        "keyPair",
-        await crypto.subtle.exportKey("jwk", keyPair.privateKey),
-        await crypto.subtle.exportKey("jwk", keyPair.publicKey),
-      );
-
-      const publicKey = keyPair.publicKey;
-      */
-
-      // P-384 key pair
-      /* const jwkPrivateKey = {
-        key_ops: ["sign"],
-        ext: true,
-        kty: "EC",
-        x: "oSZkzjHSaHFzoiJwpMP5bWvO86FnzQmMgikQJ5zK32mmeq4x0sO8DQoYjkSIG-Wf",
-        y: "Ybf6DWDoMSvLF4_wxvGjRBVmrT4QytmXLnj1U95HAEoMkIn7Fm7_0zD2k0AhNpfF",
-        crv: "P-384",
-        d: "qkVtf_3bcxOwqCjF37AWuyxj7nCp6ymdA6q2_HIbEeVMOjkkvIYUjtBO_b2OsMMr",
-      }; */
-      const jwkPublicKey = {
-        key_ops: ["verify"],
-        ext: true,
-        kty: "EC",
-        x: "oSZkzjHSaHFzoiJwpMP5bWvO86FnzQmMgikQJ5zK32mmeq4x0sO8DQoYjkSIG-Wf",
-        y: "Ybf6DWDoMSvLF4_wxvGjRBVmrT4QytmXLnj1U95HAEoMkIn7Fm7_0zD2k0AhNpfF",
-        crv: "P-384",
-      };
-
-      // const publicKeyExtracted = await crypto.subtle.exportKey("jwk", publicKey);
-      const publicKeyX = Buffer.from(jwkPublicKey.x!, "base64").toString("hex");
-      const publicKeyY = Buffer.from(jwkPublicKey.y!, "base64").toString("hex");
-      publicKey = `0x${publicKeyX}${publicKeyY}`;
-
-      // create claim and sign it
-      const hashIndex = 1;
-      const hashValue = 2;
-
+    async function signClaim(hashIndex, hashValue, privateKey) {
       const encoder = new AbiCoder();
       const messageEncoded = encoder.encode(["uint256", "uint256"], [hashIndex, hashValue]);
-      messageBuffer = hexToBytes(messageEncoded);
+      const messageBuffer = hexToBytes(messageEncoded);
       const messageHashBuffer = await crypto.subtle.digest("SHA-384", messageBuffer);
-
-      /* 
-      // import keys for signing and verifying
-      const privateKey = await crypto.subtle.importKey(
-        "jwk",
-        jwkPrivateKey,
-        { name: "ECDSA", namedCurve: "P-384" },
-        true,
-        ["sign"],
-      );
-
-      const publicKeyCK = await crypto.subtle.importKey(
-        "jwk",
-        jwkPublicKey,
-        { name: "ECDSA", namedCurve: "P-384" },
-        true,
-        ["verify"],
-      );
 
       const signatureBuffer = await crypto.subtle.sign(
         {
@@ -174,77 +112,151 @@ describe("Next tests reproduce identity trusted life cycle", function () {
         messageBuffer,
       );
 
-      expect(signatureBuffer).not.to.be.undefined;
+      return {
+        message: `0x${Buffer.from(messageBuffer).toString("hex")}`,
+        messageHash: `0x${Buffer.from(messageHashBuffer).toString("hex")}`,
+        signature: `0x${Buffer.from(signatureBuffer).toString("hex")}`,
+      };
+    }
 
-      // verify signature
-      const verified = await crypto.subtle.verify(
+    async function generateP384Keys() {
+      const keyPair = await crypto.subtle.generateKey(
         {
           name: "ECDSA",
-          hash: "SHA-384",
+          namedCurve: "P-384",
         },
-        publicKeyCK,
-        signatureBuffer,
-        messageBuffer,
+        true,
+        ["sign", "verify"],
       );
-      expect(verified).to.be.true;
 
-      const signature = `0x${Buffer.from(signatureBuffer).toString("hex")}`; */
+      const publicKeyExtracted = await crypto.subtle.exportKey("jwk", keyPair.publicKey);
+      const publicKeyX = Buffer.from(publicKeyExtracted.x!, "base64").toString("hex");
+      const publicKeyY = Buffer.from(publicKeyExtracted.y!, "base64").toString("hex");
+      const publicKeyXYCompressed = `0x${publicKeyX}${publicKeyY}`;
 
-      // Valid signature
-      signature = `0x14e5ea76ab2b676b3e32d23c16e6b20d28cd6d2d34969ac4b506d54ad1ff552f3bf70a2cc4c04399f0702a1a9c5bfb8f5f102ec62b9b22274f52ed334bac46ca9967a0004d8af454f14ac3caa3f9d563b681b5719ef43f11a07bd7816ed81ac5`;
-      // Not valid signature
-      // signature = `0x9c07874a88b737dc3b1b9fb104049bf5c0ff22769583d7c379ca182b577919f12481632ac16b9dd125733ead052d2d31c917feb7b7523804f966931d9217bbdd18ea92ea424973fbf418b4495af2a03e82a819a8cfb00372fa921e4644c56e46`;
-      message = messageEncoded; // `0x${Buffer.from(messageBuffer).toString("hex")}`;
-      messageHash = `0x${Buffer.from(messageHashBuffer).toString("hex")}`;
+      return {
+        generatedPrivateKey: keyPair.privateKey,
+        generatedPublicKey: keyPair.publicKey,
+        publicKeyXYCompressed,
+      };
+    }
 
-      // console.log(message, signature, pubKey, messageHash);
+    async function importP384Keys() {
+      const jwkPrivateKey = {
+        key_ops: ["sign"],
+        ext: true,
+        kty: "EC",
+        x: "oSZkzjHSaHFzoiJwpMP5bWvO86FnzQmMgikQJ5zK32mmeq4x0sO8DQoYjkSIG-Wf",
+        y: "Ybf6DWDoMSvLF4_wxvGjRBVmrT4QytmXLnj1U95HAEoMkIn7Fm7_0zD2k0AhNpfF",
+        crv: "P-384",
+        d: "qkVtf_3bcxOwqCjF37AWuyxj7nCp6ymdA6q2_HIbEeVMOjkkvIYUjtBO_b2OsMMr",
+      };
 
-      publicKeyCK = await crypto.subtle.importKey(
+      const jwkPublicKey = {
+        key_ops: ["verify"],
+        ext: true,
+        kty: "EC",
+        x: "oSZkzjHSaHFzoiJwpMP5bWvO86FnzQmMgikQJ5zK32mmeq4x0sO8DQoYjkSIG-Wf",
+        y: "Ybf6DWDoMSvLF4_wxvGjRBVmrT4QytmXLnj1U95HAEoMkIn7Fm7_0zD2k0AhNpfF",
+        crv: "P-384",
+      };
+
+      const generatedPrivateKey = await crypto.subtle.importKey(
+        "jwk",
+        jwkPrivateKey,
+        { name: "ECDSA", namedCurve: "P-384" },
+        true,
+        ["sign"],
+      );
+
+      const generatedPublicKey = await crypto.subtle.importKey(
         "jwk",
         jwkPublicKey,
         { name: "ECDSA", namedCurve: "P-384" },
         true,
         ["verify"],
       );
+
+      const publicKeyX = Buffer.from(jwkPublicKey.x!, "base64").toString("hex");
+      const publicKeyY = Buffer.from(jwkPublicKey.y!, "base64").toString("hex");
+      const publicKeyXYCompressed = `0x${publicKeyX}${publicKeyY}`;
+
+      return {
+        generatedPrivateKey,
+        generatedPublicKey,
+        publicKeyXYCompressed,
+      };
+    }
+
+    before(async function () {
+      /* ({
+        generatedPrivateKey: privateKey,
+        generatedPublicKey: publicKey,
+        publicKeyXYCompressed: publicKeyCompressed,
+      } = await generateP384Keys());
+
+      await identity.setSignerPubKey(publicKeyCompressed); */
+
+      ({
+        generatedPrivateKey: privateKey,
+        generatedPublicKey: publicKey,
+        publicKeyXYCompressed: publicKeyCompressed,
+      } = await importP384Keys());
     });
 
     it("Verify signature P-384 with library", async function () {
+      // create claim and sign it
+      const hashIndex = 1;
+      const hashValue = 2;
+
+      const { message, signature } = await signClaim(hashIndex, hashValue, privateKey);
+
       const verified = await crypto.subtle.verify(
         {
           name: "ECDSA",
           hash: "SHA-384",
         },
-        publicKeyCK,
+        publicKey,
         hexToBytes(signature),
-        messageBuffer,
+        hexToBytes(message),
       );
       expect(verified).to.be.true;
     });
 
     it("Verify signature P-384 with Identity SC", async function () {
+      // create claim and sign it
+      const hashIndex = 2;
+      const hashValue = 3;
+
+      const { message, messageHash, signature } = await signClaim(hashIndex, hashValue, privateKey);
       // Test SC SECP384r1 verification functions
-      const verifiedSC = await identity.verifySECP384r1(message, signature, publicKey);
+      const verifiedSC = await identity.verifySECP384r1(message, signature, publicKeyCompressed);
       expect(verifiedSC).to.be.true;
 
       const verifiedSC2 = await identity.verifySECP384r1WithoutHashing(
         messageHash,
         signature,
-        publicKey,
+        publicKeyCompressed,
       );
       expect(verifiedSC2).to.be.true;
     });
 
     it("Add claim with signature P-384", async function () {
+      // create claim and sign it
+      const hashIndex = 3;
+      const hashValue = 4;
+
+      const { signature } = await signClaim(hashIndex, hashValue, privateKey);
       await expect(
-        identity.addClaimHashWithSignature(1, 2, `0x${signature.slice(4)}`),
+        identity.addClaimHashWithSignature(hashIndex, hashValue, `0x${signature.slice(4)}`),
       ).to.be.revertedWithCustomError(identity, "InvalidSignatureLength");
 
       await expect(
-        identity.addClaimHashWithSignature(1, 2, `0x00${signature.slice(4)}`),
+        identity.addClaimHashWithSignature(hashIndex, hashValue, `0x112233${signature.slice(8)}`),
       ).to.be.revertedWithCustomError(identity, "InvalidSignature");
 
       // Test adding claim with signature
-      await expect(identity.addClaimHashWithSignature(1, 2, signature)).not.to.be.reverted;
+      await identity.addClaimHashWithSignature(hashIndex, hashValue, signature);
       const proof = await identity.getClaimProof(1);
       expect(proof).to.be.not.null;
       expect(proof.existence).to.be.false;

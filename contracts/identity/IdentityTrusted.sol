@@ -20,7 +20,7 @@ contract IdentityTrusted is IdentityBase, Ownable2StepUpgradeable {
     using SHA384 for *;
 
     ECDSA384.Parameters private _secp384r1CurveParams;
-    bytes private _pubKeyP384;
+    bytes private _signerPubKey;
 
     function verifySECP384r1(
         bytes calldata message_,
@@ -56,13 +56,18 @@ contract IdentityTrusted is IdentityBase, Ownable2StepUpgradeable {
             p: hex"fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeffffffff0000000000000000ffffffff",
             n: hex"ffffffffffffffffffffffffffffffffffffffffffffffffc7634d81f4372ddf581a0db248b0a77aecec196accc52973",
             // only accept signatures with S values in the lower half of the curve lowSmax = n/2
-            lowSmax: hex"7fffffffffffffffffffffffffffffffffffffffffffffffe3b1a6c0fa1b96efac0d06d9245853bd76760cb5666294b9"
+            // lowSmax: hex"7fffffffffffffffffffffffffffffffffffffffffffffffe3b1a6c0fa1b96efac0d06d9245853bd76760cb5666294b9"
+            lowSmax: hex"ffffffffffffffffffffffffffffffffffffffffffffffffc7634d81f4372ddf581a0db248b0a77aecec196accc52973"
         });
 
         // Set public key for secp384r1 authorized signer
-        _pubKeyP384 = hex"a12664ce31d2687173a22270a4c3f96d6bcef3a167cd098c822910279ccadf69a67aae31d2c3bc0d0a188e44881be59f61b7fa0d60e8312bcb178ff0c6f1a3441566ad3e10cad9972e78f553de47004a0c9089fb166effd330f69340213697c5";
+        _signerPubKey = hex"a12664ce31d2687173a22270a4c3f96d6bcef3a167cd098c822910279ccadf69a67aae31d2c3bc0d0a188e44881be59f61b7fa0d60e8312bcb178ff0c6f1a3441566ad3e10cad9972e78f553de47004a0c9089fb166effd330f69340213697c5";
 
         __Ownable_init(_msgSender());
+    }
+
+    function setSignerPubKey(bytes calldata pubKey) public onlyOwner {
+        _signerPubKey = pubKey;
     }
 
     function addClaimAndTransit(uint256[8] calldata claim) public onlyOwner {
@@ -109,7 +114,7 @@ contract IdentityTrusted is IdentityBase, Ownable2StepUpgradeable {
         bool verified = _secp384r1CurveParams.verify(
             abi.encodePacked(SHA384.sha384(abi.encodePacked(hashIndex, hashValue))),
             ecdsa384Signature,
-            _pubKeyP384
+            _signerPubKey
         );
 
         if (!verified) {
