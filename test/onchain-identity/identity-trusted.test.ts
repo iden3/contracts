@@ -37,25 +37,7 @@ describe("Next tests reproduce identity life cycle", function () {
   });
 
   describe.only("test P-384", function () {
-    it("Generate keys, sign and verify P-384", async function () {
-      const jwkPrivateKey = {
-        key_ops: ["sign"],
-        ext: true,
-        kty: "EC",
-        x: "oSZkzjHSaHFzoiJwpMP5bWvO86FnzQmMgikQJ5zK32mmeq4x0sO8DQoYjkSIG-Wf",
-        y: "Ybf6DWDoMSvLF4_wxvGjRBVmrT4QytmXLnj1U95HAEoMkIn7Fm7_0zD2k0AhNpfF",
-        crv: "P-384",
-        d: "qkVtf_3bcxOwqCjF37AWuyxj7nCp6ymdA6q2_HIbEeVMOjkkvIYUjtBO_b2OsMMr",
-      };
-      const jwkPublicKey = {
-        key_ops: ["verify"],
-        ext: true,
-        kty: "EC",
-        x: "oSZkzjHSaHFzoiJwpMP5bWvO86FnzQmMgikQJ5zK32mmeq4x0sO8DQoYjkSIG-Wf",
-        y: "Ybf6DWDoMSvLF4_wxvGjRBVmrT4QytmXLnj1U95HAEoMkIn7Fm7_0zD2k0AhNpfF",
-        crv: "P-384",
-      };
-
+    it("Generate signature and verify P-384", async function () {
       /* const keyPair = await crypto.subtle.generateKey(
         {
           name: "ECDSA",
@@ -74,6 +56,41 @@ describe("Next tests reproduce identity life cycle", function () {
       const publicKey = keyPair.publicKey;
       */
 
+      // P-384 key pair
+      /* const jwkPrivateKey = {
+        key_ops: ["sign"],
+        ext: true,
+        kty: "EC",
+        x: "oSZkzjHSaHFzoiJwpMP5bWvO86FnzQmMgikQJ5zK32mmeq4x0sO8DQoYjkSIG-Wf",
+        y: "Ybf6DWDoMSvLF4_wxvGjRBVmrT4QytmXLnj1U95HAEoMkIn7Fm7_0zD2k0AhNpfF",
+        crv: "P-384",
+        d: "qkVtf_3bcxOwqCjF37AWuyxj7nCp6ymdA6q2_HIbEeVMOjkkvIYUjtBO_b2OsMMr",
+      }; */
+      const jwkPublicKey = {
+        key_ops: ["verify"],
+        ext: true,
+        kty: "EC",
+        x: "oSZkzjHSaHFzoiJwpMP5bWvO86FnzQmMgikQJ5zK32mmeq4x0sO8DQoYjkSIG-Wf",
+        y: "Ybf6DWDoMSvLF4_wxvGjRBVmrT4QytmXLnj1U95HAEoMkIn7Fm7_0zD2k0AhNpfF",
+        crv: "P-384",
+      };
+
+      // const publicKeyExtracted = await crypto.subtle.exportKey("jwk", publicKey);
+      const publicKeyX = Buffer.from(jwkPublicKey.x!, "base64").toString("hex");
+      const publicKeyY = Buffer.from(jwkPublicKey.y!, "base64").toString("hex");
+      const pubKey = `0x${publicKeyX}${publicKeyY}`;
+
+      // create claim and sign it
+      const hashIndex = 1;
+      const hashValue = 2;
+
+      const encoder = new AbiCoder();
+      const messageEncoded = encoder.encode(["uint256", "uint256"], [hashIndex, hashValue]);
+      const messageBuffer = hexToBytes(messageEncoded);
+      const messageHashBuffer = await crypto.subtle.digest("SHA-384", messageBuffer);
+
+      /* 
+      // import keys for signing and verifying
       const privateKey = await crypto.subtle.importKey(
         "jwk",
         jwkPrivateKey,
@@ -90,13 +107,6 @@ describe("Next tests reproduce identity life cycle", function () {
         ["verify"],
       );
 
-      const hashIndex = 1;
-      const hashValue = 2;
-
-      const encoder = new AbiCoder();
-      const messageEncoded = encoder.encode(["uint256", "uint256"], [hashIndex, hashValue]);
-      const messageBuffer = hexToBytes(messageEncoded);
-
       const signatureBuffer = await crypto.subtle.sign(
         {
           name: "ECDSA",
@@ -108,6 +118,7 @@ describe("Next tests reproduce identity life cycle", function () {
 
       expect(signatureBuffer).not.to.be.undefined;
 
+      // verify signature
       const verified = await crypto.subtle.verify(
         {
           name: "ECDSA",
@@ -119,61 +130,38 @@ describe("Next tests reproduce identity life cycle", function () {
       );
       expect(verified).to.be.true;
 
-      const publicKeyExtracted = await crypto.subtle.exportKey("jwk", publicKey);
-      const publicKeyX = Buffer.from(publicKeyExtracted.x!, "base64").toString("hex");
-      const publicKeyY = Buffer.from(publicKeyExtracted.y!, "base64").toString("hex");
+      const signature = `0x${Buffer.from(signatureBuffer).toString("hex")}`; */
 
-      const messageHashBuffer = await crypto.subtle.digest("SHA-384", messageBuffer);
-
-      const signature = `0x${Buffer.from(signatureBuffer).toString("hex")}`;
       // Valid signature
-      // const signature = `0x9d0c0da61d3aedff31b5095a0512149d18aa7ee712f1a18404689d134e7c1a778cd43ab075d4fa0c5c2bbced7ddbcca719503b52a450c3b6de7da682b54100694c91f15b4ca93ceb1e0adeb0ec81e71300f2375d035f2b3f8a81707421dec118`;
+      const signature = `0x14e5ea76ab2b676b3e32d23c16e6b20d28cd6d2d34969ac4b506d54ad1ff552f3bf70a2cc4c04399f0702a1a9c5bfb8f5f102ec62b9b22274f52ed334bac46ca9967a0004d8af454f14ac3caa3f9d563b681b5719ef43f11a07bd7816ed81ac5`;
       // Not valid signature
-      // const signature = `0x8d851c4db28ba1e0d8481feded601285509e297a781fdcb40b62d1105eac00e1653401e428d257a55a654e06ca1a5ec39af3fa11c2447e02257ef130a4bd8a5d03d4027ff7490d32090c0d195d9ab8e710494b7f9881d4ac8e6d1225a27040d0`;
+      // const signature = `0x9c07874a88b737dc3b1b9fb104049bf5c0ff22769583d7c379ca182b577919f12481632ac16b9dd125733ead052d2d31c917feb7b7523804f966931d9217bbdd18ea92ea424973fbf418b4495af2a03e82a819a8cfb00372fa921e4644c56e46`;
       const message = messageEncoded; // `0x${Buffer.from(messageBuffer).toString("hex")}`;
       const messageHash = `0x${Buffer.from(messageHashBuffer).toString("hex")}`;
-      const pubKey = `0x${publicKeyX}${publicKeyY}`;
-      console.log("Public Key", publicKeyX, publicKeyY);
-
-      /*const message =
-        "0x30783030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303130303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303032";
-      const signature =
-        "0x42d8dc07211edde9db3e9695d11ed26630717c1cb83a246837932b0ba0e1cfd824f1e7fd74566bda4cacd31ae7ce158c7d3f458f38e38c005f2485e84a60626284336fe76efbbe13b3c44e126285ac48f094234057135b58c71a15addf358eb4";
-      const pubKey =
-        "0x5b0ea4a384d14991f5de173d1f63f005976350204e9d08babc540d02fec4f54b9ecaa7ad42b1f08c1d4095947788af20c335c3c026dcacc84299d334fef4193fc54337ce3687d102d357881d4b50a64bd6038c1994051069cf2d34e6d0399b7d";
-      const messageHash =
-        "0x80fffc402fa287728b4b5b67bfd8e68ee3608cf2e4d82853c3b6dacea9eac5135f6edb3f02a7a860d1dc8bc35f933299";
-      */
-      /* // BAD
-
-      const message = "0x74657374"; // message: test
-      const signature =
-        "0x54a6e5f0f792ba804128ed15ce70ce4fe474c809e1a6cf6ad93f0fc7e08b0d68d8e76ff3ba6e40182c50c6c739fbf85982df8b969850adb46fbd12637f0bed0b96435c0da2b50dc95b38dee11865cd2756145db8e7d7a6e3388dad3984b25c31";
-      const pubKey =
-        "0x6a339eb0cda98149e5009238d4b83647887995a1309bf64be6045febf26c75da3dd98d053ad4f3a286aeff684d66ac16bcb954ad55d64d17fbb0d44c245a297d43ee54d8861b963a3e7c152e68d4b2a6eccf34166ec504569d87f28ee5c73fcd";
-      const messageHash =
-        "0x768412320f7b0aa5812fce428dc4706b3cae50e02a64caa16a782249bfe8efc4b7ef1ccb126255d196047dfedf17a0a9";
- */
-      /* // GOOD
-      
-      const message = "0x74657374"; // message: test
-      const signature =
-        "0x5d32074f30a14aa2a0d3ad14b42abb868d375844ad1e289488bf3187273527366b32228f7303d859cf084a074984ac9a150de248044370b1d87bef9fc3a2b5b2107bde57d7080f9812d387e44bcf0080e1f5a2ced49bc1b87435ce237d5076a2";
-      const pubKey =
-        "0x806898591930188e3123b5fe2af97efa02f7a271e1adf8801d8d58767e7da23f3446e5173756178db0134ef70cc048a96c00814290624dca34b8aff3629de559b1da589ab15737ff799a85885d32c00667dc0c782f5fc344a59e553b9bd488dd";
-      const messageHash =
-        "0x768412320f7b0aa5812fce428dc4706b3cae50e02a64caa16a782249bfe8efc4b7ef1ccb126255d196047dfedf17a0a9";
-*/
-      /* const messageHash =
-        "0xfc000000009322da48a8586f26f148003932f6d4c0d1ce3a21798f7b651dab7642188c9061a66dc9b190e00b0290e264";
-      const signature =
-        "0xe14f41a5fc83aa4725a9ea60ab5b0b9de27f519af4b557a601f1fee0243f8eee5180f8c531414f3473f4457430cb7a261047ed2bf1f98e3ce93e8fdbdc63cc79f238998fee74e1bb6cd708694950bbffe3945066064da043f04d7083d0a596ec";
-      const pubKey =
-        "0x2da57dda1089276a543f9ffdac0bff0d976cad71eb7280e7d9bfd9fee4bdb2f20f47ff888274389772d98cc5752138aa4b6d054d69dcf3e25ec49df870715e34883b1836197d76f8ad962e78f6571bbc7407b0d6091f9e4d88f014274406174f";
-*/
 
       console.log(message, signature, pubKey, messageHash);
 
+      const publicKey = await crypto.subtle.importKey(
+        "jwk",
+        jwkPublicKey,
+        { name: "ECDSA", namedCurve: "P-384" },
+        true,
+        ["verify"],
+      );
+
+      const verified = await crypto.subtle.verify(
+        {
+          name: "ECDSA",
+          hash: "SHA-384",
+        },
+        publicKey,
+        hexToBytes(signature),
+        messageBuffer,
+      );
+      expect(verified).to.be.true;
+      console.log("verified with lib:", verified);
+
+      // Test SC SECP384r1 verification functions
       const verifiedSC = await identity.verifySECP384r1(message, signature, pubKey);
       expect(verifiedSC).to.be.true;
 
@@ -184,6 +172,7 @@ describe("Next tests reproduce identity life cycle", function () {
       );
       expect(verifiedSC2).to.be.true;
 
+      // Test adding claim with signature
       await identity.addClaimHashWithSignature(1, 2, signature);
       const proof = await identity.getClaimProof(1);
       expect(proof).to.be.not.null;

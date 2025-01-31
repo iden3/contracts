@@ -7,7 +7,6 @@ import {IdentityLib} from "../lib/IdentityLib.sol";
 import {IdentityBase} from "../lib/IdentityBase.sol";
 import {ECDSA384} from "@solarity/solidity-lib/libs/crypto/ECDSA384.sol";
 import {SHA384} from "../lib/crypto/SHA384.sol";
-import "hardhat/console.sol";
 
 error InvalidSignatureLength();
 error InvalidSignature();
@@ -28,11 +27,6 @@ contract IdentityTrusted is IdentityBase, Ownable2StepUpgradeable {
         bytes calldata signature_,
         bytes calldata pubKey_
     ) external view returns (bool) {
-        console.log("verifySECP384r1");
-        console.logBytes(message_);
-        console.logBytes(SHA384.sha384(message_));
-        console.logBytes(signature_);
-        console.logBytes(pubKey_);
 
         return
             _secp384r1CurveParams.verify(
@@ -47,8 +41,6 @@ contract IdentityTrusted is IdentityBase, Ownable2StepUpgradeable {
         bytes calldata signature_,
         bytes calldata pubKey_
     ) external view returns (bool) {
-        console.log("verifySECP384r1WithoutHashing");
-        console.logBytes(hashedMessage_);
         return _secp384r1CurveParams.verify(abi.encodePacked(hashedMessage_), signature_, pubKey_);
     }
 
@@ -67,7 +59,7 @@ contract IdentityTrusted is IdentityBase, Ownable2StepUpgradeable {
         });
 
         // Set public key for secp384r1 authorized signer
-        _pubKeyP384 = abi.encodePacked("0xa12664ce31d2687173a22270a4c3f96d6bcef3a167cd098c822910279ccadf69a67aae31d2c3bc0d0a188e44881be59f61b7fa0d60e8312bcb178ff0c6f1a3441566ad3e10cad9972e78f553de47004a0c9089fb166effd330f69340213697c5");
+        _pubKeyP384 = hex"a12664ce31d2687173a22270a4c3f96d6bcef3a167cd098c822910279ccadf69a67aae31d2c3bc0d0a188e44881be59f61b7fa0d60e8312bcb178ff0c6f1a3441566ad3e10cad9972e78f553de47004a0c9089fb166effd330f69340213697c5";
 
         __Ownable_init(_msgSender());
     }
@@ -112,11 +104,6 @@ contract IdentityTrusted is IdentityBase, Ownable2StepUpgradeable {
         if (ecdsa384Signature.length != 96) {
             revert InvalidSignatureLength();
         }
-        console.log("addClaimHashWithSignature");
-        console.logBytes(abi.encodePacked(hashIndex, hashValue));
-        console.logBytes(SHA384.sha384(abi.encodePacked(hashIndex, hashValue)));
-        console.logBytes(ecdsa384Signature);
-        console.logBytes(_pubKeyP384);
 
         bool verified = _secp384r1CurveParams.verify(
             abi.encodePacked(SHA384.sha384(abi.encodePacked(hashIndex, hashValue))),
