@@ -44,10 +44,9 @@ interface IRequestValidator {
      * @return Array of response fields as result.
      */
     function verify(
-        bytes calldata proof,
-        bytes calldata params,
         address sender,
-        IState state
+        bytes calldata proof,
+        bytes calldata params
     ) external returns (ResponseField[] memory);
 
     /**

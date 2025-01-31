@@ -114,9 +114,10 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
 
         PubSignals memory pubSignals = parsePubSignals(inputs);
         _checkGistRoot(pubSignals.userID, pubSignals.gistRoot, state);
+        // remove the challenge check here
         _checkChallenge(pubSignals.challenge, expectedNonce);
         _verifyZKP(inputs, a, b, c);
-        return pubSignals.userID;
+        return pubSignals.userID; // add the challenge to AuthResponseFields
     }
 
     /**

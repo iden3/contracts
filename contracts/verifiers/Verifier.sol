@@ -310,17 +310,24 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         uint256 userIDFromAuthResponse;
         AuthTypeData storage authTypeData = $._authMethods[authResponse.authType];
 
-        // 2. Authenticate user and get userID
-        bytes32 expectedNonce = keccak256(abi.encode(sender, responses)) &
-            0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
 
-        userIDFromAuthResponse = authTypeData.validator.verify(
+        (userIDFromAuthResponse, authRespFields) = authTypeData.validator.verify(
             authResponse.proof,
             authTypeData.params,
             sender,
             $._state,
             expectedNonce
         );
+
+        // make a separate internal function for this check
+        // move this logic from Validator to this Verifier
+        if (authResponse.authType == "authV2") {
+            // check for "challenge" field in the authRespFields
+            // check that challenge is equal to expectectedNonce
+
+//            bytes32 expectedNonce = keccak256(abi.encode(sender, responses)) &
+//                        0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+        }
 
         if (userIDFromAuthResponse == 0) {
             revert UserNotAuthenticated();

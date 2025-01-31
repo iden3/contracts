@@ -3,6 +3,11 @@ pragma solidity 0.8.27;
 
 import {IState} from "./IState.sol";
 
+struct AuthResponseField {
+    string name;
+    uint256 value;
+}
+
 /**
  * @dev IAuthValidator. Interface for verification of auth data.
  */
@@ -23,10 +28,8 @@ interface IAuthValidator {
      * @return userID User Id for the auth proof verified.
      */
     function verify(
-        bytes calldata proof,
-        bytes calldata params,
         address sender,
-        IState state,
-        bytes32 expectedNonce
-    ) external returns (uint256 userID);
+        bytes calldata proof,
+        bytes calldata params
+    ) external returns (uint256 userID, AuthResponseField[] memory authResonseFields);
 }
