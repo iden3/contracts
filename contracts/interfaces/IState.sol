@@ -54,7 +54,7 @@ interface IState {
      * @param value A value of the leaf in the GIST.
      * @param auxExistence A flag, which shows if the auxiliary leaf exists in the GIST.
      * @param auxIndex An index of the auxiliary leaf in the GIST.
-     * @param auxValue An value of the auxiliary leaf in the GIST.
+     * @param auxValue A value of the auxiliary leaf in the GIST.
      */
     struct GistProof {
         uint256 root;
