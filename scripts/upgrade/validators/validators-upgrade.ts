@@ -2,6 +2,7 @@ import { DeployHelper } from "../../../helpers/DeployHelper";
 import hre, { ethers } from "hardhat";
 import {
   checkContractVersion,
+  getChainId,
   getConfig,
   removeLocalhostNetworkIgnitionFiles,
   verifyContract,
@@ -15,9 +16,6 @@ const impersonate = false;
 
 const config = getConfig();
 
-const chainId = hre.network.config.chainId;
-const network = hre.network.name;
-
 async function getSigners(useImpersonation: boolean): Promise<any> {
   if (useImpersonation) {
     const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(config.ledgerAccount);
@@ -30,6 +28,9 @@ async function getSigners(useImpersonation: boolean): Promise<any> {
 }
 
 async function main() {
+  const chainId = await getChainId();
+  const network = hre.network.name;
+
   if (!ethers.isAddress(config.ledgerAccount)) {
     throw new Error("LEDGER_ACCOUNT is not set");
   }

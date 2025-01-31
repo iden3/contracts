@@ -16,6 +16,10 @@ export function getConfig() {
   };
 }
 
+export async function getChainId() {
+  return parseInt(await hre.network.provider.send("eth_chainId"), 16);
+}
+
 export async function waitNotToInterfereWithHardhatIgnition(
   tx: ContractTransactionResponse | null | undefined,
 ): Promise<void> {
@@ -196,9 +200,9 @@ export async function getUnifiedContract(contractName: string): Promise<Contract
   }
 }
 
-export function getStateContractAddress(chainId?: number): string {
+export async function getStateContractAddress(chainId?: number): Promise<string> {
   if (!chainId) {
-    chainId = hre.network.config.chainId;
+    chainId = await getChainId();
   }
 
   let stateContractAddress = contractsInfo.STATE.unifiedAddress;

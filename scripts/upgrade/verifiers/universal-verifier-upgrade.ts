@@ -12,6 +12,7 @@ import {
 } from "./helpers/testVerifier";
 import {
   checkContractVersion,
+  getChainId,
   getConfig,
   getStateContractAddress,
   removeLocalhostNetworkIgnitionFiles,
@@ -29,8 +30,6 @@ const impersonate = false;
 
 const config = getConfig();
 
-const chainId = hre.network.config.chainId;
-const network = hre.network.name;
 let stateContractAddress = contractsInfo.STATE.unifiedAddress;
 const universalVerifierAddress = contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress; // replace with your address if needed
 
@@ -49,6 +48,9 @@ async function getSigners(useImpersonation: boolean): Promise<any> {
 }
 
 async function main() {
+  const chainId = await getChainId();
+  const network = hre.network.name;
+
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
 
@@ -74,7 +76,7 @@ async function main() {
   if (!ethers.isAddress(config.ledgerAccount)) {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
-  stateContractAddress = getStateContractAddress();
+  stateContractAddress = await getStateContractAddress();
 
   const { proxyAdminOwnerSigner, universalVerifierOwnerSigner } = await getSigners(impersonate);
 

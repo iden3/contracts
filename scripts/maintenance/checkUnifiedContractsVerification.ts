@@ -8,7 +8,7 @@ async function main() {
     if (contractsInfo[property].unifiedAddress !== "" && contractsInfo[property].verificationOpts) {
       let contractAddress = contractsInfo[property].unifiedAddress;
       if (property === "STATE") {
-        contractAddress = getStateContractAddress();
+        contractAddress = await getStateContractAddress();
       }
       if (await verifyContract(contractAddress, contractsInfo[property].verificationOpts)) {
         contractsVerified.push(property);

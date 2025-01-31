@@ -1,11 +1,11 @@
-import { getStateContractAddress } from "../../helpers/helperUtils";
+import { getChainId, getStateContractAddress } from "../../helpers/helperUtils";
 import { contractsInfo, networks } from "../../helpers/constants";
 import hre, { ethers } from "hardhat";
 import { expect } from "chai";
 
 async function main() {
-  const stateContractAddress = getStateContractAddress();
-  const chainId = Number(hre.network.config.chainId);
+  const stateContractAddress = await getStateContractAddress();
+  const chainId = await getChainId();
 
   const state = await ethers.getContractAt(contractsInfo.STATE.name, stateContractAddress);
   const defaultIdType = await state.getDefaultIdType();

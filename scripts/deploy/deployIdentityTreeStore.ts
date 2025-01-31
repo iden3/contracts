@@ -2,15 +2,20 @@ import { DeployHelper } from "../../helpers/DeployHelper";
 import hre, { ethers } from "hardhat";
 import path from "path";
 import fs from "fs";
-import { getConfig, getStateContractAddress, verifyContract } from "../../helpers/helperUtils";
+import {
+  getChainId,
+  getConfig,
+  getStateContractAddress,
+  verifyContract,
+} from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
 
 (async () => {
   const config = getConfig();
 
-  const chainId = hre.network.config.chainId;
+  const chainId = await getChainId();
 
-  const stateContractAddress = getStateContractAddress();
+  const stateContractAddress = await getStateContractAddress();
 
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";

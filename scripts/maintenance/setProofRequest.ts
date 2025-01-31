@@ -6,6 +6,7 @@ import { buildVerifierId } from "../deploy/deployCrossChainVerifierWithRequests"
 import { byteEncoder, CircuitId, Operators } from "@0xpolygonid/js-sdk";
 import { contractsInfo } from "../../helpers/constants";
 import { Hex } from "@iden3/js-crypto";
+import { getChainId } from "../../helpers/helperUtils";
 
 export function getAuthV2RequestId(): number {
   const circuitHash = ethers.keccak256(byteEncoder.encode(CircuitId.AuthV2));
@@ -19,7 +20,7 @@ async function main() {
   let requestId = 117; // TODO put your request here;
   const allowedIssuers = []; // TODO put your allowed issuers here
 
-  const chainId = hre.network.config.chainId;
+  const chainId = await getChainId();
   const network = hre.network.name;
 
   const methodId = "ade09fcd";

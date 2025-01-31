@@ -1,4 +1,5 @@
 import {
+  getChainId,
   getProviders,
   getStateContractAddress,
   isContract,
@@ -14,9 +15,9 @@ async function main() {
 
   for (const provider of providers) {
     const jsonRpcProvider = new ethers.JsonRpcProvider(provider.rpcUrl);
-    const chainId = Number((await jsonRpcProvider.getNetwork()).chainId);
+    const chainId = await getChainId();
 
-    const stateContractAddress = getStateContractAddress(chainId);
+    const stateContractAddress = await getStateContractAddress(chainId);
 
     let defaultIdTypeIsValid = false;
     let supportedIdTypesAreValid = false;

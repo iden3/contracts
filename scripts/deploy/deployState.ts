@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import hre from "hardhat";
-import { getConfig, verifyContract } from "../../helpers/helperUtils";
+import { getChainId, getConfig, verifyContract } from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
 
 async function main() {
@@ -13,18 +13,30 @@ async function main() {
 
   const deployHelper = await DeployHelper.initialize(null, true);
 
+  const chainId = await getChainId();
+  const networkName = hre.network.name;
+
+  let smtLibAddr, poseidon1Addr;
+  if (deployStrategy === "basic") {
+    const libDeployOutput = fs.readFileSync(
+      path.join(
+        __dirname,
+        `../deployments_output/deploy_libraries_output_${chainId}_${networkName}.json`,
+      ),
+    );
+    ({ smtLib: smtLibAddr, poseidon1: poseidon1Addr } = JSON.parse(libDeployOutput.toString()));
+  } else {
+    smtLibAddr = contractsInfo.SMT_LIB.unifiedAddress;
+    poseidon1Addr = contractsInfo.POSEIDON_1.unifiedAddress;
+  }
+
   const {
     state,
     stateLib,
     stateCrossChainLib,
     crossChainProofValidator,
     groth16VerifierStateTransition,
-  } = await deployHelper.deployState(
-    [],
-    deployStrategy,
-    contractsInfo.SMT_LIB.unifiedAddress,
-    contractsInfo.POSEIDON_1.unifiedAddress,
-  );
+  } = await deployHelper.deployState([], deployStrategy, smtLibAddr, poseidon1Addr);
 
   // if the state contract already exists we won't have new contracts deployed
   // to verify and to save the output
@@ -49,8 +61,6 @@ async function main() {
       contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.verificationOpts,
     );
 
-    const chainId = parseInt(await hre.network.provider.send("eth_chainId"), 16);
-    const networkName = hre.network.name;
     const pathOutputJson = path.join(
       __dirname,
       `../deployments_output/deploy_state_output_${chainId}_${networkName}.json`,

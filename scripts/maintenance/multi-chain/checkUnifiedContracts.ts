@@ -27,7 +27,7 @@ async function main() {
             let contractAddress = contractsInfo[property].unifiedAddress;
 
             if (property === "STATE") {
-              contractAddress = getStateContractAddress(
+              contractAddress = await getStateContractAddress(
                 Number((await jsonRpcProvider.getNetwork()).chainId),
               );
             }

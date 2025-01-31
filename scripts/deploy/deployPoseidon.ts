@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { deployPoseidonFacade } from "../../helpers/PoseidonDeployHelper";
-import { getConfig } from "../../helpers/helperUtils";
+import { getChainId, getConfig } from "../../helpers/helperUtils";
 import hre from "hardhat";
 
 async function main() {
@@ -21,7 +21,7 @@ async function main() {
     PoseidonUnit6L: await contracts.PoseidonUnit6L.getAddress(),
     SpongePoseidon: await contracts.SpongePoseidon.getAddress(),
   });
-  const chainId = parseInt(await hre.network.provider.send("eth_chainId"), 16);
+  const chainId = await getChainId();
   const networkName = hre.network.name;
   const outputJson = {
     info: deployInfo,
