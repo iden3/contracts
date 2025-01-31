@@ -76,13 +76,13 @@ interface IVerifier {
     }
 
     /**
-     * @dev RequestStatus. Structure for request proof status.
+     * @dev RequestProofStatus. Structure for request proof status.
      * @param requestId Request id of the proof.
      * @param isVerified True if the proof is verified.
      * @param validatorVersion Version of the validator.
      * @param timestamp Timestamp of the proof.
      */
-    struct RequestStatus {
+    struct RequestProofStatus {
         uint256 requestId;
         bool isVerified;
         string validatorVersion;
@@ -189,7 +189,7 @@ interface IVerifier {
     function getMultiRequestProofsStatus(
         uint256 multiRequestId,
         address userAddress
-    ) external view returns (RequestStatus[] memory);
+    ) external view returns (RequestProofStatus[] memory);
 
     /**
      * @dev Checks if the proofs from a Multirequest submitted for a given sender and request ID are verified
@@ -262,5 +262,5 @@ interface IVerifier {
     function getRequestProofStatus(
         address sender,
         uint256 requestId
-    ) external view returns (RequestStatus memory);
+    ) external view returns (RequestProofStatus memory);
 }

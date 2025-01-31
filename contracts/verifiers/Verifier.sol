@@ -459,10 +459,10 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         public
         view
         checkMultiRequestExistence(multiRequestId, true)
-        returns (IVerifier.RequestStatus[] memory)
+        returns (IVerifier.RequestProofStatus[] memory)
     {
         // 1. Check if all requests statuses are true for the userAddress
-        IVerifier.RequestStatus[] memory requestStatus = _getMultiRequestProofsStatus(
+        IVerifier.RequestProofStatus[] memory requestProofStatus = _getMultiRequestProofsStatus(
             multiRequestId,
             userAddress
         );
@@ -474,7 +474,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             revert LinkIDNotTheSameForGroupedRequests();
         }
 
-        return requestStatus;
+        return requestProofStatus;
     }
 
     /**
@@ -586,12 +586,17 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function getRequestProofStatus(
         address sender,
         uint256 requestId
-    ) public view checkRequestExistence(requestId, true) returns (IVerifier.RequestStatus memory) {
+    )
+        public
+        view
+        checkRequestExistence(requestId, true)
+        returns (IVerifier.RequestProofStatus memory)
+    {
         VerifierStorage storage s = _getVerifierStorage();
         Proof storage proof = s._proofs[requestId][sender];
 
         return
-            IVerifier.RequestStatus(
+            IVerifier.RequestProofStatus(
                 requestId,
                 proof.isVerified,
                 proof.validatorVersion,
@@ -821,7 +826,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function _getMultiRequestProofsStatus(
         uint256 multiRequestId,
         address userAddress
-    ) internal view returns (IVerifier.RequestStatus[] memory) {
+    ) internal view returns (IVerifier.RequestProofStatus[] memory) {
         VerifierStorage storage s = _getVerifierStorage();
         IVerifier.MultiRequest storage multiRequest = s._multiRequests[multiRequestId];
 
@@ -834,14 +839,15 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             }
         }
 
-        IVerifier.RequestStatus[] memory requestStatus = new IVerifier.RequestStatus[](
-            multiRequest.requestIds.length + lengthGroupIds
-        );
+        IVerifier.RequestProofStatus[]
+            memory requestProofStatus = new IVerifier.RequestProofStatus[](
+                multiRequest.requestIds.length + lengthGroupIds
+            );
 
         for (uint256 i = 0; i < multiRequest.requestIds.length; i++) {
             uint256 requestId = multiRequest.requestIds[i];
 
-            requestStatus[i] = IVerifier.RequestStatus({
+            requestProofStatus[i] = IVerifier.RequestProofStatus({
                 requestId: requestId,
                 isVerified: s._proofs[requestId][userAddress].isVerified,
                 validatorVersion: s._proofs[requestId][userAddress].validatorVersion,
@@ -855,16 +861,17 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             for (uint256 j = 0; j < s._groupedRequests[groupId].length; j++) {
                 uint256 requestId = s._groupedRequests[groupId][j];
 
-                requestStatus[multiRequest.requestIds.length + j] = IVerifier.RequestStatus({
-                    requestId: requestId,
-                    isVerified: s._proofs[requestId][userAddress].isVerified,
-                    validatorVersion: s._proofs[requestId][userAddress].validatorVersion,
-                    timestamp: s._proofs[requestId][userAddress].blockTimestamp
-                });
+                requestProofStatus[multiRequest.requestIds.length + j] = IVerifier
+                    .RequestProofStatus({
+                        requestId: requestId,
+                        isVerified: s._proofs[requestId][userAddress].isVerified,
+                        validatorVersion: s._proofs[requestId][userAddress].validatorVersion,
+                        timestamp: s._proofs[requestId][userAddress].blockTimestamp
+                    });
             }
         }
 
-        return requestStatus;
+        return requestProofStatus;
     }
 
     function _areMultiRequestProofsVerified(
