@@ -50,9 +50,7 @@ abstract contract RequestOwnership is ZKPVerifierBase {
         uint64[] calldata requestIds,
         ZKPRequest[] calldata requests
     ) public virtual override {
-        for (uint256 i = 0; i < requestIds.length; i++) {
-            setZKPRequest(requestIds[i], requests[i]);
-        }
+        super.setZKPRequests(requestIds, requests);
     }
 
     /// @dev Get a ZKP Request Owner address

@@ -92,9 +92,7 @@ contract UniversalVerifier is
         uint64[] calldata requestIds,
         ZKPRequest[] calldata requests
     ) public override(RequestOwnership, ValidatorWhitelist, ZKPVerifierBase) {
-        for (uint256 i = 0; i < requestIds.length; i++) {
-            setZKPRequest(requestIds[i], requests[i]);
-        }
+        super.setZKPRequests(requestIds, requests);
     }
 
     /// @dev Update a ZKP request
