@@ -22,12 +22,13 @@ contract AuthValidatorStub is IAuthValidator, ERC165 {
     }
 
     function verify(
-        bytes calldata,
-        bytes calldata,
         address,
-        bytes32
-    ) external view override returns (uint256) {
-        return userID;
+        bytes calldata,
+        bytes calldata
+    ) external view override returns (uint256, AuthResponseField[] memory) {
+        AuthResponseField[] memory authResponseFields = new AuthResponseField[](1);
+        authResponseFields[0] = AuthResponseField("challenge", 1);
+        return (userID, authResponseFields);
     }
 
     // solhint-disable-next-line func-name-mixedcase

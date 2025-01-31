@@ -16,16 +16,6 @@ const testCases: any[] = [
     userID: 23273167900576580892722615617815475823351560716009055944677723144398443009n,
   },
   {
-    name: "Validation of challenge failed",
-    sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-    challenge: "0x00",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
-    ],
-    userID: 23273167900576580892722615617815475823351560716009055944677723144398443009n,
-    errorMessage: "ChallengeIsInvalid()",
-  },
-  {
     name: "Validation of Gist root not found",
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     stateTransitions: [
@@ -101,19 +91,17 @@ describe("Auth V2 Validator", function () {
 
       // Check verify function
       const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
-      const expectedNonce = "0x0000000000000000000000000000000000000000000000000000000000000001";
 
       if (test.errorMessage) {
-        await expect(
-          authV2validator.verify(zkProof, data, test.sender, expectedNonce),
-        ).to.be.rejectedWith(test.errorMessage);
+        await expect(authV2validator.verify(test.sender, zkProof, data)).to.be.rejectedWith(
+          test.errorMessage,
+        );
       } else if (test.errorMessage === "") {
-        await expect(authV2validator.verify(zkProof, data, test.sender, expectedNonce)).to.be
-          .reverted;
+        await expect(authV2validator.verify(test.sender, zkProof, data)).to.be.reverted;
       } else {
-        const userID = await authV2validator.verify(zkProof, data, test.sender, expectedNonce);
+        const result = await authV2validator.verify(test.sender, zkProof, data);
 
-        expect(userID).to.be.equal(test.userID);
+        expect(result[0]).to.be.equal(test.userID);
       }
     });
   }

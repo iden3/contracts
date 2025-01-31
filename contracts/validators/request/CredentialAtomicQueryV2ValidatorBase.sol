@@ -59,24 +59,17 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
 
     /**
      * @dev Verify the groth16 proof and check the request query data
-     * @param proof Proof packed as bytes to verify.
-     * @param data Request query data of the credential to verify.
      * @param sender Sender of the proof.
+     * @param proof Proof packed as bytes to verify.
+     * @param params Request query data of the credential to verify.
      * @return Array of public signals as result.
      */
     function verify(
+        address sender,
         bytes calldata proof,
-        bytes calldata data,
-        address sender
+        bytes calldata params
     ) public view override returns (IRequestValidator.ResponseField[] memory) {
-        (
-            uint256[] memory inputs,
-            uint256[2] memory a,
-            uint256[2][2] memory b,
-            uint256[2] memory c
-        ) = abi.decode(proof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
-
-        PubSignals memory pubSignals = _verifyMain(inputs, a, b, c, data, sender);
+        PubSignals memory pubSignals = _verifyMain(sender, proof, params);
         return _getResponseFields(pubSignals);
     }
 
@@ -97,22 +90,23 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
 
     /**
      * @dev Verify the groth16 proof and check the request query data
-     * @param inputs Public inputs of the circuit.
-     * @param a πa element of the groth16 proof.
-     * @param b πb element of the groth16 proof.
-     * @param c πc element of the groth16 proof.
-     * @param data Request query data of the credential to verify.
      * @param sender Sender of the proof.
+     * @param proof the groth16 proof.
+     * @param params Request query data of the credential to verify.
      */
     function _verifyMain(
-        uint256[] memory inputs,
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        bytes calldata data,
-        address sender
+        address sender,
+        bytes calldata proof,
+        bytes calldata params
     ) internal view returns (PubSignals memory) {
-        CredentialAtomicQuery memory credAtomicQuery = abi.decode(data, (CredentialAtomicQuery));
+        (
+            uint256[] memory inputs,
+            uint256[2] memory a,
+            uint256[2][2] memory b,
+            uint256[2] memory c
+        ) = abi.decode(proof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
+
+        CredentialAtomicQuery memory credAtomicQuery = abi.decode(params, (CredentialAtomicQuery));
 
         require(credAtomicQuery.circuitIds.length == 1, "circuitIds length is not equal to 1");
 

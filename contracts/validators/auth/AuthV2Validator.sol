@@ -11,7 +11,6 @@ import {IState} from "../../interfaces/IState.sol";
 error VerifierAddressShouldNotBeZero();
 error ProofIsNotValid();
 error GistRootIsExpired();
-error ChallengeIsInvalid();
 
 /**
  * @dev AuthV2 validator for auth
@@ -95,19 +94,17 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
 
     /**
      * @dev Verify the groth16 proof and check the request query data
-     * @param proof Proof packed as bytes to verify.
-     * @param data Request query data of the credential to verify.
      * @param sender Sender of the proof.
-     * @param expectedNonce Expected nonce hash calculated to check
+     * @param proof Proof packed as bytes to verify.
+     * @param params Request query data of the credential to verify.
      * @return userID user ID of public signals as result.
      */
     function verify(
+        address sender,
         bytes calldata proof,
         // solhint-disable-next-line no-unused-vars
-        bytes calldata data,
-        address sender,
-        bytes32 expectedNonce
-    ) public view override returns (uint256 userID) {
+        bytes calldata params
+    ) public view override returns (uint256 userID, AuthResponseField[] memory) {
         (
             uint256[] memory inputs,
             uint256[2] memory a,
@@ -117,9 +114,11 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
 
         PubSignals memory pubSignals = parsePubSignals(inputs);
         _checkGistRoot(pubSignals.userID, pubSignals.gistRoot);
-        _checkChallenge(pubSignals.challenge, expectedNonce);
         _verifyZKP(inputs, a, b, c);
-        return pubSignals.userID;
+
+        AuthResponseField[] memory authResponseFields = new AuthResponseField[](1);
+        authResponseFields[0] = AuthResponseField("challenge", pubSignals.challenge);
+        return (pubSignals.userID, authResponseFields);
     }
 
     /**
@@ -219,12 +218,6 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
 
         if (replacedAt != 0 && block.timestamp > $.gistRootExpirationTimeout + replacedAt) {
             revert GistRootIsExpired();
-        }
-    }
-
-    function _checkChallenge(uint256 challenge, bytes32 expectedNonce) internal pure {
-        if (challenge != uint256(expectedNonce)) {
-            revert ChallengeIsInvalid();
         }
     }
 

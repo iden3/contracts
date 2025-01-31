@@ -64,22 +64,21 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IAuthValidator, ERC165
 
     /**
      * @dev Verify the proof and check the request query data
-     * @param proof Proof packed as bytes to verify.
-     * @param data Request query data of the credential to verify.
      * @param sender Sender of the proof.
+     * @param proof Proof packed as bytes to verify.
+     * @param params Request query data of the credential to verify.
      * @return Array of signals as result.
      */
     function verify(
+        address sender,
         bytes calldata proof,
         // solhint-disable-next-line no-unused-vars
-        bytes calldata data,
-        address sender,
-        bytes32 expectedNonce
-    ) public view override returns (uint256) {
+        bytes calldata params
+    ) public view override returns (uint256, AuthResponseField[] memory) {
         uint256 userID = abi.decode(proof, (uint256));
 
         _verifyEthIdentity(userID, sender);
-        return userID;
+        return (userID, new AuthResponseField[](0));
     }
 
     function _getState() internal view returns (IState) {

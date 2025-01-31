@@ -88,7 +88,7 @@ describe("Test linkedMultiQuery10.circom", function () {
   });
 
   it("Should verify", async function () {
-    const result = await validator.verify(proofForTwoQueries, twoQueriesParams, signer.address);
+    const result = await validator.verify(signer.address, proofForTwoQueries, twoQueriesParams);
     expect(result).to.deep.equal([
       ["linkID", linkId],
       ["operatorOutput1", 777n],
@@ -103,7 +103,7 @@ describe("Test linkedMultiQuery10.circom", function () {
       circuitIds: ["someWrongCircuitId"],
     });
 
-    await expect(validator.verify(proofForOneQuery, params, signer.address))
+    await expect(validator.verify(signer.address, proofForOneQuery, params))
       .to.be.revertedWithCustomError(validator, "WrongCircuitID")
       .withArgs("someWrongCircuitId");
   });
@@ -114,7 +114,7 @@ describe("Test linkedMultiQuery10.circom", function () {
       queryHash: Array(11).fill(queryHash1),
     });
 
-    await expect(validator.verify(proofForOneQuery, params, signer.address))
+    await expect(validator.verify(signer.address, proofForOneQuery, params))
       .to.be.revertedWithCustomError(validator, "TooManyQueries")
       .withArgs(11);
   });
@@ -125,7 +125,7 @@ describe("Test linkedMultiQuery10.circom", function () {
       queryHash: [queryHash2],
     });
 
-    await expect(validator.verify(proofForOneQuery, params, signer.address))
+    await expect(validator.verify(signer.address, proofForOneQuery, params))
       .to.be.revertedWithCustomError(validator, "InvalidQueryHash")
       .withArgs(queryHash2, queryHash1);
   });
@@ -136,7 +136,7 @@ describe("Test linkedMultiQuery10.circom", function () {
       groupID: 0,
     });
 
-    await expect(validator.verify(proofForOneQuery, params, signer.address))
+    await expect(validator.verify(signer.address, proofForOneQuery, params))
       .to.be.revertedWithCustomError(validator, "InvalidGroupID")
       .withArgs(0);
   });
@@ -154,7 +154,7 @@ describe("Test linkedMultiQuery10.circom", function () {
     await groth16Verifier.stub_setVerifyResult(false);
 
     await expect(
-      validator.verify(proofForOneQuery, oneQueryParams, signer.address),
+      validator.verify(signer.address, proofForOneQuery, oneQueryParams),
     ).to.be.revertedWithCustomError(validator, "InvalidGroth16Proof");
   });
 

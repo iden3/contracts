@@ -182,7 +182,7 @@ describe("Verifier Integration test", function () {
         ],
         crossChainProofs,
       ),
-    ).to.be.revertedWithCustomError(authValidator, "ChallengeIsInvalid");
+    ).to.be.revertedWithCustomError(verifier, "ChallengeIsInvalid");
   });
 
   it("Should verify", async function () {

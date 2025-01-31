@@ -31,6 +31,7 @@ error UserIDNotLinkedToAddress(uint256 userID, address userAddress);
 error UserNotAuthenticated();
 error ValidatorNotWhitelisted(address validator);
 error VerifierIDIsNotValid(uint256 requestVerifierID, uint256 expectedVerifierID);
+error ChallengeIsInvalid();
 
 abstract contract Verifier is IVerifier, ContextUpgradeable {
     /// @dev Key to retrieve the linkID from the proof storage
@@ -71,9 +72,9 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         mapping(string key => uint256 inputValue) storageFields;
         string validatorVersion;
         uint256 blockTimestamp;
-        string[] keys;
+        string[] storageFieldNames;
         // introduce artificial shift + 1 to avoid 0 index
-        mapping(string key => uint256 keyIndex) keyIndexes;
+        mapping(string key => uint256 keyIndex) storageFieldIndexes;
         uint256[44] __gap;
     }
 
@@ -318,15 +319,29 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         AuthTypeData storage authTypeData = $._authMethods[authResponse.authType];
 
         // 2. Authenticate user and get userID
-        bytes32 expectedNonce = keccak256(abi.encode(sender, responses)) &
-            0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
-
-        userIDFromAuthResponse = authTypeData.validator.verify(
-            authResponse.proof,
-            authTypeData.params,
+        IAuthValidator.AuthResponseField[] memory authResponseFields;
+        (userIDFromAuthResponse, authResponseFields) = authTypeData.validator.verify(
             sender,
-            expectedNonce
+            authResponse.proof,
+            authTypeData.params
         );
+
+        if (
+            keccak256(abi.encodePacked(authResponse.authType)) ==
+            keccak256(abi.encodePacked("authV2"))
+        ) {
+            if (
+                authResponseFields.length > 0 &&
+                keccak256(abi.encodePacked(authResponseFields[0].name)) ==
+                keccak256(abi.encodePacked("challenge"))
+            ) {
+                bytes32 expectedNonce = keccak256(abi.encode(sender, responses)) &
+                    0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+                if (expectedNonce != bytes32(authResponseFields[0].value)) {
+                    revert ChallengeIsInvalid();
+                }
+            }
+        }
 
         if (userIDFromAuthResponse == 0) {
             revert UserNotAuthenticated();
@@ -339,9 +354,9 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             IVerifier.RequestData storage request = _getRequestIfCanBeVerified(response.requestId);
 
             IRequestValidator.ResponseField[] memory signals = request.validator.verify(
+                sender,
                 response.proof,
-                request.params,
-                sender
+                request.params
             );
 
             // Check if userID from authResponse is the same as the one in the signals
@@ -432,12 +447,14 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         Proof storage proof = s._proofs[requestId][sender];
 
         IRequestValidator.ResponseField[]
-            memory responseFields = new IRequestValidator.ResponseField[](proof.keys.length);
+            memory responseFields = new IRequestValidator.ResponseField[](
+                proof.storageFieldNames.length
+            );
 
-        for (uint256 i = 0; i < proof.keys.length; i++) {
+        for (uint256 i = 0; i < proof.storageFieldNames.length; i++) {
             responseFields[i] = IRequestValidator.ResponseField({
-                name: proof.keys[i],
-                value: proof.storageFields[proof.keys[i]]
+                name: proof.storageFieldNames[i],
+                value: proof.storageFields[proof.storageFieldNames[i]]
             });
         }
 
@@ -932,9 +949,9 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         // We only keep only 1 proof now without history. Prepared for the future if needed.
         for (uint256 i = 0; i < responseFields.length; i++) {
             proof.storageFields[responseFields[i].name] = responseFields[i].value;
-            if (proof.keyIndexes[responseFields[i].name] == 0) {
-                proof.keys.push(responseFields[i].name);
-                proof.keyIndexes[responseFields[i].name] = proof.keys.length;
+            if (proof.storageFieldIndexes[responseFields[i].name] == 0) {
+                proof.storageFieldNames.push(responseFields[i].name);
+                proof.storageFieldIndexes[responseFields[i].name] = proof.storageFieldNames.length;
             } else {
                 revert ResponseFieldAlreadyExists(responseFields[i].name);
             }

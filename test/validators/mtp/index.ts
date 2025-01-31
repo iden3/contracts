@@ -209,13 +209,13 @@ describe("Atomic MTP Validator", function () {
       // Check verify function
       const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
       if (test.errorMessage) {
-        await expect(mtpValidator.verify(zkProof, data, senderAddress)).to.be.rejectedWith(
+        await expect(mtpValidator.verify(senderAddress, zkProof, data)).to.be.rejectedWith(
           test.errorMessage,
         );
       } else if (test.errorMessage === "") {
-        await expect(mtpValidator.verify(zkProof, data, senderAddress)).to.be.reverted;
+        await expect(mtpValidator.verify(senderAddress, zkProof, data)).to.be.reverted;
       } else {
-        const signals = await mtpValidator.verify(zkProof, data, senderAddress);
+        const signals = await mtpValidator.verify(senderAddress, zkProof, data);
         checkSignals(signals, test.signalValues);
       }
     });

@@ -597,13 +597,13 @@ describe("Atomic V3 Validator", function () {
       // Check verify function
       const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
       if (test.errorMessage) {
-        await expect(v3Validator.verify(zkProof, data, test.sender)).to.be.rejectedWith(
+        await expect(v3Validator.verify(test.sender, zkProof, data)).to.be.rejectedWith(
           test.errorMessage,
         );
       } else if (test.errorMessage === "") {
-        await expect(v3Validator.verify(zkProof, data, test.sender)).to.be.reverted;
+        await expect(v3Validator.verify(test.sender, zkProof, data)).to.be.reverted;
       } else {
-        const signals = await v3Validator.verify(zkProof, data, test.sender);
+        const signals = await v3Validator.verify(test.sender, zkProof, data);
 
         checkSignals(signals, test.signalValues);
       }
