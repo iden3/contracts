@@ -6,7 +6,7 @@ import { expect } from "chai";
 describe("Verifer tests", function () {
   let sender: any;
   let verifier, validator1, validator2: any;
-  let request, paramsFromValidator, authType: any;
+  let request, paramsFromValidator, authMethod: any;
   let multiRequest: any;
   let signer: any;
   let signerAddress: string;
@@ -25,13 +25,13 @@ describe("Verifer tests", function () {
     const authValidatorStub = await ethers.deployContract("AuthValidatorStub");
     await authValidatorStub.stub_setVerifyResults(1);
 
-    authType = {
-      authType: "stubAuth",
+    authMethod = {
+      authMethod: "stubAuth",
       validator: await authValidatorStub.getAddress(),
       params: "0x",
     };
 
-    await verifier.setAuthType(authType);
+    await verifier.setAuthMethod(authMethod);
 
     const validator1 = await ethers.deployContract("RequestValidatorStub");
     const validator2 = await ethers.deployContract("RequestValidatorStub");
@@ -224,37 +224,37 @@ describe("Verifer tests", function () {
         .withArgs(nonExistingRequestId);
     });
 
-    it("getAuthType: authType should exist", async function () {
-      const authType2 = { ...authType, authType: "stubAuth2" };
+    it("getAuthMethod: authMethod should exist", async function () {
+      const authMethod2 = { ...authMethod, authMethod: "stubAuth2" };
 
-      await expect(verifier.getAuthType(authType2.authType))
-        .to.be.revertedWithCustomError(verifier, "AuthTypeNotFound")
-        .withArgs(authType2.authType);
+      await expect(verifier.getAuthMethod(authMethod2.authMethod))
+        .to.be.revertedWithCustomError(verifier, "AuthMethodNotFound")
+        .withArgs(authMethod2.authMethod);
 
-      await expect(verifier.setAuthType(authType))
-        .to.be.revertedWithCustomError(verifier, "AuthTypeAlreadyExists")
-        .withArgs(authType.authType);
+      await expect(verifier.setAuthMethod(authMethod))
+        .to.be.revertedWithCustomError(verifier, "AuthMethodAlreadyExists")
+        .withArgs(authMethod.authMethod);
 
-      await expect(verifier.setAuthType(authType2)).not.to.be.reverted;
+      await expect(verifier.setAuthMethod(authMethod2)).not.to.be.reverted;
 
-      const authTypeObject = await verifier.getAuthType(authType2.authType);
-      expect(authTypeObject.validator).to.be.equal(authType2.validator);
-      expect(authTypeObject.params).to.be.equal(authType2.params);
+      const authMethodObject = await verifier.getAuthMethod(authMethod.authMethod);
+      expect(authMethodObject.validator).to.be.equal(authMethod2.validator);
+      expect(authMethodObject.params).to.be.equal(authMethod2.params);
     });
 
-    it("enableAuthType/disableAuthType", async function () {
-      let authTypeObject = await verifier.getAuthType(authType.authType);
-      expect(authTypeObject.isActive).to.be.true;
+    it("enableAuthMethod/disableAuthMethod", async function () {
+      let authMethodObject = await verifier.getAuthMethod(authMethod.authMethod);
+      expect(authMethodObject.isActive).to.be.true;
 
-      await verifier.disableAuthType(authType.authType);
+      await verifier.disableAuthMethod(authMethod.authMethod);
 
-      authTypeObject = await verifier.getAuthType(authType.authType);
-      expect(authTypeObject.isActive).to.be.false;
+      authMethodObject = await verifier.getAuthMethod(authMethod.authMethod);
+      expect(authMethodObject.isActive).to.be.false;
 
-      await verifier.enableAuthType(authType.authType);
+      await verifier.enableAuthMethod(authMethod.authMethod);
 
-      authTypeObject = await verifier.getAuthType(authType.authType);
-      expect(authTypeObject.isActive).to.be.true;
+      authMethodObject = await verifier.getAuthMethod(authMethod.authMethod);
+      expect(authMethodObject.isActive).to.be.true;
     });
 
     it("submitResponse: not repeated responseFields from validator", async function () {
@@ -272,7 +272,7 @@ describe("Verifer tests", function () {
       ]);
 
       const authResponse = {
-        authType: "stubAuth",
+        authMethod: "stubAuth",
         proof: "0x",
       };
       const response = {
@@ -326,7 +326,7 @@ describe("Verifer tests", function () {
       ]);
 
       const authResponse = {
-        authType: "stubAuth",
+        authMethod: "stubAuth",
         proof: "0x",
       };
       const response = {
@@ -353,7 +353,7 @@ describe("Verifer tests", function () {
       ]);
 
       const authResponse = {
-        authType: "stubAuth",
+        authMethod: "stubAuth",
         proof: "0x",
       };
       const response = {
@@ -480,7 +480,7 @@ describe("Verifer tests", function () {
       ]);
 
       const authResponse = {
-        authType: "stubAuth",
+        authMethod: "stubAuth",
         proof: "0x",
       };
       const response = {
@@ -555,7 +555,7 @@ describe("Verifer tests", function () {
       ]);
 
       const authResponse = {
-        authType: "stubAuth",
+        authMethod: "stubAuth",
         proof: "0x",
       };
       const response1 = {
@@ -615,7 +615,7 @@ describe("Verifer tests", function () {
       ]);
 
       const authResponse = {
-        authType: "stubAuth",
+        authMethod: "stubAuth",
         proof: "0x",
       };
       const response1 = {

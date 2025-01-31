@@ -20,12 +20,12 @@ describe("EmbeddedVerifier tests", function () {
     const authValidator = await deployHelper.deployValidatorStub("AuthValidatorStub");
     await authValidator.stub_setVerifyResults(1);
 
-    const authType = {
-      authType: "stubAuth",
+    const authMethod = {
+      authMethod: "stubAuth",
       validator: await authValidator.getAddress(),
       params: "0x",
     };
-    await verifier.setAuthType(authType);
+    await verifier.setAuthMethod(authMethod);
 
     return { state, verifier, validator };
   }
@@ -47,7 +47,7 @@ describe("EmbeddedVerifier tests", function () {
     ];
 
     authResponse = {
-      authType: "stubAuth",
+      authMethod: "stubAuth",
       proof: "0x",
     };
     response = {

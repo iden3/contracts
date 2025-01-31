@@ -64,7 +64,7 @@ describe("Verifier Integration test", function () {
 
   const crossChainProofs = "0x";
   const metadatas = "0x";
-  const authType = "authV2";
+  const authMethod = "authV2";
 
   const v3Params = packV3ValidatorParams(query);
 
@@ -115,12 +115,12 @@ describe("Verifier Integration test", function () {
     await authValidator.setProofExpirationTimeout(TEN_YEARS);
     await authValidator.setGISTRootExpirationTimeout(TEN_YEARS);
 
-    const authType = {
-      authType: "authV2",
+    const authMethod = {
+      authMethod: "authV2",
       validator: await authValidator.getAddress(),
       params: "0x",
     };
-    await verifier.setAuthType(authType);
+    await verifier.setAuthMethod(authMethod);
 
     const { validator: v3Validator } = await deployHelper.deployValidatorContractsWithVerifiers(
       "v3",
@@ -165,7 +165,7 @@ describe("Verifier Integration test", function () {
     await expect(
       verifier.submitResponse(
         {
-          authType: authType,
+          authMethod: authMethod,
           proof: authInvalidChallengeProof,
         },
         [
@@ -226,7 +226,7 @@ describe("Verifier Integration test", function () {
     await expect(
       verifier.submitResponse(
         {
-          authType: authType,
+          authMethod: authMethod,
           proof: authProof,
         },
         [

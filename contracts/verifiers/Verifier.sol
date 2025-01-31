@@ -8,8 +8,8 @@ import {IState} from "../interfaces/IState.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
-error AuthTypeNotFound(string authType);
-error AuthTypeAlreadyExists(string authType);
+error AuthMethodNotFound(string authMethod);
+error AuthMethodAlreadyExists(string authMethod);
 error GroupIdNotFound(uint256 groupId);
 error GroupIdAlreadyExists(uint256 groupId);
 error GroupMustHaveAtLeastTwoRequests(uint256 groupID);
@@ -37,7 +37,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     /// @dev Key to retrieve the linkID from the proof storage
     string private constant LINKED_PROOF_KEY = "linkID";
 
-    struct AuthTypeData {
+    struct AuthMethodData {
         IAuthValidator validator;
         bytes params;
         bool isActive;
@@ -56,9 +56,9 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         // Information about multiRequests
         mapping(uint256 multiRequestId => IVerifier.MultiRequest) _multiRequests;
         uint256[] _multiRequestIds;
-        // Information about auth types and validators
-        string[] _authTypes;
-        mapping(string authType => AuthTypeData) _authMethods;
+        // Information about auth methods and validators
+        string[] _authMethodsNames;
+        mapping(string authMethod => AuthMethodData) _authMethods;
         mapping(uint256 nullifierSessionID => uint256 requestId) _nullifierSessionIDs;
         // verifierID to check in requests
         uint256 _verifierID;
@@ -127,14 +127,14 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     /**
      * @dev Modifier to check if the auth type exists
      */
-    modifier checkAuthTypeExistence(string memory authType, bool existence) {
+    modifier checkAuthMethodExistence(string memory authMethod, bool existence) {
         if (existence) {
-            if (!authTypeExists(authType)) {
-                revert AuthTypeNotFound(authType);
+            if (!authMethodExists(authMethod)) {
+                revert AuthMethodNotFound(authMethod);
             }
         } else {
-            if (authTypeExists(authType)) {
-                revert AuthTypeAlreadyExists(authType);
+            if (authMethodExists(authMethod)) {
+                revert AuthMethodAlreadyExists(authMethod);
             }
         }
         _;
@@ -170,12 +170,13 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     }
 
     /**
-     * @dev Checks if an auth type exists
-     * @param authType The auth type
+     * @dev Checks if an auth method exists
+     * @param authMethod The auth method
      * @return Whether the auth type exists
      */
-    function authTypeExists(string memory authType) public view returns (bool) {
-        return _getVerifierStorage()._authMethods[authType].validator != IAuthValidator(address(0));
+    function authMethodExists(string memory authMethod) public view returns (bool) {
+        return
+            _getVerifierStorage()._authMethods[authMethod].validator != IAuthValidator(address(0));
     }
 
     /**
@@ -316,18 +317,18 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         $._state.processCrossChainProofs(crossChainProofs);
 
         uint256 userIDFromAuthResponse;
-        AuthTypeData storage authTypeData = $._authMethods[authResponse.authType];
+        AuthMethodData storage authMethodData = $._authMethods[authResponse.authMethod];
 
         // 2. Authenticate user and get userID
         IAuthValidator.AuthResponseField[] memory authResponseFields;
-        (userIDFromAuthResponse, authResponseFields) = authTypeData.validator.verify(
+        (userIDFromAuthResponse, authResponseFields) = authMethodData.validator.verify(
             sender,
             authResponse.proof,
-            authTypeData.params
+            authMethodData.params
         );
 
         if (
-            keccak256(abi.encodePacked(authResponse.authType)) ==
+            keccak256(abi.encodePacked(authResponse.authMethod)) ==
             keccak256(abi.encodePacked("authV2"))
         ) {
             if (
@@ -371,52 +372,57 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     }
 
     /**
-     * @dev Sets an auth type
-     * @param authType The auth type to add
+     * @dev Sets an auth method
+     * @param authMethod The auth method to add
      */
-    function setAuthType(
-        IVerifier.AuthType calldata authType
-    ) public virtual checkAuthTypeExistence(authType.authType, false) {
+    function setAuthMethod(
+        IVerifier.AuthMethod calldata authMethod
+    ) public virtual checkAuthMethodExistence(authMethod.authMethod, false) {
         VerifierStorage storage s = _getVerifierStorage();
-        s._authTypes.push(authType.authType);
-        s._authMethods[authType.authType] = AuthTypeData({
-            validator: authType.validator,
-            params: authType.params,
+        s._authMethodsNames.push(authMethod.authMethod);
+        s._authMethods[authMethod.authMethod] = AuthMethodData({
+            validator: authMethod.validator,
+            params: authMethod.params,
             isActive: true
         });
     }
 
     /**
-     * @dev Disables an auth type
-     * @param authType The auth type to disable
+     * @dev Disables an auth method
+     * @param authMethod The auth method to disable
      */
-    function disableAuthType(
-        string calldata authType
-    ) public checkAuthTypeExistence(authType, true) {
+    function disableAuthMethod(
+        string calldata authMethod
+    ) public checkAuthMethodExistence(authMethod, true) {
         VerifierStorage storage s = _getVerifierStorage();
-        s._authMethods[authType].isActive = false;
+        s._authMethods[authMethod].isActive = false;
     }
 
     /**
      * @dev Enables an auth type
-     * @param authType The auth type to enable
+     * @param authMethod The auth type to enable
      */
-    function enableAuthType(
-        string calldata authType
-    ) public checkAuthTypeExistence(authType, true) {
+    function enableAuthMethod(
+        string calldata authMethod
+    ) public checkAuthMethodExistence(authMethod, true) {
         VerifierStorage storage s = _getVerifierStorage();
-        s._authMethods[authType].isActive = true;
+        s._authMethods[authMethod].isActive = true;
     }
 
     /**
      * @dev Gets an auth type
-     * @param authType The Id of the auth type to get
-     * @return authMethod The auth type data
+     * @param authMethod The Id of the auth type to get
+     * @return authMethodData The auth type data
      */
-    function getAuthType(
-        string calldata authType
-    ) public view checkAuthTypeExistence(authType, true) returns (AuthTypeData memory authMethod) {
-        return _getVerifierStorage()._authMethods[authType];
+    function getAuthMethod(
+        string calldata authMethod
+    )
+        public
+        view
+        checkAuthMethodExistence(authMethod, true)
+        returns (AuthMethodData memory authMethodData)
+    {
+        return _getVerifierStorage()._authMethods[authMethod];
     }
 
     /**

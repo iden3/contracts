@@ -33,7 +33,7 @@ contract UniversalVerifier is
     /**
      * @dev Event emitted upon submitting an auth response
      */
-    event AuthResponseSubmitted(string indexed authType, address indexed caller);
+    event AuthResponseSubmitted(string indexed authMethod, address indexed caller);
 
     /**
      * @dev Event emitted upon adding a request
@@ -47,9 +47,9 @@ contract UniversalVerifier is
     );
 
     /**
-     * @dev Event emitted upon adding an auth type by the owner
+     * @dev Event emitted upon adding an auth method by the owner
      */
-    event AuthTypeSet(string indexed authType, address validator, bytes params);
+    event AuthMethodSet(string indexed authMethod, address validator, bytes params);
 
     /**
      * @dev Event emitted upon updating a request
@@ -89,11 +89,11 @@ contract UniversalVerifier is
 
     /**
      * @dev Sets an auth type
-     * @param authType The auth type to add
+     * @param authMethod The auth type to add
      */
-    function setAuthType(IVerifier.AuthType calldata authType) public override onlyOwner {
-        super.setAuthType(authType);
-        emit AuthTypeSet(authType.authType, address(authType.validator), authType.params);
+    function setAuthMethod(IVerifier.AuthMethod calldata authMethod) public override onlyOwner {
+        super.setAuthMethod(authMethod);
+        emit AuthMethodSet(authMethod.authMethod, address(authMethod.validator), authMethod.params);
     }
 
     /**
@@ -140,7 +140,7 @@ contract UniversalVerifier is
         bytes memory crossChainProofs
     ) public override {
         super.submitResponse(authResponse, responses, crossChainProofs);
-        emit AuthResponseSubmitted(authResponse.authType, _msgSender());
+        emit AuthResponseSubmitted(authResponse.authMethod, _msgSender());
 
         for (uint256 i = 0; i < responses.length; i++) {
             emit ResponseSubmitted(responses[i].requestId, _msgSender());

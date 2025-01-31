@@ -50,12 +50,12 @@ describe("Universal Verifier tests", function () {
     const authValidator = await deployHelper.deployValidatorStub("AuthValidatorStub");
     await authValidator.stub_setVerifyResults(1);
 
-    const authType = {
-      authType: "stubAuth",
+    const authMethod = {
+      authMethod: "stubAuth",
       validator: await authValidator.getAddress(),
       params: "0x",
     };
-    await universalVerifier.setAuthType(authType);
+    await universalVerifier.setAuthMethod(authMethod);
 
     return {
       ethSigner,
@@ -97,7 +97,7 @@ describe("Universal Verifier tests", function () {
       };
 
       authResponse = {
-        authType: "stubAuth",
+        authMethod: "stubAuth",
         proof: "0x",
       };
       response = {
@@ -187,8 +187,8 @@ describe("Universal Verifier tests", function () {
       filter = verifier.filters.AuthResponseSubmitted;
       events = await verifier.queryFilter(filter, -1);
       expect(events[0].eventName).to.be.equal("AuthResponseSubmitted");
-      expect(events[0].args.authType.hash).to.be.equal(
-        ethers.keccak256(byteEncoder.encode(authResponse.authType)),
+      expect(events[0].args.authMethod.hash).to.be.equal(
+        ethers.keccak256(byteEncoder.encode(authResponse.authMethod)),
       );
       expect(events[0].args.caller).to.be.equal(signerAddress);
 
@@ -249,8 +249,8 @@ describe("Universal Verifier tests", function () {
       filter = verifier.filters.AuthResponseSubmitted;
       events = await verifier.queryFilter(filter, -1);
       expect(events[0].eventName).to.be.equal("AuthResponseSubmitted");
-      expect(events[0].args.authType.hash).to.be.equal(
-        ethers.keccak256(byteEncoder.encode(authResponse.authType)),
+      expect(events[0].args.authMethod.hash).to.be.equal(
+        ethers.keccak256(byteEncoder.encode(authResponse.authMethod)),
       );
       expect(events[0].args.caller).to.be.equal(signerAddress);
 
@@ -623,22 +623,22 @@ describe("Universal Verifier tests", function () {
       });
     });
 
-    it("Check AuthTypeSet event", async () => {
-      const nonExistingAuthType = {
-        authType: "stubAuth2",
+    it("Check AuthMethodSet event", async () => {
+      const nonExistingAuthMethod = {
+        authMethod: "stubAuth2",
         validator: await authValidator.getAddress(),
         params: "0x",
       };
-      const tx = await verifier.setAuthType(nonExistingAuthType);
+      const tx = await verifier.setAuthMethod(nonExistingAuthMethod);
 
-      const filter = verifier.filters.AuthTypeSet;
+      const filter = verifier.filters.AuthMethodSet;
       const events = await verifier.queryFilter(filter, tx.blockNumber);
-      expect(events[0].eventName).to.be.equal("AuthTypeSet");
-      expect(events[0].args.authType.hash).to.be.equal(
-        ethers.keccak256(byteEncoder.encode(nonExistingAuthType.authType)),
+      expect(events[0].eventName).to.be.equal("AuthMethodSet");
+      expect(events[0].args.authMethod.hash).to.be.equal(
+        ethers.keccak256(byteEncoder.encode(nonExistingAuthMethod.authMethod)),
       );
-      expect(events[0].args.validator).to.be.equal(nonExistingAuthType.validator);
-      expect(events[0].args.params).to.be.equal(nonExistingAuthType.params);
+      expect(events[0].args.validator).to.be.equal(nonExistingAuthMethod.validator);
+      expect(events[0].args.params).to.be.equal(nonExistingAuthMethod.params);
     });
 
     it("Check MultiRequestSet event", async function () {

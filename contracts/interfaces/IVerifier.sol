@@ -67,11 +67,11 @@ interface IVerifier {
 
     /**
      * @dev AuthResponse. Structure for auth response.
-     * @param authType Auth type of the proof response.
+     * @param authMethod Auth type of the proof response.
      * @param proof proof to verify.
      */
     struct AuthResponse {
-        string authType;
+        string authMethod;
         bytes proof;
     }
 
@@ -90,13 +90,13 @@ interface IVerifier {
     }
 
     /**
-     * @dev AuthType. Structure for auth type for auth proofs.
-     * @param authType Auth type of the auth proof.
+     * @dev AuthMethod. Structure for auth type for auth proofs.
+     * @param authMethod Auth type of the auth proof.
      * @param validator Validator to verify the auth.
      * @param params Parameters data of the auth.
      */
-    struct AuthType {
-        string authType;
+    struct AuthMethod {
+        string authMethod;
         IAuthValidator validator;
         bytes params;
     }
@@ -233,10 +233,10 @@ interface IVerifier {
     function isRequestProofVerified(address sender, uint256 requestId) external view returns (bool);
 
     /**
-     * @dev Sets an auth type
-     * @param authType The auth type to add
+     * @dev Sets an auth method
+     * @param authMethod The auth method to add
      */
-    function setAuthType(AuthType calldata authType) external;
+    function setAuthMethod(AuthMethod calldata authMethod) external;
 
     /**
      * @dev Sets a multiRequest
