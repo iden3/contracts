@@ -36,6 +36,12 @@ error ChallengeIsInvalid();
 abstract contract Verifier is IVerifier, ContextUpgradeable {
     /// @dev Key to retrieve the linkID from the proof storage
     string private constant LINKED_PROOF_KEY = "linkID";
+    // keccak256(abi.encodePacked("authV2"))
+    bytes32 private constant AUTHV2_NAME =
+        0x380ee2d21c7a4607d113dad9e76a0bc90f5325a136d5f0e14b6ccf849d948e25;
+    // keccak256(abi.encodePacked("challenge"))
+    bytes32 private constant CHALLENGE_NAME =
+        0x62357b294ca756256b576c5da68950c49d0d1823063551ffdcc1dad9d65a07a6;
 
     struct AuthMethodData {
         IAuthValidator validator;
@@ -327,14 +333,10 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             authMethodData.params
         );
 
-        if (
-            keccak256(abi.encodePacked(authResponse.authMethod)) ==
-            keccak256(abi.encodePacked("authV2"))
-        ) {
+        if (keccak256(abi.encodePacked(authResponse.authMethod)) == AUTHV2_NAME) {
             if (
                 authResponseFields.length > 0 &&
-                keccak256(abi.encodePacked(authResponseFields[0].name)) ==
-                keccak256(abi.encodePacked("challenge"))
+                keccak256(abi.encodePacked(authResponseFields[0].name)) == CHALLENGE_NAME
             ) {
                 bytes32 expectedNonce = keccak256(abi.encode(sender, responses)) &
                     0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
