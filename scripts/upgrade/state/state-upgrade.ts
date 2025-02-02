@@ -4,6 +4,7 @@ import { expect } from "chai"; // abi of contract that will be upgraded
 import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/State.json";
 import {
   checkContractVersion,
+  getChainId,
   getConfig,
   getStateContractAddress,
   removeLocalhostNetworkIgnitionFiles,
@@ -14,9 +15,6 @@ import path from "path";
 import { contractsInfo } from "../../../helpers/constants";
 
 const config = getConfig();
-
-const chainId = hre.network.config.chainId;
-const network = hre.network.name;
 
 const removePreviousIgnitionFiles = true;
 const impersonate = false;
@@ -36,6 +34,9 @@ async function getSigners(useImpersonation: boolean): Promise<any> {
 }
 
 async function main() {
+  const chainId = await getChainId();
+  const network = hre.network.name;
+
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
 
@@ -43,7 +44,7 @@ async function main() {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
 
-  const stateContractAddress = getStateContractAddress();
+  const stateContractAddress = await getStateContractAddress();
   const { proxyAdminOwnerSigner, stateOwnerSigner } = await getSigners(impersonate);
 
   const stateDeployHelper = await DeployHelper.initialize(

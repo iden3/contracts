@@ -16,6 +16,7 @@ import {
 } from "../ignition";
 import { chainIdInfoMap, contractsInfo } from "./constants";
 import {
+  getChainId,
   getUnifiedContract,
   Logger,
   TempContractDeployments,
@@ -375,18 +376,27 @@ export class DeployHelper {
         Logger.warning(`${contractName} found already deployed to:  ${await smtLib?.getAddress()}`);
         return smtLib;
       }
-    }
-    const smtLibDeploy = await ignition.deploy(SmtLibModule, {
-      parameters: {
-        SmtLibModule: {
-          poseidon2ElementAddress: poseidon2Address,
-          poseidon3ElementAddress: poseidon3Address,
-        },
-      },
-      strategy: deployStrategy,
-    });
 
-    smtLib = smtLibDeploy.smtLib;
+      const smtLibDeploy = await ignition.deploy(SmtLibModule, {
+        parameters: {
+          SmtLibModule: {
+            poseidon2ElementAddress: poseidon2Address,
+            poseidon3ElementAddress: poseidon3Address,
+          },
+        },
+        strategy: deployStrategy,
+      });
+
+      smtLib = smtLibDeploy.smtLib;
+    } else {
+      smtLib = await ethers.deployContract(contractName, {
+        libraries: {
+          PoseidonUnit2L: poseidon2Address,
+          PoseidonUnit3L: poseidon3Address,
+        },
+      });
+    }
+
     await smtLib.waitForDeployment();
     Logger.success(`${contractName} deployed to:  ${await smtLib.getAddress()}`);
 
@@ -468,7 +478,7 @@ export class DeployHelper {
     domainName = "StateInfo",
     signatureVersion = "1",
   ): Promise<Contract> {
-    const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
+    const chainId = await getChainId();
     const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
 
     const crossChainProofValidator = await ethers.deployContract(contractName, [
@@ -993,7 +1003,7 @@ export class DeployHelper {
   }
 
   async getDefaultIdType(): Promise<{ defaultIdType: string; chainId: number }> {
-    const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
+    const chainId = await getChainId();
     const defaultIdType = chainIdInfoMap.get(chainId)?.idType;
     if (!defaultIdType) {
       throw new Error(`Failed to find defaultIdType in Map for chainId ${chainId}`);

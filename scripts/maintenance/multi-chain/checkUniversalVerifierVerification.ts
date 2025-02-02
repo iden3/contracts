@@ -16,7 +16,9 @@ async function testVerification(
   const requestId = 7254189;
   await setZKPRequest_KYCAgeCredential(requestId, verifier, validatorV3Address, "v3", provider);
   await submitZKPResponses_KYCAgeCredential(requestId, verifier, "v3", {
-    stateContractAddress: getStateContractAddress(Number((await provider.getNetwork()).chainId)),
+    stateContractAddress: await getStateContractAddress(
+      Number((await provider.getNetwork()).chainId),
+    ),
     provider,
     signer: wallet,
     checkSubmitZKResponseV2: true,

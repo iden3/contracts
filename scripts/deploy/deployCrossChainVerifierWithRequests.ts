@@ -17,6 +17,7 @@ import { Merklizer } from "@iden3/js-jsonld-merklization";
 import path from "path";
 import fs from "fs";
 import { CircuitId, Operators } from "@0xpolygonid/js-sdk";
+import { getChainId } from "../../helpers/helperUtils";
 
 const removePreviousIgnitionFiles = true;
 
@@ -31,7 +32,7 @@ async function main() {
   // console.log(ethers.formatEther(await provider.getBalance(signerAddr)));
   // return;
 
-  const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
+  const chainId = await getChainId();
   const networkName = hre.network.name;
 
   if (removePreviousIgnitionFiles && (networkName === "localhost" || networkName === "hardhat")) {

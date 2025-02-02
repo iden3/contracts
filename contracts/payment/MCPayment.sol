@@ -15,7 +15,12 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.0.0";
+    string public constant VERSION = "1.0.1";
+
+    /**
+     * @dev Version of EIP 712 domain
+     */
+    string public constant DOMAIN_VERSION = "1.0.0";
 
     /**
      * @dev Iden3PaymentRailsRequestV1 data type hash
@@ -80,22 +85,26 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     event Payment(address indexed recipient, uint256 indexed nonce);
 
     /// @dev Error emitted upon invalid signature
-    error InvalidSignature(string message);
+    error InvalidSignature();
     /// @dev Error emitted upon payment error
     error PaymentError(address recipient, uint256 nonce, string message);
     /// @dev Error emitted upon withdraw error
-    error WithdrawError(string message);
+    error WithdrawError();
+    /// @dev Error emitted upon withdraw error invalid address
+    error WithdrawErrorInvalidAddress();
+    /// @dev Error emitted upon withdraw error no balance
+    error WithdrawErrorNoBalance();
     /// @dev Error emitted upon invalid owner percentage update
-    error InvalidOwnerPercentage(string message);
+    error InvalidOwnerPercentage();
     /// @dev Error emitted upon invalid ECDSA signature length
-    error ECDSAInvalidSignatureLength(string message);
+    error ECDSAInvalidSignatureLength();
 
     /**
      * @dev Valid percent value modifier
      */
     modifier validPercentValue(uint256 percent) {
         if (percent < 0 || percent > 100) {
-            revert InvalidOwnerPercentage("Invalid owner percentage");
+            revert InvalidOwnerPercentage();
         }
         _;
     }
@@ -111,7 +120,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     ) public initializer validPercentValue(ownerPercentage) {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         $.ownerPercentage = ownerPercentage;
-        __EIP712_init("MCPayment", VERSION);
+        __EIP712_init("MCPayment", DOMAIN_VERSION);
         __Ownable_init(owner);
     }
 
@@ -206,7 +215,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         address signer = _recoverERC20PaymentSignature(paymentData, signature);
         ERC20Permit token = ERC20Permit(paymentData.tokenAddress);
         if (permitSignature.length != 65) {
-            revert ECDSAInvalidSignatureLength("MCPayment: invalid permit signature length");
+            revert ECDSAInvalidSignatureLength();
         }
 
         bytes32 r;
@@ -267,7 +276,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         );
         (bool isValid, address recovered) = _tryRecover(structHash, signature);
         if (!isValid) {
-            revert InvalidSignature("MCPayment: invalid signature for Iden3PaymentRailsRequestV1");
+            revert InvalidSignature();
         }
         return recovered;
     }
@@ -296,9 +305,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
 
         (bool isValid, address recovered) = _tryRecover(structHash, signature);
         if (!isValid) {
-            revert InvalidSignature(
-                "MCPayment: invalid signature for Iden3PaymentRailsERC20RequestV1"
-            );
+            revert InvalidSignature();
         }
         return recovered;
     }
@@ -323,6 +330,14 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     }
 
     /**
+     * @dev Get owner ERC-20 balance
+     * @return balance of owner
+     */
+    function getOwnerERC20Balance(address token) public view onlyOwner returns (uint256) {
+        return IERC20(token).balanceOf(address(this));
+    }
+
+    /**
      * @dev Withdraw balance to issuer
      */
     function issuerWithdraw() public {
@@ -335,11 +350,23 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     function ownerWithdraw() public onlyOwner {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         if ($.ownerBalance == 0) {
-            revert WithdrawError("There is no balance to withdraw");
+            revert WithdrawErrorNoBalance();
         }
         uint256 amount = $.ownerBalance;
         $.ownerBalance = 0;
         _withdraw(amount, owner());
+    }
+
+    /**
+     * @dev Withdraw ERC-20 balance to owner
+     */
+    function ownerERC20Withdraw(address token) public onlyOwner {
+        uint amount = IERC20(token).balanceOf(address(this));
+        if (amount == 0) {
+            revert WithdrawErrorNoBalance();
+        }
+
+        IERC20(token).transfer(owner(), amount);
     }
 
     function _recoverERC20PaymentSignature(
@@ -394,7 +421,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         uint256 amount = $.balance[issuer];
         if (amount == 0) {
-            revert WithdrawError("There is no balance to withdraw");
+            revert WithdrawErrorNoBalance();
         }
         $.balance[issuer] = 0;
         _withdraw(amount, issuer);
@@ -402,12 +429,12 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
 
     function _withdraw(uint256 amount, address to) internal {
         if (to == address(0)) {
-            revert WithdrawError("Invalid withdraw address");
+            revert WithdrawErrorInvalidAddress();
         }
 
         (bool sent, ) = to.call{value: amount}("");
         if (!sent) {
-            revert WithdrawError("Failed to withdraw");
+            revert WithdrawError();
         }
     }
 }

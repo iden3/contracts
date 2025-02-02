@@ -2,11 +2,16 @@ import fs from "fs";
 import path from "path";
 import { DeployHelper, ValidatorType } from "../../helpers/DeployHelper";
 import hre from "hardhat";
-import { getConfig, getStateContractAddress, verifyContract } from "../../helpers/helperUtils";
+import {
+  getChainId,
+  getConfig,
+  getStateContractAddress,
+  verifyContract,
+} from "../../helpers/helperUtils";
 
 async function main() {
   const config = getConfig();
-  const chainId = hre.network.config.chainId;
+  const chainId = await getChainId();
 
   const validators: ValidatorType[] = ["mtpV2", "sigV2", "v3", "lmk"];
 
