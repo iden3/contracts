@@ -87,7 +87,7 @@ const testCases: any[] = [
     stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
     proofJson: require("./data/valid_sig_user_non_genesis.json"),
     setRevStateExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
-    errorMessage: "Non-Revocation state of Issuer expired",
+    errorMessage: "NonRevocationStateOfIssuerIsExpired()",
     setProofExpiration: tenYears,
   },
   {
@@ -101,7 +101,7 @@ const testCases: any[] = [
     stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
     proofJson: require("./data/valid_sig_user_non_genesis.json"), // generated on step 2
     setGISTRootExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
-    errorMessage: "Gist root is expired",
+    errorMessage: "GistRootIsExpired()",
     setProofExpiration: tenYears,
   },
   {
@@ -112,7 +112,7 @@ const testCases: any[] = [
       require("../common-data/issuer_next_state_transition.json"),
     ],
     proofJson: require("./data/valid_sig_user_non_genesis.json"),
-    errorMessage: "Generated proof is outdated",
+    errorMessage: "GeneratedProofIsOutdated()",
   },
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain",
@@ -120,7 +120,7 @@ const testCases: any[] = [
     proofJson: require("./data/valid_sig_user_genesis.json"),
     setProofExpiration: tenYears,
     allowedIssuers: [123n],
-    errorMessage: "Issuer is not on the Allowed Issuers list",
+    errorMessage: "IssuerIsNotOnTheAllowedIssuersList()",
   },
 ];
 

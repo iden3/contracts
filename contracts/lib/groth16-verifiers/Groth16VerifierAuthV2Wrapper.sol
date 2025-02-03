@@ -4,6 +4,8 @@ pragma solidity 0.8.27;
 import {Groth16VerifierAuthV2} from "./Groth16VerifierAuthV2.sol";
 import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
 
+error ExpectedArrayLenght(uint256 expected, uint256 actual);
+
 contract Groth16VerifierAuthV2Wrapper is Groth16VerifierAuthV2, IGroth16Verifier {
     /**
      * @dev Number of public signals for atomic mtp circuit
@@ -26,7 +28,9 @@ contract Groth16VerifierAuthV2Wrapper is Groth16VerifierAuthV2, IGroth16Verifier
     ) public view returns (bool r) {
         uint[PUBSIGNALS_LENGTH] memory pubSignals;
 
-        require(signals.length == PUBSIGNALS_LENGTH, "expected array length is 3");
+        if (signals.length != PUBSIGNALS_LENGTH) {
+            revert ExpectedArrayLenght(PUBSIGNALS_LENGTH, signals.length);
+        }
 
         for (uint256 i = 0; i < PUBSIGNALS_LENGTH; i++) {
             pubSignals[i] = signals[i];

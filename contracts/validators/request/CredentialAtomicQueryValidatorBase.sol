@@ -9,6 +9,15 @@ import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
 import {IState} from "../../interfaces/IState.sol";
 import {PrimitiveTypeUtils} from "../../lib/PrimitiveTypeUtils.sol";
 
+error InputNameNotFound();
+error RequestParamNameNotFound();
+error ChallengeShouldMatchTheSender();
+error GistRootIsExpired();
+error NonRevocationStateOfIssuerIsExpired();
+error ProofGeneratedInTheFutureIsNotValid();
+error GeneratedProofIsOutdated();
+error IssuerIsNotOnTheAllowedIssuersList();
+
 /**
  * @dev Base contract for credential atomic query validators circuits.
  */
@@ -162,7 +171,9 @@ abstract contract CredentialAtomicQueryValidatorBase is
      */
     function inputIndexOf(string memory name) public view virtual returns (uint256) {
         uint256 index = _getCredentialAtomicQueryValidatorBaseStorage()._inputNameToIndex[name];
-        require(index != 0, "Input name not found");
+        if (index == 0) {
+            revert InputNameNotFound();
+        }
         return --index; // we save 1-based index, but return 0-based
     }
 
@@ -175,7 +186,9 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256 index = _getCredentialAtomicQueryValidatorBaseStorage()._requestParamNameToIndex[
             name
         ];
-        require(index != 0, "Request param name not found");
+        if (index == 0) {
+            revert RequestParamNameNotFound();
+        }
         return --index; // we save 1-based index, but return 0-based
     }
 
@@ -213,7 +226,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256 replacedAt = $.state.getGistRootReplacedAt(idType, _gistRoot);
 
         if (replacedAt != 0 && block.timestamp > $.gistRootExpirationTimeout + replacedAt) {
-            revert("Gist root is expired");
+            revert GistRootIsExpired();
         }
     }
 
@@ -231,7 +244,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256 replacedAt = _getState().getStateReplacedAt(_id, _claimNonRevState);
 
         if (replacedAt != 0 && block.timestamp > $.revocationStateExpirationTimeout + replacedAt) {
-            revert("Non-Revocation state of Issuer expired");
+            revert NonRevocationStateOfIssuerIsExpired();
         }
     }
 
@@ -242,14 +255,14 @@ abstract contract CredentialAtomicQueryValidatorBase is
             https://github.com/ethereum/go-ethereum/issues/24152
         */
         if (_proofGenerationTimestamp > (block.timestamp + 5 minutes)) {
-            revert("Proof generated in the future is not valid");
+            revert ProofGeneratedInTheFutureIsNotValid();
         }
         if (
             block.timestamp >
             _getCredentialAtomicQueryValidatorBaseStorage().proofExpirationTimeout +
                 _proofGenerationTimestamp
         ) {
-            revert("Generated proof is outdated");
+            revert GeneratedProofIsOutdated();
         }
     }
 
@@ -259,20 +272,19 @@ abstract contract CredentialAtomicQueryValidatorBase is
             return;
         }
 
-        for (uint i = 0; i < allowedIssuers.length; i++) {
+        for (uint256 i = 0; i < allowedIssuers.length; i++) {
             if (issuerId == allowedIssuers[i]) {
                 return;
             }
         }
 
-        revert("Issuer is not on the Allowed Issuers list");
+        revert IssuerIsNotOnTheAllowedIssuersList();
     }
 
     function _checkChallenge(uint256 challenge, address sender) internal pure {
-        require(
-            PrimitiveTypeUtils.uint256LEToAddress(challenge) == sender,
-            "Challenge should match the sender"
-        );
+        if (PrimitiveTypeUtils.uint256LEToAddress(challenge) != sender) {
+            revert ChallengeShouldMatchTheSender();
+        }
     }
 
     function _setInputToIndex(string memory inputName, uint256 index) internal {

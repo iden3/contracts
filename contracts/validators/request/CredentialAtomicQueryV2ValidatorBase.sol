@@ -5,6 +5,13 @@ import {CredentialAtomicQueryValidatorBase} from "./CredentialAtomicQueryValidat
 import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
 import {IRequestValidator} from "../../interfaces/IRequestValidator.sol";
 
+error CircuitsLengthShouldBeOne();
+error VerifierAddressShouldNotBeZero();
+error ProofIsNotValid();
+error QueryHashDoesNotMatchTheRequestedOne(uint256 expected, uint256 actual);
+error MerklizedValueIsNotCorrect();
+error RevocationCheckShouldMatchTheQuery(uint256 expected, uint256 actual);
+
 /**
  * @dev Base contract for credential atomic query v2 validators circuits.
  */
@@ -107,22 +114,30 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
 
         CredentialAtomicQuery memory credAtomicQuery = abi.decode(params, (CredentialAtomicQuery));
 
-        require(credAtomicQuery.circuitIds.length == 1, "circuitIds length is not equal to 1");
+        if (credAtomicQuery.circuitIds.length != 1) {
+            revert CircuitsLengthShouldBeOne();
+        }
 
         IGroth16Verifier g16Verifier = getVerifierByCircuitId(credAtomicQuery.circuitIds[0]);
 
-        require(g16Verifier != IGroth16Verifier(address(0)), "Verifier address should not be zero");
+        if (g16Verifier == IGroth16Verifier(address(0))) {
+            revert VerifierAddressShouldNotBeZero();
+        }
 
         // verify that zkp is valid
-        require(g16Verifier.verify(a, b, c, inputs), "Proof is not valid");
+        if (!g16Verifier.verify(a, b, c, inputs)) {
+            revert ProofIsNotValid();
+        }
 
         PubSignals memory pubSignals = parsePubSignals(inputs);
 
         // check circuitQueryHash
-        require(
-            pubSignals.circuitQueryHash == credAtomicQuery.queryHash,
-            "Query hash does not match the requested one"
-        );
+        if (pubSignals.circuitQueryHash != credAtomicQuery.queryHash) {
+            revert QueryHashDoesNotMatchTheRequestedOne(
+                credAtomicQuery.queryHash,
+                pubSignals.circuitQueryHash
+            );
+        }
 
         // TODO: add support for query to specific userID and then verifying it
 
@@ -147,7 +162,9 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
 
     function _checkMerklized(uint256 merklized, uint256 queryClaimPathKey) internal pure {
         uint256 shouldBeMerklized = queryClaimPathKey != 0 ? 1 : 0;
-        require(merklized == shouldBeMerklized, "Merklized value is not correct");
+        if (merklized != shouldBeMerklized) {
+            revert MerklizedValueIsNotCorrect();
+        }
     }
 
     function _checkIsRevocationChecked(
@@ -158,10 +175,12 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         if (skipClaimRevocationCheck) {
             expectedIsRevocationChecked = 0;
         }
-        require(
-            isRevocationChecked == expectedIsRevocationChecked,
-            "Revocation check should match the query"
-        );
+        if (isRevocationChecked != expectedIsRevocationChecked) {
+            revert RevocationCheckShouldMatchTheQuery(
+                expectedIsRevocationChecked,
+                isRevocationChecked
+            );
+        }
     }
 
     function _getResponseFields(

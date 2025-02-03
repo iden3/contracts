@@ -5,9 +5,16 @@ import {CredentialAtomicQueryValidatorBase} from "./CredentialAtomicQueryValidat
 import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
 import {GenesisUtils} from "../../lib/GenesisUtils.sol";
 import {IRequestValidator} from "../../interfaces/IRequestValidator.sol";
-import {IState} from "../../interfaces/IState.sol";
 
 error VerifierIDNotSet();
+error QueryHashDoesNotMatchTheRequestedOne(uint256 expected, uint256 actual);
+error VerifierAddressShouldNotBeZero();
+error CircuitsLengthShouldBeOne();
+error ProofIsNotValid();
+error InvalidLinkIDPubSignal();
+error ProofTypeShouldMatchTheRequestedOneInQuery();
+error InvalidNullifyPubSignal();
+error UserIDDoesNotCorrespondToTheSender();
 
 /**
  * @dev CredentialAtomicQueryV3 validator
@@ -213,10 +220,12 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _checkChallenge(pubSignals.challenge, sender);
 
         // check circuitQueryHash
-        require(
-            pubSignals.circuitQueryHash == credAtomicQuery.queryHash,
-            "Query hash does not match the requested one"
-        );
+        if (pubSignals.circuitQueryHash != credAtomicQuery.queryHash) {
+            revert QueryHashDoesNotMatchTheRequestedOne(
+                credAtomicQuery.queryHash,
+                pubSignals.circuitQueryHash
+            );
+        }
 
         // if operator == 16 then we have selective disclosure
         return (pubSignals, credAtomicQuery.operator == 16);
@@ -229,42 +238,49 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         uint256[2] memory c,
         CredentialAtomicQueryV3 memory credAtomicQuery
     ) internal view {
-        require(credAtomicQuery.circuitIds.length == 1, "circuitIds length is not equal to 1");
+        if (credAtomicQuery.circuitIds.length != 1) {
+            revert CircuitsLengthShouldBeOne();
+        }
 
         IGroth16Verifier g16Verifier = getVerifierByCircuitId(credAtomicQuery.circuitIds[0]);
-        require(g16Verifier != IGroth16Verifier(address(0)), "Verifier address should not be zero");
+        if (g16Verifier == IGroth16Verifier(address(0))) {
+            revert VerifierAddressShouldNotBeZero();
+        }
 
         // verify that zkp is valid
-        require(g16Verifier.verify(a, b, c, inputs), "Proof is not valid");
+        if (!g16Verifier.verify(a, b, c, inputs)) {
+            revert ProofIsNotValid();
+        }
     }
 
     function _checkLinkID(uint256 groupID, uint256 linkID) internal pure {
-        require(
-            (groupID == 0 && linkID == 0) || (groupID != 0 && linkID != 0),
-            "Invalid Link ID pub signal"
-        );
+        if (!((groupID == 0 && linkID == 0) || (groupID != 0 && linkID != 0))) {
+            revert InvalidLinkIDPubSignal();
+        }
     }
 
     function _checkProofType(uint256 queryProofType, uint256 pubSignalProofType) internal pure {
-        require(
-            queryProofType == 0 || queryProofType == pubSignalProofType,
-            "Proof type should match the requested one in query"
-        );
+        if (queryProofType != 0 && queryProofType != pubSignalProofType) {
+            revert ProofTypeShouldMatchTheRequestedOneInQuery();
+        }
     }
 
     function _checkNullify(uint256 nullifier, uint256 nullifierSessionID) internal pure {
-        require(nullifierSessionID == 0 || nullifier != 0, "Invalid nullify pub signal");
+        if (nullifierSessionID != 0 && nullifier == 0) {
+            revert InvalidNullifyPubSignal();
+        }
     }
 
     function _checkAuth(uint256 userID, address ethIdentityOwner) internal view {
-        require(
-            userID ==
-                GenesisUtils.calcIdFromEthAddress(
-                    _getState().getIdTypeIfSupported(userID),
-                    ethIdentityOwner
-                ),
-            "UserID does not correspond to the sender"
-        );
+        if (
+            userID !=
+            GenesisUtils.calcIdFromEthAddress(
+                _getState().getIdTypeIfSupported(userID),
+                ethIdentityOwner
+            )
+        ) {
+            revert UserIDDoesNotCorrespondToTheSender();
+        }
     }
 
     function _getResponseFields(
@@ -275,7 +291,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         IRequestValidator.ResponseField[]
             memory responseFields = new IRequestValidator.ResponseField[](numSignals);
 
-        uint i = 0;
+        uint256 i = 0;
         responseFields[i++] = IRequestValidator.ResponseField({
             name: "userID",
             value: pubSignals.userID

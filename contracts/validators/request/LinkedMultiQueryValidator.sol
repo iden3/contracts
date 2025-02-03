@@ -4,7 +4,6 @@ pragma solidity ^0.8.10;
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
 import {IRequestValidator} from "../../interfaces/IRequestValidator.sol";
-import {IState} from "../../interfaces/IState.sol";
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -13,6 +12,7 @@ error InvalidQueryHash(uint256 expectedQueryHash, uint256 actualQueryHash);
 error InvalidGroupID(uint256 groupID);
 error TooManyQueries(uint256 operatorCount);
 error InvalidGroth16Proof();
+error RequestParamNameNotFound();
 
 contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator, ERC165 {
     // This should be limited to the real number of queries in which operator != 0
@@ -98,6 +98,7 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
      * @return Array of response fields as result.
      */
     function verify(
+        // solhint-disable-next-line no-unused-vars
         address sender,
         bytes calldata proof,
         bytes calldata params
@@ -156,7 +157,9 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
         string memory name
     ) public view virtual override returns (uint256) {
         uint256 index = _getLinkedMultiQueryValidatorStorage()._requestParamNameToIndex[name];
-        require(index != 0, "Request param name not found");
+        if (index == 0) {
+            revert RequestParamNameNotFound();
+        }
         return --index; // we save 1-based index, but return 0-based
     }
 

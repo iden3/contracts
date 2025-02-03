@@ -4,6 +4,8 @@ pragma solidity ^0.8.10;
 import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
 import {Groth16VerifierLinkedMultiQuery10} from "./Groth16VerifierLinkedMultiQuery10.sol";
 
+error ExpectedArrayLenght(uint256 expected, uint256 actual);
+
 contract Groth16VerifierLinkedMultiQuery10Wrapper is
     Groth16VerifierLinkedMultiQuery10,
     IGroth16Verifier
@@ -11,7 +13,7 @@ contract Groth16VerifierLinkedMultiQuery10Wrapper is
     /**
      * @dev Number of public signals for atomic mtp circuit
      */
-    uint constant PUBSIGNALS_LENGTH = 22;
+    uint256 constant PUBSIGNALS_LENGTH = 22;
 
     /**
      * @dev Verify the circuit with the groth16 proof π=([πa]1,[πb]2,[πc]1).
@@ -29,7 +31,9 @@ contract Groth16VerifierLinkedMultiQuery10Wrapper is
     ) public view returns (bool r) {
         uint[PUBSIGNALS_LENGTH] memory pubSignals;
 
-        require(signals.length == PUBSIGNALS_LENGTH, "expected array length is 22");
+        if (signals.length != PUBSIGNALS_LENGTH) {
+            revert ExpectedArrayLenght(PUBSIGNALS_LENGTH, signals.length);
+        }
 
         for (uint256 i = 0; i < PUBSIGNALS_LENGTH; i++) {
             pubSignals[i] = signals[i];

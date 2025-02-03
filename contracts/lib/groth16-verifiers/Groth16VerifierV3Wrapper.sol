@@ -16,11 +16,13 @@ pragma solidity 0.8.27;
 import "./Groth16VerifierV3.sol";
 import "../../interfaces/IGroth16Verifier.sol";
 
+error ExpectedArrayLenght(uint256 expected, uint256 actual);
+
 contract Groth16VerifierV3Wrapper is Groth16VerifierV3, IGroth16Verifier {
     /**
      * @dev Number of public signals for atomic V3 circuit
      */
-    uint constant PUBSIGNALS_LENGTH = 14;
+    uint256 constant PUBSIGNALS_LENGTH = 14;
 
     /**
      * @dev Verify the circuit with the groth16 proof π=([πa]1,[πb]2,[πc]1).
@@ -39,7 +41,9 @@ contract Groth16VerifierV3Wrapper is Groth16VerifierV3, IGroth16Verifier {
         // slither-disable-next-line uninitialized-local
         uint[PUBSIGNALS_LENGTH] memory pubSignals;
 
-        require(signals.length == PUBSIGNALS_LENGTH, "expected array length is 14");
+        if (signals.length != PUBSIGNALS_LENGTH) {
+            revert ExpectedArrayLenght(PUBSIGNALS_LENGTH, signals.length);
+        }
 
         for (uint256 i = 0; i < PUBSIGNALS_LENGTH; i++) {
             pubSignals[i] = signals[i];
