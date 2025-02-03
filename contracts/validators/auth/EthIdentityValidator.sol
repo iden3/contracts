@@ -3,10 +3,11 @@ pragma solidity 0.8.27;
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
 import {GenesisUtils} from "../../lib/GenesisUtils.sol";
 import {IAuthValidator} from "../../interfaces/IAuthValidator.sol";
 import {IState} from "../../interfaces/IState.sol";
+
+error SenderIsNotIdentityOwner();
 
 /**
  * @dev EthIdentityValidator validator
@@ -95,6 +96,8 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IAuthValidator, ERC165
     function _verifyEthIdentity(uint256 id, address sender) internal view {
         bytes2 idType = _getState().getIdTypeIfSupported(id);
         uint256 calcId = GenesisUtils.calcIdFromEthAddress(idType, sender);
-        require(calcId == id, "Sender is not owner of the ethereum identity");
+        if (calcId != id) {
+            revert SenderIsNotIdentityOwner();
+        }
     }
 }

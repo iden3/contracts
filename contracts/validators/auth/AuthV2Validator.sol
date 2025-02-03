@@ -100,6 +100,7 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
      * @return userID user ID of public signals as result.
      */
     function verify(
+        // solhint-disable-next-line no-unused-vars
         address sender,
         bytes calldata proof,
         // solhint-disable-next-line no-unused-vars

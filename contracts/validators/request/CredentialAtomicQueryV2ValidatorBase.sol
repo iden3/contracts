@@ -4,7 +4,6 @@ pragma solidity 0.8.27;
 import {CredentialAtomicQueryValidatorBase} from "./CredentialAtomicQueryValidatorBase.sol";
 import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
 import {IRequestValidator} from "../../interfaces/IRequestValidator.sol";
-import {IState} from "../../interfaces/IState.sol";
 
 /**
  * @dev Base contract for credential atomic query v2 validators circuits.
