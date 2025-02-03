@@ -700,6 +700,10 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             revert RequestIdUsesReservedBytes();
         }
         // 3. Check if requestId matches the hash of the requestParams
+        // 0x0000000000000000FFFF...FF. Reserved first 8 bytes for the request Id type and future use
+        // 0x00010000000000000000...00. First 2 bytes for the request Id type
+        //    - 0x0000... for old request Ids with uint64
+        //    - 0x0001... for new request Ids with uint256
         if (requestType == 1) {
             uint256 hashValue = uint256(keccak256(requestParams));
             if (
