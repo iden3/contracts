@@ -61,7 +61,7 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
     }
 
     string public constant VERSION = "1.0.0-beta.1";
-    string internal constant CIRCUIT_ID = "linkedMultiQuery10";
+    string internal constant CIRCUIT_ID = "linkedMultiQuery10-beta.1";
     uint256 internal constant QUERIES_COUNT = 10;
 
     /**

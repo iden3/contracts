@@ -52,7 +52,7 @@ describe("Test linkedMultiQuery10.circom", function () {
       [0, 0],
     ],
     queryHash: [queryHash1],
-    circuitIds: ["linkedMultiQuery10"],
+    circuitIds: ["linkedMultiQuery10-beta.1"],
     groupID: 1,
     verifierID: 1,
   };
@@ -68,7 +68,7 @@ describe("Test linkedMultiQuery10.circom", function () {
       [0, 0],
     ],
     queryHash: [queryHash1, queryHash2],
-    circuitIds: ["linkedMultiQuery10"],
+    circuitIds: ["linkedMultiQuery10-beta.1"],
     groupID: 1,
     verifierID: 1,
   };
@@ -97,7 +97,7 @@ describe("Test linkedMultiQuery10.circom", function () {
     // have more than one operator output
   });
 
-  it("Should throw if circuitId is not linkedMultiQuery10", async function () {
+  it("Should throw if circuitId is not linkedMultiQuery10-beta.1", async function () {
     const params = packLinkedMultiQueryValidatorParams({
       ...oneQuery,
       circuitIds: ["someWrongCircuitId"],

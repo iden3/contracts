@@ -83,7 +83,7 @@ describe("Verifier Integration test", function () {
       3326382892536126749483088946048689911243394580824744244053752370464747528203n,
       9907132056133666096701539062450765284880813426582692863734448403438789333698n,
     ],
-    circuitIds: ["linkedMultiQuery10"],
+    circuitIds: ["linkedMultiQuery10-beta.1"],
     groupID: groupID,
     verifierID: verifierId,
   };
