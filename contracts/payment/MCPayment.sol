@@ -361,7 +361,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
      * @dev Withdraw ERC-20 balance to owner
      */
     function ownerERC20Withdraw(address token) public onlyOwner {
-        uint amount = IERC20(token).balanceOf(address(this));
+        uint256 amount = IERC20(token).balanceOf(address(this));
         if (amount == 0) {
             revert WithdrawErrorNoBalance();
         }
