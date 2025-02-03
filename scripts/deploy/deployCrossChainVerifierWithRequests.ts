@@ -39,7 +39,7 @@ async function main() {
     console.log("Removing previous ignition files for chain: ", chainId);
     fs.rmSync(`./ignition/deployments/chain-${chainId}`, { recursive: true, force: true });
   }
-  // ##################### State with StateCrossChainLib deploy #####################
+  // ##################### State deploy #####################
 
   const { state, crossChainProofValidator } = await deployHelper.deployStateWithLibraries();
 
@@ -60,15 +60,8 @@ async function main() {
     await state.getAddress(),
   );
 
-  // ##################### VerifierLib deploy #####################
-  const verifierLib = await deployHelper.deployVerifierLib();
-
   // ##################### Universal Verifier deploy #####################
-  const verifier = await deployHelper.deployUniversalVerifier(
-    undefined,
-    await state.getAddress(),
-    await verifierLib.getAddress(),
-  );
+  const verifier = await deployHelper.deployUniversalVerifier(undefined, await state.getAddress());
 
   const addToWhiteList1 = await verifier.addValidatorToWhitelist(await validatorSig.getAddress());
   await addToWhiteList1.wait();

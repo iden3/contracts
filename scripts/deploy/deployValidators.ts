@@ -13,14 +13,14 @@ async function main() {
   const config = getConfig();
   const chainId = await getChainId();
 
-  const stateContractAddress = await getStateContractAddress();
-  const validators: ValidatorType[] = ["mtpV2", "sigV2", "v3", "authV2"];
+  const validators: ValidatorType[] = ["mtpV2", "sigV2", "v3", "lmk"];
 
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
   const [signer] = await hre.ethers.getSigners();
 
   const deployHelper = await DeployHelper.initialize(null, true);
+  const stateContractAddress = getStateContractAddress();
 
   const validatorsInfo: any = [];
   for (const v of validators) {

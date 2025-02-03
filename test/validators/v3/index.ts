@@ -6,8 +6,9 @@ import { calculateQueryHashV3 } from "../../utils/query-hash-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { TEN_YEARS } from "../../../helpers/constants";
+import { contractsInfo, TEN_YEARS } from "../../../helpers/constants";
 import { packZKProof } from "../../utils/packData";
+import { ethers } from "hardhat";
 
 const tenYears = TEN_YEARS;
 const testCases: any[] = [
@@ -498,7 +499,7 @@ const testCases: any[] = [
 ];
 
 describe("Atomic V3 Validator", function () {
-  let state: any, v3validator;
+  let state: any, v3Validator;
 
   async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize(null, true);
@@ -527,7 +528,7 @@ describe("Atomic V3 Validator", function () {
   }
 
   beforeEach(async () => {
-    ({ stateContract: state, validator: v3validator } = await loadFixture(deployContractsFixture));
+    ({ stateContract: state, validator: v3Validator } = await loadFixture(deployContractsFixture));
   });
 
   for (const test of testCases) {
@@ -582,57 +583,80 @@ describe("Atomic V3 Validator", function () {
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
       if (test.setProofExpiration) {
-        await v3validator.setProofExpirationTimeout(test.setProofExpiration);
+        await v3Validator.setProofExpirationTimeout(test.setProofExpiration);
       }
       if (test.setRevStateExpiration) {
-        await v3validator.setRevocationStateExpirationTimeout(test.setRevStateExpiration);
+        await v3Validator.setRevocationStateExpirationTimeout(test.setRevStateExpiration);
       }
       if (test.setGISTRootExpiration) {
-        await v3validator.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
+        await v3Validator.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
       }
 
       const data = packV3ValidatorParams(query, test.allowedIssuers);
 
       // Check verify function
-      if (test.errorMessage) {
-        await expect(
-          v3validator.verify(inputs, pi_a, pi_b, pi_c, data, test.sender),
-        ).to.be.rejectedWith(test.errorMessage);
-      } else if (test.errorMessage === "") {
-        await expect(v3validator.verify(inputs, pi_a, pi_b, pi_c, data, test.sender)).to.be
-          .reverted;
-      } else {
-        const signals = await v3validator.verify(inputs, pi_a, pi_b, pi_c, data, test.sender);
-
-        const signalValues: any[] = [];
-        // Replace index with value to check instead of signal index
-        for (let i = 0; i < signals.length; i++) {
-          signalValues.push([signals[i][0], inputs[signals[i][1]]]);
-        }
-
-        // Check if the number signals are correct. "operatorOutput" for selective disclosure is optional
-        checkSignals(signalValues, test.signalValues);
-      }
-
-      // Check verifyV2 function
       const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
       if (test.errorMessage) {
-        await expect(
-          v3validator.verifyV2(zkProof, data, test.sender, await state.getAddress()),
-        ).to.be.rejectedWith(test.errorMessage);
-      } else if (test.errorMessage === "") {
-        await expect(v3validator.verifyV2(zkProof, data, test.sender, await state.getAddress())).to
-          .be.reverted;
-      } else {
-        const signals = await v3validator.verifyV2(
-          zkProof,
-          data,
-          test.sender,
-          await state.getAddress(),
+        await expect(v3Validator.verify(test.sender, zkProof, data)).to.be.rejectedWith(
+          test.errorMessage,
         );
+      } else if (test.errorMessage === "") {
+        await expect(v3Validator.verify(test.sender, zkProof, data)).to.be.reverted;
+      } else {
+        const signals = await v3Validator.verify(test.sender, zkProof, data);
 
         checkSignals(signals, test.signalValues);
       }
     });
   }
+
+  it("check version", async () => {
+    const version = await v3Validator.version();
+    expect(version).to.be.equal(contractsInfo.VALIDATOR_V3.version);
+  });
+
+  it("check getRequestParams", async () => {
+    const query: any = {
+      requestId: 1,
+      schema: 2,
+      claimPathKey: 3,
+      operator: 4,
+      slotIndex: 0,
+      queryHash: 5,
+      value: [20020101, ...new Array(63).fill(0)], // for operators 1-3 only first value matters
+      circuitIds: ["circuitName"],
+      skipClaimRevocationCheck: false,
+      claimPathNotExists: 0,
+      allowedIssuers: [],
+      verifierID: 7,
+      nullifierSessionID: 8,
+      groupID: 9,
+      proofType: 0,
+    };
+
+    const params = packV3ValidatorParams(query);
+    const requestParams = await v3Validator.getRequestParams(params);
+    expect(requestParams[await v3Validator.requestParamIndexOf("groupID")][1]).to.be.equal(9);
+    expect(requestParams[await v3Validator.requestParamIndexOf("verifierID")][1]).to.be.equal(7);
+    expect(
+      requestParams[await v3Validator.requestParamIndexOf("nullifierSessionID")][1],
+    ).to.be.equal(8);
+  });
+
+  it("Test get config params", async () => {
+    const oneHour = 3600;
+    const expirationTimeout = await v3Validator.getProofExpirationTimeout();
+    const revocationStateExpirationTimeout =
+      await v3Validator.getRevocationStateExpirationTimeout();
+    const gistRootExpirationTimeout = await v3Validator.getGISTRootExpirationTimeout();
+    expect(expirationTimeout).to.be.equal(oneHour);
+    expect(revocationStateExpirationTimeout).to.be.equal(oneHour);
+    expect(gistRootExpirationTimeout).to.be.equal(oneHour);
+  });
+
+  it("Test supported circuits", async () => {
+    const supportedCircuitIds = await v3Validator.getSupportedCircuitIds();
+    expect(supportedCircuitIds.length).to.be.equal(1);
+    expect(supportedCircuitIds[0]).to.be.equal(CircuitId.AtomicQueryV3OnChain);
+  });
 });
