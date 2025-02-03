@@ -1,3 +1,4 @@
+import { Logger } from "../../helpers/helperUtils";
 import {
   GlobalStateMessage,
   IdentityStateMessage,
@@ -186,10 +187,20 @@ describe("Oracle Signing Address Validation", function () {
   let crossChainProofValidator;
   let otherAccount;
   const oracleSigningAddress = "0x1234567890123456789012345678901234567890";
+  const contractName = "CrossChainProofValidator";
 
   before(async function () {
-    [, otherAccount] = await ethers.getSigners();
-    CrossChainProofValidatorFactory = await ethers.getContractFactory("CrossChainProofValidator");
+    [otherAccount] = await ethers.getSigners();
+    CrossChainProofValidatorFactory = await ethers.getContractFactory(contractName);
+  });
+
+  it("should revert when deploying with zero oracle signing address", async function () {
+    await expect(
+      CrossChainProofValidatorFactory.deploy("StateInfo", "1", ZeroAddress),
+    ).to.be.revertedWithCustomError(
+      CrossChainProofValidatorFactory,
+      "OracleSigningAddressShouldNotBeZero",
+    );
   });
 
   it("should deploy with correct parameters", async function () {
@@ -199,16 +210,8 @@ describe("Oracle Signing Address Validation", function () {
       oracleSigningAddress,
     );
     await crossChainProofValidator.waitForDeployment();
+    Logger.success(`${contractName} deployed to: ${await crossChainProofValidator.getAddress()}`);
     expect(await crossChainProofValidator.getOracleSigningAddress()).to.equal(oracleSigningAddress);
-  });
-
-  it("should revert when deploying with zero oracle signing address", async function () {
-    await expect(
-      CrossChainProofValidatorFactory.deploy("TestDomain", "1", ZeroAddress),
-    ).to.be.revertedWithCustomError(
-      CrossChainProofValidatorFactory,
-      "OracleSigningAddressShouldNotBeZero",
-    );
   });
 
   it("should set a new oracle signing address", async function () {
