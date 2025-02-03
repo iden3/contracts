@@ -6,7 +6,7 @@ import {
 } from "../utils/packData";
 import { expect } from "chai";
 import { DeployHelper } from "../../helpers/DeployHelper";
-import { Contract } from "ethers";
+import { Contract, ZeroAddress } from "ethers";
 import { ethers } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
@@ -177,6 +177,51 @@ describe("State Cross Chain", function () {
     proof = await packIdentityStateUpdateWithSignature(ism, signer, false, true);
     await expect(crossChainProofValidator.processIdentityStateProof(proof)).to.be.rejectedWith(
       "Identity state proof is not valid",
+    );
+  });
+});
+
+describe("Oracle Signing Address Validation", function () {
+  let CrossChainProofValidatorFactory;
+  let crossChainProofValidator;
+  let otherAccount;
+  const oracleSigningAddress = "0x1234567890123456789012345678901234567890";
+
+  before(async function () {
+    [, otherAccount] = await ethers.getSigners();
+    CrossChainProofValidatorFactory = await ethers.getContractFactory("CrossChainProofValidator");
+  });
+
+  it("should deploy with correct parameters", async function () {
+    crossChainProofValidator = await CrossChainProofValidatorFactory.deploy(
+      "StateInfo",
+      "1",
+      oracleSigningAddress,
+    );
+    await crossChainProofValidator.waitForDeployment();
+    expect(await crossChainProofValidator.getOracleSigningAddress()).to.equal(oracleSigningAddress);
+  });
+
+  it("should revert when deploying with zero oracle signing address", async function () {
+    await expect(
+      CrossChainProofValidatorFactory.deploy("TestDomain", "1", ZeroAddress),
+    ).to.be.revertedWithCustomError(
+      CrossChainProofValidatorFactory,
+      "OracleSigningAddressShouldNotBeZero",
+    );
+  });
+
+  it("should set a new oracle signing address", async function () {
+    await crossChainProofValidator.setOracleSigningAddress(otherAccount.address);
+    expect(await crossChainProofValidator.getOracleSigningAddress()).to.equal(otherAccount.address);
+  });
+
+  it("should revert when setting oracle signing address to zero", async function () {
+    await expect(
+      crossChainProofValidator.setOracleSigningAddress(ZeroAddress),
+    ).to.be.revertedWithCustomError(
+      crossChainProofValidator,
+      "OracleSigningAddressShouldNotBeZero",
     );
   });
 });
