@@ -75,12 +75,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      */
     struct Proof {
         bool isVerified;
-        mapping(string key => uint256 inputValue) storageFields;
+        mapping(string key => uint256 inputValue) responseFields;
+        string[] responseFieldNames;
+        // introduce artificial shift + 1 to avoid 0 index
+        mapping(string key => uint256 keyIndex) responseFieldIndexes;
         string validatorVersion;
         uint256 blockTimestamp;
-        string[] storageFieldNames;
-        // introduce artificial shift + 1 to avoid 0 index
-        mapping(string key => uint256 keyIndex) storageFieldIndexes;
         uint256[44] __gap;
     }
 
@@ -439,7 +439,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         string memory responseFieldName
     ) public view checkRequestExistence(requestId, true) returns (uint256) {
         VerifierStorage storage s = _getVerifierStorage();
-        return s._proofs[requestId][sender].storageFields[responseFieldName];
+        return s._proofs[requestId][sender].responseFields[responseFieldName];
     }
 
     /**
@@ -456,13 +456,13 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         IRequestValidator.ResponseField[]
             memory responseFields = new IRequestValidator.ResponseField[](
-                proof.storageFieldNames.length
+                proof.responseFieldNames.length
             );
 
-        for (uint256 i = 0; i < proof.storageFieldNames.length; i++) {
+        for (uint256 i = 0; i < proof.responseFieldNames.length; i++) {
             responseFields[i] = IRequestValidator.ResponseField({
-                name: proof.storageFieldNames[i],
-                value: proof.storageFields[proof.storageFieldNames[i]]
+                name: proof.responseFieldNames[i],
+                value: proof.responseFields[proof.responseFieldNames[i]]
             });
         }
 
@@ -960,10 +960,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         // We only keep only 1 proof now without history. Prepared for the future if needed.
         for (uint256 i = 0; i < responseFields.length; i++) {
-            proof.storageFields[responseFields[i].name] = responseFields[i].value;
-            if (proof.storageFieldIndexes[responseFields[i].name] == 0) {
-                proof.storageFieldNames.push(responseFields[i].name);
-                proof.storageFieldIndexes[responseFields[i].name] = proof.storageFieldNames.length;
+            proof.responseFields[responseFields[i].name] = responseFields[i].value;
+            if (proof.responseFieldIndexes[responseFields[i].name] == 0) {
+                proof.responseFieldNames.push(responseFields[i].name);
+                proof.responseFieldIndexes[responseFields[i].name] = proof
+                    .responseFieldNames
+                    .length;
             } else {
                 revert ResponseFieldAlreadyExists(responseFields[i].name);
             }
