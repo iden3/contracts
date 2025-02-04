@@ -23,11 +23,12 @@ import {
   waitNotToInterfereWithHardhatIgnition,
 } from "./helperUtils";
 import { MCPaymentProxyModule } from "../ignition/modules/mcPayment";
+import { LinkedMultiQueryProxyModule } from "../ignition/modules/linkedMultiQuery";
 
 const SMT_MAX_DEPTH = 64;
 
-export type Groth16VerifierType = "mtpV2" | "sigV2" | "v3" | "authV2";
-export type ValidatorType = "mtpV2" | "sigV2" | "v3" | "authV2";
+export type Groth16VerifierType = "mtpV2" | "sigV2" | "v3" | "authV2" | "lmk10";
+export type ValidatorType = "mtpV2" | "sigV2" | "v3" | "authV2" | "lmk";
 
 export class DeployHelper {
   constructor(
@@ -57,7 +58,6 @@ export class DeployHelper {
   ): Promise<{
     state: Contract;
     stateLib: Contract;
-    stateCrossChainLib: Contract;
     crossChainProofValidator: Contract;
     smtLib: Contract;
     poseidon1: Contract;
@@ -81,7 +81,6 @@ export class DeployHelper {
     const {
       state,
       stateLib,
-      stateCrossChainLib,
       crossChainProofValidator,
       groth16VerifierStateTransition,
       defaultIdType,
@@ -96,7 +95,6 @@ export class DeployHelper {
     return {
       state,
       stateLib: stateLib!,
-      stateCrossChainLib: stateCrossChainLib!,
       crossChainProofValidator: crossChainProofValidator!,
       defaultIdType,
       smtLib,
@@ -118,7 +116,6 @@ export class DeployHelper {
   ): Promise<{
     state: Contract;
     stateLib: Contract | null;
-    stateCrossChainLib: Contract | null;
     crossChainProofValidator: Contract | null;
     groth16VerifierStateTransition: Contract | null;
     defaultIdType;
@@ -158,7 +155,6 @@ export class DeployHelper {
           return {
             state,
             stateLib: null,
-            stateCrossChainLib: null,
             crossChainProofValidator: null,
             groth16VerifierStateTransition: null,
             defaultIdType,
@@ -180,23 +176,6 @@ export class DeployHelper {
       this.log("deploying StateLib...");
       stateLib = await this.deployStateLib();
       tmpContractDeployments.addContract(contractsInfo.STATE_LIB.name, await stateLib.getAddress());
-    }
-
-    let stateCrossChainLib;
-    stateCrossChainLib = await tmpContractDeployments.getContract(
-      contractsInfo.STATE_CROSS_CHAIN_LIB.name,
-    );
-    if (stateCrossChainLib) {
-      Logger.warning(
-        `${contractsInfo.STATE_CROSS_CHAIN_LIB.name} found already deployed to:  ${await stateCrossChainLib?.getAddress()}`,
-      );
-    } else {
-      this.log("deploying StateCrossChainLib...");
-      stateCrossChainLib = await this.deployStateCrossChainLib("StateCrossChainLib");
-      tmpContractDeployments.addContract(
-        contractsInfo.STATE_CROSS_CHAIN_LIB.name,
-        await stateCrossChainLib.getAddress(),
-      );
     }
 
     let crossChainProofValidator;
@@ -223,7 +202,6 @@ export class DeployHelper {
         StateLib: await stateLib.getAddress(),
         SmtLib: smtLibAddress,
         PoseidonUnit1L: poseidon1Address,
-        StateCrossChainLib: await stateCrossChainLib.getAddress(),
       },
     });
 
@@ -302,7 +280,6 @@ export class DeployHelper {
     return {
       state,
       stateLib,
-      stateCrossChainLib,
       crossChainProofValidator,
       groth16VerifierStateTransition,
       defaultIdType,
@@ -319,7 +296,6 @@ export class DeployHelper {
   ): Promise<{
     state: Contract;
     stateLib: Contract;
-    stateCrossChainLib: Contract;
     crossChainProofValidator: Contract;
   }> {
     this.log("======== State: upgrade started ========");
@@ -329,9 +305,6 @@ export class DeployHelper {
 
     this.log("deploying StateLib...");
     const stateLib = await this.deployStateLib();
-
-    this.log("deploying StateCrossChainLib...");
-    const stateCrossChainLib = await this.deployStateCrossChainLib();
 
     this.log("upgrading state...");
 
@@ -349,7 +322,6 @@ export class DeployHelper {
         StateLib: await stateLib.getAddress(),
         SmtLib: smtLibAddress,
         PoseidonUnit1L: poseidon1Address,
-        StateCrossChainLib: await stateCrossChainLib.getAddress(),
       },
     });
 
@@ -385,7 +357,6 @@ export class DeployHelper {
       state: stateContract,
       crossChainProofValidator: opvContract,
       stateLib,
-      stateCrossChainLib,
     };
   }
 
@@ -440,14 +411,6 @@ export class DeployHelper {
     return stateLib;
   }
 
-  async deployStateCrossChainLib(StateCrossChainLibName = "StateCrossChainLib"): Promise<Contract> {
-    const stateCrossChainLib = await ethers.deployContract(StateCrossChainLibName);
-    await stateCrossChainLib.waitForDeployment();
-    Logger.success(`StateCrossChainLib deployed to:  ${await stateCrossChainLib.getAddress()}`);
-
-    return stateCrossChainLib;
-  }
-
   async deploySmtLibTestWrapper(maxDepth: number = SMT_MAX_DEPTH): Promise<Contract> {
     const contractName = "SmtLibTestWrapper";
 
@@ -486,17 +449,6 @@ export class DeployHelper {
     this.log(`${contractName} deployed to:  ${await stateLibWrapper.getAddress()}`);
 
     return stateLibWrapper;
-  }
-
-  async deployVerifierLib(): Promise<Contract> {
-    const contractName = "VerifierLib";
-
-    const verifierLib = await ethers.deployContract(contractName);
-    await verifierLib.waitForDeployment();
-
-    Logger.success(`${contractName} deployed to:  ${await verifierLib.getAddress()}`);
-
-    return verifierLib;
   }
 
   async deployBinarySearchTestWrapper(): Promise<Contract> {
@@ -565,6 +517,28 @@ export class DeployHelper {
     return g16Verifier;
   }
 
+  getGroth16VerifierTypeFromValidatorType(validatorType: ValidatorType): Groth16VerifierType {
+    let groth16VerifierType;
+    switch (validatorType) {
+      case "mtpV2":
+        groth16VerifierType = "mtpV2";
+        break;
+      case "sigV2":
+        groth16VerifierType = "sigV2";
+        break;
+      case "v3":
+        groth16VerifierType = "v3";
+        break;
+      case "authV2":
+        groth16VerifierType = "authV2";
+        break;
+      case "lmk":
+        groth16VerifierType = "lmk10";
+        break;
+    }
+    return groth16VerifierType;
+  }
+
   getGroth16VerifierWrapperName(groth16VerifierType: Groth16VerifierType): string {
     let g16VerifierContractWrapperName;
     switch (groth16VerifierType) {
@@ -579,6 +553,9 @@ export class DeployHelper {
         break;
       case "authV2":
         g16VerifierContractWrapperName = contractsInfo.GROTH16_VERIFIER_AUTH_V2.name;
+        break;
+      case "lmk10":
+        g16VerifierContractWrapperName = contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.name;
         break;
     }
     return g16VerifierContractWrapperName;
@@ -601,9 +578,12 @@ export class DeployHelper {
         break;
       case "v3":
         verification = contractsInfo.GROTH16_VERIFIER_V3.verificationOpts;
+        break;
       case "authV2":
         verification = contractsInfo.GROTH16_VERIFIER_AUTH_V2.verificationOpts;
         break;
+      case "lmk10":
+        verification = contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.verificationOpts;
     }
     return verification;
   }
@@ -625,6 +605,10 @@ export class DeployHelper {
         break;
       case "v3":
         verification = contractsInfo.VALIDATOR_V3.verificationOpts;
+        break;
+      case "lmk":
+        verification = contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.verificationOpts;
+        break;
       case "authV2":
         verification = contractsInfo.VALIDATOR_AUTH_V2.verificationOpts;
         break;
@@ -647,33 +631,32 @@ export class DeployHelper {
 
   async deployValidatorContractsWithVerifiers(
     validatorType: ValidatorType,
-    stateAddress: string,
+    stateContractAddress: string,
     deployStrategy: "basic" | "create2" = "basic",
+    groth16VerifierWrapperAddress?: string,
   ): Promise<{
-    state: any;
     groth16VerifierWrapper: any;
     validator: any;
   }> {
     const contracts = await this.deployValidatorContracts(
       validatorType,
-      stateAddress,
+      stateContractAddress,
       deployStrategy,
+      groth16VerifierWrapperAddress,
     );
 
-    const state = await ethers.getContractAt("State", stateAddress);
     return {
       validator: contracts.validator,
       groth16VerifierWrapper: contracts.groth16VerifierWrapper,
-      state,
     };
   }
 
   async deployValidatorContracts(
     validatorType: ValidatorType,
-    stateAddress: string,
+    stateContractAddress: string,
     deployStrategy: "basic" | "create2" = "basic",
+    groth16VerifierWrapperAddress?: string,
   ): Promise<{
-    state: any;
     validator: any;
     groth16VerifierWrapper: Contract | null;
   }> {
@@ -693,6 +676,8 @@ export class DeployHelper {
       case "authV2":
         validatorContractName = "AuthV2Validator";
         break;
+      case "lmk":
+        validatorContractName = "LinkedMultiQueryValidator";
     }
 
     let validator;
@@ -712,6 +697,9 @@ export class DeployHelper {
           break;
         case "authV2":
           validatorModule = AuthV2ValidatorProxyModule;
+          break;
+        case "lmk":
+          validatorModule = LinkedMultiQueryProxyModule;
           break;
       }
 
@@ -735,14 +723,25 @@ export class DeployHelper {
           );
           return {
             validator,
-            state: await ethers.getContractAt("State", stateAddress),
             groth16VerifierWrapper: null,
           };
         }
       }
     }
 
-    const groth16VerifierWrapper = await this.deployGroth16VerifierWrapper(validatorType);
+    let groth16VerifierWrapper;
+    if (!groth16VerifierWrapperAddress) {
+      groth16VerifierWrapper = await this.deployGroth16VerifierWrapper(
+        this.getGroth16VerifierTypeFromValidatorType(validatorType),
+      );
+    } else {
+      groth16VerifierWrapper = await ethers.getContractAt(
+        this.getGroth16VerifierWrapperName(
+          this.getGroth16VerifierTypeFromValidatorType(validatorType),
+        ),
+        groth16VerifierWrapperAddress,
+      );
+    }
 
     const ValidatorFactory = await ethers.getContractFactory(validatorContractName);
     const Create2AddressAnchorFactory = await ethers.getContractFactory(
@@ -772,36 +771,46 @@ export class DeployHelper {
         redeployImplementation: "always",
         call: {
           fn: "initialize",
-          args: [await groth16VerifierWrapper.getAddress(), stateAddress, await owner.getAddress()],
+          args:
+            validatorType != "lmk"
+              ? [
+                  stateContractAddress,
+                  await groth16VerifierWrapper.getAddress(),
+                  await owner.getAddress(),
+                ]
+              : [await groth16VerifierWrapper.getAddress(), await owner.getAddress()],
         },
       });
     } else {
       this.log("deploying with BASIC strategy...");
 
-      validator = await upgrades.deployProxy(ValidatorFactory, [
-        await groth16VerifierWrapper.getAddress(),
-        stateAddress,
-        await owner.getAddress(),
-      ]);
+      validator = await upgrades.deployProxy(
+        ValidatorFactory,
+        validatorType != "lmk"
+          ? [
+              stateContractAddress,
+              await groth16VerifierWrapper.getAddress(),
+              await owner.getAddress(),
+            ]
+          : [await groth16VerifierWrapper.getAddress(), await owner.getAddress()],
+      );
     }
 
     validator.waitForDeployment();
 
     Logger.success(`${validatorContractName} deployed to: ${await validator.getAddress()}`);
-    const state = await ethers.getContractAt("State", stateAddress);
     return {
       validator,
-      state,
       groth16VerifierWrapper,
     };
   }
 
-  async deployValidatorStub(): Promise<Contract> {
-    const stub = await ethers.getContractFactory("ValidatorStub");
+  async deployValidatorStub(validatorName: string = "RequestValidatorStub"): Promise<Contract> {
+    const stub = await ethers.getContractFactory(validatorName);
     const stubInstance = await stub.deploy();
     await stubInstance.waitForDeployment();
 
-    console.log("Validator stub deployed to:", await stubInstance.getAddress());
+    console.log(`${validatorName} stub deployed to:`, await stubInstance.getAddress());
 
     return stubInstance;
   }
@@ -856,7 +865,6 @@ export class DeployHelper {
 
   async upgradeUniversalVerifier(
     verifierAddress: string,
-    verifierLibAddr: string,
     verifierContractName = contractsInfo.UNIVERSAL_VERIFIER.name,
   ): Promise<Contract> {
     this.log("======== Verifier: upgrade started ========");
@@ -865,9 +873,6 @@ export class DeployHelper {
     this.log("upgrading verifier...");
     const VerifierFactory = await ethers.getContractFactory(verifierContractName, {
       signer: proxyAdminOwner,
-      libraries: {
-        VerifierLib: verifierLibAddr,
-      },
     });
 
     this.log("upgrading proxy...");
@@ -908,29 +913,9 @@ export class DeployHelper {
     return primitiveTypeUtilsWrapper;
   }
 
-  async deployEmbeddedZKPVerifierWrapper(
-    owner: SignerWithAddress | undefined,
-    stateAddr: string,
-    verifierLibAddr: string,
-  ): Promise<Contract> {
-    const Verifier = await ethers.getContractFactory("EmbeddedZKPVerifierWrapper", {
-      libraries: {
-        VerifierLib: verifierLibAddr,
-      },
-    });
-    // const zkpVerifier = await ZKPVerifier.deploy(await owner.getAddress());
-    const verifier = await upgrades.deployProxy(Verifier, [await owner.getAddress(), stateAddr], {
-      unsafeAllow: ["external-library-linking"],
-    });
-    await verifier.waitForDeployment();
-    console.log("EmbeddedZKPVerifierWrapper deployed to:", await verifier.getAddress());
-    return verifier;
-  }
-
   async deployUniversalVerifier(
     owner: SignerWithAddress | undefined,
     stateAddr: string,
-    verifierLibAddr: string,
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<Contract> {
     if (!owner) {
@@ -940,9 +925,6 @@ export class DeployHelper {
       contractsInfo.UNIVERSAL_VERIFIER.name,
       {
         signer: owner,
-        libraries: {
-          VerifierLib: verifierLibAddr,
-        },
       },
     );
     const Create2AddressAnchorFactory = await ethers.getContractFactory(

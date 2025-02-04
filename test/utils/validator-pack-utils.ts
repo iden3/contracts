@@ -15,7 +15,7 @@ export function packValidatorParams(query: any, allowedIssuers: any[] = []): str
         "uint256[] allowedIssuers," +
         "string[] circuitIds," +
         "bool skipClaimRevocationCheck," +
-        "uint256 claimPathNotExists" +
+        "uint256 claimPathNotExists," +
         ")",
     ],
     [
@@ -31,7 +31,7 @@ export function packValidatorParams(query: any, allowedIssuers: any[] = []): str
         skipClaimRevocationCheck: query.skipClaimRevocationCheck,
         claimPathNotExists: query.claimPathNotExists,
       },
-    ]
+    ],
   );
 }
 
@@ -70,6 +70,35 @@ export function packV3ValidatorParams(query: any, allowedIssuers: any[] = []): s
         proofType: query.proofType,
         verifierID: query.verifierID,
       },
-    ]
+    ],
+  );
+}
+
+export function packLinkedMultiQueryValidatorParams(query: any): string {
+  return abiCoder.encode(
+    [
+      "tuple(" +
+        "uint256[] claimPathKey," +
+        "uint256[] operator," +
+        "uint256[] slotIndex," +
+        "uint256[][] value," +
+        "uint256[] queryHash," +
+        "string[] circuitIds," +
+        "uint256 groupID," +
+        "uint256 verifierID," +
+        ")",
+    ],
+    [
+      {
+        claimPathKey: query.claimPathKey,
+        operator: query.operator,
+        slotIndex: query.slotIndex,
+        value: query.value,
+        queryHash: query.queryHash,
+        circuitIds: query.circuitIds,
+        groupID: query.groupID,
+        verifierID: query.verifierID,
+      },
+    ],
   );
 }

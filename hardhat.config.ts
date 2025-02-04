@@ -41,6 +41,71 @@ const config: HardhatUserConfig = {
         version: "0.8.27",
       },
     ],
+    overrides: {
+      "contracts/verifiers/UniversalVerifier.sol": {
+        version: "0.8.27",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      "contracts/test-helpers/VerifierTestWrapper.sol": {
+        version: "0.8.27",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      "contracts/test-helpers/EmbeddedVerifierWrapper.sol": {
+        version: "0.8.27",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      "contracts/test-helpers/RequestDisableableTestWrapper.sol": {
+        version: "0.8.27",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      "contracts/test-helpers/RequestOwnershipTestWrapper.sol": {
+        version: "0.8.27",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      "contracts/test-helpers/ValidatorWhitelistTestWrapper.sol": {
+        version: "0.8.27",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      "contracts/state/State.sol": {
+        version: "0.8.27",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+    },
   },
   networks: {
     "privado-main": {

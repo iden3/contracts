@@ -14,35 +14,39 @@
 pragma solidity 0.8.27;
 
 import "./Groth16VerifierV3.sol";
-import "../../interfaces/IVerifier.sol";
+import "../../interfaces/IGroth16Verifier.sol";
 
-contract Groth16VerifierV3Wrapper is Groth16VerifierV3, IVerifier {
+error ExpectedArrayLenght(uint256 expected, uint256 actual);
+
+contract Groth16VerifierV3Wrapper is Groth16VerifierV3, IGroth16Verifier {
     /**
      * @dev Number of public signals for atomic V3 circuit
      */
-    uint constant PUBSIGNALS_LENGTH = 14;
+    uint256 constant PUBSIGNALS_LENGTH = 14;
 
     /**
      * @dev Verify the circuit with the groth16 proof π=([πa]1,[πb]2,[πc]1).
      * @param a πa element of the groth16 proof.
      * @param b πb element of the groth16 proof.
      * @param c πc element of the groth16 proof.
-     * @param input Public inputs of the circuit.
+     * @param signals Public inputs and outputs of the circuit.
      * @return r true if the proof is valid.
      */
     function verify(
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c,
-        uint256[] calldata input
+        uint256[] calldata signals
     ) public view returns (bool r) {
         // slither-disable-next-line uninitialized-local
         uint[PUBSIGNALS_LENGTH] memory pubSignals;
 
-        require(input.length == PUBSIGNALS_LENGTH, "expected array length is 14");
+        if (signals.length != PUBSIGNALS_LENGTH) {
+            revert ExpectedArrayLenght(PUBSIGNALS_LENGTH, signals.length);
+        }
 
         for (uint256 i = 0; i < PUBSIGNALS_LENGTH; i++) {
-            pubSignals[i] = input[i];
+            pubSignals[i] = signals[i];
         }
         return this.verifyProof(a, b, c, pubSignals);
     }

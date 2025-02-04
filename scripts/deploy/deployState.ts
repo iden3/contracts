@@ -40,22 +40,13 @@ async function main() {
 
   // if the state contract already exists we won't have new contracts deployed
   // to verify and to save the output
-  if (
-    groth16VerifierStateTransition &&
-    stateLib &&
-    stateCrossChainLib &&
-    crossChainProofValidator
-  ) {
+  if (groth16VerifierStateTransition && stateLib && crossChainProofValidator) {
     await verifyContract(await state.getAddress(), contractsInfo.STATE.verificationOpts);
     await verifyContract(
       await groth16VerifierStateTransition.getAddress(),
       contractsInfo.GROTH16_VERIFIER_STATE_TRANSITION.verificationOpts,
     );
     await verifyContract(await stateLib.getAddress(), contractsInfo.STATE_LIB.verificationOpts);
-    await verifyContract(
-      await stateCrossChainLib.getAddress(),
-      contractsInfo.STATE_CROSS_CHAIN_LIB.verificationOpts,
-    );
     await verifyContract(
       await crossChainProofValidator.getAddress(),
       contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.verificationOpts,
@@ -69,7 +60,6 @@ async function main() {
       proxyAdminOwnerAddress: await signer.getAddress(),
       state: await state.getAddress(),
       stateLib: await stateLib?.getAddress(),
-      stateCrossChainLib: await stateCrossChainLib?.getAddress(),
       crossChainProofValidator: await crossChainProofValidator?.getAddress(),
       network: networkName,
       chainId,

@@ -6,6 +6,13 @@ import {ICrossChainProofValidator} from "../interfaces/ICrossChainProofValidator
 import {IState} from "../interfaces/IState.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
+error IdentityStateProofInvalid();
+error GlobalStateProofInvalid();
+error GlobalStateProofSigningAddressInvalid(address recovered);
+error IdentityStateProofSigningAddressInvalid(address recovered);
+error OracleTimestampCannotBeInThePast();
+error OracleReplacedAtTimestampCannotBeInTheFuture();
+
 /**
  * @dev Contract which provides proof validation from identity state
  * and global state proofs from trusted oracle with signature from any network.
@@ -83,11 +90,12 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
             gsu.globalStateMsg,
             gsu.signature
         );
-        require(isValid, "Global state proof is not valid");
-        require(
-            recovered == _oracleSigningAddress,
-            "Global state proof signing address is not valid"
-        );
+        if (!isValid) {
+            revert GlobalStateProofInvalid();
+        }
+        if (recovered != _oracleSigningAddress) {
+            revert GlobalStateProofSigningAddressInvalid(recovered);
+        }
 
         return
             IState.GlobalStateProcessResult({
@@ -117,11 +125,12 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
             isu.idStateMsg,
             isu.signature
         );
-        require(isValid, "Identity state proof is not valid");
-        require(
-            recovered == _oracleSigningAddress,
-            "Identity state proof signing address is not valid"
-        );
+        if (!isValid) {
+            revert IdentityStateProofInvalid();
+        }
+        if (recovered != _oracleSigningAddress) {
+            revert IdentityStateProofSigningAddressInvalid(recovered);
+        }
 
         return
             IState.IdentityStateProcessResult({
@@ -213,13 +222,13 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
         uint256 replacedAtTimestamp
     ) internal view returns (uint256 replacedAt) {
         if (oracleTimestamp < block.timestamp - MAX_TIMESTAMP_LAG) {
-            revert("Oracle timestamp cannot be in the past");
+            revert OracleTimestampCannotBeInThePast();
         }
 
         replacedAt = replacedAtTimestamp == 0 ? oracleTimestamp : replacedAtTimestamp;
 
         if (replacedAt > block.timestamp + MAX_REPLACED_AT_AHEAD_OF_TIME) {
-            revert("Oracle replacedAtTimestamp or oracle timestamp cannot be in the future");
+            revert OracleReplacedAtTimestampCannotBeInTheFuture();
         }
 
         // this should never happen as block.timestamp is always greater than 0

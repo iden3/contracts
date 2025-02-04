@@ -108,9 +108,9 @@ export const contractsInfo = Object.freeze({
   },
   UNIVERSAL_VERIFIER: {
     name: "UniversalVerifier",
-    version: "1.1.5",
-    unifiedAddress: "0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c",
-    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier")),
+    version: "2.0.0",
+    unifiedAddress: "0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c", // TODO: Recalculate new address
+    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier.v2")),
     verificationOpts: {
       // For verifying the different contracts with proxy we need verification with different constructor arguments
       constructorArgsImplementation: [],
@@ -125,7 +125,7 @@ export const contractsInfo = Object.freeze({
   },
   STATE: {
     name: "State",
-    version: "2.6.1",
+    version: "2.6.2",
     unifiedAddress: "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.State")),
     verificationOpts: {
@@ -193,10 +193,26 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
+  VALIDATOR_LINKED_MULTI_QUERY: {
+    name: "LinkedMultiQueryValidator",
+    version: "1.0.0-beta.1",
+    unifiedAddress: "0xfA622418d7aBF33868545732CaD2C2E7ce9B16C8",
+    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.LinkedMultiQueryValidator")),
+    verificationOpts: {
+      constructorArgsImplementation: [],
+      constructorArgsProxy: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+      ],
+      constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7f44012c728b9d74"],
+      libraries: {},
+    },
+  },
   VALIDATOR_AUTH_V2: {
     name: "AuthV2Validator",
     version: "1.0.0",
-    unifiedAddress: "0x49ebdC163fa014F310CeDBc8e4a0b15C738D8073",
+    unifiedAddress: "0x535F6a1B30533616CE4bD44081ea7A17CF2042B8",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.AuthV2Validator")),
     verificationOpts: {
       constructorArgsImplementation: [],
@@ -228,7 +244,7 @@ export const contractsInfo = Object.freeze({
   VC_PAYMENT: {
     name: "VCPayment",
     version: "1.0.0",
-    unifiedAddress: "",
+    unifiedAddress: "0xba83D99c87358Ef9B6f7c4a5A94021A58d870704",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.VCPayment")),
     verificationOpts: {
       constructorArgsImplementation: [],
@@ -238,7 +254,7 @@ export const contractsInfo = Object.freeze({
   MC_PAYMENT: {
     name: "MCPayment",
     version: "1.0.0",
-    unifiedAddress: "",
+    unifiedAddress: "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.MCPayment")),
     verificationOpts: {
       constructorArgsImplementation: [],
@@ -327,6 +343,17 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
+  GROTH16_VERIFIER_LINKED_MULTI_QUERY10: {
+    name: "Groth16VerifierLinkedMultiQuery10Wrapper",
+    unifiedAddress: "",
+    create2Calldata: "",
+    verificationOpts: {
+      contract:
+        "contracts/lib/groth16-verifiers/Groth16VerifierLinkedMultiQuery10Wrapper.sol:Groth16VerifierLinkedMultiQuery10Wrapper",
+      constructorArgsImplementation: [],
+      libraries: {},
+    },
+  },
   GROTH16_VERIFIER_AUTH_V2: {
     name: "Groth16VerifierAuthV2Wrapper",
     unifiedAddress: "",
@@ -341,32 +368,15 @@ export const contractsInfo = Object.freeze({
   STATE_LIB: {
     name: "StateLib",
     unifiedAddress: "",
-    create2Address: "",
+    create2Calldata: "",
     verificationOpts: {
       constructorArgsImplementation: [],
       libraries: {},
     },
   },
-  STATE_CROSS_CHAIN_LIB: {
-    name: "StateCrossChainLib",
-    unifiedAddress: "",
-    create2Address: "",
-    verificationOpts: {
-      constructorArgsImplementation: [],
-      libraries: {},
-    },
-  },
-  VERIFIER_LIB: {
-    name: "VerifierLib",
-    unifiedAddress: "",
-    create2Address: "",
-    verificationOpts: {
-      constructorArgsImplementation: [],
-      libraries: {},
-    },
-  },
-  EMBEDDED_ZKP_VERIFIER_WRAPPER: {
-    name: "EmbeddedZKPVerifierWrapper",
+
+  EMBEDDED_VERIFIER_WRAPPER: {
+    name: "EmbeddedVerifierWrapper",
     unifiedAddress: "",
     create2Calldata: "",
   },

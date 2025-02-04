@@ -70,10 +70,12 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.MCPayment")) - 1)) &
     //    ~bytes32(uint256(0xff));
+    // solhint-disable-next-line const-name-snakecase
     bytes32 private constant MCPaymentStorageLocation =
         0x843c93f996398391e581389b674681e6ea27a4f9a96390a9d8ecb41cf0226300;
 
     function _getMCPaymentStorage() private pure returns (MCPaymentStorage storage $) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             $.slot := MCPaymentStorageLocation
         }
@@ -222,6 +224,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         // ecrecover takes the signature parameters, and the only way to get them
         // currently is to use assembly.
         /// @solidity memory-safe-assembly
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             r := mload(add(permitSignature, 0x20))
             s := mload(add(permitSignature, 0x40))
@@ -358,7 +361,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
      * @dev Withdraw ERC-20 balance to owner
      */
     function ownerERC20Withdraw(address token) public onlyOwner {
-        uint amount = IERC20(token).balanceOf(address(this));
+        uint256 amount = IERC20(token).balanceOf(address(this));
         if (amount == 0) {
             revert WithdrawErrorNoBalance();
         }
@@ -424,7 +427,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
         _withdraw(amount, issuer);
     }
 
-    function _withdraw(uint amount, address to) internal {
+    function _withdraw(uint256 amount, address to) internal {
         if (to == address(0)) {
             revert WithdrawErrorInvalidAddress();
         }

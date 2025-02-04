@@ -125,8 +125,3 @@ export const SpongePoseidonModule = buildModule("SpongePoseidonModule", (m) => {
   });
   return { spongePoseidon };
 });
-
-export const VerifierLibModule = buildModule("VerifierLibModule", (m) => {
-  const verifierLib = m.contract("VerifierLib");
-  return { verifierLib };
-});

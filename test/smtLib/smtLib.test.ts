@@ -982,7 +982,7 @@ describe("Merkle tree proofs of SMT", () => {
         description: "Negative: add two leaves with maximum depth + 1 (less significant bits SET)",
         leavesToInsert: [
           { i: genMaxBinaryNumber(64), v: 100 }, //1111111111111111111111111111111111111111111111111111111111111111
-          { i: genMaxBinaryNumber(65), v: 100, error: "Max depth reached" }, //11111111111111111111111111111111111111111111111111111111111111111
+          { i: genMaxBinaryNumber(65), v: 100, error: "MaxDepthReached()" }, //11111111111111111111111111111111111111111111111111111111111111111
         ],
       },
       {
@@ -990,7 +990,7 @@ describe("Merkle tree proofs of SMT", () => {
           "Negative: add two leaves with maximum depth + 1 (less significant bits NOT SET)",
         leavesToInsert: [
           { i: 0, v: 100 },
-          { i: genMaxBinaryNumber(64) + BigInt(1), v: 100, error: "Max depth reached" }, // 10000000000000000000000000000000000000000000000000000000000000000
+          { i: genMaxBinaryNumber(64) + BigInt(1), v: 100, error: "MaxDepthReached()" }, // 10000000000000000000000000000000000000000000000000000000000000000
         ],
       },
       {
@@ -998,7 +998,7 @@ describe("Merkle tree proofs of SMT", () => {
           "Negative: add two leaves with maximum depth + 1 (less significant bits are both SET and NOT SET",
         leavesToInsert: [
           { i: "17713686966169915918", v: 100 }, //1111010111010011101010000111000111010001000001100101001000001110
-          { i: "36160431039879467534", v: 100, error: "Max depth reached" }, //11111010111010011101010000111000111010001000001100101001000001110
+          { i: "36160431039879467534", v: 100, error: "MaxDepthReached()" }, //11111010111010011101010000111000111010001000001100101001000001110
         ],
       },
     ];
@@ -1061,16 +1061,16 @@ describe("Root history requests", function () {
   });
 
   it("should revert if length is zero", async () => {
-    await expect(smt.getRootHistory(0, 0)).to.be.rejectedWith("Length should be greater than 0");
+    await expect(smt.getRootHistory(0, 0)).to.be.rejectedWith("LenghtShouldBeGreaterThanZero()");
   });
 
   it("should revert if length limit exceeded", async () => {
-    await expect(smt.getRootHistory(0, 10 ** 6)).to.be.rejectedWith("Length limit exceeded");
+    await expect(smt.getRootHistory(0, 10 ** 6)).to.be.rejectedWith("LengthLimitExceeded(1000)");
   });
 
   it("should revert if out of bounds", async () => {
     await expect(smt.getRootHistory(historyLength, 100)).to.be.rejectedWith(
-      "Start index out of bounds",
+      "StartIndexOutOfBounds(3)",
     );
   });
 
@@ -1126,7 +1126,7 @@ describe("Root history duplicates", function () {
     const riDoubleRoot = await smt.getRootInfoListByRoot(doubleRoot, 0, 100);
     const riTripleRoot = await smt.getRootInfoListByRoot(tripleRoot, 0, 100);
     await expect(smt.getRootInfoListByRoot(nonExistingRoot, 0, 100)).to.be.rejectedWith(
-      "Root does not exist",
+      "RootDoesNotExist()",
     );
 
     expect(riSingleRoot.length).to.be.equal(1);
@@ -1158,7 +1158,7 @@ describe("Root history duplicates", function () {
     await smt.add(1, 1);
     const root = await smt.getRoot();
     await expect(smt.getRootInfoListByRoot(root, 0, 0)).to.be.rejectedWith(
-      "Length should be greater than 0",
+      "LenghtShouldBeGreaterThanZero()",
     );
   });
 
@@ -1166,7 +1166,7 @@ describe("Root history duplicates", function () {
     await smt.add(1, 1);
     const root = await smt.getRoot();
     await expect(smt.getRootInfoListByRoot(root, 0, 10 ** 6)).to.be.rejectedWith(
-      "Length limit exceeded",
+      "LengthLimitExceeded(1000)",
     );
   });
 
@@ -1176,7 +1176,7 @@ describe("Root history duplicates", function () {
     await smt.add(1, 1);
     const root = await smt.getRoot();
     await expect(smt.getRootInfoListByRoot(root, 3, 100)).to.be.rejectedWith(
-      "Start index out of bounds",
+      "StartIndexOutOfBounds(2)",
     );
   });
 
@@ -1769,14 +1769,14 @@ describe("Edge cases with exceptions", () => {
     await smt.add(1, 1);
     const root = await smt.getRoot();
     await expect(smt.getRootInfo(root)).not.to.be.rejected;
-    await expect(smt.getRootInfo(root + 1n)).to.be.rejectedWith("Root does not exist");
+    await expect(smt.getRootInfo(root + 1n)).to.be.rejectedWith("RootDoesNotExist()");
   });
 
   it("getProofByRoot() should throw when root does not exist", async () => {
     await smt.add(1, 1);
     const root = await smt.getRoot();
     await expect(smt.getProofByRoot(1, root)).not.to.be.rejected;
-    await expect(smt.getProofByRoot(1, root + 1n)).to.be.rejectedWith("Root does not exist");
+    await expect(smt.getProofByRoot(1, root + 1n)).to.be.rejectedWith("RootDoesNotExist()");
   });
 });
 
@@ -1804,22 +1804,20 @@ describe("maxDepth setting tests", () => {
   });
 
   it("Should throw when decrease max depth", async () => {
-    await expect(smt.setMaxDepth(127)).to.be.rejectedWith("Max depth can only be increased");
+    await expect(smt.setMaxDepth(127)).to.be.rejectedWith("MaxDepthCanOnlyBeIncreased()");
   });
 
   it("Should throw when max depth is set to the same value", async () => {
-    await expect(smt.setMaxDepth(128)).to.be.rejectedWith("Max depth can only be increased");
+    await expect(smt.setMaxDepth(128)).to.be.rejectedWith("MaxDepthCanOnlyBeIncreased()");
   });
 
   it("Should throw when max depth is set to 0", async () => {
-    await expect(smt.setMaxDepth(0)).to.be.rejectedWith("Max depth must be greater than zero");
+    await expect(smt.setMaxDepth(0)).to.be.rejectedWith("MaxDepthMustBeGreaterThanZero()");
   });
 
   it("Should throw when max depth is set to greater than hard cap", async () => {
-    await expect(smt.setMaxDepth(257)).to.be.rejectedWith("Max depth is greater than hard cap");
-    await expect(smt.setMaxDepth(1000000000)).to.be.rejectedWith(
-      "Max depth is greater than hard cap",
-    );
+    await expect(smt.setMaxDepth(257)).to.be.rejectedWith("MaxDepthIsGreaterThanHardCap()");
+    await expect(smt.setMaxDepth(1000000000)).to.be.rejectedWith("MaxDepthIsGreaterThanHardCap()");
   });
 });
 
