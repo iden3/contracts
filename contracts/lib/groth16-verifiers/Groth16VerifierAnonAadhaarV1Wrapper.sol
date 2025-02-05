@@ -30,7 +30,7 @@ contract Groth16VerifierAnonAadhaarV1Wrapper is Groth16VerifierAnonAadhaarV1, IV
     /**
      * @dev Number of public signals for atomic mtp circuit
      */
-    uint256 constant PUBSIGNALS_LENGTH = 9;
+    uint256 constant PUBSIGNALS_LENGTH = 10;
 
     /**
      * @dev Verify the circuit with the groth16 proof π=([πa]1,[πb]2,[πc]1).
@@ -48,7 +48,7 @@ contract Groth16VerifierAnonAadhaarV1Wrapper is Groth16VerifierAnonAadhaarV1, IV
     ) public view returns (bool r) {
         uint[PUBSIGNALS_LENGTH] memory pubSignals;
 
-        require(input.length == PUBSIGNALS_LENGTH, "expected array length is 9");
+        require(input.length == PUBSIGNALS_LENGTH, "expected array length is 10");
 
         for (uint256 i = 0; i < PUBSIGNALS_LENGTH; i++) {
             pubSignals[i] = input[i];

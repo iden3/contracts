@@ -20,6 +20,7 @@ contract AnonAadhaarCredentialIssuing is IdentityBase, EmbeddedZKPVerifier {
         uint256 publicKeysHash;
         uint256 expirationTime;
         uint256 templateRoot;
+        uint256 issuerDidHash;
         mapping(uint256 => bool) nullifiers;
     }
 
@@ -56,6 +57,11 @@ contract AnonAadhaarCredentialIssuing is IdentityBase, EmbeddedZKPVerifier {
         super.__EmbeddedZKPVerifier_init(_msgSender(), IState(_stateContractAddr));
     }
 
+    function setIssuerDidHash(uint256 issuerDidHash) public onlyOwner {
+        AnonAadhaarCredentialIssuingStorage storage $ = _getAnonAadhaarCredentialIssuingStorage();
+        $.issuerDidHash = issuerDidHash;
+    }
+
     function _validatePublicInputs(
         uint256 hashIndex,
         uint256 hashValue,
@@ -64,7 +70,8 @@ contract AnonAadhaarCredentialIssuing is IdentityBase, EmbeddedZKPVerifier {
         uint256 nullifierSeed,
         uint256 issuanceDate,
         uint256 expirationDate,
-        uint256 templateRoot
+        uint256 templateRoot,
+        uint256 issuerDidHash
     ) private view {
         AnonAadhaarCredentialIssuingStorage storage $ = _getAnonAadhaarCredentialIssuingStorage();
         require(hashIndex != 0, "Invalid hashIndex");
@@ -72,8 +79,8 @@ contract AnonAadhaarCredentialIssuing is IdentityBase, EmbeddedZKPVerifier {
 
         require(nullifierSeed == $.nullifierSeed, "Invalid nullifierSeed");
         require(pubKeyHash == $.publicKeysHash, "Invalid pubKeyHash");
-        
         require(templateRoot == $.templateRoot, "Invalid templateRoot");
+        require(issuerDidHash == $.issuerDidHash, "Invalid issuerDidHash");
 
         uint256 expectedExpiration = issuanceDate + $.expirationTime;
         require(expirationDate == expectedExpiration, "Invalid expirationDate");
@@ -102,6 +109,7 @@ contract AnonAadhaarCredentialIssuing is IdentityBase, EmbeddedZKPVerifier {
         uint256 issuanceDate = super.getProofStorageField(_msgSender(), responses[0].requestId, "issuanceDate");
         uint256 expirationDate = super.getProofStorageField(_msgSender(), responses[0].requestId, "expirationDate");
         uint256 templateRoot = super.getProofStorageField(_msgSender(), responses[0].requestId, "templateRoot");
+        uint256 issuerDidHash = super.getProofStorageField(_msgSender(), responses[0].requestId, "issuerDidHash");
 
         
         _validatePublicInputs(
@@ -112,7 +120,8 @@ contract AnonAadhaarCredentialIssuing is IdentityBase, EmbeddedZKPVerifier {
             nullifierSeed,
             issuanceDate,
             expirationDate,
-            templateRoot
+            templateRoot,
+            issuerDidHash
         );
         _setNullifier(nullifier);
         _addHashAndTransit(hashIndex, hashValue);

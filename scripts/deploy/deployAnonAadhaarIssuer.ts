@@ -26,6 +26,10 @@ async function main() {
     defaultIdType,
   );
   await f.setZKPRequest(issuer, 23095784, stateContractAddress);
+  await f.setIssuerDidHash(
+    issuer,
+    "12146166192964646439780403715116050536535442384123009131510511003232108502337",
+  );
 
   console.log("AnonAadhaar deployed at: ", await issuer.getAddress());
 }

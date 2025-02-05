@@ -20,6 +20,7 @@ contract AnonAadhaarV1Validator is CredentialAtomicQueryValidatorBase {
         uint256 nullifierSeed;
         uint256 signalHash;
         uint256 templateRoot;
+        uint256 issuerDidHash;
     }
     /**
      * @dev Version of contract
@@ -46,6 +47,7 @@ contract AnonAadhaarV1Validator is CredentialAtomicQueryValidatorBase {
         _setInputToIndex("nullifierSeed", 6);
         _setInputToIndex("signalHash", 7);
         _setInputToIndex("templateRoot", 8);
+        _setInputToIndex("issuerDidHash", 9);
 
         _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, owner);
     }
@@ -73,7 +75,8 @@ contract AnonAadhaarV1Validator is CredentialAtomicQueryValidatorBase {
             expirationDate: inputs[5],
             nullifierSeed: inputs[6],
             signalHash: inputs[7],
-            templateRoot: inputs[8]
+            templateRoot: inputs[8],
+            issuerDidHash: inputs[9]
         });
 
         return pubSignals;
@@ -129,7 +132,7 @@ contract AnonAadhaarV1Validator is CredentialAtomicQueryValidatorBase {
 
         PubSignals memory pubSignals = parsePubSignals(inputs);
         _verifyZKP(inputs, a, b, c);
-        ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](9);
+        ICircuitValidator.Signal[] memory signals = new ICircuitValidator.Signal[](10);
         signals[0] = ICircuitValidator.Signal({name: "pubKeyHash", value: pubSignals.pubKeyHash});
         signals[1] = ICircuitValidator.Signal({name: "nullifier", value: pubSignals.nullifier});
         signals[2] = ICircuitValidator.Signal({name: "hashIndex", value: pubSignals.hashIndex});
@@ -139,6 +142,7 @@ contract AnonAadhaarV1Validator is CredentialAtomicQueryValidatorBase {
         signals[6] = ICircuitValidator.Signal({name: "nullifierSeed", value: pubSignals.nullifierSeed});
         signals[7] = ICircuitValidator.Signal({name: "signalHash", value: pubSignals.signalHash});
         signals[8] = ICircuitValidator.Signal({name: "templateRoot", value: pubSignals.templateRoot});
+        signals[9] = ICircuitValidator.Signal({name: "issuerDidHash", value: pubSignals.issuerDidHash});
         return signals;
     }
 

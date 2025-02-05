@@ -68,13 +68,18 @@ export class AnonAadhaarDeployHelper {
       12345678,
       BigInt("15134874015316324267425466444584014077184337590635665158241104437045239495873"),
       15776640,
-      BigInt("19885546056720838706860449020869651677281577675447204956487418402102594191373"),
+      BigInt("3760048933127269188109079349507397743444241277603345236696660118069105661581"),
       stateContractAddress,
       defaultIdType,
     );
     await tx.wait();
 
     return deployment;
+  }
+
+  public async setIssuerDidHash(issuer: Contract, didHash: string): Promise<void> {
+    const tx = await issuer.setIssuerDidHash(didHash);
+    await tx.wait();
   }
 
   public async setZKPRequest(

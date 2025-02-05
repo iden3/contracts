@@ -33,9 +33,13 @@ describe("Verify anon aadhaar proof onchain", async () => {
       basicContracts.defaultIdType,
     );
     await f.setZKPRequest(issuer, requestId, await basicContracts.state.getAddress());
+    await f.setIssuerDidHash(
+      issuer,
+      "12146166192964646439780403715116050536535442384123009131510511003232108502337",
+    );
   });
 
-  it("Verify proof and issuer a credential", async () => {
+  it("Issue a credential and verify proof", async () => {
     const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proofJson);
     const inputsBytes = packZKProof(inputs, pi_a, pi_b, pi_c);
 
