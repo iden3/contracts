@@ -41,7 +41,7 @@ import { packCrossChainProofs, packZKProof } from "../../../../test/utils/packDa
 import { Groth16VerifierType } from "../../../../helpers/DeployHelper";
 import { getChainId } from "../../../../helpers/helperUtils";
 
-const rhsUrl = "https://rhs-staging.polygonid.me";
+const rhsUrl = "";
 
 function createKYCAgeCredential(did: core.DID, birthday: number) {
   const credentialRequest: CredentialRequest = {
