@@ -139,8 +139,6 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
             );
         }
 
-        // TODO: add support for query to specific userID and then verifying it
-
         _checkMerklized(pubSignals.merklized, credAtomicQuery.claimPathKey);
         _checkAllowedIssuers(pubSignals.issuerID, credAtomicQuery.allowedIssuers);
         _checkProofExpiration(pubSignals.timestamp);
