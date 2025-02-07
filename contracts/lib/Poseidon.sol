@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.27;
 
+/* solhint-disable no-empty-blocks */
 library PoseidonUnit1L {
     function poseidon(uint256[1] calldata) public pure returns (uint256) {}
 }
@@ -24,6 +25,7 @@ library PoseidonUnit5L {
 library PoseidonUnit6L {
     function poseidon(uint256[6] calldata) public pure returns (uint256) {}
 }
+/* solhint-enable no-empty-blocks */
 
 library SpongePoseidon {
     uint32 internal constant BATCH_SIZE = 6;

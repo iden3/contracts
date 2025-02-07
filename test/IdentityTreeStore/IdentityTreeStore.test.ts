@@ -295,10 +295,11 @@ describe("IdentityTreeStore", function () {
 
     await expect(
       identityTreeStore.getRevocationStatusByIdAndState(id, state, nonce),
-    ).to.be.rejectedWith("Invalid state node");
+    ).to.be.revertedWithCustomError(identityTreeStore, "InvalidStateNode");
 
-    await expect(identityTreeStore.getRevocationStatus(id, nonce)).to.be.rejectedWith(
-      "Invalid state node",
+    await expect(identityTreeStore.getRevocationStatus(id, nonce)).to.be.revertedWithCustomError(
+      identityTreeStore,
+      "InvalidStateNode",
     );
   });
 });
