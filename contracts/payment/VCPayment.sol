@@ -64,8 +64,7 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         uint256 indexed schemaHash,
         uint256 valueToPay,
         uint256 ownerPercentage,
-        address withdrawAddress,
-        uint256 totalValue
+        address withdrawAddress
     );
     event OwnerPercentageUpdated(
         uint256 indexed issuerId,
@@ -148,7 +147,7 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         );
         $.paymentDataIds.push(keccak256(abi.encode(issuerId, schemaHash)));
         _setPaymentData(issuerId, schemaHash, newPaymentData);
-        emit PaymentDataSet(issuerId, schemaHash, value, ownerPercentage, withdrawAddress, 0);
+        emit PaymentDataSet(issuerId, schemaHash, value, ownerPercentage, withdrawAddress);
     }
 
     function updateOwnerPercentage(

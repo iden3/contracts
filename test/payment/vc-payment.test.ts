@@ -239,7 +239,7 @@ describe("VC Payment Contract", () => {
       ),
     )
       .to.emit(payment, "PaymentDataSet")
-      .withArgs(issuerId1.bigInt(), schemaHash1.bigInt(), 100, 5, issuer1Signer.address, 0);
+      .withArgs(issuerId1.bigInt(), schemaHash1.bigInt(), 100, 5, issuer1Signer.address);
 
     await expect(payment.updateOwnerPercentage(issuerId1.bigInt(), schemaHash1.bigInt(), 10))
       .to.emit(payment, "OwnerPercentageUpdated")
