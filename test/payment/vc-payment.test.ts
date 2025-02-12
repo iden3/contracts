@@ -86,91 +86,21 @@ describe("VC Payment Contract", () => {
       value: 30000,
     });
 
-    const issuerBalanceBeforeWithdraw = await ethers.provider.getBalance(issuer1Signer.address);
     const issuer1BalanceInContract = await payment.connect(issuer1Signer).getMyBalance();
     expect(issuer1BalanceInContract).to.be.eq(47500);
     const issuerWithdrawTx = await payment.connect(issuer1Signer).issuerWithdraw();
     // issuer 1 balance should be 0
-    const issuer1BalanceAfterWithdraw = await payment.connect(issuer1Signer).getMyBalance();
-    expect(issuer1BalanceAfterWithdraw).to.be.eq(0);
+    expect(await payment.connect(issuer1Signer).getMyBalance()).to.be.eq(0);
 
-    // gas spend by issuer 1
-    const receipt = await issuerWithdrawTx.wait();
-    const gasSpent = receipt!.gasUsed * receipt!.gasPrice;
+    await expect(issuerWithdrawTx)
+      .to.emit(payment, "Withdraw")
+      .withArgs(issuer1Signer.address, 47500);
 
-    expect(await ethers.provider.getBalance(issuer1Signer.address)).to.be.eq(
-      issuerBalanceBeforeWithdraw + issuer1BalanceInContract - gasSpent,
-    );
+    await expect(issuerWithdrawTx).to.changeEtherBalance(issuer1Signer, 47500);
 
     // issuer 2 balance should not change
     expect(await payment.connect(issuer2Signer).getMyBalance()).to.be.eq(28500);
     expect(await ethers.provider.getBalance(payment)).to.be.eq(32500);
-  });
-
-  it("Withdraw to all issuers and owner:", async () => {
-    const paymentFromUser = payment.connect(userSigner);
-
-    // pay 4 times to issuer 1 in total 50000 (5% to owner) => issuerBalance = 47500
-    await paymentFromUser.pay("payment-id-1", issuerId1.bigInt(), schemaHash1.bigInt(), {
-      value: 10000,
-    });
-
-    await paymentFromUser.pay("payment-id-2", issuerId1.bigInt(), schemaHash1.bigInt(), {
-      value: 10000,
-    });
-
-    await paymentFromUser.pay("payment-id-3", issuerId1.bigInt(), schemaHash1.bigInt(), {
-      value: 10000,
-    });
-
-    await paymentFromUser.pay("payment-id-4", issuerId1.bigInt(), schemaHash2.bigInt(), {
-      value: 20000,
-    });
-
-    // pay to issuer 2 in total 30000 (5% to owner) => issuerBalance = 28500
-    await paymentFromUser.pay("payment-id-1", issuerId2.bigInt(), schemaHash3.bigInt(), {
-      value: 30000,
-    });
-
-    const issuer1BalanceBeforeWithdraw = await ethers.provider.getBalance(issuer1Signer.address);
-    const issuer2BalanceBeforeWithdraw = await ethers.provider.getBalance(issuer2Signer.address);
-
-    const issuer1BalanceInContract = await payment.connect(issuer1Signer).getMyBalance();
-    expect(issuer1BalanceInContract).to.be.eq(47500);
-
-    const issuer2BalanceInContract = await payment.connect(issuer2Signer).getMyBalance();
-    expect(issuer2BalanceInContract).to.be.eq(28500);
-
-    // withdraw to all issuers
-    await payment.connect(owner).withdrawToAllIssuers();
-
-    // issuers balance should be 0
-    const issuer1BalanceAfterWithdraw = await payment.connect(issuer1Signer).getMyBalance();
-    expect(issuer1BalanceAfterWithdraw).to.be.eq(0);
-
-    const issuer2BalanceAfterWithdraw = await payment.connect(issuer1Signer).getMyBalance();
-    expect(issuer2BalanceAfterWithdraw).to.be.eq(0);
-
-    expect(await ethers.provider.getBalance(issuer1Signer.address)).to.be.eq(
-      issuer1BalanceBeforeWithdraw + issuer1BalanceInContract,
-    );
-
-    expect(await ethers.provider.getBalance(issuer2Signer.address)).to.be.eq(
-      issuer2BalanceBeforeWithdraw + issuer2BalanceInContract,
-    );
-
-    // owner withdraw
-    const ownerBalance = await payment.getOwnerBalance();
-    expect(ownerBalance).to.be.eq(4000);
-    const ownerBalanceBeforeWithdraw = await ethers.provider.getBalance(owner.address);
-    const ownerWithdrawTx = await payment.connect(owner).ownerWithdraw();
-    const receipt = await ownerWithdrawTx.wait();
-    const gasSpent = receipt!.gasUsed * receipt!.gasPrice;
-
-    expect(await ethers.provider.getBalance(owner.address)).to.be.eq(
-      ownerBalanceBeforeWithdraw + ownerBalance - gasSpent,
-    );
-    expect(await payment.getOwnerBalance()).to.be.eq(0);
   });
 
   it("Update withdrawAddress", async () => {
@@ -296,5 +226,45 @@ describe("VC Payment Contract", () => {
     expect(await ethers.provider.getBalance(issuer1Signer.address)).to.be.eq(
       issuerBalanceBeforeWithdraw + BigInt(24789) - gasSpent,
     );
+  });
+
+  it("test PaymentData events", async () => {
+    await expect(
+      payment.setPaymentValue(
+        issuerId1.bigInt(),
+        schemaHash1.bigInt(),
+        100,
+        5,
+        issuer1Signer.address,
+      ),
+    )
+      .to.emit(payment, "PaymentDataSet")
+      .withArgs(issuerId1.bigInt(), schemaHash1.bigInt(), 100, 5, issuer1Signer.address, 0);
+
+    await expect(payment.updateOwnerPercentage(issuerId1.bigInt(), schemaHash1.bigInt(), 10))
+      .to.emit(payment, "OwnerPercentageUpdated")
+      .withArgs(issuerId1.bigInt(), schemaHash1.bigInt(), 10);
+
+    await expect(
+      payment.updateWithdrawAddress(
+        issuerId1.bigInt(),
+        schemaHash1.bigInt(),
+        issuer2Signer.address,
+      ),
+    )
+      .to.emit(payment, "WithdrawAddressUpdated")
+      .withArgs(issuerId1.bigInt(), schemaHash1.bigInt(), issuer2Signer.address);
+
+    await expect(payment.updateValueToPay(issuerId1.bigInt(), schemaHash1.bigInt(), 200))
+      .to.emit(payment, "ValueToPayUpdated")
+      .withArgs(issuerId1.bigInt(), schemaHash1.bigInt(), 200);
+
+    await expect(
+      payment.pay("payment-id-1", issuerId1.bigInt(), schemaHash1.bigInt(), {
+        value: 200,
+      }),
+    )
+      .to.emit(payment, "Payment")
+      .withArgs(issuerId1.bigInt(), "payment-id-1", schemaHash1.bigInt());
   });
 });

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.27;
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
-contract VCPayment is Ownable2StepUpgradeable {
+contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
     /**
      * @dev Version of contract
      */
@@ -57,6 +58,30 @@ contract VCPayment is Ownable2StepUpgradeable {
     }
 
     event Payment(uint256 indexed issuerId, string paymentId, uint256 indexed schemaHash);
+    event Withdraw(address indexed to, uint256 amount);
+    event PaymentDataSet(
+        uint256 indexed issuerId,
+        uint256 indexed schemaHash,
+        uint256 valueToPay,
+        uint256 ownerPercentage,
+        address withdrawAddress,
+        uint256 totalValue
+    );
+    event OwnerPercentageUpdated(
+        uint256 indexed issuerId,
+        uint256 indexed schemaHash,
+        uint256 newOwnerPercentage
+    );
+    event WithdrawAddressUpdated(
+        uint256 indexed issuerId,
+        uint256 indexed schemaHash,
+        address newWithdrawAddress
+    );
+    event ValueToPayUpdated(
+        uint256 indexed issuerId,
+        uint256 indexed schemaHash,
+        uint256 newValueToPay
+    );
 
     error InvalidOwnerPercentage(string message);
     error InvalidWithdrawAddress(string message);
@@ -123,6 +148,7 @@ contract VCPayment is Ownable2StepUpgradeable {
         );
         $.paymentDataIds.push(keccak256(abi.encode(issuerId, schemaHash)));
         _setPaymentData(issuerId, schemaHash, newPaymentData);
+        emit PaymentDataSet(issuerId, schemaHash, value, ownerPercentage, withdrawAddress, 0);
     }
 
     function updateOwnerPercentage(
@@ -134,6 +160,7 @@ contract VCPayment is Ownable2StepUpgradeable {
         PaymentData storage payData = $.paymentData[keccak256(abi.encode(issuerId, schemaHash))];
         payData.ownerPercentage = ownerPercentage;
         _setPaymentData(issuerId, schemaHash, payData);
+        emit OwnerPercentageUpdated(issuerId, schemaHash, ownerPercentage);
     }
 
     function updateWithdrawAddress(
@@ -149,6 +176,7 @@ contract VCPayment is Ownable2StepUpgradeable {
 
         payData.withdrawAddress = withdrawAddress;
         _setPaymentData(issuerId, schemaHash, payData);
+        emit WithdrawAddressUpdated(issuerId, schemaHash, withdrawAddress);
     }
 
     function updateValueToPay(
@@ -160,6 +188,7 @@ contract VCPayment is Ownable2StepUpgradeable {
         PaymentData storage payData = $.paymentData[keccak256(abi.encode(issuerId, schemaHash))];
         payData.valueToPay = value;
         _setPaymentData(issuerId, schemaHash, payData);
+        emit ValueToPayUpdated(issuerId, schemaHash, value);
     }
 
     function pay(string calldata paymentId, uint256 issuerId, uint256 schemaHash) external payable {
@@ -193,18 +222,15 @@ contract VCPayment is Ownable2StepUpgradeable {
         return $.payments[keccak256(abi.encode(issuerId, paymentId))];
     }
 
-    function withdrawToAllIssuers() public onlyOwner {
+    function issuerWithdraw() public nonReentrant {
+        address issuer = _msgSender();
         VCPaymentStorage storage $ = _getVCPaymentStorage();
-        for (uint256 i = 0; i < $.paymentDataIds.length; i++) {
-            PaymentData memory payData = $.paymentData[$.paymentDataIds[i]];
-            if ($.issuerAddressBalance[payData.withdrawAddress] != 0) {
-                _withdrawToIssuer(payData.withdrawAddress);
-            }
+        uint256 amount = $.issuerAddressBalance[issuer];
+        if (amount == 0) {
+            revert WithdrawError("There is no balance to withdraw");
         }
-    }
-
-    function issuerWithdraw() public {
-        _withdrawToIssuer(_msgSender());
+        $.issuerAddressBalance[issuer] = 0;
+        _withdraw(amount, issuer);
     }
 
     function ownerWithdraw() public onlyOwner {
@@ -235,16 +261,6 @@ contract VCPayment is Ownable2StepUpgradeable {
         return $.ownerBalance;
     }
 
-    function _withdrawToIssuer(address issuer) internal {
-        VCPaymentStorage storage $ = _getVCPaymentStorage();
-        uint256 amount = $.issuerAddressBalance[issuer];
-        if (amount == 0) {
-            revert WithdrawError("There is no balance to withdraw");
-        }
-        $.issuerAddressBalance[issuer] = 0;
-        _withdraw(amount, issuer);
-    }
-
     function _withdraw(uint amount, address to) internal {
         if (amount == 0) {
             revert WithdrawError("There is no balance to withdraw");
@@ -257,6 +273,8 @@ contract VCPayment is Ownable2StepUpgradeable {
         if (!sent) {
             revert WithdrawError("Failed to withdraw");
         }
+
+        emit Withdraw(to, amount);
     }
 
     function _setPaymentData(
