@@ -31,7 +31,7 @@ export class AnonAadhaarDeployHelper {
     const deployment = await verifierAnonAadhaarWrapper.deploy();
     await deployment.waitForDeployment();
     this.log(
-      `Identity contract deployed to address ${await deployment.getAddress()} from ${await owner.getAddress()}`,
+      `Groth16Wrapper contract deployed to address ${await deployment.getAddress()} from ${await owner.getAddress()}`,
     );
     return deployment;
   }

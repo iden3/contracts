@@ -2,11 +2,11 @@ import { AnonAadhaarDeployHelper } from "../../helpers/DeployAnonAadharV1Validat
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { contractsInfo } from "../../helpers/constants";
 import { getStateContractAddress } from "../../helpers/helperUtils";
+import { Id, DID } from "@iden3/js-iden3-core";
+import { Merklizer } from "@iden3/js-jsonld-merklization";
 
 async function main() {
   const stDeployHelper = await DeployHelper.initialize();
-  // TODO (illia-korotia): possible problem is here.
-  // By default I have issuer did:iden3:privado-main
   const { defaultIdType } = await stDeployHelper.getDefaultIdType();
 
   const stateContractAddress = getStateContractAddress();
@@ -26,12 +26,15 @@ async function main() {
     defaultIdType,
   );
   await f.setZKPRequest(issuer, 23095784, stateContractAddress);
-  await f.setIssuerDidHash(
-    issuer,
-    "12146166192964646439780403715116050536535442384123009131510511003232108502337",
-  );
+
+  const contractId = await issuer.getId();
+  const issuerId = Id.fromBigInt(contractId);
+  const issuerDid = DID.parseFromId(issuerId);
+  const hashv = await Merklizer.hashValue("", issuerDid);
+  await f.setIssuerDidHash(issuer, hashv.toString());
 
   console.log("AnonAadhaar deployed at: ", await issuer.getAddress());
+  console.log("Issuer DID was attached to the contract: ", issuerDid.toString());
 }
 
 main()
