@@ -89,7 +89,11 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
     error InvalidPaymentValue(uint256 expectedValue, uint256 receivedValue);
     error FailedToWithdraw(address account, uint256 amount);
     error NoBalanceToWithdraw(address account);
-    error WrongOwnerOrIssuer(address expectedOwner, address expectedIssuer, address receivedAddress);
+    error WrongOwnerOrIssuer(
+        address expectedOwner,
+        address expectedIssuer,
+        address receivedAddress
+    );
     error PaymentValueAlreadySet(uint256 issuerId, uint256 schemaHash);
 
     /**
