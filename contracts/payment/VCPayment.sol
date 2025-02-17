@@ -164,7 +164,6 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         VCPaymentStorage storage $ = _getVCPaymentStorage();
         PaymentData storage payData = $.paymentData[keccak256(abi.encode(issuerId, schemaHash))];
         payData.ownerPercentage = ownerPercentage;
-        _setPaymentData(issuerId, schemaHash, payData);
         emit OwnerPercentageUpdated(issuerId, schemaHash, ownerPercentage);
     }
 
@@ -180,7 +179,6 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         $.issuerAddressBalance[withdrawAddress] += issuerBalance;
 
         payData.withdrawAddress = withdrawAddress;
-        _setPaymentData(issuerId, schemaHash, payData);
         emit WithdrawAddressUpdated(issuerId, schemaHash, withdrawAddress);
     }
 
@@ -192,7 +190,6 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         VCPaymentStorage storage $ = _getVCPaymentStorage();
         PaymentData storage payData = $.paymentData[keccak256(abi.encode(issuerId, schemaHash))];
         payData.valueToPay = value;
-        _setPaymentData(issuerId, schemaHash, payData);
         emit ValueToPayUpdated(issuerId, schemaHash, value);
     }
 
@@ -218,7 +215,6 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         $.ownerBalance += ownerPart;
 
         payData.totalValue += issuerPart;
-        _setPaymentData(issuerId, schemaHash, payData);
         emit Payment(issuerId, paymentId, schemaHash);
     }
 
@@ -280,14 +276,5 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         }
 
         emit Withdraw(to, amount);
-    }
-
-    function _setPaymentData(
-        uint256 issuerId,
-        uint256 schemaHash,
-        PaymentData memory payData
-    ) internal {
-        VCPaymentStorage storage $ = _getVCPaymentStorage();
-        $.paymentData[keccak256(abi.encode(issuerId, schemaHash))] = payData;
     }
 }

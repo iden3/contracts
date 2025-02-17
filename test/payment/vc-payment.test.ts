@@ -143,7 +143,7 @@ describe("VC Payment Contract", () => {
     const paymentData = await payment
       .connect(issuer2Signer)
       .getPaymentData(issuerId1.bigInt(), schemaHash1.bigInt());
-    expect(paymentData[4]).to.be.eq(issuer2Signer.address);
+    expect(paymentData.withdrawAddress).to.be.eq(issuer2Signer.address);
   });
 
   it("updateValueToPay", async () => {
@@ -188,7 +188,7 @@ describe("VC Payment Contract", () => {
     const paymentData = await payment
       .connect(owner)
       .getPaymentData(issuerId1.bigInt(), schemaHash1.bigInt());
-    expect(paymentData[3]).to.be.eq(3);
+    expect(paymentData.ownerPercentage).to.be.eq(3);
   });
 
   it("updateValueToPay work only for issuer or owner", async () => {
@@ -203,7 +203,7 @@ describe("VC Payment Contract", () => {
     const paymentData = await payment
       .connect(issuer1Signer)
       .getPaymentData(issuerId1.bigInt(), schemaHash1.bigInt());
-    expect(paymentData[2]).to.be.eq(1111);
+    expect(paymentData.valueToPay).to.be.eq(1111);
   });
 
   it("updateWithdrawAddress work only for issuer or owner", async () => {
@@ -219,7 +219,7 @@ describe("VC Payment Contract", () => {
     const paymentData = await payment
       .connect(issuer2Signer)
       .getPaymentData(issuerId1.bigInt(), schemaHash1.bigInt());
-    expect(paymentData[4]).to.be.eq(issuer2Signer.address);
+    expect(paymentData.withdrawAddress).to.be.eq(issuer2Signer.address);
   });
 
   it("test rounded division for percents", async () => {
