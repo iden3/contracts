@@ -171,7 +171,7 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         PaymentData storage payData = $.paymentData[keccak256(abi.encode(issuerId, schemaHash))];
         uint256 issuerBalance = $.issuerAddressBalance[payData.withdrawAddress];
         $.issuerAddressBalance[payData.withdrawAddress] = 0;
-        $.issuerAddressBalance[withdrawAddress] = issuerBalance;
+        $.issuerAddressBalance[withdrawAddress] += issuerBalance;
 
         payData.withdrawAddress = withdrawAddress;
         _setPaymentData(issuerId, schemaHash, payData);

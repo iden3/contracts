@@ -108,8 +108,16 @@ describe("VC Payment Contract", () => {
       value: 10000,
     });
 
-    const issuerBalance = await payment.connect(issuer1Signer).getMyBalance();
-    expect(issuerBalance).to.be.eq(9500);
+    expect(await payment.connect(issuer1Signer).getMyBalance()).to.be.eq(9500);
+    expect(await payment.connect(issuer2Signer).getMyBalance()).to.be.eq(0);
+
+    // this should not override the withdrawal balance of issuer 1
+    await payment
+      .connect(issuer2Signer)
+      .updateWithdrawAddress(issuerId2.bigInt(), schemaHash3.bigInt(), issuer1Signer.address);
+
+    expect(await payment.connect(issuer1Signer).getMyBalance()).to.be.eq(9500);
+    expect(await payment.connect(issuer2Signer).getMyBalance()).to.be.eq(0);
 
     await payment
       .connect(issuer1Signer)
