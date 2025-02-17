@@ -75,7 +75,7 @@ describe("VC Payment Contract", () => {
       .withArgs(issuerId1.bigInt(), schemaHash1.bigInt());
   });
 
-  it("Payment and issuer withdraw:", async () => {
+  it("Payment and withdrawal by issuer and owner:", async () => {
     const paymentFromUser = payment.connect(userSigner);
 
     // pay 4 times to issuer 1 in total 50000 (5% to owner) => issuerBalance = 47500
@@ -95,10 +95,13 @@ describe("VC Payment Contract", () => {
       value: 20000,
     });
 
-    // isser 2, should not have affect on issuer 1 withdraw
+    // issuer 2, should not have affect on issuer 1 withdraw
     await paymentFromUser.pay("payment-id-1", issuerId2.bigInt(), schemaHash3.bigInt(), {
       value: 30000,
     });
+
+    expect(await payment.getOwnerBalance()).to.be.eq(4000);
+    expect(await payment.ownerWithdraw()).to.changeEtherBalance(owner, 4000);
 
     const issuer1BalanceInContract = await payment.connect(issuer1Signer).getMyBalance();
     expect(issuer1BalanceInContract).to.be.eq(47500);
@@ -114,7 +117,7 @@ describe("VC Payment Contract", () => {
 
     // issuer 2 balance should not change
     expect(await payment.connect(issuer2Signer).getMyBalance()).to.be.eq(28500);
-    expect(await ethers.provider.getBalance(payment)).to.be.eq(32500);
+    expect(await ethers.provider.getBalance(payment)).to.be.eq(80000 - 47500 - 4000);
   });
 
   it("Update withdrawAddress", async () => {
