@@ -86,6 +86,7 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
     error InvalidWithdrawAddress(string message);
     error PaymentError(string message);
     error WithdrawError(string message);
+    error NoBalanceToWithdraw(address account);
     error OwnerOrIssuerError(string message);
     error PaymentValueAlreadySet(uint256 issuerId, uint256 schemaHash);
 
@@ -232,18 +233,12 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         address issuer = _msgSender();
         VCPaymentStorage storage $ = _getVCPaymentStorage();
         uint256 amount = $.issuerAddressBalance[issuer];
-        if (amount == 0) {
-            revert WithdrawError("There is no balance to withdraw");
-        }
         $.issuerAddressBalance[issuer] = 0;
         _withdraw(amount, issuer);
     }
 
     function ownerWithdraw() public onlyOwner {
         VCPaymentStorage storage $ = _getVCPaymentStorage();
-        if ($.ownerBalance == 0) {
-            revert WithdrawError("There is no balance to withdraw");
-        }
         uint256 amount = $.ownerBalance;
         $.ownerBalance = 0;
         _withdraw(amount, owner());
@@ -269,7 +264,7 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
 
     function _withdraw(uint amount, address to) internal {
         if (amount == 0) {
-            revert WithdrawError("There is no balance to withdraw");
+            revert NoBalanceToWithdraw(to);
         }
         if (to == address(0)) {
             revert WithdrawError("Invalid withdraw address");

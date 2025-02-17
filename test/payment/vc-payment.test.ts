@@ -102,6 +102,9 @@ describe("VC Payment Contract", () => {
 
     expect(await payment.getOwnerBalance()).to.be.eq(4000);
     expect(await payment.ownerWithdraw()).to.changeEtherBalance(owner, 4000);
+    await expect(payment.ownerWithdraw())
+      .to.be.revertedWithCustomError(payment, "NoBalanceToWithdraw")
+      .withArgs(owner.address);
 
     const issuer1BalanceInContract = await payment.connect(issuer1Signer).getMyBalance();
     expect(issuer1BalanceInContract).to.be.eq(47500);
@@ -118,6 +121,10 @@ describe("VC Payment Contract", () => {
     // issuer 2 balance should not change
     expect(await payment.connect(issuer2Signer).getMyBalance()).to.be.eq(28500);
     expect(await ethers.provider.getBalance(payment)).to.be.eq(80000 - 47500 - 4000);
+
+    await expect(payment.connect(issuer1Signer).issuerWithdraw())
+      .to.be.revertedWithCustomError(payment, "NoBalanceToWithdraw")
+      .withArgs(issuer1Signer.address);
   });
 
   it("Update withdrawAddress", async () => {
