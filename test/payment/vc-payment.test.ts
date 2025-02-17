@@ -170,7 +170,9 @@ describe("VC Payment Contract", () => {
       payment.pay("payment-id-2", issuerId1.bigInt(), schemaHash1.bigInt(), {
         value: 10000,
       }),
-    ).to.be.revertedWithCustomError(payment, "PaymentError");
+    )
+      .to.be.revertedWithCustomError(payment, "InvalidPaymentValue")
+      .withArgs(22000, 10000);
 
     expect(await payment.isPaymentDone("payment-id-2", issuerId1.bigInt())).to.be.eq(false);
     await payment.pay("payment-id-2", issuerId1.bigInt(), schemaHash1.bigInt(), {
@@ -183,7 +185,9 @@ describe("VC Payment Contract", () => {
   it("getPaymentData work only for issuer or owner", async () => {
     await expect(
       payment.connect(userSigner).getPaymentData(issuerId1.bigInt(), schemaHash1.bigInt()),
-    ).to.be.revertedWithCustomError(payment, "OwnerOrIssuerError");
+    )
+      .to.be.revertedWithCustomError(payment, "WrongOwnerOrIssuer")
+      .withArgs(owner.address, issuer1Signer.address, userSigner.address);
   });
 
   it("updateOwnerPercentage work only for owner", async () => {
@@ -204,7 +208,9 @@ describe("VC Payment Contract", () => {
   it("updateValueToPay work only for issuer or owner", async () => {
     await expect(
       payment.connect(userSigner).updateValueToPay(issuerId1.bigInt(), schemaHash1.bigInt(), 1111),
-    ).to.be.revertedWithCustomError(payment, "OwnerOrIssuerError");
+    )
+      .to.be.revertedWithCustomError(payment, "WrongOwnerOrIssuer")
+      .withArgs(owner.address, issuer1Signer.address, userSigner.address);
 
     await payment
       .connect(issuer1Signer)
@@ -221,7 +227,9 @@ describe("VC Payment Contract", () => {
       payment
         .connect(userSigner)
         .updateWithdrawAddress(issuerId1.bigInt(), schemaHash1.bigInt(), issuer2Signer.address),
-    ).to.be.revertedWithCustomError(payment, "OwnerOrIssuerError");
+    )
+      .to.be.revertedWithCustomError(payment, "WrongOwnerOrIssuer")
+      .withArgs(owner.address, issuer1Signer.address, userSigner.address);
 
     await payment
       .connect(issuer1Signer)
@@ -256,7 +264,7 @@ describe("VC Payment Contract", () => {
     );
   });
 
-  it("test PaymentData events", async () => {
+  it("Should raise events when payment data is updated", async () => {
     await expect(
       payment.setPaymentValue(
         issuerId1.bigInt(),
@@ -294,5 +302,57 @@ describe("VC Payment Contract", () => {
     )
       .to.emit(payment, "Payment")
       .withArgs(issuerId1.bigInt(), "payment-id-1", schemaHash1.bigInt());
+  });
+
+  it("Should throw on validation errors", async () => {
+    await expect(
+      payment.setPaymentValue(issuerId1.bigInt(), schemaHash3.bigInt(), 100, 5, ethers.ZeroAddress),
+    )
+      .to.revertedWithCustomError(payment, "InvalidWithdrawAddress")
+      .withArgs(ethers.ZeroAddress);
+
+    await expect(
+      payment.setPaymentValue(
+        issuerId1.bigInt(),
+        schemaHash3.bigInt(),
+        100,
+        101,
+        issuer1Signer.address,
+      ),
+    )
+      .to.revertedWithCustomError(payment, "InvalidOwnerPercentage")
+      .withArgs(101);
+
+    await expect(payment.updateOwnerPercentage(issuerId1.bigInt(), schemaHash1.bigInt(), 101))
+      .to.be.revertedWithCustomError(payment, "InvalidOwnerPercentage")
+      .withArgs(101);
+
+    await expect(
+      payment.updateWithdrawAddress(issuerId1.bigInt(), schemaHash1.bigInt(), ethers.ZeroAddress),
+    )
+      .to.be.revertedWithCustomError(payment, "InvalidWithdrawAddress")
+      .withArgs(ethers.ZeroAddress);
+
+    await payment
+      .connect(userSigner)
+      .pay("payment-id-1", issuerId1.bigInt(), schemaHash1.bigInt(), {
+        value: 10000,
+      });
+
+    await expect(
+      payment.pay("payment-id-1", issuerId1.bigInt(), schemaHash1.bigInt(), {
+        value: 10000,
+      }),
+    )
+      .to.be.revertedWithCustomError(payment, "PaymentAlreadyDone")
+      .withArgs("payment-id-1", issuerId1.bigInt());
+
+    await expect(
+      payment.pay("payment-id-2", issuerId1.bigInt(), schemaHash3.bigInt(), {
+        value: 10000,
+      }),
+    )
+      .to.be.revertedWithCustomError(payment, "NoPaymentValueFound")
+      .withArgs(issuerId1.bigInt(), schemaHash3.bigInt());
   });
 });

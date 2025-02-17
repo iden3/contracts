@@ -82,12 +82,14 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         uint256 newValueToPay
     );
 
-    error InvalidOwnerPercentage(string message);
-    error InvalidWithdrawAddress(string message);
-    error PaymentError(string message);
-    error WithdrawError(string message);
+    error InvalidOwnerPercentage(uint256 percent);
+    error InvalidWithdrawAddress(address account);
+    error PaymentAlreadyDone(string paymentId, uint256 issuerId);
+    error NoPaymentValueFound(uint256 issuerId, uint256 schemaHash);
+    error InvalidPaymentValue(uint256 expectedValue, uint256 receivedValue);
+    error FailedToWithdraw(address account, uint256 amount);
     error NoBalanceToWithdraw(address account);
-    error OwnerOrIssuerError(string message);
+    error WrongOwnerOrIssuer(address expectedOwner, address expectedIssuer, address receivedAddress);
     error PaymentValueAlreadySet(uint256 issuerId, uint256 schemaHash);
 
     /**
@@ -99,7 +101,7 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
             .paymentData[keccak256(abi.encode(issuerId, schemaHash))]
             .withdrawAddress;
         if (issuerAddress != _msgSender() && owner() != _msgSender()) {
-            revert OwnerOrIssuerError("Only issuer or owner can call this function");
+            revert WrongOwnerOrIssuer(owner(), issuerAddress, _msgSender());
         }
         _;
     }
@@ -109,7 +111,7 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
      */
     modifier validPercentValue(uint256 percent) {
         if (percent < 0 || percent > 100) {
-            revert InvalidOwnerPercentage("Invalid owner percentage");
+            revert InvalidOwnerPercentage(percent);
         }
         _;
     }
@@ -119,7 +121,7 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
      */
     modifier validAddress(address withdrawAddress) {
         if (withdrawAddress == address(0)) {
-            revert InvalidWithdrawAddress("Invalid withdraw address");
+            revert InvalidWithdrawAddress(withdrawAddress);
         }
         _;
     }
@@ -203,14 +205,14 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         VCPaymentStorage storage $ = _getVCPaymentStorage();
         bytes32 payment = keccak256(abi.encode(issuerId, paymentId));
         if ($.payments[payment]) {
-            revert PaymentError("Payment already done");
+            revert PaymentAlreadyDone(paymentId, issuerId);
         }
         PaymentData storage payData = $.paymentData[keccak256(abi.encode(issuerId, schemaHash))];
         if (payData.valueToPay == 0) {
-            revert PaymentError("Payment value not found for this issuer and schema");
+            revert NoPaymentValueFound(issuerId, schemaHash);
         }
         if (payData.valueToPay != msg.value) {
-            revert PaymentError("Invalid value");
+            revert InvalidPaymentValue(payData.valueToPay, msg.value);
         }
         $.payments[payment] = true;
 
@@ -234,14 +236,14 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         VCPaymentStorage storage $ = _getVCPaymentStorage();
         uint256 amount = $.issuerAddressBalance[issuer];
         $.issuerAddressBalance[issuer] = 0;
-        _withdraw(amount, issuer);
+        _withdraw(issuer, amount);
     }
 
     function ownerWithdraw() public onlyOwner {
         VCPaymentStorage storage $ = _getVCPaymentStorage();
         uint256 amount = $.ownerBalance;
         $.ownerBalance = 0;
-        _withdraw(amount, owner());
+        _withdraw(owner(), amount);
     }
 
     function getPaymentData(
@@ -262,17 +264,14 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         return $.ownerBalance;
     }
 
-    function _withdraw(uint amount, address to) internal {
+    function _withdraw(address to, uint amount) internal {
         if (amount == 0) {
             revert NoBalanceToWithdraw(to);
-        }
-        if (to == address(0)) {
-            revert WithdrawError("Invalid withdraw address");
         }
 
         (bool sent, ) = to.call{value: amount}("");
         if (!sent) {
-            revert WithdrawError("Failed to withdraw");
+            revert FailedToWithdraw(to, amount);
         }
 
         emit Withdraw(to, amount);
