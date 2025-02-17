@@ -123,6 +123,11 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         _;
     }
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     /**
      * @dev Initialize the contract
      */
@@ -171,7 +176,7 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         uint256 issuerId,
         uint256 schemaHash,
         address withdrawAddress
-    ) external ownerOrIssuer(issuerId, schemaHash) validAddress(withdrawAddress) {
+    ) external ownerOrIssuer(issuerId, schemaHash) validAddress(withdrawAddress) nonReentrant {
         VCPaymentStorage storage $ = _getVCPaymentStorage();
         PaymentData storage payData = $.paymentData[keccak256(abi.encode(issuerId, schemaHash))];
         uint256 issuerBalance = $.issuerAddressBalance[payData.withdrawAddress];
@@ -186,7 +191,7 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         uint256 issuerId,
         uint256 schemaHash,
         uint256 value
-    ) external ownerOrIssuer(issuerId, schemaHash) {
+    ) external ownerOrIssuer(issuerId, schemaHash) nonReentrant {
         VCPaymentStorage storage $ = _getVCPaymentStorage();
         PaymentData storage payData = $.paymentData[keccak256(abi.encode(issuerId, schemaHash))];
         payData.valueToPay = value;
