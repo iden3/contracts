@@ -87,6 +87,7 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
     error PaymentError(string message);
     error WithdrawError(string message);
     error OwnerOrIssuerError(string message);
+    error PaymentValueAlreadySet(uint256 issuerId, uint256 schemaHash);
 
     /**
      * @dev Owner or issuer modifier
@@ -136,17 +137,22 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         uint256 ownerPercentage,
         address withdrawAddress
     ) public onlyOwner validPercentValue(ownerPercentage) validAddress(withdrawAddress) {
+        bytes32 paymentDataId = keccak256(abi.encode(issuerId, schemaHash));
         VCPaymentStorage storage $ = _getVCPaymentStorage();
-        PaymentData memory newPaymentData = PaymentData(
-            issuerId,
-            schemaHash,
-            value,
-            ownerPercentage,
-            withdrawAddress,
-            0
-        );
-        $.paymentDataIds.push(keccak256(abi.encode(issuerId, schemaHash)));
-        _setPaymentData(issuerId, schemaHash, newPaymentData);
+        PaymentData memory newPaymentData = PaymentData({
+            issuerId: issuerId,
+            schemaHash: schemaHash,
+            valueToPay: value,
+            ownerPercentage: ownerPercentage,
+            withdrawAddress: withdrawAddress,
+            totalValue: 0
+        });
+
+        if ($.paymentData[paymentDataId].withdrawAddress != address(0)) {
+            revert PaymentValueAlreadySet(issuerId, schemaHash);
+        }
+        $.paymentData[paymentDataId] = newPaymentData;
+        $.paymentDataIds.push(paymentDataId);
         emit PaymentDataSet(issuerId, schemaHash, value, ownerPercentage, withdrawAddress);
     }
 

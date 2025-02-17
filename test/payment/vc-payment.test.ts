@@ -61,6 +61,20 @@ describe("VC Payment Contract", () => {
     await loadFixture(deployContractsFixture);
   });
 
+  it("Should revert if payment value is already set", async () => {
+    await expect(
+      payment.setPaymentValue(
+        issuerId1.bigInt(),
+        schemaHash1.bigInt(),
+        10000,
+        5,
+        issuer1Signer.address,
+      ),
+    )
+      .to.be.revertedWithCustomError(payment, "PaymentValueAlreadySet")
+      .withArgs(issuerId1.bigInt(), schemaHash1.bigInt());
+  });
+
   it("Payment and issuer withdraw:", async () => {
     const paymentFromUser = payment.connect(userSigner);
 
@@ -212,27 +226,23 @@ describe("VC Payment Contract", () => {
     // set 3% to owner and payment value 25555
     await payment.setPaymentValue(
       issuerId1.bigInt(),
-      schemaHash1.bigInt(),
+      schemaHash3.bigInt(),
       25555,
       3,
       issuer1Signer.address,
     );
     await payment
       .connect(userSigner)
-      .pay("payment-id-1", issuerId1.bigInt(), schemaHash1.bigInt(), {
+      .pay("payment-id-1", issuerId1.bigInt(), schemaHash3.bigInt(), {
         value: 25555,
       });
-
-    const issuerBalanceBeforeWithdraw = await ethers.provider.getBalance(issuer1Signer.address);
-    const withdrawTx = await payment.connect(issuer1Signer).issuerWithdraw();
-    const receipt = await withdrawTx.wait();
-    const gasSpent = receipt!.gasUsed * receipt!.gasPrice;
 
     // Solidity rounds towards zero.
     // Owner part = 25555 * 3 / 100 = 766.65 => 766.
     // Issuer part = 25555 - 766 = 24789
-    expect(await ethers.provider.getBalance(issuer1Signer.address)).to.be.eq(
-      issuerBalanceBeforeWithdraw + BigInt(24789) - gasSpent,
+    expect(await payment.connect(issuer1Signer).issuerWithdraw()).changeEtherBalance(
+      issuer1Signer,
+      24789,
     );
   });
 
@@ -240,14 +250,14 @@ describe("VC Payment Contract", () => {
     await expect(
       payment.setPaymentValue(
         issuerId1.bigInt(),
-        schemaHash1.bigInt(),
+        schemaHash3.bigInt(),
         100,
         5,
         issuer1Signer.address,
       ),
     )
       .to.emit(payment, "PaymentDataSet")
-      .withArgs(issuerId1.bigInt(), schemaHash1.bigInt(), 100, 5, issuer1Signer.address);
+      .withArgs(issuerId1.bigInt(), schemaHash3.bigInt(), 100, 5, issuer1Signer.address);
 
     await expect(payment.updateOwnerPercentage(issuerId1.bigInt(), schemaHash1.bigInt(), 10))
       .to.emit(payment, "OwnerPercentageUpdated")
