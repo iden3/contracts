@@ -183,9 +183,10 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         uint256 issuerId,
         uint256 schemaHash,
         address withdrawAddress
-    ) external ownerOrIssuer(issuerId, schemaHash) validAddress(withdrawAddress) nonReentrant {
+    ) external onlyOwner validAddress(withdrawAddress) nonReentrant {
         VCPaymentStorage storage $ = _getVCPaymentStorage();
         PaymentData storage payData = $.paymentData[keccak256(abi.encode(issuerId, schemaHash))];
+
         uint256 issuerBalance = $.issuerAddressBalance[payData.withdrawAddress];
         $.issuerAddressBalance[payData.withdrawAddress] = 0;
         $.issuerAddressBalance[withdrawAddress] += issuerBalance;

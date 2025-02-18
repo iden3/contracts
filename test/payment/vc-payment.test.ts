@@ -137,14 +137,14 @@ describe("VC Payment Contract", () => {
 
     // this should not override the withdrawal balance of issuer 1
     await payment
-      .connect(issuer2Signer)
+      .connect(owner)
       .updateWithdrawAddress(issuerId2.bigInt(), schemaHash3.bigInt(), issuer1Signer.address);
 
     expect(await payment.connect(issuer1Signer).getMyBalance()).to.be.eq(9500);
     expect(await payment.connect(issuer2Signer).getMyBalance()).to.be.eq(0);
 
     await payment
-      .connect(issuer1Signer)
+      .connect(owner)
       .updateWithdrawAddress(issuerId1.bigInt(), schemaHash1.bigInt(), issuer2Signer.address);
 
     expect(await payment.connect(issuer1Signer).getMyBalance()).to.be.eq(0);
@@ -228,11 +228,11 @@ describe("VC Payment Contract", () => {
         .connect(userSigner)
         .updateWithdrawAddress(issuerId1.bigInt(), schemaHash1.bigInt(), issuer2Signer.address),
     )
-      .to.be.revertedWithCustomError(payment, "WrongOwnerOrIssuer")
-      .withArgs(owner.address, issuer1Signer.address, userSigner.address);
+      .to.be.revertedWithCustomError(payment, "OwnableUnauthorizedAccount")
+      .withArgs(userSigner.address);
 
     await payment
-      .connect(issuer1Signer)
+      .connect(owner)
       .updateWithdrawAddress(issuerId1.bigInt(), schemaHash1.bigInt(), issuer2Signer.address);
     const paymentData = await payment
       .connect(issuer2Signer)
