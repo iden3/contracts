@@ -18,6 +18,5 @@
   }
  ],
  "network": "privado-test",
- "chainId": 21001,
- "deployStrategy": "create2"
+ "chainId": 21001
 }

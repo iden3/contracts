@@ -1428,15 +1428,15 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
-          "t_contract(IState)2335": {
+          "t_contract(IState)1989": {
             "label": "contract IState",
             "numberOfBytes": "20"
           },
-          "t_contract(IVerifier)2386": {
+          "t_contract(IVerifier)2044": {
             "label": "contract IVerifier",
             "numberOfBytes": "20"
           },
-          "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2386)": {
+          "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2044)": {
             "label": "mapping(string => contract IVerifier)",
             "numberOfBytes": "32"
           },
@@ -1452,12 +1452,12 @@
             "label": "string",
             "numberOfBytes": "32"
           },
-          "t_struct(CredentialAtomicQueryValidatorBaseStorage)7016_storage": {
+          "t_struct(CredentialAtomicQueryValidatorBaseStorage)6129_storage": {
             "label": "struct CredentialAtomicQueryValidatorBase.CredentialAtomicQueryValidatorBaseStorage",
             "members": [
               {
                 "label": "_circuitIdToVerifier",
-                "type": "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2386)",
+                "type": "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2044)",
                 "offset": 0,
                 "slot": "0"
               },
@@ -1469,7 +1469,7 @@
               },
               {
                 "label": "state",
-                "type": "t_contract(IState)2335",
+                "type": "t_contract(IState)1989",
                 "offset": 0,
                 "slot": "2"
               },
@@ -1556,8 +1556,8 @@
             {
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "_circuitIdToVerifier",
-              "type": "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2386)",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:20",
+              "type": "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2044)",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:23",
               "offset": 0,
               "slot": "0"
             },
@@ -1565,15 +1565,15 @@
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "_supportedCircuitIds",
               "type": "t_array(t_string_storage)dyn_storage",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:21",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:24",
               "offset": 0,
               "slot": "1"
             },
             {
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "state",
-              "type": "t_contract(IState)2335",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:22",
+              "type": "t_contract(IState)1989",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:25",
               "offset": 0,
               "slot": "2"
             },
@@ -1581,7 +1581,7 @@
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "revocationStateExpirationTimeout",
               "type": "t_uint256",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:23",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:26",
               "offset": 0,
               "slot": "3"
             },
@@ -1589,7 +1589,7 @@
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "proofExpirationTimeout",
               "type": "t_uint256",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:24",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:27",
               "offset": 0,
               "slot": "4"
             },
@@ -1597,7 +1597,7 @@
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "gistRootExpirationTimeout",
               "type": "t_uint256",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:25",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:28",
               "offset": 0,
               "slot": "5"
             },
@@ -1605,7 +1605,7 @@
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "_inputNameToIndex",
               "type": "t_mapping(t_string_memory_ptr,t_uint256)",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:26",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:29",
               "offset": 0,
               "slot": "6"
             }
@@ -1670,15 +1670,15 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
-          "t_contract(IState)2335": {
+          "t_contract(IState)1989": {
             "label": "contract IState",
             "numberOfBytes": "20"
           },
-          "t_contract(IVerifier)2386": {
+          "t_contract(IVerifier)2044": {
             "label": "contract IVerifier",
             "numberOfBytes": "20"
           },
-          "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2386)": {
+          "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2044)": {
             "label": "mapping(string => contract IVerifier)",
             "numberOfBytes": "32"
           },
@@ -1694,12 +1694,12 @@
             "label": "string",
             "numberOfBytes": "32"
           },
-          "t_struct(CredentialAtomicQueryValidatorBaseStorage)7016_storage": {
+          "t_struct(CredentialAtomicQueryValidatorBaseStorage)6129_storage": {
             "label": "struct CredentialAtomicQueryValidatorBase.CredentialAtomicQueryValidatorBaseStorage",
             "members": [
               {
                 "label": "_circuitIdToVerifier",
-                "type": "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2386)",
+                "type": "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2044)",
                 "offset": 0,
                 "slot": "0"
               },
@@ -1711,7 +1711,7 @@
               },
               {
                 "label": "state",
-                "type": "t_contract(IState)2335",
+                "type": "t_contract(IState)1989",
                 "offset": 0,
                 "slot": "2"
               },
@@ -1798,8 +1798,8 @@
             {
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "_circuitIdToVerifier",
-              "type": "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2386)",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:20",
+              "type": "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2044)",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:23",
               "offset": 0,
               "slot": "0"
             },
@@ -1807,15 +1807,15 @@
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "_supportedCircuitIds",
               "type": "t_array(t_string_storage)dyn_storage",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:21",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:24",
               "offset": 0,
               "slot": "1"
             },
             {
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "state",
-              "type": "t_contract(IState)2335",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:22",
+              "type": "t_contract(IState)1989",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:25",
               "offset": 0,
               "slot": "2"
             },
@@ -1823,7 +1823,7 @@
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "revocationStateExpirationTimeout",
               "type": "t_uint256",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:23",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:26",
               "offset": 0,
               "slot": "3"
             },
@@ -1831,7 +1831,7 @@
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "proofExpirationTimeout",
               "type": "t_uint256",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:24",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:27",
               "offset": 0,
               "slot": "4"
             },
@@ -1839,7 +1839,7 @@
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "gistRootExpirationTimeout",
               "type": "t_uint256",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:25",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:28",
               "offset": 0,
               "slot": "5"
             },
@@ -1847,7 +1847,7 @@
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "_inputNameToIndex",
               "type": "t_mapping(t_string_memory_ptr,t_uint256)",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:26",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:29",
               "offset": 0,
               "slot": "6"
             }
@@ -1912,15 +1912,15 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
-          "t_contract(IState)1650": {
+          "t_contract(IState)1989": {
             "label": "contract IState",
             "numberOfBytes": "20"
           },
-          "t_contract(IVerifier)1701": {
+          "t_contract(IVerifier)2044": {
             "label": "contract IVerifier",
             "numberOfBytes": "20"
           },
-          "t_mapping(t_string_memory_ptr,t_contract(IVerifier)1701)": {
+          "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2044)": {
             "label": "mapping(string => contract IVerifier)",
             "numberOfBytes": "32"
           },
@@ -1936,12 +1936,12 @@
             "label": "string",
             "numberOfBytes": "32"
           },
-          "t_struct(CredentialAtomicQueryValidatorBaseStorage)3556_storage": {
+          "t_struct(CredentialAtomicQueryValidatorBaseStorage)6129_storage": {
             "label": "struct CredentialAtomicQueryValidatorBase.CredentialAtomicQueryValidatorBaseStorage",
             "members": [
               {
                 "label": "_circuitIdToVerifier",
-                "type": "t_mapping(t_string_memory_ptr,t_contract(IVerifier)1701)",
+                "type": "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2044)",
                 "offset": 0,
                 "slot": "0"
               },
@@ -1953,7 +1953,7 @@
               },
               {
                 "label": "state",
-                "type": "t_contract(IState)1650",
+                "type": "t_contract(IState)1989",
                 "offset": 0,
                 "slot": "2"
               },
@@ -2040,8 +2040,8 @@
             {
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "_circuitIdToVerifier",
-              "type": "t_mapping(t_string_memory_ptr,t_contract(IVerifier)1701)",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:20",
+              "type": "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2044)",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:23",
               "offset": 0,
               "slot": "0"
             },
@@ -2049,15 +2049,15 @@
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "_supportedCircuitIds",
               "type": "t_array(t_string_storage)dyn_storage",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:21",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:24",
               "offset": 0,
               "slot": "1"
             },
             {
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "state",
-              "type": "t_contract(IState)1650",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:22",
+              "type": "t_contract(IState)1989",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:25",
               "offset": 0,
               "slot": "2"
             },
@@ -2065,7 +2065,7 @@
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "revocationStateExpirationTimeout",
               "type": "t_uint256",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:23",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:26",
               "offset": 0,
               "slot": "3"
             },
@@ -2073,7 +2073,7 @@
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "proofExpirationTimeout",
               "type": "t_uint256",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:24",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:27",
               "offset": 0,
               "slot": "4"
             },
@@ -2081,7 +2081,7 @@
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "gistRootExpirationTimeout",
               "type": "t_uint256",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:25",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:28",
               "offset": 0,
               "slot": "5"
             },
@@ -2089,7 +2089,7 @@
               "contract": "CredentialAtomicQueryValidatorBase",
               "label": "_inputNameToIndex",
               "type": "t_mapping(t_string_memory_ptr,t_uint256)",
-              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:26",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:29",
               "offset": 0,
               "slot": "6"
             }
@@ -2450,6 +2450,1550 @@
               "label": "_state",
               "type": "t_contract(IState)2335",
               "src": "contracts/verifiers/ZKPVerifierBase.sol:38",
+              "offset": 0,
+              "slot": "3"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable2Step": [
+            {
+              "contract": "Ownable2StepUpgradeable",
+              "label": "_pendingOwner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol:23",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "330725531b47ee29b9d8879e0fcd1d9fb03af6a1b6cea891a0493cc700c07215": {
+      "address": "0xDf24f8c21Cb404B3031a450D8e049D6E39FC1fA5",
+      "txHash": "0xa49cd800d9db32220e918d39a31ae4cff2465b135d352bd7925fb001c6b25f63",
+      "layout": {
+        "solcVersion": "0.8.27",
+        "storage": [],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_string_storage)dyn_storage": {
+            "label": "string[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IState)2077": {
+            "label": "contract IState",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IVerifier)2104": {
+            "label": "contract IVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2104)": {
+            "label": "mapping(string => contract IVerifier)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_uint256)": {
+            "label": "mapping(string => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(CredentialAtomicQueryValidatorBaseStorage)3545_storage": {
+            "label": "struct CredentialAtomicQueryValidatorBase.CredentialAtomicQueryValidatorBaseStorage",
+            "members": [
+              {
+                "label": "_circuitIdToVerifier",
+                "type": "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2104)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_supportedCircuitIds",
+                "type": "t_array(t_string_storage)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "state",
+                "type": "t_contract(IState)2077",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "revocationStateExpirationTimeout",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "proofExpirationTimeout",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "gistRootExpirationTimeout",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "_inputNameToIndex",
+                "type": "t_mapping(t_string_memory_ptr,t_uint256)",
+                "offset": 0,
+                "slot": "6"
+              }
+            ],
+            "numberOfBytes": "224"
+          },
+          "t_struct(InitializableStorage)159_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(Ownable2StepStorage)14_storage": {
+            "label": "struct Ownable2StepUpgradeable.Ownable2StepStorage",
+            "members": [
+              {
+                "label": "_pendingOwner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(OwnableStorage)80_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          }
+        },
+        "namespaces": {
+          "iden3.storage.CredentialAtomicQueryValidator": [
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "_circuitIdToVerifier",
+              "type": "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2104)",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:23",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "_supportedCircuitIds",
+              "type": "t_array(t_string_storage)dyn_storage",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:24",
+              "offset": 0,
+              "slot": "1"
+            },
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "state",
+              "type": "t_contract(IState)2077",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:25",
+              "offset": 0,
+              "slot": "2"
+            },
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "revocationStateExpirationTimeout",
+              "type": "t_uint256",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:26",
+              "offset": 0,
+              "slot": "3"
+            },
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "proofExpirationTimeout",
+              "type": "t_uint256",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:27",
+              "offset": 0,
+              "slot": "4"
+            },
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "gistRootExpirationTimeout",
+              "type": "t_uint256",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:28",
+              "offset": 0,
+              "slot": "5"
+            },
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "_inputNameToIndex",
+              "type": "t_mapping(t_string_memory_ptr,t_uint256)",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:29",
+              "offset": 0,
+              "slot": "6"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable2Step": [
+            {
+              "contract": "Ownable2StepUpgradeable",
+              "label": "_pendingOwner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol:23",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "22ef358d8058c5e998ef54b4bcad28c63e2f03cc94c298712bd84b753d65b2ce": {
+      "address": "0x42Bdfa05945dB355D59fE0B65124e3636F7fEdB5",
+      "txHash": "0x85f1ff5695d261948750042d025050c113f990166e9b28d376b80e7a3f98ae88",
+      "layout": {
+        "solcVersion": "0.8.27",
+        "storage": [],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_string_storage)dyn_storage": {
+            "label": "string[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IState)2077": {
+            "label": "contract IState",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IVerifier)2104": {
+            "label": "contract IVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2104)": {
+            "label": "mapping(string => contract IVerifier)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_uint256)": {
+            "label": "mapping(string => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(CredentialAtomicQueryValidatorBaseStorage)3545_storage": {
+            "label": "struct CredentialAtomicQueryValidatorBase.CredentialAtomicQueryValidatorBaseStorage",
+            "members": [
+              {
+                "label": "_circuitIdToVerifier",
+                "type": "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2104)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_supportedCircuitIds",
+                "type": "t_array(t_string_storage)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "state",
+                "type": "t_contract(IState)2077",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "revocationStateExpirationTimeout",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "proofExpirationTimeout",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "gistRootExpirationTimeout",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "_inputNameToIndex",
+                "type": "t_mapping(t_string_memory_ptr,t_uint256)",
+                "offset": 0,
+                "slot": "6"
+              }
+            ],
+            "numberOfBytes": "224"
+          },
+          "t_struct(InitializableStorage)159_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(Ownable2StepStorage)14_storage": {
+            "label": "struct Ownable2StepUpgradeable.Ownable2StepStorage",
+            "members": [
+              {
+                "label": "_pendingOwner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(OwnableStorage)80_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          }
+        },
+        "namespaces": {
+          "iden3.storage.CredentialAtomicQueryValidator": [
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "_circuitIdToVerifier",
+              "type": "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2104)",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:23",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "_supportedCircuitIds",
+              "type": "t_array(t_string_storage)dyn_storage",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:24",
+              "offset": 0,
+              "slot": "1"
+            },
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "state",
+              "type": "t_contract(IState)2077",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:25",
+              "offset": 0,
+              "slot": "2"
+            },
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "revocationStateExpirationTimeout",
+              "type": "t_uint256",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:26",
+              "offset": 0,
+              "slot": "3"
+            },
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "proofExpirationTimeout",
+              "type": "t_uint256",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:27",
+              "offset": 0,
+              "slot": "4"
+            },
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "gistRootExpirationTimeout",
+              "type": "t_uint256",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:28",
+              "offset": 0,
+              "slot": "5"
+            },
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "_inputNameToIndex",
+              "type": "t_mapping(t_string_memory_ptr,t_uint256)",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:29",
+              "offset": 0,
+              "slot": "6"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable2Step": [
+            {
+              "contract": "Ownable2StepUpgradeable",
+              "label": "_pendingOwner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol:23",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "feed800f053273c8c855e53a8bb2cae44a51a542f70b02a321218603fa12e7a2": {
+      "address": "0x430bC914AFC3Ae1271918339DdB501E41170a29C",
+      "txHash": "0x4df95f0f9e8848b5a082f2a4aa0286405912a469fac8a6ec29349a3cfba69a6b",
+      "layout": {
+        "solcVersion": "0.8.27",
+        "storage": [],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_string_storage)dyn_storage": {
+            "label": "string[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IState)2077": {
+            "label": "contract IState",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IVerifier)2104": {
+            "label": "contract IVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2104)": {
+            "label": "mapping(string => contract IVerifier)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_uint256)": {
+            "label": "mapping(string => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(CredentialAtomicQueryValidatorBaseStorage)3545_storage": {
+            "label": "struct CredentialAtomicQueryValidatorBase.CredentialAtomicQueryValidatorBaseStorage",
+            "members": [
+              {
+                "label": "_circuitIdToVerifier",
+                "type": "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2104)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_supportedCircuitIds",
+                "type": "t_array(t_string_storage)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "state",
+                "type": "t_contract(IState)2077",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "revocationStateExpirationTimeout",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "proofExpirationTimeout",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "gistRootExpirationTimeout",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "_inputNameToIndex",
+                "type": "t_mapping(t_string_memory_ptr,t_uint256)",
+                "offset": 0,
+                "slot": "6"
+              }
+            ],
+            "numberOfBytes": "224"
+          },
+          "t_struct(InitializableStorage)159_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(Ownable2StepStorage)14_storage": {
+            "label": "struct Ownable2StepUpgradeable.Ownable2StepStorage",
+            "members": [
+              {
+                "label": "_pendingOwner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(OwnableStorage)80_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          }
+        },
+        "namespaces": {
+          "iden3.storage.CredentialAtomicQueryValidator": [
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "_circuitIdToVerifier",
+              "type": "t_mapping(t_string_memory_ptr,t_contract(IVerifier)2104)",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:23",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "_supportedCircuitIds",
+              "type": "t_array(t_string_storage)dyn_storage",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:24",
+              "offset": 0,
+              "slot": "1"
+            },
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "state",
+              "type": "t_contract(IState)2077",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:25",
+              "offset": 0,
+              "slot": "2"
+            },
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "revocationStateExpirationTimeout",
+              "type": "t_uint256",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:26",
+              "offset": 0,
+              "slot": "3"
+            },
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "proofExpirationTimeout",
+              "type": "t_uint256",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:27",
+              "offset": 0,
+              "slot": "4"
+            },
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "gistRootExpirationTimeout",
+              "type": "t_uint256",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:28",
+              "offset": 0,
+              "slot": "5"
+            },
+            {
+              "contract": "CredentialAtomicQueryValidatorBase",
+              "label": "_inputNameToIndex",
+              "type": "t_mapping(t_string_memory_ptr,t_uint256)",
+              "src": "contracts/validators/CredentialAtomicQueryValidatorBase.sol:29",
+              "offset": 0,
+              "slot": "6"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable2Step": [
+            {
+              "contract": "Ownable2StepUpgradeable",
+              "label": "_pendingOwner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol:23",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "9425097019e66c0b8c54eed2ae6f1fded990df9219190896648d68ec367ef54a": {
+      "address": "0xeB9fEe616EAA3Bf74EB2bC8fa1D40d19315bbd8d",
+      "txHash": "0x84811eef9570d7da3f528b92df16fab9ecc2a4716e1039bc3f030f8e972f7393",
+      "layout": {
+        "solcVersion": "0.8.27",
+        "storage": [
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_array(t_uint256)651_storage",
+            "contract": "State",
+            "src": "contracts/state/State.sol:29"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "651",
+            "type": "t_contract(IStateTransitionVerifier)4822",
+            "contract": "State",
+            "src": "contracts/state/State.sol:34"
+          },
+          {
+            "label": "_stateData",
+            "offset": 0,
+            "slot": "652",
+            "type": "t_struct(Data)7887_storage",
+            "contract": "State",
+            "src": "contracts/state/State.sol:39"
+          },
+          {
+            "label": "_gistData",
+            "offset": 0,
+            "slot": "702",
+            "type": "t_struct(Data)6001_storage",
+            "contract": "State",
+            "src": "contracts/state/State.sol:44"
+          },
+          {
+            "label": "_defaultIdType",
+            "offset": 0,
+            "slot": "752",
+            "type": "t_bytes2",
+            "contract": "State",
+            "src": "contracts/state/State.sol:49"
+          },
+          {
+            "label": "_defaultIdTypeInitialized",
+            "offset": 2,
+            "slot": "752",
+            "type": "t_bool",
+            "contract": "State",
+            "src": "contracts/state/State.sol:54"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes2": {
+            "label": "bytes2",
+            "numberOfBytes": "2"
+          },
+          "t_contract(ICrossChainProofValidator)1826": {
+            "label": "contract ICrossChainProofValidator",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IState)2072": {
+            "label": "contract IState",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_bytes2,t_mapping(t_uint256,t_uint256))": {
+            "label": "mapping(bytes2 => mapping(uint256 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_uint256))": {
+            "label": "mapping(uint256 => mapping(uint256 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(InitializableStorage)159_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(Ownable2StepStorage)14_storage": {
+            "label": "struct Ownable2StepUpgradeable.Ownable2StepStorage",
+            "members": [
+              {
+                "label": "_pendingOwner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(OwnableStorage)80_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(StateCrossChainStorage)3728_storage": {
+            "label": "struct State.StateCrossChainStorage",
+            "members": [
+              {
+                "label": "_idToStateReplacedAt",
+                "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_uint256))",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_rootToGistRootReplacedAt",
+                "type": "t_mapping(t_bytes2,t_mapping(t_uint256,t_uint256))",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "_crossChainProofValidator",
+                "type": "t_contract(ICrossChainProofValidator)1826",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "_state",
+                "type": "t_contract(IState)2072",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_array(t_struct(Entry)7864_storage)dyn_storage": {
+            "label": "struct StateLib.Entry[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_struct(RootEntry)6028_storage)dyn_storage": {
+            "label": "struct SmtLib.RootEntry[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]",
+            "numberOfBytes": "1440"
+          },
+          "t_array(t_uint256)47_storage": {
+            "label": "uint256[47]",
+            "numberOfBytes": "1504"
+          },
+          "t_array(t_uint256)651_storage": {
+            "label": "uint256[651]",
+            "numberOfBytes": "20832"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IStateTransitionVerifier)4822": {
+            "label": "contract IStateTransitionVerifier",
+            "numberOfBytes": "20"
+          },
+          "t_enum(NodeType)5977": {
+            "label": "enum SmtLib.NodeType",
+            "members": [
+              "EMPTY",
+              "LEAF",
+              "MIDDLE"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_bytes2,t_bool)": {
+            "label": "mapping(bytes2 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_array(t_struct(Entry)7864_storage)dyn_storage)": {
+            "label": "mapping(uint256 => struct StateLib.Entry[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)": {
+            "label": "mapping(uint256 => uint256[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_array(t_uint256)dyn_storage))": {
+            "label": "mapping(uint256 => mapping(uint256 => uint256[]))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Node)6055_storage)": {
+            "label": "mapping(uint256 => struct SmtLib.Node)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Data)6001_storage": {
+            "label": "struct SmtLib.Data",
+            "members": [
+              {
+                "label": "nodes",
+                "type": "t_mapping(t_uint256,t_struct(Node)6055_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "rootEntries",
+                "type": "t_array(t_struct(RootEntry)6028_storage)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "rootIndexes",
+                "type": "t_mapping(t_uint256,t_array(t_uint256)dyn_storage)",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "maxDepth",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "initialized",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)45_storage",
+                "offset": 0,
+                "slot": "5"
+              }
+            ],
+            "numberOfBytes": "1600"
+          },
+          "t_struct(Data)7887_storage": {
+            "label": "struct StateLib.Data",
+            "members": [
+              {
+                "label": "stateEntries",
+                "type": "t_mapping(t_uint256,t_array(t_struct(Entry)7864_storage)dyn_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "stateIndexes",
+                "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_array(t_uint256)dyn_storage))",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "isIdTypeSupported",
+                "type": "t_mapping(t_bytes2,t_bool)",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)47_storage",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "1600"
+          },
+          "t_struct(Entry)7864_storage": {
+            "label": "struct StateLib.Entry",
+            "members": [
+              {
+                "label": "state",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "block",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(Node)6055_storage": {
+            "label": "struct SmtLib.Node",
+            "members": [
+              {
+                "label": "nodeType",
+                "type": "t_enum(NodeType)5977",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "childLeft",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "childRight",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "index",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "value",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(RootEntry)6028_storage": {
+            "label": "struct SmtLib.RootEntry",
+            "members": [
+              {
+                "label": "root",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "createdAtTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "createdAtBlock",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          }
+        },
+        "namespaces": {
+          "erc7201:iden3.storage.StateCrossChain": [
+            {
+              "contract": "State",
+              "label": "_idToStateReplacedAt",
+              "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_uint256))",
+              "src": "contracts/state/State.sol:63",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "State",
+              "label": "_rootToGistRootReplacedAt",
+              "type": "t_mapping(t_bytes2,t_mapping(t_uint256,t_uint256))",
+              "src": "contracts/state/State.sol:64",
+              "offset": 0,
+              "slot": "1"
+            },
+            {
+              "contract": "State",
+              "label": "_crossChainProofValidator",
+              "type": "t_contract(ICrossChainProofValidator)1826",
+              "src": "contracts/state/State.sol:65",
+              "offset": 0,
+              "slot": "2"
+            },
+            {
+              "contract": "State",
+              "label": "_state",
+              "type": "t_contract(IState)2072",
+              "src": "contracts/state/State.sol:66",
+              "offset": 0,
+              "slot": "3"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable2Step": [
+            {
+              "contract": "Ownable2StepUpgradeable",
+              "label": "_pendingOwner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol:23",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "ad2f5c10f4c0d8ab8c4ce2ceacc18f362eddae3145c72af1f3972f69272f42c0": {
+      "address": "0xdc1899706A00812088fE8c2717e2F07D1A504d07",
+      "txHash": "0x2d46cb5e130af1258c3bf0409198298d52e51434865da91b99eee2f1d2e5e4d9",
+      "layout": {
+        "solcVersion": "0.8.27",
+        "storage": [],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint64)dyn_storage": {
+            "label": "uint64[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes_storage": {
+            "label": "bytes",
+            "numberOfBytes": "32"
+          },
+          "t_contract(ICircuitValidator)1831": {
+            "label": "contract ICircuitValidator",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IState)2077": {
+            "label": "contract IState",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_mapping(t_uint64,t_struct(Proof)2483_storage))": {
+            "label": "mapping(address => mapping(uint64 => struct VerifierLib.Proof))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_contract(ICircuitValidator)1831,t_bool)": {
+            "label": "mapping(contract ICircuitValidator => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_bytes_storage)": {
+            "label": "mapping(string => bytes)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_uint256)": {
+            "label": "mapping(string => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint64,t_address)": {
+            "label": "mapping(uint64 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint64,t_bool)": {
+            "label": "mapping(uint64 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint64,t_struct(Proof)2483_storage)": {
+            "label": "mapping(uint64 => struct VerifierLib.Proof)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint64,t_struct(ZKPRequest)2118_storage)": {
+            "label": "mapping(uint64 => struct IZKPVerifier.ZKPRequest)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(InitializableStorage)159_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(Ownable2StepStorage)14_storage": {
+            "label": "struct Ownable2StepUpgradeable.Ownable2StepStorage",
+            "members": [
+              {
+                "label": "_pendingOwner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(OwnableStorage)80_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(Proof)2483_storage": {
+            "label": "struct VerifierLib.Proof",
+            "members": [
+              {
+                "label": "isVerified",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "storageFields",
+                "type": "t_mapping(t_string_memory_ptr,t_uint256)",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "validatorVersion",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "blockNumber",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "blockTimestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "metadata",
+                "type": "t_mapping(t_string_memory_ptr,t_bytes_storage)",
+                "offset": 0,
+                "slot": "5"
+              }
+            ],
+            "numberOfBytes": "192"
+          },
+          "t_struct(RequestDisableStorage)3929_storage": {
+            "label": "struct RequestDisableable.RequestDisableStorage",
+            "members": [
+              {
+                "label": "_requestDisabling",
+                "type": "t_mapping(t_uint64,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(RequestOwnershipStorage)4018_storage": {
+            "label": "struct RequestOwnership.RequestOwnershipStorage",
+            "members": [
+              {
+                "label": "_requestOwners",
+                "type": "t_mapping(t_uint64,t_address)",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(ValidatorWhitelistStorage)4306_storage": {
+            "label": "struct ValidatorWhitelist.ValidatorWhitelistStorage",
+            "members": [
+              {
+                "label": "_validatorWhitelist",
+                "type": "t_mapping(t_contract(ICircuitValidator)1831,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(ZKPRequest)2118_storage": {
+            "label": "struct IZKPVerifier.ZKPRequest",
+            "members": [
+              {
+                "label": "metadata",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "validator",
+                "type": "t_contract(ICircuitValidator)1831",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "data",
+                "type": "t_bytes_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(ZKPVerifierStorage)4446_storage": {
+            "label": "struct ZKPVerifierBase.ZKPVerifierStorage",
+            "members": [
+              {
+                "label": "_proofs",
+                "type": "t_mapping(t_address,t_mapping(t_uint64,t_struct(Proof)2483_storage))",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_requests",
+                "type": "t_mapping(t_uint64,t_struct(ZKPRequest)2118_storage)",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "_requestIds",
+                "type": "t_array(t_uint64)dyn_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "_state",
+                "type": "t_contract(IState)2077",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          }
+        },
+        "namespaces": {
+          "erc7201:iden3.storage.ValidatorWhitelist": [
+            {
+              "contract": "ValidatorWhitelist",
+              "label": "_validatorWhitelist",
+              "type": "t_mapping(t_contract(ICircuitValidator)1831,t_bool)",
+              "src": "contracts/verifiers/ValidatorWhitelist.sol:12",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:iden3.storage.RequestDisableable": [
+            {
+              "contract": "RequestDisableable",
+              "label": "_requestDisabling",
+              "type": "t_mapping(t_uint64,t_bool)",
+              "src": "contracts/verifiers/RequestDisableable.sol:11",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:iden3.storage.RequestOwnership": [
+            {
+              "contract": "RequestOwnership",
+              "label": "_requestOwners",
+              "type": "t_mapping(t_uint64,t_address)",
+              "src": "contracts/verifiers/RequestOwnership.sol:10",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:iden3.storage.ZKPVerifier": [
+            {
+              "contract": "ZKPVerifierBase",
+              "label": "_proofs",
+              "type": "t_mapping(t_address,t_mapping(t_uint64,t_struct(Proof)2483_storage))",
+              "src": "contracts/verifiers/ZKPVerifierBase.sol:19",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "ZKPVerifierBase",
+              "label": "_requests",
+              "type": "t_mapping(t_uint64,t_struct(ZKPRequest)2118_storage)",
+              "src": "contracts/verifiers/ZKPVerifierBase.sol:20",
+              "offset": 0,
+              "slot": "1"
+            },
+            {
+              "contract": "ZKPVerifierBase",
+              "label": "_requestIds",
+              "type": "t_array(t_uint64)dyn_storage",
+              "src": "contracts/verifiers/ZKPVerifierBase.sol:21",
+              "offset": 0,
+              "slot": "2"
+            },
+            {
+              "contract": "ZKPVerifierBase",
+              "label": "_state",
+              "type": "t_contract(IState)2077",
+              "src": "contracts/verifiers/ZKPVerifierBase.sol:22",
               "offset": 0,
               "slot": "3"
             }

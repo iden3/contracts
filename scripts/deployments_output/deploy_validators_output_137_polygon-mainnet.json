@@ -18,6 +18,5 @@
   }
  ],
  "network": "polygon-mainnet",
- "chainId": 137,
- "deployStrategy": "create2"
+ "chainId": 137
 }
