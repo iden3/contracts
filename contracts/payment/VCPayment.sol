@@ -205,7 +205,11 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         emit ValueToPayUpdated(issuerId, schemaHash, value);
     }
 
-    function pay(string calldata paymentId, uint256 issuerId, uint256 schemaHash) external payable nonReentrant {
+    function pay(
+        string calldata paymentId,
+        uint256 issuerId,
+        uint256 schemaHash
+    ) external payable nonReentrant {
         VCPaymentStorage storage $ = _getVCPaymentStorage();
         bytes32 payment = keccak256(abi.encode(issuerId, paymentId));
         if ($.payments[payment]) {
