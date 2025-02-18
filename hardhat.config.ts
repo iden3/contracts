@@ -103,11 +103,6 @@ const config: HardhatUserConfig = {
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
-    "privado-devnet": {
-      chainId: 21010,
-      url: `https://privado-devnet-rpc.eu-north-2.gateway.fm/`,
-      accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-    },
     // hardhat: {
     //   chainId: 80002,
     //   forking: {
