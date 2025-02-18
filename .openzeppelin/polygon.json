@@ -48,6 +48,10 @@
     {
       "address": "0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81",
       "kind": "transparent"
+    },
+    {
+      "address": "0xba83D99c87358Ef9B6f7c4a5A94021A58d870704",
+      "kind": "transparent"
     }
   ],
   "impls": {

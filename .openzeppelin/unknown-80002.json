@@ -73,6 +73,10 @@
     {
       "address": "0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c",
       "kind": "transparent"
+    },
+    {
+      "address": "0xba83D99c87358Ef9B6f7c4a5A94021A58d870704",
+      "kind": "transparent"
     }
   ],
   "impls": {
