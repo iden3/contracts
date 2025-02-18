@@ -7,7 +7,7 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.0.0";
+    string public constant VERSION = "1.0.1";
 
     /// @custom:storage-location erc7201:iden3.storage.VCPayment
     struct PaymentData {
@@ -205,7 +205,7 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         emit ValueToPayUpdated(issuerId, schemaHash, value);
     }
 
-    function pay(string calldata paymentId, uint256 issuerId, uint256 schemaHash) external payable {
+    function pay(string calldata paymentId, uint256 issuerId, uint256 schemaHash) external payable nonReentrant {
         VCPaymentStorage storage $ = _getVCPaymentStorage();
         bytes32 payment = keccak256(abi.encode(issuerId, paymentId));
         if ($.payments[payment]) {
@@ -243,7 +243,7 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         _withdraw(issuer, amount);
     }
 
-    function ownerWithdraw() public onlyOwner {
+    function ownerWithdraw() public onlyOwner nonReentrant {
         VCPaymentStorage storage $ = _getVCPaymentStorage();
         uint256 amount = $.ownerBalance;
         $.ownerBalance = 0;
