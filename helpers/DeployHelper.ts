@@ -1143,8 +1143,7 @@ export class DeployHelper {
     if (deployStrategy === "create2") {
       this.log("deploying with CREATE2 strategy...");
 
-      // TODO: uncomment when VC_PAYMENT contract is ready with unified addresses
-      /* vcPayment = await getUnifiedContract(contractsInfo.VC_PAYMENT.name);
+      vcPayment = await getUnifiedContract(contractsInfo.VC_PAYMENT.name);
       if (vcPayment) {
         Logger.warning(
           `${contractsInfo.VC_PAYMENT.name} found already deployed to:  ${await vcPayment?.getAddress()}`,
@@ -1152,7 +1151,7 @@ export class DeployHelper {
         return {
           vcPayment,
         };
-      }*/
+      }
 
       // Deploying VCPayment contract to predictable address but with dummy implementation
       vcPayment = (
