@@ -7,6 +7,8 @@ import {IdentityLib} from "../lib/IdentityLib.sol";
 import {SmtLib} from "../lib/SmtLib.sol";
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
+error IdentityIdMismatch();
+
 // /**
 //  * @dev Contract managing onchain identity
 //  */
@@ -20,11 +22,13 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.IdentityBase")) - 1))
     //      & ~bytes32(uint256(0xff));
+    // solhint-disable-next-line const-name-snakecase
     bytes32 private constant IdentityBaseStorageLocation =
         0x3018a310c36c4f8228f09bf3b1822685cf0971daa8265a58ca807c4a4daba400;
 
     /// @dev Get the main storage using assembly to ensure specific storage location
     function _getIdentityBaseStorage() internal pure returns (IdentityBaseStorage storage $) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             $.slot := IdentityBaseStorageLocation
         }
@@ -262,7 +266,9 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
         uint256 state,
         uint64 nonce
     ) public view returns (CredentialStatus memory) {
-        require(id == _getIdentityBaseStorage().identity.id, "Identity id mismatch");
+        if (id != _getIdentityBaseStorage().identity.id) {
+            revert IdentityIdMismatch();
+        }
         IdentityLib.Roots memory historicalStates = _getIdentityBaseStorage()
             .identity
             .getRootsByState(state);

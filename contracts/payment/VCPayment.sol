@@ -48,10 +48,12 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.VCPayment")) - 1)) &
     //    ~bytes32(uint256(0xff));
+    // solhint-disable-next-line const-name-snakecase
     bytes32 private constant VCPaymentStorageLocation =
         0xbb49acb92ce91902600caabfefad66ed7ac2a150edbd631ab48a5501402b3300;
 
     function _getVCPaymentStorage() private pure returns (VCPaymentStorage storage $) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             $.slot := VCPaymentStorageLocation
         }

@@ -28,29 +28,9 @@ async function main() {
     "./scripts/deployments_output/temp_deployments_output.json",
   );
 
-  let verifierLib = await tmpContractDeployments.getContract(contractsInfo.VERIFIER_LIB.name);
-  if (verifierLib) {
-    Logger.warning(
-      `${contractsInfo.VERIFIER_LIB.name} found already deployed to:  ${await verifierLib?.getAddress()}`,
-    );
-  } else {
-    verifierLib = await deployHelper.deployVerifierLib();
-    const tx = await verifierLib.deploymentTransaction();
-    await waitNotToInterfereWithHardhatIgnition(tx);
-    tmpContractDeployments.addContract(
-      contractsInfo.VERIFIER_LIB.name,
-      await verifierLib.getAddress(),
-    );
-    await verifyContract(
-      await verifierLib.getAddress(),
-      contractsInfo.VERIFIER_LIB.verificationOpts,
-    );
-  }
-
   const universalVerifier = await deployHelper.deployUniversalVerifier(
     undefined,
     stateContractAddress,
-    await verifierLib.getAddress(),
     deployStrategy,
   );
   tmpContractDeployments.remove();
@@ -68,7 +48,6 @@ async function main() {
   const outputJson = {
     proxyAdminOwnerAddress: await signer.getAddress(),
     universalVerifier: await universalVerifier.getAddress(),
-    verifierLib: await verifierLib.getAddress(),
     state: stateContractAddress,
     network: networkName,
     chainId,

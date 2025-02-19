@@ -21,7 +21,10 @@ async function main() {
   await new Promise((resolve) => setTimeout(resolve, 20000));
 
   // !!!!! Put proper function name here to make some check, e.g. getDefaultIdType() for State contract !!!!!
-  await expect(contract.getDefaultIdType()).to.be.revertedWith("The contract is disabled");
+  await expect(contract.getDefaultIdType()).to.be.revertedWithCustomError(
+    contract,
+    "TheContractIsDisabled",
+  );
 
   const network = hre.network.name;
   console.log(
