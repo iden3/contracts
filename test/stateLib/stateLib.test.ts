@@ -114,20 +114,20 @@ describe("StateInfo history", function () {
 
   it("should be reverted if length is zero", async () => {
     await expect(stateLibWrpr.getStateInfoHistoryById(id1, 0, 0)).to.be.rejectedWith(
-      "LenghtShouldBeGreaterThanZero()",
+      "Length should be greater than 0",
     );
   });
 
   it("should be reverted if length limit exceeded", async () => {
     await expect(stateLibWrpr.getStateInfoHistoryById(id1, 0, 10 ** 6)).to.be.rejectedWith(
-      "LengthLimitExceeded(1000)",
+      "Length limit exceeded",
     );
   });
 
   it("should be reverted if startIndex is out of bounds", async () => {
     await expect(
       stateLibWrpr.getStateInfoHistoryById(id1, id1HistoryLength, 100),
-    ).to.be.rejectedWith("StartIndexOutOfBounds(2)");
+    ).to.be.rejectedWith("Start index out of bounds");
   });
 
   it("should not revert if startIndex + length >= historyLength", async () => {
@@ -248,7 +248,7 @@ describe("State history duplicates", function () {
     const state = 1;
     await stateLibWrpr.addState(id, state);
     await expect(stateLibWrpr.getStateInfoListByIdAndState(id, state, 0, 0)).to.be.rejectedWith(
-      "LenghtShouldBeGreaterThanZero()",
+      "Length should be greater than 0",
     );
   });
 
@@ -258,7 +258,7 @@ describe("State history duplicates", function () {
     await stateLibWrpr.addState(id, state);
     await expect(
       stateLibWrpr.getStateInfoListByIdAndState(id, state, 0, 10 ** 6),
-    ).to.be.rejectedWith("LengthLimitExceeded(1000)");
+    ).to.be.rejectedWith("Length limit exceeded");
   });
 
   it("should revert if out of bounds", async () => {
@@ -268,7 +268,7 @@ describe("State history duplicates", function () {
     await stateLibWrpr.addState(id, state);
     await stateLibWrpr.addState(id, state);
     await expect(stateLibWrpr.getStateInfoListByIdAndState(id, state, 3, 100)).to.be.rejectedWith(
-      "StartIndexOutOfBounds(3)",
+      "Start index out of bounds",
     );
 
     it("should NOT revert if startIndex + length >= historyLength", async () => {

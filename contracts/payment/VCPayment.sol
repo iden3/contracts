@@ -275,7 +275,7 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
         return $.ownerBalance;
     }
 
-    function _withdraw(address to, uint amount) internal {
+    function _withdraw(address to, uint256 amount) internal {
         if (amount == 0) {
             revert NoBalanceToWithdraw(to);
         }
