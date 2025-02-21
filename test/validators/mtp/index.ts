@@ -5,8 +5,9 @@ import { packValidatorParams } from "../../utils/validator-pack-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { TEN_YEARS } from "../../../helpers/constants";
+import { contractsInfo, TEN_YEARS } from "../../../helpers/constants";
 import { packZKProof } from "../../utils/packData";
+import { ethers } from "hardhat";
 
 const tenYears = TEN_YEARS;
 const testCases: any[] = [
@@ -86,7 +87,7 @@ const testCases: any[] = [
     stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
     proofJson: require("./data/valid_mtp_user_non_genesis.json"),
     setRevStateExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
-    errorMessage: "Non-Revocation state of Issuer expired",
+    errorMessage: "NonRevocationStateOfIssuerIsExpired()",
     setProofExpiration: tenYears,
   },
   {
@@ -100,7 +101,7 @@ const testCases: any[] = [
     stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
     proofJson: require("./data/valid_mtp_user_non_genesis.json"), // generated on step 2
     setGISTRootExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
-    errorMessage: "Gist root is expired",
+    errorMessage: "GistRootIsExpired()",
     setProofExpiration: tenYears,
   },
   {
@@ -111,7 +112,7 @@ const testCases: any[] = [
       require("../common-data/issuer_next_state_transition.json"),
     ],
     proofJson: require("./data/valid_mtp_user_non_genesis.json"),
-    errorMessage: "Generated proof is outdated",
+    errorMessage: "GeneratedProofIsOutdated()",
   },
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain",
@@ -119,7 +120,7 @@ const testCases: any[] = [
     proofJson: require("./data/valid_mtp_user_genesis.json"),
     setProofExpiration: tenYears,
     allowedIssuers: [123n],
-    errorMessage: "Issuer is not on the Allowed Issuers list",
+    errorMessage: "IssuerIsNotOnTheAllowedIssuersList()",
   },
 ];
 
@@ -206,39 +207,15 @@ describe("Atomic MTP Validator", function () {
       const data = packValidatorParams(query, test.allowedIssuers);
 
       // Check verify function
-      if (test.errorMessage) {
-        await expect(
-          mtpValidator.verify(inputs, pi_a, pi_b, pi_c, data, senderAddress),
-        ).to.be.rejectedWith(test.errorMessage);
-      } else if (test.errorMessage === "") {
-        await expect(mtpValidator.verify(inputs, pi_a, pi_b, pi_c, data, senderAddress)).to.be
-          .reverted;
-      } else {
-        const signals = await mtpValidator.verify(inputs, pi_a, pi_b, pi_c, data, senderAddress);
-        const signalValues: any[] = [];
-        // Replace index with value to check instead of signal index
-        for (let i = 0; i < signals.length; i++) {
-          signalValues.push([signals[i][0], inputs[signals[i][1]]]);
-        }
-        checkSignals(signalValues, test.signalValues);
-      }
-
-      // Check verifyV2 function
       const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
       if (test.errorMessage) {
-        await expect(
-          mtpValidator.verifyV2(zkProof, data, senderAddress, await state.getAddress()),
-        ).to.be.rejectedWith(test.errorMessage);
-      } else if (test.errorMessage === "") {
-        await expect(mtpValidator.verifyV2(zkProof, data, senderAddress, await state.getAddress()))
-          .to.be.reverted;
-      } else {
-        const signals = await mtpValidator.verifyV2(
-          zkProof,
-          data,
-          senderAddress,
-          await state.getAddress(),
+        await expect(mtpValidator.verify(senderAddress, zkProof, data)).to.be.rejectedWith(
+          test.errorMessage,
         );
+      } else if (test.errorMessage === "") {
+        await expect(mtpValidator.verify(senderAddress, zkProof, data)).to.be.reverted;
+      } else {
+        const signals = await mtpValidator.verify(senderAddress, zkProof, data);
         checkSignals(signals, test.signalValues);
       }
     });
@@ -247,5 +224,50 @@ describe("Atomic MTP Validator", function () {
   it("check inputIndexOf", async () => {
     const challengeIndx = await mtpValidator.inputIndexOf("challenge");
     expect(challengeIndx).to.be.equal(4);
+  });
+
+  it("check version", async () => {
+    const version = await mtpValidator.version();
+    expect(version).to.be.equal(contractsInfo.VALIDATOR_MTP.version);
+  });
+
+  it("check getRequestParams", async () => {
+    const query: any = {
+      requestId: 1,
+      schema: 2,
+      claimPathKey: 3,
+      operator: 4,
+      slotIndex: 0,
+      queryHash: 5,
+      value: [20020101, ...new Array(63).fill(0)], // for operators 1-3 only first value matters
+      circuitIds: ["circuitName"],
+      skipClaimRevocationCheck: false,
+      claimPathNotExists: 0,
+    };
+
+    const params = packValidatorParams(query);
+    const requestParams = await mtpValidator.getRequestParams(params);
+    expect(requestParams[await mtpValidator.requestParamIndexOf("groupID")][1]).to.be.equal(0);
+    expect(requestParams[await mtpValidator.requestParamIndexOf("verifierID")][1]).to.be.equal(0);
+    expect(
+      requestParams[await mtpValidator.requestParamIndexOf("nullifierSessionID")][1],
+    ).to.be.equal(0);
+  });
+
+  it("Test get config params", async () => {
+    const oneHour = 3600;
+    const expirationTimeout = await mtpValidator.getProofExpirationTimeout();
+    const revocationStateExpirationTimeout =
+      await mtpValidator.getRevocationStateExpirationTimeout();
+    const gistRootExpirationTimeout = await mtpValidator.getGISTRootExpirationTimeout();
+    expect(expirationTimeout).to.be.equal(oneHour);
+    expect(revocationStateExpirationTimeout).to.be.equal(oneHour);
+    expect(gistRootExpirationTimeout).to.be.equal(oneHour);
+  });
+
+  it("Test supported circuits", async () => {
+    const supportedCircuitIds = await mtpValidator.getSupportedCircuitIds();
+    expect(supportedCircuitIds.length).to.be.equal(1);
+    expect(supportedCircuitIds[0]).to.be.equal(CircuitId.AtomicQueryMTPV2OnChain);
   });
 });

@@ -20,8 +20,8 @@ describe("Disable Proxy Contract test", async () => {
 
     const alwaysRevertFactory = await ethers.getContractFactory("AlwaysRevert");
     await upgrades.upgradeProxy(await verifier.getAddress(), alwaysRevertFactory);
-    await expect(verifier.verifyProof(d[0], d[1], d[2], d[3])).to.be.revertedWith(
-      "The contract is disabled",
+    await expect(verifier.verifyProof(d[0], d[1], d[2], d[3])).to.be.rejectedWith(
+      "TheContractIsDisabled()",
     );
 
     await upgrades.upgradeProxy(await verifier.getAddress(), verifierStubFactory);
