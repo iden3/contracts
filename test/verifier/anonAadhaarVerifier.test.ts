@@ -26,7 +26,7 @@ describe("Verify anon aadhaar proof onchain", async () => {
     );
 
     const f = await AnonAadhaarDeployHelper.initialize();
-    issuer = await f.deployAnonAadhaarCredentialIssuing(
+    issuer = await f.deployAnonAadhaarIssuerV1(
       await verifierLib.getAddress(),
       await identityLib.getAddress(),
       await basicContracts.state.getAddress(),

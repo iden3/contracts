@@ -4,6 +4,9 @@ import { contractsInfo } from "../../helpers/constants";
 import { getStateContractAddress } from "../../helpers/helperUtils";
 import { Id, DID } from "@iden3/js-iden3-core";
 import { Merklizer } from "@iden3/js-jsonld-merklization";
+import { ethers } from "hardhat";
+
+const requestId = 23095784;
 
 async function main() {
   const stDeployHelper = await DeployHelper.initialize();
@@ -19,22 +22,29 @@ async function main() {
   );
 
   const f = await AnonAadhaarDeployHelper.initialize();
-  const issuer = await f.deployAnonAadhaarCredentialIssuing(
+  const issuer = await f.deployAnonAadhaarIssuerV1(
     await verifierLib.getAddress(),
     await identityLib.getAddress(),
     await stateContractAddress,
     defaultIdType,
   );
-  await f.setZKPRequest(issuer, 23095784, stateContractAddress);
+  await f.setZKPRequest(issuer, requestId, stateContractAddress);
 
+  const network = await ethers.provider.getNetwork();
+  const chainId = network.chainId;
   const contractId = await issuer.getId();
   const issuerId = Id.fromBigInt(contractId);
   const issuerDid = DID.parseFromId(issuerId);
-  const hashv = await Merklizer.hashValue("", issuerDid);
+  const hashv = await Merklizer.hashValue("", issuerDid.string());
   await f.setIssuerDidHash(issuer, hashv.toString());
 
   console.log("AnonAadhaar deployed at: ", await issuer.getAddress());
-  console.log("Issuer DID was attached to the contract: ", issuerDid.toString());
+  console.log("Issuer DID was attached to the contract: ", issuerDid.string(), hashv.toString());
+  console.log(
+    "Revocation status info:",
+    `${issuerDid.string()}/credentialStatus?contractAddress=${chainId}:${await issuer.getAddress()}`,
+  );
+  console.log("Request Id: ", requestId);
 }
 
 main()

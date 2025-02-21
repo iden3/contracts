@@ -46,35 +46,62 @@ export class AnonAadhaarDeployHelper {
     const validator = await ethers.getContractFactory("AnonAadhaarV1Validator");
     const deployment = await validator.deploy();
     await deployment.waitForDeployment();
-    await deployment.initialize(verifierAddress, stateContractAddress, owner.getAddress());
+    const tx = await deployment.initialize(
+      verifierAddress,
+      stateContractAddress,
+      owner.getAddress(),
+    );
+    await tx.wait();
     return deployment;
   }
 
-  public async deployAnonAadhaarCredentialIssuing(
+  public async deployAnonAadhaarIssuerV1(
     verifierLibAddress: string,
     identityLibAddress: string,
     stateContractAddress: string,
     defaultIdType: string,
+    opts: {
+      nullifierSeed?: number;
+      publicKeyHash?: bigint;
+      expirationTime?: number;
+      templateRoot?: bigint;
+    } = {},
   ): Promise<Contract> {
-    const aadhaarIssuer = await ethers.getContractFactory("AnonAadhaarCredentialIssuing", {
+    const {
+      nullifierSeed = 12345678,
+      publicKeyHash = BigInt(
+        "15134874015316324267425466444584014077184337590635665158241104437045239495873",
+      ),
+      expirationTime = 15776640,
+      templateRoot = BigInt(
+        "14996909320457734110470232238383331296733133167570138119030792979356866472831",
+      ),
+    } = opts;
+
+    const aadhaarIssuerFactory = await ethers.getContractFactory("AnonAadhaarIssuerV1", {
       libraries: {
         VerifierLib: verifierLibAddress,
         IdentityLib: identityLibAddress,
       },
     });
-    const deployment = await aadhaarIssuer.deploy();
-    await deployment.waitForDeployment();
-    const tx = await deployment.initialize(
-      12345678,
-      BigInt("15134874015316324267425466444584014077184337590635665158241104437045239495873"),
-      15776640,
-      BigInt("3760048933127269188109079349507397743444241277603345236696660118069105661581"),
-      stateContractAddress,
-      defaultIdType,
+    const aadhaarIssuerDeployment = await upgrades.deployProxy(
+      aadhaarIssuerFactory,
+      [
+        nullifierSeed,
+        publicKeyHash,
+        expirationTime,
+        templateRoot,
+        stateContractAddress,
+        defaultIdType,
+      ],
+      {
+        unsafeAllow: ["external-library-linking"],
+        initializer: "initialize(uint256,uint256,uint256,uint256,address,bytes2)",
+      },
     );
-    await tx.wait();
 
-    return deployment;
+    await aadhaarIssuerDeployment.waitForDeployment();
+    return aadhaarIssuerDeployment;
   }
 
   public async setIssuerDidHash(issuer: Contract, didHash: string): Promise<void> {

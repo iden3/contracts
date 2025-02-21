@@ -11,11 +11,11 @@ import {IdentityBase} from "../lib/IdentityBase.sol";
  * @dev Address ownership credential issuer.
  * This issuer issue non-merklized credentials decentralized.
  */
-contract AnonAadhaarCredentialIssuing is IdentityBase, EmbeddedZKPVerifier {
+contract AnonAadhaarIssuerV1 is IdentityBase, EmbeddedZKPVerifier {
     using IdentityLib for IdentityLib.Data;
 
-    /// @custom:storage-location erc7201:polygonid.storage.AnonAadhaarCredentialIssuing
-    struct AnonAadhaarCredentialIssuingStorage {
+    /// @custom:storage-location erc7201:polygonid.storage.AnonAadhaarIssuerV1
+    struct AnonAadhaarIssuerV1Storage {
         uint256 nullifierSeed;
         uint256 publicKeysHash;
         uint256 expirationTime;
@@ -25,17 +25,18 @@ contract AnonAadhaarCredentialIssuing is IdentityBase, EmbeddedZKPVerifier {
     }
 
     // check if the hash was calculated correctly
-    // keccak256(abi.encode(uint256(keccak256("polygonid.storage.AnonAadhaarCredentialIssuing")) - 1)) & ~bytes32(uint256(0xff))
-    bytes32 private constant AnonAadhaarCredentialIssuingStorageLocation = 
-        0x528fbd6ba0ce880481f220f86e7f05969027c6442ac6670247599a0f6783c100;
+    // keccak256(abi.encode(uint256(keccak256("polygonid.storage.AnonAadhaarIssuerV1")) - 1)) & ~bytes32(uint256(0xff))
+    // TODO(illia-korotia): do not forget to update the storage location
+    bytes32 private constant AnonAadhaarIssuerV1StorageLocation = 
+        0xcb4c32479afd0d9095322a3f93b16fa02cb0bf6c78456f30d0d6005caa749700;
 
-    function _getAnonAadhaarCredentialIssuingStorage() 
+    function _getAnonAadhaarIssuerV1Storage() 
         private
         pure 
-        returns (AnonAadhaarCredentialIssuingStorage storage store) 
+        returns (AnonAadhaarIssuerV1Storage storage store) 
     {
         assembly {
-            store.slot := AnonAadhaarCredentialIssuingStorageLocation
+            store.slot := AnonAadhaarIssuerV1StorageLocation
         }
     }
 
@@ -46,8 +47,8 @@ contract AnonAadhaarCredentialIssuing is IdentityBase, EmbeddedZKPVerifier {
         uint256 templateRoot,
         address _stateContractAddr,
         bytes2 idType
-    ) public initializer {
-        AnonAadhaarCredentialIssuingStorage storage $ = _getAnonAadhaarCredentialIssuingStorage();
+    ) public initializer{
+        AnonAadhaarIssuerV1Storage storage $ = _getAnonAadhaarIssuerV1Storage();
         $.nullifierSeed = nullifierSeed;
         $.publicKeysHash = publicKeyHash;
         $.expirationTime = expirationTime;
@@ -58,7 +59,7 @@ contract AnonAadhaarCredentialIssuing is IdentityBase, EmbeddedZKPVerifier {
     }
 
     function setIssuerDidHash(uint256 issuerDidHash) public onlyOwner {
-        AnonAadhaarCredentialIssuingStorage storage $ = _getAnonAadhaarCredentialIssuingStorage();
+        AnonAadhaarIssuerV1Storage storage $ = _getAnonAadhaarIssuerV1Storage();
         $.issuerDidHash = issuerDidHash;
     }
 
@@ -73,7 +74,7 @@ contract AnonAadhaarCredentialIssuing is IdentityBase, EmbeddedZKPVerifier {
         uint256 templateRoot,
         uint256 issuerDidHash
     ) private view {
-        AnonAadhaarCredentialIssuingStorage storage $ = _getAnonAadhaarCredentialIssuingStorage();
+        AnonAadhaarIssuerV1Storage storage $ = _getAnonAadhaarIssuerV1Storage();
         require(hashIndex != 0, "Invalid hashIndex");
         require(hashValue != 0, "Invalid hashValue");
 
@@ -95,7 +96,7 @@ contract AnonAadhaarCredentialIssuing is IdentityBase, EmbeddedZKPVerifier {
     }
 
     function _setNullifier(uint256 nullifier) private {
-        AnonAadhaarCredentialIssuingStorage storage $ = _getAnonAadhaarCredentialIssuingStorage();
+        AnonAadhaarIssuerV1Storage storage $ = _getAnonAadhaarIssuerV1Storage();
         $.nullifiers[nullifier] = true;
     }
 
