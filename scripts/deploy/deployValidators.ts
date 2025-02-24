@@ -20,7 +20,7 @@ async function main() {
   const [signer] = await hre.ethers.getSigners();
 
   const deployHelper = await DeployHelper.initialize(null, true);
-  const stateContractAddress = getStateContractAddress();
+  const stateContractAddress = await getStateContractAddress();
 
   const validatorsInfo: any = [];
   for (const v of validators) {
