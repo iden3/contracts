@@ -874,14 +874,22 @@ export class DeployHelper {
     let verifier: Contract;
     try {
       verifier = await upgrades.upgradeProxy(verifierAddress, VerifierFactory, {
-        unsafeAllow: ["external-library-linking"],
+        unsafeAllow: [
+          "external-library-linking",
+          "missing-initializer",
+          "missing-initializer-call",
+        ],
       });
       await verifier.waitForDeployment();
     } catch (e) {
       this.log("Error upgrading proxy. Forcing import...");
       await upgrades.forceImport(verifierAddress, VerifierFactory);
       verifier = await upgrades.upgradeProxy(verifierAddress, VerifierFactory, {
-        unsafeAllow: ["external-library-linking"],
+        unsafeAllow: [
+          "external-library-linking",
+          "missing-initializer",
+          "missing-initializer-call",
+        ],
         redeployImplementation: "always",
       });
       await verifier.waitForDeployment();
@@ -992,7 +1000,11 @@ export class DeployHelper {
         universalVerifierAddress,
         UniversalVerifierFactory,
         {
-          unsafeAllow: ["external-library-linking"],
+          unsafeAllow: [
+            "external-library-linking",
+            "missing-initializer",
+            "missing-initializer-call",
+          ],
           redeployImplementation: "always",
           call: {
             fn: "initialize",
@@ -1007,7 +1019,11 @@ export class DeployHelper {
         UniversalVerifierFactory,
         [stateAddr, await owner.getAddress()],
         {
-          unsafeAllow: ["external-library-linking"],
+          unsafeAllow: [
+            "external-library-linking",
+            "missing-initializer",
+            "missing-initializer-call",
+          ],
         },
       );
     }
