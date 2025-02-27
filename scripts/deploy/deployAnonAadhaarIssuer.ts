@@ -27,6 +27,9 @@ async function main() {
     await identityLib.getAddress(),
     await stateContractAddress,
     defaultIdType,
+    {
+      publicKeyHash: 18063425702624337643644061197836918910810808173893535653269228433734128853484n,
+    },
   );
   await f.setZKPRequest(issuer, requestId, stateContractAddress);
 

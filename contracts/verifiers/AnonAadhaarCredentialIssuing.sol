@@ -100,6 +100,12 @@ contract AnonAadhaarIssuerV1 is IdentityBase, EmbeddedZKPVerifier {
         $.nullifiers[nullifier] = true;
     }
 
+    function cleanNullifier(uint256 nullifier) public onlyOwner {
+        AnonAadhaarIssuerV1Storage storage $ = _getAnonAadhaarIssuerV1Storage();
+        require($.nullifiers[nullifier], "Nullifier does not exist");
+        $.nullifiers[nullifier] = false;
+    }
+
     function _afterProofSubmitV2(IZKPVerifier.ZKPResponse[] memory responses) internal override {
         require(responses.length == 1, "Only one response is allowed");
         uint256 hashIndex = super.getProofStorageField(_msgSender(), responses[0].requestId, "hashIndex");

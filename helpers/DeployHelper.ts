@@ -844,6 +844,42 @@ export class DeployHelper {
     };
   }
 
+  async upgradeAnonAadhaarIssuerV1(
+    anonAadhaarV1Address: string,
+    verifierLibAddress: string,
+    identityLibAddress: string,
+  ): Promise<Contract> {
+    this.log("======== AnonAadhaarIssuerV1: upgrade started ========");
+
+    const owner = this.signers[0];
+
+    this.log("upgrading AnonAadhaarIssuerV1...");
+
+    const AnonAadhaarIssuerV1Factory = await ethers.getContractFactory("AnonAadhaarIssuerV1", {
+      signer: owner,
+      libraries: {
+        VerifierLib: verifierLibAddress,
+        IdentityLib: identityLibAddress,
+      },
+    });
+
+    const AnonAadhaarIssuerV1 = await upgrades.upgradeProxy(
+      anonAadhaarV1Address,
+      AnonAadhaarIssuerV1Factory,
+      {
+        unsafeAllow: ["external-library-linking"],
+      },
+    );
+    await AnonAadhaarIssuerV1.waitForDeployment();
+
+    this.log(
+      `AnonAadhaarIssuerV1 upgraded at address ${await AnonAadhaarIssuerV1.getAddress()} from ${await owner.getAddress()}`,
+    );
+
+    this.log("======== AnonAadhaarIssuerV1: upgrade completed ========");
+    return AnonAadhaarIssuerV1;
+  }
+
   async upgradeUniversalVerifier(
     verifierAddress: string,
     verifierLibAddr: string,
