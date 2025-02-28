@@ -29,6 +29,7 @@ export class OnchainIdentityDeployHelper {
     idType: string,
   ): Promise<{
     identity: Contract;
+    identityLib: Contract;
   }> {
     const owner = this.signers[0];
 
@@ -56,6 +57,7 @@ export class OnchainIdentityDeployHelper {
 
     return {
       identity: Identity,
+      identityLib: il,
     };
   }
 
