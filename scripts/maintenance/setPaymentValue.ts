@@ -4,84 +4,87 @@ import { byteEncoder, calculateCoreSchemaHash } from "@0xpolygonid/js-sdk";
 import { Path } from "@iden3/js-jsonld-merklization";
 import { VCPayment, VCPayment__factory } from "../../typechain-types";
 
-const ldContextJSONAnimaProofOfUniqueness = `{
+const lsContext = `{
   "@context": [
     {
       "@version": 1.1,
       "@protected": true,
       "id": "@id",
       "type": "@type",
-      "AnimaProofOfUniqueness": {
-        "@id": "https://raw.githubusercontent.com/anima-protocol/claims-polygonid/main/schemas/json-ld/pou-v1.json-ld#AnimaProofOfUniqueness",
+      "AnimaProofOfIdentity": {
+        "@id": "https://raw.githubusercontent.com/anima-protocol/claims-polygonid/main/schemas/json-ld/poi-v2.json-ld#AnimaProofOfIdentity",
         "@context": {
           "@version": 1.1,
           "@protected": true,
           "id": "@id",
           "type": "@type",
-          "kyc-vocab": "https://github.com/anima-protocol/claims-polygonid/blob/main/credentials/pou.md#",
+          "kyc-vocab": "https://github.com/anima-protocol/claims-polygonid/blob/main/credentials/poi.md#",
           "xsd": "http://www.w3.org/2001/XMLSchema#",
-          "unique": {
-            "@id": "kyc-vocab:unique",
-            "@type": "xsd:boolean"
-          },
-          "user_hash": {
-            "@id": "kyc-vocab:user_hash",
+          "firstname": {
+            "@id": "kyc-vocab:firstname",
             "@type": "xsd:string"
           },
-          "reputation_level": {
-            "@id": "kyc-vocab:reputation_level",
+          "lastname": {
+            "@id": "kyc-vocab:lastname",
+            "@type": "xsd:string"
+          },
+          "date_of_birth_str": {
+            "@id": "kyc-vocab:date_of_birth_str",
+            "@type": "xsd:string"
+          },
+          "date_of_birth": {
+            "@id": "kyc-vocab:date_of_birth",
             "@type": "xsd:integer"
           },
-          "last_verification_timestamp": {
-            "@id": "kyc-vocab:last_verification_timestamp",
+          "nationality": {
+            "@id": "kyc-vocab:nationality",
+            "@type": "xsd:string"
+          },
+          "document_country": {
+            "@id": "kyc-vocab:document_country",
+            "@type": "xsd:string"
+          },
+          "document_type": {
+            "@id": "kyc-vocab:document_type",
+            "@type": "xsd:string"
+          },
+          "document_number": {
+            "@id": "kyc-vocab:document_number",
+            "@type": "xsd:string"
+          },
+          "document_expiration_str": {
+            "@id": "kyc-vocab:document_expiration_str",
+            "@type": "xsd:string"
+          },
+          "document_expiration": {
+            "@id": "kyc-vocab:document_expiration",
             "@type": "xsd:integer"
           },
-          "last_verification_date": {
-            "@id": "kyc-vocab:last_verification_date",
-            "@type": "xsd:integer"
-          }
-        }
-      }
-    }
-  ]
-}`;
-const typeNameAnimaProofOfUniqueness = "AnimaProofOfUniqueness";
-
-const ldContextJSONAnimaProofOfLife = `{
-  "@context": [
-    {
-      "@version": 1.1,
-      "@protected": true,
-      "id": "@id",
-      "type": "@type",
-      "AnimaProofOfLife": {
-        "@id": "https://raw.githubusercontent.com/anima-protocol/claims-polygonid/main/schemas/json-ld/pol-v1.json-ld#AnimaProofOfLife",
-        "@context": {
-          "@version": 1.1,
-          "@protected": true,
-          "id": "@id",
-          "type": "@type",
-          "kyc-vocab": "https://github.com/anima-protocol/claims-polygonid/blob/main/credentials/pol.md#",
-          "xsd": "http://www.w3.org/2001/XMLSchema#",
-          "human": {
-            "@id": "kyc-vocab:human",
+          "kyc_validated": {
+            "@id": "kyc-vocab:kyc_validated",
             "@type": "xsd:boolean"
+          },
+          "kyc_aml_validated": {
+            "@id": "kyc-vocab:kyc_aml_validated",
+            "@type": "xsd:boolean"
+          },
+          "document_country_code": {
+            "@id": "kyc-vocab:document_country_code",
+            "@type": "xsd:integer"
           }
         }
       }
     }
   ]
 }`;
-const typeNameAnimaProofOfLife = "AnimaProofOfLife";
-
-const pathToCredentialSubject = "https://www.w3.org/2018/credentials#credentialSubject";
+const type = `AnimaProofOfIdentity`;
 
 async function main() {
-  const contractAddress = "0x4DB2Dc48987698c4C3A537f3D7f694DEAB2Ef388";
+  const contractAddress = "0xba83D99c87358Ef9B6f7c4a5A94021A58d870704";
   const issuerDID = "did:iden3:privado:main:2ScrbEuw9jLXMapW3DELXBbDco5EURzJZRN1tYj7L7";
-  const issuerWithdrawAddress = "0xE9D7fCDf32dF4772A7EF7C24c76aB40E4A42274a";
-  const ownerPartPercent = 3;
-  const valueInEther = "0.0003";
+  const issuerWithdrawAddress = "0xB1885A84C53f22587a3e49A27e8C92c8d6B44374";
+  const ownerPartPercent = 10;
+  const valueInEther = "3.6";
 
   const valueWei = ethers.parseUnits(valueInEther, "ether");
   const [owner] = await ethers.getSigners();
@@ -90,10 +93,7 @@ async function main() {
 
   const issuerId = DID.idFromDID(DID.parse(issuerDID));
 
-  const schemaId: string = await Path.getTypeIDFromContext(
-    ldContextJSONAnimaProofOfUniqueness,
-    typeNameAnimaProofOfUniqueness,
-  );
+  const schemaId: string = await Path.getTypeIDFromContext(lsContext, type);
 
   console.log("schemaId", schemaId);
   const schemaHash = calculateCoreSchemaHash(byteEncoder.encode(schemaId));
