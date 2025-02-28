@@ -60,6 +60,7 @@ const config: HardhatUserConfig = {
       url: `${process.env.POLYGON_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      //gasPrice: 75660000000,
     },
     "polygon-amoy": {
       chainId: 80002,

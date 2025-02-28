@@ -88,6 +88,9 @@ async function main() {
 
   const valueWei = ethers.parseUnits(valueInEther, "ether");
   const [owner] = await ethers.getSigners();
+  let nonce = await owner.getNonce();
+  console.log(nonce);
+  //return;
   const paymentFactory = new VCPayment__factory(owner);
   const payment = (await paymentFactory.attach(contractAddress)) as unknown as VCPayment;
 
@@ -100,14 +103,23 @@ async function main() {
   console.log("schemaHash", schemaHash.bigInt());
   console.log("issuerId", issuerId.bigInt());
 
-  const tx = await payment.setPaymentValue(
+  const encodedData = payment.interface.encodeFunctionData("setPaymentValue", [
     issuerId.bigInt(),
     schemaHash.bigInt(),
     valueWei,
     ownerPartPercent,
     issuerWithdrawAddress,
-  );
-  console.log(tx.hash);
+  ]);
+
+  const tx = {
+    to: contractAddress,
+    data: encodedData,
+    //nonce: 52,
+  };
+  const send = await owner.sendTransaction(tx);
+  console.log(send);
+
+  //console.log(tx.hash);
 }
 
 main()
