@@ -406,10 +406,7 @@ library IdentityLib {
 
     function checkClaimExistence(Data storage self, uint256 hashIndex) internal view {
         uint256 currentRoot = self.trees.claimsTree.getRoot();
-        SmtLib.Proof memory proof = self.trees.claimsTree.getProofByRoot(
-                hashIndex,
-                currentRoot
-            );
+        SmtLib.Proof memory proof = self.trees.claimsTree.getProofByRoot(hashIndex, currentRoot);
         if (proof.existence) revert ClaimAlreadyExists();
     }
 
