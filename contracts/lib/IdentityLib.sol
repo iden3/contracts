@@ -6,6 +6,8 @@ import {SmtLib} from "../lib/SmtLib.sol";
 import {PoseidonUnit3L, PoseidonUnit4L} from "../lib/Poseidon.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
+error ClaimAlreadyExists();
+
 // /**
 //  * @dev Contract managing onchain identity
 //  */
@@ -104,6 +106,7 @@ library IdentityLib {
         }
         uint256 hashIndex = PoseidonUnit4L.poseidon(claimIndex);
         uint256 hashValue = PoseidonUnit4L.poseidon(claimValue);
+        checkClaimExistence(self, hashIndex);
         self.trees.claimsTree.addLeaf(hashIndex, hashValue);
     }
 
@@ -113,6 +116,7 @@ library IdentityLib {
      * @param hashValue - hash of claim value part
      */
     function addClaimHash(Data storage self, uint256 hashIndex, uint256 hashValue) external {
+        checkClaimExistence(self, hashIndex);
         self.trees.claimsTree.addLeaf(hashIndex, hashValue);
     }
 
@@ -398,6 +402,15 @@ library IdentityLib {
             "Roots for this state already exist"
         );
         self.rootsByState[state] = roots;
+    }
+
+    function checkClaimExistence(Data storage self, uint256 hashIndex) internal view {
+        uint256 currentRoot = self.trees.claimsTree.getRoot();
+        SmtLib.Proof memory proof = self.trees.claimsTree.getProofByRoot(
+                hashIndex,
+                currentRoot
+            );
+        if (proof.existence) revert ClaimAlreadyExists();
     }
 
     /**
