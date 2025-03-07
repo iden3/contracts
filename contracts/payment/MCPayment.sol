@@ -15,7 +15,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.0.1";
+    string public constant VERSION = "1.0.2";
 
     /**
      * @dev Version of EIP 712 domain
@@ -96,6 +96,8 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
     error InvalidOwnerPercentage();
     /// @dev Error emitted upon invalid ECDSA signature length
     error ECDSAInvalidSignatureLength();
+    /// @dev Error emitted upon insufficient allowance on permit
+    error InsufficientAllowanceOnPermit();
 
     /**
      * @dev Valid percent value modifier
@@ -228,15 +230,24 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable {
             v := byte(0, mload(add(permitSignature, 0x60)))
         }
 
-        token.permit(
-            msg.sender,
-            address(this),
-            paymentData.amount,
-            paymentData.expirationDate,
-            v,
-            r,
-            s
-        );
+        try
+            token.permit(
+                msg.sender,
+                address(this),
+                paymentData.amount,
+                paymentData.expirationDate,
+                v,
+                r,
+                s
+            )
+        {
+            // the permit function was executed successfully, continue
+        } catch {
+            uint256 currentAllowance = token.allowance(msg.sender, address(this));
+            if (currentAllowance < paymentData.amount) {
+                revert InsufficientAllowanceOnPermit();
+            }
+        }
         _transferERC20(paymentData, signer);
     }
 
