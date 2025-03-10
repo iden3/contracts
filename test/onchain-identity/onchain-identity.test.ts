@@ -420,10 +420,9 @@ describe("Root of roots tree proofs", () => {
 
   describe("Insert claim with existence hashIndex", () => {
     it("Should revert with claim already exists", async function () {
-      await expect(identity.addClaimHash(1, 4)).to.revertedWithCustomError(
-        identityLib,
-        "ClaimAlreadyExists",
-      );
+      await expect(identity.addClaimHash(1, 4))
+        .to.revertedWithCustomError(identityLib, "ClaimAlreadyExists")
+        .withArgs(1);
     });
   });
 
