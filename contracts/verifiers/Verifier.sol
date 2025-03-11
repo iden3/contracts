@@ -183,18 +183,11 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             _getVerifierStorage()._authMethods[authMethod].validator != IAuthValidator(address(0));
     }
 
-    /**
-     * @dev Sets different requests
-     * @param requests The list of requests
-     */
-    function setRequests(IVerifier.Request[] calldata requests) public {
-        VerifierStorage storage s = _getVerifierStorage();
-
+    function _checkGroupIdsAndRequestsPerGroup(IVerifier.Request[] calldata requests) internal {
         uint256 newGroupsCount = 0;
         uint256[] memory newGroupsGroupID = new uint256[](requests.length);
         uint256[] memory newGroupsRequestCount = new uint256[](requests.length);
 
-        // 1. Check first that groupIds don't exist and keep the number of requests per group.
         for (uint256 i = 0; i < requests.length; i++) {
             uint256 groupID = requests[i]
             .validator
@@ -224,6 +217,17 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         }
 
         _checkGroupsRequestsCount(newGroupsGroupID, newGroupsRequestCount, newGroupsCount);
+    }
+
+    /**
+     * @dev Sets different requests
+     * @param requests The list of requests
+     */
+    function setRequests(IVerifier.Request[] calldata requests) public {
+        VerifierStorage storage s = _getVerifierStorage();
+
+        // 1. Check first that groupIds don't exist and keep the number of requests per group.
+        _checkGroupIdsAndRequestsPerGroup(requests);
 
         bool userIDInRequests = false;
         // 2. Set requests checking groups and nullifierSessionID uniqueness
