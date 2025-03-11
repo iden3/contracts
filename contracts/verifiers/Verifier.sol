@@ -789,21 +789,21 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         uint256 userIDFromAuthResponse,
         IRequestValidator.ResponseField[] memory signals
     ) internal pure {
-        uint256 userIDFromResponses = 0;
+        bool userIDFromResponses = false;
 
         for (uint256 j = 0; j < signals.length; j++) {
             if (
                 keccak256(abi.encodePacked(signals[j].name)) ==
                 keccak256(abi.encodePacked("userID"))
             ) {
-                userIDFromResponses++;
+                userIDFromResponses = true;
                 if (userIDFromAuthResponse != signals[j].value) {
                     revert UserIDMismatch(userIDFromAuthResponse, signals[j].value);
                 }
             }
         }
 
-        if (userIDFromResponses == 0 && signals.length > 1) {
+        if (!userIDFromResponses && signals.length > 1) {
             revert MissingUserIDFromResponses();
         }
     }
