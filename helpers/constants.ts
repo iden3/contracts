@@ -253,8 +253,8 @@ export const contractsInfo = Object.freeze({
   },
   MC_PAYMENT: {
     name: "MCPayment",
-    version: "1.0.0",
-    unifiedAddress: "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
+    version: "1.0.2",
+    unifiedAddress: "",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.MCPayment")),
     verificationOpts: {
       constructorArgsImplementation: [],
