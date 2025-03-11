@@ -183,42 +183,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             _getVerifierStorage()._authMethods[authMethod].validator != IAuthValidator(address(0));
     }
 
-    function _checkGroupIdsAndRequestsPerGroup(IVerifier.Request[] calldata requests) internal {
-        uint256 newGroupsCount = 0;
-        uint256[] memory newGroupsGroupID = new uint256[](requests.length);
-        uint256[] memory newGroupsRequestCount = new uint256[](requests.length);
-
-        for (uint256 i = 0; i < requests.length; i++) {
-            uint256 groupID = requests[i]
-            .validator
-            .getRequestParams(requests[i].params)[
-                requests[i].validator.requestParamIndexOf("groupID")
-            ].value;
-
-            if (groupID != 0) {
-                if (groupIdExists(groupID)) {
-                    revert GroupIdAlreadyExists(groupID);
-                }
-
-                (bool exists, uint256 groupIDIndex) = _getGroupIDIndex(
-                    groupID,
-                    newGroupsGroupID,
-                    newGroupsCount
-                );
-
-                if (!exists) {
-                    newGroupsGroupID[newGroupsCount] = groupID;
-                    newGroupsRequestCount[newGroupsCount]++;
-                    newGroupsCount++;
-                } else {
-                    newGroupsRequestCount[groupIDIndex]++;
-                }
-            }
-        }
-
-        _checkGroupsRequestsCount(newGroupsGroupID, newGroupsRequestCount, newGroupsCount);
-    }
-
     /**
      * @dev Sets different requests
      * @param requests The list of requests
@@ -768,6 +732,44 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                 revert GroupMustHaveAtLeastTwoRequests(groupList[i]);
             }
         }
+    }
+
+    function _checkGroupIdsAndRequestsPerGroup(
+        IVerifier.Request[] calldata requests
+    ) internal view {
+        uint256 newGroupsCount = 0;
+        uint256[] memory newGroupsGroupID = new uint256[](requests.length);
+        uint256[] memory newGroupsRequestCount = new uint256[](requests.length);
+
+        for (uint256 i = 0; i < requests.length; i++) {
+            uint256 groupID = requests[i]
+            .validator
+            .getRequestParams(requests[i].params)[
+                requests[i].validator.requestParamIndexOf("groupID")
+            ].value;
+
+            if (groupID != 0) {
+                if (groupIdExists(groupID)) {
+                    revert GroupIdAlreadyExists(groupID);
+                }
+
+                (bool exists, uint256 groupIDIndex) = _getGroupIDIndex(
+                    groupID,
+                    newGroupsGroupID,
+                    newGroupsCount
+                );
+
+                if (!exists) {
+                    newGroupsGroupID[newGroupsCount] = groupID;
+                    newGroupsRequestCount[newGroupsCount]++;
+                    newGroupsCount++;
+                } else {
+                    newGroupsRequestCount[groupIDIndex]++;
+                }
+            }
+        }
+
+        _checkGroupsRequestsCount(newGroupsGroupID, newGroupsRequestCount, newGroupsCount);
     }
 
     function _checkRequestsInMultiRequest(uint256 multiRequestId) internal view {
