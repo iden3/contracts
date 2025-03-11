@@ -68,6 +68,7 @@ describe("Verifer tests", function () {
 
     it("setRequests: should not exist when creating", async function () {
       await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator1.stub_setInput("userID", 1);
 
       let requestIdExists = await verifier.requestIdExists(request.requestId);
       expect(requestIdExists).to.be.false;
@@ -85,8 +86,18 @@ describe("Verifer tests", function () {
       expect(requestsCount).to.be.equal(1);
     });
 
+    it("setRequests: should revert with MissingUserIDInRequests", async function () {
+      await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
+
+      await expect(verifier.setRequests([request])).to.be.revertedWithCustomError(
+        verifier,
+        "MissingUserIDInRequests",
+      );
+    });
+
     it("setRequests: nullifierSessionID may be not unique if EQUAL to 0", async function () {
       await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator1.stub_setInput("userID", 1);
 
       await verifier.setRequests([request]);
       request.requestId = 2;
@@ -100,6 +111,7 @@ describe("Verifer tests", function () {
         { name: "nullifierSessionID", value: 1 },
       ];
       await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator1.stub_setInput("userID", 1);
 
       await verifier.setRequests([request]);
       request.requestId = 2;
@@ -110,6 +122,7 @@ describe("Verifer tests", function () {
 
     it("setRequests: requestId should be valid", async function () {
       await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator1.stub_setInput("userID", 1);
 
       request.requestId = BigInt(
         "0x0002000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
@@ -154,6 +167,7 @@ describe("Verifer tests", function () {
       ];
       await validator1.stub_setRequestParams([groupRequest1.params], [paramsFromValidator]);
       await validator1.stub_setRequestParams([groupRequest2.params], [paramsFromValidator]);
+      await validator1.stub_setInput("userID", 1);
 
       let groupExists = await verifier.groupIdExists(groupID);
       expect(groupExists).to.be.false;
@@ -182,10 +196,10 @@ describe("Verifer tests", function () {
         { name: "groupID", value: 1 },
         { name: "verifierID", value: 0 },
         { name: "nullifierSessionID", value: 0 },
-        { name: "userID", value: 1 },
       ];
       await validator1.stub_setRequestParams([groupRequest1.params], [paramsFromValidator]);
       await validator1.stub_setRequestParams([groupRequest2.params], [paramsFromValidator]);
+      await validator1.stub_setInput("userID", 1);
 
       await verifier.setRequests([groupRequest1, groupRequest2]);
 
@@ -203,10 +217,10 @@ describe("Verifer tests", function () {
         { name: "groupID", value: 0 },
         { name: "verifierID", value: verifierId },
         { name: "nullifierSessionID", value: 0 },
-        { name: "userID", value: 1 },
       ];
 
       await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator1.stub_setInput("userID", 1);
       await verifier.setRequests([request]);
 
       const requestObject = await verifier.getRequest(request.requestId);
@@ -261,6 +275,7 @@ describe("Verifer tests", function () {
 
     it("submitResponse: not repeated responseFields from validator", async function () {
       await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator1.stub_setInput("userID", 1);
       await verifier.setRequests([request]);
       await validator1.stub_setVerifyResults([
         {
@@ -271,7 +286,6 @@ describe("Verifer tests", function () {
           name: "someFieldName2",
           value: 2,
         },
-        { name: "userID", value: 1 },
       ]);
 
       const authResponse = {
@@ -307,7 +321,7 @@ describe("Verifer tests", function () {
       expect(responseField2).to.be.equal(2);
 
       const responseFields = await verifier.getResponseFields(request.requestId, sender);
-      expect(responseFields.length).to.be.equal(3);
+      expect(responseFields.length).to.be.equal(2);
       expect(responseFields[0].name).to.be.equal("someFieldName1");
       expect(responseFields[0].value).to.be.equal(1);
       expect(responseFields[1].name).to.be.equal("someFieldName2");
@@ -316,6 +330,7 @@ describe("Verifer tests", function () {
 
     it("submitResponse: should throw if repeated responseFields from validator", async function () {
       await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator1.stub_setInput("userID", 1);
       await verifier.setRequests([request]);
       await validator1.stub_setVerifyResults([
         {
@@ -326,7 +341,6 @@ describe("Verifer tests", function () {
           name: "someFieldName1",
           value: 1,
         },
-        { name: "userID", value: 1 },
       ]);
 
       const authResponse = {
@@ -346,6 +360,7 @@ describe("Verifer tests", function () {
 
     it("submitResponse: userID in response fields should match auth userID", async function () {
       await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator1.stub_setInput("userID", 1);
       await verifier.setRequests([request]);
 
       let userID = 1; // we assume that userID is hardcoded to 1 in the auth stub contract
@@ -411,6 +426,7 @@ describe("Verifer tests", function () {
 
     it("setMultiRequest: should not exist when creating", async function () {
       await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator1.stub_setInput("userID", 1);
       await verifier.setRequests([request]);
 
       let multiRequestIdExists = await verifier.multiRequestIdExists(multiRequest.multiRequestId);
@@ -535,6 +551,8 @@ describe("Verifer tests", function () {
       ];
       await validator1.stub_setRequestParams([groupRequest1.params], [paramsFromValidator]);
       await validator2.stub_setRequestParams([groupRequest2.params], [paramsFromValidator]);
+      await validator1.stub_setInput("userID", 1);
+      await validator2.stub_setInput("userID", 1);
 
       await verifier.setRequests([groupRequest1, groupRequest2]);
 
@@ -600,6 +618,7 @@ describe("Verifer tests", function () {
         { name: "nullifierSessionID", value: 0 },
       ];
       await validator1.stub_setRequestParams([groupRequest1.params], [paramsFromValidator]);
+      await validator1.stub_setInput("userID", 1);
 
       await verifier.setRequests([groupRequest1, groupRequest2]);
 

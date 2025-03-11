@@ -57,4 +57,11 @@ interface IRequestValidator {
      * @return Index of the request param
      */
     function requestParamIndexOf(string memory name) external view returns (uint256);
+
+    /**
+     * @dev Get the index of the public input of the circuit by name
+     * @param name Name of the public input
+     * @return Index of the public input
+     */
+    function inputIndexOf(string memory name) external view returns (uint256);
 }

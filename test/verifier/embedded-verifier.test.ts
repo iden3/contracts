@@ -16,7 +16,6 @@ describe("EmbeddedVerifier tests", function () {
     await verifier.initialize(await signer.getAddress(), await state.getAddress());
 
     const validator = await ethers.deployContract("RequestValidatorStub");
-    await validator.stub_setVerifyResults([{ name: "userID", value: 1 }]);
 
     const authValidator = await deployHelper.deployValidatorStub("AuthValidatorStub");
     await authValidator.stub_setVerifyResults(1);
@@ -74,6 +73,7 @@ describe("EmbeddedVerifier tests", function () {
 
   it("beforeProofSubmit/afterProofSubmit when submitting response", async function () {
     await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
+    await validator.stub_setInput("userID", 1);
 
     await verifier.setRequests([request]);
 

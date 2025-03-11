@@ -26,7 +26,7 @@ error RequestIdUsesReservedBytes();
 error RequestIdTypeNotValid();
 error RequestShouldNotHaveAGroup(uint256 requestId);
 error UserIDMismatch(uint256 userIDFromAuth, uint256 userIDFromResponse);
-error MissingUserIDFromResponses();
+error MissingUserIDInRequests();
 error UserNotAuthenticated();
 error VerifierIDIsNotValid(uint256 requestVerifierID, uint256 expectedVerifierID);
 error ChallengeIsInvalid();
@@ -225,6 +225,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         _checkGroupsRequestsCount(newGroupsGroupID, newGroupsRequestCount, newGroupsCount);
 
+        bool userIDInRequests = false;
         // 2. Set requests checking groups and nullifierSessionID uniqueness
         for (uint256 i = 0; i < requests.length; i++) {
             _checkRequestIdCorrectness(requests[i].requestId, requests[i].params);
@@ -237,6 +238,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             .getRequestParams(requests[i].params)[
                 requests[i].validator.requestParamIndexOf("groupID")
             ].value;
+
+            // check if auth is required by the response of the request
+            try requests[i].validator.inputIndexOf("userID") {
+                userIDInRequests = true;
+            } catch {}
+
             _setRequest(requests[i]);
 
             // request with group
@@ -248,6 +255,10 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
                 s._groupedRequests[groupID].push(requests[i].requestId);
             }
+        }
+
+        if (!userIDInRequests) {
+            revert MissingUserIDInRequests();
         }
     }
 
@@ -789,22 +800,15 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         uint256 userIDFromAuthResponse,
         IRequestValidator.ResponseField[] memory signals
     ) internal pure {
-        bool userIDFromResponses = false;
-
         for (uint256 j = 0; j < signals.length; j++) {
             if (
                 keccak256(abi.encodePacked(signals[j].name)) ==
                 keccak256(abi.encodePacked("userID"))
             ) {
-                userIDFromResponses = true;
                 if (userIDFromAuthResponse != signals[j].value) {
                     revert UserIDMismatch(userIDFromAuthResponse, signals[j].value);
                 }
             }
-        }
-
-        if (!userIDFromResponses && signals.length > 1) {
-            revert MissingUserIDFromResponses();
         }
     }
 

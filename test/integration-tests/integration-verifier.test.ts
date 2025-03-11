@@ -185,6 +185,25 @@ describe("Verifier Integration test", function () {
     ).to.be.revertedWithCustomError(verifier, "ChallengeIsInvalid");
   });
 
+  it("Should revert with MissingUserIDInRequests", async function () {
+    await expect(
+      verifier.setRequests([
+        {
+          requestId: requestIdLMK,
+          metadata: "metadata",
+          validator: await lmkValidator.getAddress(),
+          params: twoQueriesParams,
+        },
+        {
+          requestId: requestIdLMK + 1,
+          metadata: "metadata",
+          validator: await lmkValidator.getAddress(),
+          params: twoQueriesParams,
+        },
+      ]),
+    ).to.be.revertedWithCustomError(verifier, "MissingUserIDInRequests");
+  });
+
   it("Should verify", async function () {
     const authProof = getProof(authProofJson);
 

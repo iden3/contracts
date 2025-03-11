@@ -13,6 +13,7 @@ error InvalidGroupID(uint256 groupID);
 error TooManyQueries(uint256 operatorCount);
 error InvalidGroth16Proof();
 error RequestParamNameNotFound();
+error InputNameNotFound();
 
 contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator, ERC165 {
     // This should be limited to the real number of queries in which operator != 0
@@ -33,6 +34,7 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
         mapping(string circuitName => IGroth16Verifier) _supportedCircuits;
         string[] _supportedCircuitIds;
         mapping(string => uint256) _requestParamNameToIndex;
+        mapping(string => uint256) _inputNameToIndex;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.LinkedMultiQueryValidator")) - 1))
@@ -81,6 +83,19 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
         LinkedMultiQueryValidatorStorage storage $ = _getLinkedMultiQueryValidatorStorage();
         $._supportedCircuits[CIRCUIT_ID] = IGroth16Verifier(_groth16VerifierContractAddr);
         $._supportedCircuitIds.push(CIRCUIT_ID);
+
+        _setInputToIndex("linkID", 0);
+        _setInputToIndex("merklized", 1);
+        for (uint256 i = 0; i < QUERIES_COUNT; i++) {
+            _setInputToIndex(
+                string(abi.encodePacked("operatorOutput_", Strings.toString(i))),
+                2 + i
+            );
+            _setInputToIndex(
+                string(abi.encodePacked("circuitQueryHash_", Strings.toString(i))),
+                12 + i
+            );
+        }
 
         _setRequestParamToIndex("groupID", 0);
         _setRequestParamToIndex("verifierID", 1);
@@ -164,6 +179,19 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
     }
 
     /**
+     * @dev Get the index of the public input of the circuit by name
+     * @param name Name of the public input
+     * @return Index of the public input
+     */
+    function inputIndexOf(string memory name) public view virtual returns (uint256) {
+        uint256 index = _getLinkedMultiQueryValidatorStorage()._inputNameToIndex[name];
+        if (index == 0) {
+            revert InputNameNotFound();
+        }
+        return --index; // we save 1-based index, but return 0-based
+    }
+
+    /**
      * @dev See {IERC165-supportsInterface}.
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
@@ -240,5 +268,10 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
     function _setRequestParamToIndex(string memory requestParamName, uint256 index) internal {
         // increment index to avoid 0
         _getLinkedMultiQueryValidatorStorage()._requestParamNameToIndex[requestParamName] = ++index;
+    }
+
+    function _setInputToIndex(string memory inputName, uint256 index) internal {
+        // increment index to avoid 0
+        _getLinkedMultiQueryValidatorStorage()._inputNameToIndex[inputName] = ++index;
     }
 }

@@ -52,6 +52,7 @@ describe("ValidatorWhitelist tests", function () {
     await verifier.addValidatorToWhitelist(await validator.getAddress());
 
     await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
+    await validator.stub_setInput("userID", 1);
     await verifier.setRequests([request]);
 
     await expect(verifier.testModifier(await validator.getAddress())).not.to.be.reverted;
