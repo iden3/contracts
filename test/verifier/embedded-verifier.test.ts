@@ -16,6 +16,7 @@ describe("EmbeddedVerifier tests", function () {
     await verifier.initialize(await signer.getAddress(), await state.getAddress());
 
     const validator = await ethers.deployContract("RequestValidatorStub");
+    await validator.stub_setVerifyResults([{ name: "userID", value: 1 }]);
 
     const authValidator = await deployHelper.deployValidatorStub("AuthValidatorStub");
     await authValidator.stub_setVerifyResults(1);

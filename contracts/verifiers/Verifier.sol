@@ -26,10 +26,8 @@ error RequestIdUsesReservedBytes();
 error RequestIdTypeNotValid();
 error RequestShouldNotHaveAGroup(uint256 requestId);
 error UserIDMismatch(uint256 userIDFromAuth, uint256 userIDFromResponse);
-error UserIDNotFound(uint256 userID);
-error UserIDNotLinkedToAddress(uint256 userID, address userAddress);
+error MissingUserIDFromResponses();
 error UserNotAuthenticated();
-error ValidatorNotWhitelisted(address validator);
 error VerifierIDIsNotValid(uint256 requestVerifierID, uint256 expectedVerifierID);
 error ChallengeIsInvalid();
 
@@ -791,15 +789,22 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         uint256 userIDFromAuthResponse,
         IRequestValidator.ResponseField[] memory signals
     ) internal pure {
+        uint256 userIDFromResponses = 0;
+
         for (uint256 j = 0; j < signals.length; j++) {
             if (
                 keccak256(abi.encodePacked(signals[j].name)) ==
                 keccak256(abi.encodePacked("userID"))
             ) {
+                userIDFromResponses++;
                 if (userIDFromAuthResponse != signals[j].value) {
                     revert UserIDMismatch(userIDFromAuthResponse, signals[j].value);
                 }
             }
+        }
+
+        if (userIDFromResponses == 0 && signals.length > 1) {
+            revert MissingUserIDFromResponses();
         }
     }
 

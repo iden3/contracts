@@ -182,6 +182,7 @@ describe("Verifer tests", function () {
         { name: "groupID", value: 1 },
         { name: "verifierID", value: 0 },
         { name: "nullifierSessionID", value: 0 },
+        { name: "userID", value: 1 },
       ];
       await validator1.stub_setRequestParams([groupRequest1.params], [paramsFromValidator]);
       await validator1.stub_setRequestParams([groupRequest2.params], [paramsFromValidator]);
@@ -202,6 +203,7 @@ describe("Verifer tests", function () {
         { name: "groupID", value: 0 },
         { name: "verifierID", value: verifierId },
         { name: "nullifierSessionID", value: 0 },
+        { name: "userID", value: 1 },
       ];
 
       await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
@@ -269,6 +271,7 @@ describe("Verifer tests", function () {
           name: "someFieldName2",
           value: 2,
         },
+        { name: "userID", value: 1 },
       ]);
 
       const authResponse = {
@@ -296,15 +299,15 @@ describe("Verifer tests", function () {
         "someFieldName1",
       );
       expect(responseField1).to.be.equal(1);
-      const resonseField2 = await verifier.getResponseFieldValue(
+      const responseField2 = await verifier.getResponseFieldValue(
         request.requestId,
         sender,
         "someFieldName2",
       );
-      expect(resonseField2).to.be.equal(2);
+      expect(responseField2).to.be.equal(2);
 
       const responseFields = await verifier.getResponseFields(request.requestId, sender);
-      expect(responseFields.length).to.be.equal(2);
+      expect(responseFields.length).to.be.equal(3);
       expect(responseFields[0].name).to.be.equal("someFieldName1");
       expect(responseFields[0].value).to.be.equal(1);
       expect(responseFields[1].name).to.be.equal("someFieldName2");
@@ -323,6 +326,7 @@ describe("Verifer tests", function () {
           name: "someFieldName1",
           value: 1,
         },
+        { name: "userID", value: 1 },
       ]);
 
       const authResponse = {
