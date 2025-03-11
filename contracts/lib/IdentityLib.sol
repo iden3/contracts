@@ -418,7 +418,6 @@ library IdentityLib {
         return self.rootsByState[state];
     }
 
-<<<<<<< HEAD
     /**
      * @dev write roots to history by state
      * @param self identity
@@ -434,11 +433,11 @@ library IdentityLib {
             revert RootsForThisStateAlreadyExist();
         }
         self.rootsByState[state] = roots;
-=======
+    }
+
     function _checkClaimExistence(Data storage self, uint256 hashIndex) internal view {
         uint256 currentRoot = self.trees.claimsTree.getRoot();
         SmtLib.Proof memory proof = self.trees.claimsTree.getProofByRoot(hashIndex, currentRoot);
         if (proof.existence) revert ClaimAlreadyExists(hashIndex);
->>>>>>> master
     }
 }
