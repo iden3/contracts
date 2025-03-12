@@ -14,6 +14,7 @@ error GroupIdNotFound(uint256 groupId);
 error GroupIdAlreadyExists(uint256 groupId);
 error GroupMustHaveAtLeastTwoRequests(uint256 groupID);
 error LinkIDNotTheSameForGroupedRequests();
+error LinkIDIsZeroForGroupedRequests(uint256 requestId, uint256 groupId, address sender);
 error MetadataNotSupportedYet();
 error MultiRequestIdAlreadyExists(uint256 multiRequestId);
 error MultiRequestIdNotFound(uint256 multiRequestId);
@@ -366,6 +367,22 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             _checkUserIDMatch(userIDFromAuthResponse, signals);
 
             _writeProofResults(response.requestId, sender, signals);
+
+            uint256 groupID = request
+            .validator
+            .getRequestParams(request.params)[request.validator.requestParamIndexOf("groupID")]
+                .value;
+
+            if (groupID != 0) {
+                uint256 linkID = getResponseFieldValue(
+                    response.requestId,
+                    sender,
+                    LINKED_PROOF_KEY
+                );
+                if (linkID == 0) {
+                    revert LinkIDIsZeroForGroupedRequests(response.requestId, groupID, sender);
+                }
+            }
 
             if (response.metadata.length > 0) {
                 revert MetadataNotSupportedYet();

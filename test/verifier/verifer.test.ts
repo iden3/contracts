@@ -3,7 +3,7 @@ import { beforeEach } from "mocha";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
 
-describe("Verifer tests", function () {
+describe("Verifier tests", function () {
   let sender: any;
   let verifier, validator1, validator2: any;
   let request, paramsFromValidator, authMethod: any;
@@ -376,6 +376,57 @@ describe("Verifer tests", function () {
       await expect(verifier.submitResponse(authResponse, [response], crossChainProofs))
         .to.revertedWithCustomError(verifier, "UserIDMismatch")
         .withArgs(1, 2);
+    });
+
+    it("submitResponse: linkID should not be equal to zero for grouped requests", async function () {
+      const groupID = 1;
+      const groupRequest1 = { ...request, groupID };
+      const groupRequest2 = {
+        ...request,
+        requestId: 2,
+        validator: await validator2.getAddress(),
+        groupID,
+      };
+      paramsFromValidator = [
+        { name: "groupID", value: groupID },
+        { name: "verifierID", value: 0 },
+        { name: "nullifierSessionID", value: 0 },
+      ];
+      await validator1.stub_setRequestParams([groupRequest1.params], [paramsFromValidator]);
+      await validator2.stub_setRequestParams([groupRequest2.params], [paramsFromValidator]);
+
+      await verifier.setRequests([groupRequest1, groupRequest2]);
+
+      await validator1.stub_setVerifyResults([
+        { name: "userID", value: 1 },
+        { name: "issuerID", value: 2 },
+        { name: "linkID", value: 3 },
+      ]);
+      await validator2.stub_setVerifyResults([
+        { name: "userID", value: 1 },
+        { name: "issuerID", value: 2 },
+        { name: "linkID", value: 0 }, // will revert because linkID is 0
+      ]);
+
+      const authResponse = {
+        authMethod: "stubAuth",
+        proof: "0x",
+      };
+      const response1 = {
+        requestId: groupRequest1.requestId,
+        proof: "0x",
+        metadata: "0x",
+      };
+      const response2 = {
+        requestId: groupRequest2.requestId,
+        proof: "0x",
+        metadata: "0x",
+      };
+      const crossChainProofs = "0x";
+
+      await expect(verifier.submitResponse(authResponse, [response1, response2], crossChainProofs))
+        .to.be.revertedWithCustomError(verifier, "LinkIDIsZeroForGroupedRequests")
+        .withArgs(groupRequest2.requestId, groupID, sender);
     });
   });
 
