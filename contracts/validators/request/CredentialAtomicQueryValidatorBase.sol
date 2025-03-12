@@ -9,8 +9,6 @@ import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
 import {IState} from "../../interfaces/IState.sol";
 import {PrimitiveTypeUtils} from "../../lib/PrimitiveTypeUtils.sol";
 
-error InputNameNotFound();
-error RequestParamNameNotFound();
 error ChallengeShouldMatchTheSender();
 error GistRootIsExpired();
 error NonRevocationStateOfIssuerIsExpired();

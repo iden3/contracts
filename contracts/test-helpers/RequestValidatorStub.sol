@@ -4,9 +4,6 @@ pragma solidity 0.8.27;
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
 
-error RequestParamNameNotFound();
-error InputNameNotFound();
-
 /**
  * @dev RequestValidatorStub validator
  */

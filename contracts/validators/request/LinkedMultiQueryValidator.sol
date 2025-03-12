@@ -12,8 +12,6 @@ error InvalidQueryHash(uint256 expectedQueryHash, uint256 actualQueryHash);
 error InvalidGroupID(uint256 groupID);
 error TooManyQueries(uint256 operatorCount);
 error InvalidGroth16Proof();
-error RequestParamNameNotFound();
-error InputNameNotFound();
 
 contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator, ERC165 {
     // This should be limited to the real number of queries in which operator != 0

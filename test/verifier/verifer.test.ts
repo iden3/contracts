@@ -86,13 +86,12 @@ describe("Verifer tests", function () {
       expect(requestsCount).to.be.equal(1);
     });
 
-    it("setRequests: should revert with MissingUserIDInRequests", async function () {
+    it("setRequests: should revert with MissingUserIDInRequest", async function () {
       await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
 
-      await expect(verifier.setRequests([request])).to.be.revertedWithCustomError(
-        verifier,
-        "MissingUserIDInRequests",
-      );
+      await expect(verifier.setRequests([request]))
+        .to.be.revertedWithCustomError(verifier, "MissingUserIDInRequest")
+        .withArgs(request.requestId);
     });
 
     it("setRequests: nullifierSessionID may be not unique if EQUAL to 0", async function () {

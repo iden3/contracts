@@ -26,7 +26,8 @@ error RequestIdUsesReservedBytes();
 error RequestIdTypeNotValid();
 error RequestShouldNotHaveAGroup(uint256 requestId);
 error UserIDMismatch(uint256 userIDFromAuth, uint256 userIDFromResponse);
-error MissingUserIDInRequests();
+error MissingUserIDInRequest(uint256 requestId);
+error MissingUserIDInGroupOfRequests(uint256 groupID);
 error UserNotAuthenticated();
 error VerifierIDIsNotValid(uint256 requestVerifierID, uint256 expectedVerifierID);
 error ChallengeIsInvalid();
@@ -193,7 +194,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         // 1. Check first that groupIds don't exist and keep the number of requests per group.
         _checkGroupIdsAndRequestsPerGroup(requests);
 
-        bool userIDInRequests = false;
         // 2. Set requests checking groups and nullifierSessionID uniqueness
         for (uint256 i = 0; i < requests.length; i++) {
             _checkRequestIdCorrectness(requests[i].requestId, requests[i].params);
@@ -207,11 +207,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                 requests[i].validator.requestParamIndexOf("groupID")
             ].value;
 
-            // check if auth is required by the response of the request
-            try requests[i].validator.inputIndexOf("userID") {
-                userIDInRequests = true;
-            } catch {}
-
             _setRequest(requests[i]);
 
             // request with group
@@ -223,10 +218,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
                 s._groupedRequests[groupID].push(requests[i].requestId);
             }
-        }
-
-        if (!userIDInRequests) {
-            revert MissingUserIDInRequests();
         }
     }
 
@@ -722,14 +713,18 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         return (false, 0);
     }
 
-    function _checkGroupsRequestsCount(
+    function _checkGroupsRequestsInfo(
         uint256[] memory groupList,
-        uint256[] memory groupRequestsList,
+        uint256[] memory groupRequestCountList,
+        bool[] memory groupUserIDInRequestsList,
         uint256 groupsCount
     ) internal pure {
         for (uint256 i = 0; i < groupsCount; i++) {
-            if (groupRequestsList[i] < 2) {
+            if (groupRequestCountList[i] < 2) {
                 revert GroupMustHaveAtLeastTwoRequests(groupList[i]);
+            }
+            if (groupUserIDInRequestsList[i] == false) {
+                revert MissingUserIDInGroupOfRequests(groupList[i]);
             }
         }
     }
@@ -740,6 +735,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         uint256 newGroupsCount = 0;
         uint256[] memory newGroupsGroupID = new uint256[](requests.length);
         uint256[] memory newGroupsRequestCount = new uint256[](requests.length);
+        bool[] memory newGroupsUserIDInRequests = new bool[](requests.length);
 
         for (uint256 i = 0; i < requests.length; i++) {
             uint256 groupID = requests[i]
@@ -766,10 +762,36 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                 } else {
                     newGroupsRequestCount[groupIDIndex]++;
                 }
+
+                if (_isUserIDInputInRequest(requests[i])) {
+                    newGroupsUserIDInRequests[groupIDIndex] = true;
+                }
+            } else {
+                // request without group
+                if (!_isUserIDInputInRequest(requests[i])) {
+                    revert MissingUserIDInRequest(requests[i].requestId);
+                }
             }
         }
 
-        _checkGroupsRequestsCount(newGroupsGroupID, newGroupsRequestCount, newGroupsCount);
+        _checkGroupsRequestsInfo(
+            newGroupsGroupID,
+            newGroupsRequestCount,
+            newGroupsUserIDInRequests,
+            newGroupsCount
+        );
+    }
+
+    function _isUserIDInputInRequest(
+        IVerifier.Request memory request
+    ) internal view returns (bool) {
+        bool userIDInRequests = false;
+
+        try request.validator.inputIndexOf("userID") {
+            userIDInRequests = true;
+        } catch {}
+
+        return userIDInRequests;
     }
 
     function _checkRequestsInMultiRequest(uint256 multiRequestId) internal view {

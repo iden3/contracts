@@ -185,7 +185,7 @@ describe("Verifier Integration test", function () {
     ).to.be.revertedWithCustomError(verifier, "ChallengeIsInvalid");
   });
 
-  it("Should revert with MissingUserIDInRequests", async function () {
+  it("Should revert with MissingUserIDInGroupOfRequests", async function () {
     await expect(
       verifier.setRequests([
         {
@@ -201,7 +201,9 @@ describe("Verifier Integration test", function () {
           params: twoQueriesParams,
         },
       ]),
-    ).to.be.revertedWithCustomError(verifier, "MissingUserIDInRequests");
+    )
+      .to.be.revertedWithCustomError(verifier, "MissingUserIDInGroupOfRequests")
+      .withArgs(groupID);
   });
 
   it("Should verify", async function () {

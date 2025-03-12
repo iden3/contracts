@@ -444,7 +444,7 @@ describe("Universal Verifier tests", function () {
         params: "0x",
       };
       await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
-
+      await validator.stub_setInput("userID", 1);
       await verifier.setVerifierID(1);
 
       await expect(verifier.setRequests([request]))
