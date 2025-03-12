@@ -41,6 +41,10 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     // keccak256(abi.encodePacked("challenge"))
     bytes32 private constant CHALLENGE_NAME =
         0x62357b294ca756256b576c5da68950c49d0d1823063551ffdcc1dad9d65a07a6;
+    // keccak256(abi.encodePacked("userID"))
+    bytes32 private constant USERID_NAME =
+        0xeaa28503c24395f30163098dfa9f1e1cd296dd52252064784e65d95934007382;
+    string private constant USERID_KEY = "userID";
 
     struct AuthMethodData {
         IAuthValidator validator;
@@ -787,7 +791,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     ) internal view returns (bool) {
         bool userIDInRequests = false;
 
-        try request.validator.inputIndexOf("userID") {
+        try request.validator.inputIndexOf(USERID_KEY) {
             userIDInRequests = true;
         } catch {}
 
@@ -829,10 +833,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         IRequestValidator.ResponseField[] memory signals
     ) internal pure {
         for (uint256 j = 0; j < signals.length; j++) {
-            if (
-                keccak256(abi.encodePacked(signals[j].name)) ==
-                keccak256(abi.encodePacked("userID"))
-            ) {
+            if (keccak256(abi.encodePacked(signals[j].name)) == USERID_NAME) {
                 if (userIDFromAuthResponse != signals[j].value) {
                     revert UserIDMismatch(userIDFromAuthResponse, signals[j].value);
                 }

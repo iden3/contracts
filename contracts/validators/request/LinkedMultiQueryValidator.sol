@@ -254,7 +254,7 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
             // TODO consider if can be more gas efficient. Check via gasleft() first
             if (query.operator[i] == 16) {
                 rfs[m++] = ResponseField(
-                    string(abi.encodePacked("operatorOutput", Strings.toString(i))),
+                    string(abi.encodePacked("operatorOutput_", Strings.toString(i))),
                     pubSignals.operatorOutput[i]
                 );
             }
