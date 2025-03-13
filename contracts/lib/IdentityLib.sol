@@ -11,6 +11,7 @@ error IdTypeNotSupported();
 error IdentityTreesHaventChanged();
 error RootsForThisStateDoesntExist();
 error RootsForThisStateAlreadyExist();
+error ClaimAlreadyExists(uint256 hashIndex);
 
 // /**
 //  * @dev Contract managing onchain identity
@@ -114,6 +115,7 @@ library IdentityLib {
         }
         uint256 hashIndex = PoseidonUnit4L.poseidon(claimIndex);
         uint256 hashValue = PoseidonUnit4L.poseidon(claimValue);
+        _checkClaimExistence(self, hashIndex);
         self.trees.claimsTree.addLeaf(hashIndex, hashValue);
     }
 
@@ -123,6 +125,7 @@ library IdentityLib {
      * @param hashValue - hash of claim value part
      */
     function addClaimHash(Data storage self, uint256 hashIndex, uint256 hashValue) external {
+        _checkClaimExistence(self, hashIndex);
         self.trees.claimsTree.addLeaf(hashIndex, hashValue);
     }
 
@@ -430,5 +433,11 @@ library IdentityLib {
             revert RootsForThisStateAlreadyExist();
         }
         self.rootsByState[state] = roots;
+    }
+
+    function _checkClaimExistence(Data storage self, uint256 hashIndex) internal view {
+        uint256 currentRoot = self.trees.claimsTree.getRoot();
+        SmtLib.Proof memory proof = self.trees.claimsTree.getProofByRoot(hashIndex, currentRoot);
+        if (proof.existence) revert ClaimAlreadyExists(hashIndex);
     }
 }

@@ -117,6 +117,7 @@ describe("Universal Verifier tests", function () {
         metadata: "0x",
       };
       await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator.stub_setInput("userID", 1);
 
       signerAddress = await signer.getAddress();
     });
@@ -443,7 +444,7 @@ describe("Universal Verifier tests", function () {
         params: "0x",
       };
       await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
-
+      await validator.stub_setInput("userID", 1);
       await verifier.setVerifierID(1);
 
       await expect(verifier.setRequests([request]))
@@ -547,6 +548,7 @@ describe("Universal Verifier tests", function () {
 
       for (let i = 0; i < requestsCount; i++) {
         await validator.stub_setRequestParams([params[i]], [paramsFromValidator]);
+        await validator.stub_setInput("userID", 1);
         await expect(
           verifier.setRequests([
             {
@@ -587,6 +589,7 @@ describe("Universal Verifier tests", function () {
 
       await validator.stub_setRequestParams([originalRequestData], [paramsFromValidator]);
       await validator.stub_setRequestParams([updatedRequestData], [paramsFromValidator]);
+      await validator.stub_setInput("userID", 1);
 
       await verifier.setRequests([
         {
@@ -643,6 +646,7 @@ describe("Universal Verifier tests", function () {
 
     it("Check MultiRequestSet event", async function () {
       await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator.stub_setInput("userID", 1);
       await verifier.setRequests([request]);
 
       await expect(verifier.setMultiRequest(multiRequest)).to.emit(verifier, "MultiRequestSet");

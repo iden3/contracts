@@ -37,6 +37,7 @@ describe("RequestDisableable tests", function () {
 
   it("disable/enable request and onlyEnabledRequest modifier", async function () {
     await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
+    await validator.stub_setInput("userID", 1);
 
     await verifier.setRequests([request]);
 

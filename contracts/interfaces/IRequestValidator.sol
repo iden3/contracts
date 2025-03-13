@@ -5,6 +5,8 @@ pragma solidity 0.8.27;
  * @dev IRequestValidator. Interface for verification of request query data.
  */
 interface IRequestValidator {
+    error RequestParamNameNotFound();
+    error InputNameNotFound();
     /**
      * @dev ResponseField. Information about response fields from verification. Used in verify function.
      * @param name Name of the response field
@@ -57,4 +59,11 @@ interface IRequestValidator {
      * @return Index of the request param
      */
     function requestParamIndexOf(string memory name) external view returns (uint256);
+
+    /**
+     * @dev Get the index of the public input of the circuit by name
+     * @param name Name of the public input
+     * @return Index of the public input
+     */
+    function inputIndexOf(string memory name) external view returns (uint256);
 }
