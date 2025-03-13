@@ -338,23 +338,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             // Check if userID from authResponse is the same as the one in the signals
             _checkUserIDMatch(userIDFromAuthResponse, signals);
 
-            _writeProofResults(response.requestId, sender, signals);
-
-            uint256 groupID = request
-            .validator
-            .getRequestParams(request.params)[request.validator.requestParamIndexOf("groupID")]
-                .value;
-
-            if (groupID != 0) {
-                uint256 linkID = getResponseFieldValue(
-                    response.requestId,
-                    sender,
-                    LINKED_PROOF_KEY
-                );
-                if (linkID == 0) {
-                    revert LinkIDIsZeroForGroupedRequests(response.requestId, groupID, sender);
-                }
-            }
+            _writeProofResults(response.requestId, request, sender, signals);
 
             if (response.metadata.length > 0) {
                 revert MetadataNotSupportedYet();
@@ -810,6 +794,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         try request.validator.inputIndexOf(USERID_KEY) {
             userIDInRequests = true;
+            // solhint-disable-next-line no-empty-blocks
         } catch {}
 
         return userIDInRequests;
@@ -1007,6 +992,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      */
     function _writeProofResults(
         uint256 requestId,
+        IVerifier.RequestData storage request,
         address sender,
         IRequestValidator.ResponseField[] memory responseFields
     ) internal {
@@ -1015,15 +1001,25 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         // We only keep only 1 proof now without history. Prepared for the future if needed.
         for (uint256 i = 0; i < responseFields.length; i++) {
-            proof.responseFields[responseFields[i].name] = responseFields[i].value;
             if (proof.responseFieldIndexes[responseFields[i].name] == 0) {
+                proof.responseFields[responseFields[i].name] = responseFields[i].value;
                 proof.responseFieldNames.push(responseFields[i].name);
+                // we are not using a real index defined by length-1 here but defined by just length
+                // which shifts the index by 1 to avoid 0 value
                 proof.responseFieldIndexes[responseFields[i].name] = proof
                     .responseFieldNames
                     .length;
             } else {
                 revert ResponseFieldAlreadyExists(responseFields[i].name);
             }
+        }
+
+        uint256 groupID = request
+        .validator
+        .getRequestParams(request.params)[request.validator.requestParamIndexOf("groupID")].value;
+
+        if (groupID != 0 && getResponseFieldValue(requestId, sender, LINKED_PROOF_KEY) == 0) {
+            revert LinkIDIsZeroForGroupedRequests(requestId, groupID, sender);
         }
 
         proof.isVerified = true;

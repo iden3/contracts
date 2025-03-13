@@ -410,6 +410,8 @@ describe("Verifier tests", function () {
         { name: "verifierID", value: 0 },
         { name: "nullifierSessionID", value: 0 },
       ];
+
+      await validator1.stub_setInput("userID", 1);
       await validator1.stub_setRequestParams([groupRequest1.params], [paramsFromValidator]);
       await validator2.stub_setRequestParams([groupRequest2.params], [paramsFromValidator]);
 
