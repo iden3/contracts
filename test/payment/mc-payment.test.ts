@@ -388,6 +388,51 @@ describe("MC Payment Contract", () => {
     );
   });
 
+  it("ERC-20 Permit (EIP-2612) payment - DOS via frontrun:", async () => {
+    const tokenFactory = await ethers.getContractFactory("ERC20PermitToken", owner);
+    const token = await tokenFactory.deploy(1_000);
+    await token.connect(owner).transfer(await userSigner.getAddress(), 100);
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
+
+    const paymentAmount = 10n;
+    const permitSignature = await getPermitSignature(
+      userSigner,
+      await token.getAddress(),
+      await payment.getAddress(),
+      paymentAmount,
+      0n,
+      Math.round(new Date().getTime() / 1000) + 60 * 60,
+    );
+    const { v, r, s } = ethers.Signature.from(permitSignature);
+    const expiration = Math.round(new Date().getTime() / 1000) + 60 * 60; // 1 hour
+    // emulate front-run transaction to use the nonce
+    const frontRunTx = await token
+      .connect(userSigner)
+      .permit(
+        await userSigner.getAddress(),
+        await payment.getAddress(),
+        paymentAmount,
+        expiration,
+        v,
+        r,
+        s,
+      );
+    await frontRunTx.wait();
+    const paymentData = {
+      tokenAddress: await token.getAddress(),
+      recipient: issuer1Signer.address,
+      amount: paymentAmount,
+      expirationDate: expiration,
+      nonce: 35,
+      metadata: "0x",
+    };
+    const signature = await issuer1Signer.signTypedData(domainData, erc20types, paymentData);
+    await expect(
+      payment.connect(userSigner).payERC20Permit(permitSignature, paymentData, signature),
+    ).to.changeTokenBalances(token, [userSigner, issuer1Signer, payment], [-10, 9, 1]);
+    expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
+  });
+
   it("ERC-20 Permit (EIP-2612) payment - invalid permit signature length:", async () => {
     const tokenFactory = await ethers.getContractFactory("ERC20PermitToken", owner);
     const token = await tokenFactory.deploy(1_000);

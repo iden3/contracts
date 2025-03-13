@@ -27,10 +27,9 @@ error RequestIdUsesReservedBytes();
 error RequestIdTypeNotValid();
 error RequestShouldNotHaveAGroup(uint256 requestId);
 error UserIDMismatch(uint256 userIDFromAuth, uint256 userIDFromResponse);
-error UserIDNotFound(uint256 userID);
-error UserIDNotLinkedToAddress(uint256 userID, address userAddress);
+error MissingUserIDInRequest(uint256 requestId);
+error MissingUserIDInGroupOfRequests(uint256 groupID);
 error UserNotAuthenticated();
-error ValidatorNotWhitelisted(address validator);
 error VerifierIDIsNotValid(uint256 requestVerifierID, uint256 expectedVerifierID);
 error ChallengeIsInvalid();
 
@@ -43,6 +42,10 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     // keccak256(abi.encodePacked("challenge"))
     bytes32 private constant CHALLENGE_NAME =
         0x62357b294ca756256b576c5da68950c49d0d1823063551ffdcc1dad9d65a07a6;
+    // keccak256(abi.encodePacked("userID"))
+    bytes32 private constant USERID_NAME =
+        0xeaa28503c24395f30163098dfa9f1e1cd296dd52252064784e65d95934007382;
+    string private constant USERID_KEY = "userID";
 
     struct AuthMethodData {
         IAuthValidator validator;
@@ -193,40 +196,8 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function setRequests(IVerifier.Request[] calldata requests) public {
         VerifierStorage storage s = _getVerifierStorage();
 
-        uint256 newGroupsCount = 0;
-        uint256[] memory newGroupsGroupID = new uint256[](requests.length);
-        uint256[] memory newGroupsRequestCount = new uint256[](requests.length);
-
         // 1. Check first that groupIds don't exist and keep the number of requests per group.
-        for (uint256 i = 0; i < requests.length; i++) {
-            uint256 groupID = requests[i]
-            .validator
-            .getRequestParams(requests[i].params)[
-                requests[i].validator.requestParamIndexOf("groupID")
-            ].value;
-
-            if (groupID != 0) {
-                if (groupIdExists(groupID)) {
-                    revert GroupIdAlreadyExists(groupID);
-                }
-
-                (bool exists, uint256 groupIDIndex) = _getGroupIDIndex(
-                    groupID,
-                    newGroupsGroupID,
-                    newGroupsCount
-                );
-
-                if (!exists) {
-                    newGroupsGroupID[newGroupsCount] = groupID;
-                    newGroupsRequestCount[newGroupsCount]++;
-                    newGroupsCount++;
-                } else {
-                    newGroupsRequestCount[groupIDIndex]++;
-                }
-            }
-        }
-
-        _checkGroupsRequestsCount(newGroupsGroupID, newGroupsRequestCount, newGroupsCount);
+        _checkGroupIdsAndRequestsPerGroup(requests);
 
         // 2. Set requests checking groups and nullifierSessionID uniqueness
         for (uint256 i = 0; i < requests.length; i++) {
@@ -240,6 +211,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             .getRequestParams(requests[i].params)[
                 requests[i].validator.requestParamIndexOf("groupID")
             ].value;
+
             _setRequest(requests[i]);
 
             // request with group
@@ -762,16 +734,85 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         return (false, 0);
     }
 
-    function _checkGroupsRequestsCount(
+    function _checkGroupsRequestsInfo(
         uint256[] memory groupList,
-        uint256[] memory groupRequestsList,
+        uint256[] memory groupRequestCountList,
+        bool[] memory groupUserIDInRequestsList,
         uint256 groupsCount
     ) internal pure {
         for (uint256 i = 0; i < groupsCount; i++) {
-            if (groupRequestsList[i] < 2) {
+            if (groupRequestCountList[i] < 2) {
                 revert GroupMustHaveAtLeastTwoRequests(groupList[i]);
             }
+            if (groupUserIDInRequestsList[i] == false) {
+                revert MissingUserIDInGroupOfRequests(groupList[i]);
+            }
         }
+    }
+
+    function _checkGroupIdsAndRequestsPerGroup(
+        IVerifier.Request[] calldata requests
+    ) internal view {
+        uint256 newGroupsCount = 0;
+        uint256[] memory newGroupsGroupID = new uint256[](requests.length);
+        uint256[] memory newGroupsRequestCount = new uint256[](requests.length);
+        bool[] memory newGroupsUserIDInRequests = new bool[](requests.length);
+
+        for (uint256 i = 0; i < requests.length; i++) {
+            uint256 groupID = requests[i]
+            .validator
+            .getRequestParams(requests[i].params)[
+                requests[i].validator.requestParamIndexOf("groupID")
+            ].value;
+
+            if (groupID != 0) {
+                if (groupIdExists(groupID)) {
+                    revert GroupIdAlreadyExists(groupID);
+                }
+
+                (bool exists, uint256 groupIDIndex) = _getGroupIDIndex(
+                    groupID,
+                    newGroupsGroupID,
+                    newGroupsCount
+                );
+
+                if (!exists) {
+                    newGroupsGroupID[newGroupsCount] = groupID;
+                    newGroupsRequestCount[newGroupsCount]++;
+                    newGroupsCount++;
+                } else {
+                    newGroupsRequestCount[groupIDIndex]++;
+                }
+
+                if (_isUserIDInputInRequest(requests[i])) {
+                    newGroupsUserIDInRequests[groupIDIndex] = true;
+                }
+            } else {
+                // request without group
+                if (!_isUserIDInputInRequest(requests[i])) {
+                    revert MissingUserIDInRequest(requests[i].requestId);
+                }
+            }
+        }
+
+        _checkGroupsRequestsInfo(
+            newGroupsGroupID,
+            newGroupsRequestCount,
+            newGroupsUserIDInRequests,
+            newGroupsCount
+        );
+    }
+
+    function _isUserIDInputInRequest(
+        IVerifier.Request memory request
+    ) internal view returns (bool) {
+        bool userIDInRequests = false;
+
+        try request.validator.inputIndexOf(USERID_KEY) {
+            userIDInRequests = true;
+        } catch {}
+
+        return userIDInRequests;
     }
 
     function _checkRequestsInMultiRequest(uint256 multiRequestId) internal view {
@@ -809,10 +850,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         IRequestValidator.ResponseField[] memory signals
     ) internal pure {
         for (uint256 j = 0; j < signals.length; j++) {
-            if (
-                keccak256(abi.encodePacked(signals[j].name)) ==
-                keccak256(abi.encodePacked("userID"))
-            ) {
+            if (keccak256(abi.encodePacked(signals[j].name)) == USERID_NAME) {
                 if (userIDFromAuthResponse != signals[j].value) {
                     revert UserIDMismatch(userIDFromAuthResponse, signals[j].value);
                 }

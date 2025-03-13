@@ -4,8 +4,6 @@ pragma solidity 0.8.27;
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
 
-error RequestParamNameNotFound();
-
 /**
  * @dev RequestValidatorStub validator
  */
@@ -16,6 +14,7 @@ contract RequestValidatorStub is IRequestValidator, ERC165 {
         private requestParams;
     IRequestValidator.ResponseField[] private responseFields;
     mapping(string => uint256) private _requestParamNameToIndex;
+    mapping(string => uint256) private _inputNameToIndex;
 
     function version() public pure override returns (string memory) {
         return VERSION;
@@ -57,6 +56,14 @@ contract RequestValidatorStub is IRequestValidator, ERC165 {
         return --index; // we save 1-based index, but return 0-based
     }
 
+    function inputIndexOf(string memory name) public view virtual returns (uint256) {
+        uint256 index = _inputNameToIndex[name];
+        if (index == 0) {
+            revert InputNameNotFound();
+        }
+        return --index; // we save 1-based index, but return 0-based
+    }
+
     // solhint-disable-next-line func-name-mixedcase
     function stub_setRequestParams(
         bytes[] calldata _params,
@@ -72,8 +79,18 @@ contract RequestValidatorStub is IRequestValidator, ERC165 {
         }
     }
 
+    // solhint-disable-next-line func-name-mixedcase
+    function stub_setInput(string memory inputName, uint256 index) external {
+        _setInputToIndex(inputName, index);
+    }
+
     function _setRequestParamToIndex(string memory requestParamName, uint256 index) internal {
         // increment index to avoid 0
         _requestParamNameToIndex[requestParamName] = ++index;
+    }
+
+    function _setInputToIndex(string memory inputName, uint256 index) internal {
+        // increment index to avoid 0
+        _inputNameToIndex[inputName] = ++index;
     }
 }

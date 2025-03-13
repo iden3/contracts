@@ -91,7 +91,7 @@ describe("Test linkedMultiQuery10.circom", function () {
     const result = await validator.verify(signer.address, proofForTwoQueries, twoQueriesParams);
     expect(result).to.deep.equal([
       ["linkID", linkId],
-      ["operatorOutput1", 777n],
+      ["operatorOutput_1", 777n],
     ]);
 
     // have more than one operator output

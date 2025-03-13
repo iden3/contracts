@@ -40,6 +40,7 @@ describe("RequestOwnership tests", function () {
 
   it("setRequestOwner: change request ownership", async function () {
     await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
+    await validator.stub_setInput("userID", 1);
     await verifier.setRequests([request]);
 
     let owner = await verifier.getRequestOwner(request.requestId);
