@@ -148,6 +148,8 @@ describe("Test linkedMultiQuery10.circom", function () {
       ["verifierID", oneQuery.verifierID],
       ["nullifierSessionID", 0],
     ]);
+    const resultParam = await validator.getRequestParam(oneQueryParams, "groupID");
+    expect(resultParam).to.deep.equal(["groupID", oneQuery.groupID]);
   });
 
   it("Should throw if failed ZK verification", async function () {

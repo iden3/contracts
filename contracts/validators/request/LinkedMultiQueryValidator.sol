@@ -26,6 +26,16 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
         uint256 verifierID;
     }
 
+    // keccak256(abi.encodePacked("groupID"))
+    bytes32 private constant GROUPID_NAME =
+        0xdab5ca4f3738dce0cd25851a4aa9160ebdfb1678ef20ca14c9a3e9217058455a;
+    // keccak256(abi.encodePacked("verifierID"))
+    bytes32 private constant VERIFIERID_NAME =
+        0xa6ade9d39b76f319076fc4ad150ee37167dd21433b39e1d533a5d6b635762abe;
+    // keccak256(abi.encodePacked("nullifierSessionID"))
+    bytes32 private constant NULLIFIERSESSIONID_NAME =
+        0x24cea8e4716dcdf091e4abcbd3ea617d9a5dd308b90afb5da0d75e56b3c0bc95;
+
     /// @dev Main storage structure for the contract
     /// @custom:storage-location iden3.storage.LinkedMultiQueryValidatorStorage
     struct LinkedMultiQueryValidatorStorage {
@@ -159,6 +169,29 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
         });
         requestParams[2] = IRequestValidator.RequestParam({name: "nullifierSessionID", value: 0});
         return requestParams;
+    }
+
+    /**
+     * @dev Get the request param from params of the request query data.
+     * @param params Request query data of the credential to verify.
+     * @param paramName Request query param name to retrieve of the credential to verify.
+     * @return RequestParam for the param name of the request query data.
+     */
+    function getRequestParam(
+        bytes calldata params,
+        string memory paramName
+    ) external pure returns (RequestParam memory) {
+        Query memory query = abi.decode(params, (Query));
+
+        if (keccak256(bytes(paramName)) == GROUPID_NAME) {
+            return IRequestValidator.RequestParam({name: paramName, value: query.groupID});
+        } else if (keccak256(bytes(paramName)) == VERIFIERID_NAME) {
+            return IRequestValidator.RequestParam({name: paramName, value: query.verifierID});
+        } else if (keccak256(bytes(paramName)) == NULLIFIERSESSIONID_NAME) {
+            return IRequestValidator.RequestParam({name: paramName, value: 0});
+        } else {
+            revert RequestParamNameNotFound();
+        }
     }
 
     /**

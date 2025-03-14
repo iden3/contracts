@@ -252,6 +252,8 @@ describe("Atomic MTP Validator", function () {
     expect(
       requestParams[await mtpValidator.requestParamIndexOf("nullifierSessionID")][1],
     ).to.be.equal(0);
+    const requestParam = await mtpValidator.getRequestParam(params, "groupID");
+    expect(requestParam).to.be.deep.equal(["groupID", 0]);
   });
 
   it("Test get config params", async () => {

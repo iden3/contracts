@@ -642,6 +642,8 @@ describe("Atomic V3 Validator", function () {
     expect(
       requestParams[await v3Validator.requestParamIndexOf("nullifierSessionID")][1],
     ).to.be.equal(8);
+    const requestParam = await v3Validator.getRequestParam(params, "groupID");
+    expect(requestParam).to.be.deep.equal(["groupID", 9]);
   });
 
   it("Test get config params", async () => {
