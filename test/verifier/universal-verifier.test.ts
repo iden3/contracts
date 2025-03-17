@@ -392,6 +392,28 @@ describe("Universal Verifier tests", function () {
         .be.rejected;
     });
 
+    it("Check InvalidRequestOwner", async () => {
+      const requestOwner = signer2;
+      const owner = signer;
+
+      await expect(verifier.connect(requestOwner).setRequests([request]))
+        .to.be.revertedWithCustomError(verifier, "InvalidRequestOwner")
+        .withArgs(request.owner, await requestOwner.getAddress());
+
+      // Request owner different from the owner of the contract.
+      const request2 = { ...request, owner: await requestOwner.getAddress() };
+      // Owner of the contract is the sender to set the request with different owner
+      await expect(verifier.connect(owner).setRequests([request2])).not.to.be.reverted;
+
+      // Request owner the same as the sender
+      const request3 = {
+        ...request,
+        requestId: request.requestId + 1,
+        owner: await requestOwner.getAddress(),
+      };
+      await expect(verifier.connect(requestOwner).setRequests([request3])).not.to.be.reverted;
+    });
+
     it("Check updateRequest", async () => {
       const owner = signer;
       const requestOwner = signer2;
