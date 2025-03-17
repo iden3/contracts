@@ -6,8 +6,10 @@ import { expect } from "chai";
 describe("RequestDisableable tests", function () {
   let verifier, validator: any;
   let request, paramsFromValidator: any;
+  let signer: any;
 
   async function deployContractsFixture() {
+    [signer] = await ethers.getSigners();
     const deployHelper = await DeployHelper.initialize(null, true);
     const verifier = await ethers.deployContract("RequestDisableableTestWrapper", []);
 
@@ -25,6 +27,7 @@ describe("RequestDisableable tests", function () {
       requestId: 1,
       metadata: "0x",
       validator: await validator.getAddress(),
+      owner: await signer.getAddress(),
       params: "0x",
     };
 

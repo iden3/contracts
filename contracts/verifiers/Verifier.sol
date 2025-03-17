@@ -201,7 +201,11 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         // 2. Set requests checking groups and nullifierSessionID uniqueness
         for (uint256 i = 0; i < requests.length; i++) {
-            _checkRequestIdCorrectness(requests[i].requestId, requests[i].params);
+            _checkRequestIdCorrectness(
+                requests[i].requestId,
+                requests[i].params,
+                requests[i].owner
+            );
 
             _checkNullifierSessionIdUniqueness(requests[i]);
             _checkVerifierID(requests[i]);
@@ -660,7 +664,8 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
     function _checkRequestIdCorrectness(
         uint256 requestId,
-        bytes calldata requestParams
+        bytes calldata requestParams,
+        address requestOwner
     ) internal pure {
         // 1. Check prefix
         uint16 requestType = _getRequestType(requestId);
@@ -677,7 +682,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         //    - 0x0000... for old request Ids with uint64
         //    - 0x0001... for new request Ids with uint256
         if (requestType == 1) {
-            uint256 hashValue = uint256(keccak256(requestParams));
+            uint256 hashValue = uint256(keccak256(abi.encode(requestParams, requestOwner)));
             if (
                 requestId !=
                 (hashValue & 0x0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) +
