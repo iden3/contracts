@@ -154,37 +154,6 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
     }
 
     /**
-     * @dev Get the request params of the request query data.
-     * @param params Request query data of the credential to verify.
-     * @return RequestParams of the request query data.
-     */
-    function getRequestParams(
-        bytes calldata params
-    ) external pure override returns (IRequestValidator.RequestParam[] memory) {
-        CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
-            params,
-            (CredentialAtomicQueryV3)
-        );
-
-        if (credAtomicQuery.verifierID == 0) revert VerifierIDNotSet();
-        IRequestValidator.RequestParam[]
-            memory requestParams = new IRequestValidator.RequestParam[](3);
-        requestParams[0] = IRequestValidator.RequestParam({
-            name: "groupID",
-            value: credAtomicQuery.groupID
-        });
-        requestParams[1] = IRequestValidator.RequestParam({
-            name: "verifierID",
-            value: credAtomicQuery.verifierID
-        });
-        requestParams[2] = IRequestValidator.RequestParam({
-            name: "nullifierSessionID",
-            value: credAtomicQuery.nullifierSessionID
-        });
-        return requestParams;
-    }
-
-    /**
      * @dev Get the request param from params of the request query data.
      * @param params Request query data of the credential to verify.
      * @param paramName Request query param name to retrieve of the credential to verify.
@@ -204,21 +173,23 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         if (keccak256(bytes(paramName)) == GROUPID_NAME) {
             return
                 IRequestValidator.RequestParam({name: paramName, value: credAtomicQuery.groupID});
-        } else if (keccak256(bytes(paramName)) == VERIFIERID_NAME) {
+        }
+        if (keccak256(bytes(paramName)) == VERIFIERID_NAME) {
             return
                 IRequestValidator.RequestParam({
                     name: paramName,
                     value: credAtomicQuery.verifierID
                 });
-        } else if (keccak256(bytes(paramName)) == NULLIFIERSESSIONID_NAME) {
+        }
+        if (keccak256(bytes(paramName)) == NULLIFIERSESSIONID_NAME) {
             return
                 IRequestValidator.RequestParam({
                     name: paramName,
                     value: credAtomicQuery.nullifierSessionID
                 });
-        } else {
-            revert RequestParamNameNotFound();
         }
+
+        revert RequestParamNameNotFound();
     }
 
     /**

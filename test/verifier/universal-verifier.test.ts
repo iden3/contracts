@@ -93,7 +93,7 @@ describe("Universal Verifier tests", function () {
         requestId: 0,
         metadata: "0x",
         validator: await validator.getAddress(),
-        owner: await signer.getAddress(),
+        owner: signer.address,
         params: "0x",
       };
 
@@ -467,7 +467,7 @@ describe("Universal Verifier tests", function () {
         requestId: requestId,
         metadata: "0x",
         validator: await validator.getAddress(),
-        owner: await signer.getAddress(),
+        owner: signer.address,
         params: "0x",
       };
       await validator.stub_setRequestParams([request.params], [paramsFromValidator]);

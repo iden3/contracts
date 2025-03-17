@@ -27,7 +27,7 @@ describe("RequestDisableable tests", function () {
       requestId: 1,
       metadata: "0x",
       validator: await validator.getAddress(),
-      owner: await signer.getAddress(),
+      owner: signer.address,
       params: "0x",
     };
 

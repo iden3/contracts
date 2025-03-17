@@ -151,27 +151,6 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
     }
 
     /**
-     * @dev Decodes special request parameters from the request params
-     * do be used by upper level clients of this contract.
-     * @param params Request parameters packed as bytes.
-     * @return Special request parameters extracted from the request data.
-     */
-    function getRequestParams(
-        bytes calldata params
-    ) external pure override returns (IRequestValidator.RequestParam[] memory) {
-        Query memory query = abi.decode(params, (Query));
-        IRequestValidator.RequestParam[]
-            memory requestParams = new IRequestValidator.RequestParam[](3);
-        requestParams[0] = IRequestValidator.RequestParam({name: "groupID", value: query.groupID});
-        requestParams[1] = IRequestValidator.RequestParam({
-            name: "verifierID",
-            value: query.verifierID
-        });
-        requestParams[2] = IRequestValidator.RequestParam({name: "nullifierSessionID", value: 0});
-        return requestParams;
-    }
-
-    /**
      * @dev Get the request param from params of the request query data.
      * @param params Request query data of the credential to verify.
      * @param paramName Request query param name to retrieve of the credential to verify.

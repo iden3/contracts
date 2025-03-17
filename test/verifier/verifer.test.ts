@@ -149,12 +149,13 @@ describe("Verifier tests", function () {
         "RequestIdNotValid",
       );
 
-      const abiCoder = new ethers.AbiCoder();
-
       request.requestId =
         (BigInt(
           ethers.keccak256(
-            abiCoder.encode(["bytes", "address"], [request.params, await sender.getAddress()]),
+            ethers.solidityPacked(
+              ["bytes", "address"],
+              [request.params, await sender.getAddress()],
+            ),
           ),
         ) &
           BigInt("0x0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) +

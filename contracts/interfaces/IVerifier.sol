@@ -20,8 +20,8 @@ interface IVerifier {
         uint256 requestId;
         string metadata;
         IRequestValidator validator;
-        address owner;
         bytes params;
+        address owner;
     }
 
     /**

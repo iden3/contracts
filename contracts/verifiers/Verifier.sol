@@ -682,7 +682,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         //    - 0x0000... for old request Ids with uint64
         //    - 0x0001... for new request Ids with uint256
         if (requestType == 1) {
-            uint256 hashValue = uint256(keccak256(abi.encode(requestParams, requestOwner)));
+            uint256 hashValue = uint256(keccak256(abi.encodePacked(requestParams, requestOwner)));
             if (
                 requestId !=
                 (hashValue & 0x0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) +
