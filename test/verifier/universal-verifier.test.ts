@@ -93,6 +93,7 @@ describe("Universal Verifier tests", function () {
         requestId: 0,
         metadata: "0x",
         validator: await validator.getAddress(),
+        owner: await signer.getAddress(),
         params: "0x",
       };
 
@@ -275,11 +276,13 @@ describe("Universal Verifier tests", function () {
       const requestOwnerAddr = await requestOwner.getAddress();
       const someSignerAddress = await someSigner.getAddress();
 
+      const request2 = { ...request, owner: requestOwnerAddr };
+
       await expect(verifier.getRequestOwner(request.requestId))
         .to.be.revertedWithCustomError(verifier, "RequestIdNotFound")
         .withArgs(request.requestId);
 
-      await verifier.connect(requestOwner).setRequests([request]);
+      await verifier.connect(requestOwner).setRequests([request2]);
 
       expect(await verifier.getRequestOwner(request.requestId)).to.be.equal(requestOwnerAddr);
       await expect(verifier.connect(someSigner).setRequestOwner(request.requestId, someSigner))
@@ -394,12 +397,13 @@ describe("Universal Verifier tests", function () {
       const requestOwner = signer2;
       const requestId = 0;
 
-      await verifier.connect(requestOwner).setRequests([request]);
+      const request2 = { ...request, owner: await requestOwner.getAddress() };
+      await verifier.connect(requestOwner).setRequests([request2]);
 
       let requestStored = await verifier.getRequest(requestId);
       expect(requestStored.metadata).to.be.equal(request.metadata);
       await expect(
-        verifier.connect(requestOwner).updateRequest(request),
+        verifier.connect(requestOwner).updateRequest(request2),
       ).to.be.revertedWithCustomError(verifier, "OwnableUnauthorizedAccount");
 
       await verifier.connect(owner).updateRequest({
@@ -441,6 +445,7 @@ describe("Universal Verifier tests", function () {
         requestId: requestId,
         metadata: "0x",
         validator: await validator.getAddress(),
+        owner: await signer.getAddress(),
         params: "0x",
       };
       await validator.stub_setRequestParams([request.params], [paramsFromValidator]);

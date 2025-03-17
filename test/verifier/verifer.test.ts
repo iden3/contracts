@@ -49,6 +49,7 @@ describe("Verifier tests", function () {
         requestId: 1,
         metadata: "0x",
         validator: await validator1.getAddress(),
+        owner: await sender.getAddress(),
         params: "0x",
       };
 
@@ -148,8 +149,14 @@ describe("Verifier tests", function () {
         "RequestIdNotValid",
       );
 
+      const abiCoder = new ethers.AbiCoder();
+
       request.requestId =
-        (BigInt(ethers.keccak256(request.params)) &
+        (BigInt(
+          ethers.keccak256(
+            abiCoder.encode(["bytes", "address"], [request.params, await sender.getAddress()]),
+          ),
+        ) &
           BigInt("0x0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) +
         BigInt("0x0001000000000000000000000000000000000000000000000000000000000000"); // requestId is valid;
       await expect(verifier.setRequests([request])).not.to.be.rejected;
@@ -459,6 +466,7 @@ describe("Verifier tests", function () {
         requestId: 1,
         metadata: "0x",
         validator: await validator1.getAddress(),
+        owner: await sender.getAddress(),
         params: "0x",
       };
 
