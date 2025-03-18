@@ -227,7 +227,7 @@ export const contractsInfo = Object.freeze({
   },
   VC_PAYMENT: {
     name: "VCPayment",
-    version: "1.0.1",
+    version: "1.0.2",
     unifiedAddress: "0xba83D99c87358Ef9B6f7c4a5A94021A58d870704",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.VCPayment")),
     verificationOpts: {
