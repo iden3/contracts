@@ -47,13 +47,6 @@ interface IRequestValidator {
     ) external returns (ResponseField[] memory);
 
     /**
-     * @dev Get the request params of the request query data.
-     * @param params Request query data of the credential to verify.
-     * @return RequestParams of the request query data.
-     */
-    function getRequestParams(bytes calldata params) external view returns (RequestParam[] memory);
-
-    /**
      * @dev Get the request param from params of the request query data.
      * @param params Request query data of the credential to verify.
      * @param paramName Request query param name to retrieve of the credential to verify.

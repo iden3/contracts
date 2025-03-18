@@ -231,7 +231,7 @@ describe("Atomic MTP Validator", function () {
     expect(version).to.be.equal(contractsInfo.VALIDATOR_MTP.version);
   });
 
-  it("check getRequestParams", async () => {
+  it("check getRequestParam", async () => {
     const query: any = {
       requestId: 1,
       schema: 2,
@@ -246,14 +246,13 @@ describe("Atomic MTP Validator", function () {
     };
 
     const params = packValidatorParams(query);
-    const requestParams = await mtpValidator.getRequestParams(params);
-    expect(requestParams[await mtpValidator.requestParamIndexOf("groupID")][1]).to.be.equal(0);
-    expect(requestParams[await mtpValidator.requestParamIndexOf("verifierID")][1]).to.be.equal(0);
-    expect(
-      requestParams[await mtpValidator.requestParamIndexOf("nullifierSessionID")][1],
-    ).to.be.equal(0);
-    const requestParam = await mtpValidator.getRequestParam(params, "groupID");
-    expect(requestParam).to.be.deep.equal(["groupID", 0]);
+
+    let resultParam = await mtpValidator.getRequestParam(params, "groupID");
+    expect(resultParam).to.deep.equal(["groupID", 0]);
+    resultParam = await mtpValidator.getRequestParam(params, "verifierID");
+    expect(resultParam).to.deep.equal(["verifierID", 0]);
+    resultParam = await mtpValidator.getRequestParam(params, "nullifierSessionID");
+    expect(resultParam).to.deep.equal(["nullifierSessionID", 0]);
   });
 
   it("Test get config params", async () => {

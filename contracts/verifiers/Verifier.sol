@@ -631,6 +631,8 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function _setRequest(
         Request calldata request
     ) internal virtual checkRequestExistence(request.requestId, false) {
+        _checkRequestOwner(request);
+
         VerifierStorage storage s = _getVerifierStorage();
 
         s._requests[request.requestId] = IVerifier.RequestData({
@@ -640,6 +642,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             creator: _msgSender()
         });
         s._requestIds.push(request.requestId);
+    }
+
+    function _checkRequestOwner(Request calldata request) internal virtual {
+        if (request.owner == address(0) || (request.owner != _msgSender())) {
+            revert InvalidRequestOwner(request.owner, _msgSender());
+        }
     }
 
     function _checkVerifierID(IVerifier.Request calldata request) internal view {
@@ -682,7 +690,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         //    - 0x0000... for old request Ids with uint64
         //    - 0x0001... for new request Ids with uint256
         if (requestType == 1) {
-            uint256 hashValue = uint256(keccak256(abi.encode(requestParams, requestOwner)));
+            uint256 hashValue = uint256(keccak256(abi.encodePacked(requestParams, requestOwner)));
             if (
                 requestId !=
                 (hashValue & 0x0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) +

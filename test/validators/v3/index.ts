@@ -616,7 +616,7 @@ describe("Atomic V3 Validator", function () {
     expect(version).to.be.equal(contractsInfo.VALIDATOR_V3.version);
   });
 
-  it("check getRequestParams", async () => {
+  it("check getRequestParam", async () => {
     const query: any = {
       requestId: 1,
       schema: 2,
@@ -636,14 +636,12 @@ describe("Atomic V3 Validator", function () {
     };
 
     const params = packV3ValidatorParams(query);
-    const requestParams = await v3Validator.getRequestParams(params);
-    expect(requestParams[await v3Validator.requestParamIndexOf("groupID")][1]).to.be.equal(9);
-    expect(requestParams[await v3Validator.requestParamIndexOf("verifierID")][1]).to.be.equal(7);
-    expect(
-      requestParams[await v3Validator.requestParamIndexOf("nullifierSessionID")][1],
-    ).to.be.equal(8);
-    const requestParam = await v3Validator.getRequestParam(params, "groupID");
-    expect(requestParam).to.be.deep.equal(["groupID", 9]);
+    let resultParam = await v3Validator.getRequestParam(params, "groupID");
+    expect(resultParam).to.deep.equal(["groupID", 9]);
+    resultParam = await v3Validator.getRequestParam(params, "verifierID");
+    expect(resultParam).to.deep.equal(["verifierID", 7]);
+    resultParam = await v3Validator.getRequestParam(params, "nullifierSessionID");
+    expect(resultParam).to.deep.equal(["nullifierSessionID", 8]);
   });
 
   it("Test get config params", async () => {

@@ -11,7 +11,6 @@ import {Verifier} from "./Verifier.sol";
 import {IState} from "../interfaces/IState.sol";
 
 error NotAnOwnerOrRequestOwner(address);
-error InvalidRequestOwner(address, address);
 
 /// @title Universal Verifier Contract
 /// @notice A contract to manage ZKP (Zero-Knowledge Proof) requests and proofs.
@@ -220,12 +219,6 @@ contract UniversalVerifier is
     function _setRequest(
         Request calldata request
     ) internal virtual override(RequestOwnership, ValidatorWhitelist, Verifier) {
-        if (
-            request.owner == address(0) ||
-            (request.owner != _msgSender() && _msgSender() != owner())
-        ) {
-            revert InvalidRequestOwner(request.owner, _msgSender());
-        }
         super._setRequest(request);
         emit RequestSet(
             request.requestId,
@@ -234,5 +227,14 @@ contract UniversalVerifier is
             address(request.validator),
             request.params
         );
+    }
+
+    function _checkRequestOwner(Request calldata request) internal virtual override {
+        if (
+            request.owner == address(0) ||
+            (request.owner != _msgSender() && _msgSender() != owner())
+        ) {
+            revert InvalidRequestOwner(request.owner, _msgSender());
+        }
     }
 }

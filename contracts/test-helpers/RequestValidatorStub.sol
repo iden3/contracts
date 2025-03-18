@@ -44,12 +44,6 @@ contract RequestValidatorStub is IRequestValidator, ERC165 {
         }
     }
 
-    function getRequestParams(
-        bytes calldata params
-    ) external view returns (IRequestValidator.RequestParam[] memory) {
-        return requestParams[keccak256(params)];
-    }
-
     function getRequestParam(
         bytes calldata params,
         string memory paramName
