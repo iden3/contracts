@@ -140,7 +140,7 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
      */
     function initialize(address owner) public initializer {
         __Ownable_init(owner);
-         __ReentrancyGuard_init();
+        __ReentrancyGuard_init();
     }
 
     function setPaymentValue(
