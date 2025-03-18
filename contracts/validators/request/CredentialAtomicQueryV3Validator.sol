@@ -163,30 +163,17 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         bytes calldata params,
         string memory paramName
     ) external pure returns (RequestParam memory) {
-        CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
-            params,
-            (CredentialAtomicQueryV3)
-        );
-
-        if (credAtomicQuery.verifierID == 0) revert VerifierIDNotSet();
+        CredentialAtomicQueryV3 memory query = abi.decode(params, (CredentialAtomicQueryV3));
 
         if (keccak256(bytes(paramName)) == GROUPID_NAME) {
-            return
-                IRequestValidator.RequestParam({name: paramName, value: credAtomicQuery.groupID});
+            return IRequestValidator.RequestParam({name: paramName, value: query.groupID});
         }
         if (keccak256(bytes(paramName)) == VERIFIERID_NAME) {
-            return
-                IRequestValidator.RequestParam({
-                    name: paramName,
-                    value: credAtomicQuery.verifierID
-                });
+            return IRequestValidator.RequestParam({name: paramName, value: query.verifierID});
         }
         if (keccak256(bytes(paramName)) == NULLIFIERSESSIONID_NAME) {
             return
-                IRequestValidator.RequestParam({
-                    name: paramName,
-                    value: credAtomicQuery.nullifierSessionID
-                });
+                IRequestValidator.RequestParam({name: paramName, value: query.nullifierSessionID});
         }
 
         revert RequestParamNameNotFound();

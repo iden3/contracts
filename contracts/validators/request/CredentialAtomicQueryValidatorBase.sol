@@ -184,9 +184,7 @@ abstract contract CredentialAtomicQueryValidatorBase is
         uint256 index = _getCredentialAtomicQueryValidatorBaseStorage()._requestParamNameToIndex[
             name
         ];
-        if (index == 0) {
-            revert RequestParamNameNotFound();
-        }
+        if (index == 0) revert RequestParamNameNotFound();
         return --index; // we save 1-based index, but return 0-based
     }
 

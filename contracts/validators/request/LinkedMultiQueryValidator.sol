@@ -168,9 +168,8 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
             return IRequestValidator.RequestParam({name: paramName, value: query.verifierID});
         } else if (keccak256(bytes(paramName)) == NULLIFIERSESSIONID_NAME) {
             return IRequestValidator.RequestParam({name: paramName, value: 0});
-        } else {
-            revert RequestParamNameNotFound();
-        }
+        } 
+        revert RequestParamNameNotFound();
     }
 
     /**
@@ -182,9 +181,7 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
         string memory name
     ) public view virtual override returns (uint256) {
         uint256 index = _getLinkedMultiQueryValidatorStorage()._requestParamNameToIndex[name];
-        if (index == 0) {
-            revert RequestParamNameNotFound();
-        }
+        if (index == 0) revert RequestParamNameNotFound();
         return --index; // we save 1-based index, but return 0-based
     }
 

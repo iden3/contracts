@@ -104,9 +104,8 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
             keccak256(bytes(paramName)) == NULLIFIERSESSIONID_NAME
         ) {
             return IRequestValidator.RequestParam({name: paramName, value: 0});
-        } else {
-            revert RequestParamNameNotFound();
-        }
+        } 
+        revert RequestParamNameNotFound();
     }
 
     /**
