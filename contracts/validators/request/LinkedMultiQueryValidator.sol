@@ -168,7 +168,7 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
             return IRequestValidator.RequestParam({name: paramName, value: query.verifierID});
         } else if (keccak256(bytes(paramName)) == NULLIFIERSESSIONID_NAME) {
             return IRequestValidator.RequestParam({name: paramName, value: 0});
-        } 
+        }
         revert RequestParamNameNotFound();
     }
 
