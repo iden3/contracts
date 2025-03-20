@@ -372,7 +372,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      */
     function disableAuthMethod(
         string calldata authMethod
-    ) public checkAuthMethodExistence(authMethod, true) {
+    ) public virtual checkAuthMethodExistence(authMethod, true) {
         VerifierStorage storage s = _getVerifierStorage();
         s._authMethods[authMethod].isActive = false;
     }
@@ -383,7 +383,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      */
     function enableAuthMethod(
         string calldata authMethod
-    ) public checkAuthMethodExistence(authMethod, true) {
+    ) public virtual checkAuthMethodExistence(authMethod, true) {
         VerifierStorage storage s = _getVerifierStorage();
         s._authMethods[authMethod].isActive = true;
     }

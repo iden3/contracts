@@ -13,6 +13,7 @@ describe("Universal Verifier tests", function () {
   let signer, signer2, signer3;
   let signerAddress: string;
   let deployHelper: DeployHelper;
+  let authMethod;
 
   const storageFields = [
     {
@@ -50,7 +51,7 @@ describe("Universal Verifier tests", function () {
     const authValidator = await deployHelper.deployValidatorStub("AuthValidatorStub");
     await authValidator.stub_setVerifyResults(1);
 
-    const authMethod = {
+    authMethod = {
       authMethod: "stubAuth",
       validator: await authValidator.getAddress(),
       params: "0x",
@@ -97,7 +98,7 @@ describe("Universal Verifier tests", function () {
       };
 
       authResponse = {
-        authMethod: "stubAuth",
+        authMethod: authMethod.authMethod,
         proof: "0x",
       };
       response = {
@@ -450,6 +451,15 @@ describe("Universal Verifier tests", function () {
       await expect(verifier.setRequests([request]))
         .to.be.revertedWithCustomError(verifier, "VerifierIDIsNotValid")
         .withArgs(2, 1);
+    });
+
+    it("Check if auth method can be enabled/disabled by only owner", async () => {
+      await expect(
+        verifier.connect(signer2).disableAuthMethod(authMethod.authMethod),
+      ).to.be.revertedWithCustomError(verifier, "OwnableUnauthorizedAccount");
+
+      await verifier.connect(signer).disableAuthMethod(authMethod.authMethod);
+      await verifier.connect(signer).enableAuthMethod(authMethod.authMethod);
     });
   });
 

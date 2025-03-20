@@ -205,6 +205,22 @@ contract UniversalVerifier is
         _removeValidatorFromWhitelist(validator);
     }
 
+    /**
+     * @dev Disables an auth method
+     * @param authMethod The auth method to disable
+     */
+    function disableAuthMethod(string calldata authMethod) public override onlyOwner {
+        super.disableAuthMethod(authMethod);
+    }
+
+    /**
+     * @dev Enables an auth type
+     * @param authMethod The auth type to enable
+     */
+    function enableAuthMethod(string calldata authMethod) public override onlyOwner {
+        super.enableAuthMethod(authMethod);
+    }
+
     function _getRequestIfCanBeVerified(
         uint256 requestId
     )
