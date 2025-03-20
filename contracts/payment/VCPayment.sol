@@ -7,7 +7,7 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.0.1";
+    string public constant VERSION = "1.0.2";
 
     /// @custom:storage-location erc7201:iden3.storage.VCPayment
     struct PaymentData {
@@ -142,6 +142,7 @@ contract VCPayment is Ownable2StepUpgradeable, ReentrancyGuardUpgradeable {
      */
     function initialize(address owner) public initializer {
         __Ownable_init(owner);
+        __ReentrancyGuard_init();
     }
 
     function setPaymentValue(
