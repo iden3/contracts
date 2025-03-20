@@ -10,6 +10,7 @@ import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
 error AuthMethodNotFound(string authMethod);
 error AuthMethodAlreadyExists(string authMethod);
+error AuthMethodIsNotActive(string authMethod);
 error GroupIdNotFound(uint256 groupId);
 error GroupIdAlreadyExists(uint256 groupId);
 error GroupMustHaveAtLeastTwoRequests(uint256 groupID);
@@ -297,6 +298,9 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         uint256 userIDFromAuthResponse;
         AuthMethodData storage authMethodData = $._authMethods[authResponse.authMethod];
+        if (!authMethodData.isActive) {
+            revert AuthMethodIsNotActive(authResponse.authMethod);
+        }
 
         // 2. Authenticate user and get userID
         IAuthValidator.AuthResponseField[] memory authResponseFields;

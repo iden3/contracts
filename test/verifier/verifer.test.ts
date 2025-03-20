@@ -266,10 +266,32 @@ describe("Verifier tests", function () {
       authMethodObject = await verifier.getAuthMethod(authMethod.authMethod);
       expect(authMethodObject.isActive).to.be.false;
 
+      await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator1.stub_setInput("userID", 1);
+      await verifier.setRequests([request]);
+
+      const authResponse = {
+        authMethod: authMethod.authMethod,
+        proof: "0x",
+      };
+      const response = {
+        requestId: request.requestId,
+        proof: "0x",
+        metadata: "0x",
+      };
+      const crossChainProofs = "0x";
+
+      await expect(verifier.submitResponse(authResponse, [response], crossChainProofs))
+        .to.be.revertedWithCustomError(verifier, "AuthMethodIsNotActive")
+        .withArgs(authMethod.authMethod);
+
       await verifier.enableAuthMethod(authMethod.authMethod);
 
       authMethodObject = await verifier.getAuthMethod(authMethod.authMethod);
       expect(authMethodObject.isActive).to.be.true;
+
+      await expect(verifier.submitResponse(authResponse, [response], crossChainProofs))
+        .not.to.be.reverted;
     });
 
     it("submitResponse: not repeated responseFields from validator", async function () {
@@ -288,7 +310,7 @@ describe("Verifier tests", function () {
       ]);
 
       const authResponse = {
-        authMethod: "stubAuth",
+        authMethod: authMethod.authMethod,
         proof: "0x",
       };
       const response = {
@@ -343,7 +365,7 @@ describe("Verifier tests", function () {
       ]);
 
       const authResponse = {
-        authMethod: "stubAuth",
+        authMethod: authMethod.authMethod,
         proof: "0x",
       };
       const response = {
@@ -371,7 +393,7 @@ describe("Verifier tests", function () {
       ]);
 
       const authResponse = {
-        authMethod: "stubAuth",
+        authMethod: authMethod.authMethod,
         proof: "0x",
       };
       const response = {
@@ -429,7 +451,7 @@ describe("Verifier tests", function () {
       ]);
 
       const authResponse = {
-        authMethod: "stubAuth",
+        authMethod: authMethod.authMethod,
         proof: "0x",
       };
       const response1 = {
@@ -552,7 +574,7 @@ describe("Verifier tests", function () {
       ]);
 
       const authResponse = {
-        authMethod: "stubAuth",
+        authMethod: authMethod.authMethod,
         proof: "0x",
       };
       const response = {
@@ -629,7 +651,7 @@ describe("Verifier tests", function () {
       ]);
 
       const authResponse = {
-        authMethod: "stubAuth",
+        authMethod: authMethod.authMethod,
         proof: "0x",
       };
       const response1 = {
@@ -690,7 +712,7 @@ describe("Verifier tests", function () {
       ]);
 
       const authResponse = {
-        authMethod: "stubAuth",
+        authMethod: authMethod.authMethod,
         proof: "0x",
       };
       const response1 = {
