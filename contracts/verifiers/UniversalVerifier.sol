@@ -246,11 +246,6 @@ contract UniversalVerifier is
     }
 
     function _checkRequestOwner(Request calldata request) internal virtual override {
-        if (
-            request.owner == address(0) ||
-            (request.owner != _msgSender() && _msgSender() != owner())
-        ) {
-            revert InvalidRequestOwner(request.owner, _msgSender());
-        }
+        if (_msgSender() != owner()) super._checkRequestOwner(request);
     }
 }

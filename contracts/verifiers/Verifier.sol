@@ -33,6 +33,7 @@ error MissingUserIDInGroupOfRequests(uint256 groupID);
 error UserNotAuthenticated();
 error VerifierIDIsNotValid(uint256 requestVerifierID, uint256 expectedVerifierID);
 error ChallengeIsInvalid();
+error InvalidRequestOwner(address requestOwner, address sender);
 
 abstract contract Verifier is IVerifier, ContextUpgradeable {
     /// @dev Key to retrieve the linkID from the proof storage
