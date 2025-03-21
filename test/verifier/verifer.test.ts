@@ -317,8 +317,8 @@ describe("Verifier tests", function () {
       authMethodObject = await verifier.getAuthMethod(authMethod.authMethod);
       expect(authMethodObject.isActive).to.be.true;
 
-      await expect(verifier.submitResponse(authResponse, [response], crossChainProofs))
-        .not.to.be.reverted;
+      await expect(verifier.submitResponse(authResponse, [response], crossChainProofs)).not.to.be
+        .reverted;
     });
 
     it("submitResponse: not repeated responseFields from validator", async function () {
@@ -329,10 +329,12 @@ describe("Verifier tests", function () {
         {
           name: "someFieldName1",
           value: 1,
+          rawValue: "0x",
         },
         {
           name: "someFieldName2",
           value: 2,
+          rawValue: "0x",
         },
       ]);
 
@@ -384,10 +386,12 @@ describe("Verifier tests", function () {
         {
           name: "someFieldName1",
           value: 1,
+          rawValue: "0x",
         },
         {
           name: "someFieldName1",
           value: 1,
+          rawValue: "0x",
         },
       ]);
 
@@ -416,6 +420,7 @@ describe("Verifier tests", function () {
         {
           name: "userID",
           value: userID,
+          rawValue: "0x",
         },
       ]);
 
@@ -437,6 +442,7 @@ describe("Verifier tests", function () {
         {
           name: "userID",
           value: userID,
+          rawValue: "0x",
         },
       ]);
 
@@ -467,14 +473,14 @@ describe("Verifier tests", function () {
       await verifier.setRequests([groupRequest1, groupRequest2]);
 
       await validator1.stub_setVerifyResults([
-        { name: "userID", value: 1 },
-        { name: "issuerID", value: 2 },
-        { name: "linkID", value: 3 },
+        { name: "userID", value: 1, rawValue: "0x" },
+        { name: "issuerID", value: 2, rawValue: "0x" },
+        { name: "linkID", value: 3, rawValue: "0x" },
       ]);
       await validator2.stub_setVerifyResults([
-        { name: "userID", value: 1 },
-        { name: "issuerID", value: 2 },
-        { name: "linkID", value: 0 }, // will revert because linkID is 0
+        { name: "userID", value: 1, rawValue: "0x" },
+        { name: "issuerID", value: 2, rawValue: "0x" },
+        { name: "linkID", value: 0, rawValue: "0x" }, // will revert because linkID is 0
       ]);
 
       const authResponse = {
@@ -598,6 +604,7 @@ describe("Verifier tests", function () {
         {
           name: "userID",
           value: userID,
+          rawValue: "0x",
         },
       ]);
 
@@ -668,14 +675,14 @@ describe("Verifier tests", function () {
 
       const userID = 1;
       await validator1.stub_setVerifyResults([
-        { name: "userID", value: userID },
-        { name: "issuerID", value: 2 },
-        { name: "linkID", value: 3 },
+        { name: "userID", value: userID, rawValue: "0x" },
+        { name: "issuerID", value: 2, rawValue: "0x" },
+        { name: "linkID", value: 3, rawValue: "0x" },
       ]);
       await validator2.stub_setVerifyResults([
-        { name: "userID", value: userID },
-        { name: "issuerID", value: 2 },
-        { name: "linkID", value: 4 },
+        { name: "userID", value: userID, rawValue: "0x" },
+        { name: "issuerID", value: 2, rawValue: "0x" },
+        { name: "linkID", value: 4, rawValue: "0x" },
       ]);
 
       const authResponse = {
@@ -734,9 +741,9 @@ describe("Verifier tests", function () {
 
       const userID = 1;
       await validator1.stub_setVerifyResults([
-        { name: "userID", value: userID },
-        { name: "issuerID", value: 2 },
-        { name: "linkID", value: 3 },
+        { name: "userID", value: userID, rawValue: "0x" },
+        { name: "issuerID", value: 2, rawValue: "0x" },
+        { name: "linkID", value: 3, rawValue: "0x" },
       ]);
 
       const authResponse = {

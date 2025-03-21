@@ -29,6 +29,7 @@ contract RequestValidatorStub is IRequestValidator, ERC165 {
     function verify(
         address,
         bytes calldata,
+        bytes calldata,
         bytes calldata
     ) external view returns (IRequestValidator.ResponseField[] memory) {
         return responseFields;

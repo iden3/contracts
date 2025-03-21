@@ -36,8 +36,8 @@ describe("Universal Verifier tests", function () {
 
     const validator = await deployHelper.deployValidatorStub("RequestValidatorStub");
     await validator.stub_setVerifyResults([
-      { name: "userID", value: 1 },
-      { name: "issuerID", value: 2 },
+      { name: "userID", value: 1, rawValue: "0x" },
+      { name: "issuerID", value: 2, rawValue: "0x" },
     ]);
 
     const universalVerifier: any = await deployHelper.deployUniversalVerifier(
