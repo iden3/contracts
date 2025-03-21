@@ -4,6 +4,9 @@ pragma solidity ^0.8.10;
 import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
 import {IRequestValidator} from "../../interfaces/IRequestValidator.sol";
 
+error Groth16VerifierAddressIsZero(string circuitId);
+error Groth16VerifierAlreadySet(string circuitId);
+
 abstract contract RequestValidatorBase is IRequestValidator {
     /// @dev Main storage structure for the contract
     /// @custom:storage-location iden3.storage.RequestValidatorBaseStorage
@@ -86,6 +89,17 @@ abstract contract RequestValidatorBase is IRequestValidator {
     }
 
     function _setGroth16Verifier(string memory circuitId, IGroth16Verifier verifier) internal {
+        if (address(verifier) == address(0)) {
+            revert Groth16VerifierAddressIsZero(circuitId);
+        }
+
+        if (
+            address(_getRequestValidatorBaseStorage()._circuitIdToGroth16Verifier[circuitId]) !=
+            address(0)
+        ) {
+            revert Groth16VerifierAlreadySet(circuitId);
+        }
+
         _getRequestValidatorBaseStorage()._supportedCircuitIds.push(circuitId);
         _getRequestValidatorBaseStorage()._circuitIdToGroth16Verifier[circuitId] = verifier;
     }
