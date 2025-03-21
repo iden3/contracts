@@ -152,13 +152,16 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         bytes calldata requestParams,
         bytes calldata responseMetadata
     ) public view override returns (IRequestValidator.ResponseField[] memory) {
-        (PubSignals memory pubSignals, bool hasSD) = _verifyMain(
-            sender,
-            proof,
+        CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
             requestParams,
-            responseMetadata
+            (CredentialAtomicQueryV3)
         );
-        return _getResponseFields(pubSignals, hasSD);
+        return
+            _checkPubSignalsWithCredentialAtomicQuery(
+                credAtomicQuery,
+                _verifyProof(proof, credAtomicQuery),
+                sender
+            );
     }
 
     /**
@@ -187,33 +190,6 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         revert RequestParamNameNotFound();
     }
 
-    /**
-     * @dev Verify the groth16 proof and check the request query data
-     * @param sender Sender of the proof.
-     * @param proof the groth16 proof.
-     * @param requestParams Request query data of the credential to verify.
-     * @param responseMetadata Metadata from the response.
-     */
-    function _verifyMain(
-        address sender,
-        bytes calldata proof,
-        bytes calldata requestParams,
-        // solhint-disable-next-line no-unused-vars
-        bytes calldata responseMetadata // info for future proving systems upgrades
-    ) internal view returns (PubSignals memory, bool) {
-        CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
-            requestParams,
-            (CredentialAtomicQueryV3)
-        );
-
-        PubSignals memory pubSignals = _verifyProof(proof, credAtomicQuery);
-
-        _checkPubSignalsWithCredentialAtomicQuery(credAtomicQuery, pubSignals, sender);
-
-        // if operator == 16 then we have selective disclosure
-        return (pubSignals, credAtomicQuery.operator == 16);
-    }
-
     function _verifyProof(
         bytes calldata proof,
         CredentialAtomicQueryV3 memory credAtomicQuery
@@ -239,15 +215,14 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
             revert ProofIsNotValid();
         }
 
-        PubSignals memory pubSignals = parsePubSignals(inputs);
-        return pubSignals;
+        return parsePubSignals(inputs);
     }
 
     function _checkPubSignalsWithCredentialAtomicQuery(
         CredentialAtomicQueryV3 memory credAtomicQuery,
         PubSignals memory pubSignals,
         address sender
-    ) internal view {
+    ) internal view returns (IRequestValidator.ResponseField[] memory) {
         _checkAllowedIssuers(pubSignals.issuerID, credAtomicQuery.allowedIssuers);
         _checkProofExpiration(pubSignals.timestamp);
 
@@ -274,6 +249,9 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
                 pubSignals.circuitQueryHash
             );
         }
+
+        // if operator == 16 then we have selective disclosure
+        return _getResponseFields(pubSignals, credAtomicQuery.operator == 16);
     }
 
     function _checkLinkID(uint256 groupID, uint256 linkID) internal pure {

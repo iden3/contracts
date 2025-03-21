@@ -88,8 +88,17 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         bytes calldata requestParams,
         bytes calldata responseMetadata
     ) public view override returns (IRequestValidator.ResponseField[] memory) {
-        PubSignals memory pubSignals = _verifyMain(sender, proof, requestParams, responseMetadata);
-        return _getResponseFields(pubSignals);
+        CredentialAtomicQuery memory credAtomicQuery = abi.decode(
+            requestParams,
+            (CredentialAtomicQuery)
+        );
+
+        return
+            _checkPubSignalsWithCredentialAtomicQuery(
+                credAtomicQuery,
+                _verifyProof(proof, credAtomicQuery),
+                sender
+            );
     }
 
     /**
@@ -109,32 +118,6 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
             return IRequestValidator.RequestParam({name: paramName, value: 0});
         }
         revert RequestParamNameNotFound();
-    }
-
-    /**
-     * @dev Verify the groth16 proof and check the request query data
-     * @param sender Sender of the proof.
-     * @param proof the groth16 proof.
-     * @param requestParams Request query data of the credential to verify.
-     * @param responseMetadata Metadata from the response.
-     */
-    function _verifyMain(
-        address sender,
-        bytes calldata proof,
-        bytes calldata requestParams,
-        // solhint-disable-next-line no-unused-vars
-        bytes calldata responseMetadata // info for future proving systems upgrades
-    ) internal view returns (PubSignals memory) {
-        CredentialAtomicQuery memory credAtomicQuery = abi.decode(
-            requestParams,
-            (CredentialAtomicQuery)
-        );
-
-        PubSignals memory pubSignals = _verifyProof(proof, credAtomicQuery);
-
-        _checkPubSignalsWithCredentialAtomicQuery(credAtomicQuery, pubSignals, sender);
-
-        return pubSignals;
     }
 
     function _verifyProof(
@@ -163,15 +146,14 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
             revert ProofIsNotValid();
         }
 
-        PubSignals memory pubSignals = parsePubSignals(inputs);
-        return pubSignals;
+        return parsePubSignals(inputs);
     }
 
     function _checkPubSignalsWithCredentialAtomicQuery(
         CredentialAtomicQuery memory credAtomicQuery,
         PubSignals memory pubSignals,
         address sender
-    ) internal view {
+    ) internal view returns (IRequestValidator.ResponseField[] memory) {
         // check circuitQueryHash
         if (pubSignals.circuitQueryHash != credAtomicQuery.queryHash) {
             revert QueryHashDoesNotMatchTheRequestedOne(
@@ -195,6 +177,8 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         _checkGistRoot(pubSignals.userID, pubSignals.gistRoot);
         _checkClaimIssuanceState(pubSignals.issuerID, pubSignals.issuerState);
         _checkClaimNonRevState(pubSignals.issuerID, pubSignals.issuerClaimNonRevState);
+
+        return _getResponseFields(pubSignals);
     }
 
     function _checkMerklized(uint256 merklized, uint256 queryClaimPathKey) internal pure {
