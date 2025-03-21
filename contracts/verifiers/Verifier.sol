@@ -339,7 +339,8 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             IRequestValidator.ResponseField[] memory signals = request.validator.verify(
                 sender,
                 response.proof,
-                request.params
+                request.params,
+                response.metadata
             );
 
             // Check if userID from authResponse is the same as the one in the signals
@@ -442,7 +443,8 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         for (uint256 i = 0; i < proof.responseFieldNames.length; i++) {
             responseFields[i] = IRequestValidator.ResponseField({
                 name: proof.responseFieldNames[i],
-                value: proof.responseFields[proof.responseFieldNames[i]]
+                value: proof.responseFields[proof.responseFieldNames[i]],
+                rawValue: ""
             });
         }
 

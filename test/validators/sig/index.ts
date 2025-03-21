@@ -205,13 +205,13 @@ describe("Atomic Sig Validator", function () {
       // Check verify function
       const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
       if (test.errorMessage) {
-        await expect(sigValidator.verify(senderAddress, zkProof, data)).to.be.rejectedWith(
+        await expect(sigValidator.verify(senderAddress, zkProof, data, "0x")).to.be.rejectedWith(
           test.errorMessage,
         );
       } else if (test.errorMessage === "") {
-        await expect(sigValidator.verify(senderAddress, zkProof, data)).to.be.reverted;
+        await expect(sigValidator.verify(senderAddress, zkProof, data, "0x")).to.be.reverted;
       } else {
-        const signals = await sigValidator.verify(senderAddress, zkProof, data);
+        const signals = await sigValidator.verify(senderAddress, zkProof, data, "0x");
         checkSignals(signals, test.signalValues);
       }
     });
