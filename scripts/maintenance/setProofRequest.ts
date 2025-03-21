@@ -2,8 +2,7 @@ import hre, { ethers } from "hardhat";
 import { packV3ValidatorParams, packValidatorParams } from "../../test/utils/validator-pack-utils";
 import { calculateQueryHashV2, calculateQueryHashV3 } from "../../test/utils/query-hash-utils";
 import { Blockchain, DidMethod, NetworkId, DID } from "@iden3/js-iden3-core";
-import { buildVerifierId } from "../deploy/deployCrossChainVerifierWithRequests";
-import { byteEncoder, CircuitId, Operators } from "@0xpolygonid/js-sdk";
+import { buildVerifierId, byteEncoder, CircuitId, Operators } from "@0xpolygonid/js-sdk";
 import { contractsInfo } from "../../helpers/constants";
 import { Hex } from "@iden3/js-crypto";
 import { getChainId } from "../../helpers/helperUtils";
@@ -16,7 +15,7 @@ export function getAuthV2RequestId(): number {
 }
 
 async function main() {
-  const circuitName: CircuitId = CircuitId.AuthV2; // TODO put your circuit here;
+  const circuitName: CircuitId = CircuitId.AtomicQueryV3OnChain; // TODO put your circuit here;
   let requestId = 117; // TODO put your request here;
   const allowedIssuers = []; // TODO put your allowed issuers here
 

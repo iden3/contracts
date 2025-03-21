@@ -60,6 +60,16 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
 
     string internal constant CIRCUIT_ID = "credentialAtomicQueryV3OnChain-beta.1";
 
+    // keccak256(abi.encodePacked("groupID"))
+    bytes32 private constant GROUPID_NAME =
+        0xdab5ca4f3738dce0cd25851a4aa9160ebdfb1678ef20ca14c9a3e9217058455a;
+    // keccak256(abi.encodePacked("verifierID"))
+    bytes32 private constant VERIFIERID_NAME =
+        0xa6ade9d39b76f319076fc4ad150ee37167dd21433b39e1d533a5d6b635762abe;
+    // keccak256(abi.encodePacked("nullifierSessionID"))
+    bytes32 private constant NULLIFIERSESSIONID_NAME =
+        0x24cea8e4716dcdf091e4abcbd3ea617d9a5dd308b90afb5da0d75e56b3c0bc95;
+
     /**
      * @dev Initialize the contract
      * @param _stateContractAddr Address of the state contract
@@ -144,34 +154,29 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
     }
 
     /**
-     * @dev Get the request params of the request query data.
+     * @dev Get the request param from params of the request query data.
      * @param params Request query data of the credential to verify.
-     * @return RequestParams of the request query data.
+     * @param paramName Request query param name to retrieve of the credential to verify.
+     * @return RequestParam for the param name of the request query data.
      */
-    function getRequestParams(
-        bytes calldata params
-    ) external pure override returns (IRequestValidator.RequestParam[] memory) {
-        CredentialAtomicQueryV3 memory credAtomicQuery = abi.decode(
-            params,
-            (CredentialAtomicQueryV3)
-        );
+    function getRequestParam(
+        bytes calldata params,
+        string memory paramName
+    ) external pure returns (RequestParam memory) {
+        CredentialAtomicQueryV3 memory query = abi.decode(params, (CredentialAtomicQueryV3));
 
-        if (credAtomicQuery.verifierID == 0) revert VerifierIDNotSet();
-        IRequestValidator.RequestParam[]
-            memory requestParams = new IRequestValidator.RequestParam[](3);
-        requestParams[0] = IRequestValidator.RequestParam({
-            name: "groupID",
-            value: credAtomicQuery.groupID
-        });
-        requestParams[1] = IRequestValidator.RequestParam({
-            name: "verifierID",
-            value: credAtomicQuery.verifierID
-        });
-        requestParams[2] = IRequestValidator.RequestParam({
-            name: "nullifierSessionID",
-            value: credAtomicQuery.nullifierSessionID
-        });
-        return requestParams;
+        if (keccak256(bytes(paramName)) == GROUPID_NAME) {
+            return IRequestValidator.RequestParam({name: paramName, value: query.groupID});
+        }
+        if (keccak256(bytes(paramName)) == VERIFIERID_NAME) {
+            return IRequestValidator.RequestParam({name: paramName, value: query.verifierID});
+        }
+        if (keccak256(bytes(paramName)) == NULLIFIERSESSIONID_NAME) {
+            return
+                IRequestValidator.RequestParam({name: paramName, value: query.nullifierSessionID});
+        }
+
+        revert RequestParamNameNotFound();
     }
 
     /**

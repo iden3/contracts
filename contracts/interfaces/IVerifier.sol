@@ -9,6 +9,7 @@ import {IRequestValidator} from "./IRequestValidator.sol";
  * @dev IVerifier. Interface for creating requests and verifying request responses through validators circuits.
  */
 interface IVerifier {
+    error InvalidRequestOwner(address requestOwner, address sender);
     /**
      * @dev Request. Structure for request.
      * @param requestId Request id.
@@ -21,6 +22,7 @@ interface IVerifier {
         string metadata;
         IRequestValidator validator;
         bytes params;
+        address owner;
     }
 
     /**

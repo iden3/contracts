@@ -227,7 +227,7 @@ describe("Atomic Sig Validator", function () {
     expect(version).to.be.equal(contractsInfo.VALIDATOR_SIG.version);
   });
 
-  it("check getRequestParams", async () => {
+  it("check getRequestParam", async () => {
     const query: any = {
       requestId: 1,
       schema: 2,
@@ -242,12 +242,12 @@ describe("Atomic Sig Validator", function () {
     };
 
     const params = packValidatorParams(query);
-    const requestParams = await sigValidator.getRequestParams(params);
-    expect(requestParams[await sigValidator.requestParamIndexOf("groupID")][1]).to.be.equal(0);
-    expect(requestParams[await sigValidator.requestParamIndexOf("verifierID")][1]).to.be.equal(0);
-    expect(
-      requestParams[await sigValidator.requestParamIndexOf("nullifierSessionID")][1],
-    ).to.be.equal(0);
+    let resultParam = await sigValidator.getRequestParam(params, "groupID");
+    expect(resultParam).to.deep.equal(["groupID", 0]);
+    resultParam = await sigValidator.getRequestParam(params, "verifierID");
+    expect(resultParam).to.deep.equal(["verifierID", 0]);
+    resultParam = await sigValidator.getRequestParam(params, "nullifierSessionID");
+    expect(resultParam).to.deep.equal(["nullifierSessionID", 0]);
   });
 
   it("Test get config params", async () => {

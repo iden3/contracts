@@ -49,6 +49,7 @@ describe("Verifier tests", function () {
         requestId: 1,
         metadata: "0x",
         validator: await validator1.getAddress(),
+        owner: await sender.getAddress(),
         params: "0x",
       };
 
@@ -119,6 +120,25 @@ describe("Verifier tests", function () {
         .withArgs(1);
     });
 
+    it("Check InvalidRequestOwner", async () => {
+      await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator1.stub_setInput("userID", 1);
+
+      const requestOwner = (await ethers.getSigners())[2];
+
+      await expect(verifier.connect(requestOwner).setRequests([request]))
+        .to.be.revertedWithCustomError(verifier, "InvalidRequestOwner")
+        .withArgs(request.owner, await requestOwner.getAddress());
+
+      // Request owner the same as the sender
+      const request3 = {
+        ...request,
+        requestId: request.requestId + 1,
+        owner: await requestOwner.getAddress(),
+      };
+      await expect(verifier.connect(requestOwner).setRequests([request3])).not.to.be.reverted;
+    });
+
     it("setRequests: requestId should be valid", async function () {
       await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
       await validator1.stub_setInput("userID", 1);
@@ -149,7 +169,14 @@ describe("Verifier tests", function () {
       );
 
       request.requestId =
-        (BigInt(ethers.keccak256(request.params)) &
+        (BigInt(
+          ethers.keccak256(
+            ethers.solidityPacked(
+              ["bytes", "address"],
+              [request.params, await sender.getAddress()],
+            ),
+          ),
+        ) &
           BigInt("0x0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) +
         BigInt("0x0001000000000000000000000000000000000000000000000000000000000000"); // requestId is valid;
       await expect(verifier.setRequests([request])).not.to.be.rejected;
@@ -481,6 +508,7 @@ describe("Verifier tests", function () {
         requestId: 1,
         metadata: "0x",
         validator: await validator1.getAddress(),
+        owner: await sender.getAddress(),
         params: "0x",
       };
 

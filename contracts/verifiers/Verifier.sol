@@ -202,16 +202,19 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         // 2. Set requests checking groups and nullifierSessionID uniqueness
         for (uint256 i = 0; i < requests.length; i++) {
-            _checkRequestIdCorrectness(requests[i].requestId, requests[i].params);
+            _checkRequestIdCorrectness(
+                requests[i].requestId,
+                requests[i].params,
+                requests[i].owner
+            );
 
             _checkNullifierSessionIdUniqueness(requests[i]);
             _checkVerifierID(requests[i]);
 
             uint256 groupID = requests[i]
-            .validator
-            .getRequestParams(requests[i].params)[
-                requests[i].validator.requestParamIndexOf("groupID")
-            ].value;
+                .validator
+                .getRequestParam(requests[i].params, "groupID")
+                .value;
 
             _setRequest(requests[i]);
 
@@ -632,6 +635,8 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function _setRequest(
         Request calldata request
     ) internal virtual checkRequestExistence(request.requestId, false) {
+        _checkRequestOwner(request);
+
         VerifierStorage storage s = _getVerifierStorage();
 
         s._requests[request.requestId] = IVerifier.RequestData({
@@ -643,11 +648,17 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         s._requestIds.push(request.requestId);
     }
 
+    function _checkRequestOwner(Request calldata request) internal virtual {
+        if (request.owner == address(0) || (request.owner != _msgSender())) {
+            revert InvalidRequestOwner(request.owner, _msgSender());
+        }
+    }
+
     function _checkVerifierID(IVerifier.Request calldata request) internal view {
         VerifierStorage storage s = _getVerifierStorage();
         uint256 requestVerifierID = request
-        .validator
-        .getRequestParams(request.params)[request.validator.requestParamIndexOf("verifierID")]
+            .validator
+            .getRequestParam(request.params, "verifierID")
             .value;
 
         if (requestVerifierID != 0) {
@@ -665,7 +676,8 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
     function _checkRequestIdCorrectness(
         uint256 requestId,
-        bytes calldata requestParams
+        bytes calldata requestParams,
+        address requestOwner
     ) internal pure {
         // 1. Check prefix
         uint16 requestType = _getRequestType(requestId);
@@ -682,7 +694,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         //    - 0x0000... for old request Ids with uint64
         //    - 0x0001... for new request Ids with uint256
         if (requestType == 1) {
-            uint256 hashValue = uint256(keccak256(requestParams));
+            uint256 hashValue = uint256(keccak256(abi.encodePacked(requestParams, requestOwner)));
             if (
                 requestId !=
                 (hashValue & 0x0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) +
@@ -696,10 +708,9 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function _checkNullifierSessionIdUniqueness(IVerifier.Request calldata request) internal {
         VerifierStorage storage s = _getVerifierStorage();
         uint256 nullifierSessionID = request
-        .validator
-        .getRequestParams(request.params)[
-            request.validator.requestParamIndexOf("nullifierSessionID")
-        ].value;
+            .validator
+            .getRequestParam(request.params, "nullifierSessionID")
+            .value;
         if (nullifierSessionID != 0) {
             if (s._nullifierSessionIDs[nullifierSessionID] != 0) {
                 revert NullifierSessionIDAlreadyExists(nullifierSessionID);
@@ -748,10 +759,9 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         for (uint256 i = 0; i < requests.length; i++) {
             uint256 groupID = requests[i]
-            .validator
-            .getRequestParams(requests[i].params)[
-                requests[i].validator.requestParamIndexOf("groupID")
-            ].value;
+                .validator
+                .getRequestParam(requests[i].params, "groupID")
+                .value;
 
             if (groupID != 0) {
                 if (groupIdExists(groupID)) {
@@ -816,11 +826,10 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                 revert RequestIdNotFound(requestIds[i]);
             }
             uint256 groupID = s
-            ._requests[requestIds[i]]
-            .validator
-            .getRequestParams(s._requests[requestIds[i]].params)[
-                s._requests[requestIds[i]].validator.requestParamIndexOf("groupID")
-            ].value;
+                ._requests[requestIds[i]]
+                .validator
+                .getRequestParam(s._requests[requestIds[i]].params, "groupID")
+                .value;
 
             if (groupID != 0) {
                 revert RequestShouldNotHaveAGroup(requestIds[i]);
@@ -1018,9 +1027,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             }
         }
 
-        uint256 groupID = request
-        .validator
-        .getRequestParams(request.params)[request.validator.requestParamIndexOf("groupID")].value;
+        uint256 groupID = request.validator.getRequestParam(request.params, "groupID").value;
 
         if (groupID != 0 && getResponseFieldValue(requestId, sender, LINKED_PROOF_KEY) == 0) {
             revert LinkIDIsZeroForGroupedRequests(requestId, groupID, sender);

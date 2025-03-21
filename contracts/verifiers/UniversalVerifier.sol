@@ -238,10 +238,19 @@ contract UniversalVerifier is
         super._setRequest(request);
         emit RequestSet(
             request.requestId,
-            _msgSender(),
+            request.owner,
             request.metadata,
             address(request.validator),
             request.params
         );
+    }
+
+    function _checkRequestOwner(Request calldata request) internal virtual override {
+        if (
+            request.owner == address(0) ||
+            (request.owner != _msgSender() && _msgSender() != owner())
+        ) {
+            revert InvalidRequestOwner(request.owner, _msgSender());
+        }
     }
 }

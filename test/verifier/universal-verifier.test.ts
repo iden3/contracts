@@ -94,6 +94,7 @@ describe("Universal Verifier tests", function () {
         requestId: 0,
         metadata: "0x",
         validator: await validator.getAddress(),
+        owner: signer.address,
         params: "0x",
       };
 
@@ -276,11 +277,13 @@ describe("Universal Verifier tests", function () {
       const requestOwnerAddr = await requestOwner.getAddress();
       const someSignerAddress = await someSigner.getAddress();
 
+      const request2 = { ...request, owner: requestOwnerAddr };
+
       await expect(verifier.getRequestOwner(request.requestId))
         .to.be.revertedWithCustomError(verifier, "RequestIdNotFound")
         .withArgs(request.requestId);
 
-      await verifier.connect(requestOwner).setRequests([request]);
+      await verifier.connect(requestOwner).setRequests([request2]);
 
       expect(await verifier.getRequestOwner(request.requestId)).to.be.equal(requestOwnerAddr);
       await expect(verifier.connect(someSigner).setRequestOwner(request.requestId, someSigner))
@@ -390,17 +393,40 @@ describe("Universal Verifier tests", function () {
         .be.rejected;
     });
 
+    it("Check InvalidRequestOwner", async () => {
+      const requestOwner = signer2;
+      const owner = signer;
+
+      await expect(verifier.connect(requestOwner).setRequests([request]))
+        .to.be.revertedWithCustomError(verifier, "InvalidRequestOwner")
+        .withArgs(request.owner, await requestOwner.getAddress());
+
+      // Request owner different from the owner of the contract.
+      const request2 = { ...request, owner: await requestOwner.getAddress() };
+      // Owner of the contract is the sender to set the request with different owner
+      await expect(verifier.connect(owner).setRequests([request2])).not.to.be.reverted;
+
+      // Request owner the same as the sender
+      const request3 = {
+        ...request,
+        requestId: request.requestId + 1,
+        owner: await requestOwner.getAddress(),
+      };
+      await expect(verifier.connect(requestOwner).setRequests([request3])).not.to.be.reverted;
+    });
+
     it("Check updateRequest", async () => {
       const owner = signer;
       const requestOwner = signer2;
       const requestId = 0;
 
-      await verifier.connect(requestOwner).setRequests([request]);
+      const request2 = { ...request, owner: await requestOwner.getAddress() };
+      await verifier.connect(requestOwner).setRequests([request2]);
 
       let requestStored = await verifier.getRequest(requestId);
       expect(requestStored.metadata).to.be.equal(request.metadata);
       await expect(
-        verifier.connect(requestOwner).updateRequest(request),
+        verifier.connect(requestOwner).updateRequest(request2),
       ).to.be.revertedWithCustomError(verifier, "OwnableUnauthorizedAccount");
 
       await verifier.connect(owner).updateRequest({
@@ -442,6 +468,7 @@ describe("Universal Verifier tests", function () {
         requestId: requestId,
         metadata: "0x",
         validator: await validator.getAddress(),
+        owner: signer.address,
         params: "0x",
       };
       await validator.stub_setRequestParams([request.params], [paramsFromValidator]);

@@ -141,13 +141,13 @@ describe("Test linkedMultiQuery10.circom", function () {
       .withArgs(0);
   });
 
-  it("getRequestParams should return the correct values", async function () {
-    const result = await validator.getRequestParams(oneQueryParams);
-    expect(result).to.deep.equal([
-      ["groupID", oneQuery.groupID],
-      ["verifierID", oneQuery.verifierID],
-      ["nullifierSessionID", 0],
-    ]);
+  it("getRequestParam should return the correct values", async function () {
+    let resultParam = await validator.getRequestParam(oneQueryParams, "groupID");
+    expect(resultParam).to.deep.equal(["groupID", oneQuery.groupID]);
+    resultParam = await validator.getRequestParam(oneQueryParams, "verifierID");
+    expect(resultParam).to.deep.equal(["verifierID", oneQuery.verifierID]);
+    resultParam = await validator.getRequestParam(oneQueryParams, "nullifierSessionID");
+    expect(resultParam).to.deep.equal(["nullifierSessionID", 0]);
   });
 
   it("Should throw if failed ZK verification", async function () {
@@ -168,7 +168,7 @@ describe("Test linkedMultiQuery10.circom", function () {
     expect(version).to.be.equal(contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.version);
   });
 
-  it("check getRequestParams", async () => {
+  it("check getRequestParam", async () => {
     const query: any = {
       claimPathKey: [1, 2],
       operator: [2, 3],
@@ -184,11 +184,12 @@ describe("Test linkedMultiQuery10.circom", function () {
     };
 
     const params = packLinkedMultiQueryValidatorParams(query);
-    const requestParams = await validator.getRequestParams(params);
-    expect(requestParams[await validator.requestParamIndexOf("groupID")][1]).to.be.equal(4);
-    expect(requestParams[await validator.requestParamIndexOf("verifierID")][1]).to.be.equal(5);
-    expect(requestParams[await validator.requestParamIndexOf("nullifierSessionID")][1]).to.be.equal(
-      0,
-    );
+
+    let resultParam = await validator.getRequestParam(params, "groupID");
+    expect(resultParam).to.deep.equal(["groupID", 4]);
+    resultParam = await validator.getRequestParam(params, "verifierID");
+    expect(resultParam).to.deep.equal(["verifierID", 5]);
+    resultParam = await validator.getRequestParam(params, "nullifierSessionID");
+    expect(resultParam).to.deep.equal(["nullifierSessionID", 0]);
   });
 });
