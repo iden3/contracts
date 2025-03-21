@@ -6,6 +6,7 @@ import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
 import {IRequestValidator} from "../../interfaces/IRequestValidator.sol";
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {RequestValidatorBase} from "./RequestValidatorBase.sol";
 
 error WrongCircuitID(string circuitID);
 error InvalidQueryHash(uint256 expectedQueryHash, uint256 actualQueryHash);
@@ -13,7 +14,7 @@ error InvalidGroupID(uint256 groupID);
 error TooManyQueries(uint256 operatorCount);
 error InvalidGroth16Proof();
 
-contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator, ERC165 {
+contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, RequestValidatorBase, ERC165 {
     // This should be limited to the real number of queries in which operator != 0
     struct Query {
         uint256[] claimPathKey;
@@ -35,33 +36,6 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
     // keccak256(abi.encodePacked("nullifierSessionID"))
     bytes32 private constant NULLIFIERSESSIONID_NAME =
         0x24cea8e4716dcdf091e4abcbd3ea617d9a5dd308b90afb5da0d75e56b3c0bc95;
-
-    /// @dev Main storage structure for the contract
-    /// @custom:storage-location iden3.storage.LinkedMultiQueryValidatorStorage
-    struct LinkedMultiQueryValidatorStorage {
-        mapping(string circuitName => IGroth16Verifier) _supportedCircuits;
-        string[] _supportedCircuitIds;
-        mapping(string => uint256) _requestParamNameToIndex;
-        mapping(string => uint256) _inputNameToIndex;
-    }
-
-    // keccak256(abi.encode(uint256(keccak256("iden3.storage.LinkedMultiQueryValidator")) - 1))
-    //  & ~bytes32(uint256(0xff));
-    // solhint-disable-next-line const-name-snakecase
-    bytes32 private constant LinkedMultiQueryValidatorStorageLocation =
-        0x85875fc21d0742149175681df1689e48bce1484a73b475e15e5042650a2d7800;
-
-    /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getLinkedMultiQueryValidatorStorage()
-        private
-        pure
-        returns (LinkedMultiQueryValidatorStorage storage $)
-    {
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            $.slot := LinkedMultiQueryValidatorStorageLocation
-        }
-    }
 
     struct PubSignals {
         uint256 linkID;
@@ -88,9 +62,7 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
      * @param owner Owner of the contract
      */
     function initialize(address _groth16VerifierContractAddr, address owner) public initializer {
-        LinkedMultiQueryValidatorStorage storage $ = _getLinkedMultiQueryValidatorStorage();
-        $._supportedCircuits[CIRCUIT_ID] = IGroth16Verifier(_groth16VerifierContractAddr);
-        $._supportedCircuitIds.push(CIRCUIT_ID);
+        _setGroth16Verifier(CIRCUIT_ID, IGroth16Verifier(_groth16VerifierContractAddr));
 
         _setInputToIndex("linkID", 0);
         _setInputToIndex("merklized", 1);
@@ -129,8 +101,6 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
         // solhint-disable-next-line no-unused-vars
         bytes calldata responseMetadata
     ) external view returns (IRequestValidator.ResponseField[] memory) {
-        LinkedMultiQueryValidatorStorage storage $ = _getLinkedMultiQueryValidatorStorage();
-
         Query memory query = abi.decode(requestParams, (Query));
         (
             uint256[] memory inputs,
@@ -146,7 +116,7 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
         if (keccak256(bytes(query.circuitIds[0])) != keccak256(bytes(CIRCUIT_ID))) {
             revert WrongCircuitID(query.circuitIds[0]);
         }
-        if (!$._supportedCircuits[CIRCUIT_ID].verify(a, b, c, inputs)) {
+        if (!getVerifierByCircuitId(CIRCUIT_ID).verify(a, b, c, inputs)) {
             revert InvalidGroth16Proof();
         }
 
@@ -173,32 +143,6 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
             return IRequestValidator.RequestParam({name: paramName, value: 0});
         }
         revert RequestParamNameNotFound();
-    }
-
-    /**
-     * @dev Get the index of the request param by name
-     * @param name Name of the request param
-     * @return Index of the request param
-     */
-    function requestParamIndexOf(
-        string memory name
-    ) public view virtual override returns (uint256) {
-        uint256 index = _getLinkedMultiQueryValidatorStorage()._requestParamNameToIndex[name];
-        if (index == 0) revert RequestParamNameNotFound();
-        return --index; // we save 1-based index, but return 0-based
-    }
-
-    /**
-     * @dev Get the index of the public input of the circuit by name
-     * @param name Name of the public input
-     * @return Index of the public input
-     */
-    function inputIndexOf(string memory name) public view virtual returns (uint256) {
-        uint256 index = _getLinkedMultiQueryValidatorStorage()._inputNameToIndex[name];
-        if (index == 0) {
-            revert InputNameNotFound();
-        }
-        return --index; // we save 1-based index, but return 0-based
     }
 
     /**
@@ -274,15 +218,5 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, IRequestValidator
         }
 
         return rfs;
-    }
-
-    function _setRequestParamToIndex(string memory requestParamName, uint256 index) internal {
-        // increment index to avoid 0
-        _getLinkedMultiQueryValidatorStorage()._requestParamNameToIndex[requestParamName] = ++index;
-    }
-
-    function _setInputToIndex(string memory inputName, uint256 index) internal {
-        // increment index to avoid 0
-        _getLinkedMultiQueryValidatorStorage()._inputNameToIndex[inputName] = ++index;
     }
 }
