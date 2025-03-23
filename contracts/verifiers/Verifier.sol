@@ -34,6 +34,7 @@ error UserNotAuthenticated();
 error VerifierIDIsNotValid(uint256 requestVerifierID, uint256 expectedVerifierID);
 error ChallengeIsInvalid();
 error InvalidRequestOwner(address requestOwner, address sender);
+error GroupIdNotValid();
 
 abstract contract Verifier is IVerifier, ContextUpgradeable {
     /// @dev Key to retrieve the linkID from the proof storage
@@ -196,8 +197,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      * @param requests The list of requests
      */
     function setRequests(IVerifier.Request[] calldata requests) public {
-        VerifierStorage storage s = _getVerifierStorage();
-
         // 1. Check first that groupIds don't exist and keep the number of requests per group.
         _checkGroupIdsAndRequestsPerGroup(requests);
 
@@ -212,22 +211,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             _checkNullifierSessionIdUniqueness(requests[i]);
             _checkVerifierID(requests[i]);
 
-            uint256 groupID = requests[i]
-                .validator
-                .getRequestParam(requests[i].params, "groupID")
-                .value;
-
             _setRequest(requests[i]);
-
-            // request with group
-            if (groupID != 0) {
-                // request with group
-                if (!groupIdExists(groupID)) {
-                    s._groupIds.push(groupID);
-                }
-
-                s._groupedRequests[groupID].push(requests[i].requestId);
-            }
         }
     }
 
@@ -738,12 +722,19 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
     function _checkGroupsRequestsInfo(
         uint256[] memory groupList,
-        uint256[] memory groupRequestCountList,
         bool[] memory groupUserIDInRequestsList,
+        bytes[] memory groupRequestIds,
         uint256 groupsCount
-    ) internal pure {
+    ) internal view {
+        VerifierStorage storage s = _getVerifierStorage();
+
         for (uint256 i = 0; i < groupsCount; i++) {
-            if (groupRequestCountList[i] < 2) {
+            uint256 calculatedGroupID = uint256(keccak256(groupRequestIds[i])) &
+                0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+            if (calculatedGroupID != groupList[i]) {
+                revert GroupIdNotValid();
+            }
+            if (s._groupedRequests[groupList[i]].length < 2) {
                 revert GroupMustHaveAtLeastTwoRequests(groupList[i]);
             }
             if (groupUserIDInRequestsList[i] == false) {
@@ -752,12 +743,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         }
     }
 
-    function _checkGroupIdsAndRequestsPerGroup(
-        IVerifier.Request[] calldata requests
-    ) internal view {
+    function _checkGroupIdsAndRequestsPerGroup(IVerifier.Request[] calldata requests) internal {
+        VerifierStorage storage s = _getVerifierStorage();
+
         uint256 newGroupsCount = 0;
         uint256[] memory newGroupsGroupID = new uint256[](requests.length);
-        uint256[] memory newGroupsRequestCount = new uint256[](requests.length);
+        bytes[] memory newGroupsRequestIds = new bytes[](requests.length);
         bool[] memory newGroupsUserIDInRequests = new bool[](requests.length);
 
         for (uint256 i = 0; i < requests.length; i++) {
@@ -767,10 +758,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                 .value;
 
             if (groupID != 0) {
-                if (groupIdExists(groupID)) {
-                    revert GroupIdAlreadyExists(groupID);
-                }
-
                 (bool exists, uint256 groupIDIndex) = _getGroupIDIndex(
                     groupID,
                     newGroupsGroupID,
@@ -778,11 +765,21 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                 );
 
                 if (!exists) {
+                    if (groupIdExists(groupID)) {
+                        revert GroupIdAlreadyExists(groupID);
+                    }
+                    s._groupIds.push(groupID);
+                    s._groupedRequests[groupID].push(requests[i].requestId);
+
+                    newGroupsRequestIds[newGroupsCount] = abi.encodePacked(requests[i].requestId);
                     newGroupsGroupID[newGroupsCount] = groupID;
-                    newGroupsRequestCount[newGroupsCount]++;
                     newGroupsCount++;
                 } else {
-                    newGroupsRequestCount[groupIDIndex]++;
+                    s._groupedRequests[groupID].push(requests[i].requestId);
+                    newGroupsRequestIds[groupIDIndex] = abi.encodePacked(
+                        newGroupsRequestIds[groupIDIndex],
+                        requests[i].requestId
+                    );
                 }
 
                 if (_isUserIDInputInRequest(requests[i])) {
@@ -798,8 +795,8 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         _checkGroupsRequestsInfo(
             newGroupsGroupID,
-            newGroupsRequestCount,
             newGroupsUserIDInRequests,
+            newGroupsRequestIds,
             newGroupsCount
         );
     }

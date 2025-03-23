@@ -22,7 +22,9 @@ describe("Verifier Integration test", function () {
 
   const requestIdV3 = 32;
   const requestIdLMK = 33;
-  const groupID = 1;
+  const groupID =
+    BigInt(ethers.keccak256(ethers.solidityPacked(["uint256", "uint256"], [32, 33]))) &
+    BigInt("0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
 
   const value = ["20020101", ...new Array(63).fill("0")];
 
@@ -188,6 +190,15 @@ describe("Verifier Integration test", function () {
   });
 
   it("Should revert with MissingUserIDInGroupOfRequests", async function () {
+    const groupID =
+      BigInt(
+        ethers.keccak256(
+          ethers.solidityPacked(["uint256", "uint256"], [requestIdLMK, requestIdLMK + 1]),
+        ),
+      ) & BigInt("0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+
+    const twoQueriesParamsNew = packLinkedMultiQueryValidatorParams({ ...twoQueries, groupID });
+
     await expect(
       verifier.setRequests([
         {
@@ -195,14 +206,14 @@ describe("Verifier Integration test", function () {
           metadata: "metadata",
           validator: await lmkValidator.getAddress(),
           owner: signer.address,
-          params: twoQueriesParams,
+          params: twoQueriesParamsNew,
         },
         {
           requestId: requestIdLMK + 1,
           metadata: "metadata",
           validator: await lmkValidator.getAddress(),
           owner: signer.address,
-          params: twoQueriesParams,
+          params: twoQueriesParamsNew,
         },
       ]),
     )
