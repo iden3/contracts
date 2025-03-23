@@ -52,13 +52,13 @@ contract RequestValidatorStub is IRequestValidator, ERC165 {
         return requestParams[keccak256(params)][requestParamIndexOf(paramName)];
     }
 
-    function requestParamIndexOf(string memory name) public view override returns (uint256) {
+    function requestParamIndexOf(string memory name) public view returns (uint256) {
         uint256 index = _requestParamNameToIndex[name];
         if (index == 0) revert RequestParamNameNotFound();
         return --index; // we save 1-based index, but return 0-based
     }
 
-    function inputIndexOf(string memory name) public view virtual returns (uint256) {
+    function inputIndexOf(string memory name) public view returns (uint256) {
         uint256 index = _inputNameToIndex[name];
         if (index == 0) {
             revert InputNameNotFound();

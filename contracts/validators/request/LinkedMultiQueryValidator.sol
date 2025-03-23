@@ -77,10 +77,6 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, RequestValidatorB
             );
         }
 
-        _setRequestParamToIndex("groupID", 0);
-        _setRequestParamToIndex("verifierID", 1);
-        _setRequestParamToIndex("nullifierSessionID", 2);
-
         __Ownable_init(owner);
     }
 

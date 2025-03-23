@@ -13,7 +13,6 @@ abstract contract RequestValidatorBase is IRequestValidator {
     struct RequestValidatorBaseStorage {
         mapping(string => IGroth16Verifier) _circuitIdToGroth16Verifier;
         string[] _supportedCircuitIds;
-        mapping(string => uint256) _requestParamNameToIndex;
         mapping(string => uint256) _inputNameToIndex;
     }
 
@@ -33,17 +32,6 @@ abstract contract RequestValidatorBase is IRequestValidator {
         assembly {
             $.slot := RequestValidatorBaseStorageLocation
         }
-    }
-
-    /**
-     * @dev Get the index of the request param by name
-     * @param name Name of the request param
-     * @return Index of the request param
-     */
-    function requestParamIndexOf(string memory name) public view returns (uint256) {
-        uint256 index = _getRequestValidatorBaseStorage()._requestParamNameToIndex[name];
-        if (index == 0) revert RequestParamNameNotFound();
-        return --index; // we save 1-based index, but return 0-based
     }
 
     /**
@@ -76,11 +64,6 @@ abstract contract RequestValidatorBase is IRequestValidator {
         string memory circuitId
     ) public view returns (IGroth16Verifier) {
         return _getRequestValidatorBaseStorage()._circuitIdToGroth16Verifier[circuitId];
-    }
-
-    function _setRequestParamToIndex(string memory requestParamName, uint256 index) internal {
-        // increment index to avoid 0
-        _getRequestValidatorBaseStorage()._requestParamNameToIndex[requestParamName] = ++index;
     }
 
     function _setInputToIndex(string memory inputName, uint256 index) internal {
