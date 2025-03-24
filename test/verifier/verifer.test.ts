@@ -2,6 +2,7 @@ import { ethers } from "hardhat";
 import { beforeEach } from "mocha";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
+import { calculateGroupID, calculateRequestID } from "../utils/id-calculation-utils";
 
 describe("Verifier tests", function () {
   let sender: any;
@@ -168,31 +169,24 @@ describe("Verifier tests", function () {
         "RequestIdNotValid",
       );
 
-      request.requestId =
-        (BigInt(
-          ethers.keccak256(
-            ethers.solidityPacked(
-              ["bytes", "address"],
-              [request.params, await sender.getAddress()],
-            ),
-          ),
-        ) &
-          BigInt("0x0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) +
-        BigInt("0x0001000000000000000000000000000000000000000000000000000000000000"); // requestId is valid;
+      // requestId is valid;
+      request.requestId = calculateRequestID(request.params, await sender.getAddress());
       await expect(verifier.setRequests([request])).not.to.be.rejected;
     });
 
     it("setRequests: a group should be formed by the groupID encoded in requests params", async function () {
-      const groupID = 1;
-      const groupRequest1 = { ...request, groupID };
-      const groupRequest2 = { ...request, requestId: 2, groupID };
+      const requestId2 = 2;
+      const groupID = calculateGroupID([request.requestId, BigInt(requestId2)]);
+
+      const request1 = { ...request, groupID };
+      const request2 = { ...request, requestId: requestId2, groupID };
       paramsFromValidator = [
-        { name: "groupID", value: 1 },
+        { name: "groupID", value: groupID },
         { name: "verifierID", value: 0 },
         { name: "nullifierSessionID", value: 0 },
       ];
-      await validator1.stub_setRequestParams([groupRequest1.params], [paramsFromValidator]);
-      await validator1.stub_setRequestParams([groupRequest2.params], [paramsFromValidator]);
+      await validator1.stub_setRequestParams([request1.params], [paramsFromValidator]);
+      await validator1.stub_setRequestParams([request2.params], [paramsFromValidator]);
       await validator1.stub_setInput("userID", 1);
 
       let groupExists = await verifier.groupIdExists(groupID);
@@ -200,7 +194,7 @@ describe("Verifier tests", function () {
       let groupsCount = await verifier.getGroupsCount();
       expect(groupsCount).to.be.equal(0);
 
-      await verifier.setRequests([groupRequest1, groupRequest2]);
+      await verifier.setRequests([request1, request2]);
 
       groupExists = await verifier.groupIdExists(groupID);
       expect(groupExists).to.be.true;
@@ -209,27 +203,29 @@ describe("Verifier tests", function () {
 
       const groupedRequests = await verifier.getGroupedRequests(groupID);
       expect(groupedRequests.length).to.be.equal(2);
-      expect(groupedRequests[0].requestId).to.be.equal(groupRequest1.requestId);
-      expect(groupedRequests[1].requestId).to.be.equal(groupRequest2.requestId);
+      expect(groupedRequests[0].requestId).to.be.equal(request1.requestId);
+      expect(groupedRequests[1].requestId).to.be.equal(request2.requestId);
     });
 
     it("setRequests: a group should not exist previously", async function () {
-      const groupID = 1;
-      const groupRequest1 = { ...request, groupID };
-      const groupRequest2 = { ...request, requestId: 2, groupID };
+      const requestId2 = 2;
+      const groupID = calculateGroupID([BigInt(request.requestId), BigInt(requestId2)]);
+
+      const request1 = { ...request, groupID };
+      const request2 = { ...request, requestId: requestId2, groupID };
 
       paramsFromValidator = [
-        { name: "groupID", value: 1 },
+        { name: "groupID", value: groupID },
         { name: "verifierID", value: 0 },
         { name: "nullifierSessionID", value: 0 },
       ];
-      await validator1.stub_setRequestParams([groupRequest1.params], [paramsFromValidator]);
-      await validator1.stub_setRequestParams([groupRequest2.params], [paramsFromValidator]);
+      await validator1.stub_setRequestParams([request1.params], [paramsFromValidator]);
+      await validator1.stub_setRequestParams([request2.params], [paramsFromValidator]);
       await validator1.stub_setInput("userID", 1);
 
-      await verifier.setRequests([groupRequest1, groupRequest2]);
+      await verifier.setRequests([request1, request2]);
 
-      await expect(verifier.setRequests([groupRequest1, groupRequest2]))
+      await expect(verifier.setRequests([request1, request2]))
         .to.be.revertedWithCustomError(verifier, "GroupIdAlreadyExists")
         .withArgs(groupID);
     });
@@ -452,9 +448,10 @@ describe("Verifier tests", function () {
     });
 
     it("submitResponse: linkID should not be equal to zero for grouped requests", async function () {
-      const groupID = 1;
-      const groupRequest1 = { ...request, groupID };
-      const groupRequest2 = {
+      const requestId2 = 2;
+      const groupID = calculateGroupID([BigInt(request.requestId), BigInt(requestId2)]);
+      const request1 = { ...request, groupID };
+      const request2 = {
         ...request,
         requestId: 2,
         validator: await validator2.getAddress(),
@@ -467,10 +464,10 @@ describe("Verifier tests", function () {
       ];
 
       await validator1.stub_setInput("userID", 1);
-      await validator1.stub_setRequestParams([groupRequest1.params], [paramsFromValidator]);
-      await validator2.stub_setRequestParams([groupRequest2.params], [paramsFromValidator]);
+      await validator1.stub_setRequestParams([request1.params], [paramsFromValidator]);
+      await validator2.stub_setRequestParams([request2.params], [paramsFromValidator]);
 
-      await verifier.setRequests([groupRequest1, groupRequest2]);
+      await verifier.setRequests([request1, request2]);
 
       await validator1.stub_setVerifyResults([
         { name: "userID", value: 1, rawValue: "0x" },
@@ -488,12 +485,12 @@ describe("Verifier tests", function () {
         proof: "0x",
       };
       const response1 = {
-        requestId: groupRequest1.requestId,
+        requestId: request1.requestId,
         proof: "0x",
         metadata: "0x",
       };
       const response2 = {
-        requestId: groupRequest2.requestId,
+        requestId: request2.requestId,
         proof: "0x",
         metadata: "0x",
       };
@@ -501,7 +498,7 @@ describe("Verifier tests", function () {
 
       await expect(verifier.submitResponse(authResponse, [response1, response2], crossChainProofs))
         .to.be.revertedWithCustomError(verifier, "LinkIDIsZeroForGroupedRequests")
-        .withArgs(groupRequest2.requestId, groupID, sender);
+        .withArgs(request2.requestId, groupID, sender);
     });
   });
 
@@ -645,21 +642,28 @@ describe("Verifier tests", function () {
     });
 
     it("getMultiRequestProofsStatus: linkID should be equal to all requests in a group, otherwise multiRequest pointing to it returns false", async function () {
-      const groupID = 1;
-      const groupRequest1 = { ...request, requestId: 5, groupID };
+      const requestId1 = 5;
+      const requestId2 = 6;
+      const groupID = calculateGroupID([BigInt(requestId1), BigInt(requestId2)]);
+      const groupRequest1 = { ...request, requestId: requestId1, groupID };
       const groupRequest2 = {
         ...request,
         validator: await validator2.getAddress(),
-        requestId: 6,
+        requestId: requestId2,
         groupID,
       };
-      paramsFromValidator = [
+      const paramsFromValidator1 = [
         { name: "groupID", value: groupID },
         { name: "verifierID", value: 0 },
         { name: "nullifierSessionID", value: 0 },
       ];
-      await validator1.stub_setRequestParams([groupRequest1.params], [paramsFromValidator]);
-      await validator2.stub_setRequestParams([groupRequest2.params], [paramsFromValidator]);
+      const paramsFromValidator2 = [
+        { name: "groupID", value: groupID },
+        { name: "verifierID", value: 0 },
+        { name: "nullifierSessionID", value: 0 },
+      ];
+      await validator1.stub_setRequestParams([groupRequest1.params], [paramsFromValidator1]);
+      await validator2.stub_setRequestParams([groupRequest2.params], [paramsFromValidator2]);
       await validator1.stub_setInput("userID", 1);
       await validator2.stub_setInput("userID", 1);
 
@@ -714,22 +718,25 @@ describe("Verifier tests", function () {
     });
 
     it("getMultiRequestProofsStatus: all request with same linkID in a group already verified returns true", async function () {
-      const groupID = 2;
-      const groupRequest1 = { ...request, requestId: 10, groupID };
-      const groupRequest2 = {
+      const requestId1 = 10;
+      const requestId2 = 11;
+      const groupID = calculateGroupID([BigInt(requestId1), BigInt(requestId2)]);
+      const request1 = { ...request, requestId: requestId1, groupID: groupID };
+      const request2 = {
         ...request,
-        requestId: 11,
-        groupID,
+        requestId: requestId2,
+        groupID: groupID,
       };
       paramsFromValidator = [
         { name: "groupID", value: groupID },
         { name: "verifierID", value: 0 },
         { name: "nullifierSessionID", value: 0 },
       ];
-      await validator1.stub_setRequestParams([groupRequest1.params], [paramsFromValidator]);
+      await validator1.stub_setRequestParams([request1.params], [paramsFromValidator]);
+      await validator1.stub_setRequestParams([request2.params], [paramsFromValidator]);
       await validator1.stub_setInput("userID", 1);
 
-      await verifier.setRequests([groupRequest1, groupRequest2]);
+      await verifier.setRequests([request1, request2]);
 
       const multiRequest4 = {
         multiRequestId: 4,
@@ -751,12 +758,12 @@ describe("Verifier tests", function () {
         proof: "0x",
       };
       const response1 = {
-        requestId: groupRequest1.requestId,
+        requestId: request1.requestId,
         proof: "0x",
         metadata: "0x",
       };
       const response2 = {
-        requestId: groupRequest2.requestId,
+        requestId: request2.requestId,
         proof: "0x",
         metadata: "0x",
       };

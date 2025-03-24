@@ -15,14 +15,15 @@ import {
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { calculateQueryHashV3 } from "../utils/query-hash-utils";
 import { TEN_YEARS } from "../../helpers/constants";
+import { calculateGroupID } from "../utils/id-calculation-utils";
 
-describe("Verifier Integration test", function () {
+describe("Verifier Integration test", async function () {
   let verifier, authValidator, v3Validator, lmkValidator;
   let signer;
 
   const requestIdV3 = 32;
   const requestIdLMK = 33;
-  const groupID = 1;
+  const groupID = calculateGroupID([BigInt(requestIdV3), BigInt(requestIdLMK)]);
 
   const value = ["20020101", ...new Array(63).fill("0")];
 
@@ -188,6 +189,10 @@ describe("Verifier Integration test", function () {
   });
 
   it("Should revert with MissingUserIDInGroupOfRequests", async function () {
+    const groupID = calculateGroupID([BigInt(requestIdLMK), BigInt(requestIdLMK + 1)]);
+
+    const twoQueriesParamsNew = packLinkedMultiQueryValidatorParams({ ...twoQueries, groupID });
+
     await expect(
       verifier.setRequests([
         {
@@ -195,14 +200,14 @@ describe("Verifier Integration test", function () {
           metadata: "metadata",
           validator: await lmkValidator.getAddress(),
           owner: signer.address,
-          params: twoQueriesParams,
+          params: twoQueriesParamsNew,
         },
         {
           requestId: requestIdLMK + 1,
           metadata: "metadata",
           validator: await lmkValidator.getAddress(),
           owner: signer.address,
-          params: twoQueriesParams,
+          params: twoQueriesParamsNew,
         },
       ]),
     )
