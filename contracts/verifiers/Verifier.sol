@@ -791,7 +791,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                     }
                 }
             } else {
-                // request without group
+                // revert if standalone request is without userId public input
                 if (!_isUserIDInputInRequest(requests[i])) {
                     revert MissingUserIDInRequest(requests[i].requestId);
                 }
