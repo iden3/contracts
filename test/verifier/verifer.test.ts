@@ -2,6 +2,7 @@ import { ethers } from "hardhat";
 import { beforeEach } from "mocha";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
+import { calculateGroupID, calculateRequestID } from "../utils/id-calculation-utils";
 
 describe("Verifier tests", function () {
   let sender: any;
@@ -168,28 +169,17 @@ describe("Verifier tests", function () {
         "RequestIdNotValid",
       );
 
-      request.requestId =
-        (BigInt(
-          ethers.keccak256(
-            ethers.solidityPacked(
-              ["bytes", "address"],
-              [request.params, await sender.getAddress()],
-            ),
-          ),
-        ) &
-          BigInt("0x0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) +
-        BigInt("0x0001000000000000000000000000000000000000000000000000000000000000"); // requestId is valid;
+      // requestId is valid;
+      request.requestId = calculateRequestID(request.params, await sender.getAddress());
       await expect(verifier.setRequests([request])).not.to.be.rejected;
     });
 
     it("setRequests: a group should be formed by the groupID encoded in requests params", async function () {
-      const groupID =
-        BigInt(
-          ethers.keccak256(ethers.solidityPacked(["uint256", "uint256"], [request.requestId, 2])),
-        ) & BigInt("0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+      const requestId2 = 2;
+      const groupID = calculateGroupID([request.requestId, BigInt(requestId2)]);
 
       const request1 = { ...request, groupID };
-      const request2 = { ...request, requestId: 2, groupID };
+      const request2 = { ...request, requestId: requestId2, groupID };
       paramsFromValidator = [
         { name: "groupID", value: groupID },
         { name: "verifierID", value: 0 },
@@ -218,12 +208,11 @@ describe("Verifier tests", function () {
     });
 
     it("setRequests: a group should not exist previously", async function () {
-      const groupID =
-        BigInt(
-          ethers.keccak256(ethers.solidityPacked(["uint256", "uint256"], [request.requestId, 2])),
-        ) & BigInt("0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+      const requestId2 = 2;
+      const groupID = calculateGroupID([BigInt(request.requestId), BigInt(requestId2)]);
+
       const request1 = { ...request, groupID };
-      const request2 = { ...request, requestId: 2, groupID };
+      const request2 = { ...request, requestId: requestId2, groupID };
 
       paramsFromValidator = [
         { name: "groupID", value: groupID },
@@ -459,10 +448,8 @@ describe("Verifier tests", function () {
     });
 
     it("submitResponse: linkID should not be equal to zero for grouped requests", async function () {
-      const groupID =
-        BigInt(
-          ethers.keccak256(ethers.solidityPacked(["uint256", "uint256"], [request.requestId, 2])),
-        ) & BigInt("0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+      const requestId2 = 2;
+      const groupID = calculateGroupID([BigInt(request.requestId), BigInt(requestId2)]);
       const request1 = { ...request, groupID };
       const request2 = {
         ...request,
@@ -655,14 +642,14 @@ describe("Verifier tests", function () {
     });
 
     it("getMultiRequestProofsStatus: linkID should be equal to all requests in a group, otherwise multiRequest pointing to it returns false", async function () {
-      const groupID =
-        BigInt(ethers.keccak256(ethers.solidityPacked(["uint256", "uint256"], [5, 6]))) &
-        BigInt("0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
-      const groupRequest1 = { ...request, requestId: 5, groupID };
+      const requestId1 = 5;
+      const requestId2 = 6;
+      const groupID = calculateGroupID([BigInt(requestId1), BigInt(requestId2)]);
+      const groupRequest1 = { ...request, requestId: requestId1, groupID };
       const groupRequest2 = {
         ...request,
         validator: await validator2.getAddress(),
-        requestId: 6,
+        requestId: requestId2,
         groupID,
       };
       const paramsFromValidator1 = [
@@ -733,10 +720,7 @@ describe("Verifier tests", function () {
     it("getMultiRequestProofsStatus: all request with same linkID in a group already verified returns true", async function () {
       const requestId1 = 10;
       const requestId2 = 11;
-      const groupID =
-        BigInt(
-          ethers.keccak256(ethers.solidityPacked(["uint256", "uint256"], [requestId1, requestId2])),
-        ) & BigInt("0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+      const groupID = calculateGroupID([BigInt(requestId1), BigInt(requestId2)]);
       const request1 = { ...request, requestId: requestId1, groupID: groupID };
       const request2 = {
         ...request,

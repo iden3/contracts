@@ -56,6 +56,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         bool isActive;
     }
 
+    struct GroupInfo {
+        uint256 id;
+        bytes concatenatedRequestIds;
+        bool isUserIdInputPresent;
+    }
+
     /// @custom:storage-location erc7201:iden3.storage.Verifier
     struct VerifierStorage {
         // Information about requests
@@ -708,11 +714,11 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
     function _getGroupIDIndex(
         uint256 groupID,
-        uint256[] memory groupList,
+        GroupInfo[] memory groupList,
         uint256 listCount
     ) internal pure returns (bool, uint256) {
         for (uint256 j = 0; j < listCount; j++) {
-            if (groupList[j] == groupID) {
+            if (groupList[j].id == groupID) {
                 return (true, j);
             }
         }
@@ -721,24 +727,22 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     }
 
     function _checkGroupsRequestsInfo(
-        uint256[] memory groupList,
-        bool[] memory groupUserIDInRequestsList,
-        bytes[] memory groupRequestIds,
+        GroupInfo[] memory groupList,
         uint256 groupsCount
     ) internal view {
         VerifierStorage storage s = _getVerifierStorage();
 
         for (uint256 i = 0; i < groupsCount; i++) {
-            uint256 calculatedGroupID = uint256(keccak256(groupRequestIds[i])) &
+            uint256 calculatedGroupID = uint256(keccak256(groupList[i].concatenatedRequestIds)) &
                 0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
-            if (calculatedGroupID != groupList[i]) {
+            if (calculatedGroupID != groupList[i].id) {
                 revert GroupIdNotValid();
             }
-            if (s._groupedRequests[groupList[i]].length < 2) {
-                revert GroupMustHaveAtLeastTwoRequests(groupList[i]);
+            if (s._groupedRequests[groupList[i].id].length < 2) {
+                revert GroupMustHaveAtLeastTwoRequests(groupList[i].id);
             }
-            if (groupUserIDInRequestsList[i] == false) {
-                revert MissingUserIDInGroupOfRequests(groupList[i]);
+            if (groupList[i].isUserIdInputPresent == false) {
+                revert MissingUserIDInGroupOfRequests(groupList[i].id);
             }
         }
     }
@@ -747,9 +751,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         VerifierStorage storage s = _getVerifierStorage();
 
         uint256 newGroupsCount = 0;
-        uint256[] memory newGroupsGroupID = new uint256[](requests.length);
-        bytes[] memory newGroupsRequestIds = new bytes[](requests.length);
-        bool[] memory newGroupsUserIDInRequests = new bool[](requests.length);
+        GroupInfo[] memory newGroupsInfo = new GroupInfo[](requests.length);
 
         for (uint256 i = 0; i < requests.length; i++) {
             uint256 groupID = requests[i]
@@ -760,7 +762,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             if (groupID != 0) {
                 (bool exists, uint256 groupIDIndex) = _getGroupIDIndex(
                     groupID,
-                    newGroupsGroupID,
+                    newGroupsInfo,
                     newGroupsCount
                 );
 
@@ -771,19 +773,22 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                     s._groupIds.push(groupID);
                     s._groupedRequests[groupID].push(requests[i].requestId);
 
-                    newGroupsRequestIds[newGroupsCount] = abi.encodePacked(requests[i].requestId);
-                    newGroupsGroupID[newGroupsCount] = groupID;
+                    newGroupsInfo[newGroupsCount] = GroupInfo({
+                        id: groupID,
+                        concatenatedRequestIds: abi.encodePacked(requests[i].requestId),
+                        isUserIdInputPresent: _isUserIDInputInRequest(requests[i])
+                    });
+
                     newGroupsCount++;
                 } else {
                     s._groupedRequests[groupID].push(requests[i].requestId);
-                    newGroupsRequestIds[groupIDIndex] = abi.encodePacked(
-                        newGroupsRequestIds[groupIDIndex],
+                    newGroupsInfo[groupIDIndex].concatenatedRequestIds = abi.encodePacked(
+                        newGroupsInfo[groupIDIndex].concatenatedRequestIds,
                         requests[i].requestId
                     );
-                }
-
-                if (_isUserIDInputInRequest(requests[i])) {
-                    newGroupsUserIDInRequests[groupIDIndex] = true;
+                    if (_isUserIDInputInRequest(requests[i])) {
+                        newGroupsInfo[groupIDIndex].isUserIdInputPresent = true;
+                    }
                 }
             } else {
                 // request without group
@@ -793,12 +798,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             }
         }
 
-        _checkGroupsRequestsInfo(
-            newGroupsGroupID,
-            newGroupsUserIDInRequests,
-            newGroupsRequestIds,
-            newGroupsCount
-        );
+        _checkGroupsRequestsInfo(newGroupsInfo, newGroupsCount);
     }
 
     function _isUserIDInputInRequest(
