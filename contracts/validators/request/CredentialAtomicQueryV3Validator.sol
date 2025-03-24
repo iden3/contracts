@@ -96,10 +96,6 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _setInputToIndex("timestamp", 12);
         _setInputToIndex("isBJJAuthEnabled", 13);
 
-        _setRequestParamToIndex("groupID", 0);
-        _setRequestParamToIndex("verifierID", 1);
-        _setRequestParamToIndex("nullifierSessionID", 2);
-
         _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, owner);
     }
 

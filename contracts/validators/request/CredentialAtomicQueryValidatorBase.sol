@@ -8,6 +8,7 @@ import {IRequestValidator} from "../../interfaces/IRequestValidator.sol";
 import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
 import {IState} from "../../interfaces/IState.sol";
 import {PrimitiveTypeUtils} from "../../lib/PrimitiveTypeUtils.sol";
+import {RequestValidatorBase} from "./RequestValidatorBase.sol";
 
 error ChallengeShouldMatchTheSender();
 error GistRootIsExpired();
@@ -21,20 +22,16 @@ error IssuerIsNotOnTheAllowedIssuersList();
  */
 abstract contract CredentialAtomicQueryValidatorBase is
     Ownable2StepUpgradeable,
-    IRequestValidator,
+    RequestValidatorBase,
     ERC165
 {
     /// @dev Main storage structure for the contract
     /// @custom:storage-location iden3.storage.CredentialAtomicQueryValidator
     struct CredentialAtomicQueryValidatorBaseStorage {
-        mapping(string => IGroth16Verifier) _circuitIdToVerifier;
-        string[] _supportedCircuitIds;
         IState state;
         uint256 revocationStateExpirationTimeout;
         uint256 proofExpirationTimeout;
         uint256 gistRootExpirationTimeout;
-        mapping(string => uint256) _inputNameToIndex;
-        mapping(string => uint256) _requestParamNameToIndex;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.CredentialAtomicQueryValidator")) - 1))
@@ -146,51 +143,6 @@ abstract contract CredentialAtomicQueryValidatorBase is
     ) external view virtual returns (ResponseField[] memory);
 
     /**
-     * @dev Get supported circuit ids
-     * @return ids Array of circuit ids supported
-     */
-    function getSupportedCircuitIds() external view virtual returns (string[] memory ids) {
-        return _getCredentialAtomicQueryValidatorBaseStorage()._supportedCircuitIds;
-    }
-
-    /**
-     * @dev Get the verifier by circuit id
-     * @param circuitId Circuit id
-     * @return The verifier
-     */
-    function getVerifierByCircuitId(
-        string memory circuitId
-    ) public view virtual returns (IGroth16Verifier) {
-        return _getCredentialAtomicQueryValidatorBaseStorage()._circuitIdToVerifier[circuitId];
-    }
-
-    /**
-     * @dev Get the index of the public input of the circuit by name
-     * @param name Name of the public input
-     * @return Index of the public input
-     */
-    function inputIndexOf(string memory name) public view virtual returns (uint256) {
-        uint256 index = _getCredentialAtomicQueryValidatorBaseStorage()._inputNameToIndex[name];
-        if (index == 0) {
-            revert InputNameNotFound();
-        }
-        return --index; // we save 1-based index, but return 0-based
-    }
-
-    /**
-     * @dev Get the index of the request param by name
-     * @param name Name of the request param
-     * @return Index of the request param
-     */
-    function requestParamIndexOf(string memory name) public view override returns (uint256) {
-        uint256 index = _getCredentialAtomicQueryValidatorBaseStorage()._requestParamNameToIndex[
-            name
-        ];
-        if (index == 0) revert RequestParamNameNotFound();
-        return --index; // we save 1-based index, but return 0-based
-    }
-
-    /**
      * @dev See {IERC165-supportsInterface}.
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
@@ -211,9 +163,9 @@ abstract contract CredentialAtomicQueryValidatorBase is
         s.revocationStateExpirationTimeout = 1 hours;
         s.proofExpirationTimeout = 1 hours;
         s.gistRootExpirationTimeout = 1 hours;
-        s._supportedCircuitIds = [circuitId];
-        s._circuitIdToVerifier[circuitId] = IGroth16Verifier(_verifierContractAddr);
         s.state = IState(_stateContractAddr);
+        _setGroth16Verifier(circuitId, IGroth16Verifier(_verifierContractAddr));
+
         __Ownable_init(owner);
     }
 
@@ -283,17 +235,5 @@ abstract contract CredentialAtomicQueryValidatorBase is
         if (PrimitiveTypeUtils.uint256LEToAddress(challenge) != sender) {
             revert ChallengeShouldMatchTheSender();
         }
-    }
-
-    function _setInputToIndex(string memory inputName, uint256 index) internal {
-        // increment index to avoid 0
-        _getCredentialAtomicQueryValidatorBaseStorage()._inputNameToIndex[inputName] = ++index;
-    }
-
-    function _setRequestParamToIndex(string memory requestParamName, uint256 index) internal {
-        // increment index to avoid 0
-        _getCredentialAtomicQueryValidatorBaseStorage()._requestParamNameToIndex[
-            requestParamName
-        ] = ++index;
     }
 }
