@@ -59,7 +59,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     struct GroupInfo {
         uint256 id;
         bytes concatenatedRequestIds;
-        bool isUserIdInputPresent;
+        bool userIdInputExists;
     }
 
     /// @custom:storage-location erc7201:iden3.storage.Verifier
@@ -741,7 +741,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             if (s._groupedRequests[groupList[i].id].length < 2) {
                 revert GroupMustHaveAtLeastTwoRequests(groupList[i].id);
             }
-            if (groupList[i].isUserIdInputPresent == false) {
+            if (groupList[i].userIdInputExists == false) {
                 revert MissingUserIDInGroupOfRequests(groupList[i].id);
             }
         }
@@ -776,7 +776,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                     newGroupsInfo[newGroupsCount] = GroupInfo({
                         id: groupID,
                         concatenatedRequestIds: abi.encodePacked(requests[i].requestId),
-                        isUserIdInputPresent: _isUserIDInputInRequest(requests[i])
+                        userIdInputExists: _isUserIDInputInRequest(requests[i])
                     });
 
                     newGroupsCount++;
@@ -787,7 +787,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                         requests[i].requestId
                     );
                     if (_isUserIDInputInRequest(requests[i])) {
-                        newGroupsInfo[groupIDIndex].isUserIdInputPresent = true;
+                        newGroupsInfo[groupIDIndex].userIdInputExists = true;
                     }
                 }
             } else {
