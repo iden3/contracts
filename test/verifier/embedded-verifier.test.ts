@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { beforeEach } from "mocha";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
@@ -10,10 +10,11 @@ describe("EmbeddedVerifier tests", function () {
   async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
     const deployHelper = await DeployHelper.initialize(null, true);
-    const verifier = await ethers.deployContract("EmbeddedVerifierWrapper", []);
 
     const { state } = await deployHelper.deployStateWithLibraries([], "Groth16VerifierStub");
-    await verifier.initialize(await signer.getAddress(), await state.getAddress());
+    const stateAddr = await state.getAddress();
+    const Verifier = await ethers.getContractFactory("EmbeddedVerifierWrapper");
+    verifier = await upgrades.deployProxy(Verifier, [signer.address, stateAddr]);
 
     const validator = await ethers.deployContract("RequestValidatorStub");
 

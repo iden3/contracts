@@ -46,6 +46,11 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IAuthValidator, ERC165
         }
     }
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     /**
      * @dev Initialize the contract
      * @param _stateContractAddr Address of the state contract

@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { packZKProof } from "../../utils/packData";
 import { packLinkedMultiQueryValidatorParams } from "../../utils/validator-pack-utils";
@@ -8,8 +8,6 @@ import { contractsInfo } from "../../../helpers/constants";
 describe("Test linkedMultiQuery10.circom", function () {
   let validator, groth16Verifier;
   let signer;
-
-  const stateAddress = ethers.ZeroAddress;
 
   const linkId = "1";
   const merklized = "1";
@@ -78,8 +76,9 @@ describe("Test linkedMultiQuery10.circom", function () {
   async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
     const groth16Verifier = await ethers.deployContract("Groth16VerifierValidatorStub");
-    const validator = await ethers.deployContract("LinkedMultiQueryValidator");
-    await validator.initialize(await groth16Verifier.getAddress(), signer);
+    const LMK = await ethers.getContractFactory("LinkedMultiQueryValidator");
+    const g16address = await groth16Verifier.getAddress();
+    const validator = await upgrades.deployProxy(LMK, [g16address, signer.address]);
     return { validator, groth16Verifier };
   }
 

@@ -6,6 +6,11 @@ import {Verifier} from "./Verifier.sol";
 import {IState} from "../interfaces/IState.sol";
 
 abstract contract EmbeddedVerifier is Ownable2StepUpgradeable, Verifier {
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     /// @dev Sets the state contract linked to this verifier
     /// @param state The state contract address
     function setState(IState state) public onlyOwner {

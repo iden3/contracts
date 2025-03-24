@@ -76,6 +76,11 @@ contract UniversalVerifier is
         _;
     }
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     /// @dev Initializes the contract
     function initialize(IState state, address owner) public initializer {
         __Ownable_init(owner);

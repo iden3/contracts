@@ -52,6 +52,11 @@ abstract contract CredentialAtomicQueryValidatorBase is
         }
     }
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     /**
      * @dev Returns the version of the contract
      * @return The version of the contract

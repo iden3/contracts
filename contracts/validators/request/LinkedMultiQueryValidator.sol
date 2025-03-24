@@ -48,6 +48,11 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, RequestValidatorB
     string internal constant CIRCUIT_ID = "linkedMultiQuery10-beta.1";
     uint256 internal constant QUERIES_COUNT = 10;
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     /**
      * @dev Returns the version of the contract
      * @return The version of the contract
