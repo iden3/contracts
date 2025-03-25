@@ -37,18 +37,20 @@ error InvalidRequestOwner(address requestOwner, address sender);
 error GroupIdNotValid();
 
 abstract contract Verifier is IVerifier, ContextUpgradeable {
-    /// @dev Key to retrieve the linkID from the proof storage
-    string private constant LINKED_PROOF_KEY = "linkID";
+    /// @dev Link ID field name
+    string private constant LINK_ID_PROOF_FIELD_NAME = "linkID";
+    /// @dev User ID field name
+    string private constant USER_ID_INPUT_NAME = "userID";
+
     // keccak256(abi.encodePacked("authV2"))
-    bytes32 private constant AUTHV2_NAME =
+    bytes32 private constant AUTHV2_METHOD_NAME_HASH =
         0x380ee2d21c7a4607d113dad9e76a0bc90f5325a136d5f0e14b6ccf849d948e25;
     // keccak256(abi.encodePacked("challenge"))
-    bytes32 private constant CHALLENGE_NAME =
+    bytes32 private constant CHALLENGE_FIELD_NAME_HASH =
         0x62357b294ca756256b576c5da68950c49d0d1823063551ffdcc1dad9d65a07a6;
     // keccak256(abi.encodePacked("userID"))
-    bytes32 private constant USERID_NAME =
+    bytes32 private constant USER_ID_FIELD_NAME_HASH =
         0xeaa28503c24395f30163098dfa9f1e1cd296dd52252064784e65d95934007382;
-    string private constant USERID_KEY = "userID";
 
     struct AuthMethodData {
         IAuthValidator validator;
@@ -304,10 +306,10 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             authMethodData.params
         );
 
-        if (keccak256(abi.encodePacked(authResponse.authMethod)) == AUTHV2_NAME) {
+        if (keccak256(abi.encodePacked(authResponse.authMethod)) == AUTHV2_METHOD_NAME_HASH) {
             if (
                 authResponseFields.length > 0 &&
-                keccak256(abi.encodePacked(authResponseFields[0].name)) == CHALLENGE_NAME
+                keccak256(abi.encodePacked(authResponseFields[0].name)) == CHALLENGE_FIELD_NAME_HASH
             ) {
                 bytes32 expectedNonce = keccak256(abi.encode(sender, responses)) &
                     0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
@@ -806,7 +808,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     ) internal view returns (bool) {
         bool userIDInRequests = false;
 
-        try request.validator.inputIndexOf(USERID_KEY) {
+        try request.validator.inputIndexOf(USER_ID_INPUT_NAME) {
             userIDInRequests = true;
             // solhint-disable-next-line no-empty-blocks
         } catch {}
@@ -848,7 +850,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         IRequestValidator.ResponseField[] memory signals
     ) internal pure {
         for (uint256 j = 0; j < signals.length; j++) {
-            if (keccak256(abi.encodePacked(signals[j].name)) == USERID_NAME) {
+            if (keccak256(abi.encodePacked(signals[j].name)) == USER_ID_FIELD_NAME_HASH) {
                 if (userIDFromAuthResponse != signals[j].value) {
                     revert UserIDMismatch(userIDFromAuthResponse, signals[j].value);
                 }
@@ -886,13 +888,13 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             uint256 requestLinkID = getResponseFieldValue(
                 s._groupedRequests[groupId][0],
                 sender,
-                LINKED_PROOF_KEY
+                LINK_ID_PROOF_FIELD_NAME
             );
             for (uint256 j = 1; j < s._groupedRequests[groupId].length; j++) {
                 uint256 requestLinkIDToCompare = getResponseFieldValue(
                     s._groupedRequests[groupId][j],
                     sender,
-                    LINKED_PROOF_KEY
+                    LINK_ID_PROOF_FIELD_NAME
                 );
                 if (requestLinkID != requestLinkIDToCompare) {
                     return false;
@@ -1029,7 +1031,9 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         uint256 groupID = request.validator.getRequestParam(request.params, "groupID").value;
 
-        if (groupID != 0 && getResponseFieldValue(requestId, sender, LINKED_PROOF_KEY) == 0) {
+        if (
+            groupID != 0 && getResponseFieldValue(requestId, sender, LINK_ID_PROOF_FIELD_NAME) == 0
+        ) {
             revert LinkIDIsZeroForGroupedRequests(requestId, groupID, sender);
         }
 
