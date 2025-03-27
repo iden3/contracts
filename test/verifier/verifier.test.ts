@@ -446,60 +446,6 @@ describe("Verifier tests", function () {
         .to.revertedWithCustomError(verifier, "UserIDMismatch")
         .withArgs(1, 2);
     });
-
-    it("submitResponse: linkID should not be equal to zero for grouped requests", async function () {
-      const requestId2 = 2;
-      const groupID = calculateGroupID([BigInt(request.requestId), BigInt(requestId2)]);
-      const request1 = { ...request, groupID };
-      const request2 = {
-        ...request,
-        requestId: 2,
-        validator: await validator2.getAddress(),
-        groupID,
-      };
-      paramsFromValidator = [
-        { name: "groupID", value: groupID },
-        { name: "verifierID", value: 0 },
-        { name: "nullifierSessionID", value: 0 },
-      ];
-
-      await validator1.stub_setInput("userID", 1);
-      await validator1.stub_setRequestParams([request1.params], [paramsFromValidator]);
-      await validator2.stub_setRequestParams([request2.params], [paramsFromValidator]);
-
-      await verifier.setRequests([request1, request2]);
-
-      await validator1.stub_setVerifyResults([
-        { name: "userID", value: 1, rawValue: "0x" },
-        { name: "issuerID", value: 2, rawValue: "0x" },
-        { name: "linkID", value: 3, rawValue: "0x" },
-      ]);
-      await validator2.stub_setVerifyResults([
-        { name: "userID", value: 1, rawValue: "0x" },
-        { name: "issuerID", value: 2, rawValue: "0x" },
-        { name: "linkID", value: 0, rawValue: "0x" }, // will revert because linkID is 0
-      ]);
-
-      const authResponse = {
-        authMethod: authMethod.authMethod,
-        proof: "0x",
-      };
-      const response1 = {
-        requestId: request1.requestId,
-        proof: "0x",
-        metadata: "0x",
-      };
-      const response2 = {
-        requestId: request2.requestId,
-        proof: "0x",
-        metadata: "0x",
-      };
-      const crossChainProofs = "0x";
-
-      await expect(verifier.submitResponse(authResponse, [response1, response2], crossChainProofs))
-        .to.be.revertedWithCustomError(verifier, "LinkIDIsZeroForGroupedRequests")
-        .withArgs(request2.requestId, groupID, sender);
-    });
   });
 
   describe("Multi request tests", function () {

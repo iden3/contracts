@@ -453,7 +453,8 @@ const testCases: any[] = [
     proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3.json"),
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
-    errorMessage: "InvalidLinkIDPubSignal()",
+    errorMessage:
+      "InvalidGroupIDOrLinkID(0, 19823993270096139446564592922993947503208333537792611306066620392561342309875)",
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     groupID: 0,
   },

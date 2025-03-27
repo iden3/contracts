@@ -15,7 +15,6 @@ error GroupIdNotFound(uint256 groupId);
 error GroupIdAlreadyExists(uint256 groupId);
 error GroupMustHaveAtLeastTwoRequests(uint256 groupId);
 error LinkIDNotTheSameForGroupedRequests();
-error LinkIDIsZeroForGroupedRequests(uint256 requestId, uint256 groupId, address sender);
 error MetadataNotSupportedYet();
 error MultiRequestIdAlreadyExists(uint256 multiRequestId);
 error MultiRequestIdNotFound(uint256 multiRequestId);
@@ -1030,12 +1029,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         }
 
         uint256 groupID = request.validator.getRequestParam(request.params, "groupID").value;
-
-        if (
-            groupID != 0 && getResponseFieldValue(requestId, sender, LINK_ID_PROOF_FIELD_NAME) == 0
-        ) {
-            revert LinkIDIsZeroForGroupedRequests(requestId, groupID, sender);
-        }
 
         proof.isVerified = true;
         proof.validatorVersion = s._requests[requestId].validator.version();

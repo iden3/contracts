@@ -134,15 +134,26 @@ describe("Test linkedMultiQuery10.circom", function () {
       .withArgs(queryHash2, queryHash1);
   });
 
-  it("Should throw if groupID is 0", async function () {
-    const params = packLinkedMultiQueryValidatorParams({
+  it("Should throw if groupID or linkID is 0", async function () {
+    const paramsWithZeroGroupID = packLinkedMultiQueryValidatorParams({
       ...oneQuery,
       groupID: 0,
     });
 
-    await expect(validator.verify(signer.address, proofForOneQuery, params, "0x"))
-      .to.be.revertedWithCustomError(validator, "InvalidGroupID")
-      .withArgs(0);
+    await expect(
+      validator.verify(signer.address, proofForOneQuery, paramsWithZeroGroupID, "0x"),
+    ).to.be.revertedWithCustomError(validator, "GroupIDCannotBeZero");
+
+    const proofForOneQueryWithZeroLinkID = packZKProof(
+      [0, merklized]
+        .concat([operatorOutput1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        .concat([queryHash1, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+      ...dummyZKProof,
+    );
+
+    await expect(
+      validator.verify(signer.address, proofForOneQueryWithZeroLinkID, oneQueryParams, "0x"),
+    ).to.be.revertedWithCustomError(validator, "LinkIDCannotBeZero");
   });
 
   it("getRequestParam should return the correct values", async function () {

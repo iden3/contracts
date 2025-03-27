@@ -11,7 +11,7 @@ error QueryHashDoesNotMatchTheRequestedOne(uint256 expected, uint256 actual);
 error VerifierAddressShouldNotBeZero();
 error CircuitsLengthShouldBeOne();
 error ProofIsNotValid();
-error InvalidLinkIDPubSignal();
+error InvalidGroupIDOrLinkID(uint256 groupID, uint256 linkID);
 error ProofTypeShouldMatchTheRequestedOneInQuery();
 error InvalidNullifyPubSignal();
 error UserIDDoesNotCorrespondToTheSender();
@@ -222,7 +222,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         _checkAllowedIssuers(pubSignals.issuerID, credAtomicQuery.allowedIssuers);
         _checkProofExpiration(pubSignals.timestamp);
 
-        _checkLinkID(credAtomicQuery.groupID, pubSignals.linkID);
+        _checkGroupIDOrLinkID(credAtomicQuery.groupID, pubSignals.linkID);
         _checkProofType(credAtomicQuery.proofType, pubSignals.proofType);
         _checkNullify(pubSignals.nullifier, credAtomicQuery.nullifierSessionID);
 
@@ -250,10 +250,10 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         return _getResponseFields(pubSignals, credAtomicQuery.operator == 16);
     }
 
-    function _checkLinkID(uint256 groupID, uint256 linkID) internal pure {
+    function _checkGroupIDOrLinkID(uint256 groupID, uint256 linkID) internal pure {
         if (groupID == 0 && linkID == 0) return;
         if (groupID != 0 && linkID != 0) return;
-        revert InvalidLinkIDPubSignal();
+        revert InvalidGroupIDOrLinkID(groupID, linkID);
     }
 
     function _checkProofType(uint256 queryProofType, uint256 pubSignalProofType) internal pure {

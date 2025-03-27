@@ -10,7 +10,8 @@ import {RequestValidatorBase} from "./RequestValidatorBase.sol";
 
 error WrongCircuitID(string circuitID);
 error InvalidQueryHash(uint256 expectedQueryHash, uint256 actualQueryHash);
-error InvalidGroupID(uint256 groupID);
+error GroupIDCannotBeZero();
+error LinkIDCannotBeZero();
 error TooManyQueries(uint256 operatorCount);
 error InvalidGroth16Proof();
 
@@ -112,7 +113,7 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, RequestValidatorB
         PubSignals memory pubSignals = _parsePubSignals(inputs);
 
         _checkQueryHash(query, pubSignals);
-        _checkGroupId(query.groupID);
+        _checkGroupIDOrLinkID(query.groupID, pubSignals.linkID);
 
         if (keccak256(bytes(query.circuitIds[0])) != keccak256(bytes(CIRCUIT_ID))) {
             revert WrongCircuitID(query.circuitIds[0]);
@@ -155,10 +156,9 @@ contract LinkedMultiQueryValidator is Ownable2StepUpgradeable, RequestValidatorB
             super.supportsInterface(interfaceId);
     }
 
-    function _checkGroupId(uint256 groupID) internal pure {
-        if (groupID == 0) {
-            revert InvalidGroupID(groupID);
-        }
+    function _checkGroupIDOrLinkID(uint256 groupID, uint256 linkID) internal pure {
+        if (groupID == 0) revert GroupIDCannotBeZero();
+        if (linkID == 0) revert LinkIDCannotBeZero();
     }
 
     function _checkQueryHash(Query memory query, PubSignals memory pubSignals) internal pure {
