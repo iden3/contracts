@@ -251,9 +251,9 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
     }
 
     function _checkLinkID(uint256 groupID, uint256 linkID) internal pure {
-        if (!((groupID == 0 && linkID == 0) || (groupID != 0 && linkID != 0))) {
-            revert InvalidLinkIDPubSignal();
-        }
+        if (groupID == 0 && linkID == 0) return;
+        if (groupID != 0 && linkID != 0) return;
+        revert InvalidLinkIDPubSignal();
     }
 
     function _checkProofType(uint256 queryProofType, uint256 pubSignalProofType) internal pure {
