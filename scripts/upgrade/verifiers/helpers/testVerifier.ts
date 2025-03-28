@@ -7,24 +7,15 @@ import {
   packV3ValidatorParams,
   packValidatorParams,
 } from "../../../../test/utils/validator-pack-utils";
-import {
-  Blockchain,
-  buildDIDType,
-  BytesHelper,
-  DID,
-  DidMethod,
-  genesisFromEthAddress,
-  Id,
-  NetworkId,
-} from "@iden3/js-iden3-core";
+import { Blockchain, BytesHelper, DID, DidMethod, NetworkId } from "@iden3/js-iden3-core";
 import hre from "hardhat";
-import { Hex } from "@iden3/js-crypto";
 import {
   initCircuitStorage,
   initInMemoryDataStorageAndWallets,
   initProofService,
 } from "./walletSetup";
 import {
+  buildVerifierId,
   CircuitId,
   core,
   CredentialRequest,
@@ -128,20 +119,6 @@ async function generateProof(
   const { proof, pub_signals } = await proofService.generateProof(proofReq, userDID, opts);
 
   return { proof, pub_signals };
-}
-
-function buildVerifierId(
-  address: string,
-  info: { method: string; blockchain: string; networkId: string },
-): Id {
-  address = address.replace("0x", "");
-  const ethAddrBytes = Hex.decodeString(address);
-  const ethAddr = ethAddrBytes.slice(0, 20);
-  const genesis = genesisFromEthAddress(ethAddr);
-
-  const tp = buildDIDType(info.method, info.blockchain, info.networkId);
-
-  return new Id(tp, genesis);
 }
 
 function prepareProof(proof: ProofData) {

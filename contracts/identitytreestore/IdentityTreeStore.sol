@@ -8,6 +8,11 @@ import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredential
 import {IRHSStorage} from "../interfaces/IRHSStorage.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
+error NodeNotFound();
+error InvalidStateNode();
+error InvalidNodeType();
+error UnsupportedLength();
+
 /**
  * @dev Contract which provides onchain Reverse Hash Service (RHS)
  * for checking revocation status of claims.
@@ -40,10 +45,12 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.IdentityTreeStore.ReverseHashLibData")) - 1)) &
     //    ~bytes32(uint256(0xff));
+    // solhint-disable-next-line const-name-snakecase
     bytes32 private constant ReverseHashLibDataStorageLocation =
         0x0f7e3bdc6cc0e880d509aa1f6b8d1a88e5fcb7274e18dfba772424a36fe9b400;
 
     function _getReverseHashLibDataStorage() private pure returns (ReverseHashLib.Data storage $) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             $.slot := ReverseHashLibDataStorageLocation
         }
@@ -55,6 +62,7 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.IdentityTreeStore.Main")) - 1)) & ~bytes32(uint256(0xff));
+    // solhint-disable-next-line const-name-snakecase
     bytes32 private constant IdentityTreeStoreMainStorageLocation =
         0x95ca427007e091a13a7ccfcb233b8a2ed19d987330a248c445b1b483a35bb800;
 
@@ -64,6 +72,7 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
         pure
         returns (IdentityTreeStoreMainStorage storage $)
     {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             $.slot := IdentityTreeStoreMainStorageLocation
         }
@@ -96,7 +105,9 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
      */
     function getNode(uint256 key) public view returns (uint256[] memory) {
         uint256[] memory preim = _getReverseHashLibDataStorage().getPreimage(key);
-        require(preim.length > 0, "Node not found");
+        if (preim.length == 0) {
+            revert NodeNotFound();
+        }
         return preim;
     }
 
@@ -122,6 +133,7 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
      * @return CredentialStatus
      */
     function getRevocationStatusByIdAndState(
+        // solhint-disable-next-line no-unused-vars
         uint256 id,
         uint256 state,
         uint64 nonce
@@ -134,7 +146,9 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
         uint64 nonce
     ) internal view returns (CredentialStatus memory) {
         uint256[] memory roots = getNode(state);
-        require(_nodeType(roots) == NodeType.State, "Invalid state node");
+        if (_nodeType(roots) != NodeType.State) {
+            revert InvalidStateNode();
+        }
 
         CredentialStatus memory status = CredentialStatus({
             issuer: IdentityStateRoots({
@@ -200,7 +214,7 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
                     proof.siblings[i] = children[1];
                 }
             } else {
-                revert("Invalid node type");
+                revert InvalidNodeType();
             }
         }
 
@@ -234,6 +248,6 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
         if (preimage.length == 3) {
             return PoseidonUnit3L.poseidon([preimage[0], preimage[1], preimage[2]]);
         }
-        revert("Unsupported length");
+        revert UnsupportedLength();
     }
 }
