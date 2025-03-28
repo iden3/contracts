@@ -1,6 +1,10 @@
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { contractsInfo } from "../helpers/constants";
-import hre, { ethers, ignition } from "hardhat";
+import {
+  contractsInfo,
+  TRANSPARENT_UPGRADEABLE_PROXY_ABI,
+  TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
+} from "../helpers/constants";
+import { ignition } from "hardhat";
 import { Logger } from "../helpers/helperUtils";
 
 // Replace here with your own proxy admin owner address
@@ -21,11 +25,18 @@ const Create2AddressAnchorModule = buildModule("Create2AddressAnchorModule", (m)
 const GeneralProxyModule = buildModule("GeneralProxyModule", (m) => {
   const create2Calldata = m.getParameter("create2Calldata", 0);
 
-  const proxy = m.contract("TransparentUpgradeableProxy", [
-    contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress,
-    proxyAdminOwnerAddress,
-    create2Calldata,
-  ]);
+  const proxy = m.contract(
+    "TransparentUpgradeableProxy",
+    {
+      abi: TRANSPARENT_UPGRADEABLE_PROXY_ABI,
+      contractName: "TransparentUpgradeableProxy",
+      bytecode: TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
+      sourceName: "",
+      linkReferences: {},
+    },
+    [contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress, proxyAdminOwnerAddress, create2Calldata],
+  );
+
   const proxyAdminAddress = m.readEventArgument(proxy, "AdminChanged", "newAdmin");
   const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
 
@@ -33,16 +44,6 @@ const GeneralProxyModule = buildModule("GeneralProxyModule", (m) => {
 });
 
 it("Calculate and check unified addresses for proxy contracts", async () => {
-  await hre.network.provider.request({
-    method: "hardhat_impersonateAccount",
-    params: [proxyAdminOwnerAddress],
-  });
-
-  (await ethers.getSigners())[0].sendTransaction({
-    to: proxyAdminOwnerAddress,
-    value: ethers.parseEther("1.0"), // Sends exactly 1.0 ether
-  });
-
   await ignition.deploy(Create2AddressAnchorModule, { strategy: "create2" });
 
   for (const property in contractsInfo) {
