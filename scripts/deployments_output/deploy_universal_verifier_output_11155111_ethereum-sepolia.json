@@ -1,7 +1,7 @@
 {
  "proxyAdminOwnerAddress": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74",
  "universalVerifier": "0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c",
- "verifierLib": "0x225615E26a8173726CB3557AF0e186d969F3747B",
+ "verifierLib": "0x22757926DBdF9270B553A4BA006a2c0E6Ad7e49E",
  "state": "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
  "network": "ethereum-sepolia",
  "chainId": 11155111,
