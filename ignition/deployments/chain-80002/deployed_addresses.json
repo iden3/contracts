@@ -21,5 +21,7 @@
   "UniversalVerifierProxyModule#ProxyAdmin": "0xcCbEd68Fc1C38f5357bff08eCa414b7CD24026Af",
   "VCPaymentProxyModule#TransparentUpgradeableProxy": "0xba83D99c87358Ef9B6f7c4a5A94021A58d870704",
   "VCPaymentProxyModule#ProxyAdmin": "0xA4180637F15a601695FD0313f452B8ca093AB952",
-  "VCPaymentModule#VCPayment": "0xba83D99c87358Ef9B6f7c4a5A94021A58d870704"
+  "VCPaymentModule#VCPayment": "0xba83D99c87358Ef9B6f7c4a5A94021A58d870704",
+  "MCPaymentProxyModule#TransparentUpgradeableProxy": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
+  "MCPaymentProxyModule#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE"
 }
