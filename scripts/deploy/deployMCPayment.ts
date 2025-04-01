@@ -11,7 +11,7 @@ async function main() {
     config.deployStrategy == "create2" ? "create2" : "basic";
 
   const deployHelper = await DeployHelper.initialize(null, true);
-  const { mcPayment } = await deployHelper.deployMCPayment(10, deployStrategy);
+  const { mcPayment } = await deployHelper.deployMCPayment(15, deployStrategy);
   await verifyContract(await mcPayment.getAddress(), contractsInfo.MC_PAYMENT.verificationOpts);
 
   const chainId = await getChainId();
