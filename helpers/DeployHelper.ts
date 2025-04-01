@@ -1221,6 +1221,12 @@ export class DeployHelper {
           fn: "initialize",
           args: [await owner.getAddress(), ownerPercentage],
         },
+        // txOverrides: {
+        //   //nonce: 67,
+        //   maxFeePerGas: ethers.parseUnits("65", "gwei"),
+        //   maxPriorityFeePerGas: ethers.parseUnits("45", "gwei"),
+        //   gasLimit: 5000000,
+        // }
       });
     } else {
       this.log("deploying with BASIC strategy...");

@@ -3,20 +3,18 @@ import { Create2AddressAnchorModule } from "../../ignition/modules/crate2Address
 import { contractsInfo } from "../../helpers/constants";
 
 async function main() {
-  const deployStrategy: "basic" | "create2" = "create2";
   const [signer] = await ethers.getSigners();
 
   const { create2AddressAnchor } = await ignition.deploy(Create2AddressAnchorModule, {
-    strategy: deployStrategy,
+    strategy: "create2",
     defaultSender: await signer.getAddress(),
   });
 
   const contractAddress = await create2AddressAnchor.getAddress();
-  if (
-    deployStrategy === "create2" &&
-    contractAddress !== contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress
-  ) {
-    throw `The contract was supposed to be deployed to ${contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress}, but it was deployed to ${contractAddress}`;
+  if (contractAddress !== contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress) {
+    throw Error(
+      `The contract was supposed to be deployed to ${contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress}, but it was deployed to ${contractAddress}`,
+    );
   }
 
   console.log(`Create2AddressAnchor deployed to: ${contractAddress}`);

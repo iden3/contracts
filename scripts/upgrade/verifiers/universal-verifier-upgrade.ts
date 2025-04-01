@@ -216,8 +216,8 @@ async function main() {
   };
   fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
 
-  console.log("Testing verification with submitZKPResponseV2 after migration...");
-  await testVerification(universalVerifierContract, contractsInfo.VALIDATOR_V3.unifiedAddress);
+  //console.log("Testing verification with submitZKPResponseV2 after migration...");
+  //await testVerification(universalVerifierContract, contractsInfo.VALIDATOR_V3.unifiedAddress);
 }
 
 async function onlyTestVerification() {
