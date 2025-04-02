@@ -17,3 +17,15 @@ export function calculateRequestID(params: string, address: string): bigint {
     BigInt("0x0001000000000000000000000000000000000000000000000000000000000000");
   return requestId;
 }
+
+export function calculateMultiRequestId(
+  requestIds: bigint[],
+  groupIds: bigint[],
+  sender: string,
+): bigint {
+  return BigInt(
+    ethers.keccak256(
+      ethers.solidityPacked(["uint256[]", "uint256[]", "address"], [requestIds, groupIds, sender]),
+    ),
+  );
+}

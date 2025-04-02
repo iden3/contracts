@@ -2,7 +2,11 @@ import { ethers } from "hardhat";
 import { beforeEach } from "mocha";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
-import { calculateGroupID, calculateRequestID } from "../utils/id-calculation-utils";
+import {
+  calculateGroupID,
+  calculateMultiRequestId,
+  calculateRequestID,
+} from "../utils/id-calculation-utils";
 
 describe("Verifier tests", function () {
   let sender: any;
@@ -61,7 +65,7 @@ describe("Verifier tests", function () {
       ];
 
       multiRequest = {
-        multiRequestId: 1,
+        multiRequestId: calculateMultiRequestId([request.requestId], [], signerAddress),
         requestIds: [request.requestId],
         groupIds: [],
         metadata: "0x",
@@ -161,16 +165,16 @@ describe("Verifier tests", function () {
         "RequestIdUsesReservedBytes",
       );
 
+      const expectedRequestId = calculateRequestID(request.params, sender.address);
       request.requestId = BigInt(
         "0x0001000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
       ); // requestId idType is valid but calculation from hash params is not valid
-      await expect(verifier.setRequests([request])).to.be.revertedWithCustomError(
-        verifier,
-        "RequestIdNotValid",
-      );
+      await expect(verifier.setRequests([request]))
+        .to.be.revertedWithCustomError(verifier, "RequestIdNotValid")
+        .withArgs(expectedRequestId, request.requestId);
 
       // requestId is valid;
-      request.requestId = calculateRequestID(request.params, await sender.getAddress());
+      request.requestId = expectedRequestId;
       await expect(verifier.setRequests([request])).not.to.be.rejected;
     });
 
@@ -468,7 +472,7 @@ describe("Verifier tests", function () {
       ];
 
       multiRequest = {
-        multiRequestId: 1,
+        multiRequestId: calculateMultiRequestId([request.requestId], [], signerAddress),
         requestIds: [request.requestId],
         groupIds: [],
         metadata: "0x",
@@ -490,9 +494,15 @@ describe("Verifier tests", function () {
       expect(multiRequestIdExists).to.be.true;
     });
 
+    it("setMultiRequest: should only create multi request with correct id", async function () {
+      await expect(verifier.setMultiRequest({ ...multiRequest, multiRequestId: 1 }))
+        .to.be.revertedWithCustomError(verifier, "MultiRequestIdNotValid")
+        .withArgs(multiRequest.multiRequestId, 1);
+    });
+
     it("setMultiRequest: requestIds and groupIds should exist", async function () {
       const multiRequest2 = {
-        multiRequestId: 2,
+        multiRequestId: calculateMultiRequestId([2n], [], signerAddress),
         requestIds: [2],
         groupIds: [],
         metadata: "0x",
@@ -503,7 +513,7 @@ describe("Verifier tests", function () {
         .withArgs(multiRequest2.requestIds[0]);
 
       const multiRequest3 = {
-        multiRequestId: 3,
+        multiRequestId: calculateMultiRequestId([], [2n], signerAddress),
         requestIds: [],
         groupIds: [2],
         metadata: "0x",
@@ -527,8 +537,16 @@ describe("Verifier tests", function () {
     });
 
     it("setMultiRequest: check statuses of two different multiRequests pointing to the same requests", async function () {
-      const multiRequest2 = { ...multiRequest, multiRequestId: 2 };
-      await verifier.setMultiRequest(multiRequest2);
+      const signer2 = (await ethers.getSigners())[1];
+      const multiRequest2 = {
+        ...multiRequest,
+        multiRequestId: calculateMultiRequestId(
+          multiRequest.requestIds,
+          multiRequest.groupIds,
+          signer2.address,
+        ),
+      };
+      await verifier.connect(signer2).setMultiRequest(multiRequest2);
 
       let areMultiRequestProofsVerified = await verifier.areMultiRequestProofsVerified(
         multiRequest.multiRequestId,
@@ -616,7 +634,7 @@ describe("Verifier tests", function () {
       await verifier.setRequests([groupRequest1, groupRequest2]);
 
       const multiRequest3 = {
-        multiRequestId: 3,
+        multiRequestId: calculateMultiRequestId([], [groupID], signerAddress),
         requestIds: [],
         groupIds: [groupID],
         metadata: "0x",
@@ -685,7 +703,7 @@ describe("Verifier tests", function () {
       await verifier.setRequests([request1, request2]);
 
       const multiRequest4 = {
-        multiRequestId: 4,
+        multiRequestId: calculateMultiRequestId([], [groupID], signerAddress),
         requestIds: [],
         groupIds: [groupID],
         metadata: "0x",

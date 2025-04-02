@@ -18,11 +18,12 @@ error LinkIDNotTheSameForGroupedRequests();
 error MetadataNotSupportedYet();
 error MultiRequestIdAlreadyExists(uint256 multiRequestId);
 error MultiRequestIdNotFound(uint256 multiRequestId);
+error MultiRequestIdNotValid(uint256 expectedMultiRequestId, uint256 multiRequestId);
 error NullifierSessionIDAlreadyExists(uint256 nullifierSessionID);
 error ResponseFieldAlreadyExists(string responseFieldName);
 error RequestIdAlreadyExists(uint256 requestId);
 error RequestIdNotFound(uint256 requestId);
-error RequestIdNotValid();
+error RequestIdNotValid(uint256 expectedRequestId, uint256 requestId);
 error RequestIdUsesReservedBytes();
 error RequestIdTypeNotValid();
 error RequestShouldNotHaveAGroup(uint256 requestId);
@@ -249,6 +250,15 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function setMultiRequest(
         IVerifier.MultiRequest calldata multiRequest
     ) public virtual checkMultiRequestExistence(multiRequest.multiRequestId, false) {
+        uint256 expectedMultiRequestId = uint256(
+            keccak256(
+                abi.encodePacked(multiRequest.requestIds, multiRequest.groupIds, _msgSender())
+            )
+        );
+        if (expectedMultiRequestId != multiRequest.multiRequestId) {
+            revert MultiRequestIdNotValid(expectedMultiRequestId, multiRequest.multiRequestId);
+        }
+
         VerifierStorage storage s = _getVerifierStorage();
         s._multiRequests[multiRequest.multiRequestId] = multiRequest;
         s._multiRequestIds.push(multiRequest.multiRequestId);
@@ -689,12 +699,11 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         //    - 0x0001... for new request Ids with uint256
         if (requestType == 1) {
             uint256 hashValue = uint256(keccak256(abi.encodePacked(requestParams, requestOwner)));
-            if (
-                requestId !=
-                (hashValue & 0x0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) +
-                    0x0001000000000000000000000000000000000000000000000000000000000000
-            ) {
-                revert RequestIdNotValid();
+            uint256 expectedRequestId = (hashValue &
+                0x0000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) +
+                0x0001000000000000000000000000000000000000000000000000000000000000;
+            if (requestId != expectedRequestId) {
+                revert RequestIdNotValid(expectedRequestId, requestId);
             }
         }
     }
