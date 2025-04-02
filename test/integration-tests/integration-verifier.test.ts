@@ -15,10 +15,10 @@ import {
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { calculateQueryHashV3 } from "../utils/query-hash-utils";
 import { TEN_YEARS } from "../../helpers/constants";
-import { calculateGroupID } from "../utils/id-calculation-utils";
+import { calculateGroupID, calculateMultiRequestId } from "../utils/id-calculation-utils";
 
 describe("Verifier Integration test", async function () {
-  let verifier, authValidator, v3Validator, lmkValidator;
+  let verifier, v3Validator, lmkValidator;
   let signer;
 
   const requestIdV3 = 32;
@@ -139,8 +139,7 @@ describe("Verifier Integration test", async function () {
   }
 
   beforeEach(async () => {
-    ({ verifier, authValidator, v3Validator, lmkValidator } =
-      await loadFixture(deployContractsFixture));
+    ({ verifier, v3Validator, lmkValidator } = await loadFixture(deployContractsFixture));
 
     await verifier.setVerifierID(query.verifierID);
   });
@@ -237,7 +236,7 @@ describe("Verifier Integration test", async function () {
     ]);
 
     const multiRequest = {
-      multiRequestId: 1,
+      multiRequestId: calculateMultiRequestId([], [groupID], signer.address),
       requestIds: [],
       groupIds: [groupID],
       metadata: "0x",

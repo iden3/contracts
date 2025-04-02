@@ -6,6 +6,7 @@ import { AbiCoder, Block } from "ethers";
 import { byteEncoder, CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { contractsInfo } from "../../helpers/constants";
+import { calculateMultiRequestId } from "../utils/id-calculation-utils";
 
 describe("Universal Verifier tests", function () {
   let request, paramsFromValidator, multiRequest, authResponse, response: any;
@@ -113,7 +114,7 @@ describe("Universal Verifier tests", function () {
         { name: "nullifierSessionID", value: 0 },
       ];
       multiRequest = {
-        multiRequestId: 1,
+        multiRequestId: calculateMultiRequestId([request.requestId], [], signer.address),
         requestIds: [request.requestId],
         groupIds: [],
         metadata: "0x",
