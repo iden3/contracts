@@ -104,13 +104,9 @@ export class UniversalVerifierContractMigrationHelper extends ContractMigrationS
   }
 
   @log
-  async upgradeContract(
-    universalVerifierContract: Contract,
-    opts: { verifierLibAddress: string },
-  ): Promise<any> {
+  async upgradeContract(universalVerifierContract: Contract): Promise<any> {
     return await this._universalVerifierDeployHelper.upgradeUniversalVerifier(
       await universalVerifierContract.getAddress(),
-      opts.verifierLibAddress,
     );
   }
 }

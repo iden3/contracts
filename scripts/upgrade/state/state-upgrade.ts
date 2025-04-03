@@ -79,22 +79,17 @@ async function main() {
   const defaultIdTypeBefore = await stateContract.getDefaultIdType();
   const stateOwnerAddressBefore = await stateContract.owner();
 
-  const { state, stateLib, stateCrossChainLib, crossChainProofValidator } =
-    await stateDeployHelper.upgradeState(
-      await stateContract.getAddress(),
-      true,
-      contractsInfo.SMT_LIB.unifiedAddress,
-      contractsInfo.POSEIDON_1.unifiedAddress,
-    );
+  const { state, stateLib, crossChainProofValidator } = await stateDeployHelper.upgradeState(
+    await stateContract.getAddress(),
+    true,
+    contractsInfo.SMT_LIB.unifiedAddress,
+    contractsInfo.POSEIDON_1.unifiedAddress,
+  );
 
   console.log("Version after: ", await state.VERSION());
 
   await verifyContract(await state.getAddress(), contractsInfo.STATE.verificationOpts);
   await verifyContract(await stateLib.getAddress(), contractsInfo.STATE_LIB.verificationOpts);
-  await verifyContract(
-    await stateCrossChainLib.getAddress(),
-    contractsInfo.STATE_CROSS_CHAIN_LIB.verificationOpts,
-  );
   await verifyContract(
     await crossChainProofValidator.getAddress(),
     contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.verificationOpts,
@@ -149,7 +144,6 @@ async function main() {
     verifier: contractsInfo.GROTH16_VERIFIER_STATE_TRANSITION.unifiedAddress,
     stateLib: await stateLib.getAddress(),
     smtLib: contractsInfo.SMT_LIB.unifiedAddress,
-    stateCrossChainLib: await stateCrossChainLib.getAddress(),
     crossChainProofValidator: await crossChainProofValidator.getAddress(),
     poseidon1: contractsInfo.POSEIDON_1.unifiedAddress,
     poseidon2: contractsInfo.POSEIDON_2.unifiedAddress,
