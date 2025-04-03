@@ -177,7 +177,7 @@ export const contractsInfo = Object.freeze({
   },
   VALIDATOR_V3: {
     name: "CredentialAtomicQueryV3Validator",
-    version: "3.0.0-beta",
+    version: "3.0.0-beta.1",
     unifiedAddress: "0xC616963610A5545EF89b373e1fEAE8A1e505FaFF",
     create2Calldata: ethers.hexlify(
       ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3Validator.v3"),
