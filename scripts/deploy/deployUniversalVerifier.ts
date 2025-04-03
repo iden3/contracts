@@ -6,10 +6,7 @@ import {
   getChainId,
   getConfig,
   getStateContractAddress,
-  Logger,
-  TempContractDeployments,
   verifyContract,
-  waitNotToInterfereWithHardhatIgnition,
 } from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
 
@@ -24,16 +21,11 @@ async function main() {
 
   const deployHelper = await DeployHelper.initialize(null, true);
 
-  const tmpContractDeployments = new TempContractDeployments(
-    "./scripts/deployments_output/temp_deployments_output.json",
-  );
-
   const universalVerifier = await deployHelper.deployUniversalVerifier(
     undefined,
     stateContractAddress,
     deployStrategy,
   );
-  tmpContractDeployments.remove();
 
   await verifyContract(
     await universalVerifier.getAddress(),
