@@ -1,5 +1,5 @@
 export * from "./modules/authV2Validator";
-export * from "./modules/crate2AddressAnchor";
+export * from "./modules/create2AddressAnchor";
 export * from "./modules/credentialAtomicQueryMTPV2Validator";
 export * from "./modules/credentialAtomicQuerySigV2Validator";
 export * from "./modules/credentialAtomicQueryV3Validator";
