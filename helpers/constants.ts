@@ -109,7 +109,7 @@ export const contractsInfo = Object.freeze({
   UNIVERSAL_VERIFIER: {
     name: "UniversalVerifier",
     version: "2.0.0",
-    unifiedAddress: "0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c", // TODO: Recalculate new address
+    unifiedAddress: "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier.v2")),
     verificationOpts: {
       // For verifying the different contracts with proxy we need verification with different constructor arguments
@@ -141,10 +141,10 @@ export const contractsInfo = Object.freeze({
   },
   VALIDATOR_SIG: {
     name: "CredentialAtomicQuerySigV2Validator",
-    version: "2.1.1",
-    unifiedAddress: "0x59B347f0D3dd4B98cc2E056Ee6C53ABF14F8581b",
+    version: "3.0.0",
+    unifiedAddress: "0x5BD60F3Ef5890260906172EEe1f0a965707791f1",
     create2Calldata: ethers.hexlify(
-      ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQuerySigV2Validator"),
+      ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQuerySigV2Validator.v3"),
     ),
     verificationOpts: {
       constructorArgsImplementation: [],
@@ -159,10 +159,10 @@ export const contractsInfo = Object.freeze({
   },
   VALIDATOR_MTP: {
     name: "CredentialAtomicQueryMTPV2Validator",
-    version: "2.1.1",
-    unifiedAddress: "0x27bDFFCeC5478a648f89764E22fE415486A42Ede",
+    version: "3.0.0",
+    unifiedAddress: "0xec9EF9c4595B46abF2b6A923BD1529081E03fbBB",
     create2Calldata: ethers.hexlify(
-      ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryMTPV2Validator"),
+      ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryMTPV2Validator.v3"),
     ),
     verificationOpts: {
       constructorArgsImplementation: [],
@@ -177,10 +177,10 @@ export const contractsInfo = Object.freeze({
   },
   VALIDATOR_V3: {
     name: "CredentialAtomicQueryV3Validator",
-    version: "2.1.1-beta.1",
-    unifiedAddress: "0xd179f29d00Cd0E8978eb6eB847CaCF9E2A956336",
+    version: "3.0.0-beta.1",
+    unifiedAddress: "0xC616963610A5545EF89b373e1fEAE8A1e505FaFF",
     create2Calldata: ethers.hexlify(
-      ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3Validator"),
+      ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3Validator.v3"),
     ),
     verificationOpts: {
       constructorArgsImplementation: [],

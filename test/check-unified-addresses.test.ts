@@ -45,6 +45,7 @@ const GeneralProxyModule = buildModule("GeneralProxyModule", (m) => {
 
 it("Calculate and check unified addresses for proxy contracts", async () => {
   await ignition.deploy(Create2AddressAnchorModule, { strategy: "create2" });
+  let isCheckSuccess = true;
 
   for (const property in contractsInfo) {
     if (contractsInfo[property].create2Calldata !== "") {
@@ -63,11 +64,16 @@ it("Calculate and check unified addresses for proxy contracts", async () => {
         Logger.error(
           `${contractsInfo[property].name} deployed with unified address: ${await proxyDeployed.getAddress()} (expected: ${contractsInfo[property].unifiedAddress})`,
         );
+        isCheckSuccess = false;
       } else {
         Logger.success(
           `${contractsInfo[property].name} deployed with unified address: ${await proxyDeployed.getAddress()}`,
         );
       }
     }
+  }
+
+  if (!isCheckSuccess) {
+    throw new Error("Unified address check failed");
   }
 });
