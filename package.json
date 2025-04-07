@@ -154,7 +154,8 @@
     "prettier:contracts": "prettier --write --plugin=prettier-plugin-solidity 'contracts/**/*.sol'",
     "slither": "slither .",
     "postinstall": "patch-package",
-    "deploy:anonaadhaar:polygon-amoy": "npx hardhat run scripts/deploy/deployAnonAadhaarIssuer.ts --network polygon-amoy"
+    "deploy:anonaadhaar:polygon-amoy": "npx hardhat run scripts/deploy/deployAnonAadhaarIssuer.ts --network polygon-amoy",
+    "upgrade:anonaadhaar:polygon-amoy": "npx hardhat run scripts/upgrade/anonaadhaar/anonaadhaar-issuer-v1-upgrade.ts --network polygon-amoy"
   },
   "overrides": {
     "ws": "^8.17.1",

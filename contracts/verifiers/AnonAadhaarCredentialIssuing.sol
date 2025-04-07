@@ -133,4 +133,9 @@ contract AnonAadhaarIssuerV1 is IdentityBase, EmbeddedZKPVerifier {
         _setNullifier(nullifier);
         _addHashAndTransit(hashIndex, hashValue);
     }
+
+    function setTemplateRoot(uint256 templateRoot) public onlyOwner {
+        AnonAadhaarIssuerV1Storage storage $ = _getAnonAadhaarIssuerV1Storage();
+        $.templateRoot = templateRoot;
+    }
 }
