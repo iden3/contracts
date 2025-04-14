@@ -225,6 +225,22 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
+  VALIDATOR_ETH_IDENTITY: {
+    name: "EthIdentityValidator",
+    version: "1.0.0",
+    unifiedAddress: "0x8546bFd67F19dd0449dF73fb75A56BC9ddFA57Db",
+    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.EthIdentityValidator")),
+    verificationOpts: {
+      constructorArgsImplementation: [],
+      constructorArgsProxy: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.EthIdentityValidator")),
+      ],
+      constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
+      libraries: {},
+    },
+  },
   IDENTITY_TREE_STORE: {
     name: "IdentityTreeStore",
     version: "1.1.0",
@@ -497,6 +513,24 @@ export const TRANSPARENT_UPGRADEABLE_PROXY_ABI = [
   {
     stateMutability: "payable",
     type: "fallback",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "newImplementation",
+        type: "address",
+      },
+      {
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "upgradeToAndCall",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
   },
 ];
 

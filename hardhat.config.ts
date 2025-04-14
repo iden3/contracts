@@ -222,7 +222,6 @@ const config: HardhatUserConfig = {
         //      -> In our case f4179bc3e4988a1a06f8d1
       },
     },
-    requiredConfirmations: 5,
   },
 
   etherscan: {
