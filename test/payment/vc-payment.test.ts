@@ -61,7 +61,21 @@ describe("VC Payment Contract", () => {
     await loadFixture(deployContractsFixture);
   });
 
-  it("Payment and issuer withdraw:", async () => {
+  it("Should revert if payment value is already set", async () => {
+    await expect(
+      payment.setPaymentValue(
+        issuerId1.bigInt(),
+        schemaHash1.bigInt(),
+        10000,
+        5,
+        issuer1Signer.address,
+      ),
+    )
+      .to.be.revertedWithCustomError(payment, "PaymentValueAlreadySet")
+      .withArgs(issuerId1.bigInt(), schemaHash1.bigInt());
+  });
+
+  it("Payment and withdrawal by issuer and owner:", async () => {
     const paymentFromUser = payment.connect(userSigner);
 
     // pay 4 times to issuer 1 in total 50000 (5% to owner) => issuerBalance = 47500
@@ -81,96 +95,36 @@ describe("VC Payment Contract", () => {
       value: 20000,
     });
 
-    // isser 2, should not have affect on issuer 1 withdraw
+    // issuer 2, should not have affect on issuer 1 withdraw
     await paymentFromUser.pay("payment-id-1", issuerId2.bigInt(), schemaHash3.bigInt(), {
       value: 30000,
     });
 
-    const issuerBalanceBeforeWithdraw = await ethers.provider.getBalance(issuer1Signer.address);
+    expect(await payment.getOwnerBalance()).to.be.eq(4000);
+    expect(await payment.ownerWithdraw()).to.changeEtherBalance(owner, 4000);
+    await expect(payment.ownerWithdraw())
+      .to.be.revertedWithCustomError(payment, "NoBalanceToWithdraw")
+      .withArgs(owner.address);
+
     const issuer1BalanceInContract = await payment.connect(issuer1Signer).getMyBalance();
     expect(issuer1BalanceInContract).to.be.eq(47500);
     const issuerWithdrawTx = await payment.connect(issuer1Signer).issuerWithdraw();
     // issuer 1 balance should be 0
-    const issuer1BalanceAfterWithdraw = await payment.connect(issuer1Signer).getMyBalance();
-    expect(issuer1BalanceAfterWithdraw).to.be.eq(0);
+    expect(await payment.connect(issuer1Signer).getMyBalance()).to.be.eq(0);
 
-    // gas spend by issuer 1
-    const receipt = await issuerWithdrawTx.wait();
-    const gasSpent = receipt!.gasUsed * receipt!.gasPrice;
+    await expect(issuerWithdrawTx)
+      .to.emit(payment, "Withdraw")
+      .withArgs(issuer1Signer.address, 47500);
 
-    expect(await ethers.provider.getBalance(issuer1Signer.address)).to.be.eq(
-      issuerBalanceBeforeWithdraw + issuer1BalanceInContract - gasSpent,
-    );
+    await expect(issuerWithdrawTx).to.changeEtherBalance(issuer1Signer, 47500);
 
     // issuer 2 balance should not change
     expect(await payment.connect(issuer2Signer).getMyBalance()).to.be.eq(28500);
-    expect(await ethers.provider.getBalance(payment)).to.be.eq(32500);
-  });
+    expect(await ethers.provider.getBalance(payment)).to.be.eq(80000 - 47500 - 4000);
 
-  it("Withdraw to all issuers and owner:", async () => {
-    const paymentFromUser = payment.connect(userSigner);
-
-    // pay 4 times to issuer 1 in total 50000 (5% to owner) => issuerBalance = 47500
-    await paymentFromUser.pay("payment-id-1", issuerId1.bigInt(), schemaHash1.bigInt(), {
-      value: 10000,
-    });
-
-    await paymentFromUser.pay("payment-id-2", issuerId1.bigInt(), schemaHash1.bigInt(), {
-      value: 10000,
-    });
-
-    await paymentFromUser.pay("payment-id-3", issuerId1.bigInt(), schemaHash1.bigInt(), {
-      value: 10000,
-    });
-
-    await paymentFromUser.pay("payment-id-4", issuerId1.bigInt(), schemaHash2.bigInt(), {
-      value: 20000,
-    });
-
-    // pay to issuer 2 in total 30000 (5% to owner) => issuerBalance = 28500
-    await paymentFromUser.pay("payment-id-1", issuerId2.bigInt(), schemaHash3.bigInt(), {
-      value: 30000,
-    });
-
-    const issuer1BalanceBeforeWithdraw = await ethers.provider.getBalance(issuer1Signer.address);
-    const issuer2BalanceBeforeWithdraw = await ethers.provider.getBalance(issuer2Signer.address);
-
-    const issuer1BalanceInContract = await payment.connect(issuer1Signer).getMyBalance();
-    expect(issuer1BalanceInContract).to.be.eq(47500);
-
-    const issuer2BalanceInContract = await payment.connect(issuer2Signer).getMyBalance();
-    expect(issuer2BalanceInContract).to.be.eq(28500);
-
-    // withdraw to all issuers
-    await payment.connect(owner).withdrawToAllIssuers();
-
-    // issuers balance should be 0
-    const issuer1BalanceAfterWithdraw = await payment.connect(issuer1Signer).getMyBalance();
-    expect(issuer1BalanceAfterWithdraw).to.be.eq(0);
-
-    const issuer2BalanceAfterWithdraw = await payment.connect(issuer1Signer).getMyBalance();
-    expect(issuer2BalanceAfterWithdraw).to.be.eq(0);
-
-    expect(await ethers.provider.getBalance(issuer1Signer.address)).to.be.eq(
-      issuer1BalanceBeforeWithdraw + issuer1BalanceInContract,
-    );
-
-    expect(await ethers.provider.getBalance(issuer2Signer.address)).to.be.eq(
-      issuer2BalanceBeforeWithdraw + issuer2BalanceInContract,
-    );
-
-    // owner withdraw
-    const ownerBalance = await payment.getOwnerBalance();
-    expect(ownerBalance).to.be.eq(4000);
-    const ownerBalanceBeforeWithdraw = await ethers.provider.getBalance(owner.address);
-    const ownerWithdrawTx = await payment.connect(owner).ownerWithdraw();
-    const receipt = await ownerWithdrawTx.wait();
-    const gasSpent = receipt!.gasUsed * receipt!.gasPrice;
-
-    expect(await ethers.provider.getBalance(owner.address)).to.be.eq(
-      ownerBalanceBeforeWithdraw + ownerBalance - gasSpent,
-    );
-    expect(await payment.getOwnerBalance()).to.be.eq(0);
+    await expect(payment.connect(issuer1Signer).issuerWithdraw())
+      .to.be.revertedWithCustomError(payment, "NoBalanceToWithdraw")
+      .withArgs(issuer1Signer.address);
   });
 
   it("Update withdrawAddress", async () => {
@@ -178,11 +132,19 @@ describe("VC Payment Contract", () => {
       value: 10000,
     });
 
-    const issuerBalance = await payment.connect(issuer1Signer).getMyBalance();
-    expect(issuerBalance).to.be.eq(9500);
+    expect(await payment.connect(issuer1Signer).getMyBalance()).to.be.eq(9500);
+    expect(await payment.connect(issuer2Signer).getMyBalance()).to.be.eq(0);
+
+    // this should not override the withdrawal balance of issuer 1
+    await payment
+      .connect(owner)
+      .updateWithdrawAddress(issuerId2.bigInt(), schemaHash3.bigInt(), issuer1Signer.address);
+
+    expect(await payment.connect(issuer1Signer).getMyBalance()).to.be.eq(9500);
+    expect(await payment.connect(issuer2Signer).getMyBalance()).to.be.eq(0);
 
     await payment
-      .connect(issuer1Signer)
+      .connect(owner)
       .updateWithdrawAddress(issuerId1.bigInt(), schemaHash1.bigInt(), issuer2Signer.address);
 
     expect(await payment.connect(issuer1Signer).getMyBalance()).to.be.eq(0);
@@ -191,7 +153,7 @@ describe("VC Payment Contract", () => {
     const paymentData = await payment
       .connect(issuer2Signer)
       .getPaymentData(issuerId1.bigInt(), schemaHash1.bigInt());
-    expect(paymentData[4]).to.be.eq(issuer2Signer.address);
+    expect(paymentData.withdrawAddress).to.be.eq(issuer2Signer.address);
   });
 
   it("updateValueToPay", async () => {
@@ -208,7 +170,9 @@ describe("VC Payment Contract", () => {
       payment.pay("payment-id-2", issuerId1.bigInt(), schemaHash1.bigInt(), {
         value: 10000,
       }),
-    ).to.be.revertedWithCustomError(payment, "PaymentError");
+    )
+      .to.be.revertedWithCustomError(payment, "InvalidPaymentValue")
+      .withArgs(22000, 10000);
 
     expect(await payment.isPaymentDone("payment-id-2", issuerId1.bigInt())).to.be.eq(false);
     await payment.pay("payment-id-2", issuerId1.bigInt(), schemaHash1.bigInt(), {
@@ -221,7 +185,9 @@ describe("VC Payment Contract", () => {
   it("getPaymentData work only for issuer or owner", async () => {
     await expect(
       payment.connect(userSigner).getPaymentData(issuerId1.bigInt(), schemaHash1.bigInt()),
-    ).to.be.revertedWithCustomError(payment, "OwnerOrIssuerError");
+    )
+      .to.be.revertedWithCustomError(payment, "WrongOwnerOrIssuer")
+      .withArgs(owner.address, issuer1Signer.address, userSigner.address);
   });
 
   it("updateOwnerPercentage work only for owner", async () => {
@@ -236,13 +202,15 @@ describe("VC Payment Contract", () => {
     const paymentData = await payment
       .connect(owner)
       .getPaymentData(issuerId1.bigInt(), schemaHash1.bigInt());
-    expect(paymentData[3]).to.be.eq(3);
+    expect(paymentData.ownerPercentage).to.be.eq(3);
   });
 
   it("updateValueToPay work only for issuer or owner", async () => {
     await expect(
       payment.connect(userSigner).updateValueToPay(issuerId1.bigInt(), schemaHash1.bigInt(), 1111),
-    ).to.be.revertedWithCustomError(payment, "OwnerOrIssuerError");
+    )
+      .to.be.revertedWithCustomError(payment, "WrongOwnerOrIssuer")
+      .withArgs(owner.address, issuer1Signer.address, userSigner.address);
 
     await payment
       .connect(issuer1Signer)
@@ -251,7 +219,7 @@ describe("VC Payment Contract", () => {
     const paymentData = await payment
       .connect(issuer1Signer)
       .getPaymentData(issuerId1.bigInt(), schemaHash1.bigInt());
-    expect(paymentData[2]).to.be.eq(1111);
+    expect(paymentData.valueToPay).to.be.eq(1111);
   });
 
   it("updateWithdrawAddress work only for issuer or owner", async () => {
@@ -259,42 +227,132 @@ describe("VC Payment Contract", () => {
       payment
         .connect(userSigner)
         .updateWithdrawAddress(issuerId1.bigInt(), schemaHash1.bigInt(), issuer2Signer.address),
-    ).to.be.revertedWithCustomError(payment, "OwnerOrIssuerError");
+    )
+      .to.be.revertedWithCustomError(payment, "OwnableUnauthorizedAccount")
+      .withArgs(userSigner.address);
 
     await payment
-      .connect(issuer1Signer)
+      .connect(owner)
       .updateWithdrawAddress(issuerId1.bigInt(), schemaHash1.bigInt(), issuer2Signer.address);
     const paymentData = await payment
       .connect(issuer2Signer)
       .getPaymentData(issuerId1.bigInt(), schemaHash1.bigInt());
-    expect(paymentData[4]).to.be.eq(issuer2Signer.address);
+    expect(paymentData.withdrawAddress).to.be.eq(issuer2Signer.address);
   });
 
   it("test rounded division for percents", async () => {
     // set 3% to owner and payment value 25555
     await payment.setPaymentValue(
       issuerId1.bigInt(),
-      schemaHash1.bigInt(),
+      schemaHash3.bigInt(),
       25555,
       3,
       issuer1Signer.address,
     );
     await payment
       .connect(userSigner)
-      .pay("payment-id-1", issuerId1.bigInt(), schemaHash1.bigInt(), {
+      .pay("payment-id-1", issuerId1.bigInt(), schemaHash3.bigInt(), {
         value: 25555,
       });
-
-    const issuerBalanceBeforeWithdraw = await ethers.provider.getBalance(issuer1Signer.address);
-    const withdrawTx = await payment.connect(issuer1Signer).issuerWithdraw();
-    const receipt = await withdrawTx.wait();
-    const gasSpent = receipt!.gasUsed * receipt!.gasPrice;
 
     // Solidity rounds towards zero.
     // Owner part = 25555 * 3 / 100 = 766.65 => 766.
     // Issuer part = 25555 - 766 = 24789
-    expect(await ethers.provider.getBalance(issuer1Signer.address)).to.be.eq(
-      issuerBalanceBeforeWithdraw + BigInt(24789) - gasSpent,
+    expect(await payment.connect(issuer1Signer).issuerWithdraw()).changeEtherBalance(
+      issuer1Signer,
+      24789,
     );
+  });
+
+  it("Should raise events when payment data is updated", async () => {
+    await expect(
+      payment.setPaymentValue(
+        issuerId1.bigInt(),
+        schemaHash3.bigInt(),
+        100,
+        5,
+        issuer1Signer.address,
+      ),
+    )
+      .to.emit(payment, "PaymentDataSet")
+      .withArgs(issuerId1.bigInt(), schemaHash3.bigInt(), 100, 5, issuer1Signer.address);
+
+    await expect(payment.updateOwnerPercentage(issuerId1.bigInt(), schemaHash1.bigInt(), 10))
+      .to.emit(payment, "OwnerPercentageUpdated")
+      .withArgs(issuerId1.bigInt(), schemaHash1.bigInt(), 10);
+
+    await expect(
+      payment.updateWithdrawAddress(
+        issuerId1.bigInt(),
+        schemaHash1.bigInt(),
+        issuer2Signer.address,
+      ),
+    )
+      .to.emit(payment, "WithdrawAddressUpdated")
+      .withArgs(issuerId1.bigInt(), schemaHash1.bigInt(), issuer2Signer.address);
+
+    await expect(payment.updateValueToPay(issuerId1.bigInt(), schemaHash1.bigInt(), 200))
+      .to.emit(payment, "ValueToPayUpdated")
+      .withArgs(issuerId1.bigInt(), schemaHash1.bigInt(), 200);
+
+    await expect(
+      payment.pay("payment-id-1", issuerId1.bigInt(), schemaHash1.bigInt(), {
+        value: 200,
+      }),
+    )
+      .to.emit(payment, "Payment")
+      .withArgs(issuerId1.bigInt(), "payment-id-1", schemaHash1.bigInt());
+  });
+
+  it("Should throw on validation errors", async () => {
+    await expect(
+      payment.setPaymentValue(issuerId1.bigInt(), schemaHash3.bigInt(), 100, 5, ethers.ZeroAddress),
+    )
+      .to.revertedWithCustomError(payment, "InvalidWithdrawAddress")
+      .withArgs(ethers.ZeroAddress);
+
+    await expect(
+      payment.setPaymentValue(
+        issuerId1.bigInt(),
+        schemaHash3.bigInt(),
+        100,
+        101,
+        issuer1Signer.address,
+      ),
+    )
+      .to.revertedWithCustomError(payment, "InvalidOwnerPercentage")
+      .withArgs(101);
+
+    await expect(payment.updateOwnerPercentage(issuerId1.bigInt(), schemaHash1.bigInt(), 101))
+      .to.be.revertedWithCustomError(payment, "InvalidOwnerPercentage")
+      .withArgs(101);
+
+    await expect(
+      payment.updateWithdrawAddress(issuerId1.bigInt(), schemaHash1.bigInt(), ethers.ZeroAddress),
+    )
+      .to.be.revertedWithCustomError(payment, "InvalidWithdrawAddress")
+      .withArgs(ethers.ZeroAddress);
+
+    await payment
+      .connect(userSigner)
+      .pay("payment-id-1", issuerId1.bigInt(), schemaHash1.bigInt(), {
+        value: 10000,
+      });
+
+    await expect(
+      payment.pay("payment-id-1", issuerId1.bigInt(), schemaHash1.bigInt(), {
+        value: 10000,
+      }),
+    )
+      .to.be.revertedWithCustomError(payment, "PaymentAlreadyDone")
+      .withArgs("payment-id-1", issuerId1.bigInt());
+
+    await expect(
+      payment.pay("payment-id-2", issuerId1.bigInt(), schemaHash3.bigInt(), {
+        value: 10000,
+      }),
+    )
+      .to.be.revertedWithCustomError(payment, "NoPaymentValueFound")
+      .withArgs(issuerId1.bigInt(), schemaHash3.bigInt());
   });
 });

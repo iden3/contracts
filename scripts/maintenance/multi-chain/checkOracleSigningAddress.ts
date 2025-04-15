@@ -19,7 +19,7 @@ async function main() {
   for (const provider of providers) {
     const jsonRpcProvider = new ethers.JsonRpcProvider(provider.rpcUrl);
 
-    const stateContractAddress = getStateContractAddress(
+    const stateContractAddress = await getStateContractAddress(
       Number((await jsonRpcProvider.getNetwork()).chainId),
     );
 

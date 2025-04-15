@@ -386,6 +386,7 @@ describe("Revocation tree proofs", () => {
 
 describe("Root of roots tree proofs", () => {
   let identity;
+  let identityLib;
   let latestRootOfRoots;
 
   before(async function () {
@@ -402,6 +403,7 @@ describe("Root of roots tree proofs", () => {
       stContracts.defaultIdType,
     );
     identity = contracts.identity;
+    identityLib = contracts.identityLib;
   });
 
   describe("Insert two claims and make transtion state", () => {
@@ -413,6 +415,14 @@ describe("Root of roots tree proofs", () => {
     it("Check that root of roots not empty", async function () {
       latestRootOfRoots = await identity.getRootsTreeRoot();
       expect(latestRootOfRoots).to.be.not.equal(0);
+    });
+  });
+
+  describe("Insert claim with existence hashIndex", () => {
+    it("Should revert with claim already exists", async function () {
+      await expect(identity.addClaimHash(1, 4))
+        .to.revertedWithCustomError(identityLib, "ClaimAlreadyExists")
+        .withArgs(1);
     });
   });
 

@@ -17,7 +17,7 @@ async function testVerification(verifier: Contract) {
   const requestId_V3 = 7254189;
   await setZKPRequest_KYCAgeCredential(requestId_V3, verifier, validatorV3Address, "v3");
   await submitZKPResponses_KYCAgeCredential(requestId_V3, verifier, "v3", {
-    stateContractAddress: getStateContractAddress(),
+    stateContractAddress: await getStateContractAddress(),
     verifierContractAddress: await verifier.getAddress(),
     checkSubmitZKResponseV2: false,
   });
@@ -25,7 +25,7 @@ async function testVerification(verifier: Contract) {
   const requestId_SigV2 = 7254190;
   await setZKPRequest_KYCAgeCredential(requestId_SigV2, verifier, validatorSigV2Address, "sigV2");
   await submitZKPResponses_KYCAgeCredential(requestId_SigV2, verifier, "sigV2", {
-    stateContractAddress: getStateContractAddress(),
+    stateContractAddress: await getStateContractAddress(),
     verifierContractAddress: await verifier.getAddress(),
     checkSubmitZKResponseV2: false,
   });
@@ -33,7 +33,7 @@ async function testVerification(verifier: Contract) {
   const requestId_MTPV2 = 7254191;
   await setZKPRequest_KYCAgeCredential(requestId_MTPV2, verifier, validatorMTPV2Address, "mtpV2");
   await submitZKPResponses_KYCAgeCredential(requestId_MTPV2, verifier, "mtpV2", {
-    stateContractAddress: getStateContractAddress(),
+    stateContractAddress: await getStateContractAddress(),
     verifierContractAddress: await verifier.getAddress(),
     checkSubmitZKResponseV2: false,
   });

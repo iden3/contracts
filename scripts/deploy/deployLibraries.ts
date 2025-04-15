@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { getConfig, verifyContract } from "../../helpers/helperUtils";
+import { getChainId, getConfig, verifyContract } from "../../helpers/helperUtils";
 import { deployPoseidons } from "../../helpers/PoseidonDeployHelper";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import hre from "hardhat";
@@ -25,7 +25,7 @@ async function main() {
 
   await verifyContract(await smtLib.getAddress(), contractsInfo.SMT_LIB.verificationOpts);
 
-  const chainId = parseInt(await hre.network.provider.send("eth_chainId"), 16);
+  const chainId = await getChainId();
   const networkName = hre.network.name;
   const outputJson = {
     poseidon1: await poseidon1Elements.getAddress(),
