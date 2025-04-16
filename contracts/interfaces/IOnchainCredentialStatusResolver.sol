@@ -25,7 +25,7 @@ interface IOnchainCredentialStatusResolver {
     }
 
     /**
-     * @dev Struct to represent Identity State and it's Roots
+     * @dev Struct to represent Identity State and its Roots
      * @param state An identity state
      * @param claimsTreeRoot A root of the claims tree
      * @param revocationTreeRoot A root of the revocation tree
