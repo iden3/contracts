@@ -54,10 +54,10 @@ We have deployed contracts across the following mainnets and testnets so far (**
 
 ## Security Audits
 
-1. [Nethermind](https://nethermind.io/smart-contracts-audits/) has performed a security audit of our core smart contracts (State & Smt) and compiled a report on Apr 18, 2023: 
+1. [Nethermind](https://www.nethermind.io/smart-contract-audits) has performed a security audit of our core smart contracts (State & Smt) and compiled a report on Apr 18, 2023: 
    [NM_0069_POLYGON_FINAL.pdf](https://iden3-circuits-bucket.s3.eu-west-1.amazonaws.com/audit_reports/NM_0069_POLYGON_FINAL.pdf)
 
-2. [Nethermind](https://nethermind.io/smart-contracts-audits/) has performed a second security audit of our core smart contracts (State, IdentityBase, GenesisUtils, OnChainIdentity) and compiled a report on Sep 13, 2023:
+2. [Nethermind](https://www.nethermind.io/smart-contract-audits) has performed a second security audit of our core smart contracts (State, IdentityBase, GenesisUtils, OnChainIdentity) and compiled a report on Sep 13, 2023:
    [NM0113-FINAL-POLYGONID.pdf](https://iden3-circuits-bucket.s3.eu-west-1.amazonaws.com/audit_reports/NM0113-FINAL-POLYGONID.pdf)
 
 ## Deployment methodology with CREATE2 and ledger

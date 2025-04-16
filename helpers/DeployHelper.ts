@@ -16,6 +16,7 @@ import {
 } from "../ignition";
 import { chainIdInfoMap, contractsInfo } from "./constants";
 import {
+  getChainId,
   getUnifiedContract,
   Logger,
   TempContractDeployments,
@@ -404,18 +405,27 @@ export class DeployHelper {
         Logger.warning(`${contractName} found already deployed to:  ${await smtLib?.getAddress()}`);
         return smtLib;
       }
-    }
-    const smtLibDeploy = await ignition.deploy(SmtLibModule, {
-      parameters: {
-        SmtLibModule: {
-          poseidon2ElementAddress: poseidon2Address,
-          poseidon3ElementAddress: poseidon3Address,
-        },
-      },
-      strategy: deployStrategy,
-    });
 
-    smtLib = smtLibDeploy.smtLib;
+      const smtLibDeploy = await ignition.deploy(SmtLibModule, {
+        parameters: {
+          SmtLibModule: {
+            poseidon2ElementAddress: poseidon2Address,
+            poseidon3ElementAddress: poseidon3Address,
+          },
+        },
+        strategy: deployStrategy,
+      });
+
+      smtLib = smtLibDeploy.smtLib;
+    } else {
+      smtLib = await ethers.deployContract(contractName, {
+        libraries: {
+          PoseidonUnit2L: poseidon2Address,
+          PoseidonUnit3L: poseidon3Address,
+        },
+      });
+    }
+
     await smtLib.waitForDeployment();
     Logger.success(`${contractName} deployed to:  ${await smtLib.getAddress()}`);
 
@@ -516,7 +526,7 @@ export class DeployHelper {
     domainName = "StateInfo",
     signatureVersion = "1",
   ): Promise<Contract> {
-    const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
+    const chainId = await getChainId();
     const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
 
     const crossChainProofValidator = await ethers.deployContract(contractName, [
@@ -864,14 +874,22 @@ export class DeployHelper {
     let verifier: Contract;
     try {
       verifier = await upgrades.upgradeProxy(verifierAddress, VerifierFactory, {
-        unsafeAllow: ["external-library-linking"],
+        unsafeAllow: [
+          "external-library-linking",
+          "missing-initializer",
+          "missing-initializer-call",
+        ],
       });
       await verifier.waitForDeployment();
     } catch (e) {
       this.log("Error upgrading proxy. Forcing import...");
       await upgrades.forceImport(verifierAddress, VerifierFactory);
       verifier = await upgrades.upgradeProxy(verifierAddress, VerifierFactory, {
-        unsafeAllow: ["external-library-linking"],
+        unsafeAllow: [
+          "external-library-linking",
+          "missing-initializer",
+          "missing-initializer-call",
+        ],
         redeployImplementation: "always",
       });
       await verifier.waitForDeployment();
@@ -982,7 +1000,11 @@ export class DeployHelper {
         universalVerifierAddress,
         UniversalVerifierFactory,
         {
-          unsafeAllow: ["external-library-linking"],
+          unsafeAllow: [
+            "external-library-linking",
+            "missing-initializer",
+            "missing-initializer-call",
+          ],
           redeployImplementation: "always",
           call: {
             fn: "initialize",
@@ -997,7 +1019,11 @@ export class DeployHelper {
         UniversalVerifierFactory,
         [stateAddr, await owner.getAddress()],
         {
-          unsafeAllow: ["external-library-linking"],
+          unsafeAllow: [
+            "external-library-linking",
+            "missing-initializer",
+            "missing-initializer-call",
+          ],
         },
       );
     }
@@ -1011,7 +1037,7 @@ export class DeployHelper {
   }
 
   async getDefaultIdType(): Promise<{ defaultIdType: string; chainId: number }> {
-    const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
+    const chainId = await getChainId();
     const defaultIdType = chainIdInfoMap.get(chainId)?.idType;
     if (!defaultIdType) {
       throw new Error(`Failed to find defaultIdType in Map for chainId ${chainId}`);
@@ -1133,8 +1159,7 @@ export class DeployHelper {
     if (deployStrategy === "create2") {
       this.log("deploying with CREATE2 strategy...");
 
-      // TODO: uncomment when VC_PAYMENT contract is ready with unified addresses
-      /* vcPayment = await getUnifiedContract(contractsInfo.VC_PAYMENT.name);
+      vcPayment = await getUnifiedContract(contractsInfo.VC_PAYMENT.name);
       if (vcPayment) {
         Logger.warning(
           `${contractsInfo.VC_PAYMENT.name} found already deployed to:  ${await vcPayment?.getAddress()}`,
@@ -1142,7 +1167,7 @@ export class DeployHelper {
         return {
           vcPayment,
         };
-      }*/
+      }
 
       // Deploying VCPayment contract to predictable address but with dummy implementation
       vcPayment = (
@@ -1214,6 +1239,12 @@ export class DeployHelper {
           fn: "initialize",
           args: [await owner.getAddress(), ownerPercentage],
         },
+        // txOverrides: {
+        //   //nonce: 67,
+        //   maxFeePerGas: ethers.parseUnits("65", "gwei"),
+        //   maxPriorityFeePerGas: ethers.parseUnits("45", "gwei"),
+        //   gasLimit: 5000000,
+        // }
       });
     } else {
       this.log("deploying with BASIC strategy...");

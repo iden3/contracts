@@ -20,5 +20,7 @@
   "CredentialAtomicQueryV3ValidatorProxyModule#ProxyAdmin": "0x759413E6Bc96eCd646EA9B23086E85De4b0CF070",
   "UniversalVerifierProxyModule#TransparentUpgradeableProxy": "0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c",
   "UniversalVerifierProxyModule#ProxyAdmin": "0xcCbEd68Fc1C38f5357bff08eCa414b7CD24026Af",
-  "Poseidon4Module#Poseidon4Element": "0x0695cF2c6dfc438a4E40508741888198A6ccacC2"
+  "Poseidon4Module#Poseidon4Element": "0x0695cF2c6dfc438a4E40508741888198A6ccacC2",
+  "MCPaymentProxyModule#TransparentUpgradeableProxy": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
+  "MCPaymentProxyModule#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE"
 }

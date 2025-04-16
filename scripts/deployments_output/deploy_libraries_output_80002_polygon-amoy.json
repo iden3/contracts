@@ -1,0 +1,10 @@
+{
+ "poseidon1": "0xC72D76D7271924a2AD54a19D216640FeA3d138d9",
+ "poseidon2": "0x72F721D9D5f91353B505207C63B56cF3d9447edB",
+ "poseidon3": "0x5Bc89782d5eBF62663Df7Ce5fb4bc7408926A240",
+ "poseidon4": "0x0695cF2c6dfc438a4E40508741888198A6ccacC2",
+ "smtLib": "0x682364078e26C1626abD2B95109D2019E241F0F6",
+ "network": "polygon-amoy",
+ "chainId": 80002,
+ "deployStrategy": "create2"
+}

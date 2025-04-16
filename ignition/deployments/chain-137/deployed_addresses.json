@@ -16,5 +16,10 @@
   "UniversalVerifierProxyModule#TransparentUpgradeableProxy": "0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c",
   "UniversalVerifierProxyModule#ProxyAdmin": "0xcCbEd68Fc1C38f5357bff08eCa414b7CD24026Af",
   "IdentityTreeStoreProxyModule#TransparentUpgradeableProxy": "0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81",
-  "IdentityTreeStoreProxyModule#ProxyAdmin": "0x23F9ae5A19435347b8Ba10c69ad93128464f7A22"
+  "IdentityTreeStoreProxyModule#ProxyAdmin": "0x23F9ae5A19435347b8Ba10c69ad93128464f7A22",
+  "VCPaymentProxyModule#TransparentUpgradeableProxy": "0xba83D99c87358Ef9B6f7c4a5A94021A58d870704",
+  "VCPaymentProxyModule#ProxyAdmin": "0xA4180637F15a601695FD0313f452B8ca093AB952",
+  "VCPaymentModule#VCPayment": "0xba83D99c87358Ef9B6f7c4a5A94021A58d870704",
+  "MCPaymentProxyModule#TransparentUpgradeableProxy": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
+  "MCPaymentProxyModule#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE"
 }

@@ -1,5 +1,9 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { contractsInfo } from "../../helpers/constants";
+import {
+  contractsInfo,
+  TRANSPARENT_UPGRADEABLE_PROXY_ABI,
+  TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
+} from "../../helpers/constants";
 
 /**
  * This is the first module that will be run. It deploys the proxy and the
@@ -16,11 +20,21 @@ const VCPaymentProxyModule = buildModule("VCPaymentProxyModule", (m) => {
   // with constant constructor arguments, so predictable init bytecode and predictable CREATE2 address.
   // Subsequent upgrades are supposed to switch this proxy to the real implementation.
 
-  const proxy = m.contract("TransparentUpgradeableProxy", [
-    contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress,
-    proxyAdminOwner,
-    contractsInfo.VC_PAYMENT.create2Calldata,
-  ]);
+  const proxy = m.contract(
+    "TransparentUpgradeableProxy",
+    {
+      abi: TRANSPARENT_UPGRADEABLE_PROXY_ABI,
+      contractName: "TransparentUpgradeableProxy",
+      bytecode: TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
+      sourceName: "",
+      linkReferences: {},
+    },
+    [
+      contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress,
+      proxyAdminOwner,
+      contractsInfo.VC_PAYMENT.create2Calldata,
+    ],
+  );
   const proxyAdminAddress = m.readEventArgument(proxy, "AdminChanged", "newAdmin");
   const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
 
