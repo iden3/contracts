@@ -56,6 +56,16 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // ethereum sepolia
+  .set(6912, {
+    idType: "0x01B1",
+    networkType: "main",
+    oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
+  }) // billions-main
+  .set(6913, {
+    idType: "0x01B2",
+    networkType: "test",
+    oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
+  }) // billions-test
   .set(21000, {
     idType: "0x01A1",
     networkType: "main",
