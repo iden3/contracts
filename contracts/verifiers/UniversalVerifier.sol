@@ -83,18 +83,6 @@ contract UniversalVerifier is
         );
     }
 
-    /**
-     * @dev Set the list of ZKP requests for the list of requestIds in the same order.
-     * @param requestIds Request ids of the ZKP requests.
-     * @param requests ZKP requests to set.
-     */
-    function setZKPRequests(
-        uint64[] calldata requestIds,
-        ZKPRequest[] calldata requests
-    ) public override(RequestOwnership, ValidatorWhitelist, ZKPVerifierBase) {
-        super.setZKPRequests(requestIds, requests);
-    }
-
     /// @dev Update a ZKP request
     /// @param requestId The ID of the ZKP request
     /// @param request The ZKP request data

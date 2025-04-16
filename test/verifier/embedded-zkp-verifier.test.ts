@@ -255,4 +255,19 @@ describe("Embedded ZKP Verifier", function () {
     const count = await verifier.getZKPRequestsCount();
     expect(count).to.be.equal(requestsCount);
   });
+
+  it("should revert if requestIds and requests length mismatch in setZKPRequests", async () => {
+    const validatorAddr = await validator.getAddress();
+    const requestIds = [1, 2];
+    const requests = [
+      {
+        metadata: "meta1",
+        validator: validatorAddr,
+        data: "0x01",
+      },
+    ];
+    await expect(verifier.setZKPRequests(requestIds, requests)).to.be.rejectedWith(
+      "Request IDs and requests length mismatch",
+    );
+  });
 });

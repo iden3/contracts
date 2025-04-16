@@ -409,4 +409,19 @@ describe("Universal Verifier MTP & SIG validators", function () {
       }),
     ).to.be.rejectedWith("equest id doesn't exis");
   });
+
+  it("should revert if requestIds and requests length mismatch in setZKPRequests", async () => {
+    const validatorAddr = await validator.getAddress();
+    const requestIds = [1, 2];
+    const requests = [
+      {
+        metadata: "metadata-1",
+        validator: validatorAddr,
+        data: "0x01",
+      },
+    ];
+    await expect(verifier.setZKPRequests(requestIds, requests)).to.be.rejectedWith(
+      "Request IDs and requests length mismatch",
+    );
+  });
 });
