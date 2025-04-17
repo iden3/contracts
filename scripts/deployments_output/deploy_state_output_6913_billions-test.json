@@ -1,0 +1,9 @@
+{
+ "proxyAdminOwnerAddress": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74",
+ "state": "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
+ "stateLib": "0xBEba000A99c4d00706f46AC99aF06223BeF26d9a",
+ "crossChainProofValidator": "0x55b9f84605B30Df9Bb9d817A6900219F25218157",
+ "network": "billions-test",
+ "chainId": 6913,
+ "deployStrategy": "create2"
+}
