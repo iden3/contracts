@@ -407,7 +407,7 @@ describe("Universal Verifier MTP & SIG validators", function () {
         validator: await validator.getAddress(),
         data: data,
       }),
-    ).to.be.rejectedWith("equest id doesn't exis");
+    ).to.be.rejectedWith("request id doesn't exist");
   });
 
   it("should revert if requestIds and requests length mismatch in setZKPRequests", async () => {
