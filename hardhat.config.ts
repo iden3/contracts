@@ -247,14 +247,14 @@ const config: HardhatUserConfig = {
       "linea-sepolia": process.env.LINEA_EXPLORER_API_KEY || "",
       "zkevm-cardona": process.env.ZKEVM_EXPLORER_API_KEY || "",
       "zkevm-mainnet": process.env.ZKEVM_EXPLORER_API_KEY || "",
-      "billions-test": "1",
+      "billions-test": "abc",
     },
     customChains: [
       {
         network: "billions-test",
         chainId: 6913,
         urls: {
-          apiURL: "https://billions-testnet-blockscout.eu-north-2.gateway.fm/api",
+          apiURL: "https://billions-testnet-blockscout.eu-north-2.gateway.fm/api/",
           browserURL: "https://docs.blockscout.com",
         },
       },
