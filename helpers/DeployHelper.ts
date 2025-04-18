@@ -148,7 +148,7 @@ export class DeployHelper {
         }
 
         if (version) {
-          tmpContractDeployments.remove();
+          //tmpContractDeployments.remove();
           Logger.warning(
             `${contractsInfo.STATE.name} found already deployed to:  ${await state?.getAddress()}`,
           );
