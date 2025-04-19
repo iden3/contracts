@@ -768,7 +768,7 @@ export class DeployHelper {
         validatorArgs = [await groth16VerifierWrapper.getAddress(), owner.address];
         break;
       case "ethIdentity":
-        validatorArgs = [stateContractAddress, owner.address];
+        validatorArgs = [owner.address];
         break;
       default:
         validatorArgs = [

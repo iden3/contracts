@@ -22,30 +22,6 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IAuthValidator, ERC165
      */
     string public constant VERSION = "1.0.0";
 
-    /// @dev Main storage structure for the contract
-    /// @custom:storage-location iden3.storage.EthIdentityValidator
-    struct EthIdentityValidatorBaseStorage {
-        IState state;
-    }
-
-    // keccak256(abi.encode(uint256(keccak256("iden3.storage.EthIdentityValidator")) - 1))
-    //  & ~bytes32(uint256(0xff));
-    // solhint-disable-next-line const-name-snakecase
-    bytes32 private constant EthIdentityValidatorBaseStorageLocation =
-        0x1816cff28d525c2e505742319020369d0e29e8fafd5168e127e29766cf2be1fb;
-
-    /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getEthIdentityValidatorBaseStorage()
-        private
-        pure
-        returns (EthIdentityValidatorBaseStorage storage $)
-    {
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            $.slot := EthIdentityValidatorBaseStorageLocation
-        }
-    }
-
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -53,11 +29,10 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IAuthValidator, ERC165
 
     /**
      * @dev Initialize the contract
-     * @param _stateContractAddr Address of the state contract
      * @param owner Owner of the contract
      */
-    function initialize(address _stateContractAddr, address owner) public initializer {
-        _initDefaultStateVariables(_stateContractAddr, owner);
+    function initialize(address owner) public initializer {
+        __Ownable_init(owner);
     }
 
     /**
@@ -85,17 +60,6 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IAuthValidator, ERC165
 
         _verifyEthIdentity(userID, sender);
         return (userID, new AuthResponseField[](0));
-    }
-
-    function _getState() internal view returns (IState) {
-        return _getEthIdentityValidatorBaseStorage().state;
-    }
-
-    function _initDefaultStateVariables(address _stateContractAddr, address owner) internal {
-        EthIdentityValidatorBaseStorage storage s = _getEthIdentityValidatorBaseStorage();
-
-        s.state = IState(_stateContractAddr);
-        __Ownable_init(owner);
     }
 
     function _verifyEthIdentity(uint256 id, address sender) internal view {
