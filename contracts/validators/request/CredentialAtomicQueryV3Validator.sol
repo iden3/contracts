@@ -271,10 +271,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
     function _checkAuth(uint256 userID, address ethIdentityOwner) internal view {
         if (
             userID !=
-            GenesisUtils.calcIdFromEthAddress(
-                GenesisUtils.getIdType(userID),
-                ethIdentityOwner
-            )
+            GenesisUtils.calcIdFromEthAddress(GenesisUtils.getIdType(userID), ethIdentityOwner)
         ) {
             revert UserIDDoesNotCorrespondToTheSender();
         }
