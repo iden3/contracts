@@ -30,7 +30,7 @@ import {
 
 const SMT_MAX_DEPTH = 64;
 
-export type Groth16VerifierType = "mtpV2" | "sigV2" | "v3" | "lmk10" | "authV2";
+export type Groth16VerifierType = "mtpV2" | "sigV2" | "v3" | "lmk10" | "authV2" | undefined;
 export type ValidatorType = "mtpV2" | "sigV2" | "v3" | "lmk" | "authV2" | "ethIdentity";
 
 export class DeployHelper {
@@ -532,11 +532,14 @@ export class DeployHelper {
       case "v3":
         groth16VerifierType = "v3";
         break;
+      case "lmk":
+        groth16VerifierType = "lmk10";
+        break;
       case "authV2":
         groth16VerifierType = "authV2";
         break;
-      case "lmk":
-        groth16VerifierType = "lmk10";
+      case "ethIdentity":
+        groth16VerifierType = undefined;
         break;
     }
     return groth16VerifierType;
@@ -740,9 +743,10 @@ export class DeployHelper {
 
     let groth16VerifierWrapper;
     if (!groth16VerifierWrapperAddress) {
-      groth16VerifierWrapper = await this.deployGroth16VerifierWrapper(
-        this.getGroth16VerifierTypeFromValidatorType(validatorType),
-      );
+      const groth16VerifierType = this.getGroth16VerifierTypeFromValidatorType(validatorType);
+      if (groth16VerifierType) {
+        groth16VerifierWrapper = await this.deployGroth16VerifierWrapper(groth16VerifierType);
+      }
     } else {
       groth16VerifierWrapper = await ethers.getContractAt(
         this.getGroth16VerifierWrapperName(
@@ -756,6 +760,23 @@ export class DeployHelper {
     const Create2AddressAnchorFactory = await ethers.getContractFactory(
       contractsInfo.CREATE2_ADDRESS_ANCHOR.name,
     );
+
+    let validatorArgs;
+
+    switch (validatorType) {
+      case "lmk":
+        validatorArgs = [await groth16VerifierWrapper.getAddress(), owner.address];
+        break;
+      case "ethIdentity":
+        validatorArgs = [stateContractAddress, owner.address];
+        break;
+      default:
+        validatorArgs = [
+          stateContractAddress,
+          await groth16VerifierWrapper.getAddress(),
+          owner.address,
+        ];
+    }
 
     if (deployStrategy === "create2") {
       this.log("deploying with CREATE2 strategy...");
@@ -775,34 +796,19 @@ export class DeployHelper {
       // and force network files import, so creation, as they do not exist at the moment
       const validatorAddress = await validator.getAddress();
       await upgrades.forceImport(validatorAddress, Create2AddressAnchorFactory);
+
       validator = await upgrades.upgradeProxy(validatorAddress, ValidatorFactory, {
         unsafeAllow: ["external-library-linking"],
         redeployImplementation: "always",
         call: {
           fn: "initialize",
-          args:
-            validatorType != "lmk"
-              ? [
-                  stateContractAddress,
-                  await groth16VerifierWrapper.getAddress(),
-                  await owner.getAddress(),
-                ]
-              : [await groth16VerifierWrapper.getAddress(), await owner.getAddress()],
+          args: validatorArgs,
         },
       });
     } else {
       this.log("deploying with BASIC strategy...");
 
-      validator = await upgrades.deployProxy(
-        ValidatorFactory,
-        validatorType != "lmk"
-          ? [
-              stateContractAddress,
-              await groth16VerifierWrapper.getAddress(),
-              await owner.getAddress(),
-            ]
-          : [await groth16VerifierWrapper.getAddress(), await owner.getAddress()],
-      );
+      validator = await upgrades.deployProxy(ValidatorFactory, validatorArgs);
     }
 
     validator.waitForDeployment();
