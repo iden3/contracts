@@ -99,7 +99,7 @@ contract EthIdentityValidator is Ownable2StepUpgradeable, IAuthValidator, ERC165
     }
 
     function _verifyEthIdentity(uint256 id, address sender) internal view {
-        bytes2 idType = _getState().getIdTypeIfSupported(id);
+        bytes2 idType = GenesisUtils.getIdType(id);
         uint256 calcId = GenesisUtils.calcIdFromEthAddress(idType, sender);
         if (calcId != id) {
             revert SenderIsNotIdentityOwner();
