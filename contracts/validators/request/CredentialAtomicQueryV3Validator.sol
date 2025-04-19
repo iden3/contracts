@@ -272,7 +272,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         if (
             userID !=
             GenesisUtils.calcIdFromEthAddress(
-                _getState().getIdTypeIfSupported(userID),
+                GenesisUtils.getIdType(userID),
                 ethIdentityOwner
             )
         ) {
