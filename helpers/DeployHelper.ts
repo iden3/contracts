@@ -22,13 +22,16 @@ import {
   TempContractDeployments,
   waitNotToInterfereWithHardhatIgnition,
 } from "./helperUtils";
-import { MCPaymentProxyModule } from "../ignition/modules/mcPayment";
-import { LinkedMultiQueryProxyModule } from "../ignition/modules/linkedMultiQuery";
+import {
+  MCPaymentProxyModule,
+  LinkedMultiQueryProxyModule,
+  EthIdentityValidatorModule,
+} from "../ignition";
 
 const SMT_MAX_DEPTH = 64;
 
-export type Groth16VerifierType = "mtpV2" | "sigV2" | "v3" | "authV2" | "lmk10";
-export type ValidatorType = "mtpV2" | "sigV2" | "v3" | "authV2" | "lmk";
+export type Groth16VerifierType = "mtpV2" | "sigV2" | "v3" | "lmk10" | "authV2";
+export type ValidatorType = "mtpV2" | "sigV2" | "v3" | "lmk" | "authV2" | "ethIdentity";
 
 export class DeployHelper {
   constructor(
@@ -673,11 +676,14 @@ export class DeployHelper {
       case "v3":
         validatorContractName = "CredentialAtomicQueryV3Validator";
         break;
+      case "lmk":
+        validatorContractName = "LinkedMultiQueryValidator";
+        break;
       case "authV2":
         validatorContractName = "AuthV2Validator";
         break;
-      case "lmk":
-        validatorContractName = "LinkedMultiQueryValidator";
+      case "ethIdentity":
+        validatorContractName = "EthIdentityValidator";
     }
 
     let validator;
@@ -700,6 +706,9 @@ export class DeployHelper {
           break;
         case "lmk":
           validatorModule = LinkedMultiQueryProxyModule;
+          break;
+        case "ethIdentity":
+          validatorModule = EthIdentityValidatorModule;
           break;
       }
 
