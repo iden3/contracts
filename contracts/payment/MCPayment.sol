@@ -107,7 +107,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
      * @dev Valid percent value modifier
      */
     modifier validPercentValue(uint256 percent) {
-        if (percent < 0 || percent > 100) {
+        if (percent > 100) {
             revert InvalidOwnerPercentage();
         }
         _;
