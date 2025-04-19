@@ -18,7 +18,7 @@ import { TEN_YEARS } from "../../helpers/constants";
 import { calculateGroupID, calculateMultiRequestId } from "../utils/id-calculation-utils";
 
 describe("Verifier Integration test", async function () {
-  let verifier, v3Validator, lmkValidator;
+  let verifier, v3Validator, lmqValidator;
   let signer;
 
   const requestIdV3 = 32;
@@ -131,7 +131,7 @@ describe("Verifier Integration test", async function () {
     await v3Validator.setGISTRootExpirationTimeout(TEN_YEARS);
 
     const { validator: lmkValidator } = await deployHelper.deployValidatorContractsWithVerifiers(
-      "lmk",
+      "lmq",
       await state.getAddress(),
     );
 
@@ -139,7 +139,7 @@ describe("Verifier Integration test", async function () {
   }
 
   beforeEach(async () => {
-    ({ verifier, v3Validator, lmkValidator } = await loadFixture(deployContractsFixture));
+    ({ verifier, v3Validator, lmkValidator: lmqValidator } = await loadFixture(deployContractsFixture));
 
     await verifier.setVerifierID(query.verifierID);
   });
@@ -158,7 +158,7 @@ describe("Verifier Integration test", async function () {
       {
         requestId: requestIdLMK,
         metadata: "metadata",
-        validator: await lmkValidator.getAddress(),
+        validator: await lmqValidator.getAddress(),
         owner: signer.address,
         params: twoQueriesParams,
       },
@@ -197,14 +197,14 @@ describe("Verifier Integration test", async function () {
         {
           requestId: requestIdLMK,
           metadata: "metadata",
-          validator: await lmkValidator.getAddress(),
+          validator: await lmqValidator.getAddress(),
           owner: signer.address,
           params: twoQueriesParamsNew,
         },
         {
           requestId: requestIdLMK + 1,
           metadata: "metadata",
-          validator: await lmkValidator.getAddress(),
+          validator: await lmqValidator.getAddress(),
           owner: signer.address,
           params: twoQueriesParamsNew,
         },
@@ -229,7 +229,7 @@ describe("Verifier Integration test", async function () {
       {
         requestId: requestIdLMK,
         metadata: "metadata",
-        validator: await lmkValidator.getAddress(),
+        validator: await lmqValidator.getAddress(),
         owner: signer.address,
         params: twoQueriesParams,
       },

@@ -76,9 +76,9 @@ describe("Test linkedMultiQuery10.circom", function () {
   async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
     const groth16Verifier = await ethers.deployContract("Groth16VerifierValidatorStub");
-    const LMK = await ethers.getContractFactory("LinkedMultiQueryValidator");
+    const lmqValidator = await ethers.getContractFactory("LinkedMultiQueryValidator");
     const g16address = await groth16Verifier.getAddress();
-    const validator = await upgrades.deployProxy(LMK, [g16address, signer.address]);
+    const validator = await upgrades.deployProxy(lmqValidator, [g16address, signer.address]);
     return { validator, groth16Verifier };
   }
 

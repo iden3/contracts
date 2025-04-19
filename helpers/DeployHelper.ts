@@ -30,8 +30,8 @@ import {
 
 const SMT_MAX_DEPTH = 64;
 
-export type Groth16VerifierType = "mtpV2" | "sigV2" | "v3" | "lmk10" | "authV2" | undefined;
-export type ValidatorType = "mtpV2" | "sigV2" | "v3" | "lmk" | "authV2" | "ethIdentity";
+export type Groth16VerifierType = "mtpV2" | "sigV2" | "v3" | "lmq10" | "authV2" | undefined;
+export type ValidatorType = "mtpV2" | "sigV2" | "v3" | "lmq" | "authV2" | "ethIdentity";
 
 export class DeployHelper {
   constructor(
@@ -532,8 +532,8 @@ export class DeployHelper {
       case "v3":
         groth16VerifierType = "v3";
         break;
-      case "lmk":
-        groth16VerifierType = "lmk10";
+      case "lmq":
+        groth16VerifierType = "lmq10";
         break;
       case "authV2":
         groth16VerifierType = "authV2";
@@ -560,7 +560,7 @@ export class DeployHelper {
       case "authV2":
         g16VerifierContractWrapperName = contractsInfo.GROTH16_VERIFIER_AUTH_V2.name;
         break;
-      case "lmk10":
+      case "lmq10":
         g16VerifierContractWrapperName = contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.name;
         break;
     }
@@ -588,7 +588,7 @@ export class DeployHelper {
       case "authV2":
         verification = contractsInfo.GROTH16_VERIFIER_AUTH_V2.verificationOpts;
         break;
-      case "lmk10":
+      case "lmq10":
         verification = contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.verificationOpts;
     }
     return verification;
@@ -612,7 +612,7 @@ export class DeployHelper {
       case "v3":
         verification = contractsInfo.VALIDATOR_V3.verificationOpts;
         break;
-      case "lmk":
+      case "lmq":
         verification = contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.verificationOpts;
         break;
       case "authV2":
@@ -679,7 +679,7 @@ export class DeployHelper {
       case "v3":
         validatorContractName = "CredentialAtomicQueryV3Validator";
         break;
-      case "lmk":
+      case "lmq":
         validatorContractName = "LinkedMultiQueryValidator";
         break;
       case "authV2":
@@ -707,7 +707,7 @@ export class DeployHelper {
         case "authV2":
           validatorModule = AuthV2ValidatorProxyModule;
           break;
-        case "lmk":
+        case "lmq":
           validatorModule = LinkedMultiQueryProxyModule;
           break;
         case "ethIdentity":
@@ -764,7 +764,7 @@ export class DeployHelper {
     let validatorArgs;
 
     switch (validatorType) {
-      case "lmk":
+      case "lmq":
         validatorArgs = [await groth16VerifierWrapper.getAddress(), owner.address];
         break;
       case "ethIdentity":

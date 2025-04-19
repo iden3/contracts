@@ -13,7 +13,7 @@ async function main() {
   const config = getConfig();
   const chainId = await getChainId();
 
-  const validators: ValidatorType[] = ["mtpV2", "sigV2", "v3", "lmk"];
+  const validators: ValidatorType[] = ["mtpV2", "sigV2", "v3", "lmq"];
 
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
