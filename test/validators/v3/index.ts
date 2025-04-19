@@ -6,8 +6,9 @@ import { calculateQueryHashV3 } from "../../utils/query-hash-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { TEN_YEARS } from "../../../helpers/constants";
+import { contractsInfo, TEN_YEARS } from "../../../helpers/constants";
 import { packZKProof } from "../../utils/packData";
+import { ethers } from "hardhat";
 
 const tenYears = TEN_YEARS;
 const testCases: any[] = [
@@ -45,7 +46,7 @@ const testCases: any[] = [
       require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
     ],
     proofJson: require("./data/invalid_bjj_user_genesis_v3.json"),
-    errorMessage: "Proof is not valid",
+    errorMessage: "ProofIsNotValid()",
     setProofExpiration: tenYears,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
@@ -120,7 +121,7 @@ const testCases: any[] = [
     stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
     proofJson: require("./data/valid_bjj_user_second_issuer_first_v3"),
     setRevStateExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
-    errorMessage: "Non-Revocation state of Issuer expired",
+    errorMessage: "NonRevocationStateOfIssuerIsExpired()",
     setProofExpiration: tenYears,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
@@ -136,7 +137,7 @@ const testCases: any[] = [
 
     stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
     setGISTRootExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
-    errorMessage: "Gist root is expired",
+    errorMessage: "GistRootIsExpired()",
     setProofExpiration: tenYears,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
@@ -148,7 +149,7 @@ const testCases: any[] = [
       require("../common-data/issuer_from_first_state_to_second_transition_v3.json"),
     ],
     proofJson: require("./data/valid_bjj_user_first_v3.json"),
-    errorMessage: "Generated proof is outdated",
+    errorMessage: "GeneratedProofIsOutdated()",
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
@@ -159,7 +160,7 @@ const testCases: any[] = [
     proofJson: require("./data/valid_bjj_user_genesis_v3.json"),
     setProofExpiration: tenYears,
     allowedIssuers: [123n],
-    errorMessage: "Issuer is not on the Allowed Issuers list",
+    errorMessage: "IssuerIsNotOnTheAllowedIssuersList()",
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
@@ -227,7 +228,7 @@ const testCases: any[] = [
       require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
     ],
     proofJson: require("./data/invalid_mtp_user_genesis_v3.json"),
-    errorMessage: "Proof is not valid",
+    errorMessage: "ProofIsNotValid()",
     setProofExpiration: tenYears,
     isMtpProof: true,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -304,7 +305,7 @@ const testCases: any[] = [
     stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
     proofJson: require("./data/valid_mtp_user_second_issuer_first_v3.json"),
     setRevStateExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
-    errorMessage: "Non-Revocation state of Issuer expired",
+    errorMessage: "NonRevocationStateOfIssuerIsExpired()",
     setProofExpiration: tenYears,
     isMtpProof: true,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -320,7 +321,7 @@ const testCases: any[] = [
     proofJson: require("./data/valid_mtp_user_first_v3"),
     stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
     setGISTRootExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
-    errorMessage: "Gist root is expired",
+    errorMessage: "GistRootIsExpired()",
     setProofExpiration: tenYears,
     isMtpProof: true,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -333,7 +334,7 @@ const testCases: any[] = [
       require("../common-data/issuer_from_first_state_to_second_transition_v3.json"),
     ],
     proofJson: require("./data/valid_mtp_user_first_v3.json"),
-    errorMessage: "Generated proof is outdated",
+    errorMessage: "GeneratedProofIsOutdated()",
     isMtpProof: true,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
@@ -345,7 +346,7 @@ const testCases: any[] = [
     proofJson: require("./data/valid_mtp_user_genesis_v3.json"),
     setProofExpiration: tenYears,
     allowedIssuers: [123n],
-    errorMessage: "Issuer is not on the Allowed Issuers list",
+    errorMessage: "IssuerIsNotOnTheAllowedIssuersList()",
     isMtpProof: true,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
@@ -387,7 +388,7 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3_wrong_id.json"),
     setProofExpiration: tenYears,
-    errorMessage: "UserID does not correspond to the sender",
+    errorMessage: "UserIDDoesNotCorrespondToTheSender()",
     ethereumBasedUser: true,
     sender: "0x6edFa588aFd58803F728AbC91984c69528C00854",
   },
@@ -398,7 +399,7 @@ const testCases: any[] = [
     ],
     proofJson: require("./data/valid_mtp_user_genesis_auth_disabled_v3_wrong_id.json"),
     setProofExpiration: tenYears,
-    errorMessage: "UserID does not correspond to the sender",
+    errorMessage: "UserIDDoesNotCorrespondToTheSender()",
     ethereumBasedUser: true,
     isMtpProof: true,
     sender: "0x6edFa588aFd58803F728AbC91984c69528C00854",
@@ -439,7 +440,7 @@ const testCases: any[] = [
       require("../common-data/user_from_genesis_state_to_first_transition_v3.json"),
     ],
     proofJson: require("./data/valid_bjj_user_first_issuer_genesis_v3.json"),
-    errorMessage: "Challenge should match the sender",
+    errorMessage: "ChallengeShouldMatchTheSender()",
     setProofExpiration: tenYears,
     sender: "0x0000000000000000000000000000000000000000",
   },
@@ -452,7 +453,8 @@ const testCases: any[] = [
     proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3.json"),
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
-    errorMessage: "Invalid Link ID pub signal",
+    errorMessage:
+      "InvalidGroupIDOrLinkID(0, 19823993270096139446564592922993947503208333537792611306066620392561342309875)",
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     groupID: 0,
   },
@@ -465,7 +467,7 @@ const testCases: any[] = [
     proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3.json"),
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
-    errorMessage: "Proof type should match the requested one in query",
+    errorMessage: "ProofTypeShouldMatchTheRequestedOneInQuery()",
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     isMtpProof: true,
   },
@@ -478,7 +480,7 @@ const testCases: any[] = [
     proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3.json"),
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
-    errorMessage: "Invalid nullify pub signal",
+    errorMessage: "InvalidNullifyPubSignal()",
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     nullifierSessionId: "2",
   },
@@ -491,14 +493,15 @@ const testCases: any[] = [
     proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3.json"),
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
-    errorMessage: "Query hash does not match the requested one",
+    errorMessage:
+      "QueryHashDoesNotMatchTheRequestedOne(0, 19185468473610285815446195195707572856383167010831244369191309337886545428382)",
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     queryHash: BigInt(0),
   },
 ];
 
 describe("Atomic V3 Validator", function () {
-  let state: any, v3validator;
+  let state: any, v3Validator;
 
   async function deployContractsFixture() {
     const deployHelper = await DeployHelper.initialize(null, true);
@@ -527,7 +530,7 @@ describe("Atomic V3 Validator", function () {
   }
 
   beforeEach(async () => {
-    ({ stateContract: state, validator: v3validator } = await loadFixture(deployContractsFixture));
+    ({ stateContract: state, validator: v3Validator } = await loadFixture(deployContractsFixture));
   });
 
   for (const test of testCases) {
@@ -582,57 +585,80 @@ describe("Atomic V3 Validator", function () {
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
       if (test.setProofExpiration) {
-        await v3validator.setProofExpirationTimeout(test.setProofExpiration);
+        await v3Validator.setProofExpirationTimeout(test.setProofExpiration);
       }
       if (test.setRevStateExpiration) {
-        await v3validator.setRevocationStateExpirationTimeout(test.setRevStateExpiration);
+        await v3Validator.setRevocationStateExpirationTimeout(test.setRevStateExpiration);
       }
       if (test.setGISTRootExpiration) {
-        await v3validator.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
+        await v3Validator.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
       }
 
       const data = packV3ValidatorParams(query, test.allowedIssuers);
 
       // Check verify function
-      if (test.errorMessage) {
-        await expect(
-          v3validator.verify(inputs, pi_a, pi_b, pi_c, data, test.sender),
-        ).to.be.rejectedWith(test.errorMessage);
-      } else if (test.errorMessage === "") {
-        await expect(v3validator.verify(inputs, pi_a, pi_b, pi_c, data, test.sender)).to.be
-          .reverted;
-      } else {
-        const signals = await v3validator.verify(inputs, pi_a, pi_b, pi_c, data, test.sender);
-
-        const signalValues: any[] = [];
-        // Replace index with value to check instead of signal index
-        for (let i = 0; i < signals.length; i++) {
-          signalValues.push([signals[i][0], inputs[signals[i][1]]]);
-        }
-
-        // Check if the number signals are correct. "operatorOutput" for selective disclosure is optional
-        checkSignals(signalValues, test.signalValues);
-      }
-
-      // Check verifyV2 function
       const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
       if (test.errorMessage) {
-        await expect(
-          v3validator.verifyV2(zkProof, data, test.sender, await state.getAddress()),
-        ).to.be.rejectedWith(test.errorMessage);
-      } else if (test.errorMessage === "") {
-        await expect(v3validator.verifyV2(zkProof, data, test.sender, await state.getAddress())).to
-          .be.reverted;
-      } else {
-        const signals = await v3validator.verifyV2(
-          zkProof,
-          data,
-          test.sender,
-          await state.getAddress(),
+        await expect(v3Validator.verify(test.sender, zkProof, data, "0x")).to.be.rejectedWith(
+          test.errorMessage,
         );
+      } else if (test.errorMessage === "") {
+        await expect(v3Validator.verify(test.sender, zkProof, data, "0x")).to.be.reverted;
+      } else {
+        const signals = await v3Validator.verify(test.sender, zkProof, data, "0x");
 
         checkSignals(signals, test.signalValues);
       }
     });
   }
+
+  it("check version", async () => {
+    const version = await v3Validator.version();
+    expect(version).to.be.equal(contractsInfo.VALIDATOR_V3.version);
+  });
+
+  it("check getRequestParam", async () => {
+    const query: any = {
+      requestId: 1,
+      schema: 2,
+      claimPathKey: 3,
+      operator: 4,
+      slotIndex: 0,
+      queryHash: 5,
+      value: [20020101, ...new Array(63).fill(0)], // for operators 1-3 only first value matters
+      circuitIds: ["circuitName"],
+      skipClaimRevocationCheck: false,
+      claimPathNotExists: 0,
+      allowedIssuers: [],
+      verifierID: 7,
+      nullifierSessionID: 8,
+      groupID: 9,
+      proofType: 0,
+    };
+
+    const params = packV3ValidatorParams(query);
+    let resultParam = await v3Validator.getRequestParam(params, "groupID");
+    expect(resultParam).to.deep.equal(["groupID", 9]);
+    resultParam = await v3Validator.getRequestParam(params, "verifierID");
+    expect(resultParam).to.deep.equal(["verifierID", 7]);
+    resultParam = await v3Validator.getRequestParam(params, "nullifierSessionID");
+    expect(resultParam).to.deep.equal(["nullifierSessionID", 8]);
+  });
+
+  it("Test get config params", async () => {
+    const oneHour = 3600;
+    const expirationTimeout = await v3Validator.getProofExpirationTimeout();
+    const revocationStateExpirationTimeout =
+      await v3Validator.getRevocationStateExpirationTimeout();
+    const gistRootExpirationTimeout = await v3Validator.getGISTRootExpirationTimeout();
+    expect(expirationTimeout).to.be.equal(oneHour);
+    expect(revocationStateExpirationTimeout).to.be.equal(oneHour);
+    expect(gistRootExpirationTimeout).to.be.equal(oneHour);
+  });
+
+  it("Test supported circuits", async () => {
+    const supportedCircuitIds = await v3Validator.getSupportedCircuitIds();
+    expect(supportedCircuitIds.length).to.be.equal(1);
+    expect(supportedCircuitIds[0]).to.be.equal(CircuitId.AtomicQueryV3OnChain);
+  });
 });

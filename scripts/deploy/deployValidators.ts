@@ -13,14 +13,14 @@ async function main() {
   const config = getConfig();
   const chainId = await getChainId();
 
-  const stateContractAddress = await getStateContractAddress();
-  const validators: ValidatorType[] = ["mtpV2", "sigV2", "v3", "authV2"];
+  const validators: ValidatorType[] = ["mtpV2", "sigV2", "v3", "lmq", "authV2", "ethIdentity"];
 
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
   const [signer] = await hre.ethers.getSigners();
 
   const deployHelper = await DeployHelper.initialize(null, true);
+  const stateContractAddress = await getStateContractAddress();
 
   const validatorsInfo: any = [];
   for (const v of validators) {
@@ -33,12 +33,13 @@ async function main() {
     await verifyContract(await validator.getAddress(), deployHelper.getValidatorVerification(v));
 
     // only add validators info if groth16VerifierWrapper is deployed
+    validatorsInfo.push({
+      validatorType: v,
+      validator: await validator.getAddress(),
+      groth16verifier: await groth16VerifierWrapper?.getAddress(),
+    });
+
     if (groth16VerifierWrapper) {
-      validatorsInfo.push({
-        validatorType: v,
-        validator: await validator.getAddress(),
-        groth16verifier: await groth16VerifierWrapper?.getAddress(),
-      });
       await verifyContract(
         await groth16VerifierWrapper.getAddress(),
         deployHelper.getGroth16VerifierWrapperVerification(v),

@@ -56,6 +56,16 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // ethereum sepolia
+  .set(6912, {
+    idType: "0x01B1",
+    networkType: "main",
+    oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
+  }) // billions-main
+  .set(6913, {
+    idType: "0x01B2",
+    networkType: "test",
+    oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
+  }) // billions-test
   .set(21000, {
     idType: "0x01A1",
     networkType: "main",
@@ -108,9 +118,9 @@ export const contractsInfo = Object.freeze({
   },
   UNIVERSAL_VERIFIER: {
     name: "UniversalVerifier",
-    version: "1.1.6",
-    unifiedAddress: "0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c",
-    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier")),
+    version: "2.0.0",
+    unifiedAddress: "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
+    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier.v2")),
     verificationOpts: {
       // For verifying the different contracts with proxy we need verification with different constructor arguments
       constructorArgsImplementation: [],
@@ -125,7 +135,7 @@ export const contractsInfo = Object.freeze({
   },
   STATE: {
     name: "State",
-    version: "2.6.1",
+    version: "2.6.2",
     unifiedAddress: "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.State")),
     verificationOpts: {
@@ -141,10 +151,10 @@ export const contractsInfo = Object.freeze({
   },
   VALIDATOR_SIG: {
     name: "CredentialAtomicQuerySigV2Validator",
-    version: "2.1.1",
-    unifiedAddress: "0x59B347f0D3dd4B98cc2E056Ee6C53ABF14F8581b",
+    version: "3.0.0",
+    unifiedAddress: "0x5BD60F3Ef5890260906172EEe1f0a965707791f1",
     create2Calldata: ethers.hexlify(
-      ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQuerySigV2Validator"),
+      ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQuerySigV2Validator.v3"),
     ),
     verificationOpts: {
       constructorArgsImplementation: [],
@@ -159,10 +169,10 @@ export const contractsInfo = Object.freeze({
   },
   VALIDATOR_MTP: {
     name: "CredentialAtomicQueryMTPV2Validator",
-    version: "2.1.1",
-    unifiedAddress: "0x27bDFFCeC5478a648f89764E22fE415486A42Ede",
+    version: "3.0.0",
+    unifiedAddress: "0xec9EF9c4595B46abF2b6A923BD1529081E03fbBB",
     create2Calldata: ethers.hexlify(
-      ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryMTPV2Validator"),
+      ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryMTPV2Validator.v3"),
     ),
     verificationOpts: {
       constructorArgsImplementation: [],
@@ -177,10 +187,10 @@ export const contractsInfo = Object.freeze({
   },
   VALIDATOR_V3: {
     name: "CredentialAtomicQueryV3Validator",
-    version: "2.1.1-beta.1",
-    unifiedAddress: "0xd179f29d00Cd0E8978eb6eB847CaCF9E2A956336",
+    version: "3.0.0-beta.1",
+    unifiedAddress: "0xC616963610A5545EF89b373e1fEAE8A1e505FaFF",
     create2Calldata: ethers.hexlify(
-      ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3Validator"),
+      ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3Validator.v3"),
     ),
     verificationOpts: {
       constructorArgsImplementation: [],
@@ -193,10 +203,26 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
+  VALIDATOR_LINKED_MULTI_QUERY: {
+    name: "LinkedMultiQueryValidator",
+    version: "1.0.0-beta.1",
+    unifiedAddress: "0xfA622418d7aBF33868545732CaD2C2E7ce9B16C8",
+    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.LinkedMultiQueryValidator")),
+    verificationOpts: {
+      constructorArgsImplementation: [],
+      constructorArgsProxy: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+      ],
+      constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7f44012c728b9d74"],
+      libraries: {},
+    },
+  },
   VALIDATOR_AUTH_V2: {
     name: "AuthV2Validator",
     version: "1.0.0",
-    unifiedAddress: "0x49ebdC163fa014F310CeDBc8e4a0b15C738D8073",
+    unifiedAddress: "0x535F6a1B30533616CE4bD44081ea7A17CF2042B8",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.AuthV2Validator")),
     verificationOpts: {
       constructorArgsImplementation: [],
@@ -204,6 +230,22 @@ export const contractsInfo = Object.freeze({
         "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
         "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
         "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+      ],
+      constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
+      libraries: {},
+    },
+  },
+  VALIDATOR_ETH_IDENTITY: {
+    name: "EthIdentityValidator",
+    version: "1.0.0",
+    unifiedAddress: "0x8546bFd67F19dd0449dF73fb75A56BC9ddFA57Db",
+    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.EthIdentityValidator")),
+    verificationOpts: {
+      constructorArgsImplementation: [],
+      constructorArgsProxy: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.EthIdentityValidator")),
       ],
       constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
       libraries: {},
@@ -332,6 +374,17 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
+  GROTH16_VERIFIER_LINKED_MULTI_QUERY10: {
+    name: "Groth16VerifierLinkedMultiQuery10Wrapper",
+    unifiedAddress: "",
+    create2Calldata: "",
+    verificationOpts: {
+      contract:
+        "contracts/lib/groth16-verifiers/Groth16VerifierLinkedMultiQuery10Wrapper.sol:Groth16VerifierLinkedMultiQuery10Wrapper",
+      constructorArgsImplementation: [],
+      libraries: {},
+    },
+  },
   GROTH16_VERIFIER_AUTH_V2: {
     name: "Groth16VerifierAuthV2Wrapper",
     unifiedAddress: "",
@@ -346,32 +399,15 @@ export const contractsInfo = Object.freeze({
   STATE_LIB: {
     name: "StateLib",
     unifiedAddress: "",
-    create2Address: "",
+    create2Calldata: "",
     verificationOpts: {
       constructorArgsImplementation: [],
       libraries: {},
     },
   },
-  STATE_CROSS_CHAIN_LIB: {
-    name: "StateCrossChainLib",
-    unifiedAddress: "",
-    create2Address: "",
-    verificationOpts: {
-      constructorArgsImplementation: [],
-      libraries: {},
-    },
-  },
-  VERIFIER_LIB: {
-    name: "VerifierLib",
-    unifiedAddress: "",
-    create2Address: "",
-    verificationOpts: {
-      constructorArgsImplementation: [],
-      libraries: {},
-    },
-  },
-  EMBEDDED_ZKP_VERIFIER_WRAPPER: {
-    name: "EmbeddedZKPVerifierWrapper",
+
+  EMBEDDED_VERIFIER_WRAPPER: {
+    name: "EmbeddedVerifierWrapper",
     unifiedAddress: "",
     create2Calldata: "",
   },
@@ -487,6 +523,24 @@ export const TRANSPARENT_UPGRADEABLE_PROXY_ABI = [
   {
     stateMutability: "payable",
     type: "fallback",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "newImplementation",
+        type: "address",
+      },
+      {
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "upgradeToAndCall",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
   },
 ];
 

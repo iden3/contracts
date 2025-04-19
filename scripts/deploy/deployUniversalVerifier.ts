@@ -6,10 +6,7 @@ import {
   getChainId,
   getConfig,
   getStateContractAddress,
-  Logger,
-  TempContractDeployments,
   verifyContract,
-  waitNotToInterfereWithHardhatIgnition,
 } from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
 
@@ -24,36 +21,11 @@ async function main() {
 
   const deployHelper = await DeployHelper.initialize(null, true);
 
-  const tmpContractDeployments = new TempContractDeployments(
-    "./scripts/deployments_output/temp_deployments_output.json",
-  );
-
-  let verifierLib = await tmpContractDeployments.getContract(contractsInfo.VERIFIER_LIB.name);
-  if (verifierLib) {
-    Logger.warning(
-      `${contractsInfo.VERIFIER_LIB.name} found already deployed to:  ${await verifierLib?.getAddress()}`,
-    );
-  } else {
-    verifierLib = await deployHelper.deployVerifierLib();
-    const tx = await verifierLib.deploymentTransaction();
-    await waitNotToInterfereWithHardhatIgnition(tx);
-    tmpContractDeployments.addContract(
-      contractsInfo.VERIFIER_LIB.name,
-      await verifierLib.getAddress(),
-    );
-    await verifyContract(
-      await verifierLib.getAddress(),
-      contractsInfo.VERIFIER_LIB.verificationOpts,
-    );
-  }
-
   const universalVerifier = await deployHelper.deployUniversalVerifier(
     undefined,
     stateContractAddress,
-    await verifierLib.getAddress(),
     deployStrategy,
   );
-  tmpContractDeployments.remove();
 
   await verifyContract(
     await universalVerifier.getAddress(),
@@ -68,7 +40,6 @@ async function main() {
   const outputJson = {
     proxyAdminOwnerAddress: await signer.getAddress(),
     universalVerifier: await universalVerifier.getAddress(),
-    verifierLib: await verifierLib.getAddress(),
     state: stateContractAddress,
     network: networkName,
     chainId,
