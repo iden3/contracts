@@ -17,7 +17,9 @@ async function main() {
     validatorMTPAddr,
     validatorSigAddr,
     validatorV3Addr,
-    validatorAuthV2Addr;
+    validatorLmqAddr,
+    validatorAuthV2Addr,
+    validatorEthIdentityAddr;
 
   if (deployStrategy === "basic") {
     const uvDeployOutput = fs.readFileSync(
@@ -36,14 +38,25 @@ async function main() {
     );
     const { validatorsInfo } = JSON.parse(validatorsDeployOutput.toString());
     for (const v of validatorsInfo) {
-      if (v.validatorType === "mtpV2") {
-        validatorMTPAddr = v.validator;
-      } else if (v.validatorType === "sigV2") {
-        validatorSigAddr = v.validator;
-      } else if (v.validatorType === "v3") {
-        validatorV3Addr = v.validator;
-      } else if (v.validatorType === "authV2") {
-        validatorAuthV2Addr = v.validator;
+      switch (v.validatorType) {
+        case "mtpV2":
+          validatorMTPAddr = v.validator;
+          break;
+        case "sigV2":
+          validatorSigAddr = v.validator;
+          break;
+        case "v3":
+          validatorV3Addr = v.validator;
+          break;
+        case "lmq":
+          validatorLmqAddr = v.validator;
+          break;
+        case "authV2":
+          validatorAuthV2Addr = v.validator;
+          break;
+        case "ethIdentity":
+          validatorEthIdentityAddr = v.validator;
+          break;
       }
     }
   } else {
@@ -52,7 +65,9 @@ async function main() {
     validatorMTPAddr = contractsInfo.VALIDATOR_MTP.unifiedAddress;
     validatorSigAddr = contractsInfo.VALIDATOR_SIG.unifiedAddress;
     validatorV3Addr = contractsInfo.VALIDATOR_V3.unifiedAddress;
+    validatorLmqAddr = contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.unifiedAddress;
     validatorAuthV2Addr = contractsInfo.VALIDATOR_AUTH_V2.unifiedAddress;
+    validatorEthIdentityAddr = contractsInfo.VALIDATOR_ETH_IDENTITY.unifiedAddress;
   }
 
   const universalVerifier = await ethers.getContractAt(
@@ -62,7 +77,7 @@ async function main() {
 
   console.log("Adding validators to Universal Verifier...");
 
-  const validators = [
+  const requestValidators = [
     {
       validatorContractAddress: validatorMTPAddr,
       validatorContractName: contractsInfo.VALIDATOR_MTP.name,
@@ -76,12 +91,12 @@ async function main() {
       validatorContractName: contractsInfo.VALIDATOR_V3.name,
     },
     {
-      validatorContractAddress: validatorAuthV2Addr,
-      validatorContractName: contractsInfo.VALIDATOR_AUTH_V2.name,
+      validatorContractAddress: validatorLmqAddr,
+      validatorContractName: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
     },
   ];
 
-  for (const v of validators) {
+  for (const v of requestValidators) {
     const isWhitelisted = await universalVerifier.isWhitelistedValidator(
       v.validatorContractAddress,
     );
@@ -100,6 +115,38 @@ async function main() {
       Logger.warning(
         `Validator ${v.validatorContractName} (${v.validatorContractAddress}) is already whitelisted`,
       );
+    }
+  }
+
+  const authValidators = [
+    {
+      authMethod: "authV2",
+      authValidatorAddress: validatorAuthV2Addr,
+    },
+    {
+      authMethod: "ethIdentity",
+      authValidatorAddress: validatorEthIdentityAddr,
+    },
+  ];
+
+  for (const v of authValidators) {
+    console.log(
+      `Setting auth method ${v.authMethod}: AuthValidator address (${v.authValidatorAddress})...`,
+    );
+    try {
+      const setAuthMethodTx = await universalVerifier.connect(signer).setAuthMethod({
+        authMethod: v.authMethod,
+        validator: v.authValidatorAddress,
+        params: "0x",
+      });
+      await setAuthMethodTx.wait();
+      Logger.success(
+        `Auth method ${v.authMethod}: AuthValidator address (${v.authValidatorAddress}) set`,
+      );
+    } catch (error) {
+      if (error.message.includes("AuthMethodAlreadyExists")) {
+        Logger.warning(`Auth method ${v.authMethod} already set`);
+      } else throw error;
     }
   }
 }

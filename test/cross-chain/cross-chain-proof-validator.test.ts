@@ -92,9 +92,9 @@ describe("State Cross Chain", function () {
     };
 
     const proof = await packIdentityStateUpdateWithSignature(ism, signer);
-    await expect(crossChainProofValidator.processIdentityStateProof(proof)).to.be.rejectedWith(
-      "Oracle timestamp cannot be in the past",
-    );
+    await expect(
+      crossChainProofValidator.processIdentityStateProof(proof),
+    ).to.be.revertedWithCustomError(crossChainProofValidator, "OracleTimestampCannotBeInThePast");
   });
 
   it("Oracle replacedAtTimestamp or oracle timestamp cannot be in the future", async function () {
@@ -108,8 +108,11 @@ describe("State Cross Chain", function () {
     };
 
     let proof = await packGlobalStateUpdateWithSignature(gsm, signer);
-    await expect(crossChainProofValidator.processGlobalStateProof(proof)).to.be.rejectedWith(
-      "Oracle replacedAtTimestamp or oracle timestamp cannot be in the future",
+    await expect(
+      crossChainProofValidator.processGlobalStateProof(proof),
+    ).to.be.revertedWithCustomError(
+      crossChainProofValidator,
+      "OracleReplacedAtTimestampCannotBeInTheFuture",
     );
 
     const ism: IdentityStateMessage = {
@@ -120,8 +123,11 @@ describe("State Cross Chain", function () {
     };
 
     proof = await packIdentityStateUpdateWithSignature(ism, signer);
-    await expect(crossChainProofValidator.processIdentityStateProof(proof)).to.be.rejectedWith(
-      "Oracle replacedAtTimestamp or oracle timestamp cannot be in the future",
+    await expect(
+      crossChainProofValidator.processIdentityStateProof(proof),
+    ).to.be.revertedWithCustomError(
+      crossChainProofValidator,
+      "OracleReplacedAtTimestampCannotBeInTheFuture",
     );
   });
 
@@ -136,8 +142,11 @@ describe("State Cross Chain", function () {
     };
 
     let proof = await packGlobalStateUpdateWithSignature(gsm, signer, true);
-    await expect(crossChainProofValidator.processGlobalStateProof(proof)).to.be.rejectedWith(
-      "Global state proof signing address is not valid",
+    await expect(
+      crossChainProofValidator.processGlobalStateProof(proof),
+    ).to.be.revertedWithCustomError(
+      crossChainProofValidator,
+      "GlobalStateProofSigningAddressInvalid",
     );
 
     const ism: IdentityStateMessage = {
@@ -148,8 +157,11 @@ describe("State Cross Chain", function () {
     };
 
     proof = await packIdentityStateUpdateWithSignature(ism, signer, true);
-    await expect(crossChainProofValidator.processIdentityStateProof(proof)).to.be.rejectedWith(
-      "Identity state proof signing address is not valid",
+    await expect(
+      crossChainProofValidator.processIdentityStateProof(proof),
+    ).to.be.revertedWithCustomError(
+      crossChainProofValidator,
+      "IdentityStateProofSigningAddressInvalid",
     );
   });
 
@@ -164,9 +176,9 @@ describe("State Cross Chain", function () {
     };
 
     let proof = await packGlobalStateUpdateWithSignature(gsm, signer, false, true);
-    await expect(crossChainProofValidator.processGlobalStateProof(proof)).to.be.rejectedWith(
-      "Global state proof is not valid",
-    );
+    await expect(
+      crossChainProofValidator.processGlobalStateProof(proof),
+    ).to.be.revertedWithCustomError(crossChainProofValidator, "GlobalStateProofInvalid");
 
     const ism: IdentityStateMessage = {
       timestamp: currentTimestamp,
@@ -176,9 +188,9 @@ describe("State Cross Chain", function () {
     };
 
     proof = await packIdentityStateUpdateWithSignature(ism, signer, false, true);
-    await expect(crossChainProofValidator.processIdentityStateProof(proof)).to.be.rejectedWith(
-      "Identity state proof is not valid",
-    );
+    await expect(
+      crossChainProofValidator.processIdentityStateProof(proof),
+    ).to.be.revertedWithCustomError(crossChainProofValidator, "IdentityStateProofInvalid");
   });
 });
 

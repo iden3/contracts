@@ -12,7 +12,7 @@ index caf192d..6e992c0 100644
 +            try {
 +                accounts = (await this._wrappedProvider.request(args));
 +            } catch (error) {
-+                if (error.message.includes("the method has been deprecated: eth_accounts")) {
++                if (error.message.includes("eth_accounts")) {
 +                    accounts = [];
 +                } else {
 +                    throw error;

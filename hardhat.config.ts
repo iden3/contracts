@@ -42,8 +42,85 @@ const config: HardhatUserConfig = {
         version: "0.8.27",
       },
     ],
+    overrides: {
+      "contracts/verifiers/UniversalVerifier.sol": {
+        version: "0.8.27",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 80,
+          },
+        },
+      },
+      "contracts/test-helpers/VerifierTestWrapper.sol": {
+        version: "0.8.27",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      "contracts/test-helpers/EmbeddedVerifierWrapper.sol": {
+        version: "0.8.27",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      "contracts/test-helpers/RequestDisableableTestWrapper.sol": {
+        version: "0.8.27",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      "contracts/test-helpers/RequestOwnershipTestWrapper.sol": {
+        version: "0.8.27",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      "contracts/test-helpers/ValidatorWhitelistTestWrapper.sol": {
+        version: "0.8.27",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      "contracts/state/State.sol": {
+        version: "0.8.27",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+    },
   },
   networks: {
+    "billions-main": {
+      chainId: 45056,
+      url: `${process.env.BILLIONS_MAIN_RPC_URL}`,
+      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+    },
+    "billions-test": {
+      chainId: 6913,
+      url: `${process.env.BILLIONS_TEST_RPC_URL}`,
+      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+    },
     "privado-main": {
       chainId: 21000,
       url: `${process.env.PRIVADO_MAIN_RPC_URL}`,
@@ -163,7 +240,6 @@ const config: HardhatUserConfig = {
         //      -> In our case f4179bc3e4988a1a06f8d1
       },
     },
-    requiredConfirmations: 5,
   },
 
   etherscan: {
@@ -176,8 +252,26 @@ const config: HardhatUserConfig = {
       "linea-sepolia": process.env.LINEA_EXPLORER_API_KEY || "",
       "zkevm-cardona": process.env.ZKEVM_EXPLORER_API_KEY || "",
       "zkevm-mainnet": process.env.ZKEVM_EXPLORER_API_KEY || "",
+      "billions-test": "test",
+      "billions-main": "main",
     },
     customChains: [
+      {
+        network: "billions-test",
+        chainId: 6913,
+        urls: {
+          apiURL: "https://billions-testnet-blockscout.eu-north-2.gateway.fm/api/",
+          browserURL: "https://docs.blockscout.com",
+        },
+      },
+      {
+        network: "billions-main",
+        chainId: 45056,
+        urls: {
+          apiURL: "https://billions-main-blockscout.eu-north-2.gateway.fm/api/",
+          browserURL: "https://docs.blockscout.com",
+        },
+      },
       {
         network: "polygon-amoy",
         chainId: 80002,

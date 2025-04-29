@@ -626,7 +626,7 @@ describe("Genesis state doens't have history of states", () => {
         await identity.getRootsByState(latestState);
         expect.fail("The transaction should have thrown an error");
       } catch (err: any) {
-        expect(err.message).to.include("Roots for this state doesn't exist");
+        expect(err.message).to.include("RootsForThisStateDoesntExist");
       }
     });
   });

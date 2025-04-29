@@ -1,5 +1,5 @@
 import { ethers, ignition } from "hardhat";
-import { Create2AddressAnchorModule } from "../../ignition/modules/crate2AddressAnchor";
+import { Create2AddressAnchorModule } from "../../ignition/modules/create2AddressAnchor";
 import { contractsInfo } from "../../helpers/constants";
 
 async function main() {

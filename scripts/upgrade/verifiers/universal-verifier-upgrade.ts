@@ -123,16 +123,8 @@ async function main() {
     expect(await universalVerifierContract.isWhitelistedValidator(validator)).to.equal(true);
   }
 
-  const verifierLib = await deployerHelper.deployVerifierLib();
-  const txVerifLib = await verifierLib.deploymentTransaction();
-  await waitNotToInterfereWithHardhatIgnition(txVerifLib);
-
-  await verifyContract(await verifierLib.getAddress(), contractsInfo.VERIFIER_LIB.verificationOpts);
-
   // **** Upgrade Universal Verifier ****
-  await universalVerifierMigrationHelper.upgradeContract(universalVerifierContract, {
-    verifierLibAddress: await verifierLib.getAddress(),
-  });
+  await universalVerifierMigrationHelper.upgradeContract(universalVerifierContract);
   // ************************
   console.log("Checking data after upgrade");
 
@@ -217,7 +209,6 @@ async function main() {
   const outputJson = {
     proxyAdminOwnerAddress: await proxyAdminOwnerSigner.getAddress(),
     universalVerifier: await universalVerifierContract.getAddress(),
-    verifierLib: await verifierLib.getAddress(),
     state: stateContractAddress,
     network: network,
     chainId,

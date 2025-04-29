@@ -4,6 +4,8 @@ pragma solidity 0.8.27;
 import {ReverseHashLib} from "../lib/ReverseHashLib.sol";
 import {PoseidonUnit2L, PoseidonUnit3L} from "../lib/Poseidon.sol";
 
+error UnsupportedLength();
+
 contract ReverseHashWrapper {
     using ReverseHashLib for ReverseHashLib.Data;
 
@@ -28,6 +30,6 @@ contract ReverseHashWrapper {
         if (preimage.length == 3) {
             return PoseidonUnit3L.poseidon([preimage[0], preimage[1], preimage[2]]);
         }
-        revert("Unsupported length");
+        revert UnsupportedLength();
     }
 }
