@@ -56,7 +56,7 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // ethereum sepolia
-  .set(6912, {
+  .set(45056, {
     idType: "0x01B1",
     networkType: "main",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
@@ -90,6 +90,8 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
 export const networks = Object.freeze({
   PRIVADO_TEST: { name: "Privado Test", chainId: 21001 },
   PRIVADO_MAIN: { name: "Privado Main", chainId: 21000 },
+  BILLIONS_TEST: { name: "Billions Test", chainId: 6913 },
+  BILLIONS_MAIN: { name: "Billions Main", chainId: 45056 },
   POLYGON_AMOY: { name: "Polygon Amoy", chainId: 80002 },
   POLYGON_MAINNET: { name: "Polygon Mainnet", chainId: 137 },
   ETHEREUM_SEPOLIA: { name: "Ethereum Sepolia", chainId: 11155111 },
