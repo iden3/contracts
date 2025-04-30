@@ -203,6 +203,18 @@ function getParamsFromChainId(chainId: number) {
       blockchain = Blockchain.Privado;
       networkId = NetworkId.Test;
       break;
+    case 45056:
+      rpcUrl = process.env.BILLIONS_MAIN_RPC_URL as string;
+      method = DidMethod.Iden3;
+      blockchain = Blockchain.Billions;
+      networkId = NetworkId.Main;
+      break;
+    case 6913:
+      rpcUrl = process.env.BILLIONS_TEST_RPC_URL as string;
+      method = DidMethod.Iden3;
+      blockchain = Blockchain.Billions;
+      networkId = NetworkId.Test;
+      break;
     default:
       throw new Error(`Unsupported chainId: ${chainId}`);
   }

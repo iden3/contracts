@@ -109,18 +109,6 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
-    "billions-main": {
-      chainId: 45056,
-      url: `${process.env.BILLIONS_MAIN_RPC_URL}`,
-      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
-    },
-    "billions-test": {
-      chainId: 6913,
-      url: `${process.env.BILLIONS_TEST_RPC_URL}`,
-      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
-    },
     "privado-main": {
       chainId: 21000,
       url: `${process.env.PRIVADO_MAIN_RPC_URL}`,
@@ -130,6 +118,18 @@ const config: HardhatUserConfig = {
     "privado-test": {
       chainId: 21001,
       url: `${process.env.PRIVADO_TEST_RPC_URL}`,
+      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+    },
+    "billions-main": {
+      chainId: 45056,
+      url: `${process.env.BILLIONS_MAIN_RPC_URL}`,
+      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+    },
+    "billions-test": {
+      chainId: 6913,
+      url: `${process.env.BILLIONS_TEST_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
