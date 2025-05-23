@@ -6,6 +6,7 @@ import { buildVerifierId, byteEncoder, CircuitId, Operators } from "@0xpolygonid
 import { contractsInfo } from "../../helpers/constants";
 import { Hex } from "@iden3/js-crypto";
 import { getChainId } from "../../helpers/helperUtils";
+import { calculateRequestID } from "../../test/utils/id-calculation-utils";
 
 export function getAuthV2RequestId(): number {
   const circuitHash = ethers.keccak256(byteEncoder.encode(CircuitId.AuthV2));
@@ -16,24 +17,27 @@ export function getAuthV2RequestId(): number {
 
 async function main() {
   const circuitName: CircuitId = CircuitId.AtomicQueryV3OnChain; // TODO put your circuit here;
-  let requestId = 117; // TODO put your request here;
+  let requestId: bigint = 117n; // TODO put your request here;
   const allowedIssuers = []; // TODO put your allowed issuers here
+  // TODO put your verifier address here
+  const universalVerifierAddress = "0xDc74b7a576625cc777DEcdae623567Efaa834e6C"; //contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
 
   const chainId = await getChainId();
   const network = hre.network.name;
 
-  const methodId = "ade09fcd";
+  const methodId = "06c86a91"; // submitResponse
 
   const verifier = await ethers.getContractAt(
     contractsInfo.UNIVERSAL_VERIFIER.name,
-    contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
+    universalVerifierAddress,
   );
 
   const verifierId = buildVerifierId(await verifier.getAddress(), {
-    blockchain: Blockchain.Polygon,
-    networkId: NetworkId.Amoy,
+    blockchain: Blockchain.Privado,
+    networkId: NetworkId.Main,
     method: DidMethod.Iden3,
   });
+  const [signer] = await ethers.getSigners();
 
   // you can run https://go.dev/play/p/oB_oOW7kBEw to get schema hash and claimPathKey using YOUR schema
   const schemaBigInt = "74977327600848231385663280181476307657";
@@ -84,7 +88,8 @@ async function main() {
       data = packValidatorParams(query);
       break;
     case CircuitId.AtomicQueryV3OnChain:
-      validatorAddress = contractsInfo.VALIDATOR_V3.unifiedAddress;
+      // TODO put your V3 validator address here
+      validatorAddress = "0x9941F1FdA211e3E77A12b276519904630aB92d97"; //contractsInfo.VALIDATOR_V3.unifiedAddress;
       query = {
         ...query,
         allowedIssuers: allowedIssuers,
@@ -107,6 +112,8 @@ async function main() {
         query.nullifierSessionID,
       ).toString();
       data = packV3ValidatorParams(query);
+      requestId = calculateRequestID(data, await signer.getAddress());
+      query.requestId = requestId;
 
       break;
 
@@ -126,7 +133,7 @@ async function main() {
     thid: "7f38a193-0918-4a48-9fac-36adfdb8b543",
     from: DID.parseFromId(verifierId).string(),
     body: {
-      reason: "for testing submitZKPResponseV2",
+      reason: "for testing submitResponse",
       transaction_data: {
         contract_address: await verifier.getAddress(),
         method_id: methodId,
@@ -135,7 +142,7 @@ async function main() {
       },
       scope: [
         {
-          id: requestId,
+          id: requestId.toString(),
           circuitId: circuitName,
           query: {
             allowedIssuers: !allowedIssuers.length ? ["*"] : allowedIssuers,
@@ -156,18 +163,23 @@ async function main() {
   const requestIdExists = await verifier.requestIdExists(requestId);
   if (requestIdExists) {
     throw new Error(`Request ID: ${requestId} already exists`);
+  } else {
+    console.log(`Request ID to create: ${requestId}`);
   }
 
-  const tx = await verifier.setZKPRequest(
-    requestId,
-    {
-      metadata:
-        circuitName === CircuitId.AuthV2
-          ? "0x"
-          : JSON.stringify(invokeRequestMetadataKYCAgeCredential),
-      validator: validatorAddress,
-      data,
-    },
+  const tx = await verifier.setRequests(
+    [
+      {
+        requestId: requestId.toString(),
+        metadata:
+          circuitName === CircuitId.AuthV2
+            ? "0x"
+            : JSON.stringify(invokeRequestMetadataKYCAgeCredential),
+        validator: validatorAddress,
+        owner: await signer.getAddress(),
+        params: data,
+      },
+    ],
     // {
     //   gasPrice: 50000000000,
     //   initialBaseFeePerGas: 25000000000,
