@@ -213,7 +213,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             _checkRequestIdCorrectness(
                 requests[i].requestId,
                 requests[i].params,
-                requests[i].owner
+                requests[i].creator
             );
 
             _checkNullifierSessionIdUniqueness(requests[i]);
@@ -348,7 +348,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             // Check if userID from authResponse is the same as the one in the signals
             _checkUserIDMatch(userIDFromAuthResponse, signals);
 
-            _writeProofResults(response.requestId, request, sender, signals);
+            _writeProofResults(response.requestId, sender, signals);
 
             if (response.metadata.length > 0) {
                 revert MetadataNotSupportedYet();
@@ -1015,7 +1015,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      */
     function _writeProofResults(
         uint256 requestId,
-        IVerifier.RequestData storage request,
         address sender,
         IRequestValidator.ResponseField[] memory responseFields
     ) internal {
@@ -1036,8 +1035,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                 revert ResponseFieldAlreadyExists(responseFields[i].name);
             }
         }
-
-        uint256 groupID = request.validator.getRequestParam(request.params, "groupID").value;
 
         proof.isVerified = true;
         proof.validatorVersion = s._requests[requestId].validator.version();

@@ -10,18 +10,19 @@ import {IRequestValidator} from "./IRequestValidator.sol";
  */
 interface IVerifier {
     /**
-     * @dev Request. Structure for request.
+     * @dev Request. Structure for setting request.
      * @param requestId Request id.
      * @param metadata Metadata of the request.
      * @param validator Validator to verify the response.
      * @param params Parameters data of the request.
+     * @param creator Creator of the request.
      */
     struct Request {
         uint256 requestId;
         string metadata;
         IRequestValidator validator;
         bytes params;
-        address owner;
+        address creator;
     }
 
     /**
@@ -29,6 +30,7 @@ interface IVerifier {
      * @param metadata Metadata of the request.
      * @param validator Validator circuit.
      * @param params Params of the request. Proof parameters could be ZK groth16, plonk, ESDSA, EIP712, etc.
+     * @param creator Creator of the request.
      */
     struct RequestData {
         string metadata;
@@ -38,13 +40,12 @@ interface IVerifier {
     }
 
     /**
-     * @dev RequestInfo. Structure for request info.
+     * @dev RequestInfo. Structure for getting request info.
      * @param requestId Request id.
      * @param metadata Metadata of the request.
      * @param validator Validator to verify the response.
      * @param params Parameters data of the request.
      * @param creator Creator of the request.
-     * @param verifierId Verifier id.
      */
     struct RequestInfo {
         uint256 requestId;
