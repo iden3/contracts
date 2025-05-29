@@ -40,7 +40,7 @@ contract UniversalVerifier is
      */
     event RequestSet(
         uint256 indexed requestId,
-        address indexed requestOwner,
+        address indexed creator,
         string metadata,
         address validator,
         bytes params
@@ -56,7 +56,7 @@ contract UniversalVerifier is
      */
     event RequestUpdate(
         uint256 indexed requestId,
-        address indexed requestOwner,
+        address indexed creator,
         string metadata,
         address validator,
         bytes params
@@ -110,7 +110,7 @@ contract UniversalVerifier is
 
         emit RequestUpdate(
             request.requestId,
-            _msgSender(),
+            request.creator,
             request.metadata,
             address(request.validator),
             request.params
