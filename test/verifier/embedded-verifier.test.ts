@@ -38,7 +38,7 @@ describe("EmbeddedVerifier tests", function () {
       requestId: 0,
       metadata: "0x",
       validator: await validator.getAddress(),
-      owner: signer.address,
+      creator: signer.address,
       params: "0x",
     };
 

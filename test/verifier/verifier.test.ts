@@ -54,7 +54,7 @@ describe("Verifier tests", function () {
         requestId: 1,
         metadata: "0x",
         validator: await validator1.getAddress(),
-        owner: await sender.getAddress(),
+        creator: await sender.getAddress(),
         params: "0x",
       };
 
@@ -133,13 +133,13 @@ describe("Verifier tests", function () {
 
       await expect(verifier.connect(requestOwner).setRequests([request]))
         .to.be.revertedWithCustomError(verifier, "InvalidRequestOwner")
-        .withArgs(request.owner, await requestOwner.getAddress());
+        .withArgs(request.creator, await requestOwner.getAddress());
 
       // Request owner the same as the sender
       const request3 = {
         ...request,
         requestId: request.requestId + 1,
-        owner: await requestOwner.getAddress(),
+        creator: await requestOwner.getAddress(),
       };
       await expect(verifier.connect(requestOwner).setRequests([request3])).not.to.be.reverted;
     });
@@ -461,7 +461,7 @@ describe("Verifier tests", function () {
         requestId: 1,
         metadata: "0x",
         validator: await validator1.getAddress(),
-        owner: await sender.getAddress(),
+        creator: await sender.getAddress(),
         params: "0x",
       };
 
