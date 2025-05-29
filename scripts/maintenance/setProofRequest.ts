@@ -17,10 +17,10 @@ export function getAuthV2RequestId(): number {
 
 async function main() {
   const circuitName: CircuitId = CircuitId.AtomicQueryV3OnChain; // TODO put your circuit here;
-  let requestId: bigint = 117n; // TODO put your request here;
+  let requestId: bigint;
   const allowedIssuers = []; // TODO put your allowed issuers here
   // TODO put your verifier address here
-  const universalVerifierAddress = "0xDc74b7a576625cc777DEcdae623567Efaa834e6C"; //contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
+  const universalVerifierAddress = contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress;
 
   const chainId = await getChainId();
   const network = hre.network.name;
@@ -47,7 +47,6 @@ async function main() {
     "20376033832371109177683048456014525905119173674985843915445634726167450989630";
 
   let query: any = {
-    requestId: requestId,
     schema: schemaBigInt,
     claimPathKey: schemaClaimPathKey,
     operator: Operators.NE,
@@ -63,6 +62,7 @@ async function main() {
   let data: string;
   switch (circuitName) {
     case CircuitId.AtomicQueryMTPV2OnChain:
+      // TODO put your V2 MTP validator address here
       validatorAddress = contractsInfo.VALIDATOR_MTP.unifiedAddress;
       query.queryHash = calculateQueryHashV2(
         query.value,
@@ -73,9 +73,11 @@ async function main() {
         query.claimPathNotExists,
       ).toString();
       data = packValidatorParams(query);
-
+      requestId = calculateRequestID(data, await signer.getAddress());
+      query.requestId = requestId;
       break;
     case CircuitId.AtomicQuerySigV2OnChain:
+      // TODO put your V2 Sig validator address here
       validatorAddress = contractsInfo.VALIDATOR_SIG.unifiedAddress;
       query.queryHash = calculateQueryHashV2(
         query.value,
@@ -86,10 +88,12 @@ async function main() {
         query.claimPathNotExists,
       ).toString();
       data = packValidatorParams(query);
+      requestId = calculateRequestID(data, await signer.getAddress());
+      query.requestId = requestId;
       break;
     case CircuitId.AtomicQueryV3OnChain:
       // TODO put your V3 validator address here
-      validatorAddress = "0x9941F1FdA211e3E77A12b276519904630aB92d97"; //contractsInfo.VALIDATOR_V3.unifiedAddress;
+      validatorAddress = contractsInfo.VALIDATOR_V3.unifiedAddress;
       query = {
         ...query,
         allowedIssuers: allowedIssuers,
@@ -114,9 +118,7 @@ async function main() {
       data = packV3ValidatorParams(query);
       requestId = calculateRequestID(data, await signer.getAddress());
       query.requestId = requestId;
-
       break;
-
     case CircuitId.AuthV2:
       validatorAddress = contractsInfo.VALIDATOR_AUTH_V2.unifiedAddress;
       data = "0x";
