@@ -243,7 +243,7 @@ contract UniversalVerifier is
         super._setRequest(request);
         emit RequestSet(
             request.requestId,
-            request.owner,
+            request.creator,
             request.metadata,
             address(request.validator),
             request.params

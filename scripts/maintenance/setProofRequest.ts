@@ -178,7 +178,7 @@ async function main() {
             ? "0x"
             : JSON.stringify(invokeRequestMetadataKYCAgeCredential),
         validator: validatorAddress,
-        owner: await signer.getAddress(),
+        creator: await signer.getAddress(),
         params: data,
       },
     ],

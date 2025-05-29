@@ -95,7 +95,7 @@ describe("Universal Verifier tests", function () {
         requestId: 0,
         metadata: "0x",
         validator: await validator.getAddress(),
-        owner: signer.address,
+        creator: signer.address,
         params: "0x",
       };
 
@@ -278,7 +278,7 @@ describe("Universal Verifier tests", function () {
       const requestOwnerAddr = await requestOwner.getAddress();
       const someSignerAddress = await someSigner.getAddress();
 
-      const request2 = { ...request, owner: requestOwnerAddr };
+      const request2 = { ...request, creator: requestOwnerAddr };
 
       await expect(verifier.getRequestOwner(request.requestId))
         .to.be.revertedWithCustomError(verifier, "RequestIdNotFound")
@@ -400,10 +400,10 @@ describe("Universal Verifier tests", function () {
 
       await expect(verifier.connect(requestOwner).setRequests([request]))
         .to.be.revertedWithCustomError(verifier, "InvalidRequestOwner")
-        .withArgs(request.owner, await requestOwner.getAddress());
+        .withArgs(request.creator, await requestOwner.getAddress());
 
       // Request owner different from the owner of the contract.
-      const request2 = { ...request, owner: await requestOwner.getAddress() };
+      const request2 = { ...request, creator: await requestOwner.getAddress() };
       // Owner of the contract is the sender to set the request with different owner
       await expect(verifier.connect(owner).setRequests([request2])).not.to.be.reverted;
 
@@ -411,7 +411,7 @@ describe("Universal Verifier tests", function () {
       const request3 = {
         ...request,
         requestId: request.requestId + 1,
-        owner: await requestOwner.getAddress(),
+        creator: await requestOwner.getAddress(),
       };
       await expect(verifier.connect(requestOwner).setRequests([request3])).not.to.be.reverted;
     });
@@ -421,7 +421,7 @@ describe("Universal Verifier tests", function () {
       const requestOwner = signer2;
       const requestId = 0;
 
-      const request2 = { ...request, owner: await requestOwner.getAddress() };
+      const request2 = { ...request, creator: await requestOwner.getAddress() };
       await verifier.connect(requestOwner).setRequests([request2]);
 
       let requestStored = await verifier.getRequest(requestId);
@@ -469,7 +469,7 @@ describe("Universal Verifier tests", function () {
         requestId: requestId,
         metadata: "0x",
         validator: await validator.getAddress(),
-        owner: signer.address,
+        creator: signer.address,
         params: "0x",
       };
       await validator.stub_setRequestParams([request.params], [paramsFromValidator]);

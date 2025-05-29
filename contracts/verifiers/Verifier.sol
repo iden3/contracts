@@ -653,8 +653,8 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     }
 
     function _checkRequestOwner(Request calldata request) internal virtual {
-        if (request.owner != _msgSender()) {
-            revert InvalidRequestOwner(request.owner, _msgSender());
+        if (request.creator != _msgSender()) {
+            revert InvalidRequestOwner(request.creator, _msgSender());
         }
     }
 

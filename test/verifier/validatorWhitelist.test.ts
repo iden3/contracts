@@ -28,7 +28,7 @@ describe("ValidatorWhitelist tests", function () {
       requestId: 1,
       metadata: "0x",
       validator: await validator.getAddress(),
-      owner: await signer1.getAddress(),
+      creator: await signer1.getAddress(),
       params: "0x",
     };
 
