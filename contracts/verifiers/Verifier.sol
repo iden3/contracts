@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.27;
 
+import {VerifierLib} from "../lib/VerifierLib.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
-import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
+import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {IAuthValidator} from "../interfaces/IAuthValidator.sol";
+import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
 import {IState} from "../interfaces/IState.sol";
 import {IVerifier} from "../interfaces/IVerifier.sol";
-import {GenesisUtils} from "../lib/GenesisUtils.sol";
 
 error AuthMethodNotFound(string authMethod);
 error AuthMethodAlreadyExists(string authMethod);
@@ -1054,29 +1055,11 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     ) internal {
         VerifierStorage storage s = _getVerifierStorage();
 
-        Proof storage proof = s._proofs[requestId][sender];
-        if (proof.isVerified) {
-            revert ProofAlreadyVerified(requestId, sender);
-        }
-        proof.isVerified = true;
-        proof.proofEntries.push();
-
-        ProofEntry storage proofEntry = proof.proofEntries[proof.proofEntries.length - 1];
-        proofEntry.validatorVersion = s._requests[requestId].validator.version();
-        proofEntry.blockTimestamp = block.timestamp;
-
-        for (uint256 i = 0; i < responseFields.length; i++) {
-            if (proofEntry.responseFieldIndexes[responseFields[i].name] != 0) {
-                revert ResponseFieldAlreadyExists(responseFields[i].name);
-            }
-
-            proofEntry.responseFields[responseFields[i].name] = responseFields[i].value;
-            proofEntry.responseFieldNames.push(responseFields[i].name);
-            // we are not using a real index defined by length-1 here but defined by just length
-            // which shifts the index by 1 to avoid 0 value
-            proofEntry.responseFieldIndexes[responseFields[i].name] = proofEntry
-                .responseFieldNames
-                .length;
-        }
+        return VerifierLib.writeProofResults(
+            s,
+            requestId,
+            sender,
+            responseFields
+        );
     }
 }

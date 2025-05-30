@@ -944,10 +944,15 @@ export class DeployHelper {
     if (!owner) {
       owner = this.signers[0];
     }
+
+    const verifierLib = await ethers.deployContract("VerifierLib");
     const UniversalVerifierFactory = await ethers.getContractFactory(
       contractsInfo.UNIVERSAL_VERIFIER.name,
       {
         signer: owner,
+        libraries: {
+          VerifierLib: await verifierLib.getAddress(),
+        },
       },
     );
     const Create2AddressAnchorFactory = await ethers.getContractFactory(

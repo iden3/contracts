@@ -12,7 +12,12 @@ describe("RequestOwnership tests", function () {
     [signer1, signer2] = await ethers.getSigners();
 
     const deployHelper = await DeployHelper.initialize(null, true);
-    const verifier = await ethers.deployContract("RequestOwnershipTestWrapper", []);
+    const verifierLib = await ethers.deployContract("VerifierLib");
+    const verifier = await ethers.deployContract("RequestOwnershipTestWrapper", [], {
+      libraries: {
+        VerifierLib: await verifierLib.getAddress(),
+      },
+    });
 
     const { state } = await deployHelper.deployStateWithLibraries([], "Groth16VerifierStub");
     await verifier.initialize(await state.getAddress());

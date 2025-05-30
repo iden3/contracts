@@ -103,7 +103,12 @@ describe("Verifier Integration test", async function () {
   async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
 
-    const verifier = await ethers.deployContract("VerifierTestWrapper", []);
+    const verifierLib = await ethers.deployContract("VerifierLib");
+    const verifier = await ethers.deployContract("VerifierTestWrapper", [], {
+      libraries: {
+        VerifierLib: await verifierLib.getAddress(),
+      },
+    });
 
     const deployHelper = await DeployHelper.initialize(null, true);
     const { state } = await deployHelper.deployStateWithLibraries(["0x0212"]);
