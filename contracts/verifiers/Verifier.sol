@@ -21,6 +21,8 @@ error MultiRequestIdNotFound(uint256 multiRequestId);
 error MultiRequestIdNotValid(uint256 expectedMultiRequestId, uint256 multiRequestId);
 error NullifierSessionIDAlreadyExists(uint256 nullifierSessionID);
 error ResponseFieldAlreadyExists(string responseFieldName);
+error ProofAlreadyVerified(uint256 requestId, address sender);
+error ProofIsNotVerified(uint256 requestId, address sender);
 error RequestIdAlreadyExists(uint256 requestId);
 error RequestIdNotFound(uint256 requestId);
 error RequestIdNotValid(uint256 expectedRequestId, uint256 requestId);
@@ -90,13 +92,17 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      */
     struct Proof {
         bool isVerified;
+        ProofEntry[] proofEntries;
+    }
+
+    struct ProofEntry {
         mapping(string key => uint256 inputValue) responseFields;
         string[] responseFieldNames;
         // introduce artificial shift + 1 to avoid 0 index
         mapping(string key => uint256 keyIndex) responseFieldIndexes;
         string validatorVersion;
         uint256 blockTimestamp;
-        uint256[44] __gap;
+        uint256[45] __gap;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.Verifier")) -1 )) & ~bytes32(uint256(0xff));
@@ -421,8 +427,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         address sender,
         string memory responseFieldName
     ) public view checkRequestExistence(requestId, true) returns (uint256) {
+        if (!isRequestProofVerified(sender, requestId)) {
+            revert ProofIsNotVerified(requestId, sender);
+        }
         VerifierStorage storage s = _getVerifierStorage();
-        return s._proofs[requestId][sender].responseFields[responseFieldName];
+        Proof storage proof = s._proofs[requestId][sender];
+        return proof.proofEntries[proof.proofEntries.length - 1].responseFields[responseFieldName];
     }
 
     /**
@@ -436,16 +446,17 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     ) public view returns (IRequestValidator.ResponseField[] memory) {
         VerifierStorage storage s = _getVerifierStorage();
         Proof storage proof = s._proofs[requestId][sender];
+        ProofEntry storage lastProofEntry = proof.proofEntries[proof.proofEntries.length - 1];
 
         IRequestValidator.ResponseField[]
             memory responseFields = new IRequestValidator.ResponseField[](
-                proof.responseFieldNames.length
+                lastProofEntry.responseFieldNames.length
             );
 
-        for (uint256 i = 0; i < proof.responseFieldNames.length; i++) {
+        for (uint256 i = 0; i < lastProofEntry.responseFieldNames.length; i++) {
             responseFields[i] = IRequestValidator.ResponseField({
-                name: proof.responseFieldNames[i],
-                value: proof.responseFields[proof.responseFieldNames[i]],
+                name: lastProofEntry.responseFieldNames[i],
+                value: lastProofEntry.responseFields[lastProofEntry.responseFieldNames[i]],
                 rawValue: ""
             });
         }
@@ -601,13 +612,14 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     {
         VerifierStorage storage s = _getVerifierStorage();
         Proof storage proof = s._proofs[requestId][sender];
+        ProofEntry storage lastProofEntry = proof.proofEntries[proof.proofEntries.length - 1];
 
         return
             IVerifier.RequestProofStatus(
                 requestId,
                 proof.isVerified,
-                proof.validatorVersion,
-                proof.blockTimestamp
+                lastProofEntry.validatorVersion,
+                lastProofEntry.blockTimestamp
             );
     }
 
@@ -936,13 +948,23 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         for (uint256 i = 0; i < multiRequest.requestIds.length; i++) {
             uint256 requestId = multiRequest.requestIds[i];
+            Proof storage proof = s._proofs[requestId][userAddress];
 
             requestProofStatus[i] = IVerifier.RequestProofStatus({
                 requestId: requestId,
-                isVerified: s._proofs[requestId][userAddress].isVerified,
-                validatorVersion: s._proofs[requestId][userAddress].validatorVersion,
-                timestamp: s._proofs[requestId][userAddress].blockTimestamp
+                isVerified: proof.isVerified,
+                validatorVersion: "",
+                timestamp: 0
             });
+
+            if (proof.isVerified) {
+                ProofEntry storage lastProofEntry = proof.proofEntries[
+                    proof.proofEntries.length - 1
+                ];
+
+                requestProofStatus[i].validatorVersion = lastProofEntry.validatorVersion;
+                requestProofStatus[i].timestamp = lastProofEntry.blockTimestamp;
+            }
         }
 
         for (uint256 i = 0; i < multiRequest.groupIds.length; i++) {
@@ -950,14 +972,26 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
             for (uint256 j = 0; j < s._groupedRequests[groupId].length; j++) {
                 uint256 requestId = s._groupedRequests[groupId][j];
+                Proof storage proof = s._proofs[requestId][userAddress];
 
                 requestProofStatus[multiRequest.requestIds.length + j] = IVerifier
                     .RequestProofStatus({
                         requestId: requestId,
-                        isVerified: s._proofs[requestId][userAddress].isVerified,
-                        validatorVersion: s._proofs[requestId][userAddress].validatorVersion,
-                        timestamp: s._proofs[requestId][userAddress].blockTimestamp
+                        isVerified: proof.isVerified,
+                        validatorVersion: "",
+                        timestamp: 0
                     });
+
+                if (proof.isVerified) {
+                    ProofEntry storage lastProofEntry = proof.proofEntries[
+                        proof.proofEntries.length - 1
+                    ];
+
+                    requestProofStatus[multiRequest.requestIds.length + j]
+                        .validatorVersion = lastProofEntry.validatorVersion;
+                    requestProofStatus[multiRequest.requestIds.length + j]
+                        .timestamp = lastProofEntry.blockTimestamp;
+                }
             }
         }
 
@@ -1019,25 +1053,30 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         IRequestValidator.ResponseField[] memory responseFields
     ) internal {
         VerifierStorage storage s = _getVerifierStorage();
-        Proof storage proof = s._proofs[requestId][sender];
 
-        // We only keep only 1 proof now without history. Prepared for the future if needed.
+        Proof storage proof = s._proofs[requestId][sender];
+        if (proof.isVerified) {
+            revert ProofAlreadyVerified(requestId, sender);
+        }
+        proof.isVerified = true;
+        proof.proofEntries.push();
+
+        ProofEntry storage proofEntry = proof.proofEntries[proof.proofEntries.length - 1];
+        proofEntry.validatorVersion = s._requests[requestId].validator.version();
+        proofEntry.blockTimestamp = block.timestamp;
+
         for (uint256 i = 0; i < responseFields.length; i++) {
-            if (proof.responseFieldIndexes[responseFields[i].name] == 0) {
-                proof.responseFields[responseFields[i].name] = responseFields[i].value;
-                proof.responseFieldNames.push(responseFields[i].name);
-                // we are not using a real index defined by length-1 here but defined by just length
-                // which shifts the index by 1 to avoid 0 value
-                proof.responseFieldIndexes[responseFields[i].name] = proof
-                    .responseFieldNames
-                    .length;
-            } else {
+            if (proofEntry.responseFieldIndexes[responseFields[i].name] != 0) {
                 revert ResponseFieldAlreadyExists(responseFields[i].name);
             }
-        }
 
-        proof.isVerified = true;
-        proof.validatorVersion = s._requests[requestId].validator.version();
-        proof.blockTimestamp = block.timestamp;
+            proofEntry.responseFields[responseFields[i].name] = responseFields[i].value;
+            proofEntry.responseFieldNames.push(responseFields[i].name);
+            // we are not using a real index defined by length-1 here but defined by just length
+            // which shifts the index by 1 to avoid 0 value
+            proofEntry.responseFieldIndexes[responseFields[i].name] = proofEntry
+                .responseFieldNames
+                .length;
+        }
     }
 }
