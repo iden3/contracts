@@ -17,13 +17,13 @@ describe("Verifier tests", function () {
   let signerAddress: string;
   let verifierId: any;
 
-  async function deployContractsFixture() {
+  async function deployContractsFixture(verifierContractName: string = "VerifierTestWrapper") {
     [signer] = await ethers.getSigners();
     signerAddress = await signer.getAddress();
 
     const deployHelper = await DeployHelper.initialize(null, true);
     const verifierLib = await ethers.deployContract("VerifierLib");
-    const verifier = await ethers.deployContract("VerifierTestWrapper", [], {
+    const verifier = await ethers.deployContract(verifierContractName, [], {
       libraries: {
         VerifierLib: await verifierLib.getAddress(),
       },
@@ -763,6 +763,50 @@ describe("Verifier tests", function () {
         signerAddress,
       );
       expect(areMultiRequestProofsVerified).to.be.true;
+    });
+  });
+
+  describe("VerifierTestWrapper_ManyResponsesPerUserAndRequest test", function () {
+    beforeEach(async function () {
+      [sender] = await ethers.getSigners();
+      ({ verifier, verifierLib, validator1 } = await deployContractsFixture(
+        "VerifierTestWrapper_ManyResponsesPerUserAndRequest",
+      ));
+
+      request = {
+        requestId: 1,
+        metadata: "0x",
+        validator: await validator1.getAddress(),
+        creator: await sender.getAddress(),
+        params: "0x",
+      };
+
+      paramsFromValidator = [
+        { name: "groupID", value: 0 },
+        { name: "verifierID", value: 0 },
+        { name: "nullifierSessionID", value: 0 },
+      ];
+    });
+
+    it("can submit more than one proof per address and request in verifier wrapper", async function () {
+      await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator1.stub_setInput("userID", 1);
+      await verifier.setRequests([request]);
+
+      const authResponse = {
+        authMethod: authMethod.authMethod,
+        proof: "0x",
+      };
+      const response1 = {
+        requestId: request.requestId,
+        proof: "0x",
+        metadata: "0x",
+      };
+      const crossChainProofs = "0x";
+
+      await verifier.submitResponse(authResponse, [response1], crossChainProofs);
+      await expect(verifier.submitResponse(authResponse, [response1], crossChainProofs)).not.to.be
+        .reverted;
     });
   });
 });

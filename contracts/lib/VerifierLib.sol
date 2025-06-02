@@ -12,9 +12,6 @@ library VerifierLib {
         IRequestValidator.ResponseField[] memory responseFields
     ) external {
         Verifier.Proof storage proof = self._proofs[requestId][sender];
-        if (proof.isVerified) {
-            revert ProofAlreadyVerified(requestId, sender);
-        }
         proof.isVerified = true;
         proof.proofEntries.push();
 
