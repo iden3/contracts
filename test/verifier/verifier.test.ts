@@ -455,6 +455,31 @@ describe("Verifier tests", function () {
         .to.revertedWithCustomError(verifier, "UserIDMismatch")
         .withArgs(1, 2);
     });
+
+    it("can't submit more that one response for the same requestId", async function () {
+      await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator1.stub_setInput("userID", 1);
+      await verifier.setRequests([request]);
+
+      const authResponse = {
+        authMethod: authMethod.authMethod,
+        proof: "0x",
+      };
+
+      const response = {
+        requestId: request.requestId,
+        proof: "0x",
+        metadata: "0x",
+      };
+
+      const crossChainProofs = "0x";
+
+      await verifier.submitResponse(authResponse, [response], crossChainProofs);
+
+      await expect(verifier.submitResponse(authResponse, [response], crossChainProofs))
+        .to.be.revertedWithCustomError(verifier, "ProofAlreadyVerified")
+        .withArgs(request.requestId, sender.address);
+    });
   });
 
   describe("Multi request tests", function () {
