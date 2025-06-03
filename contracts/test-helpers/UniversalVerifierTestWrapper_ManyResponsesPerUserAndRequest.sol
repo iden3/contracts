@@ -6,7 +6,7 @@ import {UniversalVerifier} from "../verifiers/UniversalVerifier.sol";
 
 contract UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest is UniversalVerifier {
     function _checkCanWriteProofResults(
-        uint256, /* requestId */
+        uint256 /* requestId */,
         address /* caller */
     ) internal view override {
         // Allow all writes for testing purposes

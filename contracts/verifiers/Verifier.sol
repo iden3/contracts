@@ -355,11 +355,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             // Check if userID from authResponse is the same as the one in the signals
             _checkUserIDMatch(userIDFromAuthResponse, signals);
 
-            _writeProofResults(
-                response.requestId,
-                sender,
-                signals
-            );
+            _writeProofResults(response.requestId, sender, signals);
 
             if (response.metadata.length > 0) {
                 revert MetadataNotSupportedYet();
@@ -930,10 +926,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         return true;
     }
 
-    function _checkCanWriteProofResults(
-        uint256 requestId,
-        address sender
-    ) internal virtual view {
+    function _checkCanWriteProofResults(uint256 requestId, address sender) internal view virtual {
         VerifierStorage storage s = _getVerifierStorage();
         Proof storage proof = s._proofs[requestId][sender];
 
@@ -1072,11 +1065,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         VerifierStorage storage s = _getVerifierStorage();
         _checkCanWriteProofResults(requestId, sender);
 
-        return VerifierLib.writeProofResults(
-            s,
-            requestId,
-            sender,
-            responseFields
-        );
+        return VerifierLib.writeProofResults(s, requestId, sender, responseFields);
     }
 }
