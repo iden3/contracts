@@ -940,21 +940,18 @@ export class DeployHelper {
     owner: SignerWithAddress | undefined,
     stateAddr: string,
     deployStrategy: "basic" | "create2" = "basic",
+    verifierContractName: string = contractsInfo.UNIVERSAL_VERIFIER.name,
   ): Promise<Contract> {
     if (!owner) {
       owner = this.signers[0];
     }
-
     const verifierLib = await ethers.deployContract("VerifierLib");
-    const UniversalVerifierFactory = await ethers.getContractFactory(
-      contractsInfo.UNIVERSAL_VERIFIER.name,
-      {
-        signer: owner,
-        libraries: {
-          VerifierLib: await verifierLib.getAddress(),
-        },
+    const UniversalVerifierFactory = await ethers.getContractFactory(verifierContractName, {
+      signer: owner,
+      libraries: {
+        VerifierLib: await verifierLib.getAddress(),
       },
-    );
+    });
     const Create2AddressAnchorFactory = await ethers.getContractFactory(
       contractsInfo.CREATE2_ADDRESS_ANCHOR.name,
     );
@@ -965,7 +962,7 @@ export class DeployHelper {
     if (deployStrategy === "create2") {
       this.log("deploying with CREATE2 strategy...");
 
-      universalVerifier = await getUnifiedContract(contractsInfo.UNIVERSAL_VERIFIER.name);
+      universalVerifier = await getUnifiedContract(verifierContractName);
       if (universalVerifier) {
         let version;
         try {
@@ -979,7 +976,7 @@ export class DeployHelper {
 
         if (version) {
           Logger.warning(
-            `${contractsInfo.UNIVERSAL_VERIFIER.name} found already deployed to:  ${await universalVerifier?.getAddress()}`,
+            `${verifierContractName} found already deployed to:  ${await universalVerifier?.getAddress()}`,
           );
           return universalVerifier;
         }
@@ -1031,9 +1028,7 @@ export class DeployHelper {
     }
 
     await universalVerifier.waitForDeployment();
-    Logger.success(
-      `${contractsInfo.UNIVERSAL_VERIFIER.name} deployed to: ${await universalVerifier.getAddress()}`,
-    );
+    Logger.success(`${verifierContractName} deployed to: ${await universalVerifier.getAddress()}`);
 
     return universalVerifier;
   }

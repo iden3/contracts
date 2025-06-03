@@ -25,6 +25,7 @@ async function main() {
     undefined,
     stateContractAddress,
     deployStrategy,
+    // "UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest",
   );
 
   await verifyContract(
