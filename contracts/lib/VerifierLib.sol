@@ -2,13 +2,43 @@
 pragma solidity ^0.8.10;
 
 import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
-import {Verifier, ResponseFieldAlreadyExists} from "../verifiers/Verifier.sol";
+import {Verifier, ResponseFieldAlreadyExists, ResponseFieldDoesNotExist} from "../verifiers/Verifier.sol";
+import {RequestIdNotFound, ProofIsNotVerified, ProofAlreadyVerified} from "../verifiers/Verifier.sol";
+import {IVerifier} from "../interfaces/IVerifier.sol";
 
 library VerifierLib {
     /// @dev Link ID field name
     string private constant LINK_ID_PROOF_FIELD_NAME = "linkID";
     /// @dev User ID field name
     string private constant USER_ID_INPUT_NAME = "userID";
+
+    /**
+     * @dev Modifier to check if the request is verified
+     * @param requestId The ID of the request
+     * @param sender The address of the user
+     * @param verification Whether request should be verified or not
+     */
+    modifier checkVerification(
+        Verifier.VerifierStorage storage self,
+        uint256 requestId,
+        address sender,
+        bool verification
+    ) {
+        if (!requestIdExists(self, requestId)) {
+            revert RequestIdNotFound(requestId);
+        }
+        Verifier.Proof storage proof = self._proofs[requestId][sender];
+        if (verification) {
+            if (!proof.isVerified) {
+                revert ProofIsNotVerified(requestId, sender);
+            }
+        } else {
+            if (proof.isVerified) {
+                revert ProofAlreadyVerified(requestId, sender);
+            }
+        }
+        _;
+    }
 
     function writeProofResults(
         Verifier.VerifierStorage storage self,
@@ -147,11 +177,16 @@ library VerifierLib {
         uint256 requestId,
         address sender,
         string memory responseFieldName
-    ) public view returns (uint256) {
+    ) public view checkVerification(self, requestId, sender, true) returns (uint256) {
         Verifier.Proof storage proof = self._proofs[requestId][sender];
-        if (!proof.isVerified) {
-            revert ProofIsNotVerified(requestId, sender);
+        if (
+            proof.proofEntries[proof.proofEntries.length - 1].responseFieldIndexes[
+                responseFieldName
+            ] == 0
+        ) {
+            revert ResponseFieldDoesNotExist(requestId, sender, responseFieldName);
         }
+
         return proof.proofEntries[proof.proofEntries.length - 1].responseFields[responseFieldName];
     }
 
@@ -159,11 +194,13 @@ library VerifierLib {
         Verifier.VerifierStorage storage self,
         uint256 requestId,
         address sender
-    ) public view returns (IRequestValidator.ResponseField[] memory) {
+    )
+        public
+        view
+        checkVerification(self, requestId, sender, true)
+        returns (IRequestValidator.ResponseField[] memory)
+    {
         Verifier.Proof storage proof = self._proofs[requestId][sender];
-        if (!proof.isVerified) {
-            revert ProofIsNotVerified(requestId, sender);
-        }
         Verifier.ProofEntry storage lastProofEntry = proof.proofEntries[
             proof.proofEntries.length - 1
         ];
@@ -231,19 +268,32 @@ library VerifierLib {
         uint256 requestId
     ) external view returns (IVerifier.RequestProofStatus memory) {
         Verifier.Proof storage proof = self._proofs[requestId][sender];
-        if (!proof.isVerified) {
-            revert ProofIsNotVerified(requestId, sender);
-        }
-        Verifier.ProofEntry storage lastProofEntry = proof.proofEntries[
-            proof.proofEntries.length - 1
-        ];
+        if (proof.isVerified) {
+            Verifier.ProofEntry storage lastProofEntry = proof.proofEntries[
+                proof.proofEntries.length - 1
+            ];
 
-        return
-            IVerifier.RequestProofStatus(
-                requestId,
-                proof.isVerified,
-                lastProofEntry.validatorVersion,
-                lastProofEntry.blockTimestamp
-            );
+            return
+                IVerifier.RequestProofStatus(
+                    requestId,
+                    true,
+                    lastProofEntry.validatorVersion,
+                    lastProofEntry.blockTimestamp
+                );
+        } else {
+            return IVerifier.RequestProofStatus(requestId, false, "", 0);
+        }
+    }
+
+    /**
+     * @dev Checks if a request ID exists
+     * @param requestId The ID of the request
+     * @return Whether the request ID exists
+     */
+    function requestIdExists(
+        Verifier.VerifierStorage storage self,
+        uint256 requestId
+    ) public view returns (bool) {
+        return self._requests[requestId].validator != IRequestValidator(address(0));
     }
 }

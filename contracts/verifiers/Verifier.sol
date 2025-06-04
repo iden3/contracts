@@ -133,30 +133,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     }
 
     /**
-     * @dev Modifier to check if the request is verified
-     * @param requestId The ID of the request
-     * @param sender The address of the user
-     * @param verification Whether request should be verified or not
-     */
-    modifier checkVerification(uint256 requestId, address sender, bool verification) {
-        if (!requestIdExists(requestId)) {
-            revert RequestIdNotFound(requestId);
-        }
-        VerifierStorage storage s = _getVerifierStorage();
-        Proof storage proof = s._proofs[requestId][sender];
-        if (verification) {
-            if (!proof.isVerified) {
-                revert ProofIsNotVerified(requestId, sender);
-            }
-        } else {
-            if (proof.isVerified) {
-                revert ProofAlreadyVerified(requestId, sender);
-            }
-        }
-        _;
-    }
-
-    /**
      * @dev Modifier to check if the multiRequest exists
      */
     modifier checkMultiRequestExistence(uint256 multiRequestId, bool existence) {
@@ -194,8 +170,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      * @return Whether the request ID exists
      */
     function requestIdExists(uint256 requestId) public view returns (bool) {
-        return
-            _getVerifierStorage()._requests[requestId].validator != IRequestValidator(address(0));
+        return VerifierLib.requestIdExists(_getVerifierStorage(), requestId);
     }
 
     /**
@@ -447,7 +422,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         uint256 requestId,
         address sender,
         string memory responseFieldName
-    ) public view checkVerification(requestId, sender, true) returns (uint256) {
+    ) public view returns (uint256) {
         VerifierStorage storage s = _getVerifierStorage();
         return VerifierLib.getResponseFieldValue(s, requestId, sender, responseFieldName);
     }
@@ -460,12 +435,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function getResponseFields(
         uint256 requestId,
         address sender
-    )
-        public
-        view
-        checkVerification(requestId, sender, true)
-        returns (IRequestValidator.ResponseField[] memory)
-    {
+    ) public view returns (IRequestValidator.ResponseField[] memory) {
         VerifierStorage storage s = _getVerifierStorage();
         return VerifierLib.getResponseFields(s, requestId, sender);
     }
