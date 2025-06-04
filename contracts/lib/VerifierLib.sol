@@ -5,6 +5,10 @@ import "../interfaces/IRequestValidator.sol";
 import "../verifiers/Verifier.sol";
 
 library VerifierLib {
+    error ProofIsNotVerified(uint256 requestId, address sender);
+    error ProofAlreadyVerified(uint256 requestId, address sender);
+    error ResponseFieldAlreadyExists(string responseFieldName);
+
     /// @dev Link ID field name
     string private constant LINK_ID_PROOF_FIELD_NAME = "linkID";
     /// @dev User ID field name
@@ -152,7 +156,37 @@ library VerifierLib {
         string memory responseFieldName
     ) public view returns (uint256) {
         Verifier.Proof storage proof = self._proofs[requestId][sender];
+        if (!proof.isVerified) {
+            revert ProofIsNotVerified(requestId, sender);
+        }
         return proof.proofEntries[proof.proofEntries.length - 1].responseFields[responseFieldName];
+    }
+
+    function getResponseFields(
+        Verifier.VerifierStorage storage self,
+        uint256 requestId,
+        address sender
+    ) public view returns (IRequestValidator.ResponseField[] memory) {
+        Verifier.Proof storage proof = self._proofs[requestId][sender];
+        if (!proof.isVerified) {
+            revert ProofIsNotVerified(requestId, sender);
+        }
+        Verifier.ProofEntry storage lastProofEntry = proof.proofEntries[proof.proofEntries.length - 1];
+
+        IRequestValidator.ResponseField[]
+            memory responseFields = new IRequestValidator.ResponseField[](
+                lastProofEntry.responseFieldNames.length
+            );
+
+        for (uint256 i = 0; i < lastProofEntry.responseFieldNames.length; i++) {
+            responseFields[i] = IRequestValidator.ResponseField({
+                name: lastProofEntry.responseFieldNames[i],
+                value: lastProofEntry.responseFields[lastProofEntry.responseFieldNames[i]],
+                rawValue: ""
+            });
+        }
+
+        return responseFields;
     }
 
     function checkLinkedResponseFields(
@@ -194,5 +228,29 @@ library VerifierLib {
         } catch {}
 
         return userIDInRequests;
+    }
+
+    function getRequestProofStatus(
+        Verifier.VerifierStorage storage self,
+        address sender,
+        uint256 requestId
+    )
+        external
+        view
+        returns (IVerifier.RequestProofStatus memory)
+    {
+        Verifier.Proof storage proof = self._proofs[requestId][sender];
+        if (!proof.isVerified) {
+            revert ProofIsNotVerified(requestId, sender);
+        }
+        Verifier.ProofEntry storage lastProofEntry = proof.proofEntries[proof.proofEntries.length - 1];
+
+        return
+            IVerifier.RequestProofStatus(
+                requestId,
+                proof.isVerified,
+                lastProofEntry.validatorVersion,
+                lastProofEntry.blockTimestamp
+            );
     }
 }

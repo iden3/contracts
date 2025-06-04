@@ -21,9 +21,6 @@ error MultiRequestIdAlreadyExists(uint256 multiRequestId);
 error MultiRequestIdNotFound(uint256 multiRequestId);
 error MultiRequestIdNotValid(uint256 expectedMultiRequestId, uint256 multiRequestId);
 error NullifierSessionIDAlreadyExists(uint256 nullifierSessionID);
-error ResponseFieldAlreadyExists(string responseFieldName);
-error ProofAlreadyVerified(uint256 requestId, address sender);
-error ProofIsNotVerified(uint256 requestId, address sender);
 error RequestIdAlreadyExists(uint256 requestId);
 error RequestIdNotFound(uint256 requestId);
 error RequestIdNotValid(uint256 expectedRequestId, uint256 requestId);
@@ -423,9 +420,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         address sender,
         string memory responseFieldName
     ) public view checkRequestExistence(requestId, true) returns (uint256) {
-        if (!isRequestProofVerified(sender, requestId)) {
-            revert ProofIsNotVerified(requestId, sender);
-        }
         VerifierStorage storage s = _getVerifierStorage();
         return VerifierLib.getResponseFieldValue(s, requestId, sender, responseFieldName);
     }
@@ -440,23 +434,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         address sender
     ) public view returns (IRequestValidator.ResponseField[] memory) {
         VerifierStorage storage s = _getVerifierStorage();
-        Proof storage proof = s._proofs[requestId][sender];
-        ProofEntry storage lastProofEntry = proof.proofEntries[proof.proofEntries.length - 1];
-
-        IRequestValidator.ResponseField[]
-            memory responseFields = new IRequestValidator.ResponseField[](
-                lastProofEntry.responseFieldNames.length
-            );
-
-        for (uint256 i = 0; i < lastProofEntry.responseFieldNames.length; i++) {
-            responseFields[i] = IRequestValidator.ResponseField({
-                name: lastProofEntry.responseFieldNames[i],
-                value: lastProofEntry.responseFields[lastProofEntry.responseFieldNames[i]],
-                rawValue: ""
-            });
-        }
-
-        return responseFields;
+        return VerifierLib.getResponseFields(s, requestId, sender);
     }
 
     /**
@@ -606,16 +584,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         returns (IVerifier.RequestProofStatus memory)
     {
         VerifierStorage storage s = _getVerifierStorage();
-        Proof storage proof = s._proofs[requestId][sender];
-        ProofEntry storage lastProofEntry = proof.proofEntries[proof.proofEntries.length - 1];
-
-        return
-            IVerifier.RequestProofStatus(
-                requestId,
-                proof.isVerified,
-                lastProofEntry.validatorVersion,
-                lastProofEntry.blockTimestamp
-            );
+        return VerifierLib.getRequestProofStatus(s, sender, requestId);
     }
 
     function _setState(IState state) internal {
