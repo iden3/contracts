@@ -17,13 +17,13 @@ describe("Verifier tests", function () {
   let signerAddress: string;
   let verifierId: any;
 
-  async function deployContractsFixture() {
+  async function deployContractsFixture(verifierContractName: string = "VerifierTestWrapper") {
     [signer] = await ethers.getSigners();
     signerAddress = await signer.getAddress();
 
     const deployHelper = await DeployHelper.initialize(null, true);
     const verifierLib = await ethers.deployContract("VerifierLib");
-    const verifier = await ethers.deployContract("VerifierTestWrapper", [], {
+    const verifier = await ethers.deployContract(verifierContractName, [], {
       libraries: {
         VerifierLib: await verifierLib.getAddress(),
       },
@@ -454,6 +454,31 @@ describe("Verifier tests", function () {
       await expect(verifier.submitResponse(authResponse, [response], crossChainProofs))
         .to.revertedWithCustomError(verifier, "UserIDMismatch")
         .withArgs(1, 2);
+    });
+
+    it("can't submit more that one response for the same requestId", async function () {
+      await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator1.stub_setInput("userID", 1);
+      await verifier.setRequests([request]);
+
+      const authResponse = {
+        authMethod: authMethod.authMethod,
+        proof: "0x",
+      };
+
+      const response = {
+        requestId: request.requestId,
+        proof: "0x",
+        metadata: "0x",
+      };
+
+      const crossChainProofs = "0x";
+
+      await verifier.submitResponse(authResponse, [response], crossChainProofs);
+
+      await expect(verifier.submitResponse(authResponse, [response], crossChainProofs))
+        .to.be.revertedWithCustomError(verifier, "ProofAlreadyVerified")
+        .withArgs(request.requestId, sender.address);
     });
   });
 

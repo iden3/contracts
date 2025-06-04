@@ -5,10 +5,6 @@ import "../interfaces/IRequestValidator.sol";
 import "../verifiers/Verifier.sol";
 
 library VerifierLib {
-    error ProofIsNotVerified(uint256 requestId, address sender);
-    error ProofAlreadyVerified(uint256 requestId, address sender);
-    error ResponseFieldAlreadyExists(string responseFieldName);
-
     /// @dev Link ID field name
     string private constant LINK_ID_PROOF_FIELD_NAME = "linkID";
     /// @dev User ID field name
@@ -21,9 +17,6 @@ library VerifierLib {
         IRequestValidator.ResponseField[] memory responseFields
     ) external {
         Verifier.Proof storage proof = self._proofs[requestId][sender];
-        if (proof.isVerified) {
-            revert ProofAlreadyVerified(requestId, sender);
-        }
         proof.isVerified = true;
         proof.proofEntries.push();
 

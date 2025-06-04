@@ -61,6 +61,15 @@ const config: HardhatUserConfig = {
           },
         },
       },
+      "contracts/test-helpers/UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest.sol": {
+        version: "0.8.27",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 80,
+          },
+        },
+      },
       "contracts/test-helpers/EmbeddedVerifierWrapper.sol": {
         version: "0.8.27",
         settings: {

@@ -21,6 +21,9 @@ error MultiRequestIdAlreadyExists(uint256 multiRequestId);
 error MultiRequestIdNotFound(uint256 multiRequestId);
 error MultiRequestIdNotValid(uint256 expectedMultiRequestId, uint256 multiRequestId);
 error NullifierSessionIDAlreadyExists(uint256 nullifierSessionID);
+error ResponseFieldAlreadyExists(string responseFieldName);
+error ProofAlreadyVerified(uint256 requestId, address sender);
+error ProofIsNotVerified(uint256 requestId, address sender);
 error RequestIdAlreadyExists(uint256 requestId);
 error RequestIdNotFound(uint256 requestId);
 error RequestIdNotValid(uint256 expectedRequestId, uint256 requestId);
@@ -860,6 +863,15 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         return VerifierLib.checkLinkedResponseFields(s, multiRequestId, sender);
     }
 
+    function _checkCanWriteProofResults(uint256 requestId, address sender) internal view virtual {
+        VerifierStorage storage s = _getVerifierStorage();
+        Proof storage proof = s._proofs[requestId][sender];
+
+        if (proof.isVerified) {
+            revert ProofAlreadyVerified(requestId, sender);
+        }
+    }
+
     function _getMultiRequestProofsStatus(
         uint256 multiRequestId,
         address userAddress
@@ -901,6 +913,8 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         IRequestValidator.ResponseField[] memory responseFields
     ) internal {
         VerifierStorage storage s = _getVerifierStorage();
+        _checkCanWriteProofResults(requestId, sender);
+
         return VerifierLib.writeProofResults(s, requestId, sender, responseFields);
     }
 }
