@@ -171,7 +171,9 @@ library VerifierLib {
         if (!proof.isVerified) {
             revert ProofIsNotVerified(requestId, sender);
         }
-        Verifier.ProofEntry storage lastProofEntry = proof.proofEntries[proof.proofEntries.length - 1];
+        Verifier.ProofEntry storage lastProofEntry = proof.proofEntries[
+            proof.proofEntries.length - 1
+        ];
 
         IRequestValidator.ResponseField[]
             memory responseFields = new IRequestValidator.ResponseField[](
@@ -234,16 +236,14 @@ library VerifierLib {
         Verifier.VerifierStorage storage self,
         address sender,
         uint256 requestId
-    )
-        external
-        view
-        returns (IVerifier.RequestProofStatus memory)
-    {
+    ) external view returns (IVerifier.RequestProofStatus memory) {
         Verifier.Proof storage proof = self._proofs[requestId][sender];
         if (!proof.isVerified) {
             revert ProofIsNotVerified(requestId, sender);
         }
-        Verifier.ProofEntry storage lastProofEntry = proof.proofEntries[proof.proofEntries.length - 1];
+        Verifier.ProofEntry storage lastProofEntry = proof.proofEntries[
+            proof.proofEntries.length - 1
+        ];
 
         return
             IVerifier.RequestProofStatus(
