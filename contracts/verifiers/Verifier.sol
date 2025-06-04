@@ -21,7 +21,8 @@ error MultiRequestIdAlreadyExists(uint256 multiRequestId);
 error MultiRequestIdNotFound(uint256 multiRequestId);
 error MultiRequestIdNotValid(uint256 expectedMultiRequestId, uint256 multiRequestId);
 error NullifierSessionIDAlreadyExists(uint256 nullifierSessionID);
-error ResponseFieldAlreadyExists(string responseFieldName);
+error ResponseFieldDoesNotExist(uint256 requestId, address sender, string responseFieldName);
+error ResponseFieldAlreadyExists(uint256 requestId, address sender, string responseFieldName);
 error ProofAlreadyVerified(uint256 requestId, address sender);
 error ProofIsNotVerified(uint256 requestId, address sender);
 error RequestIdAlreadyExists(uint256 requestId);
@@ -131,6 +132,30 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         } else {
             if (requestIdExists(requestId)) {
                 revert RequestIdAlreadyExists(requestId);
+            }
+        }
+        _;
+    }
+
+    /**
+     * @dev Modifier to check if the request is verified
+     * @param requestId The ID of the request
+     * @param sender The address of the user
+     * @param verification Whether request should be verified or not
+     */
+    modifier checkVerification(uint256 requestId, address sender, bool verification) {
+        if (!requestIdExists(requestId)) {
+            revert RequestIdNotFound(requestId);
+        }
+        VerifierStorage storage s = _getVerifierStorage();
+        Proof storage proof = s._proofs[requestId][sender];
+        if (verification) {
+            if (!proof.isVerified) {
+                revert ProofIsNotVerified(requestId, sender);
+            }
+        } else {
+            if (proof.isVerified) {
+                revert ProofAlreadyVerified(requestId, sender);
             }
         }
         _;
@@ -427,12 +452,17 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         uint256 requestId,
         address sender,
         string memory responseFieldName
-    ) public view checkRequestExistence(requestId, true) returns (uint256) {
-        if (!isRequestProofVerified(sender, requestId)) {
-            revert ProofIsNotVerified(requestId, sender);
-        }
+    ) public view checkVerification(requestId, sender, true) returns (uint256) {
         VerifierStorage storage s = _getVerifierStorage();
         Proof storage proof = s._proofs[requestId][sender];
+        if (
+            proof.proofEntries[proof.proofEntries.length - 1].responseFieldIndexes[
+                responseFieldName
+            ] == 0
+        ) {
+            revert ResponseFieldDoesNotExist(requestId, sender, responseFieldName);
+        }
+
         return proof.proofEntries[proof.proofEntries.length - 1].responseFields[responseFieldName];
     }
 
@@ -444,7 +474,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function getResponseFields(
         uint256 requestId,
         address sender
-    ) public view returns (IRequestValidator.ResponseField[] memory) {
+    )
+        public
+        view
+        checkVerification(requestId, sender, true)
+        returns (IRequestValidator.ResponseField[] memory)
+    {
         VerifierStorage storage s = _getVerifierStorage();
         Proof storage proof = s._proofs[requestId][sender];
         ProofEntry storage lastProofEntry = proof.proofEntries[proof.proofEntries.length - 1];
@@ -613,15 +648,19 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     {
         VerifierStorage storage s = _getVerifierStorage();
         Proof storage proof = s._proofs[requestId][sender];
-        ProofEntry storage lastProofEntry = proof.proofEntries[proof.proofEntries.length - 1];
+        if (proof.isVerified) {
+            ProofEntry storage lastProofEntry = proof.proofEntries[proof.proofEntries.length - 1];
 
-        return
-            IVerifier.RequestProofStatus(
-                requestId,
-                proof.isVerified,
-                lastProofEntry.validatorVersion,
-                lastProofEntry.blockTimestamp
-            );
+            return
+                IVerifier.RequestProofStatus(
+                    requestId,
+                    true,
+                    lastProofEntry.validatorVersion,
+                    lastProofEntry.blockTimestamp
+                );
+        } else {
+            return IVerifier.RequestProofStatus(requestId, false, "", 0);
+        }
     }
 
     function _setState(IState state) internal {

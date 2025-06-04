@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.10;
 
-import "../interfaces/IRequestValidator.sol";
-import "../verifiers/Verifier.sol";
+import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
+import {Verifier, ResponseFieldAlreadyExists} from "../verifiers/Verifier.sol";
 
 library VerifierLib {
     function writeProofResults(
@@ -21,7 +21,7 @@ library VerifierLib {
 
         for (uint256 i = 0; i < responseFields.length; i++) {
             if (proofEntry.responseFieldIndexes[responseFields[i].name] != 0) {
-                revert ResponseFieldAlreadyExists(responseFields[i].name);
+                revert ResponseFieldAlreadyExists(requestId, sender, responseFields[i].name);
             }
 
             proofEntry.responseFields[responseFields[i].name] = responseFields[i].value;

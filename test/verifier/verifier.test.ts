@@ -412,7 +412,7 @@ describe("Verifier tests", function () {
       const crossChainProofs = "0x";
       await expect(verifier.submitResponse(authResponse, [response], crossChainProofs))
         .to.revertedWithCustomError(verifierLib, "ResponseFieldAlreadyExists")
-        .withArgs("someFieldName1");
+        .withArgs(request.requestId, sender.address, "someFieldName1");
     });
 
     it("submitResponse: userID in response fields should match auth userID", async function () {
