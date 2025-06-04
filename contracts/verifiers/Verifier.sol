@@ -41,11 +41,6 @@ error InvalidRequestOwner(address requestOwner, address sender);
 error GroupIdNotValid();
 
 abstract contract Verifier is IVerifier, ContextUpgradeable {
-    /// @dev Link ID field name
-    string private constant LINK_ID_PROOF_FIELD_NAME = "linkID";
-    /// @dev User ID field name
-    string private constant USER_ID_INPUT_NAME = "userID";
-
     // keccak256(abi.encodePacked("authV2"))
     bytes32 private constant AUTHV2_METHOD_NAME_HASH =
         0x380ee2d21c7a4607d113dad9e76a0bc90f5325a136d5f0e14b6ccf849d948e25;
@@ -454,16 +449,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         string memory responseFieldName
     ) public view checkVerification(requestId, sender, true) returns (uint256) {
         VerifierStorage storage s = _getVerifierStorage();
-        Proof storage proof = s._proofs[requestId][sender];
-        if (
-            proof.proofEntries[proof.proofEntries.length - 1].responseFieldIndexes[
-                responseFieldName
-            ] == 0
-        ) {
-            revert ResponseFieldDoesNotExist(requestId, sender, responseFieldName);
-        }
-
-        return proof.proofEntries[proof.proofEntries.length - 1].responseFields[responseFieldName];
+        return VerifierLib.getResponseFieldValue(s, requestId, sender, responseFieldName);
     }
 
     /**
@@ -481,23 +467,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         returns (IRequestValidator.ResponseField[] memory)
     {
         VerifierStorage storage s = _getVerifierStorage();
-        Proof storage proof = s._proofs[requestId][sender];
-        ProofEntry storage lastProofEntry = proof.proofEntries[proof.proofEntries.length - 1];
-
-        IRequestValidator.ResponseField[]
-            memory responseFields = new IRequestValidator.ResponseField[](
-                lastProofEntry.responseFieldNames.length
-            );
-
-        for (uint256 i = 0; i < lastProofEntry.responseFieldNames.length; i++) {
-            responseFields[i] = IRequestValidator.ResponseField({
-                name: lastProofEntry.responseFieldNames[i],
-                value: lastProofEntry.responseFields[lastProofEntry.responseFieldNames[i]],
-                rawValue: ""
-            });
-        }
-
-        return responseFields;
+        return VerifierLib.getResponseFields(s, requestId, sender);
     }
 
     /**
@@ -647,20 +617,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         returns (IVerifier.RequestProofStatus memory)
     {
         VerifierStorage storage s = _getVerifierStorage();
-        Proof storage proof = s._proofs[requestId][sender];
-        if (proof.isVerified) {
-            ProofEntry storage lastProofEntry = proof.proofEntries[proof.proofEntries.length - 1];
-
-            return
-                IVerifier.RequestProofStatus(
-                    requestId,
-                    true,
-                    lastProofEntry.validatorVersion,
-                    lastProofEntry.blockTimestamp
-                );
-        } else {
-            return IVerifier.RequestProofStatus(requestId, false, "", 0);
-        }
+        return VerifierLib.getRequestProofStatus(s, sender, requestId);
     }
 
     function _setState(IState state) internal {
@@ -866,14 +823,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function _isUserIDInputInRequest(
         IVerifier.Request memory request
     ) internal view returns (bool) {
-        bool userIDInRequests = false;
-
-        try request.validator.inputIndexOf(USER_ID_INPUT_NAME) {
-            userIDInRequests = true;
-            // solhint-disable-next-line no-empty-blocks
-        } catch {}
-
-        return userIDInRequests;
+        return VerifierLib.isUserIDInputInRequest(request);
     }
 
     function _checkRequestsInMultiRequest(uint256 multiRequestId) internal view {
@@ -940,29 +890,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         address sender
     ) internal view returns (bool) {
         VerifierStorage storage s = _getVerifierStorage();
-
-        for (uint256 i = 0; i < s._multiRequests[multiRequestId].groupIds.length; i++) {
-            uint256 groupId = s._multiRequests[multiRequestId].groupIds[i];
-
-            // Check linkID in the same group or requests is the same
-            uint256 requestLinkID = getResponseFieldValue(
-                s._groupedRequests[groupId][0],
-                sender,
-                LINK_ID_PROOF_FIELD_NAME
-            );
-            for (uint256 j = 1; j < s._groupedRequests[groupId].length; j++) {
-                uint256 requestLinkIDToCompare = getResponseFieldValue(
-                    s._groupedRequests[groupId][j],
-                    sender,
-                    LINK_ID_PROOF_FIELD_NAME
-                );
-                if (requestLinkID != requestLinkIDToCompare) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
+        return VerifierLib.checkLinkedResponseFields(s, multiRequestId, sender);
     }
 
     function _checkCanWriteProofResults(uint256 requestId, address sender) internal view virtual {
@@ -979,72 +907,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         address userAddress
     ) internal view returns (IVerifier.RequestProofStatus[] memory) {
         VerifierStorage storage s = _getVerifierStorage();
-        IVerifier.MultiRequest storage multiRequest = s._multiRequests[multiRequestId];
-
-        uint256 lengthGroupIds;
-
-        if (multiRequest.groupIds.length > 0) {
-            for (uint256 i = 0; i < multiRequest.groupIds.length; i++) {
-                uint256 groupId = multiRequest.groupIds[i];
-                lengthGroupIds += s._groupedRequests[groupId].length;
-            }
-        }
-
-        IVerifier.RequestProofStatus[]
-            memory requestProofStatus = new IVerifier.RequestProofStatus[](
-                multiRequest.requestIds.length + lengthGroupIds
-            );
-
-        for (uint256 i = 0; i < multiRequest.requestIds.length; i++) {
-            uint256 requestId = multiRequest.requestIds[i];
-            Proof storage proof = s._proofs[requestId][userAddress];
-
-            requestProofStatus[i] = IVerifier.RequestProofStatus({
-                requestId: requestId,
-                isVerified: proof.isVerified,
-                validatorVersion: "",
-                timestamp: 0
-            });
-
-            if (proof.isVerified) {
-                ProofEntry storage lastProofEntry = proof.proofEntries[
-                    proof.proofEntries.length - 1
-                ];
-
-                requestProofStatus[i].validatorVersion = lastProofEntry.validatorVersion;
-                requestProofStatus[i].timestamp = lastProofEntry.blockTimestamp;
-            }
-        }
-
-        for (uint256 i = 0; i < multiRequest.groupIds.length; i++) {
-            uint256 groupId = multiRequest.groupIds[i];
-
-            for (uint256 j = 0; j < s._groupedRequests[groupId].length; j++) {
-                uint256 requestId = s._groupedRequests[groupId][j];
-                Proof storage proof = s._proofs[requestId][userAddress];
-
-                requestProofStatus[multiRequest.requestIds.length + j] = IVerifier
-                    .RequestProofStatus({
-                        requestId: requestId,
-                        isVerified: proof.isVerified,
-                        validatorVersion: "",
-                        timestamp: 0
-                    });
-
-                if (proof.isVerified) {
-                    ProofEntry storage lastProofEntry = proof.proofEntries[
-                        proof.proofEntries.length - 1
-                    ];
-
-                    requestProofStatus[multiRequest.requestIds.length + j]
-                        .validatorVersion = lastProofEntry.validatorVersion;
-                    requestProofStatus[multiRequest.requestIds.length + j]
-                        .timestamp = lastProofEntry.blockTimestamp;
-                }
-            }
-        }
-
-        return requestProofStatus;
+        return VerifierLib.getMultiRequestProofsStatus(s, multiRequestId, userAddress);
     }
 
     function _areMultiRequestProofsVerified(
@@ -1052,29 +915,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         address userAddress
     ) internal view returns (bool) {
         VerifierStorage storage s = _getVerifierStorage();
-        IVerifier.MultiRequest storage multiRequest = s._multiRequests[multiRequestId];
-
-        for (uint256 i = 0; i < multiRequest.requestIds.length; i++) {
-            uint256 requestId = multiRequest.requestIds[i];
-
-            if (!s._proofs[requestId][userAddress].isVerified) {
-                return false;
-            }
-        }
-
-        for (uint256 i = 0; i < multiRequest.groupIds.length; i++) {
-            uint256 groupId = multiRequest.groupIds[i];
-
-            for (uint256 j = 0; j < s._groupedRequests[groupId].length; j++) {
-                uint256 requestId = s._groupedRequests[groupId][j];
-
-                if (!s._proofs[requestId][userAddress].isVerified) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
+        return VerifierLib.areMultiRequestProofsVerified(s, multiRequestId, userAddress);
     }
 
     function _getRequestIfCanBeVerified(

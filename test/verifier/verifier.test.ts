@@ -768,7 +768,7 @@ describe("Verifier tests", function () {
 
       await expect(
         verifier.getMultiRequestProofsStatus(multiRequest4.multiRequestId, signerAddress),
-      ).to.be.revertedWithCustomError(verifier, "ProofIsNotVerified");
+      ).to.be.revertedWithCustomError(verifierLib, "ProofIsNotVerified");
 
       let areMultiRequestProofsVerified = await verifier.areMultiRequestProofsVerified(
         multiRequest4.multiRequestId,
