@@ -101,7 +101,7 @@ describe("Verifier tests", function () {
       await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
 
       await expect(verifier.setRequests([request]))
-        .to.be.revertedWithCustomError(verifier, "MissingUserIDInRequest")
+        .to.be.revertedWithCustomError(verifierLib, "MissingUserIDInRequest")
         .withArgs(request.requestId);
     });
 
@@ -126,7 +126,7 @@ describe("Verifier tests", function () {
       await verifier.setRequests([request]);
       request.requestId = 2;
       await expect(verifier.setRequests([request]))
-        .to.be.revertedWithCustomError(verifier, "NullifierSessionIDAlreadyExists")
+        .to.be.revertedWithCustomError(verifierLib, "NullifierSessionIDAlreadyExists")
         .withArgs(1);
     });
 
@@ -158,7 +158,7 @@ describe("Verifier tests", function () {
       ); // requestId without valid prefix 0x00000000000000_00 or 0x00000000000000_01 (eigth byte)
 
       await expect(verifier.setRequests([request])).to.be.revertedWithCustomError(
-        verifier,
+        verifierLib,
         "RequestIdTypeNotValid",
       );
 
@@ -166,7 +166,7 @@ describe("Verifier tests", function () {
         "0x0000000001000001FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
       ); // requestId uses reserved bytes (firt to seventh byte) 0x00000000000000
       await expect(verifier.setRequests([request])).to.be.revertedWithCustomError(
-        verifier,
+        verifierLib,
         "RequestIdUsesReservedBytes",
       );
 
@@ -175,7 +175,7 @@ describe("Verifier tests", function () {
         "0x0001000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
       ); // requestId idType is valid but calculation from hash params is not valid
       await expect(verifier.setRequests([request]))
-        .to.be.revertedWithCustomError(verifier, "RequestIdNotValid")
+        .to.be.revertedWithCustomError(verifierLib, "RequestIdNotValid")
         .withArgs(expectedRequestId, request.requestId);
 
       // requestId is valid;
@@ -235,7 +235,7 @@ describe("Verifier tests", function () {
       await verifier.setRequests([request1, request2]);
 
       await expect(verifier.setRequests([request1, request2]))
-        .to.be.revertedWithCustomError(verifier, "GroupIdAlreadyExists")
+        .to.be.revertedWithCustomError(verifierLib, "GroupIdAlreadyExists")
         .withArgs(groupID);
     });
 
@@ -275,11 +275,11 @@ describe("Verifier tests", function () {
       const authMethod2 = { ...authMethod, authMethod: "stubAuth2" };
 
       await expect(verifier.getAuthMethod(authMethod2.authMethod))
-        .to.be.revertedWithCustomError(verifier, "AuthMethodNotFound")
+        .to.be.revertedWithCustomError(verifierLib, "AuthMethodNotFound")
         .withArgs(authMethod2.authMethod);
 
       await expect(verifier.setAuthMethod(authMethod))
-        .to.be.revertedWithCustomError(verifier, "AuthMethodAlreadyExists")
+        .to.be.revertedWithCustomError(verifierLib, "AuthMethodAlreadyExists")
         .withArgs(authMethod.authMethod);
 
       await expect(verifier.setAuthMethod(authMethod2)).not.to.be.reverted;
@@ -452,7 +452,7 @@ describe("Verifier tests", function () {
       ]);
 
       await expect(verifier.submitResponse(authResponse, [response], crossChainProofs))
-        .to.revertedWithCustomError(verifier, "UserIDMismatch")
+        .to.revertedWithCustomError(verifierLib, "UserIDMismatch")
         .withArgs(1, 2);
     });
 
@@ -477,7 +477,7 @@ describe("Verifier tests", function () {
       await verifier.submitResponse(authResponse, [response], crossChainProofs);
 
       await expect(verifier.submitResponse(authResponse, [response], crossChainProofs))
-        .to.be.revertedWithCustomError(verifier, "ProofAlreadyVerified")
+        .to.be.revertedWithCustomError(verifierLib, "ProofAlreadyVerified")
         .withArgs(request.requestId, sender.address);
     });
   });
@@ -518,7 +518,7 @@ describe("Verifier tests", function () {
       expect(multiRequestIdExists).to.be.false;
       await expect(verifier.setMultiRequest(multiRequest)).not.to.be.rejected;
       await expect(verifier.setMultiRequest(multiRequest))
-        .revertedWithCustomError(verifier, "MultiRequestIdAlreadyExists")
+        .revertedWithCustomError(verifierLib, "MultiRequestIdAlreadyExists")
         .withArgs(multiRequest.multiRequestId);
       multiRequestIdExists = await verifier.multiRequestIdExists(multiRequest.multiRequestId);
       expect(multiRequestIdExists).to.be.true;
@@ -526,7 +526,7 @@ describe("Verifier tests", function () {
 
     it("setMultiRequest: should only create multi request with correct id", async function () {
       await expect(verifier.setMultiRequest({ ...multiRequest, multiRequestId: 1 }))
-        .to.be.revertedWithCustomError(verifier, "MultiRequestIdNotValid")
+        .to.be.revertedWithCustomError(verifierLib, "MultiRequestIdNotValid")
         .withArgs(multiRequest.multiRequestId, 1);
     });
 
@@ -550,14 +550,14 @@ describe("Verifier tests", function () {
       };
 
       await expect(verifier.setMultiRequest(multiRequest3))
-        .revertedWithCustomError(verifier, "GroupIdNotFound")
+        .revertedWithCustomError(verifierLib, "GroupIdNotFound")
         .withArgs(multiRequest3.groupIds[0]);
     });
 
     it("getMultiRequest: multiRequestId should exist", async function () {
       const nonExistingMultiRequestId = 5;
       await expect(verifier.getMultiRequest(nonExistingMultiRequestId))
-        .to.be.revertedWithCustomError(verifier, "MultiRequestIdNotFound")
+        .to.be.revertedWithCustomError(verifierLib, "MultiRequestIdNotFound")
         .withArgs(nonExistingMultiRequestId);
       const multiRequestObject = await verifier.getMultiRequest(multiRequest.multiRequestId);
       expect(multiRequestObject.multiRequestId).to.be.equal(multiRequest.multiRequestId);
@@ -629,7 +629,7 @@ describe("Verifier tests", function () {
     it("getMultiRequestProofsStatus: multi request should exist", async function () {
       const nonExistingMultiRequestId = 5;
       await expect(verifier.getMultiRequestProofsStatus(nonExistingMultiRequestId, signerAddress))
-        .to.be.revertedWithCustomError(verifier, "MultiRequestIdNotFound")
+        .to.be.revertedWithCustomError(verifierLib, "MultiRequestIdNotFound")
         .withArgs(nonExistingMultiRequestId);
       await expect(verifier.getMultiRequestProofsStatus(multiRequest.multiRequestId, signerAddress))
         .not.to.be.rejected;
@@ -702,7 +702,7 @@ describe("Verifier tests", function () {
       await verifier.submitResponse(authResponse, [response1, response2], crossChainProofs);
       await expect(
         verifier.getMultiRequestProofsStatus(multiRequest3.multiRequestId, signerAddress),
-      ).to.be.revertedWithCustomError(verifier, "LinkIDNotTheSameForGroupedRequests");
+      ).to.be.revertedWithCustomError(verifierLib, "LinkIDNotTheSameForGroupedRequests");
 
       const areMultiRequestProofsVerified = await verifier.areMultiRequestProofsVerified(
         multiRequest3.multiRequestId,

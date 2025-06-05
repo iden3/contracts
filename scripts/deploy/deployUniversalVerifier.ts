@@ -21,7 +21,7 @@ async function main() {
 
   const deployHelper = await DeployHelper.initialize(null, true);
 
-  const universalVerifier = await deployHelper.deployUniversalVerifier(
+  const { universalVerifier } = await deployHelper.deployUniversalVerifier(
     undefined,
     stateContractAddress,
     deployStrategy,

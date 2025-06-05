@@ -941,11 +941,11 @@ export class DeployHelper {
     stateAddr: string,
     deployStrategy: "basic" | "create2" = "basic",
     verifierContractName: string = contractsInfo.UNIVERSAL_VERIFIER.name,
-  ): Promise<Contract> {
+  ): Promise<{ universalVerifier: Contract; verifierLib: Contract }> {
     if (!owner) {
       owner = this.signers[0];
     }
-    const verifierLib = await ethers.deployContract("VerifierLib");
+    const verifierLib: Contract = await ethers.deployContract("VerifierLib");
     const UniversalVerifierFactory = await ethers.getContractFactory(verifierContractName, {
       signer: owner,
       libraries: {
@@ -1030,7 +1030,7 @@ export class DeployHelper {
     await universalVerifier.waitForDeployment();
     Logger.success(`${verifierContractName} deployed to: ${await universalVerifier.getAddress()}`);
 
-    return universalVerifier;
+    return { universalVerifier, verifierLib };
   }
 
   async getDefaultIdType(): Promise<{ defaultIdType: string; chainId: number }> {

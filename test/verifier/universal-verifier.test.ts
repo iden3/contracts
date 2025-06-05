@@ -11,7 +11,7 @@ import { beforeEach } from "mocha";
 
 describe("Universal Verifier tests", function () {
   let request, paramsFromValidator, multiRequest, authResponse, response: any;
-  let verifier: any, validator: any, authValidator: any, state: any;
+  let verifier: any, verifierLib: any, validator: any, authValidator: any, state: any;
   let signer, signer2, signer3;
   let signerAddress: string;
   let deployHelper: DeployHelper;
@@ -42,12 +42,13 @@ describe("Universal Verifier tests", function () {
       { name: "issuerID", value: 2, rawValue: "0x" },
     ]);
 
-    const universalVerifier: any = await deployHelper.deployUniversalVerifier(
-      ethSigner,
-      await stateContract.getAddress(),
-      "basic",
-      contractName,
-    );
+    const { universalVerifier: universalVerifier, verifierLib: verifierLib } =
+      await deployHelper.deployUniversalVerifier(
+        ethSigner,
+        await stateContract.getAddress(),
+        "basic",
+        contractName,
+      );
 
     await universalVerifier.addValidatorToWhitelist(await validator.getAddress());
     await universalVerifier.connect();
@@ -68,6 +69,7 @@ describe("Universal Verifier tests", function () {
       ethSigner3,
       stateContract,
       universalVerifier,
+      verifierLib,
       validator,
       authValidator,
     };
@@ -457,6 +459,7 @@ describe("Universal Verifier tests", function () {
         ethSigner2: signer2,
         stateContract: state,
         validator: validator,
+        verifierLib: verifierLib,
         universalVerifier: verifier,
       } = await loadFixture(deployContractsFixture));
 
@@ -480,7 +483,7 @@ describe("Universal Verifier tests", function () {
       await verifier.setVerifierID(1);
 
       await expect(verifier.setRequests([request]))
-        .to.be.revertedWithCustomError(verifier, "VerifierIDIsNotValid")
+        .to.be.revertedWithCustomError(verifierLib, "VerifierIDIsNotValid")
         .withArgs(2, 1);
     });
 
