@@ -18,7 +18,7 @@ import { TEN_YEARS } from "../../helpers/constants";
 import { calculateGroupID, calculateMultiRequestId } from "../utils/id-calculation-utils";
 
 describe("Verifier Integration test", async function () {
-  let verifier, v3Validator, lmqValidator;
+  let verifier, verifierLib, v3Validator, lmqValidator;
   let signer;
 
   const requestIdV3 = 32;
@@ -103,7 +103,12 @@ describe("Verifier Integration test", async function () {
   async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
 
-    const verifier = await ethers.deployContract("VerifierTestWrapper", []);
+    const verifierLib = await ethers.deployContract("VerifierLib");
+    const verifier = await ethers.deployContract("VerifierTestWrapper", [], {
+      libraries: {
+        VerifierLib: await verifierLib.getAddress(),
+      },
+    });
 
     const deployHelper = await DeployHelper.initialize(null, true);
     const { state } = await deployHelper.deployStateWithLibraries(["0x0212"]);
@@ -135,11 +140,16 @@ describe("Verifier Integration test", async function () {
       await state.getAddress(),
     );
 
-    return { state, verifier, authValidator, v3Validator, lmkValidator };
+    return { state, verifier, verifierLib, authValidator, v3Validator, lmkValidator };
   }
 
   beforeEach(async () => {
-    ({ verifier, v3Validator, lmkValidator: lmqValidator } = await loadFixture(deployContractsFixture));
+    ({
+      verifier,
+      verifierLib,
+      v3Validator,
+      lmkValidator: lmqValidator,
+    } = await loadFixture(deployContractsFixture));
 
     await verifier.setVerifierID(query.verifierID);
   });
@@ -210,7 +220,7 @@ describe("Verifier Integration test", async function () {
         },
       ]),
     )
-      .to.be.revertedWithCustomError(verifier, "MissingUserIDInGroupOfRequests")
+      .to.be.revertedWithCustomError(verifierLib, "MissingUserIDInGroupOfRequests")
       .withArgs(groupID);
   });
 
