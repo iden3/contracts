@@ -566,18 +566,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         VerifierLib.checkCanWriteProofResults(_getVerifierStorage(), requestId, sender);
     }
 
-    function _areMultiRequestProofsVerified(
-        uint256 multiRequestId,
-        address userAddress
-    ) internal view returns (bool) {
-        return
-            VerifierLib.areMultiRequestProofsVerified(
-                _getVerifierStorage(),
-                multiRequestId,
-                userAddress
-            );
-    }
-
     function _getRequestIfCanBeVerified(
         uint256 requestId
     )
