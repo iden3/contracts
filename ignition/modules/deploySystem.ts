@@ -1,0 +1,95 @@
+import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+import Create2AddressAnchorModule from "./create2AddressAnchor";
+import {
+  Poseidon1Module,
+  Poseidon2Module,
+  Poseidon3Module,
+  Poseidon4Module,
+  SmtLibModule,
+} from "./libraries";
+import StateModule from "./state";
+import UniversalVerifierModule from "./universalVerifier";
+import IdentityTreeStoreModule from "./identityTreeStore";
+import CredentialAtomicQueryMTPV2ValidatorModule from "./credentialAtomicQueryMTPV2Validator";
+import CredentialAtomicQuerySigV2ValidatorModule from "./credentialAtomicQuerySigV2Validator";
+import CredentialAtomicQueryV3ValidatorModule from "./credentialAtomicQueryV3Validator";
+import LinkedMultiQueryValidatorModule from "./linkedMultiQuery";
+import AuthV2ValidatorModule from "./authV2Validator";
+import EthIdentityValidatorModule from "./ethIdentityValidator";
+
+const DeploySystemModule = buildModule("DeploySystemModule", (m) => {
+  const { create2AddressAnchor } = m.useModule(Create2AddressAnchorModule);
+
+  const { poseidon: poseidon1 } = m.useModule(Poseidon1Module);
+  const { poseidon: poseidon2 } = m.useModule(Poseidon2Module);
+  const { poseidon: poseidon3 } = m.useModule(Poseidon3Module);
+  const { poseidon: poseidon4 } = m.useModule(Poseidon4Module);
+
+  const { smtLib } = m.useModule(SmtLibModule);
+
+  const { state } = m.useModule(StateModule);
+
+  const { universalVerifier } = m.useModule(UniversalVerifierModule);
+
+  const { identityTreeStore } = m.useModule(IdentityTreeStoreModule);
+
+  const { credentialAtomicQueryMTPV2Validator } = m.useModule(
+    CredentialAtomicQueryMTPV2ValidatorModule,
+  );
+  const { credentialAtomicQuerySigV2Validator } = m.useModule(
+    CredentialAtomicQuerySigV2ValidatorModule,
+  );
+  const { credentialAtomicQueryV3Validator } = m.useModule(CredentialAtomicQueryV3ValidatorModule);
+  const { linkedMultiQueryValidator } = m.useModule(LinkedMultiQueryValidatorModule);
+  const { authV2Validator } = m.useModule(AuthV2ValidatorModule);
+  const { ethIdentityValidator } = m.useModule(EthIdentityValidatorModule);
+
+  m.call(universalVerifier, "addValidatorToWhitelist", [credentialAtomicQueryMTPV2Validator], {
+    id: "addValidatorToWhitelistMTPV2",
+  });
+  m.call(universalVerifier, "addValidatorToWhitelist", [credentialAtomicQuerySigV2Validator], {
+    id: "addValidatorToWhitelistSigV2",
+  });
+  m.call(universalVerifier, "addValidatorToWhitelist", [credentialAtomicQueryV3Validator], {
+    id: "addValidatorToWhitelistV3",
+  });
+  m.call(universalVerifier, "addValidatorToWhitelist", [linkedMultiQueryValidator], {
+    id: "addValidatorToWhitelistLinkedMultiQuery",
+  });
+  m.call(
+    universalVerifier,
+    "setAuthMethod",
+    [{ authMethod: "authV2", validator: authV2Validator, params: "0x" }],
+    {
+      id: "setAuthMethodAuthV2",
+    },
+  );
+  m.call(
+    universalVerifier,
+    "setAuthMethod",
+    [{ authMethod: "ethIdentity", validator: ethIdentityValidator, params: "0x" }],
+    {
+      id: "setAuthMethodEthIdentity",
+    },
+  );
+
+  return {
+    create2AddressAnchor,
+    poseidon1,
+    poseidon2,
+    poseidon3,
+    poseidon4,
+    smtLib,
+    state,
+    universalVerifier,
+    identityTreeStore,
+    credentialAtomicQueryMTPV2Validator,
+    credentialAtomicQuerySigV2Validator,
+    credentialAtomicQueryV3Validator,
+    linkedMultiQueryValidator,
+    authV2Validator,
+    ethIdentityValidator,
+  };
+});
+
+export default DeploySystemModule;
