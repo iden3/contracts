@@ -1,21 +1,21 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import Create2AddressAnchorModule from "./create2AddressAnchor";
+import Create2AddressAnchorModule from "../create2AddressAnchor";
 import {
   Poseidon1Module,
   Poseidon2Module,
   Poseidon3Module,
   Poseidon4Module,
   SmtLibModule,
-} from "./libraries";
-import StateModule from "./state";
-import UniversalVerifierModule from "./universalVerifier";
-import IdentityTreeStoreModule from "./identityTreeStore";
-import CredentialAtomicQueryMTPV2ValidatorModule from "./credentialAtomicQueryMTPV2Validator";
-import CredentialAtomicQuerySigV2ValidatorModule from "./credentialAtomicQuerySigV2Validator";
-import CredentialAtomicQueryV3ValidatorModule from "./credentialAtomicQueryV3Validator";
-import LinkedMultiQueryValidatorModule from "./linkedMultiQuery";
-import AuthV2ValidatorModule from "./authV2Validator";
-import EthIdentityValidatorModule from "./ethIdentityValidator";
+} from "../libraries";
+import StateModule from "../state";
+import UniversalVerifierModule from "../universalVerifier";
+import IdentityTreeStoreModule from "../identityTreeStore";
+import CredentialAtomicQueryMTPV2ValidatorModule from "../credentialAtomicQueryMTPV2Validator";
+import CredentialAtomicQuerySigV2ValidatorModule from "../credentialAtomicQuerySigV2Validator";
+import CredentialAtomicQueryV3ValidatorModule from "../credentialAtomicQueryV3Validator";
+import LinkedMultiQueryValidatorModule from "../linkedMultiQuery";
+import AuthV2ValidatorModule from "../authV2Validator";
+import EthIdentityValidatorModule from "../ethIdentityValidator";
 
 const DeploySystemModule = buildModule("DeploySystemModule", (m) => {
   const { create2AddressAnchor } = m.useModule(Create2AddressAnchorModule);
