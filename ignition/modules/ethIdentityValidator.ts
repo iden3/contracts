@@ -36,30 +36,48 @@ export const EthIdentityValidatorProxyFirstImplementationModule = buildModule(
   },
 );
 
-const EthIdentityValidatorProxyModule = buildModule("EthIdentityValidatorProxyModule", (m) => {
-  const proxyAdminOwner = m.getAccount(0);
-  const { proxy, proxyAdmin } = m.useModule(EthIdentityValidatorProxyFirstImplementationModule);
+export const EthIdentityValidatorProxyModule = buildModule(
+  "EthIdentityValidatorProxyModule",
+  (m) => {
+    const { proxy, proxyAdmin } = m.useModule(EthIdentityValidatorProxyFirstImplementationModule);
 
-  const newEthIdentityValidatorImpl = m.contract(contractsInfo.VALIDATOR_ETH_IDENTITY.name);
+    const newEthIdentityValidatorImpl = m.contract(contractsInfo.VALIDATOR_ETH_IDENTITY.name);
 
-  const initializeData = m.encodeFunctionCall(newEthIdentityValidatorImpl, "initialize", [
-    proxyAdminOwner,
-  ]);
+    return {
+      newEthIdentityValidatorImpl,
+      proxyAdmin,
+      proxy,
+    };
+  },
+);
 
-  m.call(proxyAdmin, "upgradeAndCall", [proxy, newEthIdentityValidatorImpl, initializeData], {
-    from: proxyAdminOwner,
-  });
+const EthIdentityValidatorProxyFinalImplementationModule = buildModule(
+  "EthIdentityValidatorProxyFinalImplementationModule",
+  (m) => {
+    const proxyAdminOwner = m.getAccount(0);
+    const { newEthIdentityValidatorImpl, proxyAdmin, proxy } = m.useModule(
+      EthIdentityValidatorProxyModule,
+    );
 
-  return {
-    newEthIdentityValidatorImpl,
-    proxyAdmin,
-    proxy,
-  };
-});
+    const initializeData = m.encodeFunctionCall(newEthIdentityValidatorImpl, "initialize", [
+      proxyAdminOwner,
+    ]);
+
+    m.call(proxyAdmin, "upgradeAndCall", [proxy, newEthIdentityValidatorImpl, initializeData], {
+      from: proxyAdminOwner,
+    });
+
+    return {
+      newEthIdentityValidatorImpl,
+      proxyAdmin,
+      proxy,
+    };
+  },
+);
 
 const EthIdentityValidatorModule = buildModule("EthIdentityValidatorModule", (m) => {
   const { newEthIdentityValidatorImpl, proxyAdmin, proxy } = m.useModule(
-    EthIdentityValidatorProxyModule,
+    EthIdentityValidatorProxyFinalImplementationModule,
   );
 
   const ethIdentityValidator = m.contractAt(contractsInfo.VALIDATOR_ETH_IDENTITY.name, proxy);

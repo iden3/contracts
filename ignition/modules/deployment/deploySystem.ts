@@ -7,15 +7,15 @@ import {
   Poseidon4Module,
   SmtLibModule,
 } from "../libraries";
-import StateModule from "../state";
-import UniversalVerifierModule from "../universalVerifier";
-import IdentityTreeStoreModule from "../identityTreeStore";
-import CredentialAtomicQueryMTPV2ValidatorModule from "../credentialAtomicQueryMTPV2Validator";
-import CredentialAtomicQuerySigV2ValidatorModule from "../credentialAtomicQuerySigV2Validator";
-import CredentialAtomicQueryV3ValidatorModule from "../credentialAtomicQueryV3Validator";
-import LinkedMultiQueryValidatorModule from "../linkedMultiQuery";
-import AuthV2ValidatorModule from "../authV2Validator";
-import EthIdentityValidatorModule from "../ethIdentityValidator";
+import { StateProxyModule } from "../state";
+import { UniversalVerifierProxyModule } from "../universalVerifier";
+import { IdentityTreeStoreProxyModule } from "../identityTreeStore";
+import { CredentialAtomicQueryMTPV2ValidatorProxyModule } from "../credentialAtomicQueryMTPV2Validator";
+import { CredentialAtomicQuerySigV2ValidatorProxyModule } from "../credentialAtomicQuerySigV2Validator";
+import { CredentialAtomicQueryV3ValidatorProxyModule } from "../credentialAtomicQueryV3Validator";
+import { LinkedMultiQueryValidatorProxyModule } from "../linkedMultiQuery";
+import { AuthV2ValidatorProxyModule } from "../authV2Validator";
+import { EthIdentityValidatorProxyModule } from "../ethIdentityValidator";
 
 const DeploySystemModule = buildModule("DeploySystemModule", (m) => {
   const { create2AddressAnchor } = m.useModule(Create2AddressAnchorModule);
@@ -27,51 +27,24 @@ const DeploySystemModule = buildModule("DeploySystemModule", (m) => {
 
   const { smtLib } = m.useModule(SmtLibModule);
 
-  const { state } = m.useModule(StateModule);
+  const { newStateImpl } = m.useModule(StateProxyModule);
 
-  const { universalVerifier } = m.useModule(UniversalVerifierModule);
+  const { newUniversalVerifierImpl } = m.useModule(UniversalVerifierProxyModule);
 
-  const { identityTreeStore } = m.useModule(IdentityTreeStoreModule);
+  const { newIdentityTreeStoreImpl } = m.useModule(IdentityTreeStoreProxyModule);
 
-  const { credentialAtomicQueryMTPV2Validator } = m.useModule(
-    CredentialAtomicQueryMTPV2ValidatorModule,
+  const { newCredentialAtomicQueryMTPV2ValidatorImpl } = m.useModule(
+    CredentialAtomicQueryMTPV2ValidatorProxyModule,
   );
-  const { credentialAtomicQuerySigV2Validator } = m.useModule(
-    CredentialAtomicQuerySigV2ValidatorModule,
+  const { newCredentialAtomicQuerySigV2ValidatorImpl } = m.useModule(
+    CredentialAtomicQuerySigV2ValidatorProxyModule,
   );
-  const { credentialAtomicQueryV3Validator } = m.useModule(CredentialAtomicQueryV3ValidatorModule);
-  const { linkedMultiQueryValidator } = m.useModule(LinkedMultiQueryValidatorModule);
-  const { authV2Validator } = m.useModule(AuthV2ValidatorModule);
-  const { ethIdentityValidator } = m.useModule(EthIdentityValidatorModule);
-
-  m.call(universalVerifier, "addValidatorToWhitelist", [credentialAtomicQueryMTPV2Validator], {
-    id: "addValidatorToWhitelistMTPV2",
-  });
-  m.call(universalVerifier, "addValidatorToWhitelist", [credentialAtomicQuerySigV2Validator], {
-    id: "addValidatorToWhitelistSigV2",
-  });
-  m.call(universalVerifier, "addValidatorToWhitelist", [credentialAtomicQueryV3Validator], {
-    id: "addValidatorToWhitelistV3",
-  });
-  m.call(universalVerifier, "addValidatorToWhitelist", [linkedMultiQueryValidator], {
-    id: "addValidatorToWhitelistLinkedMultiQuery",
-  });
-  m.call(
-    universalVerifier,
-    "setAuthMethod",
-    [{ authMethod: "authV2", validator: authV2Validator, params: "0x" }],
-    {
-      id: "setAuthMethodAuthV2",
-    },
+  const { newCredentialAtomicQueryV3ValidatorImpl } = m.useModule(
+    CredentialAtomicQueryV3ValidatorProxyModule,
   );
-  m.call(
-    universalVerifier,
-    "setAuthMethod",
-    [{ authMethod: "ethIdentity", validator: ethIdentityValidator, params: "0x" }],
-    {
-      id: "setAuthMethodEthIdentity",
-    },
-  );
+  const { newLinkedMultiQueryValidatorImpl } = m.useModule(LinkedMultiQueryValidatorProxyModule);
+  const { newAuthV2ValidatorImpl } = m.useModule(AuthV2ValidatorProxyModule);
+  const { newEthIdentityValidatorImpl } = m.useModule(EthIdentityValidatorProxyModule);
 
   return {
     create2AddressAnchor,
@@ -80,15 +53,15 @@ const DeploySystemModule = buildModule("DeploySystemModule", (m) => {
     poseidon3,
     poseidon4,
     smtLib,
-    state,
-    universalVerifier,
-    identityTreeStore,
-    credentialAtomicQueryMTPV2Validator,
-    credentialAtomicQuerySigV2Validator,
-    credentialAtomicQueryV3Validator,
-    linkedMultiQueryValidator,
-    authV2Validator,
-    ethIdentityValidator,
+    newStateImpl,
+    newUniversalVerifierImpl,
+    newIdentityTreeStoreImpl,
+    newCredentialAtomicQueryMTPV2ValidatorImpl,
+    newCredentialAtomicQuerySigV2ValidatorImpl,
+    newCredentialAtomicQueryV3ValidatorImpl,
+    newLinkedMultiQueryValidatorImpl,
+    newAuthV2ValidatorImpl,
+    newEthIdentityValidatorImpl,
   };
 });
 

@@ -11,7 +11,7 @@ import { Poseidon1Module, SmtLibModule } from "./libraries";
 export const StateProxyFirstImplementationModule = buildModule(
   "StateProxyFirstImplementationModule",
   (m) => {
-    const proxyAdminOwner = m.getAccount(0);
+    const proxyAdminOwner = m.getParameter("proxyAdminOwner"); //m.getAccount(0);
 
     // This contract is supposed to be deployed to the same address across many networks,
     // so the first implementation address is a dummy contract that does nothing but accepts any calldata.
@@ -57,14 +57,8 @@ const CrossChainProofValidatorModule = buildModule("CrossChainProofValidatorModu
   return { crossChainProofValidator };
 });
 
-const StateProxyModule = buildModule("StateProxyModule", (m) => {
-  const proxyAdminOwner = m.getAccount(0);
+export const StateProxyModule = buildModule("StateProxyModule", (m) => {
   const { proxy, proxyAdmin } = m.useModule(StateProxyFirstImplementationModule);
-
-  const defaultIdType = m.getParameter("defaultIdType");
-  if (!defaultIdType) {
-    throw new Error(`Failed to find defaultIdType in Map for chainId ${defaultIdType}`);
-  }
 
   const poseidon1 = m.useModule(Poseidon1Module).poseidon;
   const { groth16VerifierStateTransition } = m.useModule(Groth16VerifierStateTransitionModule);
@@ -80,17 +74,6 @@ const StateProxyModule = buildModule("StateProxyModule", (m) => {
     },
   });
 
-  const initializeData = m.encodeFunctionCall(newStateImpl, "initialize", [
-    groth16VerifierStateTransition,
-    defaultIdType,
-    proxyAdminOwner,
-    crossChainProofValidator,
-  ]);
-
-  m.call(proxyAdmin, "upgradeAndCall", [proxy, newStateImpl, initializeData], {
-    from: proxyAdminOwner,
-  });
-
   return {
     crossChainProofValidator,
     groth16VerifierStateTransition,
@@ -101,15 +84,52 @@ const StateProxyModule = buildModule("StateProxyModule", (m) => {
   };
 });
 
+export const StateProxyFinalImplementationModule = buildModule(
+  "StateProxyFinalImplementationModule",
+  (m) => {
+    const {
+      proxy,
+      proxyAdmin,
+      newStateImpl,
+      groth16VerifierStateTransition,
+      crossChainProofValidator,
+    } = m.useModule(StateProxyModule);
+
+    const proxyAdminOwner = m.getAccount(0);
+    const defaultIdType = m.getParameter("defaultIdType");
+
+    if (!defaultIdType) {
+      throw new Error(`Failed to find defaultIdType in Map for chainId ${defaultIdType}`);
+    }
+    const initializeData = m.encodeFunctionCall(newStateImpl, "initialize", [
+      groth16VerifierStateTransition,
+      defaultIdType,
+      proxyAdminOwner,
+      crossChainProofValidator,
+    ]);
+
+    m.call(proxyAdmin, "upgradeAndCall", [proxy, newStateImpl, initializeData], {
+      from: proxyAdminOwner,
+    });
+
+    return {
+      proxy,
+      proxyAdmin,
+      newStateImpl,
+      groth16VerifierStateTransition,
+      crossChainProofValidator,
+    };
+  },
+);
+
 const StateModule = buildModule("StateModule", (m) => {
   const {
     crossChainProofValidator,
     groth16VerifierStateTransition,
-    stateLib,
     newStateImpl,
     proxyAdmin,
     proxy,
-  } = m.useModule(StateProxyModule);
+  } = m.useModule(StateProxyFinalImplementationModule);
 
   const state = m.contractAt(contractsInfo.STATE.name, proxy);
 
@@ -117,7 +137,6 @@ const StateModule = buildModule("StateModule", (m) => {
     state,
     crossChainProofValidator,
     groth16VerifierStateTransition,
-    stateLib,
     newStateImpl,
     proxyAdmin,
     proxy,

@@ -6,7 +6,7 @@ import {
 } from "../../helpers/constants";
 import Create2AddressAnchorModule from "./create2AddressAnchor";
 import { Groth16VerifierMTPModule } from "./groth16verifiers";
-import StateModule from "./state";
+import { StateProxyModule } from "./state";
 
 export const CredentialAtomicQueryMTPV2ValidatorProxyFirstImplementationModule = buildModule(
   "CredentialAtomicQueryMTPV2ValidatorProxyFirstImplementationModule",
@@ -38,18 +38,39 @@ export const CredentialAtomicQueryMTPV2ValidatorProxyFirstImplementationModule =
   },
 );
 
-const CredentialAtomicQueryMTPV2ValidatorProxyModule = buildModule(
+export const CredentialAtomicQueryMTPV2ValidatorProxyModule = buildModule(
   "CredentialAtomicQueryMTPV2ValidatorProxyModule",
   (m) => {
-    const proxyAdminOwner = m.getAccount(0);
     const { proxy, proxyAdmin } = m.useModule(
       CredentialAtomicQueryMTPV2ValidatorProxyFirstImplementationModule,
     );
 
-    const { state } = m.useModule(StateModule);
+    const { proxy: state } = m.useModule(StateProxyModule);
     const { groth16VerifierMTP } = m.useModule(Groth16VerifierMTPModule);
 
     const newCredentialAtomicQueryMTPV2ValidatorImpl = m.contract(contractsInfo.VALIDATOR_MTP.name);
+
+    return {
+      groth16VerifierMTP,
+      state,
+      newCredentialAtomicQueryMTPV2ValidatorImpl,
+      proxyAdmin,
+      proxy,
+    };
+  },
+);
+
+const CredentialAtomicQueryMTPV2ValidatorProxyFinalImplementationModule = buildModule(
+  "CredentialAtomicQueryMTPV2ValidatorProxyFinalImplementationModule",
+  (m) => {
+    const proxyAdminOwner = m.getAccount(0);
+    const {
+      groth16VerifierMTP,
+      state,
+      newCredentialAtomicQueryMTPV2ValidatorImpl,
+      proxyAdmin,
+      proxy,
+    } = m.useModule(CredentialAtomicQueryMTPV2ValidatorProxyModule);
 
     const initializeData = m.encodeFunctionCall(
       newCredentialAtomicQueryMTPV2ValidatorImpl,
@@ -85,7 +106,7 @@ const CredentialAtomicQueryMTPV2ValidatorModule = buildModule(
       newCredentialAtomicQueryMTPV2ValidatorImpl,
       proxyAdmin,
       proxy,
-    } = m.useModule(CredentialAtomicQueryMTPV2ValidatorProxyModule);
+    } = m.useModule(CredentialAtomicQueryMTPV2ValidatorProxyFinalImplementationModule);
 
     const credentialAtomicQueryMTPV2Validator = m.contractAt(
       contractsInfo.VALIDATOR_MTP.name,

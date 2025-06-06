@@ -6,7 +6,7 @@ import {
 } from "../../helpers/constants";
 import Create2AddressAnchorModule from "./create2AddressAnchor";
 import { Groth16VerifierAuthV2Module } from "./groth16verifiers";
-import StateModule from "./state";
+import StateModule, { StateProxyModule } from "./state";
 
 export const AuthV2ValidatorProxyFirstImplementationModule = buildModule(
   "AuthV2ValidatorProxyFirstImplementationModule",
@@ -38,36 +38,53 @@ export const AuthV2ValidatorProxyFirstImplementationModule = buildModule(
   },
 );
 
-const AuthV2ValidatorProxyModule = buildModule("AuthV2ValidatorProxyModule", (m) => {
-  const proxyAdminOwner = m.getAccount(0);
+export const AuthV2ValidatorProxyModule = buildModule("AuthV2ValidatorProxyModule", (m) => {
   const { proxy, proxyAdmin } = m.useModule(AuthV2ValidatorProxyFirstImplementationModule);
 
-  const { state } = m.useModule(StateModule);
+  const { proxy: state } = m.useModule(StateProxyModule);
   const { groth16VerifierAuthV2 } = m.useModule(Groth16VerifierAuthV2Module);
 
   const newAuthV2ValidatorImpl = m.contract(contractsInfo.VALIDATOR_AUTH_V2.name);
 
-  const initializeData = m.encodeFunctionCall(newAuthV2ValidatorImpl, "initialize", [
-    state,
-    groth16VerifierAuthV2,
-    proxyAdminOwner,
-  ]);
-
-  m.call(proxyAdmin, "upgradeAndCall", [proxy, newAuthV2ValidatorImpl, initializeData], {
-    from: proxyAdminOwner,
-  });
-
   return {
     groth16VerifierAuthV2,
     newAuthV2ValidatorImpl,
+    state,
     proxyAdmin,
     proxy,
   };
 });
 
+const AuthV2ValidatorProxyFinalImplementationModule = buildModule(
+  "AuthV2ValidatorProxyFinalImplementationModule",
+  (m) => {
+    const proxyAdminOwner = m.getAccount(0);
+    const { groth16VerifierAuthV2, newAuthV2ValidatorImpl, state, proxyAdmin, proxy } = m.useModule(
+      AuthV2ValidatorProxyModule,
+    );
+
+    const initializeData = m.encodeFunctionCall(newAuthV2ValidatorImpl, "initialize", [
+      state,
+      groth16VerifierAuthV2,
+      proxyAdminOwner,
+    ]);
+
+    m.call(proxyAdmin, "upgradeAndCall", [proxy, newAuthV2ValidatorImpl, initializeData], {
+      from: proxyAdminOwner,
+    });
+
+    return {
+      groth16VerifierAuthV2,
+      newAuthV2ValidatorImpl,
+      proxyAdmin,
+      proxy,
+    };
+  },
+);
+
 const AuthV2ValidatorModule = buildModule("AuthV2ValidatorModule", (m) => {
   const { groth16VerifierAuthV2, newAuthV2ValidatorImpl, proxyAdmin, proxy } = m.useModule(
-    AuthV2ValidatorProxyModule,
+    AuthV2ValidatorProxyFinalImplementationModule,
   );
 
   const authV2Validator = m.contractAt(contractsInfo.VALIDATOR_AUTH_V2.name, proxy);

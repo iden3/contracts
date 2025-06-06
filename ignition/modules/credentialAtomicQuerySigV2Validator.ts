@@ -5,7 +5,7 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
 import Create2AddressAnchorModule from "./create2AddressAnchor";
-import StateModule from "./state";
+import { StateProxyModule } from "./state";
 import { Groth16VerifierSigModule } from "./groth16verifiers";
 
 export const CredentialAtomicQuerySigV2ValidatorProxyFirstImplementationModule = buildModule(
@@ -38,18 +38,39 @@ export const CredentialAtomicQuerySigV2ValidatorProxyFirstImplementationModule =
   },
 );
 
-const CredentialAtomicQuerySigV2ValidatorProxyModule = buildModule(
+export const CredentialAtomicQuerySigV2ValidatorProxyModule = buildModule(
   "CredentialAtomicQuerySigV2ValidatorProxyModule",
   (m) => {
-    const proxyAdminOwner = m.getAccount(0);
     const { proxy, proxyAdmin } = m.useModule(
       CredentialAtomicQuerySigV2ValidatorProxyFirstImplementationModule,
     );
 
-    const { state } = m.useModule(StateModule);
+    const { proxy: state } = m.useModule(StateProxyModule);
     const { groth16VerifierSig } = m.useModule(Groth16VerifierSigModule);
 
     const newCredentialAtomicQuerySigV2ValidatorImpl = m.contract(contractsInfo.VALIDATOR_SIG.name);
+
+    return {
+      groth16VerifierSig,
+      state,
+      newCredentialAtomicQuerySigV2ValidatorImpl,
+      proxyAdmin,
+      proxy,
+    };
+  },
+);
+
+const CredentialAtomicQuerySigV2ValidatorProxyFinalImplementationModule = buildModule(
+  "CredentialAtomicQuerySigV2ValidatorProxyFinalImplementationModule",
+  (m) => {
+    const proxyAdminOwner = m.getAccount(0);
+    const {
+      groth16VerifierSig,
+      state,
+      newCredentialAtomicQuerySigV2ValidatorImpl,
+      proxyAdmin,
+      proxy,
+    } = m.useModule(CredentialAtomicQuerySigV2ValidatorProxyModule);
 
     const initializeData = m.encodeFunctionCall(
       newCredentialAtomicQuerySigV2ValidatorImpl,
@@ -85,7 +106,7 @@ const CredentialAtomicQuerySigV2ValidatorModule = buildModule(
       newCredentialAtomicQuerySigV2ValidatorImpl,
       proxyAdmin,
       proxy,
-    } = m.useModule(CredentialAtomicQuerySigV2ValidatorProxyModule);
+    } = m.useModule(CredentialAtomicQuerySigV2ValidatorProxyFinalImplementationModule);
 
     const credentialAtomicQuerySigV2Validator = m.contractAt(
       contractsInfo.VALIDATOR_SIG.name,

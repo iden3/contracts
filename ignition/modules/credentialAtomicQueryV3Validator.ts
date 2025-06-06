@@ -5,7 +5,7 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
 import Create2AddressAnchorModule from "./create2AddressAnchor";
-import StateModule from "./state";
+import { StateProxyModule } from "./state";
 import { Groth16VerifierV3Module } from "./groth16verifiers";
 
 export const CredentialAtomicQueryV3ValidatorProxyFirstImplementationModule = buildModule(
@@ -38,18 +38,34 @@ export const CredentialAtomicQueryV3ValidatorProxyFirstImplementationModule = bu
   },
 );
 
-const CredentialAtomicQueryV3ValidatorProxyModule = buildModule(
+export const CredentialAtomicQueryV3ValidatorProxyModule = buildModule(
   "CredentialAtomicQueryV3ValidatorProxyModule",
   (m) => {
-    const proxyAdminOwner = m.getAccount(0);
     const { proxy, proxyAdmin } = m.useModule(
       CredentialAtomicQueryV3ValidatorProxyFirstImplementationModule,
     );
 
-    const { state } = m.useModule(StateModule);
+    const { proxy: state } = m.useModule(StateProxyModule);
     const { groth16VerifierV3 } = m.useModule(Groth16VerifierV3Module);
 
     const newCredentialAtomicQueryV3ValidatorImpl = m.contract(contractsInfo.VALIDATOR_V3.name);
+
+    return {
+      groth16VerifierV3,
+      state,
+      newCredentialAtomicQueryV3ValidatorImpl,
+      proxyAdmin,
+      proxy,
+    };
+  },
+);
+
+const CredentialAtomicQueryV3ValidatorProxyFinalImplementationModule = buildModule(
+  "CredentialAtomicQueryV3ValidatorProxyFinalImplementationModule",
+  (m) => {
+    const proxyAdminOwner = m.getAccount(0);
+    const { groth16VerifierV3, state, newCredentialAtomicQueryV3ValidatorImpl, proxyAdmin, proxy } =
+      m.useModule(CredentialAtomicQueryV3ValidatorProxyModule);
 
     const initializeData = m.encodeFunctionCall(
       newCredentialAtomicQueryV3ValidatorImpl,
@@ -80,7 +96,7 @@ const CredentialAtomicQueryV3ValidatorModule = buildModule(
   "CredentialAtomicQueryV3ValidatorModule",
   (m) => {
     const { groth16VerifierV3, state, newCredentialAtomicQueryV3ValidatorImpl, proxyAdmin, proxy } =
-      m.useModule(CredentialAtomicQueryV3ValidatorProxyModule);
+      m.useModule(CredentialAtomicQueryV3ValidatorProxyFinalImplementationModule);
 
     const credentialAtomicQueryV3Validator = m.contractAt(contractsInfo.VALIDATOR_V3.name, proxy);
 

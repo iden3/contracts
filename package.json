@@ -132,6 +132,7 @@
     "deploy:set:request:linea-sepolia": "npx hardhat run scripts/maintenance/setProofRequest.ts --network linea-sepolia",
     "deploy:vc-payment:polygon-amoy": "npx hardhat run scripts/deploy/deployVCPayment.ts --network polygon-amoy",
     "deploy:system:localhost": "npx hardhat ignition deploy ignition/modules/deployment/deploySystem.ts --network localhost --strategy create2 --parameters ignition/modules/params/localhost.json",
+    "deploy:system:upgrade:implementations:localhost": "npx hardhat ignition deploy ignition/modules/deployment/deploySystemUpgradeImplementations.ts --network localhost --strategy create2 --parameters ignition/modules/params/localhost.json",
     "upgrade:contracts:universal:verifier:localhost": "npx hardhat run scripts/upgrade/verifiers/universal-verifier-upgrade.ts --network localhost",
     "upgrade:contracts:universal:verifier:polygon-amoy": "npx hardhat run scripts/upgrade/verifiers/universal-verifier-upgrade.ts --network polygon-amoy",
     "upgrade:contracts:universal:verifier:ethereum-sepolia": "npx hardhat run scripts/upgrade/verifiers/universal-verifier-upgrade.ts --network ethereum-sepolia",
