@@ -9,8 +9,8 @@ import LinkedMultiQueryValidatorModule from "../linkedMultiQuery";
 import AuthV2ValidatorModule from "../authV2Validator";
 import EthIdentityValidatorModule from "../ethIdentityValidator";
 
-const DeploySystemUpgradeImplementationsModule = buildModule(
-  "DeploySystemUpgradeImplementationsModule",
+const DeploySystemFianlImplementationsModule = buildModule(
+  "DeploySystemFianlImplementationsModule",
   (m) => {
     const { state } = m.useModule(StateModule);
 
@@ -74,4 +74,4 @@ const DeploySystemUpgradeImplementationsModule = buildModule(
   },
 );
 
-export default DeploySystemUpgradeImplementationsModule;
+export default DeploySystemFianlImplementationsModule;
