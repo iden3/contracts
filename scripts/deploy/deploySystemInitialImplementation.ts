@@ -108,42 +108,36 @@ async function main() {
       moduleAt: Poseidon1AtModule,
       contractAddress: contractsInfo.POSEIDON_1.unifiedAddress,
       name: contractsInfo.POSEIDON_1.name,
-      deploymentId: "Poseidon1Module#Poseidon1Element",
     },
     {
       module: Poseidon2Module,
       moduleAt: Poseidon2AtModule,
       contractAddress: contractsInfo.POSEIDON_2.unifiedAddress,
       name: contractsInfo.POSEIDON_2.name,
-      deploymentId: "Poseidon2Module#Poseidon2Element",
     },
     {
       module: Poseidon3Module,
       moduleAt: Poseidon3AtModule,
       contractAddress: contractsInfo.POSEIDON_3.unifiedAddress,
       name: contractsInfo.POSEIDON_3.name,
-      deploymentId: "Poseidon3Module#Poseidon3Element",
     },
     {
       module: Poseidon4Module,
       moduleAt: Poseidon4AtModule,
       contractAddress: contractsInfo.POSEIDON_4.unifiedAddress,
       name: contractsInfo.POSEIDON_4.name,
-      deploymentId: "Poseidon4Module#Poseidon4Element",
     },
     {
       module: SmtLibModule,
       moduleAt: SmtLibAtModule,
       contractAddress: contractsInfo.SMT_LIB.unifiedAddress,
       name: contractsInfo.SMT_LIB.name,
-      deploymentId: "SmtLibModule#SmtLib",
     },
     {
       module: StateProxyModule,
       moduleAt: StateAtModule,
       contractAddress: "0xaea923d71Bc5ED3A622D4DfCF2f9C338889b1c70", // contractsInfo.STATE.unifiedAddress,
       name: contractsInfo.STATE.name,
-      deploymentId: "StateProxyFirstImplementationModule#TransparentUpgradeableProxy",
       proxy: true,
     },
     {
@@ -220,14 +214,12 @@ async function main() {
       );
     } else {
       console.log(`${contract.name} already deployed to: ${contract.contractAddress}`);
-      if (!deployedAddresses[contract.deploymentId!]) {
-        // Use the module to get the address into the deployed address registry
-        await ignition.deploy(contract.moduleAt, {
-          strategy: deployStrategy,
-          defaultSender: await signer.getAddress(),
-          parameters: parameters,
-        });
-      }
+      // Use the module to get the address into the deployed address registry
+      await ignition.deploy(contract.moduleAt, {
+        strategy: deployStrategy,
+        defaultSender: await signer.getAddress(),
+        parameters: parameters,
+      });
     }
   }
 }
