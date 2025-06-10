@@ -98,11 +98,8 @@ export const Poseidon6Module = buildModule("Poseidon6Module", (m) => {
 });
 
 export const SmtLibModule = buildModule("SmtLibModule", (m) => {
-  const poseidon2ElementAddress = m.getParameter("poseidon2ElementAddress");
-  const poseidon3ElementAddress = m.getParameter("poseidon3ElementAddress");
-
-  const poseidon2Element = m.contractAt("PoseidonUnit2L", poseidon2ElementAddress);
-  const poseidon3Element = m.contractAt("PoseidonUnit3L", poseidon3ElementAddress);
+  const poseidon2Element = m.useModule(Poseidon2Module).poseidon;
+  const poseidon3Element = m.useModule(Poseidon3Module).poseidon;
 
   const smtLib = m.contract("SmtLib", [], {
     libraries: {
@@ -114,9 +111,7 @@ export const SmtLibModule = buildModule("SmtLibModule", (m) => {
 });
 
 export const SpongePoseidonModule = buildModule("SpongePoseidonModule", (m) => {
-  const poseidon6ElementAddress = m.getParameter("poseidon6ContractAddress");
-
-  const poseidon6Element = m.contractAt("PoseidonUnit6L", poseidon6ElementAddress);
+  const poseidon6Element = m.useModule(Poseidon6Module).poseidon;
 
   const spongePoseidon = m.contract("SpongePoseidon", [], {
     libraries: {
