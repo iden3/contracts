@@ -11,7 +11,7 @@ import StateModule, { StateProxyModule } from "./state";
 export const IdentityTreeStoreProxyFirstImplementationModule = buildModule(
   "IdentityTreeStoreProxyFirstImplementationModule",
   (m) => {
-    const proxyAdminOwner = m.getAccount(0);
+    const proxyAdminOwner = m.getParameter("proxyAdminOwner"); //m.getAccount(0);
 
     // This contract is supposed to be deployed to the same address across many networks,
     // so the first implementation address is a dummy contract that does nothing but accepts any calldata.

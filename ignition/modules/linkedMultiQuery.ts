@@ -10,7 +10,7 @@ import { Groth16VerifierLinkedMultiQuery10Module } from "./groth16verifiers";
 export const LinkedMultiQueryValidatorProxyFirstImplementationModule = buildModule(
   "LinkedMultiQueryValidatorProxyFirstImplementationModule",
   (m) => {
-    const proxyAdminOwner = m.getAccount(0);
+    const proxyAdminOwner = m.getParameter("proxyAdminOwner"); //m.getAccount(0);
 
     // This contract is supposed to be deployed to the same address across many networks,
     // so the first implementation address is a dummy contract that does nothing but accepts any calldata.
