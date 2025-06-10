@@ -10,7 +10,7 @@ import { Create2AddressAnchorAtModule, StateAtModule } from "./contractsAt";
 export const CredentialAtomicQueryMTPV2ValidatorProxyFirstImplementationModule = buildModule(
   "CredentialAtomicQueryMTPV2ValidatorProxyFirstImplementationModule",
   (m) => {
-    const proxyAdminOwner = m.getAccount(0);
+    const proxyAdminOwner = m.getParameter("proxyAdminOwner"); //m.getAccount(0);
 
     // This contract is supposed to be deployed to the same address across many networks,
     // so the first implementation address is a dummy contract that does nothing but accepts any calldata.
