@@ -4,9 +4,8 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
-import Create2AddressAnchorModule from "./create2AddressAnchor";
-import { StateProxyModule } from "./state";
 import { Groth16VerifierSigModule } from "./groth16verifiers";
+import { Create2AddressAnchorAtModule, StateAtModule } from "./contractsAt";
 
 export const CredentialAtomicQuerySigV2ValidatorProxyFirstImplementationModule = buildModule(
   "CredentialAtomicQuerySigV2ValidatorProxyFirstImplementationModule",
@@ -19,7 +18,7 @@ export const CredentialAtomicQuerySigV2ValidatorProxyFirstImplementationModule =
     // with constant constructor arguments, so predictable init bytecode and predictable CREATE2 address.
     // Subsequent upgrades are supposed to switch this proxy to the real implementation.
 
-    const create2AddressAnchor = m.useModule(Create2AddressAnchorModule).create2AddressAnchor;
+    const create2AddressAnchor = m.useModule(Create2AddressAnchorAtModule).contract;
     const proxy = m.contract(
       "TransparentUpgradeableProxy",
       {
@@ -45,7 +44,7 @@ export const CredentialAtomicQuerySigV2ValidatorProxyModule = buildModule(
       CredentialAtomicQuerySigV2ValidatorProxyFirstImplementationModule,
     );
 
-    const { proxy: state } = m.useModule(StateProxyModule);
+    const state = m.useModule(StateAtModule).contract;
     const { groth16VerifierSig } = m.useModule(Groth16VerifierSigModule);
 
     const newCredentialAtomicQuerySigV2ValidatorImpl = m.contract(contractsInfo.VALIDATOR_SIG.name);

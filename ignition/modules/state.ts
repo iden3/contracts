@@ -7,6 +7,7 @@ import {
 import Create2AddressAnchorModule from "./create2AddressAnchor";
 import { Groth16VerifierStateTransitionModule } from "./groth16verifiers";
 import { Poseidon1Module, SmtLibModule } from "./libraries";
+import { Create2AddressAnchorAtModule, Poseidon1AtModule, SmtLibAtModule } from "./contractsAt";
 
 export const StateProxyFirstImplementationModule = buildModule(
   "StateProxyFirstImplementationModule",
@@ -19,7 +20,7 @@ export const StateProxyFirstImplementationModule = buildModule(
     // with constant constructor arguments, so predictable init bytecode and predictable CREATE2 address.
     // Subsequent upgrades are supposed to switch this proxy to the real implementation.
 
-    const create2AddressAnchor = m.useModule(Create2AddressAnchorModule).create2AddressAnchor;
+    const create2AddressAnchor = m.useModule(Create2AddressAnchorAtModule).contract;
     const proxy = m.contract(
       "TransparentUpgradeableProxy",
       {
@@ -60,10 +61,10 @@ const CrossChainProofValidatorModule = buildModule("CrossChainProofValidatorModu
 export const StateProxyModule = buildModule("StateProxyModule", (m) => {
   const { proxy, proxyAdmin } = m.useModule(StateProxyFirstImplementationModule);
 
-  const poseidon1 = m.useModule(Poseidon1Module).poseidon;
+  const poseidon1 = m.useModule(Poseidon1AtModule).contract;
   const { groth16VerifierStateTransition } = m.useModule(Groth16VerifierStateTransitionModule);
   const { stateLib } = m.useModule(StateLibModule);
-  const { smtLib } = m.useModule(SmtLibModule);
+  const smtLib = m.useModule(SmtLibAtModule).contract;
   const { crossChainProofValidator } = m.useModule(CrossChainProofValidatorModule);
 
   const newStateImpl = m.contract(contractsInfo.STATE.name, [], {

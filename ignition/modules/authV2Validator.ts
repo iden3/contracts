@@ -4,9 +4,8 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
-import Create2AddressAnchorModule from "./create2AddressAnchor";
 import { Groth16VerifierAuthV2Module } from "./groth16verifiers";
-import StateModule, { StateProxyModule } from "./state";
+import { Create2AddressAnchorAtModule, StateAtModule } from "./contractsAt";
 
 export const AuthV2ValidatorProxyFirstImplementationModule = buildModule(
   "AuthV2ValidatorProxyFirstImplementationModule",
@@ -19,7 +18,7 @@ export const AuthV2ValidatorProxyFirstImplementationModule = buildModule(
     // with constant constructor arguments, so predictable init bytecode and predictable CREATE2 address.
     // Subsequent upgrades are supposed to switch this proxy to the real implementation.
 
-    const create2AddressAnchor = m.useModule(Create2AddressAnchorModule).create2AddressAnchor;
+    const create2AddressAnchor = m.useModule(Create2AddressAnchorAtModule).contract;
     const proxy = m.contract(
       "TransparentUpgradeableProxy",
       {
@@ -41,7 +40,7 @@ export const AuthV2ValidatorProxyFirstImplementationModule = buildModule(
 export const AuthV2ValidatorProxyModule = buildModule("AuthV2ValidatorProxyModule", (m) => {
   const { proxy, proxyAdmin } = m.useModule(AuthV2ValidatorProxyFirstImplementationModule);
 
-  const { proxy: state } = m.useModule(StateProxyModule);
+  const state = m.useModule(StateAtModule).contract;
   const { groth16VerifierAuthV2 } = m.useModule(Groth16VerifierAuthV2Module);
 
   const newAuthV2ValidatorImpl = m.contract(contractsInfo.VALIDATOR_AUTH_V2.name);

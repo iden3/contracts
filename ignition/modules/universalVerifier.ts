@@ -6,6 +6,7 @@ import {
 } from "../../helpers/constants";
 import Create2AddressAnchorModule from "./create2AddressAnchor";
 import { StateProxyModule } from "./state";
+import { Create2AddressAnchorAtModule, StateAtModule } from "./contractsAt";
 
 export const UniversalVerifierProxyFirstImplementationModule = buildModule(
   "UniversalVerifierProxyFirstImplementationModule",
@@ -17,7 +18,7 @@ export const UniversalVerifierProxyFirstImplementationModule = buildModule(
     // Therefore, it is a mechanism to deploy TransparentUpgradeableProxy contract
     // with constant constructor arguments, so predictable init bytecode and predictable CREATE2 address.
     // Subsequent upgrades are supposed to switch this proxy to the real implementation.
-    const create2AddressAnchor = m.useModule(Create2AddressAnchorModule).create2AddressAnchor;
+    const create2AddressAnchor = m.useModule(Create2AddressAnchorAtModule).contract;
 
     const proxy = m.contract(
       "TransparentUpgradeableProxy",
@@ -46,7 +47,7 @@ export const UniversalVerifierProxyModule = buildModule("UniversalVerifierProxyM
   const { proxy, proxyAdmin } = m.useModule(UniversalVerifierProxyFirstImplementationModule);
 
   const { verifierLib } = m.useModule(VerifierLibModule);
-  const { proxy: state } = m.useModule(StateProxyModule);
+  const state = m.useModule(StateAtModule).contract;
 
   const newUniversalVerifierImpl = m.contract(contractsInfo.UNIVERSAL_VERIFIER.name, [], {
     libraries: {

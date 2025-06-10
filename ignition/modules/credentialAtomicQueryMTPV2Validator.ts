@@ -4,9 +4,8 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
-import Create2AddressAnchorModule from "./create2AddressAnchor";
 import { Groth16VerifierMTPModule } from "./groth16verifiers";
-import { StateProxyModule } from "./state";
+import { Create2AddressAnchorAtModule, StateAtModule } from "./contractsAt";
 
 export const CredentialAtomicQueryMTPV2ValidatorProxyFirstImplementationModule = buildModule(
   "CredentialAtomicQueryMTPV2ValidatorProxyFirstImplementationModule",
@@ -18,7 +17,7 @@ export const CredentialAtomicQueryMTPV2ValidatorProxyFirstImplementationModule =
     // Therefore, it is a mechanism to deploy TransparentUpgradeableProxy contract
     // with constant constructor arguments, so predictable init bytecode and predictable CREATE2 address.
     // Subsequent upgrades are supposed to switch this proxy to the real implementation.
-    const create2AddressAnchor = m.useModule(Create2AddressAnchorModule).create2AddressAnchor;
+    const create2AddressAnchor = m.useModule(Create2AddressAnchorAtModule).contract;
 
     const proxy = m.contract(
       "TransparentUpgradeableProxy",
@@ -45,7 +44,7 @@ export const CredentialAtomicQueryMTPV2ValidatorProxyModule = buildModule(
       CredentialAtomicQueryMTPV2ValidatorProxyFirstImplementationModule,
     );
 
-    const { proxy: state } = m.useModule(StateProxyModule);
+    const state = m.useModule(StateAtModule).contract;
     const { groth16VerifierMTP } = m.useModule(Groth16VerifierMTPModule);
 
     const newCredentialAtomicQueryMTPV2ValidatorImpl = m.contract(contractsInfo.VALIDATOR_MTP.name);
