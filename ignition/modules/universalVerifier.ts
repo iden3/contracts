@@ -4,14 +4,16 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
-import Create2AddressAnchorModule from "./create2AddressAnchor";
-import { StateProxyModule } from "./state";
-import { Create2AddressAnchorAtModule, StateAtModule } from "./contractsAt";
+import {
+  Create2AddressAnchorAtModule,
+  StateAtModule,
+  UniversalVerifierAtModule,
+} from "./contractsAt";
 
-export const UniversalVerifierProxyFirstImplementationModule = buildModule(
+const UniversalVerifierProxyFirstImplementationModule = buildModule(
   "UniversalVerifierProxyFirstImplementationModule",
   (m) => {
-    const proxyAdminOwner = m.getParameter("proxyAdminOwner"); //m.getAccount(0);
+    const proxyAdminOwner = m.getParameter("proxyAdminOwner");
 
     // This contract is supposed to be deployed to the same address across many networks,
     // so the first implementation address is a dummy contract that does nothing but accepts any calldata.
@@ -43,17 +45,31 @@ const VerifierLibModule = buildModule("VerifierLibModule", (m) => {
   return { verifierLib };
 });
 
+const UniversalVerifierFinalImplementationModule = buildModule(
+  "UniversalVerifierFinalImplementationModule",
+  (m) => {
+    const { verifierLib } = m.useModule(VerifierLibModule);
+    const state = m.useModule(StateAtModule).proxy;
+
+    const newUniversalVerifierImpl = m.contract(contractsInfo.UNIVERSAL_VERIFIER.name, [], {
+      libraries: {
+        VerifierLib: verifierLib,
+      },
+    });
+    return {
+      verifierLib,
+      state,
+      newUniversalVerifierImpl,
+    };
+  },
+);
+
 export const UniversalVerifierProxyModule = buildModule("UniversalVerifierProxyModule", (m) => {
   const { proxy, proxyAdmin } = m.useModule(UniversalVerifierProxyFirstImplementationModule);
 
-  const { verifierLib } = m.useModule(VerifierLibModule);
-  const state = m.useModule(StateAtModule).contract;
-
-  const newUniversalVerifierImpl = m.contract(contractsInfo.UNIVERSAL_VERIFIER.name, [], {
-    libraries: {
-      VerifierLib: verifierLib,
-    },
-  });
+  const { verifierLib, state, newUniversalVerifierImpl } = m.useModule(
+    UniversalVerifierFinalImplementationModule,
+  );
 
   return {
     verifierLib,
@@ -64,11 +80,12 @@ export const UniversalVerifierProxyModule = buildModule("UniversalVerifierProxyM
   };
 });
 
-export const UniversalVerifierProxyFinalImplementationModule = buildModule(
+const UniversalVerifierProxyFinalImplementationModule = buildModule(
   "UniversalVerifierProxyFinalImplementationModule",
   (m) => {
-    const { verifierLib, state, newUniversalVerifierImpl, proxyAdmin, proxy } = m.useModule(
-      UniversalVerifierProxyModule,
+    const { proxy, proxyAdmin } = m.useModule(UniversalVerifierAtModule);
+    const { verifierLib, state, newUniversalVerifierImpl } = m.useModule(
+      UniversalVerifierFinalImplementationModule,
     );
 
     const proxyAdminOwner = m.getAccount(0);

@@ -5,12 +5,16 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
 import { Groth16VerifierMTPModule } from "./groth16verifiers";
-import { Create2AddressAnchorAtModule, StateAtModule } from "./contractsAt";
+import {
+  Create2AddressAnchorAtModule,
+  CredentialAtomicQueryMTPV2ValidatorAtModule,
+  StateAtModule,
+} from "./contractsAt";
 
-export const CredentialAtomicQueryMTPV2ValidatorProxyFirstImplementationModule = buildModule(
+const CredentialAtomicQueryMTPV2ValidatorProxyFirstImplementationModule = buildModule(
   "CredentialAtomicQueryMTPV2ValidatorProxyFirstImplementationModule",
   (m) => {
-    const proxyAdminOwner = m.getParameter("proxyAdminOwner"); //m.getAccount(0);
+    const proxyAdminOwner = m.getParameter("proxyAdminOwner");
 
     // This contract is supposed to be deployed to the same address across many networks,
     // so the first implementation address is a dummy contract that does nothing but accepts any calldata.
@@ -37,18 +41,29 @@ export const CredentialAtomicQueryMTPV2ValidatorProxyFirstImplementationModule =
   },
 );
 
+const CredentialAtomicQueryMTPV2ValidatorFinalImplementationModule = buildModule(
+  "CredentialAtomicQueryMTPV2ValidatorFinalImplementationModule",
+  (m) => {
+    const state = m.useModule(StateAtModule).proxy;
+    const { groth16VerifierMTP } = m.useModule(Groth16VerifierMTPModule);
+    const newCredentialAtomicQueryMTPV2ValidatorImpl = m.contract(contractsInfo.VALIDATOR_MTP.name);
+    return {
+      groth16VerifierMTP,
+      state,
+      newCredentialAtomicQueryMTPV2ValidatorImpl,
+    };
+  },
+);
+
 export const CredentialAtomicQueryMTPV2ValidatorProxyModule = buildModule(
   "CredentialAtomicQueryMTPV2ValidatorProxyModule",
   (m) => {
     const { proxy, proxyAdmin } = m.useModule(
       CredentialAtomicQueryMTPV2ValidatorProxyFirstImplementationModule,
     );
-
-    const state = m.useModule(StateAtModule).contract;
-    const { groth16VerifierMTP } = m.useModule(Groth16VerifierMTPModule);
-
-    const newCredentialAtomicQueryMTPV2ValidatorImpl = m.contract(contractsInfo.VALIDATOR_MTP.name);
-
+    const { groth16VerifierMTP, state, newCredentialAtomicQueryMTPV2ValidatorImpl } = m.useModule(
+      CredentialAtomicQueryMTPV2ValidatorFinalImplementationModule,
+    );
     return {
       groth16VerifierMTP,
       state,
@@ -63,13 +78,10 @@ const CredentialAtomicQueryMTPV2ValidatorProxyFinalImplementationModule = buildM
   "CredentialAtomicQueryMTPV2ValidatorProxyFinalImplementationModule",
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
-    const {
-      groth16VerifierMTP,
-      state,
-      newCredentialAtomicQueryMTPV2ValidatorImpl,
-      proxyAdmin,
-      proxy,
-    } = m.useModule(CredentialAtomicQueryMTPV2ValidatorProxyModule);
+    const { proxy, proxyAdmin } = m.useModule(CredentialAtomicQueryMTPV2ValidatorAtModule);
+    const { groth16VerifierMTP, state, newCredentialAtomicQueryMTPV2ValidatorImpl } = m.useModule(
+      CredentialAtomicQueryMTPV2ValidatorFinalImplementationModule,
+    );
 
     const initializeData = m.encodeFunctionCall(
       newCredentialAtomicQueryMTPV2ValidatorImpl,

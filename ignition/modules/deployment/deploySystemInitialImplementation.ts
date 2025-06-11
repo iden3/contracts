@@ -16,6 +16,8 @@ import { CredentialAtomicQueryV3ValidatorProxyModule } from "../credentialAtomic
 import { LinkedMultiQueryValidatorProxyModule } from "../linkedMultiQuery";
 import { AuthV2ValidatorProxyModule } from "../authV2Validator";
 import { EthIdentityValidatorProxyModule } from "../ethIdentityValidator";
+import { VCPaymentProxyModule } from "../vcPayment";
+import { MCPaymentProxyModule } from "../mcPayment";
 
 const DeploySystemInitialImplementationModule = buildModule(
   "DeploySystemInitialImplementationModule",
@@ -48,6 +50,9 @@ const DeploySystemInitialImplementationModule = buildModule(
     const { newAuthV2ValidatorImpl } = m.useModule(AuthV2ValidatorProxyModule);
     const { newEthIdentityValidatorImpl } = m.useModule(EthIdentityValidatorProxyModule);
 
+    const { newVCPaymentImpl } = m.useModule(VCPaymentProxyModule);
+    const { newMCPaymentImpl } = m.useModule(MCPaymentProxyModule);
+
     return {
       create2AddressAnchor,
       poseidon1,
@@ -64,6 +69,8 @@ const DeploySystemInitialImplementationModule = buildModule(
       newLinkedMultiQueryValidatorImpl,
       newAuthV2ValidatorImpl,
       newEthIdentityValidatorImpl,
+      newVCPaymentImpl,
+      newMCPaymentImpl,
     };
   },
 );

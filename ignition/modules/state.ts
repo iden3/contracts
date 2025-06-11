@@ -4,15 +4,18 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
-import Create2AddressAnchorModule from "./create2AddressAnchor";
 import { Groth16VerifierStateTransitionModule } from "./groth16verifiers";
-import { Poseidon1Module, SmtLibModule } from "./libraries";
-import { Create2AddressAnchorAtModule, Poseidon1AtModule, SmtLibAtModule } from "./contractsAt";
+import {
+  Create2AddressAnchorAtModule,
+  Poseidon1AtModule,
+  SmtLibAtModule,
+  StateAtModule,
+} from "./contractsAt";
 
-export const StateProxyFirstImplementationModule = buildModule(
+const StateProxyFirstImplementationModule = buildModule(
   "StateProxyFirstImplementationModule",
   (m) => {
-    const proxyAdminOwner = m.getParameter("proxyAdminOwner"); //m.getAccount(0);
+    const proxyAdminOwner = m.getParameter("proxyAdminOwner");
 
     // This contract is supposed to be deployed to the same address across many networks,
     // so the first implementation address is a dummy contract that does nothing but accepts any calldata.
@@ -58,9 +61,7 @@ const CrossChainProofValidatorModule = buildModule("CrossChainProofValidatorModu
   return { crossChainProofValidator };
 });
 
-export const StateProxyModule = buildModule("StateProxyModule", (m) => {
-  const { proxy, proxyAdmin } = m.useModule(StateProxyFirstImplementationModule);
-
+const StateFinalImplementationModule = buildModule("StateFinalImplementationModule", (m) => {
   const poseidon1 = m.useModule(Poseidon1AtModule).contract;
   const { groth16VerifierStateTransition } = m.useModule(Groth16VerifierStateTransitionModule);
   const { stateLib } = m.useModule(StateLibModule);
@@ -80,21 +81,31 @@ export const StateProxyModule = buildModule("StateProxyModule", (m) => {
     groth16VerifierStateTransition,
     stateLib,
     newStateImpl,
+  };
+});
+
+export const StateProxyModule = buildModule("StateProxyModule", (m) => {
+  const { proxy, proxyAdmin } = m.useModule(StateProxyFirstImplementationModule);
+  const { crossChainProofValidator, groth16VerifierStateTransition, stateLib, newStateImpl } =
+    m.useModule(StateFinalImplementationModule);
+
+  return {
+    crossChainProofValidator,
+    groth16VerifierStateTransition,
+    stateLib,
+    newStateImpl,
     proxyAdmin,
     proxy,
   };
 });
 
-export const StateProxyFinalImplementationModule = buildModule(
+const StateProxyFinalImplementationModule = buildModule(
   "StateProxyFinalImplementationModule",
   (m) => {
-    const {
-      proxy,
-      proxyAdmin,
-      newStateImpl,
-      groth16VerifierStateTransition,
-      crossChainProofValidator,
-    } = m.useModule(StateProxyModule);
+    const { proxy, proxyAdmin } = m.useModule(StateAtModule);
+    const { newStateImpl, groth16VerifierStateTransition, crossChainProofValidator } = m.useModule(
+      StateFinalImplementationModule,
+    );
 
     const proxyAdminOwner = m.getAccount(0);
     const defaultIdType = m.getParameter("defaultIdType");

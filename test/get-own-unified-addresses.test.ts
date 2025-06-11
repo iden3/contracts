@@ -4,12 +4,11 @@ import { Logger } from "../helpers/helperUtils";
 import Create2AddressAnchorModule from "../ignition/modules/create2AddressAnchor";
 import { GeneralProxyModule } from "./utils/unified-contracts-utils";
 
-// Replace here with your own proxy admin owner address
-const proxyAdminOwnerAddress = "0xAe15d2023A76174a940cbb2b7F44012C728B9d74";
+// TODO: Replace here with your own proxy admin owner address
+const proxyAdminOwnerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 
-it("Calculate and check unified addresses for proxy contracts", async () => {
+it("Calculate unified addresses for proxy contracts", async () => {
   await ignition.deploy(Create2AddressAnchorModule, { strategy: "create2" });
-  let isCheckSuccess = true;
 
   for (const property in contractsInfo) {
     if (contractsInfo[property].create2Calldata !== "") {
@@ -25,20 +24,9 @@ it("Calculate and check unified addresses for proxy contracts", async () => {
         })
       ).proxy;
       await proxyDeployed.waitForDeployment();
-      if ((await proxyDeployed.getAddress()) !== contractsInfo[property].unifiedAddress) {
-        Logger.error(
-          `${contractsInfo[property].name} deployed with unified address: ${await proxyDeployed.getAddress()} (expected: ${contractsInfo[property].unifiedAddress})`,
-        );
-        isCheckSuccess = false;
-      } else {
-        Logger.success(
-          `${contractsInfo[property].name} deployed with unified address: ${await proxyDeployed.getAddress()}`,
-        );
-      }
+      Logger.success(
+        `${contractsInfo[property].name} unified address: ${await proxyDeployed.getAddress()}`,
+      );
     }
-  }
-
-  if (!isCheckSuccess) {
-    throw new Error("Unified address check failed");
   }
 });

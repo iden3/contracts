@@ -8,6 +8,8 @@ import CredentialAtomicQueryV3ValidatorModule from "../credentialAtomicQueryV3Va
 import LinkedMultiQueryValidatorModule from "../linkedMultiQuery";
 import AuthV2ValidatorModule from "../authV2Validator";
 import EthIdentityValidatorModule from "../ethIdentityValidator";
+import MCPaymentModule from "../mcPayment";
+import VCPaymentModule from "../vcPayment";
 
 const DeploySystemFianlImplementationsModule = buildModule(
   "DeploySystemFianlImplementationsModule",
@@ -30,6 +32,9 @@ const DeploySystemFianlImplementationsModule = buildModule(
     const { linkedMultiQueryValidator } = m.useModule(LinkedMultiQueryValidatorModule);
     const { authV2Validator } = m.useModule(AuthV2ValidatorModule);
     const { ethIdentityValidator } = m.useModule(EthIdentityValidatorModule);
+
+    const { VCPayment } = m.useModule(VCPaymentModule);
+    const { MCPayment } = m.useModule(MCPaymentModule);
 
     m.call(universalVerifier, "addValidatorToWhitelist", [credentialAtomicQueryMTPV2Validator], {
       id: "addValidatorToWhitelistMTPV2",
@@ -70,6 +75,8 @@ const DeploySystemFianlImplementationsModule = buildModule(
       linkedMultiQueryValidator,
       authV2Validator,
       ethIdentityValidator,
+      VCPayment,
+      MCPayment,
     };
   },
 );

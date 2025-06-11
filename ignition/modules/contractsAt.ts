@@ -39,68 +39,101 @@ export const SmtLibAtModule = buildModule("SmtLibAtModule", (m) => {
 });
 
 export const StateAtModule = buildModule("StateAtModule", (m) => {
-  const contractAddress = m.getParameter("contractAddress");
-  const contract = m.contractAt(contractsInfo.STATE.name, contractAddress);
-  return { contract };
+  const proxyAddress = m.getParameter("proxyAddress");
+  const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+  const proxy = m.contractAt(contractsInfo.STATE.name, proxyAddress);
+  const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+  return { proxy, proxyAdmin };
 });
 
 export const UniversalVerifierAtModule = buildModule("UniversalVerifierAtModule", (m) => {
-  const contractAddress = m.getParameter("contractAddress");
-  const contract = m.contractAt(contractsInfo.UNIVERSAL_VERIFIER.name, contractAddress);
-  return { contract };
+  const proxyAddress = m.getParameter("proxyAddress");
+  const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+  const proxy = m.contractAt(contractsInfo.UNIVERSAL_VERIFIER.name, proxyAddress);
+  const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+  return { proxy, proxyAdmin };
 });
 
 export const IdentityTreeStoreAtModule = buildModule("IdentityTreeStoreAtModule", (m) => {
-  const contractAddress = m.getParameter("contractAddress");
-  const contract = m.contractAt(contractsInfo.IDENTITY_TREE_STORE.name, contractAddress);
-  return { contract };
+  const proxyAddress = m.getParameter("proxyAddress");
+  const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+  const proxy = m.contractAt(contractsInfo.IDENTITY_TREE_STORE.name, proxyAddress);
+  const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+  return { proxy, proxyAdmin };
 });
 
 export const CredentialAtomicQueryMTPV2ValidatorAtModule = buildModule(
   "CredentialAtomicQueryMTPV2ValidatorAtModule",
   (m) => {
-    const contractAddress = m.getParameter("contractAddress");
-
-    const contract = m.contractAt(contractsInfo.VALIDATOR_MTP.name, contractAddress);
-    return { contract };
+    const proxyAddress = m.getParameter("proxyAddress");
+    const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+    const proxy = m.contractAt(contractsInfo.VALIDATOR_MTP.name, proxyAddress);
+    const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+    return { proxy, proxyAdmin };
   },
 );
 
 export const CredentialAtomicQuerySigV2ValidatorAtModule = buildModule(
   "CredentialAtomicQuerySigV2ValidatorAtModule",
   (m) => {
-    const contractAddress = m.getParameter("contractAddress");
-    const contract = m.contractAt(contractsInfo.VALIDATOR_SIG.name, contractAddress);
-    return { contract };
+    const proxyAddress = m.getParameter("proxyAddress");
+    const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+    const proxy = m.contractAt(contractsInfo.VALIDATOR_SIG.name, proxyAddress);
+    const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+    return { proxy, proxyAdmin };
   },
 );
 
 export const CredentialAtomicQueryV3ValidatorAtModule = buildModule(
   "CredentialAtomicQueryV3ValidatorAtModule",
   (m) => {
-    const contractAddress = m.getParameter("contractAddress");
-    const contract = m.contractAt(contractsInfo.VALIDATOR_V3.name, contractAddress);
-    return { contract };
+    const proxyAddress = m.getParameter("proxyAddress");
+    const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+    const proxy = m.contractAt(contractsInfo.VALIDATOR_V3.name, proxyAddress);
+    const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+    return { proxy, proxyAdmin };
   },
 );
 
 export const LinkedMultiQueryValidatorAtModule = buildModule(
   "LinkedMultiQueryValidatorAtModule",
   (m) => {
-    const contractAddress = m.getParameter("contractAddress");
-    const contract = m.contractAt(contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name, contractAddress);
-    return { contract };
+    const proxyAddress = m.getParameter("proxyAddress");
+    const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+    const proxy = m.contractAt(contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name, proxyAddress);
+    const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+    return { proxy, proxyAdmin };
   },
 );
 
 export const AuthV2ValidatorAtModule = buildModule("AuthV2ValidatorAtModule", (m) => {
-  const contractAddress = m.getParameter("contractAddress");
-  const contract = m.contractAt(contractsInfo.VALIDATOR_AUTH_V2.name, contractAddress);
-  return { contract };
+  const proxyAddress = m.getParameter("proxyAddress");
+  const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+  const proxy = m.contractAt(contractsInfo.VALIDATOR_AUTH_V2.name, proxyAddress);
+  const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+  return { proxy, proxyAdmin };
 });
 
 export const EthIdentityValidatorAtModule = buildModule("EthIdentityValidatorAtModule", (m) => {
-  const contractAddress = m.getParameter("contractAddress");
-  const contract = m.contractAt(contractsInfo.VALIDATOR_ETH_IDENTITY.name, contractAddress);
-  return { contract };
+  const proxyAddress = m.getParameter("proxyAddress");
+  const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+  const proxy = m.contractAt(contractsInfo.VALIDATOR_ETH_IDENTITY.name, proxyAddress);
+  const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+  return { proxy, proxyAdmin };
+});
+
+export const MCPaymentAtModule = buildModule("MCPaymentAtModule", (m) => {
+  const proxyAddress = m.getParameter("proxyAddress");
+  const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+  const proxy = m.contractAt(contractsInfo.MC_PAYMENT.name, proxyAddress);
+  const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+  return { proxy, proxyAdmin };
+});
+
+export const VCPaymentAtModule = buildModule("VCPaymentAtModule", (m) => {
+  const proxyAddress = m.getParameter("proxyAddress");
+  const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+  const proxy = m.contractAt(contractsInfo.VC_PAYMENT.name, proxyAddress);
+  const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+  return { proxy, proxyAdmin };
 });

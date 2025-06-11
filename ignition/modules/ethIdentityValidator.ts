@@ -4,12 +4,12 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
-import { Create2AddressAnchorAtModule } from "./contractsAt";
+import { Create2AddressAnchorAtModule, EthIdentityValidatorAtModule } from "./contractsAt";
 
-export const EthIdentityValidatorProxyFirstImplementationModule = buildModule(
+const EthIdentityValidatorProxyFirstImplementationModule = buildModule(
   "EthIdentityValidatorProxyFirstImplementationModule",
   (m) => {
-    const proxyAdminOwner = m.getParameter("proxyAdminOwner"); //m.getAccount(0);
+    const proxyAdminOwner = m.getParameter("proxyAdminOwner");
 
     // This contract is supposed to be deployed to the same address across many networks,
     // so the first implementation address is a dummy contract that does nothing but accepts any calldata.
@@ -36,13 +36,23 @@ export const EthIdentityValidatorProxyFirstImplementationModule = buildModule(
   },
 );
 
+const EthIdentityValidatorFinalImplementationModule = buildModule(
+  "EthIdentityValidatorFinalImplementationModule",
+  (m) => {
+    const newEthIdentityValidatorImpl = m.contract(contractsInfo.VALIDATOR_ETH_IDENTITY.name);
+    return {
+      newEthIdentityValidatorImpl,
+    };
+  },
+);
+
 export const EthIdentityValidatorProxyModule = buildModule(
   "EthIdentityValidatorProxyModule",
   (m) => {
     const { proxy, proxyAdmin } = m.useModule(EthIdentityValidatorProxyFirstImplementationModule);
-
-    const newEthIdentityValidatorImpl = m.contract(contractsInfo.VALIDATOR_ETH_IDENTITY.name);
-
+    const { newEthIdentityValidatorImpl } = m.useModule(
+      EthIdentityValidatorFinalImplementationModule,
+    );
     return {
       newEthIdentityValidatorImpl,
       proxyAdmin,
@@ -55,8 +65,9 @@ const EthIdentityValidatorProxyFinalImplementationModule = buildModule(
   "EthIdentityValidatorProxyFinalImplementationModule",
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
-    const { newEthIdentityValidatorImpl, proxyAdmin, proxy } = m.useModule(
-      EthIdentityValidatorProxyModule,
+    const { proxy, proxyAdmin } = m.useModule(EthIdentityValidatorAtModule);
+    const { newEthIdentityValidatorImpl } = m.useModule(
+      EthIdentityValidatorFinalImplementationModule,
     );
 
     const initializeData = m.encodeFunctionCall(newEthIdentityValidatorImpl, "initialize", [

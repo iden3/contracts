@@ -26,10 +26,81 @@
   "EthIdentityValidatorProxyFirstImplementationModule": {
     "proxyAdminOwner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
   },
+  "VCPaymentProxyFirstImplementationModule": {
+    "proxyAdminOwner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+  },
+  "MCPaymentProxyFirstImplementationModule": {
+    "proxyAdminOwner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+  },
   "StateProxyFinalImplementationModule": {
     "defaultIdType": "0x0112"
   },
   "CrossChainProofValidatorModule": {
     "oracleSigningAddress": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+  },
+  "Create2AddressAnchorAtModule": {
+    "contractAddress": "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e"
+  },
+  "Poseidon1AtModule": {
+    "contractAddress": "0xC72D76D7271924a2AD54a19D216640FeA3d138d9"
+  },
+  "Poseidon2AtModule": {
+    "contractAddress": "0x72F721D9D5f91353B505207C63B56cF3d9447edB"
+  },
+  "Poseidon3AtModule": {
+    "contractAddress": "0x5Bc89782d5eBF62663Df7Ce5fb4bc7408926A240"
+  },
+  "Poseidon4AtModule": {
+    "contractAddress": "0x0695cF2c6dfc438a4E40508741888198A6ccacC2"
+  },
+  "SmtLibAtModule": {
+    "contractAddress": "0x682364078e26C1626abD2B95109D2019E241F0F6"
+  },
+  "StateAtModule": {
+    "proxyAddress": "0xaea923d71Bc5ED3A622D4DfCF2f9C338889b1c70",
+    "proxyAdminAddress": "0xbAbA3c09d08684733118511111751E2AFcB8aDeE"
+  },
+  "UniversalVerifierAtModule": {
+    "proxyAddress": "0x55743732c60abb7d7F53a00aFdE5021479b420F0",
+    "proxyAdminAddress": "0xbce23E5e9c2181727037416E2292B7efB8663674"
+  },
+  "IdentityTreeStoreAtModule": {
+    "proxyAddress": "0x8A38f3D19437f03c254F1CCDED0F161C507d8597",
+    "proxyAdminAddress": "0x294D52a5458E0183dA93e12A97cd457D8dd55389"
+  },
+  "CredentialAtomicQueryMTPV2ValidatorAtModule": {
+    "proxyAddress": "0xEB0057f8702Aa21e819f219a93bB74fB133F3B05",
+    "proxyAdminAddress": "0x89AC7e4Ce484A8F15Fe221d45e607216c1729a6b"
+  },
+  "CredentialAtomicQuerySigV2ValidatorAtModule": {
+    "proxyAddress": "0x2F70cab6a709dca45B0d5A29D54f3eCc89e8499f",
+    "proxyAdminAddress": "0x2aF6586A6b3b55a1E4c56D072F8B52fA4d92de96"
+  },
+  "CredentialAtomicQueryV3ValidatorAtModule": {
+    "proxyAddress": "0x38d5B5fE4734673b8B303FE5DA29e0B7b3a5e252",
+    "proxyAdminAddress": "0x09172AB6524823724ACcff2856b6be34730b783c"
+  },
+  "LinkedMultiQueryValidatorAtModule": {
+    "proxyAddress": "0x2BF5BdbaBA432ee5E21C61eAAD10fd1a812F3Abc",
+    "proxyAdminAddress": "0xaD84dd89d1aCDBFff2e9f2C67267C9054fba6379"
+  },
+  "AuthV2ValidatorAtModule": {
+    "proxyAddress": "0x43c152c690596eC28b5360385526d63cd3233D92",
+    "proxyAdminAddress": "0x4D311745b2b3bD1B53EA90A8bDcdb9dB6117Efc1"
+  },
+  "EthIdentityValidatorAtModule": {
+    "proxyAddress": "0xf873cf19A5cBDa8b009c2A419Fa140Fcc9218874",
+    "proxyAdminAddress": "0x8591c241B8d81095851a79B56Cc990848CFd2f8e"
+  },
+  "MCPaymentAtModule": {
+    "proxyAddress": "0xe03D8C55158E737336310B5646738bd61cE7f858",
+    "proxyAdminAddress": "0xec9DCc46bAc6A35Ac5d88DB2f186d04C9e04d034"
+  },
+  "VCPaymentAtModule": {
+    "proxyAddress": "0x1Bec17E48D87ddAEA6f534cF9276c0580D2E697d",
+    "proxyAdminAddress": "0x0b6bBD15C814C31fDe5Af732fE2B10D1F4618F89"
+  },
+  "MCPaymentProxyFinalImplementationModule": {
+    "ownerPercentage": 15
   }
 }

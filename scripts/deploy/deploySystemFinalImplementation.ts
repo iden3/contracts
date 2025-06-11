@@ -29,6 +29,7 @@ import {
   EthIdentityValidatorAtModule,
   IdentityTreeStoreAtModule,
   LinkedMultiQueryValidatorAtModule,
+  MCPaymentAtModule,
   Poseidon1AtModule,
   Poseidon2AtModule,
   Poseidon3AtModule,
@@ -36,7 +37,10 @@ import {
   SmtLibAtModule,
   StateAtModule,
   UniversalVerifierAtModule,
+  VCPaymentAtModule,
 } from "../../ignition/modules/contractsAt";
+import MCPaymentModule from "../../ignition/modules/mcPayment";
+import VCPaymentModule from "../../ignition/modules/vcPayment";
 
 async function getDeployedAddresses() {
   let deployedAddresses = {};
@@ -106,28 +110,36 @@ async function main() {
     {
       module: CredentialAtomicQueryMTPV2ValidatorModule,
       moduleAt: CredentialAtomicQueryMTPV2ValidatorAtModule,
-      contractAddress: "0xEB0057f8702Aa21e819f219a93bB74fB133F3B05", //contractsInfo.VALIDATOR_MTP.unifiedAddress,
+      contractAddress:
+        parameters["CredentialAtomicQueryMTPV2ValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_MTP.unifiedAddress,
       name: contractsInfo.VALIDATOR_MTP.name,
       proxy: true,
     },
     {
       module: CredentialAtomicQuerySigV2ValidatorModule,
       moduleAt: CredentialAtomicQuerySigV2ValidatorAtModule,
-      contractAddress: "0x2F70cab6a709dca45B0d5A29D54f3eCc89e8499f", //contractsInfo.VALIDATOR_SIG.unifiedAddress,
+      contractAddress:
+        parameters["CredentialAtomicQuerySigV2ValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_SIG.unifiedAddress,
       name: contractsInfo.VALIDATOR_SIG.name,
       proxy: true,
     },
     {
       module: CredentialAtomicQueryV3ValidatorModule,
       moduleAt: CredentialAtomicQueryV3ValidatorAtModule,
-      contractAddress: "0x38d5B5fE4734673b8B303FE5DA29e0B7b3a5e252", //contractsInfo.VALIDATOR_V3.unifiedAddress,
+      contractAddress:
+        parameters["CredentialAtomicQueryV3ValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_V3.unifiedAddress,
       name: contractsInfo.VALIDATOR_V3.name,
       proxy: true,
     },
     {
       module: LinkedMultiQueryValidatorModule,
       moduleAt: LinkedMultiQueryValidatorAtModule,
-      contractAddress: "0x2BF5BdbaBA432ee5E21C61eAAD10fd1a812F3Abc", //contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.unifiedAddress,
+      contractAddress:
+        parameters["LinkedMultiQueryValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.unifiedAddress,
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
       proxy: true,
     },
@@ -138,7 +150,9 @@ async function main() {
       authMethod: "authV2",
       module: AuthV2ValidatorModule,
       moduleAt: AuthV2ValidatorAtModule,
-      contractAddress: "0x43c152c690596eC28b5360385526d63cd3233D92", //contractsInfo.VALIDATOR_AUTH_V2.unifiedAddress,
+      contractAddress:
+        parameters["AuthV2ValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_AUTH_V2.unifiedAddress,
       name: contractsInfo.VALIDATOR_AUTH_V2.name,
       proxy: true,
     },
@@ -146,7 +160,9 @@ async function main() {
       authMethod: "ethIdentity",
       module: EthIdentityValidatorModule,
       moduleAt: EthIdentityValidatorAtModule,
-      contractAddress: "0xf873cf19A5cBDa8b009c2A419Fa140Fcc9218874", //contractsInfo.VALIDATOR_ETH_IDENTITY.unifiedAddress,
+      contractAddress:
+        parameters["EthIdentityValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_ETH_IDENTITY.unifiedAddress,
       name: contractsInfo.VALIDATOR_ETH_IDENTITY.name,
       proxy: true,
     },
@@ -154,54 +170,45 @@ async function main() {
 
   const contracts = [
     {
-      module: Poseidon1Module,
-      moduleAt: Poseidon1AtModule,
-      contractAddress: contractsInfo.POSEIDON_1.unifiedAddress,
-      name: contractsInfo.POSEIDON_1.name,
-    },
-    {
-      module: Poseidon2Module,
-      moduleAt: Poseidon2AtModule,
-      contractAddress: contractsInfo.POSEIDON_2.unifiedAddress,
-      name: contractsInfo.POSEIDON_2.name,
-    },
-    {
-      module: Poseidon3Module,
-      moduleAt: Poseidon3AtModule,
-      contractAddress: contractsInfo.POSEIDON_3.unifiedAddress,
-      name: contractsInfo.POSEIDON_3.name,
-    },
-    {
-      module: Poseidon4Module,
-      moduleAt: Poseidon4AtModule,
-      contractAddress: contractsInfo.POSEIDON_4.unifiedAddress,
-      name: contractsInfo.POSEIDON_4.name,
-    },
-    {
-      module: SmtLibModule,
-      moduleAt: SmtLibAtModule,
-      contractAddress: contractsInfo.SMT_LIB.unifiedAddress,
-      name: contractsInfo.SMT_LIB.name,
-    },
-    {
       module: StateModule,
       moduleAt: StateAtModule,
-      contractAddress: "0xaea923d71Bc5ED3A622D4DfCF2f9C338889b1c70", // contractsInfo.STATE.unifiedAddress,
+      contractAddress:
+        parameters["StateAtModule"].proxyAddress || contractsInfo.STATE.unifiedAddress,
       name: contractsInfo.STATE.name,
       proxy: true,
     },
     {
       module: UniversalVerifierModule,
       moduleAt: UniversalVerifierAtModule,
-      contractAddress: "0x55743732c60abb7d7F53a00aFdE5021479b420F0", //contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
+      contractAddress:
+        parameters["UniversalVerifierAtModule"].proxyAddress ||
+        contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
       name: contractsInfo.UNIVERSAL_VERIFIER.name,
       proxy: true,
     },
     {
       module: IdentityTreeStoreModule,
       moduleAt: IdentityTreeStoreAtModule,
-      contractAddress: "0x8A38f3D19437f03c254F1CCDED0F161C507d8597", //contractsInfo.IDENTITY_TREE_STORE.unifiedAddress,
+      contractAddress:
+        parameters["IdentityTreeStoreAtModule"].proxyAddress ||
+        contractsInfo.IDENTITY_TREE_STORE.unifiedAddress,
       name: contractsInfo.IDENTITY_TREE_STORE.name,
+      proxy: true,
+    },
+    {
+      module: VCPaymentModule,
+      moduleAt: VCPaymentAtModule,
+      contractAddress:
+        parameters["VCPaymentAtModule"].proxyAddress || contractsInfo.VC_PAYMENT.unifiedAddress,
+      name: contractsInfo.VC_PAYMENT.name,
+      proxy: true,
+    },
+    {
+      module: MCPaymentModule,
+      moduleAt: MCPaymentAtModule,
+      contractAddress:
+        parameters["MCPaymentAtModule"].proxyAddress || contractsInfo.MC_PAYMENT.unifiedAddress,
+      name: contractsInfo.MC_PAYMENT.name,
       proxy: true,
     },
     ...requestValidators,
@@ -210,9 +217,6 @@ async function main() {
 
   for (const contract of contracts) {
     console.log(`Deploying ${contract.name}...`);
-    parameters[contract.moduleAt.id] = {
-      contractAddress: contract.contractAddress,
-    };
     if (!(await isContract(contract.contractAddress))) {
       const deployedContract: any = await ignition.deploy(contract.module, {
         strategy: deployStrategy,
@@ -229,15 +233,15 @@ async function main() {
 
   // get UniversalVerifier contract
   const universalVerifier = (
-    await ignition.deploy(UniversalVerifierModule, {
+    await ignition.deploy(UniversalVerifierAtModule, {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,
     })
-  ).universalVerifier;
+  ).proxy;
 
   for (const validator of requestValidators) {
-    const validatorDeployed = await ignition.deploy(validator.module, {
+    const validatorDeployed = await ignition.deploy(validator.moduleAt, {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,
@@ -255,7 +259,7 @@ async function main() {
   }
 
   for (const validator of authValidators) {
-    const validatorDeployed = await ignition.deploy(validator.module, {
+    const validatorDeployed = await ignition.deploy(validator.moduleAt, {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,

@@ -5,12 +5,16 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
 import { Groth16VerifierSigModule } from "./groth16verifiers";
-import { Create2AddressAnchorAtModule, StateAtModule } from "./contractsAt";
+import {
+  Create2AddressAnchorAtModule,
+  CredentialAtomicQuerySigV2ValidatorAtModule,
+  StateAtModule,
+} from "./contractsAt";
 
-export const CredentialAtomicQuerySigV2ValidatorProxyFirstImplementationModule = buildModule(
+const CredentialAtomicQuerySigV2ValidatorProxyFirstImplementationModule = buildModule(
   "CredentialAtomicQuerySigV2ValidatorProxyFirstImplementationModule",
   (m) => {
-    const proxyAdminOwner = m.getParameter("proxyAdminOwner"); //m.getAccount(0);
+    const proxyAdminOwner = m.getParameter("proxyAdminOwner");
 
     // This contract is supposed to be deployed to the same address across many networks,
     // so the first implementation address is a dummy contract that does nothing but accepts any calldata.
@@ -37,18 +41,30 @@ export const CredentialAtomicQuerySigV2ValidatorProxyFirstImplementationModule =
   },
 );
 
+const CredentialAtomicQuerySigV2ValidatorFinalImplementationModule = buildModule(
+  "CredentialAtomicQuerySigV2ValidatorFinalImplementationModule",
+  (m) => {
+    const state = m.useModule(StateAtModule).proxy;
+    const { groth16VerifierSig } = m.useModule(Groth16VerifierSigModule);
+
+    const newCredentialAtomicQuerySigV2ValidatorImpl = m.contract(contractsInfo.VALIDATOR_SIG.name);
+    return {
+      groth16VerifierSig,
+      state,
+      newCredentialAtomicQuerySigV2ValidatorImpl,
+    };
+  },
+);
+
 export const CredentialAtomicQuerySigV2ValidatorProxyModule = buildModule(
   "CredentialAtomicQuerySigV2ValidatorProxyModule",
   (m) => {
     const { proxy, proxyAdmin } = m.useModule(
       CredentialAtomicQuerySigV2ValidatorProxyFirstImplementationModule,
     );
-
-    const state = m.useModule(StateAtModule).contract;
-    const { groth16VerifierSig } = m.useModule(Groth16VerifierSigModule);
-
-    const newCredentialAtomicQuerySigV2ValidatorImpl = m.contract(contractsInfo.VALIDATOR_SIG.name);
-
+    const { groth16VerifierSig, state, newCredentialAtomicQuerySigV2ValidatorImpl } = m.useModule(
+      CredentialAtomicQuerySigV2ValidatorFinalImplementationModule,
+    );
     return {
       groth16VerifierSig,
       state,
@@ -63,13 +79,10 @@ const CredentialAtomicQuerySigV2ValidatorProxyFinalImplementationModule = buildM
   "CredentialAtomicQuerySigV2ValidatorProxyFinalImplementationModule",
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
-    const {
-      groth16VerifierSig,
-      state,
-      newCredentialAtomicQuerySigV2ValidatorImpl,
-      proxyAdmin,
-      proxy,
-    } = m.useModule(CredentialAtomicQuerySigV2ValidatorProxyModule);
+    const { proxy, proxyAdmin } = m.useModule(CredentialAtomicQuerySigV2ValidatorAtModule);
+    const { groth16VerifierSig, state, newCredentialAtomicQuerySigV2ValidatorImpl } = m.useModule(
+      CredentialAtomicQuerySigV2ValidatorFinalImplementationModule,
+    );
 
     const initializeData = m.encodeFunctionCall(
       newCredentialAtomicQuerySigV2ValidatorImpl,
