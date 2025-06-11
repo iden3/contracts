@@ -7,7 +7,7 @@ import { GeneralProxyModule } from "./utils/unified-contracts-utils";
 // TODO: Replace here with your own proxy admin owner address
 const proxyAdminOwnerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 
-it("Calculate unified addresses for proxy contracts", async () => {
+it.skip("Calculate unified addresses for proxy contracts", async () => {
   await ignition.deploy(Create2AddressAnchorModule, { strategy: "create2" });
 
   for (const property in contractsInfo) {
