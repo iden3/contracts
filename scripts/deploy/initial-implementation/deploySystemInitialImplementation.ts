@@ -1,15 +1,15 @@
 import fs from "fs";
 import path from "path";
 import { ethers, ignition } from "hardhat";
-import Create2AddressAnchorModule from "../../ignition/modules/create2AddressAnchor";
-import { contractsInfo } from "../../helpers/constants";
+import Create2AddressAnchorModule from "../../../ignition/modules/create2AddressAnchor";
+import { contractsInfo } from "../../../helpers/constants";
 import {
   getChainId,
   getDefaultIdType,
   getDeploymentParameters,
   isContract,
   writeDeploymentParameters,
-} from "../../helpers/helperUtils";
+} from "../../../helpers/helperUtils";
 import {
   MCPaymentProxyModule,
   Poseidon1Module,
@@ -18,16 +18,16 @@ import {
   Poseidon4Module,
   SmtLibModule,
   VCPaymentProxyModule,
-} from "../../ignition";
-import { StateProxyModule } from "../../ignition/modules/state";
-import { UniversalVerifierProxyModule } from "../../ignition/modules/universalVerifier";
-import { IdentityTreeStoreProxyModule } from "../../ignition/modules/identityTreeStore";
-import { CredentialAtomicQueryMTPV2ValidatorProxyModule } from "../../ignition/modules/credentialAtomicQueryMTPV2Validator";
-import { CredentialAtomicQuerySigV2ValidatorProxyModule } from "../../ignition/modules/credentialAtomicQuerySigV2Validator";
-import { CredentialAtomicQueryV3ValidatorProxyModule } from "../../ignition/modules/credentialAtomicQueryV3Validator";
-import { LinkedMultiQueryValidatorProxyModule } from "../../ignition/modules/linkedMultiQuery";
-import { AuthV2ValidatorProxyModule } from "../../ignition/modules/authV2Validator";
-import { EthIdentityValidatorProxyModule } from "../../ignition/modules/ethIdentityValidator";
+} from "../../../ignition";
+import { StateProxyModule } from "../../../ignition/modules/state";
+import { UniversalVerifierProxyModule } from "../../../ignition/modules/universalVerifier";
+import { IdentityTreeStoreProxyModule } from "../../../ignition/modules/identityTreeStore";
+import { CredentialAtomicQueryMTPV2ValidatorProxyModule } from "../../../ignition/modules/credentialAtomicQueryMTPV2Validator";
+import { CredentialAtomicQuerySigV2ValidatorProxyModule } from "../../../ignition/modules/credentialAtomicQuerySigV2Validator";
+import { CredentialAtomicQueryV3ValidatorProxyModule } from "../../../ignition/modules/credentialAtomicQueryV3Validator";
+import { LinkedMultiQueryValidatorProxyModule } from "../../../ignition/modules/linkedMultiQuery";
+import { AuthV2ValidatorProxyModule } from "../../../ignition/modules/authV2Validator";
+import { EthIdentityValidatorProxyModule } from "../../../ignition/modules/ethIdentityValidator";
 import {
   AuthV2ValidatorAtModule,
   Create2AddressAnchorAtModule,
@@ -46,7 +46,7 @@ import {
   StateAtModule,
   UniversalVerifierAtModule,
   VCPaymentAtModule,
-} from "../../ignition/modules/contractsAt";
+} from "../../../ignition/modules/contractsAt";
 
 async function getDeployedAddresses() {
   let deployedAddresses = {};
@@ -54,7 +54,7 @@ async function getDeployedAddresses() {
   try {
     const deployedAddressesPath = path.join(
       __dirname,
-      `../../ignition/deployments/chain-${chainId}/deployed_addresses.json`,
+      `../../../ignition/deployments/chain-${chainId}/deployed_addresses.json`,
     );
     deployedAddresses = JSON.parse(fs.readFileSync(deployedAddressesPath, "utf8"));
   } catch (error) {
