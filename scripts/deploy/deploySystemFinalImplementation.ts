@@ -1,16 +1,9 @@
 import fs from "fs";
 import path from "path";
-import hre, { ethers, ignition } from "hardhat";
+import { ethers, ignition } from "hardhat";
 import Create2AddressAnchorModule from "../../ignition/modules/create2AddressAnchor";
 import { contractsInfo } from "../../helpers/constants";
-import { getChainId, isContract } from "../../helpers/helperUtils";
-import {
-  Poseidon1Module,
-  Poseidon2Module,
-  Poseidon3Module,
-  Poseidon4Module,
-  SmtLibModule,
-} from "../../ignition";
+import { getChainId, getDeploymentParameters, isContract } from "../../helpers/helperUtils";
 import StateModule from "../../ignition/modules/state";
 import UniversalVerifierModule from "../../ignition/modules/universalVerifier";
 import IdentityTreeStoreModule from "../../ignition/modules/identityTreeStore";
@@ -64,13 +57,7 @@ async function main() {
 
   const [signer] = await ethers.getSigners();
 
-  const networkName = hre.network.name;
-
-  const parameters = JSON.parse(
-    fs
-      .readFileSync(path.join(__dirname, `../../ignition/modules/params/${networkName}.json`))
-      .toString(),
-  );
+  const parameters = await getDeploymentParameters();
 
   const deployedAddresses = await getDeployedAddresses();
 
@@ -177,7 +164,7 @@ async function main() {
       name: contractsInfo.STATE.name,
       proxy: true,
     },
-    /*{
+    {
       module: UniversalVerifierModule,
       moduleAt: UniversalVerifierAtModule,
       contractAddress:
@@ -185,7 +172,7 @@ async function main() {
         contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
       name: contractsInfo.UNIVERSAL_VERIFIER.name,
       proxy: true,
-    },*/
+    },
     {
       module: IdentityTreeStoreModule,
       moduleAt: IdentityTreeStoreAtModule,
@@ -211,8 +198,8 @@ async function main() {
       name: contractsInfo.MC_PAYMENT.name,
       proxy: true,
     },
-    //...requestValidators,
-    //...authValidators,
+    ...requestValidators,
+    ...authValidators,
   ];
 
   for (const contract of contracts) {
@@ -228,7 +215,7 @@ async function main() {
   }
 
   // get UniversalVerifier contract
-  /* const universalVerifier = (
+  const universalVerifier = (
     await ignition.deploy(UniversalVerifierAtModule, {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
@@ -274,7 +261,7 @@ async function main() {
         `${validator.name} in address ${validatorDeployed.proxy.target} already added to auth methods`,
       );
     }
-  }*/
+  }
 }
 
 main()

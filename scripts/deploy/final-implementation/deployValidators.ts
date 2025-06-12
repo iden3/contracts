@@ -4,26 +4,26 @@ import {
   getDeploymentParameters,
   verifyContract,
   writeDeploymentParameters,
-} from "../../helpers/helperUtils";
+} from "../../../helpers/helperUtils";
 import CredentialAtomicQueryMTPV2ValidatorModule, {
   CredentialAtomicQueryMTPV2ValidatorProxyModule,
-} from "../../ignition/modules/credentialAtomicQueryMTPV2Validator";
-import { contractsInfo } from "../../helpers/constants";
+} from "../../../ignition/modules/credentialAtomicQueryMTPV2Validator";
+import { contractsInfo } from "../../../helpers/constants";
 import CredentialAtomicQuerySigV2ValidatorModule, {
   CredentialAtomicQuerySigV2ValidatorProxyModule,
-} from "../../ignition/modules/credentialAtomicQuerySigV2Validator";
+} from "../../../ignition/modules/credentialAtomicQuerySigV2Validator";
 import CredentialAtomicQueryV3ValidatorModule, {
   CredentialAtomicQueryV3ValidatorProxyModule,
-} from "../../ignition/modules/credentialAtomicQueryV3Validator";
+} from "../../../ignition/modules/credentialAtomicQueryV3Validator";
 import AuthV2ValidatorModule, {
   AuthV2ValidatorProxyModule,
-} from "../../ignition/modules/authV2Validator";
+} from "../../../ignition/modules/authV2Validator";
 import EthIdentityValidatorModule, {
   EthIdentityValidatorProxyModule,
-} from "../../ignition/modules/ethIdentityValidator";
+} from "../../../ignition/modules/ethIdentityValidator";
 import LinkedMultiQueryValidatorModule, {
   LinkedMultiQueryValidatorProxyModule,
-} from "../../ignition/modules/linkedMultiQuery";
+} from "../../../ignition/modules/linkedMultiQuery";
 import {
   AuthV2ValidatorAtModule,
   CredentialAtomicQueryMTPV2ValidatorAtModule,
@@ -32,7 +32,7 @@ import {
   EthIdentityValidatorAtModule,
   LinkedMultiQueryValidatorAtModule,
   UniversalVerifierAtModule,
-} from "../../ignition/modules/contractsAt";
+} from "../../../ignition/modules/contractsAt";
 
 async function main() {
   const config = getConfig();
@@ -44,7 +44,6 @@ async function main() {
 
   const requestValidators = [
     {
-      moduleFirstImplementation: CredentialAtomicQueryMTPV2ValidatorProxyModule,
       moduleFinalImplementation: CredentialAtomicQueryMTPV2ValidatorModule,
       moduleAt: CredentialAtomicQueryMTPV2ValidatorAtModule,
       name: contractsInfo.VALIDATOR_MTP.name,
@@ -54,7 +53,6 @@ async function main() {
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_MTP.verificationOpts,
     },
     {
-      moduleFirstImplementation: CredentialAtomicQuerySigV2ValidatorProxyModule,
       moduleFinalImplementation: CredentialAtomicQuerySigV2ValidatorModule,
       moduleAt: CredentialAtomicQuerySigV2ValidatorAtModule,
       name: contractsInfo.VALIDATOR_SIG.name,
@@ -64,7 +62,6 @@ async function main() {
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_SIG.verificationOpts,
     },
     {
-      moduleFirstImplementation: CredentialAtomicQueryV3ValidatorProxyModule,
       moduleFinalImplementation: CredentialAtomicQueryV3ValidatorModule,
       moduleAt: CredentialAtomicQueryV3ValidatorAtModule,
       name: contractsInfo.VALIDATOR_V3.name,
@@ -74,7 +71,6 @@ async function main() {
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_V3.verificationOpts,
     },
     {
-      moduleFirstImplementation: LinkedMultiQueryValidatorProxyModule,
       moduleFinalImplementation: LinkedMultiQueryValidatorModule,
       moduleAt: LinkedMultiQueryValidatorAtModule,
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
@@ -89,7 +85,6 @@ async function main() {
   const authValidators = [
     {
       authMethod: "authV2",
-      moduleFirstImplementation: AuthV2ValidatorProxyModule,
       moduleFinalImplementation: AuthV2ValidatorModule,
       moduleAt: AuthV2ValidatorAtModule,
       name: contractsInfo.VALIDATOR_AUTH_V2.name,
@@ -100,7 +95,6 @@ async function main() {
     },
     {
       authMethod: "ethIdentity",
-      moduleFirstImplementation: EthIdentityValidatorProxyModule,
       moduleFinalImplementation: EthIdentityValidatorModule,
       moduleAt: EthIdentityValidatorAtModule,
       name: contractsInfo.VALIDATOR_ETH_IDENTITY.name,
@@ -110,12 +104,7 @@ async function main() {
   ];
 
   for (const validatorContract of [...requestValidators, ...authValidators]) {
-    await ignition.deploy(validatorContract.moduleFirstImplementation, {
-      strategy: deployStrategy,
-      defaultSender: await signer.getAddress(),
-      parameters: parameters,
-    });
-    const deployment = await ignition.deploy(validatorContract.moduleFinalImplementation, {
+    const deployment = await ignition.deploy(validatorContract.moduleFinalImplementation as any, {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,

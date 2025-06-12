@@ -58,7 +58,7 @@
   },
   "StateAtModule": {
     "proxyAddress": "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
-    "proxyAdminAddress": ""
+    "proxyAdminAddress": "0x3F570C4fE07c532cd274dF2d1dB26D74cc5F8F9A"
   },
   "UniversalVerifierAtModule": {
     "proxyAddress": "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
@@ -66,7 +66,7 @@
   },
   "IdentityTreeStoreAtModule": {
     "proxyAddress": "0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81",
-    "proxyAdminAddress": ""
+    "proxyAdminAddress": "0x23F9ae5A19435347b8Ba10c69ad93128464f7A22"
   },
   "CredentialAtomicQueryMTPV2ValidatorAtModule": {
     "proxyAddress": "0xec9EF9c4595B46abF2b6A923BD1529081E03fbBB",
@@ -94,11 +94,11 @@
   },
   "MCPaymentAtModule": {
     "proxyAddress": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
-    "proxyAdminAddress": ""
+    "proxyAdminAddress": "0xE76bef620174cA8B923411605A59F542DcdF03fE"
   },
   "VCPaymentAtModule": {
     "proxyAddress": "0xba83D99c87358Ef9B6f7c4a5A94021A58d870704",
-    "proxyAdminAddress": ""
+    "proxyAdminAddress": "0xA4180637F15a601695FD0313f452B8ca093AB952"
   },
   "MCPaymentProxyFinalImplementationModule": {
     "ownerPercentage": 15

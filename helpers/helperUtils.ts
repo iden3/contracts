@@ -9,6 +9,7 @@ import {
   STATE_ADDRESS_POLYGON_MAINNET,
 } from "./constants";
 import { poseidonContract } from "circomlibjs";
+import path from "path";
 
 export function getConfig() {
   return {
@@ -226,6 +227,26 @@ export async function getStateContractAddress(chainId?: number): Promise<string>
   }
 
   return stateContractAddress;
+}
+
+async function getParamsPath(): Promise<string> {
+  const chainId = await getChainId();
+  const paramsPath = path.join(__dirname, `../ignition/modules/params/chain-${chainId}.json`);
+  return paramsPath;
+}
+
+export async function getDeploymentParameters(): Promise<any> {
+  const paramsPath = await getParamsPath();
+  const parameters = JSON.parse(fs.readFileSync(paramsPath).toString());
+  return parameters;
+}
+
+export async function writeDeploymentParameters(parameters: any): Promise<void> {
+  const paramsPath = await getParamsPath();
+  fs.writeFileSync(paramsPath, JSON.stringify(parameters, null, 2), {
+    encoding: "utf8",
+    flag: "w",
+  });
 }
 
 export class Logger {

@@ -4,11 +4,9 @@ import {
   getDeploymentParameters,
   verifyContract,
   writeDeploymentParameters,
-} from "../../helpers/helperUtils";
-import { contractsInfo } from "../../helpers/constants";
-import UniversalVerifierModule, {
-  UniversalVerifierProxyModule,
-} from "../../ignition/modules/universalVerifier";
+} from "../../../helpers/helperUtils";
+import { contractsInfo } from "../../../helpers/constants";
+import UniversalVerifierModule from "../../../ignition/modules/universalVerifier";
 
 async function main() {
   const config = getConfig();
@@ -18,12 +16,6 @@ async function main() {
   const [signer] = await ethers.getSigners();
   const parameters = await getDeploymentParameters();
 
-  // First implementation
-  await ignition.deploy(UniversalVerifierProxyModule, {
-    strategy: deployStrategy,
-    defaultSender: await signer.getAddress(),
-    parameters: parameters,
-  });
   // Final implementation
   const { proxyAdmin, universalVerifier } = await ignition.deploy(UniversalVerifierModule, {
     strategy: deployStrategy,

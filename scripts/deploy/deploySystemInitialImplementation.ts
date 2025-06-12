@@ -1,9 +1,15 @@
 import fs from "fs";
 import path from "path";
-import hre, { ethers, ignition } from "hardhat";
+import { ethers, ignition } from "hardhat";
 import Create2AddressAnchorModule from "../../ignition/modules/create2AddressAnchor";
 import { contractsInfo } from "../../helpers/constants";
-import { getChainId, getDefaultIdType, isContract } from "../../helpers/helperUtils";
+import {
+  getChainId,
+  getDefaultIdType,
+  getDeploymentParameters,
+  isContract,
+  writeDeploymentParameters,
+} from "../../helpers/helperUtils";
 import {
   MCPaymentProxyModule,
   Poseidon1Module,
@@ -13,15 +19,8 @@ import {
   SmtLibModule,
   VCPaymentProxyModule,
 } from "../../ignition";
-import {
-  CrossChainProofValidatorModule,
-  StateLibModule,
-  StateProxyModule,
-} from "../../ignition/modules/state";
-import {
-  UniversalVerifierProxyModule,
-  VerifierLibModule,
-} from "../../ignition/modules/universalVerifier";
+import { StateProxyModule } from "../../ignition/modules/state";
+import { UniversalVerifierProxyModule } from "../../ignition/modules/universalVerifier";
 import { IdentityTreeStoreProxyModule } from "../../ignition/modules/identityTreeStore";
 import { CredentialAtomicQueryMTPV2ValidatorProxyModule } from "../../ignition/modules/credentialAtomicQueryMTPV2Validator";
 import { CredentialAtomicQuerySigV2ValidatorProxyModule } from "../../ignition/modules/credentialAtomicQuerySigV2Validator";
@@ -48,7 +47,6 @@ import {
   UniversalVerifierAtModule,
   VCPaymentAtModule,
 } from "../../ignition/modules/contractsAt";
-import { Groth16VerifierStateTransitionModule } from "../../ignition/modules/groth16verifiers";
 
 async function getDeployedAddresses() {
   let deployedAddresses = {};
@@ -72,10 +70,7 @@ async function main() {
 
   const [signer] = await ethers.getSigners();
 
-  const networkName = hre.network.name;
-
-  const paramsPath = path.join(__dirname, `../../ignition/modules/params/${networkName}.json`);
-  const parameters = JSON.parse(fs.readFileSync(paramsPath).toString());
+  const parameters = await getDeploymentParameters();
 
   parameters.StateProxyFinalImplementationModule.defaultIdType = (
     await getDefaultIdType()
@@ -157,7 +152,7 @@ async function main() {
       name: contractsInfo.STATE.name,
       proxy: true,
     },
-   /* {
+    {
       module: UniversalVerifierProxyModule,
       moduleAt: UniversalVerifierAtModule,
       contractAddress:
@@ -165,7 +160,7 @@ async function main() {
         contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
       name: contractsInfo.UNIVERSAL_VERIFIER.name,
       proxy: true,
-    },*/
+    },
     {
       module: IdentityTreeStoreProxyModule,
       moduleAt: IdentityTreeStoreAtModule,
@@ -175,7 +170,7 @@ async function main() {
       name: contractsInfo.IDENTITY_TREE_STORE.name,
       proxy: true,
     },
-    /*{
+    {
       module: CredentialAtomicQueryMTPV2ValidatorProxyModule,
       moduleAt: CredentialAtomicQueryMTPV2ValidatorAtModule,
       contractAddress:
@@ -228,7 +223,7 @@ async function main() {
         contractsInfo.VALIDATOR_ETH_IDENTITY.unifiedAddress,
       name: contractsInfo.VALIDATOR_ETH_IDENTITY.name,
       proxy: true,
-    },*/
+    },
     {
       module: VCPaymentProxyModule,
       moduleAt: VCPaymentAtModule,
@@ -246,24 +241,6 @@ async function main() {
       proxy: true,
     },
   ];
-
-  /* const basicStrategyContracts = [
-    { module: CrossChainProofValidatorModule, name: "CrossChainProofValidator" },
-    { module: Groth16VerifierStateTransitionModule, name: "Groth16VerifierStateTransition" },
-    { module: StateLibModule, name: "StateLib" },
-    { module: VerifierLibModule, name: "VerifierLib" },
-  ];
-
-  for (const contract of basicStrategyContracts) {
-    const deployedContract = await ignition.deploy(contract.module, {
-      strategy: "basic",
-      defaultSender: await signer.getAddress(),
-      parameters: parameters,
-    });
-    console.log(
-      `${contract.name} deployed to: ${deployedContract[Object.keys(deployedContract)[0]].target}`,
-    );
-  } */
 
   for (const contract of contracts) {
     console.log(`Deploying ${contract.name}...`);
@@ -298,10 +275,7 @@ async function main() {
     }
   }
 
-  fs.writeFileSync(paramsPath, JSON.stringify(parameters, null, 2), {
-    encoding: "utf8",
-    flag: "w",
-  });
+  await writeDeploymentParameters(parameters);
 }
 
 main()

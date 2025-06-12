@@ -4,11 +4,11 @@ import {
   getDeploymentParameters,
   verifyContract,
   writeDeploymentParameters,
-} from "../../helpers/helperUtils";
-import { contractsInfo } from "../../helpers/constants";
+} from "../../../helpers/helperUtils";
+import { contractsInfo } from "../../../helpers/constants";
 import UniversalVerifierModule, {
   UniversalVerifierProxyModule,
-} from "../../ignition/modules/universalVerifier";
+} from "../../../ignition/modules/universalVerifier";
 
 async function main() {
   const config = getConfig();
@@ -19,29 +19,18 @@ async function main() {
   const parameters = await getDeploymentParameters();
 
   // First implementation
-  await ignition.deploy(UniversalVerifierProxyModule, {
-    strategy: deployStrategy,
-    defaultSender: await signer.getAddress(),
-    parameters: parameters,
-  });
-  // Final implementation
-  const { proxyAdmin, universalVerifier } = await ignition.deploy(UniversalVerifierModule, {
+  const { proxyAdmin, proxy } = await ignition.deploy(UniversalVerifierProxyModule, {
     strategy: deployStrategy,
     defaultSender: await signer.getAddress(),
     parameters: parameters,
   });
 
   parameters.UniversalVerifierAtModule = {
-    proxyAddress: universalVerifier.target,
+    proxyAddress: proxy.target,
     proxyAdminAddress: proxyAdmin.target,
   };
 
-  console.log(`${contractsInfo.UNIVERSAL_VERIFIER.name} deployed to: ${universalVerifier.target}`);
-
-  await verifyContract(
-    await universalVerifier.getAddress(),
-    contractsInfo.UNIVERSAL_VERIFIER.verificationOpts,
-  );
+  console.log(`${contractsInfo.UNIVERSAL_VERIFIER.name} deployed to: ${proxy.target}`);
 
   await writeDeploymentParameters(parameters);
 }

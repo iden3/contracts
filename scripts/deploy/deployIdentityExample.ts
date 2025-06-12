@@ -1,15 +1,11 @@
-import fs from "fs";
-import path from "path";
-import { getDefaultIdType } from "../../helpers/helperUtils";
-import hre, { ethers, ignition } from "hardhat";
+import { getDefaultIdType, getDeploymentParameters } from "../../helpers/helperUtils";
+import { ethers, ignition } from "hardhat";
 import IdentityExampleModule from "../../ignition/modules/identityExample";
 
 async function main() {
   const [signer] = await ethers.getSigners();
 
-  const networkName = hre.network.name;
-  const paramsPath = path.join(__dirname, `../../ignition/modules/params/${networkName}.json`);
-  const parameters = JSON.parse(fs.readFileSync(paramsPath).toString());
+  const parameters = await getDeploymentParameters();
   parameters.IdentityExampleProxyModule = {
     defaultIdType: (await getDefaultIdType()).defaultIdType,
   };

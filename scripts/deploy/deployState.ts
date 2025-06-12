@@ -1,7 +1,11 @@
-import fs from "fs";
-import path from "path";
-import hre, { ethers, ignition } from "hardhat";
-import { getConfig, getDefaultIdType, verifyContract } from "../../helpers/helperUtils";
+import { ethers, ignition } from "hardhat";
+import {
+  getConfig,
+  getDefaultIdType,
+  getDeploymentParameters,
+  verifyContract,
+  writeDeploymentParameters,
+} from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
 import StateModule, { StateProxyModule } from "../../ignition/modules/state";
 
@@ -11,9 +15,7 @@ async function main() {
     config.deployStrategy == "create2" ? "create2" : "basic";
 
   const [signer] = await ethers.getSigners();
-  const networkName = hre.network.name;
-  const paramsPath = path.join(__dirname, `../../ignition/modules/params/${networkName}.json`);
-  const parameters = JSON.parse(fs.readFileSync(paramsPath).toString());
+  const parameters = await getDeploymentParameters();
 
   parameters.StateProxyFinalImplementationModule.defaultIdType = (
     await getDefaultIdType()
@@ -61,10 +63,7 @@ async function main() {
     );
   }
 
-  fs.writeFileSync(paramsPath, JSON.stringify(parameters, null, 2), {
-    encoding: "utf8",
-    flag: "w",
-  });
+  await writeDeploymentParameters(parameters);
 }
 
 main()

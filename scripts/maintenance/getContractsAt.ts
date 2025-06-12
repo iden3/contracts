@@ -1,34 +1,11 @@
-import fs from "fs";
-import path from "path";
-import hre, { ethers, ignition } from "hardhat";
-import Create2AddressAnchorModule from "../../ignition/modules/create2AddressAnchor";
+import { ethers, ignition } from "hardhat";
 import { contractsInfo } from "../../helpers/constants";
-import { getChainId, getDefaultIdType, isContract } from "../../helpers/helperUtils";
 import {
-  MCPaymentProxyModule,
-  Poseidon1Module,
-  Poseidon2Module,
-  Poseidon3Module,
-  Poseidon4Module,
-  SmtLibModule,
-  VCPaymentProxyModule,
-} from "../../ignition";
-import {
-  CrossChainProofValidatorModule,
-  StateLibModule,
-  StateProxyModule,
-} from "../../ignition/modules/state";
-import {
-  UniversalVerifierProxyModule,
-  VerifierLibModule,
-} from "../../ignition/modules/universalVerifier";
-import { IdentityTreeStoreProxyModule } from "../../ignition/modules/identityTreeStore";
-import { CredentialAtomicQueryMTPV2ValidatorProxyModule } from "../../ignition/modules/credentialAtomicQueryMTPV2Validator";
-import { CredentialAtomicQuerySigV2ValidatorProxyModule } from "../../ignition/modules/credentialAtomicQuerySigV2Validator";
-import { CredentialAtomicQueryV3ValidatorProxyModule } from "../../ignition/modules/credentialAtomicQueryV3Validator";
-import { LinkedMultiQueryValidatorProxyModule } from "../../ignition/modules/linkedMultiQuery";
-import { AuthV2ValidatorProxyModule } from "../../ignition/modules/authV2Validator";
-import { EthIdentityValidatorProxyModule } from "../../ignition/modules/ethIdentityValidator";
+  getDefaultIdType,
+  getDeploymentParameters,
+  isContract,
+  writeDeploymentParameters,
+} from "../../helpers/helperUtils";
 import {
   AuthV2ValidatorAtModule,
   Create2AddressAnchorAtModule,
@@ -48,22 +25,6 @@ import {
   UniversalVerifierAtModule,
   VCPaymentAtModule,
 } from "../../ignition/modules/contractsAt";
-import { Groth16VerifierStateTransitionModule } from "../../ignition/modules/groth16verifiers";
-
-async function getDeployedAddresses() {
-  let deployedAddresses = {};
-  const chainId = await getChainId();
-  try {
-    const deployedAddressesPath = path.join(
-      __dirname,
-      `../../ignition/deployments/chain-${chainId}/deployed_addresses.json`,
-    );
-    deployedAddresses = JSON.parse(fs.readFileSync(deployedAddressesPath, "utf8"));
-  } catch (error) {
-    //console.error("Error reading deployed addresses file:", error);
-  }
-  return deployedAddresses;
-}
 
 async function main() {
   // const config = getConfig();
@@ -72,46 +33,26 @@ async function main() {
 
   const [signer] = await ethers.getSigners();
 
-  const networkName = hre.network.name;
-
-  const paramsPath = path.join(__dirname, `../../ignition/modules/params/${networkName}.json`);
-  const parameters = JSON.parse(fs.readFileSync(paramsPath).toString());
+  const parameters = await getDeploymentParameters();
 
   parameters.StateProxyFinalImplementationModule.defaultIdType = (
     await getDefaultIdType()
   ).defaultIdType;
-  const deployedAddresses = await getDeployedAddresses();
 
   parameters.Create2AddressAnchorAtModule = {
     contractAddress: contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress,
   };
-  if (!(await isContract(contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress))) {
-    const { create2AddressAnchor } = await ignition.deploy(Create2AddressAnchorModule, {
-      strategy: deployStrategy,
-      defaultSender: await signer.getAddress(),
-    });
-
-    const contractAddress = await create2AddressAnchor.getAddress();
-    if (contractAddress !== contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress) {
-      throw Error(
-        `The contract was supposed to be deployed to ${contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress}, but it was deployed to ${contractAddress}`,
-      );
-    }
-
-    console.log(`Create2AddressAnchor deployed to: ${contractAddress}`);
-  } else {
+  if (await isContract(contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress)) {
     console.log(
       `Create2AddressAnchor already deployed to: ${contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress}`,
     );
 
-    if (!deployedAddresses["Create2AddressAnchorModule#Create2AddressAnchor"]) {
-      // Use the module to get the address into the deployed address registry
-      await ignition.deploy(Create2AddressAnchorAtModule, {
-        strategy: deployStrategy,
-        defaultSender: await signer.getAddress(),
-        parameters: parameters,
-      });
-    }
+    // Use the module to get the address into the deployed address registry
+    await ignition.deploy(Create2AddressAnchorAtModule, {
+      strategy: deployStrategy,
+      defaultSender: await signer.getAddress(),
+      parameters: parameters,
+    });
   }
 
   //TODO: IMPORTANT. Get your specific unified addresses:
@@ -152,7 +93,6 @@ async function main() {
       proxy: true,
     },
     {
-      module: UniversalVerifierProxyModule,
       moduleAt: UniversalVerifierAtModule,
       contractAddress:
         parameters["UniversalVerifierAtModule"].proxyAddress ||
@@ -161,7 +101,6 @@ async function main() {
       proxy: true,
     },
     {
-      module: IdentityTreeStoreProxyModule,
       moduleAt: IdentityTreeStoreAtModule,
       contractAddress:
         parameters["IdentityTreeStoreAtModule"].proxyAddress ||
@@ -170,7 +109,6 @@ async function main() {
       proxy: true,
     },
     {
-      module: CredentialAtomicQueryMTPV2ValidatorProxyModule,
       moduleAt: CredentialAtomicQueryMTPV2ValidatorAtModule,
       contractAddress:
         parameters["CredentialAtomicQueryMTPV2ValidatorAtModule"].proxyAddress ||
@@ -179,7 +117,6 @@ async function main() {
       proxy: true,
     },
     {
-      module: CredentialAtomicQuerySigV2ValidatorProxyModule,
       moduleAt: CredentialAtomicQuerySigV2ValidatorAtModule,
       contractAddress:
         parameters["CredentialAtomicQuerySigV2ValidatorAtModule"].proxyAddress ||
@@ -188,7 +125,6 @@ async function main() {
       proxy: true,
     },
     {
-      module: CredentialAtomicQueryV3ValidatorProxyModule,
       moduleAt: CredentialAtomicQueryV3ValidatorAtModule,
       contractAddress:
         parameters["CredentialAtomicQueryV3ValidatorAtModule"].proxyAddress ||
@@ -197,7 +133,6 @@ async function main() {
       proxy: true,
     },
     {
-      module: LinkedMultiQueryValidatorProxyModule,
       moduleAt: LinkedMultiQueryValidatorAtModule,
       contractAddress:
         parameters["LinkedMultiQueryValidatorAtModule"].proxyAddress ||
@@ -206,7 +141,6 @@ async function main() {
       proxy: true,
     },
     {
-      module: AuthV2ValidatorProxyModule,
       moduleAt: AuthV2ValidatorAtModule,
       contractAddress:
         parameters["AuthV2ValidatorAtModule"].proxyAddress ||
@@ -215,7 +149,6 @@ async function main() {
       proxy: true,
     },
     {
-      module: EthIdentityValidatorProxyModule,
       moduleAt: EthIdentityValidatorAtModule,
       contractAddress:
         parameters["EthIdentityValidatorAtModule"].proxyAddress ||
@@ -224,7 +157,6 @@ async function main() {
       proxy: true,
     },
     {
-      module: VCPaymentProxyModule,
       moduleAt: VCPaymentAtModule,
       contractAddress:
         parameters["VCPaymentAtModule"].proxyAddress || contractsInfo.VC_PAYMENT.unifiedAddress,
@@ -232,7 +164,6 @@ async function main() {
       proxy: true,
     },
     {
-      module: MCPaymentProxyModule,
       moduleAt: MCPaymentAtModule,
       contractAddress:
         parameters["MCPaymentAtModule"].proxyAddress || contractsInfo.MC_PAYMENT.unifiedAddress,
@@ -265,10 +196,7 @@ async function main() {
     }
   }
 
-  fs.writeFileSync(paramsPath, JSON.stringify(parameters, null, 2), {
-    encoding: "utf8",
-    flag: "w",
-  });
+  await writeDeploymentParameters(parameters);
 }
 
 main()
