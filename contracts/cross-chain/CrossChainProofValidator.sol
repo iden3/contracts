@@ -47,8 +47,7 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
     constructor(
         string memory domainName,
         string memory signatureVersion,
-        address oracleSigningAddress,
-        address legacyOracleSigningAddress
+        address oracleSigningAddress
     ) EIP712(domainName, signatureVersion) Ownable(msg.sender) {
         _checkOracleSigningAddress(oracleSigningAddress);
         bytes32 hashedName = keccak256(bytes(domainName));
@@ -59,7 +58,6 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
             abi.encode(TYPE_HASH, hashedName, hashedVersion, chainId, verifyingContract)
         );
         _oracleSigningAddress = oracleSigningAddress;
-        _legacyOracleSigningAddress = legacyOracleSigningAddress;
     }
 
     /**

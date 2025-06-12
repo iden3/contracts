@@ -1,4 +1,3 @@
-import { Logger } from "../../helpers/helperUtils";
 import {
   GlobalStateMessage,
   IdentityStateMessage,
@@ -19,6 +18,7 @@ describe("Process cross-chain proof", function () {
     [signer, signer2, signer3] = await ethers.getSigners();
     const deployHelper = await DeployHelper.initialize(null, true);
     crossChainProofValidator = await deployHelper.deployCrossChainProofValidator();
+    await crossChainProofValidator.setLegacyOracleSigningAddress(signer2.address);
   }
 
   beforeEach(async function () {
@@ -285,7 +285,7 @@ describe("Oracle signing address validation", function () {
 
   it("should revert when deploying with zero oracle signing address", async function () {
     await expect(
-      CrossChainProofValidatorFactory.deploy("StateInfo", "1", ZeroAddress, oracleSigningAddress),
+      CrossChainProofValidatorFactory.deploy("StateInfo", "1", ZeroAddress),
     ).to.be.revertedWithCustomError(
       CrossChainProofValidatorFactory,
       "OracleSigningAddressShouldNotBeZero",
@@ -297,8 +297,8 @@ describe("Oracle signing address validation", function () {
       "StateInfo",
       "1",
       oracleSigningAddress,
-      ZeroAddress,
     );
+    await crossChainProofValidator.setLegacyOracleSigningAddress(signer2.address);
     await expect(crossChainProofValidator.waitForDeployment()).to.not.be.reverted;
   });
 
@@ -307,7 +307,6 @@ describe("Oracle signing address validation", function () {
       "StateInfo",
       "1",
       oracleSigningAddress,
-      ZeroAddress,
     );
     await crossChainProofValidator.waitForDeployment();
     expect(await crossChainProofValidator.getOracleSigningAddress()).to.equal(oracleSigningAddress);

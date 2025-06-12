@@ -15,7 +15,6 @@ type ChainIdInfo = {
   idType: string;
   networkType: string;
   oracleSigningAddress: string;
-  legacySigningAddress: string;
 };
 
 export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
@@ -23,73 +22,61 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
     idType: "0x0112",
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_HARDHAT,
-    legacySigningAddress: LEGACY_ORACLE_SIGNING_ADDRESS_HARDHAT,
   }) // hardhat
   .set(1101, {
     idType: "0x0114",
     networkType: "main",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-    legacySigningAddress: LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // polygon zkevm
   .set(2442, {
     idType: "0x0115",
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-    legacySigningAddress: LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // polygon cardona
   .set(137, {
     idType: "0x0111",
     networkType: "main",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-    legacySigningAddress: LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // polygon main
   .set(80001, {
     idType: "0x0112",
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-    legacySigningAddress: LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // polygon mumbai
   .set(80002, {
     idType: "0x0113",
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-    legacySigningAddress: LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // polygon amoy
   .set(1, {
     idType: "0x0121",
     networkType: "main",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-    legacySigningAddress: LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // ethereum mainnet
   .set(11155111, {
     idType: "0x0123",
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-    legacySigningAddress: LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // ethereum sepolia
   .set(21000, {
     idType: "0x01A1",
     networkType: "main",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-    legacySigningAddress: LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // privado-main
   .set(21001, {
     idType: "0x01A2",
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-    legacySigningAddress: LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // privado-test
   .set(59144, {
     idType: "0x0149",
     networkType: "main",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-    legacySigningAddress: LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // linea-main
   .set(59141, {
     idType: "0x0148",
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-    legacySigningAddress: LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }); // linea-sepolia
 
 export const networks = Object.freeze({

@@ -1,4 +1,4 @@
-import { ethers, network, upgrades, ignition } from "hardhat";
+import { ethers, upgrades, ignition } from "hardhat";
 import { Contract, ContractTransactionResponse } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
@@ -528,13 +528,11 @@ export class DeployHelper {
   ): Promise<Contract> {
     const chainId = await getChainId();
     const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
-    const legacySigningAddress = chainIdInfoMap.get(chainId)?.legacySigningAddress;
 
     const crossChainProofValidator = await ethers.deployContract(contractName, [
       domainName,
       signatureVersion,
       oracleSigningAddress,
-      legacySigningAddress,
     ]);
     await crossChainProofValidator.waitForDeployment();
     Logger.success(`${contractName} deployed to: ${await crossChainProofValidator.getAddress()}`);
