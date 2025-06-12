@@ -528,11 +528,13 @@ export class DeployHelper {
   ): Promise<Contract> {
     const chainId = await getChainId();
     const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+    const legacySigningAddress = chainIdInfoMap.get(chainId)?.legacySigningAddress;
 
     const crossChainProofValidator = await ethers.deployContract(contractName, [
       domainName,
       signatureVersion,
       oracleSigningAddress,
+      legacySigningAddress,
     ]);
     await crossChainProofValidator.waitForDeployment();
     Logger.success(`${contractName} deployed to: ${await crossChainProofValidator.getAddress()}`);
