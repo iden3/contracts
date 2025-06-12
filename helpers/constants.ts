@@ -3,11 +3,13 @@ import { ethers } from "hardhat";
 
 export const DEFAULT_MNEMONIC = "test test test test test test test test test test test junk";
 
-const ORACLE_SIGNING_ADDRESS_HARDHAT = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-// TEST networks Oracle signing address (For now we will use in testnets the same production signing address)
-export const ORACLE_SIGNING_ADDRESS_TEST = "0x3e1cFE1b83E7C1CdB0c9558236c1f6C7B203C34e";
+export const ORACLE_SIGNING_ADDRESS_HARDHAT = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+export const LEGACY_ORACLE_SIGNING_ADDRESS_HARDHAT = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
+
 // PRODUCTION networks Oracle signing address
-export const ORACLE_SIGNING_ADDRESS_PRODUCTION = "0xf0Ae6D287aF14f180E1FAfe3D2CB62537D7b1A82";
+export const ORACLE_SIGNING_ADDRESS_PRODUCTION = "0x0aD316c6D3F29B76cBd8f5a1ED5e3990c6B5174C";
+export const LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION =
+  "0xf0Ae6D287aF14f180E1FAfe3D2CB62537D7b1A82";
 
 type ChainIdInfo = {
   idType: string;

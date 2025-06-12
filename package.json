@@ -130,6 +130,7 @@
     "deploy:universalverifier:privado-main": "npx hardhat run scripts/deploy/deployUniversalVerifier.ts --network privado-main",
     "deploy:set:request:polygon-amoy": "npx hardhat run scripts/maintenance/setProofRequest.ts --network polygon-amoy",
     "deploy:set:request:linea-sepolia": "npx hardhat run scripts/maintenance/setProofRequest.ts --network linea-sepolia",
+    "deploy:crossChainProofValidator:localhost": "npx hardhat run scripts/deploy/deployCrossChainProofValidator.ts --network localhost",
     "deploy:vc-payment:polygon-amoy": "npx hardhat run scripts/deploy/deployVCPayment.ts --network polygon-amoy",
     "upgrade:contracts:universal:verifier:localhost": "npx hardhat run scripts/upgrade/verifiers/universal-verifier-upgrade.ts --network localhost",
     "upgrade:contracts:universal:verifier:polygon-amoy": "npx hardhat run scripts/upgrade/verifiers/universal-verifier-upgrade.ts --network polygon-amoy",
