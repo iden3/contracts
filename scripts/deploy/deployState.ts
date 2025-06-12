@@ -3,7 +3,7 @@ import path from "path";
 import hre, { ethers, ignition } from "hardhat";
 import { getConfig, getDefaultIdType, verifyContract } from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
-import StateModule from "../../ignition/modules/state";
+import StateModule, { StateProxyModule } from "../../ignition/modules/state";
 
 async function main() {
   const config = getConfig();
@@ -19,6 +19,14 @@ async function main() {
     await getDefaultIdType()
   ).defaultIdType;
 
+  // First implementation
+  await ignition.deploy(StateProxyModule, {
+    strategy: deployStrategy,
+    defaultSender: await signer.getAddress(),
+    parameters: parameters,
+  });
+
+  // Final implementation
   const { state, proxyAdmin, groth16VerifierStateTransition, stateLib, crossChainProofValidator } =
     await ignition.deploy(StateModule, {
       strategy: deployStrategy,

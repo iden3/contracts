@@ -3,7 +3,9 @@ import path from "path";
 import hre, { ethers, ignition } from "hardhat";
 import { getConfig, verifyContract } from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
-import UniversalVerifierModule from "../../ignition/modules/universalVerifier";
+import UniversalVerifierModule, {
+  UniversalVerifierProxyModule,
+} from "../../ignition/modules/universalVerifier";
 
 async function main() {
   const config = getConfig();
@@ -15,6 +17,13 @@ async function main() {
   const paramsPath = path.join(__dirname, `../../ignition/modules/params/${networkName}.json`);
   const parameters = JSON.parse(fs.readFileSync(paramsPath).toString());
 
+  // First implementation
+  await ignition.deploy(UniversalVerifierProxyModule, {
+    strategy: deployStrategy,
+    defaultSender: await signer.getAddress(),
+    parameters: parameters,
+  });
+  // Final implementation
   const { proxyAdmin, universalVerifier } = await ignition.deploy(UniversalVerifierModule, {
     strategy: deployStrategy,
     defaultSender: await signer.getAddress(),

@@ -1,16 +1,36 @@
 import fs from "fs";
 import path from "path";
-import { DeployHelper, ValidatorType } from "../../helpers/DeployHelper";
 import hre, { ethers, ignition } from "hardhat";
-import { getConfig, getStateContractAddress, verifyContract } from "../../helpers/helperUtils";
-import CredentialAtomicQueryMTPV2ValidatorModule from "../../ignition/modules/credentialAtomicQueryMTPV2Validator";
+import { getConfig, verifyContract } from "../../helpers/helperUtils";
+import CredentialAtomicQueryMTPV2ValidatorModule, {
+  CredentialAtomicQueryMTPV2ValidatorProxyModule,
+} from "../../ignition/modules/credentialAtomicQueryMTPV2Validator";
 import { contractsInfo } from "../../helpers/constants";
-import CredentialAtomicQuerySigV2ValidatorModule from "../../ignition/modules/credentialAtomicQuerySigV2Validator";
-import CredentialAtomicQueryV3ValidatorModule from "../../ignition/modules/credentialAtomicQueryV3Validator";
-import AuthV2ValidatorModule from "../../ignition/modules/authV2Validator";
-import EthIdentityValidatorModule from "../../ignition/modules/ethIdentityValidator";
-import LinkedMultiQueryValidatorModule from "../../ignition/modules/linkedMultiQuery";
-import { proxy } from "../../typechain-types/@openzeppelin/contracts";
+import CredentialAtomicQuerySigV2ValidatorModule, {
+  CredentialAtomicQuerySigV2ValidatorProxyModule,
+} from "../../ignition/modules/credentialAtomicQuerySigV2Validator";
+import CredentialAtomicQueryV3ValidatorModule, {
+  CredentialAtomicQueryV3ValidatorProxyModule,
+} from "../../ignition/modules/credentialAtomicQueryV3Validator";
+import AuthV2ValidatorModule, {
+  AuthV2ValidatorProxyModule,
+} from "../../ignition/modules/authV2Validator";
+import EthIdentityValidatorModule, {
+  EthIdentityValidatorProxyModule,
+} from "../../ignition/modules/ethIdentityValidator";
+import LinkedMultiQueryValidatorModule, {
+  LinkedMultiQueryValidatorProxyModule,
+} from "../../ignition/modules/linkedMultiQuery";
+import {
+  AuthV2ValidatorAtModule,
+  CredentialAtomicQueryMTPV2ValidatorAtModule,
+  CredentialAtomicQuerySigV2ValidatorAtModule,
+  CredentialAtomicQueryV3ValidatorAtModule,
+  EthIdentityValidatorAtModule,
+  LinkedMultiQueryValidatorAtModule,
+  UniversalVerifierAtModule,
+} from "../../ignition/modules/contractsAt";
+import { auth } from "../../typechain-types/contracts/validators";
 
 async function main() {
   const config = getConfig();
@@ -22,9 +42,11 @@ async function main() {
   const paramsPath = path.join(__dirname, `../../ignition/modules/params/${networkName}.json`);
   const parameters = JSON.parse(fs.readFileSync(paramsPath).toString());
 
-  const validatorContracts = [
+  const requestValidators = [
     {
-      module: CredentialAtomicQueryMTPV2ValidatorModule,
+      moduleFirstImplementation: CredentialAtomicQueryMTPV2ValidatorProxyModule,
+      moduleFinalImplementation: CredentialAtomicQueryMTPV2ValidatorModule,
+      moduleAt: CredentialAtomicQueryMTPV2ValidatorAtModule,
       name: contractsInfo.VALIDATOR_MTP.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_MTP.name,
       paramName: "CredentialAtomicQueryMTPV2ValidatorAtModule",
@@ -32,7 +54,9 @@ async function main() {
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_MTP.verificationOpts,
     },
     {
-      module: CredentialAtomicQuerySigV2ValidatorModule,
+      moduleFirstImplementation: CredentialAtomicQuerySigV2ValidatorProxyModule,
+      moduleFinalImplementation: CredentialAtomicQuerySigV2ValidatorModule,
+      moduleAt: CredentialAtomicQuerySigV2ValidatorAtModule,
       name: contractsInfo.VALIDATOR_SIG.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_SIG.name,
       paramName: "CredentialAtomicQuerySigV2ValidatorAtModule",
@@ -40,7 +64,9 @@ async function main() {
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_SIG.verificationOpts,
     },
     {
-      module: CredentialAtomicQueryV3ValidatorModule,
+      moduleFirstImplementation: CredentialAtomicQueryV3ValidatorProxyModule,
+      moduleFinalImplementation: CredentialAtomicQueryV3ValidatorModule,
+      moduleAt: CredentialAtomicQueryV3ValidatorAtModule,
       name: contractsInfo.VALIDATOR_V3.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_V3.name,
       paramName: "CredentialAtomicQueryV3ValidatorAtModule",
@@ -48,7 +74,9 @@ async function main() {
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_V3.verificationOpts,
     },
     {
-      module: LinkedMultiQueryValidatorModule,
+      moduleFirstImplementation: LinkedMultiQueryValidatorProxyModule,
+      moduleFinalImplementation: LinkedMultiQueryValidatorModule,
+      moduleAt: LinkedMultiQueryValidatorAtModule,
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.name,
       paramName: "LinkedMultiQueryValidatorAtModule",
@@ -56,8 +84,14 @@ async function main() {
       verifierVerificationOpts:
         contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.verificationOpts,
     },
+  ];
+
+  const authValidators = [
     {
-      module: AuthV2ValidatorModule,
+      authMethod: "authV2",
+      moduleFirstImplementation: AuthV2ValidatorProxyModule,
+      moduleFinalImplementation: AuthV2ValidatorModule,
+      moduleAt: AuthV2ValidatorAtModule,
       name: contractsInfo.VALIDATOR_AUTH_V2.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V2.name,
       paramName: "AuthV2ValidatorAtModule",
@@ -65,15 +99,23 @@ async function main() {
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V2.verificationOpts,
     },
     {
-      module: EthIdentityValidatorModule,
+      authMethod: "ethIdentity",
+      moduleFirstImplementation: EthIdentityValidatorProxyModule,
+      moduleFinalImplementation: EthIdentityValidatorModule,
+      moduleAt: EthIdentityValidatorAtModule,
       name: contractsInfo.VALIDATOR_ETH_IDENTITY.name,
       paramName: "EthIdentityValidatorAtModule",
       verificationOpts: contractsInfo.VALIDATOR_ETH_IDENTITY.verificationOpts,
     },
   ];
 
-  for (const validatorContract of validatorContracts) {
-    const deployment = await ignition.deploy(validatorContract.module, {
+  for (const validatorContract of [...requestValidators, ...authValidators]) {
+    await ignition.deploy(validatorContract.moduleFirstImplementation, {
+      strategy: deployStrategy,
+      defaultSender: await signer.getAddress(),
+      parameters: parameters,
+    });
+    const deployment = await ignition.deploy(validatorContract.moduleFinalImplementation, {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,
@@ -101,6 +143,54 @@ async function main() {
       await verifyContract(
         await deployment[Object.keys(deployment)[1]].getAddress(),
         validatorContract.verifierVerificationOpts,
+      );
+    }
+  }
+
+  const universalVerifier = (
+    await ignition.deploy(UniversalVerifierAtModule, {
+      strategy: deployStrategy,
+      defaultSender: await signer.getAddress(),
+      parameters: parameters,
+    })
+  ).proxy;
+
+  for (const validator of requestValidators) {
+    const validatorDeployed = await ignition.deploy(validator.moduleAt, {
+      strategy: deployStrategy,
+      defaultSender: await signer.getAddress(),
+      parameters: parameters,
+    });
+    if (!(await universalVerifier.isWhitelistedValidator(validatorDeployed.proxy.target))) {
+      await universalVerifier.addValidatorToWhitelist(validatorDeployed.proxy.target);
+      console.log(
+        `${validator.name} in address ${validatorDeployed.proxy.target} added to whitelisted validators`,
+      );
+    } else {
+      console.log(
+        `${validator.name} in address ${validatorDeployed.proxy.target} already whitelisted`,
+      );
+    }
+  }
+
+  for (const validator of authValidators) {
+    const validatorDeployed = await ignition.deploy(validator.moduleAt, {
+      strategy: deployStrategy,
+      defaultSender: await signer.getAddress(),
+      parameters: parameters,
+    });
+    if (!(await universalVerifier.authMethodExists(validator.authMethod))) {
+      await universalVerifier.setAuthMethod({
+        authMethod: validator.authMethod,
+        validator: validatorDeployed.proxy.target,
+        params: "0x",
+      });
+      console.log(
+        `${validator.name} in address ${validatorDeployed.proxy.target} added to auth methods`,
+      );
+    } else {
+      console.log(
+        `${validator.name} in address ${validatorDeployed.proxy.target} already added to auth methods`,
       );
     }
   }
