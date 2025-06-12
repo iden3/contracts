@@ -42,7 +42,7 @@ const IdentityTreeStoreProxyFirstImplementationModule = buildModule(
   },
 );
 
-const IdentityTreeStoreFinalImplementationModule = buildModule(
+export const IdentityTreeStoreFinalImplementationModule = buildModule(
   "IdentityTreeStoreFinalImplementationModule",
   (m) => {
     const poseidon2 = m.useModule(Poseidon2AtModule).contract;

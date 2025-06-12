@@ -42,12 +42,12 @@ const StateProxyFirstImplementationModule = buildModule(
   },
 );
 
-const StateLibModule = buildModule("StateLibModule", (m) => {
+export const StateLibModule = buildModule("StateLibModule", (m) => {
   const stateLib = m.contract("StateLib");
   return { stateLib };
 });
 
-const CrossChainProofValidatorModule = buildModule("CrossChainProofValidatorModule", (m) => {
+export const CrossChainProofValidatorModule = buildModule("CrossChainProofValidatorModule", (m) => {
   const domainName = "StateInfo";
   const signatureVersion = "1";
   const oracleSigningAddress = m.getParameter("oracleSigningAddress");

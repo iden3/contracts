@@ -2,6 +2,7 @@ import { Contract, ContractTransactionResponse, JsonRpcProvider } from "ethers";
 import hre, { ethers, network, run } from "hardhat";
 import fs from "fs";
 import {
+  chainIdInfoMap,
   contractsInfo,
   networks,
   STATE_ADDRESS_POLYGON_AMOY,
@@ -18,6 +19,15 @@ export function getConfig() {
 
 export async function getChainId() {
   return parseInt(await hre.network.provider.send("eth_chainId"), 16);
+}
+
+export async function getDefaultIdType(): Promise<{ defaultIdType: string; chainId: number }> {
+  const chainId = await getChainId();
+  const defaultIdType = chainIdInfoMap.get(chainId)?.idType;
+  if (!defaultIdType) {
+    throw new Error(`Failed to find defaultIdType in Map for chainId ${chainId}`);
+  }
+  return { defaultIdType, chainId };
 }
 
 export async function waitNotToInterfereWithHardhatIgnition(

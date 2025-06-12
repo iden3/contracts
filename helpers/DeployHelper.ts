@@ -1033,15 +1033,6 @@ export class DeployHelper {
     return { universalVerifier, verifierLib };
   }
 
-  async getDefaultIdType(): Promise<{ defaultIdType: string; chainId: number }> {
-    const chainId = await getChainId();
-    const defaultIdType = chainIdInfoMap.get(chainId)?.idType;
-    if (!defaultIdType) {
-      throw new Error(`Failed to find defaultIdType in Map for chainId ${chainId}`);
-    }
-    return { defaultIdType, chainId };
-  }
-
   async deployIdentityTreeStore(
     stateContractAddress: string,
     poseidon2ElementsAddress: string = "",

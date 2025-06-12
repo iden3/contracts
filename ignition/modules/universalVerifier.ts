@@ -40,7 +40,7 @@ const UniversalVerifierProxyFirstImplementationModule = buildModule(
   },
 );
 
-const VerifierLibModule = buildModule("VerifierLibModule", (m) => {
+export const VerifierLibModule = buildModule("VerifierLibModule", (m) => {
   const verifierLib = m.contract("VerifierLib");
   return { verifierLib };
 });
