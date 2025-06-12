@@ -1,42 +1,42 @@
 import fs from "fs";
 import path from "path";
-import { DeployHelper } from "../../helpers/DeployHelper";
-import hre from "hardhat";
-import { getChainId, getConfig, verifyContract } from "../../helpers/helperUtils";
+import hre, { ethers, ignition } from "hardhat";
+import { getConfig, getDefaultIdType, verifyContract } from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
+import StateModule from "../../ignition/modules/state";
 
 async function main() {
   const config = getConfig();
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
-  const [signer] = await hre.ethers.getSigners();
 
-  const deployHelper = await DeployHelper.initialize(null, true);
-
-  const chainId = await getChainId();
+  const [signer] = await ethers.getSigners();
   const networkName = hre.network.name;
+  const paramsPath = path.join(__dirname, `../../ignition/modules/params/${networkName}.json`);
+  const parameters = JSON.parse(fs.readFileSync(paramsPath).toString());
 
-  let smtLibAddr, poseidon1Addr;
-  if (deployStrategy === "basic") {
-    const libDeployOutput = fs.readFileSync(
-      path.join(
-        __dirname,
-        `../deployments_output/deploy_libraries_output_${chainId}_${networkName}.json`,
-      ),
-    );
-    ({ smtLib: smtLibAddr, poseidon1: poseidon1Addr } = JSON.parse(libDeployOutput.toString()));
-  } else {
-    smtLibAddr = contractsInfo.SMT_LIB.unifiedAddress;
-    poseidon1Addr = contractsInfo.POSEIDON_1.unifiedAddress;
-  }
+  parameters.StateProxyFinalImplementationModule.defaultIdType = (
+    await getDefaultIdType()
+  ).defaultIdType;
 
-  const {
-    state,
-    stateLib,
-    stateCrossChainLib,
-    crossChainProofValidator,
-    groth16VerifierStateTransition,
-  } = await deployHelper.deployState([], deployStrategy, smtLibAddr, poseidon1Addr);
+  const { state, proxyAdmin, groth16VerifierStateTransition, stateLib, crossChainProofValidator } =
+    await ignition.deploy(StateModule, {
+      strategy: deployStrategy,
+      defaultSender: await signer.getAddress(),
+      parameters: parameters,
+    });
+
+  parameters.StateAtModule = {
+    proxyAddress: state.target,
+    proxyAdminAddress: proxyAdmin.target,
+  };
+
+  console.log(`CrossChainProofValidator deployed to: ${crossChainProofValidator.target}`);
+  console.log(
+    `Groth16VerifierStateTransition deployed to: ${groth16VerifierStateTransition.target}`,
+  );
+  console.log(`StateLib deployed to: ${stateLib.target}`);
+  console.log(`State deployed to: ${state.target}`);
 
   // if the state contract already exists we won't have new contracts deployed
   // to verify and to save the output
@@ -51,22 +51,12 @@ async function main() {
       await crossChainProofValidator.getAddress(),
       contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.verificationOpts,
     );
-
-    const pathOutputJson = path.join(
-      __dirname,
-      `../deployments_output/deploy_state_output_${chainId}_${networkName}.json`,
-    );
-    const outputJson = {
-      proxyAdminOwnerAddress: await signer.getAddress(),
-      state: await state.getAddress(),
-      stateLib: await stateLib?.getAddress(),
-      crossChainProofValidator: await crossChainProofValidator?.getAddress(),
-      network: networkName,
-      chainId,
-      deployStrategy,
-    };
-    fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
   }
+
+  fs.writeFileSync(paramsPath, JSON.stringify(parameters, null, 2), {
+    encoding: "utf8",
+    flag: "w",
+  });
 }
 
 main()

@@ -26,23 +26,28 @@ async function main() {
     {
       module: Poseidon1Module,
       name: contractsInfo.POSEIDON_1.name,
+      paramName: "Poseidon1AtModule",
     },
     {
       module: Poseidon2Module,
       name: contractsInfo.POSEIDON_2.name,
+      paramName: "Poseidon2AtModule",
     },
     {
       module: Poseidon3Module,
       name: contractsInfo.POSEIDON_3.name,
+      paramName: "Poseidon3AtModule",
     },
     {
       module: Poseidon4Module,
       name: contractsInfo.POSEIDON_4.name,
+      paramName: "Poseidon4AtModule",
     },
     {
       module: SmtLibModule,
       name: contractsInfo.SMT_LIB.name,
       verificationOpts: contractsInfo.SMT_LIB.verificationOpts,
+      paramName: "SmtLibAtModule",
     },
   ];
 
@@ -52,10 +57,8 @@ async function main() {
       defaultSender: await signer.getAddress(),
       parameters: parameters,
     });
-
-    console.log(
-      `${contract.name} deployed to: ${await deployment[Object.keys(deployment)[0]].target}`,
-    );
+    parameters[contract.paramName].contractAddress = deployment[Object.keys(deployment)[0]].target;
+    console.log(`${contract.name} deployed to: ${deployment[Object.keys(deployment)[0]].target}`);
 
     if (contract.verificationOpts) {
       await verifyContract(
@@ -64,6 +67,10 @@ async function main() {
       );
     }
   }
+  fs.writeFileSync(paramsPath, JSON.stringify(parameters, null, 2), {
+    encoding: "utf8",
+    flag: "w",
+  });
 }
 
 main()

@@ -103,9 +103,8 @@ const StateProxyFinalImplementationModule = buildModule(
   "StateProxyFinalImplementationModule",
   (m) => {
     const { proxy, proxyAdmin } = m.useModule(StateAtModule);
-    const { newStateImpl, groth16VerifierStateTransition, crossChainProofValidator } = m.useModule(
-      StateFinalImplementationModule,
-    );
+    const { newStateImpl, groth16VerifierStateTransition, crossChainProofValidator, stateLib } =
+      m.useModule(StateFinalImplementationModule);
 
     const proxyAdminOwner = m.getAccount(0);
     const defaultIdType = m.getParameter("defaultIdType");
@@ -130,6 +129,7 @@ const StateProxyFinalImplementationModule = buildModule(
       newStateImpl,
       groth16VerifierStateTransition,
       crossChainProofValidator,
+      stateLib,
     };
   },
 );
@@ -138,6 +138,7 @@ const StateModule = buildModule("StateModule", (m) => {
   const {
     crossChainProofValidator,
     groth16VerifierStateTransition,
+    stateLib,
     newStateImpl,
     proxyAdmin,
     proxy,
@@ -149,6 +150,7 @@ const StateModule = buildModule("StateModule", (m) => {
     state,
     crossChainProofValidator,
     groth16VerifierStateTransition,
+    stateLib,
     newStateImpl,
     proxyAdmin,
     proxy,

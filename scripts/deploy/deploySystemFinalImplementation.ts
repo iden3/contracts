@@ -177,7 +177,7 @@ async function main() {
       name: contractsInfo.STATE.name,
       proxy: true,
     },
-    {
+    /*{
       module: UniversalVerifierModule,
       moduleAt: UniversalVerifierAtModule,
       contractAddress:
@@ -185,7 +185,7 @@ async function main() {
         contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
       name: contractsInfo.UNIVERSAL_VERIFIER.name,
       proxy: true,
-    },
+    },*/
     {
       module: IdentityTreeStoreModule,
       moduleAt: IdentityTreeStoreAtModule,
@@ -211,8 +211,8 @@ async function main() {
       name: contractsInfo.MC_PAYMENT.name,
       proxy: true,
     },
-    ...requestValidators,
-    ...authValidators,
+    //...requestValidators,
+    //...authValidators,
   ];
 
   for (const contract of contracts) {
@@ -228,7 +228,7 @@ async function main() {
   }
 
   // get UniversalVerifier contract
-  const universalVerifier = (
+  /* const universalVerifier = (
     await ignition.deploy(UniversalVerifierAtModule, {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
@@ -274,7 +274,7 @@ async function main() {
         `${validator.name} in address ${validatorDeployed.proxy.target} already added to auth methods`,
       );
     }
-  }
+  }*/
 }
 
 main()

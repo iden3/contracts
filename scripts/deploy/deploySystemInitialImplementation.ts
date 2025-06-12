@@ -157,7 +157,7 @@ async function main() {
       name: contractsInfo.STATE.name,
       proxy: true,
     },
-    {
+   /* {
       module: UniversalVerifierProxyModule,
       moduleAt: UniversalVerifierAtModule,
       contractAddress:
@@ -165,7 +165,7 @@ async function main() {
         contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
       name: contractsInfo.UNIVERSAL_VERIFIER.name,
       proxy: true,
-    },
+    },*/
     {
       module: IdentityTreeStoreProxyModule,
       moduleAt: IdentityTreeStoreAtModule,
@@ -175,7 +175,7 @@ async function main() {
       name: contractsInfo.IDENTITY_TREE_STORE.name,
       proxy: true,
     },
-    {
+    /*{
       module: CredentialAtomicQueryMTPV2ValidatorProxyModule,
       moduleAt: CredentialAtomicQueryMTPV2ValidatorAtModule,
       contractAddress:
@@ -228,7 +228,7 @@ async function main() {
         contractsInfo.VALIDATOR_ETH_IDENTITY.unifiedAddress,
       name: contractsInfo.VALIDATOR_ETH_IDENTITY.name,
       proxy: true,
-    },
+    },*/
     {
       module: VCPaymentProxyModule,
       moduleAt: VCPaymentAtModule,
