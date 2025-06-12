@@ -17,6 +17,7 @@ import {
 import { chainIdInfoMap, contractsInfo } from "./constants";
 import {
   getChainId,
+  getDefaultIdType,
   getUnifiedContract,
   Logger,
   TempContractDeployments,
@@ -129,7 +130,7 @@ export class DeployHelper {
       "./scripts/deployments_output/temp_deployments_output.json",
     );
 
-    const { defaultIdType, chainId } = await this.getDefaultIdType();
+    const { defaultIdType, chainId } = await getDefaultIdType();
     this.log(`found defaultIdType ${defaultIdType} for chainId ${chainId}`);
 
     const owner = this.signers[0];
