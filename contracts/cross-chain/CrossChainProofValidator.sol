@@ -36,6 +36,7 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
     uint256 public constant MAX_REPLACED_AT_AHEAD_OF_TIME = 5 minutes;
 
     address private _oracleSigningAddress;
+    address private _legacyOracleSigningAddress;
 
     function _checkOracleSigningAddress(address oracleSigningAddress) internal pure {
         if (oracleSigningAddress == address(0)) {
@@ -77,6 +78,30 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
     }
 
     /**
+     * @dev Gets the legacy oracle signing address.
+     **/
+    function setLegacyOracleSigningAddress(address legacyOracleSigningAddress) public onlyOwner {
+        _checkOracleSigningAddress(legacyOracleSigningAddress);
+        _legacyOracleSigningAddress = legacyOracleSigningAddress;
+    }
+
+    /**
+     * @dev Gets the legacy oracle signing address.
+     * @return The legacy oracle signing address
+     **/
+    function getLegacyOracleSigningAddress() public view returns (address) {
+        return _legacyOracleSigningAddress;
+    }
+
+    /**
+     * @dev Disables the legacy oracle signing address.
+     * This function sets the legacy oracle signing address to zero address.
+     **/
+    function disableLegacyOracleSigningAddress() public onlyOwner {
+        _legacyOracleSigningAddress = address(0);
+    }
+
+    /**
      * @dev Verifies global state proof and signer
      * @param globalStateProof The global state proof
      * @return The result of the global state proof verification
@@ -95,7 +120,9 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
         );
         require(isValid, "Global state proof is not valid");
         require(
-            recovered == _oracleSigningAddress,
+            recovered == _oracleSigningAddress ||
+                (_legacyOracleSigningAddress != address(0) &&
+                    recovered == _legacyOracleSigningAddress),
             "Global state proof signing address is not valid"
         );
 
@@ -129,7 +156,9 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
         );
         require(isValid, "Identity state proof is not valid");
         require(
-            recovered == _oracleSigningAddress,
+            recovered == _oracleSigningAddress ||
+                (_legacyOracleSigningAddress != address(0) &&
+                    recovered == _legacyOracleSigningAddress),
             "Identity state proof signing address is not valid"
         );
 
