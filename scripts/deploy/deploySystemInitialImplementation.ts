@@ -3,7 +3,7 @@ import path from "path";
 import hre, { ethers, ignition } from "hardhat";
 import Create2AddressAnchorModule from "../../ignition/modules/create2AddressAnchor";
 import { contractsInfo } from "../../helpers/constants";
-import { getChainId, isContract } from "../../helpers/helperUtils";
+import { getChainId, getDefaultIdType, isContract } from "../../helpers/helperUtils";
 import {
   MCPaymentProxyModule,
   Poseidon1Module,
@@ -13,8 +13,15 @@ import {
   SmtLibModule,
   VCPaymentProxyModule,
 } from "../../ignition";
-import { StateProxyModule } from "../../ignition/modules/state";
-import { UniversalVerifierProxyModule } from "../../ignition/modules/universalVerifier";
+import {
+  CrossChainProofValidatorModule,
+  StateLibModule,
+  StateProxyModule,
+} from "../../ignition/modules/state";
+import {
+  UniversalVerifierProxyModule,
+  VerifierLibModule,
+} from "../../ignition/modules/universalVerifier";
 import { IdentityTreeStoreProxyModule } from "../../ignition/modules/identityTreeStore";
 import { CredentialAtomicQueryMTPV2ValidatorProxyModule } from "../../ignition/modules/credentialAtomicQueryMTPV2Validator";
 import { CredentialAtomicQuerySigV2ValidatorProxyModule } from "../../ignition/modules/credentialAtomicQuerySigV2Validator";
@@ -41,6 +48,7 @@ import {
   UniversalVerifierAtModule,
   VCPaymentAtModule,
 } from "../../ignition/modules/contractsAt";
+import { Groth16VerifierStateTransitionModule } from "../../ignition/modules/groth16verifiers";
 
 async function getDeployedAddresses() {
   let deployedAddresses = {};
@@ -69,6 +77,9 @@ async function main() {
   const paramsPath = path.join(__dirname, `../../ignition/modules/params/${networkName}.json`);
   const parameters = JSON.parse(fs.readFileSync(paramsPath).toString());
 
+  parameters.StateProxyFinalImplementationModule.defaultIdType = (
+    await getDefaultIdType()
+  ).defaultIdType;
   const deployedAddresses = await getDeployedAddresses();
 
   parameters.Create2AddressAnchorAtModule = {
@@ -236,6 +247,24 @@ async function main() {
     },
   ];
 
+  /* const basicStrategyContracts = [
+    { module: CrossChainProofValidatorModule, name: "CrossChainProofValidator" },
+    { module: Groth16VerifierStateTransitionModule, name: "Groth16VerifierStateTransition" },
+    { module: StateLibModule, name: "StateLib" },
+    { module: VerifierLibModule, name: "VerifierLib" },
+  ];
+
+  for (const contract of basicStrategyContracts) {
+    const deployedContract = await ignition.deploy(contract.module, {
+      strategy: "basic",
+      defaultSender: await signer.getAddress(),
+      parameters: parameters,
+    });
+    console.log(
+      `${contract.name} deployed to: ${deployedContract[Object.keys(deployedContract)[0]].target}`,
+    );
+  } */
+
   for (const contract of contracts) {
     console.log(`Deploying ${contract.name}...`);
     parameters[contract.moduleAt.id] = contract.proxy
@@ -248,6 +277,7 @@ async function main() {
       : {
           contractAddress: contract.contractAddress,
         };
+
     if (!(await isContract(contract.contractAddress))) {
       const deployedContract: any = await ignition.deploy(contract.module, {
         strategy: deployStrategy,

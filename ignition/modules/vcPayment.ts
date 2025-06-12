@@ -68,11 +68,7 @@ const VCPaymentProxyFinalImplementationModule = buildModule(
     const { proxyAdmin, proxy } = m.useModule(VCPaymentAtModule);
     const { newVCPaymentImpl } = m.useModule(VCPaymentFinalImplementationModule);
 
-    const ownerPercentage = m.getParameter("ownerPercentage");
-    const initializeData = m.encodeFunctionCall(newVCPaymentImpl, "initialize", [
-      proxyAdminOwner,
-      ownerPercentage,
-    ]);
+    const initializeData = m.encodeFunctionCall(newVCPaymentImpl, "initialize", [proxyAdminOwner]);
 
     m.call(proxyAdmin, "upgradeAndCall", [proxy, newVCPaymentImpl, initializeData], {
       from: proxyAdminOwner,

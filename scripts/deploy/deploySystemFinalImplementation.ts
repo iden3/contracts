@@ -217,18 +217,14 @@ async function main() {
 
   for (const contract of contracts) {
     console.log(`Deploying ${contract.name}...`);
-    if (!(await isContract(contract.contractAddress))) {
-      const deployedContract: any = await ignition.deploy(contract.module, {
-        strategy: deployStrategy,
-        defaultSender: await signer.getAddress(),
-        parameters: parameters,
-      });
-      console.log(
-        `${contract.name} deployed to: ${contract.proxy ? deployedContract.proxy.target : contract.contractAddress}`,
-      );
-    } else {
-      console.log(`${contract.name} already deployed to: ${contract.contractAddress}`);
-    }
+    const deployedContract: any = await ignition.deploy(contract.module, {
+      strategy: deployStrategy,
+      defaultSender: await signer.getAddress(),
+      parameters: parameters,
+    });
+    console.log(
+      `${contract.name} deployed to: ${contract.proxy ? deployedContract.proxy.target : contract.contractAddress}`,
+    );
   }
 
   // get UniversalVerifier contract
