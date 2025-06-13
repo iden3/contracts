@@ -144,6 +144,7 @@ async function main() {
       moduleAt: SmtLibAtModule,
       contractAddress: contractsInfo.SMT_LIB.unifiedAddress,
       name: contractsInfo.SMT_LIB.name,
+      verificationOpts: contractsInfo.SMT_LIB.verificationOpts,
     },
     {
       module: StateProxyModule,
@@ -152,6 +153,7 @@ async function main() {
         parameters["StateAtModule"].proxyAddress || contractsInfo.STATE.unifiedAddress,
       name: contractsInfo.STATE.name,
       proxy: true,
+      verificationOpts: contractsInfo.STATE.verificationOpts,
     },
     {
       module: UniversalVerifierProxyModule,
@@ -161,6 +163,7 @@ async function main() {
         contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
       name: contractsInfo.UNIVERSAL_VERIFIER.name,
       proxy: true,
+      verificationOpts: contractsInfo.UNIVERSAL_VERIFIER.verificationOpts,
     },
     {
       module: IdentityTreeStoreProxyModule,
@@ -170,6 +173,7 @@ async function main() {
         contractsInfo.IDENTITY_TREE_STORE.unifiedAddress,
       name: contractsInfo.IDENTITY_TREE_STORE.name,
       proxy: true,
+      verificationOpts: contractsInfo.IDENTITY_TREE_STORE.verificationOpts,
     },
     {
       module: CredentialAtomicQueryMTPV2ValidatorProxyModule,
@@ -179,6 +183,8 @@ async function main() {
         contractsInfo.VALIDATOR_MTP.unifiedAddress,
       name: contractsInfo.VALIDATOR_MTP.name,
       proxy: true,
+      verificationOpts: contractsInfo.VALIDATOR_MTP.verificationOpts,
+      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_MTP.verificationOpts,
     },
     {
       module: CredentialAtomicQuerySigV2ValidatorProxyModule,
@@ -188,6 +194,8 @@ async function main() {
         contractsInfo.VALIDATOR_SIG.unifiedAddress,
       name: contractsInfo.VALIDATOR_SIG.name,
       proxy: true,
+      verificationOpts: contractsInfo.VALIDATOR_SIG.verificationOpts,
+      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_SIG.verificationOpts,
     },
     {
       module: CredentialAtomicQueryV3ValidatorProxyModule,
@@ -197,6 +205,8 @@ async function main() {
         contractsInfo.VALIDATOR_V3.unifiedAddress,
       name: contractsInfo.VALIDATOR_V3.name,
       proxy: true,
+      verificationOpts: contractsInfo.VALIDATOR_V3.verificationOpts,
+      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_V3.verificationOpts,
     },
     {
       module: LinkedMultiQueryValidatorProxyModule,
@@ -206,6 +216,9 @@ async function main() {
         contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.unifiedAddress,
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
       proxy: true,
+      verificationOpts: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.verificationOpts,
+      verifierVerificationOpts:
+        contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.verificationOpts,
     },
     {
       module: AuthV2ValidatorProxyModule,
@@ -215,6 +228,8 @@ async function main() {
         contractsInfo.VALIDATOR_AUTH_V2.unifiedAddress,
       name: contractsInfo.VALIDATOR_AUTH_V2.name,
       proxy: true,
+      verificationOpts: contractsInfo.VALIDATOR_AUTH_V2.verificationOpts,
+      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V2.verificationOpts,
     },
     {
       module: EthIdentityValidatorProxyModule,
@@ -224,6 +239,7 @@ async function main() {
         contractsInfo.VALIDATOR_ETH_IDENTITY.unifiedAddress,
       name: contractsInfo.VALIDATOR_ETH_IDENTITY.name,
       proxy: true,
+      verificationOpts: contractsInfo.VALIDATOR_ETH_IDENTITY.verificationOpts,
     },
     {
       module: VCPaymentProxyModule,
@@ -232,6 +248,7 @@ async function main() {
         parameters["VCPaymentAtModule"].proxyAddress || contractsInfo.VC_PAYMENT.unifiedAddress,
       name: contractsInfo.VC_PAYMENT.name,
       proxy: true,
+      verificationOpts: contractsInfo.VC_PAYMENT.verificationOpts,
     },
     {
       module: MCPaymentProxyModule,
@@ -240,6 +257,7 @@ async function main() {
         parameters["MCPaymentAtModule"].proxyAddress || contractsInfo.MC_PAYMENT.unifiedAddress,
       name: contractsInfo.MC_PAYMENT.name,
       proxy: true,
+      verificationOpts: contractsInfo.MC_PAYMENT.verificationOpts,
     },
   ];
 
@@ -266,11 +284,26 @@ async function main() {
         `${contract.name} deployed to: ${contract.proxy ? deployedContract.proxy.target : contract.contractAddress}`,
       );
 
-      await verifyContract(await deployedContract.proxy.getAddress(), contract.verificationOpts);
-      await verifyContract(await newUniversalVerifierImpl.getAddress(), {
-        constructorArgsImplementation: [],
-        libraries: {},
-      });
+      // Verify contracts
+      if (contract.proxy && contract.verificationOpts) {
+        await verifyContract(deployedContract.proxy.target, contract.verificationOpts);
+        await verifyContract(deployedContract.newImplementation.target, {
+          constructorArgsImplementation: [],
+          libraries: {},
+        });
+      }
+      if (contract.verifierVerificationOpts && deployedContract.groth16Verifier) {
+        await verifyContract(
+          deployedContract.groth16Verifier.target,
+          contract.verifierVerificationOpts,
+        );
+      }
+      if (!contract.proxy) {
+        await verifyContract(deployedContract[Object.keys(deployedContract)[0]].target, {
+          constructorArgsImplementation: [],
+          libraries: {},
+        });
+      }
     } else {
       console.log(`${contract.name} already deployed to: ${contract.contractAddress}`);
       // Use the module to get the address into the deployed address registry
