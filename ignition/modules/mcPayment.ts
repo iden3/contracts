@@ -40,18 +40,18 @@ const MCPaymentProxyFirstImplementationModule = buildModule(
 const MCPaymentFinalImplementationModule = buildModule(
   "MCPaymentFinalImplementationModule",
   (m) => {
-    const newMCPaymentImpl = m.contract(contractsInfo.MC_PAYMENT.name);
+    const newImplementation = m.contract(contractsInfo.MC_PAYMENT.name);
     return {
-      newMCPaymentImpl,
+      newImplementation,
     };
   },
 );
 
 export const MCPaymentProxyModule = buildModule("MCPaymentProxyModule", (m) => {
   const { proxy, proxyAdmin } = m.useModule(MCPaymentProxyFirstImplementationModule);
-  const { newMCPaymentImpl } = m.useModule(MCPaymentFinalImplementationModule);
+  const { newImplementation } = m.useModule(MCPaymentFinalImplementationModule);
   return {
-    newMCPaymentImpl,
+    newImplementation,
     proxyAdmin,
     proxy,
   };
@@ -62,20 +62,20 @@ const MCPaymentProxyFinalImplementationModule = buildModule(
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
     const { proxy, proxyAdmin } = m.useModule(MCPaymentAtModule);
-    const { newMCPaymentImpl } = m.useModule(MCPaymentFinalImplementationModule);
+    const { newImplementation } = m.useModule(MCPaymentFinalImplementationModule);
 
     const ownerPercentage = m.getParameter("ownerPercentage");
-    const initializeData = m.encodeFunctionCall(newMCPaymentImpl, "initialize", [
+    const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [
       proxyAdminOwner,
       ownerPercentage,
     ]);
 
-    m.call(proxyAdmin, "upgradeAndCall", [proxy, newMCPaymentImpl, initializeData], {
+    m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
       from: proxyAdminOwner,
     });
 
     return {
-      newMCPaymentImpl,
+      newImplementation,
       proxyAdmin,
       proxy,
     };
@@ -83,7 +83,7 @@ const MCPaymentProxyFinalImplementationModule = buildModule(
 );
 
 const MCPaymentModule = buildModule("MCPaymentModule", (m) => {
-  const { newMCPaymentImpl, proxyAdmin, proxy } = m.useModule(
+  const { newImplementation, proxyAdmin, proxy } = m.useModule(
     MCPaymentProxyFinalImplementationModule,
   );
 
@@ -91,7 +91,7 @@ const MCPaymentModule = buildModule("MCPaymentModule", (m) => {
 
   return {
     MCPayment,
-    newMCPaymentImpl,
+    newImplementation,
     proxyAdmin,
     proxy,
   };

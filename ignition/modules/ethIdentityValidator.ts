@@ -39,9 +39,9 @@ const EthIdentityValidatorProxyFirstImplementationModule = buildModule(
 const EthIdentityValidatorFinalImplementationModule = buildModule(
   "EthIdentityValidatorFinalImplementationModule",
   (m) => {
-    const newEthIdentityValidatorImpl = m.contract(contractsInfo.VALIDATOR_ETH_IDENTITY.name);
+    const newImplementation = m.contract(contractsInfo.VALIDATOR_ETH_IDENTITY.name);
     return {
-      newEthIdentityValidatorImpl,
+      newImplementation,
     };
   },
 );
@@ -50,11 +50,9 @@ export const EthIdentityValidatorProxyModule = buildModule(
   "EthIdentityValidatorProxyModule",
   (m) => {
     const { proxy, proxyAdmin } = m.useModule(EthIdentityValidatorProxyFirstImplementationModule);
-    const { newEthIdentityValidatorImpl } = m.useModule(
-      EthIdentityValidatorFinalImplementationModule,
-    );
+    const { newImplementation } = m.useModule(EthIdentityValidatorFinalImplementationModule);
     return {
-      newEthIdentityValidatorImpl,
+      newImplementation,
       proxyAdmin,
       proxy,
     };
@@ -66,20 +64,16 @@ const EthIdentityValidatorProxyFinalImplementationModule = buildModule(
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
     const { proxy, proxyAdmin } = m.useModule(EthIdentityValidatorAtModule);
-    const { newEthIdentityValidatorImpl } = m.useModule(
-      EthIdentityValidatorFinalImplementationModule,
-    );
+    const { newImplementation } = m.useModule(EthIdentityValidatorFinalImplementationModule);
 
-    const initializeData = m.encodeFunctionCall(newEthIdentityValidatorImpl, "initialize", [
-      proxyAdminOwner,
-    ]);
+    const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [proxyAdminOwner]);
 
-    m.call(proxyAdmin, "upgradeAndCall", [proxy, newEthIdentityValidatorImpl, initializeData], {
+    m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
       from: proxyAdminOwner,
     });
 
     return {
-      newEthIdentityValidatorImpl,
+      newImplementation,
       proxyAdmin,
       proxy,
     };
@@ -87,7 +81,7 @@ const EthIdentityValidatorProxyFinalImplementationModule = buildModule(
 );
 
 const EthIdentityValidatorModule = buildModule("EthIdentityValidatorModule", (m) => {
-  const { newEthIdentityValidatorImpl, proxyAdmin, proxy } = m.useModule(
+  const { newImplementation, proxyAdmin, proxy } = m.useModule(
     EthIdentityValidatorProxyFinalImplementationModule,
   );
 
@@ -95,7 +89,7 @@ const EthIdentityValidatorModule = buildModule("EthIdentityValidatorModule", (m)
 
   return {
     ethIdentityValidator,
-    newEthIdentityValidatorImpl,
+    newImplementation,
     proxyAdmin,
     proxy,
   };

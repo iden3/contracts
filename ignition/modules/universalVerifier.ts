@@ -51,7 +51,7 @@ const UniversalVerifierFinalImplementationModule = buildModule(
     const { verifierLib } = m.useModule(VerifierLibModule);
     const state = m.useModule(StateAtModule).proxy;
 
-    const newUniversalVerifierImpl = m.contract(contractsInfo.UNIVERSAL_VERIFIER.name, [], {
+    const newImplementation = m.contract(contractsInfo.UNIVERSAL_VERIFIER.name, [], {
       libraries: {
         VerifierLib: verifierLib,
       },
@@ -59,7 +59,7 @@ const UniversalVerifierFinalImplementationModule = buildModule(
     return {
       verifierLib,
       state,
-      newUniversalVerifierImpl,
+      newImplementation,
     };
   },
 );
@@ -67,14 +67,14 @@ const UniversalVerifierFinalImplementationModule = buildModule(
 export const UniversalVerifierProxyModule = buildModule("UniversalVerifierProxyModule", (m) => {
   const { proxy, proxyAdmin } = m.useModule(UniversalVerifierProxyFirstImplementationModule);
 
-  const { verifierLib, state, newUniversalVerifierImpl } = m.useModule(
+  const { verifierLib, state, newImplementation } = m.useModule(
     UniversalVerifierFinalImplementationModule,
   );
 
   return {
     verifierLib,
     state,
-    newUniversalVerifierImpl,
+    newImplementation,
     proxyAdmin,
     proxy,
   };
@@ -84,24 +84,24 @@ const UniversalVerifierProxyFinalImplementationModule = buildModule(
   "UniversalVerifierProxyFinalImplementationModule",
   (m) => {
     const { proxy, proxyAdmin } = m.useModule(UniversalVerifierAtModule);
-    const { verifierLib, state, newUniversalVerifierImpl } = m.useModule(
+    const { verifierLib, state, newImplementation } = m.useModule(
       UniversalVerifierFinalImplementationModule,
     );
 
     const proxyAdminOwner = m.getAccount(0);
-    const initializeData = m.encodeFunctionCall(newUniversalVerifierImpl, "initialize", [
+    const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [
       state,
       proxyAdminOwner,
     ]);
 
-    m.call(proxyAdmin, "upgradeAndCall", [proxy, newUniversalVerifierImpl, initializeData], {
+    m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
       from: proxyAdminOwner,
     });
 
     return {
       verifierLib,
       state,
-      newUniversalVerifierImpl,
+      newImplementation,
       proxyAdmin,
       proxy,
     };
@@ -109,7 +109,7 @@ const UniversalVerifierProxyFinalImplementationModule = buildModule(
 );
 
 const UniversalVerifierModule = buildModule("UniversalVerifierModule", (m) => {
-  const { verifierLib, state, newUniversalVerifierImpl, proxyAdmin, proxy } = m.useModule(
+  const { verifierLib, state, newImplementation, proxyAdmin, proxy } = m.useModule(
     UniversalVerifierProxyFinalImplementationModule,
   );
 
@@ -119,7 +119,7 @@ const UniversalVerifierModule = buildModule("UniversalVerifierModule", (m) => {
     universalVerifier,
     verifierLib,
     state,
-    newUniversalVerifierImpl,
+    newImplementation,
     proxyAdmin,
     proxy,
   };

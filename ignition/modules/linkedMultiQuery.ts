@@ -44,15 +44,13 @@ const LinkedMultiQueryValidatorProxyFirstImplementationModule = buildModule(
 const LinkedMultiQueryValidatorFinalImplementationModule = buildModule(
   "LinkedMultiQueryValidatorFinalImplementationModule",
   (m) => {
-    const { groth16VerifierLinkedMultiQuery10 } = m.useModule(
+    const { groth16VerifierLinkedMultiQuery10: groth16Verifier } = m.useModule(
       Groth16VerifierLinkedMultiQuery10Module,
     );
-    const newLinkedMultiQueryValidatorImpl = m.contract(
-      contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
-    );
+    const newImplementation = m.contract(contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name);
     return {
-      groth16VerifierLinkedMultiQuery10,
-      newLinkedMultiQueryValidatorImpl,
+      groth16Verifier,
+      newImplementation,
     };
   },
 );
@@ -63,12 +61,12 @@ export const LinkedMultiQueryValidatorProxyModule = buildModule(
     const { proxy, proxyAdmin } = m.useModule(
       LinkedMultiQueryValidatorProxyFirstImplementationModule,
     );
-    const { groth16VerifierLinkedMultiQuery10, newLinkedMultiQueryValidatorImpl } = m.useModule(
+    const { groth16Verifier, newImplementation } = m.useModule(
       LinkedMultiQueryValidatorFinalImplementationModule,
     );
     return {
-      groth16VerifierLinkedMultiQuery10,
-      newLinkedMultiQueryValidatorImpl,
+      groth16Verifier,
+      newImplementation,
       proxyAdmin,
       proxy,
     };
@@ -80,27 +78,22 @@ const LinkedMultiQueryValidatorProxyFinalImplementationModule = buildModule(
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
     const { proxy, proxyAdmin } = m.useModule(LinkedMultiQueryValidatorAtModule);
-    const { groth16VerifierLinkedMultiQuery10, newLinkedMultiQueryValidatorImpl } = m.useModule(
+    const { groth16Verifier, newImplementation } = m.useModule(
       LinkedMultiQueryValidatorFinalImplementationModule,
     );
 
-    const initializeData = m.encodeFunctionCall(newLinkedMultiQueryValidatorImpl, "initialize", [
-      groth16VerifierLinkedMultiQuery10,
+    const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [
+      groth16Verifier,
       proxyAdminOwner,
     ]);
 
-    m.call(
-      proxyAdmin,
-      "upgradeAndCall",
-      [proxy, newLinkedMultiQueryValidatorImpl, initializeData],
-      {
-        from: proxyAdminOwner,
-      },
-    );
+    m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
+      from: proxyAdminOwner,
+    });
 
     return {
-      groth16VerifierLinkedMultiQuery10,
-      newLinkedMultiQueryValidatorImpl,
+      groth16Verifier,
+      newImplementation,
       proxyAdmin,
       proxy,
     };
@@ -108,8 +101,9 @@ const LinkedMultiQueryValidatorProxyFinalImplementationModule = buildModule(
 );
 
 const LinkedMultiQueryValidatorModule = buildModule("LinkedMultiQueryValidatorModule", (m) => {
-  const { groth16VerifierLinkedMultiQuery10, newLinkedMultiQueryValidatorImpl, proxyAdmin, proxy } =
-    m.useModule(LinkedMultiQueryValidatorProxyFinalImplementationModule);
+  const { groth16Verifier, newImplementation, proxyAdmin, proxy } = m.useModule(
+    LinkedMultiQueryValidatorProxyFinalImplementationModule,
+  );
 
   const linkedMultiQueryValidator = m.contractAt(
     contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
@@ -118,8 +112,8 @@ const LinkedMultiQueryValidatorModule = buildModule("LinkedMultiQueryValidatorMo
 
   return {
     linkedMultiQueryValidator,
-    groth16VerifierLinkedMultiQuery10,
-    newLinkedMultiQueryValidatorImpl,
+    groth16Verifier,
+    newImplementation,
     proxyAdmin,
     proxy,
   };

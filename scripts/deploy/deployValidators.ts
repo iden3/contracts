@@ -121,30 +121,29 @@ async function main() {
       parameters: parameters,
     });
     parameters[validatorContract.paramName] = {
-      proxyAddress: deployment[Object.keys(deployment)[0]].target,
+      proxyAddress: deployment.proxy.target,
       proxyAdminAddress: deployment.proxyAdmin.target,
     };
-    if (validatorContract.verifierName) {
+    if (validatorContract.verifierName && deployment.groth16Verifier) {
       console.log(
-        `${validatorContract.verifierName} deployed to: ${deployment[Object.keys(deployment)[1]].target}`,
+        `${validatorContract.verifierName} deployed to: ${deployment.groth16Verifier.target}`,
       );
     }
-    console.log(
-      `${validatorContract.name} deployed to: ${deployment[Object.keys(deployment)[0]].target}`,
-    );
+    console.log(`${validatorContract.name} deployed to: ${deployment.proxy.target}`);
 
     if (validatorContract.verificationOpts) {
-      await verifyContract(
-        await deployment[Object.keys(deployment)[0]].getAddress(),
-        validatorContract.verificationOpts,
-      );
+      await verifyContract(deployment.proxy.target, validatorContract.verificationOpts);
     }
-    if (validatorContract.verifierVerificationOpts) {
+    if (validatorContract.verifierVerificationOpts && deployment.groth16Verifier) {
       await verifyContract(
-        await deployment[Object.keys(deployment)[1]].getAddress(),
+        deployment.groth16Verifier.target,
         validatorContract.verifierVerificationOpts,
       );
     }
+    await verifyContract(deployment.newImplementation.target, {
+      constructorArgsImplementation: [],
+      libraries: {},
+    });
   }
 
   const universalVerifier = (

@@ -36,7 +36,7 @@
     "defaultIdType": "0x0113"
   },
   "CrossChainProofValidatorModule": {
-    "oracleSigningAddress": "0xf0Ae6D287aF14f180E1FAfe3D2CB62537D7b1A82"
+    "oracleSigningAddress": "0x0aD316c6D3F29B76cBd8f5a1ED5e3990c6B5174C"
   },
   "Create2AddressAnchorAtModule": {
     "contractAddress": "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e"
@@ -57,12 +57,12 @@
     "contractAddress": "0x682364078e26C1626abD2B95109D2019E241F0F6"
   },
   "StateAtModule": {
-    "proxyAddress": "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
-    "proxyAdminAddress": "0x3F570C4fE07c532cd274dF2d1dB26D74cc5F8F9A"
+    "proxyAddress": "0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124",
+    "proxyAdminAddress": "0x937D34e8dA2A5b18888894b8733717636eaBbb89"
   },
   "UniversalVerifierAtModule": {
     "proxyAddress": "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
-    "proxyAdminAddress": ""
+    "proxyAdminAddress": "0xa6452db752749e5486d5D05c530c22C7FaadFdcd"
   },
   "IdentityTreeStoreAtModule": {
     "proxyAddress": "0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81",
@@ -70,27 +70,27 @@
   },
   "CredentialAtomicQueryMTPV2ValidatorAtModule": {
     "proxyAddress": "0xec9EF9c4595B46abF2b6A923BD1529081E03fbBB",
-    "proxyAdminAddress": ""
+    "proxyAdminAddress": "0x9aE2Bc3Fe4c4f31fF5C8A7C85526afe52CCC0979"
   },
   "CredentialAtomicQuerySigV2ValidatorAtModule": {
     "proxyAddress": "0x5BD60F3Ef5890260906172EEe1f0a965707791f1",
-    "proxyAdminAddress": ""
+    "proxyAdminAddress": "0xb558FFdCa452ae6D258EEB22FAFCAF057BAA3067"
   },
   "CredentialAtomicQueryV3ValidatorAtModule": {
     "proxyAddress": "0xC616963610A5545EF89b373e1fEAE8A1e505FaFF",
-    "proxyAdminAddress": ""
+    "proxyAdminAddress": "0x7c2db2c78A970AA0379b2ba81cF184cE929800b1"
   },
   "LinkedMultiQueryValidatorAtModule": {
     "proxyAddress": "0xfA622418d7aBF33868545732CaD2C2E7ce9B16C8",
-    "proxyAdminAddress": ""
+    "proxyAdminAddress": "0xbCe194ab6012Aa73C5348f2c7E6e2Fa9292a4796"
   },
   "AuthV2ValidatorAtModule": {
     "proxyAddress": "0x535F6a1B30533616CE4bD44081ea7A17CF2042B8",
-    "proxyAdminAddress": ""
+    "proxyAdminAddress": "0x876d560A8D68D28217fD28E8d9549a439E4539CA"
   },
   "EthIdentityValidatorAtModule": {
     "proxyAddress": "0x8546bFd67F19dd0449dF73fb75A56BC9ddFA57Db",
-    "proxyAdminAddress": ""
+    "proxyAdminAddress": "0xCf3b0872731C72022c4625A1165C045C39630f2f"
   },
   "MCPaymentAtModule": {
     "proxyAddress": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",

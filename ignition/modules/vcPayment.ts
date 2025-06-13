@@ -45,17 +45,17 @@ const VCPaymentProxyFirstImplementationModule = buildModule(
 const VCPaymentFinalImplementationModule = buildModule(
   "VCPaymentFinalImplementationModule",
   (m) => {
-    const newVCPaymentImpl = m.contract(contractsInfo.VC_PAYMENT.name);
-    return { newVCPaymentImpl };
+    const newImplementation = m.contract(contractsInfo.VC_PAYMENT.name);
+    return { newImplementation };
   },
 );
 
 export const VCPaymentProxyModule = buildModule("VCPaymentProxyModule", (m) => {
   const { proxy, proxyAdmin } = m.useModule(VCPaymentProxyFirstImplementationModule);
-  const { newVCPaymentImpl } = m.useModule(VCPaymentFinalImplementationModule);
+  const { newImplementation } = m.useModule(VCPaymentFinalImplementationModule);
 
   return {
-    newVCPaymentImpl,
+    newImplementation,
     proxyAdmin,
     proxy,
   };
@@ -66,16 +66,16 @@ const VCPaymentProxyFinalImplementationModule = buildModule(
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
     const { proxyAdmin, proxy } = m.useModule(VCPaymentAtModule);
-    const { newVCPaymentImpl } = m.useModule(VCPaymentFinalImplementationModule);
+    const { newImplementation } = m.useModule(VCPaymentFinalImplementationModule);
 
-    const initializeData = m.encodeFunctionCall(newVCPaymentImpl, "initialize", [proxyAdminOwner]);
+    const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [proxyAdminOwner]);
 
-    m.call(proxyAdmin, "upgradeAndCall", [proxy, newVCPaymentImpl, initializeData], {
+    m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
       from: proxyAdminOwner,
     });
 
     return {
-      newVCPaymentImpl,
+      newImplementation,
       proxyAdmin,
       proxy,
     };
@@ -83,7 +83,7 @@ const VCPaymentProxyFinalImplementationModule = buildModule(
 );
 
 const VCPaymentModule = buildModule("VCPaymentModule", (m) => {
-  const { newVCPaymentImpl, proxyAdmin, proxy } = m.useModule(
+  const { newImplementation, proxyAdmin, proxy } = m.useModule(
     VCPaymentProxyFinalImplementationModule,
   );
 
@@ -91,7 +91,7 @@ const VCPaymentModule = buildModule("VCPaymentModule", (m) => {
 
   return {
     VCPayment,
-    newVCPaymentImpl,
+    newImplementation,
     proxyAdmin,
     proxy,
   };
