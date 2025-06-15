@@ -5,7 +5,12 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
 import { Groth16VerifierLinkedMultiQuery10Module } from "./groth16verifiers";
-import { Create2AddressAnchorAtModule, LinkedMultiQueryValidatorAtModule } from "./contractsAt";
+import {
+  Create2AddressAnchorAtModule,
+  Groth16VerifierLinkedMultiQuery10WrapperAtModule,
+  LinkedMultiQueryValidatorAtModule,
+  LinkedMultiQueryValidatorNewImplementationAtModule,
+} from "./contractsAt";
 
 const LinkedMultiQueryValidatorProxyFirstImplementationModule = buildModule(
   "LinkedMultiQueryValidatorProxyFirstImplementationModule",
@@ -78,8 +83,11 @@ const LinkedMultiQueryValidatorProxyFinalImplementationModule = buildModule(
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
     const { proxy, proxyAdmin } = m.useModule(LinkedMultiQueryValidatorAtModule);
-    const { groth16Verifier, newImplementation } = m.useModule(
-      LinkedMultiQueryValidatorFinalImplementationModule,
+    const { contract: groth16Verifier } = m.useModule(
+      Groth16VerifierLinkedMultiQuery10WrapperAtModule,
+    );
+    const { contract: newImplementation } = m.useModule(
+      LinkedMultiQueryValidatorNewImplementationAtModule,
     );
 
     const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [

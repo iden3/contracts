@@ -7,9 +7,13 @@ import {
 import { Groth16VerifierStateTransitionModule } from "./groth16verifiers";
 import {
   Create2AddressAnchorAtModule,
+  CrossChainProofValidatorAtModule,
+  Groth16VerifierStateTransitionAtModule,
   Poseidon1AtModule,
   SmtLibAtModule,
   StateAtModule,
+  StateLibAtModule,
+  StateNewImplementationAtModule,
 } from "./contractsAt";
 
 const StateProxyFirstImplementationModule = buildModule(
@@ -106,9 +110,10 @@ const StateProxyFinalImplementationModule = buildModule(
   "StateProxyFinalImplementationModule",
   (m) => {
     const { proxy, proxyAdmin } = m.useModule(StateAtModule);
-    const { newImplementation, groth16Verifier, crossChainProofValidator, stateLib } = m.useModule(
-      StateFinalImplementationModule,
-    );
+    const { contract: newImplementation } = m.useModule(StateNewImplementationAtModule);
+    const { contract: groth16Verifier } = m.useModule(Groth16VerifierStateTransitionAtModule);
+    const { contract: crossChainProofValidator } = m.useModule(CrossChainProofValidatorAtModule);
+    const { contract: stateLib } = m.useModule(StateLibAtModule);
 
     const proxyAdminOwner = m.getAccount(0);
     const defaultIdType = m.getParameter("defaultIdType");

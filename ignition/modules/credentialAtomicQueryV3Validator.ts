@@ -8,6 +8,8 @@ import { Groth16VerifierV3Module } from "./groth16verifiers";
 import {
   Create2AddressAnchorAtModule,
   CredentialAtomicQueryV3ValidatorAtModule,
+  CredentialAtomicQueryV3ValidatorNewImplementationAtModule,
+  Groth16VerifierV3WrapperAtModule,
   StateAtModule,
 } from "./contractsAt";
 
@@ -79,8 +81,10 @@ const CredentialAtomicQueryV3ValidatorProxyFinalImplementationModule = buildModu
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
     const { proxy, proxyAdmin } = m.useModule(CredentialAtomicQueryV3ValidatorAtModule);
-    const { groth16Verifier, state, newImplementation } = m.useModule(
-      CredentialAtomicQueryV3ValidatorFinalImplementationModule,
+    const state = m.useModule(StateAtModule).proxy;
+    const { contract: groth16Verifier } = m.useModule(Groth16VerifierV3WrapperAtModule);
+    const { contract: newImplementation } = m.useModule(
+      CredentialAtomicQueryV3ValidatorNewImplementationAtModule,
     );
 
     const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [

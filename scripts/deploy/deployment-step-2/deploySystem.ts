@@ -96,7 +96,7 @@ async function main() {
         parameters["CredentialAtomicQueryMTPV2ValidatorAtModule"].proxyAddress ||
         contractsInfo.VALIDATOR_MTP.unifiedAddress,
       name: contractsInfo.VALIDATOR_MTP.name,
-      proxy: true,
+      isProxy: true,
     },
     {
       module: CredentialAtomicQuerySigV2ValidatorModule,
@@ -105,7 +105,7 @@ async function main() {
         parameters["CredentialAtomicQuerySigV2ValidatorAtModule"].proxyAddress ||
         contractsInfo.VALIDATOR_SIG.unifiedAddress,
       name: contractsInfo.VALIDATOR_SIG.name,
-      proxy: true,
+      isProxy: true,
     },
     {
       module: CredentialAtomicQueryV3ValidatorModule,
@@ -114,7 +114,7 @@ async function main() {
         parameters["CredentialAtomicQueryV3ValidatorAtModule"].proxyAddress ||
         contractsInfo.VALIDATOR_V3.unifiedAddress,
       name: contractsInfo.VALIDATOR_V3.name,
-      proxy: true,
+      isProxy: true,
     },
     {
       module: LinkedMultiQueryValidatorModule,
@@ -123,7 +123,7 @@ async function main() {
         parameters["LinkedMultiQueryValidatorAtModule"].proxyAddress ||
         contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.unifiedAddress,
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
-      proxy: true,
+      isProxy: true,
     },
   ];
 
@@ -136,7 +136,7 @@ async function main() {
         parameters["AuthV2ValidatorAtModule"].proxyAddress ||
         contractsInfo.VALIDATOR_AUTH_V2.unifiedAddress,
       name: contractsInfo.VALIDATOR_AUTH_V2.name,
-      proxy: true,
+      isProxy: true,
     },
     {
       authMethod: "ethIdentity",
@@ -146,7 +146,7 @@ async function main() {
         parameters["EthIdentityValidatorAtModule"].proxyAddress ||
         contractsInfo.VALIDATOR_ETH_IDENTITY.unifiedAddress,
       name: contractsInfo.VALIDATOR_ETH_IDENTITY.name,
-      proxy: true,
+      isProxy: true,
     },
   ];
 
@@ -157,7 +157,7 @@ async function main() {
       contractAddress:
         parameters["StateAtModule"].proxyAddress || contractsInfo.STATE.unifiedAddress,
       name: contractsInfo.STATE.name,
-      proxy: true,
+      isProxy: true,
     },
     {
       module: UniversalVerifierModule,
@@ -166,7 +166,7 @@ async function main() {
         parameters["UniversalVerifierAtModule"].proxyAddress ||
         contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
       name: contractsInfo.UNIVERSAL_VERIFIER.name,
-      proxy: true,
+      isProxy: true,
     },
     {
       module: IdentityTreeStoreModule,
@@ -175,7 +175,7 @@ async function main() {
         parameters["IdentityTreeStoreAtModule"].proxyAddress ||
         contractsInfo.IDENTITY_TREE_STORE.unifiedAddress,
       name: contractsInfo.IDENTITY_TREE_STORE.name,
-      proxy: true,
+      isProxy: true,
     },
     {
       module: VCPaymentModule,
@@ -183,7 +183,7 @@ async function main() {
       contractAddress:
         parameters["VCPaymentAtModule"].proxyAddress || contractsInfo.VC_PAYMENT.unifiedAddress,
       name: contractsInfo.VC_PAYMENT.name,
-      proxy: true,
+      isProxy: true,
     },
     {
       module: MCPaymentModule,
@@ -191,7 +191,7 @@ async function main() {
       contractAddress:
         parameters["MCPaymentAtModule"].proxyAddress || contractsInfo.MC_PAYMENT.unifiedAddress,
       name: contractsInfo.MC_PAYMENT.name,
-      proxy: true,
+      isProxy: true,
     },
     ...requestValidators,
     ...authValidators,
@@ -205,7 +205,7 @@ async function main() {
       parameters: parameters,
     });
     console.log(
-      `${contract.name} deployed to: ${contract.proxy ? deployedContract.proxy.target : contract.contractAddress}`,
+      `${contract.name} deployed to: ${contract.isProxy ? deployedContract.proxy.target : contract.contractAddress}`,
     );
   }
 

@@ -8,6 +8,8 @@ import { Groth16VerifierSigModule } from "./groth16verifiers";
 import {
   Create2AddressAnchorAtModule,
   CredentialAtomicQuerySigV2ValidatorAtModule,
+  CredentialAtomicQuerySigV2ValidatorNewImplementationAtModule,
+  Groth16VerifierSigWrapperAtModule,
   StateAtModule,
 } from "./contractsAt";
 
@@ -80,8 +82,10 @@ const CredentialAtomicQuerySigV2ValidatorProxyFinalImplementationModule = buildM
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
     const { proxy, proxyAdmin } = m.useModule(CredentialAtomicQuerySigV2ValidatorAtModule);
-    const { groth16Verifier, state, newImplementation } = m.useModule(
-      CredentialAtomicQuerySigV2ValidatorFinalImplementationModule,
+    const state = m.useModule(StateAtModule).proxy;
+    const { contract: groth16Verifier } = m.useModule(Groth16VerifierSigWrapperAtModule);
+    const { contract: newImplementation } = m.useModule(
+      CredentialAtomicQuerySigV2ValidatorNewImplementationAtModule,
     );
 
     const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [

@@ -7,7 +7,9 @@ import {
 import { Groth16VerifierAuthV2Module } from "./groth16verifiers";
 import {
   AuthV2ValidatorAtModule,
+  AuthV2ValidatorNewImplementationAtModule,
   Create2AddressAnchorAtModule,
+  Groth16VerifierAuthV2WrapperAtModule,
   StateAtModule,
 } from "./contractsAt";
 
@@ -74,9 +76,9 @@ const AuthV2ValidatorProxyFinalImplementationModule = buildModule(
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
     const { proxy, proxyAdmin } = m.useModule(AuthV2ValidatorAtModule);
-    const { groth16Verifier, newImplementation, state } = m.useModule(
-      AuthV2ValidatorFinalImplementationModule,
-    );
+    const { contract: groth16Verifier } = m.useModule(Groth16VerifierAuthV2WrapperAtModule);
+    const { contract: newImplementation } = m.useModule(AuthV2ValidatorNewImplementationAtModule);
+    const state = m.useModule(StateAtModule).proxy;
 
     const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [
       state,

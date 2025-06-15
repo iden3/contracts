@@ -8,6 +8,8 @@ import {
   Create2AddressAnchorAtModule,
   StateAtModule,
   UniversalVerifierAtModule,
+  UniversalVerifierNewImplementationAtModule,
+  VerifierLibAtModule,
 } from "./contractsAt";
 
 const UniversalVerifierProxyFirstImplementationModule = buildModule(
@@ -84,9 +86,10 @@ const UniversalVerifierProxyFinalImplementationModule = buildModule(
   "UniversalVerifierProxyFinalImplementationModule",
   (m) => {
     const { proxy, proxyAdmin } = m.useModule(UniversalVerifierAtModule);
-    const { verifierLib, state, newImplementation } = m.useModule(
-      UniversalVerifierFinalImplementationModule,
-    );
+
+    const { contract: verifierLib } = m.useModule(VerifierLibAtModule);
+    const state = m.useModule(StateAtModule).proxy;
+    const { contract: newImplementation } = m.useModule(UniversalVerifierNewImplementationAtModule);
 
     const proxyAdminOwner = m.getAccount(0);
     const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [

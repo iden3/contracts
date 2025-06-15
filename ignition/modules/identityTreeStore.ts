@@ -7,6 +7,7 @@ import {
 import {
   Create2AddressAnchorAtModule,
   IdentityTreeStoreAtModule,
+  IdentityTreeStoreNewImplementationAtModule,
   Poseidon2AtModule,
   Poseidon3AtModule,
   StateAtModule,
@@ -84,9 +85,11 @@ const IdentityTreeStoreProxyFinalImplementationModule = buildModule(
   "IdentityTreeStoreProxyFinalImplementationModule",
   (m) => {
     const { proxy, proxyAdmin } = m.useModule(IdentityTreeStoreAtModule);
-    const { poseidon2, poseidon3, state, newImplementation } = m.useModule(
-      IdentityTreeStoreFinalImplementationModule,
-    );
+    const poseidon2 = m.useModule(Poseidon2AtModule).contract;
+    const poseidon3 = m.useModule(Poseidon3AtModule).contract;
+    const state = m.useModule(StateAtModule).proxy;
+    const { contract: newImplementation } = m.useModule(IdentityTreeStoreNewImplementationAtModule);
+
     const proxyAdminOwner = m.getAccount(0);
 
     const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [state]);

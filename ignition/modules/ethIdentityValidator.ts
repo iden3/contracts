@@ -4,7 +4,11 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
-import { Create2AddressAnchorAtModule, EthIdentityValidatorAtModule } from "./contractsAt";
+import {
+  Create2AddressAnchorAtModule,
+  EthIdentityValidatorAtModule,
+  EthIdentityValidatorNewImplementationAtModule,
+} from "./contractsAt";
 
 const EthIdentityValidatorProxyFirstImplementationModule = buildModule(
   "EthIdentityValidatorProxyFirstImplementationModule",
@@ -64,7 +68,9 @@ const EthIdentityValidatorProxyFinalImplementationModule = buildModule(
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
     const { proxy, proxyAdmin } = m.useModule(EthIdentityValidatorAtModule);
-    const { newImplementation } = m.useModule(EthIdentityValidatorFinalImplementationModule);
+    const { contract: newImplementation } = m.useModule(
+      EthIdentityValidatorNewImplementationAtModule,
+    );
 
     const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [proxyAdminOwner]);
 

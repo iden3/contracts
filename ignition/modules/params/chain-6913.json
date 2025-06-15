@@ -102,5 +102,65 @@
   },
   "MCPaymentProxyFinalImplementationModule": {
     "ownerPercentage": 15
+  },
+  "CrossChainProofValidatorAtModule": {
+    "contractAddress": "0x0bDD01cCE823D31b430A190786a52a899d590Dea"
+  },
+  "StateLibAtModule": {
+    "contractAddress": "0xf8506BED83E97fd8bb361402Afd19e1024EC1F54"
+  },
+  "StateNewImplementationAtModule": {
+    "contractAddress": "0x4225242e498B276A681D9C0CE6487cd1558982D4"
+  },
+  "Groth16VerifierStateTransitionAtModule": {
+    "contractAddress": "0xf2A3a8e2d265FC97fC90C0A0AF9312b137259b0e"
+  },
+  "VerifierLibAtModule": {
+    "contractAddress": "0xeEE93cc160ea88d2A0510C278998E402F2c04f17"
+  },
+  "UniversalVerifierNewImplementationAtModule": {
+    "contractAddress": "0xF2cbff070C49643E0A6a76Fe07B985F7c6579843"
+  },
+  "IdentityTreeStoreNewImplementationAtModule": {
+    "contractAddress": "0xA6A29e61DC36a98e512A32f1Bb53AB6e2edcdd10"
+  },
+  "CredentialAtomicQueryMTPV2ValidatorNewImplementationAtModule": {
+    "contractAddress": "0x872c9051caa3CDED8163DB26Ed972eba08C2b0D9"
+  },
+  "Groth16VerifierMTPWrapperAtModule": {
+    "contractAddress": "0xcb49D19529994b8a85FF49f76B96817c4C1885F6"
+  },
+  "CredentialAtomicQuerySigV2ValidatorNewImplementationAtModule": {
+    "contractAddress": "0x36C9c81aAeBbAF47a577f4328f554d9c11929C1A"
+  },
+  "Groth16VerifierSigWrapperAtModule": {
+    "contractAddress": "0xfBF7C40b36ae7421e48CEB277c62a7e67054595B"
+  },
+  "CredentialAtomicQueryV3ValidatorNewImplementationAtModule": {
+    "contractAddress": "0x9D45299Aff60Bf628Bc66d9D2FAa6d2b76847E0F"
+  },
+  "Groth16VerifierV3WrapperAtModule": {
+    "contractAddress": "0x8A79acff0811f9B48c5394488B0feEDd89F0aD89"
+  },
+  "LinkedMultiQueryValidatorNewImplementationAtModule": {
+    "contractAddress": "0x4fEB2e3Df1054412D35adb3355eEb2F735c84573"
+  },
+  "Groth16VerifierLinkedMultiQuery10WrapperAtModule": {
+    "contractAddress": "0x73889eF6d5BAD8b11802AAFC5b9D92b08ee8a6fb"
+  },
+  "AuthV2ValidatorNewImplementationAtModule": {
+    "contractAddress": "0x0570D4BC11424Ba131AC184c02bF0bCd7bAE889E"
+  },
+  "Groth16VerifierAuthV2WrapperAtModule": {
+    "contractAddress": "0xA16EFFE15668B74A011fc0137837197A376252d9"
+  },
+  "EthIdentityValidatorNewImplementationAtModule": {
+    "contractAddress": "0x3F954b02f5366EBd5B45D82A72306a05c841f70f"
+  },
+  "VCPaymentNewImplementationAtModule": {
+    "contractAddress": "0x9b4670Dec8a2556f7B1f91B46F0B8B000c5DBbdA"
+  },
+  "MCPaymentNewImplementationAtModule": {
+    "contractAddress": "0xB175469316C6706297Cb02124c554344606Ea7eE"
   }
 }

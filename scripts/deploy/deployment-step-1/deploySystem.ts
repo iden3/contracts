@@ -152,8 +152,10 @@ async function main() {
       contractAddress:
         parameters["StateAtModule"].proxyAddress || contractsInfo.STATE.unifiedAddress,
       name: contractsInfo.STATE.name,
-      proxy: true,
+      isProxy: true,
+      verifierName: contractsInfo.GROTH16_VERIFIER_STATE_TRANSITION.name,
       verificationOpts: contractsInfo.STATE.verificationOpts,
+      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_STATE_TRANSITION.verificationOpts,
     },
     {
       module: UniversalVerifierProxyModule,
@@ -162,7 +164,7 @@ async function main() {
         parameters["UniversalVerifierAtModule"].proxyAddress ||
         contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
       name: contractsInfo.UNIVERSAL_VERIFIER.name,
-      proxy: true,
+      isProxy: true,
       verificationOpts: contractsInfo.UNIVERSAL_VERIFIER.verificationOpts,
     },
     {
@@ -172,7 +174,7 @@ async function main() {
         parameters["IdentityTreeStoreAtModule"].proxyAddress ||
         contractsInfo.IDENTITY_TREE_STORE.unifiedAddress,
       name: contractsInfo.IDENTITY_TREE_STORE.name,
-      proxy: true,
+      isProxy: true,
       verificationOpts: contractsInfo.IDENTITY_TREE_STORE.verificationOpts,
     },
     {
@@ -182,7 +184,8 @@ async function main() {
         parameters["CredentialAtomicQueryMTPV2ValidatorAtModule"].proxyAddress ||
         contractsInfo.VALIDATOR_MTP.unifiedAddress,
       name: contractsInfo.VALIDATOR_MTP.name,
-      proxy: true,
+      isProxy: true,
+      verifierName: contractsInfo.GROTH16_VERIFIER_MTP.name,
       verificationOpts: contractsInfo.VALIDATOR_MTP.verificationOpts,
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_MTP.verificationOpts,
     },
@@ -193,7 +196,8 @@ async function main() {
         parameters["CredentialAtomicQuerySigV2ValidatorAtModule"].proxyAddress ||
         contractsInfo.VALIDATOR_SIG.unifiedAddress,
       name: contractsInfo.VALIDATOR_SIG.name,
-      proxy: true,
+      isProxy: true,
+      verifierName: contractsInfo.GROTH16_VERIFIER_SIG.name,
       verificationOpts: contractsInfo.VALIDATOR_SIG.verificationOpts,
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_SIG.verificationOpts,
     },
@@ -204,7 +208,8 @@ async function main() {
         parameters["CredentialAtomicQueryV3ValidatorAtModule"].proxyAddress ||
         contractsInfo.VALIDATOR_V3.unifiedAddress,
       name: contractsInfo.VALIDATOR_V3.name,
-      proxy: true,
+      isProxy: true,
+      verifierName: contractsInfo.GROTH16_VERIFIER_V3.name,
       verificationOpts: contractsInfo.VALIDATOR_V3.verificationOpts,
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_V3.verificationOpts,
     },
@@ -215,7 +220,8 @@ async function main() {
         parameters["LinkedMultiQueryValidatorAtModule"].proxyAddress ||
         contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.unifiedAddress,
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
-      proxy: true,
+      isProxy: true,
+      verifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.name,
       verificationOpts: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.verificationOpts,
       verifierVerificationOpts:
         contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.verificationOpts,
@@ -227,7 +233,8 @@ async function main() {
         parameters["AuthV2ValidatorAtModule"].proxyAddress ||
         contractsInfo.VALIDATOR_AUTH_V2.unifiedAddress,
       name: contractsInfo.VALIDATOR_AUTH_V2.name,
-      proxy: true,
+      isProxy: true,
+      verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V2.name,
       verificationOpts: contractsInfo.VALIDATOR_AUTH_V2.verificationOpts,
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V2.verificationOpts,
     },
@@ -238,7 +245,7 @@ async function main() {
         parameters["EthIdentityValidatorAtModule"].proxyAddress ||
         contractsInfo.VALIDATOR_ETH_IDENTITY.unifiedAddress,
       name: contractsInfo.VALIDATOR_ETH_IDENTITY.name,
-      proxy: true,
+      isProxy: true,
       verificationOpts: contractsInfo.VALIDATOR_ETH_IDENTITY.verificationOpts,
     },
     {
@@ -247,7 +254,7 @@ async function main() {
       contractAddress:
         parameters["VCPaymentAtModule"].proxyAddress || contractsInfo.VC_PAYMENT.unifiedAddress,
       name: contractsInfo.VC_PAYMENT.name,
-      proxy: true,
+      isProxy: true,
       verificationOpts: contractsInfo.VC_PAYMENT.verificationOpts,
     },
     {
@@ -256,17 +263,17 @@ async function main() {
       contractAddress:
         parameters["MCPaymentAtModule"].proxyAddress || contractsInfo.MC_PAYMENT.unifiedAddress,
       name: contractsInfo.MC_PAYMENT.name,
-      proxy: true,
+      isProxy: true,
       verificationOpts: contractsInfo.MC_PAYMENT.verificationOpts,
     },
   ];
 
   for (const contract of contracts) {
     console.log(`Deploying ${contract.name}...`);
-    parameters[contract.moduleAt.id] = contract.proxy
+    parameters[contract.moduleAt.id] = contract.isProxy
       ? {
           proxyAddress: contract.contractAddress,
-          proxyAdminAddress: contract.proxy
+          proxyAdminAddress: contract.isProxy
             ? ethers.getCreateAddress({ from: contract.contractAddress, nonce: 1 })
             : undefined,
         }
@@ -281,11 +288,33 @@ async function main() {
         parameters: parameters,
       });
       console.log(
-        `${contract.name} deployed to: ${contract.proxy ? deployedContract.proxy.target : contract.contractAddress}`,
+        `${contract.name} deployed to: ${contract.isProxy ? deployedContract.proxy.target : contract.contractAddress}`,
       );
 
+      if (contract.name == contractsInfo.STATE.name) {
+        parameters[contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.name.concat("AtModule")] = {
+          contractAddress: deployedContract.crossChainProofValidator.target,
+        };
+        parameters[contractsInfo.STATE_LIB.name.concat("AtModule")] = {
+          contractAddress: deployedContract.stateLib.target,
+        };
+      }
+
+      if (contract.name == contractsInfo.UNIVERSAL_VERIFIER.name) {
+        parameters["VerifierLibAtModule"] = {
+          contractAddress: deployedContract.verifierLib.target,
+        };
+        await verifyContract(deployedContract.verifierLib.target, {
+          constructorArgsImplementation: [],
+          libraries: {},
+        });
+      }
+
       // Verify contracts
-      if (contract.proxy && contract.verificationOpts) {
+      if (contract.isProxy && contract.verificationOpts) {
+        parameters[contract.name.concat("NewImplementationAtModule")] = {
+          contractAddress: deployedContract.newImplementation.target,
+        };
         await verifyContract(deployedContract.proxy.target, contract.verificationOpts);
         await verifyContract(deployedContract.newImplementation.target, {
           constructorArgsImplementation: [],
@@ -293,12 +322,15 @@ async function main() {
         });
       }
       if (contract.verifierVerificationOpts && deployedContract.groth16Verifier) {
+        parameters[contract.verifierName.concat("AtModule")] = {
+          contractAddress: deployedContract.groth16Verifier.target,
+        };
         await verifyContract(
           deployedContract.groth16Verifier.target,
           contract.verifierVerificationOpts,
         );
       }
-      if (!contract.proxy) {
+      if (!contract.isProxy) {
         await verifyContract(deployedContract[Object.keys(deployedContract)[0]].target, {
           constructorArgsImplementation: [],
           libraries: {},

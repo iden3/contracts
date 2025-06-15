@@ -4,7 +4,11 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
-import { Create2AddressAnchorAtModule, VCPaymentAtModule } from "./contractsAt";
+import {
+  Create2AddressAnchorAtModule,
+  VCPaymentAtModule,
+  VCPaymentNewImplementationAtModule,
+} from "./contractsAt";
 
 /**
  * This is the first module that will be run. It deploys the proxy and the
@@ -66,7 +70,7 @@ const VCPaymentProxyFinalImplementationModule = buildModule(
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
     const { proxyAdmin, proxy } = m.useModule(VCPaymentAtModule);
-    const { newImplementation } = m.useModule(VCPaymentFinalImplementationModule);
+    const { contract: newImplementation } = m.useModule(VCPaymentNewImplementationAtModule);
 
     const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [proxyAdminOwner]);
 

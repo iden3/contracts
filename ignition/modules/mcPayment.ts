@@ -4,7 +4,11 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
-import { Create2AddressAnchorAtModule, MCPaymentAtModule } from "./contractsAt";
+import {
+  Create2AddressAnchorAtModule,
+  MCPaymentNewImplementationAtModule,
+  MCPaymentAtModule,
+} from "./contractsAt";
 
 const MCPaymentProxyFirstImplementationModule = buildModule(
   "MCPaymentProxyFirstImplementationModule",
@@ -62,7 +66,7 @@ const MCPaymentProxyFinalImplementationModule = buildModule(
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
     const { proxy, proxyAdmin } = m.useModule(MCPaymentAtModule);
-    const { newImplementation } = m.useModule(MCPaymentFinalImplementationModule);
+    const { contract: newImplementation } = m.useModule(MCPaymentNewImplementationAtModule);
 
     const ownerPercentage = m.getParameter("ownerPercentage");
     const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [
