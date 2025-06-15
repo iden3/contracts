@@ -312,6 +312,13 @@ async function main() {
 
       // Verify contracts
       if (contract.isProxy && contract.verificationOpts) {
+        parameters[contract.moduleAt.id] = {
+          proxyAddress: deployedContract.proxy.target,
+          proxyAdminAddress: ethers.getCreateAddress({
+            from: deployedContract.proxy.target,
+            nonce: 1,
+          }),
+        };
         parameters[contract.name.concat("NewImplementationAtModule")] = {
           contractAddress: deployedContract.newImplementation.target,
         };
@@ -331,6 +338,9 @@ async function main() {
         );
       }
       if (!contract.isProxy) {
+        parameters[contract.moduleAt.id] = {
+          contractAddress: deployedContract[Object.keys(deployedContract)[0]].target,
+        };
         await verifyContract(deployedContract[Object.keys(deployedContract)[0]].target, {
           constructorArgsImplementation: [],
           libraries: {},
