@@ -69,9 +69,13 @@ async function cycleOverProviders(expectedSigningAddress: string, addressType: "
 async function main() {
   const addr = ORACLE_SIGNING_ADDRESS_PRODUCTION;
   const addr2 = LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION;
-  console.log(`Checking Oracle signing address: ${addr}`);
+  console.log(
+    `\nChecking Oracle signing address: ${addr}\n=====================================================================================`,
+  );
   await cycleOverProviders(addr, "main");
-  console.log(`Checking Legacy Oracle signing address: ${addr2}`);
+  console.log(
+    `\nChecking Legacy Oracle signing address: ${addr2}\n=====================================================================================`,
+  );
   await cycleOverProviders(addr2, "legacy");
 }
 
