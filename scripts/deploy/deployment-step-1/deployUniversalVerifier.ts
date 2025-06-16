@@ -2,11 +2,19 @@ import { ethers, ignition } from "hardhat";
 import {
   getConfig,
   getDeploymentParameters,
+  isContract,
   verifyContract,
   writeDeploymentParameters,
 } from "../../../helpers/helperUtils";
 import { contractsInfo } from "../../../helpers/constants";
-import { UniversalVerifierProxyModule } from "../../../ignition/modules/universalVerifier";
+import {
+  UniversalVerifierFinalImplementationModule,
+  UniversalVerifierProxyFirstImplementationModule,
+} from "../../../ignition/modules/universalVerifier";
+import {
+  UniversalVerifierNewImplementationAtModule,
+  VerifierLibAtModule,
+} from "../../../ignition/modules/contractsAt";
 
 async function main() {
   const config = getConfig();
@@ -16,9 +24,50 @@ async function main() {
   const [signer] = await ethers.getSigners();
   const parameters = await getDeploymentParameters();
 
-  // First implementation
-  const { proxyAdmin, proxy, newImplementation } = await ignition.deploy(
-    UniversalVerifierProxyModule,
+  let newImplementation: any, verifierLib: any;
+
+  if (!(await isContract(parameters.VerifierLibAtModule.contractAddress))) {
+    // New implementation and verifier library
+    ({ newImplementation, verifierLib } = await ignition.deploy(
+      UniversalVerifierFinalImplementationModule,
+      {
+        strategy: "basic",
+        defaultSender: await signer.getAddress(),
+        parameters: parameters,
+      },
+    ));
+    console.log(`VerifierLib deployed to: ${verifierLib.target}`);
+    console.log(
+      `${contractsInfo.UNIVERSAL_VERIFIER.name} new implementation deployed to: ${newImplementation.target}`,
+    );
+  } else {
+    console.log(
+      `VerifierLib already deployed to: ${parameters.VerifierLibAtModule.contractAddress}`,
+    );
+    // Use the module to get the address into the deployed address registry
+    verifierLib = (
+      await ignition.deploy(VerifierLibAtModule, {
+        strategy: deployStrategy,
+        defaultSender: await signer.getAddress(),
+        parameters: parameters,
+      })
+    ).contract;
+    console.log(
+      `Universal Verifier new implementation already deployed to: ${parameters.UniversalVerifierNewImplementationAtModule.contractAddress}`,
+    );
+
+    newImplementation = (
+      await ignition.deploy(UniversalVerifierNewImplementationAtModule, {
+        strategy: deployStrategy,
+        defaultSender: await signer.getAddress(),
+        parameters: parameters,
+      })
+    ).contract;
+  }
+
+  // First implementation with proxy admin owner address
+  const { proxyAdmin, proxy } = await ignition.deploy(
+    UniversalVerifierProxyFirstImplementationModule,
     {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
@@ -30,9 +79,19 @@ async function main() {
     proxyAddress: proxy.target,
     proxyAdminAddress: proxyAdmin.target,
   };
+  parameters.VerifierLibAtModule = {
+    contractAddress: verifierLib.target,
+  };
+  parameters.UniversalVerifierNewImplementation = {
+    contractAddress: newImplementation.target,
+  };
 
-  console.log(`${contractsInfo.UNIVERSAL_VERIFIER.name} deployed to: ${proxy.target}`);
+  console.log(`${contractsInfo.UNIVERSAL_VERIFIER.name} proxy deployed to: ${proxy.target}`);
 
+  await verifyContract(verifierLib.target, {
+    constructorArgsImplementation: [],
+    libraries: {},
+  });
   await verifyContract(proxy.target, contractsInfo.UNIVERSAL_VERIFIER.verificationOpts);
   await verifyContract(newImplementation.target, {
     constructorArgsImplementation: [],

@@ -12,7 +12,7 @@ import {
   VerifierLibAtModule,
 } from "./contractsAt";
 
-const UniversalVerifierProxyFirstImplementationModule = buildModule(
+export const UniversalVerifierProxyFirstImplementationModule = buildModule(
   "UniversalVerifierProxyFirstImplementationModule",
   (m) => {
     const proxyAdminOwner = m.getParameter("proxyAdminOwner");
@@ -47,7 +47,7 @@ export const VerifierLibModule = buildModule("VerifierLibModule", (m) => {
   return { verifierLib };
 });
 
-const UniversalVerifierFinalImplementationModule = buildModule(
+export const UniversalVerifierFinalImplementationModule = buildModule(
   "UniversalVerifierFinalImplementationModule",
   (m) => {
     const { verifierLib } = m.useModule(VerifierLibModule);

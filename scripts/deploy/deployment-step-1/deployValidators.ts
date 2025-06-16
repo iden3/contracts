@@ -26,7 +26,6 @@ async function main() {
       moduleFirstImplementation: CredentialAtomicQueryMTPV2ValidatorProxyModule,
       name: contractsInfo.VALIDATOR_MTP.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_MTP.name,
-      paramName: "CredentialAtomicQueryMTPV2ValidatorAtModule",
       verificationOpts: contractsInfo.VALIDATOR_MTP.verificationOpts,
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_MTP.verificationOpts,
     },
@@ -34,7 +33,6 @@ async function main() {
       moduleFirstImplementation: CredentialAtomicQuerySigV2ValidatorProxyModule,
       name: contractsInfo.VALIDATOR_SIG.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_SIG.name,
-      paramName: "CredentialAtomicQuerySigV2ValidatorAtModule",
       verificationOpts: contractsInfo.VALIDATOR_SIG.verificationOpts,
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_SIG.verificationOpts,
     },
@@ -42,7 +40,6 @@ async function main() {
       moduleFirstImplementation: CredentialAtomicQueryV3ValidatorProxyModule,
       name: contractsInfo.VALIDATOR_V3.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_V3.name,
-      paramName: "CredentialAtomicQueryV3ValidatorAtModule",
       verificationOpts: contractsInfo.VALIDATOR_V3.verificationOpts,
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_V3.verificationOpts,
     },
@@ -50,7 +47,6 @@ async function main() {
       moduleFirstImplementation: LinkedMultiQueryValidatorProxyModule,
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.name,
-      paramName: "LinkedMultiQueryValidatorAtModule",
       verificationOpts: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.verificationOpts,
       verifierVerificationOpts:
         contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.verificationOpts,
@@ -62,14 +58,12 @@ async function main() {
       moduleFirstImplementation: AuthV2ValidatorProxyModule,
       name: contractsInfo.VALIDATOR_AUTH_V2.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V2.name,
-      paramName: "AuthV2ValidatorAtModule",
       verificationOpts: contractsInfo.VALIDATOR_AUTH_V2.verificationOpts,
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V2.verificationOpts,
     },
     {
       moduleFirstImplementation: EthIdentityValidatorProxyModule,
       name: contractsInfo.VALIDATOR_ETH_IDENTITY.name,
-      paramName: "EthIdentityValidatorAtModule",
       verificationOpts: contractsInfo.VALIDATOR_ETH_IDENTITY.verificationOpts,
     },
   ];
@@ -80,11 +74,17 @@ async function main() {
       defaultSender: await signer.getAddress(),
       parameters: parameters,
     });
-    parameters[validatorContract.paramName] = {
+    parameters[validatorContract.name.concat("AtModule")] = {
       proxyAddress: deployment.proxy.target,
       proxyAdminAddress: deployment.proxyAdmin.target,
     };
+    parameters[validatorContract.name.concat("NewImplementationAtModule")] = {
+      contractAddress: deployment.newImplementation.target,
+    };
     if (validatorContract.verifierName && deployment.groth16Verifier) {
+      parameters[validatorContract.verifierName.concat("AtModule")] = {
+        contractAddress: deployment.groth16Verifier.target,
+      };
       console.log(
         `${validatorContract.verifierName} deployed to: ${deployment.groth16Verifier.target}`,
       );

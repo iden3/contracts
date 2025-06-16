@@ -1,6 +1,5 @@
 import { buildModule } from "@nomicfoundation/ignition-core";
 import {
-  contractsInfo,
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
@@ -8,6 +7,7 @@ import {
 export const GeneralProxyModule = buildModule("GeneralProxyModule", (m) => {
   const create2Calldata = m.getParameter("create2Calldata", 0);
   const proxyAdminOwnerAddress = m.getParameter("proxyAdminOwner");
+  const create2AddressAnchorAddress = m.getParameter("create2AddressAnchorAddress");
 
   const proxy = m.contract(
     "TransparentUpgradeableProxy",
@@ -18,7 +18,7 @@ export const GeneralProxyModule = buildModule("GeneralProxyModule", (m) => {
       sourceName: "",
       linkReferences: {},
     },
-    [contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress, proxyAdminOwnerAddress, create2Calldata],
+    [create2AddressAnchorAddress, proxyAdminOwnerAddress, create2Calldata],
   );
 
   const proxyAdminAddress = m.readEventArgument(proxy, "AdminChanged", "newAdmin");
