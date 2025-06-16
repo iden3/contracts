@@ -161,6 +161,11 @@ export function getProviders() {
     { network: networks.ZKEVM_MAINNET.name, rpcUrl: process.env.ZKEVM_MAINNET_RPC_URL as string },
     { network: networks.LINEA_SEPOLIA.name, rpcUrl: process.env.LINEA_SEPOLIA_RPC_URL as string },
     { network: networks.LINEA_MAINNET.name, rpcUrl: process.env.LINEA_MAINNET_RPC_URL as string },
+    { network: networks.BILLIONS_TEST.name, rpcUrl: process.env.BILLIONS_TEST_RPC_URL as string },
+    {
+      network: networks.BILLIONS_MAINNET.name,
+      rpcUrl: process.env.BILLIONS_MAINNET_RPC_URL as string,
+    },
   ];
 }
 

@@ -90,6 +90,8 @@ export const networks = Object.freeze({
   ZKEVM_MAINNET: { name: "Zkevm Mainnet", chainId: 1101 },
   LINEA_SEPOLIA: { name: "Linea Sepolia", chainId: 59141 },
   LINEA_MAINNET: { name: "Linea Mainnet", chainId: 59144 },
+  BILLIONS_TEST: { name: "Billions Testnet", chainId: 6913 },
+  BILLIONS_MAINNET: { name: "Billions Mainnet", chainId: 45056 },
 });
 
 export const STATE_ADDRESS_POLYGON_AMOY = "0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124";
