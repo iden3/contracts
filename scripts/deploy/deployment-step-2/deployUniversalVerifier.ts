@@ -16,20 +16,13 @@ async function main() {
   const parameters = await getDeploymentParameters();
 
   // Final implementation
-  const { proxyAdmin, universalVerifier } = await ignition.deploy(UniversalVerifierModule, {
+  const { universalVerifier } = await ignition.deploy(UniversalVerifierModule, {
     strategy: deployStrategy,
     defaultSender: await signer.getAddress(),
     parameters: parameters,
   });
 
-  parameters.UniversalVerifierAtModule = {
-    proxyAddress: universalVerifier.target,
-    proxyAdminAddress: proxyAdmin.target,
-  };
-
   console.log(`${contractsInfo.UNIVERSAL_VERIFIER.name} deployed to: ${universalVerifier.target}`);
-
-  await writeDeploymentParameters(parameters);
 }
 
 main()

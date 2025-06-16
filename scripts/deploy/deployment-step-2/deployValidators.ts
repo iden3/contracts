@@ -85,10 +85,6 @@ async function main() {
       defaultSender: await signer.getAddress(),
       parameters: parameters,
     });
-    parameters[validatorContract.paramName] = {
-      proxyAddress: deployment.proxy.target,
-      proxyAdminAddress: deployment.proxyAdmin.target,
-    };
     if (validatorContract.verifierName && deployment.groth16Verifier) {
       console.log(
         `${validatorContract.verifierName} deployed to: ${deployment.groth16Verifier.target}`,
@@ -144,8 +140,6 @@ async function main() {
       );
     }
   }
-
-  await writeDeploymentParameters(parameters);
 }
 
 main()
