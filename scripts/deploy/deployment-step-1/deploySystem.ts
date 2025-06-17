@@ -5,6 +5,7 @@ import Create2AddressAnchorModule from "../../../ignition/modules/create2Address
 import { contractsInfo } from "../../../helpers/constants";
 import {
   getChainId,
+  getConfig,
   getDefaultIdType,
   getDeploymentParameters,
   isContract,
@@ -49,71 +50,61 @@ import {
   VCPaymentAtModule,
 } from "../../../ignition/modules/contractsAt";
 
-async function getDeployedAddresses() {
-  let deployedAddresses = {};
-  const chainId = await getChainId();
-  try {
-    const deployedAddressesPath = path.join(
-      __dirname,
-      `../../../ignition/deployments/chain-${chainId}/deployed_addresses.json`,
-    );
-    deployedAddresses = JSON.parse(fs.readFileSync(deployedAddressesPath, "utf8"));
-  } catch (error) {
-    //console.error("Error reading deployed addresses file:", error);
-  }
-  return deployedAddresses;
-}
-
 async function main() {
-  // const config = getConfig();
-  const deployStrategy: "basic" | "create2" = "create2";
-  /*config.deployStrategy == "create2" ? "create2" : "basic";*/
+  const config = getConfig();
+  const deployStrategy: "basic" | "create2" =
+    config.deployStrategy == "create2" ? "create2" : "basic";
 
+  //TODO: IMPORTANT. Get your specific unified addresses first:
+  // 1. Specify "DeploymentId" for your contracts in ignition/modules/params/<network>.json file
+  // 2. Run "npx hardhat test test/get-own-unified-addresses.test.ts" (remove first "skip" for the test)
+  // 3. Replace addresses in specific proxies "proxyAddress" in ignition/modules/params/<network>.json file
+  // 4. Leave "proxyAdminAddress" as it is. It will be calculated automatically overwriten at the end of the script
   const [signer] = await ethers.getSigners();
 
   const parameters = await getDeploymentParameters();
-
+  const deploymentId = parameters.DeploymentId || undefined;
   parameters.StateProxyFinalImplementationModule.defaultIdType = (
     await getDefaultIdType()
   ).defaultIdType;
-  const deployedAddresses = await getDeployedAddresses();
 
-  parameters.Create2AddressAnchorAtModule = {
-    contractAddress: contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress,
-  };
-  if (!(await isContract(contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress))) {
+  if (!parameters.Create2AddressAnchorAtModule) {
+    parameters.Create2AddressAnchorAtModule = {
+      contractAddress: contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress,
+    };
+  }
+
+  if (!(await isContract(parameters.Create2AddressAnchorAtModule.contractAddress))) {
     const { create2AddressAnchor } = await ignition.deploy(Create2AddressAnchorModule, {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
+      deploymentId: deploymentId,
     });
 
     const contractAddress = await create2AddressAnchor.getAddress();
     if (contractAddress !== contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress) {
-      throw Error(
+      console.log(
         `The contract was supposed to be deployed to ${contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress}, but it was deployed to ${contractAddress}`,
       );
     }
-
+    parameters.Create2AddressAnchorAtModule = {
+      contractAddress: contractAddress,
+    };
     console.log(`Create2AddressAnchor deployed to: ${contractAddress}`);
   } else {
     console.log(
       `Create2AddressAnchor already deployed to: ${contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress}`,
     );
 
-    if (!deployedAddresses["Create2AddressAnchorModule#Create2AddressAnchor"]) {
-      // Use the module to get the address into the deployed address registry
-      await ignition.deploy(Create2AddressAnchorAtModule, {
-        strategy: deployStrategy,
-        defaultSender: await signer.getAddress(),
-        parameters: parameters,
-      });
-    }
+    // Use the module to get the address into the deployed address registry
+    await ignition.deploy(Create2AddressAnchorAtModule, {
+      strategy: deployStrategy,
+      defaultSender: await signer.getAddress(),
+      parameters: parameters,
+      deploymentId: deploymentId,
+    });
   }
 
-  //TODO: IMPORTANT. Get your specific unified addresses:
-  // 1. Run "npx hardhat test test/get-own-unified-addresses.test.ts"
-  // 2. Replace addresses in specific proxies "proxyAddress" in ignition/modules/params/<network>.json file
-  // 3. Leave "proxyAdminAddress" as it is. It will be calculated automatically overwriten at the end of the script
   const contracts = [
     {
       module: Poseidon1Module,
@@ -286,6 +277,7 @@ async function main() {
         strategy: deployStrategy,
         defaultSender: await signer.getAddress(),
         parameters: parameters,
+        deploymentId: deploymentId,
       });
       console.log(
         `${contract.name} deployed to: ${contract.isProxy ? deployedContract.proxy.target : contract.contractAddress}`,
@@ -353,6 +345,7 @@ async function main() {
         strategy: deployStrategy,
         defaultSender: await signer.getAddress(),
         parameters: parameters,
+        deploymentId: deploymentId,
       });
     }
   }

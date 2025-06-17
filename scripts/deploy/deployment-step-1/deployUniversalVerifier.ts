@@ -23,6 +23,7 @@ async function main() {
 
   const [signer] = await ethers.getSigners();
   const parameters = await getDeploymentParameters();
+  const deploymentId = parameters.DeploymentId || undefined;
 
   let newImplementation: any, verifierLib: any;
 
@@ -34,6 +35,7 @@ async function main() {
         strategy: "basic",
         defaultSender: await signer.getAddress(),
         parameters: parameters,
+        deploymentId: deploymentId,
       },
     ));
     console.log(`VerifierLib deployed to: ${verifierLib.target}`);
@@ -50,6 +52,7 @@ async function main() {
         strategy: deployStrategy,
         defaultSender: await signer.getAddress(),
         parameters: parameters,
+        deploymentId: deploymentId,
       })
     ).contract;
     console.log(
@@ -61,6 +64,7 @@ async function main() {
         strategy: deployStrategy,
         defaultSender: await signer.getAddress(),
         parameters: parameters,
+        deploymentId: deploymentId,
       })
     ).contract;
   }
@@ -72,6 +76,7 @@ async function main() {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,
+      deploymentId: deploymentId,
     },
   );
 

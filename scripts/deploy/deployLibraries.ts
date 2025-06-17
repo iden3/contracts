@@ -21,6 +21,7 @@ async function main() {
 
   const [signer] = await ethers.getSigners();
   const parameters = await getDeploymentParameters();
+  const deploymentId = parameters.DeploymentId || undefined;
 
   const contracts = [
     {
@@ -56,6 +57,7 @@ async function main() {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,
+      deploymentId: deploymentId,
     });
     parameters[contract.paramName].contractAddress = deployment[Object.keys(deployment)[0]].target;
     console.log(`${contract.name} deployed to: ${deployment[Object.keys(deployment)[0]].target}`);

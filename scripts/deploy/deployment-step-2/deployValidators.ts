@@ -29,6 +29,7 @@ async function main() {
 
   const [signer] = await ethers.getSigners();
   const parameters = await getDeploymentParameters();
+  const deploymentId = parameters.DeploymentId || undefined;
 
   const requestValidators = [
     {
@@ -84,6 +85,7 @@ async function main() {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,
+      deploymentId: deploymentId,
     });
     if (validatorContract.verifierName && deployment.groth16Verifier) {
       console.log(
@@ -98,6 +100,7 @@ async function main() {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,
+      deploymentId: deploymentId,
     })
   ).proxy;
 
@@ -106,6 +109,7 @@ async function main() {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,
+      deploymentId: deploymentId,
     });
     if (!(await universalVerifier.isWhitelistedValidator(validatorDeployed.proxy.target))) {
       await universalVerifier.addValidatorToWhitelist(validatorDeployed.proxy.target);
@@ -124,6 +128,7 @@ async function main() {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,
+      deploymentId: deploymentId,
     });
     if (!(await universalVerifier.authMethodExists(validator.authMethod))) {
       await universalVerifier.setAuthMethod({

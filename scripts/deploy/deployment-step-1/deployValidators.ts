@@ -20,6 +20,7 @@ async function main() {
 
   const [signer] = await ethers.getSigners();
   const parameters = await getDeploymentParameters();
+  const deploymentId = parameters.DeploymentId || undefined;
 
   const requestValidators = [
     {
@@ -73,6 +74,7 @@ async function main() {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,
+      deploymentId: deploymentId,
     });
     parameters[validatorContract.name.concat("AtModule")] = {
       proxyAddress: deployment.proxy.target,

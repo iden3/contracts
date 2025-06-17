@@ -1,4 +1,5 @@
 {
+  "DeploymentId": "",
   "StateProxyFirstImplementationModule": {
     "proxyAdminOwner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
   },
@@ -39,128 +40,128 @@
     "oracleSigningAddress": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
   },
   "Create2AddressAnchorAtModule": {
-    "contractAddress": "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e"
+    "contractAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3"
   },
   "Poseidon1AtModule": {
-    "contractAddress": "0xC72D76D7271924a2AD54a19D216640FeA3d138d9"
+    "contractAddress": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
   },
   "Poseidon2AtModule": {
-    "contractAddress": "0x72F721D9D5f91353B505207C63B56cF3d9447edB"
+    "contractAddress": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
   },
   "Poseidon3AtModule": {
-    "contractAddress": "0x5Bc89782d5eBF62663Df7Ce5fb4bc7408926A240"
+    "contractAddress": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
   },
   "Poseidon4AtModule": {
-    "contractAddress": "0x0695cF2c6dfc438a4E40508741888198A6ccacC2"
+    "contractAddress": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
   },
   "SmtLibAtModule": {
-    "contractAddress": "0x682364078e26C1626abD2B95109D2019E241F0F6"
+    "contractAddress": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"
   },
   "StateAtModule": {
-    "proxyAddress": "0xaea923d71Bc5ED3A622D4DfCF2f9C338889b1c70",
-    "proxyAdminAddress": "0xbAbA3c09d08684733118511111751E2AFcB8aDeE"
+    "proxyAddress": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+    "proxyAdminAddress": "0x6F1216D1BFe15c98520CA1434FC1d9D57AC95321"
   },
   "UniversalVerifierAtModule": {
-    "proxyAddress": "0x55743732c60abb7d7F53a00aFdE5021479b420F0",
-    "proxyAdminAddress": "0xbce23E5e9c2181727037416E2292B7efB8663674"
+    "proxyAddress": "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
+    "proxyAdminAddress": "0x8dAF17A20c9DBA35f005b6324F493785D239719d"
   },
   "IdentityTreeStoreAtModule": {
-    "proxyAddress": "0x8A38f3D19437f03c254F1CCDED0F161C507d8597",
-    "proxyAdminAddress": "0x294D52a5458E0183dA93e12A97cd457D8dd55389"
+    "proxyAddress": "0x0B306BF915C4d645ff596e518fAf3F9669b97016",
+    "proxyAdminAddress": "0x524F04724632eED237cbA3c37272e018b3A7967e"
   },
   "CredentialAtomicQueryMTPV2ValidatorAtModule": {
-    "proxyAddress": "0xEB0057f8702Aa21e819f219a93bB74fB133F3B05",
-    "proxyAdminAddress": "0x89AC7e4Ce484A8F15Fe221d45e607216c1729a6b"
+    "proxyAddress": "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE",
+    "proxyAdminAddress": "0x2b961E3959b79326A8e7F64Ef0d2d825707669b5"
   },
   "CredentialAtomicQuerySigV2ValidatorAtModule": {
-    "proxyAddress": "0x2F70cab6a709dca45B0d5A29D54f3eCc89e8499f",
-    "proxyAdminAddress": "0x2aF6586A6b3b55a1E4c56D072F8B52fA4d92de96"
+    "proxyAddress": "0xc6e7DF5E7b4f2A278906862b61205850344D4e7d",
+    "proxyAdminAddress": "0x553BED26A78b94862e53945941e4ad6E4F2497da"
   },
   "CredentialAtomicQueryV3ValidatorAtModule": {
-    "proxyAddress": "0x38d5B5fE4734673b8B303FE5DA29e0B7b3a5e252",
-    "proxyAdminAddress": "0x09172AB6524823724ACcff2856b6be34730b783c"
+    "proxyAddress": "0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44",
+    "proxyAdminAddress": "0xF1823bc4243b40423b8C8c3F6174e687a4C690b8"
   },
   "LinkedMultiQueryValidatorAtModule": {
-    "proxyAddress": "0x2BF5BdbaBA432ee5E21C61eAAD10fd1a812F3Abc",
-    "proxyAdminAddress": "0xaD84dd89d1aCDBFff2e9f2C67267C9054fba6379"
+    "proxyAddress": "0x09635F643e140090A9A8Dcd712eD6285858ceBef",
+    "proxyAdminAddress": "0xe73bc5BD4763A3307AB5F8F126634b7E12E3dA9b"
   },
   "AuthV2ValidatorAtModule": {
-    "proxyAddress": "0x43c152c690596eC28b5360385526d63cd3233D92",
-    "proxyAdminAddress": "0x4D311745b2b3bD1B53EA90A8bDcdb9dB6117Efc1"
+    "proxyAddress": "0x67d269191c92Caf3cD7723F116c85e6E9bf55933",
+    "proxyAdminAddress": "0xfBD745797A0fb50429f0a2b04581092798Fdf30B"
   },
   "EthIdentityValidatorAtModule": {
-    "proxyAddress": "0xf873cf19A5cBDa8b009c2A419Fa140Fcc9218874",
-    "proxyAdminAddress": "0x8591c241B8d81095851a79B56Cc990848CFd2f8e"
+    "proxyAddress": "0x84eA74d481Ee0A5332c457a4d796187F6Ba67fEB",
+    "proxyAdminAddress": "0x212fdfCfCC22db97DeB3AC3260414909282BB4EE"
   },
   "MCPaymentAtModule": {
-    "proxyAddress": "0xe03D8C55158E737336310B5646738bd61cE7f858",
-    "proxyAdminAddress": "0xec9DCc46bAc6A35Ac5d88DB2f186d04C9e04d034"
+    "proxyAddress": "0x851356ae760d987E095750cCeb3bC6014560891C",
+    "proxyAdminAddress": "0xB955b6c65Ff69bfe07A557aa385055282b8a5eA3"
   },
   "VCPaymentAtModule": {
-    "proxyAddress": "0x1Bec17E48D87ddAEA6f534cF9276c0580D2E697d",
-    "proxyAdminAddress": "0x0b6bBD15C814C31fDe5Af732fE2B10D1F4618F89"
+    "proxyAddress": "0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9",
+    "proxyAdminAddress": "0x6A358FD7B7700887b0cd974202CdF93208F793E2"
   },
   "MCPaymentProxyFinalImplementationModule": {
     "ownerPercentage": 15
   },
   "CrossChainProofValidatorAtModule": {
-    "contractAddress": "0x0bDD01cCE823D31b430A190786a52a899d590Dea"
+    "contractAddress": "0x0165878A594ca255338adfa4d48449f69242Eb8F"
   },
   "StateLibAtModule": {
-    "contractAddress": "0xf8506BED83E97fd8bb361402Afd19e1024EC1F54"
+    "contractAddress": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
   },
   "StateNewImplementationAtModule": {
-    "contractAddress": "0x4225242e498B276A681D9C0CE6487cd1558982D4"
+    "contractAddress": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318"
   },
   "Groth16VerifierStateTransitionAtModule": {
-    "contractAddress": "0xf2A3a8e2d265FC97fC90C0A0AF9312b137259b0e"
+    "contractAddress": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
   },
   "VerifierLibAtModule": {
-    "contractAddress": "0xeEE93cc160ea88d2A0510C278998E402F2c04f17"
+    "contractAddress": "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0"
   },
   "UniversalVerifierNewImplementationAtModule": {
-    "contractAddress": "0xF2cbff070C49643E0A6a76Fe07B985F7c6579843"
+    "contractAddress": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
   },
   "IdentityTreeStoreNewImplementationAtModule": {
-    "contractAddress": "0xA6A29e61DC36a98e512A32f1Bb53AB6e2edcdd10"
+    "contractAddress": "0x9A676e781A523b5d0C0e43731313A708CB607508"
   },
   "CredentialAtomicQueryMTPV2ValidatorNewImplementationAtModule": {
-    "contractAddress": "0x872c9051caa3CDED8163DB26Ed972eba08C2b0D9"
+    "contractAddress": "0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1"
   },
   "Groth16VerifierMTPWrapperAtModule": {
-    "contractAddress": "0xcb49D19529994b8a85FF49f76B96817c4C1885F6"
+    "contractAddress": "0x68B1D87F95878fE05B998F19b66F4baba5De1aed"
   },
   "CredentialAtomicQuerySigV2ValidatorNewImplementationAtModule": {
-    "contractAddress": "0x36C9c81aAeBbAF47a577f4328f554d9c11929C1A"
+    "contractAddress": "0x3Aa5ebB10DC797CAC828524e59A333d0A371443c"
   },
   "Groth16VerifierSigWrapperAtModule": {
-    "contractAddress": "0xfBF7C40b36ae7421e48CEB277c62a7e67054595B"
+    "contractAddress": "0x59b670e9fA9D0A427751Af201D676719a970857b"
   },
   "CredentialAtomicQueryV3ValidatorNewImplementationAtModule": {
-    "contractAddress": "0x9D45299Aff60Bf628Bc66d9D2FAa6d2b76847E0F"
+    "contractAddress": "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1"
   },
   "Groth16VerifierV3WrapperAtModule": {
-    "contractAddress": "0x8A79acff0811f9B48c5394488B0feEDd89F0aD89"
+    "contractAddress": "0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f"
   },
   "LinkedMultiQueryValidatorNewImplementationAtModule": {
-    "contractAddress": "0x4fEB2e3Df1054412D35adb3355eEb2F735c84573"
+    "contractAddress": "0x7a2088a1bFc9d81c55368AE168C2C02570cB814F"
   },
   "Groth16VerifierLinkedMultiQuery10WrapperAtModule": {
-    "contractAddress": "0x73889eF6d5BAD8b11802AAFC5b9D92b08ee8a6fb"
+    "contractAddress": "0x4A679253410272dd5232B3Ff7cF5dbB88f295319"
   },
   "AuthV2ValidatorNewImplementationAtModule": {
-    "contractAddress": "0x0570D4BC11424Ba131AC184c02bF0bCd7bAE889E"
+    "contractAddress": "0xc5a5C42992dECbae36851359345FE25997F5C42d"
   },
   "Groth16VerifierAuthV2WrapperAtModule": {
-    "contractAddress": "0xA16EFFE15668B74A011fc0137837197A376252d9"
+    "contractAddress": "0xE6E340D132b5f46d1e472DebcD681B2aBc16e57E"
   },
   "EthIdentityValidatorNewImplementationAtModule": {
-    "contractAddress": "0x3F954b02f5366EBd5B45D82A72306a05c841f70f"
+    "contractAddress": "0xc3e53F4d16Ae77Db1c982e75a937B9f60FE63690"
   },
   "VCPaymentNewImplementationAtModule": {
-    "contractAddress": "0x9b4670Dec8a2556f7B1f91B46F0B8B000c5DBbdA"
+    "contractAddress": "0x9E545E3C0baAB3E08CdfD552C960A1050f373042"
   },
   "MCPaymentNewImplementationAtModule": {
-    "contractAddress": "0xB175469316C6706297Cb02124c554344606Ea7eE"
+    "contractAddress": "0x1613beB3B2C4f22Ee086B2b38C1476A3cE7f78E8"
   }
 }

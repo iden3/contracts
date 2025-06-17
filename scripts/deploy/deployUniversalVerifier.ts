@@ -17,18 +17,21 @@ async function main() {
 
   const [signer] = await ethers.getSigners();
   const parameters = await getDeploymentParameters();
+  const deploymentId = parameters.DeploymentId || undefined;
 
   // First implementation
   await ignition.deploy(UniversalVerifierProxyModule, {
     strategy: deployStrategy,
     defaultSender: await signer.getAddress(),
     parameters: parameters,
+    deploymentId: deploymentId,
   });
   // Final implementation
   const { proxyAdmin, universalVerifier } = await ignition.deploy(UniversalVerifierModule, {
     strategy: deployStrategy,
     defaultSender: await signer.getAddress(),
     parameters: parameters,
+    deploymentId: deploymentId,
   });
 
   parameters.UniversalVerifierAtModule = {

@@ -7,9 +7,11 @@ async function main() {
   const [signer] = await ethers.getSigners();
 
   const parameters = await getDeploymentParameters();
+  const deploymentId = parameters.DeploymentId || undefined;
   const { create2AddressAnchor } = await ignition.deploy(Create2AddressAnchorModule, {
     strategy: "create2",
     defaultSender: await signer.getAddress(),
+    deploymentId: deploymentId,
   });
 
   const contractAddress = await create2AddressAnchor.getAddress();

@@ -41,6 +41,7 @@ async function main() {
 
   const [signer] = await ethers.getSigners();
   const parameters = await getDeploymentParameters();
+  const deploymentId = parameters.DeploymentId || undefined;
 
   const requestValidators = [
     {
@@ -49,7 +50,6 @@ async function main() {
       moduleAt: CredentialAtomicQueryMTPV2ValidatorAtModule,
       name: contractsInfo.VALIDATOR_MTP.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_MTP.name,
-      paramName: "CredentialAtomicQueryMTPV2ValidatorAtModule",
       verificationOpts: contractsInfo.VALIDATOR_MTP.verificationOpts,
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_MTP.verificationOpts,
     },
@@ -59,7 +59,6 @@ async function main() {
       moduleAt: CredentialAtomicQuerySigV2ValidatorAtModule,
       name: contractsInfo.VALIDATOR_SIG.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_SIG.name,
-      paramName: "CredentialAtomicQuerySigV2ValidatorAtModule",
       verificationOpts: contractsInfo.VALIDATOR_SIG.verificationOpts,
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_SIG.verificationOpts,
     },
@@ -69,7 +68,6 @@ async function main() {
       moduleAt: CredentialAtomicQueryV3ValidatorAtModule,
       name: contractsInfo.VALIDATOR_V3.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_V3.name,
-      paramName: "CredentialAtomicQueryV3ValidatorAtModule",
       verificationOpts: contractsInfo.VALIDATOR_V3.verificationOpts,
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_V3.verificationOpts,
     },
@@ -79,7 +77,6 @@ async function main() {
       moduleAt: LinkedMultiQueryValidatorAtModule,
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.name,
-      paramName: "LinkedMultiQueryValidatorAtModule",
       verificationOpts: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.verificationOpts,
       verifierVerificationOpts:
         contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.verificationOpts,
@@ -94,7 +91,6 @@ async function main() {
       moduleAt: AuthV2ValidatorAtModule,
       name: contractsInfo.VALIDATOR_AUTH_V2.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V2.name,
-      paramName: "AuthV2ValidatorAtModule",
       verificationOpts: contractsInfo.VALIDATOR_AUTH_V2.verificationOpts,
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V2.verificationOpts,
     },
@@ -104,27 +100,36 @@ async function main() {
       moduleFinalImplementation: EthIdentityValidatorModule,
       moduleAt: EthIdentityValidatorAtModule,
       name: contractsInfo.VALIDATOR_ETH_IDENTITY.name,
-      paramName: "EthIdentityValidatorAtModule",
       verificationOpts: contractsInfo.VALIDATOR_ETH_IDENTITY.verificationOpts,
     },
   ];
 
   for (const validatorContract of [...requestValidators, ...authValidators]) {
+    // First implementation
     await ignition.deploy(validatorContract.moduleFirstImplementation, {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,
+      deploymentId: deploymentId,
     });
+    // Final implementation
     const deployment = await ignition.deploy(validatorContract.moduleFinalImplementation, {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,
+      deploymentId: deploymentId,
     });
-    parameters[validatorContract.paramName] = {
+    parameters[validatorContract.name.concat("AtModule")] = {
       proxyAddress: deployment.proxy.target,
       proxyAdminAddress: deployment.proxyAdmin.target,
     };
+    parameters[validatorContract.name.concat("NewImplementationAtModule")] = {
+      contractAddress: deployment.newImplementation.target,
+    };
     if (validatorContract.verifierName && deployment.groth16Verifier) {
+      parameters[validatorContract.verifierName.concat("AtModule")] = {
+        contractAddress: deployment.groth16Verifier.target,
+      };
       console.log(
         `${validatorContract.verifierName} deployed to: ${deployment.groth16Verifier.target}`,
       );

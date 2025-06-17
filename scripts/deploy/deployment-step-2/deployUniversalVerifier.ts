@@ -14,12 +14,14 @@ async function main() {
 
   const [signer] = await ethers.getSigners();
   const parameters = await getDeploymentParameters();
+  const deploymentId = parameters.DeploymentId || undefined;
 
   // Final implementation
   const { universalVerifier } = await ignition.deploy(UniversalVerifierModule, {
     strategy: deployStrategy,
     defaultSender: await signer.getAddress(),
     parameters: parameters,
+    deploymentId: deploymentId,
   });
 
   console.log(`${contractsInfo.UNIVERSAL_VERIFIER.name} deployed to: ${universalVerifier.target}`);

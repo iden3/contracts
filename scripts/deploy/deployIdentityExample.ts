@@ -6,6 +6,7 @@ async function main() {
   const [signer] = await ethers.getSigners();
 
   const parameters = await getDeploymentParameters();
+  const deploymentId = parameters.DeploymentId || undefined;
   parameters.IdentityExampleProxyModule = {
     defaultIdType: (await getDefaultIdType()).defaultIdType,
   };
@@ -14,6 +15,7 @@ async function main() {
     strategy: "basic",
     defaultSender: await signer.getAddress(),
     parameters: parameters,
+    deploymentId: deploymentId,
   });
 
   console.log(`IdentityExample deployed to: ${identityExample.target}`);

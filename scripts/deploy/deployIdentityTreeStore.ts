@@ -17,12 +17,14 @@ import IdentityTreeStoreModule from "../../ignition/modules/identityTreeStore";
   const [signer] = await ethers.getSigners();
 
   const parameters = await getDeploymentParameters();
+  const deploymentId = parameters.DeploymentId || undefined;
 
   // First implementation
   await ignition.deploy(IdentityTreeStoreProxyModule, {
     strategy: deployStrategy,
     defaultSender: await signer.getAddress(),
     parameters: parameters,
+    deploymentId: deploymentId,
   });
 
   // Final implementation
@@ -30,6 +32,7 @@ import IdentityTreeStoreModule from "../../ignition/modules/identityTreeStore";
     strategy: deployStrategy,
     defaultSender: await signer.getAddress(),
     parameters: parameters,
+    deploymentId: deploymentId,
   });
 
   parameters.IdentityTreeStoreAtModule = {

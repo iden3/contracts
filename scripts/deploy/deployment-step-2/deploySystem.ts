@@ -3,7 +3,12 @@ import path from "path";
 import { ethers, ignition } from "hardhat";
 import Create2AddressAnchorModule from "../../../ignition/modules/create2AddressAnchor";
 import { contractsInfo } from "../../../helpers/constants";
-import { getChainId, getDeploymentParameters, isContract } from "../../../helpers/helperUtils";
+import {
+  getChainId,
+  getConfig,
+  getDeploymentParameters,
+  isContract,
+} from "../../../helpers/helperUtils";
 import StateModule from "../../../ignition/modules/state";
 import UniversalVerifierModule from "../../../ignition/modules/universalVerifier";
 import IdentityTreeStoreModule from "../../../ignition/modules/identityTreeStore";
@@ -46,47 +51,22 @@ async function getDeployedAddresses() {
 }
 
 async function main() {
-  // const config = getConfig();
-  const deployStrategy: "basic" | "create2" = "create2";
-  /*config.deployStrategy == "create2" ? "create2" : "basic";*/
+  const config = getConfig();
+  const deployStrategy: "basic" | "create2" =
+    config.deployStrategy == "create2" ? "create2" : "basic";
 
   const [signer] = await ethers.getSigners();
 
   const parameters = await getDeploymentParameters();
 
-  const deployedAddresses = await getDeployedAddresses();
-
-  parameters.Create2AddressAnchorAtModule = {
-    contractAddress: contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress,
-  };
-
-  if (!(await isContract(contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress))) {
-    const { create2AddressAnchor } = await ignition.deploy(Create2AddressAnchorModule, {
-      strategy: deployStrategy,
-      defaultSender: await signer.getAddress(),
-    });
-
-    const contractAddress = await create2AddressAnchor.getAddress();
-    if (contractAddress !== contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress) {
-      throw Error(
-        `The contract was supposed to be deployed to ${contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress}, but it was deployed to ${contractAddress}`,
-      );
-    }
-
-    console.log(`Create2AddressAnchor deployed to: ${contractAddress}`);
-  } else {
-    console.log(
-      `Create2AddressAnchor already deployed to: ${contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress}`,
-    );
-    if (!deployedAddresses["Create2AddressAnchorModule#Create2AddressAnchor"]) {
-      // Use the module to get the address into the deployed address registry
-      await ignition.deploy(Create2AddressAnchorAtModule, {
-        strategy: deployStrategy,
-        defaultSender: await signer.getAddress(),
-        parameters: parameters,
-      });
-    }
-  }
+  const deploymentId = parameters.DeploymentId || undefined;
+  // Use the module to get the address into the deployed address registry
+  await ignition.deploy(Create2AddressAnchorAtModule, {
+    strategy: deployStrategy,
+    defaultSender: await signer.getAddress(),
+    parameters: parameters,
+    deploymentId: deploymentId,
+  });
 
   const requestValidators = [
     {
@@ -203,6 +183,7 @@ async function main() {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,
+      deploymentId: deploymentId,
     });
     console.log(
       `${contract.name} deployed to: ${contract.isProxy ? deployedContract.proxy.target : contract.contractAddress}`,
@@ -215,6 +196,7 @@ async function main() {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,
+      deploymentId: deploymentId,
     })
   ).proxy;
 
@@ -223,6 +205,7 @@ async function main() {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,
+      deploymentId: deploymentId,
     });
     if (!(await universalVerifier.isWhitelistedValidator(validatorDeployed.proxy.target))) {
       await universalVerifier.addValidatorToWhitelist(validatorDeployed.proxy.target);
@@ -241,6 +224,7 @@ async function main() {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,
+      deploymentId: deploymentId,
     });
     if (!(await universalVerifier.authMethodExists(validator.authMethod))) {
       await universalVerifier.setAuthMethod({
