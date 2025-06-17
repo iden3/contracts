@@ -1,31 +1,48 @@
-import { DeployHelper } from "../../helpers/DeployHelper";
-import { getChainId, getConfig, verifyContract } from "../../helpers/helperUtils";
+import {
+  getConfig,
+  getDeploymentParameters,
+  verifyContract,
+  writeDeploymentParameters,
+} from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
-import path from "path";
-import hre from "hardhat";
-import fs from "fs";
+import { ethers, ignition } from "hardhat";
+import { MCPaymentProxyModule } from "../../ignition";
+import MCPaymentModule from "../../ignition/modules/mcPayment";
 
 async function main() {
   const config = getConfig();
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
+  const [signer] = await ethers.getSigners();
 
-  const deployHelper = await DeployHelper.initialize(null, true);
-  const { mcPayment } = await deployHelper.deployMCPayment(15, deployStrategy);
-  await verifyContract(await mcPayment.getAddress(), contractsInfo.MC_PAYMENT.verificationOpts);
+  const parameters = await getDeploymentParameters();
+  // First implementation
+  await ignition.deploy(MCPaymentProxyModule, {
+    strategy: deployStrategy,
+    defaultSender: await signer.getAddress(),
+    parameters: parameters,
+  });
 
-  const chainId = await getChainId();
-  const networkName = hre.network.name;
-  const pathOutputJson = path.join(
-    __dirname,
-    `../deployments_output/deploy_mc_payment_output_${chainId}_${networkName}.json`,
-  );
-  const outputJson = {
-    mcPayment: await mcPayment.getAddress(),
-    network: networkName,
-    chainId: chainId,
+  // Final implementation
+  const { newImplementation, proxyAdmin, proxy } = await ignition.deploy(MCPaymentModule, {
+    strategy: deployStrategy,
+    defaultSender: await signer.getAddress(),
+    parameters: parameters,
+  });
+
+  parameters.MCPaymentAtModule = {
+    proxyAddress: proxy.target,
+    proxyAdminAddress: proxyAdmin.target,
   };
-  fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
+
+  await verifyContract(proxy.target, contractsInfo.MC_PAYMENT.verificationOpts);
+
+  await verifyContract(newImplementation.target, {
+    constructorArgsImplementation: [],
+    libraries: {},
+  });
+
+  await writeDeploymentParameters(parameters);
 }
 
 main()

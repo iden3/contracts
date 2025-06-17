@@ -1,17 +1,50 @@
 import { DeployHelper } from "../../helpers/DeployHelper";
-import { getConfig, verifyContract } from "../../helpers/helperUtils";
+import {
+  getConfig,
+  getDeploymentParameters,
+  verifyContract,
+  writeDeploymentParameters,
+} from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
+import { ethers, ignition } from "hardhat";
+import { VCPaymentProxyModule } from "../../ignition";
+import VCPaymentModule from "../../ignition/modules/vcPayment";
 
 async function main() {
   const config = getConfig();
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
 
-  const deployHelper = await DeployHelper.initialize(null, true);
+  const [signer] = await ethers.getSigners();
 
-  const { vcPayment } = await deployHelper.deployVCPayment(deployStrategy);
+  const parameters = await getDeploymentParameters();
+  // First implementation
+  await ignition.deploy(VCPaymentProxyModule, {
+    strategy: deployStrategy,
+    defaultSender: await signer.getAddress(),
+    parameters: parameters,
+  });
 
-  await verifyContract(await vcPayment.getAddress(), contractsInfo.VC_PAYMENT.verificationOpts);
+  // Final implementation
+  const { newImplementation, proxyAdmin, proxy } = await ignition.deploy(VCPaymentModule, {
+    strategy: deployStrategy,
+    defaultSender: await signer.getAddress(),
+    parameters: parameters,
+  });
+
+  parameters.VCPaymentAtModule = {
+    proxyAddress: proxy.target,
+    proxyAdminAddress: proxyAdmin.target,
+  };
+
+  await verifyContract(proxy.target, contractsInfo.VC_PAYMENT.verificationOpts);
+
+  await verifyContract(newImplementation.target, {
+    constructorArgsImplementation: [],
+    libraries: {},
+  });
+
+  await writeDeploymentParameters(parameters);
 }
 
 main()

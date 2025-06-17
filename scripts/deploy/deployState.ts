@@ -29,7 +29,7 @@ async function main() {
   });
 
   // Final implementation
-  const { state, proxyAdmin, groth16VerifierStateTransition, stateLib, crossChainProofValidator } =
+  const { state, proxyAdmin, groth16Verifier, stateLib, crossChainProofValidator } =
     await ignition.deploy(StateModule, {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
@@ -42,18 +42,16 @@ async function main() {
   };
 
   console.log(`CrossChainProofValidator deployed to: ${crossChainProofValidator.target}`);
-  console.log(
-    `Groth16VerifierStateTransition deployed to: ${groth16VerifierStateTransition.target}`,
-  );
+  console.log(`Groth16VerifierStateTransition deployed to: ${groth16Verifier.target}`);
   console.log(`StateLib deployed to: ${stateLib.target}`);
   console.log(`State deployed to: ${state.target}`);
 
   // if the state contract already exists we won't have new contracts deployed
   // to verify and to save the output
-  if (groth16VerifierStateTransition && stateLib && crossChainProofValidator) {
+  if (groth16Verifier && stateLib && crossChainProofValidator) {
     await verifyContract(await state.getAddress(), contractsInfo.STATE.verificationOpts);
     await verifyContract(
-      await groth16VerifierStateTransition.getAddress(),
+      await groth16Verifier.getAddress(),
       contractsInfo.GROTH16_VERIFIER_STATE_TRANSITION.verificationOpts,
     );
     await verifyContract(await stateLib.getAddress(), contractsInfo.STATE_LIB.verificationOpts);
