@@ -127,27 +127,27 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
-    "privado-main": {
+    "privado-mainnet": {
       chainId: 21000,
-      url: `${process.env.PRIVADO_MAIN_RPC_URL}`,
+      url: `${process.env.PRIVADO_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
-    "privado-test": {
+    "privado-testnet": {
       chainId: 21001,
-      url: `${process.env.PRIVADO_TEST_RPC_URL}`,
+      url: `${process.env.PRIVADO_TESTNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
-    "billions-main": {
+    "billions-mainnet": {
       chainId: 45056,
-      url: `${process.env.BILLIONS_MAIN_RPC_URL}`,
+      url: `${process.env.BILLIONS_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
-    "billions-test": {
+    "billions-testnet": {
       chainId: 6913,
-      url: `${process.env.BILLIONS_TEST_RPC_URL}`,
+      url: `${process.env.BILLIONS_TESTNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
@@ -196,18 +196,6 @@ const config: HardhatUserConfig = {
     "linea-sepolia": {
       chainId: 59141,
       url: `${process.env.LINEA_SEPOLIA_RPC_URL}`,
-      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
-    },
-    "billions-mainnet": {
-      chainId: 45056,
-      url: `${process.env.BILLIONS_MAINNET_RPC_URL}`,
-      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
-    },
-    "billions-test": {
-      chainId: 6913,
-      url: `${process.env.BILLIONS_TEST_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
