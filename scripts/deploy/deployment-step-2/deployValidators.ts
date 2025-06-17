@@ -89,10 +89,10 @@ async function main() {
     });
     if (validatorContract.verifierName && deployment.groth16Verifier) {
       console.log(
-        `${validatorContract.verifierName} deployed to: ${deployment.groth16Verifier.target}`,
+        `${validatorContract.verifierName} contract at: ${deployment.groth16Verifier.target}`,
       );
     }
-    console.log(`${validatorContract.name} deployed to: ${deployment.proxy.target}`);
+    console.log(`${validatorContract.name} upgraded: ${deployment.proxy.target}`);
   }
 
   const universalVerifier = (
