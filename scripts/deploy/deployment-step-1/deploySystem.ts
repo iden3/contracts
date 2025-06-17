@@ -57,7 +57,7 @@ async function main() {
 
   //TODO: IMPORTANT. Get your specific unified addresses first:
   // 1. Specify "DeploymentId" for your contracts in ignition/modules/params/<network>.json file
-  // 2. Run "npx hardhat test test/get-own-unified-addresses.test.ts" (remove first "skip" for the test)
+  // 2. Run "npx hardhat test test/get-own-unified-addresses.test.ts"
   // 3. Replace addresses in specific proxies "proxyAddress" in ignition/modules/params/<network>.json file
   // 4. Leave "proxyAdminAddress" as it is. It will be calculated automatically overwriten at the end of the script
   const [signer] = await ethers.getSigners();

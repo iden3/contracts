@@ -1,6 +1,6 @@
 import { contractsInfo } from "../helpers/constants";
 import { ignition } from "hardhat";
-import { Logger } from "../helpers/helperUtils";
+import { isContract, Logger } from "../helpers/helperUtils";
 import Create2AddressAnchorModule from "../ignition/modules/create2AddressAnchor";
 import { GeneralProxyModule } from "./utils/unified-contracts-utils";
 
@@ -8,9 +8,14 @@ import { GeneralProxyModule } from "./utils/unified-contracts-utils";
 const proxyAdminOwnerAddress = "0xAe15d2023A76174a940cbb2b7F44012C728B9d74";
 
 it("Calculate and check unified addresses for proxy contracts", async () => {
-  const create2AddressAnchor = (
-    await ignition.deploy(Create2AddressAnchorModule, { strategy: "create2" })
-  ).create2AddressAnchor;
+  let create2AddressAnchorAddress = contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress;
+  if (!(await isContract(create2AddressAnchorAddress))) {
+    const create2AddressAnchor = (
+      await ignition.deploy(Create2AddressAnchorModule, { strategy: "create2" })
+    ).create2AddressAnchor;
+    create2AddressAnchorAddress = create2AddressAnchor.target as string;
+  }
+
   let isCheckSuccess = true;
 
   for (const property in contractsInfo) {
@@ -22,7 +27,7 @@ it("Calculate and check unified addresses for proxy contracts", async () => {
             GeneralProxyModule: {
               create2Calldata: contractsInfo[property].create2Calldata,
               proxyAdminOwner: proxyAdminOwnerAddress,
-              create2AddressAnchorAddress: create2AddressAnchor.target as string,
+              create2AddressAnchorAddress: create2AddressAnchorAddress,
             },
           },
         })
