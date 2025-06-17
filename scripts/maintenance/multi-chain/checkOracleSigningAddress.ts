@@ -49,9 +49,7 @@ async function cycleOverProviders(expectedSigningAddress: string, addressType: "
           addressType === "main"
             ? await crossChainProofValidator.getOracleSigningAddress()
             : await crossChainProofValidator.getLegacyOracleSigningAddress();
-      } catch (error) {
-        Logger.error(`${provider.network}: Failed to retrieve oracle signing address. Error: ${error.message}`);
-      }
+      } catch (error) {}
       if (oracleSigningAddress !== expectedSigningAddress) {
         oracleSigningAddressIsValid = false;
         Logger.error(
