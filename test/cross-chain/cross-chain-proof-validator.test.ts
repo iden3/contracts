@@ -246,12 +246,18 @@ describe("Process cross-chain proof", function () {
     const gsu = await packGlobalStateUpdateWithSignature(gsm, signer2);
     const isu = await packIdentityStateUpdateWithSignature(ism, signer2);
     await crossChainProofValidator.disableLegacyOracleSigningAddress();
-    await expect(crossChainProofValidator.processGlobalStateProof(gsu)).to.be.rejectedWith(
-      "Global state proof signing address is not valid",
-    );
-    await expect(crossChainProofValidator.processIdentityStateProof(isu)).to.be.rejectedWith(
-      "Identity state proof signing address is not valid",
-    );
+    await expect(crossChainProofValidator.processGlobalStateProof(gsu))
+      .to.be.revertedWithCustomError(
+        crossChainProofValidator,
+        "GlobalStateProofSigningAddressInvalid",
+      )
+      .withArgs(signer2.address);
+    await expect(crossChainProofValidator.processIdentityStateProof(isu))
+      .to.be.revertedWithCustomError(
+        crossChainProofValidator,
+        "IdentityStateProofSigningAddressInvalid",
+      )
+      .withArgs(signer2.address);
   });
 
   it("Should fail if signed by wrong oracle signing address", async function () {
@@ -274,12 +280,18 @@ describe("Process cross-chain proof", function () {
     const gsu = await packGlobalStateUpdateWithSignature(gsm, signer3);
     const isu = await packIdentityStateUpdateWithSignature(ism, signer3);
 
-    await expect(crossChainProofValidator.processGlobalStateProof(gsu)).to.be.rejectedWith(
-      "Global state proof signing address is not valid",
-    );
-    await expect(crossChainProofValidator.processIdentityStateProof(isu)).to.be.rejectedWith(
-      "Identity state proof signing address is not valid",
-    );
+    await expect(crossChainProofValidator.processGlobalStateProof(gsu))
+      .to.be.revertedWithCustomError(
+        crossChainProofValidator,
+        "GlobalStateProofSigningAddressInvalid",
+      )
+      .withArgs(signer3.address);
+    await expect(crossChainProofValidator.processIdentityStateProof(isu))
+      .to.be.revertedWithCustomError(
+        crossChainProofValidator,
+        "IdentityStateProofSigningAddressInvalid",
+      )
+      .withArgs(signer3.address);
   });
 });
 
