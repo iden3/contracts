@@ -90,10 +90,10 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
   }); // linea-sepolia
 
 export const networks = Object.freeze({
-  PRIVADO_TEST: { name: "Privado Test", chainId: 21001 },
-  PRIVADO_MAIN: { name: "Privado Main", chainId: 21000 },
-  BILLIONS_TEST: { name: "Billions Test", chainId: 6913 },
-  BILLIONS_MAIN: { name: "Billions Main", chainId: 45056 },
+  PRIVADO_TESTNET: { name: "Privado Testnet", chainId: 21001 },
+  PRIVADO_MAINNET: { name: "Privado Mainnet", chainId: 21000 },
+  BILLIONS_TESTNET: { name: "Billions Testnet", chainId: 6913 },
+  BILLIONS_MAINNET: { name: "Billions Mainnet", chainId: 45056 },
   POLYGON_AMOY: { name: "Polygon Amoy", chainId: 80002 },
   POLYGON_MAINNET: { name: "Polygon Mainnet", chainId: 137 },
   ETHEREUM_SEPOLIA: { name: "Ethereum Sepolia", chainId: 11155111 },
@@ -102,8 +102,6 @@ export const networks = Object.freeze({
   ZKEVM_MAINNET: { name: "Zkevm Mainnet", chainId: 1101 },
   LINEA_SEPOLIA: { name: "Linea Sepolia", chainId: 59141 },
   LINEA_MAINNET: { name: "Linea Mainnet", chainId: 59144 },
-  BILLIONS_TEST: { name: "Billions Testnet", chainId: 6913 },
-  BILLIONS_MAINNET: { name: "Billions Mainnet", chainId: 45056 },
 });
 
 export const STATE_ADDRESS_POLYGON_AMOY = "0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124";
