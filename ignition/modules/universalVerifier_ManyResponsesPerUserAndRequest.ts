@@ -16,7 +16,7 @@ export const UniversalVerifierImplementationModule_ManyResponsesPerUserAndReques
     const { verifierLib } = m.useModule(VerifierLibModule);
     const state = m.useModule(StateAtModule).proxy;
 
-    const newImplementation = m.contract(
+    const implementation = m.contract(
       "UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest",
       [],
       {
@@ -28,7 +28,7 @@ export const UniversalVerifierImplementationModule_ManyResponsesPerUserAndReques
     return {
       verifierLib,
       state,
-      newImplementation,
+      implementation,
     };
   },
 );
@@ -37,13 +37,13 @@ export const UniversalVerifierTestWrapperProxyModule_ManyResponsesPerUserAndRequ
   "UniversalVerifierTestWrapperProxyModule_ManyResponsesPerUserAndRequest",
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
-    const { verifierLib, state, newImplementation } = m.useModule(
+    const { verifierLib, state, implementation } = m.useModule(
       UniversalVerifierImplementationModule_ManyResponsesPerUserAndRequest,
     );
 
     const contractOwner = m.getAccount(0);
 
-    const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [
+    const initializeData = m.encodeFunctionCall(implementation, "initialize", [
       state,
       contractOwner,
     ]);
@@ -57,12 +57,12 @@ export const UniversalVerifierTestWrapperProxyModule_ManyResponsesPerUserAndRequ
         sourceName: "",
         linkReferences: {},
       },
-      [newImplementation, proxyAdminOwner, initializeData],
+      [implementation, proxyAdminOwner, initializeData],
     );
 
     const proxyAdminAddress = m.readEventArgument(proxy, "AdminChanged", "newAdmin");
     const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
-    return { proxyAdmin, proxy, verifierLib, state };
+    return { proxyAdmin, proxy, implementation, verifierLib, state };
   },
 );
 
