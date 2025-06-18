@@ -29,6 +29,24 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   }
 });
 
+task("blockTimestamp", "Prints the block timestamp", async (taskArgs, hre) => {
+  const currentBlock = await hre.ethers.provider.getBlockNumber();
+  if (!currentBlock) {
+    console.error("Failed to get the current block number.");
+    return;
+  }
+  let block = await hre.ethers.provider.getBlock(currentBlock);
+  while (!block) {
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    block = await hre.ethers.provider.getBlock(currentBlock);
+  }
+
+  const blockTimestamp = block.timestamp;
+  console.log(blockTimestamp);
+  const date = new Date(blockTimestamp * 1000); // Date requires ms, whereas block.timestamp is in s
+  console.log(date);
+});
+
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
