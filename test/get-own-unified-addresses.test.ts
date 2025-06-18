@@ -5,7 +5,7 @@ import Create2AddressAnchorModule from "../ignition/modules/create2AddressAnchor
 import { GeneralProxyModule } from "./utils/unified-contracts-utils";
 
 // TODO: Replace here with your own proxy admin owner address
-const proxyAdminOwnerAddress = "";
+const proxyAdminOwnerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 
 it("Calculate unified addresses for proxy contracts", async () => {
   let create2AddressAnchorAddress = contractsInfo.CREATE2_ADDRESS_ANCHOR.unifiedAddress;
