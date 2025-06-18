@@ -142,10 +142,22 @@ export async function verifyContract(
 
 export function getProviders() {
   return [
-    { network: networks.PRIVADO_TEST.name, rpcUrl: process.env.PRIVADO_TEST_RPC_URL as string },
-    { network: networks.PRIVADO_MAIN.name, rpcUrl: process.env.PRIVADO_MAIN_RPC_URL as string },
-    { network: networks.BILLIONS_MAIN.name, rpcUrl: process.env.BILLIONS_MAIN_RPC_URL as string },
-    { network: networks.BILLIONS_TEST.name, rpcUrl: process.env.BILLIONS_TEST_RPC_URL as string },
+    {
+      network: networks.PRIVADO_TESTNET.name,
+      rpcUrl: process.env.PRIVADO_TESTNET_RPC_URL as string,
+    },
+    {
+      network: networks.PRIVADO_MAINNET.name,
+      rpcUrl: process.env.PRIVADO_MAINNET_RPC_URL as string,
+    },
+    {
+      network: networks.BILLIONS_TESTNET.name,
+      rpcUrl: process.env.BILLIONS_TESTNET_RPC_URL as string,
+    },
+    {
+      network: networks.BILLIONS_MAINNET.name,
+      rpcUrl: process.env.BILLIONS_MAINNET_RPC_URL as string,
+    },
     { network: networks.POLYGON_AMOY.name, rpcUrl: process.env.POLYGON_AMOY_RPC_URL as string },
     {
       network: networks.POLYGON_MAINNET.name,

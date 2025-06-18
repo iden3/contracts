@@ -1,4 +1,4 @@
-import { ethers, network, upgrades, ignition } from "hardhat";
+import { ethers, upgrades, ignition } from "hardhat";
 import { Contract, ContractTransactionResponse } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
