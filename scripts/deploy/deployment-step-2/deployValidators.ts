@@ -1,10 +1,5 @@
 import { ethers, ignition } from "hardhat";
-import {
-  getConfig,
-  getDeploymentParameters,
-  verifyContract,
-  writeDeploymentParameters,
-} from "../../../helpers/helperUtils";
+import { getConfig, getDeploymentParameters } from "../../../helpers/helperUtils";
 import CredentialAtomicQueryMTPV2ValidatorModule from "../../../ignition/modules/credentialAtomicQueryMTPV2Validator";
 import { contractsInfo } from "../../../helpers/constants";
 import CredentialAtomicQuerySigV2ValidatorModule from "../../../ignition/modules/credentialAtomicQuerySigV2Validator";
@@ -19,7 +14,6 @@ import {
   CredentialAtomicQueryV3ValidatorAtModule,
   EthIdentityValidatorAtModule,
   LinkedMultiQueryValidatorAtModule,
-  UniversalVerifierAtModule,
 } from "../../../ignition/modules/contractsAt";
 
 async function main() {
@@ -93,57 +87,6 @@ async function main() {
       );
     }
     console.log(`${validatorContract.name} upgraded: ${deployment.proxy.target}`);
-  }
-
-  const universalVerifier = (
-    await ignition.deploy(UniversalVerifierAtModule, {
-      strategy: deployStrategy,
-      defaultSender: await signer.getAddress(),
-      parameters: parameters,
-      deploymentId: deploymentId,
-    })
-  ).proxy;
-
-  for (const validator of requestValidators) {
-    const validatorDeployed = await ignition.deploy(validator.moduleAt, {
-      strategy: deployStrategy,
-      defaultSender: await signer.getAddress(),
-      parameters: parameters,
-      deploymentId: deploymentId,
-    });
-    if (!(await universalVerifier.isWhitelistedValidator(validatorDeployed.proxy.target))) {
-      await universalVerifier.addValidatorToWhitelist(validatorDeployed.proxy.target);
-      console.log(
-        `${validator.name} in address ${validatorDeployed.proxy.target} added to whitelisted validators`,
-      );
-    } else {
-      console.log(
-        `${validator.name} in address ${validatorDeployed.proxy.target} already whitelisted`,
-      );
-    }
-  }
-
-  for (const validator of authValidators) {
-    const validatorDeployed = await ignition.deploy(validator.moduleAt, {
-      strategy: deployStrategy,
-      defaultSender: await signer.getAddress(),
-      parameters: parameters,
-      deploymentId: deploymentId,
-    });
-    if (!(await universalVerifier.authMethodExists(validator.authMethod))) {
-      await universalVerifier.setAuthMethod({
-        authMethod: validator.authMethod,
-        validator: validatorDeployed.proxy.target,
-        params: "0x",
-      });
-      console.log(
-        `${validator.name} in address ${validatorDeployed.proxy.target} added to auth methods`,
-      );
-    } else {
-      console.log(
-        `${validator.name} in address ${validatorDeployed.proxy.target} already added to auth methods`,
-      );
-    }
   }
 }
 

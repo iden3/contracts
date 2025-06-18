@@ -102,6 +102,20 @@ export const UniversalVerifierAtModule = buildModule("UniversalVerifierAtModule"
   return { proxy, proxyAdmin };
 });
 
+export const UniversalVerifierTestWrapperAtModule_ManyResponsesPerUserAndRequest = buildModule(
+  "UniversalVerifierTestWrapperAtModule_ManyResponsesPerUserAndRequest",
+  (m) => {
+    const proxyAddress = m.getParameter("proxyAddress");
+    const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+    const proxy = m.contractAt(
+      "UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest",
+      proxyAddress,
+    );
+    const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+    return { proxy, proxyAdmin };
+  },
+);
+
 export const IdentityTreeStoreNewImplementationAtModule = buildModule(
   "IdentityTreeStoreNewImplementationAtModule",
   (m) => {

@@ -1,0 +1,10 @@
+{
+  "StateAtModule#ProxyAdmin": "0x937D34e8dA2A5b18888894b8733717636eaBbb89",
+  "StateAtModule#State": "0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124",
+  "VerifierLibModule#VerifierLib": "0x0F12B5a6143faa39F60c4c6504c40DBFAe0D22Da",
+  "UniversalVerifierImplementationModule_ManyResponsesPerUserAndRequest#UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest": "0x7B0FD369c4995CccAC54C3538367962591847061",
+  "UniversalVerifierTestWrapperProxyModule_ManyResponsesPerUserAndRequest#TransparentUpgradeableProxy": "0x7b04A779D9012b343fCB8B3fB5b11D6A3BFB2a5f",
+  "UniversalVerifierTestWrapperProxyModule_ManyResponsesPerUserAndRequest#ProxyAdmin": "0x30D006145CcF1ea19c4ad1F2061cfa5733D99503",
+  "UniversalVerifierTestWrapperAtModule_ManyResponsesPerUserAndRequest#ProxyAdmin": "0x30D006145CcF1ea19c4ad1F2061cfa5733D99503",
+  "UniversalVerifierTestWrapperAtModule_ManyResponsesPerUserAndRequest#UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest": "0x7b04A779D9012b343fCB8B3fB5b11D6A3BFB2a5f"
+}
