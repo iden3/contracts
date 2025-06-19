@@ -8,30 +8,35 @@ import {
 import { Contract } from "ethers";
 
 // Replace these addresses with the ones you want to test
-const universalVerifierAddress = contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress;
+const universalVerifierAddress = "0x7b04A779D9012b343fCB8B3fB5b11D6A3BFB2a5f"; //contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress;
 const validatorSigV2Address = contractsInfo.VALIDATOR_SIG.unifiedAddress;
 const validatorMTPV2Address = contractsInfo.VALIDATOR_MTP.unifiedAddress;
 const validatorV3Address = contractsInfo.VALIDATOR_V3.unifiedAddress;
 
 async function testVerification(verifier: Contract) {
-  const requestId_V3 = 7254189;
-  await setZKPRequest_KYCAgeCredential(requestId_V3, verifier, validatorV3Address, "v3");
+  const requestId_V3 = await setZKPRequest_KYCAgeCredential(verifier, validatorV3Address, "v3");
   await submitZKPResponses_KYCAgeCredential(requestId_V3, verifier, "v3", {
     stateContractAddress: await getStateContractAddress(),
     verifierContractAddress: await verifier.getAddress(),
     checkSubmitZKResponseV2: false,
   });
 
-  const requestId_SigV2 = 7254190;
-  await setZKPRequest_KYCAgeCredential(requestId_SigV2, verifier, validatorSigV2Address, "sigV2");
+  const requestId_SigV2 = await setZKPRequest_KYCAgeCredential(
+    verifier,
+    validatorSigV2Address,
+    "sigV2",
+  );
   await submitZKPResponses_KYCAgeCredential(requestId_SigV2, verifier, "sigV2", {
     stateContractAddress: await getStateContractAddress(),
     verifierContractAddress: await verifier.getAddress(),
     checkSubmitZKResponseV2: false,
   });
 
-  const requestId_MTPV2 = 7254191;
-  await setZKPRequest_KYCAgeCredential(requestId_MTPV2, verifier, validatorMTPV2Address, "mtpV2");
+  const requestId_MTPV2 = await setZKPRequest_KYCAgeCredential(
+    verifier,
+    validatorMTPV2Address,
+    "mtpV2",
+  );
   await submitZKPResponses_KYCAgeCredential(requestId_MTPV2, verifier, "mtpV2", {
     stateContractAddress: await getStateContractAddress(),
     verifierContractAddress: await verifier.getAddress(),
