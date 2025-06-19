@@ -120,7 +120,7 @@
     "contractAddress": "0xEcDB43139AD6453d88D34718AB405a693119c085"
   },
   "UniversalVerifierNewImplementationAtModule": {
-    "contractAddress": "0xF2cbff070C49643E0A6a76Fe07B985F7c6579843"
+    "contractAddress": "0xbA479DFf3877CaE4CF9E841C260cB96807B8Ec62"
   },
   "IdentityTreeStoreNewImplementationAtModule": {
     "contractAddress": "0xA6A29e61DC36a98e512A32f1Bb53AB6e2edcdd10"
@@ -163,8 +163,5 @@
   },
   "MCPaymentNewImplementationAtModule": {
     "contractAddress": "0xB175469316C6706297Cb02124c554344606Ea7eE"
-  },
-  "UniversalVerifierNewImplementation": {
-    "contractAddress": "0xbA479DFf3877CaE4CF9E841C260cB96807B8Ec62"
   }
 }

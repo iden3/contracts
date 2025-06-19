@@ -87,7 +87,7 @@ async function main() {
   parameters.VerifierLibAtModule = {
     contractAddress: verifierLib.target,
   };
-  parameters.UniversalVerifierNewImplementation = {
+  parameters.UniversalVerifierNewImplementationAtModule = {
     contractAddress: newImplementation.target,
   };
 
