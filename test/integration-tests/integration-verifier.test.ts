@@ -14,7 +14,7 @@ import {
 } from "../utils/validator-pack-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { calculateQueryHashV3 } from "../utils/query-hash-utils";
-import { TEN_YEARS } from "../../helpers/constants";
+import { contractsInfo, TEN_YEARS } from "../../helpers/constants";
 import { calculateGroupID, calculateMultiRequestId } from "../utils/id-calculation-utils";
 
 describe("Verifier Integration test", async function () {
@@ -103,7 +103,7 @@ describe("Verifier Integration test", async function () {
   async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
 
-    const verifierLib = await ethers.deployContract("VerifierLib");
+    const verifierLib = await ethers.deployContract(contractsInfo.VERIFIER_LIB.name);
     const verifier = await ethers.deployContract("VerifierTestWrapper", [], {
       libraries: {
         VerifierLib: await verifierLib.getAddress(),
