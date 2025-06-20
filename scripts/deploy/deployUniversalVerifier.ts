@@ -27,12 +27,15 @@ async function main() {
     deploymentId: deploymentId,
   });
   // Final implementation
-  const { proxyAdmin, universalVerifier } = await ignition.deploy(UniversalVerifierModule, {
-    strategy: deployStrategy,
-    defaultSender: await signer.getAddress(),
-    parameters: parameters,
-    deploymentId: deploymentId,
-  });
+  const { proxyAdmin, universalVerifier, verifierLib } = await ignition.deploy(
+    UniversalVerifierModule,
+    {
+      strategy: deployStrategy,
+      defaultSender: await signer.getAddress(),
+      parameters: parameters,
+      deploymentId: deploymentId,
+    },
+  );
 
   parameters.UniversalVerifierAtModule = {
     proxyAddress: universalVerifier.target,
@@ -45,6 +48,8 @@ async function main() {
     await universalVerifier.getAddress(),
     contractsInfo.UNIVERSAL_VERIFIER.verificationOpts,
   );
+
+  await verifyContract(await verifierLib.getAddress(), contractsInfo.VERIFIER_LIB.verificationOpts);
 
   await writeDeploymentParameters(parameters);
 }

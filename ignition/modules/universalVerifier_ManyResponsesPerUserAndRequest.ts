@@ -1,12 +1,13 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import {
+  contractsInfo,
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
 import { StateAtModule } from "./contractsAt";
 
 export const VerifierLibModule = buildModule("VerifierLibModule", (m) => {
-  const verifierLib = m.contract("VerifierLib");
+  const verifierLib = m.contract(contractsInfo.VERIFIER_LIB.name);
   return { verifierLib };
 });
 

@@ -40,7 +40,7 @@ export const SmtLibAtModule = buildModule("SmtLibAtModule", (m) => {
 
 export const VerifierLibAtModule = buildModule("VerifierLibAtModule", (m) => {
   const contractAddress = m.getParameter("contractAddress");
-  const contract = m.contractAt("VerifierLib", contractAddress);
+  const contract = m.contractAt(contractsInfo.VERIFIER_LIB.name, contractAddress);
   return { contract };
 });
 

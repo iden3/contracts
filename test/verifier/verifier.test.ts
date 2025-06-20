@@ -7,6 +7,7 @@ import {
   calculateMultiRequestId,
   calculateRequestID,
 } from "../utils/id-calculation-utils";
+import { contractsInfo } from "../../helpers/constants";
 
 describe("Verifier tests", function () {
   let sender: any;
@@ -22,7 +23,7 @@ describe("Verifier tests", function () {
     signerAddress = await signer.getAddress();
 
     const deployHelper = await DeployHelper.initialize(null, true);
-    const verifierLib = await ethers.deployContract("VerifierLib");
+    const verifierLib = await ethers.deployContract(contractsInfo.VERIFIER_LIB.name);
     const verifier = await ethers.deployContract(verifierContractName, [], {
       libraries: {
         VerifierLib: await verifierLib.getAddress(),

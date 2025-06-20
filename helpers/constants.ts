@@ -414,7 +414,15 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
-
+  VERIFIER_LIB: {
+    name: "VerifierLib",
+    unifiedAddress: "",
+    create2Calldata: "",
+    verificationOpts: {
+      constructorArgsImplementation: [],
+      libraries: {},
+    },
+  },
   EMBEDDED_VERIFIER_WRAPPER: {
     name: "EmbeddedVerifierWrapper",
     unifiedAddress: "",
