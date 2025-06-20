@@ -44,7 +44,7 @@ async function main() {
               }
             } catch (error) {
               contractsNotUpgraded.push(
-                `${contractsInfo[property].name} (Not deployed -> ${contractsInfo[property].version})`,
+                `${contractsInfo[property].name} (Create2AddressAnchor implementation -> ${contractsInfo[property].version})`,
               );
             }
           }
