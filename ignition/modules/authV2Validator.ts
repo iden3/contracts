@@ -4,14 +4,19 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
-import Create2AddressAnchorModule from "./create2AddressAnchor";
 import { Groth16VerifierAuthV2Module } from "./groth16verifiers";
-import StateModule, { StateProxyModule } from "./state";
+import {
+  AuthV2ValidatorAtModule,
+  AuthV2ValidatorNewImplementationAtModule,
+  Create2AddressAnchorAtModule,
+  Groth16VerifierAuthV2WrapperAtModule,
+  StateAtModule,
+} from "./contractsAt";
 
-export const AuthV2ValidatorProxyFirstImplementationModule = buildModule(
+const AuthV2ValidatorProxyFirstImplementationModule = buildModule(
   "AuthV2ValidatorProxyFirstImplementationModule",
   (m) => {
-    const proxyAdminOwner = m.getParameter("proxyAdminOwner"); //m.getAccount(0);
+    const proxyAdminOwner = m.getParameter("proxyAdminOwner");
 
     // This contract is supposed to be deployed to the same address across many networks,
     // so the first implementation address is a dummy contract that does nothing but accepts any calldata.
@@ -19,7 +24,7 @@ export const AuthV2ValidatorProxyFirstImplementationModule = buildModule(
     // with constant constructor arguments, so predictable init bytecode and predictable CREATE2 address.
     // Subsequent upgrades are supposed to switch this proxy to the real implementation.
 
-    const create2AddressAnchor = m.useModule(Create2AddressAnchorModule).create2AddressAnchor;
+    const create2AddressAnchor = m.useModule(Create2AddressAnchorAtModule).contract;
     const proxy = m.contract(
       "TransparentUpgradeableProxy",
       {
@@ -38,17 +43,28 @@ export const AuthV2ValidatorProxyFirstImplementationModule = buildModule(
   },
 );
 
+const AuthV2ValidatorFinalImplementationModule = buildModule(
+  "AuthV2ValidatorFinalImplementationModule",
+  (m) => {
+    const state = m.useModule(StateAtModule).proxy;
+    const { groth16VerifierAuthV2: groth16Verifier } = m.useModule(Groth16VerifierAuthV2Module);
+    const newImplementation = m.contract(contractsInfo.VALIDATOR_AUTH_V2.name);
+    return {
+      groth16Verifier,
+      state,
+      newImplementation,
+    };
+  },
+);
+
 export const AuthV2ValidatorProxyModule = buildModule("AuthV2ValidatorProxyModule", (m) => {
   const { proxy, proxyAdmin } = m.useModule(AuthV2ValidatorProxyFirstImplementationModule);
-
-  const { proxy: state } = m.useModule(StateProxyModule);
-  const { groth16VerifierAuthV2 } = m.useModule(Groth16VerifierAuthV2Module);
-
-  const newAuthV2ValidatorImpl = m.contract(contractsInfo.VALIDATOR_AUTH_V2.name);
-
+  const { newImplementation, groth16Verifier, state } = m.useModule(
+    AuthV2ValidatorFinalImplementationModule,
+  );
   return {
-    groth16VerifierAuthV2,
-    newAuthV2ValidatorImpl,
+    groth16Verifier,
+    newImplementation,
     state,
     proxyAdmin,
     proxy,
@@ -59,23 +75,24 @@ const AuthV2ValidatorProxyFinalImplementationModule = buildModule(
   "AuthV2ValidatorProxyFinalImplementationModule",
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
-    const { groth16VerifierAuthV2, newAuthV2ValidatorImpl, state, proxyAdmin, proxy } = m.useModule(
-      AuthV2ValidatorProxyModule,
-    );
+    const { proxy, proxyAdmin } = m.useModule(AuthV2ValidatorAtModule);
+    const { contract: groth16Verifier } = m.useModule(Groth16VerifierAuthV2WrapperAtModule);
+    const { contract: newImplementation } = m.useModule(AuthV2ValidatorNewImplementationAtModule);
+    const state = m.useModule(StateAtModule).proxy;
 
-    const initializeData = m.encodeFunctionCall(newAuthV2ValidatorImpl, "initialize", [
+    const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [
       state,
-      groth16VerifierAuthV2,
+      groth16Verifier,
       proxyAdminOwner,
     ]);
 
-    m.call(proxyAdmin, "upgradeAndCall", [proxy, newAuthV2ValidatorImpl, initializeData], {
+    m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
       from: proxyAdminOwner,
     });
 
     return {
-      groth16VerifierAuthV2,
-      newAuthV2ValidatorImpl,
+      groth16Verifier,
+      newImplementation,
       proxyAdmin,
       proxy,
     };
@@ -83,7 +100,7 @@ const AuthV2ValidatorProxyFinalImplementationModule = buildModule(
 );
 
 const AuthV2ValidatorModule = buildModule("AuthV2ValidatorModule", (m) => {
-  const { groth16VerifierAuthV2, newAuthV2ValidatorImpl, proxyAdmin, proxy } = m.useModule(
+  const { groth16Verifier, newImplementation, proxyAdmin, proxy } = m.useModule(
     AuthV2ValidatorProxyFinalImplementationModule,
   );
 
@@ -91,8 +108,8 @@ const AuthV2ValidatorModule = buildModule("AuthV2ValidatorModule", (m) => {
 
   return {
     authV2Validator,
-    groth16VerifierAuthV2,
-    newAuthV2ValidatorImpl,
+    groth16Verifier,
+    newImplementation,
     proxyAdmin,
     proxy,
   };

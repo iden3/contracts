@@ -84,7 +84,7 @@ export class OnchainIdentityDeployHelper {
     });
     const il = await Identity.deploy();
     await il.waitForDeployment();
-    this.enableLogging && this.log(`ClaimBuilder deployed to: ${await il.getAddress()}`);
+    this.enableLogging && this.log(`IdentityLib deployed to: ${await il.getAddress()}`);
 
     return il;
   }

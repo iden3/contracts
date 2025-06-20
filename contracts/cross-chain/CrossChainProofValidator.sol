@@ -12,6 +12,7 @@ error GlobalStateProofSigningAddressInvalid(address recovered);
 error IdentityStateProofSigningAddressInvalid(address recovered);
 error OracleTimestampCannotBeInThePast();
 error OracleReplacedAtTimestampCannotBeInTheFuture();
+error OracleSigningAddressShouldNotBeZero();
 
 /**
  * @dev Contract which provides proof validation from identity state
@@ -19,8 +20,6 @@ error OracleReplacedAtTimestampCannotBeInTheFuture();
  */
 contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator {
     using ECDSA for bytes32;
-
-    error OracleSigningAddressShouldNotBeZero();
 
     bytes32 public constant TYPE_HASH =
         keccak256(
@@ -43,6 +42,7 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
     uint256 public constant MAX_REPLACED_AT_AHEAD_OF_TIME = 5 minutes;
 
     address private _oracleSigningAddress;
+    address private _legacyOracleSigningAddress;
 
     function _checkOracleSigningAddress(address oracleSigningAddress) internal pure {
         if (oracleSigningAddress == address(0)) {
@@ -84,6 +84,30 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
     }
 
     /**
+     * @dev Gets the legacy oracle signing address.
+     **/
+    function setLegacyOracleSigningAddress(address legacyOracleSigningAddress) public onlyOwner {
+        _checkOracleSigningAddress(legacyOracleSigningAddress);
+        _legacyOracleSigningAddress = legacyOracleSigningAddress;
+    }
+
+    /**
+     * @dev Gets the legacy oracle signing address.
+     * @return The legacy oracle signing address
+     **/
+    function getLegacyOracleSigningAddress() public view returns (address) {
+        return _legacyOracleSigningAddress;
+    }
+
+    /**
+     * @dev Disables the legacy oracle signing address.
+     * This function sets the legacy oracle signing address to zero address.
+     **/
+    function disableLegacyOracleSigningAddress() public onlyOwner {
+        _legacyOracleSigningAddress = address(0);
+    }
+
+    /**
      * @dev Verifies global state proof and signer
      * @param globalStateProof The global state proof
      * @return The result of the global state proof verification
@@ -103,7 +127,7 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
         if (!isValid) {
             revert GlobalStateProofInvalid();
         }
-        if (recovered != _oracleSigningAddress) {
+        if (recovered != _oracleSigningAddress && recovered != _legacyOracleSigningAddress) {
             revert GlobalStateProofSigningAddressInvalid(recovered);
         }
 
@@ -138,7 +162,7 @@ contract CrossChainProofValidator is Ownable, EIP712, ICrossChainProofValidator 
         if (!isValid) {
             revert IdentityStateProofInvalid();
         }
-        if (recovered != _oracleSigningAddress) {
+        if (recovered != _oracleSigningAddress && recovered != _legacyOracleSigningAddress) {
             revert IdentityStateProofSigningAddressInvalid(recovered);
         }
 

@@ -4,12 +4,16 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
-import Create2AddressAnchorModule from "./create2AddressAnchor";
+import {
+  Create2AddressAnchorAtModule,
+  EthIdentityValidatorAtModule,
+  EthIdentityValidatorNewImplementationAtModule,
+} from "./contractsAt";
 
-export const EthIdentityValidatorProxyFirstImplementationModule = buildModule(
+const EthIdentityValidatorProxyFirstImplementationModule = buildModule(
   "EthIdentityValidatorProxyFirstImplementationModule",
   (m) => {
-    const proxyAdminOwner = m.getParameter("proxyAdminOwner"); //m.getAccount(0);
+    const proxyAdminOwner = m.getParameter("proxyAdminOwner");
 
     // This contract is supposed to be deployed to the same address across many networks,
     // so the first implementation address is a dummy contract that does nothing but accepts any calldata.
@@ -17,7 +21,7 @@ export const EthIdentityValidatorProxyFirstImplementationModule = buildModule(
     // with constant constructor arguments, so predictable init bytecode and predictable CREATE2 address.
     // Subsequent upgrades are supposed to switch this proxy to the real implementation.
 
-    const create2AddressAnchor = m.useModule(Create2AddressAnchorModule).create2AddressAnchor;
+    const create2AddressAnchor = m.useModule(Create2AddressAnchorAtModule).contract;
     const proxy = m.contract(
       "TransparentUpgradeableProxy",
       {
@@ -36,15 +40,23 @@ export const EthIdentityValidatorProxyFirstImplementationModule = buildModule(
   },
 );
 
+const EthIdentityValidatorFinalImplementationModule = buildModule(
+  "EthIdentityValidatorFinalImplementationModule",
+  (m) => {
+    const newImplementation = m.contract(contractsInfo.VALIDATOR_ETH_IDENTITY.name);
+    return {
+      newImplementation,
+    };
+  },
+);
+
 export const EthIdentityValidatorProxyModule = buildModule(
   "EthIdentityValidatorProxyModule",
   (m) => {
     const { proxy, proxyAdmin } = m.useModule(EthIdentityValidatorProxyFirstImplementationModule);
-
-    const newEthIdentityValidatorImpl = m.contract(contractsInfo.VALIDATOR_ETH_IDENTITY.name);
-
+    const { newImplementation } = m.useModule(EthIdentityValidatorFinalImplementationModule);
     return {
-      newEthIdentityValidatorImpl,
+      newImplementation,
       proxyAdmin,
       proxy,
     };
@@ -55,20 +67,19 @@ const EthIdentityValidatorProxyFinalImplementationModule = buildModule(
   "EthIdentityValidatorProxyFinalImplementationModule",
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
-    const { newEthIdentityValidatorImpl, proxyAdmin, proxy } = m.useModule(
-      EthIdentityValidatorProxyModule,
+    const { proxy, proxyAdmin } = m.useModule(EthIdentityValidatorAtModule);
+    const { contract: newImplementation } = m.useModule(
+      EthIdentityValidatorNewImplementationAtModule,
     );
 
-    const initializeData = m.encodeFunctionCall(newEthIdentityValidatorImpl, "initialize", [
-      proxyAdminOwner,
-    ]);
+    const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [proxyAdminOwner]);
 
-    m.call(proxyAdmin, "upgradeAndCall", [proxy, newEthIdentityValidatorImpl, initializeData], {
+    m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
       from: proxyAdminOwner,
     });
 
     return {
-      newEthIdentityValidatorImpl,
+      newImplementation,
       proxyAdmin,
       proxy,
     };
@@ -76,7 +87,7 @@ const EthIdentityValidatorProxyFinalImplementationModule = buildModule(
 );
 
 const EthIdentityValidatorModule = buildModule("EthIdentityValidatorModule", (m) => {
-  const { newEthIdentityValidatorImpl, proxyAdmin, proxy } = m.useModule(
+  const { newImplementation, proxyAdmin, proxy } = m.useModule(
     EthIdentityValidatorProxyFinalImplementationModule,
   );
 
@@ -84,7 +95,7 @@ const EthIdentityValidatorModule = buildModule("EthIdentityValidatorModule", (m)
 
   return {
     ethIdentityValidator,
-    newEthIdentityValidatorImpl,
+    newImplementation,
     proxyAdmin,
     proxy,
   };

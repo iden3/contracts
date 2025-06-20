@@ -3,11 +3,13 @@ import { ethers } from "hardhat";
 
 export const DEFAULT_MNEMONIC = "test test test test test test test test test test test junk";
 
-const ORACLE_SIGNING_ADDRESS_HARDHAT = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-// TEST networks Oracle signing address (For now we will use in testnets the same production signing address)
-export const ORACLE_SIGNING_ADDRESS_TEST = "0x3e1cFE1b83E7C1CdB0c9558236c1f6C7B203C34e";
+export const ORACLE_SIGNING_ADDRESS_HARDHAT = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+export const LEGACY_ORACLE_SIGNING_ADDRESS_HARDHAT = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
+
 // PRODUCTION networks Oracle signing address
-export const ORACLE_SIGNING_ADDRESS_PRODUCTION = "0xf0Ae6D287aF14f180E1FAfe3D2CB62537D7b1A82";
+export const ORACLE_SIGNING_ADDRESS_PRODUCTION = "0x0aD316c6D3F29B76cBd8f5a1ED5e3990c6B5174C";
+export const LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION =
+  "0xf0Ae6D287aF14f180E1FAfe3D2CB62537D7b1A82";
 
 type ChainIdInfo = {
   idType: string;
@@ -88,10 +90,10 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
   }); // linea-sepolia
 
 export const networks = Object.freeze({
-  PRIVADO_TEST: { name: "Privado Test", chainId: 21001 },
-  PRIVADO_MAIN: { name: "Privado Main", chainId: 21000 },
-  BILLIONS_TEST: { name: "Billions Test", chainId: 6913 },
-  BILLIONS_MAIN: { name: "Billions Main", chainId: 45056 },
+  PRIVADO_TESTNET: { name: "Privado Testnet", chainId: 21001 },
+  PRIVADO_MAINNET: { name: "Privado Mainnet", chainId: 21000 },
+  BILLIONS_TESTNET: { name: "Billions Testnet", chainId: 6913 },
+  BILLIONS_MAINNET: { name: "Billions Mainnet", chainId: 45056 },
   POLYGON_AMOY: { name: "Polygon Amoy", chainId: 80002 },
   POLYGON_MAINNET: { name: "Polygon Mainnet", chainId: 137 },
   ETHEREUM_SEPOLIA: { name: "Ethereum Sepolia", chainId: 11155111 },
@@ -129,7 +131,7 @@ export const contractsInfo = Object.freeze({
       constructorArgsProxy: [
         "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
         "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
-        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier.v2")),
       ],
       constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
       libraries: {},
@@ -145,7 +147,7 @@ export const contractsInfo = Object.freeze({
       constructorArgsProxy: [
         "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
         "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
-        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.State")),
       ],
       constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
       libraries: {},
@@ -163,7 +165,7 @@ export const contractsInfo = Object.freeze({
       constructorArgsProxy: [
         "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
         "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
-        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQuerySigV2Validator.v3")),
       ],
       constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
       libraries: {},
@@ -181,7 +183,7 @@ export const contractsInfo = Object.freeze({
       constructorArgsProxy: [
         "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
         "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
-        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryMTPV2Validator.v3")),
       ],
       constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
       libraries: {},
@@ -199,7 +201,7 @@ export const contractsInfo = Object.freeze({
       constructorArgsProxy: [
         "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
         "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
-        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3Validator.v3")),
       ],
       constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
       libraries: {},
@@ -215,7 +217,7 @@ export const contractsInfo = Object.freeze({
       constructorArgsProxy: [
         "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
         "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
-        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.LinkedMultiQueryValidator")),
       ],
       constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7f44012c728b9d74"],
       libraries: {},
@@ -231,7 +233,7 @@ export const contractsInfo = Object.freeze({
       constructorArgsProxy: [
         "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
         "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
-        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.AuthV2Validator")),
       ],
       constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
       libraries: {},
@@ -263,7 +265,7 @@ export const contractsInfo = Object.freeze({
       constructorArgsProxy: [
         "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
         "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
-        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.IdentityTreeStore")),
       ],
       constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
       libraries: {},
@@ -276,6 +278,11 @@ export const contractsInfo = Object.freeze({
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.VCPayment")),
     verificationOpts: {
       constructorArgsImplementation: [],
+      constructorArgsProxy: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.VCPayment")),
+      ],
       libraries: {},
     },
   },
@@ -407,7 +414,15 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
-
+  VERIFIER_LIB: {
+    name: "VerifierLib",
+    unifiedAddress: "",
+    create2Calldata: "",
+    verificationOpts: {
+      constructorArgsImplementation: [],
+      libraries: {},
+    },
+  },
   EMBEDDED_VERIFIER_WRAPPER: {
     name: "EmbeddedVerifierWrapper",
     unifiedAddress: "",
