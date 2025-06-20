@@ -208,7 +208,8 @@ async function main() {
       deploymentId: deploymentId,
     });
     if (!(await universalVerifier.isWhitelistedValidator(validatorDeployed.proxy.target))) {
-      await universalVerifier.addValidatorToWhitelist(validatorDeployed.proxy.target);
+      const tx = await universalVerifier.addValidatorToWhitelist(validatorDeployed.proxy.target);
+      await tx.wait();
       console.log(
         `${validator.name} in address ${validatorDeployed.proxy.target} added to whitelisted validators`,
       );
@@ -227,11 +228,12 @@ async function main() {
       deploymentId: deploymentId,
     });
     if (!(await universalVerifier.authMethodExists(validator.authMethod))) {
-      await universalVerifier.setAuthMethod({
+      const tx = await universalVerifier.setAuthMethod({
         authMethod: validator.authMethod,
         validator: validatorDeployed.proxy.target,
         params: "0x",
       });
+      await tx.wait();
       console.log(
         `${validator.name} in address ${validatorDeployed.proxy.target} added to auth methods`,
       );
