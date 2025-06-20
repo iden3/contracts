@@ -35,7 +35,10 @@ async function main() {
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
 
+  //TODO put proxyAddress and proxyAdminAddress values if using testWrapper option
   const universalVerifierOrTestWrapper: "universalVerifier" | "testWrapper" = "universalVerifier";
+  const proxyAddress = "<put address of universal verifier test wrapper>";
+  const proxyAdminAddress = "<put address of universal verifier test address proxy admin>";
 
   const [signer] = await ethers.getSigners();
 
@@ -104,8 +107,8 @@ async function main() {
   } else {
     parameters = Object.assign(parameters, {
       UniversalVerifierTestWrapperAtModule_ManyResponsesPerUserAndRequest: {
-        proxyAddress: "<put address of universal verifier test wrapper>",
-        proxyAdminAddress: "<put address of universal verifier test address proxy admin>",
+        proxyAddress: proxyAddress,
+        proxyAdminAddress: proxyAdminAddress,
       },
     });
     const deploymentId = `chain-${await getChainId()}-many-responses-per-user-and-request`;
