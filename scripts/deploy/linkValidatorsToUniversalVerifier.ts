@@ -127,10 +127,11 @@ async function main() {
       parameters: parameters,
     });
     if (!(await universalVerifier.isWhitelistedValidator(validatorDeployed.proxy.target))) {
-      await universalVerifier.addValidatorToWhitelist(validatorDeployed.proxy.target);
+      const tx = await universalVerifier.addValidatorToWhitelist(validatorDeployed.proxy.target);
       console.log(
         `${validator.name} in address ${validatorDeployed.proxy.target} added to whitelisted validators`,
       );
+      await tx.wait();
     } else {
       console.log(
         `${validator.name} in address ${validatorDeployed.proxy.target} already whitelisted`,
@@ -145,11 +146,12 @@ async function main() {
       parameters: parameters,
     });
     if (!(await universalVerifier.authMethodExists(validator.authMethod))) {
-      await universalVerifier.setAuthMethod({
+      const tx = await universalVerifier.setAuthMethod({
         authMethod: validator.authMethod,
         validator: validatorDeployed.proxy.target,
         params: "0x",
       });
+      await tx.wait();
       console.log(
         `${validator.name} in address ${validatorDeployed.proxy.target} added to auth methods`,
       );
