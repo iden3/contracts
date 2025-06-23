@@ -59,7 +59,7 @@
   },
   "StateAtModule": {
     "proxyAddress": "0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124",
-    "proxyAdminAddress": "0x937D34e8dA2A5b18888894b8733717636eaBbb89"
+    "proxyAdminAddress": "0xdc2A724E6bd60144Cde9DEC0A38a26C619d84B90"
   },
   "UniversalVerifierAtModule": {
     "proxyAddress": "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
