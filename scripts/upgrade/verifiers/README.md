@@ -14,7 +14,8 @@ The verifier upgrade script executes:
     ```bash
     ./dl_circuits.sh
     ```
-2. Configure the network you want to upgrade in `hardhat.config.ts` and execute upgrade script.
+2. The module with corresponding version for the upgrade will be defined by the contract version.
+3. Configure the network you want to upgrade in `hardhat.config.ts` and execute upgrade script.
 Example in amoy:
     ```bash
     npx hardhat run scripts/upgrade/verifiers/universal-verifier-upgrade.ts --network amoy
