@@ -143,6 +143,12 @@ function getParamsFromChainId(chainId: number) {
   let networkId: string;
 
   switch (chainId) {
+    case 31337:
+      rpcUrl = "http://localhost:8545";
+      method = DidMethod.Iden3;
+      blockchain = Blockchain.Polygon;
+      networkId = NetworkId.Amoy;
+      break;
     case 80002:
       rpcUrl = process.env.POLYGON_AMOY_RPC_URL as string;
       method = DidMethod.Iden3;
