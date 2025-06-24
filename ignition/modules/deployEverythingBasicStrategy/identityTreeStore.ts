@@ -5,14 +5,14 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../../helpers/constants";
 import { Poseidon2Module, Poseidon3Module } from "./libraries";
-import State from "./state";
+import StateModule from "./state";
 
 const IdentityTreeStoreImplementationModule = buildModule(
   "IdentityTreeStoreImplementationModule",
   (m) => {
     const poseidon2 = m.useModule(Poseidon2Module).poseidon;
     const poseidon3 = m.useModule(Poseidon3Module).poseidon;
-    const state = m.useModule(State).proxy;
+    const state = m.useModule(StateModule).state;
 
     const implementation = m.contract(contractsInfo.IDENTITY_TREE_STORE.name, [], {
       libraries: {

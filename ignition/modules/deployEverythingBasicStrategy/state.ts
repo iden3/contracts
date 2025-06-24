@@ -82,4 +82,10 @@ const StateProxyModule = buildModule("StateProxyModule", (m) => {
   return { proxy };
 });
 
-export default StateProxyModule;
+const StateModule = buildModule("StateModule", (m) => {
+  const { proxy } = m.useModule(StateProxyModule);
+  const state = m.contractAt(contractsInfo.STATE.name, proxy);
+  return { state };
+});
+
+export default StateModule;

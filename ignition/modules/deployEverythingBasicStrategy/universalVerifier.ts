@@ -4,7 +4,7 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../../helpers/constants";
-import StateProxyModule from "./state";
+import StateModule from "./state";
 
 const VerifierLibModule = buildModule("VerifierLibModule", (m) => {
   const verifierLib = m.contract(contractsInfo.VERIFIER_LIB.name);
@@ -28,7 +28,7 @@ const UniversalVerifierImplementationModule = buildModule(
 
 const UniversalVerifierProxyModule = buildModule("UniversalVerifierProxyModule", (m) => {
   const { implementation } = m.useModule(UniversalVerifierImplementationModule);
-  const state = m.useModule(StateProxyModule).proxy;
+  const state = m.useModule(StateModule).state;
 
   const proxyAdminOwner = m.getAccount(0);
   const contractOwner = m.getAccount(0);

@@ -20,6 +20,9 @@ async function main() {
     parameters: params,
     deploymentId: `chain-${await getChainId()}-simple-deploy-basic-strategy`,
     displayUi: true,
+    config: {
+      blockPollingInterval: 1000,
+    },
   });
 }
 

@@ -5,7 +5,7 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../../helpers/constants";
 import { Groth16VerifierV3Module } from "./groth16verifiers";
-import State from "./state";
+import StateModule from "./state";
 
 const CredentialAtomicQueryV3ValidatorImplementationModule = buildModule(
   "CredentialAtomicQueryV3ValidatorProxyFirstImplementationModule",
@@ -22,7 +22,7 @@ const CredentialAtomicQueryV3ValidatorProxyModule = buildModule(
   (m) => {
     const { implementation } = m.useModule(CredentialAtomicQueryV3ValidatorImplementationModule);
     const { groth16VerifierV3 } = m.useModule(Groth16VerifierV3Module);
-    const state = m.useModule(State).proxy;
+    const state = m.useModule(StateModule).state;
 
     const proxyAdminOwner = m.getAccount(0);
     const contractOwner = m.getAccount(0);
