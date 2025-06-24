@@ -10,7 +10,7 @@ import IdentityTreeStoreModule from "./identityTreeStore";
 import MCPayment from "./mcPayment";
 import VCPaymentModule from "./vcPayment";
 
-const Everything = buildModule("Create2AddressAnchorModule", (m) => {
+const DeployEverythingBasicStrategy = buildModule("Create2AddressAnchorModule", (m) => {
   const { universalVerifier } = m.useModule(UniversalVerifierModule);
 
   const { credentialAtomicQueryMTPV2Validator } = m.useModule(
@@ -63,6 +63,8 @@ const Everything = buildModule("Create2AddressAnchorModule", (m) => {
       from: contractOwner,
     },
   );
+
+  return {};
 });
 
-export default Everything;
+export default DeployEverythingBasicStrategy;

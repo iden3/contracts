@@ -1,6 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { poseidonContract } from "circomlibjs";
-import { Poseidon2AtModule, Poseidon3AtModule } from "./contractsAt";
 
 export const Poseidon1Module = buildModule("Poseidon1Module", (m) => {
   const nInputs = 1;
