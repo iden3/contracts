@@ -6,9 +6,13 @@ import CredentialAtomicQueryV3ValidatorModule from "./credentialAtomicQueryV3Val
 import LinkedMultiQueryValidatorModule from "./linkedMultiQueryValidator";
 import EthIdentityValidatorModule from "./ethIdentityValidator";
 import AuthV2ValidatorModule from "./authV2Validator";
+import IdentityTreeStoreModule from "./identityTreeStore";
+import MCPayment from "./mcPayment";
+import VCPaymentModule from "./vcPayment";
 
 const Everything = buildModule("Create2AddressAnchorModule", (m) => {
   const { universalVerifier } = m.useModule(UniversalVerifierModule);
+
   const { credentialAtomicQueryMTPV2Validator } = m.useModule(
     CredentialAtomicQueryMTPV2ValidatorModule,
   );
@@ -19,6 +23,9 @@ const Everything = buildModule("Create2AddressAnchorModule", (m) => {
   const { linkedMultiQueryValidator } = m.useModule(LinkedMultiQueryValidatorModule);
   const { ethIdentityValidator } = m.useModule(EthIdentityValidatorModule);
   const { authV2Validator } = m.useModule(AuthV2ValidatorModule);
+  m.useModule(IdentityTreeStoreModule);
+  m.useModule(MCPayment);
+  m.useModule(VCPaymentModule);
 
   const contractOwner = m.getAccount(0);
 
