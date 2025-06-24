@@ -1,6 +1,7 @@
 import { ignition } from "hardhat";
 import DeployEverythingBasicStrategy from "../../ignition/modules/deployEverythingBasicStrategy/deployEverythingBasicStrategy";
-import { getDefaultIdType } from "../../helpers/helperUtils";
+import { getChainId, getDefaultIdType } from "../../helpers/helperUtils";
+import { ORACLE_SIGNING_ADDRESS_PRODUCTION } from "../../helpers/constants";
 
 async function main() {
   const params = {
@@ -8,7 +9,7 @@ async function main() {
       defaultIdType: (await getDefaultIdType()).defaultIdType,
     },
     CrossChainProofValidatorModule: {
-      oracleSigningAddress: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
     },
     MCPaymentProxyModule: {
       ownerPercentage: 10,
@@ -17,6 +18,8 @@ async function main() {
 
   await ignition.deploy(DeployEverythingBasicStrategy, {
     parameters: params,
+    deploymentId: `chain-${await getChainId()}-simple-deploy-basic-strategy`,
+    displayUi: true,
   });
 }
 
