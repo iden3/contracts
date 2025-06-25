@@ -7,11 +7,20 @@ import LinkedMultiQueryValidatorModule from "./linkedMultiQueryValidator";
 import EthIdentityValidatorModule from "./ethIdentityValidator";
 import AuthV2ValidatorModule from "./authV2Validator";
 import IdentityTreeStoreModule from "./identityTreeStore";
-import MCPayment from "./mcPayment";
+import MCPaymentModule from "./mcPayment";
 import VCPaymentModule from "./vcPayment";
 
 const DeployEverythingBasicStrategy = buildModule("Create2AddressAnchorModule", (m) => {
-  const { universalVerifier } = m.useModule(UniversalVerifierModule);
+  const {
+    universalVerifier,
+    universalVerifierImplementation,
+    verifierLib,
+    state,
+    stateImplementation,
+    crossChainProofValidator,
+    stateLib,
+    smtLib,
+  } = m.useModule(UniversalVerifierModule);
 
   const { credentialAtomicQueryMTPV2Validator } = m.useModule(
     CredentialAtomicQueryMTPV2ValidatorModule,
@@ -23,9 +32,9 @@ const DeployEverythingBasicStrategy = buildModule("Create2AddressAnchorModule", 
   const { linkedMultiQueryValidator } = m.useModule(LinkedMultiQueryValidatorModule);
   const { ethIdentityValidator } = m.useModule(EthIdentityValidatorModule);
   const { authV2Validator } = m.useModule(AuthV2ValidatorModule);
-  m.useModule(IdentityTreeStoreModule);
-  m.useModule(MCPayment);
-  m.useModule(VCPaymentModule);
+  const { identityTreeStore } = m.useModule(IdentityTreeStoreModule);
+  const { MCPayment } = m.useModule(MCPaymentModule);
+  const { VCPayment } = m.useModule(VCPaymentModule);
 
   const contractOwner = m.getAccount(0);
 
@@ -64,7 +73,25 @@ const DeployEverythingBasicStrategy = buildModule("Create2AddressAnchorModule", 
     },
   );
 
-  return {};
+  return {
+    universalVerifier,
+    universalVerifierImplementation,
+    verifierLib,
+    state,
+    stateImplementation,
+    crossChainProofValidator,
+    stateLib,
+    smtLib,
+    identityTreeStore,
+    credentialAtomicQuerySigV2Validator,
+    credentialAtomicQueryMTPV2Validator,
+    credentialAtomicQueryV3Validator,
+    linkedMultiQueryValidator,
+    ethIdentityValidator,
+    authV2Validator,
+    MCPayment,
+    VCPayment,
+  };
 });
 
 export default DeployEverythingBasicStrategy;
