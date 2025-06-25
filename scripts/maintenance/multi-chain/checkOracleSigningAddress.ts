@@ -7,13 +7,14 @@ import {
 import {
   contractsInfo,
   DEFAULT_MNEMONIC,
+  LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION,
   ORACLE_SIGNING_ADDRESS_PRODUCTION,
 } from "../../../helpers/constants";
 import { ethers } from "hardhat";
 
 const mnemonicWallet = ethers.Wallet.fromPhrase(DEFAULT_MNEMONIC);
 
-async function main() {
+async function cycleOverProviders(expectedSigningAddress: string, addressType: "main" | "legacy") {
   const providers = getProviders();
 
   for (const provider of providers) {
@@ -24,10 +25,10 @@ async function main() {
     );
 
     let oracleSigningAddressIsValid = true;
-    const defaultOracleSigningAddress = ORACLE_SIGNING_ADDRESS_PRODUCTION; // production signing address
 
     if (!(await isContract(stateContractAddress, jsonRpcProvider))) {
       oracleSigningAddressIsValid = false;
+      Logger.error(`${provider.network}: ${stateContractAddress} is not a contract`);
     } else {
       const wallet = new ethers.Wallet(mnemonicWallet.privateKey, jsonRpcProvider);
       const state = await ethers.getContractAt(
@@ -44,19 +45,38 @@ async function main() {
           crossChainProofValidatorAddress,
           wallet,
         );
-        oracleSigningAddress = await crossChainProofValidator.getOracleSigningAddress();
+        oracleSigningAddress =
+          addressType === "main"
+            ? await crossChainProofValidator.getOracleSigningAddress()
+            : await crossChainProofValidator.getLegacyOracleSigningAddress();
       } catch (error) {}
-      if (oracleSigningAddress !== defaultOracleSigningAddress) {
+      if (oracleSigningAddress !== expectedSigningAddress) {
         oracleSigningAddressIsValid = false;
+        Logger.error(
+          `${provider.network}: Oracle ${addressType} signing address is not valid. Expected: ${expectedSigningAddress}. Actual: ${oracleSigningAddress}`,
+        );
       }
     }
 
-    if (!oracleSigningAddressIsValid) {
-      Logger.error(`${provider.network}: Oracle signing address is not valid`);
-    } else {
-      Logger.success(`${provider.network}: Oracle signing address is valid`);
+    if (oracleSigningAddressIsValid) {
+      Logger.success(
+        `${provider.network}: Oracle ${addressType} signing address is valid: ${expectedSigningAddress}`,
+      );
     }
   }
+}
+
+async function main() {
+  const addr = ORACLE_SIGNING_ADDRESS_PRODUCTION;
+  const addr2 = LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION;
+  console.log(
+    `\nChecking Oracle signing address: ${addr}\n=====================================================================================`,
+  );
+  await cycleOverProviders(addr, "main");
+  console.log(
+    `\nChecking Legacy Oracle signing address: ${addr2}\n=====================================================================================`,
+  );
+  await cycleOverProviders(addr2, "legacy");
 }
 
 main()

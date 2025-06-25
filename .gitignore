@@ -16,3 +16,5 @@ scripts/upgrade/verifiers/helpers/circuits
 **localhost.json
 **temp*.json
 !ignition/modules/params/localhost.json
+!ignition/deployments/**/artifacts
+ignition/deployments/chain-31337

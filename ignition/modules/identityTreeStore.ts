@@ -4,21 +4,26 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
-import Create2AddressAnchorModule from "./create2AddressAnchor";
-import { Poseidon2Module, Poseidon3Module } from "./libraries";
-import StateModule, { StateProxyModule } from "./state";
+import {
+  Create2AddressAnchorAtModule,
+  IdentityTreeStoreAtModule,
+  IdentityTreeStoreNewImplementationAtModule,
+  Poseidon2AtModule,
+  Poseidon3AtModule,
+  StateAtModule,
+} from "./contractsAt";
 
-export const IdentityTreeStoreProxyFirstImplementationModule = buildModule(
+const IdentityTreeStoreProxyFirstImplementationModule = buildModule(
   "IdentityTreeStoreProxyFirstImplementationModule",
   (m) => {
-    const proxyAdminOwner = m.getParameter("proxyAdminOwner"); //m.getAccount(0);
+    const proxyAdminOwner = m.getParameter("proxyAdminOwner");
 
     // This contract is supposed to be deployed to the same address across many networks,
     // so the first implementation address is a dummy contract that does nothing but accepts any calldata.
     // Therefore, it is a mechanism to deploy TransparentUpgradeableProxy contract
     // with constant constructor arguments, so predictable init bytecode and predictable CREATE2 address.
     // Subsequent upgrades are supposed to switch this proxy to the real implementation.
-    const create2AddressAnchor = m.useModule(Create2AddressAnchorModule).create2AddressAnchor;
+    const create2AddressAnchor = m.useModule(Create2AddressAnchorAtModule).contract;
 
     const proxy = m.contract(
       "TransparentUpgradeableProxy",
@@ -38,40 +43,58 @@ export const IdentityTreeStoreProxyFirstImplementationModule = buildModule(
   },
 );
 
+export const IdentityTreeStoreFinalImplementationModule = buildModule(
+  "IdentityTreeStoreFinalImplementationModule",
+  (m) => {
+    const poseidon2 = m.useModule(Poseidon2AtModule).contract;
+    const poseidon3 = m.useModule(Poseidon3AtModule).contract;
+    const state = m.useModule(StateAtModule).proxy;
+
+    const newImplementation = m.contract(contractsInfo.IDENTITY_TREE_STORE.name, [], {
+      libraries: {
+        PoseidonUnit2L: poseidon2,
+        PoseidonUnit3L: poseidon3,
+      },
+    });
+
+    return {
+      poseidon2,
+      poseidon3,
+      state,
+      newImplementation,
+    };
+  },
+);
+
 export const IdentityTreeStoreProxyModule = buildModule("IdentityTreeStoreProxyModule", (m) => {
   const { proxy, proxyAdmin } = m.useModule(IdentityTreeStoreProxyFirstImplementationModule);
-
-  const poseidon2 = m.useModule(Poseidon2Module).poseidon;
-  const poseidon3 = m.useModule(Poseidon3Module).poseidon;
-  const { proxy: state } = m.useModule(StateProxyModule);
-
-  const newIdentityTreeStoreImpl = m.contract(contractsInfo.IDENTITY_TREE_STORE.name, [], {
-    libraries: {
-      PoseidonUnit2L: poseidon2,
-      PoseidonUnit3L: poseidon3,
-    },
-  });
-
+  const { poseidon2, poseidon3, state, newImplementation } = m.useModule(
+    IdentityTreeStoreFinalImplementationModule,
+  );
   return {
     poseidon2,
     poseidon3,
     state,
-    newIdentityTreeStoreImpl,
+    newImplementation,
     proxyAdmin,
     proxy,
   };
 });
 
-export const IdentityTreeStoreProxyFinalImplementationModule = buildModule(
+const IdentityTreeStoreProxyFinalImplementationModule = buildModule(
   "IdentityTreeStoreProxyFinalImplementationModule",
   (m) => {
-    const { poseidon2, poseidon3, state, newIdentityTreeStoreImpl, proxyAdmin, proxy } =
-      m.useModule(IdentityTreeStoreProxyModule);
+    const { proxy, proxyAdmin } = m.useModule(IdentityTreeStoreAtModule);
+    const poseidon2 = m.useModule(Poseidon2AtModule).contract;
+    const poseidon3 = m.useModule(Poseidon3AtModule).contract;
+    const state = m.useModule(StateAtModule).proxy;
+    const { contract: newImplementation } = m.useModule(IdentityTreeStoreNewImplementationAtModule);
+
     const proxyAdminOwner = m.getAccount(0);
 
-    const initializeData = m.encodeFunctionCall(newIdentityTreeStoreImpl, "initialize", [state]);
+    const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [state]);
 
-    m.call(proxyAdmin, "upgradeAndCall", [proxy, newIdentityTreeStoreImpl, initializeData], {
+    m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
       from: proxyAdminOwner,
     });
 
@@ -79,7 +102,7 @@ export const IdentityTreeStoreProxyFinalImplementationModule = buildModule(
       poseidon2,
       poseidon3,
       state,
-      newIdentityTreeStoreImpl,
+      newImplementation,
       proxyAdmin,
       proxy,
     };
@@ -87,7 +110,7 @@ export const IdentityTreeStoreProxyFinalImplementationModule = buildModule(
 );
 
 const IdentityTreeStoreModule = buildModule("IdentityTreeStoreModule", (m) => {
-  const { poseidon2, poseidon3, state, newIdentityTreeStoreImpl, proxyAdmin, proxy } = m.useModule(
+  const { poseidon2, poseidon3, state, newImplementation, proxyAdmin, proxy } = m.useModule(
     IdentityTreeStoreProxyFinalImplementationModule,
   );
 
@@ -98,7 +121,7 @@ const IdentityTreeStoreModule = buildModule("IdentityTreeStoreModule", (m) => {
     poseidon2,
     poseidon3,
     state,
-    newIdentityTreeStoreImpl,
+    newImplementation,
     proxyAdmin,
     proxy,
   };

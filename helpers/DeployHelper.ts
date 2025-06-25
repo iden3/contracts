@@ -1,4 +1,4 @@
-import { ethers, network, upgrades, ignition } from "hardhat";
+import { ethers, upgrades, ignition } from "hardhat";
 import { Contract, ContractTransactionResponse } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
@@ -17,6 +17,7 @@ import {
 import { chainIdInfoMap, contractsInfo } from "./constants";
 import {
   getChainId,
+  getDefaultIdType,
   getUnifiedContract,
   Logger,
   TempContractDeployments,
@@ -129,7 +130,7 @@ export class DeployHelper {
       "./scripts/deployments_output/temp_deployments_output.json",
     );
 
-    const { defaultIdType, chainId } = await this.getDefaultIdType();
+    const { defaultIdType, chainId } = await getDefaultIdType();
     this.log(`found defaultIdType ${defaultIdType} for chainId ${chainId}`);
 
     const owner = this.signers[0];
@@ -1031,15 +1032,6 @@ export class DeployHelper {
     Logger.success(`${verifierContractName} deployed to: ${await universalVerifier.getAddress()}`);
 
     return { universalVerifier, verifierLib };
-  }
-
-  async getDefaultIdType(): Promise<{ defaultIdType: string; chainId: number }> {
-    const chainId = await getChainId();
-    const defaultIdType = chainIdInfoMap.get(chainId)?.idType;
-    if (!defaultIdType) {
-      throw new Error(`Failed to find defaultIdType in Map for chainId ${chainId}`);
-    }
-    return { defaultIdType, chainId };
   }
 
   async deployIdentityTreeStore(

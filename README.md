@@ -77,10 +77,10 @@ LEDGER_ACCOUNT="<your Ledger deployer address>"
 
 DEPLOY_STRATEGY=create2
 
-PRIVADO_MAIN_RPC_URL=<rpc url for privado mainnet>
-PRIVADO_TEST_RPC_URL=<rpc url for privado testnet>
-BILLIONS_MAIN_RPC_URL=<rpc url for billions mainnet>
-BILLIONS_TEST_RPC_URL=<rpc url for billions testnet>
+PRIVADO_MAINNET_RPC_URL=<rpc url for privado mainnet>
+PRIVADO_TESTNET_RPC_URL=<rpc url for privado testnet>
+BILLIONS_MAINNET_RPC_URL=<rpc url for billions mainnet>
+BILLIONS_TESTNET_RPC_URL=<rpc url for billions testnet>
 POLYGON_MAINNET_RPC_URL=<rpc url for polygon mainnet>
 POLYGON_AMOY_RPC_URL=<rpc url for polygon amoy>
 ETHEREUM_MAINNET_RPC_URL=<rpc url for ethereum mainnet>

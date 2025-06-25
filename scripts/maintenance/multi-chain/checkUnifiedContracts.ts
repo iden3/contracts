@@ -25,21 +25,26 @@ async function main() {
             const signer = new ethers.Wallet(mnemonicWallet.privateKey, jsonRpcProvider);
 
             let contractAddress = contractsInfo[property].unifiedAddress;
-
             if (property === "STATE") {
               contractAddress = await getStateContractAddress(
                 Number((await jsonRpcProvider.getNetwork()).chainId),
               );
             }
-            const { upgraded, currentVersion } = await checkContractVersion(
-              contractsInfo[property].name,
-              contractAddress,
-              contractsInfo[property].version,
-              signer,
-            );
-            if (!upgraded) {
+            try {
+              const { upgraded, currentVersion } = await checkContractVersion(
+                contractsInfo[property].name,
+                contractAddress,
+                contractsInfo[property].version,
+                signer,
+              );
+              if (!upgraded) {
+                contractsNotUpgraded.push(
+                  `${contractsInfo[property].name} (${currentVersion} -> ${contractsInfo[property].version})`,
+                );
+              }
+            } catch (error) {
               contractsNotUpgraded.push(
-                `${contractsInfo[property].name} (${currentVersion} -> ${contractsInfo[property].version})`,
+                `${contractsInfo[property].name} (Create2AddressAnchor implementation -> ${contractsInfo[property].version})`,
               );
             }
           }
