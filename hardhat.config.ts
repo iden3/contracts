@@ -199,6 +199,12 @@ const config: HardhatUserConfig = {
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
+    "aurora-testnet": {
+      chainId: 1313161555,
+      url: `${process.env.AURORA_TESTNET_RPC_URL}`,
+      accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
+      // ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+    },
     // hardhat: {
     //   chainId: 80002,
     //   forking: {

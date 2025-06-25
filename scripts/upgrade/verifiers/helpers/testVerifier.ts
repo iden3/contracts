@@ -219,6 +219,12 @@ function getParamsFromChainId(chainId: number) {
       blockchain = Blockchain.Billions;
       networkId = NetworkId.Test;
       break;
+    case 1313161555:
+      rpcUrl = process.env.AURORA_TESTNET_RPC_URL as string;
+      method = DidMethod.Iden3;
+      blockchain = Blockchain.Polygon;
+      networkId = NetworkId.Amoy;
+      break;
     default:
       throw new Error(`Unsupported chainId: ${chainId}`);
   }
@@ -657,11 +663,11 @@ export async function setZKPRequest_KYCAgeCredential(
           params: dataKYCAgeCredential,
         },
       ],
-      {
-        gasPrice: 50000000000,
-        initialBaseFeePerGas: 25000000000,
-        gasLimit: 10000000,
-      },
+      // {
+      //   gasPrice: 50000000000,
+      //   initialBaseFeePerGas: 25000000000,
+      //   gasLimit: 10000000,
+      // },
     );
 
     console.log(`Request ID: ${requestId} is set in tx ${tx.hash}`);
