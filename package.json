@@ -59,6 +59,8 @@
     "test:state:localhost": "npx hardhat test test/state/state.test.ts --network localhost",
     "test:gas": "COINMARKETCAP_KEY=<put your key here> REPORT_GAS=true npx hardhat test",
     "test:coverage": "npx hardhat coverage",
+    "submit:tryagain-bali-03": "npx hardhat run scripts/maintenance/checkUniversalVerifierSingleNetwork-tryagain-bali-03.ts --network tryagain-bali-03",
+    "submit:amoy-non-unified": "npx hardhat run scripts/maintenance/checkUniversalVerifierSingleNetwork-polygon-amoy.ts --network polygon-amoy",
     "deploy:create2:address:anchor:localhost": "npx hardhat run scripts/deploy/deployCreate2AddressAnchor.ts --network localhost",
     "deploy:create2:address:anchor:polygon-amoy": "npx hardhat run scripts/deploy/deployCreate2AddressAnchor.ts --network polygon-amoy",
     "deploy:create2:address:anchor:zkevm-cardona": "npx hardhat run scripts/deploy/deployCreate2AddressAnchor.ts --network zkevm-cardona",

@@ -160,8 +160,8 @@ const config: HardhatUserConfig = {
     "polygon-amoy": {
       chainId: 80002,
       url: `${process.env.POLYGON_AMOY_RPC_URL}`,
-      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
+      // ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "ethereum-mainnet": {
       chainId: 1,
@@ -198,6 +198,11 @@ const config: HardhatUserConfig = {
       url: `${process.env.LINEA_SEPOLIA_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+    },
+    "tryagain-bali-03": {
+      chainId: 1819540093,
+      url: `${process.env.TRYAGAIN_BALI_03_RPC_URL}`,
+      accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
     },
     // hardhat: {
     //   chainId: 80002,

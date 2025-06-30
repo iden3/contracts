@@ -219,6 +219,12 @@ function getParamsFromChainId(chainId: number) {
       blockchain = Blockchain.Billions;
       networkId = NetworkId.Test;
       break;
+    case 1819540093:
+      rpcUrl = process.env.TRYAGAIN_BALI_03_RPC_URL as string;
+      method = DidMethod.Iden3;
+      blockchain = Blockchain.Polygon;
+      networkId = NetworkId.Amoy;
+      break;
     default:
       throw new Error(`Unsupported chainId: ${chainId}`);
   }
@@ -239,7 +245,7 @@ export async function submitZKPResponses_KYCAgeCredential(
     chainId = Number((await opts.provider.getNetwork()).chainId);
     networkName = (await opts.provider.getNetwork()).name;
   } else {
-    chainId = (await getChainId()) || 80002;
+    chainId = 80002;
     networkName = hre.network.name;
   }
 
@@ -518,7 +524,7 @@ export async function setZKPRequest_KYCAgeCredential(
     chainId = Number((await provider.getNetwork()).chainId);
     network = (await provider.getNetwork()).name;
   } else {
-    chainId = (await getChainId()) || 80002;
+    chainId = 80002;
     network = hre.network.name;
   }
 
@@ -657,11 +663,11 @@ export async function setZKPRequest_KYCAgeCredential(
           params: dataKYCAgeCredential,
         },
       ],
-      {
-        gasPrice: 50000000000,
-        initialBaseFeePerGas: 25000000000,
-        gasLimit: 10000000,
-      },
+      // {
+      //   gasPrice: 50000000000,
+      //   initialBaseFeePerGas: 25000000000,
+      //   gasLimit: 10000000,
+      // },
     );
 
     console.log(`Request ID: ${requestId} is set in tx ${tx.hash}`);
