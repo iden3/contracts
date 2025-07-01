@@ -44,9 +44,8 @@ describe("State transition with real groth16 verifier", () => {
     const modifiedStateTransition = JSON.parse(JSON.stringify(stateTransitionsWithProofs[0]));
     modifiedStateTransition.pub_signals[2] = "100"; // change state to make zk proof invalid
 
-    await expect(publishState(state, modifiedStateTransition)).to.be.revertedWithCustomError(
-      state,
-      "ZeroKnowledgeProofOfStateTransitionIsNotValid",
+    await expect(publishState(state, modifiedStateTransition)).to.be.rejectedWith(
+      "Zero-knowledge proof of state transition is not valid",
     );
   });
 
@@ -137,9 +136,9 @@ describe("State transition negative cases", () => {
     const modifiedStateTransition = JSON.parse(JSON.stringify(stateTransitionsWithNoProofs[1]));
     modifiedStateTransition.oldState = 10;
 
-    await expect(
-      publishStateWithStubProof(state, modifiedStateTransition),
-    ).to.be.revertedWithCustomError(state, "OldStateDoesNotMatchTheLatestState");
+    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.rejectedWith(
+      "Old state does not match the latest state",
+    );
   });
 
   it("Old state is genesis but identity already exists", async () => {
@@ -148,36 +147,36 @@ describe("State transition negative cases", () => {
     const modifiedStateTransition = JSON.parse(JSON.stringify(stateTransitionsWithNoProofs[1]));
     modifiedStateTransition.isOldStateGenesis = true;
 
-    await expect(
-      publishStateWithStubProof(state, modifiedStateTransition),
-    ).to.be.revertedWithCustomError(state, "OldStateIsGenesisButIdentityAlreadyExists");
+    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.revertedWith(
+      "Old state is genesis but identity already exists",
+    );
   });
 
   it("Old state is not genesis but identity does not yet exist", async () => {
     const modifiedStateTransition = JSON.parse(JSON.stringify(stateTransitionsWithNoProofs[0]));
     modifiedStateTransition.isOldStateGenesis = false;
 
-    await expect(
-      publishStateWithStubProof(state, modifiedStateTransition),
-    ).to.be.revertedWithCustomError(state, "OldStateIsNotGenesisButIdentityDoesNotExist");
+    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.revertedWith(
+      "Old state is not genesis but identity does not yet exist",
+    );
   });
 
   it("ID should not be zero", async () => {
     const modifiedStateTransition = JSON.parse(JSON.stringify(stateTransitionsWithNoProofs[0]));
     modifiedStateTransition.id = 0;
 
-    await expect(
-      publishStateWithStubProof(state, modifiedStateTransition),
-    ).to.be.revertedWithCustomError(state, "IdShouldNotBeZero");
+    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.revertedWith(
+      "ID should not be zero",
+    );
   });
 
   it("New state should not be zero", async () => {
     const modifiedStateTransition = JSON.parse(JSON.stringify(stateTransitionsWithNoProofs[0]));
     modifiedStateTransition.newState = 0;
 
-    await expect(
-      publishStateWithStubProof(state, modifiedStateTransition),
-    ).to.be.revertedWithCustomError(state, "NewStateShouldNotBeZero");
+    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.revertedWith(
+      "New state should not be zero",
+    );
   });
 
   it("Should allow only one unique state per identity", async () => {
@@ -191,9 +190,8 @@ describe("State transition negative cases", () => {
       isOldStateGenesis: false,
     };
 
-    await expect(publishStateWithStubProof(state, stateTransition)).to.be.revertedWithCustomError(
-      state,
-      "NewStateAlreadyExists",
+    await expect(publishStateWithStubProof(state, stateTransition)).to.be.revertedWith(
+      "New state already exists",
     );
   });
 });
@@ -435,14 +433,12 @@ describe("Check replacedAt timestamp expirations", () => {
 
     expect(await state.getGistRootReplacedAt("0x0112", 0)).to.be.equal(0);
 
-    await expect(state.getGistRootReplacedAt("0x0112", 10)).to.be.revertedWithCustomError(
-      state,
-      "GistRootEntryNotFound",
+    await expect(state.getGistRootReplacedAt("0x0112", 10)).to.be.revertedWith(
+      "GIST root entry not found",
     );
 
-    await expect(state.getGistRootReplacedAt("0x0212", 10)).to.be.revertedWithCustomError(
-      state,
-      "CrossChainGistRootNotFound",
+    await expect(state.getGistRootReplacedAt("0x0212", 10)).to.be.revertedWith(
+      "Cross-chain GIST root not found",
     );
 
     expect(
@@ -457,13 +453,13 @@ describe("Check replacedAt timestamp expirations", () => {
         BigInt("0xD9C10A0BFB514F30B64E115D7EEB3D547C240C104E03D4548375669FE1201"),
         0,
       ),
-    ).to.be.revertedWithCustomError(state, "StateEntryNotFound");
+    ).to.be.revertedWith("State entry not found");
 
     await expect(
       state.getStateReplacedAt(
         BigInt("0xD9C10A0BFB514F30B64E115D7EEB3D547C240C104E03D4548375669FE1202"),
         0,
       ),
-    ).to.be.revertedWithCustomError(state, "CrossChainStateNotFound");
+    ).to.be.revertedWith("Cross-chain state not found");
   });
 });

@@ -28,7 +28,7 @@ describe("Negative tests", function () {
     const missingID = 777;
 
     await expect(stateLibWrpr.getStateInfoById(missingID)).to.be.rejectedWith(
-      "IdentityDoesNotExist()",
+      "Identity does not exist",
     );
   });
 
@@ -36,7 +36,7 @@ describe("Negative tests", function () {
     const missingID = 777;
 
     await expect(stateLibWrpr.getStateInfoHistoryById(missingID, 0, 1)).to.be.rejectedWith(
-      "IdentityDoesNotExist()",
+      "Identity does not exist",
     );
   });
 
@@ -44,7 +44,7 @@ describe("Negative tests", function () {
     const missingID = 777;
 
     await expect(stateLibWrpr.getStateInfoHistoryLengthById(missingID)).to.be.rejectedWith(
-      "IdentityDoesNotExist()",
+      "Identity does not exist",
     );
   });
 
@@ -53,16 +53,16 @@ describe("Negative tests", function () {
     const missingState = 888;
 
     await expect(stateLibWrpr.getStateInfoByIdAndState(id, missingState)).to.be.rejectedWith(
-      "StateDoesNotExist()",
+      "State does not exist",
     );
   });
 
   it("Zero timestamp and block should be only in the first identity state", async () => {
     await expect(stateLibWrpr.addGenesisState(2, 20)).to.be.not.reverted;
-    await expect(stateLibWrpr.addGenesisState(2, 20)).to.be.rejectedWith("IdentityAlreadyExists()");
+    await expect(stateLibWrpr.addGenesisState(2, 20)).to.be.rejectedWith("Identity already exists");
 
     await expect(stateLibWrpr.addState(3, 30)).to.be.not.reverted;
-    await expect(stateLibWrpr.addGenesisState(3, 30)).to.be.rejectedWith("IdentityAlreadyExists()");
+    await expect(stateLibWrpr.addGenesisState(3, 30)).to.be.rejectedWith("Identity already exists");
   });
 });
 

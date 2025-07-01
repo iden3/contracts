@@ -3,10 +3,6 @@ pragma solidity 0.8.27;
 
 import {ArrayUtils} from "../lib/ArrayUtils.sol";
 
-error IdentityDoesNotExist();
-error StateDoesNotExist();
-error IdentityAlreadyExists();
-
 /// @title Library for state data management.
 // It's purpose is to keep records of identity states along with their metadata and history.
 library StateLib {
@@ -95,9 +91,7 @@ library StateLib {
      * @param id Identity
      */
     modifier onlyExistingId(Data storage self, uint256 id) {
-        if (!idExists(self, id)) {
-            revert IdentityDoesNotExist();
-        }
+        require(idExists(self, id), "Identity does not exist");
         _;
     }
 
@@ -107,9 +101,7 @@ library StateLib {
      * @param state State
      */
     modifier onlyExistingState(Data storage self, uint256 id, uint256 state) {
-        if (!stateExists(self, id, state)) {
-            revert StateDoesNotExist();
-        }
+        require(stateExists(self, id, state), "State does not exist");
         _;
     }
 
@@ -128,9 +120,10 @@ library StateLib {
      * @param state State
      */
     function addGenesisState(Data storage self, uint256 id, uint256 state) external {
-        if (idExists(self, id)) {
-            revert IdentityAlreadyExists();
-        }
+        require(
+            !idExists(self, id),
+            "Identity already exists"
+        );
         _addState(self, id, state, 0, 0);
     }
 
