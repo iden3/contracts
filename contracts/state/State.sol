@@ -152,7 +152,7 @@ contract State is Ownable2StepUpgradeable, IState {
                     .processIdentityStateProof(proofs[i].proof);
                 $._idToStateReplacedAt[isu.id][isu.state] = isu.replacedAtTimestamp;
             } else {
-                revert ("Unknown proof type");
+                revert("Unknown proof type");
             }
         }
     }
