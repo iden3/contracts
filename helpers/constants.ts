@@ -92,7 +92,12 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
     idType: "0x0113", // like on polygon amoy
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-  }); // tryagain-bali-03
+  }) // tryagain-bali-03
+  .set(1313161555, {
+    idType: "0x0113", // like on polygon amoy
+    networkType: "test",
+    oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
+  }); // aurora-testnet
 
 export const networks = Object.freeze({
   PRIVADO_TESTNET: { name: "Privado Testnet", chainId: 21001 },
