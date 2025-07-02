@@ -15,7 +15,7 @@ contract State is Ownable2StepUpgradeable, IState {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.6.2";
+    string public constant VERSION = "2.6.3";
     /**
      * @dev Global state proof type
      */
@@ -152,7 +152,7 @@ contract State is Ownable2StepUpgradeable, IState {
                     .processIdentityStateProof(proofs[i].proof);
                 $._idToStateReplacedAt[isu.id][isu.state] = isu.replacedAtTimestamp;
             } else {
-                revert ("Unknown proof type");
+                revert("Unknown proof type");
             }
         }
     }

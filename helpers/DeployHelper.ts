@@ -17,7 +17,6 @@ import {
 import { chainIdInfoMap, contractsInfo } from "./constants";
 import {
   getChainId,
-  getDefaultIdType,
   getUnifiedContract,
   Logger,
   TempContractDeployments,
@@ -130,7 +129,7 @@ export class DeployHelper {
       "./scripts/deployments_output/temp_deployments_output.json",
     );
 
-    const { defaultIdType, chainId } = await getDefaultIdType();
+    const { defaultIdType, chainId } = await this.getDefaultIdType();
     this.log(`found defaultIdType ${defaultIdType} for chainId ${chainId}`);
 
     const owner = this.signers[0];
@@ -1032,6 +1031,18 @@ export class DeployHelper {
     Logger.success(`${verifierContractName} deployed to: ${await universalVerifier.getAddress()}`);
 
     return { universalVerifier, verifierLib };
+  }
+
+  async getDefaultIdType(): Promise<{ defaultIdType: string; chainId: number }> {
+    const chainId = await getChainId();
+    let defaultIdType = chainIdInfoMap.get(chainId)?.idType;
+    if (!defaultIdType) {
+      defaultIdType = "0xffff";
+      Logger.warning(
+        `Failed to find defaultIdType in Map for chainId ${chainId}. Using idType 0xffff`,
+      );
+    }
+    return { defaultIdType, chainId };
   }
 
   async deployIdentityTreeStore(

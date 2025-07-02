@@ -120,10 +120,7 @@ library StateLib {
      * @param state State
      */
     function addGenesisState(Data storage self, uint256 id, uint256 state) external {
-        require(
-            !idExists(self, id),
-            "Identity already exists"
-        );
+        require(!idExists(self, id), "Identity already exists");
         _addState(self, id, state, 0, 0);
     }
 
