@@ -15,7 +15,7 @@ contract State is Ownable2StepUpgradeable, IState {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.6.2";
+    string public constant VERSION = "2.6.3";
     /**
      * @dev Global state proof type
      */
