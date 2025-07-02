@@ -2,7 +2,9 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { StateAtModule, UniversalVerifierAtModule } from "../contractsAt";
 import { contractsInfo } from "../../../helpers/constants";
 
-const version = "V".concat(contractsInfo.UNIVERSAL_VERIFIER.version.replaceAll(".", "_"));
+const version = "V".concat(
+  contractsInfo.UNIVERSAL_VERIFIER.version.replaceAll(".", "_").replaceAll("-", "_"),
+);
 
 const UpgradeUniversalVerifierNewImplementationModule = buildModule(
   "UpgradeUniversalVerifierNewImplementationModule".concat(version),

@@ -2,7 +2,7 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { Poseidon1AtModule, SmtLibAtModule, StateAtModule } from "../contractsAt";
 import { contractsInfo } from "../../../helpers/constants";
 
-const version = "V".concat(contractsInfo.STATE.version.replaceAll(".", "_"));
+const version = "V".concat(contractsInfo.STATE.version.replaceAll(".", "_").replaceAll("-", "_"));
 
 const UpgradeStateNewImplementationModule = buildModule(
   "UpgradeStateNewImplementationModule".concat(version),

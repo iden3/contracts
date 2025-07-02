@@ -2,7 +2,9 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { CredentialAtomicQueryV3ValidatorAtModule, StateAtModule } from "../contractsAt";
 import { contractsInfo } from "../../../helpers/constants";
 
-const version = "V".concat(contractsInfo.VALIDATOR_V3.version.replaceAll(".", "_"));
+const version = "V".concat(
+  contractsInfo.VALIDATOR_V3.version.replaceAll(".", "_").replaceAll("-", "_"),
+);
 
 const UpgradeCredentialAtomicQueryV3ValidatorNewImplementationModule = buildModule(
   "UpgradeCredentialAtomicQueryV3ValidatorNewImplementationModule".concat(version),
@@ -14,11 +16,8 @@ const UpgradeCredentialAtomicQueryV3ValidatorNewImplementationModule = buildModu
     const groth16Verifier = m.contract(contractsInfo.GROTH16_VERIFIER_V3.name);
     const newImplementation = m.contract(contractsInfo.VALIDATOR_V3.name);
 
-    const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [
-      state,
-      groth16Verifier,
-      proxyAdminOwner,
-    ]);
+    // As we are working with same proxy the storage is already initialized
+    const initializeData = "0x";
 
     m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
       from: proxyAdminOwner,

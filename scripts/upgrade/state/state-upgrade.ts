@@ -9,9 +9,9 @@ import {
   writeDeploymentParameters,
 } from "../../../helpers/helperUtils";
 import { contractsInfo } from "../../../helpers/constants";
-import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { StateAtModule } from "../../../ignition/modules/contractsAt";
 import UpgradeStateModule from "../../../ignition/modules/upgrades/upgradeState";
+import { transferOwnership } from "../helpers/utils";
 
 // If you want to use impersonation, set the impersonate variable to true
 // With ignition we can't use impersonation, so we need to transfer ownership to the signer
@@ -19,42 +19,6 @@ import UpgradeStateModule from "../../../ignition/modules/upgrades/upgradeState"
 const impersonate = false;
 
 const config = getConfig();
-
-async function transferOwnership(signer: HardhatEthersSigner, contractAt: any) {
-  const maxFeePerGas = 250000000000;
-  const etherAmount = ethers.parseEther("10");
-  const proxyAdmin = await ethers.getContractAt("ProxyAdmin", contractAt.proxyAdmin.target);
-  const state = await ethers.getContractAt(contractsInfo.STATE.name, contractAt.proxy.target);
-
-  console.log("Proxy Admin owner: ", await proxyAdmin.owner());
-  console.log("State owner: ", await state.owner());
-  console.log("Transferring ownership of Proxy Admin and State to: ", signer.address);
-
-  const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(await proxyAdmin.owner());
-  const stateOwnerSigner = await ethers.getImpersonatedSigner(await state.owner());
-
-  // transfer some ether to the proxy admin owner and state owner to pay for the transaction fees
-  await signer.sendTransaction({
-    to: proxyAdminOwnerSigner.address,
-    value: etherAmount,
-    maxFeePerGas,
-  });
-
-  const tx1 = await proxyAdmin.connect(proxyAdminOwnerSigner).transferOwnership(signer.address, {
-    maxFeePerGas,
-  });
-  await tx1.wait();
-
-  const tx2 = await state.connect(stateOwnerSigner).transferOwnership(signer.address, {
-    maxFeePerGas,
-  });
-  await tx2.wait();
-
-  const tx3 = await state.connect(signer).acceptOwnership({
-    maxFeePerGas,
-  });
-  await tx3.wait();
-}
 
 async function main() {
   const parameters = await getDeploymentParameters();
@@ -101,7 +65,7 @@ async function main() {
   const defaultIdTypeBefore = await stateContract.getDefaultIdType();
   const stateOwnerAddressBefore = await stateContract.owner();
 
-  const version = "V".concat(contractsInfo.STATE.version.replaceAll(".", "_"));
+  const version = "V".concat(contractsInfo.STATE.version.replaceAll(".", "_").replaceAll("-", "_"));
   parameters["UpgradeStateNewImplementationModule".concat(version)] = {
     oracleSigningAddress: parameters.CrossChainProofValidatorModule.oracleSigningAddress,
   };

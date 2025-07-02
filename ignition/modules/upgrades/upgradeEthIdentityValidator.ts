@@ -2,7 +2,9 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { EthIdentityValidatorAtModule } from "../contractsAt";
 import { contractsInfo } from "../../../helpers/constants";
 
-const version = "V".concat(contractsInfo.VALIDATOR_ETH_IDENTITY.version.replaceAll(".", "_"));
+const version = "V".concat(
+  contractsInfo.VALIDATOR_ETH_IDENTITY.version.replaceAll(".", "_").replaceAll("-", "_"),
+);
 
 const UpgradeEthIdentityValidatorNewImplementationModule = buildModule(
   "UpgradeEthIdentityValidatorNewImplementationModule".concat(version),
@@ -12,7 +14,8 @@ const UpgradeEthIdentityValidatorNewImplementationModule = buildModule(
 
     const newImplementation = m.contract(contractsInfo.VALIDATOR_AUTH_V2.name);
 
-    const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [proxyAdminOwner]);
+    // As we are working with same proxy the storage is already initialized
+    const initializeData = "0x";
 
     m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
       from: proxyAdminOwner,

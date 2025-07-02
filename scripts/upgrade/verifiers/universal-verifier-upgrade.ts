@@ -13,7 +13,7 @@ import {
 import { contractsInfo } from "../../../helpers/constants";
 import { UniversalVerifierAtModule } from "../../../ignition/modules/contractsAt";
 import UpgradeUniversalVerifierModule from "../../../ignition/modules/upgrades/upgradeUniversalVerifier";
-import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import { transferOwnership } from "../helpers/utils";
 
 // If you want to use impersonation, set the impersonate variable to true
 // With ignition we can't use impersonation, so we need to transfer ownership to the signer
@@ -39,34 +39,6 @@ function checkData(...args: any[]): any {
   const { countRequests: countRequestsV2, stateAddress: stateAddress2 } = result2;
   console.assert(countRequestsV1 === countRequestsV2, "lenght of requests not equal");
   console.assert(stateAddress1 === stateAddress2, "state address not equal");
-}
-
-async function transferOwnership(signer: HardhatEthersSigner, contractAt: any) {
-  const proxyAdmin = await ethers.getContractAt("ProxyAdmin", contractAt.proxyAdmin.target);
-  const universalVerifier = await ethers.getContractAt(
-    contractsInfo.UNIVERSAL_VERIFIER.name,
-    contractAt.proxy.target,
-  );
-
-  console.log("Proxy Admin owner: ", await proxyAdmin.owner());
-  console.log("Proxy owner: ", await universalVerifier.owner());
-  console.log("Transferring ownership of Proxy Admin and Proxy to: ", signer.address);
-
-  const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(await proxyAdmin.owner());
-  const universalVerifierOwnerSigner = await ethers.getImpersonatedSigner(
-    await universalVerifier.owner(),
-  );
-
-  const tx1 = await proxyAdmin.connect(proxyAdminOwnerSigner).transferOwnership(signer.address);
-  await tx1.wait();
-
-  const tx2 = await universalVerifier
-    .connect(universalVerifierOwnerSigner)
-    .transferOwnership(signer.address);
-  await tx2.wait();
-
-  const tx3 = await universalVerifier.connect(signer).acceptOwnership();
-  await tx3.wait();
 }
 
 async function main() {
