@@ -4,9 +4,15 @@ import { contractsInfo } from "../../../helpers/constants";
 
 const version = "V".concat(contractsInfo.STATE.version.replaceAll(".", "_"));
 
-const CrossChainProofValidatorModule = buildModule(
-  "CrossChainProofValidatorModule".concat(version),
+const UpgradeStateNewImplementationModule = buildModule(
+  "UpgradeStateNewImplementationModule".concat(version),
   (m) => {
+    const proxyAdminOwner = m.getAccount(0);
+    const { proxy, proxyAdmin } = m.useModule(StateAtModule);
+
+    const poseidon1 = m.useModule(Poseidon1AtModule).contract;
+    const stateLib = m.contract("StateLib");
+    const smtLib = m.useModule(SmtLibAtModule).contract;
     const domainName = "StateInfo";
     const signatureVersion = "1";
     const oracleSigningAddress = m.getParameter("oracleSigningAddress");
@@ -17,21 +23,6 @@ const CrossChainProofValidatorModule = buildModule(
       oracleSigningAddress,
     ]);
 
-    return { crossChainProofValidator };
-  },
-);
-
-const UpgradeStateNewImplementationModule = buildModule(
-  "UpgradeStateNewImplementationModule".concat(version),
-  (m) => {
-    const proxyAdminOwner = m.getAccount(0);
-    const { proxy, proxyAdmin } = m.useModule(StateAtModule);
-
-    const poseidon1 = m.useModule(Poseidon1AtModule).contract;
-    const stateLib = m.contract("StateLib");
-    const smtLib = m.useModule(SmtLibAtModule).contract;
-    const { crossChainProofValidator } = m.useModule(CrossChainProofValidatorModule);
-
     const newImplementation = m.contract(contractsInfo.STATE.name, [], {
       libraries: {
         StateLib: stateLib,
@@ -40,8 +31,10 @@ const UpgradeStateNewImplementationModule = buildModule(
       },
     });
 
-    // As we are working with same proxy the storage is already initialized
-    const initializeData = "0x";
+    // In some old ProxyAdmin versions, the upgradeAndCall function does not accept
+    // an empty data parameter for initializeData like "0x".
+    // So we encode a valid function call that does not change the state of the contract.
+    const initializeData = m.encodeFunctionCall(newImplementation, "VERSION");
 
     m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
       from: proxyAdminOwner,

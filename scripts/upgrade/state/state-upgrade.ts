@@ -21,6 +21,8 @@ const impersonate = false;
 const config = getConfig();
 
 async function transferOwnership(signer: HardhatEthersSigner, contractAt: any) {
+  const maxFeePerGas = 250000000000;
+  const etherAmount = ethers.parseEther("10");
   const proxyAdmin = await ethers.getContractAt("ProxyAdmin", contractAt.proxyAdmin.target);
   const state = await ethers.getContractAt(contractsInfo.STATE.name, contractAt.proxy.target);
 
@@ -31,13 +33,26 @@ async function transferOwnership(signer: HardhatEthersSigner, contractAt: any) {
   const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(await proxyAdmin.owner());
   const stateOwnerSigner = await ethers.getImpersonatedSigner(await state.owner());
 
-  const tx1 = await proxyAdmin.connect(proxyAdminOwnerSigner).transferOwnership(signer.address);
+  // transfer some ether to the proxy admin owner and state owner to pay for the transaction fees
+  await signer.sendTransaction({
+    to: proxyAdminOwnerSigner.address,
+    value: etherAmount,
+    maxFeePerGas,
+  });
+
+  const tx1 = await proxyAdmin.connect(proxyAdminOwnerSigner).transferOwnership(signer.address, {
+    maxFeePerGas,
+  });
   await tx1.wait();
 
-  const tx2 = await state.connect(stateOwnerSigner).transferOwnership(signer.address);
+  const tx2 = await state.connect(stateOwnerSigner).transferOwnership(signer.address, {
+    maxFeePerGas,
+  });
   await tx2.wait();
 
-  const tx3 = await state.connect(signer).acceptOwnership();
+  const tx3 = await state.connect(signer).acceptOwnership({
+    maxFeePerGas,
+  });
   await tx3.wait();
 }
 
@@ -53,7 +68,7 @@ async function main() {
   const [signer] = await ethers.getSigners();
 
   console.log("Proxy Admin Owner Address for the upgrade: ", signer.address);
-  console.log("Universal Verifier Owner Address for the upgrade: ", signer.address);
+  console.log("State Owner Address for the upgrade: ", signer.address);
 
   const { upgraded, currentVersion } = await checkContractVersion(
     contractsInfo.STATE.name,
@@ -87,10 +102,9 @@ async function main() {
   const stateOwnerAddressBefore = await stateContract.owner();
 
   const version = "V".concat(contractsInfo.STATE.version.replaceAll(".", "_"));
-  parameters["CrossChainProofValidatorModule".concat(version)] = {
+  parameters["UpgradeStateNewImplementationModule".concat(version)] = {
     oracleSigningAddress: parameters.CrossChainProofValidatorModule.oracleSigningAddress,
   };
-  await writeDeploymentParameters(parameters);
 
   // **** Upgrade State ****
   const { newImplementation, state, crossChainProofValidator, stateLib, proxy, proxyAdmin } =

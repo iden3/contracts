@@ -160,8 +160,8 @@ const config: HardhatUserConfig = {
     "polygon-amoy": {
       chainId: 80002,
       url: `${process.env.POLYGON_AMOY_RPC_URL}`,
-      accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      // ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "ethereum-mainnet": {
       chainId: 1,
@@ -199,30 +199,30 @@ const config: HardhatUserConfig = {
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
-    hardhat: {
-      chainId: 80002,
-      forking: {
-        url: `${process.env.POLYGON_AMOY_RPC_URL}`,
-      },
-      chains: {
-        80002: {
-          hardforkHistory: {
-            london: 10000000,
-          },
-        },
-      },
-      accounts: [
-        {
-          privateKey: process.env.PRIVATE_KEY as string,
-          balance: "1000000000000000000000000",
-        },
-      ],
-    },
-    localhost: {
-      url: "http://127.0.0.1:8545",
-      timeout: 100000000,
-      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-    },
+    // hardhat: {
+    //   chainId: 80002,
+    //   forking: {
+    //     url: `${process.env.POLYGON_AMOY_RPC_URL}`,
+    //   },
+    //   chains: {
+    //     80002: {
+    //       hardforkHistory: {
+    //         london: 100000,
+    //       },
+    //     },
+    //   },
+    //   accounts: [
+    //     {
+    //       privateKey: process.env.PRIVATE_KEY as string,
+    //       balance: "1000000000000000000000000",
+    //     },
+    //   ],
+    // },
+    // localhost: {
+    //   url: "http://127.0.0.1:8545",
+    //   timeout: 100000000,
+    //   // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
+    // },
   },
   gasReporter: {
     currency: "USD",
