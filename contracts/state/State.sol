@@ -10,32 +10,12 @@ import {StateLib} from "../lib/StateLib.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICrossChainProofValidator} from "../interfaces/ICrossChainProofValidator.sol";
 
-error VerifierContractAddressShouldNotBeZero();
-error UnknownProofType();
-error DefaultIdTypeNotInitialized();
-error ZeroKnowledgeProofOfStateTransitionIsNotValid();
-error SenderIsNotIdentityOwner();
-error MethodParamsShouldBeEmpty();
-error OldStateShouldBeZero();
-error UnknownStateTransitionMethodId();
-error StateEntryNotFound();
-error CrossChainStateNotFound();
-error GistRootEntryNotFound();
-error CrossChainGistRootNotFound();
-error IdTypeNotSupported();
-error IdShouldNotBeZero();
-error NewStateShouldNotBeZero();
-error OldStateIsGenesisButIdentityAlreadyExists();
-error OldStateIsNotGenesisButIdentityDoesNotExist();
-error OldStateDoesNotMatchTheLatestState();
-error NewStateAlreadyExists();
-
 /// @title Set and get states for each identity
 contract State is Ownable2StepUpgradeable, IState {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.6.2";
+    string public constant VERSION = "2.6.3";
     /**
      * @dev Global state proof type
      */
@@ -126,7 +106,7 @@ contract State is Ownable2StepUpgradeable, IState {
         }
 
         if (address(verifierContractAddr) == address(0)) {
-            revert VerifierContractAddressShouldNotBeZero();
+            revert("Verifier contract address should not be zero");
         }
 
         verifier = verifierContractAddr;
@@ -172,7 +152,7 @@ contract State is Ownable2StepUpgradeable, IState {
                     .processIdentityStateProof(proofs[i].proof);
                 $._idToStateReplacedAt[isu.id][isu.state] = isu.replacedAtTimestamp;
             } else {
-                revert UnknownProofType();
+                revert("Unknown proof type");
             }
         }
     }
@@ -190,9 +170,7 @@ contract State is Ownable2StepUpgradeable, IState {
      * @return defaultIdType
      */
     function getDefaultIdType() public view returns (bytes2) {
-        if (!_defaultIdTypeInitialized) {
-            revert DefaultIdTypeNotInitialized();
-        }
+        require(_defaultIdTypeInitialized, "Default Id Type is not initialized");
         return _defaultIdType;
     }
 
@@ -226,9 +204,10 @@ contract State is Ownable2StepUpgradeable, IState {
         // Check if the id type is supported
         getIdTypeIfSupported(id);
         uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis ? 1 : 0)];
-        if (!verifier.verifyProof(a, b, c, input)) {
-            revert ZeroKnowledgeProofOfStateTransitionIsNotValid();
-        }
+        require(
+            verifier.verifyProof(a, b, c, input),
+            "Zero-knowledge proof of state transition is not valid"
+        );
 
         _transitState(id, oldState, newState, isOldStateGenesis);
     }
@@ -253,22 +232,16 @@ contract State is Ownable2StepUpgradeable, IState {
         bytes2 idType = getIdTypeIfSupported(id);
         if (methodId == 1) {
             uint256 calcId = GenesisUtils.calcIdFromEthAddress(idType, msg.sender);
-            if (calcId != id) {
-                revert SenderIsNotIdentityOwner();
-            }
-            if (methodParams.length != 0) {
-                revert MethodParamsShouldBeEmpty();
-            }
+            require(calcId == id, "msg.sender is not owner of the identity");
+            require(methodParams.length == 0, "methodParams should be empty");
 
             if (isOldStateGenesis) {
-                if (oldState != 0) {
-                    revert OldStateShouldBeZero();
-                }
+                require(oldState == 0, "Old state should be zero");
             }
 
             _transitState(id, oldState, newState, isOldStateGenesis);
         } else {
-            revert UnknownStateTransitionMethodId();
+            revert("Unknown state transition method id");
         }
     }
 
@@ -503,14 +476,14 @@ contract State is Ownable2StepUpgradeable, IState {
             } else if (GenesisUtils.isGenesisState(id, state)) {
                 return 0;
             }
-            revert StateEntryNotFound();
+            revert("State entry not found");
         } else {
             StateCrossChainStorage storage $ = _getStateCrossChainStorage();
             uint256 replacedAt = $._idToStateReplacedAt[id][state];
             if (replacedAt != 0) {
                 return replacedAt;
             }
-            revert CrossChainStateNotFound();
+            revert("Cross-chain state not found");
         }
     }
 
@@ -525,14 +498,14 @@ contract State is Ownable2StepUpgradeable, IState {
             if (_gistData.rootExists(root)) {
                 return _gistData.getRootInfo(root).replacedAtTimestamp;
             }
-            revert GistRootEntryNotFound();
+            revert("GIST root entry not found");
         } else {
             StateCrossChainStorage storage $ = _getStateCrossChainStorage();
             uint256 replacedAt = $._rootToGistRootReplacedAt[idType][root];
             if (replacedAt != 0) {
                 return replacedAt;
             }
-            revert CrossChainGistRootNotFound();
+            revert("Cross-chain GIST root not found");
         }
     }
 
@@ -543,9 +516,7 @@ contract State is Ownable2StepUpgradeable, IState {
      */
     function getIdTypeIfSupported(uint256 id) public view returns (bytes2) {
         bytes2 idType = GenesisUtils.getIdType(id);
-        if (!_stateData.isIdTypeSupported[idType]) {
-            revert IdTypeNotSupported();
-        }
+        require(_stateData.isIdTypeSupported[idType], "id type is not supported");
         return idType;
     }
 
@@ -571,35 +542,23 @@ contract State is Ownable2StepUpgradeable, IState {
         uint256 newState,
         bool isOldStateGenesis
     ) internal {
-        if (id == 0) {
-            revert IdShouldNotBeZero();
-        }
-        if (newState == 0) {
-            revert NewStateShouldNotBeZero();
-        }
+        require(id != 0, "ID should not be zero");
+        require(newState != 0, "New state should not be zero");
 
         if (isOldStateGenesis) {
-            if (idExists(id)) {
-                revert OldStateIsGenesisButIdentityAlreadyExists();
-            }
+            require(!idExists(id), "Old state is genesis but identity already exists");
 
             // Push old state to state entries, with zero timestamp and block
             _stateData.addGenesisState(id, oldState);
         } else {
-            if (!idExists(id)) {
-                revert OldStateIsNotGenesisButIdentityDoesNotExist();
-            }
+            require(idExists(id), "Old state is not genesis but identity does not yet exist");
 
             StateLib.EntryInfo memory prevStateInfo = _stateData.getStateInfoById(id);
-            if (prevStateInfo.state != oldState) {
-                revert OldStateDoesNotMatchTheLatestState();
-            }
+            require(prevStateInfo.state == oldState, "Old state does not match the latest state");
         }
 
         // this checks that oldState != newState as well
-        if (stateExists(id, newState)) {
-            revert NewStateAlreadyExists();
-        }
+        require(!stateExists(id, newState), "New state already exists");
         _stateData.addState(id, newState);
         _gistData.addLeaf(PoseidonUnit1L.poseidon([id]), newState);
     }
