@@ -93,10 +93,7 @@ async function main() {
 
   console.log(`${contractsInfo.UNIVERSAL_VERIFIER.name} proxy deployed to: ${proxy.target}`);
 
-  await verifyContract(verifierLib.target, {
-    constructorArgsImplementation: [],
-    libraries: {},
-  });
+  await verifyContract(verifierLib.target, contractsInfo.VERIFIER_LIB.verificationOpts);
   await verifyContract(proxy.target, contractsInfo.UNIVERSAL_VERIFIER.verificationOpts);
   await verifyContract(newImplementation.target, {
     constructorArgsImplementation: [],

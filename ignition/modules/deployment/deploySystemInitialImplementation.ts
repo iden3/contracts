@@ -31,27 +31,35 @@ const DeploySystemInitialImplementationModule = buildModule(
 
     const { smtLib } = m.useModule(SmtLibModule);
 
-    const { newStateImpl } = m.useModule(StateProxyModule);
+    const { newImplementation: newStateImpl } = m.useModule(StateProxyModule);
 
-    const { newUniversalVerifierImpl } = m.useModule(UniversalVerifierProxyModule);
+    const { newImplementation: newUniversalVerifierImpl } = m.useModule(
+      UniversalVerifierProxyModule,
+    );
 
-    const { newIdentityTreeStoreImpl } = m.useModule(IdentityTreeStoreProxyModule);
+    const { newImplementation: newIdentityTreeStoreImpl } = m.useModule(
+      IdentityTreeStoreProxyModule,
+    );
 
-    const { newCredentialAtomicQueryMTPV2ValidatorImpl } = m.useModule(
+    const { newImplementation: newCredentialAtomicQueryMTPV2ValidatorImpl } = m.useModule(
       CredentialAtomicQueryMTPV2ValidatorProxyModule,
     );
-    const { newCredentialAtomicQuerySigV2ValidatorImpl } = m.useModule(
+    const { newImplementation: newCredentialAtomicQuerySigV2ValidatorImpl } = m.useModule(
       CredentialAtomicQuerySigV2ValidatorProxyModule,
     );
-    const { newCredentialAtomicQueryV3ValidatorImpl } = m.useModule(
+    const { newImplementation: newCredentialAtomicQueryV3ValidatorImpl } = m.useModule(
       CredentialAtomicQueryV3ValidatorProxyModule,
     );
-    const { newLinkedMultiQueryValidatorImpl } = m.useModule(LinkedMultiQueryValidatorProxyModule);
-    const { newAuthV2ValidatorImpl } = m.useModule(AuthV2ValidatorProxyModule);
-    const { newEthIdentityValidatorImpl } = m.useModule(EthIdentityValidatorProxyModule);
+    const { newImplementation: newLinkedMultiQueryValidatorImpl } = m.useModule(
+      LinkedMultiQueryValidatorProxyModule,
+    );
+    const { newImplementation: newAuthV2ValidatorImpl } = m.useModule(AuthV2ValidatorProxyModule);
+    const { newImplementation: newEthIdentityValidatorImpl } = m.useModule(
+      EthIdentityValidatorProxyModule,
+    );
 
-    const { newVCPaymentImpl } = m.useModule(VCPaymentProxyModule);
-    const { newMCPaymentImpl } = m.useModule(MCPaymentProxyModule);
+    const { newImplementation: newVCPaymentImpl } = m.useModule(VCPaymentProxyModule);
+    const { newImplementation: newMCPaymentImpl } = m.useModule(MCPaymentProxyModule);
 
     return {
       create2AddressAnchor,
