@@ -9,7 +9,6 @@ import {
   writeDeploymentParameters,
 } from "../../../helpers/helperUtils";
 import { contractsInfo } from "../../../helpers/constants";
-import { StateAtModule } from "../../../ignition/modules/contractsAt";
 import UpgradeStateModule from "../../../ignition/modules/upgrades/upgradeState";
 import { transferOwnership } from "../helpers/utils";
 
@@ -48,25 +47,33 @@ async function main() {
     );
   }
 
-  const StateContractAt = await ignition.deploy(StateAtModule, {
-    defaultSender: await signer.getAddress(),
-    parameters: parameters,
-    deploymentId: deploymentId,
-  });
+  const proxyAt = await ethers.getContractAt(
+    contractsInfo.STATE.name,
+    parameters.StateAtModule.proxyAddress,
+  );
+  const proxyAdminAt = await ethers.getContractAt(
+    "ProxyAdmin",
+    parameters.StateAtModule.proxyAdminAddress,
+  );
+
   if (impersonate) {
     console.log("Impersonating Ledger Account by ownership transfer");
-    await transferOwnership(signer, StateContractAt);
+    await transferOwnership(signer, { proxy: proxyAt, proxyAdmin: proxyAdminAt });
   }
 
-  const stateContract = StateContractAt.proxy;
+  const stateContract = proxyAt;
   console.log("Version before: ", await stateContract.VERSION());
 
   const defaultIdTypeBefore = await stateContract.getDefaultIdType();
   const stateOwnerAddressBefore = await stateContract.owner();
 
   const version = "V".concat(contractsInfo.STATE.version.replaceAll(".", "_").replaceAll("-", "_"));
-  parameters["UpgradeStateNewImplementationModule".concat(version)] = {
+  parameters["UpgradeStateModule".concat(version)] = {
+    proxyAddress: parameters.StateAtModule.proxyAddress,
+    proxyAdminAddress: parameters.StateAtModule.proxyAdminAddress,
     oracleSigningAddress: parameters.CrossChainProofValidatorModule.oracleSigningAddress,
+    smtLibContractAddress: parameters.SmtLibAtModule.contractAddress,
+    poseidon1ContractAddress: parameters.Poseidon1AtModule.contractAddress,
   };
 
   // **** Upgrade State ****

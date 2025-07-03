@@ -1,6 +1,7 @@
 import { ethers, ignition } from "hardhat";
 import { contractsInfo } from "../../helpers/constants";
 import {
+  getChainId,
   getDefaultIdType,
   getDeploymentParameters,
   isContract,
@@ -177,12 +178,25 @@ async function main() {
 
     if (await isContract(contract.contractAddress)) {
       console.log(`${contract.name} already deployed to: ${contract.contractAddress}`);
+
+      let proxyAdminAddress = contract.proxy
+        ? ethers.getCreateAddress({ from: contract.contractAddress, nonce: 1 })
+        : undefined;
+
+      // special case for Polygon Amoy and Polygon PoS with state proxy admin address
+      const chainId = await getChainId();
+      if (contract.moduleAt.id === "StateAtModule" && (chainId == 80002 || chainId == 137)) {
+        if (chainId == 80002) {
+          proxyAdminAddress = "0xdc2A724E6bd60144Cde9DEC0A38a26C619d84B90";
+        } else {
+          proxyAdminAddress = "0xA8bbF6132e4021b5D244a4DdD75dE5FFCfBd514A";
+        }
+      }
+
       parameters[contract.moduleAt.id] = contract.proxy
         ? {
             proxyAddress: contract.contractAddress,
-            proxyAdminAddress: contract.proxy
-              ? ethers.getCreateAddress({ from: contract.contractAddress, nonce: 1 })
-              : undefined,
+            proxyAdminAddress: proxyAdminAddress,
           }
         : {
             contractAddress: contract.contractAddress,
