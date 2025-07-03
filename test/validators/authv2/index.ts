@@ -23,7 +23,7 @@ const testCases: any[] = [
     ],
     userID: 23273167900576580892722615617815475823351560716009055944677723144398443009n,
     gistRoot: 2n,
-    errorMessage: "GistRootEntryNotFound()",
+    errorMessage: "GIST root entry not found",
   },
 ];
 
