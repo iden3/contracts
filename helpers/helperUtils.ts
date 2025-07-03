@@ -24,9 +24,12 @@ export async function getChainId() {
 
 export async function getDefaultIdType(): Promise<{ defaultIdType: string; chainId: number }> {
   const chainId = await getChainId();
-  const defaultIdType = chainIdInfoMap.get(chainId)?.idType;
+  let defaultIdType = chainIdInfoMap.get(chainId)?.idType;
   if (!defaultIdType) {
-    throw new Error(`Failed to find defaultIdType in Map for chainId ${chainId}`);
+    defaultIdType = "0xffff";
+    Logger.warning(
+      `Failed to find defaultIdType in Map for chainId ${chainId}. Using idType 0xffff`,
+    );
   }
   return { defaultIdType, chainId };
 }

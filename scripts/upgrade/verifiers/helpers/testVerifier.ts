@@ -251,7 +251,7 @@ export async function submitZKPResponses_KYCAgeCredential(
     chainId = Number((await opts.provider.getNetwork()).chainId);
     networkName = (await opts.provider.getNetwork()).name;
   } else {
-    chainId = (await getChainId()) || 80002;
+    chainId = 80002;
     networkName = hre.network.name;
   }
 
@@ -530,7 +530,7 @@ export async function setZKPRequest_KYCAgeCredential(
     chainId = Number((await provider.getNetwork()).chainId);
     network = (await provider.getNetwork()).name;
   } else {
-    chainId = (await getChainId()) || 80002;
+    chainId = 80002;
     network = hre.network.name;
   }
 
