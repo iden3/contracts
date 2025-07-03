@@ -218,11 +218,11 @@ const config: HardhatUserConfig = {
     //     },
     //   ],
     // },
-    // localhost: {
-    //   url: "http://127.0.0.1:8545",
-    //   timeout: 100000000,
-    //   // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-    // },
+    localhost: {
+      url: "http://127.0.0.1:8545",
+      timeout: 100000000,
+      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
+    },
   },
   gasReporter: {
     currency: "USD",
