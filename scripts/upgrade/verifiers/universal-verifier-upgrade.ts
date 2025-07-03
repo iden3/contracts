@@ -20,9 +20,6 @@ import { transferOwnership } from "../helpers/utils";
 // before the upgrade to test in a fork. This is done in the transferOwnership function below.
 const impersonate = false;
 
-const config = getConfig();
-
-let stateContractAddress = contractsInfo.STATE.unifiedAddress;
 const universalVerifierAddress = contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress; // replace with your address if needed
 
 async function getDataFromContract(universalVerifier: Contract) {
@@ -42,6 +39,8 @@ function checkData(...args: any[]): any {
 }
 
 async function main() {
+  const config = getConfig();
+
   console.log(`Starting Universal Verifier Contract Upgrade for ${universalVerifierAddress}`);
   const parameters = await getDeploymentParameters();
   const deploymentId = parameters.DeploymentId || undefined;
@@ -66,7 +65,7 @@ async function main() {
   if (!ethers.isAddress(config.ledgerAccount)) {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
-  stateContractAddress = parameters.StateAtModule.proxyAddress || getStateContractAddress();
+  const stateContractAddress = parameters.StateAtModule.proxyAddress || getStateContractAddress();
 
   const [signer] = await ethers.getSigners();
 

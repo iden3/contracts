@@ -18,9 +18,8 @@ import { transferOwnership } from "../helpers/utils";
 // before the upgrade to test in a fork. This is done in the transferOwnership function below.
 const impersonate = false;
 
-const config = getConfig();
-
 async function main() {
+  const config = getConfig();
   const parameters = await getDeploymentParameters();
   const deploymentId = parameters.DeploymentId || undefined;
 

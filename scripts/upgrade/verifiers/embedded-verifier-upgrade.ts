@@ -1,128 +1,206 @@
-import { DeployHelper } from "../../../helpers/DeployHelper";
-import hre, { ethers, upgrades } from "hardhat";
+import { ethers, ignition } from "hardhat";
+import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/State.json";
 import { expect } from "chai";
-import { Contract } from "ethers";
 import {
-  setZKPRequest_KYCAgeCredential,
-  submitZKPResponses_KYCAgeCredential,
-} from "./helpers/testVerifier";
-import { getChainId, getStateContractAddress } from "../../../helpers/helperUtils";
+  checkContractVersion,
+  getConfig,
+  getDeploymentParameters,
+  getStateContractAddress,
+  verifyContract,
+  writeDeploymentParameters,
+} from "../../../helpers/helperUtils";
 import { contractsInfo } from "../../../helpers/constants";
-import fs from "fs";
-import path from "path";
+import { buildModule } from "@nomicfoundation/ignition-core";
+import { Contract } from "ethers";
+import { StateAtModule } from "../../../ignition/modules/contractsAt";
 
-const forceImport = false;
+const embeddedVerifierName = "<verifier contract name>";
+const embeddedVerifierAddress = "<verifier contract address>";
+const embeddedVerifierProxyAddress = "<verifier proxy address>";
+const embeddedVerifierProxyAdminAddress = "<verifier proxy admin address>";
+const version = "<verifier contract version>"; // Should be a valid ignition module name. Example: V_1_0_0
+
+const VerifierAtModule = buildModule(embeddedVerifierName.concat("AtModule"), (m) => {
+  const proxyAddress = m.getParameter("proxyAddress");
+  const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+  const proxy = m.contractAt(embeddedVerifierName, proxyAddress);
+  const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+  return { proxy, proxyAdmin };
+});
+
+const UpgradeVerifierNewImplementationModule = buildModule(
+  "UpgradeVerifierNewImplementationModule".concat(version),
+  (m) => {
+    const proxyAdminOwner = m.getAccount(0);
+    const { proxy, proxyAdmin } = m.useModule(VerifierAtModule);
+
+    const verifierLib = m.contract(contractsInfo.VERIFIER_LIB.name);
+    const state = m.useModule(StateAtModule).proxy;
+
+    const newImplementation = m.contract(embeddedVerifierName, [], {
+      libraries: {
+        VerifierLib: verifierLib,
+      },
+    });
+
+    // As we are working with same proxy the storage is already initialized
+    const initializeData = "0x";
+
+    m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
+      from: proxyAdminOwner,
+    });
+
+    return {
+      newImplementation,
+      verifierLib,
+      state,
+      proxyAdmin,
+      proxy,
+    };
+  },
+);
+
+const UpgradeVerifierModule = buildModule("UpgradeVerifierModule".concat(version), (m) => {
+  const { verifierLib, state, newImplementation, proxyAdmin, proxy } = m.useModule(
+    UpgradeVerifierNewImplementationModule,
+  );
+
+  const verifier = m.contractAt(embeddedVerifierName, proxy);
+
+  return {
+    verifier,
+    newImplementation,
+    verifierLib,
+    state,
+    proxyAdmin,
+    proxy,
+  };
+});
+
+async function getDataFromContract(universalVerifier: Contract) {
+  const countRequests = await universalVerifier.getRequestsCount();
+  const stateAddress = await universalVerifier.getStateAddress();
+  return { countRequests, stateAddress };
+}
+
+function checkData(...args: any[]): any {
+  const result1 = args[0];
+  const result2 = args[1];
+
+  const { countRequests: countRequestsV1, stateAddress: stateAddress1 } = result1;
+  const { countRequests: countRequestsV2, stateAddress: stateAddress2 } = result2;
+  console.assert(countRequestsV1 === countRequestsV2, "lenght of requests not equal");
+  console.assert(stateAddress1 === stateAddress2, "state address not equal");
+}
 
 async function main() {
-  const chainId = await getChainId();
-  const network = hre.network.name;
+  const config = getConfig();
 
-  // EmbeddedVerifer is abstract contract
-  // In real upgrade, you should use THE NAME as THE ADDRESS
-  // of your custom contract, which inherits EmbeddedVerifer
-  let verifierContract = await ethers.getContractAt(
-    "<verifier contract name>", // EmbeddedVerifierWrapper
-    "<verifier contract address>",
+  console.log(`Starting Embedded Verifier Contract Upgrade for ${embeddedVerifierAddress}`);
+  const parameters = await getDeploymentParameters();
+  const deploymentId = parameters.DeploymentId || undefined;
+
+  const { upgraded, currentVersion } = await checkContractVersion(
+    embeddedVerifierName,
+    parameters.UniversalVerifierAtModule.proxyAddress,
+    contractsInfo.UNIVERSAL_VERIFIER.version,
   );
 
-  console.log("Starting Embedded Verifier Contract Upgrade");
-
-  const stateContractAddress = await getStateContractAddress();
-
-  const [signer] = await ethers.getSigners();
-  const proxyAdminOwnerSigner = signer;
-  const verifierOwnerSigner = signer;
-
-  const deployerHelper = await DeployHelper.initialize(
-    [proxyAdminOwnerSigner, verifierOwnerSigner],
-    true,
-  );
-
-  const verifierOwnerAddressBeforeUpgrade = await verifierContract.owner();
-  const verifierRequestsCountBeforeUpgrade = await verifierContract.getZKPRequestsCount();
-  console.log("Owner Address Before Upgrade: ", verifierOwnerAddressBeforeUpgrade);
-
-  // **** Upgrade Embedded Verifier ****
-  const verifierFactory = await ethers.getContractFactory(
-    contractsInfo.EMBEDDED_VERIFIER_WRAPPER.name,
-  );
-
-  try {
-    verifierContract = await upgrades.upgradeProxy(
-      await verifierContract.getAddress(),
-      verifierFactory,
-      {
-        unsafeAllow: ["external-library-linking"],
-      },
+  if (upgraded) {
+    console.log(
+      `Contract is already upgraded to version ${contractsInfo.UNIVERSAL_VERIFIER.version}`,
     );
-  } catch (e) {
-    if (forceImport) {
-      console.log("Error upgrading proxy. Forcing import...");
-      await upgrades.forceImport(await verifierContract.getAddress(), verifierFactory);
-      verifierContract = await upgrades.upgradeProxy(
-        await verifierContract.getAddress(),
-        verifierFactory,
-        {
-          unsafeAllow: ["external-library-linking"],
-        },
-      );
-    } else {
-      throw e;
-    }
+    return;
+  } else {
+    console.log(
+      `Contract is not upgraded and will upgrade version ${currentVersion} to ${contractsInfo.UNIVERSAL_VERIFIER.version}`,
+    );
   }
 
-  await verifierContract.waitForDeployment();
+  if (!ethers.isAddress(config.ledgerAccount)) {
+    throw new Error("LEDGER_ACCOUNT is not set");
+  }
 
-  const tx = await verifierContract.connect(verifierOwnerSigner).setState(stateContractAddress);
-  await tx.wait();
+  const stateContractAddress = parameters.StateAtModule.proxyAddress || getStateContractAddress();
+
+  const [signer] = await ethers.getSigners();
+
+  console.log("Proxy Admin Owner Address for the upgrade: ", signer.address);
+  console.log("Universal Verifier Owner Address for the upgrade: ", signer.address);
+
+  parameters[embeddedVerifierName.concat("AtModule")] = {
+    proxyAddress: embeddedVerifierProxyAddress,
+    proxyAdminAddress: embeddedVerifierProxyAdminAddress,
+  };
+
+  const verifierContractAt = await ignition.deploy(VerifierAtModule, {
+    defaultSender: await signer.getAddress(),
+    parameters: parameters,
+    deploymentId: deploymentId,
+  });
+
+  const verifierContract = verifierContractAt.proxy;
+  const verifierOwnerAddressBefore = await verifierContract.owner();
+  console.log("Owner Address Before Upgrade: ", verifierOwnerAddressBefore);
+  const dataBeforeUpgrade = await getDataFromContract(verifierContract);
+
+  const whitelistedValidators = [
+    parameters.CredentialAtomicQueryMTPV2ValidatorAtModule.proxyAddress,
+    parameters.CredentialAtomicQuerySigV2ValidatorAtModule.proxyAddress,
+    parameters.CredentialAtomicQueryV3ValidatorAtModule.proxyAddress,
+  ];
+
+  for (const validator of whitelistedValidators) {
+    expect(await verifierContract.isWhitelistedValidator(validator)).to.equal(true);
+  }
+
+  // **** Upgrade Embedded Verifier ****
+  const { newImplementation, verifier, verifierLib, proxy, proxyAdmin } = await ignition.deploy(
+    UpgradeVerifierModule,
+    {
+      defaultSender: signer.address,
+      parameters: parameters,
+      deploymentId: deploymentId,
+    },
+  );
+  parameters[embeddedVerifierName.concat("AtModule")] = {
+    proxyAddress: proxy.target,
+    proxyAdminAddress: proxyAdmin.target,
+  };
   // ************************
-
   console.log("Checking data after upgrade");
 
-  const universalVerifierOwnerAddressAfter = await verifierContract.owner();
-  const verifierRequestsCountAfterUpgrade = await verifierContract.getZKPRequestsCount();
+  await verifyContract(verifierLib.target, contractsInfo.VERIFIER_LIB.verificationOpts);
+  await verifyContract(newImplementation.target, {
+    constructorArgsImplementation: [],
+    libraries: {},
+  });
 
-  expect(verifierOwnerAddressBeforeUpgrade).to.equal(universalVerifierOwnerAddressAfter);
-  expect(verifierRequestsCountBeforeUpgrade).to.equal(verifierRequestsCountAfterUpgrade);
+  const dataAfterUpgrade = await getDataFromContract(verifier);
 
+  checkData(dataBeforeUpgrade, dataAfterUpgrade);
+  const verifierOwnerAddressAfter = await verifier.owner();
+
+  for (const validator of whitelistedValidators) {
+    expect(await verifier.isWhitelistedValidator(validator)).to.equal(true);
+  }
+
+  expect(verifierOwnerAddressBefore).to.equal(verifierOwnerAddressAfter);
   console.log("Verifier Contract Upgrade Finished");
 
-  const pathOutputJson = path.join(
-    __dirname,
-    `../../deployments_output/deploy_embedded_verifier_output_${chainId}_${network}.json`,
-  );
-  const outputJson = {
-    proxyAdminOwnerAddress: await signer.getAddress(),
-    verifierContract: await verifierContract.getAddress(),
-    state: stateContractAddress,
-    network: network,
-    chainId,
-  };
-  fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
+  const state = await ethers.getContractAt(stateArtifact.abi, stateContractAddress, signer);
 
-  // console.log("Testing verifiation with submitZKPResponseV2 after migration...");
-  // await testVerification(
-  //   verifierContract,
-  //   contractsInfo.VALIDATOR_V3.unifiedAddress,
-  //   stateContractAddress,
-  // );
+  console.log("Id Type configured in state: ", await state.getDefaultIdType());
+
+  const crossChainProofValidatorAddress = await state.getCrossChainProofValidator();
+  console.log("crossChainProofValidatorAddress: ", crossChainProofValidatorAddress);
+
+  const tx = await verifier.connect(signer).setState(state);
+  await tx.wait();
+
+  await writeDeploymentParameters(parameters);
 }
 
-async function testVerification(
-  verifier: Contract,
-  validatorV3Address: string,
-  stateContractAddress: string,
-) {
-  const requestId = 112233;
-  await setZKPRequest_KYCAgeCredential(requestId, verifier, validatorV3Address, "v3");
-  await submitZKPResponses_KYCAgeCredential(requestId, verifier, "v3", {
-    stateContractAddress: stateContractAddress,
-    verifierContractAddress: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
-    checkSubmitZKResponseV2: true,
-  });
-}
-
-// onlyTestVerification() // Use this to only test verification after upgrade
 main() // Use this to upgrade and test verification
   .then(() => process.exit(0))
   .catch((error) => {
