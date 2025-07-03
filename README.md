@@ -55,17 +55,17 @@ We have deployed contracts across the following mainnets and testnets so far (**
 ## Security Audits
 
 1. [Nethermind](https://www.nethermind.io/smart-contract-audits) has performed a security audit of our core smart contracts (State & Smt) and compiled a report on Apr 18, 2023: 
-   [NM_0069_POLYGON_FINAL.pdf](https://iden3-circuits-bucket.s3.eu-west-1.amazonaws.com/audit_reports/NM_0069_POLYGON_FINAL.pdf)
+   [NM_0069_POLYGON_FINAL.pdf](https://github.com/NethermindEth/PublicAuditReports/blob/main/NM0069-FINAL_POLYGON_ID.pdf)
 
 2. [Nethermind](https://www.nethermind.io/smart-contract-audits) has performed a second security audit of our core smart contracts (State, IdentityBase, GenesisUtils, OnChainIdentity) and compiled a report on Sep 13, 2023:
-   [NM0113-FINAL-POLYGONID.pdf](https://iden3-circuits-bucket.s3.eu-west-1.amazonaws.com/audit_reports/NM0113-FINAL-POLYGONID.pdf)
+   [NM0113-FINAL-POLYGONID.pdf](https://github.com/NethermindEth/PublicAuditReports/blob/main/NM0113-FINAL_POLYGONID.pdf)
 
 3. [Nethermind](https://www.nethermind.io/smart-contract-audits) has performed a third security audit of our core smart contracts (all contracts in cross-chain/*, payment/*, verifiers/* and validators/* folders) and compiled a report on Apr 4, 2025:
-   [NM_0379_Final_PRIVADO_iD.pdf](https://iden3-circuits-bucket.s3.eu-west-1.amazonaws.com/audit_reports/NM_0379_Final_PRIVADO_iD.pdf)
+   [NM_0379_Final_PRIVADO_iD.pdf](https://github.com/NethermindEth/PublicAuditReports/blob/main/NM_0379_Final_PRIVADO_iD.pdf)
 
-## Deployment methodology with CREATE2 and ledger
+## Deployment methodology with CREATE2 with ignition and ledger
 
-Note, that this methodology is not what expected to be used by the repository users as its purpose is mainly for our team to deploy and maintain the contracts across many networks in a unified way. However, it can be used as a reference for the deployment process.
+Note, that this methodology is not what expected to be used by the repository users as its purpose is mainly for our team to deploy and maintain the contracts across many networks in a unified way.
 
 The deployment is configured to be done with Ledger device for signing the transactions.
 You should configure your Ledger device for `blind signing` in your Ethereum app.
@@ -91,8 +91,25 @@ LINEA_MAINNET_RPC_URL=<rpc url for linea mainnet>
 LINEA_SEPOLIA_RPC_URL=<rpc url for linea sepolia>
 ```
 
-Then run the deployment scripts:
+There are 2 strategies for the deployment scripts:
+- Deployment in 2 steps. First step with unknown address and second step with LEDGER address.
+- Deployment in 1 step. 1 step only with LEDGER address.
 
+For this to work with ignition we need to use `parameters` inside the modules to avoid issues with different deployer addresses.
+These paramaters will be chain id specific and will be placed in `ignition/modules/params/` for every chain id like `chain-<chainId>.json`
+
+### Deployment in 2 steps
+Run the deployment scripts for all the system:
+1. Deploy initial implementation contracts for all the system with unknown address
+   ```shell
+   npx hardhat run scripts/deploy/deployment-step-1/deploySystem.ts --network <your-network>
+   ```
+2. Deploy final implementation contracts for all the system with LEDGER address
+   ```shell
+   npx hardhat run scripts/deploy/deployment-step-2/deploySystem.ts --network <your-network>
+   ```
+
+### Deploy everything 1 step
 1. Deploy create2AnchorAddress that we use for unified addresses
    ```shell
    npx hardhat run scripts/deploy/deployCreate2AddressAnchor.ts --network <your-network>

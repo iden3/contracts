@@ -1,22 +1,18 @@
 # Upgrading Universal Verifier
-In order to test verification after upgrade, there is a check test for `submitZKPResponse` and `submitZKPResponseV2` functions of the Universal Verifier. 
-For this test we use `js-sdk` and we need to download circuits for the verification.
-
-The verifier upgrade script executes:
-- Upgrade State contract
-- Upgrade Universal Verifier contract
-- Test verification for a requestId from user that has a KYCAgeCredential generated from an issuer in the same network of the deployment.
+The verifier upgrade script executes upgrade for the Universal Veifier contract.
 
 ## Steps to execute the upgrade script
-
-1. Download the zk circuits into `./circuits` by running `dl_circuits.sh`. This will download the latest files from `https://iden3-circuits-bucket.s3.eu-west-1.amazonaws.com/latest.zip`
-
-    ```bash
-    ./dl_circuits.sh
-    ```
-2. The module with corresponding version for the upgrade will be defined by the contract version.
-3. Configure the network you want to upgrade in `hardhat.config.ts` and execute upgrade script.
+1. The module with corresponding version for the upgrade will be defined by the contract version.
+2. Configure the network you want to upgrade in `hardhat.config.ts` and execute upgrade script.
 Example in amoy:
     ```bash
     npx hardhat run scripts/upgrade/verifiers/universal-verifier-upgrade.ts --network amoy
     ```
+
+## Test verification after the upgrade
+After the uprade you can test verification with the maintenance script `checkUniversalVerifierSingleNetwork.ts` doing the proper updates to the script for the verifier addresses. This script sets a requestId and sends `submitResponse` for the user that has a KYCAgeCredential generated from an issuer in the same network.
+
+You can execute the verification with this command:
+```
+npx hardhat run scripts/maintenance/checkUniversalVerifierSingleNetwork.ts --network <network>
+```
