@@ -1,12 +1,10 @@
 import { ethers, ignition } from "hardhat";
-import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/State.json";
 import { expect } from "chai";
 import { Contract } from "ethers";
 import {
   checkContractVersion,
   getConfig,
   getDeploymentParameters,
-  getStateContractAddress,
   verifyContract,
   writeDeploymentParameters,
 } from "../../../helpers/helperUtils";
@@ -65,7 +63,6 @@ async function main() {
   if (!ethers.isAddress(config.ledgerAccount)) {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
-  const stateContractAddress = parameters.StateAtModule.proxyAddress || getStateContractAddress();
 
   const [signer] = await ethers.getSigners();
 
@@ -134,16 +131,6 @@ async function main() {
 
   expect(universalVerifierOwnerAddressBefore).to.equal(universalVerifierOwnerAddressAfter);
   console.log("Verifier Contract Upgrade Finished");
-
-  const state = await ethers.getContractAt(stateArtifact.abi, stateContractAddress, signer);
-
-  console.log("Id Type configured in state: ", await state.getDefaultIdType());
-
-  const crossChainProofValidatorAddress = await state.getCrossChainProofValidator();
-  console.log("crossChainProofValidatorAddress: ", crossChainProofValidatorAddress);
-
-  const tx = await universalVerifier.connect(signer).setState(state);
-  await tx.wait();
 
   await writeDeploymentParameters(parameters);
 }
