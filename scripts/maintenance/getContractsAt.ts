@@ -85,13 +85,13 @@ async function main() {
       contractAddress: contractsInfo.SMT_LIB.unifiedAddress,
       name: contractsInfo.SMT_LIB.name,
     },
-   /* {
+    {
       moduleAt: StateAtModule,
       contractAddress:
         parameters["StateAtModule"].proxyAddress || contractsInfo.STATE.unifiedAddress,
       name: contractsInfo.STATE.name,
       proxy: true,
-    },*/
+    },
     {
       moduleAt: UniversalVerifierAtModule,
       contractAddress:
