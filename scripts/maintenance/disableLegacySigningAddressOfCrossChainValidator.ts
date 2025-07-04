@@ -12,7 +12,14 @@ async function main() {
     contractsInfo.CROSS_CHAIN_PROOF_VALIDATOR.name,
     crossChainProofValidatorAddress,
   );
-  const tx = await crossChainProofValidator.disableLegacyOracleSigningAddress();
+  const tx = await crossChainProofValidator.disableLegacyOracleSigningAddress(
+      // {
+      //   nonce: 59,
+      //   gasPrice:             5000000000,
+      //   initialBaseFeePerGas: 2500000000,
+      //   gasLimit: 30000
+      // }
+  );
 
   console.log(
     `Tx ${tx.hash} disabled legacy Oracle Signing address in Cross-Chain Proof Validator ${await crossChainProofValidator.getAddress()}`,
