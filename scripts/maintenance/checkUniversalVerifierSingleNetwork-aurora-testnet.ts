@@ -8,15 +8,15 @@ import {
 import { Contract } from "ethers";
 
 // Replace these addresses with the ones you want to test
-const universalVerifierAddress = "0x44a4EF495c471F8e762dd216a45C9738F2963705";
-const validatorSigV2Address = "0x7e75E2fFf7b300d04F33e550756566f3f566F0d1";
-const validatorMTPV2Address = "0x49Fa0979DDdF2451E293645d17921c00348822Dd";
-const validatorV3Address = "0xb1b2833078A1da9f6Bd98CcA56c23813E0366c7B";
+const universalVerifierAddress = "0x8C9B1D4B064c5130f11b10a4Ec176e00C1EbeF51";
+const validatorSigV2Address = "0xBf7E86AB33537EdCf05c1DbD92C21e9B11CFfBcB";
+const validatorMTPV2Address = "0xcBEdfF4D88c3EB8d5a65415bA1db1fF9722Eb308";
+const validatorV3Address = "0x443F6A8A5eD1CB30fc60209eA835e1a1BE4B4aCc";
 
 async function testVerification(verifier: Contract) {
   const requestId_V3 = await setZKPRequest_KYCAgeCredential(verifier, validatorV3Address, "v3");
   await submitZKPResponses_KYCAgeCredential(requestId_V3, verifier, "v3", {
-    stateContractAddress: "0xFE810db1AcEe4238633Bd02DcBe5C7ce983e1FDd",
+    stateContractAddress: "0x8902b2f657d98589191fCDC23bBa439Ba274bAb5",
     verifierContractAddress: await verifier.getAddress(),
     checkSubmitZKResponseV2: false,
   });
@@ -27,7 +27,7 @@ async function testVerification(verifier: Contract) {
     "sigV2",
   );
   await submitZKPResponses_KYCAgeCredential(requestId_SigV2, verifier, "sigV2", {
-    stateContractAddress: "0xFE810db1AcEe4238633Bd02DcBe5C7ce983e1FDd",
+    stateContractAddress: "0x8902b2f657d98589191fCDC23bBa439Ba274bAb5",
     verifierContractAddress: await verifier.getAddress(),
     checkSubmitZKResponseV2: false,
   });
@@ -38,7 +38,7 @@ async function testVerification(verifier: Contract) {
     "mtpV2",
   );
   await submitZKPResponses_KYCAgeCredential(requestId_MTPV2, verifier, "mtpV2", {
-    stateContractAddress: "0xFE810db1AcEe4238633Bd02DcBe5C7ce983e1FDd",
+    stateContractAddress: "0x8902b2f657d98589191fCDC23bBa439Ba274bAb5",
     verifierContractAddress: await verifier.getAddress(),
     checkSubmitZKResponseV2: false,
   });
