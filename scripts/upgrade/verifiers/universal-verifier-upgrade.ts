@@ -9,7 +9,6 @@ import {
   writeDeploymentParameters,
 } from "../../../helpers/helperUtils";
 import { contractsInfo } from "../../../helpers/constants";
-import { UniversalVerifierAtModule } from "../../../ignition/modules/contractsAt";
 import UpgradeUniversalVerifierModule from "../../../ignition/modules/upgrades/upgradeUniversalVerifier";
 import { transferOwnership } from "../helpers/utils";
 
@@ -69,16 +68,19 @@ async function main() {
   console.log("Proxy Admin Owner Address for the upgrade: ", signer.address);
   console.log("Universal Verifier Owner Address for the upgrade: ", signer.address);
 
-  const UniversalVerifierContractAt = await ignition.deploy(UniversalVerifierAtModule, {
-    defaultSender: await signer.getAddress(),
-    parameters: parameters,
-    deploymentId: deploymentId,
-  });
+  const proxyAt = await ethers.getContractAt(
+    contractsInfo.UNIVERSAL_VERIFIER.name,
+    parameters.UniversalVerifierAtModule.proxyAddress,
+  );
+  const proxyAdminAt = await ethers.getContractAt(
+    "ProxyAdmin",
+    parameters.UniversalVerifierAtModule.proxyAdminAddress,
+  );
   if (impersonate) {
     console.log("Impersonating Ledger Account by ownership transfer");
-    await transferOwnership(signer, UniversalVerifierContractAt);
+    await transferOwnership(signer, { proxy: proxyAt, proxyAdmin: proxyAdminAt });
   }
-  const universalVerifierContract = UniversalVerifierContractAt.proxy;
+  const universalVerifierContract = proxyAt;
   const universalVerifierOwnerAddressBefore = await universalVerifierContract.owner();
   console.log("Owner Address Before Upgrade: ", universalVerifierOwnerAddressBefore);
   const dataBeforeUpgrade = await getDataFromContract(universalVerifierContract);
@@ -92,6 +94,14 @@ async function main() {
   for (const validator of whitelistedValidators) {
     expect(await universalVerifierContract.isWhitelistedValidator(validator)).to.equal(true);
   }
+
+  const version = "V".concat(
+    contractsInfo.UNIVERSAL_VERIFIER.version.replaceAll(".", "_").replaceAll("-", "_"),
+  );
+  parameters["UpgradeUniversalVerifierModule".concat(version)] = {
+    proxyAddress: parameters.UniversalVerifierAtModule.proxyAddress,
+    proxyAdminAddress: parameters.UniversalVerifierAtModule.proxyAdminAddress,
+  };
 
   // **** Upgrade Universal Verifier ****
   const { newImplementation, universalVerifier, verifierLib, proxy, proxyAdmin } =

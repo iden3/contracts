@@ -20,55 +20,32 @@ const embeddedVerifierProxyAddress = "<verifier proxy address>";
 const embeddedVerifierProxyAdminAddress = "<verifier proxy admin address>";
 const version = "<verifier contract version>"; // Should be a valid ignition module name. Example: V_1_0_0
 
-const VerifierAtModule = buildModule(embeddedVerifierName.concat("AtModule"), (m) => {
+const UpgradeVerifierModule = buildModule("UpgradeVerifierModule".concat(version), (m) => {
+  const proxyAdminOwner = m.getAccount(0);
+
   const proxyAddress = m.getParameter("proxyAddress");
   const proxyAdminAddress = m.getParameter("proxyAdminAddress");
   const proxy = m.contractAt(embeddedVerifierName, proxyAddress);
   const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
-  return { proxy, proxyAdmin };
-});
 
-const UpgradeVerifierNewImplementationModule = buildModule(
-  "UpgradeVerifierNewImplementationModule".concat(version),
-  (m) => {
-    const proxyAdminOwner = m.getAccount(0);
-    const { proxy, proxyAdmin } = m.useModule(VerifierAtModule);
+  const verifierLib = m.contract(contractsInfo.VERIFIER_LIB.name);
+  const state = m.useModule(StateAtModule).proxy;
 
-    const verifierLib = m.contract(contractsInfo.VERIFIER_LIB.name);
-    const state = m.useModule(StateAtModule).proxy;
+  const newImplementation = m.contract(embeddedVerifierName, [], {
+    libraries: {
+      VerifierLib: verifierLib,
+    },
+  });
 
-    const newImplementation = m.contract(embeddedVerifierName, [], {
-      libraries: {
-        VerifierLib: verifierLib,
-      },
-    });
+  // As we are working with same proxy the storage is already initialized
+  const initializeData = "0x";
 
-    // As we are working with same proxy the storage is already initialized
-    const initializeData = "0x";
-
-    m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
-      from: proxyAdminOwner,
-    });
-
-    return {
-      newImplementation,
-      verifierLib,
-      state,
-      proxyAdmin,
-      proxy,
-    };
-  },
-);
-
-const UpgradeVerifierModule = buildModule("UpgradeVerifierModule".concat(version), (m) => {
-  const { verifierLib, state, newImplementation, proxyAdmin, proxy } = m.useModule(
-    UpgradeVerifierNewImplementationModule,
-  );
-
-  const verifier = m.contractAt(embeddedVerifierName, proxy);
+  m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
+    from: proxyAdminOwner,
+  });
 
   return {
-    verifier,
+    verifier: proxy,
     newImplementation,
     verifierLib,
     state,
@@ -128,18 +105,9 @@ async function main() {
   console.log("Proxy Admin Owner Address for the upgrade: ", signer.address);
   console.log("Universal Verifier Owner Address for the upgrade: ", signer.address);
 
-  parameters[embeddedVerifierName.concat("AtModule")] = {
-    proxyAddress: embeddedVerifierProxyAddress,
-    proxyAdminAddress: embeddedVerifierProxyAdminAddress,
-  };
+  const proxyAt = await ethers.getContractAt(embeddedVerifierName, embeddedVerifierProxyAddress);
 
-  const verifierContractAt = await ignition.deploy(VerifierAtModule, {
-    defaultSender: await signer.getAddress(),
-    parameters: parameters,
-    deploymentId: deploymentId,
-  });
-
-  const verifierContract = verifierContractAt.proxy;
+  const verifierContract = proxyAt;
   const verifierOwnerAddressBefore = await verifierContract.owner();
   console.log("Owner Address Before Upgrade: ", verifierOwnerAddressBefore);
   const dataBeforeUpgrade = await getDataFromContract(verifierContract);
@@ -153,6 +121,11 @@ async function main() {
   for (const validator of whitelistedValidators) {
     expect(await verifierContract.isWhitelistedValidator(validator)).to.equal(true);
   }
+
+  parameters["UpgradeVerifierModule".concat(version)] = {
+    proxyAddress: embeddedVerifierProxyAddress,
+    proxyAdminAddress: embeddedVerifierProxyAdminAddress,
+  };
 
   // **** Upgrade Embedded Verifier ****
   const { newImplementation, verifier, verifierLib, proxy, proxyAdmin } = await ignition.deploy(

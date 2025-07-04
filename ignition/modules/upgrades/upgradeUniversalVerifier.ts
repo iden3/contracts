@@ -1,19 +1,23 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { StateAtModule, UniversalVerifierAtModule } from "../contractsAt";
 import { contractsInfo } from "../../../helpers/constants";
 
 const version = "V".concat(
   contractsInfo.UNIVERSAL_VERIFIER.version.replaceAll(".", "_").replaceAll("-", "_"),
 );
 
-const UpgradeUniversalVerifierNewImplementationModule = buildModule(
-  "UpgradeUniversalVerifierNewImplementationModule".concat(version),
+const UpgradeUniversalVerifierModule = buildModule(
+  "UpgradeUniversalVerifierModule".concat(version),
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
-    const { proxy, proxyAdmin } = m.useModule(UniversalVerifierAtModule);
+
+    const proxyAddress = m.getParameter("proxyAddress");
+    const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+    const proxy = m.contractAt(contractsInfo.UNIVERSAL_VERIFIER.name, proxyAddress, {
+      id: "Proxy",
+    });
+    const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
 
     const verifierLib = m.contract(contractsInfo.VERIFIER_LIB.name);
-    const state = m.useModule(StateAtModule).proxy;
 
     const newImplementation = m.contract(contractsInfo.UNIVERSAL_VERIFIER.name, [], {
       libraries: {
@@ -29,29 +33,9 @@ const UpgradeUniversalVerifierNewImplementationModule = buildModule(
     });
 
     return {
+      universalVerifier: proxy,
       newImplementation,
       verifierLib,
-      state,
-      proxyAdmin,
-      proxy,
-    };
-  },
-);
-
-const UpgradeUniversalVerifierModule = buildModule(
-  "UpgradeUniversalVerifierModule".concat(version),
-  (m) => {
-    const { verifierLib, state, newImplementation, proxyAdmin, proxy } = m.useModule(
-      UpgradeUniversalVerifierNewImplementationModule,
-    );
-
-    const universalVerifier = m.contractAt(contractsInfo.UNIVERSAL_VERIFIER.name, proxy);
-
-    return {
-      universalVerifier,
-      newImplementation,
-      verifierLib,
-      state,
       proxyAdmin,
       proxy,
     };

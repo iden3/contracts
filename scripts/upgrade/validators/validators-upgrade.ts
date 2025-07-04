@@ -13,14 +13,6 @@ import UpgradeCredentialAtomicQueryV3ValidatorModule from "../../../ignition/mod
 import UpgradeAuthV2ValidatorModule from "../../../ignition/modules/upgrades/upgradeAuthV2Validator";
 import UpgradeEthIdentityValidatorModule from "../../../ignition/modules/upgrades/upgradeEthIdentityValidator";
 import UpgradeLinkedMultiQueryValidatorModule from "../../../ignition/modules/upgrades/upgradeLinkedMultiQuery";
-import {
-  AuthV2ValidatorAtModule,
-  CredentialAtomicQueryMTPV2ValidatorAtModule,
-  CredentialAtomicQuerySigV2ValidatorAtModule,
-  CredentialAtomicQueryV3ValidatorAtModule,
-  EthIdentityValidatorAtModule,
-  LinkedMultiQueryValidatorAtModule,
-} from "../../../ignition/modules/contractsAt";
 import { transferOwnership } from "../helpers/utils";
 
 // If you want to use impersonation, set the impersonate variable to true
@@ -47,7 +39,6 @@ async function main() {
     {
       validatorContractAddress: parameters.CredentialAtomicQueryMTPV2ValidatorAtModule.proxyAddress,
       validatorContractName: contractsInfo.VALIDATOR_MTP.name,
-      validatorContractAtModule: CredentialAtomicQueryMTPV2ValidatorAtModule,
       validatorUpgradeModule: UpgradeCredentialAtomicQueryMTPV2ValidatorModule,
       validatorVerificationOpts: contractsInfo.VALIDATOR_MTP.verificationOpts,
       validatorVerifierName: contractsInfo.GROTH16_VERIFIER_MTP.name,
@@ -57,7 +48,6 @@ async function main() {
     {
       validatorContractAddress: parameters.CredentialAtomicQuerySigV2ValidatorAtModule.proxyAddress,
       validatorContractName: contractsInfo.VALIDATOR_SIG.name,
-      validatorContractAtModule: CredentialAtomicQuerySigV2ValidatorAtModule,
       validatorUpgradeModule: UpgradeCredentialAtomicQuerySigV2ValidatorModule,
       validatorVerificationOpts: contractsInfo.VALIDATOR_SIG.verificationOpts,
       validatorVerifierName: contractsInfo.GROTH16_VERIFIER_SIG.name,
@@ -67,7 +57,6 @@ async function main() {
     {
       validatorContractAddress: parameters.CredentialAtomicQueryV3ValidatorAtModule.proxyAddress,
       validatorContractName: contractsInfo.VALIDATOR_V3.name,
-      validatorContractAtModule: CredentialAtomicQueryV3ValidatorAtModule,
       validatorUpgradeModule: UpgradeCredentialAtomicQueryV3ValidatorModule,
       validatorVerificationOpts: contractsInfo.VALIDATOR_V3.verificationOpts,
       validatorVerifierName: contractsInfo.GROTH16_VERIFIER_V3.name,
@@ -77,7 +66,6 @@ async function main() {
     {
       validatorContractAddress: parameters.LinkedMultiQueryValidatorAtModule.proxyAddress,
       validatorContractName: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
-      validatorContractAtModule: LinkedMultiQueryValidatorAtModule,
       validatorUpgradeModule: UpgradeLinkedMultiQueryValidatorModule,
       validatorVerificationOpts: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.verificationOpts,
       validatorVerifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.name,
@@ -88,7 +76,6 @@ async function main() {
     {
       validatorContractAddress: parameters.AuthV2ValidatorAtModule.proxyAddress,
       validatorContractName: contractsInfo.VALIDATOR_AUTH_V2.name,
-      validatorContractAtModule: AuthV2ValidatorAtModule,
       validatorUpgradeModule: UpgradeAuthV2ValidatorModule,
       validatorVerificationOpts: contractsInfo.VALIDATOR_AUTH_V2.verificationOpts,
       validatorVerifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V2.name,
@@ -98,7 +85,6 @@ async function main() {
     {
       validatorContractAddress: parameters.EthIdentityValidatorAtModule.proxyAddress,
       validatorContractName: contractsInfo.VALIDATOR_ETH_IDENTITY.name,
-      validatorContractAtModule: EthIdentityValidatorAtModule,
       validatorUpgradeModule: UpgradeEthIdentityValidatorModule,
       validatorVerificationOpts: contractsInfo.VALIDATOR_ETH_IDENTITY.verificationOpts,
       version: contractsInfo.VALIDATOR_ETH_IDENTITY.version,
@@ -121,15 +107,25 @@ async function main() {
       );
     }
 
-    const ValidatorContractAt = await ignition.deploy(v.validatorContractAtModule, {
-      defaultSender: await signer.getAddress(),
-      parameters: parameters,
-      deploymentId: deploymentId,
-    });
+    const proxyAt = await ethers.getContractAt(
+      v.validatorContractName,
+      parameters[v.validatorContractName.concat("AtModule")].proxyAddress,
+    );
+    const proxyAdminAt = await ethers.getContractAt(
+      "ProxyAdmin",
+      parameters[v.validatorContractName.concat("AtModule")].proxyAdminAddress,
+    );
+
     if (impersonate) {
       console.log("Impersonating Ledger Account by ownership transfer");
-      await transferOwnership(signer, ValidatorContractAt);
+      await transferOwnership(signer, { proxy: proxyAt, proxyAdmin: proxyAdminAt });
     }
+
+    const version = "V".concat(v.version.replaceAll(".", "_").replaceAll("-", "_"));
+    parameters["Upgrade".concat(v.validatorContractName).concat("Module").concat(version)] = {
+      proxyAddress: parameters[v.validatorContractName.concat("AtModule")].proxyAddress,
+      proxyAdminAddress: parameters[v.validatorContractName.concat("AtModule")].proxyAdminAddress,
+    };
 
     const validatorUpgrade = await ignition.deploy(v.validatorUpgradeModule, {
       defaultSender: signer.address,
