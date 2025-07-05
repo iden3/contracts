@@ -164,7 +164,7 @@
   "MCPaymentNewImplementationAtModule": {
     "contractAddress": "0xB175469316C6706297Cb02124c554344606Ea7eE"
   },
-  "UpgradeStateModuleV2_6_2": {
+  "UpgradeStateModuleV2_6_3": {
     "proxyAddress": "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
     "proxyAdminAddress": "0x3F570C4fE07c532cd274dF2d1dB26D74cc5F8F9A",
     "oracleSigningAddress": "0x0aD316c6D3F29B76cBd8f5a1ED5e3990c6B5174C",

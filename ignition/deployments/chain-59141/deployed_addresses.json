@@ -98,11 +98,11 @@
   "EthIdentityValidatorAtModule#ProxyAdmin": "0xCf3b0872731C72022c4625A1165C045C39630f2f",
   "EthIdentityValidatorNewImplementationAtModule#EthIdentityValidator": "0x3F954b02f5366EBd5B45D82A72306a05c841f70f",
   "EthIdentityValidatorModule#EthIdentityValidator": "0x8546bFd67F19dd0449dF73fb75A56BC9ddFA57Db",
-  "UpgradeStateModuleV2_6_2#PoseidonUnit1L": "0xC72D76D7271924a2AD54a19D216640FeA3d138d9",
-  "UpgradeStateModuleV2_6_2#Proxy": "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
-  "UpgradeStateModuleV2_6_2#ProxyAdmin": "0x3F570C4fE07c532cd274dF2d1dB26D74cc5F8F9A",
-  "UpgradeStateModuleV2_6_2#SmtLib": "0x682364078e26C1626abD2B95109D2019E241F0F6",
-  "UpgradeStateModuleV2_6_2#CrossChainProofValidator": "0x10Ecd636b7360d073984f9781C06C89FF310A8B2",
-  "UpgradeStateModuleV2_6_2#StateLib": "0xc427C4E8f3B1787b4bA38754A90f5B1453025031",
-  "UpgradeStateModuleV2_6_2#State": "0x0ed6C657b729204e35B615f5521D6A975c11D463"
+  "UpgradeStateModuleV2_6_3#PoseidonUnit1L": "0xC72D76D7271924a2AD54a19D216640FeA3d138d9",
+  "UpgradeStateModuleV2_6_3#Proxy": "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
+  "UpgradeStateModuleV2_6_3#ProxyAdmin": "0x3F570C4fE07c532cd274dF2d1dB26D74cc5F8F9A",
+  "UpgradeStateModuleV2_6_3#SmtLib": "0x682364078e26C1626abD2B95109D2019E241F0F6",
+  "UpgradeStateModuleV2_6_3#CrossChainProofValidator": "0x10Ecd636b7360d073984f9781C06C89FF310A8B2",
+  "UpgradeStateModuleV2_6_3#StateLib": "0xc427C4E8f3B1787b4bA38754A90f5B1453025031",
+  "UpgradeStateModuleV2_6_3#State": "0x0ed6C657b729204e35B615f5521D6A975c11D463"
 }
