@@ -2,6 +2,7 @@ import { ethers } from "hardhat";
 import { beforeEach } from "mocha";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
+import { contractsInfo } from "../../helpers/constants";
 
 describe("RequestDisableable tests", function () {
   let verifier, validator: any;
@@ -11,7 +12,7 @@ describe("RequestDisableable tests", function () {
   async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
     const deployHelper = await DeployHelper.initialize(null, true);
-    const verifierLib = await ethers.deployContract("VerifierLib");
+    const verifierLib = await ethers.deployContract(contractsInfo.VERIFIER_LIB.name);
     const verifier = await ethers.deployContract("RequestDisableableTestWrapper", [], {
       libraries: {
         VerifierLib: await verifierLib.getAddress(),

@@ -8,7 +8,7 @@ import {
 import { Contract } from "ethers";
 
 // Replace these addresses with the ones you want to test
-const universalVerifierAddress = "0x7b04A779D9012b343fCB8B3fB5b11D6A3BFB2a5f"; //contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress;
+const universalVerifierAddress = contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress;
 const validatorSigV2Address = contractsInfo.VALIDATOR_SIG.unifiedAddress;
 const validatorMTPV2Address = contractsInfo.VALIDATOR_MTP.unifiedAddress;
 const validatorV3Address = contractsInfo.VALIDATOR_V3.unifiedAddress;

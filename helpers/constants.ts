@@ -131,7 +131,7 @@ export const contractsInfo = Object.freeze({
       constructorArgsProxy: [
         "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
         "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
-        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier.v2")),
       ],
       constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
       libraries: {},
@@ -139,7 +139,7 @@ export const contractsInfo = Object.freeze({
   },
   STATE: {
     name: "State",
-    version: "2.6.2",
+    version: "2.6.3",
     unifiedAddress: "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.State")),
     verificationOpts: {
@@ -147,7 +147,7 @@ export const contractsInfo = Object.freeze({
       constructorArgsProxy: [
         "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
         "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
-        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.State")),
       ],
       constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
       libraries: {},
@@ -165,7 +165,7 @@ export const contractsInfo = Object.freeze({
       constructorArgsProxy: [
         "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
         "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
-        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQuerySigV2Validator.v3")),
       ],
       constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
       libraries: {},
@@ -183,7 +183,7 @@ export const contractsInfo = Object.freeze({
       constructorArgsProxy: [
         "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
         "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
-        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryMTPV2Validator.v3")),
       ],
       constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
       libraries: {},
@@ -201,7 +201,7 @@ export const contractsInfo = Object.freeze({
       constructorArgsProxy: [
         "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
         "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
-        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3Validator.v3")),
       ],
       constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
       libraries: {},
@@ -217,7 +217,7 @@ export const contractsInfo = Object.freeze({
       constructorArgsProxy: [
         "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
         "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
-        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.LinkedMultiQueryValidator")),
       ],
       constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7f44012c728b9d74"],
       libraries: {},
@@ -233,7 +233,7 @@ export const contractsInfo = Object.freeze({
       constructorArgsProxy: [
         "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
         "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
-        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.AuthV2Validator")),
       ],
       constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
       libraries: {},
@@ -265,7 +265,7 @@ export const contractsInfo = Object.freeze({
       constructorArgsProxy: [
         "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
         "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
-        "0x6964656e332e637265617465322e556e6976657273616c5665726966696572",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.IdentityTreeStore")),
       ],
       constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
       libraries: {},
@@ -278,6 +278,11 @@ export const contractsInfo = Object.freeze({
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.VCPayment")),
     verificationOpts: {
       constructorArgsImplementation: [],
+      constructorArgsProxy: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.VCPayment")),
+      ],
       libraries: {},
     },
   },
@@ -409,7 +414,15 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
-
+  VERIFIER_LIB: {
+    name: "VerifierLib",
+    unifiedAddress: "",
+    create2Calldata: "",
+    verificationOpts: {
+      constructorArgsImplementation: [],
+      libraries: {},
+    },
+  },
   EMBEDDED_VERIFIER_WRAPPER: {
     name: "EmbeddedVerifierWrapper",
     unifiedAddress: "",

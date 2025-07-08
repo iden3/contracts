@@ -141,6 +141,12 @@ function getParamsFromChainId(chainId: number) {
   let networkId: string;
 
   switch (chainId) {
+    case 31337:
+      rpcUrl = "http://localhost:8545";
+      method = DidMethod.Iden3;
+      blockchain = Blockchain.Polygon;
+      networkId = NetworkId.Amoy;
+      break;
     case 80002:
       rpcUrl = process.env.POLYGON_AMOY_RPC_URL as string;
       method = DidMethod.Iden3;
@@ -161,19 +167,19 @@ function getParamsFromChainId(chainId: number) {
       break;
     case 11155111:
       rpcUrl = process.env.ETHEREUM_SEPOLIA_RPC_URL as string;
-      method = DidMethod.PolygonId;
+      method = DidMethod.Iden3;
       blockchain = Blockchain.Ethereum;
       networkId = NetworkId.Sepolia;
       break;
     case 2442:
       rpcUrl = process.env.ZKEVM_CARDONA_RPC_URL as string;
-      method = DidMethod.PolygonId;
+      method = DidMethod.Iden3;
       blockchain = Blockchain.Polygon;
       networkId = NetworkId.Cardona;
       break;
     case 1101:
       rpcUrl = process.env.ZKEVM_MAINNET_RPC_URL as string;
-      method = DidMethod.PolygonId;
+      method = DidMethod.Iden3;
       blockchain = Blockchain.Polygon;
       networkId = NetworkId.Zkevm;
       break;
