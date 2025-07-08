@@ -96,5 +96,12 @@
   "EthIdentityValidatorAtModule#EthIdentityValidator": "0x8546bFd67F19dd0449dF73fb75A56BC9ddFA57Db",
   "EthIdentityValidatorAtModule#ProxyAdmin": "0xCf3b0872731C72022c4625A1165C045C39630f2f",
   "EthIdentityValidatorNewImplementationAtModule#EthIdentityValidator": "0x3F954b02f5366EBd5B45D82A72306a05c841f70f",
-  "EthIdentityValidatorModule#EthIdentityValidator": "0x8546bFd67F19dd0449dF73fb75A56BC9ddFA57Db"
+  "EthIdentityValidatorModule#EthIdentityValidator": "0x8546bFd67F19dd0449dF73fb75A56BC9ddFA57Db",
+  "UpgradeStateModuleV2_6_3#PoseidonUnit1L": "0xC72D76D7271924a2AD54a19D216640FeA3d138d9",
+  "UpgradeStateModuleV2_6_3#Proxy": "0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D",
+  "UpgradeStateModuleV2_6_3#ProxyAdmin": "0xA8bbF6132e4021b5D244a4DdD75dE5FFCfBd514A",
+  "UpgradeStateModuleV2_6_3#SmtLib": "0x682364078e26C1626abD2B95109D2019E241F0F6",
+  "UpgradeStateModuleV2_6_3#CrossChainProofValidator": "0x0C311D3DfC937234BBD4e784Bbc32B72694ac88A",
+  "UpgradeStateModuleV2_6_3#StateLib": "0x2EAaB245F7BE73F21b151F24DFeF024BD8A85CdD",
+  "UpgradeStateModuleV2_6_3#State": "0x80C833B8948B108Fe312f55fF67e8D9C4cbB5A92"
 }

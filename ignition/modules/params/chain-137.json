@@ -105,13 +105,13 @@
     "ownerPercentage": 15
   },
   "CrossChainProofValidatorAtModule": {
-    "contractAddress": "0x0bDD01cCE823D31b430A190786a52a899d590Dea"
+    "contractAddress": "0x0C311D3DfC937234BBD4e784Bbc32B72694ac88A"
   },
   "StateLibAtModule": {
-    "contractAddress": "0xf8506BED83E97fd8bb361402Afd19e1024EC1F54"
+    "contractAddress": "0x2EAaB245F7BE73F21b151F24DFeF024BD8A85CdD"
   },
   "StateNewImplementationAtModule": {
-    "contractAddress": "0x4225242e498B276A681D9C0CE6487cd1558982D4"
+    "contractAddress": "0x80C833B8948B108Fe312f55fF67e8D9C4cbB5A92"
   },
   "Groth16VerifierStateTransitionAtModule": {
     "contractAddress": "0xf2A3a8e2d265FC97fC90C0A0AF9312b137259b0e"
@@ -163,5 +163,12 @@
   },
   "MCPaymentNewImplementationAtModule": {
     "contractAddress": "0xB175469316C6706297Cb02124c554344606Ea7eE"
+  },
+  "UpgradeStateModuleV2_6_3": {
+    "proxyAddress": "0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D",
+    "proxyAdminAddress": "0xA8bbF6132e4021b5D244a4DdD75dE5FFCfBd514A",
+    "oracleSigningAddress": "0x0aD316c6D3F29B76cBd8f5a1ED5e3990c6B5174C",
+    "smtLibContractAddress": "0x682364078e26C1626abD2B95109D2019E241F0F6",
+    "poseidon1ContractAddress": "0xC72D76D7271924a2AD54a19D216640FeA3d138d9"
   }
 }
