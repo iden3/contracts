@@ -199,6 +199,12 @@ const config: HardhatUserConfig = {
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
+    "base-mainnet": {
+      chainId: 8453,
+      url: `${process.env.BASE_MAINNET_RPC_URL}`,
+      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+    },
     // hardhat: {
     //   chainId: 80002,
     //   forking: {
@@ -272,6 +278,7 @@ const config: HardhatUserConfig = {
       "zkevm-mainnet": process.env.ZKEVM_EXPLORER_API_KEY || "",
       "billions-test": "test",
       "billions-main": "main",
+      "base-mainnet": process.env.BASE_EXPLORER_API_KEY || "",
     },
     customChains: [
       {
