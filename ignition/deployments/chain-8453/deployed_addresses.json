@@ -1,0 +1,5 @@
+{
+  "Create2AddressAnchorModule#Create2AddressAnchor": "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+  "MCPaymentProxyModule#TransparentUpgradeableProxy": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
+  "MCPaymentProxyModule#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE"
+}
