@@ -13,6 +13,7 @@ The contracts were deployed via [TransparentUpgradeableProxy](https://github.com
 |    **Validator SIG**    | 0x59B347f0D3dd4B98cc2E056Ee6C53ABF14F8581b |
 |    **Validator V3**     | 0xd179f29d00Cd0E8978eb6eB847CaCF9E2A956336 |
 | **Universal Verifier**  | 0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c |
+| **Universal Verifier V2****  | 0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F |
 | **Identity Tree Store** | 0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81 |
 
 
@@ -20,6 +21,8 @@ The contracts were deployed via [TransparentUpgradeableProxy](https://github.com
 
 - Polygon Amoy testnet State Contract: **0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124**
 - Polygon PoS mainnet State Contract : **0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D**
+
+****Universal Verifier V2** is deployed in the different networks with new interface and possibility for multi request for the same credential in a single transaction. This new interface for setting requests is available in the script [here](https://github.com/iden3/contracts/blob/master/scripts/maintenance/setProofRequest.ts). If you want to set requests for old Universal Verifier you need to do it with the script [here](https://github.com/iden3/contracts/blob/d81b2717e2e4db4aeeee8b9899a5cb6b7ccc3063/scripts/maintenance/setProofRequest.ts)
 
 ## Libraries on unified addresses
 There are a few libraries, which does not tend to evolve much but can be re-used in many other contracts, e.g. custom onchain-identity. They reside on the same addresses across all networks deployed and serve both project needs and as a public good. Obviously, they are not upgradable.
