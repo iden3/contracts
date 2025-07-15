@@ -1,10 +1,7 @@
-import fs from "fs";
-import path from "path";
 import { ethers, ignition } from "hardhat";
 import Create2AddressAnchorModule from "../../../ignition/modules/create2AddressAnchor";
 import { contractsInfo } from "../../../helpers/constants";
 import {
-  getChainId,
   getConfig,
   getDefaultIdType,
   getDeploymentParameters,

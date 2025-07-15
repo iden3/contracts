@@ -42,7 +42,7 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
     idType: "0x0112",
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-  }) // polygon mumbai
+  }) // polygon amoy
   .set(80002, {
     idType: "0x0113",
     networkType: "test",

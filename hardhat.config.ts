@@ -145,6 +145,12 @@ const config: HardhatUserConfig = {
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
+    "billions-testnet": {
+      chainId: 6913,
+      url: `${process.env.BILLIONS_TESTNET_RPC_URL}`,
+      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+    },
     "aurora-testnet": {
       chainId: 1313161555,
       url: `${process.env.AURORA_TESTNET_RPC_URL}`,
@@ -270,12 +276,13 @@ const config: HardhatUserConfig = {
       "linea-sepolia": process.env.LINEA_EXPLORER_API_KEY || "",
       "zkevm-cardona": process.env.ZKEVM_EXPLORER_API_KEY || "",
       "zkevm-mainnet": process.env.ZKEVM_EXPLORER_API_KEY || "",
-      "billions-test": "test",
-      "billions-main": "main",
+      "billions-testnet": "test",
+      "billions-mainnet": "main",
+      "aurora-testnet": "test",
     },
     customChains: [
       {
-        network: "billions-test",
+        network: "billions-testnet",
         chainId: 6913,
         urls: {
           apiURL: "https://billions-testnet-blockscout.eu-north-2.gateway.fm/api/",
@@ -283,10 +290,18 @@ const config: HardhatUserConfig = {
         },
       },
       {
-        network: "billions-main",
+        network: "billions-mainnet",
         chainId: 45056,
         urls: {
           apiURL: "https://billions-main-blockscout.eu-north-2.gateway.fm/api/",
+          browserURL: "https://docs.blockscout.com",
+        },
+      },
+      {
+        network: "aurora-testnet",
+        chainId: 1313161555,
+        urls: {
+          apiURL: "https://explorer.testnet.aurora.dev/api/",
           browserURL: "https://docs.blockscout.com",
         },
       },

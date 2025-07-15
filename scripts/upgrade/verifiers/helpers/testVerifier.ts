@@ -219,6 +219,12 @@ function getParamsFromChainId(chainId: number) {
       blockchain = Blockchain.Billions;
       networkId = NetworkId.Test;
       break;
+    case 1313161555:
+      rpcUrl = process.env.AURORA_TESTNET_RPC_URL as string;
+      method = DidMethod.Iden3;
+      blockchain = "aurora";
+      networkId = NetworkId.Test;
+      break;
     default:
       throw new Error(`Unsupported chainId: ${chainId}`);
   }
@@ -409,6 +415,7 @@ export async function submitZKPResponses_KYCAgeCredential(
       break;
   }
 
+  console.log("================= submit response ===================");
   const ciResponse = await submitResponse(
     [proofReq],
     verifierDID,

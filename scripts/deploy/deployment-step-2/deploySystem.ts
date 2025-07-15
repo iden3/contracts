@@ -1,14 +1,8 @@
 import fs from "fs";
 import path from "path";
 import { ethers, ignition } from "hardhat";
-import Create2AddressAnchorModule from "../../../ignition/modules/create2AddressAnchor";
 import { contractsInfo } from "../../../helpers/constants";
-import {
-  getChainId,
-  getConfig,
-  getDeploymentParameters,
-  isContract,
-} from "../../../helpers/helperUtils";
+import { getChainId, getConfig, getDeploymentParameters } from "../../../helpers/helperUtils";
 import StateModule from "../../../ignition/modules/state";
 import UniversalVerifierModule from "../../../ignition/modules/universalVerifier";
 import IdentityTreeStoreModule from "../../../ignition/modules/identityTreeStore";
