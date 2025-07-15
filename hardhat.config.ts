@@ -145,11 +145,11 @@ const config: HardhatUserConfig = {
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
-    "billions-testnet": {
-      chainId: 6913,
-      url: `${process.env.BILLIONS_TESTNET_RPC_URL}`,
-      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+    "aurora-testnet": {
+      chainId: 1313161555,
+      url: `${process.env.AURORA_TESTNET_RPC_URL}`,
+      accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
+      // ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "polygon-mainnet": {
       chainId: 137,
