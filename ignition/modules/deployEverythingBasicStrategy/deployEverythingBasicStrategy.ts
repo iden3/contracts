@@ -9,6 +9,7 @@ import AuthV2ValidatorModule from "./authV2Validator";
 import IdentityTreeStoreModule from "./identityTreeStore";
 import MCPaymentModule from "./mcPayment";
 import VCPaymentModule from "./vcPayment";
+import UniversalVerifierModule_ManyResponsesPerUserAndRequest from "./universalVerifier_ManyResponsesPerUserAndRequest";
 
 const DeployEverythingBasicStrategy = buildModule("Create2AddressAnchorModule", (m) => {
   const {
@@ -73,6 +74,67 @@ const DeployEverythingBasicStrategy = buildModule("Create2AddressAnchorModule", 
     },
   );
 
+  const {
+    universalVerifier: universalVerifier_ManyResponsesPerUserAndRequest,
+    universalVerifierImplementation: universalVerifierImplementation_ManyResponsesPerUserAndRequest,
+    verifierLib: verifierLib_ManyResponsesPerUserAndRequest,
+  } = m.useModule(UniversalVerifierModule_ManyResponsesPerUserAndRequest);
+
+  m.call(
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    "addValidatorToWhitelist",
+    [credentialAtomicQueryMTPV2Validator],
+    {
+      id: "addValidatorToWhitelist_credentialAtomicQueryMTPV2Validator_ManyResponsesPerUserAndRequest",
+      from: contractOwner,
+    },
+  );
+  m.call(
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    "addValidatorToWhitelist",
+    [credentialAtomicQuerySigV2Validator],
+    {
+      id: "addValidatorToWhitelist_credentialAtomicQuerySigV2Validator_ManyResponsesPerUserAndRequest",
+      from: contractOwner,
+    },
+  );
+  m.call(
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    "addValidatorToWhitelist",
+    [credentialAtomicQueryV3Validator],
+    {
+      id: "addValidatorToWhitelist_credentialAtomicQueryV3Validator_ManyResponsesPerUserAndRequest",
+      from: contractOwner,
+    },
+  );
+  m.call(
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    "addValidatorToWhitelist",
+    [linkedMultiQueryValidator],
+    {
+      id: "addValidatorToWhitelist_linkedMultiQueryValidator_ManyResponsesPerUserAndRequest",
+      from: contractOwner,
+    },
+  );
+  m.call(
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    "setAuthMethod",
+    [{ authMethod: "ethIdentity", validator: ethIdentityValidator, params: "0x" }],
+    {
+      id: "setAuthMethod_ethIdentityValidator_ManyResponsesPerUserAndRequest",
+      from: contractOwner,
+    },
+  );
+  m.call(
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    "setAuthMethod",
+    [{ authMethod: "authV2", validator: authV2Validator, params: "0x" }],
+    {
+      id: "setAuthMethod_authV2Validator_ManyResponsesPerUserAndRequest",
+      from: contractOwner,
+    },
+  );
+
   return {
     universalVerifier,
     universalVerifierImplementation,
@@ -91,6 +153,9 @@ const DeployEverythingBasicStrategy = buildModule("Create2AddressAnchorModule", 
     authV2Validator,
     MCPayment,
     VCPayment,
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    universalVerifierImplementation_ManyResponsesPerUserAndRequest,
+    verifierLib_ManyResponsesPerUserAndRequest,
   };
 });
 

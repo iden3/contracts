@@ -136,8 +136,8 @@ const config: HardhatUserConfig = {
     "privado-testnet": {
       chainId: 21001,
       url: `${process.env.PRIVADO_TESTNET_RPC_URL}`,
-      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
+      // ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "billions-mainnet": {
       chainId: 45056,

@@ -34,6 +34,9 @@ async function main() {
     authV2Validator,
     MCPayment,
     VCPayment,
+    universalVerifierImplementation_ManyResponsesPerUserAndRequest,
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    verifierLib_ManyResponsesPerUserAndRequest,
   } = await ignition.deploy(DeployEverythingBasicStrategy, {
     parameters: params,
     deploymentId: `chain-${await getChainId()}-simple-deploy-basic-strategy`,
@@ -61,6 +64,9 @@ async function main() {
     authV2Validator,
     MCPayment,
     VCPayment,
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    universalVerifierImplementation_ManyResponsesPerUserAndRequest,
+    verifierLib_ManyResponsesPerUserAndRequest,
   ]) {
     await verifyContract(contract.target, {
       constructorArgsImplementation: [],
