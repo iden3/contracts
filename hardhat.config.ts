@@ -205,25 +205,25 @@ const config: HardhatUserConfig = {
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
-    // hardhat: {
-    //   chainId: 80002,
-    //   forking: {
-    //     url: `${process.env.POLYGON_AMOY_RPC_URL}`,
-    //   },
-    //   chains: {
-    //     80002: {
-    //       hardforkHistory: {
-    //         london: 100000,
-    //       },
-    //     },
-    //   },
-    //   accounts: [
-    //     {
-    //       privateKey: process.env.PRIVATE_KEY as string,
-    //       balance: "1000000000000000000000000",
-    //     },
-    //   ],
-    // },
+    hardhat: {
+      chainId: 1313161555,
+      forking: {
+        url: `${process.env.AURORA_TESTNET_RPC_URL}`,
+      },
+      chains: {
+        1313161555: {
+          hardforkHistory: {
+            london: 100000,
+          },
+        },
+      },
+      accounts: [
+        {
+          privateKey: process.env.PRIVATE_KEY as string,
+          balance: "1000000000000000000000000",
+        },
+      ],
+    },
     localhost: {
       url: "http://127.0.0.1:8545",
       timeout: 100000000,
