@@ -13,6 +13,7 @@
   "homepage": "https://github.com/iden3/contracts",
   "devDependencies": {
     "@0xpolygonid/js-sdk": "1.31.1",
+    "@iden3/universal-verifier-v2-abi": "^2.0.1",
     "@nomicfoundation/hardhat-ledger": "^1.0.3",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@openzeppelin/contracts": "5.2.0",
