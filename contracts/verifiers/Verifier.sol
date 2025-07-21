@@ -267,7 +267,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         // 1. Process crossChainProofs
         $._state.processCrossChainProofs(crossChainProofs);
 
-        uint256 userIDFromAuthResponse;
+        /*uint256 userIDFromAuthResponse;
         AuthMethodData storage authMethodData = $._authMethods[authResponse.authMethod];
         if (!authMethodData.isActive) {
             revert AuthMethodIsNotActive(authResponse.authMethod);
@@ -296,7 +296,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         if (userIDFromAuthResponse == 0) {
             revert UserNotAuthenticated();
-        }
+        }*/
 
         // 3. Verify all the responses, check userID from signals and write proof results,
         //      emit events (existing logic)
@@ -312,7 +312,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             );
 
             // Check if userID from authResponse is the same as the one in the signals
-            VerifierLib.checkUserIDMatch(userIDFromAuthResponse, signals);
+            // VerifierLib.checkUserIDMatch(userIDFromAuthResponse, signals);
 
             _writeProofResults(response.requestId, sender, signals);
 

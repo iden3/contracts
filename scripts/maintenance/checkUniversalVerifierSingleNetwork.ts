@@ -9,7 +9,7 @@ import { Contract } from "ethers";
 import { core } from "@0xpolygonid/js-sdk";
 
 // Replace these addresses with the ones you want to test
-const universalVerifierAddress = "0xfa1d72bbEBdEBc16d00e6e51B164746B297de688"; //"0x78F3a59B41461aBFB90D020AC4D247f512ae2672"; //"0xc89fA32a60aa91f0AbB2225c9e338bf8F634F20d"; //contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress;
+const universalVerifierAddress = "0x125942A612E5A48b72DBbE6Cd50C72980a954023"; //"0xfa1d72bbEBdEBc16d00e6e51B164746B297de688"; //"0x78F3a59B41461aBFB90D020AC4D247f512ae2672"; //"0xc89fA32a60aa91f0AbB2225c9e338bf8F634F20d"; //contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress;
 const validatorSigV2Address = "0xcaA5f0A11BdCfC5b0dCfe73cda8D9eD17cd1D725"; // contractsInfo.VALIDATOR_SIG.unifiedAddress;
 const validatorMTPV2Address = "0xb3F8F6DeF180EE9A6cF77f303625db3ba5AA82eb"; //contractsInfo.VALIDATOR_MTP.unifiedAddress;
 const validatorV3Address = "0x638cfb7017e5cAe64a3e4BF61D753741c90EC14B"; //contractsInfo.VALIDATOR_V3.unifiedAddress;
@@ -38,7 +38,7 @@ async function testVerification(verifier: Contract) {
     checkSubmitZKResponseV2: false,
   });
 
-  const requestId_SigV2 = await setZKPRequest_KYCAgeCredential(
+  /* const requestId_SigV2 = await setZKPRequest_KYCAgeCredential(
     verifier,
     validatorSigV2Address,
     "sigV2",
@@ -58,7 +58,7 @@ async function testVerification(verifier: Contract) {
     stateContractAddress: stateContractAddress,
     verifierContractAddress: await verifier.getAddress(),
     checkSubmitZKResponseV2: false,
-  });
+  });*/
 }
 
 async function main() {

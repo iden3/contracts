@@ -147,6 +147,7 @@
     "set:oracle:signing:address:polygon-amoy": "npx hardhat run scripts/maintenance/setOracleSigningAddress.ts --network polygon-amoy",
     "set:oracle:signing:address:polygon-mainnet": "npx hardhat run scripts/maintenance/setOracleSigningAddress.ts --network polygon-mainnet",
     "verify:polygon-mainnet": "npx hardhat run scripts/maintenance/verifyEtherescan.js --network polygon-mainnet",
+    "run-hardhat": "yarn hardhat run",
     "lint:contracts": "npx solhint contracts/**/*.sol",
     "prettier:contracts": "prettier --write --plugin=prettier-plugin-solidity 'contracts/**/*.sol'",
     "slither": "slither .",
