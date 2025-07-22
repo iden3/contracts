@@ -15,8 +15,6 @@
   "Poseidon3AtModule#PoseidonUnit3L": "0x5Bc89782d5eBF62663Df7Ce5fb4bc7408926A240",
   "Poseidon4AtModule#PoseidonUnit4L": "0x0695cF2c6dfc438a4E40508741888198A6ccacC2",
   "SmtLibAtModule#SmtLib": "0x682364078e26C1626abD2B95109D2019E241F0F6",
-  "StateAtModule#ProxyAdmin": "0x3F570C4fE07c532cd274dF2d1dB26D74cc5F8F9A",
-  "StateAtModule#State": "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
   "UniversalVerifierProxyFirstImplementationModule#TransparentUpgradeableProxy": "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
   "VerifierLibModule#VerifierLib": "0xeEE93cc160ea88d2A0510C278998E402F2c04f17",
   "UniversalVerifierFinalImplementationModule#UniversalVerifier": "0xF2cbff070C49643E0A6a76Fe07B985F7c6579843",
@@ -84,5 +82,16 @@
   "UpgradeStateModuleV2_6_3#SmtLib": "0x682364078e26C1626abD2B95109D2019E241F0F6",
   "UpgradeStateModuleV2_6_3#CrossChainProofValidator": "0x02653f6408167C308AeC50846FBFee0c8A8230cf",
   "UpgradeStateModuleV2_6_3#StateLib": "0xad6ceC221704aef314911D4B58e084aaF9A6999f",
-  "UpgradeStateModuleV2_6_3#State": "0x225615E26a8173726CB3557AF0e186d969F3747B"
+  "UpgradeStateModuleV2_6_3#State": "0x225615E26a8173726CB3557AF0e186d969F3747B",
+  "StateAtModule#ProxyAdmin": "0x3F570C4fE07c532cd274dF2d1dB26D74cc5F8F9A",
+  "StateAtModule#State": "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
+  "IdentityTreeStoreFinalImplementationModule#IdentityTreeStore": "0xA6A29e61DC36a98e512A32f1Bb53AB6e2edcdd10",
+  "IdentityTreeStoreProxyFirstImplementationModule#TransparentUpgradeableProxy": "0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81",
+  "IdentityTreeStoreProxyFirstImplementationModule#ProxyAdmin": "0x23F9ae5A19435347b8Ba10c69ad93128464f7A22",
+  "VCPaymentFinalImplementationModule#VCPayment": "0x9b4670Dec8a2556f7B1f91B46F0B8B000c5DBbdA",
+  "VCPaymentProxyFirstImplementationModule#TransparentUpgradeableProxy": "0xba83D99c87358Ef9B6f7c4a5A94021A58d870704",
+  "VCPaymentProxyFirstImplementationModule#ProxyAdmin": "0xA4180637F15a601695FD0313f452B8ca093AB952",
+  "MCPaymentFinalImplementationModule#MCPayment": "0xB175469316C6706297Cb02124c554344606Ea7eE",
+  "MCPaymentProxyFirstImplementationModule#TransparentUpgradeableProxy": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
+  "MCPaymentProxyFirstImplementationModule#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE"
 }
