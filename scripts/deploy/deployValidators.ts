@@ -1,68 +1,156 @@
-import fs from "fs";
-import path from "path";
-import { DeployHelper, ValidatorType } from "../../helpers/DeployHelper";
-import hre from "hardhat";
+import { ethers, ignition } from "hardhat";
 import {
-  getChainId,
   getConfig,
-  getStateContractAddress,
+  getDeploymentParameters,
   verifyContract,
+  writeDeploymentParameters,
 } from "../../helpers/helperUtils";
+import CredentialAtomicQueryMTPV2ValidatorModule, {
+  CredentialAtomicQueryMTPV2ValidatorProxyModule,
+} from "../../ignition/modules/credentialAtomicQueryMTPV2Validator";
+import { contractsInfo } from "../../helpers/constants";
+import CredentialAtomicQuerySigV2ValidatorModule, {
+  CredentialAtomicQuerySigV2ValidatorProxyModule,
+} from "../../ignition/modules/credentialAtomicQuerySigV2Validator";
+import CredentialAtomicQueryV3ValidatorModule, {
+  CredentialAtomicQueryV3ValidatorProxyModule,
+} from "../../ignition/modules/credentialAtomicQueryV3Validator";
+import AuthV2ValidatorModule, {
+  AuthV2ValidatorProxyModule,
+} from "../../ignition/modules/authV2Validator";
+import EthIdentityValidatorModule, {
+  EthIdentityValidatorProxyModule,
+} from "../../ignition/modules/ethIdentityValidator";
+import LinkedMultiQueryValidatorModule, {
+  LinkedMultiQueryValidatorProxyModule,
+} from "../../ignition/modules/linkedMultiQuery";
+import {
+  AuthV2ValidatorAtModule,
+  CredentialAtomicQueryMTPV2ValidatorAtModule,
+  CredentialAtomicQuerySigV2ValidatorAtModule,
+  CredentialAtomicQueryV3ValidatorAtModule,
+  EthIdentityValidatorAtModule,
+  LinkedMultiQueryValidatorAtModule,
+} from "../../ignition/modules/contractsAt";
 
 async function main() {
   const config = getConfig();
-  const chainId = await getChainId();
-
-  const validators: ValidatorType[] = ["mtpV2", "sigV2", "v3", "lmq", "authV2", "ethIdentity"];
-
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
-  const [signer] = await hre.ethers.getSigners();
 
-  const deployHelper = await DeployHelper.initialize(null, true);
-  const stateContractAddress = await getStateContractAddress();
+  const [signer] = await ethers.getSigners();
+  const parameters = await getDeploymentParameters();
+  const deploymentId = parameters.DeploymentId || undefined;
 
-  const validatorsInfo: any = [];
-  for (const v of validators) {
-    const { validator, groth16VerifierWrapper } = await deployHelper.deployValidatorContracts(
-      v,
-      stateContractAddress,
-      deployStrategy,
-    );
+  const requestValidators = [
+    {
+      moduleFirstImplementation: CredentialAtomicQueryMTPV2ValidatorProxyModule,
+      moduleFinalImplementation: CredentialAtomicQueryMTPV2ValidatorModule,
+      moduleAt: CredentialAtomicQueryMTPV2ValidatorAtModule,
+      name: contractsInfo.VALIDATOR_MTP.name,
+      verifierName: contractsInfo.GROTH16_VERIFIER_MTP.name,
+      verificationOpts: contractsInfo.VALIDATOR_MTP.verificationOpts,
+      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_MTP.verificationOpts,
+    },
+    {
+      moduleFirstImplementation: CredentialAtomicQuerySigV2ValidatorProxyModule,
+      moduleFinalImplementation: CredentialAtomicQuerySigV2ValidatorModule,
+      moduleAt: CredentialAtomicQuerySigV2ValidatorAtModule,
+      name: contractsInfo.VALIDATOR_SIG.name,
+      verifierName: contractsInfo.GROTH16_VERIFIER_SIG.name,
+      verificationOpts: contractsInfo.VALIDATOR_SIG.verificationOpts,
+      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_SIG.verificationOpts,
+    },
+    {
+      moduleFirstImplementation: CredentialAtomicQueryV3ValidatorProxyModule,
+      moduleFinalImplementation: CredentialAtomicQueryV3ValidatorModule,
+      moduleAt: CredentialAtomicQueryV3ValidatorAtModule,
+      name: contractsInfo.VALIDATOR_V3.name,
+      verifierName: contractsInfo.GROTH16_VERIFIER_V3.name,
+      verificationOpts: contractsInfo.VALIDATOR_V3.verificationOpts,
+      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_V3.verificationOpts,
+    },
+    {
+      moduleFirstImplementation: LinkedMultiQueryValidatorProxyModule,
+      moduleFinalImplementation: LinkedMultiQueryValidatorModule,
+      moduleAt: LinkedMultiQueryValidatorAtModule,
+      name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
+      verifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.name,
+      verificationOpts: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.verificationOpts,
+      verifierVerificationOpts:
+        contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.verificationOpts,
+    },
+  ];
 
-    await verifyContract(await validator.getAddress(), deployHelper.getValidatorVerification(v));
+  const authValidators = [
+    {
+      authMethod: "authV2",
+      moduleFirstImplementation: AuthV2ValidatorProxyModule,
+      moduleFinalImplementation: AuthV2ValidatorModule,
+      moduleAt: AuthV2ValidatorAtModule,
+      name: contractsInfo.VALIDATOR_AUTH_V2.name,
+      verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V2.name,
+      verificationOpts: contractsInfo.VALIDATOR_AUTH_V2.verificationOpts,
+      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V2.verificationOpts,
+    },
+    {
+      authMethod: "ethIdentity",
+      moduleFirstImplementation: EthIdentityValidatorProxyModule,
+      moduleFinalImplementation: EthIdentityValidatorModule,
+      moduleAt: EthIdentityValidatorAtModule,
+      name: contractsInfo.VALIDATOR_ETH_IDENTITY.name,
+      verificationOpts: contractsInfo.VALIDATOR_ETH_IDENTITY.verificationOpts,
+    },
+  ];
 
-    // only add validators info if groth16VerifierWrapper is deployed
-    validatorsInfo.push({
-      validatorType: v,
-      validator: await validator.getAddress(),
-      groth16verifier: await groth16VerifierWrapper?.getAddress(),
+  for (const validatorContract of [...requestValidators, ...authValidators]) {
+    // First implementation
+    await ignition.deploy(validatorContract.moduleFirstImplementation, {
+      strategy: deployStrategy,
+      defaultSender: await signer.getAddress(),
+      parameters: parameters,
+      deploymentId: deploymentId,
     });
-
-    if (groth16VerifierWrapper) {
-      await verifyContract(
-        await groth16VerifierWrapper.getAddress(),
-        deployHelper.getGroth16VerifierWrapperVerification(v),
+    // Final implementation
+    const deployment = await ignition.deploy(validatorContract.moduleFinalImplementation as any, {
+      strategy: deployStrategy,
+      defaultSender: await signer.getAddress(),
+      parameters: parameters,
+      deploymentId: deploymentId,
+    });
+    parameters[validatorContract.name.concat("AtModule")] = {
+      proxyAddress: deployment.proxy.target,
+      proxyAdminAddress: deployment.proxyAdmin.target,
+    };
+    parameters[validatorContract.name.concat("NewImplementationAtModule")] = {
+      contractAddress: deployment.newImplementation.target,
+    };
+    if (validatorContract.verifierName && deployment.groth16Verifier) {
+      parameters[validatorContract.verifierName.concat("AtModule")] = {
+        contractAddress: deployment.groth16Verifier.target,
+      };
+      console.log(
+        `${validatorContract.verifierName} deployed to: ${deployment.groth16Verifier.target}`,
       );
     }
+    console.log(`${validatorContract.name} deployed to: ${deployment.proxy.target}`);
+
+    if (validatorContract.verificationOpts) {
+      await verifyContract(deployment.proxy.target, validatorContract.verificationOpts);
+    }
+    if (validatorContract.verifierVerificationOpts && deployment.groth16Verifier) {
+      await verifyContract(
+        deployment.groth16Verifier.target,
+        validatorContract.verifierVerificationOpts,
+      );
+    }
+    await verifyContract(deployment.newImplementation.target, {
+      constructorArgsImplementation: [],
+      libraries: {},
+    });
   }
 
-  // only save the output if there are validators deployed
-  if (validatorsInfo.length > 0) {
-    const networkName = hre.network.name;
-    const pathOutputJson = path.join(
-      __dirname,
-      `../deployments_output/deploy_validators_output_${chainId}_${networkName}.json`,
-    );
-    const outputJson = {
-      proxyAdminOwnerAddress: await signer.getAddress(),
-      validatorsInfo,
-      network: networkName,
-      chainId,
-      deployStrategy,
-    };
-    fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
-  }
+  await writeDeploymentParameters(parameters);
 }
 
 main()

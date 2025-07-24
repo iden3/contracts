@@ -130,6 +130,8 @@
     "deploy:set:request:linea-sepolia": "npx hardhat run scripts/maintenance/setProofRequest.ts --network linea-sepolia",
     "deploy:crossChainProofValidator:localhost": "npx hardhat run scripts/deploy/deployCrossChainProofValidator.ts --network localhost",
     "deploy:vc-payment:polygon-amoy": "npx hardhat run scripts/deploy/deployVCPayment.ts --network polygon-amoy",
+    "deploy:system:step1:implementation:localhost": "npx hardhat run scripts/deploy/deployment-step-1/deploySystem.ts --network localhost",
+    "deploy:system:step2:implementation:localhost": "npx hardhat run scripts/deploy/deployment-step-2/deploySystem.ts --network localhost",
     "deploy:mc-payment:base-mainnet": "npx hardhat run scripts/deploy/deployMCPayment.ts --network base-mainnet",
     "upgrade:contracts:universal:verifier:localhost": "npx hardhat run scripts/upgrade/verifiers/universal-verifier-upgrade.ts --network localhost",
     "upgrade:contracts:universal:verifier:polygon-amoy": "npx hardhat run scripts/upgrade/verifiers/universal-verifier-upgrade.ts --network polygon-amoy",

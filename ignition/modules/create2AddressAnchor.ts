@@ -3,7 +3,7 @@ import { contractsInfo } from "../../helpers/constants";
 
 const contractName = contractsInfo.CREATE2_ADDRESS_ANCHOR.name;
 
-export const Create2AddressAnchorModule = buildModule("Create2AddressAnchorModule", (m) => {
+const Create2AddressAnchorModule = buildModule("Create2AddressAnchorModule", (m) => {
   // The bytecode, which is effectively deployed is 0x60006000F3 (last 5 bytes of the init bytecode),
   // which is PUSH1 0x00, PUSH1 0x00, RETURN.
   // That means that the contract will do nothing but accept any transaction without throwing an error.
@@ -21,6 +21,7 @@ export const Create2AddressAnchorModule = buildModule("Create2AddressAnchorModul
   return { create2AddressAnchor };
 });
 
+export default Create2AddressAnchorModule;
 // THE CONTRACT DISASSEMBLER
 
 // label_0000:
