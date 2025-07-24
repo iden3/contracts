@@ -34,7 +34,7 @@
     "proxyAdminOwner": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74"
   },
   "StateProxyFinalImplementationModule": {
-    "defaultIdType": "0x0111"
+    "defaultIdType": "0x01A2"
   },
   "CrossChainProofValidatorModule": {
     "oracleSigningAddress": "0x0aD316c6D3F29B76cBd8f5a1ED5e3990c6B5174C"
@@ -58,8 +58,8 @@
     "contractAddress": "0x682364078e26C1626abD2B95109D2019E241F0F6"
   },
   "StateAtModule": {
-    "proxyAddress": "0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D",
-    "proxyAdminAddress": "0xA8bbF6132e4021b5D244a4DdD75dE5FFCfBd514A"
+    "proxyAddress": "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
+    "proxyAdminAddress": "0x3F570C4fE07c532cd274dF2d1dB26D74cc5F8F9A"
   },
   "UniversalVerifierAtModule": {
     "proxyAddress": "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
@@ -105,22 +105,22 @@
     "ownerPercentage": 15
   },
   "CrossChainProofValidatorAtModule": {
-    "contractAddress": "0x0C311D3DfC937234BBD4e784Bbc32B72694ac88A"
+    "contractAddress": "0xc4D183c3EAC50138048F754Ee592325d255a6cB6"
   },
   "StateLibAtModule": {
-    "contractAddress": "0x2EAaB245F7BE73F21b151F24DFeF024BD8A85CdD"
+    "contractAddress": "0xE8C4d056334651a843376dF6E3364484813A617D"
   },
   "StateNewImplementationAtModule": {
-    "contractAddress": "0x80C833B8948B108Fe312f55fF67e8D9C4cbB5A92"
+    "contractAddress": "0xEdcBEBFe6Ed80050338c21D21522ACB5d9c3Fd69"
   },
   "Groth16VerifierStateTransitionAtModule": {
     "contractAddress": "0xf2A3a8e2d265FC97fC90C0A0AF9312b137259b0e"
   },
   "VerifierLibAtModule": {
-    "contractAddress": "0x2ECb5bC9e4a9f81D081DD6F42Dd5a3f07De2EB6f"
+    "contractAddress": "0xeEE93cc160ea88d2A0510C278998E402F2c04f17"
   },
   "UniversalVerifierNewImplementationAtModule": {
-    "contractAddress": "0x4Ee8B0Bca7fAD07602287Abf4294058632ce8637"
+    "contractAddress": "0xF2cbff070C49643E0A6a76Fe07B985F7c6579843"
   },
   "IdentityTreeStoreNewImplementationAtModule": {
     "contractAddress": "0xA6A29e61DC36a98e512A32f1Bb53AB6e2edcdd10"
@@ -165,8 +165,8 @@
     "contractAddress": "0xB175469316C6706297Cb02124c554344606Ea7eE"
   },
   "UpgradeStateModuleV2_6_3": {
-    "proxyAddress": "0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D",
-    "proxyAdminAddress": "0xA8bbF6132e4021b5D244a4DdD75dE5FFCfBd514A",
+    "proxyAddress": "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
+    "proxyAdminAddress": "0x3F570C4fE07c532cd274dF2d1dB26D74cc5F8F9A",
     "oracleSigningAddress": "0x0aD316c6D3F29B76cBd8f5a1ED5e3990c6B5174C",
     "smtLibContractAddress": "0x682364078e26C1626abD2B95109D2019E241F0F6",
     "poseidon1ContractAddress": "0xC72D76D7271924a2AD54a19D216640FeA3d138d9"
