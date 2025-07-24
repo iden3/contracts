@@ -31,7 +31,7 @@ function checkData(...args: any[]): any {
 
   const { countRequests: countRequestsV1, stateAddress: stateAddress1 } = result1;
   const { countRequests: countRequestsV2, stateAddress: stateAddress2 } = result2;
-  console.assert(countRequestsV1 === countRequestsV2, "lenght of requests not equal");
+  console.assert(countRequestsV1 === countRequestsV2, "length of requests not equal");
   console.assert(stateAddress1 === stateAddress2, "state address not equal");
 }
 

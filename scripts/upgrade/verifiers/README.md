@@ -1,5 +1,5 @@
 # Upgrading Universal Verifier
-The verifier upgrade script executes upgrade for the Universal Veifier contract.
+The verifier upgrade script executes upgrade for the Universal Verifier contract.
 
 ## Steps to execute the upgrade script
 1. The module with corresponding version for the upgrade will be defined by the contract version.
