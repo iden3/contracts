@@ -1,14 +1,6 @@
-import fs from "fs";
-import path from "path";
 import { ethers, ignition } from "hardhat";
-import Create2AddressAnchorModule from "../../../ignition/modules/create2AddressAnchor";
 import { contractsInfo } from "../../../helpers/constants";
-import {
-  getChainId,
-  getConfig,
-  getDeploymentParameters,
-  isContract,
-} from "../../../helpers/helperUtils";
+import { getConfig, getDeploymentParameters } from "../../../helpers/helperUtils";
 import StateModule from "../../../ignition/modules/state";
 import UniversalVerifierModule from "../../../ignition/modules/universalVerifier";
 import IdentityTreeStoreModule from "../../../ignition/modules/identityTreeStore";
@@ -34,21 +26,6 @@ import {
 } from "../../../ignition/modules/contractsAt";
 import MCPaymentModule from "../../../ignition/modules/mcPayment";
 import VCPaymentModule from "../../../ignition/modules/vcPayment";
-
-async function getDeployedAddresses() {
-  let deployedAddresses = {};
-  const chainId = await getChainId();
-  try {
-    const deployedAddressesPath = path.join(
-      __dirname,
-      `../../../ignition/deployments/chain-${chainId}/deployed_addresses.json`,
-    );
-    deployedAddresses = JSON.parse(fs.readFileSync(deployedAddressesPath, "utf8"));
-  } catch (error) {
-    //console.error("Error reading deployed addresses file:", error);
-  }
-  return deployedAddresses;
-}
 
 async function main() {
   const config = getConfig();
@@ -131,7 +108,7 @@ async function main() {
   ];
 
   const contracts = [
-    /* {
+    {
       module: StateModule,
       moduleAt: StateAtModule,
       contractAddress:
@@ -147,7 +124,7 @@ async function main() {
         contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
       name: contractsInfo.UNIVERSAL_VERIFIER.name,
       isProxy: true,
-    },*/
+    },
     {
       module: IdentityTreeStoreModule,
       moduleAt: IdentityTreeStoreAtModule,
@@ -173,8 +150,8 @@ async function main() {
       name: contractsInfo.MC_PAYMENT.name,
       isProxy: true,
     },
-    //...requestValidators,
-    //...authValidators,
+    ...requestValidators,
+    ...authValidators,
   ];
 
   for (const contract of contracts) {
@@ -191,7 +168,7 @@ async function main() {
   }
 
   // get UniversalVerifier contract
-  /* const universalVerifier = (
+  const universalVerifier = (
     await ignition.deploy(UniversalVerifierAtModule, {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
@@ -235,14 +212,26 @@ async function main() {
       });
       await tx.wait();
       console.log(
-        `${validator.name} in address ${validatorDeployed.proxy.target} added to auth methods`,
+        `${validator.name} in address ${validatorDeployed.proxy.target} with authMethod ${validator.authMethod} added to auth methods`,
       );
     } else {
       console.log(
-        `${validator.name} in address ${validatorDeployed.proxy.target} already added to auth methods`,
+        `${validator.name} in address ${validatorDeployed.proxy.target} with authMethod ${validator.authMethod} already added to auth methods`,
       );
     }
-  }*/
+  }
+
+  if (!(await universalVerifier.authMethodExists("noAuth"))) {
+    const tx = await universalVerifier.setAuthMethod({
+      authMethod: "noAuth",
+      validator: ethers.ZeroAddress,
+      params: "0x",
+    });
+    await tx.wait();
+    console.log(`noAuth added to auth methods`);
+  } else {
+    console.log(`noAuth already added to auth methods`);
+  }
 }
 
 main()

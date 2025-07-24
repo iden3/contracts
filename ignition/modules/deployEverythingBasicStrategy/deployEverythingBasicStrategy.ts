@@ -9,6 +9,7 @@ import AuthV2ValidatorModule from "./authV2Validator";
 import IdentityTreeStoreModule from "./identityTreeStore";
 import MCPaymentModule from "./mcPayment";
 import VCPaymentModule from "./vcPayment";
+import { ethers } from "hardhat";
 
 const DeployEverythingBasicStrategy = buildModule("Create2AddressAnchorModule", (m) => {
   const {
@@ -69,6 +70,15 @@ const DeployEverythingBasicStrategy = buildModule("Create2AddressAnchorModule", 
     [{ authMethod: "authV2", validator: authV2Validator, params: "0x" }],
     {
       id: "setAuthMethod_authV2Validator",
+      from: contractOwner,
+    },
+  );
+  m.call(
+    universalVerifier,
+    "setAuthMethod",
+    [{ authMethod: "noAuth", validator: ethers.ZeroAddress, params: "0x" }],
+    {
+      id: "setAuthMethod_noAuthValidator",
       from: contractOwner,
     },
   );
