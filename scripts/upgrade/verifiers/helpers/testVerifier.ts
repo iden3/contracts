@@ -39,7 +39,6 @@ import {
   PROTOCOL_CONSTANTS,
   ZeroKnowledgeProofRequest,
 } from "@0xpolygonid/js-sdk";
-import { ProofData } from "@iden3/js-jwz";
 import { Groth16VerifierType } from "../../../../helpers/DeployHelper";
 import { getChainId } from "../../../../helpers/helperUtils";
 import { calculateRequestID } from "../../../../test/utils/id-calculation-utils";
@@ -218,6 +217,18 @@ function getParamsFromChainId(chainId: number) {
       method = DidMethod.Iden3;
       blockchain = Blockchain.Billions;
       networkId = NetworkId.Test;
+      break;
+    case 1313161555:
+      rpcUrl = process.env.AURORA_TESTNET_RPC_URL as string;
+      method = DidMethod.Iden3;
+      blockchain = "aurora";
+      networkId = NetworkId.Test;
+      break;
+    case 1313161554:
+      rpcUrl = process.env.AURORA_MAINNET_RPC_URL as string;
+      method = DidMethod.Iden3;
+      blockchain = "aurora";
+      networkId = NetworkId.Main;
       break;
     default:
       throw new Error(`Unsupported chainId: ${chainId}`);
@@ -422,6 +433,7 @@ export async function submitZKPResponses_KYCAgeCredential(
       verifierChainId: chainId,
       verifierRpcUrl: rpcUrl,
       ethSigner: signer,
+      authMethod: opts.authMethod || "authV2",
     },
   );
 
@@ -471,6 +483,7 @@ export async function submitResponse(
     senderDid: profileDID,
     ethSigner: opts.ethSigner,
     challenge,
+    authMethod: opts.authMethod,
   };
 
   const ciRequestBody: ContractInvokeRequestBody = {
