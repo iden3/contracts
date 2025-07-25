@@ -149,6 +149,21 @@ async function main() {
       } else throw error;
     }
   }
+
+  const authMethodNoAuth = "noAuth";
+  try {
+    const setAuthMethodTx = await universalVerifier.connect(signer).setAuthMethod({
+      authMethod: authMethodNoAuth,
+      validator: ethers.ZeroAddress,
+      params: "0x",
+    });
+    await setAuthMethodTx.wait();
+    Logger.success(`Auth method ${authMethodNoAuth} set`);
+  } catch (error) {
+    if (error.message.includes("AuthMethodAlreadyExists")) {
+      Logger.warning(`Auth method ${authMethodNoAuth} already set`);
+    } else throw error;
+  }
 }
 
 main()

@@ -156,13 +156,25 @@ async function main() {
       });
       await tx.wait();
       console.log(
-        `${validator.name} in address ${validatorDeployed.proxy.target} added to auth methods`,
+        `${validator.name} in address ${validatorDeployed.proxy.target} with authMethod ${validator.authMethod} added to auth methods`,
       );
     } else {
       console.log(
-        `${validator.name} in address ${validatorDeployed.proxy.target} already added to auth methods`,
+        `${validator.name} in address ${validatorDeployed.proxy.target} with authMethod ${validator.authMethod} already added to auth methods`,
       );
     }
+  }
+
+  if (!(await universalVerifier.authMethodExists("noAuth"))) {
+    const tx = await universalVerifier.setAuthMethod({
+      authMethod: "noAuth",
+      validator: ethers.ZeroAddress,
+      params: "0x",
+    });
+    await tx.wait();
+    console.log(`noAuth added to auth methods`);
+  } else {
+    console.log(`noAuth already added to auth methods`);
   }
 }
 

@@ -78,6 +78,16 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // privado-test
+  .set(1313161554, {
+    idType: "0x0151",
+    networkType: "main",
+    oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
+  }) // aurora-mainnet
+  .set(1313161555, {
+    idType: "0x0152",
+    networkType: "test",
+    oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
+  }) // aurora-testnet
   .set(59144, {
     idType: "0x0149",
     networkType: "main",
@@ -122,7 +132,7 @@ export const contractsInfo = Object.freeze({
   },
   UNIVERSAL_VERIFIER: {
     name: "UniversalVerifier",
-    version: "2.1.0",
+    version: "2.1.1",
     unifiedAddress: "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier.v2")),
     verificationOpts: {
