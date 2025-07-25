@@ -300,10 +300,14 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                 response.metadata
             );
 
-            if (authMethodNameHash != NO_AUTH_METHOD_NAME_HASH) {
+            if (authMethodNameHash == NO_AUTH_METHOD_NAME_HASH && userIDFromAuthResponse == 0) {
+                // If no auth method is used, we can use first userID from signals to check with the remaining responses
+                userIDFromAuthResponse = VerifierLib.getUserIDFromSignals(signals);
+            } else {
                 // Check if userID from authResponse is the same as the one in the signals
                 VerifierLib.checkUserIDMatch(userIDFromAuthResponse, signals);
             }
+
             _writeProofResults(response.requestId, sender, signals);
 
             if (response.metadata.length > 0) {

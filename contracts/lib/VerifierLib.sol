@@ -440,6 +440,17 @@ library VerifierLib {
         }
     }
 
+    function getUserIDFromSignals(
+        IRequestValidator.ResponseField[] memory signals
+    ) external pure returns (uint256) {
+        for (uint256 j = 0; j < signals.length; j++) {
+            if (keccak256(abi.encodePacked(signals[j].name)) == USER_ID_FIELD_NAME_HASH) {
+                return signals[j].value;
+            }
+        }
+        return 0;
+    }
+
     /**
      * @dev Checks if an auth method exists
      * @param authMethod The auth method
