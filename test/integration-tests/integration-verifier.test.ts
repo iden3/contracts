@@ -66,7 +66,7 @@ describe("Verifier Integration test", async function () {
   const crossChainProofs = "0x";
   const metadatas = "0x";
   const authMethod = "authV2";
-  const authMethodNoAuth = "noAuth";
+  const authMethodEmbeddedAuth = "embeddedAuth";
 
   const v3Params = packV3ValidatorParams(query);
 
@@ -129,12 +129,12 @@ describe("Verifier Integration test", async function () {
     };
     await verifier.setAuthMethod(authMethodParams);
 
-    const authMethodNoAuthParams = {
-      authMethod: authMethodNoAuth,
+    const authMethodEmbeddedAuthParams = {
+      authMethod: authMethodEmbeddedAuth,
       validator: ethers.ZeroAddress,
       params: "0x",
     };
-    await verifier.setAuthMethod(authMethodNoAuthParams);
+    await verifier.setAuthMethod(authMethodEmbeddedAuthParams);
 
     const { validator: v3Validator } = await deployHelper.deployValidatorContractsWithVerifiers(
       "v3",
@@ -203,6 +203,42 @@ describe("Verifier Integration test", async function () {
         crossChainProofs,
       ),
     ).to.be.revertedWithCustomError(verifier, "ChallengeIsInvalid");
+  });
+
+  it("Should revert with NoEmbeddedAuthInResponsesFound for auth proof", async function () {
+    await verifier.setRequests([
+      {
+        requestId: requestIdV3,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        creator: signer.address,
+        params: v3Params,
+      },
+      {
+        requestId: requestIdLMK,
+        metadata: "metadata",
+        validator: await lmqValidator.getAddress(),
+        creator: signer.address,
+        params: twoQueriesParams,
+      },
+    ]);
+
+    await expect(
+      verifier.submitResponse(
+        {
+          authMethod: authMethodEmbeddedAuth,
+          proof: "0x",
+        },
+        [
+          {
+            requestId: requestIdLMK,
+            proof: lmqProof,
+            metadata: metadatas,
+          },
+        ],
+        crossChainProofs,
+      ),
+    ).to.be.revertedWithCustomError(verifier, "NoEmbeddedAuthInResponsesFound");
   });
 
   it("Should revert with MissingUserIDInGroupOfRequests", async function () {
@@ -305,7 +341,7 @@ describe("Verifier Integration test", async function () {
     expect(areMultiRequestProofsVerified).to.be.true;
   });
 
-  it("Should verify with noAuth authMethod", async function () {
+  it("Should verify with embeddedAuth authMethod", async function () {
     // An integration test with a MultiRequest
     // The multiRequest has a single group with two requests inside
     // One request is based on V3 validator
@@ -351,7 +387,7 @@ describe("Verifier Integration test", async function () {
     await expect(
       verifier.submitResponse(
         {
-          authMethod: authMethodNoAuth,
+          authMethod: authMethodEmbeddedAuth,
           proof: "0x",
         },
         [

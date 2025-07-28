@@ -9,30 +9,37 @@ import { Contract } from "ethers";
 import { core } from "@0xpolygonid/js-sdk";
 
 // Replace these addresses with the ones of your custom network
-const universalVerifierAddress = "0x5BdB53B37eB4D42E50C01f224e8e7B9289FD2284";
-const validatorSigV2Address = "0x852F49800CA16738d94419e96a6Cb960960336D5";
-const validatorMTPV2Address = "0xa46E4bf26F5e16708E6730ca0Dc6a51bA289134B";
-const validatorV3Address = "0x5700b4930084374F5E909e20320C648bA34355C5";
+const universalVerifierAddress = "0xe067cE4425Fc5D12705DeC51f84bF66683910Ceb";
+const validatorSigV2Address = "0x759aB3E97cCf25c036d0ad264cbD687cB025E851";
+const validatorMTPV2Address = "0x7FAE83C096a75150aF0eB918AbF7072335aF14bA";
+const validatorV3Address = "0xD8Da54a4419E071A562fF7bF979888Ff2C0B847c";
+// Replace with your actual state contract address
+const stateContractAddress = "0xBc068db8dB60703904b293d355fE3B1349652ee0";
+// Replace with your actual custom network details
+const method = core.DidMethod.Iden3;
+const blockchain = "aurora";
+const network = core.NetworkId.Test;
+const chainId = 1313161555;
+const networkFlag = 0b0101_0010;
+// Replace with your actual auth method
+const authMethodEmbeddedAuth = "embeddedAuth";
 
 async function testVerification(verifier: Contract) {
   // Register the DID method for your custom network
   core.registerDidMethodNetwork({
-    method: core.DidMethod.Iden3,
-    blockchain: "aurora",
-    chainId: 1313161555,
-    network: core.NetworkId.Test,
-    networkFlag: 0b0101_0010,
+    method: method,
+    blockchain: blockchain,
+    chainId: chainId,
+    network: network,
+    networkFlag: networkFlag,
   });
-
-  // Replace with your actual state contract address
-  const stateContractAddress = "0xd50C1b4Cb6C30540B8d1349340d70ac15f7Ab3df";
 
   const requestId_V3 = await setZKPRequest_KYCAgeCredential(verifier, validatorV3Address, "v3");
   await submitZKPResponses_KYCAgeCredential(requestId_V3, verifier, "v3", {
     stateContractAddress: stateContractAddress,
     verifierContractAddress: await verifier.getAddress(),
     checkSubmitZKResponseV2: false,
-    authMethod: "noAuth",
+    authMethod: authMethodEmbeddedAuth,
   });
 
   const requestId_SigV2 = await setZKPRequest_KYCAgeCredential(
@@ -44,7 +51,7 @@ async function testVerification(verifier: Contract) {
     stateContractAddress: stateContractAddress,
     verifierContractAddress: await verifier.getAddress(),
     checkSubmitZKResponseV2: false,
-    authMethod: "noAuth",
+    authMethod: authMethodEmbeddedAuth,
   });
 
   const requestId_MTPV2 = await setZKPRequest_KYCAgeCredential(
@@ -56,7 +63,7 @@ async function testVerification(verifier: Contract) {
     stateContractAddress: stateContractAddress,
     verifierContractAddress: await verifier.getAddress(),
     checkSubmitZKResponseV2: false,
-    authMethod: "noAuth",
+    authMethod: authMethodEmbeddedAuth,
   });
 }
 

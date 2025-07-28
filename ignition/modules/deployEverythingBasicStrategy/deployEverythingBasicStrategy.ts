@@ -77,9 +77,9 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
   m.call(
     universalVerifier,
     "setAuthMethod",
-    [{ authMethod: "noAuth", validator: ethers.ZeroAddress, params: "0x" }],
+    [{ authMethod: "embeddedAuth", validator: ethers.ZeroAddress, params: "0x" }],
     {
-      id: "setAuthMethod_noAuthValidator",
+      id: "setAuthMethod_embeddedAuthValidator",
       from: contractOwner,
     },
   );
@@ -147,9 +147,9 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
   m.call(
     universalVerifier_ManyResponsesPerUserAndRequest,
     "setAuthMethod",
-    [{ authMethod: "noAuth", validator: ethers.ZeroAddress, params: "0x" }],
+    [{ authMethod: "embeddedAuth", validator: ethers.ZeroAddress, params: "0x" }],
     {
-      id: "setAuthMethod_noAuthValidator_ManyResponsesPerUserAndRequest",
+      id: "setAuthMethod_embeddedAuthValidator_ManyResponsesPerUserAndRequest",
       from: contractOwner,
     },
   );

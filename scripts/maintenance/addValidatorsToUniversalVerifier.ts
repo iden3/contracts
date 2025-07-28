@@ -150,18 +150,18 @@ async function main() {
     }
   }
 
-  const authMethodNoAuth = "noAuth";
+  const authMethodEmbeddedAuth = "embeddedAuth";
   try {
     const setAuthMethodTx = await universalVerifier.connect(signer).setAuthMethod({
-      authMethod: authMethodNoAuth,
+      authMethod: authMethodEmbeddedAuth,
       validator: ethers.ZeroAddress,
       params: "0x",
     });
     await setAuthMethodTx.wait();
-    Logger.success(`Auth method ${authMethodNoAuth} set`);
+    Logger.success(`Auth method ${authMethodEmbeddedAuth} set`);
   } catch (error) {
     if (error.message.includes("AuthMethodAlreadyExists")) {
-      Logger.warning(`Auth method ${authMethodNoAuth} already set`);
+      Logger.warning(`Auth method ${authMethodEmbeddedAuth} already set`);
     } else throw error;
   }
 }

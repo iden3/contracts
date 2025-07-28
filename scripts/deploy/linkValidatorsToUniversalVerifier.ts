@@ -164,17 +164,17 @@ async function main() {
       );
     }
   }
-
-  if (!(await universalVerifier.authMethodExists("noAuth"))) {
+  const authMethodEmbeddedAuth = "embeddedAuth";
+  if (!(await universalVerifier.authMethodExists(authMethodEmbeddedAuth))) {
     const tx = await universalVerifier.setAuthMethod({
-      authMethod: "noAuth",
+      authMethod: authMethodEmbeddedAuth,
       validator: ethers.ZeroAddress,
       params: "0x",
     });
     await tx.wait();
-    console.log(`noAuth added to auth methods`);
+    console.log(`${authMethodEmbeddedAuth} added to auth methods`);
   } else {
-    console.log(`noAuth already added to auth methods`);
+    console.log(`${authMethodEmbeddedAuth} already added to auth methods`);
   }
 }
 

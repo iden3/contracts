@@ -68,9 +68,9 @@ const DeploySystemFianlImplementationsModule = buildModule(
     m.call(
       universalVerifier,
       "setAuthMethod",
-      [{ authMethod: "noAuth", validator: ethers.ZeroAddress, params: "0x" }],
+      [{ authMethod: "embeddedAuth", validator: ethers.ZeroAddress, params: "0x" }],
       {
-        id: "setAuthMethodNoAuth",
+        id: "setAuthMethodEmbeddedAuth",
       },
     );
     return {

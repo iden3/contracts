@@ -39,6 +39,7 @@ error VerifierIDIsNotValid(uint256 requestVerifierID, uint256 expectedVerifierID
 error ChallengeIsInvalid();
 error InvalidRequestOwner(address requestOwner, address sender);
 error GroupIdNotValid();
+error NoEmbeddedAuthInResponsesFound();
 
 abstract contract Verifier is IVerifier, ContextUpgradeable {
     // keccak256(abi.encodePacked("authV2"))
@@ -47,9 +48,9 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     // keccak256(abi.encodePacked("challenge"))
     bytes32 private constant CHALLENGE_FIELD_NAME_HASH =
         0x62357b294ca756256b576c5da68950c49d0d1823063551ffdcc1dad9d65a07a6;
-    // keccak256(abi.encodePacked("noAuth"))
-    bytes32 private constant NO_AUTH_METHOD_NAME_HASH =
-        0x663955f429674a3fe1f00ab66bd35c8e721a31805f5d2fe15e5afdaaeb7d75c7;
+    // keccak256(abi.encodePacked("embeddedAuth"))
+    bytes32 private constant EMBEDDED_AUTH_METHOD_NAME_HASH =
+        0x1705b65020b03c348229586d10f18c357cefe577bcef3ed60fad6ecd16db04ce;
 
     struct AuthMethodData {
         IAuthValidator validator;
@@ -278,7 +279,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         }
 
         bytes32 authMethodNameHash = keccak256(abi.encodePacked(authResponse.authMethod));
-        if (authMethodNameHash != NO_AUTH_METHOD_NAME_HASH) {
+        if (authMethodNameHash != EMBEDDED_AUTH_METHOD_NAME_HASH) {
             userIDFromAuthResponse = _processAuthMethod(
                 authResponse,
                 authMethodData,
@@ -289,6 +290,8 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         // 3. Verify all the responses, check userID from signals and write proof results,
         //      emit events (existing logic)
+        uint256 responsesWithEmbeddedAuth = 0;
+
         for (uint256 i = 0; i < responses.length; i++) {
             IVerifier.Response memory response = responses[i];
             IVerifier.RequestData storage request = _getRequestIfCanBeVerified(response.requestId);
@@ -300,9 +303,14 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                 response.metadata
             );
 
-            if (authMethodNameHash == NO_AUTH_METHOD_NAME_HASH && userIDFromAuthResponse == 0) {
+            if (
+                authMethodNameHash == EMBEDDED_AUTH_METHOD_NAME_HASH && userIDFromAuthResponse == 0
+            ) {
                 // If no auth method is used, we can use first userID from signals to check with the remaining responses
                 userIDFromAuthResponse = VerifierLib.getUserIDFromSignals(signals);
+                if (userIDFromAuthResponse != 0) {
+                    responsesWithEmbeddedAuth++;
+                }
             } else {
                 // Check if userID from authResponse is the same as the one in the signals
                 VerifierLib.checkUserIDMatch(userIDFromAuthResponse, signals);
@@ -313,6 +321,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             if (response.metadata.length > 0) {
                 revert MetadataNotSupportedYet();
             }
+        }
+
+        if (
+            authMethodNameHash == EMBEDDED_AUTH_METHOD_NAME_HASH && responsesWithEmbeddedAuth == 0
+        ) {
+            revert NoEmbeddedAuthInResponsesFound();
         }
     }
 

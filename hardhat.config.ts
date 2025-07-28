@@ -207,7 +207,7 @@ const config: HardhatUserConfig = {
     },
     "aurora-mainnet": {
       chainId: 1313161554,
-      url: `${process.env.AURORA_TESTNET_RPC_URL}`,
+      url: `${process.env.AURORA_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
