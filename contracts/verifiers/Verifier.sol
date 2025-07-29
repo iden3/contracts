@@ -290,43 +290,46 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         // 3. Verify all the responses, check userID from signals and write proof results,
         //      emit events (existing logic)
-        uint256 responsesWithEmbeddedAuth = 0;
-
         for (uint256 i = 0; i < responses.length; i++) {
             IVerifier.Response memory response = responses[i];
             IVerifier.RequestData storage request = _getRequestIfCanBeVerified(response.requestId);
 
-            IRequestValidator.ResponseField[] memory signals = request.validator.verify(
+            IRequestValidator.ResponseField[] memory responseFields = request.validator.verify(
                 sender,
                 response.proof,
                 request.params,
                 response.metadata
             );
 
-            if (
-                authMethodNameHash == EMBEDDED_AUTH_METHOD_NAME_HASH && userIDFromAuthResponse == 0
-            ) {
-                // If no auth method is used, we can use first userID from signals to check with the remaining responses
-                userIDFromAuthResponse = VerifierLib.getUserIDFromSignals(signals);
-                if (userIDFromAuthResponse != 0) {
-                    responsesWithEmbeddedAuth++;
+            if (authMethodNameHash == EMBEDDED_AUTH_METHOD_NAME_HASH) {
+                // If embedded auth method is used, we can use first userID from responses to check with other responses
+                if (userIDFromAuthResponse == 0) {
+                    userIDFromAuthResponse = VerifierLib.userID(responseFields);
                 }
-            } else {
-                // Check if userID from authResponse is the same as the one in the signals
-                VerifierLib.checkUserIDMatch(userIDFromAuthResponse, signals);
+                // Check isEmbeddedAuthVerified response field is present in the response fields from the validator
+                // verification
+                // If it's present it should be equal to 1 because we are checking embeddedAuth auth method in
+                // validators that support it
+                // For linkMultiQueryValidator we don't have this response field because it's always linked
+                // to other responses that will have this embedded auth verified field
+                bool hasEmbeddedAuthVerified = VerifierLib.hasIsEmbeddedAuthVerified(
+                    responseFields
+                );
+                if (
+                    hasEmbeddedAuthVerified &&
+                    VerifierLib.isEmbeddedAuthVerified(responseFields) == 0
+                ) {
+                    revert NoEmbeddedAuthInResponsesFound();
+                }
             }
+            // Check if userID from authResponse is the same as the one in the responseFields
+            VerifierLib.checkUserIDMatch(userIDFromAuthResponse, responseFields);
 
-            _writeProofResults(response.requestId, sender, signals);
+            _writeProofResults(response.requestId, sender, responseFields);
 
             if (response.metadata.length > 0) {
                 revert MetadataNotSupportedYet();
             }
-        }
-
-        if (
-            authMethodNameHash == EMBEDDED_AUTH_METHOD_NAME_HASH && responsesWithEmbeddedAuth == 0
-        ) {
-            revert NoEmbeddedAuthInResponsesFound();
         }
     }
 

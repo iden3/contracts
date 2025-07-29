@@ -205,42 +205,6 @@ describe("Verifier Integration test", async function () {
     ).to.be.revertedWithCustomError(verifier, "ChallengeIsInvalid");
   });
 
-  it("Should revert with NoEmbeddedAuthInResponsesFound for auth proof", async function () {
-    await verifier.setRequests([
-      {
-        requestId: requestIdV3,
-        metadata: "metadata",
-        validator: await v3Validator.getAddress(),
-        creator: signer.address,
-        params: v3Params,
-      },
-      {
-        requestId: requestIdLMK,
-        metadata: "metadata",
-        validator: await lmqValidator.getAddress(),
-        creator: signer.address,
-        params: twoQueriesParams,
-      },
-    ]);
-
-    await expect(
-      verifier.submitResponse(
-        {
-          authMethod: authMethodEmbeddedAuth,
-          proof: "0x",
-        },
-        [
-          {
-            requestId: requestIdLMK,
-            proof: lmqProof,
-            metadata: metadatas,
-          },
-        ],
-        crossChainProofs,
-      ),
-    ).to.be.revertedWithCustomError(verifier, "NoEmbeddedAuthInResponsesFound");
-  });
-
   it("Should revert with MissingUserIDInGroupOfRequests", async function () {
     const groupID = calculateGroupID([BigInt(requestIdLMK), BigInt(requestIdLMK + 1)]);
 

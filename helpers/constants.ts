@@ -165,7 +165,7 @@ export const contractsInfo = Object.freeze({
   },
   VALIDATOR_SIG: {
     name: "CredentialAtomicQuerySigV2Validator",
-    version: "3.0.0",
+    version: "3.1.0",
     unifiedAddress: "0x5BD60F3Ef5890260906172EEe1f0a965707791f1",
     create2Calldata: ethers.hexlify(
       ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQuerySigV2Validator.v3"),
@@ -183,7 +183,7 @@ export const contractsInfo = Object.freeze({
   },
   VALIDATOR_MTP: {
     name: "CredentialAtomicQueryMTPV2Validator",
-    version: "3.0.0",
+    version: "3.1.0",
     unifiedAddress: "0xec9EF9c4595B46abF2b6A923BD1529081E03fbBB",
     create2Calldata: ethers.hexlify(
       ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryMTPV2Validator.v3"),
@@ -201,7 +201,7 @@ export const contractsInfo = Object.freeze({
   },
   VALIDATOR_V3: {
     name: "CredentialAtomicQueryV3Validator",
-    version: "3.0.0-beta.1",
+    version: "3.1.0-beta.1",
     unifiedAddress: "0xC616963610A5545EF89b373e1fEAE8A1e505FaFF",
     create2Calldata: ethers.hexlify(
       ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3Validator.v3"),
