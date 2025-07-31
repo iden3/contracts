@@ -17,7 +17,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.0.3";
+    string public constant VERSION = "1.0.4";
 
     /**
      * @dev Version of EIP 712 domain
@@ -400,6 +400,13 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
                 paymentData.recipient,
                 paymentData.nonce,
                 "MCPayment: payment already paid"
+            );
+        }
+        if (paymentData.expirationDate < block.timestamp) {
+            revert PaymentError(
+                paymentData.recipient,
+                paymentData.nonce,
+                "MCPayment: payment expired"
             );
         }
         return signer;
