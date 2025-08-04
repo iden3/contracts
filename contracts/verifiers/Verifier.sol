@@ -272,7 +272,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         $._state.processCrossChainProofs(crossChainProofs);
 
         // 2. Authenticate user and get userID
-        uint256 userIDFromAuthResponse;
+        uint256 userIDFromAuthResponse = 0;
         AuthMethodData storage authMethodData = $._authMethods[authResponse.authMethod];
         if (!authMethodData.isActive) {
             revert AuthMethodIsNotActive(authResponse.authMethod);
@@ -613,7 +613,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         address sender
     ) internal returns (uint256) {
         IAuthValidator.AuthResponseField[] memory authResponseFields;
-        uint256 userIDFromAuthResponse;
+        uint256 userIDFromAuthResponse = 0;
         (userIDFromAuthResponse, authResponseFields) = authMethodData.validator.verify(
             sender,
             authResponse.proof,
