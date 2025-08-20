@@ -348,7 +348,7 @@ const typeNameAnimaProofOfUniqueness = "BasicPerson";
 
 async function main() {
   const contractAddress = "0xba83D99c87358Ef9B6f7c4a5A94021A58d870704";
-  const issuerDID = "did:polygonid:polygon:main:2q29vfwp5MriX7J7NVwL118AXzPQis6T3GFBBCTjfA";
+  const issuerDID = "did:iden3:polygon:main:wjzDJdQRyYUuBc2mGnQcS6hbojGUrQdJAgjMyXTCv";
   const issuerWithdrawAddress = "0x690e79196c220c9ac707ec0a20fda7bfb58728f9";
   const ownerPartPercent = 15;
   const valueInEther = "6.48";
