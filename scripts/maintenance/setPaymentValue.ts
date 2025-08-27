@@ -4,7 +4,7 @@ import { VCPayment, VCPayment__factory } from "../../typechain-types";
 
 async function main() {
   const contractAddress = "0xba83D99c87358Ef9B6f7c4a5A94021A58d870704";
-  const issuerDID = "did:polygonid:polygon:main:2q29vfwp5MriX7J7NVwL118AXzPQis6T3GFBBCTjfA";
+  const issuerDID = "did:polygonid:polygon:main:2qBEn33gSAEaGno9Furod8Hpuf3hpXfMU7RND83vzq";
   const issuerWithdrawAddress = "0x690E79196C220c9AC707eC0a20fDA7bFB58728f9";
   const ownerPartPercent = 15;
   const valueInEther = "6.48";
