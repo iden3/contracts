@@ -218,18 +218,6 @@ function getParamsFromChainId(chainId: number) {
       blockchain = Blockchain.Billions;
       networkId = NetworkId.Test;
       break;
-    case 1313161555:
-      rpcUrl = process.env.AURORA_TESTNET_RPC_URL as string;
-      method = DidMethod.Iden3;
-      blockchain = "aurora";
-      networkId = NetworkId.Test;
-      break;
-    case 1313161554:
-      rpcUrl = process.env.AURORA_MAINNET_RPC_URL as string;
-      method = DidMethod.Iden3;
-      blockchain = "aurora";
-      networkId = NetworkId.Main;
-      break;
     default:
       throw new Error(`Unsupported chainId: ${chainId}`);
   }

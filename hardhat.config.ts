@@ -199,24 +199,6 @@ const config: HardhatUserConfig = {
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
-    "base-mainnet": {
-      chainId: 8453,
-      url: `${process.env.BASE_MAINNET_RPC_URL}`,
-      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
-    },
-    "aurora-mainnet": {
-      chainId: 1313161554,
-      url: `${process.env.AURORA_MAINNET_RPC_URL}`,
-      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
-    },
-    "aurora-testnet": {
-      chainId: 1313161555,
-      url: `${process.env.AURORA_TESTNET_RPC_URL}`,
-      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
-    },
     // hardhat: {
     //   chainId: 80002,
     //   forking: {
@@ -290,9 +272,6 @@ const config: HardhatUserConfig = {
       "zkevm-mainnet": process.env.ZKEVM_EXPLORER_API_KEY || "",
       "billions-test": "test",
       "billions-main": "main",
-      "aurora-testnet": "test",
-      "aurora-mainnet": "main",
-      base: process.env.BASE_EXPLORER_API_KEY || "",
     },
     customChains: [
       {
@@ -308,22 +287,6 @@ const config: HardhatUserConfig = {
         chainId: 45056,
         urls: {
           apiURL: "https://billions-main-blockscout.eu-north-2.gateway.fm/api/",
-          browserURL: "https://docs.blockscout.com",
-        },
-      },
-      {
-        network: "aurora-testnet",
-        chainId: 1313161555,
-        urls: {
-          apiURL: "https://explorer.testnet.aurora.dev/api/",
-          browserURL: "https://docs.blockscout.com",
-        },
-      },
-      {
-        network: "aurora-mainnet",
-        chainId: 1313161554,
-        urls: {
-          apiURL: "https://explorer.mainnet.aurora.dev/api/",
           browserURL: "https://docs.blockscout.com",
         },
       },

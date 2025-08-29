@@ -8,19 +8,20 @@ import {
 import { Contract } from "ethers";
 import { core } from "@0xpolygonid/js-sdk";
 
-// Replace these addresses with the ones of your custom network
-const universalVerifierAddress = "0xe067cE4425Fc5D12705DeC51f84bF66683910Ceb";
-const validatorSigV2Address = "0x759aB3E97cCf25c036d0ad264cbD687cB025E851";
-const validatorMTPV2Address = "0x7FAE83C096a75150aF0eB918AbF7072335aF14bA";
-const validatorV3Address = "0xD8Da54a4419E071A562fF7bF979888Ff2C0B847c";
+// Replace these addresses with the ones deployed in your custom network
+const universalVerifierAddress = "<UNIVERSAL_VERIFIER_ADDRESS>";
+const validatorSigV2Address = "<VALIDATOR_SIGV2_ADDRESS>";
+const validatorMTPV2Address = "<VALIDATOR_MTPV2_ADDRESS>";
+const validatorV3Address = "<VALIDATOR_V3_ADDRESS>";
 // Replace with your actual state contract address
-const stateContractAddress = "0xBc068db8dB60703904b293d355fE3B1349652ee0";
-// Replace with your actual custom network details
+const stateContractAddress = "<STATE_CONTRACT_ADDRESS>";
+// Replace with your actual custom network details for method, blockchain and network
 const method = core.DidMethod.Iden3;
-const blockchain = "aurora";
-const network = core.NetworkId.Test;
-const chainId = 1313161555;
-const networkFlag = 0b0101_0010;
+const blockchain = "<blockchain>";
+const network = "<network>";
+// Replace with your custom network chainId and networkFlag
+const chainId = 0;
+const networkFlag = 0b1111_1111;
 // Replace with your actual auth method
 const authMethodEmbeddedAuth = "embeddedAuth";
 

@@ -78,16 +78,6 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
   }) // privado-test
-  .set(1313161554, {
-    idType: "0x0151",
-    networkType: "main",
-    oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-  }) // aurora-mainnet
-  .set(1313161555, {
-    idType: "0x0152",
-    networkType: "test",
-    oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-  }) // aurora-testnet
   .set(59144, {
     idType: "0x0149",
     networkType: "main",
