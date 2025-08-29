@@ -105,13 +105,13 @@
     "ownerPercentage": 15
   },
   "CrossChainProofValidatorAtModule": {
-    "contractAddress": "0x02653f6408167C308AeC50846FBFee0c8A8230cf"
+    "contractAddress": "0xc4D183c3EAC50138048F754Ee592325d255a6cB6"
   },
   "StateLibAtModule": {
-    "contractAddress": "0xad6ceC221704aef314911D4B58e084aaF9A6999f"
+    "contractAddress": "0xE8C4d056334651a843376dF6E3364484813A617D"
   },
   "StateNewImplementationAtModule": {
-    "contractAddress": "0x225615E26a8173726CB3557AF0e186d969F3747B"
+    "contractAddress": "0xEdcBEBFe6Ed80050338c21D21522ACB5d9c3Fd69"
   },
   "Groth16VerifierStateTransitionAtModule": {
     "contractAddress": "0xf2A3a8e2d265FC97fC90C0A0AF9312b137259b0e"
