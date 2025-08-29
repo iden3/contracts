@@ -19,15 +19,7 @@ async function main() {
   const deploymentId = parameters.DeploymentId || undefined;
 
   // First implementation
-  await ignition.deploy(MCPaymentProxyModule, {
-    strategy: deployStrategy,
-    defaultSender: await signer.getAddress(),
-    parameters: parameters,
-    deploymentId: deploymentId,
-  });
-
-  // Final implementation
-  const { newImplementation, proxyAdmin, proxy } = await ignition.deploy(MCPaymentModule, {
+  const { proxy, proxyAdmin, newImplementation } = await ignition.deploy(MCPaymentProxyModule, {
     strategy: deployStrategy,
     defaultSender: await signer.getAddress(),
     parameters: parameters,
@@ -39,8 +31,15 @@ async function main() {
     proxyAdminAddress: proxyAdmin.target,
   };
 
-  await verifyContract(proxy.target, contractsInfo.MC_PAYMENT.verificationOpts);
+  // Final implementation
+  await ignition.deploy(MCPaymentModule, {
+    strategy: deployStrategy,
+    defaultSender: await signer.getAddress(),
+    parameters: parameters,
+    deploymentId: deploymentId,
+  });
 
+  await verifyContract(proxy.target, contractsInfo.MC_PAYMENT.verificationOpts);
   await verifyContract(newImplementation.target, {
     constructorArgsImplementation: [],
     libraries: {},

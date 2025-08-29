@@ -20,28 +20,30 @@ import IdentityTreeStoreModule from "../../ignition/modules/identityTreeStore";
   const deploymentId = parameters.DeploymentId || undefined;
 
   // First implementation
-  await ignition.deploy(IdentityTreeStoreProxyModule, {
-    strategy: deployStrategy,
-    defaultSender: await signer.getAddress(),
-    parameters: parameters,
-    deploymentId: deploymentId,
-  });
-
-  // Final implementation
-  const { proxy, proxyAdmin, newImplementation } = await ignition.deploy(IdentityTreeStoreModule, {
-    strategy: deployStrategy,
-    defaultSender: await signer.getAddress(),
-    parameters: parameters,
-    deploymentId: deploymentId,
-  });
+  const { proxy, proxyAdmin, newImplementation } = await ignition.deploy(
+    IdentityTreeStoreProxyModule,
+    {
+      strategy: deployStrategy,
+      defaultSender: await signer.getAddress(),
+      parameters: parameters,
+      deploymentId: deploymentId,
+    },
+  );
 
   parameters.IdentityTreeStoreAtModule = {
     proxyAddress: proxy.target,
     proxyAdminAddress: proxyAdmin.target,
   };
 
-  await verifyContract(proxy.target, contractsInfo.IDENTITY_TREE_STORE.verificationOpts);
+  // Final implementation
+  await ignition.deploy(IdentityTreeStoreModule, {
+    strategy: deployStrategy,
+    defaultSender: await signer.getAddress(),
+    parameters: parameters,
+    deploymentId: deploymentId,
+  });
 
+  await verifyContract(proxy.target, contractsInfo.IDENTITY_TREE_STORE.verificationOpts);
   await verifyContract(newImplementation.target, {
     constructorArgsImplementation: [],
     libraries: {},
