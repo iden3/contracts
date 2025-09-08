@@ -312,13 +312,9 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                 // validators that support it
                 // For linkMultiQueryValidator we don't have this response field because it's always linked
                 // to other responses that will have this embedded auth verified field
-                bool hasEmbeddedAuthVerified = VerifierLib.hasIsEmbeddedAuthVerified(
-                    responseFields
-                );
-                if (
-                    hasEmbeddedAuthVerified &&
-                    VerifierLib.isEmbeddedAuthVerified(responseFields) == 0
-                ) {
+                (bool hasEmbeddedAuthVerified, uint256 embeddedAuthVerifiedValue) = VerifierLib
+                    .isEmbeddedAuthVerified(responseFields);
+                if (hasEmbeddedAuthVerified && embeddedAuthVerifiedValue == 0) {
                     revert NoEmbeddedAuthInResponsesFound();
                 }
             }

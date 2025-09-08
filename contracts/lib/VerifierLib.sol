@@ -454,32 +454,18 @@ library VerifierLib {
         return 0;
     }
 
-    function hasIsEmbeddedAuthVerified(
-        IRequestValidator.ResponseField[] memory signals
-    ) external pure returns (bool) {
-        for (uint256 j = 0; j < signals.length; j++) {
-            if (
-                keccak256(abi.encodePacked(signals[j].name)) ==
-                IS_EMBEDDED_AUTH_VERIFIED_FIELD_NAME_HASH
-            ) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     function isEmbeddedAuthVerified(
         IRequestValidator.ResponseField[] memory signals
-    ) external pure returns (uint256) {
+    ) external pure returns (bool, uint256) {
         for (uint256 j = 0; j < signals.length; j++) {
             if (
                 keccak256(abi.encodePacked(signals[j].name)) ==
                 IS_EMBEDDED_AUTH_VERIFIED_FIELD_NAME_HASH
             ) {
-                return signals[j].value;
+                return (true, signals[j].value);
             }
         }
-        return 0;
+        return (false, 0);
     }
 
     /**

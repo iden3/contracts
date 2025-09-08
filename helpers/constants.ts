@@ -122,7 +122,7 @@ export const contractsInfo = Object.freeze({
   },
   UNIVERSAL_VERIFIER: {
     name: "UniversalVerifier",
-    version: "2.1.1",
+    version: "2.2.0",
     unifiedAddress: "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.UniversalVerifier.v2")),
     verificationOpts: {
