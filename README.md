@@ -13,6 +13,7 @@ The contracts were deployed via [TransparentUpgradeableProxy](https://github.com
 |    **Validator SIG**    | 0x59B347f0D3dd4B98cc2E056Ee6C53ABF14F8581b |
 |    **Validator V3**     | 0xd179f29d00Cd0E8978eb6eB847CaCF9E2A956336 |
 | **Universal Verifier**  | 0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c |
+| **Universal Verifier V2****  | 0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F |
 | **Identity Tree Store** | 0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81 |
 
 
@@ -20,6 +21,8 @@ The contracts were deployed via [TransparentUpgradeableProxy](https://github.com
 
 - Polygon Amoy testnet State Contract: **0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124**
 - Polygon PoS mainnet State Contract : **0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D**
+
+****Universal Verifier V2** is deployed in the different networks with new interface and possibility for multi request for the same credential in a single transaction. This new interface for setting requests is available in the script [here](https://github.com/iden3/contracts/blob/master/scripts/maintenance/setProofRequest.ts). If you want to set requests for old Universal Verifier you need to do it with the script [here](https://github.com/iden3/contracts/blob/d81b2717e2e4db4aeeee8b9899a5cb6b7ccc3063/scripts/maintenance/setProofRequest.ts)
 
 ## Libraries on unified addresses
 There are a few libraries, which does not tend to evolve much but can be re-used in many other contracts, e.g. custom onchain-identity. They reside on the same addresses across all networks deployed and serve both project needs and as a public good. Obviously, they are not upgradable.
@@ -55,17 +58,17 @@ We have deployed contracts across the following mainnets and testnets so far (**
 ## Security Audits
 
 1. [Nethermind](https://www.nethermind.io/smart-contract-audits) has performed a security audit of our core smart contracts (State & Smt) and compiled a report on Apr 18, 2023: 
-   [NM_0069_POLYGON_FINAL.pdf](https://iden3-circuits-bucket.s3.eu-west-1.amazonaws.com/audit_reports/NM_0069_POLYGON_FINAL.pdf)
+   [NM_0069_POLYGON_FINAL.pdf](https://raw.githubusercontent.com/iden3/audits/49031d13ae4a97b16f204770c86296290188c036/contracts/NM0069-FINAL_POLYGON_ID.pdf)
 
 2. [Nethermind](https://www.nethermind.io/smart-contract-audits) has performed a second security audit of our core smart contracts (State, IdentityBase, GenesisUtils, OnChainIdentity) and compiled a report on Sep 13, 2023:
-   [NM0113-FINAL-POLYGONID.pdf](https://iden3-circuits-bucket.s3.eu-west-1.amazonaws.com/audit_reports/NM0113-FINAL-POLYGONID.pdf)
+   [NM0113-FINAL-POLYGONID.pdf](https://raw.githubusercontent.com/iden3/audits/49031d13ae4a97b16f204770c86296290188c036/contracts/NM0113-FINAL_POLYGONID.pdf)
 
 3. [Nethermind](https://www.nethermind.io/smart-contract-audits) has performed a third security audit of our core smart contracts (all contracts in cross-chain/*, payment/*, verifiers/* and validators/* folders) and compiled a report on Apr 4, 2025:
-   [NM_0379_Final_PRIVADO_iD.pdf](https://iden3-circuits-bucket.s3.eu-west-1.amazonaws.com/audit_reports/NM_0379_Final_PRIVADO_iD.pdf)
+   [NM_0379_Final_PRIVADO_iD.pdf](https://raw.githubusercontent.com/iden3/audits/49031d13ae4a97b16f204770c86296290188c036/contracts/NM_0379_Final_PRIVADO_iD.pdf)
 
-## Deployment methodology with CREATE2 and ledger
+## Deployment methodology with CREATE2 with ignition and ledger
 
-Note, that this methodology is not what expected to be used by the repository users as its purpose is mainly for our team to deploy and maintain the contracts across many networks in a unified way. However, it can be used as a reference for the deployment process.
+Note, that this methodology is not what expected to be used by the repository users as its purpose is mainly for our team to deploy and maintain the contracts across many networks in a unified way.
 
 The deployment is configured to be done with Ledger device for signing the transactions.
 You should configure your Ledger device for `blind signing` in your Ethereum app.
@@ -77,10 +80,10 @@ LEDGER_ACCOUNT="<your Ledger deployer address>"
 
 DEPLOY_STRATEGY=create2
 
-PRIVADO_MAIN_RPC_URL=<rpc url for privado mainnet>
-PRIVADO_TEST_RPC_URL=<rpc url for privado testnet>
-BILLIONS_MAIN_RPC_URL=<rpc url for billions mainnet>
-BILLIONS_TEST_RPC_URL=<rpc url for billions testnet>
+PRIVADO_MAINNET_RPC_URL=<rpc url for privado mainnet>
+PRIVADO_TESTNET_RPC_URL=<rpc url for privado testnet>
+BILLIONS_MAINNET_RPC_URL=<rpc url for billions mainnet>
+BILLIONS_TESTNET_RPC_URL=<rpc url for billions testnet>
 POLYGON_MAINNET_RPC_URL=<rpc url for polygon mainnet>
 POLYGON_AMOY_RPC_URL=<rpc url for polygon amoy>
 ETHEREUM_MAINNET_RPC_URL=<rpc url for ethereum mainnet>
@@ -89,10 +92,28 @@ ZKEVM_MAINNET_RPC_URL=<rpc url for zkevm mainnet>
 ZKEVM_CARDONA_RPC_URL=<rpc url for zkevm cardona>
 LINEA_MAINNET_RPC_URL=<rpc url for linea mainnet>
 LINEA_SEPOLIA_RPC_URL=<rpc url for linea sepolia>
+BASE_MAINNET_RPC_URL=<rpc url for base mainnet>
 ```
 
-Then run the deployment scripts:
+There are 2 strategies for the deployment scripts:
+- Deployment in 2 steps. First step with unknown address and second step with LEDGER address.
+- Deployment in 1 step. 1 step only with LEDGER address.
 
+For this to work with ignition we need to use `parameters` inside the modules to avoid issues with different deployer addresses.
+These paramaters will be chain id specific and will be placed in `ignition/modules/params/` for every chain id like `chain-<chainId>.json`
+
+### Deployment in 2 steps
+Run the deployment scripts for all the system:
+1. Deploy initial implementation contracts for all the system with unknown address
+   ```shell
+   npx hardhat run scripts/deploy/deployment-step-1/deploySystem.ts --network <your-network>
+   ```
+2. Deploy final implementation contracts for all the system with LEDGER address
+   ```shell
+   npx hardhat run scripts/deploy/deployment-step-2/deploySystem.ts --network <your-network>
+   ```
+
+### Deploy everything 1 step
 1. Deploy create2AnchorAddress that we use for unified addresses
    ```shell
    npx hardhat run scripts/deploy/deployCreate2AddressAnchor.ts --network <your-network>

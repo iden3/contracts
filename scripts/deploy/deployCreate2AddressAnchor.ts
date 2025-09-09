@@ -1,13 +1,17 @@
 import { ethers, ignition } from "hardhat";
-import { Create2AddressAnchorModule } from "../../ignition/modules/create2AddressAnchor";
+import Create2AddressAnchorModule from "../../ignition/modules/create2AddressAnchor";
 import { contractsInfo } from "../../helpers/constants";
+import { getDeploymentParameters, writeDeploymentParameters } from "../../helpers/helperUtils";
 
 async function main() {
   const [signer] = await ethers.getSigners();
 
+  const parameters = await getDeploymentParameters();
+  const deploymentId = parameters.DeploymentId || undefined;
   const { create2AddressAnchor } = await ignition.deploy(Create2AddressAnchorModule, {
     strategy: "create2",
     defaultSender: await signer.getAddress(),
+    deploymentId: deploymentId,
   });
 
   const contractAddress = await create2AddressAnchor.getAddress();
@@ -18,6 +22,8 @@ async function main() {
   }
 
   console.log(`Create2AddressAnchor deployed to: ${contractAddress}`);
+  parameters.Create2AddressAnchorAtModule = { contractAddress: contractAddress };
+  await writeDeploymentParameters(parameters);
 }
 
 main()

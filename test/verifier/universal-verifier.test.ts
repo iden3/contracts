@@ -7,10 +7,11 @@ import { byteEncoder, CircuitId } from "@0xpolygonid/js-sdk";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { contractsInfo } from "../../helpers/constants";
 import { calculateMultiRequestId } from "../utils/id-calculation-utils";
+import { beforeEach } from "mocha";
 
 describe("Universal Verifier tests", function () {
   let request, paramsFromValidator, multiRequest, authResponse, response: any;
-  let verifier: any, validator: any, authValidator: any, state: any;
+  let verifier: any, verifierLib: any, validator: any, authValidator: any, state: any;
   let signer, signer2, signer3;
   let signerAddress: string;
   let deployHelper: DeployHelper;
@@ -29,7 +30,7 @@ describe("Universal Verifier tests", function () {
 
   const crossChainProofs = "0x";
 
-  async function deployContractsFixture() {
+  async function deployContractsFixture(contractName: string = "UniversalVerifier") {
     const [ethSigner, ethSigner2, ethSigner3] = await ethers.getSigners();
 
     deployHelper = await DeployHelper.initialize(null, true);
@@ -41,10 +42,13 @@ describe("Universal Verifier tests", function () {
       { name: "issuerID", value: 2, rawValue: "0x" },
     ]);
 
-    const universalVerifier: any = await deployHelper.deployUniversalVerifier(
-      ethSigner,
-      await stateContract.getAddress(),
-    );
+    const { universalVerifier: universalVerifier, verifierLib: verifierLib } =
+      await deployHelper.deployUniversalVerifier(
+        ethSigner,
+        await stateContract.getAddress(),
+        "basic",
+        contractName,
+      );
 
     await universalVerifier.addValidatorToWhitelist(await validator.getAddress());
     await universalVerifier.connect();
@@ -65,6 +69,7 @@ describe("Universal Verifier tests", function () {
       ethSigner3,
       stateContract,
       universalVerifier,
+      verifierLib,
       validator,
       authValidator,
     };
@@ -454,6 +459,7 @@ describe("Universal Verifier tests", function () {
         ethSigner2: signer2,
         stateContract: state,
         validator: validator,
+        verifierLib: verifierLib,
         universalVerifier: verifier,
       } = await loadFixture(deployContractsFixture));
 
@@ -477,7 +483,7 @@ describe("Universal Verifier tests", function () {
       await verifier.setVerifierID(1);
 
       await expect(verifier.setRequests([request]))
-        .to.be.revertedWithCustomError(verifier, "VerifierIDIsNotValid")
+        .to.be.revertedWithCustomError(verifierLib, "VerifierIDIsNotValid")
         .withArgs(2, 1);
     });
 
@@ -695,6 +701,53 @@ describe("Universal Verifier tests", function () {
       expect(events[0].args.multiRequestId).to.be.equal(multiRequest.multiRequestId);
       expect(events[0].args.requestIds).to.deep.equal(multiRequest.requestIds);
       expect(events[0].args.groupIds).to.deep.equal(multiRequest.groupIds);
+    });
+  });
+
+  describe("Wrapper tests", function () {
+    beforeEach(async function () {
+      ({
+        ethSigner: signer,
+        universalVerifier: verifier,
+        validator,
+      } = await deployContractsFixture(
+        "UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest",
+      ));
+
+      request = {
+        requestId: 1,
+        metadata: "0x",
+        validator: await validator.getAddress(),
+        creator: await signer.getAddress(),
+        params: "0x",
+      };
+
+      paramsFromValidator = [
+        { name: "groupID", value: 0 },
+        { name: "verifierID", value: 0 },
+        { name: "nullifierSessionID", value: 0 },
+      ];
+    });
+
+    it("can submit more than one proof per address and request in verifier wrapper", async function () {
+      await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
+      await validator.stub_setInput("userID", 1);
+      await verifier.setRequests([request]);
+
+      const authResponse = {
+        authMethod: authMethod.authMethod,
+        proof: "0x",
+      };
+      const response1 = {
+        requestId: request.requestId,
+        proof: "0x",
+        metadata: "0x",
+      };
+      const crossChainProofs = "0x";
+
+      await verifier.submitResponse(authResponse, [response1], crossChainProofs);
+      await expect(verifier.submitResponse(authResponse, [response1], crossChainProofs)).not.to.be
+        .reverted;
     });
   });
 });

@@ -2,6 +2,7 @@ import { ethers, upgrades } from "hardhat";
 import { beforeEach } from "mocha";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
+import { contractsInfo } from "../../helpers/constants";
 
 describe("EmbeddedVerifier tests", function () {
   let verifier, state, validator, signer: any;
@@ -13,8 +14,15 @@ describe("EmbeddedVerifier tests", function () {
 
     const { state } = await deployHelper.deployStateWithLibraries([], "Groth16VerifierStub");
     const stateAddr = await state.getAddress();
-    const Verifier = await ethers.getContractFactory("EmbeddedVerifierWrapper");
-    verifier = await upgrades.deployProxy(Verifier, [signer.address, stateAddr]);
+    const verifierLib = await ethers.deployContract(contractsInfo.VERIFIER_LIB.name);
+    const Verifier = await ethers.getContractFactory("EmbeddedVerifierWrapper", {
+      libraries: {
+        VerifierLib: await verifierLib.getAddress(),
+      },
+    });
+    verifier = await upgrades.deployProxy(Verifier, [signer.address, stateAddr], {
+      unsafeAllow: ["external-library-linking"],
+    });
 
     const validator = await ethers.deployContract("RequestValidatorStub");
 

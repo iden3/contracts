@@ -2,12 +2,14 @@ import { Contract, ContractTransactionResponse, JsonRpcProvider } from "ethers";
 import hre, { ethers, network, run } from "hardhat";
 import fs from "fs";
 import {
+  chainIdInfoMap,
   contractsInfo,
   networks,
   STATE_ADDRESS_POLYGON_AMOY,
   STATE_ADDRESS_POLYGON_MAINNET,
 } from "./constants";
 import { poseidonContract } from "circomlibjs";
+import path from "path";
 
 export function getConfig() {
   return {
@@ -18,6 +20,18 @@ export function getConfig() {
 
 export async function getChainId() {
   return parseInt(await hre.network.provider.send("eth_chainId"), 16);
+}
+
+export async function getDefaultIdType(): Promise<{ defaultIdType: string; chainId: number }> {
+  const chainId = await getChainId();
+  let defaultIdType = chainIdInfoMap.get(chainId)?.idType;
+  if (!defaultIdType) {
+    defaultIdType = "0xffff";
+    Logger.warning(
+      `Failed to find defaultIdType in Map for chainId ${chainId}. Using idType 0xffff`,
+    );
+  }
+  return { defaultIdType, chainId };
 }
 
 export async function waitNotToInterfereWithHardhatIgnition(
@@ -142,10 +156,22 @@ export async function verifyContract(
 
 export function getProviders() {
   return [
-    { network: networks.PRIVADO_TEST.name, rpcUrl: process.env.PRIVADO_TEST_RPC_URL as string },
-    { network: networks.PRIVADO_MAIN.name, rpcUrl: process.env.PRIVADO_MAIN_RPC_URL as string },
-    { network: networks.BILLIONS_MAIN.name, rpcUrl: process.env.BILLIONS_MAIN_RPC_URL as string },
-    { network: networks.BILLIONS_TEST.name, rpcUrl: process.env.BILLIONS_TEST_RPC_URL as string },
+    {
+      network: networks.PRIVADO_TESTNET.name,
+      rpcUrl: process.env.PRIVADO_TESTNET_RPC_URL as string,
+    },
+    {
+      network: networks.PRIVADO_MAINNET.name,
+      rpcUrl: process.env.PRIVADO_MAINNET_RPC_URL as string,
+    },
+    {
+      network: networks.BILLIONS_TESTNET.name,
+      rpcUrl: process.env.BILLIONS_TESTNET_RPC_URL as string,
+    },
+    {
+      network: networks.BILLIONS_MAINNET.name,
+      rpcUrl: process.env.BILLIONS_MAINNET_RPC_URL as string,
+    },
     { network: networks.POLYGON_AMOY.name, rpcUrl: process.env.POLYGON_AMOY_RPC_URL as string },
     {
       network: networks.POLYGON_MAINNET.name,
@@ -230,6 +256,26 @@ export async function getBlockTimestamp(provider: JsonRpcProvider): Promise<Date
   }
   const date = new Date(block.timestamp * 1000); // Date requires ms, whereas block.timestamp is in s
   return date;
+}
+
+async function getParamsPath(): Promise<string> {
+  const chainId = await getChainId();
+  const paramsPath = path.join(__dirname, `../ignition/modules/params/chain-${chainId}.json`);
+  return paramsPath;
+}
+
+export async function getDeploymentParameters(): Promise<any> {
+  const paramsPath = await getParamsPath();
+  const parameters = JSON.parse(fs.readFileSync(paramsPath).toString());
+  return parameters;
+}
+
+export async function writeDeploymentParameters(parameters: any): Promise<void> {
+  const paramsPath = await getParamsPath();
+  fs.writeFileSync(paramsPath, JSON.stringify(parameters, null, 2), {
+    encoding: "utf8",
+    flag: "w",
+  });
 }
 
 export class Logger {

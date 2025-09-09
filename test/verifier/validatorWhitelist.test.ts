@@ -2,6 +2,7 @@ import { ethers } from "hardhat";
 import { beforeEach } from "mocha";
 import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
+import { contractsInfo } from "../../helpers/constants";
 
 describe("ValidatorWhitelist tests", function () {
   let verifier, validator: any;
@@ -12,7 +13,12 @@ describe("ValidatorWhitelist tests", function () {
     [signer1, signer2] = await ethers.getSigners();
 
     const deployHelper = await DeployHelper.initialize(null, true);
-    const verifier = await ethers.deployContract("ValidatorWhitelistTestWrapper", []);
+    const verifierLib = await ethers.deployContract(contractsInfo.VERIFIER_LIB.name);
+    const verifier = await ethers.deployContract("ValidatorWhitelistTestWrapper", [], {
+      libraries: {
+        VerifierLib: await verifierLib.getAddress(),
+      },
+    });
 
     const { state } = await deployHelper.deployStateWithLibraries([], "Groth16VerifierStub");
     await verifier.initialize(await state.getAddress());

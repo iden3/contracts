@@ -56,7 +56,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "3.0.0-beta.1";
+    string public constant VERSION = "3.1.0-beta.1";
 
     string internal constant CIRCUIT_ID = "credentialAtomicQueryV3OnChain-beta.1";
 
@@ -281,7 +281,7 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         PubSignals memory pubSignals,
         bool hasSelectiveDisclosure
     ) internal pure returns (IRequestValidator.ResponseField[] memory) {
-        uint256 numSignals = hasSelectiveDisclosure ? 6 : 5;
+        uint256 numSignals = hasSelectiveDisclosure ? 7 : 6;
         IRequestValidator.ResponseField[]
             memory responseFields = new IRequestValidator.ResponseField[](numSignals);
 
@@ -309,6 +309,11 @@ contract CredentialAtomicQueryV3Validator is CredentialAtomicQueryValidatorBase 
         responseFields[i++] = IRequestValidator.ResponseField({
             name: "issuerID",
             value: pubSignals.issuerID,
+            rawValue: ""
+        });
+        responseFields[i++] = IRequestValidator.ResponseField({
+            name: "isEmbeddedAuthVerified",
+            value: 1,
             rawValue: ""
         });
         if (hasSelectiveDisclosure) {

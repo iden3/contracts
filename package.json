@@ -12,14 +12,15 @@
   },
   "homepage": "https://github.com/iden3/contracts",
   "devDependencies": {
-    "@0xpolygonid/js-sdk": "1.20.0",
-    "@iden3/js-crypto": "^1.1.0",
-    "@iden3/js-iden3-core": "1.4.1",
-    "@iden3/js-jsonld-merklization": "1.4.1",
+    "@0xpolygonid/js-sdk": "^1.32.4",
+    "@iden3/js-crypto": "^1.3.1",
+    "@iden3/js-iden3-core": "^1.7.0",
+    "@iden3/js-jsonld-merklization": "1.7.1",
+    "@iden3/js-jwz": "^1.11.0",
     "@nomicfoundation/hardhat-ledger": "^1.0.3",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "@openzeppelin/contracts": "5.2.0",
-    "@openzeppelin/contracts-upgradeable": "5.2.0",
+    "@openzeppelin/contracts": "5.4.0",
+    "@openzeppelin/contracts-upgradeable": "5.4.0",
     "@openzeppelin/hardhat-upgrades": "3.0.5",
     "@types/chai": "^4.3.14",
     "@types/chai-as-promised": "^7.1.5",
@@ -45,7 +46,8 @@
     "solhint-plugin-prettier": "^0.1.0",
     "solidity-bytes-utils": "^0.8.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.4"
+    "typescript": "^5.4.4",
+    "uuid": "11.1.0"
   },
   "scripts": {
     "node:local": "npx hardhat node",
@@ -73,6 +75,7 @@
     "deploy:create2:address:anchor:linea-mainnet": "npx hardhat run scripts/deploy/deployCreate2AddressAnchor.ts --network linea-mainnet",
     "deploy:create2:address:anchor:ethereum-mainnet": "npx hardhat run scripts/deploy/deployCreate2AddressAnchor.ts --network ethereum-mainnet",
     "deploy:create2:address:anchor:privado-main": "npx hardhat run scripts/deploy/deployCreate2AddressAnchor.ts --network privado-main",
+    "deploy:create2:address:anchor:base-mainnet": "npx hardhat run scripts/deploy/deployCreate2AddressAnchor.ts --network base-mainnet",
     "deploy:state:localhost": "npx hardhat run scripts/deploy/deployState.ts --network localhost",
     "deploy:state:polygon-amoy": "npx hardhat run scripts/deploy/deployState.ts --network polygon-amoy",
     "deploy:state:zkevm-cardona": "npx hardhat run scripts/deploy/deployState.ts --network zkevm-cardona",
@@ -130,7 +133,11 @@
     "deploy:universalverifier:privado-main": "npx hardhat run scripts/deploy/deployUniversalVerifier.ts --network privado-main",
     "deploy:set:request:polygon-amoy": "npx hardhat run scripts/maintenance/setProofRequest.ts --network polygon-amoy",
     "deploy:set:request:linea-sepolia": "npx hardhat run scripts/maintenance/setProofRequest.ts --network linea-sepolia",
+    "deploy:crossChainProofValidator:localhost": "npx hardhat run scripts/deploy/deployCrossChainProofValidator.ts --network localhost",
     "deploy:vc-payment:polygon-amoy": "npx hardhat run scripts/deploy/deployVCPayment.ts --network polygon-amoy",
+    "deploy:system:step1:implementation:localhost": "npx hardhat run scripts/deploy/deployment-step-1/deploySystem.ts --network localhost",
+    "deploy:system:step2:implementation:localhost": "npx hardhat run scripts/deploy/deployment-step-2/deploySystem.ts --network localhost",
+    "deploy:mc-payment:base-mainnet": "npx hardhat run scripts/deploy/deployMCPayment.ts --network base-mainnet",
     "upgrade:contracts:universal:verifier:localhost": "npx hardhat run scripts/upgrade/verifiers/universal-verifier-upgrade.ts --network localhost",
     "upgrade:contracts:universal:verifier:polygon-amoy": "npx hardhat run scripts/upgrade/verifiers/universal-verifier-upgrade.ts --network polygon-amoy",
     "upgrade:contracts:universal:verifier:ethereum-sepolia": "npx hardhat run scripts/upgrade/verifiers/universal-verifier-upgrade.ts --network ethereum-sepolia",
@@ -154,6 +161,10 @@
   "overrides": {
     "ws": "^8.17.1",
     "elliptic": "^6.6.0",
-    "cookie": "^1.0.1"
+    "cookie": "^1.0.1",
+    "axios": "^1.8.3",
+    "tmp": "^0.2.5",
+    "form-data": "^4.0.4",
+    "pbkdf2": "^3.1.3"
   }
 }

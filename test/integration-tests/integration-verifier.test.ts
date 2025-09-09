@@ -14,11 +14,11 @@ import {
 } from "../utils/validator-pack-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { calculateQueryHashV3 } from "../utils/query-hash-utils";
-import { TEN_YEARS } from "../../helpers/constants";
+import { contractsInfo, TEN_YEARS } from "../../helpers/constants";
 import { calculateGroupID, calculateMultiRequestId } from "../utils/id-calculation-utils";
 
 describe("Verifier Integration test", async function () {
-  let verifier, v3Validator, lmqValidator;
+  let verifier, verifierLib, v3Validator, lmqValidator;
   let signer;
 
   const requestIdV3 = 32;
@@ -66,6 +66,7 @@ describe("Verifier Integration test", async function () {
   const crossChainProofs = "0x";
   const metadatas = "0x";
   const authMethod = "authV2";
+  const authMethodEmbeddedAuth = "embeddedAuth";
 
   const v3Params = packV3ValidatorParams(query);
 
@@ -103,25 +104,37 @@ describe("Verifier Integration test", async function () {
   async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
 
-    const verifier = await ethers.deployContract("VerifierTestWrapper", []);
+    const verifierLib = await ethers.deployContract(contractsInfo.VERIFIER_LIB.name);
+    const verifier = await ethers.deployContract("VerifierTestWrapper", [], {
+      libraries: {
+        VerifierLib: await verifierLib.getAddress(),
+      },
+    });
 
     const deployHelper = await DeployHelper.initialize(null, true);
     const { state } = await deployHelper.deployStateWithLibraries(["0x0212"]);
     await verifier.initialize(await state.getAddress());
 
     const { validator: authValidator } = await deployHelper.deployValidatorContractsWithVerifiers(
-      "authV2",
+      authMethod,
       await state.getAddress(),
     );
     await authValidator.setProofExpirationTimeout(TEN_YEARS);
     await authValidator.setGISTRootExpirationTimeout(TEN_YEARS);
 
-    const authMethod = {
-      authMethod: "authV2",
+    const authMethodParams = {
+      authMethod: authMethod,
       validator: await authValidator.getAddress(),
       params: "0x",
     };
-    await verifier.setAuthMethod(authMethod);
+    await verifier.setAuthMethod(authMethodParams);
+
+    const authMethodEmbeddedAuthParams = {
+      authMethod: authMethodEmbeddedAuth,
+      validator: ethers.ZeroAddress,
+      params: "0x",
+    };
+    await verifier.setAuthMethod(authMethodEmbeddedAuthParams);
 
     const { validator: v3Validator } = await deployHelper.deployValidatorContractsWithVerifiers(
       "v3",
@@ -135,11 +148,16 @@ describe("Verifier Integration test", async function () {
       await state.getAddress(),
     );
 
-    return { state, verifier, authValidator, v3Validator, lmkValidator };
+    return { state, verifier, verifierLib, authValidator, v3Validator, lmkValidator };
   }
 
   beforeEach(async () => {
-    ({ verifier, v3Validator, lmkValidator: lmqValidator } = await loadFixture(deployContractsFixture));
+    ({
+      verifier,
+      verifierLib,
+      v3Validator,
+      lmkValidator: lmqValidator,
+    } = await loadFixture(deployContractsFixture));
 
     await verifier.setVerifierID(query.verifierID);
   });
@@ -210,11 +228,15 @@ describe("Verifier Integration test", async function () {
         },
       ]),
     )
-      .to.be.revertedWithCustomError(verifier, "MissingUserIDInGroupOfRequests")
+      .to.be.revertedWithCustomError(verifierLib, "MissingUserIDInGroupOfRequests")
       .withArgs(groupID);
   });
 
-  it("Should verify", async function () {
+  it("Should verify with authV2 authMethod", async function () {
+    // An integration test with a MultiRequest
+    // The multiRequest has a single group with two requests inside
+    // One request is based on V3 validator
+    // Another one is based on LinkedMultiQuery validator
     const authProof = getProof(authProofJson);
 
     // 1. Create the requests
@@ -283,8 +305,75 @@ describe("Verifier Integration test", async function () {
     expect(areMultiRequestProofsVerified).to.be.true;
   });
 
-  // An integration test with a MultiRequest
-  // The multiRequest has a single group with two requests inside
-  // One request is based on V3 validator
-  // Another one is based on LinkedMultiQuery validator
+  it("Should verify with embeddedAuth authMethod", async function () {
+    // An integration test with a MultiRequest
+    // The multiRequest has a single group with two requests inside
+    // One request is based on V3 validator
+    // Another one is based on LinkedMultiQuery validator
+
+    // 1. Create the requests
+    await verifier.setRequests([
+      {
+        requestId: requestIdV3,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        creator: signer.address,
+        params: v3Params,
+      },
+      {
+        requestId: requestIdLMK,
+        metadata: "metadata",
+        validator: await lmqValidator.getAddress(),
+        creator: signer.address,
+        params: twoQueriesParams,
+      },
+    ]);
+
+    const multiRequest = {
+      multiRequestId: calculateMultiRequestId([], [groupID], signer.address),
+      requestIds: [],
+      groupIds: [groupID],
+      metadata: "0x",
+    };
+
+    // 2. Create the multi-request
+    await expect(verifier.setMultiRequest(multiRequest)).not.to.be.reverted;
+    const multiRequestIdExists = await verifier.multiRequestIdExists(multiRequest.multiRequestId);
+    expect(multiRequestIdExists).to.be.true;
+
+    let areMultiRequestProofsVerified = await verifier.areMultiRequestProofsVerified(
+      multiRequest.multiRequestId,
+      await signer.getAddress(),
+    );
+    expect(areMultiRequestProofsVerified).to.be.false;
+
+    // 3. Submitting a response with valid proofs
+    await expect(
+      verifier.submitResponse(
+        {
+          authMethod: authMethodEmbeddedAuth,
+          proof: "0x",
+        },
+        [
+          {
+            requestId: requestIdV3,
+            proof: v3Proof,
+            metadata: metadatas,
+          },
+          {
+            requestId: requestIdLMK,
+            proof: lmqProof,
+            metadata: metadatas,
+          },
+        ],
+        crossChainProofs,
+      ),
+    ).not.to.be.reverted;
+
+    areMultiRequestProofsVerified = await verifier.areMultiRequestProofsVerified(
+      multiRequest.multiRequestId,
+      await signer.getAddress(),
+    );
+    expect(areMultiRequestProofsVerified).to.be.true;
+  });
 });

@@ -208,7 +208,7 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         PubSignals memory pubSignals
     ) internal pure returns (IRequestValidator.ResponseField[] memory) {
         IRequestValidator.ResponseField[]
-            memory responseFields = new IRequestValidator.ResponseField[](3);
+            memory responseFields = new IRequestValidator.ResponseField[](4);
         responseFields[0] = IRequestValidator.ResponseField({
             name: "userID",
             value: pubSignals.userID,
@@ -222,6 +222,11 @@ abstract contract CredentialAtomicQueryV2ValidatorBase is CredentialAtomicQueryV
         responseFields[2] = IRequestValidator.ResponseField({
             name: "issuerID",
             value: pubSignals.issuerID,
+            rawValue: ""
+        });
+        responseFields[3] = IRequestValidator.ResponseField({
+            name: "isEmbeddedAuthVerified",
+            value: 1,
             rawValue: ""
         });
         return responseFields;

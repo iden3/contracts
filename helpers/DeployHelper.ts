@@ -1,4 +1,4 @@
-import { ethers, network, upgrades, ignition } from "hardhat";
+import { ethers, upgrades, ignition } from "hardhat";
 import { Contract, ContractTransactionResponse } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
@@ -8,25 +8,23 @@ import {
   VCPaymentModule,
   StateProxyModule,
   IdentityTreeStoreProxyModule,
-  CredentialAtomicQueryMTPV2ValidatorProxyModule,
-  CredentialAtomicQuerySigV2ValidatorProxyModule,
-  CredentialAtomicQueryV3ValidatorProxyModule,
   UniversalVerifierProxyModule,
-  AuthV2ValidatorProxyModule,
+  LinkedMultiQueryValidatorModule,
+  EthIdentityValidatorModule,
+  AuthV2ValidatorModule,
+  CredentialAtomicQueryV3ValidatorModule,
+  CredentialAtomicQueryMTPV2ValidatorModule,
+  CredentialAtomicQuerySigV2ValidatorModule,
 } from "../ignition";
 import { chainIdInfoMap, contractsInfo } from "./constants";
 import {
   getChainId,
+  getDefaultIdType,
   getUnifiedContract,
   Logger,
   TempContractDeployments,
   waitNotToInterfereWithHardhatIgnition,
 } from "./helperUtils";
-import {
-  MCPaymentProxyModule,
-  LinkedMultiQueryProxyModule,
-  EthIdentityValidatorModule,
-} from "../ignition";
 
 const SMT_MAX_DEPTH = 64;
 
@@ -129,7 +127,7 @@ export class DeployHelper {
       "./scripts/deployments_output/temp_deployments_output.json",
     );
 
-    const { defaultIdType, chainId } = await this.getDefaultIdType();
+    const { defaultIdType, chainId } = await getDefaultIdType();
     this.log(`found defaultIdType ${defaultIdType} for chainId ${chainId}`);
 
     const owner = this.signers[0];
@@ -696,19 +694,19 @@ export class DeployHelper {
     if (deployStrategy === "create2") {
       switch (validatorType) {
         case "mtpV2":
-          validatorModule = CredentialAtomicQueryMTPV2ValidatorProxyModule;
+          validatorModule = CredentialAtomicQueryMTPV2ValidatorModule;
           break;
         case "sigV2":
-          validatorModule = CredentialAtomicQuerySigV2ValidatorProxyModule;
+          validatorModule = CredentialAtomicQuerySigV2ValidatorModule;
           break;
         case "v3":
-          validatorModule = CredentialAtomicQueryV3ValidatorProxyModule;
+          validatorModule = CredentialAtomicQueryV3ValidatorModule;
           break;
         case "authV2":
-          validatorModule = AuthV2ValidatorProxyModule;
+          validatorModule = AuthV2ValidatorModule;
           break;
         case "lmq":
-          validatorModule = LinkedMultiQueryProxyModule;
+          validatorModule = LinkedMultiQueryValidatorModule;
           break;
         case "ethIdentity":
           validatorModule = EthIdentityValidatorModule;
@@ -940,16 +938,18 @@ export class DeployHelper {
     owner: SignerWithAddress | undefined,
     stateAddr: string,
     deployStrategy: "basic" | "create2" = "basic",
-  ): Promise<Contract> {
+    verifierContractName: string = contractsInfo.UNIVERSAL_VERIFIER.name,
+  ): Promise<{ universalVerifier: Contract; verifierLib: Contract }> {
     if (!owner) {
       owner = this.signers[0];
     }
-    const UniversalVerifierFactory = await ethers.getContractFactory(
-      contractsInfo.UNIVERSAL_VERIFIER.name,
-      {
-        signer: owner,
+    const verifierLib: Contract = await ethers.deployContract("VerifierLib");
+    const UniversalVerifierFactory = await ethers.getContractFactory(verifierContractName, {
+      signer: owner,
+      libraries: {
+        VerifierLib: await verifierLib.getAddress(),
       },
-    );
+    });
     const Create2AddressAnchorFactory = await ethers.getContractFactory(
       contractsInfo.CREATE2_ADDRESS_ANCHOR.name,
     );
@@ -960,7 +960,7 @@ export class DeployHelper {
     if (deployStrategy === "create2") {
       this.log("deploying with CREATE2 strategy...");
 
-      universalVerifier = await getUnifiedContract(contractsInfo.UNIVERSAL_VERIFIER.name);
+      universalVerifier = await getUnifiedContract(verifierContractName);
       if (universalVerifier) {
         let version;
         try {
@@ -974,7 +974,7 @@ export class DeployHelper {
 
         if (version) {
           Logger.warning(
-            `${contractsInfo.UNIVERSAL_VERIFIER.name} found already deployed to:  ${await universalVerifier?.getAddress()}`,
+            `${verifierContractName} found already deployed to:  ${await universalVerifier?.getAddress()}`,
           );
           return universalVerifier;
         }
@@ -1026,20 +1026,9 @@ export class DeployHelper {
     }
 
     await universalVerifier.waitForDeployment();
-    Logger.success(
-      `${contractsInfo.UNIVERSAL_VERIFIER.name} deployed to: ${await universalVerifier.getAddress()}`,
-    );
+    Logger.success(`${verifierContractName} deployed to: ${await universalVerifier.getAddress()}`);
 
-    return universalVerifier;
-  }
-
-  async getDefaultIdType(): Promise<{ defaultIdType: string; chainId: number }> {
-    const chainId = await getChainId();
-    const defaultIdType = chainIdInfoMap.get(chainId)?.idType;
-    if (!defaultIdType) {
-      throw new Error(`Failed to find defaultIdType in Map for chainId ${chainId}`);
-    }
-    return { defaultIdType, chainId };
+    return { universalVerifier, verifierLib };
   }
 
   async deployIdentityTreeStore(
@@ -1198,65 +1187,6 @@ export class DeployHelper {
 
     return {
       vcPayment,
-    };
-  }
-
-  async deployMCPayment(
-    ownerPercentage: number,
-    deployStrategy: "basic" | "create2" = "basic",
-  ): Promise<{
-    mcPayment: Contract;
-  }> {
-    if (ownerPercentage < 0 || ownerPercentage > 100) {
-      throw new Error("Owner percentage should be between 0 and 100");
-    }
-    const owner = this.signers[0];
-    const MCPaymentFactory = await ethers.getContractFactory("MCPayment");
-    const Create2AddressAnchorFactory = await ethers.getContractFactory("Create2AddressAnchor");
-
-    let mcPayment;
-    if (deployStrategy === "create2") {
-      this.log("deploying with CREATE2 strategy...");
-
-      // Deploying MCPayment contract to predictable address but with dummy implementation
-      mcPayment = (
-        await ignition.deploy(MCPaymentProxyModule, {
-          strategy: deployStrategy,
-        })
-      ).proxy;
-      await mcPayment.waitForDeployment();
-
-      // Upgrading MCPayment contract to the first real implementation
-      // and force network files import, so creation, as they do not exist at the moment
-      const mcPaymentAddress = await mcPayment.getAddress();
-      await upgrades.forceImport(mcPaymentAddress, Create2AddressAnchorFactory);
-      mcPayment = await upgrades.upgradeProxy(mcPaymentAddress, MCPaymentFactory, {
-        redeployImplementation: "always",
-        call: {
-          fn: "initialize",
-          args: [await owner.getAddress(), ownerPercentage],
-        },
-        // txOverrides: {
-        //   //nonce: 67,
-        //   maxFeePerGas: ethers.parseUnits("65", "gwei"),
-        //   maxPriorityFeePerGas: ethers.parseUnits("45", "gwei"),
-        //   gasLimit: 5000000,
-        // }
-      });
-    } else {
-      this.log("deploying with BASIC strategy...");
-
-      mcPayment = await upgrades.deployProxy(MCPaymentFactory, [
-        await owner.getAddress(),
-        ownerPercentage,
-      ]);
-    }
-
-    await mcPayment.waitForDeployment();
-    console.log("\nMCPayment deployed to:", await mcPayment.getAddress());
-
-    return {
-      mcPayment,
     };
   }
 

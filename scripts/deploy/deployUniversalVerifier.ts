@@ -1,51 +1,51 @@
-import fs from "fs";
-import path from "path";
-import { DeployHelper } from "../../helpers/DeployHelper";
-import hre, { ethers } from "hardhat";
+import { ethers, ignition } from "hardhat";
 import {
-  getChainId,
   getConfig,
-  getStateContractAddress,
+  getDeploymentParameters,
   verifyContract,
+  writeDeploymentParameters,
 } from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
+import UniversalVerifierModule, {
+  UniversalVerifierProxyModule,
+} from "../../ignition/modules/universalVerifier";
 
 async function main() {
   const config = getConfig();
-  const chainId = await getChainId();
-
-  const stateContractAddress = await getStateContractAddress();
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
+
   const [signer] = await ethers.getSigners();
+  const parameters = await getDeploymentParameters();
+  const deploymentId = parameters.DeploymentId || undefined;
 
-  const deployHelper = await DeployHelper.initialize(null, true);
+  // First implementation
+  const { proxy, proxyAdmin, verifierLib } = await ignition.deploy(UniversalVerifierProxyModule, {
+    strategy: deployStrategy,
+    defaultSender: await signer.getAddress(),
+    parameters: parameters,
+    deploymentId: deploymentId,
+  });
 
-  const universalVerifier = await deployHelper.deployUniversalVerifier(
-    undefined,
-    stateContractAddress,
-    deployStrategy,
-  );
-
-  await verifyContract(
-    await universalVerifier.getAddress(),
-    contractsInfo.UNIVERSAL_VERIFIER.verificationOpts,
-  );
-
-  const networkName = hre.network.name;
-  const pathOutputJson = path.join(
-    __dirname,
-    `../deployments_output/deploy_universal_verifier_output_${chainId}_${networkName}.json`,
-  );
-  const outputJson = {
-    proxyAdminOwnerAddress: await signer.getAddress(),
-    universalVerifier: await universalVerifier.getAddress(),
-    state: stateContractAddress,
-    network: networkName,
-    chainId,
-    deployStrategy,
+  parameters.UniversalVerifierAtModule = {
+    proxyAddress: proxy.target,
+    proxyAdminAddress: proxyAdmin.target,
   };
-  fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
+
+  // Final implementation
+  await ignition.deploy(UniversalVerifierModule, {
+    strategy: deployStrategy,
+    defaultSender: await signer.getAddress(),
+    parameters: parameters,
+    deploymentId: deploymentId,
+  });
+
+  console.log(`${contractsInfo.UNIVERSAL_VERIFIER.name} deployed to: ${proxy.target}`);
+
+  await verifyContract(await proxy.getAddress(), contractsInfo.UNIVERSAL_VERIFIER.verificationOpts);
+  await verifyContract(await verifierLib.getAddress(), contractsInfo.VERIFIER_LIB.verificationOpts);
+
+  await writeDeploymentParameters(parameters);
 }
 
 main()
