@@ -9,8 +9,10 @@ import AuthV2ValidatorModule from "./authV2Validator";
 import IdentityTreeStoreModule from "./identityTreeStore";
 import MCPaymentModule from "./mcPayment";
 import VCPaymentModule from "./vcPayment";
+import { ethers } from "hardhat";
+import UniversalVerifier_ManyResponsesPerUserAndRequestModule from "./universalVerifier_ManyResponsesPerUserAndRequest";
 
-const DeployEverythingBasicStrategy = buildModule("Create2AddressAnchorModule", (m) => {
+const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy", (m) => {
   const {
     universalVerifier,
     universalVerifierImplementation,
@@ -72,11 +74,93 @@ const DeployEverythingBasicStrategy = buildModule("Create2AddressAnchorModule", 
       from: contractOwner,
     },
   );
+  m.call(
+    universalVerifier,
+    "setAuthMethod",
+    [{ authMethod: "embeddedAuth", validator: ethers.ZeroAddress, params: "0x" }],
+    {
+      id: "setAuthMethod_embeddedAuthValidator",
+      from: contractOwner,
+    },
+  );
+
+  const {
+    universalVerifier: universalVerifier_ManyResponsesPerUserAndRequest,
+    universalVerifierImplementation: universalVerifier_ManyResponsesPerUserAndRequestImplementation,
+    verifierLib: verifierLib_ManyResponsesPerUserAndRequest,
+  } = m.useModule(UniversalVerifier_ManyResponsesPerUserAndRequestModule);
+
+  m.call(
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    "addValidatorToWhitelist",
+    [credentialAtomicQueryMTPV2Validator],
+    {
+      id: "addValidatorToWhitelist_credentialAtomicQueryMTPV2Validator_ManyResponsesPerUserAndRequest",
+      from: contractOwner,
+    },
+  );
+  m.call(
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    "addValidatorToWhitelist",
+    [credentialAtomicQuerySigV2Validator],
+    {
+      id: "addValidatorToWhitelist_credentialAtomicQuerySigV2Validator_ManyResponsesPerUserAndRequest",
+      from: contractOwner,
+    },
+  );
+  m.call(
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    "addValidatorToWhitelist",
+    [credentialAtomicQueryV3Validator],
+    {
+      id: "addValidatorToWhitelist_credentialAtomicQueryV3Validator_ManyResponsesPerUserAndRequest",
+      from: contractOwner,
+    },
+  );
+  m.call(
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    "addValidatorToWhitelist",
+    [linkedMultiQueryValidator],
+    {
+      id: "addValidatorToWhitelist_linkedMultiQueryValidator_ManyResponsesPerUserAndRequest",
+      from: contractOwner,
+    },
+  );
+  m.call(
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    "setAuthMethod",
+    [{ authMethod: "ethIdentity", validator: ethIdentityValidator, params: "0x" }],
+    {
+      id: "setAuthMethod_ethIdentityValidator_ManyResponsesPerUserAndRequest",
+      from: contractOwner,
+    },
+  );
+  m.call(
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    "setAuthMethod",
+    [{ authMethod: "authV2", validator: authV2Validator, params: "0x" }],
+    {
+      id: "setAuthMethod_authV2Validator_ManyResponsesPerUserAndRequest",
+      from: contractOwner,
+    },
+  );
+  m.call(
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    "setAuthMethod",
+    [{ authMethod: "embeddedAuth", validator: ethers.ZeroAddress, params: "0x" }],
+    {
+      id: "setAuthMethod_embeddedAuthValidator_ManyResponsesPerUserAndRequest",
+      from: contractOwner,
+    },
+  );
 
   return {
     universalVerifier,
     universalVerifierImplementation,
     verifierLib,
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    universalVerifier_ManyResponsesPerUserAndRequestImplementation,
+    verifierLib_ManyResponsesPerUserAndRequest,
     state,
     stateImplementation,
     crossChainProofValidator,

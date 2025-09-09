@@ -39,7 +39,6 @@ import {
   PROTOCOL_CONSTANTS,
   ZeroKnowledgeProofRequest,
 } from "@0xpolygonid/js-sdk";
-import { ProofData } from "@iden3/js-jwz";
 import { Groth16VerifierType } from "../../../../helpers/DeployHelper";
 import { getChainId } from "../../../../helpers/helperUtils";
 import { calculateRequestID } from "../../../../test/utils/id-calculation-utils";
@@ -422,6 +421,7 @@ export async function submitZKPResponses_KYCAgeCredential(
       verifierChainId: chainId,
       verifierRpcUrl: rpcUrl,
       ethSigner: signer,
+      authMethod: opts.authMethod || "authV2",
     },
   );
 
@@ -471,6 +471,7 @@ export async function submitResponse(
     senderDid: profileDID,
     ethSigner: opts.ethSigner,
     challenge,
+    authMethod: opts.authMethod,
   };
 
   const ciRequestBody: ContractInvokeRequestBody = {

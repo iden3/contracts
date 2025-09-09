@@ -12,7 +12,11 @@
   },
   "homepage": "https://github.com/iden3/contracts",
   "devDependencies": {
-    "@0xpolygonid/js-sdk": "1.31.1",
+    "@0xpolygonid/js-sdk": "^1.32.4",
+    "@iden3/js-crypto": "^1.3.1",
+    "@iden3/js-iden3-core": "^1.7.0",
+    "@iden3/js-jsonld-merklization": "1.7.1",
+    "@iden3/js-jwz": "^1.11.0",
     "@nomicfoundation/hardhat-ledger": "^1.0.3",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@openzeppelin/contracts": "5.4.0",
@@ -42,7 +46,8 @@
     "solhint-plugin-prettier": "^0.1.0",
     "solidity-bytes-utils": "^0.8.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.4"
+    "typescript": "^5.4.4",
+    "uuid": "11.1.0"
   },
   "scripts": {
     "node:local": "npx hardhat node",

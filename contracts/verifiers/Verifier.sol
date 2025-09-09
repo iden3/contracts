@@ -39,6 +39,7 @@ error VerifierIDIsNotValid(uint256 requestVerifierID, uint256 expectedVerifierID
 error ChallengeIsInvalid();
 error InvalidRequestOwner(address requestOwner, address sender);
 error GroupIdNotValid();
+error NoEmbeddedAuthInResponsesFound();
 
 abstract contract Verifier is IVerifier, ContextUpgradeable {
     // keccak256(abi.encodePacked("authV2"))
@@ -47,6 +48,9 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     // keccak256(abi.encodePacked("challenge"))
     bytes32 private constant CHALLENGE_FIELD_NAME_HASH =
         0x62357b294ca756256b576c5da68950c49d0d1823063551ffdcc1dad9d65a07a6;
+    // keccak256(abi.encodePacked("embeddedAuth"))
+    bytes32 private constant EMBEDDED_AUTH_METHOD_NAME_HASH =
+        0x1705b65020b03c348229586d10f18c357cefe577bcef3ed60fad6ecd16db04ce;
 
     struct AuthMethodData {
         IAuthValidator validator;
@@ -267,35 +271,21 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         // 1. Process crossChainProofs
         $._state.processCrossChainProofs(crossChainProofs);
 
-        uint256 userIDFromAuthResponse;
+        // 2. Authenticate user and get userID
+        uint256 userIDFromAuthResponse = 0;
         AuthMethodData storage authMethodData = $._authMethods[authResponse.authMethod];
         if (!authMethodData.isActive) {
             revert AuthMethodIsNotActive(authResponse.authMethod);
         }
 
-        // 2. Authenticate user and get userID
-        IAuthValidator.AuthResponseField[] memory authResponseFields;
-        (userIDFromAuthResponse, authResponseFields) = authMethodData.validator.verify(
-            sender,
-            authResponse.proof,
-            authMethodData.params
-        );
-
-        if (keccak256(abi.encodePacked(authResponse.authMethod)) == AUTHV2_METHOD_NAME_HASH) {
-            if (
-                authResponseFields.length > 0 &&
-                keccak256(abi.encodePacked(authResponseFields[0].name)) == CHALLENGE_FIELD_NAME_HASH
-            ) {
-                bytes32 expectedNonce = keccak256(abi.encode(sender, responses)) &
-                    0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
-                if (expectedNonce != bytes32(authResponseFields[0].value)) {
-                    revert ChallengeIsInvalid();
-                }
-            }
-        }
-
-        if (userIDFromAuthResponse == 0) {
-            revert UserNotAuthenticated();
+        bytes32 authMethodNameHash = keccak256(abi.encodePacked(authResponse.authMethod));
+        if (authMethodNameHash != EMBEDDED_AUTH_METHOD_NAME_HASH) {
+            userIDFromAuthResponse = _processAuthMethod(
+                authResponse,
+                authMethodData,
+                responses,
+                sender
+            );
         }
 
         // 3. Verify all the responses, check userID from signals and write proof results,
@@ -304,17 +294,34 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             IVerifier.Response memory response = responses[i];
             IVerifier.RequestData storage request = _getRequestIfCanBeVerified(response.requestId);
 
-            IRequestValidator.ResponseField[] memory signals = request.validator.verify(
+            IRequestValidator.ResponseField[] memory responseFields = request.validator.verify(
                 sender,
                 response.proof,
                 request.params,
                 response.metadata
             );
 
-            // Check if userID from authResponse is the same as the one in the signals
-            VerifierLib.checkUserIDMatch(userIDFromAuthResponse, signals);
+            if (authMethodNameHash == EMBEDDED_AUTH_METHOD_NAME_HASH) {
+                // If embedded auth method is used, we can use first userID from responses to check with other responses
+                if (userIDFromAuthResponse == 0) {
+                    userIDFromAuthResponse = VerifierLib.userID(responseFields);
+                }
+                // Check isEmbeddedAuthVerified response field is present in the response fields from the validator
+                // verification
+                // If it's present it should be equal to 1 because we are checking embeddedAuth auth method in
+                // validators that support it
+                // For linkMultiQueryValidator we don't have this response field because it's always linked
+                // to other responses that will have this embedded auth verified field
+                (bool hasEmbeddedAuthVerified, uint256 embeddedAuthVerifiedValue) = VerifierLib
+                    .isEmbeddedAuthVerified(responseFields);
+                if (hasEmbeddedAuthVerified && embeddedAuthVerifiedValue == 0) {
+                    revert NoEmbeddedAuthInResponsesFound();
+                }
+            }
+            // Check if userID from authResponse is the same as the one in the responseFields
+            VerifierLib.checkUserIDMatch(userIDFromAuthResponse, responseFields);
 
-            _writeProofResults(response.requestId, sender, signals);
+            _writeProofResults(response.requestId, sender, responseFields);
 
             if (response.metadata.length > 0) {
                 revert MetadataNotSupportedYet();
@@ -593,5 +600,38 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         return
             VerifierLib.writeProofResults(_getVerifierStorage(), requestId, sender, responseFields);
+    }
+
+    function _processAuthMethod(
+        AuthResponse memory authResponse,
+        AuthMethodData memory authMethodData,
+        Response[] memory responses,
+        address sender
+    ) internal returns (uint256) {
+        IAuthValidator.AuthResponseField[] memory authResponseFields;
+        uint256 userIDFromAuthResponse = 0;
+        (userIDFromAuthResponse, authResponseFields) = authMethodData.validator.verify(
+            sender,
+            authResponse.proof,
+            authMethodData.params
+        );
+
+        if (keccak256(abi.encodePacked(authResponse.authMethod)) == AUTHV2_METHOD_NAME_HASH) {
+            if (
+                authResponseFields.length > 0 &&
+                keccak256(abi.encodePacked(authResponseFields[0].name)) == CHALLENGE_FIELD_NAME_HASH
+            ) {
+                bytes32 expectedNonce = keccak256(abi.encode(sender, responses)) &
+                    0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+                if (expectedNonce != bytes32(authResponseFields[0].value)) {
+                    revert ChallengeIsInvalid();
+                }
+            }
+        }
+
+        if (userIDFromAuthResponse == 0) {
+            revert UserNotAuthenticated();
+        }
+        return userIDFromAuthResponse;
     }
 }

@@ -10,6 +10,7 @@ import AuthV2ValidatorModule from "../authV2Validator";
 import EthIdentityValidatorModule from "../ethIdentityValidator";
 import MCPaymentModule from "../mcPayment";
 import VCPaymentModule from "../vcPayment";
+import { ethers } from "hardhat";
 
 const DeploySystemFianlImplementationsModule = buildModule(
   "DeploySystemFianlImplementationsModule",
@@ -64,7 +65,14 @@ const DeploySystemFianlImplementationsModule = buildModule(
         id: "setAuthMethodEthIdentity",
       },
     );
-
+    m.call(
+      universalVerifier,
+      "setAuthMethod",
+      [{ authMethod: "embeddedAuth", validator: ethers.ZeroAddress, params: "0x" }],
+      {
+        id: "setAuthMethodEmbeddedAuth",
+      },
+    );
     return {
       state,
       universalVerifier,

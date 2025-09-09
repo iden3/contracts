@@ -26,6 +26,10 @@ const testCases: any[] = [
         name: "issuerID",
         value: 21933750065545691586450392143787330185992517860945727248803138245838110721n,
       },
+      {
+        name: "isEmbeddedAuthVerified",
+        value: 1,
+      },
     ],
   },
   {
@@ -53,6 +57,10 @@ const testCases: any[] = [
         name: "issuerID",
         value: 21933750065545691586450392143787330185992517860945727248803138245838110721n,
       },
+      {
+        name: "isEmbeddedAuthVerified",
+        value: 1,
+      },
     ],
   },
   {
@@ -73,6 +81,10 @@ const testCases: any[] = [
       {
         name: "issuerID",
         value: 21933750065545691586450392143787330185992517860945727248803138245838110721n,
+      },
+      {
+        name: "isEmbeddedAuthVerified",
+        value: 1,
       },
     ],
   },
@@ -147,7 +159,7 @@ describe("Atomic Sig Validator", function () {
   }
 
   function checkSignals(signals: any, signalValues: any[]) {
-    expect(signals.length).to.be.equal(3);
+    expect(signals.length).to.be.equal(4);
 
     for (let i = 0; i < signals.length; i++) {
       const signalValue = signalValues.find((signalValue) => signalValue.name === signals[i][0]);

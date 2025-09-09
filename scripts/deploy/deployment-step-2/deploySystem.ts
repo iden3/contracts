@@ -1,14 +1,6 @@
-import fs from "fs";
-import path from "path";
 import { ethers, ignition } from "hardhat";
-import Create2AddressAnchorModule from "../../../ignition/modules/create2AddressAnchor";
 import { contractsInfo } from "../../../helpers/constants";
-import {
-  getChainId,
-  getConfig,
-  getDeploymentParameters,
-  isContract,
-} from "../../../helpers/helperUtils";
+import { getConfig, getDeploymentParameters } from "../../../helpers/helperUtils";
 import StateModule from "../../../ignition/modules/state";
 import UniversalVerifierModule from "../../../ignition/modules/universalVerifier";
 import IdentityTreeStoreModule from "../../../ignition/modules/identityTreeStore";
@@ -34,21 +26,6 @@ import {
 } from "../../../ignition/modules/contractsAt";
 import MCPaymentModule from "../../../ignition/modules/mcPayment";
 import VCPaymentModule from "../../../ignition/modules/vcPayment";
-
-async function getDeployedAddresses() {
-  let deployedAddresses = {};
-  const chainId = await getChainId();
-  try {
-    const deployedAddressesPath = path.join(
-      __dirname,
-      `../../../ignition/deployments/chain-${chainId}/deployed_addresses.json`,
-    );
-    deployedAddresses = JSON.parse(fs.readFileSync(deployedAddressesPath, "utf8"));
-  } catch (error) {
-    //console.error("Error reading deployed addresses file:", error);
-  }
-  return deployedAddresses;
-}
 
 async function main() {
   const config = getConfig();
@@ -235,13 +212,26 @@ async function main() {
       });
       await tx.wait();
       console.log(
-        `${validator.name} in address ${validatorDeployed.proxy.target} added to auth methods`,
+        `${validator.name} in address ${validatorDeployed.proxy.target} with authMethod ${validator.authMethod} added to auth methods`,
       );
     } else {
       console.log(
-        `${validator.name} in address ${validatorDeployed.proxy.target} already added to auth methods`,
+        `${validator.name} in address ${validatorDeployed.proxy.target} with authMethod ${validator.authMethod} already added to auth methods`,
       );
     }
+  }
+
+  const authMethodEmbeddedAuth = "embeddedAuth";
+  if (!(await universalVerifier.authMethodExists(authMethodEmbeddedAuth))) {
+    const tx = await universalVerifier.setAuthMethod({
+      authMethod: authMethodEmbeddedAuth,
+      validator: ethers.ZeroAddress,
+      params: "0x",
+    });
+    await tx.wait();
+    console.log(`${authMethodEmbeddedAuth} added to auth methods`);
+  } else {
+    console.log(`${authMethodEmbeddedAuth} already added to auth methods`);
   }
 }
 

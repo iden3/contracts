@@ -38,6 +38,10 @@ const testCases: any[] = [
         name: "issuerID",
         value: 22057981499787921734624217749308316644136637822444794206796063681866502657n,
       },
+      {
+        name: "isEmbeddedAuthVerified",
+        value: 1,
+      },
     ],
   },
   {
@@ -78,6 +82,10 @@ const testCases: any[] = [
         name: "issuerID",
         value: 22057981499787921734624217749308316644136637822444794206796063681866502657n,
       },
+      {
+        name: "isEmbeddedAuthVerified",
+        value: 1,
+      },
     ],
   },
   {
@@ -107,6 +115,10 @@ const testCases: any[] = [
       {
         name: "issuerID",
         value: 22057981499787921734624217749308316644136637822444794206796063681866502657n,
+      },
+      {
+        name: "isEmbeddedAuthVerified",
+        value: 1,
       },
     ],
   },
@@ -190,6 +202,10 @@ const testCases: any[] = [
         name: "issuerID",
         value: 22057981499787921734624217749308316644136637822444794206796063681866502657n,
       },
+      {
+        name: "isEmbeddedAuthVerified",
+        value: 1,
+      },
     ],
   },
   // MTP Proofs
@@ -219,6 +235,10 @@ const testCases: any[] = [
       {
         name: "issuerID",
         value: 22057981499787921734624217749308316644136637822444794206796063681866502657n,
+      },
+      {
+        name: "isEmbeddedAuthVerified",
+        value: 1,
       },
     ],
   },
@@ -261,6 +281,10 @@ const testCases: any[] = [
         name: "issuerID",
         value: 22057981499787921734624217749308316644136637822444794206796063681866502657n,
       },
+      {
+        name: "isEmbeddedAuthVerified",
+        value: 1,
+      },
     ],
   },
   {
@@ -291,6 +315,10 @@ const testCases: any[] = [
       {
         name: "issuerID",
         value: 22057981499787921734624217749308316644136637822444794206796063681866502657n,
+      },
+      {
+        name: "isEmbeddedAuthVerified",
+        value: 1,
       },
     ],
   },
@@ -378,6 +406,10 @@ const testCases: any[] = [
         name: "issuerID",
         value: 22057981499787921734624217749308316644136637822444794206796063681866502657n,
       },
+      {
+        name: "isEmbeddedAuthVerified",
+        value: 1,
+      },
     ],
   },
   // Auth Disabled. UserID does NOT correspond to the sender
@@ -430,6 +462,10 @@ const testCases: any[] = [
       {
         name: "issuerID",
         value: 22057981499787921734624217749308316644136637822444794206796063681866502657n,
+      },
+      {
+        name: "isEmbeddedAuthVerified",
+        value: 1,
       },
     ],
   },
@@ -521,7 +557,7 @@ describe("Atomic V3 Validator", function () {
   }
 
   function checkSignals(signals: any, signalValues: any[]) {
-    expect(signals.length).to.be.equal(5);
+    expect(signals.length).to.be.equal(6);
 
     for (let i = 0; i < signals.length; i++) {
       const signalValue = signalValues.find((signalValue) => signalValue.name === signals[i][0]);

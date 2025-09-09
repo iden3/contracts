@@ -22,6 +22,9 @@ library VerifierLib {
     // keccak256(abi.encodePacked("userID"))
     bytes32 private constant USER_ID_FIELD_NAME_HASH =
         0xeaa28503c24395f30163098dfa9f1e1cd296dd52252064784e65d95934007382;
+    // keccak256(abi.encodePacked("isEmbeddedAuthVerified"))
+    bytes32 private constant IS_EMBEDDED_AUTH_VERIFIED_FIELD_NAME_HASH =
+        0x77dbf4723b7e657d6a347bdf463068644740111c41d0cea27e25e1ff54c4b2db;
 
     /**
      * @dev Modifier to check if the request is verified
@@ -438,6 +441,31 @@ library VerifierLib {
                 }
             }
         }
+    }
+
+    function userID(
+        IRequestValidator.ResponseField[] memory signals
+    ) external pure returns (uint256) {
+        for (uint256 j = 0; j < signals.length; j++) {
+            if (keccak256(abi.encodePacked(signals[j].name)) == USER_ID_FIELD_NAME_HASH) {
+                return signals[j].value;
+            }
+        }
+        return 0;
+    }
+
+    function isEmbeddedAuthVerified(
+        IRequestValidator.ResponseField[] memory signals
+    ) external pure returns (bool, uint256) {
+        for (uint256 j = 0; j < signals.length; j++) {
+            if (
+                keccak256(abi.encodePacked(signals[j].name)) ==
+                IS_EMBEDDED_AUTH_VERIFIED_FIELD_NAME_HASH
+            ) {
+                return (true, signals[j].value);
+            }
+        }
+        return (false, 0);
     }
 
     /**
