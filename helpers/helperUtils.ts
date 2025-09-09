@@ -244,6 +244,20 @@ export async function getStateContractAddress(chainId?: number): Promise<string>
   return stateContractAddress;
 }
 
+export async function getBlockTimestamp(provider: JsonRpcProvider): Promise<Date> {
+  const currentBlock = await provider.getBlockNumber();
+  if (!currentBlock) {
+    throw new Error("Failed to get the current block number.");
+  }
+  let block = await provider.getBlock(currentBlock);
+  while (!block) {
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    block = await provider.getBlock(currentBlock);
+  }
+  const date = new Date(block.timestamp * 1000); // Date requires ms, whereas block.timestamp is in s
+  return date;
+}
+
 async function getParamsPath(): Promise<string> {
   const chainId = await getChainId();
   const paramsPath = path.join(__dirname, `../ignition/modules/params/chain-${chainId}.json`);
