@@ -163,7 +163,7 @@ COINMARKETCAP_KEY=<<your coinmarketcap key>> REPORT_GAS=true npx hardhat test
 
 ## Circuits needed for some maintenance and upgrade scripts
 For some of the scripts you need to download the zk circuits for generation and verification of the proofs.
-Download the zk circuits into `./scripts/upgrade/verifiers/helpers/circuits` by running `./scripts/upgrade/verifiers/helpers/dl_circuits.sh`. This will download the latest files from `https://iden3-circuits-bucket.s3.eu-west-1.amazonaws.com/latest.zip`
+Download the zk circuits into `./scripts/upgrade/verifiers/helpers/circuits` by running `./scripts/upgrade/verifiers/helpers/dl_circuits.sh`. This will download the latest files from `https://circuits.privado.id/latest.zip`
 
     ```bash
     cd ./scripts/upgrade/verifiers/helpers 
