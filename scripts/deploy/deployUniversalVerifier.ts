@@ -20,35 +20,29 @@ async function main() {
   const deploymentId = parameters.DeploymentId || undefined;
 
   // First implementation
-  await ignition.deploy(UniversalVerifierProxyModule, {
+  const { proxy, proxyAdmin, verifierLib } = await ignition.deploy(UniversalVerifierProxyModule, {
     strategy: deployStrategy,
     defaultSender: await signer.getAddress(),
     parameters: parameters,
     deploymentId: deploymentId,
   });
-  // Final implementation
-  const { proxyAdmin, universalVerifier, verifierLib } = await ignition.deploy(
-    UniversalVerifierModule,
-    {
-      strategy: deployStrategy,
-      defaultSender: await signer.getAddress(),
-      parameters: parameters,
-      deploymentId: deploymentId,
-    },
-  );
 
   parameters.UniversalVerifierAtModule = {
-    proxyAddress: universalVerifier.target,
+    proxyAddress: proxy.target,
     proxyAdminAddress: proxyAdmin.target,
   };
 
-  console.log(`${contractsInfo.UNIVERSAL_VERIFIER.name} deployed to: ${universalVerifier.target}`);
+  // Final implementation
+  await ignition.deploy(UniversalVerifierModule, {
+    strategy: deployStrategy,
+    defaultSender: await signer.getAddress(),
+    parameters: parameters,
+    deploymentId: deploymentId,
+  });
 
-  await verifyContract(
-    await universalVerifier.getAddress(),
-    contractsInfo.UNIVERSAL_VERIFIER.verificationOpts,
-  );
+  console.log(`${contractsInfo.UNIVERSAL_VERIFIER.name} deployed to: ${proxy.target}`);
 
+  await verifyContract(await proxy.getAddress(), contractsInfo.UNIVERSAL_VERIFIER.verificationOpts);
   await verifyContract(await verifierLib.getAddress(), contractsInfo.VERIFIER_LIB.verificationOpts);
 
   await writeDeploymentParameters(parameters);

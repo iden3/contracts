@@ -105,14 +105,7 @@ async function main() {
 
   for (const validatorContract of [...requestValidators, ...authValidators]) {
     // First implementation
-    await ignition.deploy(validatorContract.moduleFirstImplementation, {
-      strategy: deployStrategy,
-      defaultSender: await signer.getAddress(),
-      parameters: parameters,
-      deploymentId: deploymentId,
-    });
-    // Final implementation
-    const deployment = await ignition.deploy(validatorContract.moduleFinalImplementation as any, {
+    const deployment = await ignition.deploy(validatorContract.moduleFirstImplementation as any, {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,
@@ -133,6 +126,14 @@ async function main() {
         `${validatorContract.verifierName} deployed to: ${deployment.groth16Verifier.target}`,
       );
     }
+    // Final implementation
+    await ignition.deploy(validatorContract.moduleFinalImplementation as any, {
+      strategy: deployStrategy,
+      defaultSender: await signer.getAddress(),
+      parameters: parameters,
+      deploymentId: deploymentId,
+    });
+
     console.log(`${validatorContract.name} deployed to: ${deployment.proxy.target}`);
 
     if (validatorContract.verificationOpts) {

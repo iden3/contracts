@@ -21,15 +21,7 @@ async function main() {
   const deploymentId = parameters.DeploymentId || undefined;
 
   // First implementation
-  await ignition.deploy(VCPaymentProxyModule, {
-    strategy: deployStrategy,
-    defaultSender: await signer.getAddress(),
-    parameters: parameters,
-    deploymentId: deploymentId,
-  });
-
-  // Final implementation
-  const { newImplementation, proxyAdmin, proxy } = await ignition.deploy(VCPaymentModule, {
+  const { newImplementation, proxyAdmin, proxy } = await ignition.deploy(VCPaymentProxyModule, {
     strategy: deployStrategy,
     defaultSender: await signer.getAddress(),
     parameters: parameters,
@@ -40,6 +32,14 @@ async function main() {
     proxyAddress: proxy.target,
     proxyAdminAddress: proxyAdmin.target,
   };
+
+  // Final implementation
+  await ignition.deploy(VCPaymentModule, {
+    strategy: deployStrategy,
+    defaultSender: await signer.getAddress(),
+    parameters: parameters,
+    deploymentId: deploymentId,
+  });
 
   await verifyContract(proxy.target, contractsInfo.VC_PAYMENT.verificationOpts);
 

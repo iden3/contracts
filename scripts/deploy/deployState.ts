@@ -23,16 +23,8 @@ async function main() {
   ).defaultIdType;
 
   // First implementation
-  await ignition.deploy(StateProxyModule, {
-    strategy: deployStrategy,
-    defaultSender: await signer.getAddress(),
-    parameters: parameters,
-    deploymentId: deploymentId,
-  });
-
-  // Final implementation
-  const { state, proxyAdmin, groth16Verifier, stateLib, crossChainProofValidator } =
-    await ignition.deploy(StateModule, {
+  const { proxy, proxyAdmin, groth16Verifier, stateLib, crossChainProofValidator } =
+    await ignition.deploy(StateProxyModule, {
       strategy: deployStrategy,
       defaultSender: await signer.getAddress(),
       parameters: parameters,
@@ -40,19 +32,27 @@ async function main() {
     });
 
   parameters.StateAtModule = {
-    proxyAddress: state.target,
+    proxyAddress: proxy.target,
     proxyAdminAddress: proxyAdmin.target,
   };
+
+  // Final implementation
+  await ignition.deploy(StateModule, {
+    strategy: deployStrategy,
+    defaultSender: await signer.getAddress(),
+    parameters: parameters,
+    deploymentId: deploymentId,
+  });
 
   console.log(`CrossChainProofValidator deployed to: ${crossChainProofValidator.target}`);
   console.log(`Groth16VerifierStateTransition deployed to: ${groth16Verifier.target}`);
   console.log(`StateLib deployed to: ${stateLib.target}`);
-  console.log(`State deployed to: ${state.target}`);
+  console.log(`State deployed to: ${proxy.target}`);
 
   // if the state contract already exists we won't have new contracts deployed
   // to verify and to save the output
   if (groth16Verifier && stateLib && crossChainProofValidator) {
-    await verifyContract(await state.getAddress(), contractsInfo.STATE.verificationOpts);
+    await verifyContract(await proxy.getAddress(), contractsInfo.STATE.verificationOpts);
     await verifyContract(
       await groth16Verifier.getAddress(),
       contractsInfo.GROTH16_VERIFIER_STATE_TRANSITION.verificationOpts,

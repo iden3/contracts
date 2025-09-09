@@ -276,13 +276,13 @@ const config: HardhatUserConfig = {
       "linea-sepolia": process.env.LINEA_EXPLORER_API_KEY || "",
       "zkevm-cardona": process.env.ZKEVM_EXPLORER_API_KEY || "",
       "zkevm-mainnet": process.env.ZKEVM_EXPLORER_API_KEY || "",
-      "billions-test": "test",
-      "billions-main": "main",
-      "base": process.env.BASE_EXPLORER_API_KEY || "",
+      "billions-testnet": "test",
+      "billions-mainnet": "main",
+      base: process.env.BASE_EXPLORER_API_KEY || "",
     },
     customChains: [
       {
-        network: "billions-test",
+        network: "billions-testnet",
         chainId: 6913,
         urls: {
           apiURL: "https://billions-testnet-blockscout.eu-north-2.gateway.fm/api/",
@@ -290,10 +290,10 @@ const config: HardhatUserConfig = {
         },
       },
       {
-        network: "billions-main",
+        network: "billions-mainnet",
         chainId: 45056,
         urls: {
-          apiURL: "https://billions-main-blockscout.eu-north-2.gateway.fm/api/",
+          apiURL: "https://billions-blockscout.eu-north-2.gateway.fm/api/",
           browserURL: "https://docs.blockscout.com",
         },
       },
