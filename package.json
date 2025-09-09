@@ -19,8 +19,8 @@
     "@iden3/js-jwz": "^1.11.0",
     "@nomicfoundation/hardhat-ledger": "^1.0.3",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "@openzeppelin/contracts": "5.2.0",
-    "@openzeppelin/contracts-upgradeable": "5.2.0",
+    "@openzeppelin/contracts": "5.4.0",
+    "@openzeppelin/contracts-upgradeable": "5.4.0",
     "@openzeppelin/hardhat-upgrades": "3.0.5",
     "@types/chai": "^4.3.14",
     "@types/chai-as-promised": "^7.1.5",
@@ -163,6 +163,8 @@
     "elliptic": "^6.6.0",
     "cookie": "^1.0.1",
     "axios": "^1.8.3",
-    "form-data": "^4.0.3"
+    "tmp": "^0.2.5",
+    "form-data": "^4.0.4",
+    "pbkdf2": "^3.1.3"
   }
 }
