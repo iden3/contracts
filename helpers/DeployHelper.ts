@@ -5,16 +5,16 @@ import { deployPoseidons } from "./PoseidonDeployHelper";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain-types";
 import {
   SmtLibModule,
-  VCPaymentModule,
+  VCPaymentProxyModule,
   StateProxyModule,
   IdentityTreeStoreProxyModule,
   UniversalVerifierProxyModule,
-  LinkedMultiQueryValidatorModule,
-  EthIdentityValidatorModule,
-  AuthV2ValidatorModule,
-  CredentialAtomicQueryV3ValidatorModule,
-  CredentialAtomicQueryMTPV2ValidatorModule,
-  CredentialAtomicQuerySigV2ValidatorModule,
+  LinkedMultiQueryValidatorProxyModule,
+  EthIdentityValidatorProxyModule,
+  AuthV2ValidatorProxyModule,
+  CredentialAtomicQueryV3ValidatorProxyModule,
+  CredentialAtomicQueryMTPV2ValidatorProxyModule,
+  CredentialAtomicQuerySigV2ValidatorProxyModule,
 } from "../ignition";
 import { chainIdInfoMap, contractsInfo } from "./constants";
 import {
@@ -694,22 +694,22 @@ export class DeployHelper {
     if (deployStrategy === "create2") {
       switch (validatorType) {
         case "mtpV2":
-          validatorModule = CredentialAtomicQueryMTPV2ValidatorModule;
+          validatorModule = CredentialAtomicQueryMTPV2ValidatorProxyModule;
           break;
         case "sigV2":
-          validatorModule = CredentialAtomicQuerySigV2ValidatorModule;
+          validatorModule = CredentialAtomicQuerySigV2ValidatorProxyModule;
           break;
         case "v3":
-          validatorModule = CredentialAtomicQueryV3ValidatorModule;
+          validatorModule = CredentialAtomicQueryV3ValidatorProxyModule;
           break;
         case "authV2":
-          validatorModule = AuthV2ValidatorModule;
+          validatorModule = AuthV2ValidatorProxyModule;
           break;
         case "lmq":
-          validatorModule = LinkedMultiQueryValidatorModule;
+          validatorModule = LinkedMultiQueryValidatorProxyModule;
           break;
         case "ethIdentity":
-          validatorModule = EthIdentityValidatorModule;
+          validatorModule = EthIdentityValidatorProxyModule;
           break;
       }
 
@@ -1157,7 +1157,7 @@ export class DeployHelper {
 
       // Deploying VCPayment contract to predictable address but with dummy implementation
       vcPayment = (
-        await ignition.deploy(VCPaymentModule, {
+        await ignition.deploy(VCPaymentProxyModule, {
           strategy: deployStrategy,
         })
       ).vcPayment;
