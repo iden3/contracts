@@ -203,7 +203,7 @@ describe("MC Payment Contract", () => {
     const paymentData = {
       recipient: issuer1Signer.address,
       amount: 100,
-      expirationDate: Math.round(new Date().getTime() / 1000) - 60 * 60, // 1 hour
+      expirationDate: Math.round(new Date().getTime() / 1000) - 60 * 60, // - 1 hour
       nonce: 25,
       metadata: "0x",
     };
@@ -252,6 +252,31 @@ describe("MC Payment Contract", () => {
       [1, -1],
     );
     expect(await payment.getOwnerERC20Balance(tokenAddress)).to.be.eq(0);
+  });
+
+  it("ERC-20 payment - expired:", async () => {
+    const tokenFactory = await ethers.getContractFactory("ERC20Token", owner);
+    const token = await tokenFactory.deploy(1_000);
+    await token.connect(owner).transfer(await userSigner.getAddress(), 100);
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
+
+    await token.connect(userSigner).approve(await payment.getAddress(), 10);
+
+    const paymentData = {
+      tokenAddress: await token.getAddress(),
+      recipient: issuer1Signer.address,
+      amount: 10,
+      expirationDate: Math.round(new Date().getTime() / 1000) - 60 * 60, // - 1 hour
+      nonce: 35,
+      metadata: "0x",
+    };
+
+    const signature = await issuer1Signer.signTypedData(domainData, erc20types, paymentData);
+
+    await expect(
+      payment.connect(userSigner).payERC20(paymentData, signature),
+    ).to.be.revertedWithCustomError(payment, "PaymentError");
+    expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.false;
   });
 
   it("ERC-20 payment - invalid signature", async () => {
@@ -386,6 +411,38 @@ describe("MC Payment Contract", () => {
       [owner, payment],
       [1, -1],
     );
+  });
+
+  it("ERC-20 Permit (EIP-2612) payment - expired:", async () => {
+    const tokenFactory = await ethers.getContractFactory("ERC20PermitToken", owner);
+    const token = await tokenFactory.deploy(1_000);
+    await token.connect(owner).transfer(await userSigner.getAddress(), 100);
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
+
+    const paymentAmount = 10n;
+    const permitSignature = await getPermitSignature(
+      userSigner,
+      await token.getAddress(),
+      await payment.getAddress(),
+      paymentAmount,
+      0n,
+      Math.round(new Date().getTime() / 1000) + 60 * 60,
+    );
+
+    const paymentData = {
+      tokenAddress: await token.getAddress(),
+      recipient: issuer1Signer.address,
+      amount: paymentAmount,
+      expirationDate: Math.round(new Date().getTime() / 1000) - 60 * 60, // - 1 hour
+      nonce: 35,
+      metadata: "0x",
+    };
+
+    const signature = await issuer1Signer.signTypedData(domainData, erc20types, paymentData);
+    await expect(
+      payment.connect(userSigner).payERC20Permit(permitSignature, paymentData, signature),
+    ).to.be.revertedWithCustomError(payment, "PaymentError");
+    expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.false;
   });
 
   it("ERC-20 Permit (EIP-2612) payment - DOS via frontrun:", async () => {
