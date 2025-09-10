@@ -9,12 +9,12 @@ import { Contract } from "ethers";
 import { core } from "@0xpolygonid/js-sdk";
 
 // Replace these addresses with the ones of your custom network
-const universalVerifierAddress = "0xe067cE4425Fc5D12705DeC51f84bF66683910Ceb";
-const validatorSigV2Address = "0x759aB3E97cCf25c036d0ad264cbD687cB025E851";
-const validatorMTPV2Address = "0x7FAE83C096a75150aF0eB918AbF7072335aF14bA";
-const validatorV3Address = "0xD8Da54a4419E071A562fF7bF979888Ff2C0B847c";
+const universalVerifierAddress = "0x3331e3C1e7aA5d69A8e3573e78141f49d10EDD96";
+const validatorSigV2Address = "0x1376f6C2B9dBD7D7FDc11B0C3b0fc1f4BB373350";
+const validatorMTPV2Address = "0x15F14751a6235CD364e58d4a2B44F518F214ad5B";
+const validatorV3Address = "0x3A68D9c9755F011Fd8a963D7c79A5Fc5E59318c6";
 // Replace with your actual state contract address
-const stateContractAddress = "0xBc068db8dB60703904b293d355fE3B1349652ee0";
+const stateContractAddress = "0xc3bcD8c32C571FF158D3F9ef191eDD76596A52f9";
 // Replace with your actual custom network details
 const method = core.DidMethod.Iden3;
 const blockchain = "aurora";
