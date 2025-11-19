@@ -205,6 +205,12 @@ const config: HardhatUserConfig = {
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
+    "base-sepolia": {
+      chainId: 84532,
+      url: `${process.env.BASE_SEPOLIA_RPC_URL}`,
+      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+    },
     // hardhat: {
     //   chainId: 80002,
     //   forking: {
@@ -278,9 +284,27 @@ const config: HardhatUserConfig = {
       "zkevm-mainnet": process.env.ZKEVM_EXPLORER_API_KEY || "",
       "billions-testnet": "test",
       "billions-mainnet": "main",
+      "base-sepolia": "test",
+      "base-mainnet": "main",
       base: process.env.BASE_EXPLORER_API_KEY || "",
     },
     customChains: [
+      {
+        network: "base-sepolia",
+        chainId: 84532,
+        urls: {
+          apiURL: "https://base-sepolia.blockscout.com/api/",
+          browserURL: "https://docs.blockscout.com",
+        },
+      },
+      {
+        network: "base-mainnet",
+        chainId: 8453,
+        urls: {
+          apiURL: "https://base.blockscout.com/api/",
+          browserURL: "https://docs.blockscout.com",
+        },
+      },
       {
         network: "billions-testnet",
         chainId: 6913,
