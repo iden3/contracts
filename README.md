@@ -44,15 +44,21 @@ We have deployed contracts across the following mainnets and testnets so far (**
 - [Polygon POS](https://polygonscan.com/address/0x624ce98d2d27b20b8f8d521723df8fc4db71d79d)
 - [Polygon zkEVM](https://zkevm.polygonscan.com/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
 - [Linea](https://lineascan.build/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
+- [Base](https://basescan.org/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
+- [BNB Smart Chain](https://bscscan.com/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
 - Privado Mainnet
+- Billions Mainnet
 
 **Testnets**:
 
 - [Ethereum Sepolia](https://sepolia.etherscan.io/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
 - [Polygon Amoy](https://amoy.polygonscan.com/address/0x1a4cc30f2aa0377b0c3bc9848766d90cb4404124)
 - [Polygon zkEVM Cardona](https://cardona-zkevm.polygonscan.com/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
-- [Linea-Sepolia](https://sepolia.lineascan.build/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
+- [Linea Sepolia](https://sepolia.lineascan.build/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
+- [Base Sepolia](https://sepolia.basescan.org/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
+- [BNB Smart Chain Testnet](https://sepolia.bscscan.com/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
 - Privado Testnet
+- Billions Testnet
 
 
 ## Security Audits
@@ -93,6 +99,11 @@ ZKEVM_CARDONA_RPC_URL=<rpc url for zkevm cardona>
 LINEA_MAINNET_RPC_URL=<rpc url for linea mainnet>
 LINEA_SEPOLIA_RPC_URL=<rpc url for linea sepolia>
 BASE_MAINNET_RPC_URL=<rpc url for base mainnet>
+BASE_SEPOLIA_RPC_URL=<rpc url for base sepolia>
+BNB_MAINNET_RPC_URL=<rpc url for bnb mainnet>
+BNB_TESTNET_RPC_URL=<rpc url for bnb testnet>
+
+ETHERSCAN_API_KEY=<etherscan api key>
 ```
 
 There are 2 strategies for the deployment scripts:
@@ -189,4 +200,4 @@ npm publish
 
 ## License
 
-This repository is part of the iden3 project copyright 2023 0KIMS Association and published under GPL-3.0 license. Please check the LICENSE file for more details.
+This repository is part of the iden3 project copyright 2025 0KIMS Association and published under GPL-3.0 license. Please check the LICENSE file for more details.
