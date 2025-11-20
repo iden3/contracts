@@ -8,6 +8,7 @@ import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomicfoundation/hardhat-verify";
 import "@nomicfoundation/hardhat-ignition-ethers";
 import "@nomicfoundation/hardhat-ledger";
+import "@nomicfoundation/hardhat-verify";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -271,38 +272,23 @@ const config: HardhatUserConfig = {
       },
     },
   },
-
   etherscan: {
-    apiKey: {
-      "polygon-amoy": process.env.POLYGON_EXPLORER_API_KEY || "",
-      polygon: process.env.POLYGON_EXPLORER_API_KEY || "",
-      sepolia: process.env.ETHEREUM_EXPLORER_API_KEY || "",
-      mainnet: process.env.ETHEREUM_EXPLORER_API_KEY || "",
-      "linea-mainnet": process.env.LINEA_EXPLORER_API_KEY || "",
-      "linea-sepolia": process.env.LINEA_EXPLORER_API_KEY || "",
-      "zkevm-cardona": process.env.ZKEVM_EXPLORER_API_KEY || "",
-      "zkevm-mainnet": process.env.ZKEVM_EXPLORER_API_KEY || "",
-      "billions-testnet": "test",
-      "billions-mainnet": "main",
-      "base-sepolia": "test",
-      "base-mainnet": "main",
-      base: process.env.BASE_EXPLORER_API_KEY || "",
-    },
+    apiKey: process.env.ETHEREUM_EXPLORER_API_KEY,
     customChains: [
       {
         network: "base-sepolia",
         chainId: 84532,
         urls: {
-          apiURL: "https://base-sepolia.blockscout.com/api/",
-          browserURL: "https://docs.blockscout.com",
+          apiURL: "https://api.etherscan.io/v2/api?chainid=84532",
+          browserURL: "https://sepolia.basescan.org",
         },
       },
       {
         network: "base-mainnet",
         chainId: 8453,
         urls: {
-          apiURL: "https://base.blockscout.com/api/",
-          browserURL: "https://docs.blockscout.com",
+          apiURL: "https://api.etherscan.io/v2/api?chainid=8453",
+          browserURL: "https://basescan.org",
         },
       },
       {
