@@ -62,32 +62,52 @@ export const chainIdInfoMap: Map<number, ChainIdInfo> = new Map()
     idType: "0x01B1",
     networkType: "main",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-  }) // billions-main
+  }) // billions-mainnet
   .set(6913, {
     idType: "0x01B2",
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-  }) // billions-test
+  }) // billions-testnet
   .set(21000, {
     idType: "0x01A1",
     networkType: "main",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-  }) // privado-main
+  }) // privado-mainnet
   .set(21001, {
     idType: "0x01A2",
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-  }) // privado-test
+  }) // privado-testnet
   .set(59144, {
     idType: "0x0149",
     networkType: "main",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-  }) // linea-main
+  }) // linea-mainnet
   .set(59141, {
     idType: "0x0148",
     networkType: "test",
     oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
-  }); // linea-sepolia
+  }) // linea-sepolia
+  .set(8453, {
+    idType: "0x0151",
+    networkType: "main",
+    oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
+  }) // base-mainnet
+  .set(84532, {
+    idType: "0x0152",
+    networkType: "test",
+    oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
+  }) // base-sepolia
+  .set(56, {
+    idType: "0x0161",
+    networkType: "main",
+    oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
+  }) // bnb-mainnet
+  .set(97, {
+    idType: "0x0162",
+    networkType: "test",
+    oracleSigningAddress: ORACLE_SIGNING_ADDRESS_PRODUCTION,
+  }); // bnb-testnet
 
 export const networks = Object.freeze({
   PRIVADO_TESTNET: { name: "Privado Testnet", chainId: 21001 },
@@ -102,6 +122,10 @@ export const networks = Object.freeze({
   ZKEVM_MAINNET: { name: "Zkevm Mainnet", chainId: 1101 },
   LINEA_SEPOLIA: { name: "Linea Sepolia", chainId: 59141 },
   LINEA_MAINNET: { name: "Linea Mainnet", chainId: 59144 },
+  BASE_SEPOLIA: { name: "Base Sepolia", chainId: 84532 },
+  BASE_MAINNET: { name: "Base Mainnet", chainId: 8453 },
+  BNB_MAINNET: { name: "Bnb Mainnet", chainId: 56 },
+  BNB_TESTNET: { name: "Bnb Testnet", chainId: 97 },
 });
 
 export const STATE_ADDRESS_POLYGON_AMOY = "0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124";

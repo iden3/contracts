@@ -218,6 +218,30 @@ function getParamsFromChainId(chainId: number) {
       blockchain = Blockchain.Billions;
       networkId = NetworkId.Test;
       break;
+    case 84532:
+      rpcUrl = process.env.BASE_SEPOLIA_RPC_URL as string;
+      method = DidMethod.Iden3;
+      blockchain = "base";
+      networkId = "test";
+      break;
+    case 8453:
+      rpcUrl = process.env.BASE_MAINNET_RPC_URL as string;
+      method = DidMethod.Iden3;
+      blockchain = "base";
+      networkId = "main";
+      break;
+    case 97:
+      rpcUrl = process.env.BNB_TESTNET_RPC_URL as string;
+      method = DidMethod.Iden3;
+      blockchain = "bnb";
+      networkId = "test";
+      break;
+    case 56:
+      rpcUrl = process.env.BNB_MAINNET_RPC_URL as string;
+      method = DidMethod.Iden3;
+      blockchain = "bnb";
+      networkId = "main";
+      break;
     default:
       throw new Error(`Unsupported chainId: ${chainId}`);
   }
@@ -658,11 +682,11 @@ export async function setZKPRequest_KYCAgeCredential(
           params: dataKYCAgeCredential,
         },
       ],
-      {
+      /*{
         gasPrice: 50000000000,
         initialBaseFeePerGas: 25000000000,
         gasLimit: 10000000,
-      },
+      },*/
     );
 
     console.log(`Request ID: ${requestId} is set in tx ${tx.hash}`);

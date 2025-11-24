@@ -8,6 +8,7 @@ import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomicfoundation/hardhat-verify";
 import "@nomicfoundation/hardhat-ignition-ethers";
 import "@nomicfoundation/hardhat-ledger";
+import "@nomicfoundation/hardhat-verify";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -205,6 +206,24 @@ const config: HardhatUserConfig = {
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
+    "base-sepolia": {
+      chainId: 84532,
+      url: `${process.env.BASE_SEPOLIA_RPC_URL}`,
+      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+    },
+    "bnb-mainnet": {
+      chainId: 56,
+      url: `${process.env.BNB_MAINNET_RPC_URL}`,
+      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+    },
+    "bnb-testnet": {
+      chainId: 97,
+      url: `${process.env.BNB_TESTNET_RPC_URL}`,
+      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+    },
     // hardhat: {
     //   chainId: 80002,
     //   forking: {
@@ -265,22 +284,41 @@ const config: HardhatUserConfig = {
       },
     },
   },
-
   etherscan: {
-    apiKey: {
-      "polygon-amoy": process.env.POLYGON_EXPLORER_API_KEY || "",
-      polygon: process.env.POLYGON_EXPLORER_API_KEY || "",
-      sepolia: process.env.ETHEREUM_EXPLORER_API_KEY || "",
-      mainnet: process.env.ETHEREUM_EXPLORER_API_KEY || "",
-      "linea-mainnet": process.env.LINEA_EXPLORER_API_KEY || "",
-      "linea-sepolia": process.env.LINEA_EXPLORER_API_KEY || "",
-      "zkevm-cardona": process.env.ZKEVM_EXPLORER_API_KEY || "",
-      "zkevm-mainnet": process.env.ZKEVM_EXPLORER_API_KEY || "",
-      "billions-testnet": "test",
-      "billions-mainnet": "main",
-      base: process.env.BASE_EXPLORER_API_KEY || "",
-    },
+    apiKey: process.env.ETHERSCAN_API_KEY,
     customChains: [
+      {
+        network: "base-sepolia",
+        chainId: 84532,
+        urls: {
+          apiURL: "https://api.etherscan.io/v2/api?chainid=84532",
+          browserURL: "https://sepolia.basescan.org",
+        },
+      },
+      {
+        network: "base-mainnet",
+        chainId: 8453,
+        urls: {
+          apiURL: "https://api.etherscan.io/v2/api?chainid=8453",
+          browserURL: "https://basescan.org",
+        },
+      },
+      {
+        network: "bnb-testnet",
+        chainId: 97,
+        urls: {
+          apiURL: "https://api.etherscan.io/v2/api?chainid=97",
+          browserURL: "https://testnet.bscscan.com",
+        },
+      },
+      {
+        network: "bnb-mainnet",
+        chainId: 56,
+        urls: {
+          apiURL: "https://api.etherscan.io/v2/api?chainid=56",
+          browserURL: "https://bscscan.com",
+        },
+      },
       {
         network: "billions-testnet",
         chainId: 6913,
