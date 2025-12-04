@@ -1233,7 +1233,7 @@ describe("Binary search in SMT root history", () => {
   beforeEach(async () => {
     await loadFixture(deployContractsFixture);
     const { number: latestBlockNumber } = await hre.ethers.provider.getBlock("latest");
-    let blocksToMine = 15 - latestBlockNumber;
+    let blocksToMine = 17 - latestBlockNumber;
 
     while (blocksToMine > 0) {
       await hre.network.provider.request({
@@ -1401,7 +1401,7 @@ describe("Binary search in SMT root history", () => {
     ];
 
     for (const tc of testCase) {
-      it.only(`${tc.description}`, async () => {
+      it(`${tc.description}`, async () => {
         await checkRootByTimeAndBlock(rootEntries, tc);
       });
     }
