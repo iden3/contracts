@@ -35,7 +35,7 @@ export class DeployHelper {
   constructor(
     private signers: SignerWithAddress[],
     private readonly enableLogging: boolean = false,
-  ) {}
+  ) { }
 
   static async initialize(
     signers: SignerWithAddress[] | null = null,
@@ -362,8 +362,6 @@ export class DeployHelper {
   }
 
   async deploySmtLib(
-    poseidon2Address: string,
-    poseidon3Address: string,
     contractName = contractsInfo.SMT_LIB.name,
     deployStrategy: "basic" | "create2" = "basic",
   ): Promise<Contract> {
@@ -379,23 +377,13 @@ export class DeployHelper {
       }
 
       const smtLibDeploy = await ignition.deploy(SmtLibModule, {
-        parameters: {
-          SmtLibModule: {
-            poseidon2ElementAddress: poseidon2Address,
-            poseidon3ElementAddress: poseidon3Address,
-          },
-        },
+        parameters: {},
         strategy: deployStrategy,
       });
 
       smtLib = smtLibDeploy.smtLib;
     } else {
-      smtLib = await ethers.deployContract(contractName, {
-        libraries: {
-          PoseidonUnit2L: poseidon2Address,
-          PoseidonUnit3L: poseidon3Address,
-        },
-      });
+      smtLib = await ethers.deployContract(contractName);
     }
 
     await smtLib.waitForDeployment();
@@ -415,13 +403,7 @@ export class DeployHelper {
   async deploySmtLibTestWrapper(maxDepth: number = SMT_MAX_DEPTH): Promise<Contract> {
     const contractName = "SmtLibTestWrapper";
 
-    this.log("deploying poseidons...");
-    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons([2, 3]);
-
-    const smtLib = await this.deploySmtLib(
-      await poseidon2Elements.getAddress(),
-      await poseidon3Elements.getAddress(),
-    );
+    const smtLib = await this.deploySmtLib();
 
     const SmtWrapper = await ethers.getContractFactory(contractName, {
       libraries: {
@@ -453,13 +435,7 @@ export class DeployHelper {
   }
 
   async deployBinarySearchTestWrapper(): Promise<Contract> {
-    this.log("deploying poseidons...");
-    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons([2, 3]);
-
-    const smtLib = await this.deploySmtLib(
-      await poseidon2Elements.getAddress(),
-      await poseidon3Elements.getAddress(),
-    );
+    const smtLib = await this.deploySmtLib();
 
     const bsWrapperName = "BinarySearchTestWrapper";
     const BSWrapper = await ethers.getContractFactory(bsWrapperName, {

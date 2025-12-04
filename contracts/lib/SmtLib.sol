@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.27;
 
-import {PoseidonUnit2L, PoseidonUnit3L} from "./Poseidon.sol";
 import {ArrayUtils} from "./ArrayUtils.sol";
+import {console} from "hardhat/console.sol";
 
 /// @title A sparse merkle tree implementation, which keeps tree history.
 // Note that this SMT implementation can manage duplicated roots in the history,
@@ -567,9 +567,10 @@ library SmtLib {
         uint256 nodeHash = 0;
         if (node.nodeType == NodeType.LEAF) {
             uint256[3] memory params = [node.index, node.value, uint256(1)];
-            nodeHash = PoseidonUnit3L.poseidon(params);
+            nodeHash = uint256(keccak256(abi.encode(params)));
+            console.log("leaf hash:", nodeHash);
         } else if (node.nodeType == NodeType.MIDDLE) {
-            nodeHash = PoseidonUnit2L.poseidon([node.childLeft, node.childRight]);
+            nodeHash = uint256(keccak256(abi.encode([node.childLeft, node.childRight])));
         }
         return nodeHash; // Note: expected to return 0 if NodeType.EMPTY, which is the only option left
     }

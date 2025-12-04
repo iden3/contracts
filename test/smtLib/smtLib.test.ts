@@ -197,7 +197,7 @@ describe("Merkle tree proofs of SMT", () => {
       ];
 
       for (const testCase of testCasesExistence) {
-        it(`${testCase.description}`, async () => {
+        it.only(`${testCase.description}`, async () => {
           await checkTestCaseMTPProof(smt, testCase);
         });
       }
