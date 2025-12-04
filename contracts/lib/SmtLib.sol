@@ -2,7 +2,6 @@
 pragma solidity 0.8.27;
 
 import {ArrayUtils} from "./ArrayUtils.sol";
-import {console} from "hardhat/console.sol";
 
 /// @title A sparse merkle tree implementation, which keeps tree history.
 // Note that this SMT implementation can manage duplicated roots in the history,
@@ -567,8 +566,8 @@ library SmtLib {
         uint256 nodeHash = 0;
         if (node.nodeType == NodeType.LEAF) {
             uint256[3] memory params = [node.index, node.value, uint256(1)];
-            nodeHash = uint256(keccak256(abi.encode(params)));
-            console.log("leaf hash:", nodeHash);
+            bytes memory encoded = abi.encode(params);
+            nodeHash = uint256(keccak256(encoded));
         } else if (node.nodeType == NodeType.MIDDLE) {
             nodeHash = uint256(keccak256(abi.encode([node.childLeft, node.childRight])));
         }
