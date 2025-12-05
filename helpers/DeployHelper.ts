@@ -35,7 +35,7 @@ export class DeployHelper {
   constructor(
     private signers: SignerWithAddress[],
     private readonly enableLogging: boolean = false,
-  ) { }
+  ) {}
 
   static async initialize(
     signers: SignerWithAddress[] | null = null,
