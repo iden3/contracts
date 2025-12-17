@@ -339,24 +339,32 @@ const config: HardhatUserConfig = {
         network: "polygon-amoy",
         chainId: 80002,
         urls: {
-          apiURL: "https://api-amoy.polygonscan.com/api",
-          browserURL: "https://docs.polygonscan.com",
+          apiURL: "https://api.etherscan.io/v2/api?chainid=80002",
+          browserURL: "https://amoy.polygonscan.com",
+        },
+      },
+      {
+        network: "polygon-mainnet",
+        chainId: 137,
+        urls: {
+          apiURL: "https://api.etherscan.io/v2/api?chainid=137",
+          browserURL: "https://polygonscan.com",
         },
       },
       {
         network: "linea-sepolia",
         chainId: 59141,
         urls: {
-          apiURL: "https://api-sepolia.lineascan.build/api",
-          browserURL: "https://docs.lineascan.build/sepolia-lineascan",
+          apiURL: "https://api.etherscan.io/v2/api?chainid=59141",
+          browserURL: "https://sepolia.lineascan.build",
         },
       },
       {
         network: "linea-mainnet",
         chainId: 59144,
         urls: {
-          apiURL: "https://api.lineascan.build/api",
-          browserURL: "https://docs.lineascan.build",
+          apiURL: "https://api.etherscan.io/v2/api?chainid=59144",
+          browserURL: "https://lineascan.build",
         },
       },
       {
