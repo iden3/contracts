@@ -197,6 +197,8 @@ describe("MC Payment Contract", () => {
     await payment.connect(owner).updateIssuerOwnerPercentage(issuer1Signer.address, 20);
     expect(await payment.getIssuerOwnerPercentage(issuer1Signer.address)).to.be.eq(20);
 
+    expect(await payment.getIssuerOwnerPercentage(recipient.address)).to.be.eq(10);
+
     await expect(
       payment.connect(owner).updateIssuerOwnerPercentage(issuer1Signer.address, 110),
     ).to.be.revertedWithCustomError(payment, "InvalidOwnerPercentage");
@@ -520,6 +522,55 @@ describe("MC Payment Contract", () => {
       token,
       [owner, payment],
       [1, -1],
+    );
+  });
+
+  it("ERC-20 Permit (EIP-2612) payment with different issuer owner percentage:", async () => {
+    const tokenFactory = await ethers.getContractFactory("ERC20PermitToken", owner);
+    const token = await tokenFactory.deploy(1_000);
+    await token.connect(owner).transfer(await userSigner.getAddress(), 100);
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
+
+    const paymentAmount = 10n;
+    const permitSignature = await getPermitSignature(
+      userSigner,
+      await token.getAddress(),
+      await payment.getAddress(),
+      paymentAmount,
+      0n,
+      Math.round(new Date().getTime() / 1000) + 60 * 60,
+    );
+
+    await payment.connect(owner).updateIssuerOwnerPercentage(issuer1Signer.address, 20);
+
+    const paymentData = {
+      tokenAddress: await token.getAddress(),
+      recipient: issuer1Signer.address,
+      amount: paymentAmount,
+      expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60, // 1 hour
+      nonce: 35,
+      metadata: "0x",
+    };
+
+    const signature = await issuer1Signer.signTypedData(domainData, erc20types, paymentData);
+    const eip2612PaymentGas = await payment
+      .connect(userSigner)
+      .payERC20Permit.estimateGas(permitSignature, paymentData, signature);
+    console.log("EIP-2612 Payment Gas: " + eip2612PaymentGas);
+
+    await expect(
+      payment.connect(userSigner).payERC20Permit(permitSignature, paymentData, signature),
+    ).to.changeTokenBalances(token, [userSigner, issuer1Signer, payment], [-10, 8, 2]);
+    expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
+
+    // owner ERC-20 withdraw
+    const tokenAddress = await token.getAddress();
+    const ownerBalance = await payment.getOwnerERC20Balance(tokenAddress);
+    expect(ownerBalance).to.be.eq(2);
+    await expect(payment.connect(owner).ownerERC20Withdraw(tokenAddress)).to.changeTokenBalances(
+      token,
+      [owner, payment],
+      [2, -2],
     );
   });
 
