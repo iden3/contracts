@@ -261,12 +261,24 @@ async function main() {
 
   for (const contract of contracts) {
     console.log(`Deploying ${contract.name}...`);
+    let proxyAdminAddress = contract.isProxy
+      ? ethers.getCreateAddress({ from: contract.contractAddress, nonce: 1 })
+      : undefined;
+
+    // special case for Polygon Amoy and Polygon PoS with state proxy admin address
+    const chainId = await getChainId();
+    if (contract.moduleAt.id === "StateAtModule" && (chainId == 80002 || chainId == 137)) {
+      if (chainId == 80002) {
+        proxyAdminAddress = "0xdc2A724E6bd60144Cde9DEC0A38a26C619d84B90";
+      } else {
+        proxyAdminAddress = "0xA8bbF6132e4021b5D244a4DdD75dE5FFCfBd514A";
+      }
+    }
+
     parameters[contract.moduleAt.id] = contract.isProxy
       ? {
           proxyAddress: contract.contractAddress,
-          proxyAdminAddress: contract.isProxy
-            ? ethers.getCreateAddress({ from: contract.contractAddress, nonce: 1 })
-            : undefined,
+          proxyAdminAddress: proxyAdminAddress,
         }
       : {
           contractAddress: contract.contractAddress,
@@ -340,13 +352,19 @@ async function main() {
       }
     } else {
       console.log(`${contract.name} already deployed to: ${contract.contractAddress}`);
-      // Use the module to get the address into the deployed address registry
-      await ignition.deploy(contract.moduleAt, {
-        strategy: deployStrategy,
-        defaultSender: await signer.getAddress(),
-        parameters: parameters,
-        deploymentId: deploymentId,
-      });
+      try {
+        // Use the module to get the address into the deployed address registry
+        await ignition.deploy(contract.moduleAt, {
+          strategy: deployStrategy,
+          defaultSender: await signer.getAddress(),
+          parameters: parameters,
+          deploymentId: deploymentId,
+        });
+      } catch (e: any) {
+        if (!e.message.includes("bytecodes have been changed")) {
+          throw e;
+        }
+      }
     }
   }
 

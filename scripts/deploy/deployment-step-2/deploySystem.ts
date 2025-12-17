@@ -156,15 +156,21 @@ async function main() {
 
   for (const contract of contracts) {
     console.log(`Deploying ${contract.name}...`);
-    const deployedContract: any = await ignition.deploy(contract.module, {
-      strategy: deployStrategy,
-      defaultSender: await signer.getAddress(),
-      parameters: parameters,
-      deploymentId: deploymentId,
-    });
-    console.log(
-      `${contract.name} deployed to: ${contract.isProxy ? deployedContract.proxy.target : contract.contractAddress}`,
-    );
+    try {
+      const deployedContract: any = await ignition.deploy(contract.module, {
+        strategy: deployStrategy,
+        defaultSender: await signer.getAddress(),
+        parameters: parameters,
+        deploymentId: deploymentId,
+      });
+      console.log(
+        `${contract.name} deployed to: ${contract.isProxy ? deployedContract.proxy.target : contract.contractAddress}`,
+      );
+    } catch (e: any) {
+      if (!e.message.includes("bytecodes have been changed")) {
+        throw e;
+      }
+    }
   }
 
   // get UniversalVerifier contract

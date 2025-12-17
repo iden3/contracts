@@ -8,6 +8,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+
 /**
  * @dev MCPayment multi-chain payment contract
  */
@@ -17,7 +18,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.0.4";
+    string public constant VERSION = "1.0.5";
 
     /**
      * @dev Version of EIP 712 domain
@@ -68,6 +69,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
         mapping(address recipient => uint256 balance) balance;
         uint8 ownerPercentage;
         uint256 ownerBalance;
+        mapping(address recipient => uint8 ownerPercentage) issuerOwnerPercentage;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.MCPayment")) - 1)) &
@@ -155,6 +157,32 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
     }
 
     /**
+     * @dev Get the issuer owner percentage value
+     * @return ownerPercentage
+     */
+    function getIssuerOwnerPercentage(address recipient) public view returns (uint8) {
+        MCPaymentStorage storage $ = _getMCPaymentStorage();
+        uint8 issuerOwnerPercentage = $.issuerOwnerPercentage[recipient];
+        if (issuerOwnerPercentage == 0) {
+            return $.ownerPercentage;
+        }
+        return $.issuerOwnerPercentage[recipient];
+    }
+
+    /**
+     * @dev Updates issuer owner percentage value
+     * @param recipient Issuer address
+     * @param ownerPercentage Amount between 0 and 100 representing the issuer owner percentage
+     */
+    function updateIssuerOwnerPercentage(
+        address recipient,
+        uint8 ownerPercentage
+    ) external onlyOwner validPercentValue(ownerPercentage) {
+        MCPaymentStorage storage $ = _getMCPaymentStorage();
+        $.issuerOwnerPercentage[recipient] = ownerPercentage;
+    }
+
+    /**
      * @dev Pay in native currency
      * @param paymentData Payment data
      * @param signature Signature of the payment data
@@ -188,7 +216,8 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
             );
         }
 
-        uint256 ownerPart = (msg.value * $.ownerPercentage) / 100;
+        uint8 ownerPercentage = getIssuerOwnerPercentage(paymentData.recipient);
+        uint256 ownerPart = (msg.value * ownerPercentage) / 100;
         uint256 issuerPart = msg.value - ownerPart;
 
         $.balance[paymentData.recipient] += issuerPart;
@@ -420,7 +449,8 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
         // todo replace with `trySafeTransferFrom` function after oppenzeppelin release
         token.safeTransferFrom(msg.sender, address(this), paymentData.amount);
         MCPaymentStorage storage $ = _getMCPaymentStorage();
-        uint256 ownerPart = (paymentData.amount * $.ownerPercentage) / 100;
+        uint8 ownerPercentage = getIssuerOwnerPercentage(paymentData.recipient);
+        uint256 ownerPart = (paymentData.amount * ownerPercentage) / 100;
         uint256 issuerPart = paymentData.amount - ownerPart;
         token.transfer(paymentData.recipient, issuerPart);
         emit Payment(signer, paymentData.nonce);
