@@ -69,6 +69,8 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
         mapping(address recipient => uint256 balance) balance;
         uint8 ownerPercentage;
         uint256 ownerBalance;
+        // owner percentage per issuer could be 0. So we need to track if it was set or not
+        mapping(address recipient => bool hasIssuerOwnerPercentage) hasIssuerOwnerPercentage;
         mapping(address recipient => uint8 ownerPercentage) issuerOwnerPercentage;
     }
 
@@ -162,8 +164,8 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
      */
     function getIssuerOwnerPercentage(address recipient) public view returns (uint8) {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
-        uint8 issuerOwnerPercentage = $.issuerOwnerPercentage[recipient];
-        if (issuerOwnerPercentage == 0) {
+        bool hasIssuerOwnerPercentage = $.hasIssuerOwnerPercentage[recipient];
+        if (!hasIssuerOwnerPercentage) {
             return $.ownerPercentage;
         }
         return $.issuerOwnerPercentage[recipient];
@@ -180,6 +182,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
     ) external onlyOwner validPercentValue(ownerPercentage) {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         $.issuerOwnerPercentage[recipient] = ownerPercentage;
+        $.hasIssuerOwnerPercentage[recipient] = true;
     }
 
     /**
