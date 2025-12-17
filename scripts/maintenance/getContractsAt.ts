@@ -201,12 +201,18 @@ async function main() {
         : {
             contractAddress: contract.contractAddress,
           };
-      // Use the module to get the address into the deployed address registry
-      await ignition.deploy(contract.moduleAt, {
-        strategy: deployStrategy,
-        defaultSender: await signer.getAddress(),
-        parameters: parameters,
-      });
+      try {
+        // Use the module to get the address into the deployed address registry
+        await ignition.deploy(contract.moduleAt, {
+          strategy: deployStrategy,
+          defaultSender: await signer.getAddress(),
+          parameters: parameters,
+        });
+      } catch (e: any) {
+        if (!e.message.includes("bytecodes have been changed")) {
+          throw e;
+        }
+      }
     }
   }
 
