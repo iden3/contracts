@@ -8,11 +8,17 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
 /**
  * @dev MCPayment multi-chain payment contract
  */
-contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuardUpgradeable {
+contract MCPayment is
+    Ownable2StepUpgradeable,
+    EIP712Upgradeable,
+    ReentrancyGuardUpgradeable,
+    AccessControlUpgradeable
+{
     using ECDSA for bytes32;
     using SafeERC20 for IERC20;
     /**
@@ -42,6 +48,11 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
             // solhint-disable-next-line max-line-length
             "Iden3PaymentRailsERC20RequestV1(address tokenAddress,address recipient,uint256 amount,uint256 expirationDate,uint256 nonce,bytes metadata)"
         );
+
+    /**
+     * @dev Withdrawer role to withdraw contract amount
+     */
+    bytes32 public constant WITHDRAWER_ROLE = keccak256("WITHDRAWER_ROLE");
 
     struct Iden3PaymentRailsRequestV1 {
         address recipient;
@@ -117,6 +128,19 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
         _;
     }
 
+    /**
+     * @dev Modifier to make a function callable only by a certain role. In
+     * addition to checking the sender's role, `address(0)` 's role is also
+     * considered. Granting a role to `address(0)` is equivalent to enabling
+     * this role for everyone.
+     */
+    modifier onlyWithdrawerRoleOrOwner() {
+        if (_msgSender() != owner()) {
+            _checkRole(WITHDRAWER_ROLE, _msgSender());
+        }
+        _;
+    }
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -136,6 +160,15 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
         __Ownable_init(owner);
         __EIP712_init("MCPayment", DOMAIN_VERSION);
         __ReentrancyGuard_init();
+    }
+
+    /**
+     * @dev Set admin role to an account
+     * @param admin Address to be granted admin role
+     */
+    function setAdminRole(address admin) external onlyOwner {
+        // Grant admin role. Admin role can grant and revoke other roles like WITHDRAWER_ROLE
+        _grantRole(DEFAULT_ADMIN_ROLE, admin);
     }
 
     /**
@@ -375,7 +408,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
      * @dev Get owner balance
      * @return balance of owner
      */
-    function getOwnerBalance() public view onlyOwner returns (uint256) {
+    function getOwnerBalance() public view onlyWithdrawerRoleOrOwner returns (uint256) {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         return $.ownerBalance;
     }
@@ -384,7 +417,9 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
      * @dev Get owner ERC-20 balance
      * @return balance of owner
      */
-    function getOwnerERC20Balance(address token) public view onlyOwner returns (uint256) {
+    function getOwnerERC20Balance(
+        address token
+    ) public view onlyWithdrawerRoleOrOwner returns (uint256) {
         return IERC20(token).balanceOf(address(this));
     }
 
@@ -398,26 +433,26 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
     /**
      * @dev Withdraw balance to owner
      */
-    function ownerWithdraw() public onlyOwner nonReentrant {
+    function ownerWithdraw() public onlyWithdrawerRoleOrOwner nonReentrant {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
         if ($.ownerBalance == 0) {
             revert WithdrawErrorNoBalance();
         }
         uint256 amount = $.ownerBalance;
         $.ownerBalance = 0;
-        _withdraw(amount, owner());
+        _withdraw(amount, _msgSender());
     }
 
     /**
      * @dev Withdraw ERC-20 balance to owner
      */
-    function ownerERC20Withdraw(address token) public onlyOwner nonReentrant {
+    function ownerERC20Withdraw(address token) public onlyWithdrawerRoleOrOwner nonReentrant {
         uint256 amount = IERC20(token).balanceOf(address(this));
         if (amount == 0) {
             revert WithdrawErrorNoBalance();
         }
 
-        IERC20(token).transfer(owner(), amount);
+        IERC20(token).transfer(_msgSender(), amount);
     }
 
     function _recoverERC20PaymentSignature(
@@ -455,7 +490,9 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
         uint8 ownerPercentage = getIssuerOwnerPercentage(paymentData.recipient);
         uint256 ownerPart = (paymentData.amount * ownerPercentage) / 100;
         uint256 issuerPart = paymentData.amount - ownerPart;
-        token.transfer(paymentData.recipient, issuerPart);
+        if (issuerPart > 0) {
+            token.transfer(paymentData.recipient, issuerPart);
+        }
         emit Payment(signer, paymentData.nonce);
         bytes32 paymentId = keccak256(abi.encode(signer, paymentData.nonce));
         $.isPaid[paymentId] = true;
