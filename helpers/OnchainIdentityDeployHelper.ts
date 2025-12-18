@@ -1,7 +1,8 @@
-import { ethers, upgrades } from "hardhat";
+import { network } from "hardhat";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
+const { ethers } = await network.connect();
 export class OnchainIdentityDeployHelper {
   constructor(
     private signers: SignerWithAddress[],

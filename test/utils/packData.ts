@@ -1,4 +1,6 @@
-import { ethers, Signer } from "ethers";
+import { network } from "hardhat";
+
+const { ethers } = await network.connect();
 
 const abiCoder = new ethers.AbiCoder();
 

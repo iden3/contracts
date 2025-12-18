@@ -1,4 +1,4 @@
-import { ethers, ignition } from "hardhat";
+import { network } from "hardhat";
 import { Contract } from "ethers";
 import {
   Poseidon1Module,
@@ -11,6 +11,8 @@ import {
 } from "../ignition/modules/libraries";
 import { getUnifiedContract, Logger } from "./helperUtils";
 import { poseidonContract } from "circomlibjs";
+
+const { ethers, ignition } = await network.connect();
 
 export async function deploySpongePoseidon(
   poseidon6ContractAddress: string,

@@ -1,5 +1,5 @@
 import { Contract, ContractTransactionResponse, JsonRpcProvider } from "ethers";
-import hre, { ethers, network, run } from "hardhat";
+import hre from "hardhat";
 import fs from "fs";
 import {
   chainIdInfoMap,
@@ -11,6 +11,8 @@ import {
 import { poseidonContract } from "circomlibjs";
 import path from "path";
 
+const { ethers, provider, networkName } = await hre.network.connect();
+
 export function getConfig() {
   return {
     deployStrategy: process.env.DEPLOY_STRATEGY || "",
@@ -19,7 +21,7 @@ export function getConfig() {
 }
 
 export async function getChainId() {
-  return parseInt(await hre.network.provider.send("eth_chainId"), 16);
+  return parseInt(await provider.request({ method: "eth_chainId" }), 16);
 }
 
 export async function getDefaultIdType(): Promise<{ defaultIdType: string; chainId: number }> {
@@ -37,7 +39,7 @@ export async function getDefaultIdType(): Promise<{ defaultIdType: string; chain
 export async function waitNotToInterfereWithHardhatIgnition(
   tx: ContractTransactionResponse | null | undefined,
 ): Promise<void> {
-  const isLocalNetwork = ["localhost", "hardhat"].includes(network.name);
+  const isLocalNetwork = ["localhost", "hardhat"].includes(networkName);
   const confirmationsNeeded = isLocalNetwork
     ? 1
     : (hre.config.ignition?.requiredConfirmations ?? 1);
@@ -50,15 +52,15 @@ export async function waitNotToInterfereWithHardhatIgnition(
   } else if (isLocalNetwork) {
     console.log(`Mining ${confirmationsNeeded} blocks not to interfere with Hardhat Ignition`);
     for (const _ of Array.from({ length: confirmationsNeeded })) {
-      await hre.ethers.provider.send("evm_mine");
+      await ethers.provider.send("evm_mine");
     }
   } else {
-    const blockNumberDeployed = await hre.ethers.provider.getBlockNumber();
+    const blockNumberDeployed = await ethers.provider.getBlockNumber();
     let blockNumber = blockNumberDeployed;
     console.log("Waiting some blocks to expect at least 5 confirmations for Hardhat Ignition...");
     while (blockNumber < blockNumberDeployed + 10) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      blockNumber = await hre.ethers.provider.getBlockNumber();
+      blockNumber = await ethers.provider.getBlockNumber();
     }
   }
 }
@@ -74,14 +76,14 @@ export async function isContract(
   contractAddress: any,
   provider?: JsonRpcProvider,
 ): Promise<boolean> {
-  if (!hre.ethers.isAddress(contractAddress)) {
+  if (!ethers.isAddress(contractAddress)) {
     return false;
   }
   let result;
   if (provider) {
     result = await provider.getCode(contractAddress);
   } else {
-    result = await hre.ethers.provider.getCode(contractAddress);
+    result = await ethers.provider.getCode(contractAddress);
   }
   if (result === "0x") {
     return false;
@@ -111,12 +113,14 @@ export async function verifyContract(
     libraries: any;
   },
 ): Promise<boolean> {
-  if (hre.network.name === "localhost") {
+  if (networkName === "localhost") {
     return true;
   }
+  // TODO: Enable verification reviewing replacement for "run" in Hardhat 3.x
+
   // When verifying if the proxy contract is not verified yet we need to pass the arguments
   // for the proxy contract first, then for proxy admin and finally for the implementation contract
-  if (opts.constructorArgsProxy) {
+  /*if (opts.constructorArgsProxy) {
     try {
       await run("verify:verify", {
         address: contractAddress,
@@ -150,7 +154,7 @@ export async function verifyContract(
   } catch (error) {
     Logger.error(`Error verifying ${contractAddress}: ${error}\n`);
   }
-
+*/
   return false;
 }
 

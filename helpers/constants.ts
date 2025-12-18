@@ -1,5 +1,7 @@
 // HARDHAT network Oracle signing address
-import { ethers } from "hardhat";
+import { network } from "hardhat";
+
+const { ethers } = await network.connect();
 
 export const DEFAULT_MNEMONIC = "test test test test test test test test test test test junk";
 
