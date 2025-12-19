@@ -104,5 +104,8 @@
   "EthIdentityValidatorAtModule#EthIdentityValidator": "0x8546bFd67F19dd0449dF73fb75A56BC9ddFA57Db",
   "EthIdentityValidatorAtModule#ProxyAdmin": "0xCf3b0872731C72022c4625A1165C045C39630f2f",
   "EthIdentityValidatorNewImplementationAtModule#EthIdentityValidator": "0xD03da630E25839fe1085D7a81F025c50425f3Fe3",
-  "EthIdentityValidatorModule#EthIdentityValidator": "0x8546bFd67F19dd0449dF73fb75A56BC9ddFA57Db"
+  "EthIdentityValidatorModule#EthIdentityValidator": "0x8546bFd67F19dd0449dF73fb75A56BC9ddFA57Db",
+  "UpgradeMCPaymentModuleV1_0_7#Proxy": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
+  "UpgradeMCPaymentModuleV1_0_7#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE",
+  "UpgradeMCPaymentModuleV1_0_7#MCPayment": "0x79703a373e2349CE6aCeeecB95c0dB13D2F54e3A"
 }
