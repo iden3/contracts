@@ -451,7 +451,7 @@ contract MCPayment is
             revert WithdrawErrorNoBalance();
         }
 
-        IERC20(token).safeTransfer(owner(), amount);
+        IERC20(token).safeTransfer(_msgSender(), amount);
     }
 
     function _recoverERC20PaymentSignature(
