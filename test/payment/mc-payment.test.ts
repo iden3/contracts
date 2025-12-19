@@ -448,7 +448,9 @@ describe("MC Payment Contract", () => {
     // grant admin role to owner
     await payment.connect(owner).setAdminRole(owner.address);
     // grant WITHDRAWER_ROLE to userSigner
-    await payment.grantRole(await payment.WITHDRAWER_ROLE(), await userSigner.getAddress());
+    await payment
+      .connect(owner)
+      .grantRole(await payment.WITHDRAWER_ROLE(), await userSigner.getAddress());
 
     await expect(
       payment.connect(userSigner).ownerERC20Withdraw(tokenAddress),

@@ -404,7 +404,7 @@ contract MCPayment is
     }
 
     /**
-     * @dev Get owner balance from owner or withdrawer role
+     * @dev Get owner balance, callable by owner or withdrawer role
      * @return balance of owner
      */
     function getOwnerBalance() public view onlyWithdrawerRoleOrOwner returns (uint256) {
@@ -413,7 +413,7 @@ contract MCPayment is
     }
 
     /**
-     * @dev Get owner ERC-20 balance from owner or withdrawer role
+     * @dev Get owner ERC-20 balance, callable by owner or withdrawer role
      * @return balance of owner
      */
     function getOwnerERC20Balance(
