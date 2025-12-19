@@ -24,7 +24,7 @@ contract MCPayment is
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.0.5";
+    string public constant VERSION = "1.0.6";
 
     /**
      * @dev Version of EIP 712 domain
@@ -129,10 +129,8 @@ contract MCPayment is
     }
 
     /**
-     * @dev Modifier to make a function callable only by a certain role. In
-     * addition to checking the sender's role, `address(0)` 's role is also
-     * considered. Granting a role to `address(0)` is equivalent to enabling
-     * this role for everyone.
+     * @dev Modifier to make a function callable only by a Withdrawer role
+     * or the owner.
      */
     modifier onlyWithdrawerRoleOrOwner() {
         if (_msgSender() != owner()) {
@@ -160,6 +158,7 @@ contract MCPayment is
         __Ownable_init(owner);
         __EIP712_init("MCPayment", DOMAIN_VERSION);
         __ReentrancyGuard_init();
+        __AccessControl_init();
     }
 
     /**
@@ -405,7 +404,7 @@ contract MCPayment is
     }
 
     /**
-     * @dev Get owner balance
+     * @dev Get owner balance from owner or withdrawer role
      * @return balance of owner
      */
     function getOwnerBalance() public view onlyWithdrawerRoleOrOwner returns (uint256) {
@@ -414,7 +413,7 @@ contract MCPayment is
     }
 
     /**
-     * @dev Get owner ERC-20 balance
+     * @dev Get owner ERC-20 balance from owner or withdrawer role
      * @return balance of owner
      */
     function getOwnerERC20Balance(
@@ -431,7 +430,7 @@ contract MCPayment is
     }
 
     /**
-     * @dev Withdraw balance to owner
+     * @dev Withdraw balance to owner or withdrawer role
      */
     function ownerWithdraw() public onlyWithdrawerRoleOrOwner nonReentrant {
         MCPaymentStorage storage $ = _getMCPaymentStorage();
@@ -444,7 +443,7 @@ contract MCPayment is
     }
 
     /**
-     * @dev Withdraw ERC-20 balance to owner
+     * @dev Withdraw ERC-20 balance to owner or withdrawer role
      */
     function ownerERC20Withdraw(address token) public onlyWithdrawerRoleOrOwner nonReentrant {
         uint256 amount = IERC20(token).balanceOf(address(this));
