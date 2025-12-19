@@ -18,7 +18,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.0.5";
+    string public constant VERSION = "1.0.6";
 
     /**
      * @dev Version of EIP 712 domain
