@@ -162,6 +162,10 @@
     "contractAddress": "0x877335E91f1dA902e8C60901Df2B8e92FBc112B1"
   },
   "MCPaymentNewImplementationAtModule": {
-    "contractAddress": "0xEE34C6eBE599bde992D4c73B212e2979D7a1D347"
+    "contractAddress": "0x50E8592B259c512aC2FfA1b26b9cE3dF5FC45821"
+  },
+  "UpgradeMCPaymentModuleV1_0_7": {
+    "proxyAddress": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
+    "proxyAdminAddress": "0xE76bef620174cA8B923411605A59F542DcdF03fE"
   }
 }
