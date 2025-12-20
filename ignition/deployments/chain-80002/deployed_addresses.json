@@ -108,5 +108,11 @@
   "UpgradeStateModuleV2_6_3#State": "0x0ed6C657b729204e35B615f5521D6A975c11D463",
   "UpgradeMCPaymentModuleV1_0_5#Proxy": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
   "UpgradeMCPaymentModuleV1_0_5#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE",
-  "UpgradeMCPaymentModuleV1_0_5#MCPayment": "0x26076db61b1043c669822cEaf83ec6722D2D1ec4"
+  "UpgradeMCPaymentModuleV1_0_5#MCPayment": "0x26076db61b1043c669822cEaf83ec6722D2D1ec4",
+  "UpgradeMCPaymentModuleV1_0_6#Proxy": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
+  "UpgradeMCPaymentModuleV1_0_6#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE",
+  "UpgradeMCPaymentModuleV1_0_6#MCPayment": "0x032F2382a7cd562FDc18d81F99eAb3A82e9fBa40",
+  "UpgradeMCPaymentModuleV1_0_7#Proxy": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
+  "UpgradeMCPaymentModuleV1_0_7#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE",
+  "UpgradeMCPaymentModuleV1_0_7#MCPayment": "0xC3e9B73eEaEF5eF4200a2681c1634023e5B987DA"
 }

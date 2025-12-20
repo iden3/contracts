@@ -162,7 +162,7 @@
     "contractAddress": "0x9b4670Dec8a2556f7B1f91B46F0B8B000c5DBbdA"
   },
   "MCPaymentNewImplementationAtModule": {
-    "contractAddress": "0xB175469316C6706297Cb02124c554344606Ea7eE"
+    "contractAddress": "0x1498E4dB813D1F11Efd47D05B6b6729Cabc0B0B6"
   },
   "UpgradeStateModuleV2_6_3": {
     "proxyAddress": "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
@@ -170,5 +170,9 @@
     "oracleSigningAddress": "0x0aD316c6D3F29B76cBd8f5a1ED5e3990c6B5174C",
     "smtLibContractAddress": "0x682364078e26C1626abD2B95109D2019E241F0F6",
     "poseidon1ContractAddress": "0xC72D76D7271924a2AD54a19D216640FeA3d138d9"
+  },
+  "UpgradeMCPaymentModuleV1_0_7": {
+    "proxyAddress": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
+    "proxyAdminAddress": "0xE76bef620174cA8B923411605A59F542DcdF03fE"
   }
 }

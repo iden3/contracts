@@ -162,7 +162,7 @@
     "contractAddress": "0x9b4670Dec8a2556f7B1f91B46F0B8B000c5DBbdA"
   },
   "MCPaymentNewImplementationAtModule": {
-    "contractAddress": "0x26076db61b1043c669822cEaf83ec6722D2D1ec4"
+    "contractAddress": "0xC3e9B73eEaEF5eF4200a2681c1634023e5B987DA"
   },
   "UpgradeStateModuleV2_6_3": {
     "proxyAddress": "0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124",
@@ -172,6 +172,14 @@
     "poseidon1ContractAddress": "0xC72D76D7271924a2AD54a19D216640FeA3d138d9"
   },
   "UpgradeMCPaymentModuleV1_0_5": {
+    "proxyAddress": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
+    "proxyAdminAddress": "0xE76bef620174cA8B923411605A59F542DcdF03fE"
+  },
+  "UpgradeMCPaymentModuleV1_0_6": {
+    "proxyAddress": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
+    "proxyAdminAddress": "0xE76bef620174cA8B923411605A59F542DcdF03fE"
+  },
+  "UpgradeMCPaymentModuleV1_0_7": {
     "proxyAddress": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
     "proxyAdminAddress": "0xE76bef620174cA8B923411605A59F542DcdF03fE"
   }
