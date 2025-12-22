@@ -3,10 +3,8 @@ import { ethers } from "hardhat";
 async function main() {
   const mcPaymentAddress = "0xYourMCPaymentContractAddressHere"; // replace with actual deployed contract address
   const tokenAddress = "0xYourTokenAddressHere"; // replace with actual token address
-  const issuerPrivateKey = "0xYourIssuerPrivateKeyHere"; // replace with actual issuer private key
+  const issuerAddress = "0xYourIssuerAddressHere"; // replace with actual issuer address
   const amount = 1000; // amount to be paid
-
-  const issuerWallet = new ethers.Wallet(issuerPrivateKey);
 
   const [signer] = await ethers.getSigners();
   const token = await ethers.getContractAt("ERC20Token", tokenAddress);
@@ -37,13 +35,13 @@ async function main() {
 
   const paymentData = {
     tokenAddress: tokenAddress,
-    recipient: issuerWallet.address,
+    recipient: issuerAddress,
     amount: amount,
     expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60, // 1 hour
     nonce: 35,
     metadata: "0x",
   };
-  const signature = await issuerWallet.signTypedData(domainData, erc20types, paymentData);
+  const signature = await signer.signTypedData(domainData, erc20types, paymentData);
 
   // approve MCPayment contract to spend tokens
   const txApprove = await token.connect(signer).approve(await payment.getAddress(), amount);
@@ -57,15 +55,15 @@ async function main() {
     .payERC20.estimateGas(paymentData, signature);
   console.log("ERC-20 Payment Gas: " + erc20PaymentGas);
 
-  let ownerBalance = await payment.getOwnerERC20Balance(tokenAddress);
-  console.log(`Owner ERC-20 Balance before payment: ${ownerBalance}`);
+  /*let ownerBalance = await payment.getOwnerERC20Balance(tokenAddress);
+  console.log(`Owner ERC-20 Balance before payment: ${ownerBalance}`);*/
 
   const tx = await payment.connect(signer).payERC20(paymentData, signature);
   console.log("ERC-20 Payment Tx Hash: " + tx.hash);
   await tx.wait();
 
-  ownerBalance = await payment.getOwnerERC20Balance(tokenAddress);
-  console.log(`Owner ERC-20 Balance after payment: ${ownerBalance}`);
+  /*ownerBalance = await payment.getOwnerERC20Balance(tokenAddress);
+  console.log(`Owner ERC-20 Balance after payment: ${ownerBalance}`);*/
 }
 
 main()
