@@ -157,7 +157,7 @@
     "lint:contracts": "npx solhint contracts/**/*.sol",
     "prettier:contracts": "prettier --write --plugin=prettier-plugin-solidity 'contracts/**/*.sol'",
     "slither": "slither .",
-    "postinstall": "patch-package"
+    "postinstall": "npx patch-package"
   },
   "overrides": {
     "ws": "^8.17.1",

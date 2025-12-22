@@ -412,8 +412,11 @@ export class DeployHelper {
     return stateLib;
   }
 
-  async deploySmtLibTestWrapper(maxDepth: number = SMT_MAX_DEPTH): Promise<Contract> {
-    const contractName = "SmtLibTestWrapper";
+  async deploySmtLibTestWrapper(
+    maxDepth: number = SMT_MAX_DEPTH,
+    useKeccakHashing: boolean = false,
+  ): Promise<Contract> {
+    const contractName = useKeccakHashing ? "SmtLibKeccakTestWrapper" : "SmtLibTestWrapper";
 
     this.log("deploying poseidons...");
     const [poseidon2Elements, poseidon3Elements] = await deployPoseidons([2, 3]);
