@@ -1,20 +1,19 @@
-import { ethers, upgrades, ignition } from "hardhat";
-import { Contract, ContractTransactionResponse } from "ethers";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { network } from "hardhat";
+import { Contract, ContractTransactionResponse, Signer } from "ethers";
 import { deployPoseidons } from "./PoseidonDeployHelper";
 import { GenesisUtilsWrapper, PrimitiveTypeUtilsWrapper } from "../typechain-types";
 import {
   SmtLibModule,
-  VCPaymentModule,
+  VCPaymentProxyModule,
   StateProxyModule,
   IdentityTreeStoreProxyModule,
   UniversalVerifierProxyModule,
-  LinkedMultiQueryValidatorModule,
-  EthIdentityValidatorModule,
-  AuthV2ValidatorModule,
-  CredentialAtomicQueryV3ValidatorModule,
-  CredentialAtomicQueryMTPV2ValidatorModule,
-  CredentialAtomicQuerySigV2ValidatorModule,
+  LinkedMultiQueryValidatorProxyModule,
+  EthIdentityValidatorProxyModule,
+  AuthV2ValidatorProxyModule,
+  CredentialAtomicQueryV3ValidatorProxyModule,
+  CredentialAtomicQueryMTPV2ValidatorProxyModule,
+  CredentialAtomicQuerySigV2ValidatorProxyModule,
 } from "../ignition";
 import { chainIdInfoMap, contractsInfo } from "./constants";
 import {
@@ -26,6 +25,8 @@ import {
   waitNotToInterfereWithHardhatIgnition,
 } from "./helperUtils";
 
+const { ethers, ignition } = await network.connect();
+
 const SMT_MAX_DEPTH = 64;
 
 export type Groth16VerifierType = "mtpV2" | "sigV2" | "v3" | "lmq10" | "authV2" | undefined;
@@ -33,12 +34,12 @@ export type ValidatorType = "mtpV2" | "sigV2" | "v3" | "lmq" | "authV2" | "ethId
 
 export class DeployHelper {
   constructor(
-    private signers: SignerWithAddress[],
+    private signers: Signer[],
     private readonly enableLogging: boolean = false,
   ) {}
 
   static async initialize(
-    signers: SignerWithAddress[] | null = null,
+    signers: Signer[] | null = null,
     enableLogging = false,
   ): Promise<DeployHelper> {
     let sgrs;
@@ -694,22 +695,22 @@ export class DeployHelper {
     if (deployStrategy === "create2") {
       switch (validatorType) {
         case "mtpV2":
-          validatorModule = CredentialAtomicQueryMTPV2ValidatorModule;
+          validatorModule = CredentialAtomicQueryMTPV2ValidatorProxyModule;
           break;
         case "sigV2":
-          validatorModule = CredentialAtomicQuerySigV2ValidatorModule;
+          validatorModule = CredentialAtomicQuerySigV2ValidatorProxyModule;
           break;
         case "v3":
-          validatorModule = CredentialAtomicQueryV3ValidatorModule;
+          validatorModule = CredentialAtomicQueryV3ValidatorProxyModule;
           break;
         case "authV2":
-          validatorModule = AuthV2ValidatorModule;
+          validatorModule = AuthV2ValidatorProxyModule;
           break;
         case "lmq":
-          validatorModule = LinkedMultiQueryValidatorModule;
+          validatorModule = LinkedMultiQueryValidatorProxyModule;
           break;
         case "ethIdentity":
-          validatorModule = EthIdentityValidatorModule;
+          validatorModule = EthIdentityValidatorProxyModule;
           break;
       }
 
@@ -763,16 +764,16 @@ export class DeployHelper {
 
     switch (validatorType) {
       case "lmq":
-        validatorArgs = [await groth16VerifierWrapper.getAddress(), owner.address];
+        validatorArgs = [await groth16VerifierWrapper.getAddress(), await owner.getAddress()];
         break;
       case "ethIdentity":
-        validatorArgs = [owner.address];
+        validatorArgs = [await owner.getAddress()];
         break;
       default:
         validatorArgs = [
           stateContractAddress,
           await groth16VerifierWrapper.getAddress(),
-          owner.address,
+          await owner.getAddress(),
         ];
     }
 

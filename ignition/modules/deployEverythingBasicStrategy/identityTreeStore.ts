@@ -43,13 +43,13 @@ const IdentityTreeStoreProxyModule = buildModule("IdentityTreeStoreProxyModule",
     [implementation, proxyAdminOwner, initializeData],
   );
 
-  return { proxy };
+  return { proxy, state, implementation };
 });
 
 const IdentityTreeStoreModule = buildModule("IdentityTreeStoreModule", (m) => {
-  const { proxy } = m.useModule(IdentityTreeStoreProxyModule);
+  const { proxy, state, implementation } = m.useModule(IdentityTreeStoreProxyModule);
   const identityTreeStore = m.contractAt(contractsInfo.IDENTITY_TREE_STORE.name, proxy);
-  return { identityTreeStore };
+  return { identityTreeStore, state, implementation };
 });
 
 export default IdentityTreeStoreModule;

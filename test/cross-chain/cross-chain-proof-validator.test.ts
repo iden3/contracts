@@ -1,15 +1,17 @@
 import {
-  GlobalStateMessage,
-  IdentityStateMessage,
   packGlobalStateUpdateWithSignature,
   packIdentityStateUpdateWithSignature,
+  type GlobalStateMessage,
+  type IdentityStateMessage,
 } from "../utils/packData";
 import { expect } from "chai";
-import { DeployHelper } from "../../helpers/DeployHelper";
 import { Contract, ZeroAddress } from "ethers";
 import { network } from "hardhat";
+import { getChainId } from "../../helpers/helperUtils";
+import { chainIdInfoMap } from "../../helpers/constants";
+import { CrossChainProofValidatorModule } from "../../ignition";
 
-const { ethers, networkHelpers } = await network.connect();
+const { ethers, networkHelpers, ignition } = await network.connect();
 
 describe("Process cross-chain proof", function () {
   let crossChainProofValidator: Contract;
@@ -17,8 +19,23 @@ describe("Process cross-chain proof", function () {
 
   async function deployContractsFixture() {
     [signer, signer2, signer3] = await ethers.getSigners();
-    const deployHelper = await DeployHelper.initialize(null, true);
-    crossChainProofValidator = await deployHelper.deployCrossChainProofValidator();
+
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+    const params: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+    };
+
+    crossChainProofValidator = (
+      await ignition.deploy(CrossChainProofValidatorModule, {
+        parameters: params,
+      })
+    ).crossChainProofValidator;
+
     await crossChainProofValidator.setLegacyOracleSigningAddress(signer2.address);
   }
 
@@ -56,8 +73,8 @@ describe("Process cross-chain proof", function () {
     const gsu2 = await packGlobalStateUpdateWithSignature(gsm, signer2);
     const isu2 = await packIdentityStateUpdateWithSignature(ism, signer2);
 
-    await expect(crossChainProofValidator.processGlobalStateProof(gsu2)).not.to.be.reverted;
-    await expect(crossChainProofValidator.processIdentityStateProof(isu2)).not.to.be.reverted;
+    await expect(crossChainProofValidator.processGlobalStateProof(gsu2)).not.to.be.revert(ethers);
+    await expect(crossChainProofValidator.processIdentityStateProof(isu2)).not.to.be.revert(ethers);
   });
 
   it("Should process the messages with replacedAtTimestamp", async function () {
@@ -324,7 +341,7 @@ describe("Oracle signing address validation", function () {
       oracleSigningAddress,
     );
     await crossChainProofValidator.setLegacyOracleSigningAddress(signer2.address);
-    await expect(crossChainProofValidator.waitForDeployment()).to.not.be.reverted;
+    await expect(crossChainProofValidator.waitForDeployment()).to.not.be.revert(ethers);
   });
 
   it("should deploy with correct parameters", async function () {

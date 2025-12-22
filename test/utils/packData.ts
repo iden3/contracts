@@ -1,3 +1,4 @@
+import { Signer } from "ethers";
 import { network } from "hardhat";
 
 const { ethers } = await network.connect();

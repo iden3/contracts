@@ -1,5 +1,4 @@
 import { Contract } from "ethers";
-import { ethers } from "hardhat";
 
 type Grow<T, A extends Array<T>> = ((x: T, ...xs: A) => void) extends (...a: infer X) => void
   ? X
@@ -27,7 +26,7 @@ export function genMaxBinaryNumber(digits: number): bigint {
   return BigInt(2) ** BigInt(digits) - BigInt(1);
 }
 
-export async function addLeaf(smt: Contract, i: number, v: number) {
+export async function addLeaf(ethers: any, smt: Contract, i: number, v: number) {
   const { blockNumber } = await smt.add(i, v);
   const root = await smt.getRoot();
   const rootInfo = await smt.getRootInfo(root);
@@ -36,10 +35,11 @@ export async function addLeaf(smt: Contract, i: number, v: number) {
 }
 
 export async function addStateToStateLib(
+  ethers: any,
   stateLibWrapper: Contract,
   id: string | number,
   state: string | number,
-  noTimeAndBlock = false
+  noTimeAndBlock = false,
 ) {
   const { blockNumber } = noTimeAndBlock
     ? await stateLibWrapper.addGenesisState(id, state)
@@ -58,8 +58,9 @@ export async function addStateToStateLib(
 }
 
 export async function publishState(
+  ethers: any,
   state: Contract,
-  json: { [key: string]: string }
+  json: { [key: string]: string },
 ): Promise<{
   oldState: string;
   newState: string;
@@ -81,7 +82,7 @@ export async function publishState(
     isOldStateGenesis === "1",
     pi_a,
     pi_b,
-    pi_c
+    pi_c,
   );
 
   const { blockNumber } = await transitStateTx.wait();
@@ -97,13 +98,14 @@ export async function publishState(
 }
 
 export async function publishStateWithStubProof(
+  ethers: any,
   state: Contract,
   params: {
     id: string | number | bigint;
     oldState: string | number | bigint;
     newState: string | number | bigint;
     isOldStateGenesis: boolean;
-  }
+  },
 ): Promise<{
   id: string | number | bigint;
   oldState: string | number | bigint;
@@ -121,7 +123,7 @@ export async function publishStateWithStubProof(
       ["0", "0"],
       ["0", "0"],
     ],
-    ["0", "0"]
+    ["0", "0"],
   );
 
   const { blockNumber } = await transitStateTx.wait();
@@ -139,7 +141,7 @@ export async function publishStateWithStubProof(
 export function toJson(data) {
   return JSON.stringify(data, (_, v) => (typeof v === "bigint" ? `${v}n` : v)).replace(
     /"(-?\d+)n"/g,
-    (_, a) => a
+    (_, a) => a,
   );
 }
 export function prepareInputs(json: any): any {
