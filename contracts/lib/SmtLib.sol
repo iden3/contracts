@@ -144,6 +144,8 @@ library SmtLib {
      * @param customerHasher IHasher implementation to be used for hashing.
      */
     function setHasher(Data storage self, IHasher customerHasher) external {
+        require(address(customerHasher) != address(0), "Invalid hasher");
+        require(self.rootEntries.length == 1, "Hasher must be set before SMT usage");
         self.isCustomHasherSet = true;
         self.hasher = customerHasher;
     }
