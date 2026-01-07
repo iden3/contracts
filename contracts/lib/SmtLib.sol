@@ -54,8 +54,7 @@ library SmtLib {
         // of the SMT library to add new Data struct fields without shifting down
         // storage of upgradable contracts that use this struct as a state variable
         // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
-        uint256[45] __gap;
-        bool isCustomHasherSet;
+        uint256[44] __gap;
         IHasher hasher;
     }
 
@@ -141,12 +140,11 @@ library SmtLib {
 
     /**
      * @dev Sets custom hashers for the SMT. MUST be called before any other SMT operations.
-     * @param customerHasher IHasher implementation to be used for hashing.
-     */
      * @param customHasher IHasher implementation to be used for hashing.
      */
     function setHasher(Data storage self, IHasher customHasher) external {
-        self.isCustomHasherSet = true;
+        require(address(customHasher) != address(0), "Invalid hasher");
+        require(self.rootEntries.length == 1, "Hasher must be set before SMT usage");
         self.hasher = customHasher;
     }
 
@@ -580,7 +578,7 @@ library SmtLib {
     function _getNodeHash(Data storage self, Node memory node) internal view returns (uint256) {
         uint256 nodeHash = 0;
         if (node.nodeType == NodeType.LEAF) {
-            if (self.isCustomHasherSet) {
+            if (address(self.hasher) != address(0)) {
                 uint256[3] memory params = [node.index, node.value, uint256(1)];
                 nodeHash = self.hasher.hash3(params);
             } else {
@@ -588,7 +586,7 @@ library SmtLib {
                 nodeHash = PoseidonUnit3L.poseidon(params);
             }
         } else if (node.nodeType == NodeType.MIDDLE) {
-            if (self.isCustomHasherSet) {
+            if (address(self.hasher) != address(0)) {
                 nodeHash = self.hasher.hash2([node.childLeft, node.childRight]);
             } else {
                 nodeHash = PoseidonUnit2L.poseidon([node.childLeft, node.childRight]);
