@@ -143,11 +143,11 @@ library SmtLib {
      * @dev Sets custom hashers for the SMT. MUST be called before any other SMT operations.
      * @param customerHasher IHasher implementation to be used for hashing.
      */
-    function setHasher(Data storage self, IHasher customerHasher) external {
-        require(address(customerHasher) != address(0), "Invalid hasher");
-        require(self.rootEntries.length == 1, "Hasher must be set before SMT usage");
+     * @param customHasher IHasher implementation to be used for hashing.
+     */
+    function setHasher(Data storage self, IHasher customHasher) external {
         self.isCustomHasherSet = true;
-        self.hasher = customerHasher;
+        self.hasher = customHasher;
     }
 
     /**
