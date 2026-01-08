@@ -1,11 +1,12 @@
-import { ethers, upgrades } from "hardhat";
-import { MCPayment, MCPayment__factory } from "../../typechain-types";
+import { network } from "hardhat";
 import { expect } from "chai";
-import { Signer } from "ethers";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { type Signer } from "ethers";
+import MCPaymentModule from "../../ignition/modules/deployEverythingBasicStrategy/mcPayment";
+
+const { ethers, networkHelpers, ignition } = await network.connect();
 
 describe("MC Payment Contract", () => {
-  let payment: MCPayment;
+  let payment;
   let issuer1Signer, recipient, owner, userSigner: Signer, domainData;
   const ownerPercentage = 10;
   const types = {
@@ -36,15 +37,21 @@ describe("MC Payment Contract", () => {
     owner = signers[0];
     recipient = signers[6];
 
-    payment = (await upgrades.deployProxy(new MCPayment__factory(owner), [
-      await owner.getAddress(),
-      ownerPercentage,
-    ])) as unknown as MCPayment;
-    await payment.waitForDeployment();
+    const parameters: any = {
+      MCPaymentProxyModule: {
+        ownerPercentage: ownerPercentage,
+      }
+    };
+
+    const { MCPayment } = await ignition.deploy(MCPaymentModule, {
+      parameters: parameters,
+    });
+
+    payment = MCPayment;
   }
 
   beforeEach(async () => {
-    await loadFixture(deployContractsFixture);
+    await networkHelpers.loadFixture(deployContractsFixture);
 
     domainData = {
       name: "MCPayment",
@@ -83,7 +90,7 @@ describe("MC Payment Contract", () => {
       payment.connect(userSigner).pay(paymentData, signature, {
         value: 100,
       }),
-    ).to.changeEtherBalances([userSigner, payment], [-100, 100]);
+    ).to.changeEtherBalances(ethers, [userSigner, payment], [-100, 100]);
 
     const isPaymentDone = await payment.isPaymentDone(issuer1Signer.address, 25);
     expect(isPaymentDone).to.be.true;
@@ -93,6 +100,7 @@ describe("MC Payment Contract", () => {
     expect(issuer1BalanceInContract).to.be.eq(90);
 
     await expect(() => payment.connect(issuer1Signer).issuerWithdraw()).to.changeEtherBalance(
+      ethers,
       issuer1Signer,
       90,
     );
@@ -110,7 +118,11 @@ describe("MC Payment Contract", () => {
     const ownerBalanceInContract = await payment.connect(owner).getOwnerBalance();
     expect(ownerBalanceInContract).to.be.eq(10);
 
-    await expect(() => payment.connect(owner).ownerWithdraw()).to.changeEtherBalance(owner, 10);
+    await expect(() => payment.connect(owner).ownerWithdraw()).to.changeEtherBalance(
+      ethers,
+      owner,
+      10,
+    );
     // owner balance should be 0
     const ownerBalanceAfterWithdraw = await payment.connect(owner).getOwnerBalance();
     expect(ownerBalanceAfterWithdraw).to.be.eq(0);
@@ -138,7 +150,7 @@ describe("MC Payment Contract", () => {
       payment.connect(userSigner).pay(paymentData, signature, {
         value: 100,
       }),
-    ).to.changeEtherBalances([userSigner, payment], [-100, 100]);
+    ).to.changeEtherBalances(ethers, [userSigner, payment], [-100, 100]);
 
     const isPaymentDone = await payment.isPaymentDone(issuer1Signer.address, 25);
     expect(isPaymentDone).to.be.true;
@@ -148,6 +160,7 @@ describe("MC Payment Contract", () => {
     expect(issuer1BalanceInContract).to.be.eq(80);
 
     await expect(() => payment.connect(issuer1Signer).issuerWithdraw()).to.changeEtherBalance(
+      ethers,
       issuer1Signer,
       80,
     );
@@ -165,7 +178,11 @@ describe("MC Payment Contract", () => {
     const ownerBalanceInContract = await payment.connect(owner).getOwnerBalance();
     expect(ownerBalanceInContract).to.be.eq(20);
 
-    await expect(() => payment.connect(owner).ownerWithdraw()).to.changeEtherBalance(owner, 20);
+    await expect(() => payment.connect(owner).ownerWithdraw()).to.changeEtherBalance(
+      ethers,
+      owner,
+      20,
+    );
     // owner balance should be 0
     const ownerBalanceAfterWithdraw = await payment.connect(owner).getOwnerBalance();
     expect(ownerBalanceAfterWithdraw).to.be.eq(0);
@@ -311,13 +328,14 @@ describe("MC Payment Contract", () => {
 
     await expect(
       payment.connect(userSigner).payERC20(paymentData, signature),
-    ).to.changeTokenBalances(token, [userSigner, issuer1Signer, payment], [-10, 9, 1]);
+    ).to.changeTokenBalances(ethers, token, [userSigner, issuer1Signer, payment], [-10, 9, 1]);
     expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
     // owner ERC-20 withdraw
     const tokenAddress = await token.getAddress();
     const ownerBalance = await payment.getOwnerERC20Balance(tokenAddress);
     expect(ownerBalance).to.be.eq(1);
     await expect(payment.connect(owner).ownerERC20Withdraw(tokenAddress)).to.changeTokenBalances(
+      ethers,
       token,
       [owner, payment],
       [1, -1],
@@ -352,13 +370,14 @@ describe("MC Payment Contract", () => {
 
     await expect(
       payment.connect(userSigner).payERC20(paymentData, signature),
-    ).to.changeTokenBalances(token, [userSigner, issuer1Signer, payment], [-10, 8, 2]);
+    ).to.changeTokenBalances(ethers, token, [userSigner, issuer1Signer, payment], [-10, 8, 2]);
     expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
     // owner ERC-20 withdraw
     const tokenAddress = await token.getAddress();
     const ownerBalance = await payment.getOwnerERC20Balance(tokenAddress);
     expect(ownerBalance).to.be.eq(2);
     await expect(payment.connect(owner).ownerERC20Withdraw(tokenAddress)).to.changeTokenBalances(
+      ethers,
       token,
       [owner, payment],
       [2, -2],
@@ -511,7 +530,7 @@ describe("MC Payment Contract", () => {
 
     await expect(
       payment.connect(userSigner).payERC20Permit(permitSignature, paymentData, signature),
-    ).to.changeTokenBalances(token, [userSigner, issuer1Signer, payment], [-10, 9, 1]);
+    ).to.changeTokenBalances(ethers, token, [userSigner, issuer1Signer, payment], [-10, 9, 1]);
     expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
 
     // owner ERC-20 withdraw
@@ -519,6 +538,7 @@ describe("MC Payment Contract", () => {
     const ownerBalance = await payment.getOwnerERC20Balance(tokenAddress);
     expect(ownerBalance).to.be.eq(1);
     await expect(payment.connect(owner).ownerERC20Withdraw(tokenAddress)).to.changeTokenBalances(
+      ethers,
       token,
       [owner, payment],
       [1, -1],
@@ -560,7 +580,7 @@ describe("MC Payment Contract", () => {
 
     await expect(
       payment.connect(userSigner).payERC20Permit(permitSignature, paymentData, signature),
-    ).to.changeTokenBalances(token, [userSigner, issuer1Signer, payment], [-10, 8, 2]);
+    ).to.changeTokenBalances(ethers, token, [userSigner, issuer1Signer, payment], [-10, 8, 2]);
     expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
 
     // owner ERC-20 withdraw
@@ -568,6 +588,7 @@ describe("MC Payment Contract", () => {
     const ownerBalance = await payment.getOwnerERC20Balance(tokenAddress);
     expect(ownerBalance).to.be.eq(2);
     await expect(payment.connect(owner).ownerERC20Withdraw(tokenAddress)).to.changeTokenBalances(
+      ethers,
       token,
       [owner, payment],
       [2, -2],
@@ -647,7 +668,7 @@ describe("MC Payment Contract", () => {
     const signature = await issuer1Signer.signTypedData(domainData, erc20types, paymentData);
     await expect(
       payment.connect(userSigner).payERC20Permit(permitSignature, paymentData, signature),
-    ).to.changeTokenBalances(token, [userSigner, issuer1Signer, payment], [-10, 9, 1]);
+    ).to.changeTokenBalances(ethers, token, [userSigner, issuer1Signer, payment], [-10, 9, 1]);
     expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
   });
 
@@ -789,6 +810,7 @@ describe("MC Payment Contract", () => {
     expect(recipientBalanceInContract).to.be.eq(90);
 
     await expect(() => payment.connect(recipient).issuerWithdraw()).to.changeEtherBalance(
+      ethers,
       recipient,
       90,
     );

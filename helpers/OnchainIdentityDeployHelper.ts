@@ -1,16 +1,15 @@
 import { network } from "hardhat";
-import { Contract } from "ethers";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { Contract, Signer } from "ethers";
 
 const { ethers } = await network.connect();
 export class OnchainIdentityDeployHelper {
   constructor(
-    private signers: SignerWithAddress[],
+    private signers: Signer[],
     private readonly enableLogging: boolean = false,
   ) {}
 
   static async initialize(
-    signers: SignerWithAddress[] | null = null,
+    signers: Signer[] | null = null,
     enableLogging = false,
   ): Promise<OnchainIdentityDeployHelper> {
     let sgrs;

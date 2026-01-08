@@ -1,11 +1,13 @@
-import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
+import { network } from "hardhat";
+import { PrimitiveTypeUtilsWrapperModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
+
+const { ignition } = await network.connect();
 
 let utilsWrapper;
 
 before(async () => {
-  const deployHelper = await DeployHelper.initialize();
-  utilsWrapper = await deployHelper.deployPrimitiveTypeUtilsWrapper();
+  utilsWrapper = (await ignition.deploy(PrimitiveTypeUtilsWrapperModule)).primitiveTypeUtilsWrapper;
 });
 
 describe("uint conversions", function () {

@@ -1,14 +1,17 @@
-import { ethers } from "hardhat";
+import { network } from "hardhat";
 import { expect } from "chai";
-import { deployPoseidons } from "../../helpers/PoseidonDeployHelper";
 import { poseidon } from "@iden3/js-crypto";
+import { Poseidon2Module, Poseidon3Module } from "../../ignition/modules/deployEverythingBasicStrategy/libraries";
+
+const { ethers, ignition } = await network.connect();
 
 describe("ReverseHashWrapper", function () {
   let reverseHashWrapper;
 
   beforeEach(async function () {
-    const [poseidon2Elements, poseidon3Elements] = await deployPoseidons([2, 3]);
-
+    const { poseidon: poseidon2Elements } = await ignition.deploy(Poseidon2Module);
+    const { poseidon: poseidon3Elements } = await ignition.deploy(Poseidon3Module);
+    
     const ReverseHashWrapperFactory = await ethers.getContractFactory(
       "ReverseHashWrapper", {
         libraries: {

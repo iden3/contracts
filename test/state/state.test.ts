@@ -1,19 +1,31 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
 import { publishState, publishStateWithStubProof } from "../utils/state-utils";
-import { DeployHelper } from "../../helpers/DeployHelper";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { network } from "hardhat";
+import { getChainId } from "../../helpers/helperUtils";
+import { chainIdInfoMap } from "../../helpers/constants";
+import StateModule from "../../ignition/modules/deployEverythingBasicStrategy/state";
+import userStateGenesisTransitionJson from "./data/user_state_genesis_transition.json";
+import userStateNextTransitionJson from "./data/user_state_next_transition.json";
+import { Groth16VerifierStubModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const g16VerifierStubName = "Groth16VerifierStub";
+const { ethers, networkHelpers, ignition } = await network.connect();
 
-const stateTransitionsWithProofs = [
-  require("./data/user_state_genesis_transition.json"),
-  require("./data/user_state_next_transition.json"),
+const stateTransitionsWithProofs: any = [
+  userStateGenesisTransitionJson,
+  userStateNextTransitionJson,
 ];
 
-const stateTransitionsWithNoProofs = [
+const stateTransitionsWithNoProofs: {
+  id: string | number | bigint;
+  oldState: string | number | bigint;
+  newState: string | number | bigint;
+  isOldStateGenesis: boolean;
+}[] = [
   {
-    id: "27421469027114773745011513799725419039783723398312596785118397457757012226",
+    id: "27421469027114773745011513799725419039783723398312596785118397457757012226" as
+      | string
+      | number
+      | bigint,
     oldState: "1099511627776",
     newState: "2199023255552",
     isOldStateGenesis: true,
@@ -30,21 +42,35 @@ describe("State transition with real groth16 verifier", () => {
   let state;
 
   async function deployContractsFixture() {
-    const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployStateWithLibraries(["0x0100"]);
-    state = contracts.state;
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0100",
+      },
+    };
+
+    ({ state } = await ignition.deploy(StateModule, {
+      parameters: parameters,
+    }));
   }
 
   before(async function () {
     this.timeout(5000);
-    await loadFixture(deployContractsFixture);
+    await networkHelpers.loadFixture(deployContractsFixture);
   });
 
   it("Zero-knowledge proof of state transition is not valid", async () => {
     const modifiedStateTransition = JSON.parse(JSON.stringify(stateTransitionsWithProofs[0]));
     modifiedStateTransition.pub_signals[2] = "100"; // change state to make zk proof invalid
 
-    await expect(publishState(state, modifiedStateTransition)).to.be.rejectedWith(
+    await expect(publishState(ethers, state, modifiedStateTransition)).to.be.rejectedWith(
       "Zero-knowledge proof of state transition is not valid",
     );
   });
@@ -52,7 +78,7 @@ describe("State transition with real groth16 verifier", () => {
   it("Initial state publishing", async function () {
     this.timeout(5000);
 
-    const params = await publishState(state, stateTransitionsWithProofs[0]);
+    const params = await publishState(ethers, state, stateTransitionsWithProofs[0]);
 
     const res0 = await state.getStateInfoById(params.id);
     expect(res0.state).to.be.equal(BigInt(params.newState).toString());
@@ -87,7 +113,7 @@ describe("State transition with real groth16 verifier", () => {
       stateTransitionsWithProofs[1].pub_signals[1],
     );
 
-    const params = await publishState(state, stateTransitionsWithProofs[1]);
+    const params = await publishState(ethers, state, stateTransitionsWithProofs[1]);
     const res = await state.getStateInfoById(params.id);
     expect(res.state).to.be.equal(params.newState);
 
@@ -119,69 +145,87 @@ describe("State transition negative cases", () => {
   let state;
 
   async function deployContractsFixture() {
-    const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployStateWithLibraries(
-      ["0x0281", "0x0000"],
-      g16VerifierStubName,
-    );
-    state = contracts.state;
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0281",
+      },
+    };
+
+    ({ state } = await ignition.deploy(StateModule, {
+      parameters: parameters,
+    }));
+
+    const groth16VerifierStub = (await ignition.deploy(Groth16VerifierStubModule))
+      .groth16VerifierStub;
+
+    await state.setVerifier(await groth16VerifierStub.getAddress());
+    await state.setSupportedIdType("0x0000", true);
   }
+
   beforeEach(async () => {
-    await loadFixture(deployContractsFixture);
+    await networkHelpers.loadFixture(deployContractsFixture);
   });
 
   it("Old state does not match the latest state", async () => {
-    await publishStateWithStubProof(state, stateTransitionsWithNoProofs[0]);
+    await publishStateWithStubProof(ethers, state, stateTransitionsWithNoProofs[0]);
 
     const modifiedStateTransition = JSON.parse(JSON.stringify(stateTransitionsWithNoProofs[1]));
     modifiedStateTransition.oldState = 10;
 
-    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.rejectedWith(
-      "Old state does not match the latest state",
-    );
+    await expect(
+      publishStateWithStubProof(ethers, state, modifiedStateTransition),
+    ).to.be.rejectedWith("Old state does not match the latest state");
   });
 
   it("Old state is genesis but identity already exists", async () => {
-    await publishStateWithStubProof(state, stateTransitionsWithNoProofs[0]);
+    await publishStateWithStubProof(ethers, state, stateTransitionsWithNoProofs[0]);
 
     const modifiedStateTransition = JSON.parse(JSON.stringify(stateTransitionsWithNoProofs[1]));
     modifiedStateTransition.isOldStateGenesis = true;
 
-    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.revertedWith(
-      "Old state is genesis but identity already exists",
-    );
+    await expect(
+      publishStateWithStubProof(ethers, state, modifiedStateTransition),
+    ).to.be.revertedWith("Old state is genesis but identity already exists");
   });
 
   it("Old state is not genesis but identity does not yet exist", async () => {
     const modifiedStateTransition = JSON.parse(JSON.stringify(stateTransitionsWithNoProofs[0]));
     modifiedStateTransition.isOldStateGenesis = false;
 
-    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.revertedWith(
-      "Old state is not genesis but identity does not yet exist",
-    );
+    await expect(
+      publishStateWithStubProof(ethers, state, modifiedStateTransition),
+    ).to.be.revertedWith("Old state is not genesis but identity does not yet exist");
   });
 
   it("ID should not be zero", async () => {
     const modifiedStateTransition = JSON.parse(JSON.stringify(stateTransitionsWithNoProofs[0]));
     modifiedStateTransition.id = 0;
 
-    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.revertedWith(
-      "ID should not be zero",
-    );
+    await expect(
+      publishStateWithStubProof(ethers, state, modifiedStateTransition),
+    ).to.be.revertedWith("ID should not be zero");
   });
 
   it("New state should not be zero", async () => {
     const modifiedStateTransition = JSON.parse(JSON.stringify(stateTransitionsWithNoProofs[0]));
     modifiedStateTransition.newState = 0;
 
-    await expect(publishStateWithStubProof(state, modifiedStateTransition)).to.be.revertedWith(
-      "New state should not be zero",
-    );
+    await expect(
+      publishStateWithStubProof(ethers, state, modifiedStateTransition),
+    ).to.be.revertedWith("New state should not be zero");
   });
 
   it("Should allow only one unique state per identity", async () => {
-    await publishStateWithStubProof(state, stateTransitionsWithNoProofs[0]);
-    await publishStateWithStubProof(state, stateTransitionsWithNoProofs[1]);
+    await publishStateWithStubProof(ethers, state, stateTransitionsWithNoProofs[0]);
+    await publishStateWithStubProof(ethers, state, stateTransitionsWithNoProofs[1]);
 
     const stateTransition = {
       id: "27421469027114773745011513799725419039783723398312596785118397457757012226",
@@ -190,7 +234,7 @@ describe("State transition negative cases", () => {
       isOldStateGenesis: false,
     };
 
-    await expect(publishStateWithStubProof(state, stateTransition)).to.be.revertedWith(
+    await expect(publishStateWithStubProof(ethers, state, stateTransition)).to.be.revertedWith(
       "New state already exists",
     );
   });
@@ -198,21 +242,40 @@ describe("State transition negative cases", () => {
 
 describe("StateInfo history", function () {
   let state;
-  let publishedStates: { [key: string]: string | number }[] = [];
+  let publishedStates: { [key: string]: string | number | bigint }[] = [];
 
   async function deployContractsFixture() {
-    const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployStateWithLibraries(["0x0281"], g16VerifierStubName);
-    state = contracts.state;
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0281",
+      },
+    };
+
+    ({ state } = await ignition.deploy(StateModule, {
+      parameters: parameters,
+    }));
+
+    const groth16VerifierStub = (await ignition.deploy(Groth16VerifierStubModule))
+      .groth16VerifierStub;
+
+    await state.setVerifier(await groth16VerifierStub.getAddress());
 
     publishedStates = [];
     for (const stateTransition of stateTransitionsWithNoProofs) {
-      publishedStates.push(await publishStateWithStubProof(state, stateTransition));
+      publishedStates.push(await publishStateWithStubProof(ethers, state, stateTransition));
     }
   }
 
   before(async () => {
-    await loadFixture(deployContractsFixture);
+    await networkHelpers.loadFixture(deployContractsFixture);
   });
 
   it("should return state history", async () => {
@@ -241,13 +304,32 @@ describe("GIST proofs", () => {
   let state: any;
 
   async function deployContractsFixture() {
-    const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployStateWithLibraries(["0x0281"], g16VerifierStubName);
-    state = contracts.state;
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0281",
+      },
+    };
+
+    ({ state } = await ignition.deploy(StateModule, {
+      parameters: parameters,
+    }));
+
+    const groth16VerifierStub = (await ignition.deploy(Groth16VerifierStubModule))
+      .groth16VerifierStub;
+
+    await state.setVerifier(await groth16VerifierStub.getAddress());
   }
 
   beforeEach(async () => {
-    await loadFixture(deployContractsFixture);
+    await networkHelpers.loadFixture(deployContractsFixture);
   });
 
   it("Should be correct historical proof by root and the latest root", async function () {
@@ -255,7 +337,7 @@ describe("GIST proofs", () => {
     const id = stateTransitionsWithNoProofs[0].id;
 
     for (const issuerStateJson of stateTransitionsWithNoProofs) {
-      await publishStateWithStubProof(state, issuerStateJson);
+      await publishStateWithStubProof(ethers, state, issuerStateJson);
       const currentRoot = await state.getGISTRoot();
       const [lastProofRoot] = await state.getGISTProof(id);
       expect(lastProofRoot).to.equal(currentRoot);
@@ -278,7 +360,7 @@ describe("GIST proofs", () => {
 
   it("Should be correct historical proof by time", async function () {
     for (const issuerStateJson of stateTransitionsWithNoProofs) {
-      await publishStateWithStubProof(state, issuerStateJson);
+      await publishStateWithStubProof(ethers, state, issuerStateJson);
     }
     const id = stateTransitionsWithNoProofs[0].id;
 
@@ -298,7 +380,7 @@ describe("GIST proofs", () => {
   it("Should be correct historical proof by block", async function () {
     this.timeout(5000);
     for (const issuerStateJson of stateTransitionsWithNoProofs) {
-      await publishStateWithStubProof(state, issuerStateJson);
+      await publishStateWithStubProof(ethers, state, issuerStateJson);
     }
     const id = stateTransitionsWithNoProofs[0].id;
 
@@ -318,19 +400,38 @@ describe("GIST root history", () => {
   let state: any;
 
   async function deployContractsFixture() {
-    const deployHelper = await DeployHelper.initialize();
-    const contracts = await deployHelper.deployStateWithLibraries(["0x0281"], g16VerifierStubName);
-    state = contracts.state;
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0281",
+      },
+    };
+
+    ({ state } = await ignition.deploy(StateModule, {
+      parameters: parameters,
+    }));
+
+    const groth16VerifierStub = (await ignition.deploy(Groth16VerifierStubModule))
+      .groth16VerifierStub;
+
+    await state.setVerifier(await groth16VerifierStub.getAddress());
   }
 
   beforeEach(async () => {
-    await loadFixture(deployContractsFixture);
+    await networkHelpers.loadFixture(deployContractsFixture);
   });
 
   it("Should search by block and by time return same root", async function () {
     this.timeout(5000);
     for (const issuerStateJson of stateTransitionsWithNoProofs) {
-      await publishStateWithStubProof(state, issuerStateJson);
+      await publishStateWithStubProof(ethers, state, issuerStateJson);
     }
     const id = stateTransitionsWithNoProofs[0].id;
     const rootHistoryLength = await state.getGISTRootHistoryLength();
@@ -349,7 +450,11 @@ describe("GIST root history", () => {
     const roots: any[] = [];
     const expRootInfos: any[] = [];
     for (const issuerStateJson of stateTransitionsWithNoProofs) {
-      const { blockNumber, timestamp } = await publishStateWithStubProof(state, issuerStateJson);
+      const { blockNumber, timestamp } = await publishStateWithStubProof(
+        ethers,
+        state,
+        issuerStateJson,
+      );
 
       const root = await state.getGISTRoot();
       roots.push(root);
@@ -387,20 +492,35 @@ describe("GIST root history", () => {
 });
 
 describe("Set Verifier", () => {
-  let state: any, groth16verifier: any;
+  let state: any, groth16Verifier: any;
 
   async function deployContractsFixture() {
-    const deployHelper = await DeployHelper.initialize();
-    ({ state, groth16verifier } = await deployHelper.deployStateWithLibraries());
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0281",
+      },
+    };
+
+    ({ state, groth16Verifier } = await ignition.deploy(StateModule, {
+      parameters: parameters,
+    }));
   }
 
   beforeEach(async () => {
-    await loadFixture(deployContractsFixture);
+    await networkHelpers.loadFixture(deployContractsFixture);
   });
 
   it("Should set groth16 verifier", async () => {
     const verifierAddress = await state.getVerifier();
-    expect(verifierAddress).to.equal(await groth16verifier.getAddress());
+    expect(verifierAddress).to.equal(await groth16Verifier.getAddress());
 
     const newVerifierAddress = ethers.getAddress("0x8ba1f109551bd432803012645ac136ddd64dba72");
     await state.setVerifier(newVerifierAddress);
@@ -410,7 +530,7 @@ describe("Set Verifier", () => {
 
   it("Should not set groth16 verifier if not owner", async () => {
     const verifierAddress = await state.getVerifier();
-    expect(verifierAddress).to.equal(await groth16verifier.getAddress());
+    expect(verifierAddress).to.equal(await groth16Verifier.getAddress());
 
     const notOwner = (await ethers.getSigners())[1];
     const newVerifierAddress = ethers.getAddress("0x8ba1f109551bd432803012645ac136ddd64dba72");
@@ -421,15 +541,29 @@ describe("Set Verifier", () => {
 
   it("Should allow groth16 verifier zero address to block any state transition", async () => {
     await state.setVerifier(ethers.ZeroAddress);
-    await expect(publishState(state, stateTransitionsWithProofs[0])).to.be.reverted;
+    await expect(publishState(ethers, state, stateTransitionsWithProofs[0])).to.revert(ethers);
   });
 });
 
 describe("Check replacedAt timestamp expirations", () => {
   it("Should throw for non-existent state and GIST roots", async function () {
-    const deployHelper = await DeployHelper.initialize();
-    // default type should be 0x0112
-    const { state } = await deployHelper.deployStateWithLibraries([]);
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0112",
+      },
+    };
+
+    const { state } = await ignition.deploy(StateModule, {
+      parameters: parameters,
+    });
 
     expect(await state.getGistRootReplacedAt("0x0112", 0)).to.be.equal(0);
 

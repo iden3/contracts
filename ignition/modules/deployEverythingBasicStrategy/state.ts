@@ -81,14 +81,14 @@ const StateProxyModule = buildModule("StateProxyModule", (m) => {
     [implementation, proxyAdminOwner, initializeData],
   );
 
-  return { proxy, implementation, crossChainProofValidator, stateLib, smtLib };
+  return { proxy, implementation, crossChainProofValidator, stateLib, smtLib, groth16Verifier };
 });
 
 const StateModule = buildModule("StateModule", (m) => {
-  const { proxy, implementation, crossChainProofValidator, stateLib, smtLib } =
+  const { proxy, implementation, crossChainProofValidator, stateLib, smtLib, groth16Verifier } =
     m.useModule(StateProxyModule);
   const state = m.contractAt(contractsInfo.STATE.name, proxy);
-  return { state, implementation, crossChainProofValidator, stateLib, smtLib };
+  return { state, implementation, crossChainProofValidator, stateLib, smtLib, groth16Verifier };
 });
 
 export default StateModule;

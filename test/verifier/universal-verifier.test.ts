@@ -1,20 +1,26 @@
 import { expect } from "chai";
-import { DeployHelper } from "../../helpers/DeployHelper";
-import { ethers } from "hardhat";
 import { packValidatorParams } from "../utils/validator-pack-utils";
 import { AbiCoder, Block } from "ethers";
 import { byteEncoder, CircuitId } from "@0xpolygonid/js-sdk";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { contractsInfo } from "../../helpers/constants";
+import { chainIdInfoMap, contractsInfo } from "../../helpers/constants";
 import { calculateMultiRequestId } from "../utils/id-calculation-utils";
 import { beforeEach } from "mocha";
+import { network } from "hardhat";
+import { getChainId } from "../../helpers/helperUtils";
+import UniversalVerifierModule from "../../ignition/modules/deployEverythingBasicStrategy/universalVerifier";
+import {
+  AuthValidatorStubModule,
+  RequestValidatorStubModule,
+  UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequestModule,
+} from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
+
+const { ethers, networkHelpers, ignition } = await network.connect();
 
 describe("Universal Verifier tests", function () {
   let request, paramsFromValidator, multiRequest, authResponse, response: any;
   let verifier: any, verifierLib: any, validator: any, authValidator: any, state: any;
   let signer, signer2, signer3;
   let signerAddress: string;
-  let deployHelper: DeployHelper;
   let authMethod;
 
   const storageFields = [
@@ -30,30 +36,68 @@ describe("Universal Verifier tests", function () {
 
   const crossChainProofs = "0x";
 
+  async function deployContractsFixtureUniversalVerifier() {
+    return deployContractsFixture("UniversalVerifier");
+  }
+
+  async function deployContractsFixtureUniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest() {
+    return deployContractsFixture("UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest");
+  }
+
   async function deployContractsFixture(contractName: string = "UniversalVerifier") {
     const [ethSigner, ethSigner2, ethSigner3] = await ethers.getSigners();
 
-    deployHelper = await DeployHelper.initialize(null, true);
-    const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0112"]);
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
 
-    const validator = await deployHelper.deployValidatorStub("RequestValidatorStub");
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0112",
+      },
+    };
+
+    let stateContract, universalVerifier, verifierLib;
+
+    switch (contractName) {
+      case "UniversalVerifier": {
+        ({
+          state: stateContract,
+          universalVerifier: universalVerifier,
+          verifierLib: verifierLib,
+        } = await ignition.deploy(UniversalVerifierModule, {
+          parameters: parameters,
+        }));
+      }
+      case "UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest": {
+        ({
+          state: stateContract,
+          universalVerifierTestWrapper: universalVerifier,
+          verifierLib: verifierLib,
+        } = await ignition.deploy(
+          UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequestModule,
+          {
+            parameters: parameters,
+          },
+        ));
+      }
+    }
+
+    const validator = (await ignition.deploy(RequestValidatorStubModule)).requestValidatorStub;
+
     await validator.stub_setVerifyResults([
       { name: "userID", value: 1, rawValue: "0x" },
       { name: "issuerID", value: 2, rawValue: "0x" },
     ]);
 
-    const { universalVerifier: universalVerifier, verifierLib: verifierLib } =
-      await deployHelper.deployUniversalVerifier(
-        ethSigner,
-        await stateContract.getAddress(),
-        "basic",
-        contractName,
-      );
-
     await universalVerifier.addValidatorToWhitelist(await validator.getAddress());
-    await universalVerifier.connect();
 
-    const authValidator = await deployHelper.deployValidatorStub("AuthValidatorStub");
+    const authValidator = (await ignition.deploy(AuthValidatorStubModule)).authValidatorStub;
+
     await authValidator.stub_setVerifyResults(1);
 
     authMethod = {
@@ -95,7 +139,7 @@ describe("Universal Verifier tests", function () {
         stateContract: state,
         universalVerifier: verifier,
         validator: validator,
-      } = await loadFixture(deployContractsFixture));
+      } = await networkHelpers.loadFixture(deployContractsFixtureUniversalVerifier));
       request = {
         requestId: 0,
         metadata: "0x",
@@ -410,7 +454,7 @@ describe("Universal Verifier tests", function () {
       // Request owner different from the owner of the contract.
       const request2 = { ...request, creator: await requestOwner.getAddress() };
       // Owner of the contract is the sender to set the request with different owner
-      await expect(verifier.connect(owner).setRequests([request2])).not.to.be.reverted;
+      await expect(verifier.connect(owner).setRequests([request2])).not.to.be.revert(ethers);
 
       // Request owner the same as the sender
       const request3 = {
@@ -418,7 +462,7 @@ describe("Universal Verifier tests", function () {
         requestId: request.requestId + 1,
         creator: await requestOwner.getAddress(),
       };
-      await expect(verifier.connect(requestOwner).setRequests([request3])).not.to.be.reverted;
+      await expect(verifier.connect(requestOwner).setRequests([request3])).not.to.be.revert(ethers);
     });
 
     it("Check updateRequest", async () => {
@@ -461,7 +505,7 @@ describe("Universal Verifier tests", function () {
         validator: validator,
         verifierLib: verifierLib,
         universalVerifier: verifier,
-      } = await loadFixture(deployContractsFixture));
+      } = await networkHelpers.loadFixture(deployContractsFixtureUniversalVerifier));
 
       paramsFromValidator = [
         { name: "groupID", value: 0 },
@@ -572,7 +616,7 @@ describe("Universal Verifier tests", function () {
         universalVerifier: verifier,
         validator: validator,
         authValidator: authValidator,
-      } = await loadFixture(deployContractsFixture));
+      } = await networkHelpers.loadFixture(deployContractsFixtureUniversalVerifier));
       signerAddress = await signer.getAddress();
     });
 
@@ -710,8 +754,8 @@ describe("Universal Verifier tests", function () {
         ethSigner: signer,
         universalVerifier: verifier,
         validator,
-      } = await deployContractsFixture(
-        "UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest",
+      } = await networkHelpers.loadFixture(
+        deployContractsFixtureUniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest,
       ));
 
       request = {
@@ -746,8 +790,9 @@ describe("Universal Verifier tests", function () {
       const crossChainProofs = "0x";
 
       await verifier.submitResponse(authResponse, [response1], crossChainProofs);
-      await expect(verifier.submitResponse(authResponse, [response1], crossChainProofs)).not.to.be
-        .reverted;
+      await expect(
+        verifier.submitResponse(authResponse, [response1], crossChainProofs),
+      ).not.to.be.revert(ethers);
     });
   });
 });

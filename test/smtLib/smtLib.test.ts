@@ -1,10 +1,13 @@
 import { expect } from "chai";
-import hre from "hardhat";
+import { network } from "hardhat";
+import { addLeaf, type FixedArray, genMaxBinaryNumber, type MtpProof } from "../utils/state-utils";
+import {
+  BinarySearchTestWrapperModule,
+  SmtLibTestWrapperModule,
+} from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
+import { SMT_MAX_DEPTH } from "../../helpers/constants";
 
-import { addLeaf, FixedArray, genMaxBinaryNumber, MtpProof } from "../utils/state-utils";
-import { DeployHelper } from "../../helpers/DeployHelper";
-import { Contract } from "ethers";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+const { ethers, networkHelpers, ignition, provider } = await network.connect();
 
 type ParamsProofByHistoricalRoot = {
   index: number | bigint | string;
@@ -43,16 +46,22 @@ type TestCaseRootHistory = {
   [key: string]: any;
 };
 
-describe("Merkle tree proofs of SMT", () => {
-  let smt;
+async function deployContractsFixture() {
+  const params = {
+    SmtLibTestWrapperModule: {
+      maxDepth: SMT_MAX_DEPTH,
+    },
+  };
+  const smtLibTestWrapper = (await ignition.deploy(SmtLibTestWrapperModule, { parameters: params }))
+    .smtLibTestWrapper;
+  return { smtLibTestWrapper };
+}
 
-  async function deployContractsFixture() {
-    const deployHelper = await DeployHelper.initialize();
-    smt = await deployHelper.deploySmtLibTestWrapper();
-  }
+describe("Merkle tree proofs of SMT", () => {
+  let smt: any;
 
   beforeEach(async () => {
-    await loadFixture(deployContractsFixture);
+    ({ smtLibTestWrapper: smt } = await networkHelpers.loadFixture(deployContractsFixture));
   });
 
   describe("SMT existence proof", () => {
@@ -1018,12 +1027,11 @@ describe("Root history requests", function () {
   let pubStates: { [key: string]: string | number }[] = [];
 
   before(async () => {
-    const deployHelper = await DeployHelper.initialize();
-    smt = await deployHelper.deploySmtLibTestWrapper();
+    ({ smtLibTestWrapper: smt } = await networkHelpers.loadFixture(deployContractsFixture));
 
     pubStates = [];
-    pubStates.push(await addLeaf(smt, 1, 10));
-    pubStates.push(await addLeaf(smt, 2, 20));
+    pubStates.push(await addLeaf(ethers, smt, 1, 10));
+    pubStates.push(await addLeaf(ethers, smt, 2, 20));
 
     historyLength = await smt.getRootHistoryLength();
   });
@@ -1083,15 +1091,10 @@ describe("Root history requests", function () {
 });
 
 describe("Root history duplicates", function () {
-  let smt;
-
-  async function deployContractsFixture() {
-    const deployHelper = await DeployHelper.initialize();
-    smt = await deployHelper.deploySmtLibTestWrapper();
-  }
+  let smt: any;
 
   beforeEach(async () => {
-    await loadFixture(deployContractsFixture);
+    ({ smtLibTestWrapper: smt } = await networkHelpers.loadFixture(deployContractsFixture));
   });
 
   it("comprehensive check", async () => {
@@ -1109,7 +1112,7 @@ describe("Root history duplicates", function () {
     const addResult: { [key: string]: any }[] = [];
 
     for (const leaf of leavesToAdd) {
-      addResult.push(await addLeaf(smt, leaf.i, leaf.v));
+      addResult.push(await addLeaf(ethers, smt, leaf.i, leaf.v));
     }
 
     const singleRoot = addResult[1].root;
@@ -1225,18 +1228,17 @@ describe("Binary search in SMT root history", () => {
     expect(riByBlock.root).to.equal(tc.expectedRoot);
   }
 
-  async function deployContractsFixture() {
-    const deployHelper = await DeployHelper.initialize();
-    binarySearch = await deployHelper.deployBinarySearchTestWrapper();
+  async function deployContractsFixtureBinarySearch() {
+    ({ BSWrapper: binarySearch } = await ignition.deploy(BinarySearchTestWrapperModule));
   }
 
   beforeEach(async () => {
-    await loadFixture(deployContractsFixture);
-    const { number: latestBlockNumber } = await hre.ethers.provider.getBlock("latest");
+    await networkHelpers.loadFixture(deployContractsFixtureBinarySearch);
+    const latestBlockNumber = await ethers.provider.getBlockNumber();
     let blocksToMine = 15 - latestBlockNumber;
 
     while (blocksToMine > 0) {
-      await hre.network.provider.request({
+      await provider.request({
         method: "evm_mine",
         params: [],
       });
@@ -1395,7 +1397,7 @@ describe("Binary search in SMT root history", () => {
       {
         description: "Should return the last root when search for greater than the last",
         timestamp: 9,
-        blockNumber: 19,
+        blockNumber: 18,
         expectedRoot: rootEntries[2].root,
       },
     ];
@@ -1639,15 +1641,9 @@ describe("Binary search in SMT root history", () => {
 });
 
 describe("Binary search in SMT proofs", () => {
-  let smt;
-
-  async function deployContractsFixture() {
-    const deployHelper = await DeployHelper.initialize();
-    smt = await deployHelper.deploySmtLibTestWrapper();
-  }
-
+  let smt: any;
   beforeEach(async () => {
-    await loadFixture(deployContractsFixture);
+    ({ smtLibTestWrapper: smt } = await networkHelpers.loadFixture(deployContractsFixture));
   });
 
   describe("Zero root proofs", () => {
@@ -1739,13 +1735,19 @@ describe("Binary search in SMT proofs", () => {
 
     for (const testCase of testCases) {
       it(`${testCase.description}`, async () => {
-        const latestBlockInfo = await hre.ethers.provider.getBlock("latest");
+        const blockNumber = await ethers.provider.getBlockNumber();
+        const block = await ethers.provider.getBlock(blockNumber);
+
+        if (!block) {
+          throw new Error("Failed to fetch the latest block");
+        }
+
         if (isProofByTime(testCase.paramsToGetProof)) {
-          testCase.paramsToGetProof.timestamp = latestBlockInfo.timestamp + 1;
+          testCase.paramsToGetProof.timestamp = block.timestamp + 1;
         }
 
         if (isProofByBlock(testCase.paramsToGetProof)) {
-          testCase.paramsToGetProof.blockNumber = latestBlockInfo.number + 1;
+          testCase.paramsToGetProof.blockNumber = block.number + 1;
         }
         await checkTestCaseMTPProof(smt, testCase);
       });
@@ -1754,15 +1756,9 @@ describe("Binary search in SMT proofs", () => {
 });
 
 describe("Edge cases with exceptions", () => {
-  let smt;
-
-  async function deployContractsFixture() {
-    const deployHelper = await DeployHelper.initialize();
-    smt = await deployHelper.deploySmtLibTestWrapper();
-  }
-
+  let smt: any;
   beforeEach(async () => {
-    await loadFixture(deployContractsFixture);
+    ({ smtLibTestWrapper: smt } = await networkHelpers.loadFixture(deployContractsFixture));
   });
 
   it("getRootInfo() should throw when root does not exist", async () => {
@@ -1781,12 +1777,10 @@ describe("Edge cases with exceptions", () => {
 });
 
 describe("maxDepth setting tests", () => {
-  const maxDepth = 64;
   let smt;
 
   before(async () => {
-    const deployHelper = await DeployHelper.initialize();
-    smt = await deployHelper.deploySmtLibTestWrapper(maxDepth);
+    ({ smtLibTestWrapper: smt } = await networkHelpers.loadFixture(deployContractsFixture));
   });
 
   it("Max depth should be 64", async () => {
@@ -1823,13 +1817,30 @@ describe("maxDepth setting tests", () => {
   });
 });
 
-async function checkTestCaseMTPProof(smt: Contract, testCase: TestCaseMTPProof) {
+async function checkTestCaseMTPProof(smt: any, testCase: TestCaseMTPProof) {
+  let blockNumberDifference;
+  let timestampDifference;
+
   for (const param of testCase.leavesToInsert) {
     if (param.error) {
       await expect(smt.add(param.i, param.v)).to.be.rejectedWith(param.error);
       continue;
     }
-    await smt.add(param.i, param.v);
+    const previousBlock = await ethers.provider.getBlock(await ethers.provider.getBlockNumber());
+
+    await smt.add(param.i, param.v, {
+      gasPrice: 50000000000,
+      initialBaseFeePerGas: 25000000000,
+      gasLimit: 10000000,
+    });
+    const currentBlock = await ethers.provider.getBlock(await ethers.provider.getBlockNumber());
+
+    if (!previousBlock || !currentBlock) {
+      throw new Error("Failed to fetch block information");
+    }
+
+    timestampDifference = currentBlock.timestamp - previousBlock.timestamp;
+    blockNumberDifference = currentBlock.number - previousBlock.number;
   }
 
   let proof;
@@ -1846,6 +1857,12 @@ async function checkTestCaseMTPProof(smt: Contract, testCase: TestCaseMTPProof) 
   }
 
   if (isProofByTime(testCase.paramsToGetProof)) {
+    // Some adjustment in hardhat to avoid future timestamp request because some more blocks are mined instead of 1 en smt.add
+    if (timestampDifference > 1) {
+      testCase.paramsToGetProof.timestamp =
+        testCase.paramsToGetProof.timestamp + timestampDifference - 1;
+    }
+
     proof = await smt.getProofByTime(
       testCase.paramsToGetProof.index,
       testCase.paramsToGetProof.timestamp,
@@ -1853,6 +1870,11 @@ async function checkTestCaseMTPProof(smt: Contract, testCase: TestCaseMTPProof) 
   }
 
   if (isProofByBlock(testCase.paramsToGetProof)) {
+    if (blockNumberDifference > 1) {
+      testCase.paramsToGetProof.blockNumber =
+        testCase.paramsToGetProof.blockNumber + blockNumberDifference - 1;
+    }
+
     proof = await smt.getProofByBlock(
       testCase.paramsToGetProof.index,
       testCase.paramsToGetProof.blockNumber,

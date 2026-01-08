@@ -1,5 +1,3 @@
-import { Contract } from "ethers";
-
 type Grow<T, A extends Array<T>> = ((x: T, ...xs: A) => void) extends (...a: infer X) => void
   ? X
   : never;
@@ -26,7 +24,7 @@ export function genMaxBinaryNumber(digits: number): bigint {
   return BigInt(2) ** BigInt(digits) - BigInt(1);
 }
 
-export async function addLeaf(ethers: any, smt: Contract, i: number, v: number) {
+export async function addLeaf(ethers: any, smt: any, i: number, v: number) {
   const { blockNumber } = await smt.add(i, v);
   const root = await smt.getRoot();
   const rootInfo = await smt.getRootInfo(root);
@@ -36,7 +34,7 @@ export async function addLeaf(ethers: any, smt: Contract, i: number, v: number) 
 
 export async function addStateToStateLib(
   ethers: any,
-  stateLibWrapper: Contract,
+  stateLibWrapper: any,
   id: string | number,
   state: string | number,
   noTimeAndBlock = false,
@@ -59,7 +57,7 @@ export async function addStateToStateLib(
 
 export async function publishState(
   ethers: any,
-  state: Contract,
+  state: any,
   json: { [key: string]: string },
 ): Promise<{
   oldState: string;
@@ -99,7 +97,7 @@ export async function publishState(
 
 export async function publishStateWithStubProof(
   ethers: any,
-  state: Contract,
+  state: any,
   params: {
     id: string | number | bigint;
     oldState: string | number | bigint;

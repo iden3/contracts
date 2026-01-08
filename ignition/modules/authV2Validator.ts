@@ -95,12 +95,13 @@ const AuthV2ValidatorProxyFinalImplementationModule = buildModule(
       newImplementation,
       proxyAdmin,
       proxy,
+      state,
     };
   },
 );
 
 const AuthV2ValidatorModule = buildModule("AuthV2ValidatorModule", (m) => {
-  const { groth16Verifier, newImplementation, proxyAdmin, proxy } = m.useModule(
+  const { groth16Verifier, newImplementation, proxyAdmin, proxy, state } = m.useModule(
     AuthV2ValidatorProxyFinalImplementationModule,
   );
 
@@ -112,6 +113,7 @@ const AuthV2ValidatorModule = buildModule("AuthV2ValidatorModule", (m) => {
     newImplementation,
     proxyAdmin,
     proxy,
+    state,
   };
 });
 
