@@ -7,6 +7,8 @@ import hardhatVerify from "@nomicfoundation/hardhat-verify";
 import dotenv from "dotenv";
 dotenv.config();
 
+const LEDGER_ACCOUNT = process.env.LEDGER_ACCOUNT || "0x0000000000000000000000000000000000000000";
+
 export default defineConfig({
   plugins: [
     hardhatToolboxMochaEthers,
@@ -115,124 +117,118 @@ export default defineConfig({
       chainId: 21000,
       url: `${process.env.PRIVADO_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "privado-testnet": {
       type: "http",
       chainId: 21001,
       url: `${process.env.PRIVADO_TESTNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "billions-mainnet": {
       type: "http",
       chainId: 45056,
       url: `${process.env.BILLIONS_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "billions-testnet": {
       type: "http",
       chainId: 6913,
       url: `${process.env.BILLIONS_TESTNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "polygon-mainnet": {
       type: "http",
       chainId: 137,
       url: `${process.env.POLYGON_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "polygon-amoy": {
       type: "http",
       chainId: 80002,
       url: `${process.env.POLYGON_AMOY_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "ethereum-mainnet": {
       type: "http",
       chainId: 1,
       url: `${process.env.ETHEREUM_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "ethereum-sepolia": {
       type: "http",
       chainId: 11155111,
       url: `${process.env.ETHEREUM_SEPOLIA_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "zkevm-mainnet": {
       type: "http",
       chainId: 1101,
       url: `${process.env.ZKEVM_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "zkevm-cardona": {
       type: "http",
       chainId: 2442,
       url: `${process.env.ZKEVM_CARDONA_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "linea-mainnet": {
       type: "http",
       chainId: 59144,
       url: `${process.env.LINEA_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "linea-sepolia": {
       type: "http",
       chainId: 59141,
       url: `${process.env.LINEA_SEPOLIA_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "base-mainnet": {
       type: "http",
       chainId: 8453,
       url: `${process.env.BASE_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "base-sepolia": {
       type: "http",
       chainId: 84532,
       url: `${process.env.BASE_SEPOLIA_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "bnb-mainnet": {
       type: "http",
       chainId: 56,
       url: `${process.env.BNB_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "bnb-testnet": {
       type: "http",
       chainId: 97,
       url: `${process.env.BNB_TESTNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     // hardhat: {
     //   chainId: 80002,
+    //   type: "edr-simulated",
     //   forking: {
     //     url: `${process.env.POLYGON_AMOY_RPC_URL}`,
-    //   },
-    //   chains: {
-    //     80002: {
-    //       hardforkHistory: {
-    //         london: 100000,
-    //       },
-    //     },
     //   },
     //   accounts: [
     //     {

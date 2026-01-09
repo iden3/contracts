@@ -40,7 +40,7 @@ describe("MC Payment Contract", () => {
     const parameters: any = {
       MCPaymentProxyModule: {
         ownerPercentage: ownerPercentage,
-      }
+      },
     };
 
     const { MCPayment } = await ignition.deploy(MCPaymentModule, {
@@ -412,13 +412,14 @@ describe("MC Payment Contract", () => {
 
     await expect(
       payment.connect(userSigner).payERC20(paymentData, signature),
-    ).to.changeTokenBalances(token, [userSigner, issuer1Signer, payment], [-10, 0, 10]);
+    ).to.changeTokenBalances(ethers, token, [userSigner, issuer1Signer, payment], [-10, 0, 10]);
     expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
     // owner ERC-20 withdraw
     const tokenAddress = await token.getAddress();
     const ownerBalance = await payment.getOwnerERC20Balance(tokenAddress);
     expect(ownerBalance).to.be.eq(10);
     await expect(payment.connect(owner).ownerERC20Withdraw(tokenAddress)).to.changeTokenBalances(
+      ethers,
       token,
       [owner, payment],
       [10, -10],
