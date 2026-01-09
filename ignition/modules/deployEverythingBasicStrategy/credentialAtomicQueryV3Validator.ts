@@ -45,16 +45,16 @@ const CredentialAtomicQueryV3ValidatorProxyModule = buildModule(
       [implementation, proxyAdminOwner, initializeData],
     );
 
-    return { proxy };
+    return { proxy, state };
   },
 );
 
 const CredentialAtomicQueryV3ValidatorModule = buildModule(
   "CredentialAtomicQueryV3ValidatorModule",
   (m) => {
-    const { proxy } = m.useModule(CredentialAtomicQueryV3ValidatorProxyModule);
+    const { proxy, state } = m.useModule(CredentialAtomicQueryV3ValidatorProxyModule);
     const credentialAtomicQueryV3Validator = m.contractAt(contractsInfo.VALIDATOR_V3.name, proxy);
-    return { credentialAtomicQueryV3Validator };
+    return { credentialAtomicQueryV3Validator, state };
   },
 );
 

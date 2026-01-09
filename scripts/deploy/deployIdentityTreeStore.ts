@@ -1,4 +1,3 @@
-import { ethers, ignition } from "hardhat";
 import {
   getConfig,
   getDeploymentParameters,
@@ -8,6 +7,9 @@ import {
 import { contractsInfo } from "../../helpers/constants";
 import { IdentityTreeStoreProxyModule } from "../../ignition";
 import IdentityTreeStoreModule from "../../ignition/modules/identityTreeStore";
+import { network } from "hardhat";
+
+const { ethers, ignition } = await network.connect();
 
 (async () => {
   const config = getConfig();

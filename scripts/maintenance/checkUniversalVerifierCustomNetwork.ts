@@ -1,12 +1,14 @@
 import { Logger } from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
-import hre, { ethers } from "hardhat";
 import {
   setZKPRequest_KYCAgeCredential,
   submitZKPResponses_KYCAgeCredential,
 } from "../upgrade/verifiers/helpers/testVerifier";
 import { Contract } from "ethers";
 import { core } from "@0xpolygonid/js-sdk";
+import { network } from "hardhat";
+
+const { ethers, networkName } = await network.connect();
 
 // Replace these addresses with the ones deployed in your custom network
 const universalVerifierAddress = "<UNIVERSAL_VERIFIER_ADDRESS>";
@@ -18,7 +20,7 @@ const stateContractAddress = "<STATE_CONTRACT_ADDRESS>";
 // Replace with your actual custom network details for method, blockchain and network
 const method = core.DidMethod.Iden3;
 const blockchain = "<blockchain>";
-const network = "<network>";
+const didNetwork = "<network>";
 // Replace with your custom network chainId and networkFlag
 const chainId = 0;
 const networkFlag = 0b1111_1111;
@@ -31,7 +33,7 @@ async function testVerification(verifier: Contract) {
     method: method,
     blockchain: blockchain,
     chainId: chainId,
-    network: network,
+    network: didNetwork,
     networkFlag: networkFlag,
   });
 
@@ -70,7 +72,7 @@ async function testVerification(verifier: Contract) {
 
 async function main() {
   console.log(
-    `\nChecking UniversalVerifier verification on ${hre.network.name} with address ${universalVerifierAddress}...`,
+    `\nChecking UniversalVerifier verification on ${networkName} with address ${universalVerifierAddress}...`,
   );
 
   const universalVerifier = await ethers.getContractAt(
@@ -81,12 +83,12 @@ async function main() {
   try {
     await testVerification(universalVerifier);
     Logger.success(
-      `${hre.network.name} Universal Verifier onchain ${universalVerifierAddress} verified`,
+      `${networkName} Universal Verifier onchain ${universalVerifierAddress} verified`,
     );
   } catch (error) {
     console.error(error);
     Logger.error(
-      `${hre.network.name} Universal Verifier onchain ${universalVerifierAddress} not verified`,
+      `${networkName} Universal Verifier onchain ${universalVerifierAddress} not verified`,
     );
   }
 }

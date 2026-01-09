@@ -1,6 +1,9 @@
 import { Blockchain, buildDIDType, DidMethod, Id, NetworkId } from "@iden3/js-iden3-core";
-import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
+import { network } from "hardhat";
+import { GenesisUtilsWrapperModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
+
+const { ethers, ignition } = await network.connect();
 
 let guWrpr;
 const testVectors = [
@@ -101,9 +104,8 @@ const testVectors = [
   },
 ];
 
-before(async () => {
-  const deployHelper = await DeployHelper.initialize();
-  guWrpr = await deployHelper.deployGenesisUtilsWrapper();
+before(async () => {  
+  guWrpr = (await ignition.deploy(GenesisUtilsWrapperModule)).genesisUtilsWrapper;
 });
 
 describe("generate ID from genesis state and idType", function () {
