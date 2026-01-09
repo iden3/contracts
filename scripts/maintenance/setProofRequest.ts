@@ -1,4 +1,3 @@
-import hre, { ethers } from "hardhat";
 import { packV3ValidatorParams, packValidatorParams } from "../../test/utils/validator-pack-utils";
 import { calculateQueryHashV2, calculateQueryHashV3 } from "../../test/utils/query-hash-utils";
 import { Blockchain, DidMethod, NetworkId, DID } from "@iden3/js-iden3-core";
@@ -7,6 +6,9 @@ import { contractsInfo } from "../../helpers/constants";
 import { Hex } from "@iden3/js-crypto";
 import { getChainId } from "../../helpers/helperUtils";
 import { calculateRequestID } from "../../test/utils/id-calculation-utils";
+import { network } from "hardhat";
+
+const { ethers, networkName } = await network.connect();
 
 export function getAuthV2RequestId(): number {
   const circuitHash = ethers.keccak256(byteEncoder.encode(CircuitId.AuthV2));
@@ -23,7 +25,7 @@ async function main() {
   const universalVerifierAddress = contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress;
 
   const chainId = await getChainId();
-  const network = hre.network.name;
+  const network = networkName;
 
   const methodId = "06c86a91"; // submitResponse
 
@@ -122,7 +124,7 @@ async function main() {
     case CircuitId.AuthV2:
       validatorAddress = contractsInfo.VALIDATOR_AUTH_V2.unifiedAddress;
       data = "0x";
-      requestId = getAuthV2RequestId();
+      requestId = BigInt(getAuthV2RequestId());
       break;
     default:
       throw new Error(`Unsupported circuit name: ${circuitName}`);

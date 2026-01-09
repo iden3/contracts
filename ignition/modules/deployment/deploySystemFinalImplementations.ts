@@ -10,7 +10,9 @@ import AuthV2ValidatorModule from "../authV2Validator";
 import EthIdentityValidatorModule from "../ethIdentityValidator";
 import MCPaymentModule from "../mcPayment";
 import VCPaymentModule from "../vcPayment";
-import { ethers } from "hardhat";
+import { network } from "hardhat";
+
+const { ethers } = await network.connect();
 
 const DeploySystemFianlImplementationsModule = buildModule(
   "DeploySystemFianlImplementationsModule",

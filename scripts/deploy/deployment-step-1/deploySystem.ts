@@ -1,6 +1,3 @@
-import fs from "fs";
-import path from "path";
-import { ethers, ignition } from "hardhat";
 import Create2AddressAnchorModule from "../../../ignition/modules/create2AddressAnchor";
 import { contractsInfo } from "../../../helpers/constants";
 import {
@@ -49,6 +46,9 @@ import {
   UniversalVerifierAtModule,
   VCPaymentAtModule,
 } from "../../../ignition/modules/contractsAt";
+import { network } from "hardhat";
+
+const { ethers, ignition } = await network.connect();
 
 async function main() {
   const config = getConfig();

@@ -9,8 +9,10 @@ import AuthV2ValidatorModule from "./authV2Validator";
 import IdentityTreeStoreModule from "./identityTreeStore";
 import MCPaymentModule from "./mcPayment";
 import VCPaymentModule from "./vcPayment";
-import { ethers } from "hardhat";
 import UniversalVerifier_ManyResponsesPerUserAndRequestModule from "./universalVerifier_ManyResponsesPerUserAndRequest";
+import { network } from "hardhat";
+
+const { ethers } = await network.connect();
 
 const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy", (m) => {
   const {

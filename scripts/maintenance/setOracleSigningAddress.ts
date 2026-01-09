@@ -1,6 +1,8 @@
-import { ethers } from "hardhat";
 import { contractsInfo, ORACLE_SIGNING_ADDRESS_PRODUCTION } from "../../helpers/constants";
 import { getStateContractAddress } from "../../helpers/helperUtils";
+import { network } from "hardhat";
+
+const { ethers } = await network.connect();
 
 async function main() {
   const oracleSigningAddress = ORACLE_SIGNING_ADDRESS_PRODUCTION; // production signing address

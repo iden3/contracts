@@ -1,5 +1,4 @@
 import { Contract, ContractTransactionResponse, JsonRpcProvider } from "ethers";
-import hre from "hardhat";
 import fs from "fs";
 import {
   chainIdInfoMap,
@@ -10,8 +9,9 @@ import {
 } from "./constants";
 import { poseidonContract } from "circomlibjs";
 import path from "path";
+import { network } from "hardhat";
 
-const { ethers, provider, networkName } = await hre.network.connect();
+const { ethers, provider, networkName } = await network.connect();
 
 export function getConfig() {
   return {

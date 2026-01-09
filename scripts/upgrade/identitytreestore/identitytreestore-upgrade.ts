@@ -2,12 +2,9 @@ import {
   checkContractVersion,
   getConfig,
   getDeploymentParameters,
-  getStateContractAddress,
   verifyContract,
   writeDeploymentParameters,
 } from "../../../helpers/helperUtils";
-import path from "path";
-import fs from "fs";
 import { contractsInfo } from "../../../helpers/constants";
 import { network } from "hardhat";
 import UpgradeIdentityTreeStoreModule from "../../../ignition/modules/upgrades/upgradeIdentityTreeStore";
@@ -49,10 +46,6 @@ async function main() {
       `Contract is not upgraded and will upgrade version ${currentVersion} to ${contractsInfo.IDENTITY_TREE_STORE.version}`,
     );
   }
-
-  const stateContractAddress = await getStateContractAddress();
-
-
 
   const proxyAt = await ethers.getContractAt(
     contractsInfo.IDENTITY_TREE_STORE.name,

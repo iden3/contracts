@@ -1,4 +1,3 @@
-import { ethers, ignition } from "hardhat";
 import {
   checkContractVersion,
   getConfig,
@@ -14,6 +13,9 @@ import UpgradeAuthV2ValidatorModule from "../../../ignition/modules/upgrades/upg
 import UpgradeEthIdentityValidatorModule from "../../../ignition/modules/upgrades/upgradeEthIdentityValidator";
 import UpgradeLinkedMultiQueryValidatorModule from "../../../ignition/modules/upgrades/upgradeLinkedMultiQuery";
 import { transferOwnership } from "../helpers/utils";
+import { network } from "hardhat";
+
+const { ethers, ignition } = await network.connect();
 
 // If you want to use impersonation, set the impersonate variable to true
 // With ignition we can't use impersonation, so we need to transfer ownership to the signer

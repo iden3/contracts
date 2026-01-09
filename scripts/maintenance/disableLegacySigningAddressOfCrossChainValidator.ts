@@ -1,6 +1,8 @@
-import { ethers } from "hardhat";
 import { contractsInfo } from "../../helpers/constants";
 import { getStateContractAddress } from "../../helpers/helperUtils";
+import { network } from "hardhat";
+
+const { ethers } = await network.connect();
 
 async function main() {
   const stateContractAddress = await getStateContractAddress();

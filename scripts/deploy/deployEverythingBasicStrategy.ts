@@ -1,7 +1,9 @@
-import { ignition } from "hardhat";
 import DeployEverythingBasicStrategy from "../../ignition/modules/deployEverythingBasicStrategy/deployEverythingBasicStrategy";
 import { getChainId, getDefaultIdType, verifyContract } from "../../helpers/helperUtils";
 import { ORACLE_SIGNING_ADDRESS_PRODUCTION } from "../../helpers/constants";
+import { network } from "hardhat";
+
+const { ignition } = await network.connect();
 
 async function main() {
   const params = {
