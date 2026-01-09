@@ -385,6 +385,47 @@ describe("MC Payment Contract", () => {
     expect(await payment.getOwnerERC20Balance(tokenAddress)).to.be.eq(0);
   });
 
+  it("ERC-20 payment with different issuer owner percentage 100%:", async () => {
+    const tokenFactory = await ethers.getContractFactory("ERC20Token", owner);
+    const token = await tokenFactory.deploy(1_000);
+    await token.connect(owner).transfer(await userSigner.getAddress(), 100);
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
+
+    await token.connect(userSigner).approve(await payment.getAddress(), 10);
+
+    await payment.connect(owner).updateIssuerOwnerPercentage(issuer1Signer.address, 100);
+
+    const paymentData = {
+      tokenAddress: await token.getAddress(),
+      recipient: issuer1Signer.address,
+      amount: 10,
+      expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60, // 1 hour
+      nonce: 35,
+      metadata: "0x",
+    };
+
+    const signature = await issuer1Signer.signTypedData(domainData, erc20types, paymentData);
+    const erc20PaymentGas = await payment
+      .connect(userSigner)
+      .payERC20.estimateGas(paymentData, signature);
+    console.log("ERC-20 Payment Gas: " + erc20PaymentGas);
+
+    await expect(
+      payment.connect(userSigner).payERC20(paymentData, signature),
+    ).to.changeTokenBalances(token, [userSigner, issuer1Signer, payment], [-10, 0, 10]);
+    expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
+    // owner ERC-20 withdraw
+    const tokenAddress = await token.getAddress();
+    const ownerBalance = await payment.getOwnerERC20Balance(tokenAddress);
+    expect(ownerBalance).to.be.eq(10);
+    await expect(payment.connect(owner).ownerERC20Withdraw(tokenAddress)).to.changeTokenBalances(
+      token,
+      [owner, payment],
+      [10, -10],
+    );
+    expect(await payment.getOwnerERC20Balance(tokenAddress)).to.be.eq(0);
+  });
+
   it("ERC-20 payment - expired:", async () => {
     const tokenFactory = await ethers.getContractFactory("ERC20Token", owner);
     const token = await tokenFactory.deploy(1_000);

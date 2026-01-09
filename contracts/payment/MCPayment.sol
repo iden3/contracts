@@ -18,7 +18,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.0.5";
+    string public constant VERSION = "1.0.7";
 
     /**
      * @dev Version of EIP 712 domain
@@ -417,7 +417,7 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
             revert WithdrawErrorNoBalance();
         }
 
-        IERC20(token).transfer(owner(), amount);
+        IERC20(token).safeTransfer(owner(), amount);
     }
 
     function _recoverERC20PaymentSignature(
@@ -455,7 +455,9 @@ contract MCPayment is Ownable2StepUpgradeable, EIP712Upgradeable, ReentrancyGuar
         uint8 ownerPercentage = getIssuerOwnerPercentage(paymentData.recipient);
         uint256 ownerPart = (paymentData.amount * ownerPercentage) / 100;
         uint256 issuerPart = paymentData.amount - ownerPart;
-        token.transfer(paymentData.recipient, issuerPart);
+        if (issuerPart > 0) {
+            token.safeTransfer(paymentData.recipient, issuerPart);
+        }
         emit Payment(signer, paymentData.nonce);
         bytes32 paymentId = keccak256(abi.encode(signer, paymentData.nonce));
         $.isPaid[paymentId] = true;

@@ -104,5 +104,8 @@
   "UpgradeStateModuleV2_6_3#SmtLib": "0x682364078e26C1626abD2B95109D2019E241F0F6",
   "UpgradeStateModuleV2_6_3#CrossChainProofValidator": "0x3014bF4A86eCcdEF81424Be0098009D0550705f4",
   "UpgradeStateModuleV2_6_3#StateLib": "0x5B4775332a8Ce758ef9feE419AF2d040DEA08F97",
-  "UpgradeStateModuleV2_6_3#State": "0x80F45E15d7cbcAA634f2875fC30a8A91974af402"
+  "UpgradeStateModuleV2_6_3#State": "0x80F45E15d7cbcAA634f2875fC30a8A91974af402",
+  "UpgradeMCPaymentModuleV1_0_7#Proxy": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
+  "UpgradeMCPaymentModuleV1_0_7#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE",
+  "UpgradeMCPaymentModuleV1_0_7#MCPayment": "0x1498E4dB813D1F11Efd47D05B6b6729Cabc0B0B6"
 }
