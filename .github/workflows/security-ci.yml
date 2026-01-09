@@ -28,7 +28,7 @@ jobs:
       - run: npm ci
       - run: npx hardhat compile
       - name: solidity-coverage
-        run: npx hardhat coverage
+        run: npx hardhat test --coverage
       - name: coveralls
         uses: coverallsapp/github-action@1.1.3
         with:
