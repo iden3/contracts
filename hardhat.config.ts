@@ -5,8 +5,36 @@ import hardhatLedgerPlugin from "@nomicfoundation/hardhat-ledger";
 import hardhatContractSizer from "@solidstate/hardhat-contract-sizer";
 import hardhatVerify from "@nomicfoundation/hardhat-verify";
 import dotenv from "dotenv";
-import { BASE_MAINNET_RPC_URL, BASE_SEPOLIA_RPC_URL, BILLIONS_MAINNET_RPC_URL, BILLIONS_TESTNET_RPC_URL, BNB_MAINNET_RPC_URL, BNB_TESTNET_RPC_URL, ETHEREUM_MAINNET_RPC_URL, ETHEREUM_SEPOLIA_RPC_URL, ETHERSCAN_API_KEY, LEDGER_ACCOUNT, LINEA_MAINNET_RPC_URL, LINEA_SEPOLIA_RPC_URL, POLYGON_AMOY_RPC_URL, POLYGON_MAINNET_RPC_URL, PRIVADO_MAINNET_RPC_URL, PRIVADO_TESTNET_RPC_URL, ZKEVM_CARDONA_RPC_URL, ZKEVM_MAINNET_RPC_URL } from "./helpers/environment";
+import {
+  BASE_MAINNET_RPC_URL,
+  BASE_SEPOLIA_RPC_URL,
+  BILLIONS_MAINNET_RPC_URL,
+  BILLIONS_TESTNET_RPC_URL,
+  BNB_MAINNET_RPC_URL,
+  BNB_TESTNET_RPC_URL,
+  ETHEREUM_MAINNET_RPC_URL,
+  ETHEREUM_SEPOLIA_RPC_URL,
+  ETHERSCAN_API_KEY,
+  LEDGER_ACCOUNT,
+  LINEA_MAINNET_RPC_URL,
+  LINEA_SEPOLIA_RPC_URL,
+  POLYGON_AMOY_RPC_URL,
+  POLYGON_MAINNET_RPC_URL,
+  PRIVADO_MAINNET_RPC_URL,
+  PRIVADO_TESTNET_RPC_URL,
+  PRIVATE_KEY,
+  ZKEVM_CARDONA_RPC_URL,
+  ZKEVM_MAINNET_RPC_URL,
+} from "./helpers/environment";
 dotenv.config();
+
+const DEFAULT_MNEMONIC = "test test test test test test test test test test test junk";
+const DEFAULT_ACCOUNTS: any = {
+  mnemonic: DEFAULT_MNEMONIC,
+  path: "m/44'/60'/0'/0",
+  initialIndex: 0,
+  count: 20,
+};
 
 export default defineConfig({
   plugins: [
@@ -223,15 +251,20 @@ export default defineConfig({
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
-    // hardhat: {
+    // --------------------------------------------------------------------------------------------------------------
+    // Note: uncomment to use a forked network and then run `npx hardhat node --fork`
+    // in some networks is needed to execute first a script with `await ethers.provider.send("evm_mine")` 
+    // to mine a block. Otherwise you can receive an error: "No known hardfork for execution on historical block..."
+    // --------------------------------------------------------------------------------------------------------------
+    // fork: {
     //   chainId: 80002,
     //   type: "edr-simulated",
     //   forking: {
-    //     url: `${process.env.POLYGON_AMOY_RPC_URL}`,
+    //     url: `${POLYGON_AMOY_RPC_URL}`,
     //   },
     //   accounts: [
     //     {
-    //       privateKey: process.env.PRIVATE_KEY as string,
+    //       privateKey: PRIVATE_KEY as string,
     //       balance: "1000000000000000000000000",
     //     },
     //   ],
@@ -277,10 +310,10 @@ export default defineConfig({
     6913: {
       name: "billions-testnet",
       blockExplorers: {
-        etherscan: {
+        blockscout: {
           name: "billions-testnet",
-          url: "https://billions-testnet-blockscout.eu-north-2.gateway.fm/api/",
-          apiUrl: "abc",
+          url: "https://billions-testnet-blockscout.eu-north-2.gateway.fm",
+          apiUrl: "https://billions-testnet-blockscout.eu-north-2.gateway.fm/api/",
         },
       },
     },

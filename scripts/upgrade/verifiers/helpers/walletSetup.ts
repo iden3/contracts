@@ -46,7 +46,8 @@ import {
 } from "@0xpolygonid/js-sdk";
 import path from "path";
 
-const circuitsFolder = "./circuits";
+const __dirname = path.resolve();
+const circuitsFolder = "./scripts/upgrade/verifiers/helpers/circuits"; //"./circuits";
 
 export function initInMemoryDataStorage(
   configs: {

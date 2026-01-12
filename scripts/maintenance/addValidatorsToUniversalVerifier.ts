@@ -4,6 +4,8 @@ import path from "path";
 import fs from "fs";
 import { network } from "hardhat";
 
+const __dirname = path.resolve();
+
 const { ethers, networkName } = await network.connect();
 
 async function main() {

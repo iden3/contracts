@@ -11,6 +11,8 @@ import { poseidonContract } from "circomlibjs";
 import path from "path";
 import { network } from "hardhat";
 
+const __dirname = path.resolve();
+
 const { ethers, provider, networkName } = await network.connect();
 
 export function getConfig() {
@@ -34,35 +36,6 @@ export async function getDefaultIdType(): Promise<{ defaultIdType: string; chain
     );
   }
   return { defaultIdType, chainId };
-}
-
-export async function waitNotToInterfereWithHardhatIgnition(
-  tx: ContractTransactionResponse | null | undefined,
-): Promise<void> {
-  const isLocalNetwork = ["localhost", "hardhat"].includes(networkName);
-  const confirmationsNeeded = isLocalNetwork
-    ? 1
-    : (hre.config.ignition?.requiredConfirmations ?? 1);
-
-  if (tx) {
-    console.log(
-      `Waiting for ${confirmationsNeeded} confirmations to not interfere with Hardhat Ignition`,
-    );
-    await tx.wait(confirmationsNeeded);
-  } else if (isLocalNetwork) {
-    console.log(`Mining ${confirmationsNeeded} blocks not to interfere with Hardhat Ignition`);
-    for (const _ of Array.from({ length: confirmationsNeeded })) {
-      await ethers.provider.send("evm_mine");
-    }
-  } else {
-    const blockNumberDeployed = await ethers.provider.getBlockNumber();
-    let blockNumber = blockNumberDeployed;
-    console.log("Waiting some blocks to expect at least 5 confirmations for Hardhat Ignition...");
-    while (blockNumber < blockNumberDeployed + 10) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      blockNumber = await ethers.provider.getBlockNumber();
-    }
-  }
 }
 
 export function removeLocalhostNetworkIgnitionFiles(network: string, chainId: number | undefined) {
@@ -118,11 +91,12 @@ export async function verifyContract(
   }
   // TODO: Enable verification reviewing replacement for "run" in Hardhat 3.x
 
+  console.log(`Verifying contract at address: ${contractAddress} ...`);
   // When verifying if the proxy contract is not verified yet we need to pass the arguments
   // for the proxy contract first, then for proxy admin and finally for the implementation contract
   /*if (opts.constructorArgsProxy) {
     try {
-      await run("verify:verify", {
+      await  run("verify:verify", {
         address: contractAddress,
         contract: opts.contract,
         constructorArguments: opts.constructorArgsProxy,
@@ -153,8 +127,8 @@ export async function verifyContract(
     return true;
   } catch (error) {
     Logger.error(`Error verifying ${contractAddress}: ${error}\n`);
-  }
-*/
+  }*/
+
   return false;
 }
 
@@ -250,7 +224,7 @@ export async function getStateContractAddress(chainId?: number): Promise<string>
 
 async function getParamsPath(): Promise<string> {
   const chainId = await getChainId();
-  const paramsPath = path.join(__dirname, `../ignition/modules/params/chain-${chainId}.json`);
+  const paramsPath = path.join(__dirname, `./ignition/modules/params/chain-${chainId}.json`);
   return paramsPath;
 }
 
