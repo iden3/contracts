@@ -1,8 +1,15 @@
-import { ethers } from "hardhat";
 import { beforeEach } from "mocha";
-import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
-import { contractsInfo } from "../../helpers/constants";
+import { chainIdInfoMap } from "../../helpers/constants";
+import { network } from "hardhat";
+import { getChainId } from "../../helpers/helperUtils";
+import {
+  Groth16VerifierStubModule,
+  RequestDisableableTestWrapperModule,
+  RequestValidatorStubModule,
+} from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
+
+const { ethers, networkHelpers, ignition } = await network.connect();
 
 describe("RequestDisableable tests", function () {
   let verifier, validator: any;
@@ -11,23 +18,39 @@ describe("RequestDisableable tests", function () {
 
   async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
-    const deployHelper = await DeployHelper.initialize(null, true);
-    const verifierLib = await ethers.deployContract(contractsInfo.VERIFIER_LIB.name);
-    const verifier = await ethers.deployContract("RequestDisableableTestWrapper", [], {
-      libraries: {
-        VerifierLib: await verifierLib.getAddress(),
+
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
       },
-    });
+      StateProxyModule: {
+        defaultIdType: "0x0112",
+      },
+    };
 
-    const { state } = await deployHelper.deployStateWithLibraries([], "Groth16VerifierStub");
-    await verifier.initialize(await state.getAddress());
+    const { state, requestDisableableTestWrapper: verifier } = await ignition.deploy(
+      RequestDisableableTestWrapperModule,
+      {
+        parameters: parameters,
+      },
+    );
 
-    const validator = await ethers.deployContract("RequestValidatorStub");
+    const groth16VerifierStub = (await ignition.deploy(Groth16VerifierStubModule))
+      .groth16VerifierStub;
+    await state.setVerifier(await groth16VerifierStub.getAddress());
+
+    const validator = (await ignition.deploy(RequestValidatorStubModule)).requestValidatorStub;
+
     return { verifier, validator };
   }
 
   beforeEach(async function () {
-    ({ verifier, validator } = await deployContractsFixture());
+    ({ verifier, validator } = await networkHelpers.loadFixture(deployContractsFixture));
 
     request = {
       requestId: 1,
@@ -53,8 +76,8 @@ describe("RequestDisableable tests", function () {
     let isRequestEnabled = await verifier.isRequestEnabled(request.requestId);
     expect(isRequestEnabled).to.be.true;
 
-    await expect(verifier.testModifier(request.requestId)).not.to.be.reverted;
-    await expect(verifier.getRequestIfCanBeVerified(request.requestId)).not.to.be.reverted;
+    await expect(verifier.testModifier(request.requestId)).not.to.be.revert(ethers);
+    await expect(verifier.getRequestIfCanBeVerified(request.requestId)).not.to.be.revert(ethers);
 
     await verifier.disableRequest(request.requestId);
 
@@ -74,6 +97,6 @@ describe("RequestDisableable tests", function () {
     isRequestEnabled = await verifier.isRequestEnabled(request.requestId);
     expect(isRequestEnabled).to.be.true;
 
-    await expect(verifier.testModifier(request.requestId)).not.to.be.reverted;
+    await expect(verifier.testModifier(request.requestId)).not.to.be.revert(ethers);
   });
 });

@@ -1,8 +1,15 @@
-import { ethers } from "hardhat";
 import { beforeEach } from "mocha";
-import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
-import { contractsInfo } from "../../helpers/constants";
+import { chainIdInfoMap } from "../../helpers/constants";
+import { network } from "hardhat";
+import { getChainId } from "../../helpers/helperUtils";
+import {
+  Groth16VerifierStubModule,
+  RequestOwnershipTestWrapperModule,
+  RequestValidatorStubModule,
+} from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
+
+const { ethers, networkHelpers, ignition } = await network.connect();
 
 describe("RequestOwnership tests", function () {
   let verifier, validator: any;
@@ -12,18 +19,33 @@ describe("RequestOwnership tests", function () {
   async function deployContractsFixture() {
     [signer1, signer2] = await ethers.getSigners();
 
-    const deployHelper = await DeployHelper.initialize(null, true);
-    const verifierLib = await ethers.deployContract(contractsInfo.VERIFIER_LIB.name);
-    const verifier = await ethers.deployContract("RequestOwnershipTestWrapper", [], {
-      libraries: {
-        VerifierLib: await verifierLib.getAddress(),
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
       },
-    });
+      StateProxyModule: {
+        defaultIdType: "0x0112",
+      },
+    };
 
-    const { state } = await deployHelper.deployStateWithLibraries([], "Groth16VerifierStub");
-    await verifier.initialize(await state.getAddress());
+    const { state, requestOwnershipTestWrapper: verifier } = await ignition.deploy(
+      RequestOwnershipTestWrapperModule,
+      {
+        parameters: parameters,
+      },
+    );
 
-    const validator = await ethers.deployContract("RequestValidatorStub");
+    const groth16VerifierStub = (await ignition.deploy(Groth16VerifierStubModule))
+      .groth16VerifierStub;
+    await state.setVerifier(await groth16VerifierStub.getAddress());
+
+    const validator = (await ignition.deploy(RequestValidatorStubModule)).requestValidatorStub;
+
     return { verifier, validator, signer1, signer2 };
   }
 

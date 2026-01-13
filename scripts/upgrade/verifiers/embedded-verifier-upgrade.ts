@@ -1,4 +1,3 @@
-import { ethers, ignition } from "hardhat";
 import * as stateArtifact from "../../../artifacts/contracts/state/State.sol/State.json";
 import { expect } from "chai";
 import {
@@ -13,6 +12,9 @@ import { contractsInfo } from "../../../helpers/constants";
 import { buildModule } from "@nomicfoundation/ignition-core";
 import { Contract } from "ethers";
 import { StateAtModule } from "../../../ignition/modules/contractsAt";
+import { network } from "hardhat";
+
+const { ethers, ignition } = await network.connect();
 
 const embeddedVerifierName = "<verifier contract name>";
 const embeddedVerifierAddress = "<verifier contract address>";

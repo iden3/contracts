@@ -1,8 +1,15 @@
-import { ethers } from "hardhat";
 import { beforeEach } from "mocha";
-import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
-import { contractsInfo } from "../../helpers/constants";
+import { chainIdInfoMap } from "../../helpers/constants";
+import { network } from "hardhat";
+import { getChainId } from "../../helpers/helperUtils";
+import {
+  Groth16VerifierStubModule,
+  RequestValidatorStubModule,
+  ValidatorWhitelistTestWrapperModule,
+} from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
+
+const { ethers, networkHelpers, ignition } = await network.connect();
 
 describe("ValidatorWhitelist tests", function () {
   let verifier, validator: any;
@@ -12,23 +19,39 @@ describe("ValidatorWhitelist tests", function () {
   async function deployContractsFixture() {
     [signer1, signer2] = await ethers.getSigners();
 
-    const deployHelper = await DeployHelper.initialize(null, true);
-    const verifierLib = await ethers.deployContract(contractsInfo.VERIFIER_LIB.name);
-    const verifier = await ethers.deployContract("ValidatorWhitelistTestWrapper", [], {
-      libraries: {
-        VerifierLib: await verifierLib.getAddress(),
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
       },
-    });
+      StateProxyModule: {
+        defaultIdType: "0x0112",
+      },
+    };
 
-    const { state } = await deployHelper.deployStateWithLibraries([], "Groth16VerifierStub");
-    await verifier.initialize(await state.getAddress());
+    const { state, validatorWhitelistTestWrapper: verifier } = await ignition.deploy(
+      ValidatorWhitelistTestWrapperModule,
+      {
+        parameters: parameters,
+      },
+    );
 
-    const validator = await ethers.deployContract("RequestValidatorStub");
+    const groth16VerifierStub = (await ignition.deploy(Groth16VerifierStubModule))
+      .groth16VerifierStub;
+    await state.setVerifier(await groth16VerifierStub.getAddress());
+
+    const validator = (await ignition.deploy(RequestValidatorStubModule)).requestValidatorStub;
+
     return { verifier, validator, signer1, signer2 };
   }
 
   beforeEach(async function () {
-    ({ verifier, validator, signer1, signer2 } = await deployContractsFixture());
+    ({ verifier, validator, signer1, signer2 } =
+      await networkHelpers.loadFixture(deployContractsFixture));
 
     request = {
       requestId: 1,
@@ -62,8 +85,8 @@ describe("ValidatorWhitelist tests", function () {
     await validator.stub_setInput("userID", 1);
     await verifier.setRequests([request]);
 
-    await expect(verifier.testModifier(await validator.getAddress())).not.to.be.reverted;
-    await expect(verifier.getRequestIfCanBeVerified(request.requestId)).not.to.be.reverted;
+    await expect(verifier.testModifier(await validator.getAddress())).not.to.be.revert(ethers);
+    await expect(verifier.getRequestIfCanBeVerified(request.requestId)).not.to.be.revert(ethers);
 
     isWhitelistedValidator = await verifier.isWhitelistedValidator(await validator.getAddress());
     expect(isWhitelistedValidator).to.be.true;

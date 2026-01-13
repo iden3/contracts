@@ -1,26 +1,25 @@
 import { expect } from "chai";
 import { prepareInputs, publishState } from "../../utils/state-utils";
-import { DeployHelper } from "../../../helpers/DeployHelper";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { packZKProof } from "../../utils/packData";
-import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { contractsInfo } from "../../../helpers/constants";
+import { chainIdInfoMap, contractsInfo } from "../../../helpers/constants";
+import { network } from "hardhat";
+import { getChainId } from "../../../helpers/helperUtils";
+import { AuthV2ValidatorWithGroth16VerifierStubModule } from "../../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
+import issuerFromGenesisStateToFirstTransitionV3 from "../common-data/issuer_from_genesis_state_to_first_transition_v3.json";
+
+const { ethers, networkHelpers, ignition } = await network.connect();
 
 const testCases: any[] = [
   {
     name: "Validate AuthV2",
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
-    ],
+    stateTransitions: [issuerFromGenesisStateToFirstTransitionV3],
     userID: 23273167900576580892722615617815475823351560716009055944677723144398443009n,
   },
   {
     name: "Validation of Gist root not found",
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
-    ],
+    stateTransitions: [issuerFromGenesisStateToFirstTransitionV3],
     userID: 23273167900576580892722615617815475823351560716009055944677723144398443009n,
     gistRoot: 2n,
     errorMessage: "GIST root entry not found",
@@ -31,19 +30,26 @@ describe("Auth V2 Validator", function () {
   let state: any, authV2validator;
 
   async function deployContractsFixture() {
-    const deployHelper = await DeployHelper.initialize(null, true);
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
 
-    const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0212"]);
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0112",
+      },
+    };
 
-    const verifierStub = await deployHelper.deployGroth16VerifierValidatorStub();
-
-    const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
-      "authV2",
-      await stateContract.getAddress(),
-      "basic",
-      await verifierStub.getAddress(),
+    const { state: stateContract, authV2Validator: validator } = await ignition.deploy(
+      AuthV2ValidatorWithGroth16VerifierStubModule,
+      {
+        parameters: parameters,
+      },
     );
-    const validator = contracts.validator;
 
     return {
       stateContract,
@@ -53,7 +59,7 @@ describe("Auth V2 Validator", function () {
 
   beforeEach(async () => {
     ({ stateContract: state, validator: authV2validator } =
-      await loadFixture(deployContractsFixture));
+      await networkHelpers.loadFixture(deployContractsFixture));
   });
 
   for (const test of testCases) {
@@ -62,9 +68,9 @@ describe("Auth V2 Validator", function () {
 
       for (let i = 0; i < test.stateTransitions.length; i++) {
         if (test.stateTransitionDelayMs) {
-          await time.increase(test.stateTransitionDelayMs);
+          await networkHelpers.time.increase(test.stateTransitionDelayMs);
         }
-        await publishState(state, test.stateTransitions[i]);
+        await publishState(ethers, state, test.stateTransitions[i]);
       }
 
       const challenge =

@@ -1,15 +1,31 @@
-import { HardhatUserConfig, task } from "hardhat/config";
-import "@typechain/hardhat";
-import "hardhat-gas-reporter";
-import "hardhat-contract-sizer";
-import "solidity-coverage";
-import "@openzeppelin/hardhat-upgrades";
-import "@nomicfoundation/hardhat-chai-matchers";
-import "@nomicfoundation/hardhat-verify";
-import "@nomicfoundation/hardhat-ignition-ethers";
-import "@nomicfoundation/hardhat-ledger";
-import "@nomicfoundation/hardhat-verify";
+import { defineConfig } from "hardhat/config";
+import hardhatToolboxMochaEthers from "@nomicfoundation/hardhat-toolbox-mocha-ethers";
+import hardhatIgnitionPlugin from "@nomicfoundation/hardhat-ignition";
+import hardhatLedgerPlugin from "@nomicfoundation/hardhat-ledger";
+import hardhatContractSizer from "@solidstate/hardhat-contract-sizer";
+import hardhatVerify from "@nomicfoundation/hardhat-verify";
 import dotenv from "dotenv";
+import {
+  BASE_MAINNET_RPC_URL,
+  BASE_SEPOLIA_RPC_URL,
+  BILLIONS_MAINNET_RPC_URL,
+  BILLIONS_TESTNET_RPC_URL,
+  BNB_MAINNET_RPC_URL,
+  BNB_TESTNET_RPC_URL,
+  ETHEREUM_MAINNET_RPC_URL,
+  ETHEREUM_SEPOLIA_RPC_URL,
+  ETHERSCAN_API_KEY,
+  LEDGER_ACCOUNT,
+  LINEA_MAINNET_RPC_URL,
+  LINEA_SEPOLIA_RPC_URL,
+  POLYGON_AMOY_RPC_URL,
+  POLYGON_MAINNET_RPC_URL,
+  PRIVADO_MAINNET_RPC_URL,
+  PRIVADO_TESTNET_RPC_URL,
+  PRIVATE_KEY,
+  ZKEVM_CARDONA_RPC_URL,
+  ZKEVM_MAINNET_RPC_URL,
+} from "./helpers/environment";
 dotenv.config();
 
 const DEFAULT_MNEMONIC = "test test test test test test test test test test test junk";
@@ -20,28 +36,23 @@ const DEFAULT_ACCOUNTS: any = {
   count: 20,
 };
 
-// This is a sample Hardhat task. To learn how to create your own go to
-// https://hardhat.org/guides/create-task.html
-task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
-  const accounts = await hre.ethers.getSigners();
-
-  for (const account of accounts) {
-    console.log(await account.getAddress());
-  }
-});
-
-// You need to export an object to set up your config
-// Go to https://hardhat.org/config/ to learn more
-
-/**
- * @type import('hardhat/config').HardhatUserConfig
- */
-const config: HardhatUserConfig = {
+export default defineConfig({
+  plugins: [
+    hardhatToolboxMochaEthers,
+    hardhatIgnitionPlugin,
+    hardhatLedgerPlugin,
+    hardhatContractSizer,
+    hardhatVerify,
+  ],
   solidity: {
     compilers: [
       {
         version: "0.8.27",
       },
+    ],
+    npmFilesToBuild: [
+      "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol",
+      "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol",
     ],
     overrides: {
       "contracts/verifiers/UniversalVerifier.sol": {
@@ -129,139 +140,145 @@ const config: HardhatUserConfig = {
   },
   networks: {
     "privado-mainnet": {
+      type: "http",
       chainId: 21000,
-      url: `${process.env.PRIVADO_MAINNET_RPC_URL}`,
+      url: `${PRIVADO_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "privado-testnet": {
+      type: "http",
       chainId: 21001,
-      url: `${process.env.PRIVADO_TESTNET_RPC_URL}`,
+      url: `${PRIVADO_TESTNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "billions-mainnet": {
+      type: "http",
       chainId: 45056,
-      url: `${process.env.BILLIONS_MAINNET_RPC_URL}`,
+      url: `${BILLIONS_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "billions-testnet": {
+      type: "http",
       chainId: 6913,
-      url: `${process.env.BILLIONS_TESTNET_RPC_URL}`,
+      url: `${BILLIONS_TESTNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "polygon-mainnet": {
+      type: "http",
       chainId: 137,
-      url: `${process.env.POLYGON_MAINNET_RPC_URL}`,
+      url: `${POLYGON_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "polygon-amoy": {
+      type: "http",
       chainId: 80002,
-      url: `${process.env.POLYGON_AMOY_RPC_URL}`,
+      url: `${POLYGON_AMOY_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "ethereum-mainnet": {
+      type: "http",
       chainId: 1,
-      url: `${process.env.ETHEREUM_MAINNET_RPC_URL}`,
+      url: `${ETHEREUM_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "ethereum-sepolia": {
+      type: "http",
       chainId: 11155111,
-      url: `${process.env.ETHEREUM_SEPOLIA_RPC_URL}`,
+      url: `${ETHEREUM_SEPOLIA_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "zkevm-mainnet": {
+      type: "http",
       chainId: 1101,
-      url: `${process.env.ZKEVM_MAINNET_RPC_URL}`,
+      url: `${ZKEVM_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "zkevm-cardona": {
+      type: "http",
       chainId: 2442,
-      url: `${process.env.ZKEVM_CARDONA_RPC_URL}`,
+      url: `${ZKEVM_CARDONA_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "linea-mainnet": {
+      type: "http",
       chainId: 59144,
-      url: `${process.env.LINEA_MAINNET_RPC_URL}`,
+      url: `${LINEA_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "linea-sepolia": {
+      type: "http",
       chainId: 59141,
-      url: `${process.env.LINEA_SEPOLIA_RPC_URL}`,
+      url: `${LINEA_SEPOLIA_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "base-mainnet": {
+      type: "http",
       chainId: 8453,
-      url: `${process.env.BASE_MAINNET_RPC_URL}`,
+      url: `${BASE_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "base-sepolia": {
+      type: "http",
       chainId: 84532,
-      url: `${process.env.BASE_SEPOLIA_RPC_URL}`,
+      url: `${BASE_SEPOLIA_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "bnb-mainnet": {
+      type: "http",
       chainId: 56,
-      url: `${process.env.BNB_MAINNET_RPC_URL}`,
+      url: `${BNB_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
     "bnb-testnet": {
+      type: "http",
       chainId: 97,
-      url: `${process.env.BNB_TESTNET_RPC_URL}`,
+      url: `${BNB_TESTNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
     },
-    // hardhat: {
+    // --------------------------------------------------------------------------------------------------------------
+    // Note: uncomment to use a forked network and then run `npx hardhat node --fork`
+    // in some networks is needed to execute first a script with `await ethers.provider.send("evm_mine")` 
+    // to mine a block. Otherwise you can receive an error: "No known hardfork for execution on historical block..."
+    // --------------------------------------------------------------------------------------------------------------
+    // fork: {
     //   chainId: 80002,
+    //   type: "edr-simulated",
     //   forking: {
-    //     url: `${process.env.POLYGON_AMOY_RPC_URL}`,
-    //   },
-    //   chains: {
-    //     80002: {
-    //       hardforkHistory: {
-    //         london: 100000,
-    //       },
-    //     },
+    //     url: `${POLYGON_AMOY_RPC_URL}`,
     //   },
     //   accounts: [
     //     {
-    //       privateKey: process.env.PRIVATE_KEY as string,
+    //       privateKey: PRIVATE_KEY as string,
     //       balance: "1000000000000000000000000",
     //     },
     //   ],
     // },
     localhost: {
+      type: "http",
       url: "http://127.0.0.1:8545",
       timeout: 100000000,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
     },
   },
-  gasReporter: {
-    currency: "USD",
-    coinmarketcap: process.env.COINMARKETCAP_KEY,
-    enabled: !!process.env.REPORT_GAS,
-    token: "MATIC",
-    gasPriceApi: "https://api.polygonscan.com/api?module=proxy&action=eth_gasPrice", // MATIC
-    // gasPriceAPI: "https://api.etherscan.io/api?module=proxy&action=eth_gasPrice", // ETH
-  },
-  contractSizer: {
-    alphaSort: false,
-    disambiguatePaths: false,
-    runOnCompile: false,
-    strict: false,
+  typechain: {
+    outDir: "typechain",
+    discriminateTypes: true,
   },
   ignition: {
     strategyConfig: {
@@ -284,107 +301,37 @@ const config: HardhatUserConfig = {
       },
     },
   },
-  etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
-    customChains: [
-      {
-        network: "base-sepolia",
-        chainId: 84532,
-        urls: {
-          apiURL: "https://api.etherscan.io/v2/api?chainid=84532",
-          browserURL: "https://sepolia.basescan.org",
-        },
-      },
-      {
-        network: "base-mainnet",
-        chainId: 8453,
-        urls: {
-          apiURL: "https://api.etherscan.io/v2/api?chainid=8453",
-          browserURL: "https://basescan.org",
-        },
-      },
-      {
-        network: "bnb-testnet",
-        chainId: 97,
-        urls: {
-          apiURL: "https://api.etherscan.io/v2/api?chainid=97",
-          browserURL: "https://testnet.bscscan.com",
-        },
-      },
-      {
-        network: "bnb-mainnet",
-        chainId: 56,
-        urls: {
-          apiURL: "https://api.etherscan.io/v2/api?chainid=56",
-          browserURL: "https://bscscan.com",
-        },
-      },
-      {
-        network: "billions-testnet",
-        chainId: 6913,
-        urls: {
-          apiURL: "https://billions-testnet-blockscout.eu-north-2.gateway.fm/api/",
-          browserURL: "https://docs.blockscout.com",
-        },
-      },
-      {
-        network: "billions-mainnet",
-        chainId: 45056,
-        urls: {
-          apiURL: "https://billions-blockscout.eu-north-2.gateway.fm/api/",
-          browserURL: "https://docs.blockscout.com",
-        },
-      },
-      {
-        network: "polygon-amoy",
-        chainId: 80002,
-        urls: {
-          apiURL: "https://api.etherscan.io/v2/api?chainid=80002",
-          browserURL: "https://amoy.polygonscan.com",
-        },
-      },
-      {
-        network: "polygon-mainnet",
-        chainId: 137,
-        urls: {
-          apiURL: "https://api.etherscan.io/v2/api?chainid=137",
-          browserURL: "https://polygonscan.com",
-        },
-      },
-      {
-        network: "linea-sepolia",
-        chainId: 59141,
-        urls: {
-          apiURL: "https://api.etherscan.io/v2/api?chainid=59141",
-          browserURL: "https://sepolia.lineascan.build",
-        },
-      },
-      {
-        network: "linea-mainnet",
-        chainId: 59144,
-        urls: {
-          apiURL: "https://api.etherscan.io/v2/api?chainid=59144",
-          browserURL: "https://lineascan.build",
-        },
-      },
-      {
-        network: "zkevm-cardona",
-        chainId: 2442,
-        urls: {
-          apiURL: "https://api-cardona-zkevm.polygonscan.com/api",
-          browserURL: "https://docs.polygonscan.com/cardona-polygon-zkevm",
-        },
-      },
-      {
-        network: "zkevm-mainnet",
-        chainId: 1101,
-        urls: {
-          apiURL: "https://api-zkevm.polygonscan.com/api",
-          browserURL: "https://docs.polygonscan.com/polygon-zkevm",
-        },
-      },
-    ],
+  verify: {
+    etherscan: {
+      apiKey: ETHERSCAN_API_KEY,
+    },
   },
-};
-
-export default config;
+  chainDescriptors: {
+    6913: {
+      name: "billions-testnet",
+      blockExplorers: {
+        blockscout: {
+          name: "billions-testnet",
+          url: "https://billions-testnet-blockscout.eu-north-2.gateway.fm",
+          apiUrl: "https://billions-testnet-blockscout.eu-north-2.gateway.fm/api/",
+        },
+      },
+    },
+    45056: {
+      name: "billions-mainnet",
+      blockExplorers: {
+        blockscout: {
+          name: "billions-mainnet",
+          url: "https://billions-rpc.eu-north-2.gateway.fm",
+          apiUrl: "https://billions-rpc.eu-north-2.gateway.fm/api/",
+        },
+      },
+    },
+  },
+  contractSizer: {
+    alphaSort: false,
+    runOnCompile: false,
+    strict: false,
+    flat: true,
+  },
+});

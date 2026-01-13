@@ -1,4 +1,3 @@
-import { ethers, ignition } from "hardhat";
 import { contractsInfo } from "../../../helpers/constants";
 import { getConfig, getDeploymentParameters } from "../../../helpers/helperUtils";
 import StateModule from "../../../ignition/modules/state";
@@ -26,6 +25,9 @@ import {
 } from "../../../ignition/modules/contractsAt";
 import MCPaymentModule from "../../../ignition/modules/mcPayment";
 import VCPaymentModule from "../../../ignition/modules/vcPayment";
+import { network } from "hardhat";
+
+const { ethers, ignition } = await network.connect();
 
 async function main() {
   const config = getConfig();

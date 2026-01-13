@@ -4,7 +4,6 @@ import {
   verifyContract,
   writeDeploymentParameters,
 } from "../../helpers/helperUtils";
-import { ethers, ignition } from "hardhat";
 import { contractsInfo } from "../../helpers/constants";
 import {
   Poseidon1Module,
@@ -13,6 +12,9 @@ import {
   Poseidon4Module,
   SmtLibModule,
 } from "../../ignition";
+import { network } from "hardhat";
+
+const { ethers, ignition } = await network.connect();
 
 async function main() {
   const config = getConfig();

@@ -1,9 +1,11 @@
-import { ethers, upgrades } from "hardhat";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { packZKProof } from "../../utils/packData";
 import { packLinkedMultiQueryValidatorParams } from "../../utils/validator-pack-utils";
 import { expect } from "chai";
 import { contractsInfo } from "../../../helpers/constants";
+import { network } from "hardhat";
+import { LinkedMultiQueryValidatorWithGroth16VerifierStubModule } from "../../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
+
+const { ethers, networkHelpers, ignition } = await network.connect();
 
 describe("Test linkedMultiQuery10.circom", function () {
   let validator, groth16Verifier;
@@ -25,20 +27,24 @@ describe("Test linkedMultiQuery10.circom", function () {
       ["0", "0"],
     ],
     ["0", "0"],
-  ];
+  ] as any;
 
   const proofForOneQuery = packZKProof(
     [linkId, merklized]
-      .concat([operatorOutput1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-      .concat([queryHash1, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-    ...dummyZKProof,
+      .concat([operatorOutput1, "0", "0", "0", "0", "0", "0", "0", "0", "0"])
+      .concat([queryHash1, "0", "0", "0", "0", "0", "0", "0", "0", "0"]),
+    dummyZKProof[0],
+    dummyZKProof[1],
+    dummyZKProof[2],
   );
 
   const proofForTwoQueries = packZKProof(
     [linkId, merklized]
-      .concat([operatorOutput1, operatorOutput2, 0, 0, 0, 0, 0, 0, 0, 0])
-      .concat([queryHash1, queryHash2, 0, 0, 0, 0, 0, 0, 0, 0]),
-    ...dummyZKProof,
+      .concat([operatorOutput1, operatorOutput2, "0", "0", "0", "0", "0", "0", "0", "0"])
+      .concat([queryHash1, queryHash2, "0", "0", "0", "0", "0", "0", "0", "0"]),
+    dummyZKProof[0],
+    dummyZKProof[1],
+    dummyZKProof[2],
   );
 
   const oneQuery = {
@@ -75,15 +81,15 @@ describe("Test linkedMultiQuery10.circom", function () {
 
   async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
-    const groth16Verifier = await ethers.deployContract("Groth16VerifierValidatorStub");
-    const lmqValidator = await ethers.getContractFactory("LinkedMultiQueryValidator");
-    const g16address = await groth16Verifier.getAddress();
-    const validator = await upgrades.deployProxy(lmqValidator, [g16address, signer.address]);
+
+    ({ linkedMultiQueryValidator: validator, groth16VerifierValidatorStub: groth16Verifier } =
+      await ignition.deploy(LinkedMultiQueryValidatorWithGroth16VerifierStubModule));
+
     return { validator, groth16Verifier };
   }
 
   beforeEach(async () => {
-    ({ validator, groth16Verifier } = await loadFixture(deployContractsFixture));
+    ({ validator, groth16Verifier } = await networkHelpers.loadFixture(deployContractsFixture));
   });
 
   it("Should verify", async function () {
@@ -145,10 +151,12 @@ describe("Test linkedMultiQuery10.circom", function () {
     ).to.be.revertedWithCustomError(validator, "GroupIDCannotBeZero");
 
     const proofForOneQueryWithZeroLinkID = packZKProof(
-      [0, merklized]
-        .concat([operatorOutput1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        .concat([queryHash1, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-      ...dummyZKProof,
+      ["0", merklized]
+        .concat([operatorOutput1, "0", "0", "0", "0", "0", "0", "0", "0", "0"])
+        .concat([queryHash1, "0", "0", "0", "0", "0", "0", "0", "0", "0"]),
+      dummyZKProof[0],
+      dummyZKProof[1],
+      dummyZKProof[2],
     );
 
     await expect(

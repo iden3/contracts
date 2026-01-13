@@ -1,7 +1,9 @@
-import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
 import { addStateToStateLib } from "../utils/state-utils";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { network } from "hardhat";
+import { StateLibTestWrapperModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
+
+const { ethers, networkHelpers, ignition } = await network.connect();
 
 const id1Inputs = [
   { id: 1, state: 10 },
@@ -12,16 +14,15 @@ describe("Negative tests", function () {
   let stateLibWrpr;
 
   async function deployContractsFixture() {
-    const deployHelper = await DeployHelper.initialize();
-    stateLibWrpr = await deployHelper.deployStateLibTestWrapper();
+    ({ stateLibTestWrapper:stateLibWrpr } = await ignition.deploy(StateLibTestWrapperModule));
 
     for (const { id, state } of id1Inputs) {
-      await addStateToStateLib(stateLibWrpr, id, state);
+      await addStateToStateLib(ethers, stateLibWrpr, id, state);
     }
   }
 
   before(async () => {
-    await loadFixture(deployContractsFixture);
+    await networkHelpers.loadFixture(deployContractsFixture);
   });
 
   it("getStateInfoByID: should be reverted if identity does not exist", async () => {
@@ -58,10 +59,10 @@ describe("Negative tests", function () {
   });
 
   it("Zero timestamp and block should be only in the first identity state", async () => {
-    await expect(stateLibWrpr.addGenesisState(2, 20)).to.be.not.reverted;
+    await expect(stateLibWrpr.addGenesisState(2, 20)).to.be.not.revert(ethers);
     await expect(stateLibWrpr.addGenesisState(2, 20)).to.be.rejectedWith("Identity already exists");
 
-    await expect(stateLibWrpr.addState(3, 30)).to.be.not.reverted;
+    await expect(stateLibWrpr.addState(3, 30)).to.be.not.revert(ethers);
     await expect(stateLibWrpr.addGenesisState(3, 30)).to.be.rejectedWith("Identity already exists");
   });
 });
@@ -71,12 +72,11 @@ describe("StateInfo history", function () {
   let addStateResults: { [key: string]: any }[] = [];
 
   async function deployContractsFixture() {
-    const deployHelper = await DeployHelper.initialize();
-    stateLibWrpr = await deployHelper.deployStateLibTestWrapper();
+    ({ stateLibTestWrapper:stateLibWrpr } = await ignition.deploy(StateLibTestWrapperModule));
 
     addStateResults = [];
     for (const { id, state } of id1Inputs) {
-      addStateResults.push(await addStateToStateLib(stateLibWrpr, id, state));
+      addStateResults.push(await addStateToStateLib(ethers, stateLibWrpr, id, state));
     }
     id1 = id1Inputs[0].id;
 
@@ -84,7 +84,7 @@ describe("StateInfo history", function () {
   }
 
   beforeEach(async () => {
-    await loadFixture(deployContractsFixture);
+    await networkHelpers.loadFixture(deployContractsFixture);
   });
 
   it("should return state history", async () => {
@@ -142,12 +142,11 @@ describe("State history duplicates", function () {
   let stateLibWrpr;
 
   async function deployContractsFixture() {
-    const deployHelper = await DeployHelper.initialize();
-    stateLibWrpr = await deployHelper.deployStateLibTestWrapper();
+    ({ stateLibTestWrapper:stateLibWrpr } = await ignition.deploy(StateLibTestWrapperModule));
   }
 
   beforeEach(async () => {
-    await loadFixture(deployContractsFixture);
+    await networkHelpers.loadFixture(deployContractsFixture);
   });
 
   it("comprehensive check", async () => {
@@ -162,7 +161,7 @@ describe("State history duplicates", function () {
 
     const addResults: { [key: string]: any }[] = [];
     for (const { id, state, noTime } of idAndStatesToAdd) {
-      addResults.push(await addStateToStateLib(stateLibWrpr, id, state, noTime));
+      addResults.push(await addStateToStateLib(ethers, stateLibWrpr, id, state, noTime));
     }
 
     const singleIdAndState = [1, 2];

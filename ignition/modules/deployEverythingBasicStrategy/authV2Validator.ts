@@ -7,7 +7,7 @@ import {
 import { Groth16VerifierAuthV2Module } from "./groth16verifiers";
 import StateModule from "./state";
 
-const AuthV2ValidatorImplementationModule = buildModule(
+export const AuthV2ValidatorImplementationModule = buildModule(
   "AuthV2ValidatorImplementationModule",
   (m) => {
     const implementation = m.contract(contractsInfo.VALIDATOR_AUTH_V2.name);
@@ -41,13 +41,13 @@ const AuthV2ValidatorProxyModule = buildModule("AuthV2ValidatorProxyModule", (m)
     [implementation, proxyAdminOwner, initializeData],
   );
 
-  return { proxy };
+  return { proxy, state, implementation };
 });
 
 const AuthV2ValidatorModule = buildModule("AuthV2ValidatorModule", (m) => {
-  const { proxy } = m.useModule(AuthV2ValidatorProxyModule);
+  const { proxy, state, implementation } = m.useModule(AuthV2ValidatorProxyModule);
   const authV2Validator = m.contractAt(contractsInfo.VALIDATOR_AUTH_V2.name, proxy);
-  return { authV2Validator };
+  return { authV2Validator, state, implementation };
 });
 
 export default AuthV2ValidatorModule;

@@ -1,4 +1,3 @@
-import { ethers, ignition } from "hardhat";
 import { contractsInfo } from "../../helpers/constants";
 import {
   getChainId,
@@ -26,6 +25,9 @@ import {
   UniversalVerifierAtModule,
   VCPaymentAtModule,
 } from "../../ignition/modules/contractsAt";
+import { network } from "hardhat";
+
+const { ethers, ignition } = await network.connect();
 
 async function main() {
   // const config = getConfig();

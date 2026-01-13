@@ -8,7 +8,6 @@ import {
   packValidatorParams,
 } from "../../../../test/utils/validator-pack-utils";
 import { Blockchain, BytesHelper, DID, DidMethod, NetworkId } from "@iden3/js-iden3-core";
-import hre from "hardhat";
 import {
   initCircuitStorage,
   initInMemoryDataStorageAndWallets,
@@ -39,10 +38,13 @@ import {
   PROTOCOL_CONSTANTS,
   ZeroKnowledgeProofRequest,
 } from "@0xpolygonid/js-sdk";
-import { Groth16VerifierType } from "../../../../helpers/DeployHelper";
 import { getChainId } from "../../../../helpers/helperUtils";
 import { calculateRequestID } from "../../../../test/utils/id-calculation-utils";
 import * as uuid from "uuid";
+import { Groth16VerifierType } from "../../../../helpers/constants";
+import { network } from "hardhat";
+
+const { ethers, networkName } = await network.connect();
 
 const rhsUrl = "https://rhs-staging.polygonid.me";
 
@@ -257,13 +259,10 @@ export async function submitZKPResponses_KYCAgeCredential(
 ) {
   console.log(`================= ${verifierType} KYCAgeCredential ===================`);
   let chainId: number;
-  let networkName: string;
   if (opts.provider) {
     chainId = Number((await opts.provider.getNetwork()).chainId);
-    networkName = (await opts.provider.getNetwork()).name;
   } else {
     chainId = (await getChainId()) || 80002;
-    networkName = hre.network.name;
   }
 
   const { rpcUrl, method, blockchain, networkId } = getParamsFromChainId(chainId);
@@ -276,7 +275,7 @@ export async function submitZKPResponses_KYCAgeCredential(
   if (opts.signer) {
     signer = opts.signer;
   } else {
-    signer = new hre.ethers.Wallet(process.env.PRIVATE_KEY as string, new JsonRpcProvider(rpcUrl)); //signerHre;
+    signer = new ethers.Wallet(process.env.PRIVATE_KEY as string, new JsonRpcProvider(rpcUrl)); //signerHre;
   }
 
   console.log("Signer: ", await signer.address);
@@ -495,7 +494,7 @@ export async function submitResponse(
     senderDid: profileDID,
     ethSigner: opts.ethSigner,
     challenge,
-    authMethod: opts.authMethod,
+    //authMethod: opts.authMethod,
   };
 
   const ciRequestBody: ContractInvokeRequestBody = {
@@ -534,7 +533,7 @@ export async function setZKPRequest_KYCAgeCredential(
   let network: string;
 
   if (!signer) {
-    const [signerHre] = await hre.ethers.getSigners();
+    const [signerHre] = await ethers.getSigners();
     signer = signerHre;
   }
   console.log("Signer: ", signer.address);
@@ -544,7 +543,7 @@ export async function setZKPRequest_KYCAgeCredential(
     network = (await provider.getNetwork()).name;
   } else {
     chainId = (await getChainId()) || 80002;
-    network = hre.network.name;
+    network = networkName;
   }
 
   const methodId = "06c86a91";
@@ -576,6 +575,8 @@ export async function setZKPRequest_KYCAgeCredential(
     case "authV2":
       circuitId = CircuitId.AuthV2;
       break;
+    default:
+      throw new Error(`Unsupported groth16VerifierType: ${groth16VerifierType}`);
   }
 
   let dataKYCAgeCredential: string;

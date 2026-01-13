@@ -1,4 +1,3 @@
-import { DeployHelper } from "../../helpers/DeployHelper";
 import {
   getChainId,
   getStateContractAddress,
@@ -10,14 +9,29 @@ import {
   LEGACY_ORACLE_SIGNING_ADDRESS_HARDHAT,
   LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION,
 } from "../../helpers/constants";
-import { ethers } from "hardhat";
+import { network } from "hardhat";
+import { CrossChainProofValidatorModule } from "../../ignition";
+
+const { ethers, ignition } = await network.connect();
 
 async function main() {
-  const deployHelper = await DeployHelper.initialize(null, true);
-  const validator = await deployHelper.deployCrossChainProofValidator();
-
   const chainId = await getChainId();
   const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+
+  const params: any = {
+    CrossChainProofValidatorModule: {
+      domainName: "StateInfo",
+      signatureVersion: "1",
+      oracleSigningAddress: oracleSigningAddress,
+    },
+  };
+
+  const validator = (
+    await ignition.deploy(CrossChainProofValidatorModule, {
+      parameters: params,
+    })
+  ).crossChainProofValidator;
+
   await verifyContract(await validator.getAddress(), {
     constructorArgsImplementation: ["StateInfo", "1", oracleSigningAddress],
     libraries: {},
