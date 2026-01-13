@@ -317,6 +317,16 @@ export default defineConfig({
         },
       },
     },
+    45056: {
+      name: "billions-mainnet",
+      blockExplorers: {
+        blockscout: {
+          name: "billions-mainnet",
+          url: "https://billions-rpc.eu-north-2.gateway.fm",
+          apiUrl: "https://billions-rpc.eu-north-2.gateway.fm/api/",
+        },
+      },
+    },
   },
   contractSizer: {
     alphaSort: false,
