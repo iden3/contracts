@@ -9,7 +9,8 @@ import {
 } from "./constants";
 import { poseidonContract } from "circomlibjs";
 import path from "path";
-import { network } from "hardhat";
+import hre, { network } from "hardhat";
+import { verifyContract as hardhatVerifyContract } from "@nomicfoundation/hardhat-verify/verify";
 
 const __dirname = path.resolve();
 
@@ -89,45 +90,53 @@ export async function verifyContract(
   if (networkName === "localhost") {
     return true;
   }
-  // TODO: Enable verification reviewing replacement for "run" in Hardhat 3.x
 
   console.log(`Verifying contract at address: ${contractAddress} ...`);
   // When verifying if the proxy contract is not verified yet we need to pass the arguments
   // for the proxy contract first, then for proxy admin and finally for the implementation contract
-  /*if (opts.constructorArgsProxy) {
+  if (opts.constructorArgsProxy) {
     try {
-      await  run("verify:verify", {
-        address: contractAddress,
-        contract: opts.contract,
-        constructorArguments: opts.constructorArgsProxy,
-        libraries: opts.libraries,
-      });
+      await hardhatVerifyContract(
+        {
+          address: contractAddress,
+          contract: opts.contract,
+          constructorArgs: opts.constructorArgsProxy,
+          libraries: opts.libraries,
+        },
+        hre,
+      );
     } catch (error) {}
   }
 
   if (opts.constructorArgsProxyAdmin) {
     try {
-      await run("verify:verify", {
-        address: contractAddress,
-        contract: opts.contract,
-        constructorArguments: opts.constructorArgsProxyAdmin,
-        libraries: opts.libraries,
-      });
+      await hardhatVerifyContract(
+        {
+          address: contractAddress,
+          contract: opts.contract,
+          constructorArgs: opts.constructorArgsProxyAdmin,
+          libraries: opts.libraries,
+        },
+        hre,
+      );
     } catch (error) {}
   }
 
   try {
-    await run("verify:verify", {
-      address: contractAddress,
-      contract: opts.contract,
-      constructorArguments: opts.constructorArgsImplementation,
-      libraries: opts.libraries,
-    });
+    await hardhatVerifyContract(
+      {
+        address: contractAddress,
+        contract: opts.contract,
+        constructorArgs: opts.constructorArgsImplementation,
+        libraries: opts.libraries,
+      },
+      hre,
+    );
     Logger.success(`Verification successful for ${contractAddress}\n`);
     return true;
   } catch (error) {
     Logger.error(`Error verifying ${contractAddress}: ${error}\n`);
-  }*/
+  }
 
   return false;
 }
