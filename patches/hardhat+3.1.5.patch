@@ -1,0 +1,24 @@
+diff --git a/node_modules/hardhat/dist/src/internal/builtin-plugins/network-manager/request-handlers/handlers/accounts/automatic-sender-handler.js b/node_modules/hardhat/dist/src/internal/builtin-plugins/network-manager/request-handlers/handlers/accounts/automatic-sender-handler.js
+index 9788ba4..ccc02c2 100644
+--- a/node_modules/hardhat/dist/src/internal/builtin-plugins/network-manager/request-handlers/handlers/accounts/automatic-sender-handler.js
++++ b/node_modules/hardhat/dist/src/internal/builtin-plugins/network-manager/request-handlers/handlers/accounts/automatic-sender-handler.js
+@@ -10,9 +10,16 @@ export class AutomaticSenderHandler extends SenderHandler {
+     #firstAccount;
+     async getSender() {
+         if (this.#alreadyFetchedAccounts === false) {
+-            const accounts = await this.provider.request({
+-                method: "eth_accounts",
+-            });
++            let accounts = [];
++            try {
++                accounts = await this.provider.request({
++                    method: "eth_accounts",
++                });
++            } catch (error) {
++                if (error instanceof Error && !/eth_accounts/.test(error.message)) {
++                    throw error;
++                }
++            }
+             // TODO: This shouldn't be an exception but a failed JSON response!
+             assertHardhatInvariant(Array.isArray(accounts), "eth_accounts response should be an array");
+             this.#firstAccount = accounts[0];
