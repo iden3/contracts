@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { network } from "hardhat";
 import { GenesisUtilsWrapperModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const { ethers, ignition } = await network.connect();
+const { ignition } = await network.connect();
 
 let guWrpr;
 const testVectors = [

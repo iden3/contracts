@@ -9,7 +9,7 @@ import {
   RequestValidatorStubModule,
 } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const { ethers, networkHelpers, ignition } = await network.connect();
+const { ethers, ignition } = await network.connect();
 
 describe("RequestOwnership tests", function () {
   let verifier, validator: any;

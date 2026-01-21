@@ -1,6 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { contractsInfo } from "../../../helpers/constants";
-import { Poseidon2AtModule, Poseidon3AtModule } from "../contractsAt";
 
 const version = "V".concat(
   contractsInfo.IDENTITY_TREE_STORE.version.replaceAll(".", "_").replaceAll("-", "_"),
