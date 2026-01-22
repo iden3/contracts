@@ -52,10 +52,8 @@
     "solhint": "4.1.1",
     "solhint-plugin-prettier": "^0.1.0",
     "solidity-bytes-utils": "^0.8.0",
-    "ts-node": "^10.9.2",
-    "typescript": "~5.8.0",
-    "uuid": "11.1.0",
-    "why": "^0.6.2"
+    "typescript": "^5.9.3",
+    "uuid": "11.1.0"
   },
   "scripts": {
     "node:local": "npx hardhat node",
@@ -165,5 +163,8 @@
     "prettier:contracts": "prettier --write --plugin=prettier-plugin-solidity 'contracts/**/*.sol'",
     "slither": "slither .",
     "postinstall": "patch-package"
+  }, 
+  "overrides": {
+    "diff": "^8.0.3"
   }
 }
