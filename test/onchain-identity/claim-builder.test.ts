@@ -1,13 +1,15 @@
 import { expect } from "chai";
-import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeployHelper";
-import fs from "fs";
+import claimDataJson from "./vectorsGen/data/claimBuilderData.json";
+import { network } from "hardhat";
+import { ClaimBuilderWrapperModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
+
+const { ignition } = await network.connect();
 
 describe("Claim builder tests", function () {
   let identity;
 
   before(async () => {
-    const stDeployHelper = await OnchainIdentityDeployHelper.initialize();
-    identity = await stDeployHelper.deployClaimBuilderWrapper();
+    identity = (await ignition.deploy(ClaimBuilderWrapperModule)).claimBuilderWrapper;
   });
 
   it("validate buildClaim", async function () {
@@ -508,10 +510,7 @@ describe("Claim builder tests", function () {
   });
 
   it("validate buildClaim from file", async function () {
-    var inputs: any[] = JSON.parse(
-      fs.readFileSync(require.resolve("./vectorsGen/data/claimBuilderData.json"), "utf-8"),
-    );
-    console.log(inputs.length);
+    var inputs: any[] = claimDataJson;
     for (let i = 0; i < inputs.length; i++) {
       const input = inputs[i];
       const claims = await identity.buildClaim(input.contractInput);

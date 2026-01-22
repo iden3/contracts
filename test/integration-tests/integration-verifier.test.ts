@@ -1,6 +1,4 @@
-import { ethers } from "hardhat";
-import { DeployHelper } from "../../helpers/DeployHelper";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { network } from "hardhat";
 import { prepareInputs } from "../utils/state-utils";
 import authProofJson from "./data/user_genesis_auth.json";
 import authInvalidChallengeProofJson from "./data/user_genesis_auth_challenge_invalid.json";
@@ -14,8 +12,14 @@ import {
 } from "../utils/validator-pack-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { calculateQueryHashV3 } from "../utils/query-hash-utils";
-import { contractsInfo, TEN_YEARS } from "../../helpers/constants";
+import { chainIdInfoMap, contractsInfo, TEN_YEARS } from "../../helpers/constants";
 import { calculateGroupID, calculateMultiRequestId } from "../utils/id-calculation-utils";
+import CredentialAtomicQueryV3ValidatorModule from "../../ignition/modules/deployEverythingBasicStrategy/credentialAtomicQueryV3Validator";
+import { getChainId } from "../../helpers/helperUtils";
+import AuthV2ValidatorModule from "../../ignition/modules/deployEverythingBasicStrategy/authV2Validator";
+import LinkedMultiQueryValidatorModule from "../../ignition/modules/deployEverythingBasicStrategy/linkedMultiQueryValidator";
+
+const { ethers, networkHelpers, ignition } = await network.connect();
 
 describe("Verifier Integration test", async function () {
   let verifier, verifierLib, v3Validator, lmqValidator;
@@ -110,17 +114,30 @@ describe("Verifier Integration test", async function () {
         VerifierLib: await verifierLib.getAddress(),
       },
     });
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
 
-    const deployHelper = await DeployHelper.initialize(null, true);
-    const { state } = await deployHelper.deployStateWithLibraries(["0x0212"]);
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0112",
+      },
+    };
+
+
+    const { state, authV2Validator: authValidator } = (
+      await ignition.deploy(AuthV2ValidatorModule, {
+        parameters: parameters,
+      })
+    );    
     await verifier.initialize(await state.getAddress());
 
-    const { validator: authValidator } = await deployHelper.deployValidatorContractsWithVerifiers(
-      authMethod,
-      await state.getAddress(),
-    );
     await authValidator.setProofExpirationTimeout(TEN_YEARS);
-    await authValidator.setGISTRootExpirationTimeout(TEN_YEARS);
+    await authValidator.setGISTRootExpirationTimeout(TEN_YEARS);    
 
     const authMethodParams = {
       authMethod: authMethod,
@@ -136,16 +153,19 @@ describe("Verifier Integration test", async function () {
     };
     await verifier.setAuthMethod(authMethodEmbeddedAuthParams);
 
-    const { validator: v3Validator } = await deployHelper.deployValidatorContractsWithVerifiers(
-      "v3",
-      await state.getAddress(),
+    const { credentialAtomicQueryV3Validator: v3Validator} = (
+      await ignition.deploy(CredentialAtomicQueryV3ValidatorModule, {
+        parameters: parameters,
+      })
     );
+    await v3Validator.setStateAddress(await state.getAddress());
     await v3Validator.setProofExpirationTimeout(TEN_YEARS);
     await v3Validator.setGISTRootExpirationTimeout(TEN_YEARS);
 
-    const { validator: lmkValidator } = await deployHelper.deployValidatorContractsWithVerifiers(
-      "lmq",
-      await state.getAddress(),
+    const { linkedMultiQueryValidator: lmkValidator} = (
+      await ignition.deploy(LinkedMultiQueryValidatorModule, {
+        parameters: parameters,
+      })
     );
 
     return { state, verifier, verifierLib, authValidator, v3Validator, lmkValidator };
@@ -157,7 +177,7 @@ describe("Verifier Integration test", async function () {
       verifierLib,
       v3Validator,
       lmkValidator: lmqValidator,
-    } = await loadFixture(deployContractsFixture));
+    } = await networkHelpers.loadFixture(deployContractsFixture));
 
     await verifier.setVerifierID(query.verifierID);
   });
@@ -265,7 +285,7 @@ describe("Verifier Integration test", async function () {
     };
 
     // 2. Create the multi-request
-    await expect(verifier.setMultiRequest(multiRequest)).not.to.be.reverted;
+    await expect(verifier.setMultiRequest(multiRequest)).not.to.revert(ethers);
     const multiRequestIdExists = await verifier.multiRequestIdExists(multiRequest.multiRequestId);
     expect(multiRequestIdExists).to.be.true;
 
@@ -296,7 +316,7 @@ describe("Verifier Integration test", async function () {
         ],
         crossChainProofs,
       ),
-    ).not.to.be.reverted;
+    ).not.to.revert(ethers);
 
     areMultiRequestProofsVerified = await verifier.areMultiRequestProofsVerified(
       multiRequest.multiRequestId,
@@ -337,7 +357,7 @@ describe("Verifier Integration test", async function () {
     };
 
     // 2. Create the multi-request
-    await expect(verifier.setMultiRequest(multiRequest)).not.to.be.reverted;
+    await expect(verifier.setMultiRequest(multiRequest)).not.to.revert(ethers);
     const multiRequestIdExists = await verifier.multiRequestIdExists(multiRequest.multiRequestId);
     expect(multiRequestIdExists).to.be.true;
 
@@ -368,7 +388,7 @@ describe("Verifier Integration test", async function () {
         ],
         crossChainProofs,
       ),
-    ).not.to.be.reverted;
+    ).not.to.be.revert(ethers);
 
     areMultiRequestProofsVerified = await verifier.areMultiRequestProofsVerified(
       multiRequest.multiRequestId,

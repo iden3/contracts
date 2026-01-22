@@ -1,20 +1,28 @@
 import { expect } from "chai";
 import { prepareInputs, publishState } from "../../utils/state-utils";
-import { DeployHelper } from "../../../helpers/DeployHelper";
 import { packValidatorParams } from "../../utils/validator-pack-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { contractsInfo, TEN_YEARS } from "../../../helpers/constants";
+import { chainIdInfoMap, contractsInfo, TEN_YEARS } from "../../../helpers/constants";
 import { packZKProof } from "../../utils/packData";
-import { ethers } from "hardhat";
+import { network } from "hardhat";
+import CredentialAtomicQueryMTPV2ValidatorModule from "../../../ignition/modules/deployEverythingBasicStrategy/credentialAtomicQueryMTPV2Validator";
+import { getChainId } from "../../../helpers/helperUtils";
+import issuerGenesisState from "../common-data/issuer_genesis_state.json";
+import validMtpUserGenesis from "./data/valid_mtp_user_genesis.json";
+import invalidMtpUserGenesis from "./data/invalid_mtp_user_genesis.json";
+import userStateTransition from "../common-data/user_state_transition.json";
+import validMtpUserNonGenesis from "./data/valid_mtp_user_non_genesis.json";
+import issuerNextStateTransition from "../common-data/issuer_next_state_transition.json";
+import userNextStateTransition from "../common-data/user_next_state_transition.json";
+
+const { ethers, networkHelpers, ignition } = await network.connect();
 
 const tenYears = TEN_YEARS;
 const testCases: any[] = [
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain",
-    stateTransitions: [require("../common-data/issuer_genesis_state.json")],
-    proofJson: require("./data/valid_mtp_user_genesis.json"),
+    stateTransitions: [issuerGenesisState],
+    proofJson: validMtpUserGenesis,
     setProofExpiration: tenYears,
     signalValues: [
       {
@@ -34,18 +42,15 @@ const testCases: any[] = [
   },
   {
     name: "Validation of proof failed",
-    stateTransitions: [require("../common-data/issuer_genesis_state.json")],
-    proofJson: require("./data/invalid_mtp_user_genesis.json"),
+    stateTransitions: [issuerGenesisState],
+    proofJson: invalidMtpUserGenesis,
     errorMessage: "",
     setProofExpiration: tenYears,
   },
   {
     name: "User state is not genesis but latest",
-    stateTransitions: [
-      require("../common-data/issuer_genesis_state.json"),
-      require("../common-data/user_state_transition.json"),
-    ],
-    proofJson: require("./data/valid_mtp_user_non_genesis.json"),
+    stateTransitions: [issuerGenesisState, userStateTransition],
+    proofJson: validMtpUserNonGenesis,
     setProofExpiration: tenYears,
     signalValues: [
       {
@@ -65,12 +70,8 @@ const testCases: any[] = [
   },
   {
     name: "The non-revocation issuer state is not expired",
-    stateTransitions: [
-      require("../common-data/issuer_genesis_state.json"),
-      require("../common-data/user_state_transition.json"),
-      require("../common-data/issuer_next_state_transition.json"),
-    ],
-    proofJson: require("./data/valid_mtp_user_non_genesis.json"),
+    stateTransitions: [issuerGenesisState, userStateTransition, issuerNextStateTransition],
+    proofJson: validMtpUserNonGenesis,
     setProofExpiration: tenYears,
     signalValues: [
       {
@@ -91,13 +92,13 @@ const testCases: any[] = [
   {
     name: "The non-revocation issuer state is expired",
     stateTransitions: [
-      require("../common-data/issuer_genesis_state.json"),
-      require("../common-data/user_state_transition.json"), // proof was generated after this state transition
-      require("../common-data/issuer_next_state_transition.json"),
-      require("../common-data/user_next_state_transition.json"),
+      issuerGenesisState,
+      userStateTransition, // proof was generated after this state transition
+      issuerNextStateTransition,
+      userNextStateTransition
     ],
     stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
-    proofJson: require("./data/valid_mtp_user_non_genesis.json"),
+    proofJson: validMtpUserNonGenesis,
     setRevStateExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
     errorMessage: "NonRevocationStateOfIssuerIsExpired()",
     setProofExpiration: tenYears,
@@ -105,13 +106,13 @@ const testCases: any[] = [
   {
     name: "GIST root expired, Issuer revocation state is not expired",
     stateTransitions: [
-      require("../common-data/issuer_genesis_state.json"),
-      require("../common-data/user_state_transition.json"), // proof was generated after this state transition
-      require("../common-data/user_next_state_transition.json"),
-      require("../common-data/issuer_next_state_transition.json"),
+      issuerGenesisState,
+      userStateTransition, // proof was generated after this state transition
+      userNextStateTransition,
+      issuerNextStateTransition,
     ],
     stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
-    proofJson: require("./data/valid_mtp_user_non_genesis.json"), // generated on step 2
+    proofJson: validMtpUserNonGenesis, // generated on step 2
     setGISTRootExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
     errorMessage: "GistRootIsExpired()",
     setProofExpiration: tenYears,
@@ -119,26 +120,22 @@ const testCases: any[] = [
   {
     name: "The generated proof is expired",
     stateTransitions: [
-      require("../common-data/issuer_genesis_state.json"),
-      require("../common-data/user_state_transition.json"),
-      require("../common-data/issuer_next_state_transition.json"),
+      issuerGenesisState,
+      userStateTransition,
+      issuerNextStateTransition,
     ],
-    proofJson: require("./data/valid_mtp_user_non_genesis.json"),
+    proofJson: validMtpUserNonGenesis,
     errorMessage: "GeneratedProofIsOutdated()",
   },
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain",
-    stateTransitions: [require("../common-data/issuer_genesis_state.json")],
-    proofJson: require("./data/valid_mtp_user_genesis.json"),
+    stateTransitions: [issuerGenesisState],
+    proofJson: validMtpUserGenesis,
     setProofExpiration: tenYears,
     allowedIssuers: [123n],
     errorMessage: "IssuerIsNotOnTheAllowedIssuersList()",
   },
 ];
-
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 describe("Atomic MTP Validator", function () {
   let state: any, mtpValidator: any;
@@ -146,14 +143,25 @@ describe("Atomic MTP Validator", function () {
 
   async function deployContractsFixture() {
     senderAddress = "0x3930000000000000000000000000000000000000"; // because challenge is 12345 in proofs.
-    const deployHelper = await DeployHelper.initialize(null, true);
 
-    const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0100"]);
-    const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
-      "mtpV2",
-      await stateContract.getAddress(),
-    );
-    const validator = contracts.validator;
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0100",
+      },
+    };
+
+    const { state: stateContract, credentialAtomicQueryMTPV2Validator: validator } =
+      await ignition.deploy(CredentialAtomicQueryMTPV2ValidatorModule, {
+        parameters: parameters,
+      });
 
     return {
       stateContract,
@@ -176,7 +184,7 @@ describe("Atomic MTP Validator", function () {
       stateContract: state,
       validator: mtpValidator,
       senderAddress,
-    } = await loadFixture(deployContractsFixture));
+    } = await networkHelpers.loadFixture(deployContractsFixture));
   });
 
   for (const test of testCases) {
@@ -184,9 +192,9 @@ describe("Atomic MTP Validator", function () {
       this.timeout(50000);
       for (let i = 0; i < test.stateTransitions.length; i++) {
         if (test.stateTransitionDelayMs) {
-          await time.increase(test.stateTransitionDelayMs);
+          await networkHelpers.time.increase(test.stateTransitionDelayMs);
         }
-        await publishState(state, test.stateTransitions[i]);
+        await publishState(ethers, state, test.stateTransitions[i]);
       }
 
       const query = {
@@ -225,7 +233,7 @@ describe("Atomic MTP Validator", function () {
           test.errorMessage,
         );
       } else if (test.errorMessage === "") {
-        await expect(mtpValidator.verify(senderAddress, zkProof, data, "0x")).to.be.reverted;
+        await expect(mtpValidator.verify(senderAddress, zkProof, data, "0x")).to.be.revert(ethers);
       } else {
         const signals = await mtpValidator.verify(senderAddress, zkProof, data, "0x");
         checkSignals(signals, test.signalValues);

@@ -1,6 +1,8 @@
-import { ignition } from "hardhat";
 import { getChainId, getConfig, getDeploymentParameters } from "../../helpers/helperUtils";
 import UniversalVerifierTestWrapperProxyModule_ManyResponsesPerUserAndRequest from "../../ignition/modules/universalVerifier_ManyResponsesPerUserAndRequest";
+import { network } from "hardhat";
+
+const { ignition } = await network.connect();
 
 async function main() {
   const config = getConfig();

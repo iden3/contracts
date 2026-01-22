@@ -1,5 +1,7 @@
 // HARDHAT network Oracle signing address
-import { ethers } from "hardhat";
+import { network } from "hardhat";
+
+const { ethers } = await network.connect();
 
 export const DEFAULT_MNEMONIC = "test test test test test test test test test test test junk";
 
@@ -10,6 +12,11 @@ export const LEGACY_ORACLE_SIGNING_ADDRESS_HARDHAT = "0x70997970C51812dc3A010C7d
 export const ORACLE_SIGNING_ADDRESS_PRODUCTION = "0x0aD316c6D3F29B76cBd8f5a1ED5e3990c6B5174C";
 export const LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION =
   "0xf0Ae6D287aF14f180E1FAfe3D2CB62537D7b1A82";
+
+export const SMT_MAX_DEPTH = 64;
+
+export type Groth16VerifierType = "mtpV2" | "sigV2" | "v3" | "lmq10" | "authV2" | undefined;
+export type ValidatorType = "mtpV2" | "sigV2" | "v3" | "lmq" | "authV2" | "ethIdentity";
 
 type ChainIdInfo = {
   idType: string;

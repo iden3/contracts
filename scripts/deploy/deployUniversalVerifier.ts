@@ -1,4 +1,3 @@
-import { ethers, ignition } from "hardhat";
 import {
   getConfig,
   getDeploymentParameters,
@@ -9,6 +8,9 @@ import { contractsInfo } from "../../helpers/constants";
 import UniversalVerifierModule, {
   UniversalVerifierProxyModule,
 } from "../../ignition/modules/universalVerifier";
+import { network } from "hardhat";
+
+const { ethers, ignition } = await network.connect();
 
 async function main() {
   const config = getConfig();
