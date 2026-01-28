@@ -48,7 +48,11 @@ contract AuthV3_8_32Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165
         0xc5334def611ce9eab05c16505ee90768ab80ea99218eb7fd13c94a030706fa00;
 
     /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getAuthV3_8_32ValidatorStorage() private pure returns (AuthV3_8_32ValidatorStorage storage $) {
+    function _getAuthV3_8_32ValidatorStorage()
+        private
+        pure
+        returns (AuthV3_8_32ValidatorStorage storage $)
+    {
         // solhint-disable-next-line no-inline-assembly
         assembly {
             $.slot := AuthV3_8_32ValidatorStorageLocation

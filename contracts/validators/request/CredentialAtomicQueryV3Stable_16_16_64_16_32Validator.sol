@@ -19,7 +19,9 @@ error UserIDDoesNotCorrespondToTheSender();
 /**
  * @dev CredentialAtomicQueryV3StableValidator validator
  */
-contract CredentialAtomicQueryV3Stable_16_16_64_16_32Validator is CredentialAtomicQueryValidatorBase {
+contract CredentialAtomicQueryV3Stable_16_16_64_16_32Validator is
+    CredentialAtomicQueryValidatorBase
+{
     struct CredentialAtomicQueryV3 {
         uint256 schema;
         uint256 claimPathKey;
