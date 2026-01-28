@@ -4,14 +4,16 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
-import { Groth16VerifierAuthV3Module } from "./groth16verifiers";
+import { Groth16VerifierAuthV3_8_32Module, Groth16VerifierAuthV3Module } from "./groth16verifiers";
 import {
   AuthV3ValidatorAtModule,
   AuthV3ValidatorNewImplementationAtModule,
   Create2AddressAnchorAtModule,
+  Groth16VerifierAuthV3_8_32WrapperAtModule,
   Groth16VerifierAuthV3WrapperAtModule,
   StateAtModule,
 } from "./contractsAt";
+import { CircuitId } from "@0xpolygonid/js-sdk";
 
 const AuthV3ValidatorProxyFirstImplementationModule = buildModule(
   "AuthV3ValidatorProxyFirstImplementationModule",
@@ -47,10 +49,12 @@ const AuthV3ValidatorFinalImplementationModule = buildModule(
   "AuthV3ValidatorFinalImplementationModule",
   (m) => {
     const state = m.useModule(StateAtModule).proxy;
-    const { groth16VerifierAuthV3: groth16Verifier } = m.useModule(Groth16VerifierAuthV3Module);
+    const { groth16VerifierAuthV3 } = m.useModule(Groth16VerifierAuthV3Module);
+    const { groth16VerifierAuthV3_8_32 } = m.useModule(Groth16VerifierAuthV3_8_32Module);
     const newImplementation = m.contract(contractsInfo.VALIDATOR_AUTH_V3.name);
     return {
-      groth16Verifier,
+      groth16VerifierAuthV3,
+      groth16VerifierAuthV3_8_32,
       state,
       newImplementation,
     };
@@ -59,11 +63,11 @@ const AuthV3ValidatorFinalImplementationModule = buildModule(
 
 export const AuthV3ValidatorProxyModule = buildModule("AuthV3ValidatorProxyModule", (m) => {
   const { proxy, proxyAdmin } = m.useModule(AuthV3ValidatorProxyFirstImplementationModule);
-  const { newImplementation, groth16Verifier, state } = m.useModule(
-    AuthV3ValidatorFinalImplementationModule,
-  );
+  const { newImplementation, groth16VerifierAuthV3, groth16VerifierAuthV3_8_32, state } =
+    m.useModule(AuthV3ValidatorFinalImplementationModule);
   return {
-    groth16Verifier,
+    groth16VerifierAuthV3,
+    groth16VerifierAuthV3_8_32,
     newImplementation,
     state,
     proxyAdmin,
@@ -76,13 +80,17 @@ const AuthV3ValidatorProxyFinalImplementationModule = buildModule(
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
     const { proxy, proxyAdmin } = m.useModule(AuthV3ValidatorAtModule);
-    const { contract: groth16Verifier } = m.useModule(Groth16VerifierAuthV3WrapperAtModule);
+    const { contract: groth16VerifierAuthV3 } = m.useModule(Groth16VerifierAuthV3WrapperAtModule);
+    const { contract: groth16VerifierAuthV3_8_32 } = m.useModule(
+      Groth16VerifierAuthV3_8_32WrapperAtModule,
+    );
     const { contract: newImplementation } = m.useModule(AuthV3ValidatorNewImplementationAtModule);
     const state = m.useModule(StateAtModule).proxy;
 
     const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [
       state,
-      groth16Verifier,
+      [groth16VerifierAuthV3, groth16VerifierAuthV3_8_32],
+      [CircuitId.AuthV3, CircuitId.AuthV3_8_32],
       proxyAdminOwner,
     ]);
 
@@ -91,7 +99,8 @@ const AuthV3ValidatorProxyFinalImplementationModule = buildModule(
     });
 
     return {
-      groth16Verifier,
+      groth16VerifierAuthV3,
+      groth16VerifierAuthV3_8_32,
       newImplementation,
       proxyAdmin,
       proxy,
@@ -100,15 +109,20 @@ const AuthV3ValidatorProxyFinalImplementationModule = buildModule(
 );
 
 const AuthV3ValidatorModule = buildModule("AuthV3ValidatorModule", (m) => {
-  const { groth16Verifier, newImplementation, proxyAdmin, proxy } = m.useModule(
-    AuthV3ValidatorProxyFinalImplementationModule,
-  );
+  const {
+    groth16VerifierAuthV3,
+    groth16VerifierAuthV3_8_32,
+    newImplementation,
+    proxyAdmin,
+    proxy,
+  } = m.useModule(AuthV3ValidatorProxyFinalImplementationModule);
 
   const authV3Validator = m.contractAt(contractsInfo.VALIDATOR_AUTH_V3.name, proxy);
 
   return {
     authV3Validator,
-    groth16Verifier,
+    groth16VerifierAuthV3,
+    groth16VerifierAuthV3_8_32,
     newImplementation,
     proxyAdmin,
     proxy,

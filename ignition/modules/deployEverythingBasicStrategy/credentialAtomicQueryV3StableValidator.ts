@@ -4,8 +4,9 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../../helpers/constants";
-import { Groth16VerifierV3StableModule } from "./groth16verifiers";
+import { Groth16VerifierV3StableModule, Groth16VerifierV3Stable_16_16_64_16_32Module } from "./groth16verifiers";
 import StateModule from "./state";
+import { CircuitId } from "@0xpolygonid/js-sdk";
 
 const CredentialAtomicQueryV3StableValidatorImplementationModule = buildModule(
   "CredentialAtomicQueryV3StableValidatorImplementationModule",
@@ -24,6 +25,7 @@ const CredentialAtomicQueryV3StableValidatorProxyModule = buildModule(
       CredentialAtomicQueryV3StableValidatorImplementationModule,
     );
     const { groth16VerifierV3Stable } = m.useModule(Groth16VerifierV3StableModule);
+    const { groth16VerifierV3Stable_16_16_64_16_32 } = m.useModule(Groth16VerifierV3Stable_16_16_64_16_32Module);
     const state = m.useModule(StateModule).state;
 
     const proxyAdminOwner = m.getAccount(0);
@@ -31,7 +33,8 @@ const CredentialAtomicQueryV3StableValidatorProxyModule = buildModule(
 
     const initializeData = m.encodeFunctionCall(implementation, "initialize", [
       state,
-      groth16VerifierV3Stable,
+      [groth16VerifierV3Stable, groth16VerifierV3Stable_16_16_64_16_32],
+      [CircuitId.AtomicQueryV3OnChainStable, "credentialAtomicQueryV3OnChain-16-16-64-16-32"],
       contractOwner,
     ]);
 

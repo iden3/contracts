@@ -495,23 +495,6 @@ export const AuthV3ValidatorAtModule = buildModule("AuthV3ValidatorAtModule", (m
   return { proxy, proxyAdmin };
 });
 
-export const AuthV3_8_32ValidatorNewImplementationAtModule = buildModule(
-  "AuthV3_8_32ValidatorNewImplementationAtModule",
-  (m) => {
-    const contractAddress = m.getParameter("contractAddress");
-    const contract = m.contractAt(contractsInfo.VALIDATOR_AUTH_V3_8_32.name, contractAddress);
-    return { contract };
-  },
-);
-
-export const AuthV3_8_32ValidatorAtModule = buildModule("AuthV3_8_32ValidatorAtModule", (m) => {
-  const proxyAddress = m.getParameter("proxyAddress");
-  const proxyAdminAddress = m.getParameter("proxyAdminAddress");
-  const proxy = m.contractAt(contractsInfo.VALIDATOR_AUTH_V3_8_32.name, proxyAddress);
-  const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
-  return { proxy, proxyAdmin };
-});
-
 export const EthIdentityValidatorNewImplementationAtModule = buildModule(
   "EthIdentityValidatorNewImplementationAtModule",
   (m) => {

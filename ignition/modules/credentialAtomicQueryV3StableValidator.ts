@@ -4,11 +4,12 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
-import { Groth16VerifierV3StableModule } from "./groth16verifiers";
+import { Groth16VerifierV3StableModule, Groth16VerifierV3Stable_16_16_64_16_32Module } from "./groth16verifiers";
 import {
   Create2AddressAnchorAtModule,
   CredentialAtomicQueryV3StableValidatorAtModule,
   CredentialAtomicQueryV3StableValidatorNewImplementationAtModule,
+  Groth16VerifierV3Stable_16_16_64_16_32WrapperAtModule,
   Groth16VerifierV3StableWrapperAtModule,
   StateAtModule,
 } from "./contractsAt";
@@ -47,10 +48,12 @@ const CredentialAtomicQueryV3StableValidatorFinalImplementationModule = buildMod
   "CredentialAtomicQueryV3StableValidatorFinalImplementationModule",
   (m) => {
     const state = m.useModule(StateAtModule).proxy;
-    const { groth16VerifierV3Stable: groth16Verifier } = m.useModule(Groth16VerifierV3StableModule);
+    const { groth16VerifierV3Stable } = m.useModule(Groth16VerifierV3StableModule);
+    const { groth16VerifierV3Stable_16_16_64_16_32 } = m.useModule(Groth16VerifierV3Stable_16_16_64_16_32Module);
     const newImplementation = m.contract(contractsInfo.VALIDATOR_V3_STABLE.name);
     return {
-      groth16Verifier,
+      groth16VerifierV3Stable,
+      groth16VerifierV3Stable_16_16_64_16_32,
       state,
       newImplementation,
     };
@@ -63,11 +66,12 @@ export const CredentialAtomicQueryV3StableValidatorProxyModule = buildModule(
     const { proxy, proxyAdmin } = m.useModule(
       CredentialAtomicQueryV3StableValidatorProxyFirstImplementationModule,
     );
-    const { groth16Verifier, state, newImplementation } = m.useModule(
+    const { groth16VerifierV3Stable, groth16VerifierV3Stable_16_16_64_16_32, state, newImplementation } = m.useModule(
       CredentialAtomicQueryV3StableValidatorFinalImplementationModule,
     );
     return {
-      groth16Verifier,
+      groth16VerifierV3Stable,
+      groth16VerifierV3Stable_16_16_64_16_32,
       state,
       newImplementation,
       proxyAdmin,
@@ -82,14 +86,16 @@ const CredentialAtomicQueryV3StableValidatorProxyFinalImplementationModule = bui
     const proxyAdminOwner = m.getAccount(0);
     const { proxy, proxyAdmin } = m.useModule(CredentialAtomicQueryV3StableValidatorAtModule);
     const state = m.useModule(StateAtModule).proxy;
-    const { contract: groth16Verifier } = m.useModule(Groth16VerifierV3StableWrapperAtModule);
+    const { contract: groth16VerifierV3Stable } = m.useModule(Groth16VerifierV3StableWrapperAtModule);
+    const { contract: groth16VerifierV3Stable_16_16_64_16_32 } = m.useModule(Groth16VerifierV3Stable_16_16_64_16_32WrapperAtModule);
     const { contract: newImplementation } = m.useModule(
       CredentialAtomicQueryV3StableValidatorNewImplementationAtModule,
     );
 
     const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [
       state,
-      groth16Verifier,
+      groth16VerifierV3Stable,  
+      groth16VerifierV3Stable_16_16_64_16_32,
       proxyAdminOwner,
     ]);
 
@@ -98,7 +104,8 @@ const CredentialAtomicQueryV3StableValidatorProxyFinalImplementationModule = bui
     });
 
     return {
-      groth16Verifier,
+      groth16VerifierV3Stable,
+      groth16VerifierV3Stable_16_16_64_16_32,
       state,
       newImplementation,
       proxyAdmin,
@@ -110,7 +117,7 @@ const CredentialAtomicQueryV3StableValidatorProxyFinalImplementationModule = bui
 const CredentialAtomicQueryV3StableValidatorModule = buildModule(
   "CredentialAtomicQueryV3StableValidatorModule",
   (m) => {
-    const { groth16Verifier, state, newImplementation, proxyAdmin, proxy } = m.useModule(
+    const { groth16VerifierV3Stable, groth16VerifierV3Stable_16_16_64_16_32, state, newImplementation, proxyAdmin, proxy } = m.useModule(
       CredentialAtomicQueryV3StableValidatorProxyFinalImplementationModule,
     );
 
@@ -121,7 +128,8 @@ const CredentialAtomicQueryV3StableValidatorModule = buildModule(
 
     return {
       credentialAtomicQueryV3StableValidator,
-      groth16Verifier,
+      groth16VerifierV3Stable,
+      groth16VerifierV3Stable_16_16_64_16_32,
       state,
       newImplementation,
       proxyAdmin,

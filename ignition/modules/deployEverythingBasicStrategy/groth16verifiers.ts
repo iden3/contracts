@@ -90,3 +90,11 @@ export const Groth16VerifierAuthV3Module = buildModule("Groth16VerifierAuthV3Mod
   const groth16VerifierAuthV3 = m.contract(contractsInfo.GROTH16_VERIFIER_AUTH_V3.name);
   return { groth16VerifierAuthV3 };
 });
+
+export const Groth16VerifierAuthV3_8_32Module = buildModule(
+  "Groth16VerifierAuthV3_8_32Module",
+  (m) => {
+    const groth16VerifierAuthV3_8_32 = m.contract(contractsInfo.GROTH16_VERIFIER_AUTH_V3_8_32.name);
+    return { groth16VerifierAuthV3_8_32 };
+  },
+);

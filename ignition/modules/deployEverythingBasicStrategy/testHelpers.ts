@@ -9,11 +9,10 @@ import {
 } from "../../../helpers/constants";
 import { LinkedMultiQueryValidatorImplementationModule } from "./linkedMultiQueryValidator";
 import { AuthV3ValidatorImplementationModule } from "./authV3Validator";
-import { AuthV3_8_32ValidatorNewImplementationAtModule } from "../contractsAt";
-import { AuthV3_8_32ValidatorImplementationModule } from "./authV3_8_32Validator";
 import { LinkedMultiQueryStableValidatorImplementationModule } from "./linkedMultiQueryStableValidator";
 import { LinkedMultiQueryStable5ValidatorImplementationModule } from "./linkedMultiQueryStable5Validator";
 import { LinkedMultiQueryStable3ValidatorImplementationModule } from "./linkedMultiQueryStable3Validator";
+import { CircuitId } from "@0xpolygonid/js-sdk";
 
 export const Groth16VerifierStubModule = buildModule("Groth16VerifierStubModule", (m) => {
   const groth16VerifierStub = m.contract("Groth16VerifierStub");
@@ -155,7 +154,8 @@ const AuthV3ValidatorProxyWithGroth16VerifierStubModule = buildModule(
 
     const initializeData = m.encodeFunctionCall(implementation, "initialize", [
       state,
-      groth16VerifierValidatorStub,
+      [groth16VerifierValidatorStub, groth16VerifierValidatorStub],
+      [CircuitId.AuthV3, CircuitId.AuthV3_8_32],
       contractOwner,
     ]);
 
@@ -183,49 +183,6 @@ export const AuthV3ValidatorWithGroth16VerifierStubModule = buildModule(
     );
     const authV3Validator = m.contractAt(contractsInfo.VALIDATOR_AUTH_V3.name, proxy);
     return { authV3Validator, state, implementation };
-  },
-);
-
-const AuthV3_8_32ValidatorProxyWithGroth16VerifierStubModule = buildModule(
-  "AuthV3_8_32ValidatorProxyWithGroth16VerifierStubModule",
-  (m) => {
-    const { implementation } = m.useModule(AuthV3_8_32ValidatorImplementationModule);
-    const { groth16VerifierValidatorStub } = m.useModule(Groth16VerifierValidatorStubModule);
-    const state = m.useModule(StateModule).state;
-
-    const proxyAdminOwner = m.getAccount(0);
-    const contractOwner = m.getAccount(0);
-
-    const initializeData = m.encodeFunctionCall(implementation, "initialize", [
-      state,
-      groth16VerifierValidatorStub,
-      contractOwner,
-    ]);
-
-    const proxy = m.contract(
-      "TransparentUpgradeableProxy",
-      {
-        abi: TRANSPARENT_UPGRADEABLE_PROXY_ABI,
-        contractName: "TransparentUpgradeableProxy",
-        bytecode: TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
-        sourceName: "",
-        linkReferences: {},
-      },
-      [implementation, proxyAdminOwner, initializeData],
-    );
-
-    return { proxy, state, implementation };
-  },
-);
-
-export const AuthV3_8_32ValidatorWithGroth16VerifierStubModule = buildModule(
-  "AuthV3_8_32ValidatorWithGroth16VerifierStubModule",
-  (m) => {
-    const { proxy, state, implementation } = m.useModule(
-      AuthV3_8_32ValidatorProxyWithGroth16VerifierStubModule,
-    );
-    const authV3_8_32Validator = m.contractAt(contractsInfo.VALIDATOR_AUTH_V3_8_32.name, proxy);
-    return { authV3_8_32Validator, state, implementation };
   },
 );
 

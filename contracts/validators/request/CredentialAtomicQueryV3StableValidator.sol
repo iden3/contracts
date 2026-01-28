@@ -58,8 +58,6 @@ contract CredentialAtomicQueryV3StableValidator is CredentialAtomicQueryValidato
      */
     string public constant VERSION = "1.0.0";
 
-    string internal constant CIRCUIT_ID = "credentialAtomicQueryV3OnChain";
-
     // keccak256(abi.encodePacked("groupID"))
     bytes32 private constant GROUPID_NAME =
         0xdab5ca4f3738dce0cd25851a4aa9160ebdfb1678ef20ca14c9a3e9217058455a;
@@ -72,13 +70,15 @@ contract CredentialAtomicQueryV3StableValidator is CredentialAtomicQueryValidato
 
     /**
      * @dev Initialize the contract
-     * @param _stateContractAddr Address of the state contract
-     * @param _verifierContractAddr Address of the verifier contract
+     * @param stateContractAddr Address of the state contract
+     * @param verifierContractAddresses Addresses of the verifier contracts for the supported circuits
+     * @param circuitIds Circuit ids of the supported circuits
      * @param owner Owner of the contract
      */
     function initialize(
-        address _stateContractAddr,
-        address _verifierContractAddr,
+        address stateContractAddr,
+        address[] calldata verifierContractAddresses,
+        string[] calldata circuitIds,
         address owner
     ) public initializer {
         _setInputToIndex("userID", 0);
@@ -96,7 +96,7 @@ contract CredentialAtomicQueryV3StableValidator is CredentialAtomicQueryValidato
         _setInputToIndex("timestamp", 12);
         _setInputToIndex("isBJJAuthEnabled", 13);
 
-        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, owner);
+        _initDefaultStateVariables(stateContractAddr, verifierContractAddresses, circuitIds, owner);
     }
 
     /**

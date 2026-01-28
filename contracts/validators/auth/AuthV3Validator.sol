@@ -11,6 +11,7 @@ import {IState} from "../../interfaces/IState.sol";
 error VerifierAddressShouldNotBeZero();
 error ProofIsNotValid();
 error GistRootIsExpired();
+error VerifierAddressesAndCircuitIDsMismatch(uint256 verifiers, uint256 circuitIDs);
 
 /**
  * @dev AuthV3 validator for auth
@@ -26,8 +27,6 @@ contract AuthV3Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
      * @dev Version of contract
      */
     string public constant VERSION = "1.0.0";
-
-    string internal constant CIRCUIT_ID = "authV3";
 
     /// @dev Main storage structure for the contract
     /// @custom:storage-location iden3.storage.AuthV3Validator
@@ -62,16 +61,18 @@ contract AuthV3Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
 
     /**
      * @dev Initialize the contract
-     * @param _stateContractAddr Address of the state contract
-     * @param _verifierContractAddr Address of the verifier contract
+     * @param stateContractAddr Address of the state contract
+     * @param verifierContractAddresses Addresses of the verifier contracts for the supported circuits
+     * @param circuitIds Circuit ids of the supported circuits
      * @param owner Owner of the contract
      */
     function initialize(
-        address _stateContractAddr,
-        address _verifierContractAddr,
+        address stateContractAddr,
+        address[] calldata verifierContractAddresses,
+        string[] calldata circuitIds,
         address owner
     ) public initializer {
-        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, owner);
+        _initDefaultStateVariables(stateContractAddr, verifierContractAddresses, circuitIds, owner);
     }
 
     /**
@@ -197,19 +198,28 @@ contract AuthV3Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
     }
 
     function _initDefaultStateVariables(
-        address _stateContractAddr,
-        address _verifierContractAddr,
-        string memory circuitId,
+        address stateContractAddr,
+        address[] calldata verifierContractAddresses,
+        string[] calldata circuitIds,
         address owner
     ) internal {
+        if (verifierContractAddresses.length != circuitIds.length) {
+            revert VerifierAddressesAndCircuitIDsMismatch(
+                verifierContractAddresses.length,
+                circuitIds.length
+            );
+        }
         AuthV3ValidatorStorage storage s = _getAuthV3ValidatorStorage();
 
         s.revocationStateExpirationTimeout = 1 hours;
         s.proofExpirationTimeout = 1 hours;
         s.gistRootExpirationTimeout = 1 hours;
-        s._supportedCircuitIds = [circuitId];
-        s._circuitIdToVerifier[circuitId] = IGroth16Verifier(_verifierContractAddr);
-        s.state = IState(_stateContractAddr);
+        for (uint256 i = 0; i < circuitIds.length; i++) {
+            s._supportedCircuitIds.push(circuitIds[i]);
+            s._circuitIdToVerifier[circuitIds[i]] = IGroth16Verifier(verifierContractAddresses[i]);
+        }
+
+        s.state = IState(stateContractAddr);
         __Ownable_init(owner);
     }
 
@@ -233,14 +243,18 @@ contract AuthV3Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) internal view {
-        IGroth16Verifier g16Verifier = getVerifierByCircuitId(CIRCUIT_ID);
-        if (g16Verifier == IGroth16Verifier(address(0))) {
-            revert VerifierAddressShouldNotBeZero();
+        AuthV3ValidatorStorage storage s = _getAuthV3ValidatorStorage();
+        for (uint256 i = 0; i < s._supportedCircuitIds.length; i++) {
+            IGroth16Verifier g16Verifier = getVerifierByCircuitId(s._supportedCircuitIds[i]);
+            if (g16Verifier == IGroth16Verifier(address(0))) {
+                revert VerifierAddressShouldNotBeZero();
+            }
+
+            if (g16Verifier.verify(a, b, c, inputs)) {
+                return;
+            }
         }
 
-        // verify that zkp is valid
-        if (!g16Verifier.verify(a, b, c, inputs)) {
-            revert ProofIsNotValid();
-        }
+        revert ProofIsNotValid();
     }
 }
