@@ -220,12 +220,77 @@ export const CredentialAtomicQueryV3ValidatorAtModule = buildModule(
   },
 );
 
+export const Groth16VerifierV3StableWrapperAtModule = buildModule(
+  "Groth16VerifierV3StableWrapperAtModule",
+  (m) => {
+    const contractAddress = m.getParameter("contractAddress");
+    const contract = m.contractAt(contractsInfo.GROTH16_VERIFIER_V3_STABLE.name, contractAddress);
+    return { contract };
+  },
+);
+
+export const CredentialAtomicQueryV3StableValidatorNewImplementationAtModule = buildModule(
+  "CredentialAtomicQueryV3StableValidatorNewImplementationAtModule",
+  (m) => {
+    const contractAddress = m.getParameter("contractAddress");
+    const contract = m.contractAt(contractsInfo.VALIDATOR_V3_STABLE.name, contractAddress);
+    return { contract };
+  },
+);
+
+export const CredentialAtomicQueryV3StableValidatorAtModule = buildModule(
+  "CredentialAtomicQueryV3StableValidatorAtModule",
+  (m) => {
+    const proxyAddress = m.getParameter("proxyAddress");
+    const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+    const proxy = m.contractAt(contractsInfo.VALIDATOR_V3_STABLE.name, proxyAddress);
+    const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+    return { proxy, proxyAdmin };
+  },
+);
+
+export const Groth16VerifierV3Stable_16_16_64_16_32WrapperAtModule = buildModule(
+  "Groth16VerifierV3Stable_16_16_64_16_32WrapperAtModule",
+  (m) => {
+    const contractAddress = m.getParameter("contractAddress");
+    const contract = m.contractAt(
+      contractsInfo.GROTH16_VERIFIER_V3_STABLE_16_16_64_16_32.name,
+      contractAddress,
+    );
+    return { contract };
+  },
+);
+
+export const CredentialAtomicQueryV3Stable_16_16_64_16_32ValidatorNewImplementationAtModule =
+  buildModule(
+    "CredentialAtomicQueryV3Stable_16_16_64_16_32ValidatorNewImplementationAtModule",
+    (m) => {
+      const contractAddress = m.getParameter("contractAddress");
+      const contract = m.contractAt(
+        contractsInfo.VALIDATOR_V3_STABLE_16_16_64_16_32.name,
+        contractAddress,
+      );
+      return { contract };
+    },
+  );
+
+export const CredentialAtomicQueryV3Stable_16_16_64_16_32ValidatorAtModule = buildModule(
+  "CredentialAtomicQueryV3Stable_16_16_64_16_32ValidatorAtModule",
+  (m) => {
+    const proxyAddress = m.getParameter("proxyAddress");
+    const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+    const proxy = m.contractAt(contractsInfo.VALIDATOR_V3_STABLE_16_16_64_16_32.name, proxyAddress);
+    const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+    return { proxy, proxyAdmin };
+  },
+);
+
 export const Groth16VerifierLinkedMultiQuery10WrapperAtModule = buildModule(
   "Groth16VerifierLinkedMultiQuery10WrapperAtModule",
   (m) => {
     const contractAddress = m.getParameter("contractAddress");
     const contract = m.contractAt(
-      contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.name,
+      contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY_10.name,
       contractAddress,
     );
     return { contract };
@@ -252,11 +317,146 @@ export const LinkedMultiQueryValidatorAtModule = buildModule(
   },
 );
 
+export const Groth16VerifierLinkedMultiQueryWrapperAtModule = buildModule(
+  "Groth16VerifierLinkedMultiQueryWrapperAtModule",
+  (m) => {
+    const contractAddress = m.getParameter("contractAddress");
+    const contract = m.contractAt(
+      contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY.name,
+      contractAddress,
+    );
+    return { contract };
+  },
+);
+
+export const LinkedMultiQueryStableValidatorNewImplementationAtModule = buildModule(
+  "LinkedMultiQueryStableValidatorNewImplementationAtModule",
+  (m) => {
+    const contractAddress = m.getParameter("contractAddress");
+    const contract = m.contractAt(
+      contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.name,
+      contractAddress,
+    );
+    return { contract };
+  },
+);
+
+export const LinkedMultiQueryStableValidatorAtModule = buildModule(
+  "LinkedMultiQueryStableValidatorAtModule",
+  (m) => {
+    const proxyAddress = m.getParameter("proxyAddress");
+    const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+    const proxy = m.contractAt(
+      contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.name,
+      proxyAddress,
+    );
+    const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+    return { proxy, proxyAdmin };
+  },
+);
+
+export const Groth16VerifierLinkedMultiQuery5WrapperAtModule = buildModule(
+  "Groth16VerifierLinkedMultiQuery5WrapperAtModule",
+  (m) => {
+    const contractAddress = m.getParameter("contractAddress");
+    const contract = m.contractAt(
+      contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY_5.name,
+      contractAddress,
+    );
+    return { contract };
+  },
+);
+
+export const LinkedMultiQueryStable5ValidatorNewImplementationAtModule = buildModule(
+  "LinkedMultiQueryStable5ValidatorNewImplementationAtModule",
+  (m) => {
+    const contractAddress = m.getParameter("contractAddress");
+    const contract = m.contractAt(
+      contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE_5.name,
+      contractAddress,
+    );
+    return { contract };
+  },
+);
+
+export const LinkedMultiQueryStable5ValidatorAtModule = buildModule(
+  "LinkedMultiQueryStable5ValidatorAtModule",
+  (m) => {
+    const proxyAddress = m.getParameter("proxyAddress");
+    const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+    const proxy = m.contractAt(
+      contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE_5.name,
+      proxyAddress,
+    );
+    const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+    return { proxy, proxyAdmin };
+  },
+);
+
+export const Groth16VerifierLinkedMultiQuery3WrapperAtModule = buildModule(
+  "Groth16VerifierLinkedMultiQuery3WrapperAtModule",
+  (m) => {
+    const contractAddress = m.getParameter("contractAddress");
+    const contract = m.contractAt(
+      contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY_3.name,
+      contractAddress,
+    );
+    return { contract };
+  },
+);
+
+export const LinkedMultiQueryStable3ValidatorNewImplementationAtModule = buildModule(
+  "LinkedMultiQueryStable3ValidatorNewImplementationAtModule",
+  (m) => {
+    const contractAddress = m.getParameter("contractAddress");
+    const contract = m.contractAt(
+      contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE_3.name,
+      contractAddress,
+    );
+    return { contract };
+  },
+);
+
+export const LinkedMultiQueryStable3ValidatorAtModule = buildModule(
+  "LinkedMultiQueryStable3ValidatorAtModule",
+  (m) => {
+    const proxyAddress = m.getParameter("proxyAddress");
+    const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+    const proxy = m.contractAt(
+      contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE_3.name,
+      proxyAddress,
+    );
+    const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+    return { proxy, proxyAdmin };
+  },
+);
+
 export const Groth16VerifierAuthV2WrapperAtModule = buildModule(
   "Groth16VerifierAuthV2WrapperAtModule",
   (m) => {
     const contractAddress = m.getParameter("contractAddress");
     const contract = m.contractAt(contractsInfo.GROTH16_VERIFIER_AUTH_V2.name, contractAddress);
+    return { contract };
+  },
+);
+
+export const Groth16VerifierAuthV3WrapperAtModule = buildModule(
+  "Groth16VerifierAuthV3WrapperAtModule",
+  (m) => {
+    const contractAddress = m.getParameter("contractAddress");
+    const contract = m.contractAt(contractsInfo.GROTH16_VERIFIER_AUTH_V3.name, contractAddress);
+    return { contract };
+  },
+);
+
+export const Groth16VerifierAuthV3_8_32WrapperAtModule = buildModule(
+  "Groth16VerifierAuthV3_8_32WrapperAtModule",
+  (m) => {
+    const contractAddress = m.getParameter("contractAddress");
+    const contract = m.contractAt(
+      contractsInfo.GROTH16_VERIFIER_AUTH_V3_8_32.name,
+      contractAddress,
+    );
     return { contract };
   },
 );
@@ -274,6 +474,40 @@ export const AuthV2ValidatorAtModule = buildModule("AuthV2ValidatorAtModule", (m
   const proxyAddress = m.getParameter("proxyAddress");
   const proxyAdminAddress = m.getParameter("proxyAdminAddress");
   const proxy = m.contractAt(contractsInfo.VALIDATOR_AUTH_V2.name, proxyAddress);
+  const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+  return { proxy, proxyAdmin };
+});
+
+export const AuthV3ValidatorNewImplementationAtModule = buildModule(
+  "AuthV3ValidatorNewImplementationAtModule",
+  (m) => {
+    const contractAddress = m.getParameter("contractAddress");
+    const contract = m.contractAt(contractsInfo.VALIDATOR_AUTH_V3.name, contractAddress);
+    return { contract };
+  },
+);
+
+export const AuthV3ValidatorAtModule = buildModule("AuthV3ValidatorAtModule", (m) => {
+  const proxyAddress = m.getParameter("proxyAddress");
+  const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+  const proxy = m.contractAt(contractsInfo.VALIDATOR_AUTH_V3.name, proxyAddress);
+  const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
+  return { proxy, proxyAdmin };
+});
+
+export const AuthV3_8_32ValidatorNewImplementationAtModule = buildModule(
+  "AuthV3_8_32ValidatorNewImplementationAtModule",
+  (m) => {
+    const contractAddress = m.getParameter("contractAddress");
+    const contract = m.contractAt(contractsInfo.VALIDATOR_AUTH_V3_8_32.name, contractAddress);
+    return { contract };
+  },
+);
+
+export const AuthV3_8_32ValidatorAtModule = buildModule("AuthV3_8_32ValidatorAtModule", (m) => {
+  const proxyAddress = m.getParameter("proxyAddress");
+  const proxyAdminAddress = m.getParameter("proxyAdminAddress");
+  const proxy = m.contractAt(contractsInfo.VALIDATOR_AUTH_V3_8_32.name, proxyAddress);
   const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
   return { proxy, proxyAdmin };
 });

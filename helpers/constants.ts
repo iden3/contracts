@@ -238,6 +238,48 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
+  VALIDATOR_V3_STABLE: {
+    name: "CredentialAtomicQueryV3StableValidator",
+    version: "1.0.0",
+    unifiedAddress: "0x0d78ADDD050a75a94e21eD14d54591933B9B7546",
+    create2Calldata: ethers.hexlify(
+      ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3StableValidator.v3"),
+    ),
+    verificationOpts: {
+      constructorArgsImplementation: [],
+      constructorArgsProxy: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        ethers.hexlify(
+          ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3StableValidator.v3"),
+        ),
+      ],
+      constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
+      libraries: {},
+    },
+  },
+  VALIDATOR_V3_STABLE_16_16_64_16_32: {
+    name: "CredentialAtomicQueryV3Stable_16_16_64_16_32Validator",
+    version: "1.0.0",
+    unifiedAddress: "0x353d19e561862CcBE6527F6D893A232d8cE0C0b0",
+    create2Calldata: ethers.hexlify(
+      ethers.toUtf8Bytes("iden3.create2.CredentialAtomicQueryV3Stable_16_16_64_16_32Validator.v3"),
+    ),
+    verificationOpts: {
+      constructorArgsImplementation: [],
+      constructorArgsProxy: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        ethers.hexlify(
+          ethers.toUtf8Bytes(
+            "iden3.create2.CredentialAtomicQueryV3Stable_16_16_64_16_32Validator.v3",
+          ),
+        ),
+      ],
+      constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
+      libraries: {},
+    },
+  },
   VALIDATOR_LINKED_MULTI_QUERY: {
     name: "LinkedMultiQueryValidator",
     version: "1.0.0-beta.1",
@@ -254,6 +296,60 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
+  VALIDATOR_LINKED_MULTI_QUERY_STABLE: {
+    name: "LinkedMultiQueryStableValidator",
+    version: "1.0.0",
+    unifiedAddress: "0xdD889d2cE09579CBddF9Ef3313C37276A41d6Df1",
+    create2Calldata: ethers.hexlify(
+      ethers.toUtf8Bytes("iden3.create2.LinkedMultiQueryStableValidator"),
+    ),
+    verificationOpts: {
+      constructorArgsImplementation: [],
+      constructorArgsProxy: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.LinkedMultiQueryStableValidator")),
+      ],
+      constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7f44012c728b9d74"],
+      libraries: {},
+    },
+  },
+  VALIDATOR_LINKED_MULTI_QUERY_STABLE_5: {
+    name: "LinkedMultiQueryStable5Validator",
+    version: "1.0.0",
+    unifiedAddress: "0x3253907649DF86743b7C3bC1aC8EE0862dEca3fB",
+    create2Calldata: ethers.hexlify(
+      ethers.toUtf8Bytes("iden3.create2.LinkedMultiQueryStable5Validator"),
+    ),
+    verificationOpts: {
+      constructorArgsImplementation: [],
+      constructorArgsProxy: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.LinkedMultiQueryStable5Validator")),
+      ],
+      constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7f44012c728b9d74"],
+      libraries: {},
+    },
+  },
+  VALIDATOR_LINKED_MULTI_QUERY_STABLE_3: {
+    name: "LinkedMultiQueryStable3Validator",
+    version: "1.0.0",
+    unifiedAddress: "0x836D818FD03b001BEA236A1976F0a259DEe51B6f",
+    create2Calldata: ethers.hexlify(
+      ethers.toUtf8Bytes("iden3.create2.LinkedMultiQueryStable3Validator"),
+    ),
+    verificationOpts: {
+      constructorArgsImplementation: [],
+      constructorArgsProxy: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.LinkedMultiQueryStable3Validator")),
+      ],
+      constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7f44012c728b9d74"],
+      libraries: {},
+    },
+  },
   VALIDATOR_AUTH_V2: {
     name: "AuthV2Validator",
     version: "1.0.0",
@@ -265,6 +361,38 @@ export const contractsInfo = Object.freeze({
         "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
         "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
         ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.AuthV2Validator")),
+      ],
+      constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
+      libraries: {},
+    },
+  },
+  VALIDATOR_AUTH_V3: {
+    name: "AuthV3Validator",
+    version: "1.0.0",
+    unifiedAddress: "0x0127bb45d6F88bC9eBF418421b1d57aE99a7FA4A",
+    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.AuthV3Validator")),
+    verificationOpts: {
+      constructorArgsImplementation: [],
+      constructorArgsProxy: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.AuthV3Validator")),
+      ],
+      constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
+      libraries: {},
+    },
+  },
+  VALIDATOR_AUTH_V3_8_32: {
+    name: "AuthV3_8_32Validator",
+    version: "1.0.0",
+    unifiedAddress: "0x85808DEce33D4124659C4d450E0e8E497711AB51",
+    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.AuthV3_8_32Validator")),
+    verificationOpts: {
+      constructorArgsImplementation: [],
+      constructorArgsProxy: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.AuthV3_8_32Validator")),
       ],
       constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
       libraries: {},
@@ -414,13 +542,68 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
-  GROTH16_VERIFIER_LINKED_MULTI_QUERY10: {
+  GROTH16_VERIFIER_V3_STABLE: {
+    name: "Groth16VerifierV3StableWrapper",
+    unifiedAddress: "",
+    create2Calldata: "",
+    verificationOpts: {
+      contract:
+        "contracts/lib/groth16-verifiers/Groth16VerifierV3StableWrapper.sol:Groth16VerifierV3StableWrapper",
+      constructorArgsImplementation: [],
+      libraries: {},
+    },
+  },
+  GROTH16_VERIFIER_V3_STABLE_16_16_64_16_32: {
+    name: "Groth16VerifierV3Stable_16_16_64_16_32Wrapper",
+    unifiedAddress: "",
+    create2Calldata: "",
+    verificationOpts: {
+      contract:
+        "contracts/lib/groth16-verifiers/Groth16VerifierV3Stable_16_16_64_16_32Wrapper.sol:Groth16VerifierV3Stable_16_16_64_16_32Wrapper",
+      constructorArgsImplementation: [],
+      libraries: {},
+    },
+  },
+  GROTH16_VERIFIER_LINKED_MULTI_QUERY_10: {
     name: "Groth16VerifierLinkedMultiQuery10Wrapper",
     unifiedAddress: "",
     create2Calldata: "",
     verificationOpts: {
       contract:
         "contracts/lib/groth16-verifiers/Groth16VerifierLinkedMultiQuery10Wrapper.sol:Groth16VerifierLinkedMultiQuery10Wrapper",
+      constructorArgsImplementation: [],
+      libraries: {},
+    },
+  },
+  GROTH16_VERIFIER_LINKED_MULTI_QUERY: {
+    name: "Groth16VerifierLinkedMultiQueryWrapper",
+    unifiedAddress: "",
+    create2Calldata: "",
+    verificationOpts: {
+      contract:
+        "contracts/lib/groth16-verifiers/Groth16VerifierLinkedMultiQueryWrapper.sol:Groth16VerifierLinkedMultiQueryWrapper",
+      constructorArgsImplementation: [],
+      libraries: {},
+    },
+  },
+  GROTH16_VERIFIER_LINKED_MULTI_QUERY_5: {
+    name: "Groth16VerifierLinkedMultiQuery5Wrapper",
+    unifiedAddress: "",
+    create2Calldata: "",
+    verificationOpts: {
+      contract:
+        "contracts/lib/groth16-verifiers/Groth16VerifierLinkedMultiQuery5Wrapper.sol:Groth16VerifierLinkedMultiQuery5Wrapper",
+      constructorArgsImplementation: [],
+      libraries: {},
+    },
+  },
+  GROTH16_VERIFIER_LINKED_MULTI_QUERY_3: {
+    name: "Groth16VerifierLinkedMultiQuery3Wrapper",
+    unifiedAddress: "",
+    create2Calldata: "",
+    verificationOpts: {
+      contract:
+        "contracts/lib/groth16-verifiers/Groth16VerifierLinkedMultiQuery3Wrapper.sol:Groth16VerifierLinkedMultiQuery3Wrapper",
       constructorArgsImplementation: [],
       libraries: {},
     },
@@ -432,6 +615,28 @@ export const contractsInfo = Object.freeze({
     verificationOpts: {
       contract:
         "contracts/lib/groth16-verifiers/Groth16VerifierAuthV2Wrapper.sol:Groth16VerifierAuthV2Wrapper",
+      constructorArgsImplementation: [],
+      libraries: {},
+    },
+  },
+  GROTH16_VERIFIER_AUTH_V3: {
+    name: "Groth16VerifierAuthV3Wrapper",
+    unifiedAddress: "",
+    create2Calldata: "",
+    verificationOpts: {
+      contract:
+        "contracts/lib/groth16-verifiers/Groth16VerifierAuthV3Wrapper.sol:Groth16VerifierAuthV3Wrapper",
+      constructorArgsImplementation: [],
+      libraries: {},
+    },
+  },
+  GROTH16_VERIFIER_AUTH_V3_8_32: {
+    name: "Groth16VerifierAuthV3_8_32Wrapper",
+    unifiedAddress: "",
+    create2Calldata: "",
+    verificationOpts: {
+      contract:
+        "contracts/lib/groth16-verifiers/Groth16VerifierAuthV3_8_32Wrapper.sol:Groth16VerifierAuthV3_8_32Wrapper",
       constructorArgsImplementation: [],
       libraries: {},
     },

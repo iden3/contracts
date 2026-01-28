@@ -53,7 +53,7 @@ async function main() {
       moduleFinalImplementation: LinkedMultiQueryValidatorModule,
       moduleAt: LinkedMultiQueryValidatorAtModule,
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
-      verifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.name,
+      verifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY_10.name,
       paramName: "LinkedMultiQueryValidatorAtModule",
     },
   ];
