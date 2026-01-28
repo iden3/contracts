@@ -181,14 +181,9 @@ describe("Test linkedMultiQuery10.circom", function () {
     ).to.be.revertedWithCustomError(validator, "InvalidGroth16Proof");
   });
 
-  it("Contract version should be 1.0.0-beta.1", async function () {
-    expect(await validator.VERSION()).to.equal("1.0.0-beta.1");
-    expect(await validator.version()).to.equal("1.0.0-beta.1");
-  });
-
-  it("check version", async () => {
-    const version = await validator.version();
-    expect(version).to.be.equal(contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.version);
+  it("Check contract version", async function () {
+    expect(await validator.VERSION()).to.equal(contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.version);
+    expect(await validator.version()).to.equal(contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.version);
   });
 
   it("check getRequestParam", async () => {
