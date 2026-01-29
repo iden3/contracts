@@ -10,8 +10,6 @@ import {
 import { LinkedMultiQueryValidatorImplementationModule } from "./linkedMultiQueryValidator";
 import { AuthV3ValidatorImplementationModule } from "./authV3Validator";
 import { LinkedMultiQueryStableValidatorImplementationModule } from "./linkedMultiQueryStableValidator";
-import { LinkedMultiQueryStable5ValidatorImplementationModule } from "./linkedMultiQueryStable5Validator";
-import { LinkedMultiQueryStable3ValidatorImplementationModule } from "./linkedMultiQueryStable3Validator";
 import { CircuitId } from "@0xpolygonid/js-sdk";
 
 export const Groth16VerifierStubModule = buildModule("Groth16VerifierStubModule", (m) => {
@@ -240,7 +238,23 @@ const LinkedMultiQueryValidatorStableProxyWithGroth16VerifierStubModule = buildM
     const contractOwner = m.getAccount(0);
 
     const initializeData = m.encodeFunctionCall(implementation, "initialize", [
-      groth16VerifierValidatorStub,
+      [
+        {
+          circuitId: CircuitId.LinkedMultiQueryStable,
+          verifierAddress: groth16VerifierValidatorStub,
+          queriesCount: 10,
+        },
+        {
+          circuitId: "linkedMultiQuery3",
+          verifierAddress: groth16VerifierValidatorStub,
+          queriesCount: 3,
+        },
+        {
+          circuitId: "linkedMultiQuery5",
+          verifierAddress: groth16VerifierValidatorStub,
+          queriesCount: 5,
+        },
+      ],
       contractOwner,
     ]);
 
@@ -271,94 +285,6 @@ export const LinkedMultiQueryStableValidatorWithGroth16VerifierStubModule = buil
       proxy,
     );
     return { linkedMultiQueryValidatorStable, groth16VerifierValidatorStub };
-  },
-);
-
-const LinkedMultiQueryValidatorStable5ProxyWithGroth16VerifierStubModule = buildModule(
-  "LinkedMultiQueryValidatorStable5ProxyWithGroth16VerifierStubModule",
-  (m) => {
-    const { implementation } = m.useModule(LinkedMultiQueryStable5ValidatorImplementationModule);
-    const { groth16VerifierValidatorStub } = m.useModule(Groth16VerifierValidatorStubModule);
-
-    const proxyAdminOwner = m.getAccount(0);
-    const contractOwner = m.getAccount(0);
-
-    const initializeData = m.encodeFunctionCall(implementation, "initialize", [
-      groth16VerifierValidatorStub,
-      contractOwner,
-    ]);
-
-    const proxy = m.contract(
-      "TransparentUpgradeableProxy",
-      {
-        abi: TRANSPARENT_UPGRADEABLE_PROXY_ABI,
-        contractName: "TransparentUpgradeableProxy",
-        bytecode: TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
-        sourceName: "",
-        linkReferences: {},
-      },
-      [implementation, proxyAdminOwner, initializeData],
-    );
-
-    return { proxy, groth16VerifierValidatorStub };
-  },
-);
-
-export const LinkedMultiQueryStable5ValidatorWithGroth16VerifierStubModule = buildModule(
-  "LinkedMultiQueryStable5ValidatorWithGroth16VerifierStubModule",
-  (m) => {
-    const { proxy, groth16VerifierValidatorStub } = m.useModule(
-      LinkedMultiQueryValidatorStable5ProxyWithGroth16VerifierStubModule,
-    );
-    const linkedMultiQueryValidatorStable5 = m.contractAt(
-      contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE_5.name,
-      proxy,
-    );
-    return { linkedMultiQueryValidatorStable5, groth16VerifierValidatorStub };
-  },
-);
-
-const LinkedMultiQueryValidatorStable3ProxyWithGroth16VerifierStubModule = buildModule(
-  "LinkedMultiQueryValidatorStable3ProxyWithGroth16VerifierStubModule",
-  (m) => {
-    const { implementation } = m.useModule(LinkedMultiQueryStable3ValidatorImplementationModule);
-    const { groth16VerifierValidatorStub } = m.useModule(Groth16VerifierValidatorStubModule);
-
-    const proxyAdminOwner = m.getAccount(0);
-    const contractOwner = m.getAccount(0);
-
-    const initializeData = m.encodeFunctionCall(implementation, "initialize", [
-      groth16VerifierValidatorStub,
-      contractOwner,
-    ]);
-
-    const proxy = m.contract(
-      "TransparentUpgradeableProxy",
-      {
-        abi: TRANSPARENT_UPGRADEABLE_PROXY_ABI,
-        contractName: "TransparentUpgradeableProxy",
-        bytecode: TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
-        sourceName: "",
-        linkReferences: {},
-      },
-      [implementation, proxyAdminOwner, initializeData],
-    );
-
-    return { proxy, groth16VerifierValidatorStub };
-  },
-);
-
-export const LinkedMultiQueryStable3ValidatorWithGroth16VerifierStubModule = buildModule(
-  "LinkedMultiQueryStable3ValidatorWithGroth16VerifierStubModule",
-  (m) => {
-    const { proxy, groth16VerifierValidatorStub } = m.useModule(
-      LinkedMultiQueryValidatorStable3ProxyWithGroth16VerifierStubModule,
-    );
-    const linkedMultiQueryValidatorStable3 = m.contractAt(
-      contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE_3.name,
-      proxy,
-    );
-    return { linkedMultiQueryValidatorStable3, groth16VerifierValidatorStub };
   },
 );
 

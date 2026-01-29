@@ -38,16 +38,24 @@ contract LinkedMultiQueryStableValidator is Ownable2StepUpgradeable, RequestVali
     bytes32 private constant NULLIFIERSESSIONID_NAME =
         0x24cea8e4716dcdf091e4abcbd3ea617d9a5dd308b90afb5da0d75e56b3c0bc95;
 
+    uint256 internal constant MAX_QUERIES_COUNT = 10;
+
     struct PubSignals {
         uint256 linkID;
         uint256 merklized;
-        uint256[10] operatorOutput;
-        uint256[10] circuitQueryHash;
+        uint256[MAX_QUERIES_COUNT] operatorOutput;
+        uint256[MAX_QUERIES_COUNT] circuitQueryHash;
+    }
+
+    struct VerifierInfo {
+        string circuitId;
+        address verifierAddress;
+        uint256 queriesCount;
     }
 
     string public constant VERSION = "1.0.0";
-    string internal constant CIRCUIT_ID = "linkedMultiQuery";
-    uint256 internal constant QUERIES_COUNT = 10;
+
+    mapping(string => uint256) public circuitIdToQueriesCount;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -64,15 +72,21 @@ contract LinkedMultiQueryStableValidator is Ownable2StepUpgradeable, RequestVali
 
     /**
      * @dev Initialize the contract
-     * @param _groth16VerifierContractAddr Address of the verifier contract
+     * @param verifiersInfo Array of verifier information structs
      * @param owner Owner of the contract
      */
-    function initialize(address _groth16VerifierContractAddr, address owner) public initializer {
-        _setGroth16Verifier(CIRCUIT_ID, IGroth16Verifier(_groth16VerifierContractAddr));
+    function initialize(VerifierInfo[] memory verifiersInfo, address owner) public initializer {
+        for (uint256 i = 0; i < verifiersInfo.length; i++) {
+            _setGroth16Verifier(
+                verifiersInfo[i].circuitId,
+                IGroth16Verifier(verifiersInfo[i].verifierAddress)
+            );
+            circuitIdToQueriesCount[verifiersInfo[i].circuitId] = verifiersInfo[i].queriesCount;
+        }
 
         _setInputToIndex("linkID", 0);
         _setInputToIndex("merklized", 1);
-        for (uint256 i = 0; i < QUERIES_COUNT; i++) {
+        for (uint256 i = 0; i < MAX_QUERIES_COUNT; i++) {
             _setInputToIndex(
                 string(abi.encodePacked("operatorOutput_", Strings.toString(i))),
                 2 + i
@@ -110,15 +124,21 @@ contract LinkedMultiQueryStableValidator is Ownable2StepUpgradeable, RequestVali
             uint256[2][2] memory b,
             uint256[2] memory c
         ) = abi.decode(proof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
-        PubSignals memory pubSignals = _parsePubSignals(inputs);
+
+        IGroth16Verifier g16Verifier = getVerifierByCircuitId(query.circuitIds[0]);
+        if (g16Verifier == IGroth16Verifier(address(0))) {
+            revert WrongCircuitID(query.circuitIds[0]);
+        }
+
+        PubSignals memory pubSignals = _parsePubSignals(
+            inputs,
+            circuitIdToQueriesCount[query.circuitIds[0]]
+        );
 
         _checkQueryHash(query, pubSignals);
         _checkGroupIDOrLinkID(query.groupID, pubSignals.linkID);
 
-        if (keccak256(bytes(query.circuitIds[0])) != keccak256(bytes(CIRCUIT_ID))) {
-            revert WrongCircuitID(query.circuitIds[0]);
-        }
-        if (!getVerifierByCircuitId(CIRCUIT_ID).verify(a, b, c, inputs)) {
+        if (!g16Verifier.verify(a, b, c, inputs)) {
             revert InvalidGroth16Proof();
         }
 
@@ -161,8 +181,10 @@ contract LinkedMultiQueryStableValidator is Ownable2StepUpgradeable, RequestVali
         if (linkID == 0) revert LinkIDCannotBeZero();
     }
 
-    function _checkQueryHash(Query memory query, PubSignals memory pubSignals) internal pure {
-        if (query.queryHash.length > QUERIES_COUNT) {
+    function _checkQueryHash(Query memory query, PubSignals memory pubSignals) internal view {
+        uint256 expectedQueriesCount = circuitIdToQueriesCount[query.circuitIds[0]];
+
+        if (query.queryHash.length > expectedQueriesCount) {
             revert TooManyQueries(query.queryHash.length);
         }
         for (uint256 i = 0; i < query.queryHash.length; i++) {
@@ -172,9 +194,12 @@ contract LinkedMultiQueryStableValidator is Ownable2StepUpgradeable, RequestVali
         }
     }
 
-    function _parsePubSignals(uint256[] memory inputs) internal pure returns (PubSignals memory) {
-        uint256[QUERIES_COUNT] memory opsOutput;
-        uint256[QUERIES_COUNT] memory queryHashes;
+    function _parsePubSignals(
+        uint256[] memory inputs,
+        uint256 queriesCount
+    ) internal pure returns (PubSignals memory) {
+        uint256[MAX_QUERIES_COUNT] memory opsOutput;
+        uint256[MAX_QUERIES_COUNT] memory queryHashes;
         PubSignals memory pubSignals = PubSignals({
             linkID: 0,
             merklized: 0,
@@ -184,9 +209,10 @@ contract LinkedMultiQueryStableValidator is Ownable2StepUpgradeable, RequestVali
 
         pubSignals.linkID = inputs[0];
         pubSignals.merklized = inputs[1];
-        for (uint256 i = 0; i < QUERIES_COUNT; i++) {
+
+        for (uint256 i = 0; i < queriesCount; i++) {
             pubSignals.operatorOutput[i] = inputs[2 + i];
-            pubSignals.circuitQueryHash[i] = inputs[2 + QUERIES_COUNT + i];
+            pubSignals.circuitQueryHash[i] = inputs[2 + queriesCount + i];
         }
         return pubSignals;
     }
