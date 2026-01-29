@@ -11,12 +11,15 @@ import AuthV2ValidatorModule from "../../../ignition/modules/authV2Validator";
 import EthIdentityValidatorModule from "../../../ignition/modules/ethIdentityValidator";
 import {
   AuthV2ValidatorAtModule,
+  AuthV3ValidatorAtModule,
   Create2AddressAnchorAtModule,
   CredentialAtomicQueryMTPV2ValidatorAtModule,
   CredentialAtomicQuerySigV2ValidatorAtModule,
+  CredentialAtomicQueryV3StableValidatorAtModule,
   CredentialAtomicQueryV3ValidatorAtModule,
   EthIdentityValidatorAtModule,
   IdentityTreeStoreAtModule,
+  LinkedMultiQueryStableValidatorAtModule,
   LinkedMultiQueryValidatorAtModule,
   MCPaymentAtModule,
   StateAtModule,
@@ -26,6 +29,9 @@ import {
 import MCPaymentModule from "../../../ignition/modules/mcPayment";
 import VCPaymentModule from "../../../ignition/modules/vcPayment";
 import { network } from "hardhat";
+import AuthV3ValidatorModule from "../../../ignition/modules/authV3Validator";
+import LinkedMultiQueryStableValidatorModule from "../../../ignition/modules/linkedMultiQueryStable";
+import CredentialAtomicQueryV3StableValidatorModule from "../../../ignition/modules/credentialAtomicQueryV3StableValidator";
 
 const { ethers, ignition } = await network.connect();
 
@@ -76,12 +82,30 @@ async function main() {
       isProxy: true,
     },
     {
+      module: CredentialAtomicQueryV3StableValidatorModule,
+      moduleAt: CredentialAtomicQueryV3StableValidatorAtModule,
+      contractAddress:
+        parameters["CredentialAtomicQueryV3StableValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_V3_STABLE.unifiedAddress,
+      name: contractsInfo.VALIDATOR_V3_STABLE.name,
+      isProxy: true,
+    },
+    {
       module: LinkedMultiQueryValidatorModule,
       moduleAt: LinkedMultiQueryValidatorAtModule,
       contractAddress:
         parameters["LinkedMultiQueryValidatorAtModule"].proxyAddress ||
         contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.unifiedAddress,
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
+      isProxy: true,
+    },
+    {
+      module: LinkedMultiQueryStableValidatorModule,
+      moduleAt: LinkedMultiQueryStableValidatorAtModule,
+      contractAddress:
+        parameters["LinkedMultiQueryStableValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.unifiedAddress,
+      name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.name,
       isProxy: true,
     },
   ];
@@ -95,6 +119,16 @@ async function main() {
         parameters["AuthV2ValidatorAtModule"].proxyAddress ||
         contractsInfo.VALIDATOR_AUTH_V2.unifiedAddress,
       name: contractsInfo.VALIDATOR_AUTH_V2.name,
+      isProxy: true,
+    },
+    {
+      authMethod: "authV3",
+      module: AuthV3ValidatorModule,
+      moduleAt: AuthV3ValidatorAtModule,
+      contractAddress:
+        parameters["AuthV3ValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_AUTH_V3.unifiedAddress,
+      name: contractsInfo.VALIDATOR_AUTH_V3.name,
       isProxy: true,
     },
     {

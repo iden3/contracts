@@ -25,13 +25,25 @@ import LinkedMultiQueryValidatorModule, {
 } from "../../ignition/modules/linkedMultiQuery";
 import {
   AuthV2ValidatorAtModule,
+  AuthV3ValidatorAtModule,
   CredentialAtomicQueryMTPV2ValidatorAtModule,
   CredentialAtomicQuerySigV2ValidatorAtModule,
+  CredentialAtomicQueryV3StableValidatorAtModule,
   CredentialAtomicQueryV3ValidatorAtModule,
   EthIdentityValidatorAtModule,
+  LinkedMultiQueryStableValidatorAtModule,
   LinkedMultiQueryValidatorAtModule,
 } from "../../ignition/modules/contractsAt";
 import { network } from "hardhat";
+import CredentialAtomicQueryV3StableValidatorModule, {
+  CredentialAtomicQueryV3StableValidatorProxyModule,
+} from "../../ignition/modules/credentialAtomicQueryV3StableValidator";
+import LinkedMultiQueryStableValidatorModule, {
+  LinkedMultiQueryStableValidatorProxyModule,
+} from "../../ignition/modules/linkedMultiQueryStable";
+import AuthV3ValidatorModule, {
+  AuthV3ValidatorProxyModule,
+} from "../../ignition/modules/authV3Validator";
 
 const { ethers, ignition } = await network.connect();
 
@@ -73,6 +85,15 @@ async function main() {
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_V3.verificationOpts,
     },
     {
+      moduleFirstImplementation: CredentialAtomicQueryV3StableValidatorProxyModule,
+      moduleFinalImplementation: CredentialAtomicQueryV3StableValidatorModule,
+      moduleAt: CredentialAtomicQueryV3StableValidatorAtModule,
+      name: contractsInfo.VALIDATOR_V3_STABLE.name,
+      verifierName: contractsInfo.GROTH16_VERIFIER_V3_STABLE.name,
+      verificationOpts: contractsInfo.VALIDATOR_V3_STABLE.verificationOpts,
+      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_V3_STABLE.verificationOpts,
+    },
+    {
       moduleFirstImplementation: LinkedMultiQueryValidatorProxyModule,
       moduleFinalImplementation: LinkedMultiQueryValidatorModule,
       moduleAt: LinkedMultiQueryValidatorAtModule,
@@ -81,6 +102,15 @@ async function main() {
       verificationOpts: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.verificationOpts,
       verifierVerificationOpts:
         contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY_10.verificationOpts,
+    },
+    {
+      moduleFirstImplementation: LinkedMultiQueryStableValidatorProxyModule,
+      moduleFinalImplementation: LinkedMultiQueryStableValidatorModule,
+      moduleAt: LinkedMultiQueryStableValidatorAtModule,
+      name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.name,
+      verifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY.name,
+      verificationOpts: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.verificationOpts,
+      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY.verificationOpts,
     },
   ];
 
@@ -94,6 +124,16 @@ async function main() {
       verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V2.name,
       verificationOpts: contractsInfo.VALIDATOR_AUTH_V2.verificationOpts,
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V2.verificationOpts,
+    },
+    {
+      authMethod: "authV3",
+      moduleFirstImplementation: AuthV3ValidatorProxyModule,
+      moduleFinalImplementation: AuthV3ValidatorModule,
+      moduleAt: AuthV3ValidatorAtModule,
+      name: contractsInfo.VALIDATOR_AUTH_V3.name,
+      verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V3.name,
+      verificationOpts: contractsInfo.VALIDATOR_AUTH_V3.verificationOpts,
+      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V3.verificationOpts,
     },
     {
       authMethod: "ethIdentity",
