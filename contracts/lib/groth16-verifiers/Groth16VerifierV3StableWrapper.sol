@@ -16,7 +16,7 @@ pragma solidity 0.8.27;
 import "./Groth16VerifierV3Stable.sol";
 import "../../interfaces/IGroth16Verifier.sol";
 
-error ExpectedArrayLenght(uint256 expected, uint256 actual);
+error ExpectedArrayLength(uint256 expected, uint256 actual);
 
 contract Groth16VerifierV3StableWrapper is Groth16VerifierV3Stable, IGroth16Verifier {
     /**
@@ -42,7 +42,7 @@ contract Groth16VerifierV3StableWrapper is Groth16VerifierV3Stable, IGroth16Veri
         uint[PUBSIGNALS_LENGTH] memory pubSignals;
 
         if (signals.length != PUBSIGNALS_LENGTH) {
-            revert ExpectedArrayLenght(PUBSIGNALS_LENGTH, signals.length);
+            revert ExpectedArrayLength(PUBSIGNALS_LENGTH, signals.length);
         }
 
         for (uint256 i = 0; i < PUBSIGNALS_LENGTH; i++) {

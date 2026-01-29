@@ -75,7 +75,7 @@ contract LinkedMultiQueryStableValidator is Ownable2StepUpgradeable, RequestVali
      * @param verifiersInfo Array of verifier information structs
      * @param owner Owner of the contract
      */
-    function initialize(VerifierInfo[] memory verifiersInfo, address owner) public initializer {
+    function initialize(VerifierInfo[] calldata verifiersInfo, address owner) public initializer {
         for (uint256 i = 0; i < verifiersInfo.length; i++) {
             _setGroth16Verifier(
                 verifiersInfo[i].circuitId,
