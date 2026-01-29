@@ -116,7 +116,6 @@ async function main() {
 
   const authValidators = [
     {
-      authMethod: "authV2",
       moduleFirstImplementation: AuthV2ValidatorProxyModule,
       moduleFinalImplementation: AuthV2ValidatorModule,
       moduleAt: AuthV2ValidatorAtModule,
@@ -126,7 +125,6 @@ async function main() {
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V2.verificationOpts,
     },
     {
-      authMethod: "authV3",
       moduleFirstImplementation: AuthV3ValidatorProxyModule,
       moduleFinalImplementation: AuthV3ValidatorModule,
       moduleAt: AuthV3ValidatorAtModule,
@@ -136,7 +134,6 @@ async function main() {
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V3.verificationOpts,
     },
     {
-      authMethod: "ethIdentity",
       moduleFirstImplementation: EthIdentityValidatorProxyModule,
       moduleFinalImplementation: EthIdentityValidatorModule,
       moduleAt: EthIdentityValidatorAtModule,

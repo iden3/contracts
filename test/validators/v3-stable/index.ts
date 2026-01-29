@@ -1132,16 +1132,18 @@ describe("Atomic V3-Stable Validator", function () {
 
     const data = packV3ValidatorParams(query, test.allowedIssuers);
 
+    const metadata = ethers.AbiCoder.defaultAbiCoder().encode(["string"], [circuitId]);
+
     // Check verify function
     const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
     if (test.errorMessage) {
-      await expect(v3Validator.verify(test.sender, zkProof, data, "0x")).to.be.rejectedWith(
+      await expect(v3Validator.verify(test.sender, zkProof, data, metadata)).to.be.rejectedWith(
         test.errorMessage,
       );
     } else if (test.errorMessage === "") {
-      await expect(v3Validator.verify(test.sender, zkProof, data, "0x")).to.be.reverted;
+      await expect(v3Validator.verify(test.sender, zkProof, data, metadata)).to.be.reverted;
     } else {
-      const signals = await v3Validator.verify(test.sender, zkProof, data, "0x");
+      const signals = await v3Validator.verify(test.sender, zkProof, data, metadata);
 
       checkSignals(signals, test.signalValues);
     }

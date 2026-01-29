@@ -80,7 +80,6 @@ async function main() {
 
   const authValidators = [
     {
-      authMethod: "authV2",
       moduleFinalImplementation: AuthV2ValidatorModule,
       moduleAt: AuthV2ValidatorAtModule,
       name: contractsInfo.VALIDATOR_AUTH_V2.name,
@@ -88,7 +87,6 @@ async function main() {
       paramName: "AuthV2ValidatorAtModule",
     },
     {
-      authMethod: "authV3",
       moduleFinalImplementation: AuthV3ValidatorModule,
       moduleAt: AuthV3ValidatorAtModule,
       name: contractsInfo.VALIDATOR_AUTH_V3.name,
@@ -96,7 +94,6 @@ async function main() {
       paramName: "AuthV3ValidatorAtModule",
     },    
     {
-      authMethod: "ethIdentity",
       moduleFinalImplementation: EthIdentityValidatorModule,
       moduleAt: EthIdentityValidatorAtModule,
       name: contractsInfo.VALIDATOR_ETH_IDENTITY.name,

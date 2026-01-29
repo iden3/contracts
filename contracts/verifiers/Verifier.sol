@@ -16,7 +16,6 @@ error GroupIdNotFound(uint256 groupId);
 error GroupIdAlreadyExists(uint256 groupId);
 error GroupMustHaveAtLeastTwoRequests(uint256 groupId);
 error LinkIDNotTheSameForGroupedRequests();
-error MetadataNotSupportedYet();
 error MultiRequestIdAlreadyExists(uint256 multiRequestId);
 error MultiRequestIdNotFound(uint256 multiRequestId);
 error MultiRequestIdNotValid(uint256 expectedMultiRequestId, uint256 multiRequestId);
@@ -322,10 +321,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             VerifierLib.checkUserIDMatch(userIDFromAuthResponse, responseFields);
 
             _writeProofResults(response.requestId, sender, responseFields);
-
-            if (response.metadata.length > 0) {
-                revert MetadataNotSupportedYet();
-            }
         }
     }
 

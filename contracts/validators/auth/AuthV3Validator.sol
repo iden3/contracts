@@ -109,7 +109,6 @@ contract AuthV3Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
         // solhint-disable-next-line no-unused-vars
         address sender,
         bytes calldata proof,
-        // solhint-disable-next-line no-unused-vars
         bytes calldata params
     ) public view override returns (uint256 userID, AuthResponseField[] memory) {
         (
@@ -119,9 +118,12 @@ contract AuthV3Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
             uint256[2] memory c
         ) = abi.decode(proof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
+        // This validator expects circuitId in the params to select especific verifier
+        string memory circuitId = abi.decode(params, (string));
+
         PubSignals memory pubSignals = parsePubSignals(inputs);
         _checkGistRoot(pubSignals.userID, pubSignals.gistRoot);
-        _verifyZKP(inputs, a, b, c);
+        _verifyZKP(circuitId, inputs, a, b, c);
 
         AuthResponseField[] memory authResponseFields = new AuthResponseField[](1);
         authResponseFields[0] = AuthResponseField("challenge", pubSignals.challenge);
@@ -238,23 +240,19 @@ contract AuthV3Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
     }
 
     function _verifyZKP(
+        string memory circuitId,
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
     ) internal view {
-        AuthV3ValidatorStorage storage s = _getAuthV3ValidatorStorage();
-        for (uint256 i = 0; i < s._supportedCircuitIds.length; i++) {
-            IGroth16Verifier g16Verifier = getVerifierByCircuitId(s._supportedCircuitIds[i]);
-            if (g16Verifier == IGroth16Verifier(address(0))) {
-                revert VerifierAddressShouldNotBeZero();
-            }
-
-            if (g16Verifier.verify(a, b, c, inputs)) {
-                return;
-            }
+        IGroth16Verifier g16Verifier = getVerifierByCircuitId(circuitId);
+        if (g16Verifier == IGroth16Verifier(address(0))) {
+            revert VerifierAddressShouldNotBeZero();
         }
 
-        revert ProofIsNotValid();
+        if (!g16Verifier.verify(a, b, c, inputs)) {
+            revert ProofIsNotValid();
+        }
     }
 }

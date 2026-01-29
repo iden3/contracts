@@ -155,7 +155,7 @@ contract CredentialAtomicQueryV3StableValidator is CredentialAtomicQueryValidato
         return
             _checkPubSignalsWithCredentialAtomicQuery(
                 credAtomicQuery,
-                _verifyProof(proof, credAtomicQuery),
+                _verifyProof(proof, credAtomicQuery, responseMetadata),
                 sender
             );
     }
@@ -188,7 +188,8 @@ contract CredentialAtomicQueryV3StableValidator is CredentialAtomicQueryValidato
 
     function _verifyProof(
         bytes calldata proof,
-        CredentialAtomicQueryV3 memory credAtomicQuery
+        CredentialAtomicQueryV3 memory credAtomicQuery,
+        bytes calldata responseMetadata
     ) internal view returns (PubSignals memory) {
         if (credAtomicQuery.circuitIds.length != 1) {
             revert CircuitsLengthShouldBeOne();
@@ -201,7 +202,10 @@ contract CredentialAtomicQueryV3StableValidator is CredentialAtomicQueryValidato
             uint256[2] memory c
         ) = abi.decode(proof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
-        IGroth16Verifier g16Verifier = getVerifierByCircuitId(credAtomicQuery.circuitIds[0]);
+        // This validator expects circuitId in the response metadata to select especific verifier
+        string memory circuitId = abi.decode(responseMetadata, (string));
+
+        IGroth16Verifier g16Verifier = getVerifierByCircuitId(circuitId);
         if (g16Verifier == IGroth16Verifier(address(0))) {
             revert VerifierAddressShouldNotBeZero();
         }
@@ -268,7 +272,7 @@ contract CredentialAtomicQueryV3StableValidator is CredentialAtomicQueryValidato
         }
     }
 
-    function _checkAuth(uint256 userID, address ethIdentityOwner) internal view {
+    function _checkAuth(uint256 userID, address ethIdentityOwner) internal pure {
         if (
             userID !=
             GenesisUtils.calcIdFromEthAddress(GenesisUtils.getIdType(userID), ethIdentityOwner)
