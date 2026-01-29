@@ -29,7 +29,6 @@ import validBjjUserGenesisAuthDisabledV3WrongId from "./data/valid_bjj_user_gene
 import validMtpUserGenesisAuthDisabledV3WrongId from "./data/valid_mtp_user_genesis_auth_disabled_v3_wrong_id.json";
 import validBjjUserFirstIssuerGenesisV3 from "./data/valid_bjj_user_first_issuer_genesis_v3.json";
 
-
 import validBjjUserGenesisV3_16_16_64_16_32 from "./data-16-16-64-16-32/valid_bjj_user_genesis_v3.json";
 import invalidBjjUserGenesisV3_16_16_64_16_32 from "./data-16-16-64-16-32/invalid_bjj_user_genesis_v3.json";
 import validBjjUserFirstV3_16_16_64_16_32 from "./data-16-16-64-16-32/valid_bjj_user_first_v3.json";
@@ -45,7 +44,6 @@ import validMtpUserGenesisAuthDisabledV3_16_16_64_16_32 from "./data-16-16-64-16
 import validBjjUserGenesisAuthDisabledV3WrongId_16_16_64_16_32 from "./data-16-16-64-16-32/valid_bjj_user_genesis_auth_disabled_v3_wrong_id.json";
 import validMtpUserGenesisAuthDisabledV3WrongId_16_16_64_16_32 from "./data-16-16-64-16-32/valid_mtp_user_genesis_auth_disabled_v3_wrong_id.json";
 import validBjjUserFirstIssuerGenesisV3_16_16_64_16_32 from "./data-16-16-64-16-32/valid_bjj_user_first_issuer_genesis_v3.json";
-
 
 const { ethers, networkHelpers, ignition } = await network.connect();
 
@@ -543,7 +541,6 @@ const testCases: any[] = [
   },
 ];
 
-
 const testCases_16_16_64_16_32: any[] = [
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in published onchain. Revocation State is published onchain. BJJ Proof (16_16_64_16_32)",
@@ -1037,7 +1034,6 @@ const testCases_16_16_64_16_32: any[] = [
   },
 ];
 
-
 describe("Atomic V3-Stable Validator", function () {
   let state: any, v3Validator;
 
@@ -1076,168 +1072,103 @@ describe("Atomic V3-Stable Validator", function () {
     }
   }
 
+  async function executeTest(test: any, circuitId: string) {
+    for (let i = 0; i < test.stateTransitions.length; i++) {
+      if (test.stateTransitionDelayMs) {
+        await networkHelpers.time.increase(test.stateTransitionDelayMs);
+      }
+      await publishState(ethers, state, test.stateTransitions[i]);
+    }
+
+    const value = ["20010101", ...new Array(63).fill("0")];
+
+    const schema = "267831521922558027206082390043321796944";
+    const slotIndex = test.isMtpProof ? 2 : 0;
+    const operator = 2;
+    const claimPathKey =
+      "20376033832371109177683048456014525905119173674985843915445634726167450989630";
+    const valueArrSize = 1;
+    const nullifierSessionId = test.ethereumBasedUser ? "0" : "1234569";
+    const verifierId = "21929109382993718606847853573861987353620810345503358891473103689157378049";
+    const queryHash = calculateQueryHashV3(
+      value,
+      schema,
+      slotIndex,
+      operator,
+      claimPathKey,
+      valueArrSize,
+      1,
+      1,
+      verifierId,
+      nullifierSessionId,
+    );
+
+    const query = {
+      schema,
+      claimPathKey,
+      operator,
+      slotIndex,
+      value,
+      circuitIds: [circuitId],
+      skipClaimRevocationCheck: false,
+      queryHash: test.queryHash == undefined ? queryHash : test.queryHash,
+      groupID: test.groupID == undefined ? 1 : test.groupID,
+      nullifierSessionID:
+        test.nullifierSessionId == undefined ? nullifierSessionId : test.nullifierSessionId,
+      proofType: test.isMtpProof ? 2 : 1,
+      verifierID: verifierId,
+    };
+
+    const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
+    if (test.setProofExpiration) {
+      await v3Validator.setProofExpirationTimeout(test.setProofExpiration);
+    }
+    if (test.setRevStateExpiration) {
+      await v3Validator.setRevocationStateExpirationTimeout(test.setRevStateExpiration);
+    }
+    if (test.setGISTRootExpiration) {
+      await v3Validator.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
+    }
+
+    const data = packV3ValidatorParams(query, test.allowedIssuers);
+
+    // Check verify function
+    const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
+    if (test.errorMessage) {
+      await expect(v3Validator.verify(test.sender, zkProof, data, "0x")).to.be.rejectedWith(
+        test.errorMessage,
+      );
+    } else if (test.errorMessage === "") {
+      await expect(v3Validator.verify(test.sender, zkProof, data, "0x")).to.be.reverted;
+    } else {
+      const signals = await v3Validator.verify(test.sender, zkProof, data, "0x");
+
+      checkSignals(signals, test.signalValues);
+    }
+  }
+
   beforeEach(async () => {
     ({ stateContract: state, validator: v3Validator } =
       await networkHelpers.loadFixture(deployContractsFixture));
   });
 
-  for (const test of testCases) {
-    it(test.name, async function () {
-      this.timeout(50000);
-      for (let i = 0; i < test.stateTransitions.length; i++) {
-        if (test.stateTransitionDelayMs) {
-          await networkHelpers.time.increase(test.stateTransitionDelayMs);
-        }
-        await publishState(ethers, state, test.stateTransitions[i]);
-      }
+  describe(`Tests for circuitId ${CircuitId.AtomicQueryV3OnChainStable}`, function () {
+    for (const test of testCases) {
+      it(test.name, async function () {
+        this.timeout(50000);
+        await executeTest(test, CircuitId.AtomicQueryV3OnChainStable);
+      });
+    }
+  });
 
-      const value = ["20010101", ...new Array(63).fill("0")];
-
-      const schema = "267831521922558027206082390043321796944";
-      const slotIndex = test.isMtpProof ? 2 : 0;
-      const operator = 2;
-      const claimPathKey =
-        "20376033832371109177683048456014525905119173674985843915445634726167450989630";
-      const valueArrSize = 1;
-      const nullifierSessionId = test.ethereumBasedUser ? "0" : "1234569";
-      const verifierId =
-        "21929109382993718606847853573861987353620810345503358891473103689157378049";
-      const queryHash = calculateQueryHashV3(
-        value,
-        schema,
-        slotIndex,
-        operator,
-        claimPathKey,
-        valueArrSize,
-        1,
-        1,
-        verifierId,
-        nullifierSessionId,
-      );
-
-      const query = {
-        schema,
-        claimPathKey,
-        operator,
-        slotIndex,
-        value,
-        circuitIds: [CircuitId.AtomicQueryV3OnChainStable],
-        skipClaimRevocationCheck: false,
-        queryHash: test.queryHash == undefined ? queryHash : test.queryHash,
-        groupID: test.groupID == undefined ? 1 : test.groupID,
-        nullifierSessionID:
-          test.nullifierSessionId == undefined ? nullifierSessionId : test.nullifierSessionId,
-        proofType: test.isMtpProof ? 2 : 1,
-        verifierID: verifierId,
-      };
-
-      const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
-      if (test.setProofExpiration) {
-        await v3Validator.setProofExpirationTimeout(test.setProofExpiration);
-      }
-      if (test.setRevStateExpiration) {
-        await v3Validator.setRevocationStateExpirationTimeout(test.setRevStateExpiration);
-      }
-      if (test.setGISTRootExpiration) {
-        await v3Validator.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
-      }
-
-      const data = packV3ValidatorParams(query, test.allowedIssuers);
-
-      // Check verify function
-      const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
-      if (test.errorMessage) {
-        await expect(v3Validator.verify(test.sender, zkProof, data, "0x")).to.be.rejectedWith(
-          test.errorMessage,
-        );
-      } else if (test.errorMessage === "") {
-        await expect(v3Validator.verify(test.sender, zkProof, data, "0x")).to.be.reverted;
-      } else {
-        const signals = await v3Validator.verify(test.sender, zkProof, data, "0x");
-
-        checkSignals(signals, test.signalValues);
-      }
-    });
-  }
-
-  for (const test of testCases_16_16_64_16_32) {
-    it(test.name, async function () {
-      this.timeout(50000);
-      for (let i = 0; i < test.stateTransitions.length; i++) {
-        if (test.stateTransitionDelayMs) {
-          await networkHelpers.time.increase(test.stateTransitionDelayMs);
-        }
-        await publishState(ethers, state, test.stateTransitions[i]);
-      }
-
-      const value = ["20010101", ...new Array(63).fill("0")];
-
-      const schema = "267831521922558027206082390043321796944";
-      const slotIndex = test.isMtpProof ? 2 : 0;
-      const operator = 2;
-      const claimPathKey =
-        "20376033832371109177683048456014525905119173674985843915445634726167450989630";
-      const valueArrSize = 1;
-      const nullifierSessionId = test.ethereumBasedUser ? "0" : "1234569";
-      const verifierId =
-        "21929109382993718606847853573861987353620810345503358891473103689157378049";
-      const queryHash = calculateQueryHashV3(
-        value,
-        schema,
-        slotIndex,
-        operator,
-        claimPathKey,
-        valueArrSize,
-        1,
-        1,
-        verifierId,
-        nullifierSessionId,
-      );
-
-      const query = {
-        schema,
-        claimPathKey,
-        operator,
-        slotIndex,
-        value,
-        circuitIds: ["credentialAtomicQueryV3OnChain-16-16-64-16-32"],
-        skipClaimRevocationCheck: false,
-        queryHash: test.queryHash == undefined ? queryHash : test.queryHash,
-        groupID: test.groupID == undefined ? 1 : test.groupID,
-        nullifierSessionID:
-          test.nullifierSessionId == undefined ? nullifierSessionId : test.nullifierSessionId,
-        proofType: test.isMtpProof ? 2 : 1,
-        verifierID: verifierId,
-      };
-
-      const { inputs, pi_a, pi_b, pi_c } = prepareInputs(test.proofJson);
-      if (test.setProofExpiration) {
-        await v3Validator.setProofExpirationTimeout(test.setProofExpiration);
-      }
-      if (test.setRevStateExpiration) {
-        await v3Validator.setRevocationStateExpirationTimeout(test.setRevStateExpiration);
-      }
-      if (test.setGISTRootExpiration) {
-        await v3Validator.setGISTRootExpirationTimeout(test.setGISTRootExpiration);
-      }
-
-      const data = packV3ValidatorParams(query, test.allowedIssuers);
-
-      // Check verify function
-      const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
-      if (test.errorMessage) {
-        await expect(v3Validator.verify(test.sender, zkProof, data, "0x")).to.be.rejectedWith(
-          test.errorMessage,
-        );
-      } else if (test.errorMessage === "") {
-        await expect(v3Validator.verify(test.sender, zkProof, data, "0x")).to.be.reverted;
-      } else {
-        const signals = await v3Validator.verify(test.sender, zkProof, data, "0x");
-
-        checkSignals(signals, test.signalValues);
-      }
-    });
-  }
+  describe(`Tests for circuitId credentialAtomicQueryV3OnChain-16-16-64-16-32`, function () {
+    for (const test of testCases_16_16_64_16_32) {
+      it(test.name, async function () {
+        this.timeout(50000);
+        await executeTest(test, "credentialAtomicQueryV3OnChain-16-16-64-16-32");
+      });
+    }
+  });
 
   it("check version", async () => {
     const version = await v3Validator.version();
