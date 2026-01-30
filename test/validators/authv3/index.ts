@@ -16,7 +16,7 @@ const testCases: any[] = [
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     stateTransitions: [issuerFromGenesisStateToFirstTransitionV3],
     userID: 23273167900576580892722615617815475823351560716009055944677723144398443009n,
-    params: ethers.AbiCoder.defaultAbiCoder().encode(["string"], [CircuitId.AuthV3]),
+    metadata: ethers.AbiCoder.defaultAbiCoder().encode(["string"], [CircuitId.AuthV3]),
   },
   {
     name: "Validation of Gist root not found (AuthV3)",
@@ -25,14 +25,14 @@ const testCases: any[] = [
     userID: 23273167900576580892722615617815475823351560716009055944677723144398443009n,
     gistRoot: 2n,
     errorMessage: "GIST root entry not found",
-    params: ethers.AbiCoder.defaultAbiCoder().encode(["string"], [CircuitId.AuthV3]),
+    metadata: ethers.AbiCoder.defaultAbiCoder().encode(["string"], [CircuitId.AuthV3]),
   },
   {
     name: "Validate AuthV3-8-32",
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     stateTransitions: [issuerFromGenesisStateToFirstTransitionV3],
     userID: 23273167900576580892722615617815475823351560716009055944677723144398443009n,
-    params: ethers.AbiCoder.defaultAbiCoder().encode(["string"], [CircuitId.AuthV3_8_32]),
+    metadata: ethers.AbiCoder.defaultAbiCoder().encode(["string"], [CircuitId.AuthV3_8_32]),
   },
   {
     name: "Validation of Gist root not found (AuthV3-8-32)",
@@ -41,7 +41,7 @@ const testCases: any[] = [
     userID: 23273167900576580892722615617815475823351560716009055944677723144398443009n,
     gistRoot: 2n,
     errorMessage: "GIST root entry not found",
-    params: ethers.AbiCoder.defaultAbiCoder().encode(["string"], [CircuitId.AuthV3_8_32]),
+    metadata: ethers.AbiCoder.defaultAbiCoder().encode(["string"], [CircuitId.AuthV3_8_32]),
   },
 ];
 
@@ -116,13 +116,13 @@ describe("Auth V3 Validator", function () {
       const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
 
       if (test.errorMessage) {
-        await expect(authV3validator.verify(test.sender, zkProof, test.params)).to.be.rejectedWith(
+        await expect(authV3validator.verify(test.sender, zkProof, "0x", test.metadata)).to.be.rejectedWith(
           test.errorMessage,
         );
       } else if (test.errorMessage === "") {
-        await expect(authV3validator.verify(test.sender, zkProof, test.params)).to.be.reverted;
+        await expect(authV3validator.verify(test.sender, zkProof, "0x", test.metadata)).to.be.reverted;
       } else {
-        const result = await authV3validator.verify(test.sender, zkProof, test.params);
+        const result = await authV3validator.verify(test.sender, zkProof, "0x", test.metadata);
 
         expect(result[0]).to.be.equal(test.userID);
       }

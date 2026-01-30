@@ -93,19 +93,19 @@ describe("Auth V2 Validator", function () {
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proof);
 
-      const data = "0x00";
+      const data = "0x";
 
       // Check verify function
       const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
 
       if (test.errorMessage) {
-        await expect(authV2validator.verify(test.sender, zkProof, data)).to.be.rejectedWith(
+        await expect(authV2validator.verify(test.sender, zkProof, data, data)).to.be.rejectedWith(
           test.errorMessage,
         );
       } else if (test.errorMessage === "") {
-        await expect(authV2validator.verify(test.sender, zkProof, data)).to.be.reverted;
+        await expect(authV2validator.verify(test.sender, zkProof, data, data)).to.be.reverted;
       } else {
-        const result = await authV2validator.verify(test.sender, zkProof, data);
+        const result = await authV2validator.verify(test.sender, zkProof, data, data);
 
         expect(result[0]).to.be.equal(test.userID);
       }

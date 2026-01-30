@@ -102,14 +102,16 @@ contract AuthV3Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
      * @dev Verify the groth16 proof and check the request query data
      * @param sender Sender of the proof.
      * @param proof Proof packed as bytes to verify.
-     * @param params Request query data of the credential to verify.
+     * @param authMethodParams Auth method parameters for the verification.
+     * @param responseMetadata Additional metadata from the response for the verification.
      * @return userID user ID of public signals as result.
      */
     function verify(
         // solhint-disable-next-line no-unused-vars
         address sender,
         bytes calldata proof,
-        bytes calldata params
+        bytes calldata authMethodParams,
+        bytes calldata responseMetadata
     ) public view override returns (uint256 userID, AuthResponseField[] memory) {
         (
             uint256[] memory inputs,
@@ -118,8 +120,8 @@ contract AuthV3Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
             uint256[2] memory c
         ) = abi.decode(proof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
-        // This validator expects circuitId in the params to select especific verifier
-        string memory circuitId = abi.decode(params, (string));
+        // This validator expects circuitId in the responseMetadata to select especific verifier
+        string memory circuitId = abi.decode(responseMetadata, (string));
 
         PubSignals memory pubSignals = parsePubSignals(inputs);
         _checkGistRoot(pubSignals.userID, pubSignals.gistRoot);

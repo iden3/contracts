@@ -22,7 +22,7 @@ describe("Eth Identity Validator", function () {
     const encoder = new ethers.AbiCoder();
     const proof = encoder.encode(["uint256"], [userId]);
 
-    const result = await validator.verify(sender, proof, "0x");
+    const result = await validator.verify(sender, proof, "0x", "0x");
     expect(result[0]).to.equal(userId);
     expect(result[1].length).to.equal(0);
   });

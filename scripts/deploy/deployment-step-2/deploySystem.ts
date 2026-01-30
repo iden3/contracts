@@ -123,16 +123,7 @@ async function main() {
       isProxy: true,
     },
     {
-      authMethods: [
-        {
-          authMethod: "authV3",
-          params: ethers.AbiCoder.defaultAbiCoder().encode(["string"], [CircuitId.AuthV3]),
-        },
-        {
-          authMethod: "authV3-8-32",
-          params: ethers.AbiCoder.defaultAbiCoder().encode(["string"], [CircuitId.AuthV3_8_32]),
-        },
-      ],
+      authMethods: [{ authMethod: "authV3", params: "0x" }],
       module: AuthV3ValidatorModule,
       moduleAt: AuthV3ValidatorAtModule,
       contractAddress:
