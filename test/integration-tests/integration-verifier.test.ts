@@ -1,6 +1,7 @@
 import { network } from "hardhat";
 import { prepareInputs } from "../utils/state-utils";
-import authProofJson from "./data/user_genesis_auth.json";
+import authV2ProofJson from "./data/user_genesis_authV2.json";
+import authV3ProofJson from "./data/user_genesis_authV3.json";
 import authInvalidChallengeProofJson from "./data/user_genesis_auth_challenge_invalid.json";
 import v3ProofJson from "./data/user_claim_issued_on_userid_v3.json";
 import linkedProofJson from "./data/user_linked_multi_query.json";
@@ -18,11 +19,12 @@ import CredentialAtomicQueryV3ValidatorModule from "../../ignition/modules/deplo
 import { getChainId } from "../../helpers/helperUtils";
 import AuthV2ValidatorModule from "../../ignition/modules/deployEverythingBasicStrategy/authV2Validator";
 import LinkedMultiQueryValidatorModule from "../../ignition/modules/deployEverythingBasicStrategy/linkedMultiQueryValidator";
+import AuthV3ValidatorModule from "../../ignition/modules/deployEverythingBasicStrategy/authV3Validator";
 
 const { ethers, networkHelpers, ignition } = await network.connect();
 
 describe("Verifier Integration test", async function () {
-  let verifier, verifierLib, v3Validator, lmqValidator;
+  let verifier, verifierLib, v3Validator, lmqValidator, stateAuthV3;
   let signer;
 
   const requestIdV3 = 32;
@@ -69,8 +71,12 @@ describe("Verifier Integration test", async function () {
 
   const crossChainProofs = "0x";
   const metadatas = "0x";
-  const authMethod = "authV2";
+  const authMethodV2 = "authV2";
+  const authMethodV3 = "authV3";
+  const authMethodV3_8_32 = "authV3-8-32";
   const authMethodEmbeddedAuth = "embeddedAuth";
+
+  let stateAuthMethod: "authV2" | "authV3" = "authV2"; // "authV2" | "authV3"
 
   const v3Params = packV3ValidatorParams(query);
 
@@ -128,23 +134,32 @@ describe("Verifier Integration test", async function () {
       },
     };
 
+    const { state: stateAuthV2, authV2Validator } = await ignition.deploy(AuthV2ValidatorModule, {
+      parameters: parameters,
+    });
 
-    const { state, authV2Validator: authValidator } = (
-      await ignition.deploy(AuthV2ValidatorModule, {
-        parameters: parameters,
-      })
-    );    
-    await verifier.initialize(await state.getAddress());
+    await authV2Validator.setProofExpirationTimeout(TEN_YEARS);
+    await authV2Validator.setGISTRootExpirationTimeout(TEN_YEARS);
 
-    await authValidator.setProofExpirationTimeout(TEN_YEARS);
-    await authValidator.setGISTRootExpirationTimeout(TEN_YEARS);    
-
-    const authMethodParams = {
-      authMethod: authMethod,
-      validator: await authValidator.getAddress(),
+    const authMethodParamsV2 = {
+      authMethod: authMethodV2,
+      validator: await authV2Validator.getAddress(),
       params: "0x",
     };
-    await verifier.setAuthMethod(authMethodParams);
+    await verifier.setAuthMethod(authMethodParamsV2);
+
+    const { state: stateAuthV3, authV3Validator } = await ignition.deploy(AuthV3ValidatorModule, {
+      parameters: parameters,
+    });
+    await authV3Validator.setProofExpirationTimeout(TEN_YEARS);
+    await authV3Validator.setGISTRootExpirationTimeout(TEN_YEARS);
+
+    const authMethodParamsV3 = {
+      authMethod: authMethodV3,
+      validator: await authV3Validator.getAddress(),
+      params: ethers.AbiCoder.defaultAbiCoder().encode(["string"], [CircuitId.AuthV3]),
+    };
+    await verifier.setAuthMethod(authMethodParamsV3);
 
     const authMethodEmbeddedAuthParams = {
       authMethod: authMethodEmbeddedAuth,
@@ -153,22 +168,49 @@ describe("Verifier Integration test", async function () {
     };
     await verifier.setAuthMethod(authMethodEmbeddedAuthParams);
 
-    const { credentialAtomicQueryV3Validator: v3Validator} = (
-      await ignition.deploy(CredentialAtomicQueryV3ValidatorModule, {
+    const { credentialAtomicQueryV3Validator: v3Validator } = await ignition.deploy(
+      CredentialAtomicQueryV3ValidatorModule,
+      {
         parameters: parameters,
-      })
+      },
     );
+
+    let state;
+    switch (stateAuthMethod) {
+      case "authV2":
+        state = stateAuthV2;
+        break;
+      case "authV3":
+        state = stateAuthV3;
+        break;
+      default:
+        throw new Error(`Unsupported stateAuthMethod: ${stateAuthMethod}`);
+    }
+
+    // In tests ignition does not store previous module deployments,
+    // so we need to set the parameters manually for the modules to use
+    // the same state contract instance
+    await verifier.initialize(await state.getAddress());
+
     await v3Validator.setStateAddress(await state.getAddress());
     await v3Validator.setProofExpirationTimeout(TEN_YEARS);
     await v3Validator.setGISTRootExpirationTimeout(TEN_YEARS);
 
-    const { linkedMultiQueryValidator: lmkValidator} = (
-      await ignition.deploy(LinkedMultiQueryValidatorModule, {
+    const { linkedMultiQueryValidator: lmkValidator } = await ignition.deploy(
+      LinkedMultiQueryValidatorModule,
+      {
         parameters: parameters,
-      })
+      },
     );
 
-    return { state, verifier, verifierLib, authValidator, v3Validator, lmkValidator };
+    return {
+      state,
+      verifier,
+      verifierLib,
+      authV2Validator,
+      v3Validator,
+      lmkValidator,
+    };
   }
 
   beforeEach(async () => {
@@ -205,8 +247,9 @@ describe("Verifier Integration test", async function () {
     await expect(
       verifier.submitResponse(
         {
-          authMethod: authMethod,
+          authMethod: authMethodV2,
           proof: authInvalidChallengeProof,
+          metadata: metadatas,
         },
         [
           {
@@ -257,7 +300,90 @@ describe("Verifier Integration test", async function () {
     // The multiRequest has a single group with two requests inside
     // One request is based on V3 validator
     // Another one is based on LinkedMultiQuery validator
-    const authProof = getProof(authProofJson);
+    const authProof = getProof(authV2ProofJson);
+
+    // 1. Create the requests
+    await verifier.setRequests([
+      {
+        requestId: requestIdV3,
+        metadata: "metadata",
+        validator: await v3Validator.getAddress(),
+        creator: signer.address,
+        params: v3Params,
+      },
+      {
+        requestId: requestIdLMK,
+        metadata: "metadata",
+        validator: await lmqValidator.getAddress(),
+        creator: signer.address,
+        params: twoQueriesParams,
+      },
+    ]);
+
+    const multiRequest = {
+      multiRequestId: calculateMultiRequestId([], [groupID], signer.address),
+      requestIds: [],
+      groupIds: [groupID],
+      metadata: "0x",
+    };
+
+    // 2. Create the multi-request
+    await expect(verifier.setMultiRequest(multiRequest)).not.to.revert(ethers);
+    const multiRequestIdExists = await verifier.multiRequestIdExists(multiRequest.multiRequestId);
+    expect(multiRequestIdExists).to.be.true;
+
+    let areMultiRequestProofsVerified = await verifier.areMultiRequestProofsVerified(
+      multiRequest.multiRequestId,
+      await signer.getAddress(),
+    );
+    expect(areMultiRequestProofsVerified).to.be.false;
+    // 3. Submitting a response with valid proofs
+    await expect(
+      verifier.submitResponse(
+        {
+          authMethod: authMethodV2,
+          proof: authProof,
+          metadata: metadatas,
+        },
+        [
+          {
+            requestId: requestIdV3,
+            proof: v3Proof,
+            metadata: metadatas,
+          },
+          {
+            requestId: requestIdLMK,
+            proof: lmqProof,
+            metadata: metadatas,
+          },
+        ],
+        crossChainProofs,
+      ),
+    ).not.to.revert(ethers);
+
+    areMultiRequestProofsVerified = await verifier.areMultiRequestProofsVerified(
+      multiRequest.multiRequestId,
+      await signer.getAddress(),
+    );
+    expect(areMultiRequestProofsVerified).to.be.true;
+  });
+
+  it("Should verify with authV3 authMethod", async function () {
+    // An integration test with a MultiRequest
+    // The multiRequest has a single group with two requests inside
+    // One request is based on V3 validator
+    // Another one is based on LinkedMultiQuery validator
+    stateAuthMethod = "authV3";
+    ({
+      verifier,
+      verifierLib,
+      v3Validator,
+      lmkValidator: lmqValidator,
+    } = await networkHelpers.loadFixture(deployContractsFixture));
+
+    await verifier.setVerifierID(query.verifierID);
+    
+    const authProof = getProof(authV3ProofJson);
 
     // 1. Create the requests
     await verifier.setRequests([
@@ -299,8 +425,9 @@ describe("Verifier Integration test", async function () {
     await expect(
       verifier.submitResponse(
         {
-          authMethod: authMethod,
+          authMethod: authMethodV3,
           proof: authProof,
+          metadata:  ethers.AbiCoder.defaultAbiCoder().encode(["string"], [CircuitId.AuthV3]),
         },
         [
           {
@@ -373,6 +500,7 @@ describe("Verifier Integration test", async function () {
         {
           authMethod: authMethodEmbeddedAuth,
           proof: "0x",
+          metadata: metadatas,
         },
         [
           {

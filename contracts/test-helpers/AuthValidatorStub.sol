@@ -24,6 +24,7 @@ contract AuthValidatorStub is IAuthValidator, ERC165 {
     function verify(
         address,
         bytes calldata,
+        bytes calldata,
         bytes calldata
     ) external view override returns (uint256, AuthResponseField[] memory) {
         AuthResponseField[] memory authResponseFields = new AuthResponseField[](1);

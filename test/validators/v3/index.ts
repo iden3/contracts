@@ -22,7 +22,7 @@ import validBjjUserGenesisAuthDisabledV3 from "./data/valid_bjj_user_genesis_aut
 import validMtpUserGenesisV3 from "./data/valid_mtp_user_genesis_v3.json";
 import invalidMtpUserGenesisV3 from "./data/invalid_mtp_user_genesis_v3.json";
 import validMtpUserFirstV3 from "./data/valid_mtp_user_first_v3.json";
-import validMtpUserFirstIssuerSecondV3 from "./data/valid_mtp_user_first_issuer_second_v3.json"
+import validMtpUserFirstIssuerSecondV3 from "./data/valid_mtp_user_first_issuer_second_v3.json";
 import validMtpUserSecondIssuerFirstV3 from "./data/valid_mtp_user_second_issuer_first_v3.json";
 import validMtpUserGenesisAuthDisabledV3 from "./data/valid_mtp_user_genesis_auth_disabled_v3.json";
 import validBjjUserGenesisAuthDisabledV3WrongId from "./data/valid_bjj_user_genesis_auth_disabled_v3_wrong_id.json";
@@ -192,9 +192,7 @@ const testCases: any[] = [
   },
   {
     name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (UserID correspond to the sender)",
-    stateTransitions: [
-      issuerFromGenesisStateToFirstAuthDisabledTransitionV3,
-    ],
+    stateTransitions: [issuerFromGenesisStateToFirstAuthDisabledTransitionV3],
     proofJson: validBjjUserGenesisAuthDisabledV3,
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
@@ -226,9 +224,7 @@ const testCases: any[] = [
   // MTP Proofs
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain. MTP Proof.",
-    stateTransitions: [
-      issuerFromGenesisStateToFirstTransitionV3,
-    ],
+    stateTransitions: [issuerFromGenesisStateToFirstTransitionV3],
     proofJson: validMtpUserGenesisV3,
     setProofExpiration: tenYears,
     isMtpProof: true,
@@ -259,9 +255,7 @@ const testCases: any[] = [
   },
   {
     name: "Validation of MTP proof failed",
-    stateTransitions: [
-      issuerFromGenesisStateToFirstTransitionV3,
-    ],
+    stateTransitions: [issuerFromGenesisStateToFirstTransitionV3],
     proofJson: invalidMtpUserGenesisV3,
     errorMessage: "ProofIsNotValid()",
     setProofExpiration: tenYears,
@@ -355,7 +349,7 @@ const testCases: any[] = [
   },
   {
     name: "GIST root expired, Issuer revocation state is not expired. MTP Proof.",
-    stateTransitions: [      
+    stateTransitions: [
       issuerFromGenesisStateToFirstTransitionV3,
       userFromGenesisStateToFirstTransitionV3, // proof was generated after this state transition
       issuerFromFirstStateToSecondTransitionV3,
@@ -383,9 +377,7 @@ const testCases: any[] = [
   },
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain. MTP Proof.",
-    stateTransitions: [
-      issuerFromGenesisStateToFirstTransitionV3,
-    ],
+    stateTransitions: [issuerFromGenesisStateToFirstTransitionV3],
     proofJson: validMtpUserGenesisV3,
     setProofExpiration: tenYears,
     allowedIssuers: [123n],
@@ -395,9 +387,7 @@ const testCases: any[] = [
   },
   {
     name: "Valid MTP genesis proof with isBJJAuthEnabled=0 (UserID correspond to the sender)",
-    stateTransitions: [
-      issuerFromGenesisStateToFirstAuthDisabledTransitionV3,
-    ],
+    stateTransitions: [issuerFromGenesisStateToFirstAuthDisabledTransitionV3],
     proofJson: validMtpUserGenesisAuthDisabledV3,
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
@@ -430,9 +420,7 @@ const testCases: any[] = [
   // Auth Disabled. UserID does NOT correspond to the sender
   {
     name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (UserID does NOT correspond to the sender)",
-    stateTransitions: [
-      issuerFromGenesisStateToFirstAuthDisabledTransitionV3,
-    ],
+    stateTransitions: [issuerFromGenesisStateToFirstAuthDisabledTransitionV3],
     proofJson: validBjjUserGenesisAuthDisabledV3WrongId,
     setProofExpiration: tenYears,
     errorMessage: "UserIDDoesNotCorrespondToTheSender()",
@@ -441,9 +429,7 @@ const testCases: any[] = [
   },
   {
     name: "Valid MTP genesis proof with isBJJAuthEnabled=0 (UserID does NOT correspond to the sender)",
-    stateTransitions: [
-      issuerFromGenesisStateToFirstAuthDisabledTransitionV3,
-    ],
+    stateTransitions: [issuerFromGenesisStateToFirstAuthDisabledTransitionV3],
     proofJson: validMtpUserGenesisAuthDisabledV3WrongId,
     setProofExpiration: tenYears,
     errorMessage: "UserIDDoesNotCorrespondToTheSender()",
@@ -454,9 +440,7 @@ const testCases: any[] = [
   // Issuer Genesis State
   {
     name: "Validate First User State, Issuer Genesis. BJJ Proof",
-    stateTransitions: [
-      userFromGenesisStateToFirstTransitionV3,
-    ],
+    stateTransitions: [userFromGenesisStateToFirstTransitionV3],
     proofJson: validBjjUserFirstIssuerGenesisV3,
     setProofExpiration: tenYears,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -487,9 +471,7 @@ const testCases: any[] = [
   // Wrong challenge
   {
     name: "Validate First User State, Issuer Genesis. BJJ Proof (Challenge should match the sender)",
-    stateTransitions: [
-      userFromGenesisStateToFirstTransitionV3,
-    ],
+    stateTransitions: [userFromGenesisStateToFirstTransitionV3],
     proofJson: validBjjUserFirstIssuerGenesisV3,
     errorMessage: "ChallengeShouldMatchTheSender()",
     setProofExpiration: tenYears,
@@ -498,9 +480,7 @@ const testCases: any[] = [
   // Invalid Link ID pub signal
   {
     name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (Invalid Link ID pub signal)",
-    stateTransitions: [
-      issuerFromGenesisStateToFirstAuthDisabledTransitionV3,
-    ],
+    stateTransitions: [issuerFromGenesisStateToFirstAuthDisabledTransitionV3],
     proofJson: validBjjUserGenesisAuthDisabledV3,
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
@@ -512,9 +492,7 @@ const testCases: any[] = [
   // Proof type should match the requested one in query
   {
     name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (Proof type should match the requested one in query)",
-    stateTransitions: [
-      issuerFromGenesisStateToFirstAuthDisabledTransitionV3,
-    ],
+    stateTransitions: [issuerFromGenesisStateToFirstAuthDisabledTransitionV3],
     proofJson: validBjjUserGenesisAuthDisabledV3,
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
@@ -525,9 +503,7 @@ const testCases: any[] = [
   // Invalid nullify pub signal
   {
     name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (Invalid nullify pub signal)",
-    stateTransitions: [
-      issuerFromGenesisStateToFirstAuthDisabledTransitionV3,
-    ],
+    stateTransitions: [issuerFromGenesisStateToFirstAuthDisabledTransitionV3],
     proofJson: validBjjUserGenesisAuthDisabledV3,
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
@@ -538,9 +514,7 @@ const testCases: any[] = [
   // Query hash does not match the requested one
   {
     name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (Query hash does not match the requested one)",
-    stateTransitions: [
-      issuerFromGenesisStateToFirstAuthDisabledTransitionV3,
-    ],
+    stateTransitions: [issuerFromGenesisStateToFirstAuthDisabledTransitionV3],
     proofJson: validBjjUserGenesisAuthDisabledV3,
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
