@@ -18,10 +18,19 @@
   "CredentialAtomicQueryV3ValidatorProxyFirstImplementationModule": {
     "proxyAdminOwner": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74"
   },
+  "CredentialAtomicQueryV3StableValidatorProxyFirstImplementationModule": {
+    "proxyAdminOwner": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74"
+  },
   "LinkedMultiQueryValidatorProxyFirstImplementationModule": {
     "proxyAdminOwner": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74"
   },
+  "LinkedMultiQueryStableValidatorProxyFirstImplementationModule": {
+    "proxyAdminOwner": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74"
+  },
   "AuthV2ValidatorProxyFirstImplementationModule": {
+    "proxyAdminOwner": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74"
+  },
+  "AuthV3ValidatorProxyFirstImplementationModule": {
     "proxyAdminOwner": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74"
   },
   "EthIdentityValidatorProxyFirstImplementationModule": {
@@ -167,5 +176,17 @@
   "UpgradeMCPaymentModuleV1_0_7": {
     "proxyAddress": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
     "proxyAdminAddress": "0xE76bef620174cA8B923411605A59F542DcdF03fE"
+  },
+  "CredentialAtomicQueryV3StableValidatorAtModule": {
+    "proxyAddress": "0x0d78ADDD050a75a94e21eD14d54591933B9B7546",
+    "proxyAdminAddress": "0x62B555e84EA9fe88D6e777d6C5a35B59CCf14Cd2"
+  },
+  "LinkedMultiQueryStableValidatorAtModule": {
+    "proxyAddress": "0xdD889d2cE09579CBddF9Ef3313C37276A41d6Df1",
+    "proxyAdminAddress": "0x29dF064Cc8Abe70E68eF74d4bf0d06D2113BDc8E"
+  },
+  "AuthV3ValidatorAtModule": {
+    "proxyAddress": "0x0127bb45d6F88bC9eBF418421b1d57aE99a7FA4A",
+    "proxyAdminAddress": "0xd90752C0444D5569855a5694d1d55BcD4bd958e9"
   }
 }

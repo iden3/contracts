@@ -8,12 +8,15 @@ import {
 } from "../../helpers/helperUtils";
 import {
   AuthV2ValidatorAtModule,
+  AuthV3ValidatorAtModule,
   Create2AddressAnchorAtModule,
   CredentialAtomicQueryMTPV2ValidatorAtModule,
   CredentialAtomicQuerySigV2ValidatorAtModule,
+  CredentialAtomicQueryV3StableValidatorAtModule,
   CredentialAtomicQueryV3ValidatorAtModule,
   EthIdentityValidatorAtModule,
   IdentityTreeStoreAtModule,
+  LinkedMultiQueryStableValidatorAtModule,
   LinkedMultiQueryValidatorAtModule,
   MCPaymentAtModule,
   Poseidon1AtModule,
@@ -136,6 +139,14 @@ async function main() {
       proxy: true,
     },
     {
+      moduleAt: CredentialAtomicQueryV3StableValidatorAtModule,
+      contractAddress:
+        parameters["CredentialAtomicQueryV3StableValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_V3_STABLE.unifiedAddress,
+      name: contractsInfo.VALIDATOR_V3_STABLE.name,
+      proxy: true,
+    },    
+    {
       moduleAt: LinkedMultiQueryValidatorAtModule,
       contractAddress:
         parameters["LinkedMultiQueryValidatorAtModule"].proxyAddress ||
@@ -144,6 +155,14 @@ async function main() {
       proxy: true,
     },
     {
+      moduleAt: LinkedMultiQueryStableValidatorAtModule,
+      contractAddress:
+        parameters["LinkedMultiQueryStableValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.unifiedAddress,
+      name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.name,
+      proxy: true,
+    },    
+    {
       moduleAt: AuthV2ValidatorAtModule,
       contractAddress:
         parameters["AuthV2ValidatorAtModule"].proxyAddress ||
@@ -151,6 +170,14 @@ async function main() {
       name: contractsInfo.VALIDATOR_AUTH_V2.name,
       proxy: true,
     },
+    {
+      moduleAt: AuthV3ValidatorAtModule,
+      contractAddress:
+        parameters["AuthV3ValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_AUTH_V3.unifiedAddress,
+      name: contractsInfo.VALIDATOR_AUTH_V3.name,
+      proxy: true,
+    },    
     {
       moduleAt: EthIdentityValidatorAtModule,
       contractAddress:
