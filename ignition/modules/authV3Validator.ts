@@ -104,6 +104,7 @@ const AuthV3ValidatorProxyFinalImplementationModule = buildModule(
       newImplementation,
       proxyAdmin,
       proxy,
+      state,
     };
   },
 );
@@ -115,6 +116,7 @@ const AuthV3ValidatorModule = buildModule("AuthV3ValidatorModule", (m) => {
     newImplementation,
     proxyAdmin,
     proxy,
+    state,
   } = m.useModule(AuthV3ValidatorProxyFinalImplementationModule);
 
   const authV3Validator = m.contractAt(contractsInfo.VALIDATOR_AUTH_V3.name, proxy);
@@ -126,6 +128,7 @@ const AuthV3ValidatorModule = buildModule("AuthV3ValidatorModule", (m) => {
     newImplementation,
     proxyAdmin,
     proxy,
+    state,
   };
 });
 

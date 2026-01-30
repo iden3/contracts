@@ -27,6 +27,7 @@ for (const { circuitId, queriesCount } of linkedMultiQueries) {
     const operatorOutput2 = "777";
     const queryHash1 = "100";
     const queryHash2 = "200";
+    const metadata = ethers.AbiCoder.defaultAbiCoder().encode(["string"], [circuitId]);
 
     const dummyZKProof = [
       ["0", "0"],
@@ -114,7 +115,7 @@ for (const { circuitId, queriesCount } of linkedMultiQueries) {
         signer.address,
         proofForTwoQueries,
         twoQueriesParams,
-        "0x",
+        metadata,
       );
       expect(result).to.deep.equal([
         ["linkID", linkId, "0x"],
@@ -130,7 +131,14 @@ for (const { circuitId, queriesCount } of linkedMultiQueries) {
         circuitIds: ["someWrongCircuitId"],
       });
 
-      await expect(validator.verify(signer.address, proofForOneQuery, params, "0x"))
+      await expect(
+        validator.verify(
+          signer.address,
+          proofForOneQuery,
+          params,
+          ethers.AbiCoder.defaultAbiCoder().encode(["string"], ["someWrongCircuitId"]),
+        ),
+      )
         .to.be.revertedWithCustomError(validator, "WrongCircuitID")
         .withArgs("someWrongCircuitId");
     });
@@ -141,7 +149,7 @@ for (const { circuitId, queriesCount } of linkedMultiQueries) {
         queryHash: Array(queriesCount + 1).fill(queryHash1),
       });
 
-      await expect(validator.verify(signer.address, proofForOneQuery, params, "0x"))
+      await expect(validator.verify(signer.address, proofForOneQuery, params, metadata))
         .to.be.revertedWithCustomError(validator, "TooManyQueries")
         .withArgs(queriesCount + 1);
     });
@@ -152,7 +160,7 @@ for (const { circuitId, queriesCount } of linkedMultiQueries) {
         queryHash: [queryHash2],
       });
 
-      await expect(validator.verify(signer.address, proofForOneQuery, params, "0x"))
+      await expect(validator.verify(signer.address, proofForOneQuery, params, metadata))
         .to.be.revertedWithCustomError(validator, "InvalidQueryHash")
         .withArgs(queryHash2, queryHash1);
     });
@@ -164,7 +172,7 @@ for (const { circuitId, queriesCount } of linkedMultiQueries) {
       });
 
       await expect(
-        validator.verify(signer.address, proofForOneQuery, paramsWithZeroGroupID, "0x"),
+        validator.verify(signer.address, proofForOneQuery, paramsWithZeroGroupID, metadata),
       ).to.be.revertedWithCustomError(validator, "GroupIDCannotBeZero");
 
       const inputsOneQuery = ["0", merklized]
@@ -181,7 +189,7 @@ for (const { circuitId, queriesCount } of linkedMultiQueries) {
       );
 
       await expect(
-        validator.verify(signer.address, proofForOneQueryWithZeroLinkID, oneQueryParams, "0x"),
+        validator.verify(signer.address, proofForOneQueryWithZeroLinkID, oneQueryParams, metadata),
       ).to.be.revertedWithCustomError(validator, "LinkIDCannotBeZero");
     });
 
@@ -198,7 +206,7 @@ for (const { circuitId, queriesCount } of linkedMultiQueries) {
       await groth16Verifier.stub_setVerifyResult(false);
 
       await expect(
-        validator.verify(signer.address, proofForOneQuery, oneQueryParams, "0x"),
+        validator.verify(signer.address, proofForOneQuery, oneQueryParams, metadata),
       ).to.be.revertedWithCustomError(validator, "InvalidGroth16Proof");
     });
 

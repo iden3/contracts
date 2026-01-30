@@ -114,7 +114,6 @@ contract LinkedMultiQueryStableValidator is Ownable2StepUpgradeable, RequestVali
         address sender,
         bytes calldata proof,
         bytes calldata requestParams,
-        // solhint-disable-next-line no-unused-vars
         bytes calldata responseMetadata
     ) external view returns (IRequestValidator.ResponseField[] memory) {
         Query memory query = abi.decode(requestParams, (Query));
@@ -125,15 +124,15 @@ contract LinkedMultiQueryStableValidator is Ownable2StepUpgradeable, RequestVali
             uint256[2] memory c
         ) = abi.decode(proof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
-        IGroth16Verifier g16Verifier = getVerifierByCircuitId(query.circuitIds[0]);
+        // This validator expects circuitId in the response metadata to select especific verifier
+        string memory circuitId = abi.decode(responseMetadata, (string));
+
+        IGroth16Verifier g16Verifier = getVerifierByCircuitId(circuitId);
         if (g16Verifier == IGroth16Verifier(address(0))) {
-            revert WrongCircuitID(query.circuitIds[0]);
+            revert WrongCircuitID(circuitId);
         }
 
-        PubSignals memory pubSignals = _parsePubSignals(
-            inputs,
-            circuitIdToQueriesCount[query.circuitIds[0]]
-        );
+        PubSignals memory pubSignals = _parsePubSignals(inputs, circuitIdToQueriesCount[circuitId]);
 
         _checkQueryHash(query, pubSignals);
         _checkGroupIDOrLinkID(query.groupID, pubSignals.linkID);
