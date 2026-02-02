@@ -79,7 +79,6 @@ describe("EmbeddedVerifier tests", function () {
     authResponse = {
       authMethod: "stubAuth",
       proof: "0x",
-      metadata: "0x",
     };
     response = {
       requestId: 0,

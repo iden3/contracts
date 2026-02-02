@@ -29,6 +29,7 @@ import { AuthV2ValidatorProxyModule } from "../../../ignition/modules/authV2Vali
 import { EthIdentityValidatorProxyModule } from "../../../ignition/modules/ethIdentityValidator";
 import {
   AuthV2ValidatorAtModule,
+  AuthV3_8_32ValidatorAtModule,
   AuthV3ValidatorAtModule,
   Create2AddressAnchorAtModule,
   CredentialAtomicQueryMTPV2ValidatorAtModule,
@@ -51,6 +52,7 @@ import {
 } from "../../../ignition/modules/contractsAt";
 import { network } from "hardhat";
 import { AuthV3ValidatorProxyModule } from "../../../ignition/modules/authV3Validator";
+import { AuthV3_8_32ValidatorProxyModule } from "../../../ignition/modules/authV3_8_32Validator";
 import { CredentialAtomicQueryV3StableValidatorProxyModule } from "../../../ignition/modules/credentialAtomicQueryV3StableValidator";
 import { LinkedMultiQueryStableValidatorProxyModule } from "../../../ignition/modules/linkedMultiQueryStable";
 
@@ -270,6 +272,18 @@ async function main() {
       verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V3.name,
       verificationOpts: contractsInfo.VALIDATOR_AUTH_V3.verificationOpts,
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V3.verificationOpts,
+    },
+    {
+      module: AuthV3_8_32ValidatorProxyModule,
+      moduleAt: AuthV3_8_32ValidatorAtModule,
+      contractAddress:
+        parameters["AuthV3_8_32ValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_AUTH_V3_8_32.unifiedAddress,
+      name: contractsInfo.VALIDATOR_AUTH_V3_8_32.name,
+      isProxy: true,
+      verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V3_8_32.name,
+      verificationOpts: contractsInfo.VALIDATOR_AUTH_V3_8_32.verificationOpts,
+      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V3_8_32.verificationOpts,
     },
     {
       module: EthIdentityValidatorProxyModule,

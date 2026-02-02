@@ -324,6 +324,22 @@ export const contractsInfo = Object.freeze({
       libraries: {},
     },
   },
+  VALIDATOR_AUTH_V3_8_32: {
+    name: "AuthV3_8_32Validator",
+    version: "1.0.0",
+    unifiedAddress: "0x85808DEce33D4124659C4d450E0e8E497711AB51",
+    create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.AuthV3_8_32Validator")),
+    verificationOpts: {
+      constructorArgsImplementation: [],
+      constructorArgsProxy: [
+        "0x56fF81aBB5cdaC478bF236db717e4976b2ff841e",
+        "0xae15d2023a76174a940cbb2b7f44012c728b9d74",
+        ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.AuthV3_8_32Validator")),
+      ],
+      constructorArgsProxyAdmin: ["0xAe15d2023A76174a940cbb2b7F44012C728B9d74"],
+      libraries: {},
+    },
+  },
   VALIDATOR_ETH_IDENTITY: {
     name: "EthIdentityValidator",
     version: "1.0.0",

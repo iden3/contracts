@@ -13,9 +13,9 @@ error ProofIsNotValid();
 error GistRootIsExpired();
 
 /**
- * @dev AuthV2 validator for auth
+ * @dev AuthV3_8_32 validator for auth
  */
-contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
+contract AuthV3_8_32Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
     struct PubSignals {
         uint256 userID;
         uint256 challenge;
@@ -27,11 +27,11 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
      */
     string public constant VERSION = "1.0.0";
 
-    string internal constant CIRCUIT_ID = "authV2";
+    string internal constant CIRCUIT_ID = "authV3-8-32";
 
     /// @dev Main storage structure for the contract
-    /// @custom:storage-location iden3.storage.AuthV2Validator
-    struct AuthV2ValidatorStorage {
+    /// @custom:storage-location iden3.storage.AuthV3_8_32Validator
+    struct AuthV3_8_32ValidatorStorage {
         mapping(string => IGroth16Verifier) _circuitIdToVerifier;
         string[] _supportedCircuitIds;
         IState state;
@@ -41,17 +41,21 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
         mapping(string => uint256) _inputNameToIndex;
     }
 
-    // keccak256(abi.encode(uint256(keccak256("iden3.storage.AuthV2Validator")) - 1))
+    // keccak256(abi.encode(uint256(keccak256("iden3.storage.AuthV3_8_32Validator")) - 1))
     //  & ~bytes32(uint256(0xff));
     // solhint-disable-next-line const-name-snakecase
-    bytes32 private constant AuthV2ValidatorStorageLocation =
-        0x5212d71c1540b1d75013e45246a2b44f2ee9363a102ea02fac1792932b691600;
+    bytes32 private constant AuthV3_8_32ValidatorStorageLocation =
+        0xc5334def611ce9eab05c16505ee90768ab80ea99218eb7fd13c94a030706fa00;
 
     /// @dev Get the main storage using assembly to ensure specific storage location
-    function _getAuthV2ValidatorStorage() private pure returns (AuthV2ValidatorStorage storage $) {
+    function _getAuthV3_8_32ValidatorStorage()
+        private
+        pure
+        returns (AuthV3_8_32ValidatorStorage storage $)
+    {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            $.slot := AuthV2ValidatorStorageLocation
+            $.slot := AuthV3_8_32ValidatorStorageLocation
         }
     }
 
@@ -135,7 +139,7 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
     function getVerifierByCircuitId(
         string memory circuitId
     ) public view virtual returns (IGroth16Verifier) {
-        return _getAuthV2ValidatorStorage()._circuitIdToVerifier[circuitId];
+        return _getAuthV3_8_32ValidatorStorage()._circuitIdToVerifier[circuitId];
     }
 
     /**
@@ -145,7 +149,7 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
     function setRevocationStateExpirationTimeout(
         uint256 expirationTimeout
     ) public virtual onlyOwner {
-        _getAuthV2ValidatorStorage().revocationStateExpirationTimeout = expirationTimeout;
+        _getAuthV3_8_32ValidatorStorage().revocationStateExpirationTimeout = expirationTimeout;
     }
 
     /**
@@ -153,7 +157,7 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
      * @return The expiration timeout for the revocation state
      */
     function getRevocationStateExpirationTimeout() public view virtual returns (uint256) {
-        return _getAuthV2ValidatorStorage().revocationStateExpirationTimeout;
+        return _getAuthV3_8_32ValidatorStorage().revocationStateExpirationTimeout;
     }
 
     /**
@@ -161,7 +165,7 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
      * @param expirationTimeout The expiration timeout for the proof
      */
     function setProofExpirationTimeout(uint256 expirationTimeout) public virtual onlyOwner {
-        _getAuthV2ValidatorStorage().proofExpirationTimeout = expirationTimeout;
+        _getAuthV3_8_32ValidatorStorage().proofExpirationTimeout = expirationTimeout;
     }
 
     /**
@@ -169,7 +173,7 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
      * @return The expiration timeout for the proof
      */
     function getProofExpirationTimeout() public view virtual returns (uint256) {
-        return _getAuthV2ValidatorStorage().proofExpirationTimeout;
+        return _getAuthV3_8_32ValidatorStorage().proofExpirationTimeout;
     }
 
     /**
@@ -177,7 +181,7 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
      * @param expirationTimeout The expiration timeout for the gist root
      */
     function setGISTRootExpirationTimeout(uint256 expirationTimeout) public virtual onlyOwner {
-        _getAuthV2ValidatorStorage().gistRootExpirationTimeout = expirationTimeout;
+        _getAuthV3_8_32ValidatorStorage().gistRootExpirationTimeout = expirationTimeout;
     }
 
     /**
@@ -185,7 +189,7 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
      * @return The expiration timeout for the gist root
      */
     function getGISTRootExpirationTimeout() public view virtual returns (uint256) {
-        return _getAuthV2ValidatorStorage().gistRootExpirationTimeout;
+        return _getAuthV3_8_32ValidatorStorage().gistRootExpirationTimeout;
     }
 
     /**
@@ -202,7 +206,7 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
         string memory circuitId,
         address owner
     ) internal {
-        AuthV2ValidatorStorage storage s = _getAuthV2ValidatorStorage();
+        AuthV3_8_32ValidatorStorage storage s = _getAuthV3_8_32ValidatorStorage();
 
         s.revocationStateExpirationTimeout = 1 hours;
         s.proofExpirationTimeout = 1 hours;
@@ -214,11 +218,11 @@ contract AuthV2Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
     }
 
     function _getState() internal view returns (IState) {
-        return _getAuthV2ValidatorStorage().state;
+        return _getAuthV3_8_32ValidatorStorage().state;
     }
 
     function _checkGistRoot(uint256 _id, uint256 _gistRoot) internal view {
-        AuthV2ValidatorStorage storage $ = _getAuthV2ValidatorStorage();
+        AuthV3_8_32ValidatorStorage storage $ = _getAuthV3_8_32ValidatorStorage();
         bytes2 idType = GenesisUtils.getIdType(_id);
         uint256 replacedAt = _getState().getGistRootReplacedAt(idType, _gistRoot);
 

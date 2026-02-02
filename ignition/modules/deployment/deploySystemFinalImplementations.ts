@@ -11,6 +11,8 @@ import EthIdentityValidatorModule from "../ethIdentityValidator";
 import MCPaymentModule from "../mcPayment";
 import VCPaymentModule from "../vcPayment";
 import { network } from "hardhat";
+import AuthV3ValidatorModule from "../authV3Validator";
+import AuthV3_8_32ValidatorModule from "../authV3_8_32Validator";
 
 const { ethers } = await network.connect();
 
@@ -34,6 +36,8 @@ const DeploySystemFianlImplementationsModule = buildModule(
     );
     const { linkedMultiQueryValidator } = m.useModule(LinkedMultiQueryValidatorModule);
     const { authV2Validator } = m.useModule(AuthV2ValidatorModule);
+    const { authV3Validator } = m.useModule(AuthV3ValidatorModule);
+    const { authV3_8_32Validator } = m.useModule(AuthV3_8_32ValidatorModule);
     const { ethIdentityValidator } = m.useModule(EthIdentityValidatorModule);
 
     const { VCPayment } = m.useModule(VCPaymentModule);
@@ -62,6 +66,22 @@ const DeploySystemFianlImplementationsModule = buildModule(
     m.call(
       universalVerifier,
       "setAuthMethod",
+      [{ authMethod: "authV3", validator: authV3Validator, params: "0x" }],
+      {
+        id: "setAuthMethodAuthV3",
+      },
+    );
+    m.call(
+      universalVerifier,
+      "setAuthMethod",
+      [{ authMethod: "authV3-8-32", validator: authV3_8_32Validator, params: "0x" }],
+      {
+        id: "setAuthMethodAuthV3_8_32",
+      },
+    );
+    m.call(
+      universalVerifier,
+      "setAuthMethod",
       [{ authMethod: "ethIdentity", validator: ethIdentityValidator, params: "0x" }],
       {
         id: "setAuthMethodEthIdentity",
@@ -84,6 +104,8 @@ const DeploySystemFianlImplementationsModule = buildModule(
       credentialAtomicQueryV3Validator,
       linkedMultiQueryValidator,
       authV2Validator,
+      authV3Validator,
+      authV3_8_32Validator,
       ethIdentityValidator,
       VCPayment,
       MCPayment,

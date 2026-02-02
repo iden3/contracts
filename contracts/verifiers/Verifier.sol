@@ -614,8 +614,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         (userIDFromAuthResponse, authResponseFields) = authMethodData.validator.verify(
             sender,
             authResponse.proof,
-            authMethodData.params,
-            authResponse.metadata
+            authMethodData.params
         );
 
         if (

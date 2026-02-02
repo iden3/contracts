@@ -12,6 +12,7 @@ import EthIdentityValidatorModule from "../../../ignition/modules/ethIdentityVal
 import {
   AuthV2ValidatorAtModule,
   AuthV3ValidatorAtModule,
+  AuthV3_8_32ValidatorAtModule,
   Create2AddressAnchorAtModule,
   CredentialAtomicQueryMTPV2ValidatorAtModule,
   CredentialAtomicQuerySigV2ValidatorAtModule,
@@ -30,9 +31,9 @@ import MCPaymentModule from "../../../ignition/modules/mcPayment";
 import VCPaymentModule from "../../../ignition/modules/vcPayment";
 import { network } from "hardhat";
 import AuthV3ValidatorModule from "../../../ignition/modules/authV3Validator";
+import AuthV3_8_32ValidatorModule from "../../../ignition/modules/authV3_8_32Validator";
 import LinkedMultiQueryStableValidatorModule from "../../../ignition/modules/linkedMultiQueryStable";
 import CredentialAtomicQueryV3StableValidatorModule from "../../../ignition/modules/credentialAtomicQueryV3StableValidator";
-import { CircuitId } from "@0xpolygonid/js-sdk";
 
 const { ethers, ignition } = await network.connect();
 
@@ -130,6 +131,16 @@ async function main() {
         parameters["AuthV3ValidatorAtModule"].proxyAddress ||
         contractsInfo.VALIDATOR_AUTH_V3.unifiedAddress,
       name: contractsInfo.VALIDATOR_AUTH_V3.name,
+      isProxy: true,
+    },
+    {
+      authMethods: [{ authMethod: "authV3-8-32", params: "0x" }],
+      module: AuthV3_8_32ValidatorModule,
+      moduleAt: AuthV3_8_32ValidatorAtModule,
+      contractAddress:
+        parameters["AuthV3_8_32ValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_AUTH_V3_8_32.unifiedAddress,
+      name: contractsInfo.VALIDATOR_AUTH_V3_8_32.name,
       isProxy: true,
     },
     {

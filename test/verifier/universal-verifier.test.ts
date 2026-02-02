@@ -151,7 +151,6 @@ describe("Universal Verifier tests", function () {
       authResponse = {
         authMethod: authMethod.authMethod,
         proof: "0x",
-        metadata: "0x",
       };
       response = {
         requestId: 0,
@@ -782,7 +781,6 @@ describe("Universal Verifier tests", function () {
       const authResponse = {
         authMethod: authMethod.authMethod,
         proof: "0x",
-        metadata: "0x",
       };
       const response1 = {
         requestId: request.requestId,

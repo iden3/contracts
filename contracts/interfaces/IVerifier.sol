@@ -71,12 +71,10 @@ interface IVerifier {
      * @dev AuthResponse. Structure for auth response.
      * @param authMethod Auth type of the proof response.
      * @param proof proof to verify.
-     * @param metadata Metadata of the auth proof.
      */
     struct AuthResponse {
         string authMethod;
         bytes proof;
-        bytes metadata;
     }
 
     /**

@@ -15,6 +15,7 @@ import { network } from "hardhat";
 import { CredentialAtomicQueryV3StableValidatorProxyModule } from "../../../ignition/modules/credentialAtomicQueryV3StableValidator";
 import { LinkedMultiQueryStableValidatorProxyModule } from "../../../ignition/modules/linkedMultiQueryStable";
 import { AuthV3ValidatorProxyModule } from "../../../ignition/modules/authV3Validator";
+import { AuthV3_8_32ValidatorProxyModule } from "../../../ignition/modules/authV3_8_32Validator";
 
 const { ethers, ignition } = await network.connect();
 
@@ -87,6 +88,13 @@ async function main() {
       verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V3.name,
       verificationOpts: contractsInfo.VALIDATOR_AUTH_V3.verificationOpts,
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V3.verificationOpts,
+    },
+    {
+      moduleFirstImplementation: AuthV3_8_32ValidatorProxyModule,
+      name: contractsInfo.VALIDATOR_AUTH_V3_8_32.name,
+      verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V3_8_32.name,
+      verificationOpts: contractsInfo.VALIDATOR_AUTH_V3_8_32.verificationOpts,
+      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V3_8_32.verificationOpts,
     },
     {
       moduleFirstImplementation: EthIdentityValidatorProxyModule,

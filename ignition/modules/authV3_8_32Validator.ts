@@ -6,15 +6,15 @@ import {
 } from "../../helpers/constants";
 import { Groth16VerifierAuthV3Module } from "./groth16verifiers";
 import {
-  AuthV3ValidatorAtModule,
-  AuthV3ValidatorNewImplementationAtModule,
+  AuthV3_8_32ValidatorAtModule,
+  AuthV3_8_32ValidatorNewImplementationAtModule,
   Create2AddressAnchorAtModule,
-  Groth16VerifierAuthV3WrapperAtModule,
+  Groth16VerifierAuthV3_8_32WrapperAtModule,
   StateAtModule,
 } from "./contractsAt";
 
-const AuthV3ValidatorProxyFirstImplementationModule = buildModule(
-  "AuthV3ValidatorProxyFirstImplementationModule",
+const AuthV3_8_32ValidatorProxyFirstImplementationModule = buildModule(
+  "AuthV3_8_32ValidatorProxyFirstImplementationModule",
   (m) => {
     const proxyAdminOwner = m.getParameter("proxyAdminOwner");
 
@@ -34,7 +34,7 @@ const AuthV3ValidatorProxyFirstImplementationModule = buildModule(
         sourceName: "",
         linkReferences: {},
       },
-      [create2AddressAnchor, proxyAdminOwner, contractsInfo.VALIDATOR_AUTH_V3.create2Calldata],
+      [create2AddressAnchor, proxyAdminOwner, contractsInfo.VALIDATOR_AUTH_V3_8_32.create2Calldata],
     );
 
     const proxyAdminAddress = m.readEventArgument(proxy, "AdminChanged", "newAdmin");
@@ -43,12 +43,12 @@ const AuthV3ValidatorProxyFirstImplementationModule = buildModule(
   },
 );
 
-const AuthV3ValidatorFinalImplementationModule = buildModule(
-  "AuthV3ValidatorFinalImplementationModule",
+const AuthV3_8_32ValidatorFinalImplementationModule = buildModule(
+  "AuthV3_8_32ValidatorFinalImplementationModule",
   (m) => {
     const state = m.useModule(StateAtModule).proxy;
     const { groth16VerifierAuthV3: groth16Verifier } = m.useModule(Groth16VerifierAuthV3Module);
-    const newImplementation = m.contract(contractsInfo.VALIDATOR_AUTH_V3.name);
+    const newImplementation = m.contract(contractsInfo.VALIDATOR_AUTH_V3_8_32.name);
     return {
       groth16Verifier,
       state,
@@ -57,27 +57,32 @@ const AuthV3ValidatorFinalImplementationModule = buildModule(
   },
 );
 
-export const AuthV3ValidatorProxyModule = buildModule("AuthV3ValidatorProxyModule", (m) => {
-  const { proxy, proxyAdmin } = m.useModule(AuthV3ValidatorProxyFirstImplementationModule);
-  const { newImplementation, groth16Verifier, state } = m.useModule(
-    AuthV3ValidatorFinalImplementationModule,
-  );
-  return {
-    groth16Verifier,
-    newImplementation,
-    state,
-    proxyAdmin,
-    proxy,
-  };
-});
+export const AuthV3_8_32ValidatorProxyModule = buildModule(
+  "AuthV3_8_32ValidatorProxyModule",
+  (m) => {
+    const { proxy, proxyAdmin } = m.useModule(AuthV3_8_32ValidatorProxyFirstImplementationModule);
+    const { newImplementation, groth16Verifier, state } = m.useModule(
+      AuthV3_8_32ValidatorFinalImplementationModule,
+    );
+    return {
+      groth16Verifier,
+      newImplementation,
+      state,
+      proxyAdmin,
+      proxy,
+    };
+  },
+);
 
-const AuthV3ValidatorProxyFinalImplementationModule = buildModule(
-  "AuthV3ValidatorProxyFinalImplementationModule",
+const AuthV3_8_32ValidatorProxyFinalImplementationModule = buildModule(
+  "AuthV3_8_32ValidatorProxyFinalImplementationModule",
   (m) => {
     const proxyAdminOwner = m.getAccount(0);
-    const { proxy, proxyAdmin } = m.useModule(AuthV3ValidatorAtModule);
-    const { contract: groth16Verifier } = m.useModule(Groth16VerifierAuthV3WrapperAtModule);
-    const { contract: newImplementation } = m.useModule(AuthV3ValidatorNewImplementationAtModule);
+    const { proxy, proxyAdmin } = m.useModule(AuthV3_8_32ValidatorAtModule);
+    const { contract: groth16Verifier } = m.useModule(Groth16VerifierAuthV3_8_32WrapperAtModule);
+    const { contract: newImplementation } = m.useModule(
+      AuthV3_8_32ValidatorNewImplementationAtModule,
+    );
     const state = m.useModule(StateAtModule).proxy;
 
     const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [
@@ -99,15 +104,15 @@ const AuthV3ValidatorProxyFinalImplementationModule = buildModule(
   },
 );
 
-const AuthV3ValidatorModule = buildModule("AuthV3ValidatorModule", (m) => {
+const AuthV3_8_32ValidatorModule = buildModule("AuthV3_8_32ValidatorModule", (m) => {
   const { groth16Verifier, newImplementation, proxyAdmin, proxy } = m.useModule(
-    AuthV3ValidatorProxyFinalImplementationModule,
+    AuthV3_8_32ValidatorProxyFinalImplementationModule,
   );
 
-  const authV3Validator = m.contractAt(contractsInfo.VALIDATOR_AUTH_V3.name, proxy);
+  const authV3_8_32Validator = m.contractAt(contractsInfo.VALIDATOR_AUTH_V3_8_32.name, proxy);
 
   return {
-    authV3Validator,
+    authV3_8_32Validator,
     groth16Verifier,
     newImplementation,
     proxyAdmin,
@@ -115,4 +120,4 @@ const AuthV3ValidatorModule = buildModule("AuthV3ValidatorModule", (m) => {
   };
 });
 
-export default AuthV3ValidatorModule;
+export default AuthV3_8_32ValidatorModule;

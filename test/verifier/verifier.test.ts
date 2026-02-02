@@ -330,7 +330,6 @@ describe("Verifier tests", function () {
       const authResponse = {
         authMethod: authMethod.authMethod,
         proof: "0x",
-        metadata: "0x",
       };
       const response = {
         requestId: request.requestId,
@@ -373,7 +372,6 @@ describe("Verifier tests", function () {
       const authResponse = {
         authMethod: authMethod.authMethod,
         proof: "0x",
-        metadata: "0x",
       };
       const response = {
         requestId: request.requestId,
@@ -431,7 +429,6 @@ describe("Verifier tests", function () {
       const authResponse = {
         authMethod: authMethod.authMethod,
         proof: "0x",
-        metadata: "0x",
       };
       const response = {
         requestId: request.requestId,
@@ -461,7 +458,6 @@ describe("Verifier tests", function () {
       const authResponse = {
         authMethod: authMethod.authMethod,
         proof: "0x",
-        metadata: "0x",
       };
       const response = {
         requestId: request.requestId,
@@ -494,7 +490,6 @@ describe("Verifier tests", function () {
       const authResponse = {
         authMethod: authMethod.authMethod,
         proof: "0x",
-        metadata: "0x",
       };
 
       const response = {
@@ -633,7 +628,6 @@ describe("Verifier tests", function () {
       const authResponse = {
         authMethod: authMethod.authMethod,
         proof: "0x",
-        metadata: "0x",
       };
       const response = {
         requestId: request.requestId,
@@ -718,7 +712,6 @@ describe("Verifier tests", function () {
       const authResponse = {
         authMethod: authMethod.authMethod,
         proof: "0x",
-        metadata: "0x",
       };
       const response1 = {
         requestId: groupRequest1.requestId,
@@ -783,7 +776,6 @@ describe("Verifier tests", function () {
       const authResponse = {
         authMethod: authMethod.authMethod,
         proof: "0x",
-        metadata: "0x",
       };
       const response1 = {
         requestId: request1.requestId,

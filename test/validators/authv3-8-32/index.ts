@@ -4,14 +4,14 @@ import { packZKProof } from "../../utils/packData";
 import { chainIdInfoMap, contractsInfo } from "../../../helpers/constants";
 import { network } from "hardhat";
 import { getChainId } from "../../../helpers/helperUtils";
-import { AuthV2ValidatorWithGroth16VerifierStubModule } from "../../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
+import { AuthV3_8_32ValidatorWithGroth16VerifierStubModule } from "../../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 import issuerFromGenesisStateToFirstTransitionV3 from "../common-data/issuer_from_genesis_state_to_first_transition_v3.json";
 
 const { ethers, networkHelpers, ignition } = await network.connect();
 
 const testCases: any[] = [
   {
-    name: "Validate AuthV2",
+    name: "Validate AuthV3_8_32",
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     stateTransitions: [issuerFromGenesisStateToFirstTransitionV3],
     userID: 23273167900576580892722615617815475823351560716009055944677723144398443009n,
@@ -26,8 +26,8 @@ const testCases: any[] = [
   },
 ];
 
-describe("Auth V2 Validator", function () {
-  let state: any, authV2validator;
+describe("Auth V3_8_32 Validator", function () {
+  let state: any, authV3_8_32validator;
 
   async function deployContractsFixture() {
     const chainId = await getChainId();
@@ -44,8 +44,8 @@ describe("Auth V2 Validator", function () {
       },
     };
 
-    const { state: stateContract, authV2Validator: validator } = await ignition.deploy(
-      AuthV2ValidatorWithGroth16VerifierStubModule,
+    const { state: stateContract, authV3_8_32Validator: validator } = await ignition.deploy(
+      AuthV3_8_32ValidatorWithGroth16VerifierStubModule,
       {
         parameters: parameters,
       },
@@ -58,7 +58,7 @@ describe("Auth V2 Validator", function () {
   }
 
   beforeEach(async () => {
-    ({ stateContract: state, validator: authV2validator } =
+    ({ stateContract: state, validator: authV3_8_32validator } =
       await networkHelpers.loadFixture(deployContractsFixture));
   });
 
@@ -93,19 +93,19 @@ describe("Auth V2 Validator", function () {
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proof);
 
-      const data = "0x";
+      const data = "0x00";
 
       // Check verify function
       const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);
 
       if (test.errorMessage) {
-        await expect(authV2validator.verify(test.sender, zkProof, data)).to.be.rejectedWith(
+        await expect(authV3_8_32validator.verify(test.sender, zkProof, data)).to.be.rejectedWith(
           test.errorMessage,
         );
       } else if (test.errorMessage === "") {
-        await expect(authV2validator.verify(test.sender, zkProof, data)).to.be.reverted;
+        await expect(authV3_8_32validator.verify(test.sender, zkProof, data)).to.be.reverted;
       } else {
-        const result = await authV2validator.verify(test.sender, zkProof, data);
+        const result = await authV3_8_32validator.verify(test.sender, zkProof, data);
 
         expect(result[0]).to.be.equal(test.userID);
       }
@@ -113,7 +113,7 @@ describe("Auth V2 Validator", function () {
   }
 
   it("check version", async () => {
-    const version = await authV2validator.version();
-    expect(version).to.be.equal(contractsInfo.VALIDATOR_AUTH_V2.version);
+    const version = await authV3_8_32validator.version();
+    expect(version).to.be.equal(contractsInfo.VALIDATOR_AUTH_V3_8_32.version);
   });
 });

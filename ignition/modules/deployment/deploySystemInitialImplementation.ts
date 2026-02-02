@@ -18,6 +18,8 @@ import { AuthV2ValidatorProxyModule } from "../authV2Validator";
 import { EthIdentityValidatorProxyModule } from "../ethIdentityValidator";
 import { VCPaymentProxyModule } from "../vcPayment";
 import { MCPaymentProxyModule } from "../mcPayment";
+import { AuthV3ValidatorProxyModule } from "../authV3Validator";
+import { AuthV3_8_32ValidatorProxyModule } from "../authV3_8_32Validator";
 
 const DeploySystemInitialImplementationModule = buildModule(
   "DeploySystemInitialImplementationModule",
@@ -54,6 +56,8 @@ const DeploySystemInitialImplementationModule = buildModule(
       LinkedMultiQueryValidatorProxyModule,
     );
     const { newImplementation: newAuthV2ValidatorImpl } = m.useModule(AuthV2ValidatorProxyModule);
+    const { newImplementation: newAuthV3ValidatorImpl } = m.useModule(AuthV3ValidatorProxyModule);
+    const { newImplementation: newAuthV3_8_32ValidatorImpl } = m.useModule(AuthV3_8_32ValidatorProxyModule);
     const { newImplementation: newEthIdentityValidatorImpl } = m.useModule(
       EthIdentityValidatorProxyModule,
     );
@@ -76,6 +80,8 @@ const DeploySystemInitialImplementationModule = buildModule(
       newCredentialAtomicQueryV3ValidatorImpl,
       newLinkedMultiQueryValidatorImpl,
       newAuthV2ValidatorImpl,
+      newAuthV3ValidatorImpl,
+      newAuthV3_8_32ValidatorImpl,
       newEthIdentityValidatorImpl,
       newVCPaymentImpl,
       newMCPaymentImpl,

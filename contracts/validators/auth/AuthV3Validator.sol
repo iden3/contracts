@@ -11,7 +11,6 @@ import {IState} from "../../interfaces/IState.sol";
 error VerifierAddressShouldNotBeZero();
 error ProofIsNotValid();
 error GistRootIsExpired();
-error VerifierAddressesAndCircuitIDsMismatch(uint256 verifiers, uint256 circuitIDs);
 
 /**
  * @dev AuthV3 validator for auth
@@ -27,6 +26,8 @@ contract AuthV3Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
      * @dev Version of contract
      */
     string public constant VERSION = "1.0.0";
+
+    string internal constant CIRCUIT_ID = "authV3";
 
     /// @dev Main storage structure for the contract
     /// @custom:storage-location iden3.storage.AuthV3Validator
@@ -61,18 +62,16 @@ contract AuthV3Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
 
     /**
      * @dev Initialize the contract
-     * @param stateContractAddr Address of the state contract
-     * @param verifierContractAddresses Addresses of the verifier contracts for the supported circuits
-     * @param circuitIds Circuit ids of the supported circuits
+     * @param _stateContractAddr Address of the state contract
+     * @param _verifierContractAddr Address of the verifier contract
      * @param owner Owner of the contract
      */
     function initialize(
-        address stateContractAddr,
-        address[] calldata verifierContractAddresses,
-        string[] calldata circuitIds,
+        address _stateContractAddr,
+        address _verifierContractAddr,
         address owner
     ) public initializer {
-        _initDefaultStateVariables(stateContractAddr, verifierContractAddresses, circuitIds, owner);
+        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, owner);
     }
 
     /**
@@ -102,16 +101,15 @@ contract AuthV3Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
      * @dev Verify the groth16 proof and check the request query data
      * @param sender Sender of the proof.
      * @param proof Proof packed as bytes to verify.
-     * @param authMethodParams Auth method parameters for the verification.
-     * @param responseMetadata Additional metadata from the response for the verification.
+     * @param params Request query data of the credential to verify.
      * @return userID user ID of public signals as result.
      */
     function verify(
         // solhint-disable-next-line no-unused-vars
         address sender,
         bytes calldata proof,
-        bytes calldata authMethodParams,
-        bytes calldata responseMetadata
+        // solhint-disable-next-line no-unused-vars
+        bytes calldata params
     ) public view override returns (uint256 userID, AuthResponseField[] memory) {
         (
             uint256[] memory inputs,
@@ -120,12 +118,9 @@ contract AuthV3Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
             uint256[2] memory c
         ) = abi.decode(proof, (uint256[], uint256[2], uint256[2][2], uint256[2]));
 
-        // This validator expects circuitId in the responseMetadata to select especific verifier
-        string memory circuitId = abi.decode(responseMetadata, (string));
-
         PubSignals memory pubSignals = parsePubSignals(inputs);
         _checkGistRoot(pubSignals.userID, pubSignals.gistRoot);
-        _verifyZKP(circuitId, inputs, a, b, c);
+        _verifyZKP(inputs, a, b, c);
 
         AuthResponseField[] memory authResponseFields = new AuthResponseField[](1);
         authResponseFields[0] = AuthResponseField("challenge", pubSignals.challenge);
@@ -202,28 +197,19 @@ contract AuthV3Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
     }
 
     function _initDefaultStateVariables(
-        address stateContractAddr,
-        address[] calldata verifierContractAddresses,
-        string[] calldata circuitIds,
+        address _stateContractAddr,
+        address _verifierContractAddr,
+        string memory circuitId,
         address owner
     ) internal {
-        if (verifierContractAddresses.length != circuitIds.length) {
-            revert VerifierAddressesAndCircuitIDsMismatch(
-                verifierContractAddresses.length,
-                circuitIds.length
-            );
-        }
         AuthV3ValidatorStorage storage s = _getAuthV3ValidatorStorage();
 
         s.revocationStateExpirationTimeout = 1 hours;
         s.proofExpirationTimeout = 1 hours;
         s.gistRootExpirationTimeout = 1 hours;
-        for (uint256 i = 0; i < circuitIds.length; i++) {
-            s._supportedCircuitIds.push(circuitIds[i]);
-            s._circuitIdToVerifier[circuitIds[i]] = IGroth16Verifier(verifierContractAddresses[i]);
-        }
-
-        s.state = IState(stateContractAddr);
+        s._supportedCircuitIds = [circuitId];
+        s._circuitIdToVerifier[circuitId] = IGroth16Verifier(_verifierContractAddr);
+        s.state = IState(_stateContractAddr);
         __Ownable_init(owner);
     }
 
@@ -242,17 +228,17 @@ contract AuthV3Validator is Ownable2StepUpgradeable, IAuthValidator, ERC165 {
     }
 
     function _verifyZKP(
-        string memory circuitId,
         uint256[] memory inputs,
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c
     ) internal view {
-        IGroth16Verifier g16Verifier = getVerifierByCircuitId(circuitId);
+        IGroth16Verifier g16Verifier = getVerifierByCircuitId(CIRCUIT_ID);
         if (g16Verifier == IGroth16Verifier(address(0))) {
             revert VerifierAddressShouldNotBeZero();
         }
 
+        // verify that zkp is valid
         if (!g16Verifier.verify(a, b, c, inputs)) {
             revert ProofIsNotValid();
         }

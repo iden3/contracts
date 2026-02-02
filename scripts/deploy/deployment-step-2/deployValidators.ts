@@ -9,6 +9,7 @@ import LinkedMultiQueryValidatorModule from "../../../ignition/modules/linkedMul
 import {
   AuthV2ValidatorAtModule,
   AuthV3ValidatorAtModule,
+  AuthV3_8_32ValidatorAtModule,
   CredentialAtomicQueryMTPV2ValidatorAtModule,
   CredentialAtomicQuerySigV2ValidatorAtModule,
   CredentialAtomicQueryV3StableValidatorAtModule,
@@ -21,6 +22,7 @@ import { network } from "hardhat";
 import CredentialAtomicQueryV3StableValidatorModule from "../../../ignition/modules/credentialAtomicQueryV3StableValidator";
 import LinkedMultiQueryStableValidatorModule from "../../../ignition/modules/linkedMultiQueryStable";
 import AuthV3ValidatorModule from "../../../ignition/modules/authV3Validator";
+import AuthV3_8_32ValidatorModule from "../../../ignition/modules/authV3_8_32Validator";
 
 const { ethers, ignition } = await network.connect();
 
@@ -92,6 +94,13 @@ async function main() {
       name: contractsInfo.VALIDATOR_AUTH_V3.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V3.name,
       paramName: "AuthV3ValidatorAtModule",
+    },    
+    {
+      moduleFinalImplementation: AuthV3_8_32ValidatorModule,
+      moduleAt: AuthV3_8_32ValidatorAtModule,
+      name: contractsInfo.VALIDATOR_AUTH_V3_8_32.name,
+      verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V3_8_32.name,
+      paramName: "AuthV3_8_32ValidatorAtModule",
     },    
     {
       moduleFinalImplementation: EthIdentityValidatorModule,
