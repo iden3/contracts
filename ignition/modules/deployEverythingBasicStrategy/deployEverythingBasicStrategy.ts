@@ -94,7 +94,7 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
     "setAuthMethod",
     [{ authMethod: "auth3-8-32", validator: authV3_8_32Validator, params: "0x" }],
     {
-      id: "setAuthMethod_auth3-8-32Validator",
+      id: "setAuthMethod_auth3_8_32Validator",
       from: contractOwner,
     },
   );    
@@ -182,7 +182,7 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
     "setAuthMethod",
     [{ authMethod: "auth3-8-32", validator: authV3_8_32Validator, params: "0x" }],
     {
-      id: "setAuthMethod_auth3-8-32Validator_ManyResponsesPerUserAndRequest",
+      id: "setAuthMethod_auth3_8_32Validator_ManyResponsesPerUserAndRequest",
       from: contractOwner,
     },
   );    
