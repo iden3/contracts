@@ -318,7 +318,9 @@ export async function submitZKPResponses_KYCAgeCredential(
 
   const packageMgr = await initPackageManager(
     await circuitStorage.loadCircuitData(CircuitId.AuthV2),
-    userProofService.generateAuthV2Inputs.bind(userProofService),
+    await circuitStorage.loadCircuitData(CircuitId.AuthV3),
+    await circuitStorage.loadCircuitData(CircuitId.AuthV3_8_32),
+    userProofService.generateAuthInputs.bind(userProofService),
     userProofService.verifyState.bind(userProofService),
   );
 
@@ -494,13 +496,13 @@ export async function submitResponse(
     senderDid: profileDID,
     ethSigner: opts.ethSigner,
     challenge,
-    //authMethod: opts.authMethod,
   };
 
   const ciRequestBody: ContractInvokeRequestBody = {
     reason: "reason",
     transaction_data: transactionData,
     scope: requests,
+    accept: ["iden3comm/v1;env=application/iden3-zkp-json;circuitId=authV2,authV3,authV3-8-32;alg=groth16"],
   };
 
   const id = uuid.v4();

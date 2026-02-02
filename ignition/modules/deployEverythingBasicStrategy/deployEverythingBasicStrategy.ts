@@ -92,9 +92,9 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
   m.call(
     universalVerifier,
     "setAuthMethod",
-    [{ authMethod: "auth3_8_32", validator: authV3_8_32Validator, params: "0x" }],
+    [{ authMethod: "auth3-8-32", validator: authV3_8_32Validator, params: "0x" }],
     {
-      id: "setAuthMethod_auth3_8_32Validator",
+      id: "setAuthMethod_auth3-8-32Validator",
       from: contractOwner,
     },
   );    
@@ -180,9 +180,9 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
   m.call(
     universalVerifier_ManyResponsesPerUserAndRequest,
     "setAuthMethod",
-    [{ authMethod: "auth3_8_32", validator: authV3_8_32Validator, params: "0x" }],
+    [{ authMethod: "auth3-8-32", validator: authV3_8_32Validator, params: "0x" }],
     {
-      id: "setAuthMethod_auth3_8_32Validator_ManyResponsesPerUserAndRequest",
+      id: "setAuthMethod_auth3-8-32Validator_ManyResponsesPerUserAndRequest",
       from: contractOwner,
     },
   );    

@@ -158,35 +158,78 @@ export async function initProofService(
 }
 
 export async function initPackageManager(
-  circuitData: CircuitData,
+  circuitDataAuthV2: CircuitData,
+  circuitDataAuthV3: CircuitData,
+  circuitDataAuthV3_8_32: CircuitData,
   prepareFn: AuthDataPrepareFunc,
   stateVerificationFn: StateVerificationFunc,
 ): Promise<IPackageManager> {
   const authInputsHandler = new DataPrepareHandlerFunc(prepareFn);
 
   const verificationFn = new VerificationHandlerFunc(stateVerificationFn);
-  const mapKey = proving.provingMethodGroth16AuthV2Instance.methodAlg.toString();
-  const verificationParamMap: Map<string, VerificationParams> = new Map([
+  const mapKeyAuthV2 = proving.provingMethodGroth16AuthV2Instance.methodAlg.toString();
+  const verificationParamMapAuthV2: Map<string, VerificationParams> = new Map([
     [
-      mapKey,
+      mapKeyAuthV2,
       {
-        key: circuitData.verificationKey!,
+        key: circuitDataAuthV2.verificationKey!,
         verificationFn,
       },
     ],
   ]);
 
-  const provingParamMap: Map<string, ProvingParams> = new Map();
-  provingParamMap.set(mapKey, {
+  const provingParamMapAuthV2: Map<string, ProvingParams> = new Map();
+  provingParamMapAuthV2.set(mapKeyAuthV2, {
     dataPreparer: authInputsHandler,
-    provingKey: circuitData.provingKey!,
-    wasm: circuitData.wasm!,
+    provingKey: circuitDataAuthV2.provingKey!,
+    wasm: circuitDataAuthV2.wasm!,
+  });
+
+  const mapKeyAuthV3 = proving.provingMethodGroth16AuthV3Instance.methodAlg.toString();
+  const verificationParamMapAuthV3: Map<string, VerificationParams> = new Map([
+    [
+      mapKeyAuthV3,
+      {
+        key: circuitDataAuthV3.verificationKey!,
+        verificationFn,
+      },
+    ],
+  ]);
+
+  const provingParamMapAuthV3: Map<string, ProvingParams> = new Map();
+  provingParamMapAuthV3.set(mapKeyAuthV3, {
+    dataPreparer: authInputsHandler,
+    provingKey: circuitDataAuthV3.provingKey!,
+    wasm: circuitDataAuthV3.wasm!,
+  });
+
+  const mapKeyAuthV3_8_32 = proving.provingMethodGroth16AuthV3_8_32Instance.methodAlg.toString();
+  const verificationParamMapAuthV3_8_32: Map<string, VerificationParams> = new Map([
+    [
+      mapKeyAuthV3_8_32,
+      {
+        key: circuitDataAuthV3_8_32.verificationKey!,
+        verificationFn,
+      },
+    ],
+  ]);
+
+  const provingParamMapAuthV3_8_32: Map<string, ProvingParams> = new Map();
+  provingParamMapAuthV3_8_32.set(mapKeyAuthV3_8_32, {
+    dataPreparer: authInputsHandler,
+    provingKey: circuitDataAuthV3_8_32.provingKey!,
+    wasm: circuitDataAuthV3_8_32.wasm!,
   });
 
   const mgr: IPackageManager = new PackageManager();
-  const packer = new ZKPPacker(provingParamMap, verificationParamMap);
+  const packerAuthV2 = new ZKPPacker(provingParamMapAuthV2, verificationParamMapAuthV2);
+  const packerAuthV3 = new ZKPPacker(provingParamMapAuthV3, verificationParamMapAuthV3);
+  const packerAuthV3_8_32 = new ZKPPacker(
+    provingParamMapAuthV3_8_32,
+    verificationParamMapAuthV3_8_32,
+  );
   const plainPacker = new PlainPacker();
-  mgr.registerPackers([packer, plainPacker]);
+  mgr.registerPackers([packerAuthV2, packerAuthV3, packerAuthV3_8_32, plainPacker]);
 
   return mgr;
 }
