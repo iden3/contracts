@@ -33,6 +33,9 @@
   "AuthV3ValidatorProxyFirstImplementationModule": {
     "proxyAdminOwner": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74"
   },
+  "AuthV3_8_32ValidatorProxyFirstImplementationModule": {
+    "proxyAdminOwner": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74"
+  },
   "EthIdentityValidatorProxyFirstImplementationModule": {
     "proxyAdminOwner": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74"
   },
@@ -203,5 +206,9 @@
   "AuthV3ValidatorAtModule": {
     "proxyAddress": "0x0127bb45d6F88bC9eBF418421b1d57aE99a7FA4A",
     "proxyAdminAddress": "0xd90752C0444D5569855a5694d1d55BcD4bd958e9"
+  },
+  "AuthV3_8_32ValidatorAtModule": {
+    "proxyAddress": "0x85808DEce33D4124659C4d450E0e8E497711AB51",
+    "proxyAdminAddress": "0xd077DcB14C021FB120351c937d3a4873f85848ea"
   }
 }
