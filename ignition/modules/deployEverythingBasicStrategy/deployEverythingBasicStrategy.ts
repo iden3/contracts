@@ -11,6 +11,8 @@ import MCPaymentModule from "./mcPayment";
 import VCPaymentModule from "./vcPayment";
 import UniversalVerifier_ManyResponsesPerUserAndRequestModule from "./universalVerifier_ManyResponsesPerUserAndRequest";
 import { network } from "hardhat";
+import AuthV3ValidatorModule from "./authV3Validator";
+import AuthV3_8_32ValidatorModule from "./authV3_8_32Validator";
 
 const { ethers } = await network.connect();
 
@@ -36,6 +38,8 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
   const { linkedMultiQueryValidator } = m.useModule(LinkedMultiQueryValidatorModule);
   const { ethIdentityValidator } = m.useModule(EthIdentityValidatorModule);
   const { authV2Validator } = m.useModule(AuthV2ValidatorModule);
+  const { authV3Validator } = m.useModule(AuthV3ValidatorModule);
+  const { authV3_8_32Validator } = m.useModule(AuthV3_8_32ValidatorModule);
   const { identityTreeStore } = m.useModule(IdentityTreeStoreModule);
   const { MCPayment } = m.useModule(MCPaymentModule);
   const { VCPayment } = m.useModule(VCPaymentModule);
@@ -76,6 +80,24 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
       from: contractOwner,
     },
   );
+  m.call(
+    universalVerifier,
+    "setAuthMethod",
+    [{ authMethod: "authV3", validator: authV3Validator, params: "0x" }],
+    {
+      id: "setAuthMethod_authV3Validator",
+      from: contractOwner,
+    },
+  );
+  m.call(
+    universalVerifier,
+    "setAuthMethod",
+    [{ authMethod: "auth3_8_32", validator: authV3_8_32Validator, params: "0x" }],
+    {
+      id: "setAuthMethod_auth3_8_32Validator",
+      from: contractOwner,
+    },
+  );    
   m.call(
     universalVerifier,
     "setAuthMethod",
@@ -149,6 +171,24 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
   m.call(
     universalVerifier_ManyResponsesPerUserAndRequest,
     "setAuthMethod",
+    [{ authMethod: "authV3", validator: authV3Validator, params: "0x" }],
+    {
+      id: "setAuthMethod_authV3Validator_ManyResponsesPerUserAndRequest",
+      from: contractOwner,
+    },
+  );
+  m.call(
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    "setAuthMethod",
+    [{ authMethod: "auth3_8_32", validator: authV3_8_32Validator, params: "0x" }],
+    {
+      id: "setAuthMethod_auth3_8_32Validator_ManyResponsesPerUserAndRequest",
+      from: contractOwner,
+    },
+  );    
+  m.call(
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    "setAuthMethod",
     [{ authMethod: "embeddedAuth", validator: ethers.ZeroAddress, params: "0x" }],
     {
       id: "setAuthMethod_embeddedAuthValidator_ManyResponsesPerUserAndRequest",
@@ -175,6 +215,8 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
     linkedMultiQueryValidator,
     ethIdentityValidator,
     authV2Validator,
+    authV3Validator,
+    authV3_8_32Validator,
     MCPayment,
     VCPayment,
   };
