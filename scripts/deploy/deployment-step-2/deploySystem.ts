@@ -6,17 +6,21 @@ import IdentityTreeStoreModule from "../../../ignition/modules/identityTreeStore
 import CredentialAtomicQueryMTPV2ValidatorModule from "../../../ignition/modules/credentialAtomicQueryMTPV2Validator";
 import CredentialAtomicQuerySigV2ValidatorModule from "../../../ignition/modules/credentialAtomicQuerySigV2Validator";
 import CredentialAtomicQueryV3ValidatorModule from "../../../ignition/modules/credentialAtomicQueryV3Validator";
-import LinkedMultiQueryValidatorModule from "../../../ignition/modules/linkedMultiQuery";
+import LinkedMultiQueryValidatorModule from "../../../ignition/modules/linkedMultiQueryValidator";
 import AuthV2ValidatorModule from "../../../ignition/modules/authV2Validator";
 import EthIdentityValidatorModule from "../../../ignition/modules/ethIdentityValidator";
 import {
   AuthV2ValidatorAtModule,
+  AuthV3ValidatorAtModule,
+  AuthV3_8_32ValidatorAtModule,
   Create2AddressAnchorAtModule,
   CredentialAtomicQueryMTPV2ValidatorAtModule,
   CredentialAtomicQuerySigV2ValidatorAtModule,
+  CredentialAtomicQueryV3StableValidatorAtModule,
   CredentialAtomicQueryV3ValidatorAtModule,
   EthIdentityValidatorAtModule,
   IdentityTreeStoreAtModule,
+  LinkedMultiQueryStableValidatorAtModule,
   LinkedMultiQueryValidatorAtModule,
   MCPaymentAtModule,
   StateAtModule,
@@ -26,6 +30,10 @@ import {
 import MCPaymentModule from "../../../ignition/modules/mcPayment";
 import VCPaymentModule from "../../../ignition/modules/vcPayment";
 import { network } from "hardhat";
+import AuthV3ValidatorModule from "../../../ignition/modules/authV3Validator";
+import AuthV3_8_32ValidatorModule from "../../../ignition/modules/authV3_8_32Validator";
+import LinkedMultiQueryStableValidatorModule from "../../../ignition/modules/linkedMultiQueryStableValidator";
+import CredentialAtomicQueryV3StableValidatorModule from "../../../ignition/modules/credentialAtomicQueryV3StableValidator";
 
 const { ethers, ignition } = await network.connect();
 
@@ -76,6 +84,15 @@ async function main() {
       isProxy: true,
     },
     {
+      module: CredentialAtomicQueryV3StableValidatorModule,
+      moduleAt: CredentialAtomicQueryV3StableValidatorAtModule,
+      contractAddress:
+        parameters["CredentialAtomicQueryV3StableValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_V3_STABLE.unifiedAddress,
+      name: contractsInfo.VALIDATOR_V3_STABLE.name,
+      isProxy: true,
+    },
+    {
       module: LinkedMultiQueryValidatorModule,
       moduleAt: LinkedMultiQueryValidatorAtModule,
       contractAddress:
@@ -84,11 +101,20 @@ async function main() {
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
       isProxy: true,
     },
+    {
+      module: LinkedMultiQueryStableValidatorModule,
+      moduleAt: LinkedMultiQueryStableValidatorAtModule,
+      contractAddress:
+        parameters["LinkedMultiQueryStableValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.unifiedAddress,
+      name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.name,
+      isProxy: true,
+    },
   ];
 
   const authValidators = [
     {
-      authMethod: "authV2",
+      authMethods: [{ authMethod: "authV2", params: "0x" }],
       module: AuthV2ValidatorModule,
       moduleAt: AuthV2ValidatorAtModule,
       contractAddress:
@@ -98,7 +124,27 @@ async function main() {
       isProxy: true,
     },
     {
-      authMethod: "ethIdentity",
+      authMethods: [{ authMethod: "authV3", params: "0x" }],
+      module: AuthV3ValidatorModule,
+      moduleAt: AuthV3ValidatorAtModule,
+      contractAddress:
+        parameters["AuthV3ValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_AUTH_V3.unifiedAddress,
+      name: contractsInfo.VALIDATOR_AUTH_V3.name,
+      isProxy: true,
+    },
+    {
+      authMethods: [{ authMethod: "authV3-8-32", params: "0x" }],
+      module: AuthV3_8_32ValidatorModule,
+      moduleAt: AuthV3_8_32ValidatorAtModule,
+      contractAddress:
+        parameters["AuthV3_8_32ValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_AUTH_V3_8_32.unifiedAddress,
+      name: contractsInfo.VALIDATOR_AUTH_V3_8_32.name,
+      isProxy: true,
+    },
+    {
+      authMethods: [{ authMethod: "ethIdentity", params: "0x" }],
       module: EthIdentityValidatorModule,
       moduleAt: EthIdentityValidatorAtModule,
       contractAddress:
@@ -212,20 +258,23 @@ async function main() {
       parameters: parameters,
       deploymentId: deploymentId,
     });
-    if (!(await universalVerifier.authMethodExists(validator.authMethod))) {
-      const tx = await universalVerifier.setAuthMethod({
-        authMethod: validator.authMethod,
-        validator: validatorDeployed.proxy.target,
-        params: "0x",
-      });
-      await tx.wait();
-      console.log(
-        `${validator.name} in address ${validatorDeployed.proxy.target} with authMethod ${validator.authMethod} added to auth methods`,
-      );
-    } else {
-      console.log(
-        `${validator.name} in address ${validatorDeployed.proxy.target} with authMethod ${validator.authMethod} already added to auth methods`,
-      );
+
+    for (const authMethod of validator.authMethods) {
+      if (!(await universalVerifier.authMethodExists(authMethod))) {
+        const tx = await universalVerifier.setAuthMethod({
+          authMethod: authMethod,
+          validator: validatorDeployed.proxy.target,
+          params: "0x",
+        });
+        await tx.wait();
+        console.log(
+          `${validator.name} in address ${validatorDeployed.proxy.target} with authMethod ${authMethod} added to auth methods`,
+        );
+      } else {
+        console.log(
+          `${validator.name} in address ${validatorDeployed.proxy.target} with authMethod ${authMethod} already added to auth methods`,
+        );
+      }
     }
   }
 

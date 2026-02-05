@@ -70,9 +70,9 @@ async function main() {
       validatorContractName: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
       validatorUpgradeModule: UpgradeLinkedMultiQueryValidatorModule,
       validatorVerificationOpts: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.verificationOpts,
-      validatorVerifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.name,
+      validatorVerifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY_10.name,
       verifierVerificationOpts:
-        contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.verificationOpts,
+        contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY_10.verificationOpts,
       version: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.version,
     },
     {
