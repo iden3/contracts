@@ -6,7 +6,7 @@ import IdentityTreeStoreModule from "../../../ignition/modules/identityTreeStore
 import CredentialAtomicQueryMTPV2ValidatorModule from "../../../ignition/modules/credentialAtomicQueryMTPV2Validator";
 import CredentialAtomicQuerySigV2ValidatorModule from "../../../ignition/modules/credentialAtomicQuerySigV2Validator";
 import CredentialAtomicQueryV3ValidatorModule from "../../../ignition/modules/credentialAtomicQueryV3Validator";
-import LinkedMultiQueryValidatorModule from "../../../ignition/modules/linkedMultiQuery";
+import LinkedMultiQueryValidatorModule from "../../../ignition/modules/linkedMultiQueryValidator";
 import AuthV2ValidatorModule from "../../../ignition/modules/authV2Validator";
 import EthIdentityValidatorModule from "../../../ignition/modules/ethIdentityValidator";
 import {
@@ -32,7 +32,7 @@ import VCPaymentModule from "../../../ignition/modules/vcPayment";
 import { network } from "hardhat";
 import AuthV3ValidatorModule from "../../../ignition/modules/authV3Validator";
 import AuthV3_8_32ValidatorModule from "../../../ignition/modules/authV3_8_32Validator";
-import LinkedMultiQueryStableValidatorModule from "../../../ignition/modules/linkedMultiQueryStable";
+import LinkedMultiQueryStableValidatorModule from "../../../ignition/modules/linkedMultiQueryStableValidator";
 import CredentialAtomicQueryV3StableValidatorModule from "../../../ignition/modules/credentialAtomicQueryV3StableValidator";
 
 const { ethers, ignition } = await network.connect();

@@ -108,7 +108,7 @@ const CredentialAtomicQueryV3StableValidatorProxyFinalImplementationModule = bui
     const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [
       state,
       [groth16VerifierV3Stable, groth16VerifierV3Stable_16_16_64_16_32],
-      [CircuitId.AtomicQueryV3OnChainStable, "credentialAtomicQueryV3OnChain-16-16-64-16-32"],
+      [CircuitId.AtomicQueryV3OnChainStable, CircuitId.AtomicQueryV3OnChainStable + '-16-16-64-16-32'],
       proxyAdminOwner,
     ]);
 

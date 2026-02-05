@@ -32,7 +32,6 @@ import {
   IPackageManager,
   OnChainZKPVerifier,
   Operators,
-  ProofGenerationOptions,
   ProofService,
   ProofType,
   PROTOCOL_CONSTANTS,
@@ -47,6 +46,7 @@ import { network } from "hardhat";
 const { ethers, networkName } = await network.connect();
 
 const rhsUrl = "https://rhs-staging.polygonid.me";
+let nullifierSessionId = 11837235;
 
 function createKYCAgeCredential(did: core.DID, birthday: number) {
   const credentialRequest: CredentialRequest = {
@@ -72,67 +72,74 @@ function createKYCAgeCredentialRequest(
   circuitId: CircuitId,
   credentialRequest: CredentialRequest,
 ): ZeroKnowledgeProofRequest {
-  const proofReq: ZeroKnowledgeProofRequest = {
-    id: requestId.toString(),
-    circuitId,
-    optional: false,
-    query: {
-      allowedIssuers: ["*"],
-      type: credentialRequest.type,
-      context:
-        "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
-      credentialSubject: {
-        birthday: {
-          $ne: 20020101,
+  switch (circuitId) {
+    case CircuitId.AtomicQueryV3OnChain: {
+      const proofReq: ZeroKnowledgeProofRequest = {
+        id: requestId.toString(),
+        circuitId: CircuitId.AtomicQueryV3OnChain,
+        params: {
+          nullifierSessionId: nullifierSessionId,
         },
-      },
-    },
-  };
-
-  const proofReqV3: ZeroKnowledgeProofRequest = {
-    id: requestId.toString(),
-    circuitId: CircuitId.AtomicQueryV3OnChain,
-    params: {
-      nullifierSessionId: 11837215,
-    },
-    query: {
-      groupId: 0,
-      allowedIssuers: ["*"],
-      proofType: ProofType.BJJSignature,
-      type: credentialRequest.type,
-      context:
-        "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
-      credentialSubject: {
-        birthday: {
-          $ne: 20020101,
+        query: {
+          groupId: 0,
+          allowedIssuers: ["*"],
+          proofType: ProofType.BJJSignature,
+          type: credentialRequest.type,
+          context:
+            "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
+          credentialSubject: {
+            birthday: {
+              $ne: 20020101,
+            },
+          },
         },
-      },
-    },
-  };
+      };
+      return proofReq;
+    }
+    case CircuitId.AtomicQueryV3OnChainStable: {
+      const proofReq: ZeroKnowledgeProofRequest = {
+        id: requestId.toString(),
+        circuitId: CircuitId.AtomicQueryV3OnChainStable,
+        params: {
+          nullifierSessionId: nullifierSessionId + 1, // to have a different nullifierSessionId than v3 non stable
+        },
+        query: {
+          groupId: 0,
+          allowedIssuers: ["*"],
+          proofType: ProofType.BJJSignature,
+          type: credentialRequest.type,
+          context:
+            "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
+          credentialSubject: {
+            birthday: {
+              $ne: 20020101,
+            },
+          },
+        },
+      };
+      return proofReq;
+    }
+    default: {
+      const proofReq: ZeroKnowledgeProofRequest = {
+        id: requestId.toString(),
+        circuitId,
+        optional: false,
+        query: {
+          allowedIssuers: ["*"],
+          type: credentialRequest.type,
+          context:
+            "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
+          credentialSubject: {
+            birthday: {
+              $ne: 20020101,
+            },
+          },
+        },
+      };
 
-  if (circuitId === CircuitId.AtomicQueryV3OnChain) {
-    return proofReqV3;
+      return proofReq;
+    }
   }
-  return proofReq;
-}
-
-async function generateProof(
-  circuitId: CircuitId,
-  credentialRequest: CredentialRequest,
-  userDID: core.DID,
-  requestId: bigint,
-  proofService: ProofService,
-  opts?: ProofGenerationOptions,
-) {
-  const proofReq: ZeroKnowledgeProofRequest = createKYCAgeCredentialRequest(
-    requestId,
-    circuitId,
-    credentialRequest,
-  );
-
-  const { proof, pub_signals } = await proofService.generateProof(proofReq, userDID, opts);
-
-  return { proof, pub_signals };
 }
 
 function getParamsFromChainId(chainId: number) {
@@ -254,7 +261,7 @@ function getParamsFromChainId(chainId: number) {
 export async function submitZKPResponses_KYCAgeCredential(
   requestId: bigint,
   verifier: Contract,
-  verifierType: "mtpV2" | "sigV2" | "v3",
+  verifierType: "mtpV2" | "sigV2" | "v3" | "v3stable",
   opts: any,
 ) {
   console.log(`================= ${verifierType} KYCAgeCredential ===================`);
@@ -317,10 +324,25 @@ export async function submitZKPResponses_KYCAgeCredential(
   );
 
   const packageMgr = await initPackageManager(
-    await circuitStorage.loadCircuitData(CircuitId.AuthV2),
-    await circuitStorage.loadCircuitData(CircuitId.AuthV3),
-    await circuitStorage.loadCircuitData(CircuitId.AuthV3_8_32),
-    userProofService.generateAuthInputs.bind(userProofService),
+    [
+      await circuitStorage.loadCircuitData(CircuitId.AuthV2),
+      await circuitStorage.loadCircuitData(CircuitId.AuthV3),
+      await circuitStorage.loadCircuitData(CircuitId.AuthV3_8_32),
+    ],
+    [
+      {
+        circuitId: CircuitId.AuthV2,
+        prepareFunc: userProofService.generateAuthInputs.bind(userProofService),
+      },
+      {
+        circuitId: CircuitId.AuthV3,
+        prepareFunc: userProofService.generateAuthInputs.bind(userProofService),
+      },
+      {
+        circuitId: CircuitId.AuthV3_8_32,
+        prepareFunc: userProofService.generateAuthInputs.bind(userProofService),
+      },
+    ],
     userProofService.verifyState.bind(userProofService),
   );
 
@@ -429,7 +451,13 @@ export async function submitZKPResponses_KYCAgeCredential(
         CircuitId.AtomicQueryV3OnChain,
         credentialRequest,
       );
-
+      break;
+    case "v3stable":
+      proofReq = createKYCAgeCredentialRequest(
+        requestId,
+        CircuitId.AtomicQueryV3OnChainStable,
+        credentialRequest,
+      );
       break;
   }
 
@@ -502,7 +530,7 @@ export async function submitResponse(
     reason: "reason",
     transaction_data: transactionData,
     scope: requests,
-    accept: ["iden3comm/v1;env=application/iden3-zkp-json;circuitId=authV2,authV3,authV3-8-32;alg=groth16"],
+    accept: ["iden3comm/v1;env=application/iden3-zkp-json;circuitId=authV3-8-32;alg=groth16"],
   };
 
   const id = uuid.v4();
@@ -574,6 +602,9 @@ export async function setZKPRequest_KYCAgeCredential(
     case "v3":
       circuitId = CircuitId.AtomicQueryV3OnChain;
       break;
+    case "v3stable":
+      circuitId = CircuitId.AtomicQueryV3OnChainStable;
+      break;
     case "authV2":
       circuitId = CircuitId.AuthV2;
       break;
@@ -595,12 +626,12 @@ export async function setZKPRequest_KYCAgeCredential(
     claimPathNotExists: 0,
   };
 
-  if (groth16VerifierType === "v3") {
+  if (groth16VerifierType === "v3" || groth16VerifierType === "v3stable") {
     queryKYCAgeCredential = {
       ...queryKYCAgeCredential,
       allowedIssuers: [],
       verifierID: verifierId.bigInt(),
-      nullifierSessionID: 11837215,
+      nullifierSessionID: nullifierSessionId + (groth16VerifierType === "v3stable" ? 1 : 0),
       groupID: 0,
       proofType: 0,
     };

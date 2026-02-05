@@ -24,7 +24,7 @@ import AuthV3ValidatorModule from "../../ignition/modules/deployEverythingBasicS
 const { ethers, networkHelpers, ignition } = await network.connect();
 
 describe("Verifier Integration test", async function () {
-  let verifier, verifierLib, v3Validator, lmqValidator, stateAuthV3;
+  let verifier, verifierLib, v3Validator, lmqValidator;
   let signer;
 
   const requestIdV3 = 32;
@@ -73,10 +73,9 @@ describe("Verifier Integration test", async function () {
   const metadatas = "0x";
   const authMethodV2 = "authV2";
   const authMethodV3 = "authV3";
-  const authMethodV3_8_32 = "authV3-8-32";
   const authMethodEmbeddedAuth = "embeddedAuth";
 
-  let stateAuthMethod: "authV2" | "authV3" = "authV2"; // "authV2" | "authV3"
+  let stateAuthMethod: "authV2" | "authV3" = "authV2";
 
   const v3Params = packV3ValidatorParams(query);
 
@@ -157,7 +156,7 @@ describe("Verifier Integration test", async function () {
     const authMethodParamsV3 = {
       authMethod: authMethodV3,
       validator: await authV3Validator.getAddress(),
-      params: ethers.AbiCoder.defaultAbiCoder().encode(["string"], [CircuitId.AuthV3]),
+      params: "0x",
     };
     await verifier.setAuthMethod(authMethodParamsV3);
 
@@ -207,7 +206,6 @@ describe("Verifier Integration test", async function () {
       state,
       verifier,
       verifierLib,
-      authV2Validator,
       v3Validator,
       lmkValidator,
     };
@@ -249,7 +247,6 @@ describe("Verifier Integration test", async function () {
         {
           authMethod: authMethodV2,
           proof: authInvalidChallengeProof,
-          metadata: metadatas,
         },
         [
           {
@@ -343,7 +340,6 @@ describe("Verifier Integration test", async function () {
         {
           authMethod: authMethodV2,
           proof: authProof,
-          metadata: metadatas,
         },
         [
           {
@@ -427,7 +423,6 @@ describe("Verifier Integration test", async function () {
         {
           authMethod: authMethodV3,
           proof: authProof,
-          metadata:  ethers.AbiCoder.defaultAbiCoder().encode(["string"], [CircuitId.AuthV3]),
         },
         [
           {
@@ -500,7 +495,6 @@ describe("Verifier Integration test", async function () {
         {
           authMethod: authMethodEmbeddedAuth,
           proof: "0x",
-          metadata: metadatas,
         },
         [
           {

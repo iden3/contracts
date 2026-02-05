@@ -5,7 +5,9 @@ import IdentityTreeStoreModule from "../identityTreeStore";
 import CredentialAtomicQueryMTPV2ValidatorModule from "../credentialAtomicQueryMTPV2Validator";
 import CredentialAtomicQuerySigV2ValidatorModule from "../credentialAtomicQuerySigV2Validator";
 import CredentialAtomicQueryV3ValidatorModule from "../credentialAtomicQueryV3Validator";
-import LinkedMultiQueryValidatorModule from "../linkedMultiQuery";
+import CredentialAtomicQueryV3StableValidatorModule from "../credentialAtomicQueryV3StableValidator";
+import LinkedMultiQueryValidatorModule from "../linkedMultiQueryValidator";
+import LinkedMultiQueryStableValidatorModule from "../linkedMultiQueryStableValidator";
 import AuthV2ValidatorModule from "../authV2Validator";
 import EthIdentityValidatorModule from "../ethIdentityValidator";
 import MCPaymentModule from "../mcPayment";
@@ -34,7 +36,11 @@ const DeploySystemFianlImplementationsModule = buildModule(
     const { credentialAtomicQueryV3Validator } = m.useModule(
       CredentialAtomicQueryV3ValidatorModule,
     );
+    const { credentialAtomicQueryV3StableValidator } = m.useModule(
+      CredentialAtomicQueryV3StableValidatorModule,
+    );    
     const { linkedMultiQueryValidator } = m.useModule(LinkedMultiQueryValidatorModule);
+    const { linkedMultiQueryStableValidator } = m.useModule(LinkedMultiQueryStableValidatorModule);
     const { authV2Validator } = m.useModule(AuthV2ValidatorModule);
     const { authV3Validator } = m.useModule(AuthV3ValidatorModule);
     const { authV3_8_32Validator } = m.useModule(AuthV3_8_32ValidatorModule);
@@ -52,8 +58,14 @@ const DeploySystemFianlImplementationsModule = buildModule(
     m.call(universalVerifier, "addValidatorToWhitelist", [credentialAtomicQueryV3Validator], {
       id: "addValidatorToWhitelistV3",
     });
+    m.call(universalVerifier, "addValidatorToWhitelist", [credentialAtomicQueryV3StableValidator], {
+      id: "addValidatorToWhitelistV3Stable",
+    });
     m.call(universalVerifier, "addValidatorToWhitelist", [linkedMultiQueryValidator], {
       id: "addValidatorToWhitelistLinkedMultiQuery",
+    });
+    m.call(universalVerifier, "addValidatorToWhitelist", [linkedMultiQueryStableValidator], {
+      id: "addValidatorToWhitelistLinkedMultiQueryStable",
     });
     m.call(
       universalVerifier,
@@ -101,8 +113,8 @@ const DeploySystemFianlImplementationsModule = buildModule(
       identityTreeStore,
       credentialAtomicQueryMTPV2Validator,
       credentialAtomicQuerySigV2Validator,
-      credentialAtomicQueryV3Validator,
-      linkedMultiQueryValidator,
+      credentialAtomicQueryV3StableValidator,
+      linkedMultiQueryStableValidator,
       authV2Validator,
       authV3Validator,
       authV3_8_32Validator,

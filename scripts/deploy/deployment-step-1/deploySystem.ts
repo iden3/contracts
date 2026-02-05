@@ -24,7 +24,7 @@ import { IdentityTreeStoreProxyModule } from "../../../ignition/modules/identity
 import { CredentialAtomicQueryMTPV2ValidatorProxyModule } from "../../../ignition/modules/credentialAtomicQueryMTPV2Validator";
 import { CredentialAtomicQuerySigV2ValidatorProxyModule } from "../../../ignition/modules/credentialAtomicQuerySigV2Validator";
 import { CredentialAtomicQueryV3ValidatorProxyModule } from "../../../ignition/modules/credentialAtomicQueryV3Validator";
-import { LinkedMultiQueryValidatorProxyModule } from "../../../ignition/modules/linkedMultiQuery";
+import { LinkedMultiQueryValidatorProxyModule } from "../../../ignition/modules/linkedMultiQueryValidator";
 import { AuthV2ValidatorProxyModule } from "../../../ignition/modules/authV2Validator";
 import { EthIdentityValidatorProxyModule } from "../../../ignition/modules/ethIdentityValidator";
 import {
@@ -54,7 +54,7 @@ import { network } from "hardhat";
 import { AuthV3ValidatorProxyModule } from "../../../ignition/modules/authV3Validator";
 import { AuthV3_8_32ValidatorProxyModule } from "../../../ignition/modules/authV3_8_32Validator";
 import { CredentialAtomicQueryV3StableValidatorProxyModule } from "../../../ignition/modules/credentialAtomicQueryV3StableValidator";
-import { LinkedMultiQueryStableValidatorProxyModule } from "../../../ignition/modules/linkedMultiQueryStable";
+import { LinkedMultiQueryStableValidatorProxyModule } from "../../../ignition/modules/linkedMultiQueryStableValidator";
 
 const { ethers, ignition } = await network.connect();
 

@@ -13,6 +13,8 @@ import UniversalVerifier_ManyResponsesPerUserAndRequestModule from "./universalV
 import { network } from "hardhat";
 import AuthV3ValidatorModule from "./authV3Validator";
 import AuthV3_8_32ValidatorModule from "./authV3_8_32Validator";
+import CredentialAtomicQueryV3StableValidatorModule from "./credentialAtomicQueryV3StableValidator";
+import LinkedMultiQueryStableValidatorModule from "./linkedMultiQueryStableValidator";
 
 const { ethers } = await network.connect();
 
@@ -35,7 +37,9 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
     CredentialAtomicQuerySigV2ValidatorModule,
   );
   const { credentialAtomicQueryV3Validator } = m.useModule(CredentialAtomicQueryV3ValidatorModule);
+  const { credentialAtomicQueryV3StableValidator} = m.useModule(CredentialAtomicQueryV3StableValidatorModule)
   const { linkedMultiQueryValidator } = m.useModule(LinkedMultiQueryValidatorModule);
+  const { linkedMultiQueryStableValidator } = m.useModule(LinkedMultiQueryStableValidatorModule);
   const { ethIdentityValidator } = m.useModule(EthIdentityValidatorModule);
   const { authV2Validator } = m.useModule(AuthV2ValidatorModule);
   const { authV3Validator } = m.useModule(AuthV3ValidatorModule);
@@ -58,10 +62,18 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
     id: "addValidatorToWhitelist_credentialAtomicQueryV3Validator",
     from: contractOwner,
   });
+  m.call(universalVerifier, "addValidatorToWhitelist", [credentialAtomicQueryV3StableValidator], {
+    id: "addValidatorToWhitelist_credentialAtomicQueryV3StableValidator",
+    from: contractOwner,
+  });  
   m.call(universalVerifier, "addValidatorToWhitelist", [linkedMultiQueryValidator], {
     id: "addValidatorToWhitelist_linkedMultiQueryValidator",
     from: contractOwner,
   });
+  m.call(universalVerifier, "addValidatorToWhitelist", [linkedMultiQueryStableValidator], {
+    id: "addValidatorToWhitelist_linkedMultiQueryStableValidator",
+    from: contractOwner,
+  });  
   m.call(
     universalVerifier,
     "setAuthMethod",
@@ -144,12 +156,30 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
   m.call(
     universalVerifier_ManyResponsesPerUserAndRequest,
     "addValidatorToWhitelist",
+    [credentialAtomicQueryV3StableValidator],
+    {
+      id: "addValidatorToWhitelist_credentialAtomicQueryV3StableValidator_ManyResponsesPerUserAndRequest",
+      from: contractOwner,
+    },
+  );  
+  m.call(
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    "addValidatorToWhitelist",
     [linkedMultiQueryValidator],
     {
       id: "addValidatorToWhitelist_linkedMultiQueryValidator_ManyResponsesPerUserAndRequest",
       from: contractOwner,
     },
   );
+  m.call(
+    universalVerifier_ManyResponsesPerUserAndRequest,
+    "addValidatorToWhitelist",
+    [linkedMultiQueryStableValidator],
+    {
+      id: "addValidatorToWhitelist_linkedMultiQueryStableValidator_ManyResponsesPerUserAndRequest",
+      from: contractOwner,
+    },
+  );  
   m.call(
     universalVerifier_ManyResponsesPerUserAndRequest,
     "setAuthMethod",
@@ -212,7 +242,9 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
     credentialAtomicQuerySigV2Validator,
     credentialAtomicQueryMTPV2Validator,
     credentialAtomicQueryV3Validator,
+    credentialAtomicQueryV3StableValidator,
     linkedMultiQueryValidator,
+    linkedMultiQueryStableValidator,
     ethIdentityValidator,
     authV2Validator,
     authV3Validator,

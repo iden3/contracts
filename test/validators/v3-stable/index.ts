@@ -1163,11 +1163,11 @@ describe("Atomic V3-Stable Validator", function () {
     }
   });
 
-  describe(`Tests for circuitId credentialAtomicQueryV3OnChain-16-16-64-16-32`, function () {
+  describe(`Tests for circuitId ${CircuitId.AtomicQueryV3OnChainStable + '-16-16-64-16-32'}`, function () {
     for (const test of testCases_16_16_64_16_32) {
       it(test.name, async function () {
         this.timeout(50000);
-        await executeTest(test, "credentialAtomicQueryV3OnChain-16-16-64-16-32");
+        await executeTest(test, CircuitId.AtomicQueryV3OnChainStable + '-16-16-64-16-32');
       });
     }
   });
@@ -1220,6 +1220,6 @@ describe("Atomic V3-Stable Validator", function () {
     const supportedCircuitIds = await v3Validator.getSupportedCircuitIds();
     expect(supportedCircuitIds.length).to.be.equal(2);
     expect(supportedCircuitIds[0]).to.be.equal(CircuitId.AtomicQueryV3OnChainStable);
-    expect(supportedCircuitIds[1]).to.be.equal("credentialAtomicQueryV3OnChain-16-16-64-16-32");
+    expect(supportedCircuitIds[1]).to.be.equal(CircuitId.AtomicQueryV3OnChainStable + '-16-16-64-16-32');
   });
 });

@@ -15,8 +15,24 @@ export const LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION =
 
 export const SMT_MAX_DEPTH = 64;
 
-export type Groth16VerifierType = "mtpV2" | "sigV2" | "v3" | "lmq10" | "authV2" | undefined;
-export type ValidatorType = "mtpV2" | "sigV2" | "v3" | "lmq" | "authV2" | "ethIdentity";
+export type Groth16VerifierType =
+  | "mtpV2"
+  | "sigV2"
+  | "v3"
+  | "v3stable"
+  | "lmq10"
+  | "lmqstable"
+  | "authV2"
+  | undefined;
+export type ValidatorType =
+  | "mtpV2"
+  | "sigV2"
+  | "v3"
+  | "v3stable"
+  | "lmq"
+  | "lmqstable"
+  | "authV2"
+  | "ethIdentity";
 
 type ChainIdInfo = {
   idType: string;

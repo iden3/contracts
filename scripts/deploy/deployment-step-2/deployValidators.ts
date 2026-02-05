@@ -5,7 +5,7 @@ import CredentialAtomicQuerySigV2ValidatorModule from "../../../ignition/modules
 import CredentialAtomicQueryV3ValidatorModule from "../../../ignition/modules/credentialAtomicQueryV3Validator";
 import AuthV2ValidatorModule from "../../../ignition/modules/authV2Validator";
 import EthIdentityValidatorModule from "../../../ignition/modules/ethIdentityValidator";
-import LinkedMultiQueryValidatorModule from "../../../ignition/modules/linkedMultiQuery";
+import LinkedMultiQueryValidatorModule from "../../../ignition/modules/linkedMultiQueryValidator";
 import {
   AuthV2ValidatorAtModule,
   AuthV3ValidatorAtModule,
@@ -20,7 +20,7 @@ import {
 } from "../../../ignition/modules/contractsAt";
 import { network } from "hardhat";
 import CredentialAtomicQueryV3StableValidatorModule from "../../../ignition/modules/credentialAtomicQueryV3StableValidator";
-import LinkedMultiQueryStableValidatorModule from "../../../ignition/modules/linkedMultiQueryStable";
+import LinkedMultiQueryStableValidatorModule from "../../../ignition/modules/linkedMultiQueryStableValidator";
 import AuthV3ValidatorModule from "../../../ignition/modules/authV3Validator";
 import AuthV3_8_32ValidatorModule from "../../../ignition/modules/authV3_8_32Validator";
 

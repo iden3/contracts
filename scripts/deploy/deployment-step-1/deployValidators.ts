@@ -10,10 +10,10 @@ import { CredentialAtomicQuerySigV2ValidatorProxyModule } from "../../../ignitio
 import { CredentialAtomicQueryV3ValidatorProxyModule } from "../../../ignition/modules/credentialAtomicQueryV3Validator";
 import { AuthV2ValidatorProxyModule } from "../../../ignition/modules/authV2Validator";
 import { EthIdentityValidatorProxyModule } from "../../../ignition/modules/ethIdentityValidator";
-import { LinkedMultiQueryValidatorProxyModule } from "../../../ignition/modules/linkedMultiQuery";
+import { LinkedMultiQueryValidatorProxyModule } from "../../../ignition/modules/linkedMultiQueryValidator";
 import { network } from "hardhat";
 import { CredentialAtomicQueryV3StableValidatorProxyModule } from "../../../ignition/modules/credentialAtomicQueryV3StableValidator";
-import { LinkedMultiQueryStableValidatorProxyModule } from "../../../ignition/modules/linkedMultiQueryStable";
+import { LinkedMultiQueryStableValidatorProxyModule } from "../../../ignition/modules/linkedMultiQueryStableValidator";
 import { AuthV3ValidatorProxyModule } from "../../../ignition/modules/authV3Validator";
 import { AuthV3_8_32ValidatorProxyModule } from "../../../ignition/modules/authV3_8_32Validator";
 
