@@ -210,7 +210,7 @@ describe("Verifier tests", function () {
 
     it("setRequests: a group should be formed by the groupID encoded in requests params", async function () {
       const requestId2 = 2;
-      const groupID = calculateGroupID([request.requestId, BigInt(requestId2)]);
+      const groupID = calculateGroupID();
 
       const request1 = { ...request, groupID };
       const request2 = { ...request, requestId: requestId2, groupID };
@@ -243,7 +243,7 @@ describe("Verifier tests", function () {
 
     it("setRequests: a group should not exist previously", async function () {
       const requestId2 = 2;
-      const groupID = calculateGroupID([BigInt(request.requestId), BigInt(requestId2)]);
+      const groupID = calculateGroupID();
 
       const request1 = { ...request, groupID };
       const request2 = { ...request, requestId: requestId2, groupID };
@@ -664,7 +664,7 @@ describe("Verifier tests", function () {
     it("getMultiRequestProofsStatus: linkID should be equal to all requests in a group, otherwise multiRequest pointing to it returns false", async function () {
       const requestId1 = 5;
       const requestId2 = 6;
-      const groupID = calculateGroupID([BigInt(requestId1), BigInt(requestId2)]);
+      const groupID = calculateGroupID();
       const groupRequest1 = { ...request, requestId: requestId1, groupID };
       const groupRequest2 = {
         ...request,
@@ -740,7 +740,7 @@ describe("Verifier tests", function () {
     it("getMultiRequestProofsStatus: all request with same linkID in a group already verified returns true", async function () {
       const requestId1 = 10;
       const requestId2 = 11;
-      const groupID = calculateGroupID([BigInt(requestId1), BigInt(requestId2)]);
+      const groupID = calculateGroupID();
       const request1 = { ...request, requestId: requestId1, groupID: groupID };
       const request2 = {
         ...request,

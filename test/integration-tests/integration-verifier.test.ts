@@ -27,7 +27,7 @@ describe("Verifier Integration test", async function () {
 
   const requestIdV3 = 32;
   const requestIdLMK = 33;
-  const groupID = calculateGroupID([BigInt(requestIdV3), BigInt(requestIdLMK)]);
+  const groupID = calculateGroupID();
 
   const value = ["20020101", ...new Array(63).fill("0")];
 
@@ -128,16 +128,13 @@ describe("Verifier Integration test", async function () {
       },
     };
 
-
-    const { state, authV2Validator: authValidator } = (
-      await ignition.deploy(AuthV2ValidatorModule, {
-        parameters: parameters,
-      })
-    );    
+    const { state, authV2Validator: authValidator } = await ignition.deploy(AuthV2ValidatorModule, {
+      parameters: parameters,
+    });
     await verifier.initialize(await state.getAddress());
 
     await authValidator.setProofExpirationTimeout(TEN_YEARS);
-    await authValidator.setGISTRootExpirationTimeout(TEN_YEARS);    
+    await authValidator.setGISTRootExpirationTimeout(TEN_YEARS);
 
     const authMethodParams = {
       authMethod: authMethod,
@@ -153,19 +150,21 @@ describe("Verifier Integration test", async function () {
     };
     await verifier.setAuthMethod(authMethodEmbeddedAuthParams);
 
-    const { credentialAtomicQueryV3Validator: v3Validator} = (
-      await ignition.deploy(CredentialAtomicQueryV3ValidatorModule, {
+    const { credentialAtomicQueryV3Validator: v3Validator } = await ignition.deploy(
+      CredentialAtomicQueryV3ValidatorModule,
+      {
         parameters: parameters,
-      })
+      },
     );
     await v3Validator.setStateAddress(await state.getAddress());
     await v3Validator.setProofExpirationTimeout(TEN_YEARS);
     await v3Validator.setGISTRootExpirationTimeout(TEN_YEARS);
 
-    const { linkedMultiQueryValidator: lmkValidator} = (
-      await ignition.deploy(LinkedMultiQueryValidatorModule, {
+    const { linkedMultiQueryValidator: lmkValidator } = await ignition.deploy(
+      LinkedMultiQueryValidatorModule,
+      {
         parameters: parameters,
-      })
+      },
     );
 
     return { state, verifier, verifierLib, authValidator, v3Validator, lmkValidator };
@@ -226,7 +225,7 @@ describe("Verifier Integration test", async function () {
   });
 
   it("Should revert with MissingUserIDInGroupOfRequests", async function () {
-    const groupID = calculateGroupID([BigInt(requestIdLMK), BigInt(requestIdLMK + 1)]);
+    const groupID = calculateGroupID();
 
     const twoQueriesParamsNew = packLinkedMultiQueryValidatorParams({ ...twoQueries, groupID });
 
@@ -250,6 +249,52 @@ describe("Verifier Integration test", async function () {
     )
       .to.be.revertedWithCustomError(verifierLib, "MissingUserIDInGroupOfRequests")
       .withArgs(groupID);
+  });
+
+  it("Should revert with GroupMustHaveAtLeastTwoRequests", async function () {
+    const groupID = calculateGroupID();
+
+    const twoQueriesParamsNew = packLinkedMultiQueryValidatorParams({ ...twoQueries, groupID });
+
+    await expect(
+      verifier.setRequests([
+        {
+          requestId: requestIdLMK,
+          metadata: "metadata",
+          validator: await lmqValidator.getAddress(),
+          creator: signer.address,
+          params: twoQueriesParamsNew,
+        },
+      ]),
+    )
+      .to.be.revertedWithCustomError(verifierLib, "GroupMustHaveAtLeastTwoRequests")
+      .withArgs(groupID);
+  });
+
+  it("Should revert with GroupIdNotValid", async function () {
+    const groupID = BigInt("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+
+    const twoQueriesParamsNew = packLinkedMultiQueryValidatorParams({ ...twoQueries, groupID });
+    const v3ParamsNew = packV3ValidatorParams({ ...query, groupID });
+    await expect(
+      verifier.setRequests([
+        {
+          requestId: requestIdV3,
+          metadata: "metadata",
+          validator: await v3Validator.getAddress(),
+          creator: signer.address,
+          params: v3ParamsNew,
+        },
+        {
+          requestId: requestIdLMK,
+          metadata: "metadata",
+          validator: await lmqValidator.getAddress(),
+          creator: signer.address,
+          params: twoQueriesParamsNew,
+        },
+      ]),
+    )
+      .to.be.revertedWithCustomError(verifierLib, "GroupIdNotValid")
   });
 
   it("Should verify with authV2 authMethod", async function () {
