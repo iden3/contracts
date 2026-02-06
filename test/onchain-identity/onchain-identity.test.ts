@@ -1,7 +1,11 @@
 import { expect } from "chai";
-import { OnchainIdentityDeployHelper } from "../../helpers/OnchainIdentityDeployHelper";
-import { DeployHelper } from "../../helpers/DeployHelper";
-import { deployPoseidons } from "../../helpers/PoseidonDeployHelper";
+import { getChainId } from "../../helpers/helperUtils";
+import { chainIdInfoMap } from "../../helpers/constants";
+import { network } from "hardhat";
+import IdentityExampleModule from "../../ignition/modules/deployEverythingBasicStrategy/identityExample";
+import { GenesisUtilsWrapperModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
+
+const { ignition } = await network.connect();
 
 describe("Next tests reproduce identity life cycle", function () {
   this.timeout(10000);
@@ -12,23 +16,35 @@ describe("Next tests reproduce identity life cycle", function () {
   let identityId;
 
   before(async function () {
-    const stDeployHelper = await DeployHelper.initialize();
-    const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
-    const [poseidon3Elements, poseidon4Elements] = await deployPoseidons([3, 4]);
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
 
-    const stContracts = await stDeployHelper.deployStateWithLibraries();
-    const contracts = await identityDeployHelper.deployIdentity(
-      await stContracts.state.getAddress(),
-      await stContracts.smtLib.getAddress(),
-      await poseidon3Elements.getAddress(),
-      await poseidon4Elements.getAddress(),
-      stContracts.defaultIdType,
-    );
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0112",
+      },
+      IdentityExampleProxyModule: {
+        defaultIdType: "0x0112",
+      },
+    };
 
-    identity = contracts.identity;
-    const guWrpr = await stDeployHelper.deployGenesisUtilsWrapper();
+    const { state, identityExample } = await ignition.deploy(IdentityExampleModule, {
+      parameters: parameters,
+    });
+
+    identity = identityExample;
+    const guWrpr = (
+      await ignition.deploy(GenesisUtilsWrapperModule, {
+        parameters: parameters,
+      })
+    ).genesisUtilsWrapper;
     identityId = await guWrpr.calcOnchainIdFromAddress(
-      stContracts.defaultIdType,
+      await state.getDefaultIdType(),
       await identity.getAddress(),
     );
   });
@@ -275,19 +291,28 @@ describe("Claims tree proofs", () => {
   let targetRoot;
 
   before(async function () {
-    const stDeployHelper = await DeployHelper.initialize();
-    const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
-    const [poseidon3Elements, poseidon4Elements] = await deployPoseidons([3, 4]);
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
 
-    const stContracts = await stDeployHelper.deployStateWithLibraries();
-    const contracts = await identityDeployHelper.deployIdentity(
-      await stContracts.state.getAddress(),
-      await stContracts.smtLib.getAddress(),
-      await poseidon3Elements.getAddress(),
-      await poseidon4Elements.getAddress(),
-      stContracts.defaultIdType,
-    );
-    identity = contracts.identity;
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0112",
+      },
+      IdentityExampleProxyModule: {
+        defaultIdType: "0x0112",
+      },
+    };
+
+    const { identityExample } = await ignition.deploy(IdentityExampleModule, {
+      parameters: parameters,
+    });
+
+    identity = identityExample;
   });
 
   it("Insert new claim and generate proof", async function () {
@@ -332,19 +357,28 @@ describe("Revocation tree proofs", () => {
   let targetRoot;
 
   before(async function () {
-    const stDeployHelper = await DeployHelper.initialize();
-    const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
-    const [poseidon3Elements, poseidon4Elements] = await deployPoseidons([3, 4]);
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
 
-    const stContracts = await stDeployHelper.deployStateWithLibraries();
-    const contracts = await identityDeployHelper.deployIdentity(
-      await stContracts.state.getAddress(),
-      await stContracts.smtLib.getAddress(),
-      await poseidon3Elements.getAddress(),
-      await poseidon4Elements.getAddress(),
-      stContracts.defaultIdType,
-    );
-    identity = contracts.identity;
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0112",
+      },
+      IdentityExampleProxyModule: {
+        defaultIdType: "0x0112",
+      },
+    };
+
+    const { identityExample } = await ignition.deploy(IdentityExampleModule, {
+      parameters: parameters,
+    });
+
+    identity = identityExample;
   });
 
   it("Insert new record to revocation tree and generate proof", async function () {
@@ -390,20 +424,29 @@ describe("Root of roots tree proofs", () => {
   let latestRootOfRoots;
 
   before(async function () {
-    const stDeployHelper = await DeployHelper.initialize();
-    const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
-    const [poseidon3Elements, poseidon4Elements] = await deployPoseidons([3, 4]);
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
 
-    const stContracts = await stDeployHelper.deployStateWithLibraries();
-    const contracts = await identityDeployHelper.deployIdentity(
-      await stContracts.state.getAddress(),
-      await stContracts.smtLib.getAddress(),
-      await poseidon3Elements.getAddress(),
-      await poseidon4Elements.getAddress(),
-      stContracts.defaultIdType,
-    );
-    identity = contracts.identity;
-    identityLib = contracts.identityLib;
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0112",
+      },
+      IdentityExampleProxyModule: {
+        defaultIdType: "0x0112",
+      },
+    };
+
+    const { identityExample, identityLib: identityLibContract } = await ignition.deploy(IdentityExampleModule, {
+      parameters: parameters,
+    });
+
+    identity = identityExample;
+    identityLib = identityLibContract;
   });
 
   describe("Insert two claims and make transtion state", () => {
@@ -467,19 +510,28 @@ describe("Compare historical roots with latest roots from tree", () => {
   let latestState;
 
   before(async function () {
-    const stDeployHelper = await DeployHelper.initialize();
-    const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
-    const [poseidon3Elements, poseidon4Elements] = await deployPoseidons([3, 4]);
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
 
-    const stContracts = await stDeployHelper.deployStateWithLibraries();
-    const contracts = await identityDeployHelper.deployIdentity(
-      await stContracts.state.getAddress(),
-      await stContracts.smtLib.getAddress(),
-      await poseidon3Elements.getAddress(),
-      await poseidon4Elements.getAddress(),
-      stContracts.defaultIdType,
-    );
-    identity = contracts.identity;
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0112",
+      },
+      IdentityExampleProxyModule: {
+        defaultIdType: "0x0112",
+      },
+    };
+
+    const { identityExample } = await ignition.deploy(IdentityExampleModule, {
+      parameters: parameters,
+    });
+
+    identity = identityExample;
   });
 
   describe("Insert and revoke claims", () => {
@@ -520,19 +572,28 @@ describe("Compare historical roots with latest roots from tree", () => {
   let historyClaimsTreeRoot, historyRevocationsTreeRoot, historyRootsTreeRoot;
 
   before(async function () {
-    const stDeployHelper = await DeployHelper.initialize();
-    const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
-    const [poseidon3Elements, poseidon4Elements] = await deployPoseidons([3, 4]);
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
 
-    const stContracts = await stDeployHelper.deployStateWithLibraries();
-    const contracts = await identityDeployHelper.deployIdentity(
-      await stContracts.state.getAddress(),
-      await stContracts.smtLib.getAddress(),
-      await poseidon3Elements.getAddress(),
-      await poseidon4Elements.getAddress(),
-      stContracts.defaultIdType,
-    );
-    identity = contracts.identity;
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0112",
+      },
+      IdentityExampleProxyModule: {
+        defaultIdType: "0x0112",
+      },
+    };
+
+    const { identityExample } = await ignition.deploy(IdentityExampleModule, {
+      parameters: parameters,
+    });
+
+    identity = identityExample;
   });
 
   describe("Check prev states", () => {
@@ -604,19 +665,28 @@ describe("Genesis state doens't have history of states", () => {
   let identity;
 
   before(async function () {
-    const stDeployHelper = await DeployHelper.initialize();
-    const identityDeployHelper = await OnchainIdentityDeployHelper.initialize();
-    const [poseidon3Elements, poseidon4Elements] = await deployPoseidons([3, 4]);
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
 
-    const stContracts = await stDeployHelper.deployStateWithLibraries();
-    const contracts = await identityDeployHelper.deployIdentity(
-      await stContracts.state.getAddress(),
-      await stContracts.smtLib.getAddress(),
-      await poseidon3Elements.getAddress(),
-      await poseidon4Elements.getAddress(),
-      stContracts.defaultIdType,
-    );
-    identity = contracts.identity;
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0112",
+      },
+      IdentityExampleProxyModule: {
+        defaultIdType: "0x0112",
+      },
+    };
+
+    const { identityExample } = await ignition.deploy(IdentityExampleModule, {
+      parameters: parameters,
+    });
+
+    identity = identityExample;
   });
 
   describe("Empty history map", () => {

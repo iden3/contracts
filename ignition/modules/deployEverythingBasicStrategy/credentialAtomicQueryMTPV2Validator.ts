@@ -45,19 +45,19 @@ const CredentialAtomicQueryMTPV2ValidatorProxyModule = buildModule(
       [implementation, proxyAdminOwner, initializeData],
     );
 
-    return { proxy };
+    return { proxy, state };
   },
 );
 
 const CredentialAtomicQueryMTPV2ValidatorModule = buildModule(
   "CredentialAtomicQueryMTPV2ValidatorModule",
   (m) => {
-    const { proxy } = m.useModule(CredentialAtomicQueryMTPV2ValidatorProxyModule);
+    const { proxy, state } = m.useModule(CredentialAtomicQueryMTPV2ValidatorProxyModule);
     const credentialAtomicQueryMTPV2Validator = m.contractAt(
       contractsInfo.VALIDATOR_MTP.name,
       proxy,
     );
-    return { credentialAtomicQueryMTPV2Validator };
+    return { credentialAtomicQueryMTPV2Validator, state };
   },
 );
 

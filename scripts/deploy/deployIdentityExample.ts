@@ -1,6 +1,8 @@
 import { getDefaultIdType, getDeploymentParameters } from "../../helpers/helperUtils";
-import { ethers, ignition } from "hardhat";
 import IdentityExampleModule from "../../ignition/modules/identityExample";
+import { network } from "hardhat";
+
+const { ethers, ignition } = await network.connect();
 
 async function main() {
   const [signer] = await ethers.getSigners();

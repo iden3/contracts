@@ -1,13 +1,17 @@
-import { ethers } from "hardhat";
 import { beforeEach } from "mocha";
-import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
 import {
   calculateGroupID,
   calculateMultiRequestId,
   calculateRequestID,
 } from "../utils/id-calculation-utils";
-import { contractsInfo } from "../../helpers/constants";
+import { chainIdInfoMap, contractsInfo } from "../../helpers/constants";
+import { network } from "hardhat";
+import { getChainId } from "../../helpers/helperUtils";
+import StateModule from "../../ignition/modules/deployEverythingBasicStrategy/state";
+import { Groth16VerifierStubModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
+
+const { ethers, ignition } = await network.connect();
 
 describe("Verifier tests", function () {
   let sender: any;
@@ -18,19 +22,39 @@ describe("Verifier tests", function () {
   let signerAddress: string;
   let verifierId: any;
 
-  async function deployContractsFixture(verifierContractName: string = "VerifierTestWrapper") {
+  async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
     signerAddress = await signer.getAddress();
 
-    const deployHelper = await DeployHelper.initialize(null, true);
     const verifierLib = await ethers.deployContract(contractsInfo.VERIFIER_LIB.name);
-    const verifier = await ethers.deployContract(verifierContractName, [], {
+    const verifier = await ethers.deployContract("VerifierTestWrapper", [], {
       libraries: {
         VerifierLib: await verifierLib.getAddress(),
       },
     });
 
-    const { state } = await deployHelper.deployStateWithLibraries([], "Groth16VerifierStub");
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0112",
+      },
+    };
+
+    const { state } = await ignition.deploy(StateModule, {
+      parameters: parameters,
+    });
+
+    const groth16VerifierStub = (await ignition.deploy(Groth16VerifierStubModule))
+      .groth16VerifierStub;
+    await state.setVerifier(await groth16VerifierStub.getAddress());
+
     await verifier.initialize(await state.getAddress());
 
     const authValidatorStub = await ethers.deployContract("AuthValidatorStub");
@@ -147,7 +171,7 @@ describe("Verifier tests", function () {
         requestId: request.requestId + 1,
         creator: await requestOwner.getAddress(),
       };
-      await expect(verifier.connect(requestOwner).setRequests([request3])).not.to.be.reverted;
+      await expect(verifier.connect(requestOwner).setRequests([request3])).not.to.be.revert(ethers);
     });
 
     it("setRequests: requestId should be valid", async function () {
@@ -283,7 +307,7 @@ describe("Verifier tests", function () {
         .to.be.revertedWithCustomError(verifierLib, "AuthMethodAlreadyExists")
         .withArgs(authMethod.authMethod);
 
-      await expect(verifier.setAuthMethod(authMethod2)).not.to.be.reverted;
+      await expect(verifier.setAuthMethod(authMethod2)).not.to.be.revert(ethers);
 
       const authMethodObject = await verifier.getAuthMethod(authMethod.authMethod);
       expect(authMethodObject.validator).to.be.equal(authMethod2.validator);
@@ -323,8 +347,9 @@ describe("Verifier tests", function () {
       authMethodObject = await verifier.getAuthMethod(authMethod.authMethod);
       expect(authMethodObject.isActive).to.be.true;
 
-      await expect(verifier.submitResponse(authResponse, [response], crossChainProofs)).not.to.be
-        .reverted;
+      await expect(
+        verifier.submitResponse(authResponse, [response], crossChainProofs),
+      ).not.to.be.revert(ethers);
     });
 
     it("submitResponse: not repeated responseFields from validator", async function () {

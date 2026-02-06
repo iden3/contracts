@@ -1,13 +1,14 @@
-import { Contract } from "ethers";
 import { expect } from "chai";
-import { deployPoseidonFacade } from "../../helpers/PoseidonDeployHelper";
+import { network } from "hardhat";
+import { PoseidonFacadeModule } from "../../ignition/modules/deployEverythingBasicStrategy/libraries";
+
+const { ignition } = await network.connect();
 
 describe("poseidon", () => {
-  let poseidonFacade: Contract;
+  let poseidonFacade;
 
   before(async () => {
-    const poseidonContracts = await deployPoseidonFacade();
-    poseidonFacade = poseidonContracts.PoseidonFacade;
+    ({ poseidonFacade: poseidonFacade } = await ignition.deploy(PoseidonFacadeModule));
   });
 
   it("check poseidon hash function with inputs [1, 2]", async () => {

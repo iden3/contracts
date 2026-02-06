@@ -1,4 +1,3 @@
-import { ethers, ignition } from "hardhat";
 import {
   getConfig,
   getDeploymentParameters,
@@ -12,6 +11,9 @@ import { CredentialAtomicQueryV3ValidatorProxyModule } from "../../../ignition/m
 import { AuthV2ValidatorProxyModule } from "../../../ignition/modules/authV2Validator";
 import { EthIdentityValidatorProxyModule } from "../../../ignition/modules/ethIdentityValidator";
 import { LinkedMultiQueryValidatorProxyModule } from "../../../ignition/modules/linkedMultiQuery";
+import { network } from "hardhat";
+
+const { ethers, ignition } = await network.connect();
 
 async function main() {
   const config = getConfig();

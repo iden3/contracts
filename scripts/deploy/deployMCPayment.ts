@@ -5,9 +5,11 @@ import {
   writeDeploymentParameters,
 } from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
-import { ethers, ignition } from "hardhat";
 import { MCPaymentProxyModule } from "../../ignition";
 import MCPaymentModule from "../../ignition/modules/mcPayment";
+import { network } from "hardhat";
+
+const { ethers, ignition } = await network.connect();
 
 async function main() {
   const config = getConfig();

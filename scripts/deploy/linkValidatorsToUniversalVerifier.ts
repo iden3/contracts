@@ -1,4 +1,3 @@
-import { ethers, ignition } from "hardhat";
 import { getChainId, getConfig, getDeploymentParameters } from "../../helpers/helperUtils";
 import CredentialAtomicQueryMTPV2ValidatorModule, {
   CredentialAtomicQueryMTPV2ValidatorProxyModule,
@@ -29,6 +28,9 @@ import {
   UniversalVerifierAtModule,
   UniversalVerifierTestWrapperAtModule_ManyResponsesPerUserAndRequest,
 } from "../../ignition/modules/contractsAt";
+import { network } from "hardhat";
+
+const { ethers, ignition } = await network.connect();
 
 async function main() {
   const config = getConfig();

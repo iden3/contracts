@@ -10,7 +10,9 @@ import {
   LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION,
   ORACLE_SIGNING_ADDRESS_PRODUCTION,
 } from "../../../helpers/constants";
-import { ethers } from "hardhat";
+import { network } from "hardhat";
+
+const { ethers } = await network.connect();
 
 const mnemonicWallet = ethers.Wallet.fromPhrase(DEFAULT_MNEMONIC);
 

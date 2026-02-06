@@ -1,18 +1,21 @@
-import hre, { ethers } from "hardhat";
 import { getChainId, getConfig, Logger } from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
 import path from "path";
 import fs from "fs";
+import { network } from "hardhat";
+
+const __dirname = path.resolve();
+
+const { ethers, networkName } = await network.connect();
 
 async function main() {
-  const [signer] = await hre.ethers.getSigners();
+  const [signer] = await ethers.getSigners();
 
   const config = getConfig();
   const deployStrategy: "basic" | "create2" =
     config.deployStrategy == "create2" ? "create2" : "basic";
 
   const chainId = await getChainId();
-  const networkName = hre.network.name;
   let universalVerifierAddr,
     validatorMTPAddr,
     validatorSigAddr,

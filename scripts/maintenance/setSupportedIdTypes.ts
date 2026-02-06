@@ -1,7 +1,9 @@
 import { getChainId, getStateContractAddress } from "../../helpers/helperUtils";
 import { contractsInfo, networks } from "../../helpers/constants";
-import hre, { ethers } from "hardhat";
 import { expect } from "chai";
+import { network } from "hardhat";
+
+const { ethers } = await network.connect();
 
 async function main() {
   const stateContractAddress = await getStateContractAddress();

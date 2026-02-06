@@ -1,9 +1,11 @@
-import { ethers } from "hardhat";
 import {
   CREATEX_FACTORY_ADDRESS,
   // SIGNED_SERIALISED_TRANSACTION_GAS_LIMIT_25000000,
   SIGNED_SERIALISED_TRANSACTION_GAS_LIMIT_3000000,
 } from "../../helpers/constants";
+import { network } from "hardhat";
+
+const { ethers } = await network.connect();
 
 async function main() {
   const createXCreatorAddress = "0xeD456e05CaAb11d66C4c797dD6c1D6f9A7F352b5";

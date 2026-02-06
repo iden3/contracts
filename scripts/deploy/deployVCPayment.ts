@@ -1,4 +1,3 @@
-import { DeployHelper } from "../../helpers/DeployHelper";
 import {
   getConfig,
   getDeploymentParameters,
@@ -6,9 +5,11 @@ import {
   writeDeploymentParameters,
 } from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
-import { ethers, ignition } from "hardhat";
 import { VCPaymentProxyModule } from "../../ignition";
 import VCPaymentModule from "../../ignition/modules/vcPayment";
+import { network } from "hardhat";
+
+const { ethers, ignition } = await network.connect();
 
 async function main() {
   const config = getConfig();

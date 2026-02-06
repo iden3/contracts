@@ -1,28 +1,46 @@
 import { expect } from "chai";
 import { poseidon } from "@iden3/js-crypto";
-import { DeployHelper } from "../../helpers/DeployHelper";
 import { Contract } from "ethers";
 import { publishStateWithStubProof } from "../utils/state-utils";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { network } from "hardhat";
+import IdentityTreeStoreModule from "../../ignition/modules/deployEverythingBasicStrategy/identityTreeStore";
+import { getChainId } from "../../helpers/helperUtils";
+import { chainIdInfoMap } from "../../helpers/constants";
+import { Groth16VerifierStubModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const verifierStubName = "Groth16VerifierStub";
+const { ethers, networkHelpers, ignition } = await network.connect();
 
 describe("IdentityTreeStore", function () {
   let identityTreeStore, stateContract: Contract;
 
   async function deployContractsFixture() {
-    const deployHelper = await DeployHelper.initialize();
-    ({ state: stateContract } = await deployHelper.deployStateWithLibraries(
-      ["0x0100"],
-      verifierStubName,
-    ));
-    ({ identityTreeStore } = await deployHelper.deployIdentityTreeStore(
-      await stateContract.getAddress(),
-    ));
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0100",
+      },
+    };
+
+    const groth16VerifierStub = (await ignition.deploy(Groth16VerifierStubModule)).groth16VerifierStub;
+
+    const deployedContracts = (
+      await ignition.deploy(IdentityTreeStoreModule, {
+        parameters: parameters,
+      })
+    );
+    stateContract = deployedContracts.state;
+    await stateContract.setVerifier(await groth16VerifierStub.getAddress());
+    identityTreeStore = deployedContracts.identityTreeStore;
   }
 
   beforeEach(async function () {
-    await loadFixture(deployContractsFixture);
+    await networkHelpers.loadFixture(deployContractsFixture);
   });
 
   it("Should return the revocation status single leaf", async function () {
@@ -49,7 +67,10 @@ describe("IdentityTreeStore", function () {
       isOldStateGenesis: true,
     };
 
-    await publishStateWithStubProof(stateContract, stateTransitionArgs);
+    const block = await ethers.provider.getBlockNumber();
+    console.log(`Current block number before state transition: ${block}`);
+
+    await publishStateWithStubProof(ethers, stateContract, stateTransitionArgs);
 
     // existence
     let revStatusById = await identityTreeStore.getRevocationStatus(id, nonce);
@@ -83,7 +104,7 @@ describe("IdentityTreeStore", function () {
     expect(revStatusById.mtp.auxValue).to.equal(0);
   });
 
-  describe("Should return the revocation status many leafs", function () {
+  describe("Should return the revocation status many leafs", async function () {
     it("left key path", async function () {
       const id = 1n;
       const nonce = 2n;
@@ -118,7 +139,7 @@ describe("IdentityTreeStore", function () {
         isOldStateGenesis: true,
       };
 
-      await publishStateWithStubProof(stateContract, stateTransitionArgs);
+      await publishStateWithStubProof(ethers, stateContract, stateTransitionArgs);
 
       // existence
       let revStatusById = await identityTreeStore.getRevocationStatus(id, nonce);
@@ -214,7 +235,7 @@ describe("IdentityTreeStore", function () {
         isOldStateGenesis: true,
       };
 
-      await publishStateWithStubProof(stateContract, stateTransitionArgs);
+      await publishStateWithStubProof(ethers, stateContract, stateTransitionArgs);
 
       // existence
       let revStatusById = await identityTreeStore.getRevocationStatus(id, nonce);
@@ -291,7 +312,7 @@ describe("IdentityTreeStore", function () {
       isOldStateGenesis: true,
     };
 
-    await publishStateWithStubProof(stateContract, stateTransitionArgs);
+    await publishStateWithStubProof(ethers, stateContract, stateTransitionArgs);
 
     await expect(
       identityTreeStore.getRevocationStatusByIdAndState(id, state, nonce),

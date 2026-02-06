@@ -1,8 +1,16 @@
-import { ethers, upgrades } from "hardhat";
 import { beforeEach } from "mocha";
-import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
-import { contractsInfo } from "../../helpers/constants";
+import { chainIdInfoMap } from "../../helpers/constants";
+import { network } from "hardhat";
+import { getChainId } from "../../helpers/helperUtils";
+import {
+  AuthValidatorStubModule,
+  EmbeddedVerifierWrapperModule,
+  Groth16VerifierStubModule,
+  RequestValidatorStubModule,
+} from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
+
+const { ethers, ignition, networkHelpers } = await network.connect();
 
 describe("EmbeddedVerifier tests", function () {
   let verifier, state, validator, signer: any;
@@ -10,23 +18,35 @@ describe("EmbeddedVerifier tests", function () {
 
   async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
-    const deployHelper = await DeployHelper.initialize(null, true);
 
-    const { state } = await deployHelper.deployStateWithLibraries([], "Groth16VerifierStub");
-    const stateAddr = await state.getAddress();
-    const verifierLib = await ethers.deployContract(contractsInfo.VERIFIER_LIB.name);
-    const Verifier = await ethers.getContractFactory("EmbeddedVerifierWrapper", {
-      libraries: {
-        VerifierLib: await verifierLib.getAddress(),
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
       },
-    });
-    verifier = await upgrades.deployProxy(Verifier, [signer.address, stateAddr], {
-      unsafeAllow: ["external-library-linking"],
-    });
+      StateProxyModule: {
+        defaultIdType: "0x0112",
+      },
+    };
 
-    const validator = await ethers.deployContract("RequestValidatorStub");
+    const { state, embeddedVerifierWrapper: verifier } = await ignition.deploy(
+      EmbeddedVerifierWrapperModule,
+      {
+        parameters: parameters,
+      },
+    );
 
-    const authValidator = await deployHelper.deployValidatorStub("AuthValidatorStub");
+    const groth16VerifierStub = (await ignition.deploy(Groth16VerifierStubModule))
+      .groth16VerifierStub;
+    await state.setVerifier(await groth16VerifierStub.getAddress());
+
+    const validator = (await ignition.deploy(RequestValidatorStubModule)).requestValidatorStub;
+
+    const authValidator = (await ignition.deploy(AuthValidatorStubModule)).authValidatorStub;
     await authValidator.stub_setVerifyResults(1);
 
     const authMethod = {
@@ -40,7 +60,7 @@ describe("EmbeddedVerifier tests", function () {
   }
 
   beforeEach(async function () {
-    ({ state, verifier, validator } = await deployContractsFixture());
+    ({ state, verifier, validator } = await networkHelpers.loadFixture(deployContractsFixture));
 
     request = {
       requestId: 0,
