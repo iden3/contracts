@@ -564,17 +564,12 @@ library VerifierLib {
 
                     newGroupsInfo[newGroupsCount] = Verifier.GroupInfo({
                         id: groupID,
-                        concatenatedRequestIds: abi.encodePacked(requests[i].requestId),
                         userIdInputExists: _isUserIDPublicSignalInRequest(requests[i])
                     });
 
                     newGroupsCount++;
                 } else {
                     self._groupedRequests[groupID].push(requests[i].requestId);
-                    newGroupsInfo[groupIDIndex].concatenatedRequestIds = abi.encodePacked(
-                        newGroupsInfo[groupIDIndex].concatenatedRequestIds,
-                        requests[i].requestId
-                    );
                     if (_isUserIDPublicSignalInRequest(requests[i])) {
                         newGroupsInfo[groupIDIndex].userIdInputExists = true;
                     }
