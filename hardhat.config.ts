@@ -312,8 +312,8 @@ export default defineConfig({
       blockExplorers: {
         blockscout: {
           name: "billions-testnet",
-          url: "https://billions-testnet-blockscout.eu-north-2.gateway.fm",
-          apiUrl: "https://billions-testnet-blockscout.eu-north-2.gateway.fm/api/",
+          url: "https://explorer-testnet.billions.network",
+          apiUrl: "https://explorer-testnet.billions.network/api/",
         },
       },
     },
