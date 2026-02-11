@@ -10,10 +10,9 @@ import {
   packLinkedMultiQueryValidatorParams,
   packV3ValidatorParams,
 } from "../utils/validator-pack-utils";
-import { CircuitId } from "@0xpolygonid/js-sdk";
+import { calculateGroupId, calculateMultiRequestId, CircuitId } from "@0xpolygonid/js-sdk";
 import { calculateQueryHashV3 } from "../utils/query-hash-utils";
 import { chainIdInfoMap, contractsInfo, TEN_YEARS } from "../../helpers/constants";
-import { calculateGroupID, calculateMultiRequestId } from "../utils/id-calculation-utils";
 import CredentialAtomicQueryV3ValidatorModule from "../../ignition/modules/deployEverythingBasicStrategy/credentialAtomicQueryV3Validator";
 import { getChainId } from "../../helpers/helperUtils";
 import AuthV2ValidatorModule from "../../ignition/modules/deployEverythingBasicStrategy/authV2Validator";
@@ -27,7 +26,7 @@ describe("Verifier Integration test", async function () {
 
   const requestIdV3 = 32;
   const requestIdLMK = 33;
-  const groupID = calculateGroupID();
+  const groupID = calculateGroupId();
 
   const value = ["20020101", ...new Array(63).fill("0")];
 
@@ -225,7 +224,7 @@ describe("Verifier Integration test", async function () {
   });
 
   it("Should revert with MissingUserIDInGroupOfRequests", async function () {
-    const groupID = calculateGroupID();
+    const groupID = calculateGroupId();
 
     const twoQueriesParamsNew = packLinkedMultiQueryValidatorParams({ ...twoQueries, groupID });
 
@@ -252,7 +251,7 @@ describe("Verifier Integration test", async function () {
   });
 
   it("Should revert with GroupMustHaveAtLeastTwoRequests", async function () {
-    const groupID = calculateGroupID();
+    const groupID = calculateGroupId();
 
     const twoQueriesParamsNew = packLinkedMultiQueryValidatorParams({ ...twoQueries, groupID });
 

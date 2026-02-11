@@ -1,9 +1,8 @@
 import { expect } from "chai";
 import { packValidatorParams } from "../utils/validator-pack-utils";
 import { AbiCoder, Block } from "ethers";
-import { byteEncoder, CircuitId } from "@0xpolygonid/js-sdk";
+import { byteEncoder, calculateMultiRequestId, CircuitId } from "@0xpolygonid/js-sdk";
 import { chainIdInfoMap, contractsInfo } from "../../helpers/constants";
-import { calculateMultiRequestId } from "../utils/id-calculation-utils";
 import { beforeEach } from "mocha";
 import { network } from "hardhat";
 import { getChainId } from "../../helpers/helperUtils";
