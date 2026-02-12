@@ -102,6 +102,19 @@ export async function verifyContract(
           contract: opts.contract,
           constructorArgs: opts.constructorArgsProxy,
           libraries: opts.libraries,
+          provider: "etherscan",
+        },
+        hre,
+      );
+    } catch (error) {}
+    try {
+      await hardhatVerifyContract(
+        {
+          address: contractAddress,
+          contract: opts.contract,
+          constructorArgs: opts.constructorArgsProxy,
+          libraries: opts.libraries,
+          provider: "blockscout",
         },
         hre,
       );
@@ -116,6 +129,19 @@ export async function verifyContract(
           contract: opts.contract,
           constructorArgs: opts.constructorArgsProxyAdmin,
           libraries: opts.libraries,
+          provider: "etherscan",
+        },
+        hre,
+      );
+    } catch (error) {}
+    try {
+      await hardhatVerifyContract(
+        {
+          address: contractAddress,
+          contract: opts.contract,
+          constructorArgs: opts.constructorArgsProxyAdmin,
+          libraries: opts.libraries,
+          provider: "blockscout",
         },
         hre,
       );
@@ -129,13 +155,31 @@ export async function verifyContract(
         contract: opts.contract,
         constructorArgs: opts.constructorArgsImplementation,
         libraries: opts.libraries,
+        provider: "etherscan",
       },
       hre,
     );
     Logger.success(`Verification successful for ${contractAddress}\n`);
     return true;
   } catch (error) {
-    Logger.error(`Error verifying ${contractAddress}: ${error}\n`);
+    Logger.error(`Error verifying ${contractAddress} on etherscan: ${error}\n`);
+  }
+
+  try {
+    await hardhatVerifyContract(
+      {
+        address: contractAddress,
+        contract: opts.contract,
+        constructorArgs: opts.constructorArgsImplementation,
+        libraries: opts.libraries,
+        provider: "blockscout",
+      },
+      hre,
+    );
+    Logger.success(`Verification successful for ${contractAddress}\n`);
+    return true;
+  } catch (error) {
+    Logger.error(`Error verifying ${contractAddress} on blockscout: ${error}\n`);
   }
 
   return false;
