@@ -564,24 +564,19 @@ library VerifierLib {
 
                     newGroupsInfo[newGroupsCount] = Verifier.GroupInfo({
                         id: groupID,
-                        concatenatedRequestIds: abi.encodePacked(requests[i].requestId),
-                        userIdInputExists: _isUserIDInputInRequest(requests[i])
+                        userIdInputExists: _isUserIDPublicSignalInRequest(requests[i])
                     });
 
                     newGroupsCount++;
                 } else {
                     self._groupedRequests[groupID].push(requests[i].requestId);
-                    newGroupsInfo[groupIDIndex].concatenatedRequestIds = abi.encodePacked(
-                        newGroupsInfo[groupIDIndex].concatenatedRequestIds,
-                        requests[i].requestId
-                    );
-                    if (_isUserIDInputInRequest(requests[i])) {
+                    if (_isUserIDPublicSignalInRequest(requests[i])) {
                         newGroupsInfo[groupIDIndex].userIdInputExists = true;
                     }
                 }
             } else {
-                // revert if standalone request is without userId public input
-                if (!_isUserIDInputInRequest(requests[i])) {
+                // revert if standalone request is without userId public signal
+                if (!_isUserIDPublicSignalInRequest(requests[i])) {
                     revert MissingUserIDInRequest(requests[i].requestId);
                 }
             }
@@ -681,7 +676,7 @@ library VerifierLib {
         return (false, 0);
     }
 
-    function _isUserIDInputInRequest(
+    function _isUserIDPublicSignalInRequest(
         IVerifier.Request memory request
     ) internal view returns (bool) {
         bool userIDInRequests = false;
@@ -699,9 +694,9 @@ library VerifierLib {
         uint256 groupsCount
     ) internal view {
         for (uint256 i = 0; i < groupsCount; i++) {
-            uint256 calculatedGroupID = uint256(keccak256(groupList[i].concatenatedRequestIds)) &
+            uint256 calculatedGroupIDInField = groupList[i].id &
                 0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
-            if (calculatedGroupID != groupList[i].id) {
+            if (calculatedGroupIDInField != groupList[i].id) {
                 revert GroupIdNotValid();
             }
             if (self._groupedRequests[groupList[i].id].length < 2) {
