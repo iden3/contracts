@@ -92,6 +92,7 @@ export async function verifyContract(
   }
 
   console.log(`Verifying contract at address: ${contractAddress} ...`);
+  const chainDescriptor = hre.config.chainDescriptors.get(BigInt(await getChainId()));
   // When verifying if the proxy contract is not verified yet we need to pass the arguments
   // for the proxy contract first, then for proxy admin and finally for the implementation contract
   if (opts.constructorArgsProxy) {
@@ -102,19 +103,7 @@ export async function verifyContract(
           contract: opts.contract,
           constructorArgs: opts.constructorArgsProxy,
           libraries: opts.libraries,
-          provider: "etherscan",
-        },
-        hre,
-      );
-    } catch (error) {}
-    try {
-      await hardhatVerifyContract(
-        {
-          address: contractAddress,
-          contract: opts.contract,
-          constructorArgs: opts.constructorArgsProxy,
-          libraries: opts.libraries,
-          provider: "blockscout",
+          provider: chainDescriptor?.blockExplorers?.etherscan ? "etherscan" : "blockscout",
         },
         hre,
       );
@@ -129,19 +118,7 @@ export async function verifyContract(
           contract: opts.contract,
           constructorArgs: opts.constructorArgsProxyAdmin,
           libraries: opts.libraries,
-          provider: "etherscan",
-        },
-        hre,
-      );
-    } catch (error) {}
-    try {
-      await hardhatVerifyContract(
-        {
-          address: contractAddress,
-          contract: opts.contract,
-          constructorArgs: opts.constructorArgsProxyAdmin,
-          libraries: opts.libraries,
-          provider: "blockscout",
+          provider: chainDescriptor?.blockExplorers?.etherscan ? "etherscan" : "blockscout",
         },
         hre,
       );
@@ -155,31 +132,14 @@ export async function verifyContract(
         contract: opts.contract,
         constructorArgs: opts.constructorArgsImplementation,
         libraries: opts.libraries,
-        provider: "etherscan",
+        provider: chainDescriptor?.blockExplorers?.etherscan ? "etherscan" : "blockscout",
       },
       hre,
     );
     Logger.success(`Verification successful for ${contractAddress}\n`);
     return true;
   } catch (error) {
-    Logger.error(`Error verifying ${contractAddress} on etherscan: ${error}\n`);
-  }
-
-  try {
-    await hardhatVerifyContract(
-      {
-        address: contractAddress,
-        contract: opts.contract,
-        constructorArgs: opts.constructorArgsImplementation,
-        libraries: opts.libraries,
-        provider: "blockscout",
-      },
-      hre,
-    );
-    Logger.success(`Verification successful for ${contractAddress}\n`);
-    return true;
-  } catch (error) {
-    Logger.error(`Error verifying ${contractAddress} on blockscout: ${error}\n`);
+    Logger.error(`Error verifying ${contractAddress}: ${error}\n`);
   }
 
   return false;

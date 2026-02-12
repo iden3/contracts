@@ -36,8 +36,6 @@ const DEFAULT_ACCOUNTS: any = {
   count: 20,
 };
 
-// You need to export an object to set up your config
-// Go to https://hardhat.org/config/ to learn more
 const accounts: any = {
   ...(LEDGER_ACCOUNT
     ? { ledgerAccounts: [LEDGER_ACCOUNT] }
