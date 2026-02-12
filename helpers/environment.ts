@@ -3,8 +3,7 @@ dotenv.config();
 
 const defaultUrl = "http://url";
 
-export const LEDGER_ACCOUNT =
-  process.env.LEDGER_ACCOUNT || "0x0000000000000000000000000000000000000000";
+export const LEDGER_ACCOUNT = process.env.LEDGER_ACCOUNT || undefined;
 export const BILLIONS_MAINNET_RPC_URL = process.env.BILLIONS_MAINNET_RPC_URL || defaultUrl;
 export const BILLIONS_TESTNET_RPC_URL = process.env.BILLIONS_TESTNET_RPC_URL || defaultUrl;
 export const POLYGON_MAINNET_RPC_URL = process.env.POLYGON_MAINNET_RPC_URL || defaultUrl;
