@@ -92,6 +92,8 @@ export async function verifyContract(
   }
 
   console.log(`Verifying contract at address: ${contractAddress} ...`);
+  const chainDescriptor = hre.config.chainDescriptors.get(BigInt(await getChainId()));
+  const explorerProvider = chainDescriptor?.blockExplorers?.etherscan ? "etherscan" : "blockscout";
   // When verifying if the proxy contract is not verified yet we need to pass the arguments
   // for the proxy contract first, then for proxy admin and finally for the implementation contract
   if (opts.constructorArgsProxy) {
@@ -102,6 +104,7 @@ export async function verifyContract(
           contract: opts.contract,
           constructorArgs: opts.constructorArgsProxy,
           libraries: opts.libraries,
+          provider: explorerProvider,
         },
         hre,
       );
@@ -116,6 +119,7 @@ export async function verifyContract(
           contract: opts.contract,
           constructorArgs: opts.constructorArgsProxyAdmin,
           libraries: opts.libraries,
+          provider: explorerProvider,
         },
         hre,
       );
@@ -129,6 +133,7 @@ export async function verifyContract(
         contract: opts.contract,
         constructorArgs: opts.constructorArgsImplementation,
         libraries: opts.libraries,
+        provider: explorerProvider,
       },
       hre,
     );
