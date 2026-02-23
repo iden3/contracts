@@ -36,9 +36,9 @@ const DEFAULT_ACCOUNTS: any = {
   count: 20,
 };
 
-const accounts = {
+const accounts: any = {
   ...(LEDGER_ACCOUNT
-    ? { ledgerAccounts: LEDGER_ACCOUNT }
+    ? { ledgerAccounts: [LEDGER_ACCOUNT] }
     : {
         accounts: PRIVATE_KEY ? [`0x${PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
       }),
@@ -303,8 +303,8 @@ export default defineConfig({
       blockExplorers: {
         blockscout: {
           name: "billions-testnet",
-          url: "https://billions-testnet-blockscout.eu-north-2.gateway.fm",
-          apiUrl: "https://billions-testnet-blockscout.eu-north-2.gateway.fm/api/",
+          url: "https://explorer-testnet.billions.network",
+          apiUrl: "https://explorer-testnet.billions.network/api/",
         },
       },
     },
@@ -313,8 +313,8 @@ export default defineConfig({
       blockExplorers: {
         blockscout: {
           name: "billions-mainnet",
-          url: "https://billions-rpc.eu-north-2.gateway.fm",
-          apiUrl: "https://billions-rpc.eu-north-2.gateway.fm/api/",
+          url: "https://explorer.billions.network",
+          apiUrl: "https://explorer.billions.network/api/",
         },
       },
     },

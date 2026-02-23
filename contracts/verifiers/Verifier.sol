@@ -65,7 +65,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
     struct GroupInfo {
         uint256 id;
-        bytes concatenatedRequestIds;
         bool userIdInputExists;
     }
 
