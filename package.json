@@ -163,6 +163,11 @@
     "slither": "slither ."
   },
   "overrides": {
-    "diff": "^8.0.3"
+    "diff": "^8.0.3",
+    "lodash": "^4.17.23",
+    "lodash-es": "^4.17.23",
+    "minimatch": "^10.2.2",
+    "axios": "^1.13.5",
+    "bfj": "^9.1.3"
   }
 }
