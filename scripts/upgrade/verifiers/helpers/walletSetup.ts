@@ -43,6 +43,7 @@ import {
   AbstractPrivateKeyStore,
   CredentialStatusPublisherRegistry,
   Iden3SmtRhsCredentialStatusPublisher,
+  CircuitId,
 } from "@0xpolygonid/js-sdk";
 import path from "path";
 
@@ -158,30 +159,57 @@ export async function initProofService(
 }
 
 export async function initPackageManager(
-  circuitData: CircuitData,
-  prepareFn: AuthDataPrepareFunc,
+  circuitData: CircuitData[],
+  prepareFns: { circuitId: CircuitId; prepareFunc: AuthDataPrepareFunc }[],
   stateVerificationFn: StateVerificationFunc,
 ): Promise<IPackageManager> {
-  const authInputsHandler = new DataPrepareHandlerFunc(prepareFn);
-
   const verificationFn = new VerificationHandlerFunc(stateVerificationFn);
-  const mapKey = proving.provingMethodGroth16AuthV2Instance.methodAlg.toString();
-  const verificationParamMap: Map<string, VerificationParams> = new Map([
-    [
-      mapKey,
-      {
-        key: circuitData.verificationKey!,
-        verificationFn,
-      },
-    ],
-  ]);
+
+  const mapKeys = [
+    proving.provingMethodGroth16AuthV2Instance.methodAlg.toString(),
+    proving.provingMethodGroth16AuthV3Instance.methodAlg.toString(),
+    proving.provingMethodGroth16AuthV3_8_32Instance.methodAlg.toString(),
+  ];
 
   const provingParamMap: Map<string, ProvingParams> = new Map();
-  provingParamMap.set(mapKey, {
-    dataPreparer: authInputsHandler,
-    provingKey: circuitData.provingKey!,
-    wasm: circuitData.wasm!,
-  });
+  const verificationParamMap: Map<string, VerificationParams> = new Map();
+
+  for (const mapKey of mapKeys) {
+    const mapKeyCircuitId = mapKey.split(":")[1];
+    const circuitDataItem = circuitData.find((c) => c.circuitId === mapKeyCircuitId);
+    if (!circuitDataItem) {
+      throw new Error(`Circuit data not found for ${mapKeyCircuitId}`);
+    }
+    if (!circuitDataItem.verificationKey) {
+      throw new Error(`verification key doesn't exist for ${circuitDataItem.circuitId}`);
+    }
+
+    verificationParamMap.set(mapKey, {
+      key: circuitDataItem.verificationKey,
+      verificationFn,
+    });
+
+    if (!circuitDataItem.provingKey) {
+      throw new Error(`proving doesn't exist for ${circuitDataItem.circuitId}`);
+    }
+    if (!circuitDataItem.wasm) {
+      throw new Error(`wasm file doesn't exist for ${circuitDataItem.circuitId}`);
+    }
+
+    const prepareFn = prepareFns.find(
+      (f) => f.circuitId === circuitDataItem.circuitId,
+    )?.prepareFunc;
+    if (!prepareFn) {
+      throw new Error(`Prepare function not found for ${circuitDataItem.circuitId}`);
+    }
+    const authInputsHandler = new DataPrepareHandlerFunc(prepareFn);
+
+    provingParamMap.set(mapKey, {
+      dataPreparer: authInputsHandler,
+      provingKey: circuitDataItem.provingKey,
+      wasm: circuitDataItem.wasm,
+    });
+  }
 
   const mgr: IPackageManager = new PackageManager();
   const packer = new ZKPPacker(provingParamMap, verificationParamMap);

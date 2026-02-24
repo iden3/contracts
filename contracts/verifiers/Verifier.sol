@@ -16,7 +16,6 @@ error GroupIdNotFound(uint256 groupId);
 error GroupIdAlreadyExists(uint256 groupId);
 error GroupMustHaveAtLeastTwoRequests(uint256 groupId);
 error LinkIDNotTheSameForGroupedRequests();
-error MetadataNotSupportedYet();
 error MultiRequestIdAlreadyExists(uint256 multiRequestId);
 error MultiRequestIdNotFound(uint256 multiRequestId);
 error MultiRequestIdNotValid(uint256 expectedMultiRequestId, uint256 multiRequestId);
@@ -45,6 +44,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     // keccak256(abi.encodePacked("authV2"))
     bytes32 private constant AUTHV2_METHOD_NAME_HASH =
         0x380ee2d21c7a4607d113dad9e76a0bc90f5325a136d5f0e14b6ccf849d948e25;
+    // keccak256(abi.encodePacked("authV3"))
+    bytes32 private constant AUTHV3_METHOD_NAME_HASH =
+        0x5efa95d0461bb0b5765628b227502115d7b3ead89ff9fffbb66b8fee0fec3598;
+    // keccak256(abi.encodePacked("authV3-8-32"))
+    bytes32 private constant AUTHV3_8_32_METHOD_NAME_HASH =
+        0x4b41d5f4907f760cdf3afde7c8d6a99e928dcddade8bec79a65c940565bc8746;
     // keccak256(abi.encodePacked("challenge"))
     bytes32 private constant CHALLENGE_FIELD_NAME_HASH =
         0x62357b294ca756256b576c5da68950c49d0d1823063551ffdcc1dad9d65a07a6;
@@ -321,10 +326,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             VerifierLib.checkUserIDMatch(userIDFromAuthResponse, responseFields);
 
             _writeProofResults(response.requestId, sender, responseFields);
-
-            if (response.metadata.length > 0) {
-                revert MetadataNotSupportedYet();
-            }
         }
     }
 
@@ -615,7 +616,11 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             authMethodData.params
         );
 
-        if (keccak256(abi.encodePacked(authResponse.authMethod)) == AUTHV2_METHOD_NAME_HASH) {
+        if (
+            keccak256(abi.encodePacked(authResponse.authMethod)) == AUTHV2_METHOD_NAME_HASH ||
+            keccak256(abi.encodePacked(authResponse.authMethod)) == AUTHV3_METHOD_NAME_HASH ||
+            keccak256(abi.encodePacked(authResponse.authMethod)) == AUTHV3_8_32_METHOD_NAME_HASH
+        ) {
             if (
                 authResponseFields.length > 0 &&
                 keccak256(abi.encodePacked(authResponseFields[0].name)) == CHALLENGE_FIELD_NAME_HASH

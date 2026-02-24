@@ -93,7 +93,7 @@ describe("Auth V2 Validator", function () {
 
       const { inputs, pi_a, pi_b, pi_c } = prepareInputs(proof);
 
-      const data = "0x00";
+      const data = "0x";
 
       // Check verify function
       const zkProof = packZKProof(inputs, pi_a, pi_b, pi_c);

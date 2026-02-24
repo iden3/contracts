@@ -37,7 +37,11 @@ contract CredentialAtomicQueryMTPV2Validator is CredentialAtomicQueryV2Validator
         _setInputToIndex("issuerClaimNonRevState", 9);
         _setInputToIndex("timestamp", 10);
 
-        _initDefaultStateVariables(_stateContractAddr, _verifierContractAddr, CIRCUIT_ID, owner);
+        address[] memory verifierAddrs = new address[](1);
+        verifierAddrs[0] = _verifierContractAddr;
+        string[] memory circuitIds = new string[](1);
+        circuitIds[0] = CIRCUIT_ID;
+        _initDefaultStateVariables(_stateContractAddr, verifierAddrs, circuitIds, owner);
     }
 
     /**

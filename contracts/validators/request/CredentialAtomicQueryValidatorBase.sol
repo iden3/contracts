@@ -16,6 +16,7 @@ error NonRevocationStateOfIssuerIsExpired();
 error ProofGeneratedInTheFutureIsNotValid();
 error GeneratedProofIsOutdated();
 error IssuerIsNotOnTheAllowedIssuersList();
+error VerifierAddressesAndCircuitIDsMismatch();
 
 /**
  * @dev Base contract for credential atomic query validators circuits.
@@ -157,19 +158,24 @@ abstract contract CredentialAtomicQueryValidatorBase is
     }
 
     function _initDefaultStateVariables(
-        address _stateContractAddr,
-        address _verifierContractAddr,
-        string memory circuitId,
+        address stateContractAddr,
+        address[] memory verifierContractAddresses,
+        string[] memory circuitIds,
         address owner
     ) internal {
+        if (verifierContractAddresses.length != circuitIds.length) {
+            revert VerifierAddressesAndCircuitIDsMismatch();
+        }
         CredentialAtomicQueryValidatorBaseStorage
             storage s = _getCredentialAtomicQueryValidatorBaseStorage();
 
         s.revocationStateExpirationTimeout = 1 hours;
         s.proofExpirationTimeout = 1 hours;
         s.gistRootExpirationTimeout = 1 hours;
-        s.state = IState(_stateContractAddr);
-        _setGroth16Verifier(circuitId, IGroth16Verifier(_verifierContractAddr));
+        s.state = IState(stateContractAddr);
+        for (uint256 i = 0; i < circuitIds.length; i++) {
+            _setGroth16Verifier(circuitIds[i], IGroth16Verifier(verifierContractAddresses[i]));
+        }
 
         __Ownable_init(owner);
     }

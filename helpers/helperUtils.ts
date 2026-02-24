@@ -1,4 +1,4 @@
-import { Contract, ContractTransactionResponse, JsonRpcProvider } from "ethers";
+import { Contract, JsonRpcProvider } from "ethers";
 import fs from "fs";
 import {
   chainIdInfoMap,

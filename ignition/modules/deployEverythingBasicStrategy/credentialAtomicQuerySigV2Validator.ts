@@ -8,7 +8,7 @@ import { Groth16VerifierSigModule } from "./groth16verifiers";
 import StateModule from "./state";
 
 const CredentialAtomicQuerySigV2ValidatorImplementationModule = buildModule(
-  "CredentialAtomicQuerySigV2ValidatorProxyFirstImplementationModule",
+  "CredentialAtomicQuerySigV2ValidatorImplementationModule",
   (m) => {
     const implementation = m.contract(contractsInfo.VALIDATOR_SIG.name);
     return {

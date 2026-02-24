@@ -8,7 +8,7 @@ import { Groth16VerifierMTPModule } from "./groth16verifiers";
 import StateModule from "./state";
 
 const CredentialAtomicQueryMTPV2ValidatorImplementationModule = buildModule(
-  "CredentialAtomicQueryMTPV2ValidatorProxyFirstImplementationModule",
+  "CredentialAtomicQueryMTPV2ValidatorImplementationModule",
   (m) => {
     const implementation = m.contract(contractsInfo.VALIDATOR_MTP.name);
     return {

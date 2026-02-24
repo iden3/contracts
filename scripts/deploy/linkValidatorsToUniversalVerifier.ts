@@ -17,7 +17,7 @@ import EthIdentityValidatorModule, {
 } from "../../ignition/modules/ethIdentityValidator";
 import LinkedMultiQueryValidatorModule, {
   LinkedMultiQueryValidatorProxyModule,
-} from "../../ignition/modules/linkedMultiQuery";
+} from "../../ignition/modules/linkedMultiQueryValidator";
 import {
   AuthV2ValidatorAtModule,
   CredentialAtomicQueryMTPV2ValidatorAtModule,
