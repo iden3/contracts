@@ -109,5 +109,20 @@
   "AuthV3_8_32ValidatorProxyFirstImplementationModule#TransparentUpgradeableProxy": "0x85808DEce33D4124659C4d450E0e8E497711AB51",
   "Groth16VerifierAuthV3_8_32Module#Groth16VerifierAuthV3_8_32Wrapper": "0xA7a287b8d679b94EBfB2e9fc72eD7eEc1198286C",
   "AuthV3_8_32ValidatorAtModule#AuthV3_8_32Validator": "0x85808DEce33D4124659C4d450E0e8E497711AB51",
-  "AuthV3_8_32ValidatorAtModule#ProxyAdmin": "0xd077DcB14C021FB120351c937d3a4873f85848ea"
+  "AuthV3_8_32ValidatorAtModule#ProxyAdmin": "0xd077DcB14C021FB120351c937d3a4873f85848ea",
+  "CredentialAtomicQueryV3StableValidatorModule#CredentialAtomicQueryV3StableValidator": "0x0d78ADDD050a75a94e21eD14d54591933B9B7546",
+  "CredentialAtomicQueryV3StableValidatorNewImplementationAtModule#CredentialAtomicQueryV3StableValidator": "0xC7dFB9800B57edCFDC6fc0ADE7A776f575Fe8c9b",
+  "Groth16VerifierV3StableWrapperAtModule#Groth16VerifierV3StableWrapper": "0x1Bbb86f0e65641B940395d098075589F78Ce2bA3",
+  "Groth16VerifierV3Stable_16_16_64_16_32WrapperAtModule#Groth16VerifierV3Stable_16_16_64_16_32Wrapper": "0x0F85080467Ea1BF3f7628bA3C08F30116767aEa7",
+  "Groth16VerifierLinkedMultiQuery3WrapperAtModule#Groth16VerifierLinkedMultiQuery3Wrapper": "0xD7A75c4DFa57B25846ee95dDEBFf301E09cb3A4E",
+  "Groth16VerifierLinkedMultiQuery5WrapperAtModule#Groth16VerifierLinkedMultiQuery5Wrapper": "0x94097fAd78A83FE4F18d4699EcD7C070a37cd9E5",
+  "Groth16VerifierLinkedMultiQueryWrapperAtModule#Groth16VerifierLinkedMultiQueryWrapper": "0xBd46066Da66830F3F7b87cf9E06fb6B200D74607",
+  "LinkedMultiQueryStableValidatorModule#LinkedMultiQueryStableValidator": "0xdD889d2cE09579CBddF9Ef3313C37276A41d6Df1",
+  "LinkedMultiQueryStableValidatorNewImplementationAtModule#LinkedMultiQueryStableValidator": "0x34361089ef81b15e15A14dab8Cd62AeB2aF53235",
+  "AuthV3ValidatorModule#AuthV3Validator": "0x0127bb45d6F88bC9eBF418421b1d57aE99a7FA4A",
+  "AuthV3ValidatorNewImplementationAtModule#AuthV3Validator": "0xfe7460fc7F5A2350F84DE8776A90F6645a7A5b79",
+  "Groth16VerifierAuthV3WrapperAtModule#Groth16VerifierAuthV3Wrapper": "0x3A553770e1dEbB130E13C780ed2468f439204980",
+  "AuthV3_8_32ValidatorModule#AuthV3_8_32Validator": "0x85808DEce33D4124659C4d450E0e8E497711AB51",
+  "AuthV3_8_32ValidatorNewImplementationAtModule#AuthV3_8_32Validator": "0x60c0A9e35a388b7D65cA5b19d1fB861F04d2c8cB",
+  "Groth16VerifierAuthV3_8_32WrapperAtModule#Groth16VerifierAuthV3_8_32Wrapper": "0xA7a287b8d679b94EBfB2e9fc72eD7eEc1198286C"
 }
