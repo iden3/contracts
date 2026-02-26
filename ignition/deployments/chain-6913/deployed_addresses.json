@@ -93,5 +93,15 @@
   "VCPaymentProxyFirstImplementationModule#ProxyAdmin": "0xA4180637F15a601695FD0313f452B8ca093AB952",
   "MCPaymentFinalImplementationModule#MCPayment": "0xB175469316C6706297Cb02124c554344606Ea7eE",
   "MCPaymentProxyFirstImplementationModule#TransparentUpgradeableProxy": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
-  "MCPaymentProxyFirstImplementationModule#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE"
+  "MCPaymentProxyFirstImplementationModule#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE",
+  "IdentityTreeStoreAtModule#IdentityTreeStore": "0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81",
+  "IdentityTreeStoreAtModule#ProxyAdmin": "0x23F9ae5A19435347b8Ba10c69ad93128464f7A22",
+  "CredentialAtomicQueryV3StableValidatorAtModule#CredentialAtomicQueryV3StableValidator": "0x0d78ADDD050a75a94e21eD14d54591933B9B7546",
+  "CredentialAtomicQueryV3StableValidatorAtModule#ProxyAdmin": "0x62B555e84EA9fe88D6e777d6C5a35B59CCf14Cd2",
+  "LinkedMultiQueryStableValidatorAtModule#LinkedMultiQueryStableValidator": "0xdD889d2cE09579CBddF9Ef3313C37276A41d6Df1",
+  "LinkedMultiQueryStableValidatorAtModule#ProxyAdmin": "0x29dF064Cc8Abe70E68eF74d4bf0d06D2113BDc8E",
+  "VCPaymentAtModule#ProxyAdmin": "0xA4180637F15a601695FD0313f452B8ca093AB952",
+  "VCPaymentAtModule#VCPayment": "0xba83D99c87358Ef9B6f7c4a5A94021A58d870704",
+  "MCPaymentAtModule#MCPayment": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
+  "MCPaymentAtModule#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE"
 }

@@ -32,45 +32,60 @@ async function main() {
     {
       moduleFirstImplementation: CredentialAtomicQueryMTPV2ValidatorProxyModule,
       name: contractsInfo.VALIDATOR_MTP.name,
-      verifierName: contractsInfo.GROTH16_VERIFIER_MTP.name,
+      verifierNames: [contractsInfo.GROTH16_VERIFIER_MTP.name],
       verificationOpts: contractsInfo.VALIDATOR_MTP.verificationOpts,
-      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_MTP.verificationOpts,
+      verifierVerificationOpts: [contractsInfo.GROTH16_VERIFIER_MTP.verificationOpts],
     },
     {
       moduleFirstImplementation: CredentialAtomicQuerySigV2ValidatorProxyModule,
       name: contractsInfo.VALIDATOR_SIG.name,
-      verifierName: contractsInfo.GROTH16_VERIFIER_SIG.name,
+      verifierNames: [contractsInfo.GROTH16_VERIFIER_SIG.name],
       verificationOpts: contractsInfo.VALIDATOR_SIG.verificationOpts,
-      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_SIG.verificationOpts,
+      verifierVerificationOpts: [contractsInfo.GROTH16_VERIFIER_SIG.verificationOpts],
     },
     {
       moduleFirstImplementation: CredentialAtomicQueryV3ValidatorProxyModule,
       name: contractsInfo.VALIDATOR_V3.name,
-      verifierName: contractsInfo.GROTH16_VERIFIER_V3.name,
+      verifierNames: [contractsInfo.GROTH16_VERIFIER_V3.name],
       verificationOpts: contractsInfo.VALIDATOR_V3.verificationOpts,
-      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_V3.verificationOpts,
+      verifierVerificationOpts: [contractsInfo.GROTH16_VERIFIER_V3.verificationOpts],
     },
     {
       moduleFirstImplementation: CredentialAtomicQueryV3StableValidatorProxyModule,
       name: contractsInfo.VALIDATOR_V3_STABLE.name,
-      verifierName: contractsInfo.GROTH16_VERIFIER_V3_STABLE.name,
+      verifierNames: [
+        contractsInfo.GROTH16_VERIFIER_V3_STABLE.name,
+        contractsInfo.GROTH16_VERIFIER_V3_STABLE_16_16_64_16_32.name,
+      ],
       verificationOpts: contractsInfo.VALIDATOR_V3_STABLE.verificationOpts,
-      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_V3_STABLE.verificationOpts,
+      verifierVerificationOpts: [
+        contractsInfo.GROTH16_VERIFIER_V3_STABLE.verificationOpts,
+        contractsInfo.GROTH16_VERIFIER_V3_STABLE_16_16_64_16_32.verificationOpts,
+      ],
     },
     {
       moduleFirstImplementation: LinkedMultiQueryValidatorProxyModule,
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
-      verifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY_10.name,
+      verifierNames: [contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY_10.name],
       verificationOpts: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.verificationOpts,
-      verifierVerificationOpts:
+      verifierVerificationOpts: [
         contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY_10.verificationOpts,
+      ],
     },
     {
       moduleFirstImplementation: LinkedMultiQueryStableValidatorProxyModule,
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.name,
-      verifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY.name,
+      verifierNames: [
+        contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY.name,
+        contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY_5.name,
+        contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY_3.name,
+      ],
       verificationOpts: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.verificationOpts,
-      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY.verificationOpts,
+      verifierVerificationOpts: [
+        contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY.verificationOpts,
+        contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY_5.verificationOpts,
+        contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY_3.verificationOpts,
+      ],
     },
   ];
 
@@ -78,23 +93,23 @@ async function main() {
     {
       moduleFirstImplementation: AuthV2ValidatorProxyModule,
       name: contractsInfo.VALIDATOR_AUTH_V2.name,
-      verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V2.name,
+      verifierNames: [contractsInfo.GROTH16_VERIFIER_AUTH_V2.name],
       verificationOpts: contractsInfo.VALIDATOR_AUTH_V2.verificationOpts,
-      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V2.verificationOpts,
+      verifierVerificationOpts: [contractsInfo.GROTH16_VERIFIER_AUTH_V2.verificationOpts],
     },
     {
       moduleFirstImplementation: AuthV3ValidatorProxyModule,
       name: contractsInfo.VALIDATOR_AUTH_V3.name,
-      verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V3.name,
+      verifierNames: [contractsInfo.GROTH16_VERIFIER_AUTH_V3.name],
       verificationOpts: contractsInfo.VALIDATOR_AUTH_V3.verificationOpts,
-      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V3.verificationOpts,
+      verifierVerificationOpts: [contractsInfo.GROTH16_VERIFIER_AUTH_V3.verificationOpts],
     },
     {
       moduleFirstImplementation: AuthV3_8_32ValidatorProxyModule,
       name: contractsInfo.VALIDATOR_AUTH_V3_8_32.name,
-      verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V3_8_32.name,
+      verifierNames: [contractsInfo.GROTH16_VERIFIER_AUTH_V3_8_32.name],
       verificationOpts: contractsInfo.VALIDATOR_AUTH_V3_8_32.verificationOpts,
-      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V3_8_32.verificationOpts,
+      verifierVerificationOpts: [contractsInfo.GROTH16_VERIFIER_AUTH_V3_8_32.verificationOpts],
     },
     {
       moduleFirstImplementation: EthIdentityValidatorProxyModule,
@@ -117,12 +132,61 @@ async function main() {
     parameters[validatorContract.name.concat("NewImplementationAtModule")] = {
       contractAddress: deployment.newImplementation.target,
     };
-    if (validatorContract.verifierName && deployment.groth16Verifier) {
-      parameters[validatorContract.verifierName.concat("AtModule")] = {
+    if (
+      validatorContract.verifierNames &&
+      validatorContract.verifierNames.length == 1 &&
+      deployment.groth16Verifier
+    ) {
+      parameters[validatorContract.verifierNames[0].concat("AtModule")] = {
         contractAddress: deployment.groth16Verifier.target,
       };
       console.log(
-        `${validatorContract.verifierName} deployed to: ${deployment.groth16Verifier.target}`,
+        `${validatorContract.verifierNames[0]} deployed to: ${deployment.groth16Verifier.target}`,
+      );
+    }
+
+    if (
+      validatorContract.verifierNames &&
+      deployment.groth16VerifierV3Stable &&
+      deployment.groth16VerifierV3Stable_16_16_64_16_32
+    ) {
+      parameters[validatorContract.verifierNames[0].concat("AtModule")] = {
+        contractAddress: deployment.groth16VerifierV3Stable.target,
+      };
+      parameters[validatorContract.verifierNames[1].concat("AtModule")] = {
+        contractAddress: deployment.groth16VerifierV3Stable_16_16_64_16_32.target,
+      };
+      console.log(
+        `${validatorContract.verifierNames[0]} deployed to: ${deployment.groth16VerifierV3Stable.target}`,
+      );
+      console.log(
+        `${validatorContract.verifierNames[1]} deployed to: ${deployment.groth16VerifierV3Stable_16_16_64_16_32.target}`,
+      );
+    }
+
+    if (
+      validatorContract.verifierNames &&
+      deployment.groth16VerifierLinkedMultiQuery &&
+      deployment.groth16VerifierLinkedMultiQuery5 &&
+      deployment.groth16VerifierLinkedMultiQuery3
+    ) {
+      parameters[validatorContract.verifierNames[0].concat("AtModule")] = {
+        contractAddress: deployment.groth16VerifierLinkedMultiQuery.target,
+      };
+      parameters[validatorContract.verifierNames[1].concat("AtModule")] = {
+        contractAddress: deployment.groth16VerifierLinkedMultiQuery5.target,
+      };
+      parameters[validatorContract.verifierNames[2].concat("AtModule")] = {
+        contractAddress: deployment.groth16VerifierLinkedMultiQuery3.target,
+      };
+      console.log(
+        `${validatorContract.verifierNames[0]} deployed to: ${deployment.groth16VerifierLinkedMultiQuery.target}`,
+      );
+      console.log(
+        `${validatorContract.verifierNames[1]} deployed to: ${deployment.groth16VerifierLinkedMultiQuery5.target}`,
+      );
+      console.log(
+        `${validatorContract.verifierNames[2]} deployed to: ${deployment.groth16VerifierLinkedMultiQuery3.target}`,
       );
     }
     console.log(`${validatorContract.name} deployed to: ${deployment.proxy.target}`);
@@ -130,10 +194,48 @@ async function main() {
     if (validatorContract.verificationOpts) {
       await verifyContract(deployment.proxy.target, validatorContract.verificationOpts);
     }
-    if (validatorContract.verifierVerificationOpts && deployment.groth16Verifier) {
+    if (
+      validatorContract.verifierVerificationOpts &&
+      validatorContract.verifierVerificationOpts.length == 1 &&
+      deployment.groth16Verifier
+    ) {
       await verifyContract(
         deployment.groth16Verifier.target,
-        validatorContract.verifierVerificationOpts,
+        validatorContract.verifierVerificationOpts[0],
+      );
+    }
+    if (
+      validatorContract.verifierVerificationOpts &&
+      deployment.groth16VerifierV3Stable &&
+      deployment.groth16VerifierV3Stable_16_16_64_16_32
+    ) {
+      await verifyContract(
+        deployment.groth16VerifierV3Stable.target,
+        validatorContract.verifierVerificationOpts[0],
+      );
+      await verifyContract(
+        deployment.groth16VerifierV3Stable_16_16_64_16_32.target,
+        validatorContract.verifierVerificationOpts[1],
+      );
+    }
+
+    if (
+      validatorContract.verifierVerificationOpts &&
+      deployment.groth16VerifierLinkedMultiQuery &&
+      deployment.groth16VerifierLinkedMultiQuery5 &&
+      deployment.groth16VerifierLinkedMultiQuery3
+    ) {
+      await verifyContract(
+        deployment.groth16VerifierLinkedMultiQuery.target,
+        validatorContract.verifierVerificationOpts[0],
+      );
+      await verifyContract(
+        deployment.groth16VerifierLinkedMultiQuery5.target,
+        validatorContract.verifierVerificationOpts[1],
+      );
+      await verifyContract(
+        deployment.groth16VerifierLinkedMultiQuery3.target,
+        validatorContract.verifierVerificationOpts[2],
       );
     }
     await verifyContract(deployment.newImplementation.target, {
