@@ -13,7 +13,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24.x"
-      - run: npm ci
+      - run: npm install
       - run: npx solhint "contracts/**/*.sol"
 
   coverage:
@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: "24.x"
           cache: "npm"
-      - run: npm ci
+      - run: npm install
       - run: npx hardhat compile
       - name: solidity-coverage
         run: npx hardhat test --coverage
