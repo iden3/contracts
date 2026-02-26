@@ -4,7 +4,7 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../helpers/constants";
-import { Groth16VerifierAuthV3Module } from "./groth16verifiers";
+import { Groth16VerifierAuthV3_8_32Module } from "./groth16verifiers";
 import {
   AuthV3_8_32ValidatorAtModule,
   AuthV3_8_32ValidatorNewImplementationAtModule,
@@ -47,7 +47,7 @@ const AuthV3_8_32ValidatorFinalImplementationModule = buildModule(
   "AuthV3_8_32ValidatorFinalImplementationModule",
   (m) => {
     const state = m.useModule(StateAtModule).proxy;
-    const { groth16VerifierAuthV3: groth16Verifier } = m.useModule(Groth16VerifierAuthV3Module);
+    const { groth16VerifierAuthV3_8_32: groth16Verifier } = m.useModule(Groth16VerifierAuthV3_8_32Module);
     const newImplementation = m.contract(contractsInfo.VALIDATOR_AUTH_V3_8_32.name);
     return {
       groth16Verifier,

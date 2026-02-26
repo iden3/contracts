@@ -41,42 +41,36 @@ async function main() {
       moduleAt: CredentialAtomicQueryMTPV2ValidatorAtModule,
       name: contractsInfo.VALIDATOR_MTP.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_MTP.name,
-      paramName: "CredentialAtomicQueryMTPV2ValidatorAtModule",
     },
     {
       moduleFinalImplementation: CredentialAtomicQuerySigV2ValidatorModule,
       moduleAt: CredentialAtomicQuerySigV2ValidatorAtModule,
       name: contractsInfo.VALIDATOR_SIG.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_SIG.name,
-      paramName: "CredentialAtomicQuerySigV2ValidatorAtModule",
     },
     {
       moduleFinalImplementation: CredentialAtomicQueryV3ValidatorModule,
       moduleAt: CredentialAtomicQueryV3ValidatorAtModule,
       name: contractsInfo.VALIDATOR_V3.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_V3.name,
-      paramName: "CredentialAtomicQueryV3ValidatorAtModule",
     },
     {
       moduleFinalImplementation: CredentialAtomicQueryV3StableValidatorModule,
       moduleAt: CredentialAtomicQueryV3StableValidatorAtModule,
       name: contractsInfo.VALIDATOR_V3_STABLE.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_V3_STABLE.name,
-      paramName: "CredentialAtomicQueryV3StableValidatorAtModule",
     },
     {
       moduleFinalImplementation: LinkedMultiQueryValidatorModule,
       moduleAt: LinkedMultiQueryValidatorAtModule,
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY_10.name,
-      paramName: "LinkedMultiQueryValidatorAtModule",
     },
     {
       moduleFinalImplementation: LinkedMultiQueryStableValidatorModule,
       moduleAt: LinkedMultiQueryStableValidatorAtModule,
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY.name,
-      paramName: "LinkedMultiQueryStableValidatorAtModule",
     },    
   ];
 
@@ -86,27 +80,23 @@ async function main() {
       moduleAt: AuthV2ValidatorAtModule,
       name: contractsInfo.VALIDATOR_AUTH_V2.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V2.name,
-      paramName: "AuthV2ValidatorAtModule",
     },
     {
       moduleFinalImplementation: AuthV3ValidatorModule,
       moduleAt: AuthV3ValidatorAtModule,
       name: contractsInfo.VALIDATOR_AUTH_V3.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V3.name,
-      paramName: "AuthV3ValidatorAtModule",
     },    
     {
       moduleFinalImplementation: AuthV3_8_32ValidatorModule,
       moduleAt: AuthV3_8_32ValidatorAtModule,
       name: contractsInfo.VALIDATOR_AUTH_V3_8_32.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V3_8_32.name,
-      paramName: "AuthV3_8_32ValidatorAtModule",
     },    
     {
       moduleFinalImplementation: EthIdentityValidatorModule,
       moduleAt: EthIdentityValidatorAtModule,
       name: contractsInfo.VALIDATOR_ETH_IDENTITY.name,
-      paramName: "EthIdentityValidatorAtModule",
     },
   ];
 
