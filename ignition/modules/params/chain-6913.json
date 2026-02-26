@@ -198,5 +198,38 @@
   "AuthV3_8_32ValidatorAtModule": {
     "proxyAddress": "0x85808DEce33D4124659C4d450E0e8E497711AB51",
     "proxyAdminAddress": "0xd077DcB14C021FB120351c937d3a4873f85848ea"
+  },
+  "CredentialAtomicQueryV3StableValidatorNewImplementationAtModule": {
+    "contractAddress": "0xC7dFB9800B57edCFDC6fc0ADE7A776f575Fe8c9b"
+  },
+  "Groth16VerifierV3StableWrapperAtModule": {
+    "contractAddress": "0x1Bbb86f0e65641B940395d098075589F78Ce2bA3"
+  },
+  "Groth16VerifierV3Stable_16_16_64_16_32WrapperAtModule": {
+    "contractAddress": "0x0F85080467Ea1BF3f7628bA3C08F30116767aEa7"
+  },
+  "LinkedMultiQueryStableValidatorNewImplementationAtModule": {
+    "contractAddress": "0x34361089ef81b15e15A14dab8Cd62AeB2aF53235"
+  },
+  "Groth16VerifierLinkedMultiQueryWrapperAtModule": {
+    "contractAddress": "0xBd46066Da66830F3F7b87cf9E06fb6B200D74607"
+  },
+  "Groth16VerifierLinkedMultiQuery5WrapperAtModule": {
+    "contractAddress": "0x94097fAd78A83FE4F18d4699EcD7C070a37cd9E5"
+  },
+  "Groth16VerifierLinkedMultiQuery3WrapperAtModule": {
+    "contractAddress": "0xD7A75c4DFa57B25846ee95dDEBFf301E09cb3A4E"
+  },
+  "AuthV3ValidatorNewImplementationAtModule": {
+    "contractAddress": "0xfe7460fc7F5A2350F84DE8776A90F6645a7A5b79"
+  },
+  "Groth16VerifierAuthV3WrapperAtModule": {
+    "contractAddress": "0x3A553770e1dEbB130E13C780ed2468f439204980"
+  },
+  "AuthV3_8_32ValidatorNewImplementationAtModule": {
+    "contractAddress": "0x60c0A9e35a388b7D65cA5b19d1fB861F04d2c8cB"
+  },
+  "Groth16VerifierAuthV3_8_32WrapperAtModule": {
+    "contractAddress": "0xA7a287b8d679b94EBfB2e9fc72eD7eEc1198286C"
   }
 }

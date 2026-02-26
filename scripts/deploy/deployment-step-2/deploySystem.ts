@@ -60,7 +60,7 @@ async function main() {
       module: CredentialAtomicQueryMTPV2ValidatorModule,
       moduleAt: CredentialAtomicQueryMTPV2ValidatorAtModule,
       contractAddress:
-        parameters["CredentialAtomicQueryMTPV2ValidatorAtModule"].proxyAddress ||
+        parameters[`${CredentialAtomicQueryMTPV2ValidatorAtModule.id}`].proxyAddress ||
         contractsInfo.VALIDATOR_MTP.unifiedAddress,
       name: contractsInfo.VALIDATOR_MTP.name,
       isProxy: true,
@@ -69,7 +69,7 @@ async function main() {
       module: CredentialAtomicQuerySigV2ValidatorModule,
       moduleAt: CredentialAtomicQuerySigV2ValidatorAtModule,
       contractAddress:
-        parameters["CredentialAtomicQuerySigV2ValidatorAtModule"].proxyAddress ||
+        parameters[`${CredentialAtomicQuerySigV2ValidatorAtModule.id}`].proxyAddress ||
         contractsInfo.VALIDATOR_SIG.unifiedAddress,
       name: contractsInfo.VALIDATOR_SIG.name,
       isProxy: true,
@@ -78,7 +78,7 @@ async function main() {
       module: CredentialAtomicQueryV3ValidatorModule,
       moduleAt: CredentialAtomicQueryV3ValidatorAtModule,
       contractAddress:
-        parameters["CredentialAtomicQueryV3ValidatorAtModule"].proxyAddress ||
+        parameters[`${CredentialAtomicQueryV3ValidatorAtModule.id}`].proxyAddress ||
         contractsInfo.VALIDATOR_V3.unifiedAddress,
       name: contractsInfo.VALIDATOR_V3.name,
       isProxy: true,
@@ -87,7 +87,7 @@ async function main() {
       module: CredentialAtomicQueryV3StableValidatorModule,
       moduleAt: CredentialAtomicQueryV3StableValidatorAtModule,
       contractAddress:
-        parameters["CredentialAtomicQueryV3StableValidatorAtModule"].proxyAddress ||
+        parameters[`${CredentialAtomicQueryV3StableValidatorAtModule.id}`].proxyAddress ||
         contractsInfo.VALIDATOR_V3_STABLE.unifiedAddress,
       name: contractsInfo.VALIDATOR_V3_STABLE.name,
       isProxy: true,
@@ -96,7 +96,7 @@ async function main() {
       module: LinkedMultiQueryValidatorModule,
       moduleAt: LinkedMultiQueryValidatorAtModule,
       contractAddress:
-        parameters["LinkedMultiQueryValidatorAtModule"].proxyAddress ||
+        parameters[`${LinkedMultiQueryValidatorAtModule.id}`].proxyAddress ||
         contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.unifiedAddress,
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
       isProxy: true,
@@ -105,7 +105,7 @@ async function main() {
       module: LinkedMultiQueryStableValidatorModule,
       moduleAt: LinkedMultiQueryStableValidatorAtModule,
       contractAddress:
-        parameters["LinkedMultiQueryStableValidatorAtModule"].proxyAddress ||
+        parameters[`${LinkedMultiQueryStableValidatorAtModule.id}`].proxyAddress ||
         contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.unifiedAddress,
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.name,
       isProxy: true,
@@ -118,7 +118,7 @@ async function main() {
       module: AuthV2ValidatorModule,
       moduleAt: AuthV2ValidatorAtModule,
       contractAddress:
-        parameters["AuthV2ValidatorAtModule"].proxyAddress ||
+        parameters[`${AuthV2ValidatorAtModule.id}`].proxyAddress ||
         contractsInfo.VALIDATOR_AUTH_V2.unifiedAddress,
       name: contractsInfo.VALIDATOR_AUTH_V2.name,
       isProxy: true,
@@ -128,7 +128,7 @@ async function main() {
       module: AuthV3ValidatorModule,
       moduleAt: AuthV3ValidatorAtModule,
       contractAddress:
-        parameters["AuthV3ValidatorAtModule"].proxyAddress ||
+        parameters[`${AuthV3ValidatorAtModule.id}`].proxyAddress ||
         contractsInfo.VALIDATOR_AUTH_V3.unifiedAddress,
       name: contractsInfo.VALIDATOR_AUTH_V3.name,
       isProxy: true,
@@ -138,7 +138,7 @@ async function main() {
       module: AuthV3_8_32ValidatorModule,
       moduleAt: AuthV3_8_32ValidatorAtModule,
       contractAddress:
-        parameters["AuthV3_8_32ValidatorAtModule"].proxyAddress ||
+        parameters[`${AuthV3_8_32ValidatorAtModule.id}`].proxyAddress ||
         contractsInfo.VALIDATOR_AUTH_V3_8_32.unifiedAddress,
       name: contractsInfo.VALIDATOR_AUTH_V3_8_32.name,
       isProxy: true,
@@ -148,7 +148,7 @@ async function main() {
       module: EthIdentityValidatorModule,
       moduleAt: EthIdentityValidatorAtModule,
       contractAddress:
-        parameters["EthIdentityValidatorAtModule"].proxyAddress ||
+        parameters[`${EthIdentityValidatorAtModule.id}`].proxyAddress ||
         contractsInfo.VALIDATOR_ETH_IDENTITY.unifiedAddress,
       name: contractsInfo.VALIDATOR_ETH_IDENTITY.name,
       isProxy: true,
@@ -160,7 +160,7 @@ async function main() {
       module: StateModule,
       moduleAt: StateAtModule,
       contractAddress:
-        parameters["StateAtModule"].proxyAddress || contractsInfo.STATE.unifiedAddress,
+        parameters[`${StateAtModule.id}`].proxyAddress || contractsInfo.STATE.unifiedAddress,
       name: contractsInfo.STATE.name,
       isProxy: true,
     },
@@ -168,7 +168,7 @@ async function main() {
       module: UniversalVerifierModule,
       moduleAt: UniversalVerifierAtModule,
       contractAddress:
-        parameters["UniversalVerifierAtModule"].proxyAddress ||
+        parameters[`${UniversalVerifierAtModule.id}`].proxyAddress ||
         contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
       name: contractsInfo.UNIVERSAL_VERIFIER.name,
       isProxy: true,
@@ -177,7 +177,7 @@ async function main() {
       module: IdentityTreeStoreModule,
       moduleAt: IdentityTreeStoreAtModule,
       contractAddress:
-        parameters["IdentityTreeStoreAtModule"].proxyAddress ||
+        parameters[`${IdentityTreeStoreAtModule.id}`].proxyAddress ||
         contractsInfo.IDENTITY_TREE_STORE.unifiedAddress,
       name: contractsInfo.IDENTITY_TREE_STORE.name,
       isProxy: true,
@@ -186,7 +186,7 @@ async function main() {
       module: VCPaymentModule,
       moduleAt: VCPaymentAtModule,
       contractAddress:
-        parameters["VCPaymentAtModule"].proxyAddress || contractsInfo.VC_PAYMENT.unifiedAddress,
+        parameters[`${VCPaymentAtModule.id}`].proxyAddress || contractsInfo.VC_PAYMENT.unifiedAddress,
       name: contractsInfo.VC_PAYMENT.name,
       isProxy: true,
     },
@@ -194,7 +194,7 @@ async function main() {
       module: MCPaymentModule,
       moduleAt: MCPaymentAtModule,
       contractAddress:
-        parameters["MCPaymentAtModule"].proxyAddress || contractsInfo.MC_PAYMENT.unifiedAddress,
+        parameters[`${MCPaymentAtModule.id}`].proxyAddress || contractsInfo.MC_PAYMENT.unifiedAddress,
       name: contractsInfo.MC_PAYMENT.name,
       isProxy: true,
     },

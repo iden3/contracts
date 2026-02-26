@@ -103,5 +103,11 @@
   "VCPaymentAtModule#ProxyAdmin": "0xA4180637F15a601695FD0313f452B8ca093AB952",
   "VCPaymentAtModule#VCPayment": "0xba83D99c87358Ef9B6f7c4a5A94021A58d870704",
   "MCPaymentAtModule#MCPayment": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
-  "MCPaymentAtModule#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE"
+  "MCPaymentAtModule#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE",
+  "AuthV3ValidatorAtModule#AuthV3Validator": "0x0127bb45d6F88bC9eBF418421b1d57aE99a7FA4A",
+  "AuthV3ValidatorAtModule#ProxyAdmin": "0xd90752C0444D5569855a5694d1d55BcD4bd958e9",
+  "AuthV3_8_32ValidatorProxyFirstImplementationModule#TransparentUpgradeableProxy": "0x85808DEce33D4124659C4d450E0e8E497711AB51",
+  "Groth16VerifierAuthV3_8_32Module#Groth16VerifierAuthV3_8_32Wrapper": "0xA7a287b8d679b94EBfB2e9fc72eD7eEc1198286C",
+  "AuthV3_8_32ValidatorAtModule#AuthV3_8_32Validator": "0x85808DEce33D4124659C4d450E0e8E497711AB51",
+  "AuthV3_8_32ValidatorAtModule#ProxyAdmin": "0xd077DcB14C021FB120351c937d3a4873f85848ea"
 }
