@@ -565,7 +565,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             metadata: request.metadata,
             validator: request.validator,
             params: request.params,
-            creator: _msgSender()
+            creator: request.creator
         });
     }
 

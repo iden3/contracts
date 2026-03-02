@@ -474,6 +474,8 @@ describe("Universal Verifier tests", function () {
 
       let requestStored = await verifier.getRequest(requestId);
       expect(requestStored.metadata).to.be.equal(request.metadata);
+      expect(requestStored.creator).to.be.equal(requestOwner.address);
+
       await expect(
         verifier.connect(requestOwner).updateRequest(request2),
       ).to.be.revertedWithCustomError(verifier, "OwnableUnauthorizedAccount");
@@ -485,6 +487,7 @@ describe("Universal Verifier tests", function () {
 
       requestStored = await verifier.getRequest(requestId);
       expect(requestStored.metadata).to.be.equal("metadata2");
+      expect(requestStored.creator).to.be.equal(owner.address);
     });
 
     it("updateRequest - not existed request", async () => {
