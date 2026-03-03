@@ -181,6 +181,10 @@ export function getProviders() {
     { network: networks.ZKEVM_MAINNET.name, rpcUrl: process.env.ZKEVM_MAINNET_RPC_URL as string },
     { network: networks.LINEA_SEPOLIA.name, rpcUrl: process.env.LINEA_SEPOLIA_RPC_URL as string },
     { network: networks.LINEA_MAINNET.name, rpcUrl: process.env.LINEA_MAINNET_RPC_URL as string },
+    { network: networks.BASE_SEPOLIA.name, rpcUrl: process.env.BASE_SEPOLIA_RPC_URL as string },
+    { network: networks.BASE_MAINNET.name, rpcUrl: process.env.BASE_MAINNET_RPC_URL as string },
+    { network: networks.BNB_TESTNET.name, rpcUrl: process.env.BNB_TESTNET_RPC_URL as string },
+    { network: networks.BNB_MAINNET.name, rpcUrl: process.env.BNB_MAINNET_RPC_URL as string },
   ];
 }
 
