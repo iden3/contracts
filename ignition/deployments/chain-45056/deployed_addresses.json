@@ -162,5 +162,8 @@
   "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#Proxy": "0xC616963610A5545EF89b373e1fEAE8A1e505FaFF",
   "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#ProxyAdmin": "0x7c2db2c78A970AA0379b2ba81cF184cE929800b1",
   "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#CredentialAtomicQueryV3Validator": "0x8F79681Da97EF380885b46e6cd1b337DB8cbd5e6",
-  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#Groth16VerifierV3Wrapper": "0x3014bF4A86eCcdEF81424Be0098009D0550705f4"
+  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#Groth16VerifierV3Wrapper": "0x3014bF4A86eCcdEF81424Be0098009D0550705f4",
+  "UpgradeMCPaymentModuleV1_0_7#Proxy": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
+  "UpgradeMCPaymentModuleV1_0_7#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE",
+  "UpgradeMCPaymentModuleV1_0_7#MCPayment": "0x80F45E15d7cbcAA634f2875fC30a8A91974af402"
 }

@@ -174,7 +174,7 @@
     "contractAddress": "0x9b4670Dec8a2556f7B1f91B46F0B8B000c5DBbdA"
   },
   "MCPaymentNewImplementationAtModule": {
-    "contractAddress": "0xB175469316C6706297Cb02124c554344606Ea7eE"
+    "contractAddress": "0x80F45E15d7cbcAA634f2875fC30a8A91974af402"
   },
   "CredentialAtomicQueryV3StableValidatorAtModule": {
     "proxyAddress": "0x0d78ADDD050a75a94e21eD14d54591933B9B7546",
@@ -240,5 +240,9 @@
   "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1": {
     "proxyAddress": "0xC616963610A5545EF89b373e1fEAE8A1e505FaFF",
     "proxyAdminAddress": "0x7c2db2c78A970AA0379b2ba81cF184cE929800b1"
+  },
+  "UpgradeMCPaymentModuleV1_0_7": {
+    "proxyAddress": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
+    "proxyAdminAddress": "0xE76bef620174cA8B923411605A59F542DcdF03fE"
   }
 }
