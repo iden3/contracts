@@ -9,6 +9,7 @@ import {
 import {
   AuthV2ValidatorAtModule,
   AuthV3ValidatorAtModule,
+  AuthV3_8_32ValidatorAtModule,
   Create2AddressAnchorAtModule,
   CredentialAtomicQueryMTPV2ValidatorAtModule,
   CredentialAtomicQuerySigV2ValidatorAtModule,
@@ -145,7 +146,7 @@ async function main() {
         contractsInfo.VALIDATOR_V3_STABLE.unifiedAddress,
       name: contractsInfo.VALIDATOR_V3_STABLE.name,
       proxy: true,
-    },    
+    },
     {
       moduleAt: LinkedMultiQueryValidatorAtModule,
       contractAddress:
@@ -161,7 +162,7 @@ async function main() {
         contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.unifiedAddress,
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.name,
       proxy: true,
-    },    
+    },
     {
       moduleAt: AuthV2ValidatorAtModule,
       contractAddress:
@@ -177,7 +178,15 @@ async function main() {
         contractsInfo.VALIDATOR_AUTH_V3.unifiedAddress,
       name: contractsInfo.VALIDATOR_AUTH_V3.name,
       proxy: true,
-    },    
+    },
+    {
+      moduleAt: AuthV3_8_32ValidatorAtModule,
+      contractAddress:
+        parameters["AuthV3_8_32ValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_AUTH_V3_8_32.unifiedAddress,
+      name: contractsInfo.VALIDATOR_AUTH_V3_8_32.name,
+      proxy: true,
+    },
     {
       moduleAt: EthIdentityValidatorAtModule,
       contractAddress:
