@@ -129,31 +129,31 @@
     "contractAddress": "0xf2A3a8e2d265FC97fC90C0A0AF9312b137259b0e"
   },
   "VerifierLibAtModule": {
-    "contractAddress": "0xeEE93cc160ea88d2A0510C278998E402F2c04f17"
+    "contractAddress": "0x750471475e4C8AE312FD46C864C29c2fcb20104F"
   },
   "UniversalVerifierNewImplementationAtModule": {
-    "contractAddress": "0xF2cbff070C49643E0A6a76Fe07B985F7c6579843"
+    "contractAddress": "0x6c91EA5a87617f99cFC43F64d0272a9FB34c60e2"
   },
   "IdentityTreeStoreNewImplementationAtModule": {
     "contractAddress": "0xA6A29e61DC36a98e512A32f1Bb53AB6e2edcdd10"
   },
   "CredentialAtomicQueryMTPV2ValidatorNewImplementationAtModule": {
-    "contractAddress": "0x872c9051caa3CDED8163DB26Ed972eba08C2b0D9"
+    "contractAddress": "0x793196C3E1B8DaFd2832bc22507a42fd2Aca1e5d"
   },
   "Groth16VerifierMTPWrapperAtModule": {
-    "contractAddress": "0xcb49D19529994b8a85FF49f76B96817c4C1885F6"
+    "contractAddress": "0x43B96F24b68Ed2d36AD26F9C683a742F8f8606F6"
   },
   "CredentialAtomicQuerySigV2ValidatorNewImplementationAtModule": {
-    "contractAddress": "0x36C9c81aAeBbAF47a577f4328f554d9c11929C1A"
+    "contractAddress": "0x9481E53f395f18Deb099Dc81f15331eF29f7a7c2"
   },
   "Groth16VerifierSigWrapperAtModule": {
-    "contractAddress": "0xfBF7C40b36ae7421e48CEB277c62a7e67054595B"
+    "contractAddress": "0x9fB6E4eA70cc0f8dF4a524F2984fb09A67c7a8c2"
   },
   "CredentialAtomicQueryV3ValidatorNewImplementationAtModule": {
-    "contractAddress": "0x9D45299Aff60Bf628Bc66d9D2FAa6d2b76847E0F"
+    "contractAddress": "0x8F79681Da97EF380885b46e6cd1b337DB8cbd5e6"
   },
   "Groth16VerifierV3WrapperAtModule": {
-    "contractAddress": "0x8A79acff0811f9B48c5394488B0feEDd89F0aD89"
+    "contractAddress": "0x3014bF4A86eCcdEF81424Be0098009D0550705f4"
   },
   "LinkedMultiQueryValidatorNewImplementationAtModule": {
     "contractAddress": "0x4fEB2e3Df1054412D35adb3355eEb2F735c84573"
@@ -224,5 +224,21 @@
   },
   "Groth16VerifierAuthV3_8_32WrapperAtModule": {
     "contractAddress": "0xA7a287b8d679b94EBfB2e9fc72eD7eEc1198286C"
+  },
+  "UpgradeUniversalVerifierModuleV2_3_0": {
+    "proxyAddress": "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
+    "proxyAdminAddress": "0xa6452db752749e5486d5D05c530c22C7FaadFdcd"
+  },
+  "UpgradeCredentialAtomicQueryMTPV2ValidatorModuleV3_1_0": {
+    "proxyAddress": "0xec9EF9c4595B46abF2b6A923BD1529081E03fbBB",
+    "proxyAdminAddress": "0x9aE2Bc3Fe4c4f31fF5C8A7C85526afe52CCC0979"
+  },
+  "UpgradeCredentialAtomicQuerySigV2ValidatorModuleV3_1_0": {
+    "proxyAddress": "0x5BD60F3Ef5890260906172EEe1f0a965707791f1",
+    "proxyAdminAddress": "0xb558FFdCa452ae6D258EEB22FAFCAF057BAA3067"
+  },
+  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1": {
+    "proxyAddress": "0xC616963610A5545EF89b373e1fEAE8A1e505FaFF",
+    "proxyAdminAddress": "0x7c2db2c78A970AA0379b2ba81cF184cE929800b1"
   }
 }
