@@ -16,7 +16,10 @@ const UpgradeCredentialAtomicQueryV3StableValidatorModule = buildModule(
     });
     const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
 
-    const groth16Verifier = m.contract(contractsInfo.GROTH16_VERIFIER_V3_STABLE.name);
+    const groth16VerifierV3Stable = m.contract(contractsInfo.GROTH16_VERIFIER_V3_STABLE.name);
+    const groth16VerifierV3Stable_16_16_64_16_32 = m.contract(
+      contractsInfo.GROTH16_VERIFIER_V3_STABLE_16_16_64_16_32.name,
+    );
     const newImplementation = m.contract(contractsInfo.VALIDATOR_V3_STABLE.name);
 
     // As we are working with same proxy the storage is already initialized
@@ -29,7 +32,8 @@ const UpgradeCredentialAtomicQueryV3StableValidatorModule = buildModule(
     return {
       credentialAtomicQueryV3StableValidator: proxy,
       newImplementation,
-      groth16Verifier,
+      groth16VerifierV3Stable,
+      groth16VerifierV3Stable_16_16_64_16_32,
       proxyAdmin,
       proxy,
     };

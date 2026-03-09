@@ -212,7 +212,7 @@ async function main() {
         contractAddress: validatorUpgrade.groth16Verifier.target,
       };
       console.log(
-        `${v.validatorVerifierNames[0]} upgraded to ${validatorUpgrade.groth16Verifier.target}`,
+        `${v.validatorVerifierNames[0]} upgraded to: ${validatorUpgrade.groth16Verifier.target}`,
       );
     }
 
