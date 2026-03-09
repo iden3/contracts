@@ -110,5 +110,17 @@
   "UpgradeUniversalVerifierModuleV2_3_0#Proxy": "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
   "UpgradeUniversalVerifierModuleV2_3_0#ProxyAdmin": "0xa6452db752749e5486d5D05c530c22C7FaadFdcd",
   "UpgradeUniversalVerifierModuleV2_3_0#VerifierLib": "0x26076db61b1043c669822cEaf83ec6722D2D1ec4",
-  "UpgradeUniversalVerifierModuleV2_3_0#UniversalVerifier": "0x776b2BbBE3B9dD83536607ad4318c0441B1e98f5"
+  "UpgradeUniversalVerifierModuleV2_3_0#UniversalVerifier": "0x776b2BbBE3B9dD83536607ad4318c0441B1e98f5",
+  "UpgradeCredentialAtomicQueryMTPV2ValidatorModuleV3_1_0#Proxy": "0xec9EF9c4595B46abF2b6A923BD1529081E03fbBB",
+  "UpgradeCredentialAtomicQueryMTPV2ValidatorModuleV3_1_0#ProxyAdmin": "0x9aE2Bc3Fe4c4f31fF5C8A7C85526afe52CCC0979",
+  "UpgradeCredentialAtomicQueryMTPV2ValidatorModuleV3_1_0#CredentialAtomicQueryMTPV2Validator": "0x032F2382a7cd562FDc18d81F99eAb3A82e9fBa40",
+  "UpgradeCredentialAtomicQueryMTPV2ValidatorModuleV3_1_0#Groth16VerifierMTPWrapper": "0x40C9c190B0b9c8f1c33c9D91283d87343eb8A89d",
+  "UpgradeCredentialAtomicQuerySigV2ValidatorModuleV3_1_0#Proxy": "0x5BD60F3Ef5890260906172EEe1f0a965707791f1",
+  "UpgradeCredentialAtomicQuerySigV2ValidatorModuleV3_1_0#ProxyAdmin": "0xb558FFdCa452ae6D258EEB22FAFCAF057BAA3067",
+  "UpgradeCredentialAtomicQuerySigV2ValidatorModuleV3_1_0#CredentialAtomicQuerySigV2Validator": "0xD537898B2A141DE5Cb4cE126e6067D3114794218",
+  "UpgradeCredentialAtomicQuerySigV2ValidatorModuleV3_1_0#Groth16VerifierSigWrapper": "0x23a08211a249F073BA0F729854a9ddD86b7a963c",
+  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#Proxy": "0xC616963610A5545EF89b373e1fEAE8A1e505FaFF",
+  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#ProxyAdmin": "0x7c2db2c78A970AA0379b2ba81cF184cE929800b1",
+  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#CredentialAtomicQueryV3Validator": "0xAd018537548BEC253E77eCACB701896447358f8c",
+  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#Groth16VerifierV3Wrapper": "0xa08C72B3cb3082e86C119eC785b7099143EFD8B0"
 }
