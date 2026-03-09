@@ -106,5 +106,9 @@
   "UpgradeStateModuleV2_6_3#State": "0x80C833B8948B108Fe312f55fF67e8D9C4cbB5A92",
   "UpgradeMCPaymentModuleV1_0_7#Proxy": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
   "UpgradeMCPaymentModuleV1_0_7#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE",
-  "UpgradeMCPaymentModuleV1_0_7#MCPayment": "0x00f1908B087A2D47659210f03812f342Aba6F562"
+  "UpgradeMCPaymentModuleV1_0_7#MCPayment": "0x00f1908B087A2D47659210f03812f342Aba6F562",
+  "UpgradeUniversalVerifierModuleV2_3_0#Proxy": "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
+  "UpgradeUniversalVerifierModuleV2_3_0#ProxyAdmin": "0xa6452db752749e5486d5D05c530c22C7FaadFdcd",
+  "UpgradeUniversalVerifierModuleV2_3_0#VerifierLib": "0x26076db61b1043c669822cEaf83ec6722D2D1ec4",
+  "UpgradeUniversalVerifierModuleV2_3_0#UniversalVerifier": "0x776b2BbBE3B9dD83536607ad4318c0441B1e98f5"
 }

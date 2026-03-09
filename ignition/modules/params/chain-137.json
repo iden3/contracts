@@ -35,7 +35,7 @@
   },
   "AuthV3_8_32ValidatorProxyFirstImplementationModule": {
     "proxyAdminOwner": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74"
-  },  
+  },
   "EthIdentityValidatorProxyFirstImplementationModule": {
     "proxyAdminOwner": "0xAe15d2023A76174a940cbb2b7F44012C728B9d74"
   },
@@ -129,10 +129,10 @@
     "contractAddress": "0xf2A3a8e2d265FC97fC90C0A0AF9312b137259b0e"
   },
   "VerifierLibAtModule": {
-    "contractAddress": "0x2ECb5bC9e4a9f81D081DD6F42Dd5a3f07De2EB6f"
+    "contractAddress": "0x26076db61b1043c669822cEaf83ec6722D2D1ec4"
   },
   "UniversalVerifierNewImplementationAtModule": {
-    "contractAddress": "0x4Ee8B0Bca7fAD07602287Abf4294058632ce8637"
+    "contractAddress": "0x776b2BbBE3B9dD83536607ad4318c0441B1e98f5"
   },
   "IdentityTreeStoreNewImplementationAtModule": {
     "contractAddress": "0xA6A29e61DC36a98e512A32f1Bb53AB6e2edcdd10"
@@ -202,5 +202,9 @@
   "AuthV3_8_32ValidatorAtModule": {
     "proxyAddress": "0x85808DEce33D4124659C4d450E0e8E497711AB51",
     "proxyAdminAddress": "0xd077DcB14C021FB120351c937d3a4873f85848ea"
+  },
+  "UpgradeUniversalVerifierModuleV2_3_0": {
+    "proxyAddress": "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
+    "proxyAdminAddress": "0xa6452db752749e5486d5D05c530c22C7FaadFdcd"
   }
 }
