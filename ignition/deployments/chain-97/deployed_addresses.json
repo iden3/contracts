@@ -103,5 +103,13 @@
   "EthIdentityValidatorModule#EthIdentityValidator": "0x8546bFd67F19dd0449dF73fb75A56BC9ddFA57Db",
   "UpgradeMCPaymentModuleV1_0_7#Proxy": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
   "UpgradeMCPaymentModuleV1_0_7#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE",
-  "UpgradeMCPaymentModuleV1_0_7#MCPayment": "0x79703a373e2349CE6aCeeecB95c0dB13D2F54e3A"
+  "UpgradeMCPaymentModuleV1_0_7#MCPayment": "0x79703a373e2349CE6aCeeecB95c0dB13D2F54e3A",
+  "CredentialAtomicQueryV3StableValidatorAtModule#CredentialAtomicQueryV3StableValidator": "0x0d78ADDD050a75a94e21eD14d54591933B9B7546",
+  "CredentialAtomicQueryV3StableValidatorAtModule#ProxyAdmin": "0x62B555e84EA9fe88D6e777d6C5a35B59CCf14Cd2",
+  "LinkedMultiQueryStableValidatorAtModule#LinkedMultiQueryStableValidator": "0xdD889d2cE09579CBddF9Ef3313C37276A41d6Df1",
+  "LinkedMultiQueryStableValidatorAtModule#ProxyAdmin": "0x29dF064Cc8Abe70E68eF74d4bf0d06D2113BDc8E",
+  "AuthV3ValidatorAtModule#AuthV3Validator": "0x0127bb45d6F88bC9eBF418421b1d57aE99a7FA4A",
+  "AuthV3ValidatorAtModule#ProxyAdmin": "0xd90752C0444D5569855a5694d1d55BcD4bd958e9",
+  "AuthV3_8_32ValidatorAtModule#AuthV3_8_32Validator": "0x85808DEce33D4124659C4d450E0e8E497711AB51",
+  "AuthV3_8_32ValidatorAtModule#ProxyAdmin": "0xd077DcB14C021FB120351c937d3a4873f85848ea"
 }
