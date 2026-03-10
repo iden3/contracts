@@ -203,7 +203,7 @@
     "contractAddress": "0x46D78fC2E42Fa6D32FDB2987EEfb936f189f1103"
   },
   "Groth16VerifierV3Stable_16_16_64_16_32WrapperAtModule": {
-    "contractAddress": "0x824fe3b8506DF4776F97E57E1Cc11569E66B8eaa"
+    "contractAddress": "0x7F50b4AEA7a6F07447bA28FC3aEf4BF12A6a936F"
   },
   "LinkedMultiQueryStableValidatorNewImplementationAtModule": {
     "contractAddress": "0x916AEE488653fd2a4DDc006ff282Bb05ee10c864"
@@ -227,6 +227,6 @@
     "contractAddress": "0x492E1e1f84F93AeED6FfFECbe68a3F64a62e589e"
   },
   "Groth16VerifierAuthV3_8_32WrapperAtModule": {
-    "contractAddress": "0x5E503bD36b16C2CF23020b614b58327E210A3cA9"
+    "contractAddress": "0xE524ba7c834A89B6c9F7aABB2d2841d079f5F968"
   }
 }

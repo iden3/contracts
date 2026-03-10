@@ -111,5 +111,7 @@
   "AuthV3ValidatorAtModule#AuthV3Validator": "0x0127bb45d6F88bC9eBF418421b1d57aE99a7FA4A",
   "AuthV3ValidatorAtModule#ProxyAdmin": "0xd90752C0444D5569855a5694d1d55BcD4bd958e9",
   "AuthV3_8_32ValidatorAtModule#AuthV3_8_32Validator": "0x85808DEce33D4124659C4d450E0e8E497711AB51",
-  "AuthV3_8_32ValidatorAtModule#ProxyAdmin": "0xd077DcB14C021FB120351c937d3a4873f85848ea"
+  "AuthV3_8_32ValidatorAtModule#ProxyAdmin": "0xd077DcB14C021FB120351c937d3a4873f85848ea",
+  "DeployVerifiersNewImplementationsModuleV1_0_0#Groth16VerifierAuthV3_8_32Wrapper": "0xE524ba7c834A89B6c9F7aABB2d2841d079f5F968",
+  "DeployVerifiersNewImplementationsModuleV1_0_0#Groth16VerifierV3Stable_16_16_64_16_32Wrapper": "0x7F50b4AEA7a6F07447bA28FC3aEf4BF12A6a936F"
 }
