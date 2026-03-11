@@ -147,5 +147,17 @@
   "Groth16VerifierAuthV3WrapperAtModule#Groth16VerifierAuthV3Wrapper": "0x88d2e615F9a210B3E97565fd528E860924b8b4A9",
   "AuthV3_8_32ValidatorModule#AuthV3_8_32Validator": "0x85808DEce33D4124659C4d450E0e8E497711AB51",
   "AuthV3_8_32ValidatorNewImplementationAtModule#AuthV3_8_32Validator": "0x492E1e1f84F93AeED6FfFECbe68a3F64a62e589e",
-  "Groth16VerifierAuthV3_8_32WrapperAtModule#Groth16VerifierAuthV3_8_32Wrapper": "0x5E503bD36b16C2CF23020b614b58327E210A3cA9"
+  "Groth16VerifierAuthV3_8_32WrapperAtModule#Groth16VerifierAuthV3_8_32Wrapper": "0x5E503bD36b16C2CF23020b614b58327E210A3cA9",
+  "UpgradeCredentialAtomicQueryMTPV2ValidatorModuleV3_1_0#Proxy": "0xec9EF9c4595B46abF2b6A923BD1529081E03fbBB",
+  "UpgradeCredentialAtomicQueryMTPV2ValidatorModuleV3_1_0#ProxyAdmin": "0x9aE2Bc3Fe4c4f31fF5C8A7C85526afe52CCC0979",
+  "UpgradeCredentialAtomicQueryMTPV2ValidatorModuleV3_1_0#CredentialAtomicQueryMTPV2Validator": "0x32e7152df2c0Bdc266B72DacCec21286f8828F04",
+  "UpgradeCredentialAtomicQueryMTPV2ValidatorModuleV3_1_0#Groth16VerifierMTPWrapper": "0x92679aBbb05b8ca932Ef8f68D30B524d9A79116f",
+  "UpgradeCredentialAtomicQuerySigV2ValidatorModuleV3_1_0#Proxy": "0x5BD60F3Ef5890260906172EEe1f0a965707791f1",
+  "UpgradeCredentialAtomicQuerySigV2ValidatorModuleV3_1_0#ProxyAdmin": "0xb558FFdCa452ae6D258EEB22FAFCAF057BAA3067",
+  "UpgradeCredentialAtomicQuerySigV2ValidatorModuleV3_1_0#CredentialAtomicQuerySigV2Validator": "0x50e320591bcBd5AF8618019b502bEe1c67dcAfE1",
+  "UpgradeCredentialAtomicQuerySigV2ValidatorModuleV3_1_0#Groth16VerifierSigWrapper": "0xfFE5FBca056e58511031483F8652277ce71f9677",
+  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#Proxy": "0xC616963610A5545EF89b373e1fEAE8A1e505FaFF",
+  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#ProxyAdmin": "0x7c2db2c78A970AA0379b2ba81cF184cE929800b1",
+  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#CredentialAtomicQueryV3Validator": "0x22757926DBdF9270B553A4BA006a2c0E6Ad7e49E",
+  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#Groth16VerifierV3Wrapper": "0x58201A4826Dc07443d1280bA194604B12A3b8FaB"
 }
