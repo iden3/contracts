@@ -129,10 +129,10 @@
     "contractAddress": "0xf2A3a8e2d265FC97fC90C0A0AF9312b137259b0e"
   },
   "VerifierLibAtModule": {
-    "contractAddress": "0x50291A60080492C90c54CEe8c0977a7C1273C9D7"
+    "contractAddress": "0xdDeB8a21c147718DfA667172b56Bb9e923Eea463"
   },
   "UniversalVerifierNewImplementationAtModule": {
-    "contractAddress": "0x62b1536C4C960d73d8ED4cF4b1E6c055a5512b2a"
+    "contractAddress": "0x0116196353793b61F78CF4FB5c075c73405A6E15"
   },
   "IdentityTreeStoreNewImplementationAtModule": {
     "contractAddress": "0xB62E0e1cc92A9186e5C11D6cD7da900E11Ec60ce"
@@ -228,5 +228,9 @@
   },
   "Groth16VerifierAuthV3_8_32WrapperAtModule": {
     "contractAddress": "0x5E503bD36b16C2CF23020b614b58327E210A3cA9"
+  },
+  "UpgradeUniversalVerifierModuleV2_3_0": {
+    "proxyAddress": "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
+    "proxyAdminAddress": "0xa6452db752749e5486d5D05c530c22C7FaadFdcd"
   }
 }
