@@ -138,22 +138,22 @@
     "contractAddress": "0xA6A29e61DC36a98e512A32f1Bb53AB6e2edcdd10"
   },
   "CredentialAtomicQueryMTPV2ValidatorNewImplementationAtModule": {
-    "contractAddress": "0x872c9051caa3CDED8163DB26Ed972eba08C2b0D9"
+    "contractAddress": "0x8204A4Ac52e98517740706A6D11643725bd51c91"
   },
   "Groth16VerifierMTPWrapperAtModule": {
-    "contractAddress": "0xcb49D19529994b8a85FF49f76B96817c4C1885F6"
+    "contractAddress": "0xB2008c9A461efE6b206C5bDa226D2E2791980f91"
   },
   "CredentialAtomicQuerySigV2ValidatorNewImplementationAtModule": {
-    "contractAddress": "0x36C9c81aAeBbAF47a577f4328f554d9c11929C1A"
+    "contractAddress": "0xd58fe55c0C8F2d5c5d6D176DE0021B4076554992"
   },
   "Groth16VerifierSigWrapperAtModule": {
-    "contractAddress": "0xfBF7C40b36ae7421e48CEB277c62a7e67054595B"
+    "contractAddress": "0xE6e696b20328A00d6c06Fef30Ca7Dd5142269098"
   },
   "CredentialAtomicQueryV3ValidatorNewImplementationAtModule": {
-    "contractAddress": "0x9D45299Aff60Bf628Bc66d9D2FAa6d2b76847E0F"
+    "contractAddress": "0x8105a5685bc2C535258a12f3Db67A18A26016623"
   },
   "Groth16VerifierV3WrapperAtModule": {
-    "contractAddress": "0x8A79acff0811f9B48c5394488B0feEDd89F0aD89"
+    "contractAddress": "0x284Bb6f9A627EFff0b70b3D0EAA2AD67b0B1CD94"
   },
   "LinkedMultiQueryValidatorNewImplementationAtModule": {
     "contractAddress": "0x4fEB2e3Df1054412D35adb3355eEb2F735c84573"
@@ -231,5 +231,17 @@
   },
   "Groth16VerifierAuthV3_8_32WrapperAtModule": {
     "contractAddress": "0x5E503bD36b16C2CF23020b614b58327E210A3cA9"
+  },
+  "UpgradeCredentialAtomicQueryMTPV2ValidatorModuleV3_1_0": {
+    "proxyAddress": "0xec9EF9c4595B46abF2b6A923BD1529081E03fbBB",
+    "proxyAdminAddress": "0x9aE2Bc3Fe4c4f31fF5C8A7C85526afe52CCC0979"
+  },
+  "UpgradeCredentialAtomicQuerySigV2ValidatorModuleV3_1_0": {
+    "proxyAddress": "0x5BD60F3Ef5890260906172EEe1f0a965707791f1",
+    "proxyAdminAddress": "0xb558FFdCa452ae6D258EEB22FAFCAF057BAA3067"
+  },
+  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1": {
+    "proxyAddress": "0xC616963610A5545EF89b373e1fEAE8A1e505FaFF",
+    "proxyAdminAddress": "0x7c2db2c78A970AA0379b2ba81cF184cE929800b1"
   }
 }
