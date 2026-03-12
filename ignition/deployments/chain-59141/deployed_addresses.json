@@ -153,5 +153,17 @@
   "UpgradeUniversalVerifierModuleV2_3_0#Proxy": "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
   "UpgradeUniversalVerifierModuleV2_3_0#ProxyAdmin": "0xa6452db752749e5486d5D05c530c22C7FaadFdcd",
   "UpgradeUniversalVerifierModuleV2_3_0#VerifierLib": "0x40C9c190B0b9c8f1c33c9D91283d87343eb8A89d",
-  "UpgradeUniversalVerifierModuleV2_3_0#UniversalVerifier": "0xC3e9B73eEaEF5eF4200a2681c1634023e5B987DA"
+  "UpgradeUniversalVerifierModuleV2_3_0#UniversalVerifier": "0xC3e9B73eEaEF5eF4200a2681c1634023e5B987DA",
+  "UpgradeCredentialAtomicQueryMTPV2ValidatorModuleV3_1_0#Proxy": "0xec9EF9c4595B46abF2b6A923BD1529081E03fbBB",
+  "UpgradeCredentialAtomicQueryMTPV2ValidatorModuleV3_1_0#ProxyAdmin": "0x9aE2Bc3Fe4c4f31fF5C8A7C85526afe52CCC0979",
+  "UpgradeCredentialAtomicQueryMTPV2ValidatorModuleV3_1_0#CredentialAtomicQueryMTPV2Validator": "0x23a08211a249F073BA0F729854a9ddD86b7a963c",
+  "UpgradeCredentialAtomicQueryMTPV2ValidatorModuleV3_1_0#Groth16VerifierMTPWrapper": "0xD028c3bDa1991F5C58A7D186aA30021DE4f45919",
+  "UpgradeCredentialAtomicQuerySigV2ValidatorModuleV3_1_0#Proxy": "0x5BD60F3Ef5890260906172EEe1f0a965707791f1",
+  "UpgradeCredentialAtomicQuerySigV2ValidatorModuleV3_1_0#ProxyAdmin": "0xb558FFdCa452ae6D258EEB22FAFCAF057BAA3067",
+  "UpgradeCredentialAtomicQuerySigV2ValidatorModuleV3_1_0#CredentialAtomicQuerySigV2Validator": "0xa08C72B3cb3082e86C119eC785b7099143EFD8B0",
+  "UpgradeCredentialAtomicQuerySigV2ValidatorModuleV3_1_0#Groth16VerifierSigWrapper": "0x41C882f6cDA2127a641a383b6A928904A0bF48Ce",
+  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#Proxy": "0xC616963610A5545EF89b373e1fEAE8A1e505FaFF",
+  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#ProxyAdmin": "0x7c2db2c78A970AA0379b2ba81cF184cE929800b1",
+  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#CredentialAtomicQueryV3Validator": "0x1c6E35d59DC5B498806e75a4EDF3e377003B1303",
+  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#Groth16VerifierV3Wrapper": "0x192Fb7e788A126F16E9a7D9e2aAc9493A684cfAb"
 }
