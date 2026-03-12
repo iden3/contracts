@@ -149,5 +149,9 @@
   "AuthV3_8_32ValidatorAtModule#ProxyAdmin": "0xd077DcB14C021FB120351c937d3a4873f85848ea",
   "AuthV3_8_32ValidatorNewImplementationAtModule#AuthV3_8_32Validator": "0x492E1e1f84F93AeED6FfFECbe68a3F64a62e589e",
   "Groth16VerifierAuthV3_8_32WrapperAtModule#Groth16VerifierAuthV3_8_32Wrapper": "0x5E503bD36b16C2CF23020b614b58327E210A3cA9",
-  "AuthV3_8_32ValidatorModule#AuthV3_8_32Validator": "0x85808DEce33D4124659C4d450E0e8E497711AB51"
+  "AuthV3_8_32ValidatorModule#AuthV3_8_32Validator": "0x85808DEce33D4124659C4d450E0e8E497711AB51",
+  "UpgradeUniversalVerifierModuleV2_3_0#Proxy": "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
+  "UpgradeUniversalVerifierModuleV2_3_0#ProxyAdmin": "0xa6452db752749e5486d5D05c530c22C7FaadFdcd",
+  "UpgradeUniversalVerifierModuleV2_3_0#VerifierLib": "0x40C9c190B0b9c8f1c33c9D91283d87343eb8A89d",
+  "UpgradeUniversalVerifierModuleV2_3_0#UniversalVerifier": "0xC3e9B73eEaEF5eF4200a2681c1634023e5B987DA"
 }
