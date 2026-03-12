@@ -78,5 +78,9 @@
   "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#Proxy": "0xC616963610A5545EF89b373e1fEAE8A1e505FaFF",
   "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#ProxyAdmin": "0x7c2db2c78A970AA0379b2ba81cF184cE929800b1",
   "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#CredentialAtomicQueryV3Validator": "0x8105a5685bc2C535258a12f3Db67A18A26016623",
-  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#Groth16VerifierV3Wrapper": "0x284Bb6f9A627EFff0b70b3D0EAA2AD67b0B1CD94"
+  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#Groth16VerifierV3Wrapper": "0x284Bb6f9A627EFff0b70b3D0EAA2AD67b0B1CD94",
+  "UpgradeUniversalVerifierModuleV2_3_0#Proxy": "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
+  "UpgradeUniversalVerifierModuleV2_3_0#ProxyAdmin": "0xa6452db752749e5486d5D05c530c22C7FaadFdcd",
+  "UpgradeUniversalVerifierModuleV2_3_0#VerifierLib": "0xD2Ac0eC761ea6079A58aC8B8c5b6C5d3fC5FCD1b",
+  "UpgradeUniversalVerifierModuleV2_3_0#UniversalVerifier": "0xC932622292f527d3c3468084f1d71E1d72a93B06"
 }
