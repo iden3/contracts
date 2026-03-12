@@ -130,8 +130,7 @@
   "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#Proxy": "0xC616963610A5545EF89b373e1fEAE8A1e505FaFF",
   "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#ProxyAdmin": "0x7c2db2c78A970AA0379b2ba81cF184cE929800b1",
   "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#CredentialAtomicQueryV3Validator": "0x8204A4Ac52e98517740706A6D11643725bd51c91",
-  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#Groth16VerifierV3Wrapper": "0xB2008c9A461efE6b206C5bDa226D2E2791980f91"
-  "UpgradeMCPaymentModuleV1_0_7#MCPayment": "0xC3e9B73eEaEF5eF4200a2681c1634023e5B987DA",
+  "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#Groth16VerifierV3Wrapper": "0xB2008c9A461efE6b206C5bDa226D2E2791980f91",
   "CredentialAtomicQueryV3StableValidatorFinalImplementationModule#CredentialAtomicQueryV3StableValidator": "0x83A22964d60aB1B76A36dcbEA1cCBcC5AC9E7277",
   "CredentialAtomicQueryV3StableValidatorProxyFirstImplementationModule#TransparentUpgradeableProxy": "0x0d78ADDD050a75a94e21eD14d54591933B9B7546",
   "Groth16VerifierV3StableModule#Groth16VerifierV3StableWrapper": "0x46D78fC2E42Fa6D32FDB2987EEfb936f189f1103",
