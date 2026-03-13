@@ -45,8 +45,14 @@ import AuthV3ValidatorModule, {
 import AuthV3_8_32ValidatorModule, {
   AuthV3_8_32ValidatorProxyModule,
 } from "../../ignition/modules/authV3_8_32Validator";
+import { transferOwnership } from "../upgrade/helpers/utils";
 
 const { ethers, ignition } = await network.connect();
+
+// If you want to use impersonation, set the impersonate variable to true
+// With ignition we can't use impersonation, so we need to transfer ownership to the signer
+// before the upgrade to test in a fork. This is done in the transferOwnership function below.
+const impersonate = false;
 
 async function main() {
   const config = getConfig();
@@ -145,15 +151,22 @@ async function main() {
 
   if (universalVerifierOrTestWrapper === "universalVerifier") {
     const deploymentId = parameters.DeploymentId || undefined;
-    universalVerifier = (
-      await ignition.deploy(UniversalVerifierAtModule, {
-        strategy: deployStrategy,
-        defaultSender: await signer.getAddress(),
-        parameters: parameters,
-        deploymentId: deploymentId,
-      })
-    ).proxy;
+    const universalVerifierDeployed = await ignition.deploy(UniversalVerifierAtModule, {
+      strategy: deployStrategy,
+      defaultSender: await signer.getAddress(),
+      parameters: parameters,
+      deploymentId: deploymentId,
+    });
+    universalVerifier = universalVerifierDeployed.proxy;
     console.log(`Using Universal Verifier at: ${universalVerifier.target}`);
+
+    if (impersonate) {
+      console.log("Impersonating Ledger Account by ownership transfer");
+      await transferOwnership(signer, {
+        proxy: universalVerifierDeployed.proxy,
+        proxyAdmin: universalVerifierDeployed.proxyAdmin,
+      });
+    }
   } else {
     parameters = Object.assign(parameters, {
       UniversalVerifierTestWrapperAtModule_ManyResponsesPerUserAndRequest: {
@@ -162,15 +175,25 @@ async function main() {
       },
     });
     const deploymentId = `chain-${await getChainId()}-many-responses-per-user-and-request`;
-    universalVerifier = (
-      await ignition.deploy(UniversalVerifierTestWrapperAtModule_ManyResponsesPerUserAndRequest, {
+    const universalVerifierDeployed = await ignition.deploy(
+      UniversalVerifierTestWrapperAtModule_ManyResponsesPerUserAndRequest,
+      {
         strategy: deployStrategy,
         defaultSender: await signer.getAddress(),
         parameters: parameters,
         deploymentId: deploymentId,
-      })
-    ).proxy;
+      },
+    );
+    universalVerifier = universalVerifierDeployed.proxy;
     console.log(`Using Universal Verifier Test Wrapper at: ${universalVerifier.target}`);
+
+    if (impersonate) {
+      console.log("Impersonating Ledger Account by ownership transfer");
+      await transferOwnership(signer, {
+        proxy: universalVerifierDeployed.proxy,
+        proxyAdmin: universalVerifierDeployed.proxyAdmin,
+      });
+    }
   }
 
   for (const validator of requestValidators) {
@@ -218,7 +241,7 @@ async function main() {
   if (!(await universalVerifier.authMethodExists(authMethodEmbeddedAuth))) {
     const tx = await universalVerifier.setAuthMethod({
       authMethod: authMethodEmbeddedAuth,
-      validator: ethers.ZeroAddress,
+      validator: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
       params: "0x",
     });
     await tx.wait();

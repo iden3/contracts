@@ -157,7 +157,7 @@ async function main() {
   try {
     const setAuthMethodTx = await universalVerifier.connect(signer).setAuthMethod({
       authMethod: authMethodEmbeddedAuth,
-      validator: ethers.ZeroAddress,
+      validator: universalVerifierAddr,
       params: "0x",
     });
     await setAuthMethodTx.wait();

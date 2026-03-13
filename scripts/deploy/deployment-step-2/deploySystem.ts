@@ -282,7 +282,7 @@ async function main() {
   if (!(await universalVerifier.authMethodExists(authMethodEmbeddedAuth))) {
     const tx = await universalVerifier.setAuthMethod({
       authMethod: authMethodEmbeddedAuth,
-      validator: ethers.ZeroAddress,
+      validator: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
       params: "0x",
     });
     await tx.wait();
