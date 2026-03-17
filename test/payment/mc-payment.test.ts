@@ -194,6 +194,90 @@ describe("MC Payment Contract", () => {
     );
   });
 
+  it("Check payment with WITHDRAWER_ROLE account", async () => {
+    const paymentData = {
+      recipient: issuer1Signer.address,
+      amount: 100,
+      expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60, // 1 hour
+      nonce: 25,
+      metadata: "0x",
+    };
+    const signature = await issuer1Signer.signTypedData(domainData, types, paymentData);
+
+    await expect(
+      payment.connect(userSigner).pay(paymentData, signature, {
+        value: 100,
+      }),
+    ).to.changeEtherBalances([userSigner, payment], [-100, 100]);
+
+    const isPaymentDone = await payment.isPaymentDone(issuer1Signer.address, 25);
+    expect(isPaymentDone).to.be.true;
+
+    // issuer withdraw
+    const issuer1BalanceInContract = await payment.getBalance(issuer1Signer.address);
+    expect(issuer1BalanceInContract).to.be.eq(90);
+
+    await expect(payment.connect(issuer1Signer).issuerWithdraw()).to.changeEtherBalance(
+      issuer1Signer,
+      90,
+    );
+
+    // second issuer withdraw
+    await expect(payment.connect(issuer1Signer).issuerWithdraw()).to.be.revertedWithCustomError(
+      payment,
+      "WithdrawErrorNoBalance",
+    );
+
+    const issuer1BalanceAfterWithdraw = await payment.getBalance(issuer1Signer.address);
+    expect(issuer1BalanceAfterWithdraw).to.be.eq(0);
+
+    // owner withdraw
+    const ownerBalanceInContract = await payment.connect(owner).getOwnerBalance();
+    expect(ownerBalanceInContract).to.be.eq(10);
+
+    await expect(payment.connect(userSigner).ownerWithdraw()).to.be.revertedWithCustomError(
+      payment,
+      "AccessControlUnauthorizedAccount",
+    );
+
+    // grant admin role to owner
+    await payment.connect(owner).setAdminRole(owner.address);
+    // grant WITHDRAWER_ROLE to userSigner
+    await payment
+      .connect(owner)
+      .grantRole(await payment.WITHDRAWER_ROLE(), await userSigner.getAddress());
+
+    // now userSigner can withdraw owner balance
+    await expect(payment.connect(userSigner).ownerWithdraw()).to.changeEtherBalance(userSigner, 10);
+    // owner balance should be 0
+    const ownerBalanceAfterWithdraw = await payment.connect(owner).getOwnerBalance();
+    expect(ownerBalanceAfterWithdraw).to.be.eq(0);
+
+    // second owner withdraw
+    await expect(payment.connect(userSigner).ownerWithdraw()).to.be.revertedWithCustomError(
+      payment,
+      "WithdrawErrorNoBalance",
+    );
+    await expect(payment.connect(owner).ownerWithdraw()).to.be.revertedWithCustomError(
+      payment,
+      "WithdrawErrorNoBalance",
+    );
+  });
+
+  it("Calling setAdminRole by owner:", async () => {
+    expect(await payment.hasRole(await payment.DEFAULT_ADMIN_ROLE(), owner.address)).to.be.false;
+    await payment.connect(owner).setAdminRole(owner.address);
+    expect(await payment.hasRole(await payment.DEFAULT_ADMIN_ROLE(), owner.address)).to.be.true;
+    await payment.connect(owner).revokeRole(await payment.DEFAULT_ADMIN_ROLE(), owner.address);
+    expect(await payment.hasRole(await payment.DEFAULT_ADMIN_ROLE(), owner.address)).to.be.false;
+  });
+
+  it("Calling setAdminRole by non-owner:", async () => {
+    await expect(
+      payment.connect(userSigner).setAdminRole(owner.address),
+    ).to.be.revertedWithCustomError(payment, "OwnableUnauthorizedAccount");
+  });
+
   it("Update owner percentage:", async () => {
     expect(await payment.getOwnerPercentage()).to.be.eq(10);
     await payment.connect(owner).updateOwnerPercentage(20);
@@ -225,10 +309,10 @@ describe("MC Payment Contract", () => {
     ).to.be.revertedWithCustomError(payment, "OwnableUnauthorizedAccount");
   });
 
-  it("Owner withdraw not owner account:", async () => {
+  it("Owner withdraw not owner or WITHDRAWER_ROLE account:", async () => {
     await expect(payment.connect(issuer1Signer).ownerWithdraw()).to.be.revertedWithCustomError(
       payment,
-      "OwnableUnauthorizedAccount",
+      "AccessControlUnauthorizedAccount",
     );
   });
 
@@ -340,6 +424,64 @@ describe("MC Payment Contract", () => {
       [owner, payment],
       [1, -1],
     );
+    expect(await payment.getOwnerERC20Balance(tokenAddress)).to.be.eq(0);
+  });
+
+  it("ERC-20 payment with withdrawer role:", async () => {
+    const tokenFactory = await ethers.getContractFactory("ERC20Token", owner);
+    const token = await tokenFactory.deploy(1_000);
+    await token.connect(owner).transfer(await userSigner.getAddress(), 100);
+    expect(await token.balanceOf(await userSigner.getAddress())).to.be.eq(100);
+
+    await token.connect(userSigner).approve(await payment.getAddress(), 10);
+
+    const paymentData = {
+      tokenAddress: await token.getAddress(),
+      recipient: issuer1Signer.address,
+      amount: 10,
+      expirationDate: Math.round(new Date().getTime() / 1000) + 60 * 60, // 1 hour
+      nonce: 35,
+      metadata: "0x",
+    };
+
+    const signature = await issuer1Signer.signTypedData(domainData, erc20types, paymentData);
+    const erc20PaymentGas = await payment
+      .connect(userSigner)
+      .payERC20.estimateGas(paymentData, signature);
+    console.log("ERC-20 Payment Gas: " + erc20PaymentGas);
+
+    await expect(
+      payment.connect(userSigner).payERC20(paymentData, signature),
+    ).to.changeTokenBalances(token, [userSigner, issuer1Signer, payment], [-10, 9, 1]);
+    expect(await payment.isPaymentDone(issuer1Signer.address, 35)).to.be.true;
+    // owner ERC-20 withdraw
+    const tokenAddress = await token.getAddress();
+    const ownerBalance = await payment.getOwnerERC20Balance(tokenAddress);
+    expect(ownerBalance).to.be.eq(1);
+
+    await expect(
+      payment.connect(userSigner).ownerERC20Withdraw(tokenAddress),
+    ).to.be.revertedWithCustomError(payment, "AccessControlUnauthorizedAccount");
+
+    // grant admin role to owner
+    await payment.connect(owner).setAdminRole(owner.address);
+    // grant WITHDRAWER_ROLE to userSigner
+    await payment
+      .connect(owner)
+      .grantRole(await payment.WITHDRAWER_ROLE(), await userSigner.getAddress());
+
+    await expect(
+      payment.connect(userSigner).ownerERC20Withdraw(tokenAddress),
+    ).to.changeTokenBalances(token, [userSigner, payment], [1, -1]);
+
+    // second owner or withdrawer withdraw
+    await expect(
+      payment.connect(userSigner).ownerERC20Withdraw(tokenAddress),
+    ).to.be.revertedWithCustomError(payment, "WithdrawErrorNoBalance");
+
+    await expect(
+      payment.connect(owner).ownerERC20Withdraw(tokenAddress),
+    ).to.be.revertedWithCustomError(payment, "WithdrawErrorNoBalance");
     expect(await payment.getOwnerERC20Balance(tokenAddress)).to.be.eq(0);
   });
 
