@@ -1,0 +1,107 @@
+{
+  "StateProxyFirstImplementationModule": {
+    "proxyAdminOwner": ""
+  },
+  "UniversalVerifierProxyFirstImplementationModule": {
+    "proxyAdminOwner": ""
+  },
+  "IdentityTreeStoreProxyFirstImplementationModule": {
+    "proxyAdminOwner": ""
+  },
+
+  "StateProxyFinalImplementationModule": {
+    "defaultIdType": "0x01f9"
+  },
+
+  "CrossChainProofValidatorModule": {
+    "oracleSigningAddress": ""
+  },
+
+  "Poseidon1AtModule": {
+    "contractAddress": ""
+  },
+  "Poseidon2AtModule": {
+    "contractAddress": ""
+  },
+  "Poseidon3AtModule": {
+    "contractAddress": ""
+  },
+  "Poseidon4AtModule": {
+    "contractAddress": ""
+  },
+
+  "SmtLibAtModule": {
+    "contractAddress": ""
+  },
+
+  "StateLibAtModule": {
+    "contractAddress": ""
+  },
+
+  "StateAtModule": {
+    "proxyAddress": "",
+    "proxyAdminAddress": ""
+  },
+
+  "StateNewImplementationAtModule": {
+    "contractAddress": ""
+  },
+
+  "CrossChainProofValidatorAtModule": {
+    "contractAddress": ""
+  },
+
+  "Groth16VerifierStateTransitionAtModule": {
+    "contractAddress": ""
+  },
+
+  "IdentityTreeStoreAtModule": {
+    "proxyAddress": "",
+    "proxyAdminAddress": ""
+  },
+
+  "IdentityTreeStoreNewImplementationAtModule": {
+    "contractAddress": ""
+  },
+
+  "UniversalVerifierAtModule": {
+    "proxyAddress": "",
+    "proxyAdminAddress": ""
+  },
+
+  "UniversalVerifierNewImplementationAtModule": {
+    "contractAddress": ""
+  },
+
+  "VerifierLibAtModule": {
+    "contractAddress": ""
+  },
+
+  "CredentialAtomicQuerySigV2ValidatorAtModule": {
+    "contractAddress": ""
+  },
+  "CredentialAtomicQueryMTPV2ValidatorAtModule": {
+    "contractAddress": ""
+  },
+
+  "CredentialAtomicQuerySigV2OnChainValidatorAtModule": {
+    "contractAddress": ""
+  },
+  "CredentialAtomicQueryMTPV2OnChainValidatorAtModule": {
+    "contractAddress": ""
+  },
+
+  "Groth16VerifierSigWrapperAtModule": {
+    "contractAddress": ""
+  },
+  "Groth16VerifierMTPWrapperAtModule": {
+    "contractAddress": ""
+  },
+
+  "Groth16VerifierSigAtModule": {
+    "contractAddress": ""
+  },
+  "Groth16VerifierMTPAtModule": {
+    "contractAddress": ""
+  }
+}

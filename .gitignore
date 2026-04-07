@@ -1,20 +1,106 @@
-node_modules
+# ----------------------------
+
+# Node / TypeScript
+
+# ----------------------------
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Env
+
 .env
-coverage
+.env.*
+
+# Build outputs
+
+dist/
+build/
+out/
+
+# ----------------------------
+
+# Hardhat
+
+# ----------------------------
+
+cache/
+artifacts/
+
+# Typechain
+
+typechain/
+typechain-types/
+
+# Coverage
+
+coverage/
 coverage.json
-typechain
-typechain-types
-.idea
-build
-.vscode
-#Hardhat files
-cache
-artifacts
-migration-result.json
-events-data.json
-scripts/upgrade/verifiers/helpers/circuits
-**localhost.json
-**temp*.json
-!ignition/modules/params/localhost.json
-!ignition/deployments/**/artifacts
-ignition/deployments/chain-31337
+
+# ----------------------------
+
+# Ignition / Deployments (IMPORTANT)
+
+# ----------------------------
+
+ignition/deployments/
+scripts/deployments_output/
+
+# ----------------------------
+
+# OpenZeppelin Upgrades (network junk)
+
+# ----------------------------
+
+.openzeppelin/
+
+# ----------------------------
+
+# OS / Editor junk
+
+# ----------------------------
+
+.DS_Store
+**/.DS_Store
+
+.idea/
+.vscode/
+
+# ----------------------------
+
+# Logs / temp
+
+# ----------------------------
+
+*.log
+output.txt
+
+# ----------------------------
+
+# Hardhat / temp JSONs
+
+# ----------------------------
+
+*localhost.json
+*temp*.json
+
+# ----------------------------
+
+# Circuits (generated artifacts)
+
+# ----------------------------
+
+scripts/upgrade/verifiers/helpers/circuits/
+
+# ----------------------------
+
+# Optional (uncomment if not needed in repo)
+
+# ----------------------------
+
+# adi_deployment_notes.md
+
+# ignition/modules/params/

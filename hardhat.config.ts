@@ -1,31 +1,14 @@
-import { defineConfig } from "hardhat/config";
-import hardhatToolboxMochaEthers from "@nomicfoundation/hardhat-toolbox-mocha-ethers";
-import hardhatIgnitionPlugin from "@nomicfoundation/hardhat-ignition";
-import hardhatLedgerPlugin from "@nomicfoundation/hardhat-ledger";
-import hardhatContractSizer from "@solidstate/hardhat-contract-sizer";
-import hardhatVerify from "@nomicfoundation/hardhat-verify";
+import { HardhatUserConfig, task } from "hardhat/config";
+import "@typechain/hardhat";
+import "hardhat-gas-reporter";
+import "hardhat-contract-sizer";
+import "solidity-coverage";
+import "@openzeppelin/hardhat-upgrades";
+import "@nomicfoundation/hardhat-chai-matchers";
+import "@nomicfoundation/hardhat-verify";
+import "@nomicfoundation/hardhat-ignition-ethers";
+import "@nomicfoundation/hardhat-ledger";
 import dotenv from "dotenv";
-import {
-  BASE_MAINNET_RPC_URL,
-  BASE_SEPOLIA_RPC_URL,
-  BILLIONS_MAINNET_RPC_URL,
-  BILLIONS_TESTNET_RPC_URL,
-  BNB_MAINNET_RPC_URL,
-  BNB_TESTNET_RPC_URL,
-  ETHEREUM_MAINNET_RPC_URL,
-  ETHEREUM_SEPOLIA_RPC_URL,
-  ETHERSCAN_API_KEY,
-  LEDGER_ACCOUNT,
-  LINEA_MAINNET_RPC_URL,
-  LINEA_SEPOLIA_RPC_URL,
-  POLYGON_AMOY_RPC_URL,
-  POLYGON_MAINNET_RPC_URL,
-  PRIVADO_MAINNET_RPC_URL,
-  PRIVADO_TESTNET_RPC_URL,
-  PRIVATE_KEY,
-  ZKEVM_CARDONA_RPC_URL,
-  ZKEVM_MAINNET_RPC_URL,
-} from "./helpers/environment";
 dotenv.config();
 
 const DEFAULT_MNEMONIC = "test test test test test test test test test test test junk";
@@ -36,249 +19,137 @@ const DEFAULT_ACCOUNTS: any = {
   count: 20,
 };
 
-export default defineConfig({
-  plugins: [
-    hardhatToolboxMochaEthers,
-    hardhatIgnitionPlugin,
-    hardhatLedgerPlugin,
-    hardhatContractSizer,
-    hardhatVerify,
-  ],
+// This is a sample Hardhat task. To learn how to create your own go to
+// https://hardhat.org/guides/create-task.html
+task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
+  const accounts = await hre.ethers.getSigners();
+
+  for (const account of accounts) {
+    console.log(await account.getAddress());
+  }
+});
+
+// You need to export an object to set up your config
+// Go to https://hardhat.org/config/ to learn more
+
+/**
+ * @type import('hardhat/config').HardhatUserConfig
+ */
+const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
         version: "0.8.27",
       },
     ],
-    npmFilesToBuild: [
-      "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol",
-      "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol",
-    ],
-    overrides: {
-      "contracts/verifiers/UniversalVerifier.sol": {
-        version: "0.8.27",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 80,
-          },
-        },
-      },
-      "contracts/test-helpers/VerifierTestWrapper.sol": {
-        version: "0.8.27",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
-      },
-      "contracts/test-helpers/UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest.sol": {
-        version: "0.8.27",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 80,
-          },
-        },
-      },
-      "contracts/test-helpers/EmbeddedVerifierWrapper.sol": {
-        version: "0.8.27",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
-      },
-      "contracts/test-helpers/RequestDisableableTestWrapper.sol": {
-        version: "0.8.27",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
-      },
-      "contracts/test-helpers/RequestOwnershipTestWrapper.sol": {
-        version: "0.8.27",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
-      },
-      "contracts/test-helpers/ValidatorWhitelistTestWrapper.sol": {
-        version: "0.8.27",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
-      },
-      "contracts/state/State.sol": {
-        version: "0.8.27",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
-      },
-      "contracts/lib/VerifierLib.sol": {
-        version: "0.8.27",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
-      },
-    },
   },
   networks: {
-    "privado-mainnet": {
-      type: "http",
+    "privado-main": {
       chainId: 21000,
-      url: `${PRIVADO_MAINNET_RPC_URL}`,
+      url: `${process.env.PRIVADO_MAIN_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
-    "privado-testnet": {
-      type: "http",
+    "privado-test": {
       chainId: 21001,
-      url: `${PRIVADO_TESTNET_RPC_URL}`,
+      url: `${process.env.PRIVADO_TEST_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
-    },
-    "billions-mainnet": {
-      type: "http",
-      chainId: 45056,
-      url: `${BILLIONS_MAINNET_RPC_URL}`,
-      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
-    },
-    "billions-testnet": {
-      type: "http",
-      chainId: 6913,
-      url: `${BILLIONS_TESTNET_RPC_URL}`,
-      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "polygon-mainnet": {
-      type: "http",
       chainId: 137,
-      url: `${POLYGON_MAINNET_RPC_URL}`,
+      url: `${process.env.POLYGON_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "polygon-amoy": {
-      type: "http",
       chainId: 80002,
-      url: `${POLYGON_AMOY_RPC_URL}`,
+      url: `${process.env.POLYGON_AMOY_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "ethereum-mainnet": {
-      type: "http",
       chainId: 1,
-      url: `${ETHEREUM_MAINNET_RPC_URL}`,
+      url: `${process.env.ETHEREUM_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "ethereum-sepolia": {
-      type: "http",
       chainId: 11155111,
-      url: `${ETHEREUM_SEPOLIA_RPC_URL}`,
+      url: `${process.env.ETHEREUM_SEPOLIA_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "zkevm-mainnet": {
-      type: "http",
       chainId: 1101,
-      url: `${ZKEVM_MAINNET_RPC_URL}`,
+      url: `${process.env.ZKEVM_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "zkevm-cardona": {
-      type: "http",
       chainId: 2442,
-      url: `${ZKEVM_CARDONA_RPC_URL}`,
+      url: `${process.env.ZKEVM_CARDONA_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "linea-mainnet": {
-      type: "http",
       chainId: 59144,
-      url: `${LINEA_MAINNET_RPC_URL}`,
+      url: `${process.env.LINEA_MAINNET_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
     "linea-sepolia": {
-      type: "http",
       chainId: 59141,
-      url: `${LINEA_SEPOLIA_RPC_URL}`,
+      url: `${process.env.LINEA_SEPOLIA_RPC_URL}`,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
+      ledgerAccounts: [`${process.env.LEDGER_ACCOUNT}`],
     },
-    "base-mainnet": {
+    "adi-testnet": {
       type: "http",
-      chainId: 8453,
-      url: `${BASE_MAINNET_RPC_URL}`,
-      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
+      chainId: Number(process.env.ADI_CHAIN_ID || 99999),
+      url: process.env.ADI_RPC_URL!,
+      accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
+      timeout: 120000,
+      httpHeaders: {},
     },
-    "base-sepolia": {
-      type: "http",
-      chainId: 84532,
-      url: `${BASE_SEPOLIA_RPC_URL}`,
-      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
-    },
-    "bnb-mainnet": {
-      type: "http",
-      chainId: 56,
-      url: `${BNB_MAINNET_RPC_URL}`,
-      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
-    },
-    "bnb-testnet": {
-      type: "http",
-      chainId: 97,
-      url: `${BNB_TESTNET_RPC_URL}`,
-      // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
-      ledgerAccounts: [`${LEDGER_ACCOUNT}`],
-    },
-    // --------------------------------------------------------------------------------------------------------------
-    // Note: uncomment to use a forked network and then run `npx hardhat node --fork`
-    // in some networks is needed to execute first a script with `await ethers.provider.send("evm_mine")` 
-    // to mine a block. Otherwise you can receive an error: "No known hardfork for execution on historical block..."
-    // --------------------------------------------------------------------------------------------------------------
-    // fork: {
+    // hardhat: {
     //   chainId: 80002,
-    //   type: "edr-simulated",
     //   forking: {
-    //     url: `${POLYGON_AMOY_RPC_URL}`,
+    //     url: `${process.env.POLYGON_AMOY_RPC_URL}`,
+    //   },
+    //   chains: {
+    //     80002: {
+    //       hardforkHistory: {
+    //         london: 10000000,
+    //       },
+    //     },
     //   },
     //   accounts: [
     //     {
-    //       privateKey: PRIVATE_KEY as string,
+    //       privateKey: process.env.PRIVATE_KEY as string,
     //       balance: "1000000000000000000000000",
     //     },
     //   ],
     // },
     localhost: {
-      type: "http",
       url: "http://127.0.0.1:8545",
       timeout: 100000000,
       // accounts: process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : DEFAULT_ACCOUNTS,
     },
   },
-  typechain: {
-    outDir: "typechain",
-    discriminateTypes: true,
+  gasReporter: {
+    currency: "USD",
+    coinmarketcap: process.env.COINMARKETCAP_KEY,
+    enabled: !!process.env.REPORT_GAS,
+    token: "MATIC",
+    gasPriceApi: "https://api.polygonscan.com/api?module=proxy&action=eth_gasPrice", // MATIC
+    // gasPriceAPI: "https://api.etherscan.io/api?module=proxy&action=eth_gasPrice", // ETH
+  },
+  contractSizer: {
+    alphaSort: false,
+    disambiguatePaths: false,
+    runOnCompile: true,
+    strict: false,
   },
   ignition: {
     strategyConfig: {
@@ -300,38 +171,64 @@ export default defineConfig({
         //      -> In our case f4179bc3e4988a1a06f8d1
       },
     },
+    requiredConfirmations: 5,
   },
-  verify: {
-    etherscan: {
-      apiKey: ETHERSCAN_API_KEY,
+
+  etherscan: {
+    apiKey: {
+      "polygon-amoy": process.env.POLYGON_EXPLORER_API_KEY || "",
+      polygon: process.env.POLYGON_EXPLORER_API_KEY || "",
+      sepolia: process.env.ETHEREUM_EXPLORER_API_KEY || "",
+      mainnet: process.env.ETHEREUM_EXPLORER_API_KEY || "",
+      "linea-mainnet": process.env.LINEA_EXPLORER_API_KEY || "",
+      "linea-sepolia": process.env.LINEA_EXPLORER_API_KEY || "",
+      "zkevm-cardona": process.env.ZKEVM_EXPLORER_API_KEY || "",
+      "zkevm-mainnet": process.env.ZKEVM_EXPLORER_API_KEY || "",
     },
-  },
-  chainDescriptors: {
-    6913: {
-      name: "billions-testnet",
-      blockExplorers: {
-        blockscout: {
-          name: "billions-testnet",
-          url: "https://billions-testnet-blockscout.eu-north-2.gateway.fm",
-          apiUrl: "https://billions-testnet-blockscout.eu-north-2.gateway.fm/api/",
+    customChains: [
+      {
+        network: "polygon-amoy",
+        chainId: 80002,
+        urls: {
+          apiURL: "https://api-amoy.polygonscan.com/api",
+          browserURL: "https://docs.polygonscan.com",
         },
       },
-    },
-    45056: {
-      name: "billions-mainnet",
-      blockExplorers: {
-        blockscout: {
-          name: "billions-mainnet",
-          url: "https://billions-rpc.eu-north-2.gateway.fm",
-          apiUrl: "https://billions-rpc.eu-north-2.gateway.fm/api/",
+      {
+        network: "linea-sepolia",
+        chainId: 59141,
+        urls: {
+          apiURL: "https://api-sepolia.lineascan.build/api",
+          browserURL: "https://docs.lineascan.build/sepolia-lineascan",
         },
       },
-    },
+      {
+        network: "linea-mainnet",
+        chainId: 59144,
+        urls: {
+          apiURL: "https://api.lineascan.build/api",
+          browserURL: "https://docs.lineascan.build",
+        },
+      },
+      {
+        network: "zkevm-cardona",
+        chainId: 2442,
+        urls: {
+          apiURL: "https://api-cardona-zkevm.polygonscan.com/api",
+          browserURL: "https://docs.polygonscan.com/cardona-polygon-zkevm",
+        },
+      },
+      {
+        network: "zkevm-mainnet",
+        chainId: 1101,
+        urls: {
+          apiURL: "https://api-zkevm.polygonscan.com/api",
+          browserURL: "https://docs.polygonscan.com/polygon-zkevm",
+        },
+
+      },
+    ],
   },
-  contractSizer: {
-    alphaSort: false,
-    runOnCompile: false,
-    strict: false,
-    flat: true,
-  },
-});
+};
+
+export default config;
