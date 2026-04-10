@@ -164,7 +164,7 @@
   },
   "overrides": {
     "diff": "^8.0.3",
-    "lodash": "^4.17.23",
+    "lodash": "^4.18.1",
     "lodash-es": "^4.17.23",
     "minimatch": "^10.2.2",
     "axios": "^1.13.5",
