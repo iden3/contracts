@@ -173,7 +173,9 @@ library VerifierLib {
         uint256 userIDfromResponse = userID(responseFields);
 
         if (userIDfromResponse != 0) {
-            Verifier.Proof storage proofByUserId = self._proofsByUserId[requestId][userIDfromResponse];
+            Verifier.Proof storage proofByUserId = self._proofsByUserId[requestId][
+                userIDfromResponse
+            ];
             proofByUserId.isVerified = true;
             proofByUserId.proofEntries.push();
 

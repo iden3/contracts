@@ -22,8 +22,16 @@ error MultiRequestIdNotValid(uint256 expectedMultiRequestId, uint256 multiReques
 error NullifierSessionIDAlreadyExists(uint256 nullifierSessionID);
 error ResponseFieldDoesNotExist(uint256 requestId, address sender, string responseFieldName);
 error ResponseFieldAlreadyExists(uint256 requestId, address sender, string responseFieldName);
-error ResponseFieldByUserIdDoesNotExist(uint256 requestId, uint256 userId, string responseFieldName);
-error ResponseFieldByUserIdAlreadyExists(uint256 requestId, uint256 userId, string responseFieldName);
+error ResponseFieldByUserIdDoesNotExist(
+    uint256 requestId,
+    uint256 userId,
+    string responseFieldName
+);
+error ResponseFieldByUserIdAlreadyExists(
+    uint256 requestId,
+    uint256 userId,
+    string responseFieldName
+);
 error ProofAlreadyVerified(uint256 requestId, address sender);
 error ProofIsNotVerified(uint256 requestId, address sender);
 error ProofByUserIdAlreadyVerified(uint256 requestId, uint256 userId);
@@ -631,7 +639,10 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         VerifierLib.checkCanWriteProofResults(_getVerifierStorage(), requestId, sender);
     }
 
-    function _checkCanWriteProofByUserIDResults(uint256 requestId, uint256 userId) internal view virtual {
+    function _checkCanWriteProofByUserIDResults(
+        uint256 requestId,
+        uint256 userId
+    ) internal view virtual {
         VerifierLib.checkCanWriteProofByUserIdResults(_getVerifierStorage(), requestId, userId);
     }
 
