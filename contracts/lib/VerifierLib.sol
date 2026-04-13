@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.10;
+pragma solidity 0.8.27;
 
 import {IRequestValidator} from "../interfaces/IRequestValidator.sol";
 // solhint-disable max-line-length
@@ -9,6 +9,7 @@ import {GroupIdAlreadyExists, ResponseFieldDoesNotExist, LinkIDNotTheSameForGrou
 import {MultiRequestIdNotFound, MultiRequestIdAlreadyExists, RequestShouldNotHaveAGroup, RequestIdAlreadyExists} from "../verifiers/Verifier.sol";
 import {RequestIdNotFound, RequestIdNotValid, RequestIdTypeNotValid, RequestIdUsesReservedBytes, GroupIdNotFound} from "../verifiers/Verifier.sol";
 import {ProofAlreadyVerified, AuthMethodAlreadyExists, AuthMethodNotFound, ProofIsNotVerified} from "../verifiers/Verifier.sol";
+import {ProofByUserIdAlreadyVerified, ProofByUserIdIsNotVerified, ResponseFieldByUserIdDoesNotExist, ResponseFieldByUserIdAlreadyExists} from "../verifiers/Verifier.sol";
 // solhint-enable max-line-length
 import {IVerifier} from "../interfaces/IVerifier.sol";
 import {IAuthValidator} from "../interfaces/IAuthValidator.sol";
@@ -54,6 +55,33 @@ library VerifierLib {
         _;
     }
 
+    /**
+     * @dev Modifier to check if the request is verified
+     * @param requestId The ID of the request
+     * @param userId The ID of the user
+     * @param verification Whether request should be verified or not
+     */
+    modifier checkVerificationByUserId(
+        Verifier.VerifierStorage storage self,
+        uint256 requestId,
+        uint256 userId,
+        bool verification
+    ) {
+        if (!requestIdExists(self, requestId)) {
+            revert RequestIdNotFound(requestId);
+        }
+        Verifier.Proof storage proof = self._proofsByUserId[requestId][userId];
+        if (verification) {
+            if (!proof.isVerified) {
+                revert ProofByUserIdIsNotVerified(requestId, userId);
+            }
+        } else {
+            if (proof.isVerified) {
+                revert ProofByUserIdAlreadyVerified(requestId, userId);
+            }
+        }
+        _;
+    }
     /**
      * @dev Modifier to check if the request exists
      */
@@ -140,6 +168,38 @@ library VerifierLib {
             proofEntry.responseFieldIndexes[responseFields[i].name] = proofEntry
                 .responseFieldNames
                 .length;
+        }
+
+        uint256 userIDfromResponse = userID(responseFields);
+
+        if (userIDfromResponse != 0) {
+            Verifier.Proof storage proofByUserId = self._proofsByUserId[requestId][userIDfromResponse];
+            proofByUserId.isVerified = true;
+            proofByUserId.proofEntries.push();
+
+            Verifier.ProofEntry storage proofEntryByUserId = proofByUserId.proofEntries[
+                proofByUserId.proofEntries.length - 1
+            ];
+            proofEntryByUserId.validatorVersion = self._requests[requestId].validator.version();
+            proofEntryByUserId.blockTimestamp = block.timestamp;
+
+            for (uint256 i = 0; i < responseFields.length; i++) {
+                if (proofEntryByUserId.responseFieldIndexes[responseFields[i].name] != 0) {
+                    revert ResponseFieldByUserIdAlreadyExists(
+                        requestId,
+                        userIDfromResponse,
+                        responseFields[i].name
+                    );
+                }
+
+                proofEntryByUserId.responseFields[responseFields[i].name] = responseFields[i].value;
+                proofEntryByUserId.responseFieldNames.push(responseFields[i].name);
+                // we are not using a real index defined by length-1 here but defined by just length
+                // which shifts the index by 1 to avoid 0 value
+                proofEntryByUserId.responseFieldIndexes[responseFields[i].name] = proofEntryByUserId
+                    .responseFieldNames
+                    .length;
+            }
         }
     }
 
@@ -309,6 +369,14 @@ library VerifierLib {
         return self._multiRequests[multiRequestId];
     }
 
+    /**
+     * @dev Retrieves the value of a response field for a given request ID and user address
+     * @param self The verifier storage
+     * @param requestId The ID of the request
+     * @param sender The address of the user
+     * @param responseFieldName The name of the response field
+     * @return The value of the response field
+     */
     function getResponseFieldValue(
         Verifier.VerifierStorage storage self,
         uint256 requestId,
@@ -322,6 +390,32 @@ library VerifierLib {
             ] == 0
         ) {
             revert ResponseFieldDoesNotExist(requestId, sender, responseFieldName);
+        }
+
+        return proof.proofEntries[proof.proofEntries.length - 1].responseFields[responseFieldName];
+    }
+
+    /**
+     * @dev Retrieves the value of a response field for a given request ID and user address
+     * @param self The verifier storage
+     * @param requestId The ID of the request
+     * @param userId The ID of the user
+     * @param responseFieldName The name of the response field
+     * @return The value of the response field
+     */
+    function getResponseFieldValueByUserId(
+        Verifier.VerifierStorage storage self,
+        uint256 requestId,
+        uint256 userId,
+        string memory responseFieldName
+    ) public view checkVerificationByUserId(self, requestId, userId, true) returns (uint256) {
+        Verifier.Proof storage proof = self._proofsByUserId[requestId][userId];
+        if (
+            proof.proofEntries[proof.proofEntries.length - 1].responseFieldIndexes[
+                responseFieldName
+            ] == 0
+        ) {
+            revert ResponseFieldByUserIdDoesNotExist(requestId, userId, responseFieldName);
         }
 
         return proof.proofEntries[proof.proofEntries.length - 1].responseFields[responseFieldName];
@@ -383,12 +477,49 @@ library VerifierLib {
             });
     }
 
+    /**
+     * @dev Gets the proof status of a request for a given user address
+     * @param self The verifier storage
+     * @param sender The address of the user
+     * @param requestId The ID of the request
+     * @return The proof status of the request for the user address
+     */
     function getRequestProofStatus(
         Verifier.VerifierStorage storage self,
         address sender,
         uint256 requestId
     ) external view returns (IVerifier.RequestProofStatus memory) {
         Verifier.Proof storage proof = self._proofs[requestId][sender];
+        if (proof.isVerified) {
+            Verifier.ProofEntry storage lastProofEntry = proof.proofEntries[
+                proof.proofEntries.length - 1
+            ];
+
+            return
+                IVerifier.RequestProofStatus(
+                    requestId,
+                    true,
+                    lastProofEntry.validatorVersion,
+                    lastProofEntry.blockTimestamp
+                );
+        } else {
+            return IVerifier.RequestProofStatus(requestId, false, "", 0);
+        }
+    }
+
+    /**
+     * @dev Gets the proof status of a request for a given user ID
+     * @param self The verifier storage
+     * @param userId The ID of the user
+     * @param requestId The ID of the request
+     * @return The proof status of the request for the user ID
+     */
+    function getRequestProofStatusByUserId(
+        Verifier.VerifierStorage storage self,
+        uint256 userId,
+        uint256 requestId
+    ) external view returns (IVerifier.RequestProofStatus memory) {
+        Verifier.Proof storage proof = self._proofsByUserId[requestId][userId];
         if (proof.isVerified) {
             Verifier.ProofEntry storage lastProofEntry = proof.proofEntries[
                 proof.proofEntries.length - 1
@@ -430,6 +561,18 @@ library VerifierLib {
         }
     }
 
+    function checkCanWriteProofByUserIdResults(
+        Verifier.VerifierStorage storage self,
+        uint256 requestId,
+        uint256 userId
+    ) external view {
+        Verifier.Proof storage proof = self._proofsByUserId[requestId][userId];
+
+        if (proof.isVerified) {
+            revert ProofByUserIdAlreadyVerified(requestId, userId);
+        }
+    }
+
     function checkUserIDMatch(
         uint256 userIDFromAuthResponse,
         IRequestValidator.ResponseField[] memory signals
@@ -445,7 +588,7 @@ library VerifierLib {
 
     function userID(
         IRequestValidator.ResponseField[] memory signals
-    ) external pure returns (uint256) {
+    ) public pure returns (uint256) {
         for (uint256 j = 0; j < signals.length; j++) {
             if (keccak256(abi.encodePacked(signals[j].name)) == USER_ID_FIELD_NAME_HASH) {
                 return signals[j].value;
