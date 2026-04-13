@@ -15,6 +15,7 @@ import VCPaymentModule from "../vcPayment";
 import { network } from "hardhat";
 import AuthV3ValidatorModule from "../authV3Validator";
 import AuthV3_8_32ValidatorModule from "../authV3_8_32Validator";
+import { contractsInfo } from "../../../helpers/constants";
 
 const { ethers } = await network.connect();
 
@@ -102,7 +103,7 @@ const DeploySystemFianlImplementationsModule = buildModule(
     m.call(
       universalVerifier,
       "setAuthMethod",
-      [{ authMethod: "embeddedAuth", validator: ethers.ZeroAddress, params: "0x" }],
+      [{ authMethod: "embeddedAuth", validator: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress, params: "0x" }], // put some dummy address as validator
       {
         id: "setAuthMethodEmbeddedAuth",
       },

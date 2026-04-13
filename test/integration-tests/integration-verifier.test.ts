@@ -161,7 +161,7 @@ describe("Verifier Integration test", async function () {
 
     const authMethodEmbeddedAuthParams = {
       authMethod: authMethodEmbeddedAuth,
-      validator: ethers.ZeroAddress,
+      validator: await verifier.getAddress(),
       params: "0x",
     };
     await verifier.setAuthMethod(authMethodEmbeddedAuthParams);

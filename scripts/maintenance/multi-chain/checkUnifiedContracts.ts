@@ -21,7 +21,7 @@ async function main() {
     const contractsNotDeployed: string[] = [];
     const contractsNotUpgraded: string[] = [];
     for (const property in contractsInfo) {
-      if (contractsInfo[property].unifiedAddress !== "") {
+      if (contractsInfo[property].unifiedAddress !== "" && property !== "VC_PAYMENT") {
         if (await isContract(contractsInfo[property].unifiedAddress, jsonRpcProvider)) {
           if (contractsInfo[property].version) {
             const signer = new ethers.Wallet(mnemonicWallet.privateKey, jsonRpcProvider);
