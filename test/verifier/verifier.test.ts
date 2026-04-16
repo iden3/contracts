@@ -361,7 +361,6 @@ describe("Verifier tests", function () {
 
     it("submitResponse: not repeated responseFields from validator", async function () {
       await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
-      const userId = 1;
       await validator1.stub_setInput("userID", userId);
       await verifier.setRequests([request]);
       await validator1.stub_setVerifyResults([
@@ -484,11 +483,10 @@ describe("Verifier tests", function () {
       await validator1.stub_setInput("userID", userId);
       await verifier.setRequests([request]);
 
-      let userID = 1; // we assume that userID is hardcoded to 1 in the auth stub contract
       await validator1.stub_setVerifyResults([
         {
           name: "userID",
-          value: userID,
+          value: userId,
           rawValue: "0x",
         },
       ]);
@@ -506,18 +504,18 @@ describe("Verifier tests", function () {
 
       await verifier.submitResponse(authResponse, [response], crossChainProofs);
 
-      userID = 2;
+      const userId2 = 2;
       await validator1.stub_setVerifyResults([
         {
           name: "userID",
-          value: userID,
+          value: userId2,
           rawValue: "0x",
         },
       ]);
 
       await expect(verifier.submitResponse(authResponse, [response], crossChainProofs))
         .to.revertedWithCustomError(verifierLib, "UserIDMismatch")
-        .withArgs(1, 2);
+        .withArgs(userId, userId2);
     });
 
     it("can't submit more than one response for the same requestId", async function () {
@@ -654,11 +652,10 @@ describe("Verifier tests", function () {
       );
       expect(isMultiRequest2Verified).to.be.false;
 
-      const userID = 1; // we assume that userID is hardcoded to 1 in the auth stub contract
       await validator1.stub_setVerifyResults([
         {
           name: "userID",
-          value: userID,
+          value: userId,
           rawValue: "0x",
         },
       ]);
@@ -735,14 +732,13 @@ describe("Verifier tests", function () {
       };
       await verifier.setMultiRequest(multiRequest3);
 
-      const userID = 1;
       await validator1.stub_setVerifyResults([
-        { name: "userID", value: userID, rawValue: "0x" },
+        { name: "userID", value: userId, rawValue: "0x" },
         { name: "issuerID", value: 2, rawValue: "0x" },
         { name: "linkID", value: 3, rawValue: "0x" },
       ]);
       await validator2.stub_setVerifyResults([
-        { name: "userID", value: userID, rawValue: "0x" },
+        { name: "userID", value: userId, rawValue: "0x" },
         { name: "issuerID", value: 2, rawValue: "0x" },
         { name: "linkID", value: 4, rawValue: "0x" },
       ]);
@@ -804,9 +800,8 @@ describe("Verifier tests", function () {
       };
       await verifier.setMultiRequest(multiRequest4);
 
-      const userID = 1;
       await validator1.stub_setVerifyResults([
-        { name: "userID", value: userID, rawValue: "0x" },
+        { name: "userID", value: userId, rawValue: "0x" },
         { name: "issuerID", value: 2, rawValue: "0x" },
         { name: "linkID", value: 3, rawValue: "0x" },
       ]);

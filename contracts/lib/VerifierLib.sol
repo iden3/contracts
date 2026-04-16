@@ -82,6 +82,7 @@ library VerifierLib {
         }
         _;
     }
+
     /**
      * @dev Modifier to check if the request exists
      */
@@ -146,14 +147,17 @@ library VerifierLib {
         Verifier.VerifierStorage storage self,
         uint256 requestId,
         address sender,
+        uint256 userId,
         IRequestValidator.ResponseField[] memory responseFields
     ) external {
         Verifier.Proof storage proof = self._proofs[requestId][sender];
         proof.isVerified = true;
         proof.proofEntries.push();
 
+        string memory validatorVersion = self._requests[requestId].validator.version();
+
         Verifier.ProofEntry storage proofEntry = proof.proofEntries[proof.proofEntries.length - 1];
-        proofEntry.validatorVersion = self._requests[requestId].validator.version();
+        proofEntry.validatorVersion = validatorVersion;
         proofEntry.blockTimestamp = block.timestamp;
 
         for (uint256 i = 0; i < responseFields.length; i++) {
@@ -170,26 +174,22 @@ library VerifierLib {
                 .length;
         }
 
-        uint256 userIDfromResponse = userID(responseFields);
-
-        if (userIDfromResponse != 0) {
-            Verifier.Proof storage proofByUserId = self._proofsByUserId[requestId][
-                userIDfromResponse
-            ];
+        if (userId != 0) {
+            Verifier.Proof storage proofByUserId = self._proofsByUserId[requestId][userId];
             proofByUserId.isVerified = true;
             proofByUserId.proofEntries.push();
 
             Verifier.ProofEntry storage proofEntryByUserId = proofByUserId.proofEntries[
                 proofByUserId.proofEntries.length - 1
             ];
-            proofEntryByUserId.validatorVersion = self._requests[requestId].validator.version();
+            proofEntryByUserId.validatorVersion = validatorVersion;
             proofEntryByUserId.blockTimestamp = block.timestamp;
 
             for (uint256 i = 0; i < responseFields.length; i++) {
                 if (proofEntryByUserId.responseFieldIndexes[responseFields[i].name] != 0) {
                     revert ResponseFieldByUserIdAlreadyExists(
                         requestId,
-                        userIDfromResponse,
+                        userId,
                         responseFields[i].name
                     );
                 }
@@ -555,7 +555,7 @@ library VerifierLib {
         Verifier.VerifierStorage storage self,
         uint256 requestId,
         address sender
-    ) external view {
+    ) public view {
         if (!requestIdExists(self, requestId)) {
             revert RequestIdNotFound(requestId);
         }
@@ -570,7 +570,7 @@ library VerifierLib {
         Verifier.VerifierStorage storage self,
         uint256 requestId,
         uint256 userId
-    ) external view {
+    ) public view {
         if (!requestIdExists(self, requestId)) {
             revert RequestIdNotFound(requestId);
         }

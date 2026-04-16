@@ -667,17 +667,23 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function _writeProofResults(
         uint256 requestId,
         address sender,
-        uint256 userID,
+        uint256 userId,
         IRequestValidator.ResponseField[] memory responseFields
     ) internal {
         _checkCanWriteProofResults(requestId, sender);
 
-        if (userID != 0) {
-            _checkCanWriteProofByUserIdResults(requestId, userID);
+        if (userId != 0) {
+            _checkCanWriteProofByUserIdResults(requestId, userId);
         }
 
         return
-            VerifierLib.writeProofResults(_getVerifierStorage(), requestId, sender, responseFields);
+            VerifierLib.writeProofResults(
+                _getVerifierStorage(),
+                requestId,
+                sender,
+                userId,
+                responseFields
+            );
     }
 
     function _processAuthMethod(

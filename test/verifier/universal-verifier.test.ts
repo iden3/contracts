@@ -73,6 +73,7 @@ describe("Universal Verifier tests", function () {
           parameters: parameters,
         }));
       }
+      break;
       case "UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest": {
         ({
           state: stateContract,
@@ -85,6 +86,7 @@ describe("Universal Verifier tests", function () {
           },
         ));
       }
+      break;
     }
 
     const validator = (await ignition.deploy(RequestValidatorStubModule)).requestValidatorStub;
