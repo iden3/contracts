@@ -556,6 +556,9 @@ library VerifierLib {
         uint256 requestId,
         address sender
     ) external view {
+        if (!requestIdExists(self, requestId)) {
+            revert RequestIdNotFound(requestId);
+        }
         Verifier.Proof storage proof = self._proofs[requestId][sender];
 
         if (proof.isVerified) {
@@ -568,6 +571,9 @@ library VerifierLib {
         uint256 requestId,
         uint256 userId
     ) external view {
+        if (!requestIdExists(self, requestId)) {
+            revert RequestIdNotFound(requestId);
+        }
         Verifier.Proof storage proof = self._proofsByUserId[requestId][userId];
 
         if (proof.isVerified) {

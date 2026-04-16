@@ -292,6 +292,14 @@ describe("Verifier tests", function () {
         .withArgs(nonExistingRequestId);
     });
 
+    it("getRequestProofStatusByUserId: requestId should exist", async function () {
+      const nonExistingRequestId = 2;
+
+      await expect(verifier.getRequestProofStatusByUserId(1, nonExistingRequestId))
+        .to.be.revertedWithCustomError(verifier, "RequestIdNotFound")
+        .withArgs(nonExistingRequestId);
+    });
+
     it("getAuthMethod: authMethod should exist", async function () {
       const authMethod2 = { ...authMethod, authMethod: "stubAuth2" };
 
@@ -350,7 +358,8 @@ describe("Verifier tests", function () {
 
     it("submitResponse: not repeated responseFields from validator", async function () {
       await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
-      await validator1.stub_setInput("userID", 1);
+      const userId = 1;
+      await validator1.stub_setInput("userID", userId);
       await verifier.setRequests([request]);
       await validator1.stub_setVerifyResults([
         {
@@ -363,6 +372,11 @@ describe("Verifier tests", function () {
           value: 2,
           rawValue: "0x",
         },
+        {
+          name: "userID",
+          value: 1,
+          rawValue:"0x"
+        }
       ]);
 
       const authResponse = {
@@ -379,10 +393,16 @@ describe("Verifier tests", function () {
       let isRequestProofVerified = await verifier.isRequestProofVerified(sender, request.requestId);
       expect(isRequestProofVerified).to.be.false;
 
+      let isRequestProofVerifiedByUserId = await verifier.isRequestProofVerifiedByUserId(userId, request.requestId);
+      expect(isRequestProofVerifiedByUserId).to.be.false;
+
       await verifier.submitResponse(authResponse, [response], crossChainProofs);
 
       isRequestProofVerified = await verifier.isRequestProofVerified(sender, request.requestId);
       expect(isRequestProofVerified).to.be.true;
+
+      isRequestProofVerifiedByUserId = await verifier.isRequestProofVerifiedByUserId(userId, request.requestId);
+      expect(isRequestProofVerifiedByUserId).to.be.true;
 
       const responseField1 = await verifier.getResponseFieldValue(
         request.requestId,
@@ -398,7 +418,7 @@ describe("Verifier tests", function () {
       expect(responseField2).to.be.equal(2);
 
       const responseFields = await verifier.getResponseFields(request.requestId, sender);
-      expect(responseFields.length).to.be.equal(2);
+      expect(responseFields.length).to.be.equal(3);
       expect(responseFields[0].name).to.be.equal("someFieldName1");
       expect(responseFields[0].value).to.be.equal(1);
       expect(responseFields[1].name).to.be.equal("someFieldName2");
@@ -478,7 +498,7 @@ describe("Verifier tests", function () {
         .withArgs(1, 2);
     });
 
-    it("can't submit more that one response for the same requestId", async function () {
+    it("can't submit more than one response for the same requestId", async function () {
       await validator1.stub_setRequestParams([request.params], [paramsFromValidator]);
       await validator1.stub_setInput("userID", 1);
       await verifier.setRequests([request]);

@@ -408,8 +408,8 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function getResponseFieldValueByUserId(
         uint256 requestId,
         uint256 userId,
-        string calldata responseFieldName
-    ) public view checkRequestExistence(requestId, true) returns (uint256) {
+        string memory responseFieldName
+    ) public view returns (uint256) {
         return
             VerifierLib.getResponseFieldValueByUserId(
                 _getVerifierStorage(),
@@ -639,7 +639,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         VerifierLib.checkCanWriteProofResults(_getVerifierStorage(), requestId, sender);
     }
 
-    function _checkCanWriteProofByUserIDResults(
+    function _checkCanWriteProofByUserIdResults(
         uint256 requestId,
         uint256 userId
     ) internal view virtual {
@@ -673,7 +673,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         uint256 userID = VerifierLib.userID(responseFields);
         if (userID != 0) {
-            _checkCanWriteProofByUserIDResults(requestId, userID);
+            _checkCanWriteProofByUserIdResults(requestId, userID);
         }
 
         return

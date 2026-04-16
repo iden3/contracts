@@ -13,7 +13,7 @@ contract UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest is Universa
     }
 
     // solhint-disable no-empty-blocks
-    function _checkCanWriteProofByUserIDResults(
+    function _checkCanWriteProofByUserIdResults(
         uint256 /* requestId */,
         uint256 /* userId */
     ) internal view override {
