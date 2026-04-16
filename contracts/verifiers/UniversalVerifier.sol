@@ -254,7 +254,7 @@ contract UniversalVerifier is
         if (_msgSender() != owner()) super._checkRequestOwner(request);
     }
 
-    // solhint-disable no-empty-blocks
+    /* solhint-disable no-empty-blocks */
     function _checkCanWriteProofResults(
         uint256 /* requestId */,
         address /* caller */
@@ -262,11 +262,11 @@ contract UniversalVerifier is
         // Allow all writes
     }
 
-    // solhint-disable no-empty-blocks
     function _checkCanWriteProofByUserIdResults(
         uint256 /* requestId */,
         uint256 /* userId */
     ) internal view virtual override {
         // Allow all writes
     }
+    /* solhint-enable no-empty-blocks */
 }

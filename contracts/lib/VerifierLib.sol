@@ -398,7 +398,7 @@ library VerifierLib {
     }
 
     /**
-     * @dev Retrieves the value of a response field for a given request ID and user address
+     * @dev Retrieves the value of a response field for a given request ID and user Id
      * @param self The verifier storage
      * @param requestId The ID of the request
      * @param userId The ID of the user

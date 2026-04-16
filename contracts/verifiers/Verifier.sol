@@ -338,7 +338,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             // Check if userID from authResponse is the same as the one in the responseFields
             VerifierLib.checkUserIDMatch(userIDFromAuthResponse, responseFields);
 
-            _writeProofResults(response.requestId, sender, responseFields);
+            _writeProofResults(response.requestId, sender, userIDFromAuthResponse, responseFields);
         }
     }
 
@@ -667,11 +667,11 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function _writeProofResults(
         uint256 requestId,
         address sender,
+        uint256 userID,
         IRequestValidator.ResponseField[] memory responseFields
     ) internal {
         _checkCanWriteProofResults(requestId, sender);
 
-        uint256 userID = VerifierLib.userID(responseFields);
         if (userID != 0) {
             _checkCanWriteProofByUserIdResults(requestId, userID);
         }
