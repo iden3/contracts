@@ -22,8 +22,20 @@ error MultiRequestIdNotValid(uint256 expectedMultiRequestId, uint256 multiReques
 error NullifierSessionIDAlreadyExists(uint256 nullifierSessionID);
 error ResponseFieldDoesNotExist(uint256 requestId, address sender, string responseFieldName);
 error ResponseFieldAlreadyExists(uint256 requestId, address sender, string responseFieldName);
+error ResponseFieldByUserIdDoesNotExist(
+    uint256 requestId,
+    uint256 userId,
+    string responseFieldName
+);
+error ResponseFieldByUserIdAlreadyExists(
+    uint256 requestId,
+    uint256 userId,
+    string responseFieldName
+);
 error ProofAlreadyVerified(uint256 requestId, address sender);
 error ProofIsNotVerified(uint256 requestId, address sender);
+error ProofByUserIdAlreadyVerified(uint256 requestId, uint256 userId);
+error ProofByUserIdIsNotVerified(uint256 requestId, uint256 userId);
 error RequestIdAlreadyExists(uint256 requestId);
 error RequestIdNotFound(uint256 requestId);
 error RequestIdNotValid(uint256 expectedRequestId, uint256 requestId);
@@ -87,6 +99,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         mapping(uint256 nullifierSessionID => uint256 requestId) _nullifierSessionIDs;
         // verifierID to check in requests
         uint256 _verifierID;
+        mapping(uint256 requestId => mapping(uint256 userId => Proof)) _proofsByUserId;
     }
 
     /**
@@ -325,7 +338,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             // Check if userID from authResponse is the same as the one in the responseFields
             VerifierLib.checkUserIDMatch(userIDFromAuthResponse, responseFields);
 
-            _writeProofResults(response.requestId, sender, responseFields);
+            _writeProofResults(response.requestId, sender, userIDFromAuthResponse, responseFields);
         }
     }
 
@@ -369,6 +382,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      * @param requestId Id of the request
      * @param sender Address of the user
      * @param responseFieldName Name of the response field to get
+     * @return The value of the specified response field for the given sender and request ID.
      */
     function getResponseFieldValue(
         uint256 requestId,
@@ -380,6 +394,27 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                 _getVerifierStorage(),
                 requestId,
                 sender,
+                responseFieldName
+            );
+    }
+
+    /**
+     * @dev Retrieves the value of a specific response field for a given user ID and request ID.
+     * @param requestId The request ID for which to retrieve the response field value.
+     * @param userId The user ID for which to retrieve the response field value.
+     * @param responseFieldName The name of the response field to retrieve.
+     * @return The value of the specified response field for the given user ID and request ID.
+     */
+    function getResponseFieldValueByUserId(
+        uint256 requestId,
+        uint256 userId,
+        string memory responseFieldName
+    ) public view returns (uint256) {
+        return
+            VerifierLib.getResponseFieldValueByUserId(
+                _getVerifierStorage(),
+                requestId,
+                userId,
                 responseFieldName
             );
     }
@@ -446,6 +481,19 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     }
 
     /**
+     * @dev Checks if a proof from a request submitted for a given user ID and request ID is verified
+     * @param userId The ID of the user
+     * @param requestId The ID of the request
+     * @return True if proof is verified
+     */
+    function isRequestProofVerifiedByUserId(
+        uint256 userId,
+        uint256 requestId
+    ) public view checkRequestExistence(requestId, true) returns (bool) {
+        return _getVerifierStorage()._proofsByUserId[requestId][userId].isVerified;
+    }
+
+    /**
      * @dev Get the requests count.
      * @return Requests count.
      */
@@ -503,6 +551,24 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         returns (IVerifier.RequestProofStatus memory)
     {
         return VerifierLib.getRequestProofStatus(_getVerifierStorage(), sender, requestId);
+    }
+
+    /**
+     * @dev Gets the proof status for a given user ID and request ID
+     * @param userId The user ID for which to get the proof status
+     * @param requestId The request ID for which to get the proof status
+     * @return The proof status for the given user ID and request ID
+     */
+    function getRequestProofStatusByUserId(
+        uint256 userId,
+        uint256 requestId
+    )
+        public
+        view
+        checkRequestExistence(requestId, true)
+        returns (IVerifier.RequestProofStatus memory)
+    {
+        return VerifierLib.getRequestProofStatusByUserId(_getVerifierStorage(), userId, requestId);
     }
 
     function _setState(IState state) internal {
@@ -573,6 +639,13 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         VerifierLib.checkCanWriteProofResults(_getVerifierStorage(), requestId, sender);
     }
 
+    function _checkCanWriteProofByUserIdResults(
+        uint256 requestId,
+        uint256 userId
+    ) internal view virtual {
+        VerifierLib.checkCanWriteProofByUserIdResults(_getVerifierStorage(), requestId, userId);
+    }
+
     function _getRequestIfCanBeVerified(
         uint256 requestId
     )
@@ -594,12 +667,23 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function _writeProofResults(
         uint256 requestId,
         address sender,
+        uint256 userId,
         IRequestValidator.ResponseField[] memory responseFields
     ) internal {
         _checkCanWriteProofResults(requestId, sender);
 
+        if (userId != 0) {
+            _checkCanWriteProofByUserIdResults(requestId, userId);
+        }
+
         return
-            VerifierLib.writeProofResults(_getVerifierStorage(), requestId, sender, responseFields);
+            VerifierLib.writeProofResults(
+                _getVerifierStorage(),
+                requestId,
+                sender,
+                userId,
+                responseFields
+            );
     }
 
     function _processAuthMethod(

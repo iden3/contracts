@@ -1,4 +1,4 @@
-pragma solidity ^0.8.27;
+pragma solidity 0.8.27;
 
 import {ERC20, ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 

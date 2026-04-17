@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.10;
+pragma solidity 0.8.27;
 
 import {ValidatorWhitelist} from "../verifiers/ValidatorWhitelist.sol";
 import {IState} from "../interfaces/IState.sol";
