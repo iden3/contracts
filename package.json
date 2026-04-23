@@ -52,7 +52,7 @@
     "solhint-plugin-prettier": "^0.1.0",
     "solidity-bytes-utils": "^0.8.0",
     "typescript": "^5.9.3",
-    "uuid": "11.1.0"
+    "uuid": "14.0.0"
   },
   "scripts": {
     "node:local": "npx hardhat node",
