@@ -271,7 +271,10 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     }
 
     /**
-     * @dev Submits an array of responses and updates proofs status
+     * @dev Submits an auth response + array of responses and updates proofs status
+     * - auth response with some valid auth method + responses
+     * - embeddedauth auth response (no auth) + response with embedded auth proof
+     * - linked proofs should be sent with auth response or embedded auth response to check userID authentication
      * @param authResponse Auth response including auth type and proof
      * @param responses The list of responses including request ID, proof and metadata for requests
      * @param crossChainProofs The list of cross chain proofs from universal resolver (oracle). This
@@ -319,10 +322,6 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
             );
 
             if (authMethodNameHash == EMBEDDED_AUTH_METHOD_NAME_HASH) {
-                // If embedded auth method is used, we can use first userID from responses to check with other responses
-                if (userIDFromAuthResponse == 0) {
-                    userIDFromAuthResponse = VerifierLib.userID(responseFields);
-                }
                 // Check isEmbeddedAuthVerified response field is present in the response fields from the validator
                 // verification
                 // If it's present it should be equal to 1 because we are checking embeddedAuth auth method in
@@ -333,6 +332,15 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                     .isEmbeddedAuthVerified(responseFields);
                 if (hasEmbeddedAuthVerified && embeddedAuthVerifiedValue == 0) {
                     revert NoEmbeddedAuthInResponsesFound();
+                }
+                if (hasEmbeddedAuthVerified) {
+                    // If embedded auth method is used, we can use first userID from responses to check with other responses
+                    if (userIDFromAuthResponse == 0) {
+                        userIDFromAuthResponse = VerifierLib.userID(responseFields);
+                    }
+                }
+                if (!hasEmbeddedAuthVerified && userIDFromAuthResponse == 0) {
+                    revert MissingUserIDInRequest(response.requestId);
                 }
             }
             // Check if userID from authResponse is the same as the one in the responseFields
