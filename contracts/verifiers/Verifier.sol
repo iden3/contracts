@@ -310,44 +310,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         // 3. Verify all the responses, check userID from signals and write proof results,
         //      emit events (existing logic)
-        for (uint256 i = 0; i < responses.length; i++) {
-            IVerifier.Response memory response = responses[i];
-            IVerifier.RequestData storage request = _getRequestIfCanBeVerified(response.requestId);
-
-            IRequestValidator.ResponseField[] memory responseFields = request.validator.verify(
-                sender,
-                response.proof,
-                request.params,
-                response.metadata
-            );
-
-            if (authMethodNameHash == EMBEDDED_AUTH_METHOD_NAME_HASH) {
-                // Check isEmbeddedAuthVerified response field is present in the response fields from the validator
-                // verification
-                // If it's present it should be equal to 1 because we are checking embeddedAuth auth method in
-                // validators that support it
-                // For linkMultiQueryValidator we don't have this response field because it's always linked
-                // to other responses that will have this embedded auth verified field
-                (bool hasEmbeddedAuthVerified, uint256 embeddedAuthVerifiedValue) = VerifierLib
-                    .isEmbeddedAuthVerified(responseFields);
-                if (hasEmbeddedAuthVerified && embeddedAuthVerifiedValue == 0) {
-                    revert NoEmbeddedAuthInResponsesFound();
-                }
-                if (hasEmbeddedAuthVerified) {
-                    // If embedded auth method is used, we can use first userID from responses to check with other responses
-                    if (userIDFromAuthResponse == 0) {
-                        userIDFromAuthResponse = VerifierLib.userID(responseFields);
-                    }
-                }
-                if (!hasEmbeddedAuthVerified && userIDFromAuthResponse == 0) {
-                    revert MissingUserIDInRequest(response.requestId);
-                }
-            }
-            // Check if userID from authResponse is the same as the one in the responseFields
-            VerifierLib.checkUserIDMatch(userIDFromAuthResponse, responseFields);
-
-            _writeProofResults(response.requestId, sender, userIDFromAuthResponse, responseFields);
-        }
+        _checkUserIDFromResponsesAndWriteProofResults(
+            responses,
+            sender,
+            userIDFromAuthResponse,
+            authMethodNameHash
+        );
     }
 
     /**
@@ -664,6 +632,52 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         returns (IVerifier.RequestData storage)
     {
         return _getVerifierStorage()._requests[requestId];
+    }
+
+    function _checkUserIDFromResponsesAndWriteProofResults(
+        Response[] memory responses,
+        address sender,
+        uint256 userIDFromAuthResponse,
+        bytes32 authMethodNameHash
+    ) internal {
+        for (uint256 i = 0; i < responses.length; i++) {
+            IVerifier.Response memory response = responses[i];
+            IVerifier.RequestData storage request = _getRequestIfCanBeVerified(response.requestId);
+
+            IRequestValidator.ResponseField[] memory responseFields = request.validator.verify(
+                sender,
+                response.proof,
+                request.params,
+                response.metadata
+            );
+
+            if (authMethodNameHash == EMBEDDED_AUTH_METHOD_NAME_HASH) {
+                // Check isEmbeddedAuthVerified response field is present in the response fields from the validator
+                // verification
+                // If it's present it should be equal to 1 because we are checking embeddedAuth auth method in
+                // validators that support it
+                // For linkMultiQueryValidator we don't have this response field because it's always linked
+                // to other responses that will have this embedded auth verified field
+                (bool hasEmbeddedAuthVerified, uint256 embeddedAuthVerifiedValue) = VerifierLib
+                    .isEmbeddedAuthVerified(responseFields);
+                if (hasEmbeddedAuthVerified && embeddedAuthVerifiedValue == 0) {
+                    revert NoEmbeddedAuthInResponsesFound();
+                }
+                if (hasEmbeddedAuthVerified) {
+                    // If embedded auth method is used, we can use first userID from responses
+                    if (userIDFromAuthResponse == 0) {
+                        userIDFromAuthResponse = VerifierLib.userID(responseFields);
+                    }
+                }
+                if (!hasEmbeddedAuthVerified && userIDFromAuthResponse == 0) {
+                    revert MissingUserIDInRequest(response.requestId);
+                }
+            }
+            // Check if userID from authResponse is the same as the one in the responseFields
+            VerifierLib.checkUserIDMatch(userIDFromAuthResponse, responseFields);
+
+            _writeProofResults(response.requestId, sender, userIDFromAuthResponse, responseFields);
+        }
     }
 
     /**
