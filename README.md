@@ -46,8 +46,8 @@ We have deployed contracts across the following mainnets and testnets so far (**
 - [Linea](https://lineascan.build/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
 - [Base](https://basescan.org/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
 - [BNB Smart Chain](https://bscscan.com/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
-- Privado Mainnet
-- Billions Mainnet
+- Privado
+- [Billions Network](https://explorer.billions.network/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
 
 **Testnets**:
 
@@ -58,7 +58,7 @@ We have deployed contracts across the following mainnets and testnets so far (**
 - [Base Sepolia](https://sepolia.basescan.org/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
 - [BNB Smart Chain Testnet](https://sepolia.bscscan.com/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
 - Privado Testnet
-- Billions Testnet
+- [Billions Testnet](https://explorer-testnet.billions.network/address/0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896)
 
 
 ## Security Audits
