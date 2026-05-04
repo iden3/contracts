@@ -50,12 +50,13 @@ library SmtLib {
         mapping(uint256 => uint256[]) rootIndexes; // root => rootEntryIndex[]
         uint256 maxDepth;
         bool initialized;
+        // IHasher implementation to be used for hashing.
+        IHasher hasher;
         // This empty reserved space is put in place to allow future versions
         // of the SMT library to add new Data struct fields without shifting down
         // storage of upgradable contracts that use this struct as a state variable
         // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
         uint256[44] __gap;
-        IHasher hasher;
     }
 
     /**
