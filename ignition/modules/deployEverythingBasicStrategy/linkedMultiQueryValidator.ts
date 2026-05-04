@@ -6,7 +6,7 @@ import {
 } from "../../../helpers/constants";
 import { Groth16VerifierLinkedMultiQuery10Module } from "./groth16verifiers";
 
-const LinkedMultiQueryValidatorImplementationModule = buildModule(
+export const LinkedMultiQueryValidatorImplementationModule = buildModule(
   "LinkedMultiQueryValidatorProxyFirstImplementationModule",
   (m) => {
     const implementation = m.contract(contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name);

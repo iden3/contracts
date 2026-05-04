@@ -1,4 +1,3 @@
-import { ethers, ignition } from "hardhat";
 import { getConfig, getDeploymentParameters } from "../../../helpers/helperUtils";
 import CredentialAtomicQueryMTPV2ValidatorModule from "../../../ignition/modules/credentialAtomicQueryMTPV2Validator";
 import { contractsInfo } from "../../../helpers/constants";
@@ -6,15 +5,26 @@ import CredentialAtomicQuerySigV2ValidatorModule from "../../../ignition/modules
 import CredentialAtomicQueryV3ValidatorModule from "../../../ignition/modules/credentialAtomicQueryV3Validator";
 import AuthV2ValidatorModule from "../../../ignition/modules/authV2Validator";
 import EthIdentityValidatorModule from "../../../ignition/modules/ethIdentityValidator";
-import LinkedMultiQueryValidatorModule from "../../../ignition/modules/linkedMultiQuery";
+import LinkedMultiQueryValidatorModule from "../../../ignition/modules/linkedMultiQueryValidator";
 import {
   AuthV2ValidatorAtModule,
+  AuthV3ValidatorAtModule,
+  AuthV3_8_32ValidatorAtModule,
   CredentialAtomicQueryMTPV2ValidatorAtModule,
   CredentialAtomicQuerySigV2ValidatorAtModule,
+  CredentialAtomicQueryV3StableValidatorAtModule,
   CredentialAtomicQueryV3ValidatorAtModule,
   EthIdentityValidatorAtModule,
+  LinkedMultiQueryStableValidatorAtModule,
   LinkedMultiQueryValidatorAtModule,
 } from "../../../ignition/modules/contractsAt";
+import { network } from "hardhat";
+import CredentialAtomicQueryV3StableValidatorModule from "../../../ignition/modules/credentialAtomicQueryV3StableValidator";
+import LinkedMultiQueryStableValidatorModule from "../../../ignition/modules/linkedMultiQueryStableValidator";
+import AuthV3ValidatorModule from "../../../ignition/modules/authV3Validator";
+import AuthV3_8_32ValidatorModule from "../../../ignition/modules/authV3_8_32Validator";
+
+const { ethers, ignition } = await network.connect();
 
 async function main() {
   const config = getConfig();
@@ -31,46 +41,62 @@ async function main() {
       moduleAt: CredentialAtomicQueryMTPV2ValidatorAtModule,
       name: contractsInfo.VALIDATOR_MTP.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_MTP.name,
-      paramName: "CredentialAtomicQueryMTPV2ValidatorAtModule",
     },
     {
       moduleFinalImplementation: CredentialAtomicQuerySigV2ValidatorModule,
       moduleAt: CredentialAtomicQuerySigV2ValidatorAtModule,
       name: contractsInfo.VALIDATOR_SIG.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_SIG.name,
-      paramName: "CredentialAtomicQuerySigV2ValidatorAtModule",
     },
     {
       moduleFinalImplementation: CredentialAtomicQueryV3ValidatorModule,
       moduleAt: CredentialAtomicQueryV3ValidatorAtModule,
       name: contractsInfo.VALIDATOR_V3.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_V3.name,
-      paramName: "CredentialAtomicQueryV3ValidatorAtModule",
+    },
+    {
+      moduleFinalImplementation: CredentialAtomicQueryV3StableValidatorModule,
+      moduleAt: CredentialAtomicQueryV3StableValidatorAtModule,
+      name: contractsInfo.VALIDATOR_V3_STABLE.name,
+      verifierName: contractsInfo.GROTH16_VERIFIER_V3_STABLE.name,
     },
     {
       moduleFinalImplementation: LinkedMultiQueryValidatorModule,
       moduleAt: LinkedMultiQueryValidatorAtModule,
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
-      verifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.name,
-      paramName: "LinkedMultiQueryValidatorAtModule",
+      verifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY_10.name,
     },
+    {
+      moduleFinalImplementation: LinkedMultiQueryStableValidatorModule,
+      moduleAt: LinkedMultiQueryStableValidatorAtModule,
+      name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.name,
+      verifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY.name,
+    },    
   ];
 
   const authValidators = [
     {
-      authMethod: "authV2",
       moduleFinalImplementation: AuthV2ValidatorModule,
       moduleAt: AuthV2ValidatorAtModule,
       name: contractsInfo.VALIDATOR_AUTH_V2.name,
       verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V2.name,
-      paramName: "AuthV2ValidatorAtModule",
     },
     {
-      authMethod: "ethIdentity",
+      moduleFinalImplementation: AuthV3ValidatorModule,
+      moduleAt: AuthV3ValidatorAtModule,
+      name: contractsInfo.VALIDATOR_AUTH_V3.name,
+      verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V3.name,
+    },    
+    {
+      moduleFinalImplementation: AuthV3_8_32ValidatorModule,
+      moduleAt: AuthV3_8_32ValidatorAtModule,
+      name: contractsInfo.VALIDATOR_AUTH_V3_8_32.name,
+      verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V3_8_32.name,
+    },    
+    {
       moduleFinalImplementation: EthIdentityValidatorModule,
       moduleAt: EthIdentityValidatorAtModule,
       name: contractsInfo.VALIDATOR_ETH_IDENTITY.name,
-      paramName: "EthIdentityValidatorAtModule",
     },
   ];
 

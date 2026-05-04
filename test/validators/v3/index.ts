@@ -1,23 +1,42 @@
 import { expect } from "chai";
 import { prepareInputs, publishState } from "../../utils/state-utils";
-import { DeployHelper } from "../../../helpers/DeployHelper";
 import { packV3ValidatorParams } from "../../utils/validator-pack-utils";
 import { calculateQueryHashV3 } from "../../utils/query-hash-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { contractsInfo, TEN_YEARS } from "../../../helpers/constants";
+import { chainIdInfoMap, contractsInfo, TEN_YEARS } from "../../../helpers/constants";
 import { packZKProof } from "../../utils/packData";
-import { ethers } from "hardhat";
+import { network } from "hardhat";
+import CredentialAtomicQueryV3ValidatorModule from "../../../ignition/modules/deployEverythingBasicStrategy/credentialAtomicQueryV3Validator";
+import { getChainId } from "../../../helpers/helperUtils";
+import issuerFromGenesisStateToFirstTransitionV3 from "../common-data/issuer_from_genesis_state_to_first_transition_v3.json";
+import validBjjUserGenesisV3 from "./data/valid_bjj_user_genesis_v3.json";
+import invalidBjjUserGenesisV3 from "./data/invalid_bjj_user_genesis_v3.json";
+import userFromGenesisStateToFirstTransitionV3 from "../common-data/user_from_genesis_state_to_first_transition_v3.json";
+import validBjjUserFirstV3 from "./data/valid_bjj_user_first_v3.json";
+import issuerFromFirstStateToSecondTransitionV3 from "../common-data/issuer_from_first_state_to_second_transition_v3.json";
+import validBjjUserFirstIssuerSecondV3 from "./data/valid_bjj_user_first_issuer_second_v3.json";
+import userFromFirstStateToSecondTransitionV3 from "../common-data/user_from_first_state_to_second_transition_v3.json";
+import validBjjUserSecondIssuerFirstV3 from "./data/valid_bjj_user_second_issuer_first_v3.json";
+import issuerFromGenesisStateToFirstAuthDisabledTransitionV3 from "../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json";
+import validBjjUserGenesisAuthDisabledV3 from "./data/valid_bjj_user_genesis_auth_disabled_v3.json";
+import validMtpUserGenesisV3 from "./data/valid_mtp_user_genesis_v3.json";
+import invalidMtpUserGenesisV3 from "./data/invalid_mtp_user_genesis_v3.json";
+import validMtpUserFirstV3 from "./data/valid_mtp_user_first_v3.json";
+import validMtpUserFirstIssuerSecondV3 from "./data/valid_mtp_user_first_issuer_second_v3.json";
+import validMtpUserSecondIssuerFirstV3 from "./data/valid_mtp_user_second_issuer_first_v3.json";
+import validMtpUserGenesisAuthDisabledV3 from "./data/valid_mtp_user_genesis_auth_disabled_v3.json";
+import validBjjUserGenesisAuthDisabledV3WrongId from "./data/valid_bjj_user_genesis_auth_disabled_v3_wrong_id.json";
+import validMtpUserGenesisAuthDisabledV3WrongId from "./data/valid_mtp_user_genesis_auth_disabled_v3_wrong_id.json";
+import validBjjUserFirstIssuerGenesisV3 from "./data/valid_bjj_user_first_issuer_genesis_v3.json";
+
+const { ethers, networkHelpers, ignition } = await network.connect();
 
 const tenYears = TEN_YEARS;
 const testCases: any[] = [
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in published onchain. Revocation State is published onchain. BJJ Proof",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
-    ],
-    proofJson: require("./data/valid_bjj_user_genesis_v3.json"),
+    stateTransitions: [issuerFromGenesisStateToFirstTransitionV3],
+    proofJson: validBjjUserGenesisV3,
     setProofExpiration: tenYears,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     signalValues: [
@@ -46,10 +65,8 @@ const testCases: any[] = [
   },
   {
     name: "Validation of Sig proof failed",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
-    ],
-    proofJson: require("./data/invalid_bjj_user_genesis_v3.json"),
+    stateTransitions: [issuerFromGenesisStateToFirstTransitionV3],
+    proofJson: invalidBjjUserGenesisV3,
     errorMessage: "ProofIsNotValid()",
     setProofExpiration: tenYears,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -57,11 +74,11 @@ const testCases: any[] = [
   {
     name: "User state is not genesis but latest",
     stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
-      require("../common-data/user_from_genesis_state_to_first_transition_v3"),
+      issuerFromGenesisStateToFirstTransitionV3,
+      userFromGenesisStateToFirstTransitionV3,
     ],
 
-    proofJson: require("./data/valid_bjj_user_first_v3.json"),
+    proofJson: validBjjUserFirstV3,
     setProofExpiration: tenYears,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     signalValues: [
@@ -91,11 +108,11 @@ const testCases: any[] = [
   {
     name: "The non-revocation issuer state is latest",
     stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
-      require("../common-data/user_from_genesis_state_to_first_transition_v3"),
-      require("../common-data/issuer_from_first_state_to_second_transition_v3"),
+      issuerFromGenesisStateToFirstTransitionV3,
+      userFromGenesisStateToFirstTransitionV3,
+      issuerFromFirstStateToSecondTransitionV3,
     ],
-    proofJson: require("./data/valid_bjj_user_first_issuer_second_v3"),
+    proofJson: validBjjUserFirstIssuerSecondV3,
     setProofExpiration: tenYears,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     signalValues: [
@@ -125,13 +142,13 @@ const testCases: any[] = [
   {
     name: "The non-revocation issuer state is expired",
     stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
-      require("../common-data/user_from_genesis_state_to_first_transition_v3"), //  // proof was generated after this state transition
-      require("../common-data/issuer_from_first_state_to_second_transition_v3"),
-      require("../common-data/user_from_first_state_to_second_transition_v3"),
+      issuerFromGenesisStateToFirstTransitionV3,
+      userFromGenesisStateToFirstTransitionV3,
+      issuerFromFirstStateToSecondTransitionV3,
+      userFromFirstStateToSecondTransitionV3,
     ],
     stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
-    proofJson: require("./data/valid_bjj_user_second_issuer_first_v3"),
+    proofJson: validBjjUserSecondIssuerFirstV3,
     setRevStateExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
     errorMessage: "NonRevocationStateOfIssuerIsExpired()",
     setProofExpiration: tenYears,
@@ -140,12 +157,12 @@ const testCases: any[] = [
   {
     name: "GIST root expired, Issuer revocation state is not expired",
     stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
-      require("../common-data/user_from_genesis_state_to_first_transition_v3"), // proof was generated after this state transition
-      require("../common-data/issuer_from_first_state_to_second_transition_v3"),
-      require("../common-data/user_from_first_state_to_second_transition_v3"),
+      issuerFromGenesisStateToFirstTransitionV3,
+      userFromGenesisStateToFirstTransitionV3, // proof was generated after this state transition
+      issuerFromFirstStateToSecondTransitionV3,
+      userFromFirstStateToSecondTransitionV3,
     ],
-    proofJson: require("./data/valid_bjj_user_first_v3"),
+    proofJson: validBjjUserFirstV3,
 
     stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
     setGISTRootExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
@@ -156,20 +173,18 @@ const testCases: any[] = [
   {
     name: "The generated proof is expired",
     stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
-      require("../common-data/user_from_genesis_state_to_first_transition_v3.json"),
-      require("../common-data/issuer_from_first_state_to_second_transition_v3.json"),
+      issuerFromGenesisStateToFirstTransitionV3,
+      userFromGenesisStateToFirstTransitionV3,
+      issuerFromFirstStateToSecondTransitionV3,
     ],
-    proofJson: require("./data/valid_bjj_user_first_v3.json"),
+    proofJson: validBjjUserFirstV3,
     errorMessage: "GeneratedProofIsOutdated()",
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
-    ],
-    proofJson: require("./data/valid_bjj_user_genesis_v3.json"),
+    stateTransitions: [issuerFromGenesisStateToFirstTransitionV3],
+    proofJson: validBjjUserGenesisV3,
     setProofExpiration: tenYears,
     allowedIssuers: [123n],
     errorMessage: "IssuerIsNotOnTheAllowedIssuersList()",
@@ -177,10 +192,8 @@ const testCases: any[] = [
   },
   {
     name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (UserID correspond to the sender)",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
-    ],
-    proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3.json"),
+    stateTransitions: [issuerFromGenesisStateToFirstAuthDisabledTransitionV3],
+    proofJson: validBjjUserGenesisAuthDisabledV3,
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -211,10 +224,8 @@ const testCases: any[] = [
   // MTP Proofs
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain. MTP Proof.",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
-    ],
-    proofJson: require("./data/valid_mtp_user_genesis_v3.json"),
+    stateTransitions: [issuerFromGenesisStateToFirstTransitionV3],
+    proofJson: validMtpUserGenesisV3,
     setProofExpiration: tenYears,
     isMtpProof: true,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -244,10 +255,8 @@ const testCases: any[] = [
   },
   {
     name: "Validation of MTP proof failed",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
-    ],
-    proofJson: require("./data/invalid_mtp_user_genesis_v3.json"),
+    stateTransitions: [issuerFromGenesisStateToFirstTransitionV3],
+    proofJson: invalidMtpUserGenesisV3,
     errorMessage: "ProofIsNotValid()",
     setProofExpiration: tenYears,
     isMtpProof: true,
@@ -256,10 +265,10 @@ const testCases: any[] = [
   {
     name: "User state is not genesis but latest. MTP Proof.",
     stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
-      require("../common-data/user_from_genesis_state_to_first_transition_v3"),
+      issuerFromGenesisStateToFirstTransitionV3,
+      userFromGenesisStateToFirstTransitionV3,
     ],
-    proofJson: require("./data/valid_mtp_user_first_v3.json"),
+    proofJson: validMtpUserFirstV3,
     setProofExpiration: tenYears,
     isMtpProof: true,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -290,11 +299,11 @@ const testCases: any[] = [
   {
     name: "The non-revocation issuer state is not expired. MTP Proof.",
     stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
-      require("../common-data/user_from_genesis_state_to_first_transition_v3"), //  // proof was generated after this state transition
-      require("../common-data/issuer_from_first_state_to_second_transition_v3"),
+      issuerFromGenesisStateToFirstTransitionV3,
+      userFromGenesisStateToFirstTransitionV3, //  // proof was generated after this state transition
+      issuerFromFirstStateToSecondTransitionV3,
     ],
-    proofJson: require("./data/valid_mtp_user_first_issuer_second_v3.json"),
+    proofJson: validMtpUserFirstIssuerSecondV3,
     setProofExpiration: tenYears,
     isMtpProof: true,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -325,13 +334,13 @@ const testCases: any[] = [
   {
     name: "The non-revocation issuer state is expired. MTP Proof.",
     stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
-      require("../common-data/user_from_genesis_state_to_first_transition_v3"), //  // proof was generated after this state transition
-      require("../common-data/issuer_from_first_state_to_second_transition_v3"),
-      require("../common-data/user_from_first_state_to_second_transition_v3"),
+      issuerFromGenesisStateToFirstTransitionV3,
+      userFromGenesisStateToFirstTransitionV3, //  // proof was generated after this state transition
+      issuerFromFirstStateToSecondTransitionV3,
+      userFromFirstStateToSecondTransitionV3,
     ],
     stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
-    proofJson: require("./data/valid_mtp_user_second_issuer_first_v3.json"),
+    proofJson: validMtpUserSecondIssuerFirstV3,
     setRevStateExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
     errorMessage: "NonRevocationStateOfIssuerIsExpired()",
     setProofExpiration: tenYears,
@@ -341,12 +350,12 @@ const testCases: any[] = [
   {
     name: "GIST root expired, Issuer revocation state is not expired. MTP Proof.",
     stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
-      require("../common-data/user_from_genesis_state_to_first_transition_v3"), // proof was generated after this state transition
-      require("../common-data/issuer_from_first_state_to_second_transition_v3"),
-      require("../common-data/user_from_first_state_to_second_transition_v3"),
+      issuerFromGenesisStateToFirstTransitionV3,
+      userFromGenesisStateToFirstTransitionV3, // proof was generated after this state transition
+      issuerFromFirstStateToSecondTransitionV3,
+      userFromFirstStateToSecondTransitionV3,
     ],
-    proofJson: require("./data/valid_mtp_user_first_v3"),
+    proofJson: validMtpUserFirstV3,
     stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
     setGISTRootExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
     errorMessage: "GistRootIsExpired()",
@@ -357,21 +366,19 @@ const testCases: any[] = [
   {
     name: "The generated proof is expired. MTP Proof.",
     stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
-      require("../common-data/user_from_genesis_state_to_first_transition_v3.json"),
-      require("../common-data/issuer_from_first_state_to_second_transition_v3.json"),
+      issuerFromGenesisStateToFirstTransitionV3,
+      userFromGenesisStateToFirstTransitionV3,
+      issuerFromFirstStateToSecondTransitionV3,
     ],
-    proofJson: require("./data/valid_mtp_user_first_v3.json"),
+    proofJson: validMtpUserFirstV3,
     errorMessage: "GeneratedProofIsOutdated()",
     isMtpProof: true,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   },
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain. MTP Proof.",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_transition_v3.json"),
-    ],
-    proofJson: require("./data/valid_mtp_user_genesis_v3.json"),
+    stateTransitions: [issuerFromGenesisStateToFirstTransitionV3],
+    proofJson: validMtpUserGenesisV3,
     setProofExpiration: tenYears,
     allowedIssuers: [123n],
     errorMessage: "IssuerIsNotOnTheAllowedIssuersList()",
@@ -380,10 +387,8 @@ const testCases: any[] = [
   },
   {
     name: "Valid MTP genesis proof with isBJJAuthEnabled=0 (UserID correspond to the sender)",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
-    ],
-    proofJson: require("./data/valid_mtp_user_genesis_auth_disabled_v3.json"),
+    stateTransitions: [issuerFromGenesisStateToFirstAuthDisabledTransitionV3],
+    proofJson: validMtpUserGenesisAuthDisabledV3,
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
     isMtpProof: true,
@@ -415,10 +420,8 @@ const testCases: any[] = [
   // Auth Disabled. UserID does NOT correspond to the sender
   {
     name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (UserID does NOT correspond to the sender)",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
-    ],
-    proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3_wrong_id.json"),
+    stateTransitions: [issuerFromGenesisStateToFirstAuthDisabledTransitionV3],
+    proofJson: validBjjUserGenesisAuthDisabledV3WrongId,
     setProofExpiration: tenYears,
     errorMessage: "UserIDDoesNotCorrespondToTheSender()",
     ethereumBasedUser: true,
@@ -426,10 +429,8 @@ const testCases: any[] = [
   },
   {
     name: "Valid MTP genesis proof with isBJJAuthEnabled=0 (UserID does NOT correspond to the sender)",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
-    ],
-    proofJson: require("./data/valid_mtp_user_genesis_auth_disabled_v3_wrong_id.json"),
+    stateTransitions: [issuerFromGenesisStateToFirstAuthDisabledTransitionV3],
+    proofJson: validMtpUserGenesisAuthDisabledV3WrongId,
     setProofExpiration: tenYears,
     errorMessage: "UserIDDoesNotCorrespondToTheSender()",
     ethereumBasedUser: true,
@@ -439,10 +440,8 @@ const testCases: any[] = [
   // Issuer Genesis State
   {
     name: "Validate First User State, Issuer Genesis. BJJ Proof",
-    stateTransitions: [
-      require("../common-data/user_from_genesis_state_to_first_transition_v3.json"),
-    ],
-    proofJson: require("./data/valid_bjj_user_first_issuer_genesis_v3.json"),
+    stateTransitions: [userFromGenesisStateToFirstTransitionV3],
+    proofJson: validBjjUserFirstIssuerGenesisV3,
     setProofExpiration: tenYears,
     sender: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     signalValues: [
@@ -472,10 +471,8 @@ const testCases: any[] = [
   // Wrong challenge
   {
     name: "Validate First User State, Issuer Genesis. BJJ Proof (Challenge should match the sender)",
-    stateTransitions: [
-      require("../common-data/user_from_genesis_state_to_first_transition_v3.json"),
-    ],
-    proofJson: require("./data/valid_bjj_user_first_issuer_genesis_v3.json"),
+    stateTransitions: [userFromGenesisStateToFirstTransitionV3],
+    proofJson: validBjjUserFirstIssuerGenesisV3,
     errorMessage: "ChallengeShouldMatchTheSender()",
     setProofExpiration: tenYears,
     sender: "0x0000000000000000000000000000000000000000",
@@ -483,10 +480,8 @@ const testCases: any[] = [
   // Invalid Link ID pub signal
   {
     name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (Invalid Link ID pub signal)",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
-    ],
-    proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3.json"),
+    stateTransitions: [issuerFromGenesisStateToFirstAuthDisabledTransitionV3],
+    proofJson: validBjjUserGenesisAuthDisabledV3,
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
     errorMessage:
@@ -497,10 +492,8 @@ const testCases: any[] = [
   // Proof type should match the requested one in query
   {
     name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (Proof type should match the requested one in query)",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
-    ],
-    proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3.json"),
+    stateTransitions: [issuerFromGenesisStateToFirstAuthDisabledTransitionV3],
+    proofJson: validBjjUserGenesisAuthDisabledV3,
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
     errorMessage: "ProofTypeShouldMatchTheRequestedOneInQuery()",
@@ -510,10 +503,8 @@ const testCases: any[] = [
   // Invalid nullify pub signal
   {
     name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (Invalid nullify pub signal)",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
-    ],
-    proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3.json"),
+    stateTransitions: [issuerFromGenesisStateToFirstAuthDisabledTransitionV3],
+    proofJson: validBjjUserGenesisAuthDisabledV3,
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
     errorMessage: "InvalidNullifyPubSignal()",
@@ -523,10 +514,8 @@ const testCases: any[] = [
   // Query hash does not match the requested one
   {
     name: "Valid BJJ genesis proof with isBJJAuthEnabled=0 (Query hash does not match the requested one)",
-    stateTransitions: [
-      require("../common-data/issuer_from_genesis_state_to_first_auth_disabled_transition_v3.json"),
-    ],
-    proofJson: require("./data/valid_bjj_user_genesis_auth_disabled_v3.json"),
+    stateTransitions: [issuerFromGenesisStateToFirstAuthDisabledTransitionV3],
+    proofJson: validBjjUserGenesisAuthDisabledV3,
     setProofExpiration: tenYears,
     ethereumBasedUser: true,
     errorMessage:
@@ -540,15 +529,24 @@ describe("Atomic V3 Validator", function () {
   let state: any, v3Validator;
 
   async function deployContractsFixture() {
-    const deployHelper = await DeployHelper.initialize(null, true);
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
 
-    const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0212"]);
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0112",
+      },
+    };
 
-    const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
-      "v3",
-      await stateContract.getAddress(),
-    );
-    const validator = contracts.validator;
+    const { state: stateContract, credentialAtomicQueryV3Validator: validator } =
+      await ignition.deploy(CredentialAtomicQueryV3ValidatorModule, {
+        parameters: parameters,
+      });
 
     return {
       stateContract,
@@ -566,7 +564,8 @@ describe("Atomic V3 Validator", function () {
   }
 
   beforeEach(async () => {
-    ({ stateContract: state, validator: v3Validator } = await loadFixture(deployContractsFixture));
+    ({ stateContract: state, validator: v3Validator } =
+      await networkHelpers.loadFixture(deployContractsFixture));
   });
 
   for (const test of testCases) {
@@ -574,9 +573,9 @@ describe("Atomic V3 Validator", function () {
       this.timeout(50000);
       for (let i = 0; i < test.stateTransitions.length; i++) {
         if (test.stateTransitionDelayMs) {
-          await time.increase(test.stateTransitionDelayMs);
+          await networkHelpers.time.increase(test.stateTransitionDelayMs);
         }
-        await publishState(state, test.stateTransitions[i]);
+        await publishState(ethers, state, test.stateTransitions[i]);
       }
 
       const value = ["20010101", ...new Array(63).fill("0")];

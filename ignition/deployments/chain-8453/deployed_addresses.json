@@ -104,5 +104,8 @@
   "AuthV2ValidatorNewImplementationAtModule#AuthV2Validator": "0x25dE81B42544431CAa027E7D9A8cDC3699a76EB8",
   "Groth16VerifierAuthV2WrapperAtModule#Groth16VerifierAuthV2Wrapper": "0xA16EFFE15668B74A011fc0137837197A376252d9",
   "EthIdentityValidatorModule#EthIdentityValidator": "0x8546bFd67F19dd0449dF73fb75A56BC9ddFA57Db",
-  "EthIdentityValidatorNewImplementationAtModule#EthIdentityValidator": "0xD03da630E25839fe1085D7a81F025c50425f3Fe3"
+  "EthIdentityValidatorNewImplementationAtModule#EthIdentityValidator": "0xD03da630E25839fe1085D7a81F025c50425f3Fe3",
+  "UpgradeMCPaymentModuleV1_0_7#Proxy": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
+  "UpgradeMCPaymentModuleV1_0_7#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE",
+  "UpgradeMCPaymentModuleV1_0_7#MCPayment": "0x50E8592B259c512aC2FfA1b26b9cE3dF5FC45821"
 }

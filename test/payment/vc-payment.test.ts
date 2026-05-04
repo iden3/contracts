@@ -1,13 +1,13 @@
 import { Hex } from "@iden3/js-crypto";
 import { DID, SchemaHash } from "@iden3/js-iden3-core";
-import { ethers, upgrades } from "hardhat";
-import { VCPayment, VCPayment__factory } from "../../typechain-types";
+import { network } from "hardhat";
 import { expect } from "chai";
-import { Signer } from "ethers";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import VCPaymentModule from "../../ignition/modules/deployEverythingBasicStrategy/vcPayment";
+
+const { ethers, networkHelpers, ignition } = await network.connect();
 
 describe("VC Payment Contract", () => {
-  let payment: VCPayment;
+  let payment;
   const issuerId1 = DID.idFromDID(
     DID.parse("did:polygonid:polygon:amoy:2qQ68JkRcf3ymy9wtzKyY3Dajst9c6cHCDZyx7NrTz"),
   );
@@ -18,15 +18,26 @@ describe("VC Payment Contract", () => {
   const schemaHash2 = new SchemaHash(Hex.decodeString("ce6bb12c96bfd1544c02c289c6b4b988"));
   const schemaHash3 = new SchemaHash(Hex.decodeString("ce6bb12c96bfd1544c02c289c6b4b998"));
 
-  let issuer1Signer, issuer2Signer, owner, userSigner: Signer;
+  let issuer1Signer, issuer2Signer, owner, userSigner;
 
   async function deployContractsFixture() {
+    const signers = await ethers.getSigners();
+    const issuer1Signer = signers[1];
+    const issuer2Signer = signers[2];
+    const userSigner = signers[5];
+    const owner = signers[0];
+
     const ownerPercentage = 5;
 
-    payment = (await upgrades.deployProxy(new VCPayment__factory(owner), [
-      await owner.getAddress(),
-    ])) as unknown as VCPayment;
-    await payment.waitForDeployment();
+    const parameters: any = {
+      VCPaymentProxyModule: {
+        ownerPercentage: ownerPercentage,
+      },
+    };
+
+    const { VCPayment: payment } = await ignition.deploy(VCPaymentModule, {
+      parameters: parameters,
+    });
 
     await payment.setPaymentValue(
       issuerId1.bigInt(),
@@ -49,16 +60,13 @@ describe("VC Payment Contract", () => {
       ownerPercentage,
       issuer2Signer.address,
     );
+
+    return { payment, issuer1Signer, issuer2Signer, owner, userSigner };
   }
 
   beforeEach(async () => {
-    const signers = await ethers.getSigners();
-    issuer1Signer = signers[1];
-    issuer2Signer = signers[2];
-    userSigner = signers[5];
-    owner = signers[0];
-
-    await loadFixture(deployContractsFixture);
+    ({ payment, issuer1Signer, issuer2Signer, owner, userSigner } =
+      await networkHelpers.loadFixture(deployContractsFixture));
   });
 
   it("Should revert if payment value is already set", async () => {
@@ -101,7 +109,7 @@ describe("VC Payment Contract", () => {
     });
 
     expect(await payment.getOwnerBalance()).to.be.eq(4000);
-    expect(await payment.ownerWithdraw()).to.changeEtherBalance(owner, 4000);
+    await expect(await payment.ownerWithdraw()).to.changeEtherBalance(ethers, owner, 4000);
     await expect(payment.ownerWithdraw())
       .to.be.revertedWithCustomError(payment, "NoBalanceToWithdraw")
       .withArgs(owner.address);
@@ -116,7 +124,7 @@ describe("VC Payment Contract", () => {
       .to.emit(payment, "Withdraw")
       .withArgs(issuer1Signer.address, 47500);
 
-    await expect(issuerWithdrawTx).to.changeEtherBalance(issuer1Signer, 47500);
+    await expect(issuerWithdrawTx).to.changeEtherBalance(ethers, issuer1Signer, 47500);
 
     // issuer 2 balance should not change
     expect(await payment.connect(issuer2Signer).getMyBalance()).to.be.eq(28500);
@@ -258,7 +266,8 @@ describe("VC Payment Contract", () => {
     // Solidity rounds towards zero.
     // Owner part = 25555 * 3 / 100 = 766.65 => 766.
     // Issuer part = 25555 - 766 = 24789
-    expect(await payment.connect(issuer1Signer).issuerWithdraw()).changeEtherBalance(
+    await expect(await payment.connect(issuer1Signer).issuerWithdraw()).changeEtherBalance(
+      ethers,
       issuer1Signer,
       24789,
     );

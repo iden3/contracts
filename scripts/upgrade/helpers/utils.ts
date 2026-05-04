@@ -1,13 +1,15 @@
-import { ethers } from "hardhat";
-import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import { Signer } from "ethers";
+import { network } from "hardhat";
 
-export async function transferOwnership(signer: HardhatEthersSigner, contractAt: any) {
+const { ethers } = await network.connect();
+
+export async function transferOwnership(signer: Signer, contractAt: any) {
   const maxFeePerGas = 250000000000;
   const etherAmount = ethers.parseEther("10");
 
   console.log("Proxy Admin owner: ", await contractAt.proxyAdmin.owner());
   console.log("Proxy owner: ", await contractAt.proxy.owner());
-  console.log("Transferring ownership of Proxy Admin and Proxy to: ", signer.address);
+  console.log("Transferring ownership of Proxy Admin and Proxy to: ", await signer.getAddress());
 
   const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(
     await contractAt.proxyAdmin.owner(),
@@ -23,10 +25,10 @@ export async function transferOwnership(signer: HardhatEthersSigner, contractAt:
 
   const tx1 = await contractAt.proxyAdmin
     .connect(proxyAdminOwnerSigner)
-    .transferOwnership(signer.address);
+    .transferOwnership(await signer.getAddress());
   await tx1.wait();
 
-  const tx2 = await contractAt.proxy.connect(proxyOwnerSigner).transferOwnership(signer.address);
+  const tx2 = await contractAt.proxy.connect(proxyOwnerSigner).transferOwnership(await signer.getAddress());
   await tx2.wait();
 
   const tx3 = await contractAt.proxy.connect(signer).acceptOwnership();

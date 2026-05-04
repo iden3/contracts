@@ -1,8 +1,10 @@
 import { DID } from "@iden3/js-iden3-core";
-import { ethers } from "hardhat";
 import { byteEncoder, calculateCoreSchemaHash } from "@0xpolygonid/js-sdk";
 import { Path } from "@iden3/js-jsonld-merklization";
 import { VCPayment, VCPayment__factory } from "../../typechain-types";
+import { network } from "hardhat";
+
+const { ethers } = await network.connect();
 
 const ldContextJSONAnimaProofOfUniqueness = `{
   "@context": [

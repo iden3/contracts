@@ -16,7 +16,7 @@ const UpgradeLinkedMultiQueryValidatorModule = buildModule(
     });
     const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
 
-    const groth16Verifier = m.contract(contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.name);
+    const groth16Verifier = m.contract(contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY_10.name);
     const newImplementation = m.contract(contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name);
 
     // As we are working with same proxy the storage is already initialized

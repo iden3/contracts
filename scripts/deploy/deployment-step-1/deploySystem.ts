@@ -1,6 +1,3 @@
-import fs from "fs";
-import path from "path";
-import { ethers, ignition } from "hardhat";
 import Create2AddressAnchorModule from "../../../ignition/modules/create2AddressAnchor";
 import { contractsInfo } from "../../../helpers/constants";
 import {
@@ -27,17 +24,21 @@ import { IdentityTreeStoreProxyModule } from "../../../ignition/modules/identity
 import { CredentialAtomicQueryMTPV2ValidatorProxyModule } from "../../../ignition/modules/credentialAtomicQueryMTPV2Validator";
 import { CredentialAtomicQuerySigV2ValidatorProxyModule } from "../../../ignition/modules/credentialAtomicQuerySigV2Validator";
 import { CredentialAtomicQueryV3ValidatorProxyModule } from "../../../ignition/modules/credentialAtomicQueryV3Validator";
-import { LinkedMultiQueryValidatorProxyModule } from "../../../ignition/modules/linkedMultiQuery";
+import { LinkedMultiQueryValidatorProxyModule } from "../../../ignition/modules/linkedMultiQueryValidator";
 import { AuthV2ValidatorProxyModule } from "../../../ignition/modules/authV2Validator";
 import { EthIdentityValidatorProxyModule } from "../../../ignition/modules/ethIdentityValidator";
 import {
   AuthV2ValidatorAtModule,
+  AuthV3_8_32ValidatorAtModule,
+  AuthV3ValidatorAtModule,
   Create2AddressAnchorAtModule,
   CredentialAtomicQueryMTPV2ValidatorAtModule,
   CredentialAtomicQuerySigV2ValidatorAtModule,
+  CredentialAtomicQueryV3StableValidatorAtModule,
   CredentialAtomicQueryV3ValidatorAtModule,
   EthIdentityValidatorAtModule,
   IdentityTreeStoreAtModule,
+  LinkedMultiQueryStableValidatorAtModule,
   LinkedMultiQueryValidatorAtModule,
   MCPaymentAtModule,
   Poseidon1AtModule,
@@ -49,6 +50,13 @@ import {
   UniversalVerifierAtModule,
   VCPaymentAtModule,
 } from "../../../ignition/modules/contractsAt";
+import { network } from "hardhat";
+import { AuthV3ValidatorProxyModule } from "../../../ignition/modules/authV3Validator";
+import { AuthV3_8_32ValidatorProxyModule } from "../../../ignition/modules/authV3_8_32Validator";
+import { CredentialAtomicQueryV3StableValidatorProxyModule } from "../../../ignition/modules/credentialAtomicQueryV3StableValidator";
+import { LinkedMultiQueryStableValidatorProxyModule } from "../../../ignition/modules/linkedMultiQueryStableValidator";
+
+const { ethers, ignition } = await network.connect();
 
 async function main() {
   const config = getConfig();
@@ -141,7 +149,7 @@ async function main() {
       module: StateProxyModule,
       moduleAt: StateAtModule,
       contractAddress:
-        parameters["StateAtModule"].proxyAddress || contractsInfo.STATE.unifiedAddress,
+        parameters[`${StateAtModule.id}`].proxyAddress || contractsInfo.STATE.unifiedAddress,
       name: contractsInfo.STATE.name,
       isProxy: true,
       verifierName: contractsInfo.GROTH16_VERIFIER_STATE_TRANSITION.name,
@@ -152,7 +160,7 @@ async function main() {
       module: UniversalVerifierProxyModule,
       moduleAt: UniversalVerifierAtModule,
       contractAddress:
-        parameters["UniversalVerifierAtModule"].proxyAddress ||
+        parameters[`${UniversalVerifierAtModule.id}`].proxyAddress ||
         contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
       name: contractsInfo.UNIVERSAL_VERIFIER.name,
       isProxy: true,
@@ -162,7 +170,7 @@ async function main() {
       module: IdentityTreeStoreProxyModule,
       moduleAt: IdentityTreeStoreAtModule,
       contractAddress:
-        parameters["IdentityTreeStoreAtModule"].proxyAddress ||
+        parameters[`${IdentityTreeStoreAtModule.id}`].proxyAddress ||
         contractsInfo.IDENTITY_TREE_STORE.unifiedAddress,
       name: contractsInfo.IDENTITY_TREE_STORE.name,
       isProxy: true,
@@ -172,7 +180,7 @@ async function main() {
       module: CredentialAtomicQueryMTPV2ValidatorProxyModule,
       moduleAt: CredentialAtomicQueryMTPV2ValidatorAtModule,
       contractAddress:
-        parameters["CredentialAtomicQueryMTPV2ValidatorAtModule"].proxyAddress ||
+        parameters[`${CredentialAtomicQueryMTPV2ValidatorAtModule.id}`].proxyAddress ||
         contractsInfo.VALIDATOR_MTP.unifiedAddress,
       name: contractsInfo.VALIDATOR_MTP.name,
       isProxy: true,
@@ -184,7 +192,7 @@ async function main() {
       module: CredentialAtomicQuerySigV2ValidatorProxyModule,
       moduleAt: CredentialAtomicQuerySigV2ValidatorAtModule,
       contractAddress:
-        parameters["CredentialAtomicQuerySigV2ValidatorAtModule"].proxyAddress ||
+        parameters[`${CredentialAtomicQuerySigV2ValidatorAtModule.id}`].proxyAddress ||
         contractsInfo.VALIDATOR_SIG.unifiedAddress,
       name: contractsInfo.VALIDATOR_SIG.name,
       isProxy: true,
@@ -196,7 +204,7 @@ async function main() {
       module: CredentialAtomicQueryV3ValidatorProxyModule,
       moduleAt: CredentialAtomicQueryV3ValidatorAtModule,
       contractAddress:
-        parameters["CredentialAtomicQueryV3ValidatorAtModule"].proxyAddress ||
+        parameters[`${CredentialAtomicQueryV3ValidatorAtModule.id}`].proxyAddress ||
         contractsInfo.VALIDATOR_V3.unifiedAddress,
       name: contractsInfo.VALIDATOR_V3.name,
       isProxy: true,
@@ -205,23 +213,47 @@ async function main() {
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_V3.verificationOpts,
     },
     {
+      module: CredentialAtomicQueryV3StableValidatorProxyModule,
+      moduleAt: CredentialAtomicQueryV3StableValidatorAtModule,
+      contractAddress:
+        parameters[`${CredentialAtomicQueryV3StableValidatorAtModule.id}`].proxyAddress ||
+        contractsInfo.VALIDATOR_V3_STABLE.unifiedAddress,
+      name: contractsInfo.VALIDATOR_V3_STABLE.name,
+      isProxy: true,
+      verifierName: contractsInfo.GROTH16_VERIFIER_V3_STABLE.name,
+      verificationOpts: contractsInfo.VALIDATOR_V3_STABLE.verificationOpts,
+      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_V3_STABLE.verificationOpts,
+    },
+    {
       module: LinkedMultiQueryValidatorProxyModule,
       moduleAt: LinkedMultiQueryValidatorAtModule,
       contractAddress:
-        parameters["LinkedMultiQueryValidatorAtModule"].proxyAddress ||
+        parameters[`${LinkedMultiQueryValidatorAtModule.id}`].proxyAddress ||
         contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.unifiedAddress,
       name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.name,
       isProxy: true,
-      verifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.name,
+      verifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY_10.name,
       verificationOpts: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY.verificationOpts,
       verifierVerificationOpts:
-        contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY10.verificationOpts,
+        contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY_10.verificationOpts,
+    },
+    {
+      module: LinkedMultiQueryStableValidatorProxyModule,
+      moduleAt: LinkedMultiQueryStableValidatorAtModule,
+      contractAddress:
+        parameters[`${LinkedMultiQueryStableValidatorAtModule.id}`].proxyAddress ||
+        contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.unifiedAddress,
+      name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.name,
+      isProxy: true,
+      verifierName: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY.name,
+      verificationOpts: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.verificationOpts,
+      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_LINKED_MULTI_QUERY.verificationOpts,
     },
     {
       module: AuthV2ValidatorProxyModule,
       moduleAt: AuthV2ValidatorAtModule,
       contractAddress:
-        parameters["AuthV2ValidatorAtModule"].proxyAddress ||
+        parameters[`${AuthV2ValidatorAtModule.id}`].proxyAddress ||
         contractsInfo.VALIDATOR_AUTH_V2.unifiedAddress,
       name: contractsInfo.VALIDATOR_AUTH_V2.name,
       isProxy: true,
@@ -230,10 +262,34 @@ async function main() {
       verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V2.verificationOpts,
     },
     {
+      module: AuthV3ValidatorProxyModule,
+      moduleAt: AuthV3ValidatorAtModule,
+      contractAddress:
+        parameters[`${AuthV3ValidatorAtModule.id}`].proxyAddress ||
+        contractsInfo.VALIDATOR_AUTH_V3.unifiedAddress,
+      name: contractsInfo.VALIDATOR_AUTH_V3.name,
+      isProxy: true,
+      verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V3.name,
+      verificationOpts: contractsInfo.VALIDATOR_AUTH_V3.verificationOpts,
+      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V3.verificationOpts,
+    },
+    {
+      module: AuthV3_8_32ValidatorProxyModule,
+      moduleAt: AuthV3_8_32ValidatorAtModule,
+      contractAddress:
+        parameters[`${AuthV3_8_32ValidatorAtModule.id}`].proxyAddress ||
+        contractsInfo.VALIDATOR_AUTH_V3_8_32.unifiedAddress,
+      name: contractsInfo.VALIDATOR_AUTH_V3_8_32.name,
+      isProxy: true,
+      verifierName: contractsInfo.GROTH16_VERIFIER_AUTH_V3_8_32.name,
+      verificationOpts: contractsInfo.VALIDATOR_AUTH_V3_8_32.verificationOpts,
+      verifierVerificationOpts: contractsInfo.GROTH16_VERIFIER_AUTH_V3_8_32.verificationOpts,
+    },
+    {
       module: EthIdentityValidatorProxyModule,
       moduleAt: EthIdentityValidatorAtModule,
       contractAddress:
-        parameters["EthIdentityValidatorAtModule"].proxyAddress ||
+        parameters[`${EthIdentityValidatorAtModule.id}`].proxyAddress ||
         contractsInfo.VALIDATOR_ETH_IDENTITY.unifiedAddress,
       name: contractsInfo.VALIDATOR_ETH_IDENTITY.name,
       isProxy: true,
@@ -243,7 +299,7 @@ async function main() {
       module: VCPaymentProxyModule,
       moduleAt: VCPaymentAtModule,
       contractAddress:
-        parameters["VCPaymentAtModule"].proxyAddress || contractsInfo.VC_PAYMENT.unifiedAddress,
+        parameters[`${VCPaymentAtModule.id}`].proxyAddress || contractsInfo.VC_PAYMENT.unifiedAddress,
       name: contractsInfo.VC_PAYMENT.name,
       isProxy: true,
       verificationOpts: contractsInfo.VC_PAYMENT.verificationOpts,
@@ -252,7 +308,7 @@ async function main() {
       module: MCPaymentProxyModule,
       moduleAt: MCPaymentAtModule,
       contractAddress:
-        parameters["MCPaymentAtModule"].proxyAddress || contractsInfo.MC_PAYMENT.unifiedAddress,
+        parameters[`${MCPaymentAtModule.id}`].proxyAddress || contractsInfo.MC_PAYMENT.unifiedAddress,
       name: contractsInfo.MC_PAYMENT.name,
       isProxy: true,
       verificationOpts: contractsInfo.MC_PAYMENT.verificationOpts,
@@ -261,12 +317,24 @@ async function main() {
 
   for (const contract of contracts) {
     console.log(`Deploying ${contract.name}...`);
+    let proxyAdminAddress = contract.isProxy
+      ? ethers.getCreateAddress({ from: contract.contractAddress, nonce: 1 })
+      : undefined;
+
+    // special case for Polygon Amoy and Polygon PoS with state proxy admin address
+    const chainId = await getChainId();
+    if (contract.moduleAt.id === "StateAtModule" && (chainId == 80002 || chainId == 137)) {
+      if (chainId == 80002) {
+        proxyAdminAddress = "0xdc2A724E6bd60144Cde9DEC0A38a26C619d84B90";
+      } else {
+        proxyAdminAddress = "0xA8bbF6132e4021b5D244a4DdD75dE5FFCfBd514A";
+      }
+    }
+
     parameters[contract.moduleAt.id] = contract.isProxy
       ? {
           proxyAddress: contract.contractAddress,
-          proxyAdminAddress: contract.isProxy
-            ? ethers.getCreateAddress({ from: contract.contractAddress, nonce: 1 })
-            : undefined,
+          proxyAdminAddress: proxyAdminAddress,
         }
       : {
           contractAddress: contract.contractAddress,
@@ -340,13 +408,19 @@ async function main() {
       }
     } else {
       console.log(`${contract.name} already deployed to: ${contract.contractAddress}`);
-      // Use the module to get the address into the deployed address registry
-      await ignition.deploy(contract.moduleAt, {
-        strategy: deployStrategy,
-        defaultSender: await signer.getAddress(),
-        parameters: parameters,
-        deploymentId: deploymentId,
-      });
+      try {
+        // Use the module to get the address into the deployed address registry
+        await ignition.deploy(contract.moduleAt, {
+          strategy: deployStrategy,
+          defaultSender: await signer.getAddress(),
+          parameters: parameters,
+          deploymentId: deploymentId,
+        });
+      } catch (e: any) {
+        if (!e.message.includes("bytecodes have been changed")) {
+          throw e;
+        }
+      }
     }
   }
 

@@ -1,4 +1,4 @@
-import { ethers, ignition } from "hardhat";
+import { network } from "hardhat";
 import { expect } from "chai"; // abi of contract that will be upgraded
 import {
   checkContractVersion,
@@ -11,6 +11,8 @@ import {
 import { contractsInfo } from "../../../helpers/constants";
 import UpgradeStateModule from "../../../ignition/modules/upgrades/upgradeState";
 import { transferOwnership } from "../helpers/utils";
+
+const { ethers, ignition } = await network.connect();
 
 // If you want to use impersonation, set the impersonate variable to true
 // With ignition we can't use impersonation, so we need to transfer ownership to the signer

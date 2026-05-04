@@ -1,4 +1,3 @@
-import { ethers, ignition } from "hardhat";
 import { contractsInfo } from "../../helpers/constants";
 import {
   getChainId,
@@ -9,12 +8,16 @@ import {
 } from "../../helpers/helperUtils";
 import {
   AuthV2ValidatorAtModule,
+  AuthV3ValidatorAtModule,
+  AuthV3_8_32ValidatorAtModule,
   Create2AddressAnchorAtModule,
   CredentialAtomicQueryMTPV2ValidatorAtModule,
   CredentialAtomicQuerySigV2ValidatorAtModule,
+  CredentialAtomicQueryV3StableValidatorAtModule,
   CredentialAtomicQueryV3ValidatorAtModule,
   EthIdentityValidatorAtModule,
   IdentityTreeStoreAtModule,
+  LinkedMultiQueryStableValidatorAtModule,
   LinkedMultiQueryValidatorAtModule,
   MCPaymentAtModule,
   Poseidon1AtModule,
@@ -26,6 +29,9 @@ import {
   UniversalVerifierAtModule,
   VCPaymentAtModule,
 } from "../../ignition/modules/contractsAt";
+import { network } from "hardhat";
+
+const { ethers, ignition } = await network.connect();
 
 async function main() {
   // const config = getConfig();
@@ -134,6 +140,14 @@ async function main() {
       proxy: true,
     },
     {
+      moduleAt: CredentialAtomicQueryV3StableValidatorAtModule,
+      contractAddress:
+        parameters["CredentialAtomicQueryV3StableValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_V3_STABLE.unifiedAddress,
+      name: contractsInfo.VALIDATOR_V3_STABLE.name,
+      proxy: true,
+    },
+    {
       moduleAt: LinkedMultiQueryValidatorAtModule,
       contractAddress:
         parameters["LinkedMultiQueryValidatorAtModule"].proxyAddress ||
@@ -142,11 +156,35 @@ async function main() {
       proxy: true,
     },
     {
+      moduleAt: LinkedMultiQueryStableValidatorAtModule,
+      contractAddress:
+        parameters["LinkedMultiQueryStableValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.unifiedAddress,
+      name: contractsInfo.VALIDATOR_LINKED_MULTI_QUERY_STABLE.name,
+      proxy: true,
+    },
+    {
       moduleAt: AuthV2ValidatorAtModule,
       contractAddress:
         parameters["AuthV2ValidatorAtModule"].proxyAddress ||
         contractsInfo.VALIDATOR_AUTH_V2.unifiedAddress,
       name: contractsInfo.VALIDATOR_AUTH_V2.name,
+      proxy: true,
+    },
+    {
+      moduleAt: AuthV3ValidatorAtModule,
+      contractAddress:
+        parameters["AuthV3ValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_AUTH_V3.unifiedAddress,
+      name: contractsInfo.VALIDATOR_AUTH_V3.name,
+      proxy: true,
+    },
+    {
+      moduleAt: AuthV3_8_32ValidatorAtModule,
+      contractAddress:
+        parameters["AuthV3_8_32ValidatorAtModule"].proxyAddress ||
+        contractsInfo.VALIDATOR_AUTH_V3_8_32.unifiedAddress,
+      name: contractsInfo.VALIDATOR_AUTH_V3_8_32.name,
       proxy: true,
     },
     {
@@ -201,12 +239,18 @@ async function main() {
         : {
             contractAddress: contract.contractAddress,
           };
-      // Use the module to get the address into the deployed address registry
-      await ignition.deploy(contract.moduleAt, {
-        strategy: deployStrategy,
-        defaultSender: await signer.getAddress(),
-        parameters: parameters,
-      });
+      try {
+        // Use the module to get the address into the deployed address registry
+        await ignition.deploy(contract.moduleAt, {
+          strategy: deployStrategy,
+          defaultSender: await signer.getAddress(),
+          parameters: parameters,
+        });
+      } catch (e: any) {
+        if (!e.message.includes("bytecodes have been changed")) {
+          throw e;
+        }
+      }
     }
   }
 

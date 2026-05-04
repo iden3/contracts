@@ -1,13 +1,13 @@
-import { ethers } from "hardhat";
 import { beforeEach } from "mocha";
-import { DeployHelper } from "../../helpers/DeployHelper";
 import { expect } from "chai";
-import {
-  calculateGroupID,
-  calculateMultiRequestId,
-  calculateRequestID,
-} from "../utils/id-calculation-utils";
-import { contractsInfo } from "../../helpers/constants";
+import { chainIdInfoMap, contractsInfo } from "../../helpers/constants";
+import { network } from "hardhat";
+import { getChainId } from "../../helpers/helperUtils";
+import StateModule from "../../ignition/modules/deployEverythingBasicStrategy/state";
+import { Groth16VerifierStubModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
+import { calculateGroupId, calculateMultiRequestId, calculateRequestId } from "@0xpolygonid/js-sdk";
+
+const { ethers, ignition } = await network.connect();
 
 describe("Verifier tests", function () {
   let sender: any;
@@ -18,19 +18,39 @@ describe("Verifier tests", function () {
   let signerAddress: string;
   let verifierId: any;
 
-  async function deployContractsFixture(verifierContractName: string = "VerifierTestWrapper") {
+  async function deployContractsFixture() {
     [signer] = await ethers.getSigners();
     signerAddress = await signer.getAddress();
 
-    const deployHelper = await DeployHelper.initialize(null, true);
     const verifierLib = await ethers.deployContract(contractsInfo.VERIFIER_LIB.name);
-    const verifier = await ethers.deployContract(verifierContractName, [], {
+    const verifier = await ethers.deployContract("VerifierTestWrapper", [], {
       libraries: {
         VerifierLib: await verifierLib.getAddress(),
       },
     });
 
-    const { state } = await deployHelper.deployStateWithLibraries([], "Groth16VerifierStub");
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0112",
+      },
+    };
+
+    const { state } = await ignition.deploy(StateModule, {
+      parameters: parameters,
+    });
+
+    const groth16VerifierStub = (await ignition.deploy(Groth16VerifierStubModule))
+      .groth16VerifierStub;
+    await state.setVerifier(await groth16VerifierStub.getAddress());
+
     await verifier.initialize(await state.getAddress());
 
     const authValidatorStub = await ethers.deployContract("AuthValidatorStub");
@@ -147,7 +167,7 @@ describe("Verifier tests", function () {
         requestId: request.requestId + 1,
         creator: await requestOwner.getAddress(),
       };
-      await expect(verifier.connect(requestOwner).setRequests([request3])).not.to.be.reverted;
+      await expect(verifier.connect(requestOwner).setRequests([request3])).not.to.be.revert(ethers);
     });
 
     it("setRequests: requestId should be valid", async function () {
@@ -171,7 +191,7 @@ describe("Verifier tests", function () {
         "RequestIdUsesReservedBytes",
       );
 
-      const expectedRequestId = calculateRequestID(request.params, sender.address);
+      const expectedRequestId = calculateRequestId(request.params, sender.address);
       request.requestId = BigInt(
         "0x0001000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
       ); // requestId idType is valid but calculation from hash params is not valid
@@ -186,7 +206,7 @@ describe("Verifier tests", function () {
 
     it("setRequests: a group should be formed by the groupID encoded in requests params", async function () {
       const requestId2 = 2;
-      const groupID = calculateGroupID([request.requestId, BigInt(requestId2)]);
+      const groupID = calculateGroupId();
 
       const request1 = { ...request, groupID };
       const request2 = { ...request, requestId: requestId2, groupID };
@@ -219,7 +239,7 @@ describe("Verifier tests", function () {
 
     it("setRequests: a group should not exist previously", async function () {
       const requestId2 = 2;
-      const groupID = calculateGroupID([BigInt(request.requestId), BigInt(requestId2)]);
+      const groupID = calculateGroupId();
 
       const request1 = { ...request, groupID };
       const request2 = { ...request, requestId: requestId2, groupID };
@@ -283,7 +303,7 @@ describe("Verifier tests", function () {
         .to.be.revertedWithCustomError(verifierLib, "AuthMethodAlreadyExists")
         .withArgs(authMethod.authMethod);
 
-      await expect(verifier.setAuthMethod(authMethod2)).not.to.be.reverted;
+      await expect(verifier.setAuthMethod(authMethod2)).not.to.be.revert(ethers);
 
       const authMethodObject = await verifier.getAuthMethod(authMethod.authMethod);
       expect(authMethodObject.validator).to.be.equal(authMethod2.validator);
@@ -323,8 +343,9 @@ describe("Verifier tests", function () {
       authMethodObject = await verifier.getAuthMethod(authMethod.authMethod);
       expect(authMethodObject.isActive).to.be.true;
 
-      await expect(verifier.submitResponse(authResponse, [response], crossChainProofs)).not.to.be
-        .reverted;
+      await expect(
+        verifier.submitResponse(authResponse, [response], crossChainProofs),
+      ).not.to.be.revert(ethers);
     });
 
     it("submitResponse: not repeated responseFields from validator", async function () {
@@ -639,7 +660,7 @@ describe("Verifier tests", function () {
     it("getMultiRequestProofsStatus: linkID should be equal to all requests in a group, otherwise multiRequest pointing to it returns false", async function () {
       const requestId1 = 5;
       const requestId2 = 6;
-      const groupID = calculateGroupID([BigInt(requestId1), BigInt(requestId2)]);
+      const groupID = calculateGroupId();
       const groupRequest1 = { ...request, requestId: requestId1, groupID };
       const groupRequest2 = {
         ...request,
@@ -715,7 +736,7 @@ describe("Verifier tests", function () {
     it("getMultiRequestProofsStatus: all request with same linkID in a group already verified returns true", async function () {
       const requestId1 = 10;
       const requestId2 = 11;
-      const groupID = calculateGroupID([BigInt(requestId1), BigInt(requestId2)]);
+      const groupID = calculateGroupId();
       const request1 = { ...request, requestId: requestId1, groupID: groupID };
       const request2 = {
         ...request,

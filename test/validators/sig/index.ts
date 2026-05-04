@@ -1,20 +1,28 @@
 import { expect } from "chai";
 import { prepareInputs, publishState } from "../../utils/state-utils";
-import { DeployHelper } from "../../../helpers/DeployHelper";
 import { packValidatorParams } from "../../utils/validator-pack-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { contractsInfo, TEN_YEARS } from "../../../helpers/constants";
+import { chainIdInfoMap, contractsInfo, TEN_YEARS } from "../../../helpers/constants";
 import { packZKProof } from "../../utils/packData";
-import { ethers } from "hardhat";
+import { network } from "hardhat";
+import CredentialAtomicQuerySigV2ValidatorModule from "../../../ignition/modules/deployEverythingBasicStrategy/credentialAtomicQuerySigV2Validator";
+import { getChainId } from "../../../helpers/helperUtils";
+import issuerGenesisState from "../common-data/issuer_genesis_state.json";
+import validSigUserGenesis from "./data/valid_sig_user_genesis.json";
+import invalidSigUserGenesis from "./data/invalid_sig_user_genesis.json";
+import userStateTransition from "../common-data/user_state_transition.json";
+import validSigUserNonGenesis from "./data/valid_sig_user_non_genesis.json";
+import issuerNextStateTransition from "../common-data/issuer_next_state_transition.json";
+import userNextStateTransition from "../common-data/user_next_state_transition.json";
+
+const { ethers, networkHelpers, ignition } = await network.connect();
 
 const tenYears = TEN_YEARS;
 const testCases: any[] = [
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain",
-    stateTransitions: [require("../common-data/issuer_genesis_state.json")],
-    proofJson: require("./data/valid_sig_user_genesis.json"),
+    stateTransitions: [issuerGenesisState],
+    proofJson: validSigUserGenesis,
     setProofExpiration: tenYears,
     signalValues: [
       {
@@ -34,18 +42,15 @@ const testCases: any[] = [
   },
   {
     name: "Validation of proof failed",
-    stateTransitions: [require("../common-data/issuer_genesis_state.json")],
-    proofJson: require("./data/invalid_sig_user_genesis.json"),
+    stateTransitions: [issuerGenesisState],
+    proofJson: invalidSigUserGenesis,
     errorMessage: "",
     setProofExpiration: tenYears,
   },
   {
     name: "User state is not genesis but latest",
-    stateTransitions: [
-      require("../common-data/issuer_genesis_state.json"),
-      require("../common-data/user_state_transition.json"),
-    ],
-    proofJson: require("./data/valid_sig_user_non_genesis.json"),
+    stateTransitions: [issuerGenesisState, userStateTransition],
+    proofJson: validSigUserNonGenesis,
     setProofExpiration: tenYears,
     signalValues: [
       {
@@ -65,12 +70,8 @@ const testCases: any[] = [
   },
   {
     name: "The non-revocation issuer state is not expired",
-    stateTransitions: [
-      require("../common-data/issuer_genesis_state.json"),
-      require("../common-data/user_state_transition.json"),
-      require("../common-data/issuer_next_state_transition.json"),
-    ],
-    proofJson: require("./data/valid_sig_user_non_genesis.json"),
+    stateTransitions: [issuerGenesisState, userStateTransition, issuerNextStateTransition],
+    proofJson: validSigUserNonGenesis,
     setProofExpiration: tenYears,
     signalValues: [
       {
@@ -91,13 +92,13 @@ const testCases: any[] = [
   {
     name: "The non-revocation issuer state is expired",
     stateTransitions: [
-      require("../common-data/issuer_genesis_state.json"),
-      require("../common-data/user_state_transition.json"), // proof was generated after this state transition
-      require("../common-data/issuer_next_state_transition.json"),
-      require("../common-data/user_next_state_transition.json"),
+      issuerGenesisState,
+      userStateTransition,
+      issuerNextStateTransition,
+      userNextStateTransition,
     ],
     stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
-    proofJson: require("./data/valid_sig_user_non_genesis.json"),
+    proofJson: validSigUserNonGenesis,
     setRevStateExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
     errorMessage: "NonRevocationStateOfIssuerIsExpired()",
     setProofExpiration: tenYears,
@@ -105,31 +106,27 @@ const testCases: any[] = [
   {
     name: "GIST root expired, Issuer revocation state is not expired",
     stateTransitions: [
-      require("../common-data/issuer_genesis_state.json"),
-      require("../common-data/user_state_transition.json"), // proof was generated after this state transition
-      require("../common-data/user_next_state_transition.json"),
-      require("../common-data/issuer_next_state_transition.json"),
+      issuerGenesisState,
+      userStateTransition, // proof was generated after this state transition
+      userNextStateTransition,
+      issuerNextStateTransition,
     ],
     stateTransitionDelayMs: 2000, // [1....][2....][3....][4....] - each block is 2 seconds long
-    proofJson: require("./data/valid_sig_user_non_genesis.json"), // generated on step 2
+    proofJson: validSigUserNonGenesis, // generated on step 2
     setGISTRootExpiration: 3, // [1....][2....][3..*.][4....] <-- (*) - marks where the expiration threshold is
     errorMessage: "GistRootIsExpired()",
     setProofExpiration: tenYears,
   },
   {
     name: "The generated proof is expired",
-    stateTransitions: [
-      require("../common-data/issuer_genesis_state.json"),
-      require("../common-data/user_state_transition.json"),
-      require("../common-data/issuer_next_state_transition.json"),
-    ],
-    proofJson: require("./data/valid_sig_user_non_genesis.json"),
+    stateTransitions: [issuerGenesisState, userStateTransition, issuerNextStateTransition],
+    proofJson: validSigUserNonGenesis,
     errorMessage: "GeneratedProofIsOutdated()",
   },
   {
     name: "Validate Genesis User State. Issuer Claim IdenState is in Chain. Revocation State is in Chain",
-    stateTransitions: [require("../common-data/issuer_genesis_state.json")],
-    proofJson: require("./data/valid_sig_user_genesis.json"),
+    stateTransitions: [issuerGenesisState],
+    proofJson: validSigUserGenesis,
     setProofExpiration: tenYears,
     allowedIssuers: [123n],
     errorMessage: "IssuerIsNotOnTheAllowedIssuersList()",
@@ -142,14 +139,25 @@ describe("Atomic Sig Validator", function () {
 
   async function deployContractsFixture() {
     senderAddress = "0x3930000000000000000000000000000000000000"; // because challenge is 12345 in proofs.
-    const deployHelper = await DeployHelper.initialize(null, true);
 
-    const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0100"]);
-    const contracts = await deployHelper.deployValidatorContractsWithVerifiers(
-      "sigV2",
-      await stateContract.getAddress(),
-    );
-    const validator = contracts.validator;
+    const chainId = await getChainId();
+    const oracleSigningAddress = chainIdInfoMap.get(chainId)?.oracleSigningAddress;
+
+    const parameters: any = {
+      CrossChainProofValidatorModule: {
+        domainName: "StateInfo",
+        signatureVersion: "1",
+        oracleSigningAddress: oracleSigningAddress,
+      },
+      StateProxyModule: {
+        defaultIdType: "0x0100",
+      },
+    };
+
+    const { state: stateContract, credentialAtomicQuerySigV2Validator: validator } =
+      await ignition.deploy(CredentialAtomicQuerySigV2ValidatorModule, {
+        parameters: parameters,
+      });
 
     return {
       stateContract,
@@ -172,7 +180,7 @@ describe("Atomic Sig Validator", function () {
       stateContract: state,
       validator: sigValidator,
       senderAddress,
-    } = await loadFixture(deployContractsFixture));
+    } = await networkHelpers.loadFixture(deployContractsFixture));
   });
 
   for (const test of testCases) {
@@ -180,9 +188,9 @@ describe("Atomic Sig Validator", function () {
       this.timeout(50000);
       for (let i = 0; i < test.stateTransitions.length; i++) {
         if (test.stateTransitionDelayMs) {
-          await time.increase(test.stateTransitionDelayMs);
+          await networkHelpers.time.increase(test.stateTransitionDelayMs);
         }
-        await publishState(state, test.stateTransitions[i]);
+        await publishState(ethers, state, test.stateTransitions[i]);
       }
 
       const query = {
@@ -221,7 +229,7 @@ describe("Atomic Sig Validator", function () {
           test.errorMessage,
         );
       } else if (test.errorMessage === "") {
-        await expect(sigValidator.verify(senderAddress, zkProof, data, "0x")).to.be.reverted;
+        await expect(sigValidator.verify(senderAddress, zkProof, data, "0x")).to.be.revert(ethers);
       } else {
         const signals = await sigValidator.verify(senderAddress, zkProof, data, "0x");
         checkSignals(signals, test.signalValues);

@@ -1,69 +1,95 @@
-import hre, { ethers } from "hardhat";
-import { DeployHelper } from "../../../helpers/DeployHelper";
 import {
-  getChainId,
+  checkContractVersion,
   getConfig,
-  getStateContractAddress,
-  removeLocalhostNetworkIgnitionFiles,
+  getDeploymentParameters,
   verifyContract,
+  writeDeploymentParameters,
 } from "../../../helpers/helperUtils";
-import path from "path";
-import fs from "fs";
 import { contractsInfo } from "../../../helpers/constants";
+import { network } from "hardhat";
+import UpgradeIdentityTreeStoreModule from "../../../ignition/modules/upgrades/upgradeIdentityTreeStore";
+import { transferOwnership } from "../helpers/utils";
 
-const removePreviousIgnitionFiles = true;
+const { ethers, ignition } = await network.connect();
+
+// If you want to use impersonation, set the impersonate variable to true
+// With ignition we can't use impersonation, so we need to transfer ownership to the signer
+// before the upgrade to test in a fork. This is done in the transferOwnership function below.
 const impersonate = false;
 
-const config = getConfig();
-
-async function getSigners(useImpersonation: boolean): Promise<any> {
-  if (useImpersonation) {
-    const proxyAdminOwnerSigner = await ethers.getImpersonatedSigner(config.ledgerAccount);
-    return { proxyAdminOwnerSigner };
-  } else {
-    const [signer] = await ethers.getSigners();
-    const proxyAdminOwnerSigner = signer;
-    return { proxyAdminOwnerSigner };
-  }
-}
-
 async function main() {
-  const chainId = await getChainId();
-  const network = hre.network.name;
-
-  const deployStrategy: "basic" | "create2" =
-    config.deployStrategy == "create2" ? "create2" : "basic";
+  const config = getConfig();
+  const parameters = await getDeploymentParameters();
+  const deploymentId = parameters.DeploymentId || undefined;
 
   if (!ethers.isAddress(config.ledgerAccount)) {
     throw new Error("LEDGER_ACCOUNT is not set");
   }
 
-  const stateContractAddress = await getStateContractAddress();
+  const identityTreeStoreContractAddress = parameters.IdentityTreeStoreAtModule.proxyAddress;
+  const [signer] = await ethers.getSigners();
 
-  const { proxyAdminOwnerSigner } = await getSigners(impersonate);
+  console.log("Proxy Admin Owner Address for the upgrade: ", signer.address);
+  console.log("State Owner Address for the upgrade: ", signer.address);
 
-  console.log("Proxy Admin Owner Address: ", await proxyAdminOwnerSigner.getAddress());
-  if (removePreviousIgnitionFiles) {
-    removeLocalhostNetworkIgnitionFiles(network, chainId);
+  const { upgraded, currentVersion } = await checkContractVersion(
+    contractsInfo.IDENTITY_TREE_STORE.name,
+    identityTreeStoreContractAddress,
+    contractsInfo.IDENTITY_TREE_STORE.version,
+  );
+
+  if (upgraded) {
+    console.log(`Contract is already upgraded to version ${contractsInfo.IDENTITY_TREE_STORE.version}`);
+    return;
+  } else {
+    console.log(
+      `Contract is not upgraded and will upgrade version ${currentVersion} to ${contractsInfo.IDENTITY_TREE_STORE.version}`,
+    );
   }
 
-  const identityTreeStore = await ethers.getContractAt(
+  const proxyAt = await ethers.getContractAt(
     contractsInfo.IDENTITY_TREE_STORE.name,
-    contractsInfo.IDENTITY_TREE_STORE.unifiedAddress,
+    parameters.IdentityTreeStoreAtModule.proxyAddress,
+  );
+  const proxyAdminAt = await ethers.getContractAt(
+    "ProxyAdmin",
+    parameters.IdentityTreeStoreAtModule.proxyAdminAddress,
   );
 
-  console.log("Version before:", await identityTreeStore.VERSION());
+  if (impersonate) {
+    console.log("Impersonating Ledger Account by ownership transfer");
+    await transferOwnership(signer, { proxy: proxyAt, proxyAdmin: proxyAdminAt });
+  }
+
+  const identityTreeStoreContract = proxyAt;
+
+  console.log("Version before:", await identityTreeStoreContract.VERSION());
+
+ const version = "V".concat(contractsInfo.IDENTITY_TREE_STORE.version.replaceAll(".", "_").replaceAll("-", "_"));
+  parameters["UpgradeIdentityTreeStoreModule".concat(version)] = {
+    proxyAddress: parameters.IdentityTreeStoreAtModule.proxyAddress,
+    proxyAdminAddress: parameters.IdentityTreeStoreAtModule.proxyAdminAddress,
+    poseidon2ContractAddress: parameters.Poseidon2AtModule.contractAddress,
+    poseidon3ContractAddress: parameters.Poseidon3AtModule.contractAddress,
+  };
+
   // **** Upgrade IdentityTreeStore ****
 
-  const stateDeployHelper = await DeployHelper.initialize([proxyAdminOwnerSigner], true);
 
-  await stateDeployHelper.upgradeIdentityTreeStore(
-    contractsInfo.IDENTITY_TREE_STORE.unifiedAddress,
-    stateContractAddress,
-    contractsInfo.POSEIDON_2.unifiedAddress,
-    contractsInfo.POSEIDON_3.unifiedAddress,
-    deployStrategy,
-  );
+  const { newImplementation, identityTreeStore, proxy, proxyAdmin } =
+    await ignition.deploy(UpgradeIdentityTreeStoreModule, {
+      defaultSender: signer.address,
+      parameters: parameters,
+      deploymentId: deploymentId,
+    });
+
+  parameters.IdentityTreeStoreAtModule = {
+    proxyAddress: proxy.target,
+    proxyAdminAddress: proxyAdmin.target,
+  };
+  parameters.IdentityTreeStoreNewImplementationAtModule = {
+    contractAddress: newImplementation.target,
+  };
 
   // **********************************
   console.log("Version after:", await identityTreeStore.VERSION());
@@ -72,21 +98,9 @@ async function main() {
     await identityTreeStore.getAddress(),
     contractsInfo.IDENTITY_TREE_STORE.verificationOpts,
   );
+  console.log("Contract Upgrade Finished");
 
-  const pathOutputJson = path.join(
-    __dirname,
-    `../../deployments_output/deploy_identity_tree_store_output_${chainId}_${network}.json`,
-  );
-  const outputJson = {
-    proxyAdminOwnerAddress: await proxyAdminOwnerSigner.getAddress(),
-    identityTreeStore: await identityTreeStore.getAddress(),
-    poseidon2ContractAddress: contractsInfo.POSEIDON_2.unifiedAddress,
-    poseidon3ContractAddress: contractsInfo.POSEIDON_3.unifiedAddress,
-    network: network,
-    chainId,
-    deployStrategy,
-  };
-  fs.writeFileSync(pathOutputJson, JSON.stringify(outputJson, null, 1));
+  await writeDeploymentParameters(parameters);
 }
 
 main()

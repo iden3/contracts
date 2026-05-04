@@ -1,23 +1,18 @@
-import { DeployHelper } from "../../../helpers/DeployHelper";
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { ethers } from "hardhat";
 import { expect } from "chai";
+import { network } from "hardhat";
+import EthIdentityValidatorModule from "../../../ignition/modules/deployEverythingBasicStrategy/ethIdentityValidator";
+
+const { ethers, networkHelpers, ignition } = await network.connect();
 
 describe("Eth Identity Validator", function () {
   let validator: any;
 
   async function deployContractsFixture() {
-    const deployHelper = await DeployHelper.initialize(null, true);
-    const { state: stateContract } = await deployHelper.deployStateWithLibraries(["0x0212"]);
-    const stateContractAddress = await stateContract.getAddress();
-    ({ validator } = await deployHelper.deployValidatorContracts(
-      "ethIdentity",
-      stateContractAddress,
-    ));
+    validator = (await ignition.deploy(EthIdentityValidatorModule)).ethIdentityValidator;
   }
 
   before(async () => {
-    await loadFixture(deployContractsFixture);
+    await networkHelpers.loadFixture(deployContractsFixture);
   });
 
   it("should deploy EthIdentityValidator contract", async function () {
