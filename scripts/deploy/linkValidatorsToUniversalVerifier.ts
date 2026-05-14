@@ -203,7 +203,13 @@ async function main() {
       parameters: parameters,
     });
     if (!(await universalVerifier.isWhitelistedValidator(validatorDeployed.proxy.target))) {
-      const tx = await universalVerifier.addValidatorToWhitelist(validatorDeployed.proxy.target);
+      const tx = await universalVerifier.addValidatorToWhitelist(validatorDeployed.proxy.target, {
+        // sepolia, base-mainnet/testnet, bnb-testnet: 10 000 000,
+        // bnb-mainnet: 100 000 000
+        gasPrice: 10000000,
+        // initialBaseFeePerGas: 10000000,
+        // gasLimit: 500000,
+      });
       console.log(
         `${validator.name} in address ${validatorDeployed.proxy.target} added to whitelisted validators`,
       );
@@ -226,6 +232,10 @@ async function main() {
         authMethod: validator.authMethod,
         validator: validatorDeployed.proxy.target,
         params: "0x",
+      }, {
+        gasPrice: 10000000,
+        // initialBaseFeePerGas: 10000000,
+        // gasLimit: 500000,
       });
       await tx.wait();
       console.log(
@@ -243,6 +253,10 @@ async function main() {
       authMethod: authMethodEmbeddedAuth,
       validator: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
       params: "0x",
+    }, {
+      gasPrice: 10000000,
+      // initialBaseFeePerGas: 10000000,
+      // gasLimit: 500000,
     });
     await tx.wait();
     console.log(`${authMethodEmbeddedAuth} added to auth methods`);
