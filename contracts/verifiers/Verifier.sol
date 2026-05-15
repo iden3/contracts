@@ -669,7 +669,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                         // If embedded auth method is used, we can use first userID from responses
                         userIDFromAuthResponse = VerifierLib.userID(responseFields);
                     }
-                } 
+                }
                 if (!hasEmbeddedAuthVerified && userIDFromAuthResponse == 0) {
                     revert MissingUserIDInRequest(response.requestId);
                 }
