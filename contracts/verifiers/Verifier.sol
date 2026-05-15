@@ -660,15 +660,16 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                 // to other responses that will have this embedded auth verified field
                 (bool hasEmbeddedAuthVerified, uint256 embeddedAuthVerifiedValue) = VerifierLib
                     .isEmbeddedAuthVerified(responseFields);
-                if (hasEmbeddedAuthVerified && embeddedAuthVerifiedValue == 0) {
-                    revert NoEmbeddedAuthInResponsesFound();
-                }
+
                 if (hasEmbeddedAuthVerified) {
-                    // If embedded auth method is used, we can use first userID from responses
+                    if (embeddedAuthVerifiedValue == 0) {
+                        revert NoEmbeddedAuthInResponsesFound();
+                    }
                     if (userIDFromAuthResponse == 0) {
+                        // If embedded auth method is used, we can use first userID from responses
                         userIDFromAuthResponse = VerifierLib.userID(responseFields);
                     }
-                }
+                } 
                 if (!hasEmbeddedAuthVerified && userIDFromAuthResponse == 0) {
                     revert MissingUserIDInRequest(response.requestId);
                 }

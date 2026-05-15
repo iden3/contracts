@@ -150,6 +150,9 @@ library VerifierLib {
         uint256 userId,
         IRequestValidator.ResponseField[] memory responseFields
     ) external {
+        if (!requestIdExists(self, requestId)) {
+            revert RequestIdNotFound(requestId);
+        }
         Verifier.Proof storage proof = self._proofs[requestId][sender];
         proof.isVerified = true;
         proof.proofEntries.push();
