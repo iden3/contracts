@@ -18,6 +18,8 @@ import {
   LEDGER_ACCOUNT,
   LINEA_MAINNET_RPC_URL,
   LINEA_SEPOLIA_RPC_URL,
+  OPN_MAINNET_RPC_URL,
+  OPN_TESTNET_RPC_URL,
   POLYGON_AMOY_RPC_URL,
   POLYGON_MAINNET_RPC_URL,
   PRIVADO_MAINNET_RPC_URL,
@@ -243,6 +245,18 @@ export default defineConfig({
       url: `${BNB_TESTNET_RPC_URL}`,
       ...accounts,
     },
+    "opn-mainnet": {
+      type: "http",
+      chainId: 222,
+      url: `${OPN_MAINNET_RPC_URL}`,
+      ...accounts,
+    },
+    "opn-testnet": {
+      type: "http",
+      chainId: 984,
+      url: `${OPN_TESTNET_RPC_URL}`,
+      ...accounts,
+    },
     // --------------------------------------------------------------------------------------------------------------
     // Note: uncomment to use a forked network and then run `npx hardhat node --fork`
     // in some networks is needed to execute first a script with `await ethers.provider.send("evm_mine")`
@@ -315,6 +329,16 @@ export default defineConfig({
           name: "billions-mainnet",
           url: "https://explorer.billions.network",
           apiUrl: "https://explorer.billions.network/api/",
+        },
+      },
+    },
+    984: {
+      name: "opn-testnet",
+      blockExplorers: {
+        blockscout: {
+          name: "opn-testnet",
+          url: "https://testnet.iopn.tech/",
+          apiUrl: "https://testnet.iopn.tech/api/",
         },
       },
     },

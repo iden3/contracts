@@ -20,6 +20,8 @@ export const BASE_MAINNET_RPC_URL = process.env.BASE_MAINNET_RPC_URL || defaultU
 export const BASE_SEPOLIA_RPC_URL = process.env.BASE_SEPOLIA_RPC_URL || defaultUrl;
 export const BNB_MAINNET_RPC_URL = process.env.BNB_MAINNET_RPC_URL || defaultUrl;
 export const BNB_TESTNET_RPC_URL = process.env.BNB_TESTNET_RPC_URL || defaultUrl;
+export const OPN_MAINNET_RPC_URL = process.env.OPN_MAINNET_RPC_URL || defaultUrl;
+export const OPN_TESTNET_RPC_URL = process.env.OPN_TESTNET_RPC_URL || defaultUrl;
 
 export const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
 export const PRIVATE_KEY = process.env.PRIVATE_KEY || undefined;

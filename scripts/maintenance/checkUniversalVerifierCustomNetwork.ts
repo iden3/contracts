@@ -11,18 +11,19 @@ import { network } from "hardhat";
 const { ethers, networkName } = await network.connect();
 
 // Replace these addresses with the ones deployed in your custom network
-const universalVerifierAddress = "<UNIVERSAL_VERIFIER_ADDRESS>";
-const validatorSigV2Address = "<VALIDATOR_SIGV2_ADDRESS>";
-const validatorMTPV2Address = "<VALIDATOR_MTPV2_ADDRESS>";
-const validatorV3Address = "<VALIDATOR_V3_ADDRESS>";
+const universalVerifierAddress = "0xe382E63eA276c34639D87AdF58Ed18cA1313c4De";
+const validatorSigV2Address = "0x093c21547bE54445fCf71B1bD54641fbc4cEDC3d";
+const validatorMTPV2Address = "0xfa1d72bbEBdEBc16d00e6e51B164746B297de688";
+const validatorV3Address = "0x22ca8323E3E3D3B65732fDE7cb72f90FAED0Eaaf";
+const validatorV3StableAddress = "0x78F3a59B41461aBFB90D020AC4D247f512ae2672";
 // Replace with your actual state contract address
-const stateContractAddress = "<STATE_CONTRACT_ADDRESS>";
+const stateContractAddress = "0xEF75Eb00E6Ac36b5C215aEBe6CD7Bca9b2Eb33be";
 // Replace with your actual custom network details for method, blockchain and network
 const method = core.DidMethod.Iden3;
-const blockchain = "<blockchain>";
-const didNetwork = "<network>";
+const blockchain = "opn";
+const didNetwork = "test";
 // Replace with your custom network chainId and networkFlag
-const chainId = 0;
+const chainId = 984;
 const networkFlag = 0b1111_1111;
 // Replace with your actual auth method
 const authMethodEmbeddedAuth = "embeddedAuth";
@@ -35,6 +36,14 @@ async function testVerification(verifier: Contract) {
     chainId: chainId,
     network: didNetwork,
     networkFlag: networkFlag,
+  });
+
+  const requestId_V3Stable = await setZKPRequest_KYCAgeCredential(verifier, validatorV3StableAddress, "v3stable");
+  await submitZKPResponses_KYCAgeCredential(requestId_V3Stable, verifier, "v3stable", {
+    stateContractAddress: stateContractAddress,
+    verifierContractAddress: await verifier.getAddress(),
+    checkSubmitZKResponseV2: false,
+    authMethod: authMethodEmbeddedAuth,
   });
 
   const requestId_V3 = await setZKPRequest_KYCAgeCredential(verifier, validatorV3Address, "v3");

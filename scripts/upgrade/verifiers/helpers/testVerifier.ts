@@ -251,6 +251,12 @@ function getParamsFromChainId(chainId: number) {
       blockchain = "bnb";
       networkId = "main";
       break;
+    case 984:
+      rpcUrl = process.env.OPN_TESTNET_RPC_URL as string;
+      method = DidMethod.Iden3;
+      blockchain = "opn";
+      networkId = "test";
+      break;      
     default:
       throw new Error(`Unsupported chainId: ${chainId}`);
   }
