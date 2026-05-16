@@ -104,3 +104,4 @@ scripts/upgrade/verifiers/helpers/circuits/
 # adi_deployment_notes.md
 
 # ignition/modules/params/
+*.bundle
