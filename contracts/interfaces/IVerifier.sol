@@ -209,10 +209,24 @@ interface IVerifier {
      * @param requestId Id of the request
      * @param sender Address of the user
      * @param responseFieldName Name of the proof storage response field to get
+     * @return The value of the proof storage response field for the user address
      */
     function getResponseFieldValue(
         uint256 requestId,
         address sender,
+        string memory responseFieldName
+    ) external view returns (uint256);
+
+    /**
+     * @dev Gets proof storage response field value by user ID
+     * @param requestId Id of the request
+     * @param userId ID of the user
+     * @param responseFieldName Name of the proof storage response field to get
+     * @return The value of the proof storage response field for the user ID
+     */
+    function getResponseFieldValueByUserId(
+        uint256 requestId,
+        uint256 userId,
         string memory responseFieldName
     ) external view returns (uint256);
 
@@ -233,6 +247,17 @@ interface IVerifier {
      * @return True if proof is verified for the sender and request id.
      */
     function isRequestProofVerified(address sender, uint256 requestId) external view returns (bool);
+
+    /**
+     * @dev Checks if a proof from a request submitted for a given user ID and request ID is verified
+     * @param userId ID of the user.
+     * @param requestId Request id of the Request to verify.
+     * @return True if proof is verified for the user ID and request id.
+     */
+    function isRequestProofVerifiedByUserId(
+        uint256 userId,
+        uint256 requestId
+    ) external view returns (bool);
 
     /**
      * @dev Sets an auth method
@@ -263,6 +288,17 @@ interface IVerifier {
      */
     function getRequestProofStatus(
         address sender,
+        uint256 requestId
+    ) external view returns (RequestProofStatus memory);
+
+    /**
+     * @dev Get the proof status for the user ID and request with requestId.
+     * @param userId ID of the user.
+     * @param requestId Request id of the proof.
+     * @return Proof status.
+     */
+    function getRequestProofStatusByUserId(
+        uint256 userId,
         uint256 requestId
     ) external view returns (RequestProofStatus memory);
 }

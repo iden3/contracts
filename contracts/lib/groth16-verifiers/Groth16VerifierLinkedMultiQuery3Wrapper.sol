@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.10;
+pragma solidity 0.8.27;
 
 import {IGroth16Verifier} from "../../interfaces/IGroth16Verifier.sol";
-import {Groth16VerifierLinkedMultiQuery5} from "./Groth16VerifierLinkedMultiQuery5.sol";
+import {Groth16VerifierLinkedMultiQuery3} from "./Groth16VerifierLinkedMultiQuery3.sol";
 
 error ExpectedArrayLength(uint256 expected, uint256 actual);
 
-contract Groth16VerifierLinkedMultiQuery5Wrapper is
-    Groth16VerifierLinkedMultiQuery5,
+contract Groth16VerifierLinkedMultiQuery3Wrapper is
+    Groth16VerifierLinkedMultiQuery3,
     IGroth16Verifier
 {
     /**
      * @dev Number of public signals for atomic mtp circuit
      */
-    uint256 constant PUBSIGNALS_LENGTH = 12;
+    uint256 constant PUBSIGNALS_LENGTH = 8;
 
     /**
      * @dev Verify the circuit with the groth16 proof π=([πa]1,[πb]2,[πc]1).

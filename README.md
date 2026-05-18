@@ -9,9 +9,9 @@ The contracts were deployed via [TransparentUpgradeableProxy](https://github.com
 |     Smart contract      |     Address                                |
 |:-----------------------:|:------------------------------------------:|
 |       **State***        | 0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896 |
-|    **Validator MTP**    | 0x27bDFFCeC5478a648f89764E22fE415486A42Ede |
-|    **Validator SIG**    | 0x59B347f0D3dd4B98cc2E056Ee6C53ABF14F8581b |
-|    **Validator V3**     | 0xd179f29d00Cd0E8978eb6eB847CaCF9E2A956336 |
+|    **Validator MTP**    | 0xec9EF9c4595B46abF2b6A923BD1529081E03fbBB |
+|    **Validator SIG**    | 0x5BD60F3Ef5890260906172EEe1f0a965707791f1 |
+|    **Validator V3**     | 0xC616963610A5545EF89b373e1fEAE8A1e505FaFF |
 | **Universal Verifier**  | 0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c |
 | **Universal Verifier V2****  | 0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F |
 | **Identity Tree Store** | 0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81 |

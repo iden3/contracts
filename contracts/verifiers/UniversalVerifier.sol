@@ -23,7 +23,7 @@ contract UniversalVerifier is
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.3.0";
+    string public constant VERSION = "3.0.0";
 
     /**
      * @dev Event emitted upon submitting a request
@@ -253,4 +253,20 @@ contract UniversalVerifier is
     function _checkRequestOwner(Request calldata request) internal virtual override {
         if (_msgSender() != owner()) super._checkRequestOwner(request);
     }
+
+    /* solhint-disable no-empty-blocks */
+    function _checkCanWriteProofResults(
+        uint256 /* requestId */,
+        address /* caller */
+    ) internal view virtual override {
+        // Allow all writes
+    }
+
+    function _checkCanWriteProofByUserIdResults(
+        uint256 /* requestId */,
+        uint256 /* userId */
+    ) internal view virtual override {
+        // Allow all writes
+    }
+    /* solhint-enable no-empty-blocks */
 }

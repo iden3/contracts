@@ -22,8 +22,20 @@ error MultiRequestIdNotValid(uint256 expectedMultiRequestId, uint256 multiReques
 error NullifierSessionIDAlreadyExists(uint256 nullifierSessionID);
 error ResponseFieldDoesNotExist(uint256 requestId, address sender, string responseFieldName);
 error ResponseFieldAlreadyExists(uint256 requestId, address sender, string responseFieldName);
+error ResponseFieldByUserIdDoesNotExist(
+    uint256 requestId,
+    uint256 userId,
+    string responseFieldName
+);
+error ResponseFieldByUserIdAlreadyExists(
+    uint256 requestId,
+    uint256 userId,
+    string responseFieldName
+);
 error ProofAlreadyVerified(uint256 requestId, address sender);
 error ProofIsNotVerified(uint256 requestId, address sender);
+error ProofByUserIdAlreadyVerified(uint256 requestId, uint256 userId);
+error ProofByUserIdIsNotVerified(uint256 requestId, uint256 userId);
 error RequestIdAlreadyExists(uint256 requestId);
 error RequestIdNotFound(uint256 requestId);
 error RequestIdNotValid(uint256 expectedRequestId, uint256 requestId);
@@ -87,6 +99,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         mapping(uint256 nullifierSessionID => uint256 requestId) _nullifierSessionIDs;
         // verifierID to check in requests
         uint256 _verifierID;
+        mapping(uint256 requestId => mapping(uint256 userId => Proof)) _proofsByUserId;
     }
 
     /**
@@ -258,7 +271,10 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     }
 
     /**
-     * @dev Submits an array of responses and updates proofs status
+     * @dev Submits an auth response + array of responses and updates proofs status
+     * - auth response with some valid auth method + responses
+     * - embeddedauth auth response (no auth) + response with embedded auth proof
+     * - linked proofs should be sent with auth response or embedded auth response to check userID authentication
      * @param authResponse Auth response including auth type and proof
      * @param responses The list of responses including request ID, proof and metadata for requests
      * @param crossChainProofs The list of cross chain proofs from universal resolver (oracle). This
@@ -294,39 +310,12 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
 
         // 3. Verify all the responses, check userID from signals and write proof results,
         //      emit events (existing logic)
-        for (uint256 i = 0; i < responses.length; i++) {
-            IVerifier.Response memory response = responses[i];
-            IVerifier.RequestData storage request = _getRequestIfCanBeVerified(response.requestId);
-
-            IRequestValidator.ResponseField[] memory responseFields = request.validator.verify(
-                sender,
-                response.proof,
-                request.params,
-                response.metadata
-            );
-
-            if (authMethodNameHash == EMBEDDED_AUTH_METHOD_NAME_HASH) {
-                // If embedded auth method is used, we can use first userID from responses to check with other responses
-                if (userIDFromAuthResponse == 0) {
-                    userIDFromAuthResponse = VerifierLib.userID(responseFields);
-                }
-                // Check isEmbeddedAuthVerified response field is present in the response fields from the validator
-                // verification
-                // If it's present it should be equal to 1 because we are checking embeddedAuth auth method in
-                // validators that support it
-                // For linkMultiQueryValidator we don't have this response field because it's always linked
-                // to other responses that will have this embedded auth verified field
-                (bool hasEmbeddedAuthVerified, uint256 embeddedAuthVerifiedValue) = VerifierLib
-                    .isEmbeddedAuthVerified(responseFields);
-                if (hasEmbeddedAuthVerified && embeddedAuthVerifiedValue == 0) {
-                    revert NoEmbeddedAuthInResponsesFound();
-                }
-            }
-            // Check if userID from authResponse is the same as the one in the responseFields
-            VerifierLib.checkUserIDMatch(userIDFromAuthResponse, responseFields);
-
-            _writeProofResults(response.requestId, sender, responseFields);
-        }
+        _checkUserIDFromResponsesAndWriteProofResults(
+            responses,
+            sender,
+            userIDFromAuthResponse,
+            authMethodNameHash
+        );
     }
 
     /**
@@ -369,6 +358,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
      * @param requestId Id of the request
      * @param sender Address of the user
      * @param responseFieldName Name of the response field to get
+     * @return The value of the specified response field for the given sender and request ID.
      */
     function getResponseFieldValue(
         uint256 requestId,
@@ -380,6 +370,27 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                 _getVerifierStorage(),
                 requestId,
                 sender,
+                responseFieldName
+            );
+    }
+
+    /**
+     * @dev Retrieves the value of a specific response field for a given user ID and request ID.
+     * @param requestId The request ID for which to retrieve the response field value.
+     * @param userId The user ID for which to retrieve the response field value.
+     * @param responseFieldName The name of the response field to retrieve.
+     * @return The value of the specified response field for the given user ID and request ID.
+     */
+    function getResponseFieldValueByUserId(
+        uint256 requestId,
+        uint256 userId,
+        string memory responseFieldName
+    ) public view returns (uint256) {
+        return
+            VerifierLib.getResponseFieldValueByUserId(
+                _getVerifierStorage(),
+                requestId,
+                userId,
                 responseFieldName
             );
     }
@@ -446,6 +457,19 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     }
 
     /**
+     * @dev Checks if a proof from a request submitted for a given user ID and request ID is verified
+     * @param userId The ID of the user
+     * @param requestId The ID of the request
+     * @return True if proof is verified
+     */
+    function isRequestProofVerifiedByUserId(
+        uint256 userId,
+        uint256 requestId
+    ) public view checkRequestExistence(requestId, true) returns (bool) {
+        return _getVerifierStorage()._proofsByUserId[requestId][userId].isVerified;
+    }
+
+    /**
      * @dev Get the requests count.
      * @return Requests count.
      */
@@ -503,6 +527,24 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         returns (IVerifier.RequestProofStatus memory)
     {
         return VerifierLib.getRequestProofStatus(_getVerifierStorage(), sender, requestId);
+    }
+
+    /**
+     * @dev Gets the proof status for a given user ID and request ID
+     * @param userId The user ID for which to get the proof status
+     * @param requestId The request ID for which to get the proof status
+     * @return The proof status for the given user ID and request ID
+     */
+    function getRequestProofStatusByUserId(
+        uint256 userId,
+        uint256 requestId
+    )
+        public
+        view
+        checkRequestExistence(requestId, true)
+        returns (IVerifier.RequestProofStatus memory)
+    {
+        return VerifierLib.getRequestProofStatusByUserId(_getVerifierStorage(), userId, requestId);
     }
 
     function _setState(IState state) internal {
@@ -573,6 +615,13 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         VerifierLib.checkCanWriteProofResults(_getVerifierStorage(), requestId, sender);
     }
 
+    function _checkCanWriteProofByUserIdResults(
+        uint256 requestId,
+        uint256 userId
+    ) internal view virtual {
+        VerifierLib.checkCanWriteProofByUserIdResults(_getVerifierStorage(), requestId, userId);
+    }
+
     function _getRequestIfCanBeVerified(
         uint256 requestId
     )
@@ -585,6 +634,53 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
         return _getVerifierStorage()._requests[requestId];
     }
 
+    function _checkUserIDFromResponsesAndWriteProofResults(
+        Response[] memory responses,
+        address sender,
+        uint256 userIDFromAuthResponse,
+        bytes32 authMethodNameHash
+    ) internal {
+        for (uint256 i = 0; i < responses.length; i++) {
+            IVerifier.Response memory response = responses[i];
+            IVerifier.RequestData storage request = _getRequestIfCanBeVerified(response.requestId);
+
+            IRequestValidator.ResponseField[] memory responseFields = request.validator.verify(
+                sender,
+                response.proof,
+                request.params,
+                response.metadata
+            );
+
+            if (authMethodNameHash == EMBEDDED_AUTH_METHOD_NAME_HASH) {
+                // Check isEmbeddedAuthVerified response field is present in the response fields from the validator
+                // verification
+                // If it's present it should be equal to 1 because we are checking embeddedAuth auth method in
+                // validators that support it
+                // For linkMultiQueryValidator we don't have this response field because it's always linked
+                // to other responses that will have this embedded auth verified field
+                (bool hasEmbeddedAuthVerified, uint256 embeddedAuthVerifiedValue) = VerifierLib
+                    .isEmbeddedAuthVerified(responseFields);
+
+                if (hasEmbeddedAuthVerified) {
+                    if (embeddedAuthVerifiedValue != 1) {
+                        revert NoEmbeddedAuthInResponsesFound();
+                    }
+                    if (userIDFromAuthResponse == 0) {
+                        // If embedded auth method is used, we can use first userID from responses
+                        userIDFromAuthResponse = VerifierLib.userID(responseFields);
+                    }
+                }
+                if (userIDFromAuthResponse == 0) {
+                    revert MissingUserIDInRequest(response.requestId);
+                }
+            }
+            // Check if userID from authResponse is the same as the one in the responseFields
+            VerifierLib.checkUserIDMatch(userIDFromAuthResponse, responseFields);
+
+            _writeProofResults(response.requestId, sender, userIDFromAuthResponse, responseFields);
+        }
+    }
+
     /**
      * @dev Writes proof results.
      * @param requestId The request ID of the proof
@@ -594,12 +690,23 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
     function _writeProofResults(
         uint256 requestId,
         address sender,
+        uint256 userId,
         IRequestValidator.ResponseField[] memory responseFields
     ) internal {
         _checkCanWriteProofResults(requestId, sender);
 
+        if (userId != 0) {
+            _checkCanWriteProofByUserIdResults(requestId, userId);
+        }
+
         return
-            VerifierLib.writeProofResults(_getVerifierStorage(), requestId, sender, responseFields);
+            VerifierLib.writeProofResults(
+                _getVerifierStorage(),
+                requestId,
+                sender,
+                userId,
+                responseFields
+            );
     }
 
     function _processAuthMethod(

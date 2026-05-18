@@ -21,11 +21,12 @@ describe("Universal Verifier tests", function () {
   let signer, signer2, signer3;
   let signerAddress: string;
   let authMethod;
+  const userId = 1n;
 
   const storageFields = [
     {
       name: "userID",
-      value: 1n,
+      value: userId,
     },
     {
       name: "issuerID",
@@ -72,6 +73,7 @@ describe("Universal Verifier tests", function () {
           parameters: parameters,
         }));
       }
+      break;
       case "UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest": {
         ({
           state: stateContract,
@@ -84,12 +86,13 @@ describe("Universal Verifier tests", function () {
           },
         ));
       }
+      break;
     }
 
     const validator = (await ignition.deploy(RequestValidatorStubModule)).requestValidatorStub;
 
     await validator.stub_setVerifyResults([
-      { name: "userID", value: 1, rawValue: "0x" },
+      { name: "userID", value: userId, rawValue: "0x" },
       { name: "issuerID", value: 2, rawValue: "0x" },
     ]);
 
@@ -126,6 +129,12 @@ describe("Universal Verifier tests", function () {
         field.name,
       );
       expect(value).to.be.equal(field.value);
+      const valueByUserId = await verifier.getResponseFieldValueByUserId(
+        requestId,
+        userId,
+        field.name,
+      );
+      expect(valueByUserId).to.be.equal(field.value);
     }
   }
 
@@ -168,7 +177,7 @@ describe("Universal Verifier tests", function () {
         metadata: "0x",
       };
       await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
-      await validator.stub_setInput("userID", 1);
+      await validator.stub_setInput("userID", userId);
 
       signerAddress = await signer.getAddress();
     });
@@ -253,7 +262,19 @@ describe("Universal Verifier tests", function () {
       expect(status.validatorVersion).to.be.equal("1.0.0-stub");
       expect(status.timestamp).to.be.equal(txResTimestamp);
 
+      const statusByUserId = await verifier.getRequestProofStatusByUserId(
+        userId,
+        request.requestId,
+      );
+      expect(statusByUserId.isVerified).to.be.true;
+      expect(statusByUserId.validatorVersion).to.be.equal("1.0.0-stub");
+      expect(statusByUserId.timestamp).to.be.equal(txResTimestamp);
+
       await expect(verifier.getRequestProofStatus(signerAddress, nonExistingRequestId))
+        .to.be.revertedWithCustomError(verifier, "RequestIdNotFound")
+        .withArgs(nonExistingRequestId);
+
+      await expect(verifier.getRequestProofStatusByUserId(userId, nonExistingRequestId))
         .to.be.revertedWithCustomError(verifier, "RequestIdNotFound")
         .withArgs(nonExistingRequestId);
     });
@@ -315,6 +336,11 @@ describe("Universal Verifier tests", function () {
         expect(status.isVerified).to.be.true;
         expect(status.validatorVersion).to.be.equal("1.0.0-stub");
         expect(status.timestamp).to.be.equal(txResTimestamp);
+
+        const statusByUserId = await verifier.getRequestProofStatusByUserId(userId, requestId);
+        expect(statusByUserId.isVerified).to.be.true;
+        expect(statusByUserId.validatorVersion).to.be.equal("1.0.0-stub");
+        expect(statusByUserId.timestamp).to.be.equal(txResTimestamp);
       }
     });
 
@@ -525,7 +551,7 @@ describe("Universal Verifier tests", function () {
         params: "0x",
       };
       await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
-      await validator.stub_setInput("userID", 1);
+      await validator.stub_setInput("userID", userId);
       await verifier.setVerifierID(1);
 
       await expect(verifier.setRequests([request]))
@@ -638,7 +664,7 @@ describe("Universal Verifier tests", function () {
 
       for (let i = 0; i < requestsCount; i++) {
         await validator.stub_setRequestParams([params[i]], [paramsFromValidator]);
-        await validator.stub_setInput("userID", 1);
+        await validator.stub_setInput("userID", userId);
         await expect(
           verifier.setRequests([
             {
@@ -679,7 +705,7 @@ describe("Universal Verifier tests", function () {
 
       await validator.stub_setRequestParams([originalRequestData], [paramsFromValidator]);
       await validator.stub_setRequestParams([updatedRequestData], [paramsFromValidator]);
-      await validator.stub_setInput("userID", 1);
+      await validator.stub_setInput("userID", userId);
 
       await verifier.setRequests([
         {
@@ -736,7 +762,7 @@ describe("Universal Verifier tests", function () {
 
     it("Check MultiRequestSet event", async function () {
       await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
-      await validator.stub_setInput("userID", 1);
+      await validator.stub_setInput("userID", userId);
       await verifier.setRequests([request]);
 
       await expect(verifier.setMultiRequest(multiRequest)).to.emit(verifier, "MultiRequestSet");
@@ -777,7 +803,7 @@ describe("Universal Verifier tests", function () {
 
     it("can submit more than one proof per address and request in verifier wrapper", async function () {
       await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
-      await validator.stub_setInput("userID", 1);
+      await validator.stub_setInput("userID", userId);
       await verifier.setRequests([request]);
 
       const authResponse = {

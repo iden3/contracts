@@ -52,7 +52,7 @@
     "solhint-plugin-prettier": "^0.1.0",
     "solidity-bytes-utils": "^0.8.0",
     "typescript": "^5.9.3",
-    "uuid": "11.1.0"
+    "uuid": "14.0.0"
   },
   "scripts": {
     "node:local": "npx hardhat node",
@@ -164,8 +164,8 @@
   },
   "overrides": {
     "diff": "^8.0.3",
-    "lodash": "^4.17.23",
-    "lodash-es": "^4.17.23",
+    "lodash": "^4.18.1",
+    "lodash-es": "^4.18.1",
     "minimatch": "^10.2.2",
     "axios": "1.13.5",
     "bn.js": "^5.2.3",
