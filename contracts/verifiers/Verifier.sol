@@ -662,7 +662,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                     .isEmbeddedAuthVerified(responseFields);
 
                 if (hasEmbeddedAuthVerified) {
-                    if (embeddedAuthVerifiedValue == 0) {
+                    if (embeddedAuthVerifiedValue != 1) {
                         revert NoEmbeddedAuthInResponsesFound();
                     }
                     if (userIDFromAuthResponse == 0) {
@@ -670,7 +670,7 @@ abstract contract Verifier is IVerifier, ContextUpgradeable {
                         userIDFromAuthResponse = VerifierLib.userID(responseFields);
                     }
                 }
-                if (!hasEmbeddedAuthVerified && userIDFromAuthResponse == 0) {
+                if (userIDFromAuthResponse == 0) {
                     revert MissingUserIDInRequest(response.requestId);
                 }
             }
