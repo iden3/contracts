@@ -1,5 +1,5 @@
 {
-  "_format": "hh-sol-artifact-1",
+  "_format": "hh3-artifact-1",
   "contractName": "IdentityTreeStore",
   "sourceName": "contracts/identitytreestore/IdentityTreeStore.sol",
   "abi": [
@@ -356,5 +356,8 @@
         }
       ]
     }
-  }
+  },
+  "inputSourceName": "contracts/identitytreestore/IdentityTreeStore.sol",
+  "immutableReferences": {},
+  "buildInfoId": "solc-0_8_27-1a26c17b254dceb139fc023d602718b1"
 }

@@ -1,5 +1,5 @@
 {
-  "_format": "hh-sol-artifact-1",
+  "_format": "hh3-artifact-1",
   "contractName": "UniversalVerifier",
   "sourceName": "contracts/verifiers/UniversalVerifier.sol",
   "abi": [
@@ -1612,5 +1612,8 @@
         }
       ]
     }
-  }
+  },
+  "inputSourceName": "contracts/verifiers/UniversalVerifier.sol",
+  "immutableReferences": {},
+  "buildInfoId": "solc-0_8_27-2572be79f9033f5355367ad022a249ed"
 }

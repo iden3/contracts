@@ -1,5 +1,5 @@
 {
-  "_format": "hh-sol-artifact-1",
+  "_format": "hh3-artifact-1",
   "contractName": "State",
   "sourceName": "contracts/state/State.sol",
   "abi": [
@@ -1484,5 +1484,8 @@
         }
       ]
     }
-  }
+  },
+  "inputSourceName": "contracts/state/State.sol",
+  "immutableReferences": {},
+  "buildInfoId": "solc-0_8_27-e3e2702135e4a8d31e7cc5d7ef029b50"
 }

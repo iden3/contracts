@@ -15,6 +15,7 @@ import AuthV3ValidatorModule from "./authV3Validator";
 import AuthV3_8_32ValidatorModule from "./authV3_8_32Validator";
 import CredentialAtomicQueryV3StableValidatorModule from "./credentialAtomicQueryV3StableValidator";
 import LinkedMultiQueryStableValidatorModule from "./linkedMultiQueryStableValidator";
+import { contractsInfo } from "../../../helpers/constants";
 
 const { ethers } = await network.connect();
 
@@ -113,7 +114,7 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
   m.call(
     universalVerifier,
     "setAuthMethod",
-    [{ authMethod: "embeddedAuth", validator: ethers.ZeroAddress, params: "0x" }],
+    [{ authMethod: "embeddedAuth", validator: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress, params: "0x" }], // put some dummy address as validator
     {
       id: "setAuthMethod_embeddedAuthValidator",
       from: contractOwner,
@@ -219,7 +220,7 @@ const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy
   m.call(
     universalVerifier_ManyResponsesPerUserAndRequest,
     "setAuthMethod",
-    [{ authMethod: "embeddedAuth", validator: ethers.ZeroAddress, params: "0x" }],
+    [{ authMethod: "embeddedAuth", validator: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress, params: "0x" }], // put some dummy address as validator
     {
       id: "setAuthMethod_embeddedAuthValidator_ManyResponsesPerUserAndRequest",
       from: contractOwner,

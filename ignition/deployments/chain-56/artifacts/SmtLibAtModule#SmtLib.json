@@ -1,5 +1,5 @@
 {
-  "_format": "hh-sol-artifact-1",
+  "_format": "hh3-artifact-1",
   "contractName": "SmtLib",
   "sourceName": "contracts/lib/SmtLib.sol",
   "abi": [
@@ -63,5 +63,8 @@
         }
       ]
     }
-  }
+  },
+  "inputSourceName": "contracts/lib/SmtLib.sol",
+  "immutableReferences": {},
+  "buildInfoId": "solc-0_8_27-1a26c17b254dceb139fc023d602718b1"
 }
