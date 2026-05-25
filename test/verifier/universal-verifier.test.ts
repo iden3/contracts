@@ -10,7 +10,6 @@ import UniversalVerifierModule from "../../ignition/modules/deployEverythingBasi
 import {
   AuthValidatorStubModule,
   RequestValidatorStubModule,
-  UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequestModule,
 } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
 const { ethers, networkHelpers, ignition } = await network.connect();
@@ -38,10 +37,6 @@ describe("Universal Verifier tests", function () {
 
   async function deployContractsFixtureUniversalVerifier() {
     return deployContractsFixture("UniversalVerifier");
-  }
-
-  async function deployContractsFixtureUniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest() {
-    return deployContractsFixture("UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest");
   }
 
   async function deployContractsFixture(contractName: string = "UniversalVerifier") {
@@ -72,19 +67,6 @@ describe("Universal Verifier tests", function () {
         } = await ignition.deploy(UniversalVerifierModule, {
           parameters: parameters,
         }));
-      }
-      break;
-      case "UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest": {
-        ({
-          state: stateContract,
-          universalVerifierTestWrapper: universalVerifier,
-          verifierLib: verifierLib,
-        } = await ignition.deploy(
-          UniversalVerifierTestWrapper_ManyResponsesPerUserAndRequestModule,
-          {
-            parameters: parameters,
-          },
-        ));
       }
       break;
     }
@@ -774,32 +756,6 @@ describe("Universal Verifier tests", function () {
       expect(events[0].args.requestIds).to.deep.equal(multiRequest.requestIds);
       expect(events[0].args.groupIds).to.deep.equal(multiRequest.groupIds);
     });
-  });
-
-  describe("Wrapper tests", function () {
-    beforeEach(async function () {
-      ({
-        ethSigner: signer,
-        universalVerifier: verifier,
-        validator,
-      } = await networkHelpers.loadFixture(
-        deployContractsFixtureUniversalVerifierTestWrapper_ManyResponsesPerUserAndRequest,
-      ));
-
-      request = {
-        requestId: 1,
-        metadata: "0x",
-        validator: await validator.getAddress(),
-        creator: await signer.getAddress(),
-        params: "0x",
-      };
-
-      paramsFromValidator = [
-        { name: "groupID", value: 0 },
-        { name: "verifierID", value: 0 },
-        { name: "nullifierSessionID", value: 0 },
-      ];
-    });
 
     it("can submit more than one proof per address and request in verifier wrapper", async function () {
       await validator.stub_setRequestParams([request.params], [paramsFromValidator]);
@@ -819,7 +775,7 @@ describe("Universal Verifier tests", function () {
 
       await verifier.submitResponse(authResponse, [response1], crossChainProofs);
       await expect(
-        verifier.submitResponse(authResponse, [response1], crossChainProofs),
+          verifier.submitResponse(authResponse, [response1], crossChainProofs),
       ).not.to.be.revert(ethers);
     });
   });
