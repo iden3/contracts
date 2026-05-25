@@ -129,10 +129,10 @@
     "contractAddress": "0xf2A3a8e2d265FC97fC90C0A0AF9312b137259b0e"
   },
   "VerifierLibAtModule": {
-    "contractAddress": "0xB330d70FFE78c7c1a456BB841676Dc8419867134"
+    "contractAddress": "0xEDAd75bb3594e36A504DA7989742de686c095C25"
   },
   "UniversalVerifierNewImplementationAtModule": {
-    "contractAddress": "0xb798dD8E55C44aaFBBF4E28b04AE830bD09d9D10"
+    "contractAddress": "0x50e320591bcBd5AF8618019b502bEe1c67dcAfE1"
   },
   "IdentityTreeStoreNewImplementationAtModule": {
     "contractAddress": "0xB62E0e1cc92A9186e5C11D6cD7da900E11Ec60ce"
@@ -230,6 +230,10 @@
     "contractAddress": "0x5E503bD36b16C2CF23020b614b58327E210A3cA9"
   },
   "UpgradeUniversalVerifierModuleV2_3_0": {
+    "proxyAddress": "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
+    "proxyAdminAddress": "0xa6452db752749e5486d5D05c530c22C7FaadFdcd"
+  },
+  "UpgradeUniversalVerifierModuleV3_0_0": {
     "proxyAddress": "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
     "proxyAdminAddress": "0xa6452db752749e5486d5D05c530c22C7FaadFdcd"
   }

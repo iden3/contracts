@@ -165,5 +165,9 @@
   "UpgradeCredentialAtomicQueryV3ValidatorModuleV3_1_0_beta_1#Groth16VerifierV3Wrapper": "0x3014bF4A86eCcdEF81424Be0098009D0550705f4",
   "UpgradeMCPaymentModuleV1_0_7#Proxy": "0xe317A4f1450116b2fD381446DEaB41c882D6136D",
   "UpgradeMCPaymentModuleV1_0_7#ProxyAdmin": "0xE76bef620174cA8B923411605A59F542DcdF03fE",
-  "UpgradeMCPaymentModuleV1_0_7#MCPayment": "0x80F45E15d7cbcAA634f2875fC30a8A91974af402"
+  "UpgradeMCPaymentModuleV1_0_7#MCPayment": "0x80F45E15d7cbcAA634f2875fC30a8A91974af402",
+  "UpgradeUniversalVerifierModuleV3_0_0#Proxy": "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
+  "UpgradeUniversalVerifierModuleV3_0_0#ProxyAdmin": "0xa6452db752749e5486d5D05c530c22C7FaadFdcd",
+  "UpgradeUniversalVerifierModuleV3_0_0#VerifierLib": "0x40C9c190B0b9c8f1c33c9D91283d87343eb8A89d",
+  "UpgradeUniversalVerifierModuleV3_0_0#UniversalVerifier": "0xC3e9B73eEaEF5eF4200a2681c1634023e5B987DA"
 }
