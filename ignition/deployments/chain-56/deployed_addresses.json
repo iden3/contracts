@@ -156,5 +156,9 @@
   "UpgradeUniversalVerifierModuleV2_3_0#Proxy": "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
   "UpgradeUniversalVerifierModuleV2_3_0#ProxyAdmin": "0xa6452db752749e5486d5D05c530c22C7FaadFdcd",
   "UpgradeUniversalVerifierModuleV2_3_0#VerifierLib": "0x02653f6408167C308AeC50846FBFee0c8A8230cf",
-  "UpgradeUniversalVerifierModuleV2_3_0#UniversalVerifier": "0xad6ceC221704aef314911D4B58e084aaF9A6999f"
+  "UpgradeUniversalVerifierModuleV2_3_0#UniversalVerifier": "0xad6ceC221704aef314911D4B58e084aaF9A6999f",
+  "UpgradeUniversalVerifierModuleV3_0_0#Proxy": "0x2B0D3f664A5EbbfBD76E6cbc2cA9A504a68d2F4F",
+  "UpgradeUniversalVerifierModuleV3_0_0#ProxyAdmin": "0xa6452db752749e5486d5D05c530c22C7FaadFdcd",
+  "UpgradeUniversalVerifierModuleV3_0_0#VerifierLib": "0x50e320591bcBd5AF8618019b502bEe1c67dcAfE1",
+  "UpgradeUniversalVerifierModuleV3_0_0#UniversalVerifier": "0xfFE5FBca056e58511031483F8652277ce71f9677"
 }
