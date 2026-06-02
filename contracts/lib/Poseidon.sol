@@ -25,6 +25,16 @@ library PoseidonUnit6L {
     function poseidon(uint256[6] calldata) public pure returns (uint256) {}
 }
 
+library PoseidonUnit16L {
+    function poseidon(uint256[16] calldata inputs) public pure returns (uint256) {
+        uint256[] memory arr = new uint256[](16);
+        for (uint256 i = 0; i < 16; i++) {
+            arr[i] = inputs[i];
+        }
+        return SpongePoseidon.hash(arr);
+    }
+}
+
 library SpongePoseidon {
     uint32 internal constant BATCH_SIZE = 6;
 
@@ -77,6 +87,10 @@ library PoseidonFacade {
 
     function poseidon6(uint256[6] calldata el) public pure returns (uint256) {
         return PoseidonUnit6L.poseidon(el);
+    }
+
+    function poseidon16(uint256[16] calldata el) public pure returns (uint256) {
+        return PoseidonUnit16L.poseidon(el);
     }
 
     function poseidonSponge(uint256[] calldata el) public pure returns (uint256) {

@@ -121,6 +121,17 @@ export const SpongePoseidonModule = buildModule("SpongePoseidonModule", (m) => {
   return { spongePoseidon };
 });
 
+export const Poseidon16Module = buildModule("Poseidon16Module", (m) => {
+  const spongePoseidon = m.useModule(SpongePoseidonModule).spongePoseidon;
+
+  const poseidon = m.contract("PoseidonUnit16L", [], {
+    libraries: {
+      SpongePoseidon: spongePoseidon,
+    },
+  });
+  return { poseidon };
+});
+
 export const PoseidonFacadeModule = buildModule("PoseidonFacadeModule", (m) => {
   const poseidon1Element = m.useModule(Poseidon1Module).poseidon;
   const poseidon2Element = m.useModule(Poseidon2Module).poseidon;
@@ -128,6 +139,7 @@ export const PoseidonFacadeModule = buildModule("PoseidonFacadeModule", (m) => {
   const poseidon4Element = m.useModule(Poseidon4Module).poseidon;
   const poseidon5Element = m.useModule(Poseidon5Module).poseidon;
   const poseidon6Element = m.useModule(Poseidon6Module).poseidon;
+  const poseidon16Element = m.useModule(Poseidon16Module).poseidon;
 
   const spongePoseidon = m.useModule(SpongePoseidonModule).spongePoseidon;
 
@@ -139,6 +151,7 @@ export const PoseidonFacadeModule = buildModule("PoseidonFacadeModule", (m) => {
       PoseidonUnit4L: poseidon4Element,
       PoseidonUnit5L: poseidon5Element,
       PoseidonUnit6L: poseidon6Element,
+      PoseidonUnit16L: poseidon16Element,
       SpongePoseidon: spongePoseidon,
     },
   });

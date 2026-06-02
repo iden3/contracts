@@ -27,6 +27,14 @@ describe("poseidon", () => {
     expect(resSC).to.be.equal(resGo);
   });
 
+  it("check poseidon hash function with inputs [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]", async () => {
+    // poseidon goiden3 [extracted using go-iden3-crypto/poseidon implementation]
+    const resGo = "5605330091169856132381694679994923791994681609858984566508182442210285386845";
+    // poseidon smartcontract
+    const resSC = await poseidonFacade.poseidon16([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+    expect(resSC).to.be.equal(resGo);
+  });
+
   it("check sponge poseidon hash function with inputs", async () => {
     // poseidon goiden3 [extracted using go-iden3-crypto/poseidon implementation]
 
