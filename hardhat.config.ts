@@ -234,6 +234,10 @@ export default defineConfig({
       url: `${BNB_TESTNET_RPC_URL}`,
       ...accounts,
     },
+    default: {
+      type: "edr-simulated",
+      allowUnlimitedContractSize: true,
+    },
     // --------------------------------------------------------------------------------------------------------------
     // Note: uncomment to use a forked network and then run `npx hardhat node --fork`
     // in some networks is needed to execute first a script with `await ethers.provider.send("evm_mine")`

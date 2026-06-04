@@ -31,13 +31,7 @@ library PoseidonUnit6L {
 }
 
 library PoseidonUnit16L {
-    function poseidon(uint256[16] calldata inputs) public pure returns (uint256) {
-        uint256[] memory arr = new uint256[](16);
-        for (uint256 i = 0; i < 16; i++) {
-            arr[i] = inputs[i];
-        }
-        return SpongePoseidon.hash(arr);
-    }
+    function poseidon(uint256[16] calldata) public pure returns (uint256) {}
 }
 
 library SpongePoseidon {
