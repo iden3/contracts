@@ -121,3 +121,14 @@ export const SpongePoseidonModule = buildModule("SpongePoseidonModule", (m) => {
   });
   return { spongePoseidon };
 });
+
+export const Poseidon16Module = buildModule("Poseidon16Module", (m) => {
+  const spongePoseidon = m.useModule(SpongePoseidonModule).spongePoseidon;
+
+  const poseidon = m.contract("PoseidonUnit16L", [], {
+    libraries: {
+      SpongePoseidon: spongePoseidon,
+    },
+  });
+  return { poseidon };
+});

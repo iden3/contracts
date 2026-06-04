@@ -27,6 +27,31 @@ describe("poseidon", () => {
     expect(resSC).to.be.equal(resGo);
   });
 
+  it("check poseidon hash function with inputs with invalid field size element", async () => {
+    // poseidon goiden3 [extracted using go-iden3-crypto/poseidon implementation]
+    const resGo = "6542985608222806190361240322586112750744169038454362455181422643027100751666";
+    // poseidon smartcontract
+    await expect(
+      poseidonFacade.poseidon3([
+        1n,
+        21888242871839275222246405745257275088548364400416034343698204186575808495617n,
+        3n,
+      ]),
+    )
+      .to.be.revertedWithCustomError(poseidonFacade, "PoseidonInputOutOfFieldSize")
+      .withArgs(21888242871839275222246405745257275088548364400416034343698204186575808495617n, 1);
+  });
+
+  it("check poseidon hash function with inputs [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]", async () => {
+    // poseidon goiden3 [extracted using go-iden3-crypto/poseidon implementation]
+    const resGo = "9989051620750914585850546081941653841776809718687451684622678807385399211877";
+    // poseidon smartcontract
+    const resSC = await poseidonFacade.poseidon16([
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+    ]);
+    expect(resSC).to.be.equal(resGo);
+  });
+
   it("check sponge poseidon hash function with inputs", async () => {
     // poseidon goiden3 [extracted using go-iden3-crypto/poseidon implementation]
 
