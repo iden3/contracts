@@ -793,8 +793,16 @@ library SmtLib {
             siblingHash = node.childRight;
         }
 
-        // Path compression: if the deleted subtree is now empty,
-        // check if the sibling can be lifted up
+        return _applyPathCompression(self, goRight, newChildHash, siblingHash);
+    }
+
+    function _applyPathCompression(
+        Data storage self,
+        bool goRight,
+        uint256 newChildHash,
+        uint256 siblingHash
+    ) internal returns (uint256) {
+        // If the removed side is now empty, try to lift the sibling
         if (newChildHash == 0) {
             if (siblingHash == 0) {
                 return 0;
@@ -804,32 +812,16 @@ library SmtLib {
             }
         }
 
-        // Path compression: if the surviving child came back as a lifted leaf
-        // and the sibling is empty, lift it up further
+        // If the sibling was already empty and the surviving child is a lifted
+        // leaf from a deeper compression, propagate the lift upward
         if (siblingHash == 0 && self.nodes[newChildHash].nodeType == NodeType.LEAF) {
             return newChildHash;
         }
 
-        Node memory newMiddle;
         if (goRight) {
-            newMiddle = Node({
-                nodeType: NodeType.MIDDLE,
-                childLeft: siblingHash,
-                childRight: newChildHash,
-                index: 0,
-                value: 0
-            });
-        } else {
-            newMiddle = Node({
-                nodeType: NodeType.MIDDLE,
-                childLeft: newChildHash,
-                childRight: siblingHash,
-                index: 0,
-                value: 0
-            });
+            return _addNode(self, Node(NodeType.MIDDLE, siblingHash, newChildHash, 0, 0));
         }
-
-        return _addNode(self, newMiddle);
+        return _addNode(self, Node(NodeType.MIDDLE, newChildHash, siblingHash, 0, 0));
     }
 }
 
