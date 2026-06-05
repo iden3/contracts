@@ -16,6 +16,14 @@ contract SmtLibTestWrapper {
         smtData.addLeaf(i, v);
     }
 
+    function update(uint256 i, uint256 oldV, uint256 newV) public {
+        smtData.updateLeaf(i, oldV, newV);
+    }
+
+    function remove(uint256 i, uint256 oldV) public {
+        smtData.removeLeaf(i, oldV);
+    }
+
     function getProof(uint256 id) public view returns (SmtLib.Proof memory) {
         return smtData.getProof(id);
     }

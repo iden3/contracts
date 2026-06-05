@@ -7,10 +7,23 @@ import {ArrayUtils} from "./ArrayUtils.sol";
 /// @title A sparse merkle tree implementation, which keeps tree history.
 // Note that this SMT implementation can manage duplicated roots in the history,
 // which may happen when some leaf change its value and then changes it back to the original value.
-// Leaves deletion is not supported, although it should be possible to implement it in the future
-// versions of this library, without changing the existing state variables
-// In this way all the SMT data may be preserved for the contracts already in production.
+// Leaves deletion is supported via removeLeaf, which preserves all existing state variables
+// and the SMT root history. All previously recorded roots remain accessible.
 library SmtLib {
+    error NodeHashConflict(
+        uint256 nodeHash,
+        uint8 existingNodeType,
+        uint8 newNodeType,
+        uint256 existingChildLeft,
+        uint256 newChildLeft,
+        uint256 existingChildRight,
+        uint256 newChildRight,
+        uint256 existingIndex,
+        uint256 newIndex,
+        uint256 existingValue,
+        uint256 newValue
+    );
+
     /**
      * @dev Max return array length for SMT root history requests
      */
@@ -153,6 +166,37 @@ library SmtLib {
         uint256 prevRoot = getRoot(self);
         uint256 newRoot = _addLeaf(self, node, prevRoot, 0);
 
+        _addEntry(self, newRoot, block.timestamp, block.number);
+    }
+
+    /**
+     * @dev Update the value of an existing leaf in the SMT
+     * @param i Index of the leaf to update
+     * @param oldV Current value of the leaf (must match stored value)
+     * @param newV New value to set (must not be zero)
+     */
+    function updateLeaf(
+        Data storage self,
+        uint256 i,
+        uint256 oldV,
+        uint256 newV
+    ) external onlyInitialized(self) {
+        require(newV != 0, "New leaf value should not be zero");
+
+        uint256 prevRoot = getRoot(self);
+        uint256 newRoot = _updateLeaf(self, i, oldV, newV, prevRoot, 0);
+
+        _addEntry(self, newRoot, block.timestamp, block.number);
+    }
+
+    /**
+     * @dev Remove a leaf from the SMT
+     * @param i Index of the leaf to remove
+     * @param oldV Current value of the leaf (must match stored value)
+     */
+    function removeLeaf(Data storage self, uint256 i, uint256 oldV) external onlyInitialized(self) {
+        uint256 prevRoot = getRoot(self);
+        uint256 newRoot = _removeLeaf(self, i, oldV, prevRoot, 0);
         _addEntry(self, newRoot, block.timestamp, block.number);
     }
 
@@ -551,11 +595,30 @@ library SmtLib {
         // So, if the node hash already exists, we need to check
         // if the node in the tree exactly matches the one we are trying to add.
         if (self.nodes[nodeHash].nodeType != NodeType.EMPTY) {
-            assert(self.nodes[nodeHash].nodeType == node.nodeType);
-            assert(self.nodes[nodeHash].childLeft == node.childLeft);
-            assert(self.nodes[nodeHash].childRight == node.childRight);
-            assert(self.nodes[nodeHash].index == node.index);
-            assert(self.nodes[nodeHash].value == node.value);
+            Node memory existing = self.nodes[nodeHash];
+
+            if (
+                existing.nodeType != node.nodeType ||
+                existing.childLeft != node.childLeft ||
+                existing.childRight != node.childRight ||
+                existing.index != node.index ||
+                existing.value != node.value
+            ) {
+                revert NodeHashConflict(
+                    nodeHash,
+                    uint8(existing.nodeType),
+                    uint8(node.nodeType),
+                    existing.childLeft,
+                    node.childLeft,
+                    existing.childRight,
+                    node.childRight,
+                    existing.index,
+                    node.index,
+                    existing.value,
+                    node.value
+                );
+            }
+
             return nodeHash;
         }
 
@@ -618,6 +681,155 @@ library SmtLib {
         );
 
         self.rootIndexes[root].push(self.rootEntries.length - 1);
+    }
+
+    function _updateLeaf(
+        Data storage self,
+        uint256 index,
+        uint256 oldValue,
+        uint256 newValue,
+        uint256 nodeHash,
+        uint256 depth
+    ) internal returns (uint256) {
+        if (depth > self.maxDepth) {
+            revert("Max depth reached");
+        }
+
+        Node memory node = self.nodes[nodeHash];
+
+        if (node.nodeType == NodeType.EMPTY) {
+            revert("Leaf does not exist");
+        }
+
+        if (node.nodeType == NodeType.LEAF) {
+            require(node.index == index, "Leaf index mismatch");
+            require(node.value == oldValue, "Old value mismatch");
+
+            Node memory newLeaf = Node({
+                nodeType: NodeType.LEAF,
+                childLeft: 0,
+                childRight: 0,
+                index: index,
+                value: newValue
+            });
+
+            return _addNode(self, newLeaf);
+        }
+
+        Node memory newNode;
+        bool goRight = (index >> depth) & 1 == 1;
+
+        if (goRight) {
+            uint256 updatedRight = _updateLeaf(
+                self,
+                index,
+                oldValue,
+                newValue,
+                node.childRight,
+                depth + 1
+            );
+
+            newNode = Node({
+                nodeType: NodeType.MIDDLE,
+                childLeft: node.childLeft,
+                childRight: updatedRight,
+                index: 0,
+                value: 0
+            });
+        } else {
+            uint256 updatedLeft = _updateLeaf(
+                self,
+                index,
+                oldValue,
+                newValue,
+                node.childLeft,
+                depth + 1
+            );
+
+            newNode = Node({
+                nodeType: NodeType.MIDDLE,
+                childLeft: updatedLeft,
+                childRight: node.childRight,
+                index: 0,
+                value: 0
+            });
+        }
+
+        return _addNode(self, newNode);
+    }
+
+    function _removeLeaf(
+        Data storage self,
+        uint256 index,
+        uint256 oldValue,
+        uint256 nodeHash,
+        uint256 depth
+    ) internal returns (uint256) {
+        if (depth > self.maxDepth) {
+            revert("Max depth reached");
+        }
+
+        Node memory node = self.nodes[nodeHash];
+
+        if (node.nodeType == NodeType.EMPTY) {
+            revert("Leaf does not exist");
+        }
+
+        if (node.nodeType == NodeType.LEAF) {
+            require(node.index == index, "Leaf index mismatch");
+            require(node.value == oldValue, "Old value mismatch");
+            return 0;
+        }
+
+        bool goRight = (index >> depth) & 1 == 1;
+        uint256 newChildHash;
+        uint256 siblingHash;
+
+        if (goRight) {
+            newChildHash = _removeLeaf(self, index, oldValue, node.childRight, depth + 1);
+            siblingHash = node.childLeft;
+        } else {
+            newChildHash = _removeLeaf(self, index, oldValue, node.childLeft, depth + 1);
+            siblingHash = node.childRight;
+        }
+
+        // Path compression: if the deleted subtree is now empty,
+        // check if the sibling can be lifted up
+        if (newChildHash == 0) {
+            if (siblingHash == 0) {
+                return 0;
+            }
+            if (self.nodes[siblingHash].nodeType == NodeType.LEAF) {
+                return siblingHash;
+            }
+        }
+
+        // Path compression: if the surviving child came back as a lifted leaf
+        // and the sibling is empty, lift it up further
+        if (siblingHash == 0 && self.nodes[newChildHash].nodeType == NodeType.LEAF) {
+            return newChildHash;
+        }
+
+        Node memory newMiddle;
+        if (goRight) {
+            newMiddle = Node({
+                nodeType: NodeType.MIDDLE,
+                childLeft: siblingHash,
+                childRight: newChildHash,
+                index: 0,
+                value: 0
+            });
+        } else {
+            newMiddle = Node({
+                nodeType: NodeType.MIDDLE,
+                childLeft: newChildHash,
+                childRight: siblingHash,
+                index: 0,
+                value: 0
+            });
+        }
+
+        return _addNode(self, newMiddle);
     }
 }
 

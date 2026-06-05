@@ -1926,3 +1926,183 @@ function isProofByBlock(proof: ParamsProof): proof is ParamsProofByBlock {
   }
   return (proof as ParamsProofByBlock).blockNumber !== undefined;
 }
+
+describe("updateLeaf", () => {
+  let smt: any;
+
+  beforeEach(async () => {
+    ({ smtLibTestWrapper: smt } = await networkHelpers.loadFixture(deployContractsFixture));
+  });
+
+  it("updates leaf value and proof reflects new value", async () => {
+    await smt.add(4, 444);
+    const rootBefore = await smt.getRoot();
+    await smt.update(4, 444, 555);
+    const rootAfter = await smt.getRoot();
+    expect(rootAfter).not.to.equal(rootBefore);
+    const proof = await smt.getProof(4);
+    expect(proof.existence).to.be.true;
+    expect(proof.value).to.equal(555n);
+  });
+
+  it("old root is still accessible via getProofByRoot after update", async () => {
+    await smt.add(4, 444);
+    const rootBefore = await smt.getRoot();
+    await smt.update(4, 444, 555);
+    const proof = await smt.getProofByRoot(4, rootBefore);
+    expect(proof.existence).to.be.true;
+    expect(proof.value).to.equal(444n);
+  });
+
+  it("root history length increments after update", async () => {
+    await smt.add(4, 444);
+    const lenBefore = await smt.getRootHistoryLength();
+    await smt.update(4, 444, 555);
+    const lenAfter = await smt.getRootHistoryLength();
+    expect(lenAfter).to.equal(lenBefore + 1n);
+  });
+
+  it("canonical root: update A to B then back to A restores original root", async () => {
+    await smt.add(4, 444);
+    await smt.add(2, 222);
+    const rootOriginal = await smt.getRoot();
+    await smt.update(4, 444, 555);
+    await smt.update(4, 555, 444);
+    expect(await smt.getRoot()).to.equal(rootOriginal);
+  });
+
+  it("reverts with wrong old value", async () => {
+    await smt.add(4, 444);
+    await expect(smt.update(4, 999, 555)).to.be.rejectedWith("Old value mismatch");
+  });
+
+  it("reverts when leaf index does not match path position", async () => {
+    await smt.add(4, 444);
+    await expect(smt.update(2, 444, 555)).to.be.rejectedWith("Leaf index mismatch");
+  });
+
+  it("reverts when new value is zero", async () => {
+    await smt.add(4, 444);
+    await expect(smt.update(4, 444, 0)).to.be.rejectedWith("New leaf value should not be zero");
+  });
+
+  it("reverts when leaf does not exist (empty tree)", async () => {
+    await expect(smt.update(99, 444, 555)).to.be.rejectedWith("Leaf does not exist");
+  });
+});
+
+describe("removeLeaf", () => {
+  let smt: any;
+
+  beforeEach(async () => {
+    ({ smtLibTestWrapper: smt } = await networkHelpers.loadFixture(deployContractsFixture));
+  });
+
+  it("removing the only leaf results in empty tree", async () => {
+    await smt.add(4, 444);
+    await smt.remove(4, 444);
+    expect(await smt.getRoot()).to.equal(0n);
+    const proof = await smt.getProof(4);
+    expect(proof.existence).to.be.false;
+  });
+
+  it("removing one of two leaves restores the single-leaf root", async () => {
+    await smt.add(4, 444);
+    const rootA = await smt.getRoot();
+    await smt.add(2, 222);
+    await smt.remove(2, 222);
+    expect(await smt.getRoot()).to.equal(rootA);
+    const proof2 = await smt.getProof(2);
+    expect(proof2.existence).to.be.false;
+    const proof4 = await smt.getProof(4);
+    expect(proof4.existence).to.be.true;
+    expect(proof4.value).to.equal(444n);
+  });
+
+  it("remove and re-add restores original root (canonical form)", async () => {
+    await smt.add(4, 444);
+    await smt.add(2, 222);
+    const rootOriginal = await smt.getRoot();
+    await smt.remove(2, 222);
+    await smt.add(2, 222);
+    expect(await smt.getRoot()).to.equal(rootOriginal);
+  });
+
+  it("root history length increments after remove", async () => {
+    await smt.add(4, 444);
+    const lenBefore = await smt.getRootHistoryLength();
+    await smt.remove(4, 444);
+    const lenAfter = await smt.getRootHistoryLength();
+    expect(lenAfter).to.equal(lenBefore + 1n);
+  });
+
+  it("old root is still accessible via getProofByRoot after remove", async () => {
+    await smt.add(4, 444);
+    const rootWithLeaf = await smt.getRoot();
+    await smt.remove(4, 444);
+    const proof = await smt.getProofByRoot(4, rootWithLeaf);
+    expect(proof.existence).to.be.true;
+    expect(proof.value).to.equal(444n);
+  });
+
+  it("deep-path compression: removing one of two deep-sharing leaves restores single-leaf root", async () => {
+    // indices 3 (011) and 7 (111) share bits 0 and 1, pushed to depth 2
+    await smt.add(3, 333);
+    const rootA = await smt.getRoot();
+    await smt.add(7, 777);
+    await smt.remove(7, 777);
+    expect(await smt.getRoot()).to.equal(rootA);
+    const proof7 = await smt.getProof(7);
+    expect(proof7.existence).to.be.false;
+    const proof3 = await smt.getProof(3);
+    expect(proof3.existence).to.be.true;
+    expect(proof3.value).to.equal(333n);
+  });
+
+  it("update then remove: root matches tree where that leaf was never inserted", async () => {
+    await smt.add(4, 444);
+    const rootA = await smt.getRoot();
+    await smt.add(2, 222);
+    await smt.update(2, 222, 223);
+    await smt.remove(2, 223);
+    expect(await smt.getRoot()).to.equal(rootA);
+  });
+
+  it("reverts with wrong old value", async () => {
+    await smt.add(4, 444);
+    await expect(smt.remove(4, 999)).to.be.rejectedWith("Old value mismatch");
+  });
+
+  it("reverts when index does not match leaf at path position", async () => {
+    await smt.add(4, 444);
+    // index 2 (010) shares bit 0 with index 4 (100) — both are 0 at bit 0 — so traversal
+    // reaches the leaf for index 4 and finds node.index (4) != index (2)
+    await expect(smt.remove(2, 444)).to.be.rejectedWith("Leaf index mismatch");
+  });
+
+  it("removing one leaf from a three-leaf tree produces correct two-leaf root", async () => {
+    await smt.add(4, 444);
+    await smt.add(2, 222);
+    const rootAB = await smt.getRoot(); // two-leaf root
+    await smt.add(1, 111);
+    await smt.remove(1, 111);
+    // after removing leaf(1), tree should be identical to the two-leaf tree
+    expect(await smt.getRoot()).to.equal(rootAB);
+    const proof1 = await smt.getProof(1);
+    expect(proof1.existence).to.be.false;
+    const proof4 = await smt.getProof(4);
+    expect(proof4.existence).to.be.true;
+    const proof2 = await smt.getProof(2);
+    expect(proof2.existence).to.be.true;
+  });
+
+  it("reverts when leaf does not exist (empty tree)", async () => {
+    await expect(smt.remove(99, 444)).to.be.rejectedWith("Leaf does not exist");
+  });
+
+  it("reverts when removing an already-removed leaf", async () => {
+    await smt.add(4, 444);
+    await smt.remove(4, 444);
+    await expect(smt.remove(4, 444)).to.be.rejectedWith("Leaf does not exist");
+  });
+});
