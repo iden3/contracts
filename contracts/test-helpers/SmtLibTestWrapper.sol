@@ -2,14 +2,15 @@
 pragma solidity 0.8.27;
 
 import {SmtLib} from "../lib/SmtLib.sol";
+import {IHasher} from "../interfaces/IHasher.sol";
 
 contract SmtLibTestWrapper {
     using SmtLib for SmtLib.Data;
 
     SmtLib.Data internal smtData;
 
-    constructor(uint256 maxDepth) {
-        smtData.initialize(maxDepth);
+    constructor(uint256 maxDepth, IHasher hasher) {
+        smtData.initialize(maxDepth, hasher);
     }
 
     function add(uint256 i, uint256 v) public {

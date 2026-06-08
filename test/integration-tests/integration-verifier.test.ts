@@ -1,4 +1,4 @@
-import { network } from "hardhat";
+import hre from "hardhat";
 import { prepareInputs } from "../utils/state-utils";
 import authV2ProofJson from "./data/user_genesis_authV2.json";
 import authV3ProofJson from "./data/user_genesis_authV3.json";
@@ -20,7 +20,7 @@ import AuthV2ValidatorModule from "../../ignition/modules/deployEverythingBasicS
 import LinkedMultiQueryValidatorModule from "../../ignition/modules/deployEverythingBasicStrategy/linkedMultiQueryValidator";
 import AuthV3ValidatorModule from "../../ignition/modules/deployEverythingBasicStrategy/authV3Validator";
 
-const { ethers, networkHelpers, ignition } = await network.connect();
+const { ethers, networkHelpers, ignition } = await hre.network.create();
 
 describe("Verifier Integration test", async function () {
   let verifier, verifierLib, v3Validator, lmqValidator;

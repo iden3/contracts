@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import { addStateToStateLib } from "../utils/state-utils";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { StateLibTestWrapperModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const { ethers, networkHelpers, ignition } = await network.connect();
+const { ethers, networkHelpers, ignition } = await hre.network.create();;
 
 const id1Inputs = [
   { id: 1, state: 10 },

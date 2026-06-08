@@ -30,9 +30,8 @@ import {
   LinkedMultiQueryStableValidatorAtModule,
   LinkedMultiQueryValidatorAtModule,
   UniversalVerifierAtModule,
-  UniversalVerifierTestWrapperAtModule_ManyResponsesPerUserAndRequest,
 } from "../../ignition/modules/contractsAt";
-import { network } from "hardhat";
+import hre from "hardhat";
 import CredentialAtomicQueryV3StableValidatorModule, {
   CredentialAtomicQueryV3StableValidatorProxyModule,
 } from "../../ignition/modules/credentialAtomicQueryV3StableValidator";
@@ -47,7 +46,7 @@ import AuthV3_8_32ValidatorModule, {
 } from "../../ignition/modules/authV3_8_32Validator";
 import { transferOwnership } from "../upgrade/helpers/utils";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 // If you want to use impersonation, set the impersonate variable to true
 // With ignition we can't use impersonation, so we need to transfer ownership to the signer
@@ -228,15 +227,18 @@ async function main() {
       parameters: parameters,
     });
     if (!(await universalVerifier.authMethodExists(validator.authMethod))) {
-      const tx = await universalVerifier.setAuthMethod({
-        authMethod: validator.authMethod,
-        validator: validatorDeployed.proxy.target,
-        params: "0x",
-      }, {
-        gasPrice: 10000000,
-        // initialBaseFeePerGas: 10000000,
-        // gasLimit: 500000,
-      });
+      const tx = await universalVerifier.setAuthMethod(
+        {
+          authMethod: validator.authMethod,
+          validator: validatorDeployed.proxy.target,
+          params: "0x",
+        },
+        {
+          gasPrice: 10000000,
+          // initialBaseFeePerGas: 10000000,
+          // gasLimit: 500000,
+        },
+      );
       await tx.wait();
       console.log(
         `${validator.name} in address ${validatorDeployed.proxy.target} with authMethod ${validator.authMethod} added to auth methods`,
@@ -249,15 +251,18 @@ async function main() {
   }
   const authMethodEmbeddedAuth = "embeddedAuth";
   if (!(await universalVerifier.authMethodExists(authMethodEmbeddedAuth))) {
-    const tx = await universalVerifier.setAuthMethod({
-      authMethod: authMethodEmbeddedAuth,
-      validator: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
-      params: "0x",
-    }, {
-      gasPrice: 10000000,
-      // initialBaseFeePerGas: 10000000,
-      // gasLimit: 500000,
-    });
+    const tx = await universalVerifier.setAuthMethod(
+      {
+        authMethod: authMethodEmbeddedAuth,
+        validator: contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress,
+        params: "0x",
+      },
+      {
+        gasPrice: 10000000,
+        // initialBaseFeePerGas: 10000000,
+        // gasLimit: 500000,
+      },
+    );
     await tx.wait();
     console.log(`${authMethodEmbeddedAuth} added to auth methods`);
   } else {

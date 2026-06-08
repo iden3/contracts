@@ -9,15 +9,14 @@ import AuthV2ValidatorModule from "./authV2Validator";
 import IdentityTreeStoreModule from "./identityTreeStore";
 import MCPaymentModule from "./mcPayment";
 import VCPaymentModule from "./vcPayment";
-import UniversalVerifier_ManyResponsesPerUserAndRequestModule from "./universalVerifier_ManyResponsesPerUserAndRequest";
-import { network } from "hardhat";
+import hre from "hardhat";
 import AuthV3ValidatorModule from "./authV3Validator";
 import AuthV3_8_32ValidatorModule from "./authV3_8_32Validator";
 import CredentialAtomicQueryV3StableValidatorModule from "./credentialAtomicQueryV3StableValidator";
 import LinkedMultiQueryStableValidatorModule from "./linkedMultiQueryStableValidator";
 import { contractsInfo } from "../../../helpers/constants";
 
-const { ethers } = await network.connect();
+const { ethers } = await hre.network.create();
 
 const DeployEverythingBasicStrategy = buildModule("DeployEverythingBasicStrategy", (m) => {
   const {

@@ -1,7 +1,7 @@
 // HARDHAT network Oracle signing address
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers } = await network.connect();
+const { ethers } = await hre.network.create();
 
 export const DEFAULT_MNEMONIC = "test test test test test test test test test test test junk";
 
@@ -186,7 +186,7 @@ export const contractsInfo = Object.freeze({
   },
   STATE: {
     name: "State",
-    version: "2.6.3",
+    version: "2.6.4",
     unifiedAddress: "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.State")),
     verificationOpts: {
@@ -454,6 +454,11 @@ export const contractsInfo = Object.freeze({
   POSEIDON_4: {
     name: "PoseidonUnit4L",
     unifiedAddress: "0x0695cF2c6dfc438a4E40508741888198A6ccacC2",
+    create2Calldata: "",
+  },
+  POSEIDON_HASHER: {
+    name: "PoseidonHasher",
+    unifiedAddress: "",
     create2Calldata: "",
   },
   GROTH16_VERIFIER_STATE_TRANSITION: {

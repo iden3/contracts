@@ -1,8 +1,8 @@
 import { expect } from "chai";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { PoseidonFacadeModule } from "../../ignition/modules/deployEverythingBasicStrategy/libraries";
 
-const { ignition } = await network.connect();
+const { ignition } = await hre.network.create();
 
 describe("poseidon", () => {
   let poseidonFacade;

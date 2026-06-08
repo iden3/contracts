@@ -1,13 +1,13 @@
 import { expect } from "chai";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { addLeaf, type FixedArray, genMaxBinaryNumber, type MtpProof } from "../utils/state-utils";
 import {
   BinarySearchTestWrapperModule,
-  SmtLibTestWrapperModule,
+  SmtLibKeccakTestWrapperModule,
 } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 import { SMT_MAX_DEPTH } from "../../helpers/constants";
 
-const { ethers, networkHelpers, ignition, provider } = await network.connect();
+const { ethers, networkHelpers, ignition, provider } = await hre.network.create();
 
 type ParamsProofByHistoricalRoot = {
   index: number | bigint | string;
@@ -48,17 +48,18 @@ type TestCaseRootHistory = {
 
 async function deployContractsFixture() {
   const params = {
-    SmtLibTestWrapperModule: {
+    SmtLibKeccakTestWrapperModule: {
       maxDepth: SMT_MAX_DEPTH,
     },
   };
-  const smtLibTestWrapper = (await ignition.deploy(SmtLibTestWrapperModule, { parameters: params }))
-    .smtLibTestWrapper;
+  const smtLibTestWrapper = (
+    await ignition.deploy(SmtLibKeccakTestWrapperModule, { parameters: params })
+  ).smtLibTestWrapper;
   return { smtLibTestWrapper };
 }
 
-describe("Merkle tree proofs of SMT", () => {
-  let smt: any;
+describe("Merkle tree proofs of SMT (Keccak hasher)", () => {
+  let smt;
 
   beforeEach(async () => {
     ({ smtLibTestWrapper: smt } = await networkHelpers.loadFixture(deployContractsFixture));
@@ -72,7 +73,7 @@ describe("Merkle tree proofs of SMT", () => {
           leavesToInsert: [{ i: 4, v: 444 }],
           paramsToGetProof: 4,
           expectedProof: {
-            root: "17172838131998611102390183760409471205043596092117126608119446264795219840387",
+            root: "22958977272721485097221938248834413051866334275107448764221195104671274302803",
             existence: true,
             siblings: Array(64).fill(0) as FixedArray<string, 64>,
             index: 4,
@@ -90,11 +91,11 @@ describe("Merkle tree proofs of SMT", () => {
           ],
           paramsToGetProof: 2,
           expectedProof: {
-            root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+            root: "6271825503835002167390262846571952849048843004006797408985626104559410349007",
             existence: true,
             siblings: [
               "0",
-              "17172838131998611102390183760409471205043596092117126608119446264795219840387",
+              "22958977272721485097221938248834413051866334275107448764221195104671274302803",
             ].concat(Array(62).fill(0)) as FixedArray<string, 64>,
             index: 2,
             value: 222,
@@ -113,11 +114,11 @@ describe("Merkle tree proofs of SMT", () => {
           ],
           paramsToGetProof: 4,
           expectedProof: {
-            root: "7518984336464932918389970949562858717786148793994477177454424989320848411811",
+            root: "16396604133323839338919891555968694657750322967047028825382984961917414135680",
             existence: true,
             siblings: [
               "0",
-              "14251506067749311748434684987325372940957929637576367655195798776182705044439",
+              "106205607234728094801824820546945464662359795328028380050005012207955127231073",
             ].concat(Array(62).fill(0)) as FixedArray<string, 64>,
             index: 4,
             value: 444,
@@ -136,11 +137,11 @@ describe("Merkle tree proofs of SMT", () => {
           ],
           paramsToGetProof: 2,
           expectedProof: {
-            root: "7518984336464932918389970949562858717786148793994477177454424989320848411811",
+            root: "16396604133323839338919891555968694657750322967047028825382984961917414135680",
             existence: true,
             siblings: [
               "0",
-              "17172838131998611102390183760409471205043596092117126608119446264795219840387",
+              "22958977272721485097221938248834413051866334275107448764221195104671274302803",
             ].concat(Array(62).fill(0)) as FixedArray<string, 64>,
             index: 2,
             value: 223,
@@ -160,14 +161,14 @@ describe("Merkle tree proofs of SMT", () => {
           paramsToGetProof: {
             index: 2,
             historicalRoot:
-              "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+              "6271825503835002167390262846571952849048843004006797408985626104559410349007",
           },
           expectedProof: {
-            root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+            root: "6271825503835002167390262846571952849048843004006797408985626104559410349007",
             existence: true,
             siblings: [
               "0",
-              "17172838131998611102390183760409471205043596092117126608119446264795219840387",
+              "22958977272721485097221938248834413051866334275107448764221195104671274302803",
             ].concat(Array(62).fill(0)) as FixedArray<string, 64>,
             index: 2,
             value: 222,
@@ -187,14 +188,14 @@ describe("Merkle tree proofs of SMT", () => {
           paramsToGetProof: {
             index: 4,
             historicalRoot:
-              "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+              "6271825503835002167390262846571952849048843004006797408985626104559410349007",
           },
           expectedProof: {
-            root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+            root: "6271825503835002167390262846571952849048843004006797408985626104559410349007",
             existence: true,
             siblings: [
               "0",
-              "7886566820534140840061358290700879102455368051640197098120169021365756575690",
+              "78830676469618643418259161717399883581838239495817397573365812847452816685443",
             ].concat(Array(62).fill(0)) as FixedArray<string, 64>,
             index: 4,
             value: 444,
@@ -219,7 +220,7 @@ describe("Merkle tree proofs of SMT", () => {
           leavesToInsert: [{ i: 3, v: 333 }],
           paramsToGetProof: 3,
           expectedProof: {
-            root: "9620424510282781520312293538235812893148558849034106480402397875614354541113",
+            root: "33418405206138732565596445817172696059570130655374283008161682599505407512429",
             existence: true,
             siblings: Array(64).fill(0) as FixedArray<string, 64>,
             index: "3",
@@ -237,12 +238,12 @@ describe("Merkle tree proofs of SMT", () => {
           ],
           paramsToGetProof: 7,
           expectedProof: {
-            root: "19815655640973429763502848653182332850553075596353874436508539687379197912551",
+            root: "48360753217216801628383385897610760751395521399060591925309269460841854478880",
             existence: true,
             siblings: [
               "0",
               "0",
-              "9620424510282781520312293538235812893148558849034106480402397875614354541113",
+              "33418405206138732565596445817172696059570130655374283008161682599505407512429",
             ].concat(Array(61).fill(0)) as FixedArray<string, 64>,
             index: "7",
             value: "777",
@@ -261,12 +262,12 @@ describe("Merkle tree proofs of SMT", () => {
           ],
           paramsToGetProof: 3,
           expectedProof: {
-            root: "2542404438766480113585642347874916876260762595281604113407869433952183945353",
+            root: "99343494309985223004431568049537972373969240419555846106086358328736705856273",
             existence: true,
             siblings: [
               "0",
               "0",
-              "1429787978940724228837527260031251962874080759861304177793880818323589539601",
+              "112313283557488934319533843029412977758210563652664683830759028786502416187169",
             ].concat(Array(61).fill(0)) as FixedArray<string, 64>,
             index: "3",
             value: "333",
@@ -285,12 +286,12 @@ describe("Merkle tree proofs of SMT", () => {
           ],
           paramsToGetProof: 7,
           expectedProof: {
-            root: "2542404438766480113585642347874916876260762595281604113407869433952183945353",
+            root: "99343494309985223004431568049537972373969240419555846106086358328736705856273",
             existence: true,
             siblings: [
               "0",
               "0",
-              "9620424510282781520312293538235812893148558849034106480402397875614354541113",
+              "33418405206138732565596445817172696059570130655374283008161682599505407512429",
             ].concat(Array(61).fill(0)) as FixedArray<string, 64>,
             index: "7",
             value: "778",
@@ -310,15 +311,15 @@ describe("Merkle tree proofs of SMT", () => {
           paramsToGetProof: {
             index: 3,
             historicalRoot:
-              "19815655640973429763502848653182332850553075596353874436508539687379197912551",
+              "48360753217216801628383385897610760751395521399060591925309269460841854478880",
           },
           expectedProof: {
-            root: "19815655640973429763502848653182332850553075596353874436508539687379197912551",
+            root: "48360753217216801628383385897610760751395521399060591925309269460841854478880",
             existence: true,
             siblings: [
               "0",
               "0",
-              "5240534091252349892032931504453574475032932996013327005816531601253770276629",
+              "50296473614243876656937981110997905853887938112796700896791687746944667051313",
             ].concat(Array(61).fill(0)) as FixedArray<string, 64>,
             index: "3",
             value: "333",
@@ -338,15 +339,15 @@ describe("Merkle tree proofs of SMT", () => {
           paramsToGetProof: {
             index: 7,
             historicalRoot:
-              "19815655640973429763502848653182332850553075596353874436508539687379197912551",
+              "48360753217216801628383385897610760751395521399060591925309269460841854478880",
           },
           expectedProof: {
-            root: "19815655640973429763502848653182332850553075596353874436508539687379197912551",
+            root: "48360753217216801628383385897610760751395521399060591925309269460841854478880",
             existence: true,
             siblings: [
               "0",
               "0",
-              "9620424510282781520312293538235812893148558849034106480402397875614354541113",
+              "33418405206138732565596445817172696059570130655374283008161682599505407512429",
             ].concat(Array(61).fill(0)) as FixedArray<string, 64>,
             index: "7",
             value: "777",
@@ -413,14 +414,14 @@ describe("Merkle tree proofs of SMT", () => {
           paramsToGetProof:
             "2254139687286372760549210172096572575821880629072851135313477335313002867070",
           expectedProof: {
-            root: "13608938109359425943273886683542924994850927952989113192708029670282368959472",
+            root: "60007161943983486146906500160381123178622458462493617850821425381979612616956",
             existence: true,
             siblings: [
-              "1832641583235778429809211853568910873051692053406604919942416271965516221694",
-              "7178355728345475638578628524851385851849048771654648953856812774555221490254",
-              "9602796824988200934471038492033878534627864374776542278379449014085059916942",
+              "11842043060776711430669533915732787960772621560012996635304388961537219372006",
+              "58180682306773137243712131495542060329763268994690040321062652108869108341898",
+              "94191217124907006392892149230646386351460750107001924913640299034519044572186",
               "0",
-              "16358410446199419264933021028144760440785144596817177810806370009968803152521",
+              "68634643421786404149040398078509254181052706327147925186290660391175330864565",
             ].concat(Array(59).fill(0)) as FixedArray<string, 64>,
             index: "2254139687286372760549210172096572575821880629072851135313477335313002867070",
             value: "2254139687286372760549210172096572575821880629072851135313477335313002867070",
@@ -447,7 +448,7 @@ describe("Merkle tree proofs of SMT", () => {
           leavesToInsert: [{ i: 4, v: 444 }],
           paramsToGetProof: 2,
           expectedProof: {
-            root: "17172838131998611102390183760409471205043596092117126608119446264795219840387",
+            root: "22958977272721485097221938248834413051866334275107448764221195104671274302803",
             existence: false,
             siblings: Array(64).fill(0) as FixedArray<string, 64>,
             index: 2,
@@ -466,11 +467,11 @@ describe("Merkle tree proofs of SMT", () => {
           ],
           paramsToGetProof: 6,
           expectedProof: {
-            root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+            root: "6271825503835002167390262846571952849048843004006797408985626104559410349007",
             existence: false,
             siblings: [
               "0",
-              "17172838131998611102390183760409471205043596092117126608119446264795219840387",
+              "22958977272721485097221938248834413051866334275107448764221195104671274302803",
             ].concat(Array(62).fill(0)) as FixedArray<string, 64>,
             index: 6,
             value: 222,
@@ -488,10 +489,10 @@ describe("Merkle tree proofs of SMT", () => {
           ],
           paramsToGetProof: 1,
           expectedProof: {
-            root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+            root: "6271825503835002167390262846571952849048843004006797408985626104559410349007",
             existence: false,
             siblings: [
-              "6675047397658061825643898157145998146182607268727302490292227324666463200032",
+              "96535818096110143691607859947815292580929567133286005889885442808119755306104",
             ].concat(Array(63).fill(0)) as FixedArray<string, 64>,
             index: 1,
             value: 0,
@@ -511,14 +512,14 @@ describe("Merkle tree proofs of SMT", () => {
           paramsToGetProof: {
             index: 6,
             historicalRoot:
-              "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+              "6271825503835002167390262846571952849048843004006797408985626104559410349007",
           },
           expectedProof: {
-            root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+            root: "6271825503835002167390262846571952849048843004006797408985626104559410349007",
             existence: false,
             siblings: [
               "0",
-              "17172838131998611102390183760409471205043596092117126608119446264795219840387",
+              "22958977272721485097221938248834413051866334275107448764221195104671274302803",
             ].concat(Array(62).fill(0)) as FixedArray<string, 64>,
             index: 6,
             value: 222,
@@ -538,13 +539,13 @@ describe("Merkle tree proofs of SMT", () => {
           paramsToGetProof: {
             index: 1,
             historicalRoot:
-              "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+              "6271825503835002167390262846571952849048843004006797408985626104559410349007",
           },
           expectedProof: {
-            root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+            root: "6271825503835002167390262846571952849048843004006797408985626104559410349007",
             existence: false,
             siblings: [
-              "6675047397658061825643898157145998146182607268727302490292227324666463200032",
+              "96535818096110143691607859947815292580929567133286005889885442808119755306104",
             ].concat(Array(63).fill(0)) as FixedArray<string, 64>,
             index: 1,
             value: 0,
@@ -564,13 +565,13 @@ describe("Merkle tree proofs of SMT", () => {
           paramsToGetProof: {
             index: 1,
             historicalRoot:
-              "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+              "6271825503835002167390262846571952849048843004006797408985626104559410349007",
           },
           expectedProof: {
-            root: "1441373283294527316959936912733986290796958290497398831120725405602534136472",
+            root: "6271825503835002167390262846571952849048843004006797408985626104559410349007",
             existence: false,
             siblings: [
-              "6675047397658061825643898157145998146182607268727302490292227324666463200032",
+              "96535818096110143691607859947815292580929567133286005889885442808119755306104",
             ].concat(Array(63).fill(0)) as FixedArray<string, 64>,
             index: 1,
             value: 0,
@@ -595,7 +596,7 @@ describe("Merkle tree proofs of SMT", () => {
           leavesToInsert: [{ i: 3, v: 333 }],
           paramsToGetProof: 7,
           expectedProof: {
-            root: "9620424510282781520312293538235812893148558849034106480402397875614354541113",
+            root: "33418405206138732565596445817172696059570130655374283008161682599505407512429",
             existence: false,
             siblings: Array(64).fill(0) as FixedArray<string, 64>,
             index: "7",
@@ -614,12 +615,12 @@ describe("Merkle tree proofs of SMT", () => {
           ],
           paramsToGetProof: 11,
           expectedProof: {
-            root: "19815655640973429763502848653182332850553075596353874436508539687379197912551",
+            root: "48360753217216801628383385897610760751395521399060591925309269460841854478880",
             existence: false,
             siblings: [
               "0",
               "0",
-              "5240534091252349892032931504453574475032932996013327005816531601253770276629",
+              "50296473614243876656937981110997905853887938112796700896791687746944667051313",
             ].concat(Array(61).fill(0)) as FixedArray<string, 64>,
             index: "11",
             value: "333",
@@ -637,11 +638,11 @@ describe("Merkle tree proofs of SMT", () => {
           ],
           paramsToGetProof: 1,
           expectedProof: {
-            root: "19815655640973429763502848653182332850553075596353874436508539687379197912551",
+            root: "48360753217216801628383385897610760751395521399060591925309269460841854478880",
             existence: false,
             siblings: [
               "0",
-              "26063976833489350915848330858375580362565300311897865524107747624425916356",
+              "112876657748891444100900801150886368101744673616075342940779383085926542312690",
             ].concat(Array(62).fill(0)) as FixedArray<string, 64>,
             index: "1",
             value: "0",
@@ -661,15 +662,15 @@ describe("Merkle tree proofs of SMT", () => {
           paramsToGetProof: {
             index: 11,
             historicalRoot:
-              "19815655640973429763502848653182332850553075596353874436508539687379197912551",
+              "48360753217216801628383385897610760751395521399060591925309269460841854478880",
           },
           expectedProof: {
-            root: "19815655640973429763502848653182332850553075596353874436508539687379197912551",
+            root: "48360753217216801628383385897610760751395521399060591925309269460841854478880",
             existence: false,
             siblings: [
               "0",
               "0",
-              "5240534091252349892032931504453574475032932996013327005816531601253770276629",
+              "50296473614243876656937981110997905853887938112796700896791687746944667051313",
             ].concat(Array(61).fill(0)) as FixedArray<string, 64>,
             index: "11",
             value: "333",
@@ -689,14 +690,14 @@ describe("Merkle tree proofs of SMT", () => {
           paramsToGetProof: {
             index: 1,
             historicalRoot:
-              "19815655640973429763502848653182332850553075596353874436508539687379197912551",
+              "48360753217216801628383385897610760751395521399060591925309269460841854478880",
           },
           expectedProof: {
-            root: "19815655640973429763502848653182332850553075596353874436508539687379197912551",
+            root: "48360753217216801628383385897610760751395521399060591925309269460841854478880",
             existence: false,
             siblings: [
               "0",
-              "26063976833489350915848330858375580362565300311897865524107747624425916356",
+              "112876657748891444100900801150886368101744673616075342940779383085926542312690",
             ].concat(Array(62).fill(0)) as FixedArray<string, 64>,
             index: "1",
             value: "0",
@@ -716,15 +717,15 @@ describe("Merkle tree proofs of SMT", () => {
           paramsToGetProof: {
             index: 11,
             historicalRoot:
-              "19815655640973429763502848653182332850553075596353874436508539687379197912551",
+              "48360753217216801628383385897610760751395521399060591925309269460841854478880",
           },
           expectedProof: {
-            root: "19815655640973429763502848653182332850553075596353874436508539687379197912551",
+            root: "48360753217216801628383385897610760751395521399060591925309269460841854478880",
             existence: false,
             siblings: [
               "0",
               "0",
-              "5240534091252349892032931504453574475032932996013327005816531601253770276629",
+              "50296473614243876656937981110997905853887938112796700896791687746944667051313",
             ].concat(Array(61).fill(0)) as FixedArray<string, 64>,
             index: "11",
             value: "333",
@@ -791,11 +792,11 @@ describe("Merkle tree proofs of SMT", () => {
           paramsToGetProof:
             "2254139687286372760549210172096572575821880629072851135313477335313002867071",
           expectedProof: {
-            root: "13608938109359425943273886683542924994850927952989113192708029670282368959472",
+            root: "60007161943983486146906500160381123178622458462493617850821425381979612616956",
             existence: false,
             siblings: [
-              "1579434795526423183097986076173558337173432003423506163175532158546629036074",
-              "4682852777402635256724726626165554137517366900378681615797410665482859853011",
+              "15649299891651963645168066741171440452486996543233903096221914286509395708217",
+              "35485910319040178947164101851755181176671699873501710834388743638308164334229",
             ].concat(Array(62).fill(0)) as FixedArray<string, 64>,
             index: "2254139687286372760549210172096572575821880629072851135313477335313002867071",
             value: "6710060555229139303017247577694107284750887011584715720178646167607892089915",
@@ -853,12 +854,12 @@ describe("Merkle tree proofs of SMT", () => {
           paramsToGetProof:
             "6271287741236698691604141726361751264311688318470481595940384433868807274649",
           expectedProof: {
-            root: "13608938109359425943273886683542924994850927952989113192708029670282368959472",
+            root: "60007161943983486146906500160381123178622458462493617850821425381979612616956",
             existence: false,
             siblings: [
-              "1579434795526423183097986076173558337173432003423506163175532158546629036074",
-              "2087966847430044349684271178373838655869903749020106568902582482402101627428",
-              "4559542841575065171721871277134371244969805411208646727128331102091234595131",
+              "15649299891651963645168066741171440452486996543233903096221914286509395708217",
+              "5582158759613617994025042938199822589967969783458491971055101796671660471167",
+              "73073270877252609309304544688345883755735059749695338671799354601148846061501",
             ].concat(Array(61).fill(0)) as FixedArray<string, 64>,
             index: "6271287741236698691604141726361751264311688318470481595940384433868807274649",
             value: "0",
@@ -928,12 +929,12 @@ describe("Merkle tree proofs of SMT", () => {
         ],
         paramsToGetProof: genMaxBinaryNumber(64),
         expectedProof: {
-          root: "11998361913555620744473305594791175460338619045531124782442564216176360071119",
+          root: "110199947410708031149228851387837770054145252372569190168540009983771486866316",
           existence: true,
           siblings: Array(63)
             .fill("0")
             .concat([
-              "2316164946517152574748505824782744746774130618858955093234986590959173249001",
+              "74399159356430181752973204803851211752558544080760906099963521203069195578461",
             ]) as FixedArray<string, 64>,
           index: "18446744073709551615",
           value: "100",
@@ -950,12 +951,12 @@ describe("Merkle tree proofs of SMT", () => {
         ],
         paramsToGetProof: genMaxBinaryNumber(63) + BigInt(1),
         expectedProof: {
-          root: "7851364894145224193468155117213470810715599698407298245809392679874651946419",
+          root: "16625293229838138370855084455911863446233219628941478502997473061463286175203",
           existence: true,
           siblings: Array(63)
             .fill("0")
             .concat([
-              "1321531033810699781922362637795367691578399901805457949741207048379959301312",
+              "85255324799129495636878324767942437404808863678639087371922338002905282669100",
             ]) as FixedArray<string, 64>,
           index: "9223372036854775808",
           value: "100",
@@ -973,12 +974,12 @@ describe("Merkle tree proofs of SMT", () => {
         ],
         paramsToGetProof: "8490314929315140110",
         expectedProof: {
-          root: "5640762368545907066458698273870257445508350556310355422307954953617544677976",
+          root: "16484897135457263633438825596660941524517623843033410328799978262525614569225",
           existence: true,
           siblings: Array(63)
             .fill("0")
             .concat([
-              "21059535177784591611482142343728384369736848354398899541533132315810203341674",
+              "9906144696231549323869068974423946066277130279313871204886462229234859073912",
             ]) as FixedArray<string, 64>,
           index: "8490314929315140110",
           value: "100",
@@ -1091,7 +1092,7 @@ describe("Root history requests", function () {
 });
 
 describe("Root history duplicates", function () {
-  let smt: any;
+  let smt;
 
   beforeEach(async () => {
     ({ smtLibTestWrapper: smt } = await networkHelpers.loadFixture(deployContractsFixture));
@@ -1231,11 +1232,10 @@ describe("Binary search in SMT root history", () => {
   async function deployContractsFixtureBinarySearch() {
     ({ BSWrapper: binarySearch } = await ignition.deploy(BinarySearchTestWrapperModule));
   }
-
   beforeEach(async () => {
     await networkHelpers.loadFixture(deployContractsFixtureBinarySearch);
     const latestBlockNumber = await ethers.provider.getBlockNumber();
-    let blocksToMine = 15 - latestBlockNumber;
+    let blocksToMine = 19 - latestBlockNumber;
 
     while (blocksToMine > 0) {
       await provider.request({
@@ -1641,7 +1641,8 @@ describe("Binary search in SMT root history", () => {
 });
 
 describe("Binary search in SMT proofs", () => {
-  let smt: any;
+  let smt;
+
   beforeEach(async () => {
     ({ smtLibTestWrapper: smt } = await networkHelpers.loadFixture(deployContractsFixture));
   });
@@ -1703,7 +1704,7 @@ describe("Binary search in SMT proofs", () => {
           timestamp: 0,
         },
         expectedProof: {
-          root: "17172838131998611102390183760409471205043596092117126608119446264795219840387",
+          root: "22958977272721485097221938248834413051866334275107448764221195104671274302803",
           existence: true,
           siblings: Array(64).fill(0) as FixedArray<string, 64>,
           index: 4,
@@ -1721,7 +1722,7 @@ describe("Binary search in SMT proofs", () => {
           blockNumber: 0,
         },
         expectedProof: {
-          root: "17172838131998611102390183760409471205043596092117126608119446264795219840387",
+          root: "22958977272721485097221938248834413051866334275107448764221195104671274302803",
           existence: true,
           siblings: Array(64).fill(0) as FixedArray<string, 64>,
           index: 4,
@@ -1756,7 +1757,8 @@ describe("Binary search in SMT proofs", () => {
 });
 
 describe("Edge cases with exceptions", () => {
-  let smt: any;
+  let smt;
+
   beforeEach(async () => {
     ({ smtLibTestWrapper: smt } = await networkHelpers.loadFixture(deployContractsFixture));
   });
@@ -1777,6 +1779,7 @@ describe("Edge cases with exceptions", () => {
 });
 
 describe("maxDepth setting tests", () => {
+  const maxDepth = 64;
   let smt;
 
   before(async () => {
@@ -1818,29 +1821,12 @@ describe("maxDepth setting tests", () => {
 });
 
 async function checkTestCaseMTPProof(smt: any, testCase: TestCaseMTPProof) {
-  let blockNumberDifference;
-  let timestampDifference;
-
   for (const param of testCase.leavesToInsert) {
     if (param.error) {
       await expect(smt.add(param.i, param.v)).to.be.rejectedWith(param.error);
       continue;
     }
-    const previousBlock = await ethers.provider.getBlock(await ethers.provider.getBlockNumber());
-
-    await smt.add(param.i, param.v, {
-      gasPrice: 50000000000,
-      initialBaseFeePerGas: 25000000000,
-      gasLimit: 10000000,
-    });
-    const currentBlock = await ethers.provider.getBlock(await ethers.provider.getBlockNumber());
-
-    if (!previousBlock || !currentBlock) {
-      throw new Error("Failed to fetch block information");
-    }
-
-    timestampDifference = currentBlock.timestamp - previousBlock.timestamp;
-    blockNumberDifference = currentBlock.number - previousBlock.number;
+    await smt.add(param.i, param.v);
   }
 
   let proof;
@@ -1857,12 +1843,6 @@ async function checkTestCaseMTPProof(smt: any, testCase: TestCaseMTPProof) {
   }
 
   if (isProofByTime(testCase.paramsToGetProof)) {
-    // Some adjustment in hardhat to avoid future timestamp request because some more blocks are mined instead of 1 en smt.add
-    if (timestampDifference > 1) {
-      testCase.paramsToGetProof.timestamp =
-        testCase.paramsToGetProof.timestamp + timestampDifference - 1;
-    }
-
     proof = await smt.getProofByTime(
       testCase.paramsToGetProof.index,
       testCase.paramsToGetProof.timestamp,
@@ -1870,11 +1850,6 @@ async function checkTestCaseMTPProof(smt: any, testCase: TestCaseMTPProof) {
   }
 
   if (isProofByBlock(testCase.paramsToGetProof)) {
-    if (blockNumberDifference > 1) {
-      testCase.paramsToGetProof.blockNumber =
-        testCase.paramsToGetProof.blockNumber + blockNumberDifference - 1;
-    }
-
     proof = await smt.getProofByBlock(
       testCase.paramsToGetProof.index,
       testCase.paramsToGetProof.blockNumber,
@@ -1926,183 +1901,3 @@ function isProofByBlock(proof: ParamsProof): proof is ParamsProofByBlock {
   }
   return (proof as ParamsProofByBlock).blockNumber !== undefined;
 }
-
-describe("updateLeaf", () => {
-  let smt: any;
-
-  beforeEach(async () => {
-    ({ smtLibTestWrapper: smt } = await networkHelpers.loadFixture(deployContractsFixture));
-  });
-
-  it("updates leaf value and proof reflects new value", async () => {
-    await smt.add(4, 444);
-    const rootBefore = await smt.getRoot();
-    await smt.update(4, 444, 555);
-    const rootAfter = await smt.getRoot();
-    expect(rootAfter).not.to.equal(rootBefore);
-    const proof = await smt.getProof(4);
-    expect(proof.existence).to.be.true;
-    expect(proof.value).to.equal(555n);
-  });
-
-  it("old root is still accessible via getProofByRoot after update", async () => {
-    await smt.add(4, 444);
-    const rootBefore = await smt.getRoot();
-    await smt.update(4, 444, 555);
-    const proof = await smt.getProofByRoot(4, rootBefore);
-    expect(proof.existence).to.be.true;
-    expect(proof.value).to.equal(444n);
-  });
-
-  it("root history length increments after update", async () => {
-    await smt.add(4, 444);
-    const lenBefore = await smt.getRootHistoryLength();
-    await smt.update(4, 444, 555);
-    const lenAfter = await smt.getRootHistoryLength();
-    expect(lenAfter).to.equal(lenBefore + 1n);
-  });
-
-  it("canonical root: update A to B then back to A restores original root", async () => {
-    await smt.add(4, 444);
-    await smt.add(2, 222);
-    const rootOriginal = await smt.getRoot();
-    await smt.update(4, 444, 555);
-    await smt.update(4, 555, 444);
-    expect(await smt.getRoot()).to.equal(rootOriginal);
-  });
-
-  it("reverts with wrong old value", async () => {
-    await smt.add(4, 444);
-    await expect(smt.update(4, 999, 555)).to.be.rejectedWith("Old value mismatch");
-  });
-
-  it("reverts when leaf index does not match path position", async () => {
-    await smt.add(4, 444);
-    await expect(smt.update(2, 444, 555)).to.be.rejectedWith("Leaf index mismatch");
-  });
-
-  it("reverts when new value is zero", async () => {
-    await smt.add(4, 444);
-    await expect(smt.update(4, 444, 0)).to.be.rejectedWith("New leaf value should not be zero");
-  });
-
-  it("reverts when leaf does not exist (empty tree)", async () => {
-    await expect(smt.update(99, 444, 555)).to.be.rejectedWith("Leaf does not exist");
-  });
-});
-
-describe("removeLeaf", () => {
-  let smt: any;
-
-  beforeEach(async () => {
-    ({ smtLibTestWrapper: smt } = await networkHelpers.loadFixture(deployContractsFixture));
-  });
-
-  it("removing the only leaf results in empty tree", async () => {
-    await smt.add(4, 444);
-    await smt.remove(4, 444);
-    expect(await smt.getRoot()).to.equal(0n);
-    const proof = await smt.getProof(4);
-    expect(proof.existence).to.be.false;
-  });
-
-  it("removing one of two leaves restores the single-leaf root", async () => {
-    await smt.add(4, 444);
-    const rootA = await smt.getRoot();
-    await smt.add(2, 222);
-    await smt.remove(2, 222);
-    expect(await smt.getRoot()).to.equal(rootA);
-    const proof2 = await smt.getProof(2);
-    expect(proof2.existence).to.be.false;
-    const proof4 = await smt.getProof(4);
-    expect(proof4.existence).to.be.true;
-    expect(proof4.value).to.equal(444n);
-  });
-
-  it("remove and re-add restores original root (canonical form)", async () => {
-    await smt.add(4, 444);
-    await smt.add(2, 222);
-    const rootOriginal = await smt.getRoot();
-    await smt.remove(2, 222);
-    await smt.add(2, 222);
-    expect(await smt.getRoot()).to.equal(rootOriginal);
-  });
-
-  it("root history length increments after remove", async () => {
-    await smt.add(4, 444);
-    const lenBefore = await smt.getRootHistoryLength();
-    await smt.remove(4, 444);
-    const lenAfter = await smt.getRootHistoryLength();
-    expect(lenAfter).to.equal(lenBefore + 1n);
-  });
-
-  it("old root is still accessible via getProofByRoot after remove", async () => {
-    await smt.add(4, 444);
-    const rootWithLeaf = await smt.getRoot();
-    await smt.remove(4, 444);
-    const proof = await smt.getProofByRoot(4, rootWithLeaf);
-    expect(proof.existence).to.be.true;
-    expect(proof.value).to.equal(444n);
-  });
-
-  it("deep-path compression: removing one of two deep-sharing leaves restores single-leaf root", async () => {
-    // indices 3 (011) and 7 (111) share bits 0 and 1, pushed to depth 2
-    await smt.add(3, 333);
-    const rootA = await smt.getRoot();
-    await smt.add(7, 777);
-    await smt.remove(7, 777);
-    expect(await smt.getRoot()).to.equal(rootA);
-    const proof7 = await smt.getProof(7);
-    expect(proof7.existence).to.be.false;
-    const proof3 = await smt.getProof(3);
-    expect(proof3.existence).to.be.true;
-    expect(proof3.value).to.equal(333n);
-  });
-
-  it("update then remove: root matches tree where that leaf was never inserted", async () => {
-    await smt.add(4, 444);
-    const rootA = await smt.getRoot();
-    await smt.add(2, 222);
-    await smt.update(2, 222, 223);
-    await smt.remove(2, 223);
-    expect(await smt.getRoot()).to.equal(rootA);
-  });
-
-  it("reverts with wrong old value", async () => {
-    await smt.add(4, 444);
-    await expect(smt.remove(4, 999)).to.be.rejectedWith("Old value mismatch");
-  });
-
-  it("reverts when index does not match leaf at path position", async () => {
-    await smt.add(4, 444);
-    // index 2 (010) shares bit 0 with index 4 (100) — both are 0 at bit 0 — so traversal
-    // reaches the leaf for index 4 and finds node.index (4) != index (2)
-    await expect(smt.remove(2, 444)).to.be.rejectedWith("Leaf index mismatch");
-  });
-
-  it("removing one leaf from a three-leaf tree produces correct two-leaf root", async () => {
-    await smt.add(4, 444);
-    await smt.add(2, 222);
-    const rootAB = await smt.getRoot(); // two-leaf root
-    await smt.add(1, 111);
-    await smt.remove(1, 111);
-    // after removing leaf(1), tree should be identical to the two-leaf tree
-    expect(await smt.getRoot()).to.equal(rootAB);
-    const proof1 = await smt.getProof(1);
-    expect(proof1.existence).to.be.false;
-    const proof4 = await smt.getProof(4);
-    expect(proof4.existence).to.be.true;
-    const proof2 = await smt.getProof(2);
-    expect(proof2.existence).to.be.true;
-  });
-
-  it("reverts when leaf does not exist (empty tree)", async () => {
-    await expect(smt.remove(99, 444)).to.be.rejectedWith("Leaf does not exist");
-  });
-
-  it("reverts when removing an already-removed leaf", async () => {
-    await smt.add(4, 444);
-    await smt.remove(4, 444);
-    await expect(smt.remove(4, 444)).to.be.rejectedWith("Leaf does not exist");
-  });
-});

@@ -9,13 +9,14 @@ import {PoseidonUnit1L} from "../lib/Poseidon.sol";
 import {StateLib} from "../lib/StateLib.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICrossChainProofValidator} from "../interfaces/ICrossChainProofValidator.sol";
+import {IHasher} from "../interfaces/IHasher.sol";
 
 /// @title Set and get states for each identity
 contract State is Ownable2StepUpgradeable, IState {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.6.3";
+    string public constant VERSION = "2.6.4";
     /**
      * @dev Global state proof type
      */
@@ -99,10 +100,11 @@ contract State is Ownable2StepUpgradeable, IState {
         IStateTransitionVerifier verifierContractAddr,
         bytes2 defaultIdType,
         address owner,
-        ICrossChainProofValidator validator
+        ICrossChainProofValidator validator,
+        IHasher hasher
     ) public initializer {
         if (!_gistData.initialized) {
-            _gistData.initialize(MAX_SMT_DEPTH);
+            _gistData.initialize(MAX_SMT_DEPTH, hasher);
         }
 
         if (address(verifierContractAddr) == address(0)) {

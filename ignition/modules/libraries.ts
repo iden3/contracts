@@ -1,6 +1,6 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { poseidonContract } from "circomlibjs";
-import { Poseidon2AtModule, Poseidon3AtModule } from "./contractsAt";
+import { Poseidon2AtModule, Poseidon3AtModule, PoseidonHasherAtModule } from "./contractsAt";
 
 export const Poseidon1Module = buildModule("Poseidon1Module", (m) => {
   const nInputs = 1;
@@ -98,16 +98,21 @@ export const Poseidon6Module = buildModule("Poseidon6Module", (m) => {
   return { poseidon };
 });
 
-export const SmtLibModule = buildModule("SmtLibModule", (m) => {
+export const PoseidonHasherModule = buildModule("PoseidonHasherModule", (m) => {
   const poseidon2Element = m.useModule(Poseidon2AtModule).contract;
   const poseidon3Element = m.useModule(Poseidon3AtModule).contract;
 
-  const smtLib = m.contract("SmtLib", [], {
+  const poseidonHasher = m.contract("PoseidonHasher", [], {
     libraries: {
       PoseidonUnit2L: poseidon2Element,
       PoseidonUnit3L: poseidon3Element,
     },
   });
+  return { poseidonHasher };
+});
+
+export const SmtLibModule = buildModule("SmtLibModule", (m) => {
+  const smtLib = m.contract("SmtLib", []);
   return { smtLib };
 });
 

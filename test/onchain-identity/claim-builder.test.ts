@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import claimDataJson from "./vectorsGen/data/claimBuilderData.json";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { ClaimBuilderWrapperModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const { ignition } = await network.connect();
+const { ignition } = await hre.network.create();
 
 describe("Claim builder tests", function () {
   let identity;

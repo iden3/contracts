@@ -7,9 +7,9 @@ import {
 import { contractsInfo } from "../../helpers/constants";
 import { VCPaymentProxyModule } from "../../ignition";
 import VCPaymentModule from "../../ignition/modules/vcPayment";
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 async function main() {
   const config = getConfig();

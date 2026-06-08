@@ -9,10 +9,10 @@ import {
   LEGACY_ORACLE_SIGNING_ADDRESS_HARDHAT,
   LEGACY_ORACLE_SIGNING_ADDRESS_PRODUCTION,
 } from "../../helpers/constants";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { CrossChainProofValidatorModule } from "../../ignition";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 async function main() {
   const chainId = await getChainId();

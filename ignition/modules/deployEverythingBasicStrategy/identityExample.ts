@@ -27,7 +27,7 @@ const IdentityExampleProxyModule = buildModule("IdentityExampleProxyModule", (m)
 
   const { claimBuilder } = m.useModule(ClaimBuilderModule);
   const { identityLib } = m.useModule(IdentityLibModule);
-  const state = m.useModule(StateModule).state;
+  const { state, poseidonHasher } = m.useModule(StateModule);
   const defaultIdType = m.getParameter("defaultIdType");
 
   const identityExample = m.contract("IdentityExample", [], {
@@ -43,7 +43,7 @@ const IdentityExampleProxyModule = buildModule("IdentityExampleProxyModule", (m)
     id: "identityExampleProxy",
   });
 
-  m.call(identityExampleProxy, "initialize", [state, defaultIdType], {
+  m.call(identityExampleProxy, "initialize", [state, defaultIdType, poseidonHasher], {
     from: proxyAdminOwner,
   });
 

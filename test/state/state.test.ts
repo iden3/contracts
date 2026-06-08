@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { publishState, publishStateWithStubProof } from "../utils/state-utils";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { getChainId } from "../../helpers/helperUtils";
 import { chainIdInfoMap } from "../../helpers/constants";
 import StateModule from "../../ignition/modules/deployEverythingBasicStrategy/state";
@@ -8,7 +8,7 @@ import userStateGenesisTransitionJson from "./data/user_state_genesis_transition
 import userStateNextTransitionJson from "./data/user_state_next_transition.json";
 import { Groth16VerifierStubModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const { ethers, networkHelpers, ignition } = await network.connect();
+const { ethers, networkHelpers, ignition } = await hre.network.create();;
 
 const stateTransitionsWithProofs: any = [
   userStateGenesisTransitionJson,

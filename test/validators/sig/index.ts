@@ -4,7 +4,7 @@ import { packValidatorParams } from "../../utils/validator-pack-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { chainIdInfoMap, contractsInfo, TEN_YEARS } from "../../../helpers/constants";
 import { packZKProof } from "../../utils/packData";
-import { network } from "hardhat";
+import hre from "hardhat";
 import CredentialAtomicQuerySigV2ValidatorModule from "../../../ignition/modules/deployEverythingBasicStrategy/credentialAtomicQuerySigV2Validator";
 import { getChainId } from "../../../helpers/helperUtils";
 import issuerGenesisState from "../common-data/issuer_genesis_state.json";
@@ -15,7 +15,7 @@ import validSigUserNonGenesis from "./data/valid_sig_user_non_genesis.json";
 import issuerNextStateTransition from "../common-data/issuer_next_state_transition.json";
 import userNextStateTransition from "../common-data/user_next_state_transition.json";
 
-const { ethers, networkHelpers, ignition } = await network.connect();
+const { ethers, networkHelpers, ignition } = await hre.network.create();;
 
 const tenYears = TEN_YEARS;
 const testCases: any[] = [

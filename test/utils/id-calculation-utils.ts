@@ -1,6 +1,6 @@
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers } = await network.connect();
+const { ethers } = await hre.network.create();;
 
 export function calculateGroupID(requestIds: bigint[]): bigint {
   const types = Array(requestIds.length).fill("uint256");

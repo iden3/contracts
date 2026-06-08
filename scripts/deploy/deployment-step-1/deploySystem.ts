@@ -50,13 +50,13 @@ import {
   UniversalVerifierAtModule,
   VCPaymentAtModule,
 } from "../../../ignition/modules/contractsAt";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { AuthV3ValidatorProxyModule } from "../../../ignition/modules/authV3Validator";
 import { AuthV3_8_32ValidatorProxyModule } from "../../../ignition/modules/authV3_8_32Validator";
 import { CredentialAtomicQueryV3StableValidatorProxyModule } from "../../../ignition/modules/credentialAtomicQueryV3StableValidator";
 import { LinkedMultiQueryStableValidatorProxyModule } from "../../../ignition/modules/linkedMultiQueryStableValidator";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 async function main() {
   const config = getConfig();

@@ -2,12 +2,12 @@ import { expect } from "chai";
 import { prepareInputs, publishState } from "../../utils/state-utils";
 import { packZKProof } from "../../utils/packData";
 import { chainIdInfoMap, contractsInfo } from "../../../helpers/constants";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { getChainId } from "../../../helpers/helperUtils";
 import { AuthV2ValidatorWithGroth16VerifierStubModule } from "../../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 import issuerFromGenesisStateToFirstTransitionV3 from "../common-data/issuer_from_genesis_state_to_first_transition_v3.json";
 
-const { ethers, networkHelpers, ignition } = await network.connect();
+const { ethers, networkHelpers, ignition } = await hre.network.create();;
 
 const testCases: any[] = [
   {

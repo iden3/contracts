@@ -6,9 +6,9 @@ import { contractsInfo } from "../../helpers/constants";
 import { Hex } from "@iden3/js-crypto";
 import { getChainId } from "../../helpers/helperUtils";
 import { calculateRequestID } from "../../test/utils/id-calculation-utils";
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers, networkName } = await network.connect();
+const { ethers, networkName } = await hre.network.create();
 
 export function getAuthV2RequestId(): number {
   const circuitHash = ethers.keccak256(byteEncoder.encode(CircuitId.AuthV2));

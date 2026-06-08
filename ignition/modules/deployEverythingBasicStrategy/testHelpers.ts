@@ -1,5 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { SmtLibModule } from "./libraries";
+import { KeccakHasherModule, PoseidonHasherModule, SmtLibModule } from "./libraries";
 import { AuthV2ValidatorImplementationModule } from "./authV2Validator";
 import StateModule from "./state";
 import {
@@ -62,13 +62,14 @@ export const AuthValidatorStubModule = buildModule("AuthValidatorStubModule", (m
 
 export const SmtLibTestWrapperModule = buildModule("SmtLibTestWrapperModule", (m) => {
   const smtLib = m.useModule(SmtLibModule).smtLib;
+  const poseidonHasher = m.useModule(PoseidonHasherModule).poseidonHasher;
 
   const maxDepth = m.getParameter("maxDepth");
   if (!maxDepth) {
     throw new Error(`Failed to get maxDepth`);
   }
 
-  const smtLibTestWrapper = m.contract("SmtLibTestWrapper", [maxDepth], {
+  const smtLibTestWrapper = m.contract("SmtLibTestWrapper", [maxDepth, poseidonHasher], {
     libraries: {
       SmtLib: smtLib,
     },
@@ -76,10 +77,29 @@ export const SmtLibTestWrapperModule = buildModule("SmtLibTestWrapperModule", (m
   return { smtLibTestWrapper };
 });
 
+export const SmtLibKeccakTestWrapperModule = buildModule("SmtLibKeccakTestWrapperModule", (m) => {
+  const smtLib = m.useModule(SmtLibModule).smtLib;
+  const keccakHasher = m.useModule(KeccakHasherModule).keccakHasher;
+
+  const maxDepth = m.getParameter("maxDepth");
+  if (!maxDepth) {
+    throw new Error(`Failed to get maxDepth`);
+  }
+
+  const smtLibTestWrapper = m.contract("SmtLibTestWrapper", [maxDepth, keccakHasher], {
+    libraries: {
+      SmtLib: smtLib,
+    },
+  });
+  return { smtLibTestWrapper };
+});
+
+
 export const BinarySearchTestWrapperModule = buildModule("BinarySearchTestWrapperModule", (m) => {
   const smtLib = m.useModule(SmtLibModule).smtLib;
+  const poseidonHasher = m.useModule(PoseidonHasherModule).poseidonHasher;
 
-  const BSWrapper = m.contract("BinarySearchTestWrapper", [], {
+  const BSWrapper = m.contract("BinarySearchTestWrapper", [poseidonHasher], {
     libraries: {
       SmtLib: smtLib,
     },

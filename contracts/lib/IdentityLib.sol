@@ -5,6 +5,7 @@ import {IState} from "../interfaces/IState.sol";
 import {SmtLib} from "../lib/SmtLib.sol";
 import {PoseidonUnit3L, PoseidonUnit4L} from "../lib/Poseidon.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
+import {IHasher} from "../interfaces/IHasher.sol";
 
 error SMTDepthIsGreaterThanMaxAllowed();
 error IdTypeNotSupported();
@@ -86,7 +87,8 @@ library IdentityLib {
         address _stateContractAddr,
         address _identityAddr,
         uint256 depth,
-        bytes2 idType
+        bytes2 idType,
+        IHasher hasher
     ) external {
         if (depth > IDENTITY_MAX_SMT_DEPTH) {
             revert SMTDepthIsGreaterThanMaxAllowed();
@@ -96,9 +98,9 @@ library IdentityLib {
             revert IdTypeNotSupported();
         }
         self.isOldStateGenesis = true;
-        self.trees.claimsTree.initialize(depth);
-        self.trees.revocationsTree.initialize(depth);
-        self.trees.rootsTree.initialize(depth);
+        self.trees.claimsTree.initialize(depth, hasher);
+        self.trees.revocationsTree.initialize(depth, hasher);
+        self.trees.rootsTree.initialize(depth, hasher);
         self.id = GenesisUtils.calcIdFromEthAddress(idType, _identityAddr);
     }
 

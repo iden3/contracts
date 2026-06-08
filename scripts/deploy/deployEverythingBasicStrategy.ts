@@ -1,9 +1,9 @@
 import DeployEverythingBasicStrategy from "../../ignition/modules/deployEverythingBasicStrategy/deployEverythingBasicStrategy";
 import { getChainId, getDefaultIdType, verifyContract } from "../../helpers/helperUtils";
 import { ORACLE_SIGNING_ADDRESS_PRODUCTION } from "../../helpers/constants";
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ignition } = await network.connect();
+const { ignition } = await hre.network.create();
 
 async function main() {
   const params = {

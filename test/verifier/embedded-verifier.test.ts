@@ -1,7 +1,7 @@
 import { beforeEach } from "mocha";
 import { expect } from "chai";
 import { chainIdInfoMap } from "../../helpers/constants";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { getChainId } from "../../helpers/helperUtils";
 import {
   AuthValidatorStubModule,
@@ -10,7 +10,7 @@ import {
   RequestValidatorStubModule,
 } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const { ethers, ignition, networkHelpers } = await network.connect();
+const { ethers, ignition, networkHelpers } = await hre.network.create();;
 
 describe("EmbeddedVerifier tests", function () {
   let verifier, state, validator, signer: any;

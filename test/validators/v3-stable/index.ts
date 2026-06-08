@@ -5,7 +5,7 @@ import { calculateQueryHashV3 } from "../../utils/query-hash-utils";
 import { CircuitId } from "@0xpolygonid/js-sdk";
 import { chainIdInfoMap, contractsInfo, TEN_YEARS } from "../../../helpers/constants";
 import { packZKProof } from "../../utils/packData";
-import { network } from "hardhat";
+import hre from "hardhat";
 import CredentialAtomicQueryV3StableValidatorModule from "../../../ignition/modules/deployEverythingBasicStrategy/credentialAtomicQueryV3StableValidator";
 import { getChainId } from "../../../helpers/helperUtils";
 import issuerFromGenesisStateToFirstTransitionV3 from "../common-data/issuer_from_genesis_state_to_first_transition_v3.json";
@@ -45,7 +45,7 @@ import validBjjUserGenesisAuthDisabledV3WrongId_16_16_64_16_32 from "./data-16-1
 import validMtpUserGenesisAuthDisabledV3WrongId_16_16_64_16_32 from "./data-16-16-64-16-32/valid_mtp_user_genesis_auth_disabled_v3_wrong_id.json";
 import validBjjUserFirstIssuerGenesisV3_16_16_64_16_32 from "./data-16-16-64-16-32/valid_bjj_user_first_issuer_genesis_v3.json";
 
-const { ethers, networkHelpers, ignition } = await network.connect();
+const { ethers, networkHelpers, ignition } = await hre.network.create();;
 
 const tenYears = TEN_YEARS;
 const testCases: any[] = [
