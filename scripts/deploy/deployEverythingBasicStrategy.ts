@@ -40,9 +40,7 @@ async function main() {
     authV3_8_32Validator,
     MCPayment,
     VCPayment,
-    universalVerifier_ManyResponsesPerUserAndRequestImplementation,
-    universalVerifier_ManyResponsesPerUserAndRequest,
-    verifierLib_ManyResponsesPerUserAndRequest,
+    poseidonHasher,
   } = await ignition.deploy(DeployEverythingBasicStrategy, {
     parameters: params,
     deploymentId: `chain-${await getChainId()}-simple-deploy-basic-strategy`,
@@ -74,9 +72,7 @@ async function main() {
     authV3_8_32Validator,
     MCPayment,
     VCPayment,
-    universalVerifier_ManyResponsesPerUserAndRequest,
-    universalVerifier_ManyResponsesPerUserAndRequestImplementation,
-    verifierLib_ManyResponsesPerUserAndRequest,
+    poseidonHasher,
   ]) {
     await verifyContract(contract.target, {
       constructorArgsImplementation: [],

@@ -15,6 +15,7 @@ import {
   Poseidon2Module,
   Poseidon3Module,
   Poseidon4Module,
+  PoseidonHasherModule,
   SmtLibModule,
   VCPaymentProxyModule,
 } from "../../../ignition";
@@ -45,6 +46,7 @@ import {
   Poseidon2AtModule,
   Poseidon3AtModule,
   Poseidon4AtModule,
+  PoseidonHasherAtModule,
   SmtLibAtModule,
   StateAtModule,
   UniversalVerifierAtModule,
@@ -137,6 +139,12 @@ async function main() {
       moduleAt: Poseidon4AtModule,
       contractAddress: contractsInfo.POSEIDON_4.unifiedAddress,
       name: contractsInfo.POSEIDON_4.name,
+    },
+    {
+      module: PoseidonHasherModule,
+      moduleAt: PoseidonHasherAtModule,
+      contractAddress: contractsInfo.POSEIDON_HASHER.unifiedAddress,
+      name: contractsInfo.POSEIDON_HASHER.name,
     },
     {
       module: SmtLibModule,
@@ -348,7 +356,7 @@ async function main() {
         deploymentId: deploymentId,
       });
       console.log(
-        `${contract.name} deployed to: ${contract.isProxy ? deployedContract.proxy.target : contract.contractAddress}`,
+        `${contract.name} deployed to: ${contract.isProxy ? deployedContract.proxy.target : deployedContract.target}`,
       );
 
       if (contract.name == contractsInfo.STATE.name) {

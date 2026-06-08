@@ -166,33 +166,6 @@ async function main() {
         proxyAdmin: universalVerifierDeployed.proxyAdmin,
       });
     }
-  } else {
-    parameters = Object.assign(parameters, {
-      UniversalVerifierTestWrapperAtModule_ManyResponsesPerUserAndRequest: {
-        proxyAddress: proxyAddress,
-        proxyAdminAddress: proxyAdminAddress,
-      },
-    });
-    const deploymentId = `chain-${await getChainId()}-many-responses-per-user-and-request`;
-    const universalVerifierDeployed = await ignition.deploy(
-      UniversalVerifierTestWrapperAtModule_ManyResponsesPerUserAndRequest,
-      {
-        strategy: deployStrategy,
-        defaultSender: await signer.getAddress(),
-        parameters: parameters,
-        deploymentId: deploymentId,
-      },
-    );
-    universalVerifier = universalVerifierDeployed.proxy;
-    console.log(`Using Universal Verifier Test Wrapper at: ${universalVerifier.target}`);
-
-    if (impersonate) {
-      console.log("Impersonating Ledger Account by ownership transfer");
-      await transferOwnership(signer, {
-        proxy: universalVerifierDeployed.proxy,
-        proxyAdmin: universalVerifierDeployed.proxyAdmin,
-      });
-    }
   }
 
   for (const validator of requestValidators) {

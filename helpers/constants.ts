@@ -458,7 +458,7 @@ export const contractsInfo = Object.freeze({
   },
   POSEIDON_HASHER: {
     name: "PoseidonHasher",
-    unifiedAddress: "",
+    unifiedAddress: "0x2b61D294beA132156D53f07Fd1f0a3acb078368D",
     create2Calldata: "",
   },
   GROTH16_VERIFIER_STATE_TRANSITION: {
