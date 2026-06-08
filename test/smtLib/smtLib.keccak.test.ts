@@ -1779,7 +1779,6 @@ describe("Edge cases with exceptions", () => {
 });
 
 describe("maxDepth setting tests", () => {
-  const maxDepth = 64;
   let smt;
 
   before(async () => {
@@ -1821,12 +1820,30 @@ describe("maxDepth setting tests", () => {
 });
 
 async function checkTestCaseMTPProof(smt: any, testCase: TestCaseMTPProof) {
+  let blockNumberDifference;
+  let timestampDifference;
+
   for (const param of testCase.leavesToInsert) {
     if (param.error) {
       await expect(smt.add(param.i, param.v)).to.be.rejectedWith(param.error);
       continue;
     }
-    await smt.add(param.i, param.v);
+    const previousBlock = await ethers.provider.getBlock(await ethers.provider.getBlockNumber());
+
+    await smt.add(param.i, param.v, {
+      gasPrice: 50000000000,
+      initialBaseFeePerGas: 25000000000,
+      gasLimit: 10000000,
+    });
+
+    const currentBlock = await ethers.provider.getBlock(await ethers.provider.getBlockNumber());
+
+    if (!previousBlock || !currentBlock) {
+      throw new Error("Failed to fetch block information");
+    }
+
+    timestampDifference = currentBlock.timestamp - previousBlock.timestamp;
+    blockNumberDifference = currentBlock.number - previousBlock.number;
   }
 
   let proof;
@@ -1843,6 +1860,12 @@ async function checkTestCaseMTPProof(smt: any, testCase: TestCaseMTPProof) {
   }
 
   if (isProofByTime(testCase.paramsToGetProof)) {
+    // Some adjustment in hardhat to avoid future timestamp request because some more blocks are mined instead of 1 en smt.add
+    if (timestampDifference > 1) {
+      testCase.paramsToGetProof.timestamp =
+        testCase.paramsToGetProof.timestamp + timestampDifference - 1;
+    }
+
     proof = await smt.getProofByTime(
       testCase.paramsToGetProof.index,
       testCase.paramsToGetProof.timestamp,
