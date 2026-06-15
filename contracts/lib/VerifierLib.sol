@@ -940,6 +940,7 @@ library VerifierLib {
             }
         }
 
+        uint256 offset = 0;
         for (uint256 i = 0; i < multiRequest.groupIds.length; i++) {
             uint256 groupId = multiRequest.groupIds[i];
 
@@ -947,7 +948,7 @@ library VerifierLib {
                 uint256 requestId = self._groupedRequests[groupId][j];
                 Verifier.Proof storage proof = self._proofs[requestId][userAddress];
 
-                requestProofStatus[multiRequest.requestIds.length + j] = IVerifier
+                requestProofStatus[multiRequest.requestIds.length + offset + j] = IVerifier
                     .RequestProofStatus({
                         requestId: requestId,
                         isVerified: proof.isVerified,
@@ -966,6 +967,7 @@ library VerifierLib {
                         .timestamp = lastProofEntry.blockTimestamp;
                 }
             }
+            offset += self._groupedRequests[groupId].length;
         }
 
         return requestProofStatus;
