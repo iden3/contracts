@@ -205,7 +205,7 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
                 proof.auxIndex = children[0];
                 proof.auxValue = children[1];
                 break;
-            } else if (nodeType == NodeType.Middle) {
+            } else if (nodeType == NodeType.Middle && i < MAX_SMT_DEPTH) {
                 if ((proof.index >> i) & 1 == 1) {
                     nextNodeHash = children[1];
                     proof.siblings[i] = children[0];
