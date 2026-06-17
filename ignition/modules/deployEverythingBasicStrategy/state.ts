@@ -1,5 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { Poseidon1Module, SmtLibModule } from "./libraries";
+import { SmtLibModule } from "./libraries";
 import { Groth16VerifierStateTransitionModule } from "./groth16verifiers";
 import {
   contractsInfo,
@@ -28,7 +28,6 @@ const StateLibModule = buildModule("StateLibModule", (m) => {
 });
 
 const StateImplementationModule = buildModule("StateImplementationModule", (m) => {
-  const poseidon1 = m.useModule(Poseidon1Module).poseidon;
   const { groth16VerifierStateTransition: groth16Verifier } = m.useModule(
     Groth16VerifierStateTransitionModule,
   );
@@ -41,7 +40,6 @@ const StateImplementationModule = buildModule("StateImplementationModule", (m) =
     libraries: {
       StateLib: stateLib,
       SmtLib: smtLib,
-      PoseidonUnit1L: poseidon1,
     },
   });
 

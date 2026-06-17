@@ -6,6 +6,13 @@ pragma solidity 0.8.27;
  */
 interface IHasher {
     /**
+     * @dev hash1. hashes one uint256 parameter and returns the resulting hash as uint256.
+     * @param params The parameters array of size 1 to be hashed.
+     * @return The resulting hash as uint256.
+     */
+    function hash1(uint256[1] memory params) external pure returns (uint256);
+
+    /**
      * @dev hash2. hashes two uint256 parameters and returns the resulting hash as uint256.
      * @param params The parameters array of size 2 to be hashed.
      * @return The resulting hash as uint256.

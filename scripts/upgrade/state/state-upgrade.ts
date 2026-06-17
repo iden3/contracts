@@ -75,7 +75,6 @@ async function main() {
     proxyAdminAddress: parameters.StateAtModule.proxyAdminAddress,
     oracleSigningAddress: parameters.CrossChainProofValidatorModule.oracleSigningAddress,
     smtLibContractAddress: parameters.SmtLibAtModule.contractAddress,
-    poseidon1ContractAddress: parameters.Poseidon1AtModule.contractAddress,
   };
 
   // **** Upgrade State ****
@@ -122,6 +121,9 @@ async function main() {
 
   const tx1 = await state.setCrossChainProofValidator(crossChainProofValidator.target);
   await tx1.wait();
+
+  const tx2 = await state.reinitialize(parameters.PoseidonHasherAtModule.contractAddress);
+  await tx2.wait();
 
   console.log("Contract Upgrade Finished");
 

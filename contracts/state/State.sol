@@ -5,7 +5,6 @@ import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/acces
 import {IState, MAX_SMT_DEPTH} from "../interfaces/IState.sol";
 import {IStateTransitionVerifier} from "../interfaces/IStateTransitionVerifier.sol";
 import {SmtLib} from "../lib/SmtLib.sol";
-import {PoseidonUnit1L} from "../lib/Poseidon.sol";
 import {StateLib} from "../lib/StateLib.sol";
 import {GenesisUtils} from "../lib/GenesisUtils.sol";
 import {ICrossChainProofValidator} from "../interfaces/ICrossChainProofValidator.sol";
@@ -16,7 +15,7 @@ contract State is Ownable2StepUpgradeable, IState {
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "2.6.4";
+    string public constant VERSION = "3.0.0";
     /**
      * @dev Global state proof type
      */
@@ -60,6 +59,11 @@ contract State is Ownable2StepUpgradeable, IState {
      * @dev Default Id Type initialized flag
      */
     bool internal _defaultIdTypeInitialized;
+
+    /**
+     * @dev Hasher for SmtLib
+     */
+    IHasher internal _hasher;
 
     /// @custom:storage-location erc7201:iden3.storage.StateCrossChain
     struct StateCrossChainStorage {
@@ -117,6 +121,7 @@ contract State is Ownable2StepUpgradeable, IState {
         __Ownable_init(owner);
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
         $._crossChainProofValidator = validator;
+        _hasher = hasher;
     }
 
     /**
@@ -347,7 +352,7 @@ contract State is Ownable2StepUpgradeable, IState {
      * @return The GIST inclusion or non-inclusion proof for the identity
      */
     function getGISTProof(uint256 id) external view returns (IState.GistProof memory) {
-        return _smtProofAdapter(_gistData.getProof(PoseidonUnit1L.poseidon([id])));
+        return _smtProofAdapter(_gistData.getProof(_hasher.hash1([id])));
     }
 
     /**
@@ -361,7 +366,7 @@ contract State is Ownable2StepUpgradeable, IState {
         uint256 id,
         uint256 root
     ) external view returns (IState.GistProof memory) {
-        return _smtProofAdapter(_gistData.getProofByRoot(PoseidonUnit1L.poseidon([id]), root));
+        return _smtProofAdapter(_gistData.getProofByRoot(_hasher.hash1([id]), root));
     }
 
     /**
@@ -375,8 +380,7 @@ contract State is Ownable2StepUpgradeable, IState {
         uint256 id,
         uint256 blockNumber
     ) external view returns (IState.GistProof memory) {
-        return
-            _smtProofAdapter(_gistData.getProofByBlock(PoseidonUnit1L.poseidon([id]), blockNumber));
+        return _smtProofAdapter(_gistData.getProofByBlock(_hasher.hash1([id]), blockNumber));
     }
 
     /**
@@ -390,7 +394,7 @@ contract State is Ownable2StepUpgradeable, IState {
         uint256 id,
         uint256 timestamp
     ) external view returns (IState.GistProof memory) {
-        return _smtProofAdapter(_gistData.getProofByTime(PoseidonUnit1L.poseidon([id]), timestamp));
+        return _smtProofAdapter(_gistData.getProofByTime(_hasher.hash1([id]), timestamp));
     }
 
     /**
@@ -575,7 +579,7 @@ contract State is Ownable2StepUpgradeable, IState {
         // this checks that oldState != newState as well
         require(!stateExists(id, newState), "New state already exists");
         _stateData.addState(id, newState);
-        _gistData.addLeaf(PoseidonUnit1L.poseidon([id]), newState);
+        _gistData.addLeaf(_hasher.hash1([id]), newState);
     }
 
     function _smtProofAdapter(

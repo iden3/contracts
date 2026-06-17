@@ -9,7 +9,6 @@ import {
   Create2AddressAnchorAtModule,
   CrossChainProofValidatorAtModule,
   Groth16VerifierStateTransitionAtModule,
-  Poseidon1AtModule,
   PoseidonHasherAtModule,
   SmtLibAtModule,
   StateAtModule,
@@ -67,7 +66,6 @@ export const CrossChainProofValidatorModule = buildModule("CrossChainProofValida
 });
 
 const StateFinalImplementationModule = buildModule("StateFinalImplementationModule", (m) => {
-  const poseidon1 = m.useModule(Poseidon1AtModule).contract;
   const { groth16VerifierStateTransition: groth16Verifier } = m.useModule(
     Groth16VerifierStateTransitionModule,
   );
@@ -79,7 +77,6 @@ const StateFinalImplementationModule = buildModule("StateFinalImplementationModu
     libraries: {
       StateLib: stateLib,
       SmtLib: smtLib,
-      PoseidonUnit1L: poseidon1,
     },
   });
 

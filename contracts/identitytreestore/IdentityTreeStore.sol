@@ -33,7 +33,7 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.1.0";
+    string public constant VERSION = "2.0.0";
 
     /**
      * @dev Max SMT depth for the CredentialStatus proof
@@ -111,6 +111,10 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
      */
     function saveNodes(uint256[][] memory nodes) external {
         return _getReverseHashLibDataStorage().savePreimages(nodes);
+    }
+
+    function getStateAddress() external view returns (IState) {
+        return _getIdentityTreeStoreMainStorage()._state;
     }
 
     /**

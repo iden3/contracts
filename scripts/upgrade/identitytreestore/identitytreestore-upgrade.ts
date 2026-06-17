@@ -8,7 +8,7 @@ import {
 import { contractsInfo } from "../../../helpers/constants";
 import hre from "hardhat";
 import UpgradeIdentityTreeStoreModule from "../../../ignition/modules/upgrades/upgradeIdentityTreeStore";
-import { transferOwnership } from "../helpers/utils";
+import { transferProxyAdminOwnership } from "../helpers/utils";
 
 const { ethers, ignition } = await hre.network.create();
 
@@ -39,7 +39,9 @@ async function main() {
   );
 
   if (upgraded) {
-    console.log(`Contract is already upgraded to version ${contractsInfo.IDENTITY_TREE_STORE.version}`);
+    console.log(
+      `Contract is already upgraded to version ${contractsInfo.IDENTITY_TREE_STORE.version}`,
+    );
     return;
   } else {
     console.log(
@@ -58,30 +60,31 @@ async function main() {
 
   if (impersonate) {
     console.log("Impersonating Ledger Account by ownership transfer");
-    await transferOwnership(signer, { proxy: proxyAt, proxyAdmin: proxyAdminAt });
+    await transferProxyAdminOwnership(signer, { proxy: proxyAt, proxyAdmin: proxyAdminAt });
   }
 
   const identityTreeStoreContract = proxyAt;
 
   console.log("Version before:", await identityTreeStoreContract.VERSION());
 
- const version = "V".concat(contractsInfo.IDENTITY_TREE_STORE.version.replaceAll(".", "_").replaceAll("-", "_"));
+  const version = "V".concat(
+    contractsInfo.IDENTITY_TREE_STORE.version.replaceAll(".", "_").replaceAll("-", "_"),
+  );
   parameters["UpgradeIdentityTreeStoreModule".concat(version)] = {
     proxyAddress: parameters.IdentityTreeStoreAtModule.proxyAddress,
     proxyAdminAddress: parameters.IdentityTreeStoreAtModule.proxyAdminAddress,
-    poseidon2ContractAddress: parameters.Poseidon2AtModule.contractAddress,
-    poseidon3ContractAddress: parameters.Poseidon3AtModule.contractAddress,
   };
 
   // **** Upgrade IdentityTreeStore ****
 
-
-  const { newImplementation, identityTreeStore, proxy, proxyAdmin } =
-    await ignition.deploy(UpgradeIdentityTreeStoreModule, {
+  const { newImplementation, identityTreeStore, proxy, proxyAdmin } = await ignition.deploy(
+    UpgradeIdentityTreeStoreModule,
+    {
       defaultSender: signer.address,
       parameters: parameters,
       deploymentId: deploymentId,
-    });
+    },
+  );
 
   parameters.IdentityTreeStoreAtModule = {
     proxyAddress: proxy.target,
@@ -93,6 +96,12 @@ async function main() {
 
   // **********************************
   console.log("Version after:", await identityTreeStore.VERSION());
+  console.log("State Address after:", await identityTreeStore.getStateAddress());
+
+  const tx1 = await identityTreeStore.reinitialize(
+    parameters.PoseidonHasherAtModule.contractAddress,
+  );
+  await tx1.wait();
 
   await verifyContract(
     await identityTreeStore.getAddress(),

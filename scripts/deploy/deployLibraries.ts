@@ -10,6 +10,7 @@ import {
   Poseidon2Module,
   Poseidon3Module,
   Poseidon4Module,
+  PoseidonHasherModule,
   SmtLibModule,
 } from "../../ignition";
 import hre from "hardhat";
@@ -45,6 +46,11 @@ async function main() {
       module: Poseidon4Module,
       name: contractsInfo.POSEIDON_4.name,
       paramName: "Poseidon4AtModule",
+    },
+    {
+      module: PoseidonHasherModule,
+      name: contractsInfo.POSEIDON_HASHER,
+      paramName: "PoseidonHasherAtModule",
     },
     {
       module: SmtLibModule,

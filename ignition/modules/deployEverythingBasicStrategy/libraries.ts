@@ -98,11 +98,13 @@ export const Poseidon6Module = buildModule("Poseidon6Module", (m) => {
 });
 
 export const PoseidonHasherModule = buildModule("PoseidonHasherModule", (m) => {
+  const poseidon1Element = m.useModule(Poseidon1Module).poseidon;
   const poseidon2Element = m.useModule(Poseidon2Module).poseidon;
   const poseidon3Element = m.useModule(Poseidon3Module).poseidon;
 
   const poseidonHasher = m.contract("PoseidonHasher", [], {
     libraries: {
+      PoseidonUnit1L: poseidon1Element,
       PoseidonUnit2L: poseidon2Element,
       PoseidonUnit3L: poseidon3Element,
     },

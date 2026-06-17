@@ -356,7 +356,7 @@ async function main() {
         deploymentId: deploymentId,
       });
       console.log(
-        `${contract.name} deployed to: ${contract.isProxy ? deployedContract.proxy.target : deployedContract.target}`,
+        `${contract.name} deployed to: ${contract.isProxy ? deployedContract.proxy.target : contract.contractAddress}`,
       );
 
       if (contract.name == contractsInfo.STATE.name) {

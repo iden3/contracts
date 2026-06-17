@@ -16,14 +16,10 @@ const UpgradeIdentityTreeStoreModule = buildModule(
     });
     const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
 
-    const poseidonHasher = m.getParameter("poseidonHasher");
-
     const newImplementation = m.contract(contractsInfo.IDENTITY_TREE_STORE.name, []);
 
-    // Update hasher for SmtLib
-    const initializeData = m.encodeFunctionCall(newImplementation, "reinitialize", [
-      poseidonHasher,
-    ]);
+    // As we are working with same proxy the storage is already initialized
+    const initializeData = "0x";
 
     m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
       from: proxyAdminOwner,

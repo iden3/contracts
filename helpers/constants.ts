@@ -186,7 +186,7 @@ export const contractsInfo = Object.freeze({
   },
   STATE: {
     name: "State",
-    version: "2.6.4",
+    version: "3.0.0",
     unifiedAddress: "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.State")),
     verificationOpts: {
@@ -374,7 +374,7 @@ export const contractsInfo = Object.freeze({
   },
   IDENTITY_TREE_STORE: {
     name: "IdentityTreeStore",
-    version: "1.1.0",
+    version: "2.0.0",
     unifiedAddress: "0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.IdentityTreeStore")),
     verificationOpts: {
@@ -458,7 +458,7 @@ export const contractsInfo = Object.freeze({
   },
   POSEIDON_HASHER: {
     name: "PoseidonHasher",
-    unifiedAddress: "0x2b61D294beA132156D53f07Fd1f0a3acb078368D",
+    unifiedAddress: "0xc9cAb058ae30DcC58BE5c6F666212c65b02b5135",
     create2Calldata: "",
   },
   GROTH16_VERIFIER_STATE_TRANSITION: {

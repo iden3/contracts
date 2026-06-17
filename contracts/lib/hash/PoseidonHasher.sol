@@ -2,10 +2,14 @@
 pragma solidity 0.8.27;
 
 import {IHasher} from "../../interfaces/IHasher.sol";
-import {PoseidonUnit2L, PoseidonUnit3L} from "../Poseidon.sol";
+import {PoseidonUnit1L, PoseidonUnit2L, PoseidonUnit3L} from "../Poseidon.sol";
 
 /// @title A IHasher implementation using Poseidon.
 contract PoseidonHasher is IHasher {
+    function hash1(uint256[1] memory params) external pure override returns (uint256) {
+        return PoseidonUnit1L.poseidon(params);
+    }
+
     function hash2(uint256[2] memory params) external pure override returns (uint256) {
         return PoseidonUnit2L.poseidon(params);
     }
