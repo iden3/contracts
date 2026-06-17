@@ -16,20 +16,14 @@ const UpgradeIdentityTreeStoreModule = buildModule(
     });
     const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
 
-    const poseidon2ContractAddress = m.getParameter("poseidon2ContractAddress");
-    const poseidon2 = m.contractAt(contractsInfo.POSEIDON_2.name, poseidon2ContractAddress);
-    const poseidon3ContractAddress = m.getParameter("poseidon3ContractAddress");
-    const poseidon3 = m.contractAt(contractsInfo.POSEIDON_3.name, poseidon3ContractAddress);
+    const poseidonHasher = m.getParameter("poseidonHasher");
 
-    const newImplementation = m.contract(contractsInfo.IDENTITY_TREE_STORE.name, [], {
-      libraries: {
-        PoseidonUnit2L: poseidon2,
-        PoseidonUnit3L: poseidon3,
-      },
-    });
+    const newImplementation = m.contract(contractsInfo.IDENTITY_TREE_STORE.name, []);
 
-    // As we are working with same proxy the storage is already initialized
-    const initializeData = "0x";
+    // Update hasher for SmtLib
+    const initializeData = m.encodeFunctionCall(newImplementation, "reinitialize", [
+      poseidonHasher,
+    ]);
 
     m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
       from: proxyAdminOwner,

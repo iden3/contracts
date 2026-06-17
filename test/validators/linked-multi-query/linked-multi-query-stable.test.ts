@@ -6,7 +6,7 @@ import hre from "hardhat";
 import { LinkedMultiQueryStableValidatorWithGroth16VerifierStubModule } from "../../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 import { CircuitId } from "@0xpolygonid/js-sdk";
 
-const { ethers, networkHelpers, ignition } = await hre.network.create();;
+const { ethers, networkHelpers, ignition } = await hre.network.create();
 
 const linkedMultiQueries = [
   { circuitId: CircuitId.LinkedMultiQueryStable, queriesCount: 10 },

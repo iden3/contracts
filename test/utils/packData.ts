@@ -1,7 +1,7 @@
 import { Signer } from "ethers";
 import hre from "hardhat";
 
-const { ethers } = await hre.network.create();;
+const { ethers } = await hre.network.create();
 
 const abiCoder = new ethers.AbiCoder();
 

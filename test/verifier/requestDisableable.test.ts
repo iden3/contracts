@@ -9,7 +9,7 @@ import {
   RequestValidatorStubModule,
 } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const { ethers, networkHelpers, ignition } = await hre.network.create();;
+const { ethers, networkHelpers, ignition } = await hre.network.create();
 
 describe("RequestDisableable tests", function () {
   let verifier, validator: any;

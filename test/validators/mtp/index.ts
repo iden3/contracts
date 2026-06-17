@@ -15,7 +15,7 @@ import validMtpUserNonGenesis from "./data/valid_mtp_user_non_genesis.json";
 import issuerNextStateTransition from "../common-data/issuer_next_state_transition.json";
 import userNextStateTransition from "../common-data/user_next_state_transition.json";
 
-const { ethers, networkHelpers, ignition } = await hre.network.create();;
+const { ethers, networkHelpers, ignition } = await hre.network.create();
 
 const tenYears = TEN_YEARS;
 const testCases: any[] = [

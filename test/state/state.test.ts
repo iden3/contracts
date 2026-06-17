@@ -8,7 +8,7 @@ import userStateGenesisTransitionJson from "./data/user_state_genesis_transition
 import userStateNextTransitionJson from "./data/user_state_next_transition.json";
 import { Groth16VerifierStubModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const { ethers, networkHelpers, ignition } = await hre.network.create();;
+const { ethers, networkHelpers, ignition } = await hre.network.create();
 
 const stateTransitionsWithProofs: any = [
   userStateGenesisTransitionJson,

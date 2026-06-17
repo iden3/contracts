@@ -10,7 +10,7 @@ import {
   RequestValidatorStubModule,
 } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const { ethers, ignition, networkHelpers } = await hre.network.create();;
+const { ethers, ignition, networkHelpers } = await hre.network.create();
 
 describe("EmbeddedVerifier tests", function () {
   let verifier, state, validator, signer: any;

@@ -2,7 +2,7 @@ import { expect } from "chai";
 import hre from "hardhat";
 import EthIdentityValidatorModule from "../../../ignition/modules/deployEverythingBasicStrategy/ethIdentityValidator";
 
-const { ethers, networkHelpers, ignition } = await hre.network.create();;
+const { ethers, networkHelpers, ignition } = await hre.network.create();
 
 describe("Eth Identity Validator", function () {
   let validator: any;

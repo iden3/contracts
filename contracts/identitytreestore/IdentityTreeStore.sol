@@ -83,6 +83,7 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
     /**
      * @dev Function to call first time for initialization of the proxy.
      * @param state The state contract address to be used to check state of the identities
+     * @param hasher The hasher to use in hashFunction
      **/
     function initialize(address state, IHasher hasher) public initializer {
         IdentityTreeStoreMainStorage storage $its = _getIdentityTreeStoreMainStorage();
@@ -91,6 +92,17 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
         $its._state = IState(state);
         $its._hasher = hasher;
         $rhl.hashFunction = _hashFunc;
+    }
+
+    /**
+     * @dev Reinitialize needed data
+     * @param hasher Hasher for SmtLib
+     */
+    function reinitialize(IHasher hasher) external {
+        // Initialize in case the hasher has not been set yet
+        if (address(_getIdentityTreeStoreMainStorage()._hasher) == address(0)) {
+            _getIdentityTreeStoreMainStorage()._hasher = hasher;
+        }
     }
 
     /**

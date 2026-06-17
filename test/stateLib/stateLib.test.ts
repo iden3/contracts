@@ -3,7 +3,7 @@ import { addStateToStateLib } from "../utils/state-utils";
 import hre from "hardhat";
 import { StateLibTestWrapperModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const { ethers, networkHelpers, ignition } = await hre.network.create();;
+const { ethers, networkHelpers, ignition } = await hre.network.create();
 
 const id1Inputs = [
   { id: 1, state: 10 },

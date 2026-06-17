@@ -12,7 +12,7 @@ import {
   RequestValidatorStubModule,
 } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const { ethers, networkHelpers, ignition } = await hre.network.create();;
+const { ethers, networkHelpers, ignition } = await hre.network.create();
 
 describe("Universal Verifier tests", function () {
   let request, paramsFromValidator, multiRequest, authResponse, response: any;

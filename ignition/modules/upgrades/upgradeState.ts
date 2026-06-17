@@ -20,6 +20,9 @@ const UpgradeStateModule = buildModule("UpgradeStateModule".concat(version), (m)
   const smtLibContractAddress = m.getParameter("smtLibContractAddress");
   const smtLib = m.contractAt(contractsInfo.SMT_LIB.name, smtLibContractAddress);
 
+  const poseidonHasherAddress = m.getParameter("poseidonHasherAddress");
+  const poseidonHasher = m.contractAt(contractsInfo.POSEIDON_HASHER.name, poseidonHasherAddress);
+
   const domainName = "StateInfo";
   const signatureVersion = "1";
   const oracleSigningAddress = m.getParameter("oracleSigningAddress");
@@ -38,10 +41,8 @@ const UpgradeStateModule = buildModule("UpgradeStateModule".concat(version), (m)
     },
   });
 
-  // In some old ProxyAdmin versions, the upgradeAndCall function does not accept
-  // an empty data parameter for initializeData like "0x".
-  // So we encode a valid function call that does not change the state of the contract.
-  const initializeData = m.encodeFunctionCall(newImplementation, "VERSION");
+  // Update hasher for SmtLib
+  const initializeData = m.encodeFunctionCall(newImplementation, "reinitialize", [poseidonHasher]);
 
   m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
     from: proxyAdminOwner,

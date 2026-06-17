@@ -95,6 +95,7 @@ contract State is Ownable2StepUpgradeable, IState {
      * @param defaultIdType default id type for Ethereum-based IDs calculation
      * @param owner Owner of the contract with administrative functions
      * @param validator Cross chain proof validator contract address
+     * @param hasher Hasher for SmtLib
      */
     function initialize(
         IStateTransitionVerifier verifierContractAddr,
@@ -116,6 +117,18 @@ contract State is Ownable2StepUpgradeable, IState {
         __Ownable_init(owner);
         StateCrossChainStorage storage $ = _getStateCrossChainStorage();
         $._crossChainProofValidator = validator;
+    }
+
+    /**
+     * @dev Reinitialize needed data
+     * @param hasher Hasher for SmtLib
+     */
+    function reinitialize(IHasher hasher) external onlyOwner {
+        IHasher hasher = _gistData.getHasher();
+        // Initialize in case the hasher has not been set yet
+        if (address(hasher) == address(0)) {
+            _gistData.setHasher(hasher);
+        }
     }
 
     /**

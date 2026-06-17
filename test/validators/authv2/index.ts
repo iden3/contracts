@@ -7,7 +7,7 @@ import { getChainId } from "../../../helpers/helperUtils";
 import { AuthV2ValidatorWithGroth16VerifierStubModule } from "../../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 import issuerFromGenesisStateToFirstTransitionV3 from "../common-data/issuer_from_genesis_state_to_first_transition_v3.json";
 
-const { ethers, networkHelpers, ignition } = await hre.network.create();;
+const { ethers, networkHelpers, ignition } = await hre.network.create();
 
 const testCases: any[] = [
   {

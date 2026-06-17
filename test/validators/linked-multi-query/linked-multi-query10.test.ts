@@ -5,7 +5,7 @@ import { contractsInfo } from "../../../helpers/constants";
 import hre from "hardhat";
 import { LinkedMultiQueryValidatorWithGroth16VerifierStubModule } from "../../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const { ethers, networkHelpers, ignition } = await hre.network.create();;
+const { ethers, networkHelpers, ignition } = await hre.network.create();
 
 describe("Test linkedMultiQuery10.circom", function () {
   let validator, groth16Verifier;
