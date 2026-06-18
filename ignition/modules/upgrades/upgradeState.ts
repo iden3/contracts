@@ -1,5 +1,6 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { contractsInfo } from "../../../helpers/constants";
+import { PoseidonHasherModule } from "../libraries";
 
 const version = "V".concat(contractsInfo.STATE.version.replaceAll(".", "_").replaceAll("-", "_"));
 
@@ -34,10 +35,11 @@ const UpgradeStateModule = buildModule("UpgradeStateModule".concat(version), (m)
     },
   });
 
-  // In some old ProxyAdmin versions, the upgradeAndCall function does not accept
-  // an empty data parameter for initializeData like "0x".
-  // So we encode a valid function call that does not change the state of the contract.
-  const initializeData = m.encodeFunctionCall(newImplementation, "VERSION");
+  const poseidonHasher = m.useModule(PoseidonHasherModule).poseidonHasher;
+
+  const initializeData = m.encodeFunctionCall(newImplementation, "initializeHasher", [
+    poseidonHasher,
+  ]);
 
   m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
     from: proxyAdminOwner,

@@ -98,13 +98,6 @@ async function main() {
   console.log("Version after:", await identityTreeStore.VERSION());
   console.log("State Address after:", await identityTreeStore.getStateAddress());
 
-  // Reinitialize the contract to set the owner and hasher. Only required if the contract was not reinitialized before.
-  const tx1 = await identityTreeStore.reinitialize(
-    signer.address,
-    parameters.PoseidonHasherAtModule.contractAddress,
-  );
-  await tx1.wait();
-
   await verifyContract(
     await identityTreeStore.getAddress(),
     contractsInfo.IDENTITY_TREE_STORE.verificationOpts,

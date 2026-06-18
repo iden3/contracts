@@ -1,5 +1,6 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { contractsInfo } from "../../../helpers/constants";
+import { PoseidonHasherModule } from "../libraries";
 
 const version = "V".concat(
   contractsInfo.IDENTITY_TREE_STORE.version.replaceAll(".", "_").replaceAll("-", "_"),
@@ -17,9 +18,11 @@ const UpgradeIdentityTreeStoreModule = buildModule(
     const proxyAdmin = m.contractAt("ProxyAdmin", proxyAdminAddress);
 
     const newImplementation = m.contract(contractsInfo.IDENTITY_TREE_STORE.name, []);
+    const poseidonHasher = m.useModule(PoseidonHasherModule).poseidonHasher;
 
-    // As we are working with same proxy the storage is already initialized
-    const initializeData = "0x";
+    const initializeData = m.encodeFunctionCall(newImplementation, "initializeHasher", [
+      poseidonHasher,
+    ]);
 
     m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
       from: proxyAdminOwner,

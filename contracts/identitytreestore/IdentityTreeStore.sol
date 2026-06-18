@@ -6,7 +6,7 @@ import {PoseidonUnit2L, PoseidonUnit3L} from "../lib/Poseidon.sol";
 import {IState} from "../interfaces/IState.sol";
 import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredentialStatusResolver.sol";
 import {IRHSStorage} from "../interfaces/IRHSStorage.sol";
-import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IHasher} from "../interfaces/IHasher.sol";
 
 error NodeNotFound();
@@ -18,11 +18,7 @@ error UnsupportedLength();
  * @dev Contract which provides onchain Reverse Hash Service (RHS)
  * for checking revocation status of claims.
  */
-contract IdentityTreeStore is
-    Ownable2StepUpgradeable,
-    IOnchainCredentialStatusResolver,
-    IRHSStorage
-{
+contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, IRHSStorage {
     /**
      * @dev Enum for node types
      */
@@ -89,21 +85,20 @@ contract IdentityTreeStore is
      * @param state The state contract address to be used to check state of the identities
      * @param hasher The hasher to use in hashFunction
      **/
-    function initialize(address state, address owner, IHasher hasher) public initializer {
+    function initialize(address state, IHasher hasher) public initializer {
         _getIdentityTreeStoreMainStorage()._state = IState(state);
         _initializeHasher(hasher);
-        __Ownable_init(owner);
     }
 
     /**
-     * @dev Reinitialize function to initialize owner and hasher
+     * @dev Initialize needed data
+     * @param hasher Hasher for SmtLib
      */
-    function reinitialize(address owner, IHasher hasher) external reinitializer(2) {
+    function initializeHasher(IHasher hasher) external {
         // Initialize in case the hasher has not been set yet
         if (address(_getIdentityTreeStoreMainStorage()._hasher) == address(0)) {
             _initializeHasher(hasher);
         }
-        __Ownable_init(owner);
     }
 
     /**
