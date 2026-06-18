@@ -429,7 +429,7 @@ export const contractsInfo = Object.freeze({
   },
   SMT_LIB: {
     name: "SmtLib",
-    unifiedAddress: "0xa8F9503176531c95b77D24e2e52CD290C7cd0ccF",
+    unifiedAddress: "0x9AB79dF17e50240e6090B3cccC98b0EB07170b3d",
     create2Calldata: "",
     verificationOpts: {
       constructorArgsImplementation: [],
