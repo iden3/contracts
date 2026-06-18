@@ -98,7 +98,7 @@ async function main() {
   console.log("Version after:", await identityTreeStore.VERSION());
   console.log("State Address after:", await identityTreeStore.getStateAddress());
 
-  const tx1 = await identityTreeStore.reinitialize(
+  const tx1 = await identityTreeStore.initializeHasher(
     parameters.PoseidonHasherAtModule.contractAddress,
   );
   await tx1.wait();

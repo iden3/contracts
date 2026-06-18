@@ -68,6 +68,7 @@ async function main() {
 
   const defaultIdTypeBefore = await stateContract.getDefaultIdType();
   const stateOwnerAddressBefore = await stateContract.owner();
+  const gistRootBefore = await stateContract.getGISTRoot();
 
   const version = "V".concat(contractsInfo.STATE.version.replaceAll(".", "_").replaceAll("-", "_"));
   parameters["UpgradeStateModule".concat(version)] = {
@@ -115,14 +116,16 @@ async function main() {
 
   const defaultIdTypeAfter = await state.getDefaultIdType();
   const stateOwnerAddressAfter = await state.owner();
+  const gistRootAfter = await state.getGISTRoot();
 
   expect(defaultIdTypeAfter).to.equal(defaultIdTypeBefore);
   expect(stateOwnerAddressAfter).to.equal(stateOwnerAddressBefore);
+  expect(gistRootAfter).to.equal(gistRootBefore);
 
   const tx1 = await state.setCrossChainProofValidator(crossChainProofValidator.target);
   await tx1.wait();
 
-  const tx2 = await state.reinitialize(parameters.PoseidonHasherAtModule.contractAddress);
+  const tx2 = await state.initializeHasher(parameters.PoseidonHasherAtModule.contractAddress);
   await tx2.wait();
 
   console.log("Contract Upgrade Finished");

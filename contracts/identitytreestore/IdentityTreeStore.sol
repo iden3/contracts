@@ -86,22 +86,18 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
      * @param hasher The hasher to use in hashFunction
      **/
     function initialize(address state, IHasher hasher) public initializer {
-        IdentityTreeStoreMainStorage storage $its = _getIdentityTreeStoreMainStorage();
-        ReverseHashLib.Data storage $rhl = _getReverseHashLibDataStorage();
-
-        $its._state = IState(state);
-        $its._hasher = hasher;
-        $rhl.hashFunction = _hashFunc;
+        _getIdentityTreeStoreMainStorage()._state = IState(state);
+        _initializeHasher(hasher);
     }
 
     /**
-     * @dev Reinitialize needed data
+     * @dev Initialize needed data
      * @param hasher Hasher for SmtLib
      */
-    function reinitialize(IHasher hasher) external {
+    function initializeHasher(IHasher hasher) external {
         // Initialize in case the hasher has not been set yet
         if (address(_getIdentityTreeStoreMainStorage()._hasher) == address(0)) {
-            _getIdentityTreeStoreMainStorage()._hasher = hasher;
+            _initializeHasher(hasher);
         }
     }
 
@@ -269,5 +265,10 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
             return $its._hasher.hash3([preimage[0], preimage[1], preimage[2]]);
         }
         revert UnsupportedLength();
+    }
+
+    function _initializeHasher(IHasher hasher) internal {
+        _getIdentityTreeStoreMainStorage()._hasher = hasher;
+        _getReverseHashLibDataStorage().hashFunction = _hashFunc;
     }
 }

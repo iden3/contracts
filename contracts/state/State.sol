@@ -125,10 +125,10 @@ contract State is Ownable2StepUpgradeable, IState {
     }
 
     /**
-     * @dev Reinitialize needed data
-     * @param hasher Hasher for SmtLib
+     * @dev Initialize hasher for State and SmtLib
+     * @param hasher Hasher for State and SmtLib
      */
-    function reinitialize(IHasher hasher) external onlyOwner {
+    function initializeHasher(IHasher hasher) external onlyOwner {
         // Initialize in case the hasher has not been set yet
         if (address(_hasher) == address(0)) {
             _hasher = hasher;
