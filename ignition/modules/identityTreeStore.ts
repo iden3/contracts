@@ -84,7 +84,6 @@ const IdentityTreeStoreProxyFinalImplementationModule = buildModule(
 
     const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [
       state,
-      proxyAdminOwner,
       poseidonHasher,
     ]);
 
