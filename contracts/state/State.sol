@@ -129,9 +129,9 @@ contract State is Ownable2StepUpgradeable, IState {
      * @param hasher Hasher for SmtLib
      */
     function reinitialize(IHasher hasher) external onlyOwner {
-        IHasher hasher = _gistData.getHasher();
         // Initialize in case the hasher has not been set yet
-        if (address(hasher) == address(0)) {
+        if (address(_hasher) == address(0)) {
+            _hasher = hasher;
             _gistData.setHasher(hasher);
         }
     }
