@@ -113,7 +113,22 @@ export const PoseidonHasherModule = buildModule("PoseidonHasherModule", (m) => {
   return { poseidonHasher };
 });
 
+// This module is used to deploy the SmtLib contract with the PoseidonHasher library linked to it.
 export const SmtLibModule = buildModule("SmtLibModule", (m) => {
+  const poseidon2Element = m.useModule(Poseidon2AtModule).contract;
+  const poseidon3Element = m.useModule(Poseidon3AtModule).contract;
+
+  const smtLib = m.contract("SmtLib", [], {
+    libraries: {
+      PoseidonUnit2L: poseidon2Element,
+      PoseidonUnit3L: poseidon3Element,
+    },
+  });
+  return { smtLib };
+});
+
+// This module is used to deploy the SmtLib contract with hasher contract as param.
+export const SmtLibWithHasherModule = buildModule("SmtLibWithHasherModule", (m) => {
   const smtLib = m.contract("SmtLib", []);
   return { smtLib };
 });

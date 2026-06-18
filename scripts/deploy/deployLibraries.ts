@@ -11,7 +11,7 @@ import {
   Poseidon3Module,
   Poseidon4Module,
   PoseidonHasherModule,
-  SmtLibModule,
+  SmtLibWithHasherModule,
 } from "../../ignition";
 import hre from "hardhat";
 
@@ -53,7 +53,7 @@ async function main() {
       paramName: "PoseidonHasherAtModule",
     },
     {
-      module: SmtLibModule,
+      module: SmtLibWithHasherModule,
       name: contractsInfo.SMT_LIB.name,
       verificationOpts: contractsInfo.SMT_LIB.verificationOpts,
       paramName: "SmtLibAtModule",

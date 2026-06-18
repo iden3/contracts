@@ -118,6 +118,19 @@ export const KeccakHasherModule = buildModule("KeccakHasherModule", (m) => {
 });
 
 export const SmtLibModule = buildModule("SmtLibModule", (m) => {
+  const poseidon2Element = m.useModule(Poseidon2Module).poseidon;
+  const poseidon3Element = m.useModule(Poseidon3Module).poseidon;
+
+  const smtLib = m.contract("SmtLib", [], {
+    libraries: {
+      PoseidonUnit2L: poseidon2Element,
+      PoseidonUnit3L: poseidon3Element,
+    },
+  });
+  return { smtLib };
+});
+
+export const SmtLibWithHasherModule = buildModule("SmtLibWithHasherModule", (m) => {
   const smtLib = m.contract("SmtLib", []);
   return { smtLib };
 });

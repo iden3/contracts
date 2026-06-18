@@ -16,7 +16,7 @@ import {
   Poseidon3Module,
   Poseidon4Module,
   PoseidonHasherModule,
-  SmtLibModule,
+  SmtLibWithHasherModule,
   VCPaymentProxyModule,
 } from "../../../ignition";
 import { StateProxyModule } from "../../../ignition/modules/state";
@@ -147,7 +147,7 @@ async function main() {
       name: contractsInfo.POSEIDON_HASHER.name,
     },
     {
-      module: SmtLibModule,
+      module: SmtLibWithHasherModule,
       moduleAt: SmtLibAtModule,
       contractAddress: contractsInfo.SMT_LIB.unifiedAddress,
       name: contractsInfo.SMT_LIB.name,

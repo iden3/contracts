@@ -1,5 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { KeccakHasherModule, PoseidonHasherModule, SmtLibModule } from "./libraries";
+import { KeccakHasherModule, PoseidonHasherModule, SmtLibWithHasherModule } from "./libraries";
 import { AuthV2ValidatorImplementationModule } from "./authV2Validator";
 import StateModule from "./state";
 import {
@@ -61,7 +61,7 @@ export const AuthValidatorStubModule = buildModule("AuthValidatorStubModule", (m
 });
 
 export const SmtLibTestWrapperModule = buildModule("SmtLibTestWrapperModule", (m) => {
-  const smtLib = m.useModule(SmtLibModule).smtLib;
+  const smtLib = m.useModule(SmtLibWithHasherModule).smtLib;
   const poseidonHasher = m.useModule(PoseidonHasherModule).poseidonHasher;
 
   const maxDepth = m.getParameter("maxDepth");
@@ -78,7 +78,7 @@ export const SmtLibTestWrapperModule = buildModule("SmtLibTestWrapperModule", (m
 });
 
 export const SmtLibKeccakTestWrapperModule = buildModule("SmtLibKeccakTestWrapperModule", (m) => {
-  const smtLib = m.useModule(SmtLibModule).smtLib;
+  const smtLib = m.useModule(SmtLibWithHasherModule).smtLib;
   const keccakHasher = m.useModule(KeccakHasherModule).keccakHasher;
 
   const maxDepth = m.getParameter("maxDepth");
@@ -96,7 +96,7 @@ export const SmtLibKeccakTestWrapperModule = buildModule("SmtLibKeccakTestWrappe
 
 
 export const BinarySearchTestWrapperModule = buildModule("BinarySearchTestWrapperModule", (m) => {
-  const smtLib = m.useModule(SmtLibModule).smtLib;
+  const smtLib = m.useModule(SmtLibWithHasherModule).smtLib;
   const poseidonHasher = m.useModule(PoseidonHasherModule).poseidonHasher;
 
   const BSWrapper = m.contract("BinarySearchTestWrapper", [poseidonHasher], {

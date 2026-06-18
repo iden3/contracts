@@ -429,7 +429,7 @@ export const contractsInfo = Object.freeze({
   },
   SMT_LIB: {
     name: "SmtLib",
-    unifiedAddress: "0xdCC7BBd9e27925D1B0B8324E15723891F62AF936",
+    unifiedAddress: "0xB0B70D2C6cCFb340c9B6CBF379f0E0c266a82851",
     create2Calldata: "",
     verificationOpts: {
       constructorArgsImplementation: [],
@@ -458,7 +458,7 @@ export const contractsInfo = Object.freeze({
   },
   POSEIDON_HASHER: {
     name: "PoseidonHasher",
-    unifiedAddress: "0xc9cAb058ae30DcC58BE5c6F666212c65b02b5135",
+    unifiedAddress: "0xc5Ce2d152DDf9e99250e8385DFFbF960bfA580e1",
     create2Calldata: "",
   },
   GROTH16_VERIFIER_STATE_TRANSITION: {

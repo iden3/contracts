@@ -1,5 +1,5 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { SmtLibModule } from "./libraries";
+import { SmtLibWithHasherModule } from "./libraries";
 import { Groth16VerifierStateTransitionModule } from "./groth16verifiers";
 import {
   contractsInfo,
@@ -33,7 +33,7 @@ const StateImplementationModule = buildModule("StateImplementationModule", (m) =
   );
   const { stateLib } = m.useModule(StateLibModule);
   const { poseidonHasher } = m.useModule(PoseidonHasherModule);
-  const { smtLib } = m.useModule(SmtLibModule);
+  const { smtLib } = m.useModule(SmtLibWithHasherModule);
   const { crossChainProofValidator } = m.useModule(CrossChainProofValidatorModule);
 
   const implementation = m.contract(contractsInfo.STATE.name, [], {

@@ -1,11 +1,11 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { Poseidon3Module, Poseidon4Module, SmtLibModule } from "./libraries";
+import { Poseidon3Module, Poseidon4Module, SmtLibWithHasherModule } from "./libraries";
 import StateModule from "./state";
 
 const IdentityLibModule = buildModule("IdentityLibModule", (m) => {
   const poseidon3 = m.useModule(Poseidon3Module).poseidon;
   const poseidon4 = m.useModule(Poseidon4Module).poseidon;
-  const smtLib = m.useModule(SmtLibModule).smtLib;
+  const smtLib = m.useModule(SmtLibWithHasherModule).smtLib;
 
   const identityLib = m.contract("IdentityLib", [], {
     libraries: {
