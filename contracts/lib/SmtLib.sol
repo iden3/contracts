@@ -68,7 +68,7 @@ library SmtLib {
         IHasher hasher;
         // This is a workaround for the storage layout of the IHasher interface,
         // which is an address (20 bytes) and a uint256 (32 bytes).
-        // We use a uint96 to fill the gap between the address and the next storage slot.
+        // We use a uint96 to fill the uint256 of uint256 gap used.
         uint96 __gapHasher;
         // This empty reserved space is put in place to allow future versions
         // of the SMT library to add new Data struct fields without shifting down

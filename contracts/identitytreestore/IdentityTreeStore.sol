@@ -94,7 +94,7 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
      * @dev Initialize needed data
      * @param hasher Hasher for SmtLib
      */
-    function initializeHasher(IHasher hasher) external {
+    function initializeHasher(IHasher hasher) external reinitializer(2) {
         // Initialize in case the hasher has not been set yet
         if (address(_getIdentityTreeStoreMainStorage()._hasher) == address(0)) {
             _initializeHasher(hasher);
