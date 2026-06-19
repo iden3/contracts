@@ -2,11 +2,11 @@ import { getChainId, getConfig, Logger } from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
 import path from "path";
 import fs from "fs";
-import { network } from "hardhat";
+import hre from "hardhat";
 
 const __dirname = path.resolve();
 
-const { ethers, networkName } = await network.connect();
+const { ethers, networkName } = await hre.network.create();
 
 async function main() {
   const [signer] = await ethers.getSigners();

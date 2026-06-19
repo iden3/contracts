@@ -2,10 +2,10 @@ import { packZKProof } from "../../utils/packData";
 import { packLinkedMultiQueryValidatorParams } from "../../utils/validator-pack-utils";
 import { expect } from "chai";
 import { contractsInfo } from "../../../helpers/constants";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { LinkedMultiQueryValidatorWithGroth16VerifierStubModule } from "../../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const { ethers, networkHelpers, ignition } = await network.connect();
+const { ethers, networkHelpers, ignition } = await hre.network.create();
 
 describe("Test linkedMultiQuery10.circom", function () {
   let validator, groth16Verifier;

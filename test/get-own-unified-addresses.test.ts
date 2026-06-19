@@ -1,10 +1,10 @@
-import { network } from "hardhat";
+import hre from "hardhat";
 import { contractsInfo } from "../helpers/constants";
 import { isContract, Logger } from "../helpers/helperUtils";
 import Create2AddressAnchorModule from "../ignition/modules/create2AddressAnchor";
 import { GeneralProxyModule } from "./utils/unified-contracts-utils";
 
-const { ignition } = await network.connect();
+const { ignition } = await hre.network.create();
 
 // TODO: Replace here with your own proxy admin owner address
 const proxyAdminOwnerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";

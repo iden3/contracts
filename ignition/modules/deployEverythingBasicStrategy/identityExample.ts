@@ -1,11 +1,11 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { Poseidon3Module, Poseidon4Module, SmtLibModule } from "./libraries";
+import { Poseidon3Module, Poseidon4Module, SmtLibWithHasherModule } from "./libraries";
 import StateModule from "./state";
 
 const IdentityLibModule = buildModule("IdentityLibModule", (m) => {
   const poseidon3 = m.useModule(Poseidon3Module).poseidon;
   const poseidon4 = m.useModule(Poseidon4Module).poseidon;
-  const smtLib = m.useModule(SmtLibModule).smtLib;
+  const smtLib = m.useModule(SmtLibWithHasherModule).smtLib;
 
   const identityLib = m.contract("IdentityLib", [], {
     libraries: {
@@ -27,7 +27,7 @@ const IdentityExampleProxyModule = buildModule("IdentityExampleProxyModule", (m)
 
   const { claimBuilder } = m.useModule(ClaimBuilderModule);
   const { identityLib } = m.useModule(IdentityLibModule);
-  const state = m.useModule(StateModule).state;
+  const { state, poseidonHasher } = m.useModule(StateModule);
   const defaultIdType = m.getParameter("defaultIdType");
 
   const identityExample = m.contract("IdentityExample", [], {
@@ -43,7 +43,7 @@ const IdentityExampleProxyModule = buildModule("IdentityExampleProxyModule", (m)
     id: "identityExampleProxy",
   });
 
-  m.call(identityExampleProxy, "initialize", [state, defaultIdType], {
+  m.call(identityExampleProxy, "initialize", [state, defaultIdType, poseidonHasher], {
     from: proxyAdminOwner,
   });
 

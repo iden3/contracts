@@ -12,9 +12,9 @@ import { contractsInfo } from "../../../helpers/constants";
 import { buildModule } from "@nomicfoundation/ignition-core";
 import { Contract } from "ethers";
 import { StateAtModule } from "../../../ignition/modules/contractsAt";
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 const embeddedVerifierName = "<verifier contract name>";
 const embeddedVerifierAddress = "<verifier contract address>";

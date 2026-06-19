@@ -10,11 +10,12 @@ import {
   Poseidon2Module,
   Poseidon3Module,
   Poseidon4Module,
-  SmtLibModule,
+  PoseidonHasherModule,
+  SmtLibWithHasherModule,
 } from "../../ignition";
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 async function main() {
   const config = getConfig();
@@ -47,7 +48,12 @@ async function main() {
       paramName: "Poseidon4AtModule",
     },
     {
-      module: SmtLibModule,
+      module: PoseidonHasherModule,
+      name: contractsInfo.POSEIDON_HASHER,
+      paramName: "PoseidonHasherAtModule",
+    },
+    {
+      module: SmtLibWithHasherModule,
       name: contractsInfo.SMT_LIB.name,
       verificationOpts: contractsInfo.SMT_LIB.verificationOpts,
       paramName: "SmtLibAtModule",

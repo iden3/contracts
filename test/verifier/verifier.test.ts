@@ -1,13 +1,13 @@
 import { beforeEach } from "mocha";
 import { expect } from "chai";
 import { chainIdInfoMap, contractsInfo } from "../../helpers/constants";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { getChainId } from "../../helpers/helperUtils";
 import StateModule from "../../ignition/modules/deployEverythingBasicStrategy/state";
 import { Groth16VerifierStubModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 import { calculateGroupId, calculateMultiRequestId, calculateRequestId } from "@0xpolygonid/js-sdk";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 describe("Verifier tests", function () {
   let sender: any;

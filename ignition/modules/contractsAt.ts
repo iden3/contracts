@@ -32,6 +32,12 @@ export const Poseidon4AtModule = buildModule("Poseidon4AtModule", (m) => {
   return { contract };
 });
 
+export const PoseidonHasherAtModule = buildModule("PoseidonHasherAtModule", (m) => {
+  const contractAddress = m.getParameter("contractAddress");
+  const contract = m.contractAt(contractsInfo.POSEIDON_HASHER.name, contractAddress);
+  return { contract };
+});
+
 export const SmtLibAtModule = buildModule("SmtLibAtModule", (m) => {
   const contractAddress = m.getParameter("contractAddress");
   const contract = m.contractAt(contractsInfo.SMT_LIB.name, contractAddress);

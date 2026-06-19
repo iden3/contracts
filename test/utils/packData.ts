@@ -1,7 +1,7 @@
 import { Signer } from "ethers";
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers } = await network.connect();
+const { ethers } = await hre.network.create();
 
 const abiCoder = new ethers.AbiCoder();
 

@@ -12,7 +12,7 @@ import { CredentialAtomicQueryV3ValidatorProxyModule } from "../../../ignition/m
 import { AuthV2ValidatorProxyModule } from "../../../ignition/modules/authV2Validator";
 import { EthIdentityValidatorProxyModule } from "../../../ignition/modules/ethIdentityValidator";
 import { LinkedMultiQueryValidatorProxyModule } from "../../../ignition/modules/linkedMultiQueryValidator";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { CredentialAtomicQueryV3StableValidatorProxyModule } from "../../../ignition/modules/credentialAtomicQueryV3StableValidator";
 import { LinkedMultiQueryStableValidatorProxyModule } from "../../../ignition/modules/linkedMultiQueryStableValidator";
 import { AuthV3ValidatorProxyModule } from "../../../ignition/modules/authV3Validator";
@@ -30,7 +30,7 @@ import {
   LinkedMultiQueryValidatorAtModule,
 } from "../../../ignition/modules/contractsAt";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 async function main() {
   const config = getConfig();

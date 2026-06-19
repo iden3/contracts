@@ -7,6 +7,7 @@ import {IState} from "../interfaces/IState.sol";
 import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredentialStatusResolver.sol";
 import {IRHSStorage} from "../interfaces/IRHSStorage.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {IHasher} from "../interfaces/IHasher.sol";
 
 error NodeNotFound();
 error InvalidStateNode();
@@ -32,7 +33,7 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "1.1.0";
+    string public constant VERSION = "2.0.0";
 
     /**
      * @dev Max SMT depth for the CredentialStatus proof
@@ -59,6 +60,7 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
     /// @custom:storage-location erc7201:iden3.storage.IdentityTreeStore.Main
     struct IdentityTreeStoreMainStorage {
         IState _state;
+        IHasher _hasher;
     }
 
     // keccak256(abi.encode(uint256(keccak256("iden3.storage.IdentityTreeStore.Main")) - 1)) & ~bytes32(uint256(0xff));
@@ -81,13 +83,22 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
     /**
      * @dev Function to call first time for initialization of the proxy.
      * @param state The state contract address to be used to check state of the identities
+     * @param hasher The hasher to use in hashFunction
      **/
-    function initialize(address state) public initializer {
-        IdentityTreeStoreMainStorage storage $its = _getIdentityTreeStoreMainStorage();
-        ReverseHashLib.Data storage $rhl = _getReverseHashLibDataStorage();
+    function initialize(address state, IHasher hasher) public initializer {
+        _getIdentityTreeStoreMainStorage()._state = IState(state);
+        _initializeHasher(hasher);
+    }
 
-        $its._state = IState(state);
-        $rhl.hashFunction = _hashFunc;
+    /**
+     * @dev Initialize needed data
+     * @param hasher Hasher for SmtLib
+     */
+    function initializeHasher(IHasher hasher) external reinitializer(2) {
+        // Initialize in case the hasher has not been set yet
+        if (address(_getIdentityTreeStoreMainStorage()._hasher) == address(0)) {
+            _initializeHasher(hasher);
+        }
     }
 
     /**
@@ -96,6 +107,10 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
      */
     function saveNodes(uint256[][] memory nodes) external {
         return _getReverseHashLibDataStorage().savePreimages(nodes);
+    }
+
+    function getStateAddress() external view returns (IState) {
+        return _getIdentityTreeStoreMainStorage()._state;
     }
 
     /**
@@ -241,13 +256,19 @@ contract IdentityTreeStore is Initializable, IOnchainCredentialStatusResolver, I
         return NodeType.Unknown;
     }
 
-    function _hashFunc(uint256[] memory preimage) internal pure returns (uint256) {
+    function _hashFunc(uint256[] memory preimage) internal view returns (uint256) {
+        IdentityTreeStoreMainStorage storage $its = _getIdentityTreeStoreMainStorage();
         if (preimage.length == 2) {
-            return PoseidonUnit2L.poseidon([preimage[0], preimage[1]]);
+            return $its._hasher.hash2([preimage[0], preimage[1]]);
         }
         if (preimage.length == 3) {
-            return PoseidonUnit3L.poseidon([preimage[0], preimage[1], preimage[2]]);
+            return $its._hasher.hash3([preimage[0], preimage[1], preimage[2]]);
         }
         revert UnsupportedLength();
+    }
+
+    function _initializeHasher(IHasher hasher) internal {
+        _getIdentityTreeStoreMainStorage()._hasher = hasher;
+        _getReverseHashLibDataStorage().hashFunction = _hashFunc;
     }
 }

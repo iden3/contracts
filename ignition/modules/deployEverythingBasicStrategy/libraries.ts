@@ -97,6 +97,26 @@ export const Poseidon6Module = buildModule("Poseidon6Module", (m) => {
   return { poseidon };
 });
 
+export const PoseidonHasherModule = buildModule("PoseidonHasherModule", (m) => {
+  const poseidon1Element = m.useModule(Poseidon1Module).poseidon;
+  const poseidon2Element = m.useModule(Poseidon2Module).poseidon;
+  const poseidon3Element = m.useModule(Poseidon3Module).poseidon;
+
+  const poseidonHasher = m.contract("PoseidonHasher", [], {
+    libraries: {
+      PoseidonUnit1L: poseidon1Element,
+      PoseidonUnit2L: poseidon2Element,
+      PoseidonUnit3L: poseidon3Element,
+    },
+  });
+  return { poseidonHasher };
+});
+
+export const KeccakHasherModule = buildModule("KeccakHasherModule", (m) => {
+  const keccakHasher = m.contract("Keccak256Hasher", []);
+  return { keccakHasher };
+});
+
 export const SmtLibModule = buildModule("SmtLibModule", (m) => {
   const poseidon2Element = m.useModule(Poseidon2Module).poseidon;
   const poseidon3Element = m.useModule(Poseidon3Module).poseidon;
@@ -107,6 +127,11 @@ export const SmtLibModule = buildModule("SmtLibModule", (m) => {
       PoseidonUnit3L: poseidon3Element,
     },
   });
+  return { smtLib };
+});
+
+export const SmtLibWithHasherModule = buildModule("SmtLibWithHasherModule", (m) => {
+  const smtLib = m.contract("SmtLib", []);
   return { smtLib };
 });
 
