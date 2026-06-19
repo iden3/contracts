@@ -132,7 +132,7 @@ contract State is Ownable2StepUpgradeable, IState {
         // Initialize in case the hasher has not been set yet
         if (address(_hasher) == address(0)) {
             _hasher = hasher;
-            _gistData.setHasher(hasher);
+            _gistData.initializeHasher(hasher);
         }
     }
 

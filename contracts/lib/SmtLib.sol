@@ -158,10 +158,10 @@ library SmtLib {
     }
 
     /**
-     * @dev Sets custom hasher for the SMT. MUST be called before any other SMT operations.
+     * @dev Initialize custom hasher for the SMT. MUST be called before any other SMT operations.
      * @param customHasher IHasher implementation to be used for hashing.
      */
-    function setHasher(Data storage self, IHasher customHasher) external {
+    function initializeHasher(Data storage self, IHasher customHasher) external {
         require(address(customHasher) != address(0), "Invalid hasher");
         require(address(self.hasher) == address(0), "Hasher already set");
         self.hasher = customHasher;
@@ -170,7 +170,7 @@ library SmtLib {
     /**
      * @dev Gets the custom hasher for the SMT.
      */
-    function getHasher(Data storage self) external returns (IHasher) {
+    function getHasher(Data storage self) external view returns (IHasher) {
         return self.hasher;
     }
 
