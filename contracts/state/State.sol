@@ -25,6 +25,11 @@ contract State is Ownable2StepUpgradeable, IState {
      */
     bytes32 private constant STATE_PROOF_TYPE = keccak256(bytes("stateProof"));
 
+    /**
+     * @dev Hasher for SmtLib
+     */
+    IHasher internal _hasher;
+
     // This empty reserved space is put in place to allow future versions
     // of the State contract to inherit from other contracts without a risk of
     // breaking the storage layout. This is necessary because the parent contracts in the
@@ -33,7 +38,7 @@ contract State is Ownable2StepUpgradeable, IState {
     // (see https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps)
     // slither-disable-next-line shadowing-state
     // slither-disable-next-line unused-state
-    uint256[651] private __gap;
+    uint256[650] private __gap;
 
     /**
      * @dev Verifier address
@@ -59,11 +64,6 @@ contract State is Ownable2StepUpgradeable, IState {
      * @dev Default Id Type initialized flag
      */
     bool internal _defaultIdTypeInitialized;
-
-    /**
-     * @dev Hasher for SmtLib
-     */
-    IHasher internal _hasher;
 
     /// @custom:storage-location erc7201:iden3.storage.StateCrossChain
     struct StateCrossChainStorage {
