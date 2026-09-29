@@ -23,7 +23,7 @@ contract UniversalVerifier is
     /**
      * @dev Version of contract
      */
-    string public constant VERSION = "3.0.0";
+    string public constant VERSION = "3.1.0";
 
     /**
      * @dev Event emitted upon submitting a request
