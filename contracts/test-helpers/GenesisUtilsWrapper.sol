@@ -19,4 +19,8 @@ contract GenesisUtilsWrapper {
     function calcOnchainIdFromAddress(bytes2 idType, address caller) public pure returns (uint256) {
         return GenesisUtils.calcIdFromEthAddress(idType, caller);
     }
+
+    function hasEthIdentityShape(uint256 id) public pure returns (bool) {
+        return GenesisUtils.hasEthIdentityShape(id);
+    }
 }

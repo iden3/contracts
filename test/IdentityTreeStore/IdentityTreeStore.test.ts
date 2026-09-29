@@ -10,6 +10,11 @@ import { Groth16VerifierStubModule } from "../../ignition/modules/deployEverythi
 
 const { ethers, networkHelpers, ignition } = await network.connect();
 
+// Hash-based identity with idType 0x0100 (the fixture's defaultIdType) and a proper checksum.
+// A bare `1` is no longer usable: its 27-byte genesis section is all zeros, so State.transitState
+// classifies it as an Ethereum-based identity and rejects the ZK transition path.
+const TEST_ID = 26524242002032000452644995537629405730965079231930446532947269308663070721n;
+
 describe("IdentityTreeStore", function () {
   let identityTreeStore, stateContract: Contract;
 
@@ -44,7 +49,7 @@ describe("IdentityTreeStore", function () {
   });
 
   it("Should return the revocation status single leaf", async function () {
-    const id = 1;
+    const id = TEST_ID;
     const nonce = 1n;
     const revRoot = poseidon.hash([nonce, 0n, 1n]);
     const preimages = [
@@ -106,7 +111,7 @@ describe("IdentityTreeStore", function () {
 
   describe("Should return the revocation status many leafs", async function () {
     it("left key path", async function () {
-      const id = 1n;
+      const id = TEST_ID;
       const nonce = 2n;
       const leaf1index = 4n;
       const leaf2index = nonce;
@@ -202,7 +207,7 @@ describe("IdentityTreeStore", function () {
     });
 
     it("right key path", async function () {
-      const id = 1n;
+      const id = TEST_ID;
       const nonce = 1n;
       const leaf1index = 3n;
       const leaf2index = nonce;
@@ -299,7 +304,7 @@ describe("IdentityTreeStore", function () {
   });
 
   it("Should revert on invalid roots length", async function () {
-    const id = 1;
+    const id = TEST_ID;
     const preimages = [[1n, 2n]];
     await identityTreeStore.saveNodes(preimages);
     const state = poseidon.hash(preimages[0]);

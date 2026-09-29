@@ -65,4 +65,33 @@ library GenesisUtils {
 
         return calcIdFromGenesisState(idType, PrimitiveTypeUtils.reverseUint256(addr));
     }
+
+    /**
+     * @dev hasEthIdentityShape returns true if the id has the byte layout of an Ethereum-based
+     * identity: the high 7 bytes of its 27-byte genesis section are zero, leaving the trailing
+     * 20 bytes for an Ethereum address (see go-iden3-core EthAddressFromID).
+     * This is a shape check only and does not prove the genesis was derived from an address.
+     * A hash-based genesis matches only with negligible probability (~2^-56). A zero id is
+     * not a valid identity and returns false.
+     * @param id Identity
+     */
+    function hasEthIdentityShape(uint256 id) internal pure returns (bool) {
+        // A zero id is not a valid identity of any kind.
+        if (id == 0) {
+            return false;
+        }
+
+        // Byte layout of the reversed id: [idType: 2][genesis: 27][checksum: 2][padding: 1]
+        bytes memory idBytes = PrimitiveTypeUtils.uint256ToBytes(
+            PrimitiveTypeUtils.reverseUint256(id)
+        );
+
+        // The high 7 bytes of the genesis (idBytes[2..9)) must be zero for Ethereum identities.
+        for (uint256 i = 2; i < 9; i++) {
+            if (idBytes[i] != 0) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
