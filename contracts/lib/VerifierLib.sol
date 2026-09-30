@@ -749,7 +749,7 @@ library VerifierLib {
         address sender
     ) public checkMultiRequestExistence(self, multiRequest.multiRequestId, false) {
         uint256 expectedMultiRequestId = uint256(
-            keccak256(abi.encodePacked(multiRequest.requestIds, multiRequest.groupIds, sender))
+            keccak256(abi.encode(multiRequest.requestIds, multiRequest.groupIds, sender))
         );
         if (expectedMultiRequestId != multiRequest.multiRequestId) {
             revert MultiRequestIdNotValid(expectedMultiRequestId, multiRequest.multiRequestId);

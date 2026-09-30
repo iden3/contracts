@@ -27,7 +27,10 @@ export function calculateMultiRequestId(
 ): bigint {
   return BigInt(
     ethers.keccak256(
-      ethers.solidityPacked(["uint256[]", "uint256[]", "address"], [requestIds, groupIds, sender]),
+      ethers.AbiCoder.defaultAbiCoder().encode(
+        ["uint256[]", "uint256[]", "address"],
+        [requestIds, groupIds, sender],
+      ),
     ),
   );
 }

@@ -11,7 +11,8 @@ import {
   packLinkedMultiQueryValidatorParams,
   packV3ValidatorParams,
 } from "../utils/validator-pack-utils";
-import { calculateGroupId, calculateMultiRequestId, CircuitId } from "@0xpolygonid/js-sdk";
+import { calculateGroupId, CircuitId } from "@0xpolygonid/js-sdk";
+import { calculateMultiRequestId } from "../utils/id-calculation-utils";
 import { calculateQueryHashV3 } from "../utils/query-hash-utils";
 import { chainIdInfoMap, contractsInfo, TEN_YEARS } from "../../helpers/constants";
 import CredentialAtomicQueryV3ValidatorModule from "../../ignition/modules/deployEverythingBasicStrategy/credentialAtomicQueryV3Validator";
