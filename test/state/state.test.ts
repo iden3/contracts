@@ -238,6 +238,28 @@ describe("State transition negative cases", () => {
       "New state already exists",
     );
   });
+
+  it("ZK state transition is not allowed for Ethereum-based identities", async () => {
+    // Ethereum-based id generated in go-iden3-core (idType 0x0112,
+    // address 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266).
+    const ethId = "23006274145546572515053798212160025855323582904648170675239778444296327681";
+    await state.setSupportedIdType("0x0112", true);
+
+    await expect(
+      publishStateWithStubProof(ethers, state, {
+        id: ethId,
+        oldState: "0",
+        newState: "2199023255552",
+        isOldStateGenesis: true,
+      }),
+    ).to.be.revertedWith("ZK state transition is not allowed for Ethereum-based identities");
+  });
+
+  it("ZK state transition is still allowed for non-Ethereum identities", async () => {
+    // Sanity check that the new guard does not block regular hash-based identities.
+    await expect(publishStateWithStubProof(ethers, state, stateTransitionsWithNoProofs[0])).to.not
+      .be.rejected;
+  });
 });
 
 describe("StateInfo history", function () {
