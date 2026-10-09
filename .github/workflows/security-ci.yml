@@ -12,7 +12,7 @@ jobs:
       - name: Get node.js
         uses: actions/setup-node@v7
         with:
-          node-version: "24.12.0"
+          node-version: "lts/*"
       - run: npm install
       - run: npx solhint "contracts/**/*.sol"
 
@@ -23,7 +23,7 @@ jobs:
       - name: Get node.js
         uses: actions/setup-node@v7
         with:
-          node-version: "24.12.0"
+          node-version: "lts/*"
           cache: "npm"
       - run: npm ci
       - run: npx hardhat compile
@@ -34,3 +34,32 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           file: coverage/lcov.info
+
+  slither:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Get node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+      - run: npm ci
+      - name: Get python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install slither-analyzer==0.11.6
+      # Findings are reported to GitHub Code Scanning instead of failing the job:
+      # the current High results are triaged false positives (see slither.config.json for scope).
+      - name: Run slither
+        run: slither . --sarif results.sarif --fail-none
+      - name: Upload SARIF
+        if: always() && hashFiles('results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: results.sarif
+          category: slither
