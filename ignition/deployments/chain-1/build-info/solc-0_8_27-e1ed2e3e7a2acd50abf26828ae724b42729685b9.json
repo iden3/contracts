@@ -1,0 +1,49 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_27-e1ed2e3e7a2acd50abf26828ae724b42729685b9",
+  "solcVersion": "0.8.27",
+  "solcLongVersion": "0.8.27+commit.40a35a09",
+  "compilerType": "solc",
+  "toolVersions": {
+    "hardhat": "3.5.1"
+  },
+  "userSourceNameMap": {
+    "contracts/AlwaysRevert.sol": "project/contracts/AlwaysRevert.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/AlwaysRevert.sol": {
+        "content": "// SPDX-License-Identifier: GPL-3.0\npragma solidity 0.8.27;\n\nerror TheContractIsDisabled();\n\n/// @title This contract as a dummy implementation for Proxy contract if we need to revert all calls\n// This can be applied to disable all methods of a proxy contract with explicit error message\ncontract AlwaysRevert {\n    fallback() external payable {\n        revert TheContractIsDisabled();\n    }\n}\n"
+      }
+    }
+  }
+}
