@@ -18,7 +18,7 @@
     along with snarkJS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity >=0.8.4 <0.9.0;
+pragma solidity >=0.7.0 <0.9.0;
 
 import "../../interfaces/IStateTransitionVerifier.sol";
 
@@ -44,50 +44,38 @@ contract Groth16VerifierStateTransition is IStateTransitionVerifier {
     uint256 constant deltay1 = 20662719780693521898375922787282175696841448037933826627867273008735335783602;
     uint256 constant deltay2 = 9540218714987219778576059617464635889429392349728954857252076100095683267633;
 
-
+    
     uint256 constant IC0x = 16043291973889324756617069487195476149512574727363051659112556958735977616725;
     uint256 constant IC0y = 16864605224185193093062266789812233298859884301538621362226822022081041278677;
-
+    
     uint256 constant IC1x = 15935621905201691307201070923038920580506689594547556653696264182846970978554;
     uint256 constant IC1y = 20793947184131761785325026067954699416249353321530615459908048240252442935417;
-
+    
     uint256 constant IC2x = 15873695673932800019757092006642463598109301274410205214955538808836281067900;
     uint256 constant IC2y = 13581010826645089044340117513778871694012835043547906854734814490388643425494;
-
+    
     uint256 constant IC3x = 436067793811322464859758359330968701378288169738014324837094148538366747065;
     uint256 constant IC3y = 5184689509856778472522887232562113210294765146488556347841833551753176606959;
-
+    
     uint256 constant IC4x = 1580946655352989990810599848244095954566838172532565943008224849077018394283;
     uint256 constant IC4y = 8901953775389474246223858845884219088656635610469822712500097959042485592148;
-
+    
+ 
     // Memory data
     uint16 constant pVk = 0;
     uint16 constant pPairing = 128;
 
     uint16 constant pLastMem = 896;
 
-    /**
-     * @dev Verify the circuit with the groth16 proof π=([πa]1,[πb]2,[πc]1).
-     * @param _pA πa element of the groth16 proof.
-     * @param _pB πb element of the groth16 proof.
-     * @param _pC πc element of the groth16 proof.
-     * @param _pubSignals Public signals of the circuit.
-     * @return true if the proof is verified.
-     */
-    function verifyProof(
-        uint[2] calldata _pA,
-        uint[2][2] calldata _pB,
-        uint[2] calldata _pC,
-        uint[4] calldata _pubSignals
-    ) public view returns (bool) {
+    function verifyProof(uint[2] calldata _pA, uint[2][2] calldata _pB, uint[2] calldata _pC, uint[4] calldata _pubSignals) public view returns (bool) {
         assembly {
             function checkField(v) {
-                if iszero(lt(v, q)) {
+                if iszero(lt(v, r)) {
                     mstore(0, 0)
                     return(0, 0x20)
                 }
             }
-
+            
             // G1 function to multiply a G1 value(x,y) to value in an address
             function g1_mulAccC(pR, x, y, s) {
                 let success
@@ -122,14 +110,15 @@ contract Groth16VerifierStateTransition is IStateTransitionVerifier {
                 mstore(add(_pVk, 32), IC0y)
 
                 // Compute the linear combination vk_x
-
+                
                 g1_mulAccC(_pVk, IC1x, IC1y, calldataload(add(pubSignals, 0)))
-
+                
                 g1_mulAccC(_pVk, IC2x, IC2y, calldataload(add(pubSignals, 32)))
-
+                
                 g1_mulAccC(_pVk, IC3x, IC3y, calldataload(add(pubSignals, 64)))
-
+                
                 g1_mulAccC(_pVk, IC4x, IC4y, calldataload(add(pubSignals, 96)))
+                
 
                 // -A
                 mstore(_pPairing, calldataload(pA))
@@ -155,6 +144,7 @@ contract Groth16VerifierStateTransition is IStateTransitionVerifier {
                 mstore(add(_pPairing, 384), mload(add(pMem, pVk)))
                 mstore(add(_pPairing, 416), mload(add(pMem, add(pVk, 32))))
 
+
                 // gamma2
                 mstore(add(_pPairing, 448), gammax1)
                 mstore(add(_pPairing, 480), gammax2)
@@ -171,6 +161,7 @@ contract Groth16VerifierStateTransition is IStateTransitionVerifier {
                 mstore(add(_pPairing, 704), deltay1)
                 mstore(add(_pPairing, 736), deltay2)
 
+
                 let success := staticcall(sub(gas(), 2000), 8, _pPairing, 768, _pPairing, 0x20)
 
                 isOk := and(success, mload(_pPairing))
@@ -180,22 +171,21 @@ contract Groth16VerifierStateTransition is IStateTransitionVerifier {
             mstore(0x40, add(pMem, pLastMem))
 
             // Validate that all evaluations ∈ F
-
+            
             checkField(calldataload(add(_pubSignals, 0)))
-
+            
             checkField(calldataload(add(_pubSignals, 32)))
-
+            
             checkField(calldataload(add(_pubSignals, 64)))
-
+            
             checkField(calldataload(add(_pubSignals, 96)))
-
-            checkField(calldataload(add(_pubSignals, 128)))
+            
 
             // Validate all evaluations
             let isValid := checkPairing(_pA, _pB, _pC, _pubSignals, pMem)
 
             mstore(0, isValid)
-            return(0, 0x20)
-        }
-    }
-}
+             return(0, 0x20)
+         }
+     }
+ }
