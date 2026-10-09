@@ -1,9 +1,9 @@
 import { Blockchain, buildDIDType, DidMethod, Id, NetworkId } from "@iden3/js-iden3-core";
 import { expect } from "chai";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { GenesisUtilsWrapperModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const { ignition } = await network.connect();
+const { ignition } = await hre.network.create();
 
 let guWrpr;
 const testVectors = [

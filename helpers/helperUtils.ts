@@ -9,12 +9,12 @@ import {
 } from "./constants";
 import { poseidonContract } from "circomlibjs";
 import path from "path";
-import hre, { network } from "hardhat";
+import hre from "hardhat";
 import { verifyContract as hardhatVerifyContract } from "@nomicfoundation/hardhat-verify/verify";
 
 const __dirname = path.resolve();
 
-const { ethers, provider, networkName } = await network.connect();
+const { ethers, provider, networkName } = await hre.network.create();
 
 export function getConfig() {
   return {

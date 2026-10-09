@@ -5,7 +5,7 @@ import {
   Poseidon2Module,
   Poseidon3Module,
   Poseidon4Module,
-  SmtLibModule,
+  SmtLibWithHasherModule,
 } from "../libraries";
 import { StateProxyModule } from "../state";
 import { UniversalVerifierProxyModule } from "../universalVerifier";
@@ -33,7 +33,7 @@ const DeploySystemInitialImplementationModule = buildModule(
     const { poseidon: poseidon3 } = m.useModule(Poseidon3Module);
     const { poseidon: poseidon4 } = m.useModule(Poseidon4Module);
 
-    const { smtLib } = m.useModule(SmtLibModule);
+    const { smtLib } = m.useModule(SmtLibWithHasherModule);
 
     const { newImplementation: newStateImpl } = m.useModule(StateProxyModule);
 

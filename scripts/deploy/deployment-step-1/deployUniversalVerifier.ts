@@ -14,9 +14,9 @@ import {
   UniversalVerifierNewImplementationAtModule,
   VerifierLibAtModule,
 } from "../../../ignition/modules/contractsAt";
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 async function main() {
   const config = getConfig();

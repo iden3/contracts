@@ -1,8 +1,8 @@
 import { expect } from "chai";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { PrimitiveTypeUtilsWrapperModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const { ignition } = await network.connect();
+const { ignition } = await hre.network.create();
 
 let utilsWrapper;
 

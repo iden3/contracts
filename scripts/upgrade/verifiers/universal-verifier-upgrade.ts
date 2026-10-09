@@ -10,9 +10,9 @@ import {
 import { contractsInfo } from "../../../helpers/constants";
 import UpgradeUniversalVerifierModule from "../../../ignition/modules/upgrades/upgradeUniversalVerifier";
 import { transferOwnership } from "../helpers/utils";
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 // If you want to use impersonation, set the impersonate variable to true
 // With ignition we can't use impersonation, so we need to transfer ownership to the signer

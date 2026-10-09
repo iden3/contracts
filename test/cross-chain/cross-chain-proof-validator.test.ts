@@ -6,12 +6,12 @@ import {
 } from "../utils/packData";
 import { expect } from "chai";
 import { Contract, ZeroAddress } from "ethers";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { getChainId } from "../../helpers/helperUtils";
 import { chainIdInfoMap } from "../../helpers/constants";
 import { CrossChainProofValidatorModule } from "../../ignition";
 
-const { ethers, networkHelpers, ignition } = await network.connect();
+const { ethers, networkHelpers, ignition } = await hre.network.create();
 
 describe("Process cross-chain proof", function () {
   let crossChainProofValidator: Contract;

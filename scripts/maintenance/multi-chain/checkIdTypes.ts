@@ -6,9 +6,9 @@ import {
   Logger,
 } from "../../../helpers/helperUtils";
 import { contractsInfo, DEFAULT_MNEMONIC, networks } from "../../../helpers/constants";
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers } = await network.connect();
+const { ethers } = await hre.network.create();
 
 const mnemonicWallet = ethers.Wallet.fromPhrase(DEFAULT_MNEMONIC);
 

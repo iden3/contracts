@@ -2,13 +2,14 @@
 pragma solidity 0.8.27;
 
 import {SmtLib} from "../lib/SmtLib.sol";
+import {IHasher} from "../interfaces/IHasher.sol";
 
 contract BinarySearchTestWrapper {
     SmtLib.Data internal smtData;
     using SmtLib for SmtLib.Data;
 
-    constructor() {
-        smtData.initialize(64);
+    constructor(IHasher hasher) {
+        smtData.initialize(64, hasher);
     }
 
     function addRootEntry(uint256 root, uint256 createdAtTimestamp, uint256 createdAtBlock) public {

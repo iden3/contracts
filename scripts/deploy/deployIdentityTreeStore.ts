@@ -7,9 +7,9 @@ import {
 import { contractsInfo } from "../../helpers/constants";
 import { IdentityTreeStoreProxyModule } from "../../ignition";
 import IdentityTreeStoreModule from "../../ignition/modules/identityTreeStore";
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 (async () => {
   const config = getConfig();

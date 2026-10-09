@@ -1,9 +1,9 @@
-import { network } from "hardhat";
+import hre from "hardhat";
 import { expect } from "chai";
 import { poseidon } from "@iden3/js-crypto";
 import { Poseidon2Module, Poseidon3Module } from "../../ignition/modules/deployEverythingBasicStrategy/libraries";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 describe("ReverseHashWrapper", function () {
   let reverseHashWrapper;

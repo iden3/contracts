@@ -1,10 +1,10 @@
 import { Hex } from "@iden3/js-crypto";
 import { DID, SchemaHash } from "@iden3/js-iden3-core";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { expect } from "chai";
 import VCPaymentModule from "../../ignition/modules/deployEverythingBasicStrategy/vcPayment";
 
-const { ethers, networkHelpers, ignition } = await network.connect();
+const { ethers, networkHelpers, ignition } = await hre.network.create();
 
 describe("VC Payment Contract", () => {
   let payment;

@@ -8,8 +8,7 @@ import {
   Create2AddressAnchorAtModule,
   IdentityTreeStoreAtModule,
   IdentityTreeStoreNewImplementationAtModule,
-  Poseidon2AtModule,
-  Poseidon3AtModule,
+  PoseidonHasherAtModule,
   StateAtModule,
 } from "./contractsAt";
 
@@ -46,20 +45,13 @@ const IdentityTreeStoreProxyFirstImplementationModule = buildModule(
 export const IdentityTreeStoreFinalImplementationModule = buildModule(
   "IdentityTreeStoreFinalImplementationModule",
   (m) => {
-    const poseidon2 = m.useModule(Poseidon2AtModule).contract;
-    const poseidon3 = m.useModule(Poseidon3AtModule).contract;
+    const poseidonHasher = m.useModule(PoseidonHasherAtModule).contract;
     const state = m.useModule(StateAtModule).proxy;
 
-    const newImplementation = m.contract(contractsInfo.IDENTITY_TREE_STORE.name, [], {
-      libraries: {
-        PoseidonUnit2L: poseidon2,
-        PoseidonUnit3L: poseidon3,
-      },
-    });
+    const newImplementation = m.contract(contractsInfo.IDENTITY_TREE_STORE.name, []);
 
     return {
-      poseidon2,
-      poseidon3,
+      poseidonHasher,
       state,
       newImplementation,
     };
@@ -68,12 +60,11 @@ export const IdentityTreeStoreFinalImplementationModule = buildModule(
 
 export const IdentityTreeStoreProxyModule = buildModule("IdentityTreeStoreProxyModule", (m) => {
   const { proxy, proxyAdmin } = m.useModule(IdentityTreeStoreProxyFirstImplementationModule);
-  const { poseidon2, poseidon3, state, newImplementation } = m.useModule(
+  const { poseidonHasher, state, newImplementation } = m.useModule(
     IdentityTreeStoreFinalImplementationModule,
   );
   return {
-    poseidon2,
-    poseidon3,
+    poseidonHasher,
     state,
     newImplementation,
     proxyAdmin,
@@ -85,22 +76,23 @@ const IdentityTreeStoreProxyFinalImplementationModule = buildModule(
   "IdentityTreeStoreProxyFinalImplementationModule",
   (m) => {
     const { proxy, proxyAdmin } = m.useModule(IdentityTreeStoreAtModule);
-    const poseidon2 = m.useModule(Poseidon2AtModule).contract;
-    const poseidon3 = m.useModule(Poseidon3AtModule).contract;
+    const poseidonHasher = m.useModule(PoseidonHasherAtModule).contract;
     const state = m.useModule(StateAtModule).proxy;
     const { contract: newImplementation } = m.useModule(IdentityTreeStoreNewImplementationAtModule);
 
     const proxyAdminOwner = m.getAccount(0);
 
-    const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [state]);
+    const initializeData = m.encodeFunctionCall(newImplementation, "initialize", [
+      state,
+      poseidonHasher,
+    ]);
 
     m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
       from: proxyAdminOwner,
     });
 
     return {
-      poseidon2,
-      poseidon3,
+      poseidonHasher,
       state,
       newImplementation,
       proxyAdmin,
@@ -110,7 +102,7 @@ const IdentityTreeStoreProxyFinalImplementationModule = buildModule(
 );
 
 const IdentityTreeStoreModule = buildModule("IdentityTreeStoreModule", (m) => {
-  const { poseidon2, poseidon3, state, newImplementation, proxyAdmin, proxy } = m.useModule(
+  const { poseidonHasher, state, newImplementation, proxyAdmin, proxy } = m.useModule(
     IdentityTreeStoreProxyFinalImplementationModule,
   );
 
@@ -118,8 +110,7 @@ const IdentityTreeStoreModule = buildModule("IdentityTreeStoreModule", (m) => {
 
   return {
     identityTreeStore,
-    poseidon2,
-    poseidon3,
+    poseidonHasher,
     state,
     newImplementation,
     proxyAdmin,

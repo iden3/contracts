@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { Groth16VerifierStubModule } from "../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import {
@@ -7,7 +7,7 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../helpers/constants";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 // dummy proof
 const d = [

@@ -1,9 +1,9 @@
 import DeployEverythingBasicStrategy from "../../ignition/modules/deployEverythingBasicStrategy/deployEverythingBasicStrategy";
 import { getChainId, getDefaultIdType, verifyContract } from "../../helpers/helperUtils";
 import { ORACLE_SIGNING_ADDRESS_PRODUCTION } from "../../helpers/constants";
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ignition } = await network.connect();
+const { ignition } = await hre.network.create();
 
 async function main() {
   const params = {
@@ -40,9 +40,7 @@ async function main() {
     authV3_8_32Validator,
     MCPayment,
     VCPayment,
-    universalVerifier_ManyResponsesPerUserAndRequestImplementation,
-    universalVerifier_ManyResponsesPerUserAndRequest,
-    verifierLib_ManyResponsesPerUserAndRequest,
+    poseidonHasher,
   } = await ignition.deploy(DeployEverythingBasicStrategy, {
     parameters: params,
     deploymentId: `chain-${await getChainId()}-simple-deploy-basic-strategy`,
@@ -74,9 +72,7 @@ async function main() {
     authV3_8_32Validator,
     MCPayment,
     VCPayment,
-    universalVerifier_ManyResponsesPerUserAndRequest,
-    universalVerifier_ManyResponsesPerUserAndRequestImplementation,
-    verifierLib_ManyResponsesPerUserAndRequest,
+    poseidonHasher,
   ]) {
     await verifyContract(contract.target, {
       constructorArgsImplementation: [],

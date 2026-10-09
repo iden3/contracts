@@ -2,13 +2,13 @@ import { expect } from "chai";
 import { poseidon } from "@iden3/js-crypto";
 import { Contract } from "ethers";
 import { publishStateWithStubProof } from "../utils/state-utils";
-import { network } from "hardhat";
+import hre from "hardhat";
 import IdentityTreeStoreModule from "../../ignition/modules/deployEverythingBasicStrategy/identityTreeStore";
 import { getChainId } from "../../helpers/helperUtils";
 import { chainIdInfoMap } from "../../helpers/constants";
 import { Groth16VerifierStubModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const { ethers, networkHelpers, ignition } = await network.connect();
+const { ethers, networkHelpers, ignition } = await hre.network.create();
 
 describe("IdentityTreeStore", function () {
   let identityTreeStore, stateContract: Contract;

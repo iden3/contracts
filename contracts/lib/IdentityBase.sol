@@ -6,6 +6,7 @@ import {IOnchainCredentialStatusResolver} from "../interfaces/IOnchainCredential
 import {IdentityLib} from "../lib/IdentityLib.sol";
 import {SmtLib} from "../lib/SmtLib.sol";
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import {IHasher} from "../interfaces/IHasher.sol";
 
 error IdentityIdMismatch();
 
@@ -46,12 +47,13 @@ abstract contract IdentityBase is IIdentifiable, IOnchainCredentialStatusResolve
      * @dev Initialization of IdentityLib library
      * @param _stateContractAddr - address of the State contract
      */
-    function initialize(address _stateContractAddr, bytes2 idType) public virtual {
+    function initialize(address _stateContractAddr, bytes2 idType, IHasher hasher) public virtual {
         _getIdentityBaseStorage().identity.initialize(
             _stateContractAddr,
             address(this),
             getSmtDepth(),
-            idType
+            idType,
+            hasher
         );
     }
 
