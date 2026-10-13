@@ -4,9 +4,9 @@ import {
 } from "../../../helpers/helperUtils";
 import { contractsInfo } from "../../../helpers/constants";
 import UniversalVerifierModule from "../../../ignition/modules/universalVerifier";
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 async function main() {
   const config = getConfig();

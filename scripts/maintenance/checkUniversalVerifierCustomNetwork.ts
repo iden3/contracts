@@ -6,9 +6,9 @@ import {
 } from "../upgrade/verifiers/helpers/testVerifier";
 import { Contract } from "ethers";
 import { core } from "@0xpolygonid/js-sdk";
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers, networkName } = await network.connect();
+const { ethers, networkName } = await hre.network.create();
 
 // Replace these addresses with the ones deployed in your custom network
 const universalVerifierAddress = "<UNIVERSAL_VERIFIER_ADDRESS>";

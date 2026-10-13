@@ -1,6 +1,6 @@
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers } = await network.connect();
+const { ethers } = await hre.network.create();
 
 async function main() {
   const byteCode = "<your contract byte code here>";

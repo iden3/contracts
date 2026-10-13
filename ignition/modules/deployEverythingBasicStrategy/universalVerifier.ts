@@ -34,6 +34,7 @@ const UniversalVerifierProxyModule = buildModule("UniversalVerifierProxyModule",
     crossChainProofValidator,
     stateLib,
     smtLib,
+    poseidonHasher,
   } = m.useModule(StateModule);
 
   const proxyAdminOwner = m.getAccount(0);
@@ -62,6 +63,7 @@ const UniversalVerifierProxyModule = buildModule("UniversalVerifierProxyModule",
     crossChainProofValidator,
     stateLib,
     smtLib,
+    poseidonHasher,
   };
 });
 
@@ -75,6 +77,7 @@ const UniversalVerifierModule = buildModule("UniversalVerifierModule", (m) => {
     crossChainProofValidator,
     stateLib,
     smtLib,
+    poseidonHasher,
   } = m.useModule(UniversalVerifierProxyModule);
   const universalVerifier = m.contractAt(contractsInfo.UNIVERSAL_VERIFIER.name, proxy);
   return {
@@ -86,6 +89,7 @@ const UniversalVerifierModule = buildModule("UniversalVerifierModule", (m) => {
     crossChainProofValidator,
     stateLib,
     smtLib,
+    poseidonHasher,
   };
 });
 

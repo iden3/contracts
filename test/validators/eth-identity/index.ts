@@ -1,8 +1,8 @@
 import { expect } from "chai";
-import { network } from "hardhat";
+import hre from "hardhat";
 import EthIdentityValidatorModule from "../../../ignition/modules/deployEverythingBasicStrategy/ethIdentityValidator";
 
-const { ethers, networkHelpers, ignition } = await network.connect();
+const { ethers, networkHelpers, ignition } = await hre.network.create();
 
 describe("Eth Identity Validator", function () {
   let validator: any;

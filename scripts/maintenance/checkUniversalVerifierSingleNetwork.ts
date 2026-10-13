@@ -5,9 +5,9 @@ import {
   submitZKPResponses_KYCAgeCredential,
 } from "../upgrade/verifiers/helpers/testVerifier";
 import { Contract } from "ethers";
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers, networkName } = await network.connect();
+const { ethers, networkName } = await hre.network.create();
 
 // Replace these addresses with the ones you want to test
 const universalVerifierAddress = contractsInfo.UNIVERSAL_VERIFIER.unifiedAddress;

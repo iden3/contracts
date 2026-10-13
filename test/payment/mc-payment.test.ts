@@ -1,9 +1,9 @@
-import { network } from "hardhat";
+import hre from "hardhat";
 import { expect } from "chai";
 import { type Signer } from "ethers";
 import MCPaymentModule from "../../ignition/modules/deployEverythingBasicStrategy/mcPayment";
 
-const { ethers, networkHelpers, ignition } = await network.connect();
+const { ethers, networkHelpers, ignition } = await hre.network.create();
 
 describe("MC Payment Contract", () => {
   let payment;

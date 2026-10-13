@@ -1,14 +1,8 @@
-import {
-  checkContractVersion,
-  getProviders,
-  getStateContractAddress,
-  isContract,
-  Logger,
-} from "../../../helpers/helperUtils";
+import { getProviders, Logger } from "../../../helpers/helperUtils";
 import { contractsInfo, DEFAULT_MNEMONIC } from "../../../helpers/constants";
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers } = await network.connect();
+const { ethers } = await hre.network.create();
 
 const mnemonicWallet = ethers.Wallet.fromPhrase(DEFAULT_MNEMONIC);
 
@@ -63,7 +57,7 @@ async function main() {
       },
       {
         authMethod: "embeddedAuth",
-        property: "UNIVERSAL_VERIFIER"
+        property: "UNIVERSAL_VERIFIER",
       },
     ];
 
@@ -84,12 +78,8 @@ async function main() {
     }
 
     for (const v of authValidators) {
-      if (
-        !(await universalVerifier.authMethodExists(v.authMethod))
-      ) {
-        authValidatorsNotSet.push(
-          `${v.authMethod} (${contractsInfo[v.property].unifiedAddress})`,
-        );
+      if (!(await universalVerifier.authMethodExists(v.authMethod))) {
+        authValidatorsNotSet.push(`${v.authMethod} (${contractsInfo[v.property].unifiedAddress})`);
       }
     }
 

@@ -35,7 +35,7 @@ import {
   LinkedMultiQueryStableValidatorAtModule,
   LinkedMultiQueryValidatorAtModule,
 } from "../../ignition/modules/contractsAt";
-import { network } from "hardhat";
+import hre from "hardhat";
 import CredentialAtomicQueryV3StableValidatorModule, {
   CredentialAtomicQueryV3StableValidatorProxyModule,
 } from "../../ignition/modules/credentialAtomicQueryV3StableValidator";
@@ -49,7 +49,7 @@ import AuthV3_8_32ValidatorModule, {
   AuthV3_8_32ValidatorProxyModule,
 } from "../../ignition/modules/authV3_8_32Validator";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 async function main() {
   const config = getConfig();

@@ -1,9 +1,9 @@
 import Create2AddressAnchorModule from "../../ignition/modules/create2AddressAnchor";
 import { contractsInfo } from "../../helpers/constants";
 import { getDeploymentParameters, writeDeploymentParameters } from "../../helpers/helperUtils";
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 async function main() {
   const [signer] = await ethers.getSigners();

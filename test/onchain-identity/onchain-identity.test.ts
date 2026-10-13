@@ -1,11 +1,11 @@
 import { expect } from "chai";
 import { getChainId } from "../../helpers/helperUtils";
 import { chainIdInfoMap } from "../../helpers/constants";
-import { network } from "hardhat";
+import hre from "hardhat";
 import IdentityExampleModule from "../../ignition/modules/deployEverythingBasicStrategy/identityExample";
 import { GenesisUtilsWrapperModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const { ignition } = await network.connect();
+const { ignition } = await hre.network.create();
 
 describe("Next tests reproduce identity life cycle", function () {
   this.timeout(10000);

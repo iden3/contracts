@@ -12,12 +12,12 @@ import AuthV2ValidatorModule from "../authV2Validator";
 import EthIdentityValidatorModule from "../ethIdentityValidator";
 import MCPaymentModule from "../mcPayment";
 import VCPaymentModule from "../vcPayment";
-import { network } from "hardhat";
+import hre from "hardhat";
 import AuthV3ValidatorModule from "../authV3Validator";
 import AuthV3_8_32ValidatorModule from "../authV3_8_32Validator";
 import { contractsInfo } from "../../../helpers/constants";
 
-const { ethers } = await network.connect();
+const { ethers } = await hre.network.create();
 
 const DeploySystemFianlImplementationsModule = buildModule(
   "DeploySystemFianlImplementationsModule",

@@ -4,32 +4,31 @@ import {
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../../helpers/constants";
-import { Poseidon2Module, Poseidon3Module } from "./libraries";
 import StateModule from "./state";
+import { PoseidonHasherModule } from "./libraries";
 
 const IdentityTreeStoreImplementationModule = buildModule(
   "IdentityTreeStoreImplementationModule",
   (m) => {
-    const poseidon2 = m.useModule(Poseidon2Module).poseidon;
-    const poseidon3 = m.useModule(Poseidon3Module).poseidon;
+    const { poseidonHasher } = m.useModule(PoseidonHasherModule);
     const state = m.useModule(StateModule).state;
 
-    const implementation = m.contract(contractsInfo.IDENTITY_TREE_STORE.name, [], {
-      libraries: {
-        PoseidonUnit2L: poseidon2,
-        PoseidonUnit3L: poseidon3,
-      },
-    });
-    return { implementation, state };
+    const implementation = m.contract(contractsInfo.IDENTITY_TREE_STORE.name, []);
+    return { implementation, state, poseidonHasher };
   },
 );
 
 const IdentityTreeStoreProxyModule = buildModule("IdentityTreeStoreProxyModule", (m) => {
-  const { implementation, state } = m.useModule(IdentityTreeStoreImplementationModule);
+  const { implementation, state, poseidonHasher } = m.useModule(
+    IdentityTreeStoreImplementationModule,
+  );
 
   const proxyAdminOwner = m.getAccount(0);
 
-  const initializeData = m.encodeFunctionCall(implementation, "initialize", [state]);
+  const initializeData = m.encodeFunctionCall(implementation, "initialize", [
+    state,
+    poseidonHasher,
+  ]);
 
   const proxy = m.contract(
     "TransparentUpgradeableProxy",

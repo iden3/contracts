@@ -7,9 +7,9 @@ import {
 } from "../../helpers/helperUtils";
 import { contractsInfo } from "../../helpers/constants";
 import StateModule, { StateProxyModule } from "../../ignition/modules/state";
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 async function main() {
   const config = getConfig();

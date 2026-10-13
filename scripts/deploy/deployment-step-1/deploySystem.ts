@@ -15,7 +15,8 @@ import {
   Poseidon2Module,
   Poseidon3Module,
   Poseidon4Module,
-  SmtLibModule,
+  PoseidonHasherModule,
+  SmtLibWithHasherModule,
   VCPaymentProxyModule,
 } from "../../../ignition";
 import { StateProxyModule } from "../../../ignition/modules/state";
@@ -45,18 +46,19 @@ import {
   Poseidon2AtModule,
   Poseidon3AtModule,
   Poseidon4AtModule,
+  PoseidonHasherAtModule,
   SmtLibAtModule,
   StateAtModule,
   UniversalVerifierAtModule,
   VCPaymentAtModule,
 } from "../../../ignition/modules/contractsAt";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { AuthV3ValidatorProxyModule } from "../../../ignition/modules/authV3Validator";
 import { AuthV3_8_32ValidatorProxyModule } from "../../../ignition/modules/authV3_8_32Validator";
 import { CredentialAtomicQueryV3StableValidatorProxyModule } from "../../../ignition/modules/credentialAtomicQueryV3StableValidator";
 import { LinkedMultiQueryStableValidatorProxyModule } from "../../../ignition/modules/linkedMultiQueryStableValidator";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 async function main() {
   const config = getConfig();
@@ -139,7 +141,13 @@ async function main() {
       name: contractsInfo.POSEIDON_4.name,
     },
     {
-      module: SmtLibModule,
+      module: PoseidonHasherModule,
+      moduleAt: PoseidonHasherAtModule,
+      contractAddress: contractsInfo.POSEIDON_HASHER.unifiedAddress,
+      name: contractsInfo.POSEIDON_HASHER.name,
+    },
+    {
+      module: SmtLibWithHasherModule,
       moduleAt: SmtLibAtModule,
       contractAddress: contractsInfo.SMT_LIB.unifiedAddress,
       name: contractsInfo.SMT_LIB.name,

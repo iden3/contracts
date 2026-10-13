@@ -1,11 +1,12 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { Poseidon1Module, SmtLibModule } from "./libraries";
+import { SmtLibWithHasherModule } from "./libraries";
 import { Groth16VerifierStateTransitionModule } from "./groth16verifiers";
 import {
   contractsInfo,
   TRANSPARENT_UPGRADEABLE_PROXY_ABI,
   TRANSPARENT_UPGRADEABLE_PROXY_BYTECODE,
 } from "../../../helpers/constants";
+import { PoseidonHasherModule } from "./libraries";
 
 export const CrossChainProofValidatorModule = buildModule("CrossChainProofValidatorModule", (m) => {
   const domainName = "StateInfo";
@@ -27,19 +28,18 @@ const StateLibModule = buildModule("StateLibModule", (m) => {
 });
 
 const StateImplementationModule = buildModule("StateImplementationModule", (m) => {
-  const poseidon1 = m.useModule(Poseidon1Module).poseidon;
   const { groth16VerifierStateTransition: groth16Verifier } = m.useModule(
     Groth16VerifierStateTransitionModule,
   );
   const { stateLib } = m.useModule(StateLibModule);
-  const { smtLib } = m.useModule(SmtLibModule);
+  const { poseidonHasher } = m.useModule(PoseidonHasherModule);
+  const { smtLib } = m.useModule(SmtLibWithHasherModule);
   const { crossChainProofValidator } = m.useModule(CrossChainProofValidatorModule);
 
   const implementation = m.contract(contractsInfo.STATE.name, [], {
     libraries: {
       StateLib: stateLib,
       SmtLib: smtLib,
-      PoseidonUnit1L: poseidon1,
     },
   });
 
@@ -49,12 +49,19 @@ const StateImplementationModule = buildModule("StateImplementationModule", (m) =
     implementation,
     stateLib,
     smtLib,
+    poseidonHasher,
   };
 });
 
 const StateProxyModule = buildModule("StateProxyModule", (m) => {
-  const { crossChainProofValidator, groth16Verifier, implementation, stateLib, smtLib } =
-    m.useModule(StateImplementationModule);
+  const {
+    crossChainProofValidator,
+    groth16Verifier,
+    implementation,
+    stateLib,
+    smtLib,
+    poseidonHasher,
+  } = m.useModule(StateImplementationModule);
 
   const proxyAdminOwner = m.getAccount(0);
 
@@ -67,6 +74,7 @@ const StateProxyModule = buildModule("StateProxyModule", (m) => {
     defaultIdType,
     proxyAdminOwner,
     crossChainProofValidator,
+    poseidonHasher,
   ]);
 
   const proxy = m.contract(
@@ -81,14 +89,37 @@ const StateProxyModule = buildModule("StateProxyModule", (m) => {
     [implementation, proxyAdminOwner, initializeData],
   );
 
-  return { proxy, implementation, crossChainProofValidator, stateLib, smtLib, groth16Verifier };
+  return {
+    proxy,
+    implementation,
+    crossChainProofValidator,
+    stateLib,
+    smtLib,
+    groth16Verifier,
+    poseidonHasher,
+  };
 });
 
 const StateModule = buildModule("StateModule", (m) => {
-  const { proxy, implementation, crossChainProofValidator, stateLib, smtLib, groth16Verifier } =
-    m.useModule(StateProxyModule);
+  const {
+    proxy,
+    implementation,
+    crossChainProofValidator,
+    stateLib,
+    smtLib,
+    groth16Verifier,
+    poseidonHasher,
+  } = m.useModule(StateProxyModule);
   const state = m.contractAt(contractsInfo.STATE.name, proxy);
-  return { state, implementation, crossChainProofValidator, stateLib, smtLib, groth16Verifier };
+  return {
+    state,
+    implementation,
+    crossChainProofValidator,
+    stateLib,
+    smtLib,
+    groth16Verifier,
+    poseidonHasher,
+  };
 });
 
 export default StateModule;

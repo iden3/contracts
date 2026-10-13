@@ -1,7 +1,7 @@
 import { beforeEach } from "mocha";
 import { expect } from "chai";
 import { chainIdInfoMap } from "../../helpers/constants";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { getChainId } from "../../helpers/helperUtils";
 import {
   Groth16VerifierStubModule,
@@ -9,7 +9,7 @@ import {
   RequestValidatorStubModule,
 } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const { ethers, networkHelpers, ignition } = await network.connect();
+const { ethers, networkHelpers, ignition } = await hre.network.create();
 
 describe("RequestDisableable tests", function () {
   let verifier, validator: any;

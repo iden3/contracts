@@ -41,9 +41,9 @@ import { getChainId } from "../../../../helpers/helperUtils";
 import { calculateRequestID } from "../../../../test/utils/id-calculation-utils";
 import * as uuid from "uuid";
 import { Groth16VerifierType } from "../../../../helpers/constants";
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers, networkName } = await network.connect();
+const { ethers, networkName } = await hre.network.create();
 
 const rhsUrl = "https://rhs-staging.polygonid.me";
 let nullifierSessionId = 11837235;

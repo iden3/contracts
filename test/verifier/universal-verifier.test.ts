@@ -5,7 +5,7 @@ import { byteEncoder, CircuitId } from "@0xpolygonid/js-sdk";
 import { calculateMultiRequestId } from "../utils/id-calculation-utils";
 import { chainIdInfoMap, contractsInfo } from "../../helpers/constants";
 import { beforeEach } from "mocha";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { getChainId } from "../../helpers/helperUtils";
 import UniversalVerifierModule from "../../ignition/modules/deployEverythingBasicStrategy/universalVerifier";
 import {
@@ -13,7 +13,7 @@ import {
   RequestValidatorStubModule,
 } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
 
-const { ethers, networkHelpers, ignition } = await network.connect();
+const { ethers, networkHelpers, ignition } = await hre.network.create();
 
 describe("Universal Verifier tests", function () {
   let request, paramsFromValidator, multiRequest, authResponse, response: any;

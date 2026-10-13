@@ -1,7 +1,7 @@
 // HARDHAT network Oracle signing address
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers } = await network.connect();
+const { ethers } = await hre.network.create();
 
 export const DEFAULT_MNEMONIC = "test test test test test test test test test test test junk";
 
@@ -186,7 +186,7 @@ export const contractsInfo = Object.freeze({
   },
   STATE: {
     name: "State",
-    version: "2.6.3",
+    version: "3.0.0",
     unifiedAddress: "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.State")),
     verificationOpts: {
@@ -374,7 +374,7 @@ export const contractsInfo = Object.freeze({
   },
   IDENTITY_TREE_STORE: {
     name: "IdentityTreeStore",
-    version: "1.1.0",
+    version: "2.0.0",
     unifiedAddress: "0x7dF78ED37d0B39Ffb6d4D527Bb1865Bf85B60f81",
     create2Calldata: ethers.hexlify(ethers.toUtf8Bytes("iden3.create2.IdentityTreeStore")),
     verificationOpts: {
@@ -429,7 +429,7 @@ export const contractsInfo = Object.freeze({
   },
   SMT_LIB: {
     name: "SmtLib",
-    unifiedAddress: "0x682364078e26C1626abD2B95109D2019E241F0F6",
+    unifiedAddress: "0x9AB79dF17e50240e6090B3cccC98b0EB07170b3d",
     create2Calldata: "",
     verificationOpts: {
       constructorArgsImplementation: [],
@@ -454,6 +454,11 @@ export const contractsInfo = Object.freeze({
   POSEIDON_4: {
     name: "PoseidonUnit4L",
     unifiedAddress: "0x0695cF2c6dfc438a4E40508741888198A6ccacC2",
+    create2Calldata: "",
+  },
+  POSEIDON_HASHER: {
+    name: "PoseidonHasher",
+    unifiedAddress: "0xc5Ce2d152DDf9e99250e8385DFFbF960bfA580e1",
     create2Calldata: "",
   },
   GROTH16_VERIFIER_STATE_TRANSITION: {

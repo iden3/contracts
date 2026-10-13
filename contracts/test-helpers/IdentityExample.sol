@@ -5,6 +5,7 @@ import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/acces
 import {ClaimBuilder} from "../lib/ClaimBuilder.sol";
 import {IdentityLib} from "../lib/IdentityLib.sol";
 import {IdentityBase} from "../lib/IdentityBase.sol";
+import {IHasher} from "../interfaces/IHasher.sol";
 
 // /**
 //  * @dev Contract managing onchain identity
@@ -12,8 +13,12 @@ import {IdentityBase} from "../lib/IdentityBase.sol";
 contract IdentityExample is IdentityBase, Ownable2StepUpgradeable {
     using IdentityLib for IdentityLib.Data;
 
-    function initialize(address _stateContractAddr, bytes2 _idType) public override initializer {
-        super.initialize(_stateContractAddr, _idType);
+    function initialize(
+        address _stateContractAddr,
+        bytes2 _idType,
+        IHasher hasher
+    ) public override initializer {
+        super.initialize(_stateContractAddr, _idType, hasher);
         __Ownable_init(_msgSender());
     }
 

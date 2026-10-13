@@ -1,5 +1,11 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { Poseidon3AtModule, Poseidon4AtModule, SmtLibAtModule, StateAtModule } from "./contractsAt";
+import {
+  Poseidon3AtModule,
+  Poseidon4AtModule,
+  PoseidonHasherAtModule,
+  SmtLibAtModule,
+  StateAtModule,
+} from "./contractsAt";
 
 const IdentityLibModule = buildModule("IdentityLibModule", (m) => {
   const poseidon3 = m.useModule(Poseidon3AtModule).contract;
@@ -42,7 +48,9 @@ const IdentityExampleProxyModule = buildModule("IdentityExampleProxyModule", (m)
     id: "identityExampleProxy",
   });
 
-  m.call(identityExampleProxy, "initialize", [state, defaultIdType], {
+  const { contract: poseidonHasher } = m.useModule(PoseidonHasherAtModule);
+
+  m.call(identityExampleProxy, "initialize", [state, defaultIdType, poseidonHasher], {
     from: proxyAdminOwner,
   });
 

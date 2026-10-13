@@ -13,13 +13,13 @@ import UpgradeAuthV2ValidatorModule from "../../../ignition/modules/upgrades/upg
 import UpgradeEthIdentityValidatorModule from "../../../ignition/modules/upgrades/upgradeEthIdentityValidator";
 import UpgradeLinkedMultiQueryValidatorModule from "../../../ignition/modules/upgrades/upgradeLinkedMultiQuery";
 import { transferOwnership } from "../helpers/utils";
-import { network } from "hardhat";
+import hre from "hardhat";
 import UpgradeAuthV3ValidatorModule from "../../../ignition/modules/upgrades/upgradeAuthV3Validator";
 import UpgradeAuthV3_8_32ValidatorModule from "../../../ignition/modules/upgrades/upgradeAuthV3_8_32Validator";
 import UpgradeCredentialAtomicQueryV3StableValidatorModule from "../../../ignition/modules/upgrades/upgradeCredentialAtomicQueryV3StableValidator";
 import UpgradeLinkedMultiQueryStableValidatorModule from "../../../ignition/modules/upgrades/upgradeLinkedMultiQueryStable";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 // If you want to use impersonation, set the impersonate variable to true
 // With ignition we can't use impersonation, so we need to transfer ownership to the signer

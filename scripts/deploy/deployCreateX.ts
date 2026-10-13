@@ -3,9 +3,9 @@ import {
   // SIGNED_SERIALISED_TRANSACTION_GAS_LIMIT_25000000,
   SIGNED_SERIALISED_TRANSACTION_GAS_LIMIT_3000000,
 } from "../../helpers/constants";
-import { network } from "hardhat";
+import hre from "hardhat";
 
-const { ethers } = await network.connect();
+const { ethers } = await hre.network.create();
 
 async function main() {
   const createXCreatorAddress = "0xeD456e05CaAb11d66C4c797dD6c1D6f9A7F352b5";

@@ -1,9 +1,9 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { expect } from "chai";
-import { network } from "hardhat";
+import hre from "hardhat";
 import { getConfig, getDeploymentParameters } from "../../helpers/helperUtils";
 
-const { ethers, ignition, networkName } = await network.connect();
+const { ethers, ignition, networkName } = await hre.network.create();
 
 // Put proper contract name here, e.g. contractsInfo.STATE.name
 const contractName = "<put-your-contract-name>";

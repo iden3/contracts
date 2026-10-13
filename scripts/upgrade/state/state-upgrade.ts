@@ -1,4 +1,4 @@
-import { network } from "hardhat";
+import hre from "hardhat";
 import { expect } from "chai"; // abi of contract that will be upgraded
 import {
   checkContractVersion,
@@ -12,7 +12,7 @@ import { contractsInfo } from "../../../helpers/constants";
 import UpgradeStateModule from "../../../ignition/modules/upgrades/upgradeState";
 import { transferOwnership } from "../helpers/utils";
 
-const { ethers, ignition } = await network.connect();
+const { ethers, ignition } = await hre.network.create();
 
 // If you want to use impersonation, set the impersonate variable to true
 // With ignition we can't use impersonation, so we need to transfer ownership to the signer
@@ -68,6 +68,7 @@ async function main() {
 
   const defaultIdTypeBefore = await stateContract.getDefaultIdType();
   const stateOwnerAddressBefore = await stateContract.owner();
+  const gistRootBefore = await stateContract.getGISTRoot();
 
   const version = "V".concat(contractsInfo.STATE.version.replaceAll(".", "_").replaceAll("-", "_"));
   parameters["UpgradeStateModule".concat(version)] = {
@@ -75,7 +76,6 @@ async function main() {
     proxyAdminAddress: parameters.StateAtModule.proxyAdminAddress,
     oracleSigningAddress: parameters.CrossChainProofValidatorModule.oracleSigningAddress,
     smtLibContractAddress: parameters.SmtLibAtModule.contractAddress,
-    poseidon1ContractAddress: parameters.Poseidon1AtModule.contractAddress,
   };
 
   // **** Upgrade State ****
@@ -116,9 +116,11 @@ async function main() {
 
   const defaultIdTypeAfter = await state.getDefaultIdType();
   const stateOwnerAddressAfter = await state.owner();
+  const gistRootAfter = await state.getGISTRoot();
 
   expect(defaultIdTypeAfter).to.equal(defaultIdTypeBefore);
   expect(stateOwnerAddressAfter).to.equal(stateOwnerAddressBefore);
+  expect(gistRootAfter).to.equal(gistRootBefore);
 
   const tx1 = await state.setCrossChainProofValidator(crossChainProofValidator.target);
   await tx1.wait();

@@ -9,7 +9,7 @@ import {
   Create2AddressAnchorAtModule,
   CrossChainProofValidatorAtModule,
   Groth16VerifierStateTransitionAtModule,
-  Poseidon1AtModule,
+  PoseidonHasherAtModule,
   SmtLibAtModule,
   StateAtModule,
   StateLibAtModule,
@@ -66,7 +66,6 @@ export const CrossChainProofValidatorModule = buildModule("CrossChainProofValida
 });
 
 const StateFinalImplementationModule = buildModule("StateFinalImplementationModule", (m) => {
-  const poseidon1 = m.useModule(Poseidon1AtModule).contract;
   const { groth16VerifierStateTransition: groth16Verifier } = m.useModule(
     Groth16VerifierStateTransitionModule,
   );
@@ -78,7 +77,6 @@ const StateFinalImplementationModule = buildModule("StateFinalImplementationModu
     libraries: {
       StateLib: stateLib,
       SmtLib: smtLib,
-      PoseidonUnit1L: poseidon1,
     },
   });
 
@@ -113,6 +111,7 @@ const StateProxyFinalImplementationModule = buildModule(
     const { contract: newImplementation } = m.useModule(StateNewImplementationAtModule);
     const { contract: groth16Verifier } = m.useModule(Groth16VerifierStateTransitionAtModule);
     const { contract: crossChainProofValidator } = m.useModule(CrossChainProofValidatorAtModule);
+    const { contract: poseidonHasher } = m.useModule(PoseidonHasherAtModule);
     const { contract: stateLib } = m.useModule(StateLibAtModule);
 
     const proxyAdminOwner = m.getAccount(0);
@@ -126,6 +125,7 @@ const StateProxyFinalImplementationModule = buildModule(
       defaultIdType,
       proxyAdminOwner,
       crossChainProofValidator,
+      poseidonHasher,
     ]);
 
     m.call(proxyAdmin, "upgradeAndCall", [proxy, newImplementation, initializeData], {
@@ -139,6 +139,7 @@ const StateProxyFinalImplementationModule = buildModule(
       groth16Verifier,
       crossChainProofValidator,
       stateLib,
+      poseidonHasher,
     };
   },
 );
@@ -148,6 +149,7 @@ const StateModule = buildModule("StateModule", (m) => {
     crossChainProofValidator,
     groth16Verifier,
     stateLib,
+    poseidonHasher,
     newImplementation,
     proxyAdmin,
     proxy,
@@ -160,6 +162,7 @@ const StateModule = buildModule("StateModule", (m) => {
     crossChainProofValidator,
     groth16Verifier,
     stateLib,
+    poseidonHasher,
     newImplementation,
     proxyAdmin,
     proxy,
