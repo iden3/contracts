@@ -127,6 +127,10 @@ contract LinkedMultiQueryStableValidator is Ownable2StepUpgradeable, RequestVali
         // This validator expects circuitId in the response metadata to select especific verifier
         string memory circuitId = abi.decode(responseMetadata, (string));
 
+        if (keccak256(bytes(circuitId)) != keccak256(bytes(query.circuitIds[0]))) {
+            revert WrongCircuitID(circuitId);
+        }
+
         IGroth16Verifier g16Verifier = getVerifierByCircuitId(circuitId);
         if (g16Verifier == IGroth16Verifier(address(0))) {
             revert WrongCircuitID(circuitId);

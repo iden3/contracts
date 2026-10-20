@@ -4,6 +4,7 @@ pragma solidity 0.8.27;
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {Verifier} from "./Verifier.sol";
 import {IState} from "../interfaces/IState.sol";
+import {IVerifier} from "../interfaces/IVerifier.sol";
 
 abstract contract EmbeddedVerifier is Ownable2StepUpgradeable, Verifier {
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -67,5 +68,32 @@ abstract contract EmbeddedVerifier is Ownable2StepUpgradeable, Verifier {
         AuthResponse memory authResponse,
         Response[] memory responses
     ) internal virtual {}
+
     /* solhint-enable no-empty-blocks */
+
+    /**
+     * @dev Sets an auth method
+     * @param authMethod The auth method to add
+     */
+    function setAuthMethod(
+        IVerifier.AuthMethod calldata authMethod
+    ) public virtual override onlyOwner {
+        super.setAuthMethod(authMethod);
+    }
+
+    /**
+     * @dev Disables an auth method
+     * @param authMethod The auth method to disable
+     */
+    function disableAuthMethod(string calldata authMethod) public virtual override onlyOwner {
+        super.disableAuthMethod(authMethod);
+    }
+
+    /**
+     * @dev Enables an auth type
+     * @param authMethod The auth type to enable
+     */
+    function enableAuthMethod(string calldata authMethod) public virtual override onlyOwner {
+        super.enableAuthMethod(authMethod);
+    }
 }

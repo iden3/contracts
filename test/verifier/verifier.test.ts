@@ -5,7 +5,8 @@ import { network } from "hardhat";
 import { getChainId } from "../../helpers/helperUtils";
 import StateModule from "../../ignition/modules/deployEverythingBasicStrategy/state";
 import { Groth16VerifierStubModule } from "../../ignition/modules/deployEverythingBasicStrategy/testHelpers";
-import { calculateGroupId, calculateMultiRequestId, calculateRequestId } from "@0xpolygonid/js-sdk";
+import { calculateGroupId, calculateRequestId } from "@0xpolygonid/js-sdk";
+import { calculateMultiRequestId } from "../utils/id-calculation-utils";
 
 const { ethers, ignition } = await network.connect();
 
@@ -590,6 +591,30 @@ describe("Verifier tests", function () {
       await expect(verifier.setMultiRequest({ ...multiRequest, multiRequestId: 1 }))
         .to.be.revertedWithCustomError(verifierLib, "MultiRequestIdNotValid")
         .withArgs(multiRequest.multiRequestId, 1);
+    });
+
+    it("setMultiRequest: should reject legacy abi.encodePacked multi request id", async function () {
+      const legacyMultiRequestId = BigInt(
+        ethers.keccak256(
+          ethers.solidityPacked(
+            ["uint256[]", "uint256[]", "address"],
+            [multiRequest.requestIds, multiRequest.groupIds, signerAddress],
+          ),
+        ),
+      );
+      expect(legacyMultiRequestId).to.not.equal(multiRequest.multiRequestId);
+      await expect(
+        verifier.setMultiRequest({ ...multiRequest, multiRequestId: legacyMultiRequestId }),
+      )
+        .to.be.revertedWithCustomError(verifierLib, "MultiRequestIdNotValid")
+        .withArgs(multiRequest.multiRequestId, legacyMultiRequestId);
+    });
+
+    it("calculateMultiRequestId: different requestIds/groupIds splits give different ids", async function () {
+      // With abi.encodePacked both splits packed to the same bytes and collided.
+      expect(calculateMultiRequestId([1n, 2n], [3n], signerAddress)).to.not.equal(
+        calculateMultiRequestId([1n], [2n, 3n], signerAddress),
+      );
     });
 
     it("setMultiRequest: requestIds and groupIds should exist", async function () {

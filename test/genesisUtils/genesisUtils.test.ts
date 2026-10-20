@@ -155,6 +155,60 @@ describe("test calculate id from ETH address", function () {
 
 });
 
+describe("test hasEthIdentityShape", function () {
+  const ethAddresses = [
+    "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "0x0000000000000000000000000000000000000000",
+    "0xffffffffffffffffffffffffffffffffffffffff",
+  ];
+  const idTypes = ["0x0000", "0x0100", "0x0112", "0x0211"];
+
+  // Ethereum-based identities have their genesis derived from an address, so the high
+  // 7 bytes of the genesis are zero and hasEthIdentityShape must return true.
+  for (const idType of idTypes) {
+    for (const address of ethAddresses) {
+      // idType 0x0000 + zero address yields id == 0 (zero genesis, zero checksum),
+      // which is covered by the dedicated zero-id case below.
+      if (idType === "0x0000" && BigInt(address) === 0n) continue;
+      it(`Ethereum-based id (idType ${idType}, address ${address}) -> true`, async () => {
+        const ethId = await guWrpr.calcOnchainIdFromAddress(idType, address);
+        expect(await guWrpr.hasEthIdentityShape(ethId)).to.be.true;
+      });
+    }
+  }
+
+  it("zero id -> false", async () => {
+    const zeroEthId = await guWrpr.calcOnchainIdFromAddress(
+      "0x0000",
+      "0x0000000000000000000000000000000000000000",
+    );
+    expect(zeroEthId).to.equal(0n);
+    expect(await guWrpr.hasEthIdentityShape(0)).to.be.false;
+  });
+
+  // A known Ethereum-based id generated in go-iden3-core (see "calculate id from ETH address").
+  it("known go-iden3-core Ethereum id -> true", async () => {
+    const ethId = "23006274145546572515053798212160025855323582904648170675239778444296327681";
+    expect(await guWrpr.hasEthIdentityShape(ethId)).to.be.true;
+  });
+
+  // Hash-based (non-Ethereum) identities have a non-zero high genesis section and must
+  // return false. These are real hash-based ids (their genesis is a Merkle root, not an
+  // address-derived value, unlike the degenerate all-zero-genesis test vectors above).
+  const nonEthereumIds = [
+    "0xD9C10A0BFB514F30B64E115D7EEB3D547C240C104E03D4548375669FE1201",
+    "0x0d9cfe69563748453de004c140c247d5b3eed715e1640bf314b5bfa0101201",
+    "0x0ff856791df9964673d9965def42a56e49c9b89964b7b4c2c5a897fcbf0001",
+    "24046132560195495514376446225096639477630837244209093211332602837583401473",
+    "27421469027114773745011513799725419039783723398312596785118397457757012226",
+  ];
+  for (const id of nonEthereumIds) {
+    it(`non-Ethereum id (${id}) -> false`, async () => {
+      expect(await guWrpr.hasEthIdentityShape(id)).to.be.false;
+    });
+  }
+});
+
 describe("test calculate id type from id", function () {
   it("Iden3 Polygon Amoy", async () => {
     const iden3PolygonAmoyDidType = buildDIDType(

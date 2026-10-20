@@ -15,6 +15,7 @@ error InvalidGroupIDOrLinkID(uint256 groupID, uint256 linkID);
 error ProofTypeShouldMatchTheRequestedOneInQuery();
 error InvalidNullifyPubSignal();
 error UserIDDoesNotCorrespondToTheSender();
+error WrongCircuitID(string circuitID);
 
 /**
  * @dev CredentialAtomicQueryV3StableValidator validator
@@ -204,6 +205,10 @@ contract CredentialAtomicQueryV3StableValidator is CredentialAtomicQueryValidato
 
         // This validator expects circuitId in the response metadata to select especific verifier
         string memory circuitId = abi.decode(responseMetadata, (string));
+
+        if (keccak256(bytes(circuitId)) != keccak256(bytes(credAtomicQuery.circuitIds[0]))) {
+            revert WrongCircuitID(circuitId);
+        }
 
         IGroth16Verifier g16Verifier = getVerifierByCircuitId(circuitId);
         if (g16Verifier == IGroth16Verifier(address(0))) {
