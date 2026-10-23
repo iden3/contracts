@@ -5,12 +5,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [ 24 ]
+        node: [ "lts/*" ]
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
     - name: Use Nodejs
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ matrix.node }} # https://github.com/actions/setup-node#matrix-testing
     - name: Install node_modules

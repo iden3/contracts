@@ -18,7 +18,7 @@
     along with snarkJS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity >=0.8.4 <0.9.0;
+pragma solidity >=0.7.0 <0.9.0;
 
 contract Groth16VerifierMTP {
     // Scalar field size
@@ -42,71 +42,59 @@ contract Groth16VerifierMTP {
     uint256 constant deltay1 = 4852486786898691455964846082763016922630372558821263656172370355988314898575;
     uint256 constant deltay2 = 8559222867245112767064473074858818732424559824983124225374445082554790506808;
 
-
+    
     uint256 constant IC0x = 1313452981527053129337572951247197324361989034671138626745310268341512913566;
     uint256 constant IC0y = 15303507074060980322389491486850010383524156520378503449579570642767442684301;
-
+    
     uint256 constant IC1x = 19469759548582862041953210077461806234755067239635831761330214958262728102210;
     uint256 constant IC1y = 16182855449814336395630220912227600929619756764754084585163045607249874698864;
-
+    
     uint256 constant IC2x = 5328220111696630739082100852965753471276442277347833726730125705096477686086;
     uint256 constant IC2y = 18905255288005092837452154631677141443252188654645540166408868771529766552954;
-
+    
     uint256 constant IC3x = 10933184819912527903586676306361564765563053120720138042486726178048079682568;
     uint256 constant IC3y = 18280626518907496130958526005677563160967544228407334084744886760261543167298;
-
+    
     uint256 constant IC4x = 11558797904750992453617754478260603596631069504995139547656018378652112039786;
     uint256 constant IC4y = 7387560020132856716152855364841368262707029595898949014465420811988605836841;
-
+    
     uint256 constant IC5x = 258345740540242369340676522345540363903777759573849221853370493977314124714;
     uint256 constant IC5y = 8261745575084416750025555445617776886593428107172740509334601364674159098729;
-
+    
     uint256 constant IC6x = 12229618381132244012134195568281704584580345418094236823704672151870483088680;
     uint256 constant IC6y = 19652481126909183227792433955062439643525977794731426347743513078747968248518;
-
+    
     uint256 constant IC7x = 21501269229626602828017941470237394838663343517747470934919163514713566489074;
     uint256 constant IC7y = 10918047203423236169474519778878366520860074771272087858656960949070403283927;
-
+    
     uint256 constant IC8x = 560417708851693272956571111854350209791303214876197214262570647517120871869;
     uint256 constant IC8y = 188344482860559912840076092213437046073780559836275799283864998836054113147;
-
+    
     uint256 constant IC9x = 12941763790218889190383140140219843141955553218417052891852216993045901023120;
     uint256 constant IC9y = 12682291388476462975465775054567905896202239758296039216608811622228355512204;
-
+    
     uint256 constant IC10x = 11112576039136275785110528933884279009037779878785871940581425517795519742410;
     uint256 constant IC10y = 6613377654128709188004788921975143848004552607600543819185067176149822253345;
-
+    
     uint256 constant IC11x = 13613305841160720689914712433320508347546323189059844660259139894452538774575;
     uint256 constant IC11y = 5325101314795154200638690464360192908052407201796948025470533168336651686116;
-
+    
+ 
     // Memory data
     uint16 constant pVk = 0;
     uint16 constant pPairing = 128;
 
     uint16 constant pLastMem = 896;
 
-    /**
-     * @dev Verify the circuit with the groth16 proof π=([πa]1,[πb]2,[πc]1).
-     * @param _pA πa element of the groth16 proof.
-     * @param _pB πb element of the groth16 proof.
-     * @param _pC πc element of the groth16 proof.
-     * @param _pubSignals Public signals of the circuit.
-     * @return true if the proof is verified.
-     */
-    function verifyProof(
-        uint[2] calldata _pA,
-        uint[2][2] calldata _pB,
-        uint[2] calldata _pC,
-        uint[11] calldata _pubSignals
-    ) public view returns (bool) {
+    function verifyProof(uint[2] calldata _pA, uint[2][2] calldata _pB, uint[2] calldata _pC, uint[11] calldata _pubSignals) public view returns (bool) {
         assembly {
             function checkField(v) {
-                if iszero(lt(v, q)) {
+                if iszero(lt(v, r)) {
                     mstore(0, 0)
                     return(0, 0x20)
                 }
             }
-
+            
             // G1 function to multiply a G1 value(x,y) to value in an address
             function g1_mulAccC(pR, x, y, s) {
                 let success
@@ -141,28 +129,29 @@ contract Groth16VerifierMTP {
                 mstore(add(_pVk, 32), IC0y)
 
                 // Compute the linear combination vk_x
-
+                
                 g1_mulAccC(_pVk, IC1x, IC1y, calldataload(add(pubSignals, 0)))
-
+                
                 g1_mulAccC(_pVk, IC2x, IC2y, calldataload(add(pubSignals, 32)))
-
+                
                 g1_mulAccC(_pVk, IC3x, IC3y, calldataload(add(pubSignals, 64)))
-
+                
                 g1_mulAccC(_pVk, IC4x, IC4y, calldataload(add(pubSignals, 96)))
-
+                
                 g1_mulAccC(_pVk, IC5x, IC5y, calldataload(add(pubSignals, 128)))
-
+                
                 g1_mulAccC(_pVk, IC6x, IC6y, calldataload(add(pubSignals, 160)))
-
+                
                 g1_mulAccC(_pVk, IC7x, IC7y, calldataload(add(pubSignals, 192)))
-
+                
                 g1_mulAccC(_pVk, IC8x, IC8y, calldataload(add(pubSignals, 224)))
-
+                
                 g1_mulAccC(_pVk, IC9x, IC9y, calldataload(add(pubSignals, 256)))
-
+                
                 g1_mulAccC(_pVk, IC10x, IC10y, calldataload(add(pubSignals, 288)))
-
+                
                 g1_mulAccC(_pVk, IC11x, IC11y, calldataload(add(pubSignals, 320)))
+                
 
                 // -A
                 mstore(_pPairing, calldataload(pA))
@@ -188,6 +177,7 @@ contract Groth16VerifierMTP {
                 mstore(add(_pPairing, 384), mload(add(pMem, pVk)))
                 mstore(add(_pPairing, 416), mload(add(pMem, add(pVk, 32))))
 
+
                 // gamma2
                 mstore(add(_pPairing, 448), gammax1)
                 mstore(add(_pPairing, 480), gammax2)
@@ -204,6 +194,7 @@ contract Groth16VerifierMTP {
                 mstore(add(_pPairing, 704), deltay1)
                 mstore(add(_pPairing, 736), deltay2)
 
+
                 let success := staticcall(sub(gas(), 2000), 8, _pPairing, 768, _pPairing, 0x20)
 
                 isOk := and(success, mload(_pPairing))
@@ -213,36 +204,35 @@ contract Groth16VerifierMTP {
             mstore(0x40, add(pMem, pLastMem))
 
             // Validate that all evaluations ∈ F
-
+            
             checkField(calldataload(add(_pubSignals, 0)))
-
+            
             checkField(calldataload(add(_pubSignals, 32)))
-
+            
             checkField(calldataload(add(_pubSignals, 64)))
-
+            
             checkField(calldataload(add(_pubSignals, 96)))
-
+            
             checkField(calldataload(add(_pubSignals, 128)))
-
+            
             checkField(calldataload(add(_pubSignals, 160)))
-
+            
             checkField(calldataload(add(_pubSignals, 192)))
-
+            
             checkField(calldataload(add(_pubSignals, 224)))
-
+            
             checkField(calldataload(add(_pubSignals, 256)))
-
+            
             checkField(calldataload(add(_pubSignals, 288)))
-
+            
             checkField(calldataload(add(_pubSignals, 320)))
-
-            checkField(calldataload(add(_pubSignals, 352)))
+            
 
             // Validate all evaluations
             let isValid := checkPairing(_pA, _pB, _pC, _pubSignals, pMem)
 
             mstore(0, isValid)
-            return(0, 0x20)
-        }
-    }
-}
+             return(0, 0x20)
+         }
+     }
+ }

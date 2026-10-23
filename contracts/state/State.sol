@@ -203,6 +203,12 @@ contract State is Ownable2StepUpgradeable, IState {
     ) public {
         // Check if the id type is supported
         getIdTypeIfSupported(id);
+        // Ethereum-based identities prove ownership via msg.sender (transitStateGeneric),
+        // not via a ZK proof, so the ZK transition path is blocked for them.
+        require(
+            !GenesisUtils.hasEthIdentityShape(id),
+            "ZK state transition is not allowed for Ethereum-based identities"
+        );
         uint256[4] memory input = [id, oldState, newState, uint256(isOldStateGenesis ? 1 : 0)];
         require(
             verifier.verifyProof(a, b, c, input),
